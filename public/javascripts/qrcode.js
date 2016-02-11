@@ -1,1 +1,1 @@
-../../../shared/public/javascripts/qrcode.js
+../../shared/public/javascripts/qrcode.js

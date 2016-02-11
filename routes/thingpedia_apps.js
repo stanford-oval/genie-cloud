@@ -19,6 +19,7 @@ const model = require('../model/app');
 const device = require('../model/device');
 const category = require('../model/category');
 const schema = require('../model/schema');
+const feeds = require('../shared/util/feeds');
 
 const EngineManager = require('../enginemanager');
 

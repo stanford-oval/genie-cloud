@@ -12,7 +12,7 @@ const express = require('express');
 const db = require('../util/db');
 const user = require('../util/user');
 const userModel = require('../model/user');
-const feeds = require('../../shared/util/feeds');
+const feeds = require('../shared/util/feeds');
 const EngineManager = require('../enginemanager');
 
 const ThingTalk = require('thingtalk');

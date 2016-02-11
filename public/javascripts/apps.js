@@ -1,1 +1,1 @@
-../../../shared/public/javascripts/apps.js
+../../shared/public/javascripts/apps.js

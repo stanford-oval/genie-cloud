@@ -1,1 +1,1 @@
-../../../shared/public/javascripts/devices-create.js
+../../shared/public/javascripts/devices-create.js
