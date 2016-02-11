@@ -13,3 +13,6 @@
 [submodule "node_modules/sabrina"]
 	path = node_modules/sabrina
 	url = https://github.com/Stanford-IoT-Lab/Sabrina.git
+[submodule "node_modules/thingpedia-discovery"]
+	path = node_modules/thingpedia-discovery
+	url = https://github.com/Stanford-IoT-Lab/thingpedia-discovery.git
