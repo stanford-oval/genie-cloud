@@ -1,7 +1,7 @@
 {
-  "name": "thingengine-cloudui",
+  "name": "thingengine-platform-cloud",
   "version": "1.0.0",
-  "description": "Cloud Web UI for ThingEngine",
+  "description": "Cloud Platform for ThingEngine",
   "author": "Stanford IoT lab",
   "contributors": [
     {
