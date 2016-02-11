@@ -101,6 +101,7 @@ Frontend.prototype._init = function _init() {
     // as we don't need CSRF protection for that
     this._app.use('/api', require('./routes/server'));
     this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
+    this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
     this._app.use(csurf({ cookie: false }));
 
     this._app.use('/', require('./routes/index'));
