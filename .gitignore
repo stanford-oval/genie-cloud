@@ -62,3 +62,7 @@ node_modules/uid2/
 node_modules/unpipe/
 node_modules/url/
 node_modules/utils-merge/
+node_modules/omclient/
+node_modules/tmp/
+node_modules/ultron/
+node_modules/ws/
