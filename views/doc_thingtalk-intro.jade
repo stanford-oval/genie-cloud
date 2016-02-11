@@ -1,0 +1,12 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/docs.css')
+
+block page_name
+  - index = true;
+  | Documentation
+
+block content
+  div.documentation
+    include:markdown ../../../doc/thingtalk-intro.md

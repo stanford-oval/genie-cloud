@@ -1,0 +1,94 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/devices.css')
+
+block content
+  h1#device-name= device.name
+
+  div.container
+    if device.approved_version === null
+      div.row
+        div.col-xs-12
+          div.alert.alert-warning(role='alert')
+            if user && user.developer_status >= 3
+              form(action='/devices/approve/' + device.id, method='post').form-inline
+                input(type='hidden',name='_csrf',value=csrfToken)
+                p.form-group This device is not yet approved.
+                  |  
+                  button(type='submit').btn.btn-success Approve it
+            else
+              p This device is not yet approved for general use. You need
+                |  a developer key to use it.
+    else if device.approved_version !== device.developer_version && user && user.developer_status >= 3
+      div.row
+        div.col-xs-12
+          div.alert.alert-warning(role='alert')
+            if user && user.developer_status >= 3
+              form(action='/devices/approve/' + device.id, method='post').form-inline
+                input(type='hidden',name='_csrf',value=csrfToken)
+                p.form-group A newer version of this device was submitted.
+                  |  
+                  button(type='submit').btn.btn-success Approve it
+
+    div.row
+      div.col-xs-12
+        p#device-description= device.description
+
+        if device.primary_kind.startsWith('org.thingpedia.builtin.')
+          p
+            i This is a builtin interface in every ThingEngine installation.
+
+        if user && user.developer_status >= 0
+          h2.device-subtitle#device-version Version: 
+            if device.approved_version === null
+              | none (approved), #{device.developer_version} (developer)
+            else if device.approved_version !== device.developer_version
+              | #{device.approved_version} (approved), #{device.developer_version} (developer)
+            else
+              | #{device.approved_version}
+
+
+        if device.global_name
+          h2.device-subtitle Name: 
+              code @#{device.global_name}
+
+        h2.device-subtitle Types: 
+          span.label.label-default= device.primary_kind
+          if device.global_name
+            |  
+            span.label.label-default= device.global_name
+          for k in device.kinds
+            |  
+            span.label.label-default= k.kind
+
+        if triggers.length > 0
+          h2.device-subtitle Triggers
+          ul.device-channels
+            for t in triggers
+              li
+                if t.schema
+                  code #{t.name}(#{t.params.map(function(p, i) { return p + ' : ' + t.schema[i]; }).join(', ')})
+                else
+                  code #{t.name}(#{t.params.join(', ')})
+                if t.doc
+                  | : #{t.doc}
+
+        if actions.length > 0
+          h2.device-subtitle Actions
+          ul.device-channels
+            for a in actions
+              li
+                if a.schema
+                  code #{a.name}(#{a.params.map(function(p, i) { return p + ' : ' + a.schema[i]; }).join(', ')})
+                else
+                  code #{a.name}(#{a.params.join(', ')})
+                if a.doc
+                  | : #{a.doc}
+
+    div.row#device-details-actions
+      div.col-md-2
+        a.btn.btn-default.btn-block(href='/apps/by-device/' + device.id) Find Apps
+      if authenticated && (user.developer_status >= 3 || dev.owner === user.id)
+        div.col-md-2
+          a.btn.btn-warning.btn-block(href='/upload/update/' + device.id) Update

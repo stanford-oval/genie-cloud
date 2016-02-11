@@ -1,0 +1,120 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/apps.css')
+
+block scripts
+  script(src='/js/qrcode.js')
+  script(src='/js/app.js')
+
+block content
+  h1 App: #{app.name}
+
+  div.container#app-container
+    div.row
+      div.col-sm-12
+        p
+          i= app.description
+
+        p Contributed by 
+          a(href='/user/profile/' + app.owner)= app.owner_name
+          | .
+          if app.tags.length > 0
+            |  Tags: 
+            each tag in app.tags
+              span.label.label-default= tag.tag
+              |  
+
+    div.row#app-code
+      div.col-sm-12
+        pre
+          code= app.code
+
+    //div.row
+      div.col-sm-2
+        button(type='button',data-toggle='collapse',data-target='#report-problem',aria-controls='#report-problem').btn.btn-default.btn-block#app-show-hide-report-problem Report a problem
+
+    //div.row.collapse#report-problem
+      div.col-sm-12
+        form(action='/apps/report/' + app.id, method='post')
+          input(type='hidden',name='_csrf',value=csrfToken)
+
+          div.form-group
+            textarea.form-control#app-report-problem(name='problem',placeholder='What problem did you have?')
+
+          div.form-group
+            button(type='submit').btn.btn-primary Report
+    div.row
+      div.col-sm-2
+        a.btn.btn-primary.btn-block(data-toggle='modal', data-target='#install-app-dialog') Install
+
+        div.modal.fade#install-app-dialog(role='dialog')
+          div.modal-dialog
+            div.modal-content
+              div.modal-header
+                a.close(data-dismiss='modal', aria-label="Close")
+                  span(aria-hidden='true') ×
+
+                h4.modal-title Install app
+
+              div.modal-body
+                div.container-fluid
+                  div.row
+                    div.col-xs-12
+                      p Where do you want to install this?
+
+                  div.row
+                    div.col-md-4
+                      a(href='https://thingengine.stanford.edu/thingpedia/install/' + app.id).btn.btn-primary.btn-block.app-install-button Online
+
+                    div.col-md-4.hidden#install-phone-mobile-browser
+                      a(href='https://thingengine.stanford.edu/qrcode-thingpedia/install/' + app.id).btn.btn-primary.btn-block.app-install-button Phone
+
+                    div.col-md-4#install-phone-desktop-browser
+                      button(type='button',data-toggle='collapse',data-target='#app-qrcode',aria-controls='#app-qrcode').btn.btn-default.btn-block.app-install-button Phone
+
+                  div.row.collapse#app-qrcode
+                    div.col-xs-12
+                      p
+                        | To install, visit this page on a mobile browser, or
+                        | scan this QR code.
+
+                      div.hidden#qrcode-target https://thingengine.stanford.edu/qrcode-thingpedia/install/#{app.id}
+                      div#qrcode-placeholder
+
+      if authenticated && (app.owner === user.id || user.developer_status === 3)
+        div.col-sm-2
+          a(href='/apps/edit/' + app.id).btn.btn-default.btn-block Edit
+      else
+        div.col-sm-2
+          a(href='/apps/fork/' + app.id).btn.btn-default.btn-block Fork
+      if authenticated && (app.owner === user.id || user.developer_status === 3)
+        div.col-sm-2
+          a.btn.btn-danger.btn-block(data-toggle='modal', data-target='#delete-app-dialog') Delete
+
+          div.modal.fade#delete-app-dialog(role='dialog')
+            div.modal-dialog
+              div.modal-content
+                div.modal-header
+                  a.close(data-dismiss='modal', aria-label="Close")
+                    span(aria-hidden='true') ×
+
+                  h4.modal-title Are you sure?
+
+                div.modal-body
+                  div.container-fluid
+                    div.row
+                      div.col-xs-12
+                        p If you delete your app, all other users will be
+                          | unable to install it from ThingPedia.
+                        p This will not affect users who already installed it.
+
+                    div.row
+                      div.col-sm-4
+                        form(action='/apps/delete/' + app.id, method='post')
+                          input(type='hidden',name='_csrf',value=csrfToken)
+                          button(type='submit').btn.btn-danger.btn-block Delete App
+
+                      div.col-sm-4
+                        button(type='button',data-dismiss='modal').btn.btn-primary.btn-block Cancel
+

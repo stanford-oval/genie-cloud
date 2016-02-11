@@ -1,0 +1,105 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/index.css')
+
+block scripts
+  if authenticated
+    script(src='/javascripts/index.js')
+
+block page_name
+  - index = true;
+  | ThingEngine
+
+block content
+  if authenticated
+    div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+  section#index-banner
+    div
+
+      if authenticated
+        if isRunning
+          h1 Welcome back!
+
+          p Connect your 
+            a(href='/devices/create?class=physical') devices
+            |  or 
+            a(href='/devices/create?class=online') web services
+            | , or jump straight to the 
+            a(href='/apps') list of your apps
+          | .
+        else
+          h1 Uh, oh!
+
+          h2 Your engine is not running!
+          p It might have crashed or might have been killed by the site administrators. 
+            a(href='/status') Check out what happened
+            | .
+      else
+        h1 Welcome to ThingEngine Online
+
+        p ThingEngine Online is a free service to manage your Internet of Things.
+
+        p We are collecting all the ways devices and web services work, so
+          | that you can plug them together efforlessly, through a friendly web interface
+          | or through Sabrina, your virtual assistant.
+
+        p Here, all your favorite apps come together to connect to your social networks
+          |  and your devices.
+          |  Or you can unleash your creativity with your own special app, tailored
+          |  to your life.
+
+        p
+          |  It's easy, just 
+          a(href='/user/register') open your free account
+          |  and start 
+          a(href='/thingpedia/apps') browsing for apps
+          | .
+
+        p
+          a.btn.btn-lg.btn-primary(href='/user/register') Register now!
+          |  
+          a.btn.btn-lg.btn-default(href='/user/login') Sign in
+
+  if authenticated
+    h3.section-title What to do with ThingEngine?
+  else
+    h3.section-title What can I do with ThingEngine?
+
+  div.row
+    each cat in categories
+      div.col-md-4.col-lg-3.col-sm-6.category-button
+        a(href='/thingpedia/apps/by-category/' + cat.id)
+          span(class='glyphicon glyphicon-' + cat.icon)
+          h4.category-link= cat.catchphrase
+
+  h3.section-title What things can I use?
+
+  h4.section-subtitle ThingEngine supports 
+    a(href='/thingpedia/devices?class=physical') many devices
+    |  and 
+    a(href='/thingpedia/devices?class=online') many web services
+    | . These are our favorites:
+
+  div.container
+    div.row
+      each d in devices
+        div.col-md-4.col-lg-3.col-sm-6.category-button
+          a(href='/thingpedia/devices/details/' + d.id)
+            h4.category-link= d.name
+
+  footer
+    p
+      small ThingEngine is a research project of the 
+        a(href='http://mobisocial.stanford.edu') Mobisocial Computing Laboratory
+        |  at Stanford University. 
+        a(href='/about') Read more
+        | .
+    p
+      small
+        |  ThingEngine is free software, distributed under the 
+        a(href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html') GPLv2
+        |  license. 
+        a(href='https://github.com/Stanford-IoT-Lab/ThingEngine/issues') Report a bug
+        |  
+        a(href='https://github.com/Stanford-IoT-Lab/ThingEngine').label.label-default Fork me on Github!

@@ -1,0 +1,37 @@
+ul.nav.navbar-nav
+  li.hidden-md.hidden-lg
+    a(href="/") Home
+  li
+    a(href="/thingpedia/apps") App Collection
+  li
+    a(href="/thingpedia/devices?class=physical") Supported Devices
+  //li
+    a(href="/thingpedia/devices?class=online") Supported Accounts
+  if authenticated
+    li
+      a(href="/apps") My Apps
+    li
+      a(href="/devices?class=physical") My Devices
+    li
+      a(href="/devices?class=online") My Accounts
+    li
+      a(href="/assistant") Sabrina
+    if user.roles & 0x1
+      li
+        a(href="/admin") Administration
+
+ul.nav.navbar-nav.navbar-right
+  if authenticated
+    li
+      a(href="/status") Status
+    li
+      a(href="/user/profile") Profile
+  li
+    if authenticated
+      a.navbar-login(href='/user/logout') Log Out
+    else
+      a.navbar-login(href='/user/login') Log In
+  li
+    a(href='/about') About
+  li
+    a#navbar-login-button(href='/doc') Docs

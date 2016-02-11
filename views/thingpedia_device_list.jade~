@@ -1,0 +1,56 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/devices.css')
+
+block content
+  if onlineAccounts
+    h1 Supported online services
+  else
+    h1 Supported devices
+
+  div.container#device-list
+    if onlineAccounts
+      div.row
+        div.col-xs-12
+          div.alert.alert-warning(role='alert')
+            | Can't find your service? You can 
+            a.alert-link(href='/upload/create?class=online') propose it for inclusion
+            | .
+    else
+      div.row
+        div.col-xs-12
+          div.alert.alert-warning(role='alert')
+            | Can't find your device? You can 
+            a.alert-link(href='/upload/create?class=physical') propose it for inclusion
+            | .
+
+      div.row
+        div.col-xs-12
+          div.alert.alert-warning(role='alert')
+            | Looking for web services instead? 
+            a.alert-link(href='/devices?class=online') Try here.
+
+    div.row
+      each dev, i in devices
+        if i % 12 === 0
+          div.clearfix.visible-md.visible-md.visible-sm
+        else if i % 6 === 0
+          div.clearfix.visible-md.visible-sm
+        else if i % 4 === 0
+          div.clearfix.visible-lg.visible-sm
+        else if i % 3 === 0
+          div.clearfix.visible-md
+        else if i % 2 === 0
+          div.clearfix.visible-sm
+        div.col-lg-3.col-md-4.col-sm-6.dev-template
+          div.panel.panel-default
+            a(href='/devices/details/' + dev.id).panel-heading= dev.name
+            div.panel-body= dev.description
+            div.panel-footer
+              div.row
+                div.col-md-6
+                  a.btn.btn-sm.btn-default.btn-block(href='/apps/by-device/' + dev.id) Find Apps
+                if authenticated && (user.developer_status >= 3 || dev.owner === user.id)
+                  div.col-md-6
+                    a.btn.btn-sm.btn-warning.btn-block(href='/upload/update/' + dev.id) Update

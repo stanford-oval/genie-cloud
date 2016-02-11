@@ -1,0 +1,149 @@
+#index-banner {
+    padding-top: 50px;
+    padding-bottom: 50px;
+    background-image:url(../images/world.jpg);
+    background-size: contain;
+}
+
+#index-banner > div {
+    box-shadow: 0px 0px 10px #AAAAAA;
+    /*background-color: rgba(244, 244, 244, 0.917);*/
+    background-color: white;
+    /*height: 67%;*/
+    margin-right:auto;
+    margin-left:auto;
+    max-width: 867px;
+    padding: 6px 3.7% 25px 3.7%;
+    text-align: center;
+    /*color: #666666;*/
+}
+
+#index-banner h1 {
+    font-weight: 900;
+    margin-bottom: 30px;
+}
+
+#index-banner h2 {
+    font-weight:900;
+    margin-bottom: 20px;
+}
+
+#index-banner p {
+    font-size: 1.5em;
+    margin-bottom: 0.5em
+    line-height: 1.5;
+}
+
+.section-title, .section-subtitle {
+    text-align: center;
+}
+
+.category-button {
+    margin: 1em 0;
+    text-align: center;
+}
+
+.category-button .glyphicon {
+    font-size: 6em;
+}
+
+.category-link {
+    font-weight: bold;
+}
+
+.about-title {
+    text-align: center;
+}
+
+.about-title-line {
+    border-top: 2px solid rgb(200, 200, 200);
+    margin:auto;
+    width:30%;
+    margin-bottom: 30px;
+}
+
+.about-section p , .about-section li {
+    text-align: justify;
+    font-size: 16px;
+}
+
+
+.team-title {
+    font-weight: bold;
+    padding-top: 30px;
+    color:rgb(102, 102, 102);
+    width:50%;
+    margin:auto;
+    text-align: center;
+}
+
+#team-profile {
+    margin-left: 12.5%;
+    width:75%;
+}
+
+#team-profile #row-mid {
+    padding-top:20px;
+    margin:auto;
+}
+
+.team-profile-mid {
+    margin: auto;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+}
+
+#team-profile-monica {
+    background-image:url(../images/monica-lam.jpg);
+    background-size:cover;
+    margin: auto;
+    width:180px;
+    height:180px;
+    border-radius: 50%;
+}
+
+#team-profile-mid-giovanni {
+    background-image:url(../images/giovanni.jpeg);
+    background-size:cover;
+}
+
+#team-profile-mid-michael {
+    background-image:url(../images/michael-fischer.png);
+    background-size:cover;
+}
+
+#team-profile-mid-jiwon {
+    background-image:url(../images/jiwon-seo.jpg);
+    background-size:cover;
+}
+
+#team .profile-name {
+    font-weight: bold;
+}
+
+#team-profile-second-row {
+    margin-top: 30px;
+}
+
+.team-profile-mid-text {
+    text-align: center;
+}
+
+.team-profile-text {
+    padding-top: 0px;
+    padding-left: 40px;
+    vertical-align: top;
+    height:100%;
+    width:450px;
+}
+
+.team-profile-mid-des {
+    font-size: 12px;
+}
+
+.iot-modal-footer {
+    margin:auto;
+    padding-top: 0px;
+    padding-bottom: 20px;
+}

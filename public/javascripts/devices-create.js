@@ -1,0 +1,1 @@
+../../../shared/public/javascripts/devices-create.js

@@ -1,0 +1,65 @@
+extends layout
+
+block scripts
+  script(src='/javascripts/app-install.js')
+
+block page_name
+  - index = true;
+  | Install App
+
+block content
+  h1 Do you want to install this app?
+
+  div.well#app-install-well
+    h3 #{name}
+    p#app-install-description= description
+
+    div.row
+      div.col-sm-2
+        a(aria-controls='code-block', data-toggle='collapse', data-target='#code-block').btn.btn-default.btn-sm.btn-block Show/hide code
+    pre.collapse#code-block= code
+
+  form(action='/apps/create', method='post', data-toggle='validator').form-horizontal#app-install-form
+    if params.length > 0
+      p.text-danger#app-install-alert This app requires additional parameters
+
+      each param in params
+        if !param[1].isFeed
+          div.form-group
+            div.col-sm-3.col-md-2
+              label(for='param-' + param[0]).control-label= param[0]
+            div.col-sm-9.col-md-10
+              input(type=(param[1].isNumber || param[1].isMeasure ? 'number' : 'text'),id='param-' + param[0],data-param=param[0],required=true).app-param.form-control
+
+    input(type='hidden',name='_csrf',value=csrfToken)
+    input(type='hidden',name='code',value=code)
+    input(type='hidden',name='params',id='app-input-params',value='{}')
+
+    if feeds
+      div.form-group
+        div.col-sm-3.col-md-2
+          label.control-label(for="feed-id") Feed
+        div.col-sm-9.col-md-10
+          select(name="feedId")#feed-id.form-control
+            for f in feeds
+              option(value=f.identifier)= f.name
+
+    input(type='hidden',name='tier',value='cloud')
+    //div.form-group
+      div.col-sm-3.col-md-2
+        label(for='tier').control-label Run in:
+      div.col-sm-9.col-md-10
+        select#tier(name="tier").form-control
+          option(value="phone") Phone
+          option(value="server") Server
+          option(value="cloud",selected=true) Cloud
+
+    div.form-group
+      div.col-xs-12
+        button(type='submit').btn.btn-success Install
+
+  p
+    | If you are unsure of how you got to this page, or what this
+    | even means, you <strong>should not</strong> click "Install",
+    | as you might have clicked a link to a malicious app. Always
+    | review carefully what you install.

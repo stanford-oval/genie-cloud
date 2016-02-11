@@ -1,0 +1,43 @@
+extends layout
+
+block page_name
+  - index = true;
+  | Install App
+
+block content
+  h1 Do you want to install this app?
+
+  div.well#app-install-well
+    h3 #{name}
+    p#app-install-description= description
+
+    div.row
+      div.col-sm-2
+        a(aria-controls='code-block', data-toggle='collapse', data-target='#code-block').btn.btn-default.btn-sm.btn-block Show/hide code
+    pre.collapse#code-block= code
+
+  form(action='/apps/create?shared=1', method='post', data-toggle='validator').form-horizontal#app-install-form
+
+    input(type='hidden',name='_csrf',value=csrfToken)
+    input(type='hidden',name='code',value=code)
+    input(type='hidden',name='params',value=state)
+
+    input(type='hidden',name='tier',value='cloud')
+    //div.form-group
+      div.col-sm-3.col-md-2
+        label(for='tier').control-label Run in:
+      div.col-sm-9.col-md-10
+        select#tier(name="tier").form-control
+          option(value="phone") Phone
+          option(value="server") Server
+          option(value="cloud",selected=true) Cloud
+
+    div.form-group
+      div.col-xs-12
+        button(type='submit').btn.btn-success Install
+
+  p
+    | If you are unsure of how you got to this page, or what this
+    | even means, you <strong>should not</strong> click "Install",
+    | as you might have clicked a link to a malicious app. Always
+    | review carefully what you install.

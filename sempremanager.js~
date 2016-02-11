@@ -1,0 +1,37 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingEngine
+//
+// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+
+const Q = require('q');
+const lang = require('lang');
+const events = require('events');
+const Url = require('url');
+
+const JsonDatagramSocket = require('./json_datagram_socket');
+
+// Manage an instance of SEMPRE running in the background, using our API
+
+const ARGS = ['java', '-cp', 'libsempre/*:lib/*', '-ea',
+              'edu.stanford.nlp.sempre.Main',
+              '-languageAnalyzer', 'corenlp.CoreNLPAnalyzer',
+              '-Builder.executor', 'NormalFormExecutor',
+              '-Grammar.inPaths', 'data/thingtalk-new.grammar',
+              '-FeatureExtractor.featureDomains', 'rule', 'span',
+              '-Learner.maxTrainIters', '3',
+              '-SimpleLexicon.inPaths', 'data/thingtalk-new.lexicon',
+              '-DataSet.inPaths', 'train:data/thingtalk-new.examples',
+              '-Main.streamapi', 'true'];
+
+const SempreManager = new lang.Class({
+    Name: 'SempreManager',
+
+    _init: function() {
+        this._stdin = null;
+        this._stdout = null;
+    }
+
+    

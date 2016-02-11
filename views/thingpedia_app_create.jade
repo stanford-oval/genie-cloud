@@ -1,0 +1,71 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-apps.css')
+
+block scripts
+  script(src='/javascripts/thingpedia-app-create.js', type='text/javascript')
+
+block page_name
+  - var action, page_h1;
+  - if(op === 'create')
+    - action = '/thingpedia/apps/create';
+    - page_h1 = "Publish a new app";
+  - else if(op === 'fork')
+    - action = '/thingpedia/apps/fork/' + fork_id
+    - page_h1 = "Fork an app"
+  - else if(op === 'edit')
+    - action = '/thingpedia/apps/edit/' + app_id
+    - page_h1 = "Edit App"
+  - else
+    - throw new TypeError('Invalid op');
+  | #{page_h1}
+
+block content
+  form(action=action, method='post', data-toggle='validator')
+    input(type='hidden',name='_csrf',value=csrfToken)
+
+    if error
+      div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
+        button(type='button', data-dismiss='alert', aria-label="Close").close
+          span(aria-hidden='true') ×
+        p= error
+
+    if op === 'fork'
+      p You are forking app "
+        a(href='/thingpedia/apps/' + fork_id)= fork_name
+        | " by 
+        a(href='/thingpedia/apps/by-owner/' + fork_owner)= fork_owner_name
+        | . This will result in a new app with your changes.
+
+    div.form-group
+      label(for='input-app-name').control-label App Name:
+      input.form-control#input-app-name(type="text",name="name",required=true,value=name)
+
+    div.form-group
+      label(for='input-app-description').control-label App Description:
+      textarea.form-control#input-app-description(name="description",required=true,placeholder="What does the app accomplish?")= description
+
+    div.form-group
+      label(for='input-app-code').control-label App Specification:
+      textarea.form-control#input-app-code(name="code",required=true,placeholder="Code Here...")= code
+
+    div.form-group
+      label.control-label Tags
+      p.form-control-static
+        span#tag-container
+          each tag, i in tags
+            span.label.label-default(id='tag-' + i).input-tag #{tag} | 
+              a.tag-remove(data-target='#tag-' + i, aria-label='Remove tag')
+                span.glyphicon-minus
+            input(type='hidden', name='tags[]', value=tag)
+            |  
+        |  
+        input(type='text', placeholder='Add tag...').form-control.form-inline.input-sm#add-tag-input
+
+    div.row
+      div.col-sm-2
+        if op === 'edit'
+          button(type='submit').form-control.btn.btn-primary.btn-block Save
+        else
+          button(type='submit').form-control.btn.btn-primary.btn-block Publish

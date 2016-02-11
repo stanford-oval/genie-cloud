@@ -1,0 +1,34 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/docs.css')
+
+block page_name
+  - index = true;
+  | Tutorial
+
+block content
+  div.documentation
+    h1 Installing the App
+
+    p Great, your Sabrina is ready to help you, as you probably noticed from your phone.
+      |  (If your Sabrina is still asking you questions, you should answer her, or say "no"
+      |  before proceeding further).
+
+    p The next step is to install the ThingTalk app that will make use of Sabrina's power.
+      |  How you would normally do it is that you would go to
+      a(href='/apps/create') New App
+      |  and start typing your ThingTalk code. But to make it easy for you, we're providing
+      |  the first example: just copy paste it in the interface and press "Create".
+
+    pre
+      code.
+        HelloWorld() {
+          @sabrina.listen(text), $regex(text, "hello", "i")
+            => @sabrina.say("world");
+        }
+
+    p Don't worry about "Run In" or "Feed" just yet. You will learn their use at a later time.
+
+    p.text-center
+      a(href='/apps/create').btn.btn-primary Ok, I'm ready

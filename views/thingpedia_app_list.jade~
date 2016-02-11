@@ -1,0 +1,47 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/apps.css')
+
+block content
+  h1= page_h1
+    if page_subtitle
+      br
+      small= page_subtitle
+
+  div.container
+    div.row#app-list-navbar
+      div.col-xs-12
+        div.navbar.navbar-default
+          form.navbar-form.navbar-left(action='/apps/search',method='get')
+            div.form-group
+              input.form-control#app-search-box(type='text', name='q', placeholder="I want to find a app...")
+            button.btn.btn-primary(type="submit") Search
+          a.navbar-btn.btn.btn-warning#app-create(href="/apps/create") Create a new app
+
+    div.row
+      each app, i in apps
+        if i % 12 === 0
+          div.clearfix.visible-md.visible-md.visible-sm
+        else if i % 6 === 0
+          div.clearfix.visible-md.visible-sm
+        else if i % 4 === 0
+          div.clearfix.visible-lg.visible-sm
+        else if i % 3 === 0
+          div.clearfix.visible-md
+        else if i % 2 === 0
+          div.clearfix.visible-sm
+        div.col-lg-3.col-md-4.col-sm-6.app-template
+          div.panel.panel-default
+            a.panel-heading(href='/apps/' + app.id)= app.name
+            div.panel-body
+              | #{app.description}
+            div.panel-footer
+              p
+                span By 
+                  a(href='/user/profile/' + app.owner)= app.owner_name
+                //span.badge Like #{app.like}
+              p
+                each tag in app.tags
+                  a(href='/apps/by-tag/' + tag.tag).label.label-default= tag.tag
+                  |  

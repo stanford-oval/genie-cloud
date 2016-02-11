@@ -1,0 +1,28 @@
+.documentation {
+    text-align: justify;
+}
+
+.documentation pre > code {
+    color: #2C3E50;
+}
+
+/* emulate bootstrap styling of .table with no class name */
+
+.documentation table {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 21px;
+}
+
+.documentation table td, .documentation table th {
+    padding: 8px;
+    line-height: 1.42857;
+}
+
+.documentation table td {
+    vertical-align: top;
+}
+
+.documentation table th {
+    vertical-align: bottom;
+}

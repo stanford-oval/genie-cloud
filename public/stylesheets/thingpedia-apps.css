@@ -1,0 +1,42 @@
+.app-template {
+    text-align: center;
+}
+
+#app-search-box {
+    margin-right: 15px;
+}
+
+#app-list-navbar {
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+
+.app-template .panel-heading {
+    display: block;
+}
+
+.app-template .panel-footer > p {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+.app-install-button {
+    margin-bottom: 1em;
+}
+
+#input-app-code {
+    min-height: 15em;
+}
+
+.input-tag {
+    font-size: 100%;
+}
+
+#add-tag-input {
+    max-width: 20ex;
+    display: inline-block;
+}
+
+#app-qrcode img {
+    margin: 0 auto;
+}

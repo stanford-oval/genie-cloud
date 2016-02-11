@@ -1,0 +1,53 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/status.css')
+
+block scripts
+  script(src='/javascripts/status.js')
+
+block page_name
+  | Status
+
+block content
+  p Status of your ThingEngine: 
+    if isRunning
+      strong Running
+    else
+      strong Killed
+
+  if isRunning
+    form(action='/status/kill', method='post')
+      input(type='hidden',name='_csrf',value=csrfToken)
+      button(type='submit').btn.btn-danger Kill
+  else
+    form(action='/status/start', method='post')
+      input(type='hidden',name='_csrf',value=csrfToken)
+      button(type='submit').btn.btn-danger Start
+
+  h2 Cached Modules
+
+  table.table#cached-module-table
+    thead
+      tr
+        th Name
+        th Version
+        th Generic?
+        th Actions
+    tbody
+      each m in modules
+        tr
+          td= m.name
+          td= m.version
+          td
+            if m.generic
+              | Yes
+            else
+              | No
+          td
+            form(action='/status/update-module/' + m.name, method='post')
+              input(type='hidden',name='_csrf',value=csrfToken)
+              button(type='submit').btn.btn-default Update
+
+  h2 Logs
+  div#log-view

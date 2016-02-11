@@ -1,0 +1,84 @@
+extends layout
+
+block page_name
+  | Administration
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/admin.css')
+
+block content
+  h2 Users
+
+  div.row
+    div.col-sm-2
+      form(action='/admin/kill-all', method='post')
+        input(type='hidden',name='_csrf',value=csrfToken)
+        button(type='submit').btn.btn-danger.btn-block Kill all users
+
+    div.col-sm-2
+      form(action='/admin/blow-view-cache', method='post')
+        input(type='hidden',name='_csrf',value=csrfToken)
+        button(type='submit').btn.btn-default.btn-block Clear view cache
+
+  table.table#users-table
+    thead
+      tr
+        th #
+        th User name
+        th Human name
+        th Login methods
+        th Roles
+        th Assistant?
+        th Engine?
+        th(colspan=2) Actions
+    tbody
+      each user in users
+        tr
+          td
+            span(title=user.cloud_id)= user.id
+          td
+            a(href='mailto:' + user.email)= user.username
+          td= user.human_name
+          td
+            - var methods = [];
+            - if (user.password !== null)
+              - methods.push("Password");
+            - if (user.facebook_id !== null)
+              - methods.push("Facebook");
+            - if (user.google_id !== null)
+              - methods.push("Google")
+            | #{methods.join(', ')}
+          td
+            if user.roles & 0x1
+              | Admin
+            else if user.developer_status >= 2
+              | Trusted Developer
+            else if user.developer_status >= 1
+              | Developer
+            else
+              | User
+          td
+            if user.assistant_feed_id !== null
+              span.sr-only= user.assistant_feed_id
+              span(aria-hidden='yes', title=user.assistant_feed_id) Yes
+            else
+              | No
+          td
+            if user.isRunning
+              | Running
+            else
+              | Died
+          td
+            if user.isRunning
+              form(action='/admin/kill-user/' + user.id, method='post')
+                input(type='hidden',name='_csrf',value=csrfToken)
+                button(type='submit').btn.btn-danger.form-control Kill user
+            else
+              form(action='/admin/start-user/' + user.id, method='post')
+                input(type='hidden',name='_csrf',value=csrfToken)
+                button(type='submit').btn.btn-success.form-control Start user
+          td
+            form(action='/admin/delete-user/' + user.id, method='post')
+              input(type='hidden',name='_csrf',value=csrfToken)
+              button(type='submit').btn.btn-danger.form-control Delete user
+

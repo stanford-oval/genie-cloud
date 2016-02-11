@@ -1,0 +1,148 @@
+extends layout
+
+block scripts
+  script(src='/javascripts/qrcode.js')
+  script(src='/javascripts/profile.js')
+
+block page_name
+  | User Profile
+
+block content
+  div.panel.panel-default
+    div.panel-heading
+      h2.panel-title Personal information
+
+    div.panel-body
+      form(action='/user/profile',method='post',data-toggle='validator')
+        input(type='hidden',name='_csrf',value=csrfToken)
+
+        div.form-group
+          label.control-label Username
+          p.form-control-static= user.username
+
+        div.form-group
+          label.control-label E-Mail
+          p.form-control-static= user.email
+
+        div.form-group
+          label.control-label(for='human-name') Real name
+          input(type='text',name='human_name',value=user.human_name).form-control#human-name
+          span.help-block This will be shown next to the apps you decide to publish.
+            |  Leave empty to show your username instead.
+
+        div.form-group
+          button(type='submit').btn.btn-primary Update profile
+
+  div.panel.panel-default
+    div.panel-heading
+      h2.panel-title Access information
+
+    div.panel-body
+      if error
+        div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
+          button(type='button', data-dismiss='alert', aria-label="Close").close
+            span(aria-hidden='true') ×
+          p= error
+
+      form(action='/user/change-password',method='post',data-toggle='validator')
+        input(type='hidden',name='_csrf',value=csrfToken)
+
+        if !user.password
+          p.alert.alert-warning You did not configure a password. You should provide one, in
+            | case you lose access to the account you logged in with.
+          div.form-group
+            label(for='password').control-label Password
+            input(type='password',name='password',value='',maxlength=255,minlength=8,data-minlength=8).form-control#password
+            span.help-block Minimum of 8 characters
+          div.form-group#confirm-password-group
+            label(for='confirm-password').control-label Confirm password
+            input(type='password',name='confirm-password',value='',data-match='#password',data-match-error="The password and the confirmation must match").form-control#confirm-password
+            span.help-block.with-errors
+        else
+          div.form-group
+            label(for='old-password').control-label Old Password
+            input(type='password',name='old_password',value='',required=true,maxlength=255,minlength=8,data-minlength=8).form-control#old-password
+          div.form-group
+            label(for='password').control-label Password
+            input(type='password',name='password',value='',required=true,maxlength=255,minlength=8,data-minlength=8).form-control#password
+            span.help-block Minimum of 8 characters
+          div.form-group#confirm-password-group
+            label(for='confirm-password').control-label Confirm password
+            input(type='password',name='confirm-password',value='',required=true,data-match='#password',data-match-error="The password and the confirmation must match").form-control#confirm-password
+            span.help-block.with-errors
+
+        div.form-group
+          button(type='submit').btn.btn-primary Change password
+
+      if !user.google_id || !user.facebook_id
+        p
+          if !user.google_id
+            a.btn.btn-default(href='/devices/oauth2/google-account') Configure login with Google
+          if !user.google_id && !user.facebook_id
+            |  
+          if !user.facebook_id
+            a.btn.btn-default(href='/devices/oauth2/facebook') Configure login with Facebook
+
+      p
+        a.btn.btn-danger(data-toggle='modal', data-target='#delete-account-dialog') Delete account
+
+        div.modal.fade#delete-account-dialog(role='dialog')
+          div.modal-dialog
+            div.modal-content
+              div.modal-header
+                a.close(data-dismiss='modal', aria-label="Close")
+                  span(aria-hidden='true') ×
+
+                h4.modal-title Are you sure you want to delete your account?
+
+              div.modal-body
+                p Deleting the account is an irreversible operation. All the data
+                  | stored on the server will be lost permanently.
+
+                if server.isConfigured || phone.isConfigured
+                  p You will need to relink your server or phone if you make a new
+                    | account, but you will not lose the data stored in them.
+
+                form(action='/user/delete', method='post')
+                  input(type='hidden',name='_csrf',value=csrfToken)
+
+                  div.form-group
+                    button(type='submit').btn.btn-danger Yes, I want to delete my account
+                    |  
+                    a.btn.btn-default(data-dismiss='modal') No, I changed my mind
+
+  div.panel.panel-default
+    div.panel-heading
+      h2.panel-title Server
+
+    div.panel-body
+      if server.isConfigured
+        p You linked a ThingEngine Server at #{server.name}, port #{server.port}.
+        p
+          form.form-inline(action='/user/unpair/server',method="post")
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-danger Unpair
+      else
+        p You did not link a ThingEngine Server. If you want to link one, you should open
+          |  its configuration page and enter your credentials in the Cloud section.
+
+  div.panel.panel-default
+    div.panel-heading
+      h2.panel-title Phone
+
+    div.panel-body
+      if phone.isConfigured
+        p You are running a ThingEngine in your phone.
+      else
+        p You did not link the ThingEngine in your phone to your account.
+        div#config-phone-desktop-browser
+          p If you are not running ThingEngine already, first 
+            a(href='http://web.stanford.edu/~gcampagn/misc/thingengine.apk') download the app
+            | . Then visit this page on a mobile browser, or scan this QR code.
+
+            div#qrcode-target= phone.qrcodeTarget
+            div#qrcode-placeholder
+
+        p#config-phone-mobile-browser(aria-hidden='true')
+          a(href=phone.qrcodeTarget).btn.btn-primary Configure
+

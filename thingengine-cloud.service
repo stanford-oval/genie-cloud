@@ -1,0 +1,13 @@
+[Unit]
+Name=thingengine-cloud.service
+Description=ThingEngine Cloud
+
+[Service]
+User=thingengine
+WorkingDirectory=/srv/thingengine
+ExecStart=/usr/bin/node /opt/thingengine/platform/cloud/main.js
+CapabilityBoundingSet=
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

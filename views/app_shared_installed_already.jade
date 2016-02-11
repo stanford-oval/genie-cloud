@@ -1,0 +1,18 @@
+extends layout
+
+block page_name
+  - index = true;
+  | Install App
+
+block content
+  div.jumbotron.text-center
+    h1 You already installed this app!
+
+    p And it seems to be running fine.
+
+    p
+      a(href='/apps/' + appId + '/show').btn.btn-default Show me the app
+
+      if hasOutVariables
+        |  
+        a(href='/apps/' + appId + '/results').btn.btn-default Show me the results

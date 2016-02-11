@@ -1,0 +1,22 @@
+extends layout
+
+block scripts
+  script(src='/javascripts/index.js')
+
+block page_name
+  - index = true;
+  | ThingEngine
+
+block content
+  div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+
+  div.jumbotron.text-center
+    h1 Welcome to ThingEngine, #{username}!
+    p You're now ready to start writing your first app.
+
+    p
+      a(href='/tutorial/1').btn.btn-primary Guide me through it
+
+    p
+      small
+        a(href='/') No, thanks. I know my way around here.

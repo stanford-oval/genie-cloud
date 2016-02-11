@@ -1,0 +1,29 @@
+extends layout
+
+block page_name
+  | Login
+
+block content
+  each error in errors
+    div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
+      button(type='button', data-dismiss='alert', aria-label="Close").close
+        span(aria-hidden='true') ×
+
+      p= error
+  form(action='/user/login', method='post')
+    input(type='hidden',name='_csrf',value=csrfToken)
+    div.form-group
+      label(for='username').control-label Username
+      input(type='text',name='username',value=username).form-control#username
+    div.form-group
+      label(for='password').control-label Password
+      input(type='password',name='password',value=password).form-control#password
+    div.form-group
+      button(type='submit').btn.btn-primary Log in
+
+  p Don't have a username and password yet? 
+    a(href='/user/register') Sign up now!
+  p
+    a.btn.btn-primary(href='/user/oauth2/google') Log In with Google
+    |  
+    a.btn.btn-primary(href='/user/oauth2/facebook') Log In with Facebook

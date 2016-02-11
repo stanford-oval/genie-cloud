@@ -1,0 +1,39 @@
+extends layout
+
+block content
+  h1= title
+
+  div.container
+    div.row
+      div.col-xs-12
+        p Thanks for your interest in ThingPedia!
+        p At the moment, ThingPedia is still in closed beta. If you would like
+          | to request developer access, please fill the form below and we'll get back to you.
+
+    div.row
+      div.col-xs-12
+        form(action='/user/request-developer', method='post', data-toggle='validator')
+          input(type='hidden',name='_csrf',value=csrfToken)
+
+          div.form-group
+            label(for='realname').control-label Full Name
+            input(type='text',name='realname',required=true,maxlength=255,value=user.human_name).form-control#realname
+
+          div.form-group
+            label(for='organization').control-label Organization
+            input(type='text',name='organization',maxlength=255).form-control#organization
+
+          div.form-group
+            label(for='email').control-label E-mail
+            input(type='email',name='email',required=true).form-control#email
+
+          div.form-group
+            label(for='reason').control-label Reason to use ThingPedia (may leave blank)
+            textarea(name="reason").form-control#reason
+
+          div.form-group
+            label(for='comments').control-label Additional comments (may leave blank)
+            textarea(name="comments").form-control#comments
+
+          div.form-group
+            button(type='submit').btn.btn-primary Submit

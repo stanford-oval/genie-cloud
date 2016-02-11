@@ -1,0 +1,15 @@
+[submodule "shared"]
+	path = shared
+	url = https://github.com/Stanford-IoT-Lab/thingengine-platform-shared.git
+[submodule "instance/engine"]
+	path = instance/engine
+	url = https://github.com/Stanford-IoT-Lab/thingengine-core.git
+[submodule "node_modules/thingpedia-client"]
+	path = node_modules/thingpedia-client
+	url = https://github.com/Stanford-IoT-Lab/thingengine-thingpedia-client.git
+[submodule "node_modules/thingtalk"]
+	path = node_modules/thingtalk
+	url = https://github.com/Stanford-IoT-Lab/ThingTalk.git
+[submodule "node_modules/sabrina"]
+	path = node_modules/sabrina
+	url = https://github.com/Stanford-IoT-Lab/Sabrina.git

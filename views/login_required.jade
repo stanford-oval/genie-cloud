@@ -1,0 +1,12 @@
+extends layout
+
+block page_name
+  | Error
+
+block content
+  h1 Login required
+  p Sorry but you must log in before opening this page
+  p
+    a(href='javascript:history.back()').btn.btn-default Go back
+    span= " "
+    a(href='/user/login').btn.btn-primary Log in
