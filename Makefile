@@ -3,9 +3,11 @@ prefix ?= /opt/thingengine-cloud
 localstatedir ?= /var/opt/thingengine-cloud
 
 all: platform_config.js
-	make -C instance/engine all
 	make -C sandbox all
+	make -C node_modules/thingengine-core all
 	make -C node_modules/sabrina all
+	cd node_modules/thingpedia-core ; npm install --no-optional --only=prod
+	cd node_modules/thingpedia-discovery ; npm install --no-optional --only=prod
 	cd node_modules/thingtalk ; npm install --no-optional --only=prod
 	# remove duplicate copy of thingtalk
 	# we cannot rely on npm dedupe because we're playing submodule tricks

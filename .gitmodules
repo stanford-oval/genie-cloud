@@ -2,7 +2,7 @@
 	path = shared
 	url = https://github.com/Stanford-IoT-Lab/thingengine-platform-shared.git
 [submodule "instance/engine"]
-	path = instance/engine
+	path = node_modules/thingengine-core
 	url = https://github.com/Stanford-IoT-Lab/thingengine-core.git
 [submodule "node_modules/thingpedia-client"]
 	path = node_modules/thingpedia-client
