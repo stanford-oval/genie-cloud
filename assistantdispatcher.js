@@ -13,7 +13,8 @@ const Url = require('url');
 
 const Sempre = require('sabrina').Sempre;
 
-const omclient = require('./instance/engine/node_modules/omclient').client;
+// FIXME we should not punch through the abstraction
+const omclient = require('thingengine-core/node_modules/omclient').client;
 
 const API_KEY = '00109b1ea59d9f46d571834870f0168b5ed20005871d8752ff';
 const API_SECRET = 'bccb852856c462e748193d6211c730199d62adcf0ba963416fcc715a2db4d76f';

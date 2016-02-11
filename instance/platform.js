@@ -13,7 +13,12 @@ const fs = require('fs');
 const os = require('os');
 const child_process = require('child_process');
 
-const sql = require('./engine/db/sql');
+const ThingPediaClient = require('thingpedia-client');
+
+// FIXME we should not punch through the abstraction
+const sql = require('thingengine-core/lib/db/sql');
+const prefs = require('thingengine-core/lib/prefs');
+
 const graphics = require('./graphics');
 
 var Config;
@@ -22,7 +27,6 @@ Config = require('../platform_config');
 } catch(e) {
 Config = {};
 }
-const prefs = require('./engine/prefs');
 
 var _cloudId = null;
 var _writabledir = null;
@@ -110,6 +114,9 @@ module.exports = {
         case 'graphics-api':
             return true;
 
+        case 'thingpedia-client':
+            return true;
+
         default:
             return false;
         }
@@ -127,6 +134,9 @@ module.exports = {
 
         case 'graphics-api':
             return graphics;
+
+        case 'thingpedia-client':
+            return new ThingPediaClient.ClientHttp(_developerKey);
 
         default:
             return null;

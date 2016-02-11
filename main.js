@@ -6,7 +6,8 @@
 //
 // See COPYING for details
 
-require('./instance/engine/polyfill');
+// FIXME we should not punch through the abstraction
+require('thingengine-core/lib/polyfill');
 
 const Q = require('q');
 

@@ -13,13 +13,16 @@ const fs = require('fs');
 const os = require('os');
 const child_process = require('child_process');
 
+// FIXME we should not punch through the abstraction
+const prefs = require('thingengine-core/lib/prefs');
+
 var Config;
 try {
 Config = require('./platform_config');
 } catch(e) {
 Config = {};
 }
-const prefs = require('./instance/engine/prefs');
+
 
 var _writabledir = null;
 var _cachedir = null;
