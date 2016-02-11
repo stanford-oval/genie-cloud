@@ -40,6 +40,7 @@
     "journald": "0.0.5",
     "marked": "~0.3.5",
     "gm": "~1.21.1",
-    "omclient": "https://github.com/Stanford-IoT-Lab/omclient/tarball/master"
+    "omclient": "https://github.com/Stanford-IoT-Lab/omclient/tarball/master",
+    "cacheable-middleware": "0.0.1"
   }
 }

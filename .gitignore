@@ -66,3 +66,4 @@ node_modules/omclient/
 node_modules/tmp/
 node_modules/ultron/
 node_modules/ws/
+node_modules/cacheable-middleware/

@@ -2,19 +2,20 @@
 //
 // This file is part of ThingPedia
 //
-// Copyright 2015 The Mobisocial Stanford Lab <mobisocial@lists.stanford.edu>
+// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 
+const Q = require('q');
+const express = require('express');
 
-var Q = require('q');
-var express = require('express');
+const db = require('../util/db');
+const device = require('../model/device');
+const app = require('../model/app');
+const user = require('../model/user');
+const schema = require('../model/schema');
 
-var db = require('../util/db');
-var device = require('../model/device');
-var app = require('../model/app');
-var user = require('../model/user');
-var schema = require('../model/schema');
+const ThingPediaClient = require('../util/thingpedia-client');
 
 var discovery_modules = {
     //bluetooth: require('../discovery/bluetooth')
@@ -29,36 +30,28 @@ router.get('/schema/:schemas', function(req, res) {
         return;
     }
 
-    db.withClient(function(dbClient) {
-        return Q.try(function() {
-            var developerKey = req.query.developer_key;
+    var client = new ThingPediaClient(req.query.developer_key);
 
-            if (developerKey)
-                return user.getByDeveloperKey(dbClient, developerKey);
-            else
-                return [];
-        }).then(function(developers) {
-            var developer = null;
-            if (developers.length > 0)
-                developer = developers[0];
+    client.getSchemas(schemas).then(function(obj) {
+        if (obj.developer)
+            res.cacheFor(3600000);
+        else
+            res.cacheFor(86400000);
+        res.json(obj);
+    }).catch(function(e) {
+        res.status(400).send('Error: ' + e.message);
+    }).done();
+});
 
-            return schema.getTypesByKinds(dbClient, schemas, developer).then(function(rows) {
-                var obj = {};
+router.get('/code/devices/:kind', function(req, res) {
+    var client = new ThingPediaClient(req.query.developer_key);
 
-                rows.forEach(function(row) {
-                    if (row.types === null)
-                        return;
-                    obj[row.kind] = {
-                        triggers: row.types[0],
-                        actions: row.types[1]
-                    };
-                });
-
-                res.json(obj);
-            });
-        }).catch(function(e) {
-            res.status(500).send('Error: ' + e.message);
-        });
+    client.getDeviceCode(req.params.kind).then(function(code) {
+        res.json(code);
+    }).catch(function(e) {
+        console.log('Failed to retrieve device code: ' + e.message);
+        console.log(e.stack);
+        res.status(400).send('Bad Request');
     }).done();
 });
 
@@ -126,54 +119,6 @@ router.get('/devices', function(req, res) {
                 res.json(devices);
             });
         });
-    }).done();
-});
-
-const LEGACY_MAPS = {
-    'linkedin': 'com.linkedin'
-};
-
-router.get('/code/devices/:kind', function(req, res) {
-    if (req.params.kind in LEGACY_MAPS)
-        req.params.kind = LEGACY_MAPS[req.params.kind];
-
-    db.withClient(function(dbClient) {
-        return Q.try(function() {
-            var developerKey = req.query.developer_key;
-
-            if (developerKey)
-                return user.getByDeveloperKey(dbClient, developerKey);
-            else
-                return [];
-        }).then(function(developers) {
-            var developer = null;
-            if (developers.length > 0)
-                developer = developers[0];
-
-            return device.getFullCodeByPrimaryKind(dbClient, req.params.kind, developer)
-                .then(function(devs) {
-                    if (devs.length < 1) {
-                        res.status(404).send('Not Found');
-                        return;
-                    }
-                    var dev = devs[0];
-
-                    var ast = JSON.parse(dev.code);
-                    ast.version = dev.version;
-                    if (dev.version !== dev.approved_version) {
-                        res.cacheFor(3600000);
-                        ast.developer = true;
-                    } else {
-                        res.cacheFor(86400000);
-                        ast.developer = false;
-                    }
-                    res.status(200).json(ast);
-                });
-        });
-    }).catch(function(e) {
-        console.log('Failed to retrieve device code: ' + e.message);
-        console.log(e.stack);
-        res.status(400).send('Bad Request');
     }).done();
 });
 

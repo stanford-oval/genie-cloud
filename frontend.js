@@ -25,6 +25,7 @@ const errorHandler = require('errorhandler');
 const url = require('url');
 const passport = require('passport');
 const connect_flash = require('connect-flash');
+const cacheable = require('cacheable-middleware');
 
 const user = require('./util/user');
 const secretKey = require('./util/secret_key');
@@ -62,6 +63,7 @@ Frontend.prototype._init = function _init() {
     this._app.use(connect_flash());
     this._app.use(express.static(path.join(__dirname, 'public'),
                                  { maxAge: 86400000 }));
+    this._app.use(cacheable());
 
     // development only
     if ('development' == this._app.get('env')) {

@@ -33,6 +33,7 @@ var _writabledir = null;
 var _frontend = null;
 var _prefs = null;
 var _developerKey = null;
+var _thingpediaClient = null;
 
 function checkLocalStateDir() {
     fs.mkdirSync(_writabledir);
@@ -136,7 +137,7 @@ module.exports = {
             return graphics;
 
         case 'thingpedia-client':
-            return new ThingPediaClient.ClientHttp(_developerKey);
+            return _thingpediaClient;
 
         default:
             return null;
@@ -241,4 +242,7 @@ module.exports = {
         }
     },
 
+    _setThingPediaClient: function(client) {
+        _thingpediaClient = client;
+    },
 };

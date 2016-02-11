@@ -18,6 +18,7 @@ const rpc = require('transparent-rpc');
 const user = require('./model/user');
 const db = require('./util/db');
 
+const ThingPediaClient = require('./util/thingpedia-client');
 const AssistantDispatcher = require('./assistantdispatcher');
 
 var _logJournal;
@@ -165,8 +166,13 @@ const EngineManager = new lang.Class({
                 // is concerned
                 var socket = new ChildProcessSocket(child);
                 var rpcSocket = new rpc.Socket(socket);
+                var thingpediaClient = new ThingPediaClient(developerKey);
                 var rpcStub = {
-                    $rpcMethods: ['setEngine'],
+                    $rpcMethods: ['setEngine', 'getThingPediaClient'],
+
+                    getThingPediaClient: function() {
+                        return thingpediaClient;
+                    },
 
                     setEngine: function(engine) {
                         console.log('Received engine from child ' + userId);

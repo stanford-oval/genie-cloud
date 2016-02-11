@@ -80,19 +80,24 @@ function runEngine() {
     });
 
     platform.init().then(function() {
-        engine = new Engine();
+        return rpcReady.promise.then(function(rpcId) {
+            console.log('RPC channel ready');
+            return rpcSocket.call(rpcId, 'getThingPediaClient', []).then(function(client) {
+                console.log('Obtained ThingPedia client');
+                platform._setThingPediaClient(client);
 
-        return engine.open().then(function() {
-            engineRunning = true;
-            rpcReady.promise.then(function(rpcId) {
-                console.log('RPC channel ready');
-                rpcSocket.call(rpcId, 'setEngine', [engine]).done();
-            });
+                engine = new Engine();
 
-            if (earlyStop)
-                return;
-            return engine.run().finally(function() {
-                return engine.close();
+                return engine.open().then(function() {
+                    engineRunning = true;
+                    rpcSocket.call(rpcId, 'setEngine', [engine]).done();
+
+                    if (earlyStop)
+                        return;
+                    return engine.run().finally(function() {
+                        return engine.close();
+                    });
+                });
             });
         });
     }).then(function () {
