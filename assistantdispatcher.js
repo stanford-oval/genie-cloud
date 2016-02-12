@@ -296,6 +296,25 @@ const AssistantFeed = new lang.Class({
     }
 });
 
+const DummySempre = new lang.Class({
+    Name: 'DummySempre',
+
+    _init: function() {},
+
+    sendUtterance: function(session, utterance) {
+        var utt = utterance.trim().toLowerCase();
+        if (utt === 'yes')
+            return 'tt:root.special.yes';
+        else if (utt === 'no')
+            return 'tt:root.special.no';
+        else
+            return 'tt:root.special.failed';
+    },
+
+    start: function() {},
+    stop: function() {},
+});
+
 module.exports = new lang.Class({
     Name: 'AssistantDispatcher',
 
@@ -303,7 +322,8 @@ module.exports = new lang.Class({
         instance_ = this;
 
         this._engines = {};
-        this._sempre = new Sempre(false);
+        //this._sempre = new Sempre(false);
+        this._sempre = new DummySempre();
 
         this._prefs = platform.getSharedPreferences();
         if (this._prefs.get('assistant') === undefined)
