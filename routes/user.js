@@ -32,6 +32,8 @@ router.get('/oauth2/google/callback', passport.authenticate('google'),
            function(req, res, next) {
                if (req.user.newly_created) {
                    req.user.newly_created = false;
+                   res.locals.authenticated = true;
+                   res.locals.user = user;
                    res.render('register_success', {
                        page_title: "ThingEngine - Registration Successful",
                        username: req.user.username,
@@ -50,10 +52,21 @@ router.get('/oauth2/facebook', passport.authenticate('facebook', {
 }));
 router.get('/oauth2/facebook/callback', passport.authenticate('facebook'),
            function(req, res, next) {
-               // Redirection back to the original page
-               var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
-               delete req.session.redirect_to;
-               res.redirect(redirect_to);
+               if (req.user.newly_created) {
+                   req.user.newly_created = false;
+                   res.locals.authenticated = true;
+                   res.locals.user = user;
+                   res.render('register_success', {
+                       page_title: "ThingEngine - Registration Successful",
+                       username: req.user.username,
+                       cloudId: req.user.cloud_id,
+                       authToken: req.user.auth_token });
+               } else {
+                   // Redirection back to the original page
+                   var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+                   delete req.session.redirect_to;
+                   res.redirect(redirect_to);
+               }
            });
 
 
