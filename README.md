@@ -16,10 +16,6 @@ depends on a number of other modules. You will only need this module
 if you plan to offer a publicly available service like the one linked
 above.
 
-Additionally the system is able to synchronize the three installations that belong
-to the same user, so that each app can run on the form most suited to it, in a manner
-completely transparent to the developer, while preserving the privacy of the user.
-
 ThingEngine is part of Open Thing Platform, a research project led by
 prof. Monica Lam, from Stanford University.  You can find more
 information at <http://thingengine.stanford.edu/about>. User
