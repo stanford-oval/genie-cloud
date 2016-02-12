@@ -41,6 +41,9 @@
     "marked": "~0.3.5",
     "gm": "~1.21.1",
     "omclient": "https://github.com/Stanford-IoT-Lab/omclient/tarball/master",
-    "cacheable-middleware": "0.0.1"
+    "cacheable-middleware": "0.0.1",
+    "node-zip": "~1.1.1",
+    "multer": "~1.1.0",
+    "aws-sdk": "~2.2.35"
   }
 }

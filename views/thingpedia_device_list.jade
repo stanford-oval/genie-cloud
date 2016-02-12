@@ -5,25 +5,26 @@ block styles
 
 block page_name
   if onlineAccounts
-    | Supported online services
+    | Online Services in ThingPedia
   else
-    | Supported devices
+    | Devices in ThingPedia
 
 block content
   if onlineAccounts
-    //div.alert.alert-warning(role='alert')
+    div.alert.alert-success(role='alert')
       | Can't find your service? You can 
-      a.alert-link(href='/upload/create?class=online') propose it for inclusion
+      a.alert-link(href='/thingpedia/upload/create?class=online') propose it for inclusion
       | .
   else
-    //div.alert.alert-warning(role='alert')
+    div.alert.alert-success(role='alert')
       | Can't find your device? You can 
-      a.alert-link(href='/upload/create?class=physical') propose it for inclusion
+      a.alert-link(href='/thingpedia/upload/create?class=physical') propose it for inclusion
       | .
 
     div.alert.alert-success(role='alert')
       | Looking for web services instead? 
-      a.alert-link(href='/thingpedia/devices?class=online') They are here.
+      a.alert-link(href='/thingpedia/devices?class=online') They are here
+      | .
 
   div.row
     each dev, i in devices

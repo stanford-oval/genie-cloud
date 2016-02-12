@@ -67,3 +67,7 @@ node_modules/tmp/
 node_modules/ultron/
 node_modules/ws/
 node_modules/cacheable-middleware/
+node_modules/aws-sdk/
+node_modules/multer/
+node_modules/node-zip/
+

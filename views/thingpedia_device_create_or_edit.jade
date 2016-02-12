@@ -1,0 +1,73 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/codemirror.css')
+  link(rel='stylesheet', href='/stylesheets/lint.css')
+  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+
+block scripts
+  script(src='/javascripts/jsonlint.js')
+  script(src='/javascripts/codemirror.js')
+  script(src='/javascripts/thingpedia-device-create.js')
+
+block content
+  if create
+    h1 Submit a new thing class
+  else
+    h1 Edit thing class
+
+  div.container
+    if error
+      div.row
+        div.col-xs-12
+          div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
+            button(type='button', data-dismiss='alert', aria-label="Close").close
+              span(aria-hidden='true') ×
+            p= error
+
+    div.row
+      div.col-xs-12
+        form(action=(create ? '/thingpedia/upload/create' : '/thingpedia/upload/update/' + id), enctype='multipart/form-data', method='post', data-toggle='validator')
+          input(type='hidden',name='_csrf',value=csrfToken)
+
+          div.form-group
+            label(for='device-kind').control-label Thing ID
+            input(type='text',name='primary_kind',required=true,maxlength=128,value=device.primary_kind).form-control#device-kind
+            span.help-block The unique name of your device class. This should be a namespaced name like "org.example" or "com.mything".
+
+          div.form-group
+            label(for='device-name').control-label Thing Name
+            input(type='text',name='name',required=true,maxlength=255,value=device.name).form-control#device-name
+            span.help-block This will be shown in the ThingPedia catalog.
+
+          div.form-group
+            label(for='device-description-input').control-label Thing Description
+            textarea(name='description',required=true).form-control#device-description #{device.description}
+
+          div.form-group
+            label(for='device-code').control-label Thing Manifest
+            textarea(name='code',required=true).form-control#device-code #{device.code}
+            span.help-block If your thing needs parameters for configurations (such as user names or
+              |  passwords), you must declare them in the manifest. You can also use the manifest
+              |  to declare actions and triggers for simple REST based services with a JSON API.
+              |  In any case, you should use the manifest to document how your device is used, that
+              |  is, what triggers and what actions are there!
+
+          div.checkbox
+            label(for='device-fullcode').control-label
+              input(type='checkbox',name='fullcode',value='1',checked=!device.fullcode)#device-fullcode
+              |  The interface requires additional JS code
+
+          div.form-group
+            label(for='device-zipfile').control-label Upload JS module
+            input(type='file',name='zipfile')#device-zipfile
+
+          if user.developer_status >= 2
+            div.checkbox
+              label(for='device-approve').control-label
+                input(type='checkbox',name='approve',value='1',checked=approve)#device-approve
+                |  Approve this interface right away.
+
+          div.form-group
+            button(type='submit').btn.btn-primary Submit
+
