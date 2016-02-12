@@ -37,14 +37,15 @@ module.exports = {
     getByOwner: function(client, owner) {
         return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
                             + " u.human_name, u.username) as owner_name from app r left outer " +
-                            "join users u on r.owner = u.id where r.owner = ?", [owner]);
+                            "join users u on r.owner = u.id where r.owner = ? order by r.name asc",
+                            [owner]);
     },
 
     getByTag: function(client, tag) {
         return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
                             + " u.human_name, u.username) as owner_name from app r left outer " +
                             "join users u on r.owner = u.id, app_tag rt where rt.app_id = r.id " +
-                            " and rt.tag = ?", [tag]);
+                            " and rt.tag = ? order by r.name", [tag]);
     },
 
     getByFuzzySearch: function(client, tag) {
@@ -70,7 +71,8 @@ module.exports = {
         return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
                             + " u.human_name, u.username) as owner_name from app r left outer " +
                             "join users u on r.owner = u.id, app_device rd " +
-                            " where rd.app_id = r.id and rd.device_id = ?", [deviceId]);
+                            " where rd.app_id = r.id and rd.device_id = ? order by r.name asc",
+                            [deviceId]);
     },
 
     getByDevicePrimaryKind: function(client, kind) {
@@ -78,7 +80,7 @@ module.exports = {
                             + " u.human_name, u.username) as owner_name from app r left outer " +
                             "join users u on r.owner = u.id, device_class d, app_device rd " +
                             " where rd.app_id = r.id and rd.device_id = d.id and " +
-                            " d.primary_kind = ?", [kind]);
+                            " d.primary_kind = ? order by r.name asc", [kind]);
     },
 
     getByDeviceAnyKind: function(client, kind) {
@@ -86,7 +88,7 @@ module.exports = {
                             + " u.human_name, u.username) as owner_name from app r left outer " +
                             "join users u on r.owner = u.id, device_class d, app_device rd, " +
                             "device_class_kind dk where rd.app_id = r.id and rd.device_id = d.id " +
-                            " and dk.device_id = d.id and dk.kind = ?", [kind]);
+                            " and dk.device_id = d.id and dk.kind = ? order by r.name asc", [kind]);
     },
 
     create: create,
@@ -103,11 +105,12 @@ module.exports = {
         if (start !== undefined && end !== undefined) {
             return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
                                 + " u.human_name, u.username) as owner_name from app r left " +
-                                " outer join users u on r.owner = u.id limit ?,?", [start, end]);
+                                " outer join users u on r.owner = u.id order by r.name limit ?,?",
+                                [start, end]);
         } else {
             return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
                                 + " u.human_name, u.username) as owner_name from app r left " +
-                                " outer join users u on r.owner = u.id");
+                                " outer join users u on r.owner = u.id order by r.name");
         }
     },
 

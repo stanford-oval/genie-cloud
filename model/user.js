@@ -67,6 +67,6 @@ module.exports = {
     },
 
     getAll: function(client) {
-        return db.selectAll(client, "select * from users");
+        return db.selectAll(client, "select * from users order by id");
     },
 }

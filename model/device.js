@@ -106,22 +106,18 @@ module.exports = {
     getByAnyKind: function(client, kind) {
         return db.selectAll(client, "select * from device_class where primary_kind = ? or "
                             + "global_name = ? union "
-                            + "select d.* from device_class d, device_class_kind dk "
-                            + "where dk.device_id = d.id and dk.kind = ?", [kind, kind, kind]);
+                            + "(select d.* from device_class d, device_class_kind dk "
+                            + "where dk.device_id = d.id and dk.kind = ?)", [kind, kind, kind]);
     },
 
     getByTag: function(client, tag) {
         return db.selectAll(client, "select dc.* from device_class dc, device_class_tag dct "
-                            + "where dct.device_id = dc.id and dct.tag = ?", [tag]);
+                            + "where dct.device_id = dc.id and dct.tag = ? order by dc.name", [tag]);
     },
 
     getAllKinds: function(client, id) {
-        return db.selectAll(client, "select * from device_class_kind where device_id = ?", [id]);
-    },
-
-    getByApp: function(client, appId) {
-        return db.selectAll(client, "select d.* from device_class d, app_device rd, " +
-                            " where rd.app_id = ? and rd.device_id = d.id", [appId]);
+        return db.selectAll(client, "select * from device_class_kind where device_id = ? "
+                            + "order by kind", [id]);
     },
 
     create: create,
@@ -133,15 +129,16 @@ module.exports = {
 
     getAll: function(client, start, end) {
         if (start !== undefined && end !== undefined) {
-            return db.selectAll(client, "select * from device_class limit ?,?", [start, end]);
+            return db.selectAll(client, "select * from device_class order by name limit ?,?",
+                                [start, end]);
         } else {
-            return db.selectAll(client, "select * from device_class");
+            return db.selectAll(client, "select * from device_class order by name");
         }
     },
 
     getAllWithKind: function(client, kind, start, end) {
         var query = "select d.* from device_class d where exists (select 1 from device_class_kind "
-            + "dk where dk.device_id = d.id and dk.kind = ?)";
+            + "dk where dk.device_id = d.id and dk.kind = ?) order by d.name";
         if (start !== undefined && end !== undefined) {
             return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
         } else {
@@ -151,7 +148,7 @@ module.exports = {
 
     getAllWithoutKind: function(client, kind, start, end) {
         var query = "select d.* from device_class d where not exists (select 1 from device_class_kind "
-            + "dk where dk.device_id = d.id and dk.kind = ?)";
+            + "dk where dk.device_id = d.id and dk.kind = ?) order by d.name";
         if (start !== undefined && end !== undefined) {
             return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
         } else {
@@ -164,7 +161,7 @@ module.exports = {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
-                + " (dcv.version = d.approved_version and d.owner <> ?))";
+                + " (dcv.version = d.approved_version and d.owner <> ?)) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
                                     [developer.id, developer.id, start, end]);
@@ -174,7 +171,7 @@ module.exports = {
         } else {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
-                + "dcv.version = d.approved_version";
+                + "dcv.version = d.approved_version order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
                                     [start, end]);
@@ -191,7 +188,7 @@ module.exports = {
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) and "
                 + "exists (select 1 from device_class_kind dk where dk.device_id "
-                + "= d.id and dk.kind = ?)";
+                + "= d.id and dk.kind = ?) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
                                     [developer.id, developer.id, kind, start, end]);
@@ -203,7 +200,7 @@ module.exports = {
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and "
                 + "exists (select 1 from device_class_kind dk where dk.device_id "
-                + "= d.id and dk.kind = ?)";
+                + "= d.id and dk.kind = ?) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
             } else {
@@ -219,7 +216,7 @@ module.exports = {
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) and "
                 + "not exists (select 1 from device_class_kind dk where dk.device_id "
-                + "= d.id and dk.kind = ?)";
+                + "= d.id and dk.kind = ?) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
                                     [developer.id, developer.id, kind, start, end]);
@@ -231,7 +228,7 @@ module.exports = {
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and "
                 + "not exists (select 1 from device_class_kind dk where dk.device_id "
-                + "= d.id and dk.kind = ?)";
+                + "= d.id and dk.kind = ?) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
             } else {
