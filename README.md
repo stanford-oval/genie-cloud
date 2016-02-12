@@ -12,17 +12,16 @@ ThingEngine comes in three form:
 - As a web service hosted at <https://thingengine.stanford.edu>
 
 This module contains the web service version of ThingEngine, and
-depends on a number of other modules.
+depends on a number of other modules. You will only need this module
+if you plan to offer a publicly available service like the one linked
+above.
 
 Additionally the system is able to synchronize the three installations that belong
 to the same user, so that each app can run on the form most suited to it, in a manner
 completely transparent to the developer, while preserving the privacy of the user.
 
-ThingEngine is based on node.js. It uses jxcore to provide Android integration
-and express as the web frontend.
-And it's free software, released under the GPLv2 or later, to help build
-a community of developers and users around it.
-
-ThingEngine is part of ThingPedia, a research project led by prof. Monica Lam, from Stanford University.
-You can find more information at <http://thingengine.stanford.edu/about>, and you
-can find user documentation [here](/doc/main.md)
+ThingEngine is part of Open Thing Platform, a research project led by
+prof. Monica Lam, from Stanford University.  You can find more
+information at <http://thingengine.stanford.edu/about>. User
+documentation is available in
+[thingengine-core](https://github.com/Stanford-IoT-Lab/thingengine-core).

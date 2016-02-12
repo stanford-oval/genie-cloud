@@ -32,21 +32,9 @@ files in the program, then also delete it here.
 
 ===================================================================
 
-This package uses JXcore, which is copyright Nubisa, Inc. and JXcore
-contributors. The license for JXcore is included as LICENSE.jxcore.
-
-===================================================================
-
 This package depends on various third-party node.js modules. Those
 modules are copyright of their respective authors, and the license
 to each module is included in the module folder.
-
-This includes code in
-platform/android/app/src/main/assets/jxcore/node_modules/
-platform/server/node_modules/
-platform/server/frontend/node_modules/
-platform/cloud/node_modules/
-engine/node_modules/
 
 ===================================================================
 
