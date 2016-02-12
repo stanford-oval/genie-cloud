@@ -44,6 +44,7 @@
     "cacheable-middleware": "0.0.1",
     "node-zip": "~1.1.1",
     "multer": "~1.1.0",
-    "aws-sdk": "~2.2.35"
+    "aws-sdk": "~2.2.35",
+    "nodemailer": "~2.1.0"
   }
 }
