@@ -20,6 +20,7 @@ function makeRandom() {
 }
 
 const EngineManager = require('../enginemanager');
+const AssistantDispatcher = require('../assistantdispatcher');
 
 var router = express.Router();
 
@@ -133,6 +134,32 @@ router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req,
             else
                 return model.update(dbClient, user.id, { developer_status: user.developer_status - 1 });
         });
+    }).then(function() {
+        res.redirect('/admin');
+    }).catch(function(e) {
+        res.status(500).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+router.post('/message-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
+    Q.try(function() {
+        var feed = AssistantDispatcher.get().getUserFeed(req.params.id);
+        return feed.send('Administrative message from ' + req.user.username + ': ' + req.body.body);
+    }).then(function() {
+        res.redirect('/admin');
+    }).catch(function(e) {
+        res.status(500).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+router.post('/message-broadcast', user.requireRole(user.Role.ADMIN), function(req, res) {
+    Q.try(function() {
+        var msg = 'Broadcast message from ' + req.user.username + ': ' + req.body.body;
+        return Q.all(AssistantDispatcher.get().getAllFeeds().map(function(feed) {
+            return feed.send(msg);
+        }));
     }).then(function() {
         res.redirect('/admin');
     }).catch(function(e) {

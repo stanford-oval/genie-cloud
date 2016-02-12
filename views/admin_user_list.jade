@@ -12,6 +12,26 @@ block scripts
 block content
   h2 Users
 
+  div.modal.fade#modal-message-user
+    div.modal-dialog
+      div.modal-content
+        form(method='post',data-toggle='validator')#form-message-user
+          div.modal-header
+            h4.modal-title Send a message
+          div.modal-body
+            input(type='hidden',name='_csrf',value=csrfToken)
+
+            div.form-group
+              label(for='message-body').control-label Message
+              textarea(name='body',required=true).form-control#message-body
+
+          div.modal-footer
+            div.row
+              div.col-md-6
+                button(type='submit').btn.btn-primary.btn-block Send
+              div.col-md-6
+                button(type='button',data-dismiss='modal').btn.btn-default.btn-block Close
+
   div.row
     div.col-sm-2
       form(action='/admin/kill-all', method='post')
@@ -22,6 +42,9 @@ block content
       form(action='/admin/blow-view-cache', method='post')
         input(type='hidden',name='_csrf',value=csrfToken)
         button(type='submit').btn.btn-default.btn-block Clear view cache
+
+    div.col-sm-2
+      button(type='button').btn.btn-default.btn-block#button-send-broadcast Broadcast message
 
   table.table#users-table
     thead
@@ -88,6 +111,8 @@ block content
                   form(action='/admin/start-user/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control Start user
+              li
+                button(type='button',data-user-id=user.id,data-has-assistant=(user.assistant_feed_id !== null ? 1 : 0)).btn.btn-success.btn-block.button-send-message Send a message
               li
                 if user.developer_status < 3
                   form(action='/admin/promote-user/' + user.id, method='post')

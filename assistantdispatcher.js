@@ -387,7 +387,21 @@ module.exports = new lang.Class({
             obj.feed.stop().done();
 
         delete this._engines[userId];
-    }
+    },
+
+    getUserFeed: function(userId) {
+        var obj = this._engines[userId];
+        if (!obj)
+            throw new Error('User ' + userId + ' has no assistant');
+
+        return obj.feed;
+    },
+
+    getAllFeeds: function() {
+        return Object.keys(this._engines).map(function(userId) {
+            return this._engines[userId].feed;
+        }, this);
+    },
 });
 
 module.exports.get = function() {
