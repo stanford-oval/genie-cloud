@@ -35,8 +35,8 @@ router.get('/oauth2/google/callback', passport.authenticate('google'),
                    res.render('register_success', {
                        page_title: "ThingEngine - Registration Successful",
                        username: req.user.username,
-                       cloudId: req.user.user.cloud_id,
-                       authToken: req.user.user.auth_token });
+                       cloudId: req.user.cloud_id,
+                       authToken: req.user.auth_token });
                } else {
                    // Redirection back to the original page
                    var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
