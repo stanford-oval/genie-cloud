@@ -6,6 +6,9 @@ block page_name
 block styles
   link(rel='stylesheet', href='/stylesheets/admin.css')
 
+block scripts
+  script(src='/javascripts/admin.js')
+
 block content
   h2 Users
 
@@ -50,11 +53,13 @@ block content
             | #{methods.join(', ')}
           td
             if user.roles & 0x1
-              | Admin
+              span(title=user.developer_key) Site Admin
+            else if user.developer_status >= 3
+              span(title=user.developer_key) ThingPedia Admin
             else if user.developer_status >= 2
-              | Trusted Developer
+              span(title=user.developer_key) Trusted Developer
             else if user.developer_status >= 1
-              | Developer
+              span(title=user.developer_key) Developer
             else
               | User
           td
@@ -68,17 +73,32 @@ block content
               | Running
             else
               | Died
-          td
-            if user.isRunning
-              form(action='/admin/kill-user/' + user.id, method='post')
-                input(type='hidden',name='_csrf',value=csrfToken)
-                button(type='submit').btn.btn-danger.form-control Kill user
-            else
-              form(action='/admin/start-user/' + user.id, method='post')
-                input(type='hidden',name='_csrf',value=csrfToken)
-                button(type='submit').btn.btn-success.form-control Start user
-          td
-            form(action='/admin/delete-user/' + user.id, method='post')
-              input(type='hidden',name='_csrf',value=csrfToken)
-              button(type='submit').btn.btn-danger.form-control Delete user
+          td.dropdown
+            button(type='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false', id='button-actions-' + user.id).btn.btn-default
+              | Actions
+              span.caret
+
+            ul.dropdown-menu(aria-labelledby='button-actions-' + user.id).actions-dropdown
+              li
+                if user.isRunning
+                  form(action='/admin/kill-user/' + user.id, method='post')
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    button(type='submit').btn.btn-danger.form-control Kill user
+                else
+                  form(action='/admin/start-user/' + user.id, method='post')
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    button(type='submit').btn.btn-success.form-control Start user
+              li
+                if user.developer_status < 3
+                  form(action='/admin/promote-user/' + user.id, method='post')
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    button(type='submit').btn.btn-success.form-control Promote user
+                if user.developer_status > 0
+                  form(action='/admin/demote-user/' + user.id, method='post')
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    button(type='submit').btn.btn-success.form-control Demote user
+              li
+                form(action='/admin/delete-user/' + user.id, method='post').form-delete-user
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-danger.form-control Delete user
 

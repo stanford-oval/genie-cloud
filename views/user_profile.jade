@@ -31,6 +31,30 @@ block content
             |  Leave empty to show your username instead.
 
         div.form-group
+          label.control-label ThingPedia Developer Access
+          if user.developer_status >= 3
+            p.form-control-static Administrator
+            span.help-block You know what to do.
+          else if user.developer_status >= 2
+            p.form-control-static Trusted Developer
+            span.help-block All code you submit will go live to all ThingEngines with no review. Be careful!
+          else if user.developer_status >= 1
+            p.form-control-static Developer
+            span.help-block You can submit new thing interfaces, but they have to be reviewed by an administrator before users can see them.
+          else
+            p.form-control-static User (
+              a(href='/user/request-developer') apply to be a developer
+              | )
+
+        if user.developer_status > 0
+          div.form-group
+            label.control-label ThingPedia Developer Key
+            p.form-control-static= user.developer_key
+            span.help-block
+              | You can use this developer key in other ThingEngines (such as one you're running
+              | locally for testing) to access your devices before they are approved.
+
+        div.form-group
           button(type='submit').btn.btn-primary Update profile
 
   div.panel.panel-default

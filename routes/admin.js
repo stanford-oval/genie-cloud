@@ -9,12 +9,15 @@
 const Q = require('q');
 const express = require('express');
 const jade = require('jade');
+const crypto = require('crypto');
 
 const user = require('../util/user');
 const model = require('../model/user');
 const db = require('../util/db');
 
-var TITLE = "ThingEngine";
+function makeRandom() {
+    return crypto.randomBytes(32).toString('hex');
+}
 
 const EngineManager = require('../enginemanager');
 
@@ -74,9 +77,61 @@ router.post('/blow-view-cache', user.requireRole(user.Role.ADMIN), function(req,
 });
 
 router.post('/delete-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
+    if (req.user.id == req.params.id) {
+        res.render('error', { page_title: "ThingEngine - Error",
+                              message: "You cannot delete yourself" });
+        return;
+    }
+
     db.withTransaction(function(dbClient) {
         return EngineManager.get().deleteUser(req.params.id).then(function() {
             return model.delete(dbClient, req.params.id);
+        });
+    }).then(function() {
+        res.redirect('/admin');
+    }).catch(function(e) {
+        res.status(500).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+router.post('/promote-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
+    db.withTransaction(function(dbClient) {
+        return model.get(dbClient, req.params.id).then(function(user) {
+            if (user.developer_status >= 3)
+                return;
+
+            if (user.developer_status == 0) {
+                return model.update(dbClient, user.id, { developer_status: 1,
+                                                         developer_key: makeRandom() });
+            } else {
+                return model.update(dbClient, user.id, { developer_status: user.developer_status + 1 });
+            }
+        });
+    }).then(function() {
+        res.redirect('/admin');
+    }).catch(function(e) {
+        res.status(500).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
+    if (req.user.id == req.params.id) {
+        res.render('error', { page_title: "ThingEngine - Error",
+                              message: "You cannot demote yourself" });
+        return;
+    }
+
+    db.withTransaction(function(dbClient) {
+        return model.get(dbClient, req.params.id).then(function(user) {
+            if (user.developer_status <= 0)
+                return;
+
+            if (user.developer_status == 1)
+                return model.update(dbClient, user.id, { developer_status: 0, developer_key: null });
+            else
+                return model.update(dbClient, user.id, { developer_status: user.developer_status - 1 });
         });
     }).then(function() {
         res.redirect('/admin');

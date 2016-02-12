@@ -1,3 +1,8 @@
 #users-table td {
     vertical-align: middle;
 }
+
+.actions-dropdown button {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
