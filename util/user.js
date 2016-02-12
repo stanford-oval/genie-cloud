@@ -72,6 +72,7 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
                                                                   refreshToken: refreshToken }, true);
                         }).done();
 
+                        user.newly_created = true;
                         return user;
                     });
                 });

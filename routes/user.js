@@ -30,10 +30,19 @@ router.get('/oauth2/google', passport.authenticate('google', {
 }));
 router.get('/oauth2/google/callback', passport.authenticate('google'),
            function(req, res, next) {
-               // Redirection back to the original page
-               var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
-               delete req.session.redirect_to;
-               res.redirect(redirect_to);
+               if (req.user.newly_created) {
+                   req.user.newly_created = false;
+                   res.render('register_success', {
+                       page_title: "ThingEngine - Registration Successful",
+                       username: req.user.username,
+                       cloudId: req.user.user.cloud_id,
+                       authToken: req.user.user.auth_token });
+               } else {
+                   // Redirection back to the original page
+                   var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+                   delete req.session.redirect_to;
+                   res.redirect(redirect_to);
+               }
            });
 
 router.get('/oauth2/facebook', passport.authenticate('facebook', {
