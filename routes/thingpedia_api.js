@@ -13,13 +13,8 @@ const db = require('../util/db');
 const device = require('../model/device');
 const app = require('../model/app');
 const user = require('../model/user');
-const schema = require('../model/schema');
 
 const ThingPediaClient = require('../util/thingpedia-client');
-
-var discovery_modules = {
-    //bluetooth: require('../discovery/bluetooth')
-};
 
 var router = express.Router();
 
@@ -51,7 +46,7 @@ router.get('/code/devices/:kind', function(req, res) {
     }).catch(function(e) {
         console.log('Failed to retrieve device code: ' + e.message);
         console.log(e.stack);
-        res.status(400).send('Bad Request');
+        res.status(400).send('Error: ' + e.message);
     }).done();
 });
 
@@ -137,26 +132,19 @@ router.get('/code/apps/:id', function(req, res) {
     });
 });
 router.post('/discovery', function(req, res) {
-    Q.try(function() {
-        if (!(req.body.kind in discovery_modules)) {
+    var client = new ThingPediaClient(req.query.developer_key);
+
+    client.getKindByDiscovery(req.body).then(function(result) {
+        if (result === null) {
             res.status(404).send('Not Found');
             return;
         }
 
-        var module = discovery_modules[req.body.kind];
-
-        return module.decode(req.body).then(function(result) {
-            if (result === null) {
-                res.status(404).send('Not Found');
-                return;
-            }
-
-            res.status(200).send(result.primary_kind);
-        });
+        res.status(200).send(result.primary_kind);
     }).catch(function(e) {
         console.log('Failed to complete discovery request: ' + e.message);
         console.log(e.stack);
-        res.status(400).send('Bad Request');
+        res.status(400).send('Error: ' + e.message);
     });
 });
 

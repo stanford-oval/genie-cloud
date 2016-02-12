@@ -9,6 +9,8 @@
 const Q = require('q');
 const lang = require('lang');
 
+const ThingPediaDiscovery = require('thingpedia-discovery');
+
 const db = require('./db');
 const device = require('../model/device');
 const app = require('../model/app');
@@ -24,6 +26,32 @@ const LEGACY_MAPS = {
     'google-account': 'com.google',
     'facebook': 'com.facebook'
 };
+
+const ThingPediaDiscoveryDatabase = new lang.Class({
+    Name: 'ThingPediaDiscoveryDatabase',
+
+    _init: function() {},
+
+    getByAnyKind: function(kind) {
+        return db.withClient(function(dbClient) {
+            return device.getByAnyKind(dbClient, kind);
+        });
+    },
+
+    getAllKinds: function(deviceId) {
+        return db.withClient(function(dbClient) {
+            return device.getAllKinds(dbClient, deviceId);
+        });
+    },
+
+    getByPrimaryKind: function(kind) {
+        return db.withClient(function(dbClient) {
+            return device.getByPrimaryKind(dbClient, kind);
+        });
+    }
+});
+
+var _discoveryServer = new ThingPediaDiscovery.Server(new ThingPediaDiscoveryDatabase());
 
 module.exports = new lang.Class({
     Name: 'ThingPediaClientCloud',
@@ -135,7 +163,7 @@ module.exports = new lang.Class({
         });
     },
 
-    getKindByDiscovery: function() {
-        throw new TypeError('Abstract method');
+    getKindByDiscovery: function(body) {
+        return _discoveryServer.decode(body);
     }
 });
