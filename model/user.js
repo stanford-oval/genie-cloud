@@ -56,6 +56,10 @@ module.exports = {
                             [accessToken]);
     },
 
+    getByDeveloperKey: function(client, key) {
+        return db.selectAll(client, "select * from users where developer_key = ?", [key]);
+    },
+
     create: create,
 
     update: function(client, id, user) {
