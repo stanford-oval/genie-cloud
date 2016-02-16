@@ -17,8 +17,8 @@ block content
         input(type='hidden',name='_csrf',value=csrfToken)
 
         div.form-group
-          label.control-label Username
-          p.form-control-static= user.username
+          label.control-label(for='username') Username
+          input(type='text',name='username',value=user.username).form-control#username
 
         div.form-group
           label.control-label E-Mail

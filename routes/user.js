@@ -207,9 +207,16 @@ router.get('/profile', user.redirectLogIn, function(req, res, next) {
 
 router.post('/profile', user.requireLogIn, function(req, res, next) {
     return db.withTransaction(function(dbClient) {
+        if (typeof req.body.username !== 'string' ||
+            req.body.username.length == 0 ||
+            req.body.username.length > 255)
+            req.body.username = req.user.username;
+
         return model.update(dbClient, req.user.id,
-                            { human_name: req.body.human_name });
+                            { username: req.body.username,
+                              human_name: req.body.human_name });
     }).then(function() {
+        req.user.username = req.body.username;
         req.user.human_name = req.body.human_name;
     }).then(function() {
         return getProfile(req, res, undefined);
