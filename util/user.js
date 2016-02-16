@@ -34,10 +34,6 @@ var FACEBOOK_APP_ID = '979879085397010';
 var GOOGLE_CLIENT_SECRET = 'qeNdAMaIF_9wUy6XORABCIKE';
 var FACEBOOK_APP_SECRET = '770b8df05b487cb44261e7701a46c549';
 
-// XOR these comments for testing
-//var THINGENGINE_ORIGIN = 'http://127.0.0.1:8080';
-var THINGENGINE_ORIGIN = 'https://thingengine.stanford.edu';
-
 function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32)
         .then(function(buffer) {
@@ -120,6 +116,7 @@ function authenticateFacebook(accessToken, refreshToken, profile, done) {
                                                                   refreshToken: refreshToken }, true);
                         }).done();
 
+                        user.newly_created = true;
                         return user;
                     });
                 });
@@ -205,7 +202,7 @@ function initializePassport() {
     passport.use(new GoogleOAuthStrategy({
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: THINGENGINE_ORIGIN + '/user/oauth2/google/callback',
+        callbackURL: platform.getOrigin() + '/user/oauth2/google/callback',
         passReqToCallback: true,
     }, function(req, accessToken, refreshToken, profile, done) {
         if (!req.user) {
@@ -219,7 +216,7 @@ function initializePassport() {
     passport.use(new FacebookStrategy({
         clientID: FACEBOOK_APP_ID,
         clientSecret: FACEBOOK_APP_SECRET,
-        callbackURL: THINGENGINE_ORIGIN + '/user/oauth2/facebook/callback',
+        callbackURL: platform.getOrigin() + '/user/oauth2/facebook/callback',
         enableProof: true,
         profileFields: ['id', 'displayName', 'emails'],
         passReqToCallback: true,
