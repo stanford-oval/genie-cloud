@@ -23,6 +23,8 @@ router.get('/', user.redirectLogIn, function(req, res) {
     }).then(function(available) {
         res.render('assistant_config', { page_title: "ThingEngine - Sabrina",
                                          isConfigured: req.user.assistant_feed_id !== null,
+                                         isAdmin: (req.user.roles & user.Role.ADMIN) === user.Role.ADMIN,
+                                         assistantAvailable: AssistantDispatcher.get().isAvailable,
                                          messagingAvailable: available,
                                          tutorialContinue: req.session['tutorial-continue'] });
     }).catch(function(e) {
@@ -63,7 +65,8 @@ router.get('/enable', user.redirectLogIn, function(req, res) {
 
 router.get('/setup', user.redirectRole(user.Role.ADMIN), function(req, res) {
     if (platform.getSharedPreferences().get('assistant')) {
-        res.send("Already set up");
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: "Assistant is already setup" });
         return;
     }
 
@@ -72,7 +75,7 @@ router.get('/setup', user.redirectRole(user.Role.ADMIN), function(req, res) {
 
 router.get('/setup/callback', user.requireRole(user.Role.ADMIN), function(req, res) {
     AssistantDispatcher.runOAuth2Phase2(req, res).then(function() {
-        res.send("Ok");
+        res.redirect('/assistant');
     }).done();
 });
 

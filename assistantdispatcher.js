@@ -305,10 +305,15 @@ module.exports = new lang.Class({
         this._engines = {};
         this._sempre = new Sempre(false);
 
+        this._client = null;
         this._prefs = platform.getSharedPreferences();
         if (this._prefs.get('assistant') === undefined)
             return;
         this.init();
+    },
+
+    get isAvailable() {
+        return this._client !== null;
     },
 
     init: function() {
