@@ -21,7 +21,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="thingengine-cloud"
 NAME=thingengine-cloud
 DAEMON=/usr/bin/nodejs
-DAEMON_ARGS="/home/ThingEngine/platform/cloud/main.js"
+DAEMON_ARGS="/opt/thingengine/main.js"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -44,9 +44,9 @@ SCRIPTNAME=/etc/init.d/$NAME
 #
 do_start()
 {
-	test -d /var/lib/thingengine-cloud || mkdir -p /var/lib/thingengine-cloud
-	chown thingengine:thingpedia /var/lib/thingengine-cloud
-	chmod g+s /var/lib/thingengine-cloud
+	test -d /srv/thingengine || mkdir -p /srv/thingengine
+	chown thingengine:thingengine /srv/thingengine
+	chmod g+s /srv/thingengine
 
 	PORT=8080
 	export PORT
@@ -58,8 +58,8 @@ do_start()
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --chuid thingengine --test > /dev/null \
 		|| return 1
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --chuid thingengine --background --make-pidfile \
-		--chdir /var/lib/thingengine-cloud -C \
-		-- $DAEMON_ARGS >> /var/lib/thingengine-cloud/log 2>&1 \
+		--chdir /srv/thingengine -C \
+		-- $DAEMON_ARGS >> /var/log/thingengine 2>&1 \
 		|| return 2
 	# The above code will not work for interpreted scripts, use the next
 	# six lines below instead (Ref: #643337, start-stop-daemon(8) )

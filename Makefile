@@ -1,6 +1,6 @@
 
-prefix ?= /opt/thingengine-cloud
-localstatedir ?= /var/opt/thingengine-cloud
+prefix ?= /opt/thingengine
+localstatedir ?= /srv/thingengine
 
 all: platform_config.js
 	make -C sandbox all
