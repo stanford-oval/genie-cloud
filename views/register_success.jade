@@ -5,18 +5,15 @@ block scripts
 
 block page_name
   - index = true;
-  | ThingEngine
+  | Thing
 
 block content
   div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
 
   div.jumbotron.text-center
-    h1 Welcome to ThingEngine, #{username}!
-    p You're now ready to start writing your first app.
+    h1 Welcome to Sabrina, #{username}!
+
+    p You're almost ready, you just need to create or link an Omlet account.
 
     p
-      a(href='/tutorial/1').btn.btn-primary Guide me through it
-
-    p
-      small
-        a(href='/') No, thanks. I know my way around here.
+      a(href='/devices/oauth2/org.thingpedia.builtin.omlet').btn.btn-primary Continue

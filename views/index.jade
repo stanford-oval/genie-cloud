@@ -36,49 +36,122 @@ block content
             a(href='/status').btn.btn-primary Check out what happened
 
       else
-        h1 Welcome to ThingEngine Online
+        h1 Welcome to ThingPedia
 
-        p ThingEngine Online is a free service to manage your Internet of Things.
+        h2 Let's build the world's best virtual assistant.
 
-        p Here, all your favorite apps come together to connect to your social networks
-          |  and your devices.
-          |  Or you can unleash your creativity with your own special app, tailored
-          |  to your life.
+        p ThingPedia is a repository of apps and interfaces that support Sabrina, a
+          |  collaborative open source effort to build an extensible, privacy-aware
+          |  personal virtual assistant.
 
-        p
-          |  It's easy, just&#x20;
-          a(href='/user/register') open your free account
-          |  and start&#x20;
-          a(href='/thingpedia/apps') browsing for apps
-          | .
+  section
+    h3.section-title Examples
 
-        p
-          a.btn.btn-lg.btn-primary(href='/user/register') Register now!
-          | &#x20;
-          a.btn.btn-lg.btn-default(href='/user/login') Sign in
+    div.row
+      div.col-md-6.col-lg-4
+        div.panel.panel-default
+          a(href='/thingpedia/apps/install/EX1')
+            div.panel-heading
+              h4.panel-title
+                Example 1
+          div.panel-body
+            BLA BLA BLA Example 1
 
-  if authenticated
-    h3.section-title What to do with ThingEngine?
-  else
-    h3.section-title What can I do with ThingEngine?
+      div.col-md-6.col-lg-4
+        div.panel.panel-default
+          a(href='/thingpedia/apps/install/EX2')
+            div.panel-heading
+              h4.panel-title
+                Example 2
+          div.panel-body
+            BLA BLA BLA Example 2
 
-  div.row
-    each cat in categories
-      div.col-md-4.col-lg-3.col-sm-6.category-button
-        a(href='/thingpedia/apps/by-category/' + cat.id)
-          span(class='glyphicon glyphicon-' + cat.icon)
-          h4.category-link= cat.catchphrase
+      div.clearfix.visible-md
+
+      div.col-md-6.col-lg-4
+        div.panel.panel-default
+          a(href='/thingpedia/apps/install/EX3')
+            div.panel-heading
+              h4.panel-title
+                Example 3
+          div.panel-body
+            BLA BLA BLA Example 3
+
+      div.clearfix.visible-lg
+
+      div.col-md-6.col-lg-4
+        div.panel.panel-default
+          a(href='/thingpedia/apps/install/EX4')
+            div.panel-heading
+              h4.panel-title
+                Example 4
+          div.panel-body
+            BLA BLA BLA Example 4
+
+      div.clearfix.visible-md
+
+      div.col-md-6.col-lg-4
+        div.panel.panel-default
+          a(href='/thingpedia/apps/install/EX5')
+            div.panel-heading
+              h4.panel-title
+                Example 5
+          div.panel-body
+            BLA BLA BLA Example 5
+
+      div.col-md-6.col-lg-4
+        div.panel.panel-default
+          a(href='/thingpedia/apps/install/EX6')
+            div.panel-heading
+              h4.panel-title
+                Example 6
+          div.panel-body
+            BLA BLA BLA Example 6
+
+  section
+    h3.section-title Get started
+
+    p Sabrina interacts with you on the mobile phone using&#x20;
+      a(href='http://www.omlet.me/') Omlet
+      | , the extensible messaging platform.
+
+    h4 Step 1:&#x20;
+      a(href='/user/register') Register to ThingPedia
+
+    h4 Step 2:&#x20;
+      a(href='/devices/oauth2/org.thingpedia.builtin.omlet') Create an Omlet account
+
+    h4 Step 3: Pick an app for your Sabrina
+    p How about&#x20;
+      a(href='/thingpedia/apps/install/FIXME') BLARGH
+      | ?
+
+    h4 Step 4: Profit!
+    p Your Sabrina should be showing you BLORP.
+
+  section
+    if authenticated
+      h3.section-title What to do with Sabrina?
+    else
+      h3.section-title What can Sabrina do?
+
+    div.row
+      each cat in categories
+        div.col-md-4.col-lg-3.col-sm-6.category-button
+          a(href='/thingpedia/apps/by-category/' + cat.id)
+            span(class='glyphicon glyphicon-' + cat.icon)
+            h4.category-link= cat.catchphrase
 
   footer
     p
-      small ThingEngine is a research project of the&#x20;
+      small Sabrina, ThingPedia and ThingEngine are part of a research project of the&#x20;
         a(href='http://mobisocial.stanford.edu') Mobisocial Computing Laboratory
         |  at Stanford University.&#x20;
         a(href='/about') Read more
         | .
     p
       small
-        |  ThingEngine is free software, distributed under the&#x20;
+        |  Sabrina is free software, distributed under the&#x20;
         a(href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html') GPLv2
         |  license.&#x20;
         a(href='https://github.com/Stanford-IoT-Lab/ThingEngine/issues') Report a bug

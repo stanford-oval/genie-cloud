@@ -122,7 +122,7 @@ router.get('/search', function(req, res) {
     }).done();
 });
 
-router.get('/by-category/:category', function(req, res) {
+router.get('/by-category/:category(\\d+)', function(req, res) {
     var categoryId = req.params.category;
 
     db.withTransaction(function(client) {
@@ -153,7 +153,7 @@ router.get('/by-tag/:tag', function(req, res) {
     }).done();
 })
 
-router.get('/by-device/:id', function(req, res) {
+router.get('/by-device/:id(\\d+)', function(req, res) {
     var deviceId = req.params.id;
 
     db.withTransaction(function(client) {
@@ -166,7 +166,7 @@ router.get('/by-device/:id', function(req, res) {
     }).done();
 })
 
-router.get('/by-owner/:id', function(req, res) {
+router.get('/by-owner/:id(\\d+)', function(req, res) {
     db.withTransaction(function(client) {
         return userModel.get(client, req.params.id).then(function(user) {
             return model.getByOwner(client, filterVisible(req), req.params.id).then(function(apps) {
@@ -235,7 +235,7 @@ router.post('/create', user.requireLogIn, function(req, res) {
     }).done();
 });
 
-router.get('/:id', function(req, res) {
+router.get('/:id(\\d+)', function(req, res) {
     db.withClient(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(r) {
             return model.getAllTags(dbClient, r.id).then(function(tags) {
@@ -260,7 +260,7 @@ router.get('/:id', function(req, res) {
     }).done();
 });
 
-router.post('/delete/:id', user.requireLogIn, function(req, res) {
+router.post('/delete/:id(\\d+)', user.requireLogIn, function(req, res) {
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(r) {
             if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
@@ -280,7 +280,7 @@ router.post('/delete/:id', user.requireLogIn, function(req, res) {
     }).done();
 });
 
-router.post('/set-visible/:id', user.requireLogIn, function(req, res) {
+router.post('/set-visible/:id(\\d+)', user.requireLogIn, function(req, res) {
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(r) {
             if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
@@ -300,7 +300,7 @@ router.post('/set-visible/:id', user.requireLogIn, function(req, res) {
     }).done();
 });
 
-router.post('/set-invisible/:id', user.requireLogIn, function(req, res) {
+router.post('/set-invisible/:id(\\d+)', user.requireLogIn, function(req, res) {
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(r) {
             if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
@@ -356,11 +356,11 @@ function forkApp(req, res, error, name, description, code, tags) {
     });
 }
 
-router.get('/fork/:id', user.redirectLogIn, function(req, res) {
+router.get('/fork/:id(\\d+)', user.redirectLogIn, function(req, res) {
     forkApp(req, res).done();
 });
 
-router.post('/fork/:id', user.requireLogIn, function(req, res) {
+router.post('/fork/:id(\\d+)', user.requireLogIn, function(req, res) {
     var name = req.body.name;
     var description = req.body.description;
     var code = req.body.code;
@@ -387,7 +387,7 @@ router.post('/fork/:id', user.requireLogIn, function(req, res) {
     }).done();
 });
 
-router.get('/edit/:id', user.redirectLogIn, function(req, res) {
+router.get('/edit/:id(\\d+)', user.redirectLogIn, function(req, res) {
     return db.withClient(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(r) {
             if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
@@ -419,7 +419,7 @@ router.get('/edit/:id', user.redirectLogIn, function(req, res) {
     }).done();
 });
 
-router.post('/edit/:id', user.requireLogIn, function(req, res) {
+router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
     var name = req.body.name;
     var description = req.body.description;
     var code = req.body.code;
