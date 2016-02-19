@@ -2,3 +2,12 @@ h2 {
     margin-bottom: 0.75em;
     margin-top: 1.5em;
 }
+
+.app-template {
+    text-align: center;
+}
+
+.app-template .panel-heading {
+    display: block;
+}
+

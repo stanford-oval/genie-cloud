@@ -39,13 +39,14 @@ block content
         div.panel.panel-default
           a.panel-heading(href='/thingpedia/apps/' + app.id)= app.name
           div.panel-body
-            | #{app.description}
-          div.panel-footer
-            p
-              span By 
-                a(href='/thingpedia/apps/by-owner/' + app.owner)= app.owner_name
-                //span.badge Like #{app.like}
+            p #{app.description}
             p
               each tag in app.tags
-                a(href='/thingpedia/apps/by-tag/' + tag.tag).label.label-default= tag.tag
-                |  
+                a(href='/thingpedia/apps/by-tag/' + tag.tag) ##{tag.tag}
+                | &#x20;
+          div.panel-footer
+            p
+              span By&#x20;
+                a(href='/thingpedia/apps/by-owner/' + app.owner)= app.owner_name
+                //span.badge Like #{app.like}
+

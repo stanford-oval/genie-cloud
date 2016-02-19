@@ -95,7 +95,7 @@ block content
         span(aria-hidden='true') ×
       p= message
 
-  h2 Enabled Apps
+  h2 Running Apps
 
   div.row
     each app, i in apps
@@ -144,6 +144,30 @@ block content
   div.row
     div.col-sm-6.col-md-3
       a(href='/thingpedia/apps').btn.btn-default.btn-block Find new apps
+
+  if thingpediaApps.length > 0
+    h2 My Published Apps
+    div.row
+      each app, i in thingpediaApps
+        if i % 12 === 0
+          div.clearfix.visible-md.visible-md.visible-sm
+        else if i % 6 === 0
+          div.clearfix.visible-md.visible-sm
+        else if i % 4 === 0
+          div.clearfix.visible-lg.visible-sm
+        else if i % 3 === 0
+          div.clearfix.visible-md
+        else if i % 2 === 0
+          div.clearfix.visible-sm
+        div.col-lg-3.col-md-4.col-sm-6.app-template
+          div.panel.panel-default
+            a.panel-heading(href='/thingpedia/apps/' + app.id)= app.name
+            div.panel-body
+              p #{app.description}
+              p
+                each tag in app.tags
+                  a(href='/thingpedia/apps/by-tag/' + tag.tag) ##{tag.tag}
+                  | &#x20;
 
   h2 My Devices
 

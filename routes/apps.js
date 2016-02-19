@@ -13,6 +13,7 @@ const db = require('../util/db');
 const user = require('../util/user');
 const userModel = require('../model/user');
 const feeds = require('../shared/util/feeds');
+const thingpediaApps = require('../model/app');
 const EngineManager = require('../enginemanager');
 
 const ThingTalk = require('thingtalk');
@@ -37,6 +38,19 @@ function getAllApps(engine) {
                 });
         }));
     })
+}
+
+function getMyThingpediaApps(req) {
+    return db.withClient(function(dbClient) {
+        return thingpediaApps.getByOwner(dbClient, req.user.id).then(function(apps) {
+            return Q.all(apps.map(function(r) {
+                return thingpediaApps.getAllTags(dbClient, r.id).then(function(tags) {
+                    r.tags = tags;
+                    return r;
+                });
+            }));
+        });
+    });
 }
 
 function getAllDevices(engine) {
@@ -72,8 +86,8 @@ router.get('/', user.redirectLogIn, function(req, res) {
     var sharedApp = null;
 
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return Q.all([getAllApps(engine), getAllDevices(engine)]);
-    }).spread(function(apps, devices) {
+        return Q.all([getAllApps(engine), getAllDevices(engine), getMyThingpediaApps(req)]);
+    }).spread(function(apps, devices, thingpediaApps) {
         console.log('apps', apps);
         console.log('devices', devices);
         if (shareApps.length > 0) {
@@ -83,8 +97,8 @@ router.get('/', user.redirectLogIn, function(req, res) {
             });
         }
 
-        return [apps, devices];
-    }).spread(function(appinfo, devinfo) {
+        return [apps, devices, thingpediaApps];
+    }).spread(function(appinfo, devinfo, thingpediaAppinfo) {
         var physical = [], online = [];
         devinfo.forEach(function(d) {
             if (d.isOnlineAccount)
@@ -97,6 +111,7 @@ router.get('/', user.redirectLogIn, function(req, res) {
                                  sharedApp: sharedApp,
                                  csrfToken: req.csrfToken(),
                                  apps: appinfo,
+                                 thingpediaApps: thingpediaAppinfo,
                                  physicalDevices: physical,
                                  onlineDevices: online,
                                 });
