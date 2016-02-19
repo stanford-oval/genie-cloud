@@ -77,9 +77,9 @@ function renderAppList(dbClient, apps, res, page_h1, page_subtitle) {
         });
     })).then(function(apps) {
 	res.render('thingpedia_app_list', { page_title: "ThingEngine - app collection",
-                                            page_h1: page_h1,
-                                            page_subtitle: page_subtitle,
-                                            apps: apps });
+                                        page_h1: page_h1,
+                                        page_subtitle: page_subtitle,
+                                        apps: apps });
     });
 }
 

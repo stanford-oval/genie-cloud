@@ -32,8 +32,9 @@ block content
 
           h2 Your Sabrina died!
           p It might have crashed or might have been killed by the site administrators.
-            a(href='/status') Check out what happened
-            | .
+          p
+            a(href='/status').btn.btn-primary Check out what happened
+
       else
         h1 Welcome to ThingEngine Online
 
@@ -45,15 +46,15 @@ block content
           |  to your life.
 
         p
-          |  It's easy, just 
+          |  It's easy, just&#x20;
           a(href='/user/register') open your free account
-          |  and start 
+          |  and start&#x20;
           a(href='/thingpedia/apps') browsing for apps
           | .
 
         p
           a.btn.btn-lg.btn-primary(href='/user/register') Register now!
-          |  
+          | &#x20;
           a.btn.btn-lg.btn-default(href='/user/login') Sign in
 
   if authenticated
@@ -68,35 +69,18 @@ block content
           span(class='glyphicon glyphicon-' + cat.icon)
           h4.category-link= cat.catchphrase
 
-  h3.section-title What things can I use?
-
-  h4.section-subtitle ThingEngine uses ThingPedia, a research project to collect
-    | all the ways devices and web services work.
-  h4.section-subtitle ThingPedia supports 
-    a(href='/thingpedia/devices?class=physical') many devices
-    |  and 
-    a(href='/thingpedia/devices?class=online') many web services
-    | . These are our favorites:
-
-  div.container
-    div.row
-      each d in devices
-        div.col-md-4.col-lg-3.col-sm-6.category-button
-          a(href='/thingpedia/devices/details/' + d.id)
-            h4.category-link= d.name
-
   footer
     p
-      small ThingEngine is a research project of the 
+      small ThingEngine is a research project of the&#x20;
         a(href='http://mobisocial.stanford.edu') Mobisocial Computing Laboratory
-        |  at Stanford University. 
+        |  at Stanford University.&#x20;
         a(href='/about') Read more
         | .
     p
       small
-        |  ThingEngine is free software, distributed under the 
+        |  ThingEngine is free software, distributed under the&#x20;
         a(href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html') GPLv2
-        |  license. 
+        |  license.&#x20;
         a(href='https://github.com/Stanford-IoT-Lab/ThingEngine/issues') Report a bug
-        |  
+        | &#x20;
         a(href='https://github.com/Stanford-IoT-Lab/ThingEngine').label.label-default Fork me on Github!

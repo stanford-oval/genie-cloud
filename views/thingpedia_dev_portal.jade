@@ -1,0 +1,58 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+
+block page_name
+  | Developer Portal
+
+block content
+  if authenticated
+    h2 Status
+    if isRunning
+      p Your ThingEngine is running.&#x20;
+        a(href="/status") More Details
+        | .
+    else
+      p Your ThingEngine is dead.&#x20;
+        a(href="/status") More Details
+        | .
+
+  h2 Documentation
+
+  ul
+    li
+      a(href='/doc/getting-started.md') Getting Started with ThingEngine
+    li
+      a(href='/doc/thingtalk-intro.md') Introduction to ThingTalk
+    li
+      a(href='/doc/thingtalk-reference.md') ThingTalk Reference
+    li
+      a(href='/doc/thingpedia-device-intro.md') Writing Interfaces for ThingPedia
+
+  h2 Supported Interfaces
+
+  div.row
+    each dev, i in devices
+      if i % 6 === 0
+        div.clearfix.visible-lg.visible-md
+      else if i % 3 === 0
+        div.clearfix.visible-lg
+      else if i % 2 === 0
+        div.clearfix.visible-md
+      div.col-lg-4.col-md-6.dev-template
+        div.panel.panel-default
+          a(href='/thingpedia/devices/details/' + dev.id).panel-heading= dev.name
+          div.panel-body= dev.description
+          if authenticated && (user.developer_status >= 3 || dev.owner === user.id)
+            div.panel-footer
+              div.row
+                //div.col-md-6
+                  a.btn.btn-sm.btn-default.btn-block(href='/thingpedia/apps/by-device/' + dev.id) Find Apps
+                div.col-md-6
+                  a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id) Update
+
+  div.row
+    div.col-sm-6.col-md-3
+      a(href='/thingpedia/upload/create').btn.btn-primary.btn-block Upload new interface
+

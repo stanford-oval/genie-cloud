@@ -6,13 +6,15 @@
 //
 // See COPYING for details
 
-var Q = require('q');
-var express = require('express');
-var passport = require('passport');
+const Q = require('q');
+const express = require('express');
+const passport = require('passport');
 
-var db = require('../util/db');
-var model = require('../model/device');
-var user = require('../util/user');
+const db = require('../util/db');
+const model = require('../model/device');
+const user = require('../util/user');
+
+const EngineManager = require('../enginemanager');
 
 var router = express.Router();
 
@@ -23,21 +25,11 @@ router.get('/', function(req, res) {
     if (isNaN(page))
         page = 0;
 
-    if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: "ThingEngine - Error",
-                                          message: "Invalid device class" });
-        return;
-    }
-
-    var online = req.query.class === 'online';
-
     db.withClient(function(client) {
-        var rows = (online ? model.getAllWithKind(client, 'online-account') :
-                    model.getAllWithoutKind(client, 'online-account'));
-        return rows.then(function(devices) {
-            res.render('thingpedia_device_list', { page_title: "ThingEngine - supported devices",
-                                                   devices: devices,
-                                                   onlineAccounts: online });
+        return model.getAll(client, page * 20, 20).then(function(devices) {
+            res.render('thingpedia_dev_portal', { page_title: "ThingPedia Developer Portal",
+                                                  devices: devices,
+                                                  isRunning: (req.user ? EngineManager.get().isRunning(req.user.id) : false) });
         });
     }).done();
 });

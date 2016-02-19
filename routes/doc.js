@@ -19,10 +19,6 @@ function render(res, what) {
     res.render('doc_' + what, { page_title: "ThingEngine - Documentation" });
 }
 
-router.get('/', function(req, res) {
-    render(res, 'main');
-});
-
 router.get('/:what', function(req, res) {
     if (!/^[a-z0-9\-.]+$/.test(req.params.what) ||
         !req.params.what.endsWith('.md')) {

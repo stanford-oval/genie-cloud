@@ -3,29 +3,25 @@ ul.nav.navbar-nav
     a(href="/") Home
   li
     a(href="/thingpedia/apps") App Collection
-  li
-    a(href="/thingpedia/devices?class=physical") ThingPedia
   if authenticated
     li
       a(href="/apps") My Sabrina
     li
       a(href="/assistant") Sabrina
-    if user.roles & 0x1
-      li
-        a(href="/admin") Administration
+  li
+    a(href='/thingpedia/devices') Developers
+  if authenticated && user.roles & 0x1
+    li
+      a(href="/admin") Administration
 
 ul.nav.navbar-nav.navbar-right
   if authenticated
     li
-      a(href="/status") Status
-    li
-      a(href="/user/profile") Profile
+      a(href="/user/profile") Settings
   li
     if authenticated
       a.navbar-login(href='/user/logout') Log Out
     else
       a.navbar-login(href='/user/login') Log In
   li
-    a(href='/about') About
-  li
-    a#navbar-login-button(href='/doc') Docs
+    a#navbar-login-button(href='/about') About
