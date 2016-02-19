@@ -21,18 +21,17 @@ block content
         if isRunning
           h1 Welcome back!
 
-          p Connect your 
-            a(href='/devices/create?class=physical') devices
-            |  or 
-            a(href='/devices/create?class=online') web services
-            | , or jump straight to the 
-            a(href='/apps') list of your apps
-          | .
+          p Your Sabrina is running.
+
+          p
+            a(href='/apps').btn.btn-primary Check your apps
+            | &#x20;
+            a(href='/thingpedia/apps').btn.btn-primary Find new apps
         else
           h1 Uh, oh!
 
-          h2 Your engine is not running!
-          p It might have crashed or might have been killed by the site administrators. 
+          h2 Your Sabrina died!
+          p It might have crashed or might have been killed by the site administrators.
             a(href='/status') Check out what happened
             | .
       else

@@ -5,10 +5,10 @@ block scripts
 
 block page_name
   - index = true;
-  | Install App
+  | Enable App
 
 block content
-  h1 Do you want to install this app?
+  h1 Do you want to enable this app?
 
   div.well#app-install-well
     h3 #{name}
@@ -58,7 +58,7 @@ block content
 
     div.form-group
       div.col-xs-12
-        button(type='submit').btn.btn-success Install
+        button(type='submit').btn.btn-success Enable
 
   //p
     | If you are unsure of how you got to this page, or what this

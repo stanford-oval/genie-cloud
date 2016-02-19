@@ -91,9 +91,7 @@ mixin thingpedia_apps(apps, visible)
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-sm.btn-success.btn-block Publish
               div.col-md-6
-                form(action='/thingpedia/apps/delete/' + app.id, method='post')
-                  input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-sm.btn-danger.btn-block Delete
+                button(data-app-id=app.id).btn.btn-sm.btn-danger.btn-block.button-delete-thingpedia-app Delete
 
 block content
   if sharedApp
@@ -188,6 +186,32 @@ block content
   div.row
     div.col-sm-6.col-md-3
       a(href='/devices/create?class=online').btn.btn-primary.btn-block Add new account
+
+  div.modal.fade#delete-thingpedia-app-dialog(role='dialog')
+    div.modal-dialog
+      div.modal-content
+        div.modal-header
+          a.close(data-dismiss='modal', aria-label="Close")
+            span(aria-hidden='true') ×
+
+          h4.modal-title Are you sure?
+
+        div.modal-body
+          div.container-fluid
+            div.row
+              div.col-xs-12
+                p If you delete your app, all other users will be
+                  | unable to enable it.
+                p This will not affect users who already enabled it.
+
+            div.row
+              div.col-sm-4
+                form(action='/',method='post')#delete-thingpedia-app-form
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-danger.btn-block Delete App
+
+              div.col-sm-4
+                button(type='button',data-dismiss='modal').btn.btn-primary.btn-block Cancel
 
   h2 My Apps
 
