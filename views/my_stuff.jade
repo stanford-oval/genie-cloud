@@ -1,0 +1,86 @@
+extends layout
+
+block scripts
+  script(src='/javascripts/apps.js')
+
+block page_name
+  | My Sabrina
+
+block content
+  if sharedApp
+    div.modal.fade#share-app-dialog(role='dialog')
+      div.modal-dialog
+        div.modal-content
+          div.modal-header
+            a.close(data-dismiss='modal', aria-label="Close")
+              span(aria-hidden='true') ×
+
+            h4.modal-title Do you want to share #{sharedApp.name}?
+
+          div.modal-body
+            p You just installed a shared application. Do you want to
+              | share it with everyone in the group?
+
+            p If you say yes, a link will be sent to the group allowing
+              | other people to install the same app.
+
+            form(action='/apps/share', method='post')
+              input(type='hidden',name='id',value=sharedApp.uniqueId)
+              input(type='hidden',name='_csrf',value=csrfToken)
+
+              div.form-group
+                button(type='submit').btn.btn-success Yes, share it
+                | &#20;
+                a.btn.btn-default(data-dismiss='modal') No, thanks
+
+  if message
+    div.alert.alert-success.alert-dismissible.fade.in(role='alert')
+      button(type='button', data-dismiss='alert', aria-label="Close").close
+        span(aria-hidden='true') ×
+      p= message
+
+  h2 Enabled Apps
+
+  div.row
+    each app, i in apps
+      if i % 6 === 0
+        div.clearfix.visible-lg.visible-md
+      else if i % 3 === 0
+        div.clearfix.visible-lg
+      else if i % 2 === 0
+        div.clearfix.visible-md
+      div.col-lg-4.col-md-6
+        div.panel.panel-default.installed-app
+          div.panel-heading
+            h2.panel-title= app.name
+          div.panel-body
+            if app.error
+              p This app had an error: #{app.error}
+            else if app.running
+              p This app is running.
+            else if app.enabled
+              p This app is enabled but not running.
+            else
+              p This app is enabled for #{app.currentTier}.
+
+          div.panel-footer
+            div.row
+              div.col-md-6
+                form.form-inline(action="/apps/delete",method="post").form-delete-app
+                  input(type='hidden',name='id',value=app.uniqueId)
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-sm.btn-danger.btn-block Disable
+
+              div.col-md-6
+                a(href='/apps/#{app.uniqueId}/publish').btn.btn-sm.btn-success.btn-block Publish
+
+              if app.state && app.state.$F
+                div.col-md-6
+                  form.form-inline(action="/apps/share",method="post")
+                    input(type='hidden',name='id',value=app.uniqueId)
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    button(type='submit').btn.btn-sm.btn-success.btn-block Share
+
+              if app.hasOutVariables
+                div.col-md-6
+                  a(href='/apps/#{app.uniqueId}/results').btn.btn-sm.btn-success.btn-block Show results

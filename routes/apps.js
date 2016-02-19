@@ -20,33 +20,43 @@ const AppCompiler = ThingTalk.Compiler;
 
 var router = express.Router();
 
+function getAllApps(engine) {
+    return engine.apps.getAllApps().then(function(apps) {
+        return Q.all(apps.map(function(a) {
+            return Q.all([a.uniqueId, a.name, a.isRunning, a.isEnabled,
+                          a.currentTier, a.state, a.error, a.hasOutVariables])
+                .spread(function(uniqueId, name, isRunning,
+                                 isEnabled, currentTier, state,
+                                 error, hasOutVariables) {
+                    var app = { uniqueId: uniqueId, name: name || "Some app",
+                                running: isRunning, enabled: isEnabled,
+                                currentTier: currentTier,
+                                state: state, error: error,
+                                hasOutVariables: hasOutVariables };
+                    return app;
+                });
+        }));
+    })
+}
+
 function appsList(req, res, next, message, shareApp) {
     var sharedApp = null;
 
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.apps.getAllApps();
-    }).then(function(apps) {
-        return Q.all(apps.map(function(a) {
-            return Q.all([a.uniqueId, a.name, a.isRunning, a.isEnabled,
-                          a.currentTier, a.state])
-                .spread(function(uniqueId, name, isRunning, isEnabled, currentTier, state) {
-                    var app = { uniqueId: uniqueId, name: name || "Some app",
-                                running: isRunning, enabled: isEnabled,
-                                currentTier: currentTier,
-                                state: state };
-
-                    if (shareApp !== undefined &&
-                        uniqueId === shareApp)
-                        sharedApp = app;
-                    return app;
-                });
-        }));
+        return getAllApps(engine);
+    }).tap(function(apps) {
+        if (shareApp !== undefined) {
+            apps.forEach(function(app) {
+                if (shareApp === app.uniqueId)
+                    sharedApp = app;
+            });
+        }
     }).then(function(appinfo) {
-        res.render('apps_list', { page_title: 'ThingEngine - installed apps',
-                                  message: message,
-                                  sharedApp: sharedApp,
-                                  csrfToken: req.csrfToken(),
-                                  apps: appinfo });
+        res.render('my_stuff', { page_title: 'ThingEngine - installed apps',
+                                 message: message,
+                                 sharedApp: sharedApp,
+                                 csrfToken: req.csrfToken(),
+                                 apps: appinfo });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
@@ -83,6 +93,8 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
 router.post('/create', user.requireLogIn, function(req, res, next) {
     var compiler;
     var code = req.body.code;
+    var name = req.body.name;
+    var description = req.body.description;
     var state, tier;
 
     Q.try(function() {
@@ -111,7 +123,8 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
                         throw new Error('No such tier ' + tier);
                 })
             }).then(function() {
-                return engine.apps.loadOneApp(code, state, null, tier, true);
+                return engine.apps.loadOneApp(code, state, null, tier,
+                                              name, description, true);
             });
         }).then(function() {
             if (req.session['tutorial-continue'])
