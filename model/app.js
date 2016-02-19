@@ -31,64 +31,82 @@ module.exports = {
     get: function(client, id) {
         return db.selectOne(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
                             + " u.human_name, u.username) as owner_name from app r left outer "
-                            + "join users u on r.owner = u.id where r.id = ?", [id]);
+                            + "join users u on r.owner = u.id where r.id = ?",
+                            [id]);
     },
 
-    getByOwner: function(client, owner) {
+    getByOwner: function(client, visible, owner) {
         return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
-                            + " u.human_name, u.username) as owner_name from app r left outer " +
-                            "join users u on r.owner = u.id where r.owner = ? order by r.name asc",
-                            [owner]);
+                            + " u.human_name, u.username) as owner_name from app r left outer "
+                            + "join users u on r.owner = u.id where r.owner = ?"
+                            + (visible !== null ? " and (r.owner = ? or r.visible)" : "")
+                            + " order by r.name asc",
+                            [owner, visible]);
     },
 
-    getByTag: function(client, tag) {
+    getByTag: function(client, visible, tag) {
         return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
-                            + " u.human_name, u.username) as owner_name from app r left outer " +
-                            "join users u on r.owner = u.id, app_tag rt where rt.app_id = r.id " +
-                            " and rt.tag = ? order by r.name", [tag]);
+                            + " u.human_name, u.username) as owner_name from app r left outer "
+                            + "join users u on r.owner = u.id, app_tag rt where rt.app_id = r.id "
+                            + " and rt.tag = ?"
+                            + (visible !== null ? " and (r.owner = ? or r.visible)" : ""),
+                            + " order by r.name", [tag, visible]);
     },
 
-    getByFuzzySearch: function(client, tag) {
+    getByFuzzySearch: function(client, visible, tag) {
         var pctag = '%' + tag + '%';
-        return db.selectAll(client, "(select 0 as weight, r.*, if(u.human_name is not null and "
-                            + "u.human_name <> '', u.human_name, u.username) as owner_name from " +
-                            "app r left outer " +
-                            "join users u on r.owner = u.id, app_tag " +
-                            " rt where rt.app_id = r.id and rt.tag = ?) union distinct " +
-                            "(select 1, r.*, if(u.human_name is not null and u.human_name <> '',"
-                            + " u.human_name, u.username) as owner_name from app r left outer " +
-                            "join users u on r.owner = u.id where name like ? or description like ?) " +
-                            "union distinct (select 2, r.*, if(u.human_name is not null and "
-                            + "u.human_name <> '', u.human_name, u.username) as owner_name from app"
-                            + " r left " +
-                            " outer join users u on r.owner = u.id, device_class d, app_device rd " +
-                            " where rd.device_id = d.id and rd.app_id = r.id and d.name like ? or "
-                            + "d.description like ?) order by weight asc, name asc limit 20",
-                            [tag, pctag, pctag, pctag, pctag]);
+        if (visible !== null) {
+            return db.selectAll(client, "(select 0 as weight, r.*, if(u.human_name is not null and "
+                                + "u.human_name <> '', u.human_name, u.username) as owner_name from "
+                                + "app r left outer "
+                                + "join users u on r.owner = u.id, app_tag "
+                                + " rt where rt.app_id = r.id and rt.tag = ? "
+                                + "and (r.owner = ? or r.visible)"
+                                + ") union distinct "
+                                + "(select 1, r.*, if(u.human_name is not null and u.human_name <> '',"
+                                + " u.human_name, u.username) as owner_name from app r left outer "
+                                + "join users u on r.owner = u.id where name like ? or description like ?"
+                                + " and (r.owner = ? or r.visible)"
+                                + ") " +
+                                + "union distinct (select 2, r.*, if(u.human_name is not null and "
+                                + "u.human_name <> '', u.human_name, u.username) as owner_name from app"
+                                + " r left " +
+                                + " outer join users u on r.owner = u.id, device_class d, app_device rd "
+                                + " where rd.device_id = d.id and rd.app_id = r.id and d.name like ? or "
+                                + "d.description like ?"
+                                + " and (r.owner = ? or r.visible)"
+                                + ") order by weight asc, name asc limit 20",
+                                [tag, visible, pctag, pctag, visible, pctag, pctag, visible]);
+        } else {
+            return db.selectAll(client, "(select 0 as weight, r.*, if(u.human_name is not null and "
+                                + "u.human_name <> '', u.human_name, u.username) as owner_name from "
+                                + "app r left outer "
+                                + "join users u on r.owner = u.id, app_tag "
+                                + " rt where rt.app_id = r.id and rt.tag = ? "
+                                + ") union distinct "
+                                + "(select 1, r.*, if(u.human_name is not null and u.human_name <> '',"
+                                + " u.human_name, u.username) as owner_name from app r left outer "
+                                + "join users u on r.owner = u.id where name like ? or description like ?"
+                                + ") " +
+                                + "union distinct (select 2, r.*, if(u.human_name is not null and "
+                                + "u.human_name <> '', u.human_name, u.username) as owner_name from app"
+                                + " r left " +
+                                + " outer join users u on r.owner = u.id, device_class d, app_device rd "
+                                + " where rd.device_id = d.id and rd.app_id = r.id and d.name like ? or "
+                                + "d.description like ?"
+                                + ") order by weight asc, name asc limit 20",
+                                [tag, pctag, pctag, pctag, pctag]);
+        }
     },
 
-    getByDevice: function(client, deviceId) {
+    getByDevice: function(client, visible, deviceId) {
         return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
-                            + " u.human_name, u.username) as owner_name from app r left outer " +
-                            "join users u on r.owner = u.id, app_device rd " +
-                            " where rd.app_id = r.id and rd.device_id = ? order by r.name asc",
-                            [deviceId]);
-    },
-
-    getByDevicePrimaryKind: function(client, kind) {
-        return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
-                            + " u.human_name, u.username) as owner_name from app r left outer " +
-                            "join users u on r.owner = u.id, device_class d, app_device rd " +
-                            " where rd.app_id = r.id and rd.device_id = d.id and " +
-                            " d.primary_kind = ? order by r.name asc", [kind]);
-    },
-
-    getByDeviceAnyKind: function(client, kind) {
-        return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
-                            + " u.human_name, u.username) as owner_name from app r left outer " +
-                            "join users u on r.owner = u.id, device_class d, app_device rd, " +
-                            "device_class_kind dk where rd.app_id = r.id and rd.device_id = d.id " +
-                            " and dk.device_id = d.id and dk.kind = ? order by r.name asc", [kind]);
+                            + " u.human_name, u.username) as owner_name from app r left outer "
+                            + "join users u on r.owner = u.id, app_device rd "
+                            + " where rd.app_id = r.id and rd.device_id = ?"
+                            + (visible !== null ? " and (r.owner = ? or r.visible)" : "")
+                            + " order by r.name asc",
+                            [deviceId, visible]);
     },
 
     create: create,
@@ -101,16 +119,27 @@ module.exports = {
         return db.query(client, "delete from app where id = ?", [id]);
     },
 
-    getAll: function(client, start, end) {
+    getAll: function(client, visible, start, end) {
         if (start !== undefined && end !== undefined) {
-            return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
-                                + " u.human_name, u.username) as owner_name from app r left " +
-                                " outer join users u on r.owner = u.id order by r.name limit ?,?",
-                                [start, end]);
+            if (visible !== null) {
+                return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
+                                    + " u.human_name, u.username) as owner_name from app r left "
+                                    + " outer join users u on r.owner = u.id"
+                                    + " where (r.owner = ? or r.visible)"
+                                    + " order by r.name limit ?,?",
+                                    [visible, start, end]);
+            } else {
+                return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
+                                    + " u.human_name, u.username) as owner_name from app r left "
+                                    + " outer join users u on r.owner = u.id order by r.name limit ?,?",
+                                    [start, end]);
+            }
         } else {
             return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
-                                + " u.human_name, u.username) as owner_name from app r left " +
-                                " outer join users u on r.owner = u.id order by r.name");
+                                + " u.human_name, u.username) as owner_name from app r left "
+                                + " outer join users u on r.owner = u.id"
+                                + (visible !== null ? " where (r.owner = ? or r.visible)" : "")
+                                + " order by r.name", [visible]);
         }
     },
 

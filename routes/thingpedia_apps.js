@@ -83,6 +83,15 @@ function renderAppList(dbClient, apps, res, page_h1, page_subtitle) {
     });
 }
 
+function filterVisible(req) {
+    if (!req.user)
+        return -1;
+    if (req.user.developer_status >= user.DeveloperStatus.ADMIN)
+        return null;
+    else
+        return req.user.id;
+}
+
 router.get('/', function(req, res) {
     var page = req.query.page;
     if (page === undefined)
@@ -91,7 +100,7 @@ router.get('/', function(req, res) {
         page = 0;
 
     db.withTransaction(function(client) {
-        return model.getAll(client, page * 20, 20).then(function(apps) {
+        return model.getAll(client, filterVisible(req), page * 20, 20).then(function(apps) {
             return renderAppList(client, apps, res,
                                  "Try the following recommended apps");
         });
@@ -106,7 +115,7 @@ router.get('/search', function(req, res) {
     }
 
     db.withTransaction(function(client) {
-        return model.getByFuzzySearch(client, q).then(function(apps) {
+        return model.getByFuzzySearch(client, filterVisible(req), q).then(function(apps) {
             return renderAppList(client, apps, res,
                                  "Results of your search");
         });
@@ -124,7 +133,7 @@ router.get('/by-category/:category', function(req, res) {
                 return;
             }
 
-            return model.getByTag(client, cats[0].tag).then(function(apps) {
+            return model.getByTag(client, filterVisible(req), cats[0].tag).then(function(apps) {
                 return renderAppList(client, apps, res,
                                      cats[0].name,
                                      cats[0].description);
@@ -137,7 +146,7 @@ router.get('/by-tag/:tag', function(req, res) {
     var tag = req.params.tag;
 
     db.withTransaction(function(client) {
-        return model.getByTag(client, tag).then(function(apps) {
+        return model.getByTag(client, filterVisible(req), tag).then(function(apps) {
             return renderAppList(client, apps, res,
                                  "Apps with tag \"" + tag + "\"");
         });
@@ -149,7 +158,7 @@ router.get('/by-device/:id', function(req, res) {
 
     db.withTransaction(function(client) {
         return device.get(client, deviceId).then(function(device) {
-            return model.getByDevice(client, deviceId).then(function(apps) {
+            return model.getByDevice(client, filterVisible(req), deviceId).then(function(apps) {
                 return renderAppList(client, apps, res,
                                      "Apps for " + device.name);
             });
@@ -160,7 +169,7 @@ router.get('/by-device/:id', function(req, res) {
 router.get('/by-owner/:id', function(req, res) {
     db.withTransaction(function(client) {
         return userModel.get(client, req.params.id).then(function(user) {
-            return model.getByOwner(client, req.params.id).then(function(apps) {
+            return model.getByOwner(client, filterVisible(req), req.params.id).then(function(apps) {
                 var username = user.human_name || user.username;
                 return renderAppList(client, apps, res,
                                      "Apps contributed by " + username);
@@ -235,6 +244,14 @@ router.get('/:id', function(req, res) {
             });
         });
     }).then(function(app) {
+        if ((!req.user || (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
+                            app.owner !== req.user.id)) &&
+            !app.visible) {
+            res.status(403).render('error', { page_title: "ThingEngine - Error",
+                                              message: "You are not authorized to perform the requested operation" });
+            return;
+        }
+
         res.render('thingpedia_app_view', { page_title: "ThingEngine - app",
                                             app: app });
     }).catch(function(e) {
@@ -413,6 +430,14 @@ router.get('/install/:id(\\d+)', user.redirectLogIn, function(req, res, next) {
     db.withClient(function(dbClient) {
         return model.get(dbClient, req.params.id);
     }).then(function(app) {
+        if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
+            app.owner !== req.user.id &&
+            !app.visible) {
+            res.status(403).render('error', { page_title: "ThingEngine - Error",
+                                              message: "You are not authorized to perform the requested operation" });
+            return;
+        }
+
         // sanity check the app for version incompatibilities
         var compiler = new AppCompiler();
         compiler.setSchemaRetriever(_schemaRetriever);

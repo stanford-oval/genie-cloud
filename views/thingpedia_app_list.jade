@@ -49,4 +49,6 @@ block content
               span By&#x20;
                 a(href='/thingpedia/apps/by-owner/' + app.owner)= app.owner_name
                 //span.badge Like #{app.like}
+            if !app.visible
+              p This app is not public
 

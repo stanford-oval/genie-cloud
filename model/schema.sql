@@ -70,6 +70,7 @@ create table app (
     name varchar(255) not null collate utf8_general_ci,
     description text not null collate utf8_general_ci,
     code mediumtext not null,
+    visible boolean not null default false,
     foreign key (owner) references users(id) on update cascade on delete set null
 ) collate = utf8_bin;
 
