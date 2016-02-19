@@ -6,6 +6,62 @@ block scripts
 block page_name
   | My Sabrina
 
+block styles
+  link(rel='stylesheet', href='/stylesheets/my_stuff.css')
+
+mixin device_list(devices, online)
+  div.row
+    each dev, i in devices
+      if i % 12 === 0
+        div.clearfix.visible-md.visible-md.visible-sm
+      else if i % 6 === 0
+        div.clearfix.visible-md.visible-sm
+      else if i % 4 === 0
+        div.clearfix.visible-lg.visible-sm
+      else if i % 3 === 0
+        div.clearfix.visible-md
+      else if i % 2 === 0
+        div.clearfix.visible-sm
+      div.col-lg-3.col-md-4.col-sm-6
+        div.panel.panel-default.installed-dev
+          if dev.kind
+            a(href='/thingpedia/devices/by-id/' + dev.kind).panel-heading
+              h2.panel-title= dev.name
+          else
+            div.panel-heading
+              h2.panel-title= dev.name
+          div.panel-body
+            p= dev.description
+
+            if !online
+              if dev.ownerTier !== 'cloud'
+                p This device is owned by your #{dev.ownerTier}.
+
+              if dev.available == 0
+                p The device is not available. It might be powered off or disconnected.
+              else if dev.available == 1
+                p The device is available and working.
+              else if dev.available == 2
+                if dev.ownerTier === 'server'
+                  p The device is not available because your server is disconnected.
+                    |  Make sure that it is powered on and correctly configured.
+                else if dev.ownerTier === 'phone'
+                  p The device is not available because your phone is disconnected.
+                    |  Make sure that it is powered on and connected to the network.
+                else
+                  p The device is not available because ThingEngine Online cannot be reached.
+                    |  There might be a temporary service outage.
+              else
+                p It was not possible to verify if the device is available.
+                  | Please check it is powered on and correctly configured.
+          div.panel-footer
+            div.row
+              div.col-md-6
+                form.form-inline(action="/devices/delete",method="post").form-delete-app
+                  input(type='hidden',name='id',value=dev.uniqueId)
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-danger.btn-sm.btn-block Delete
+
 block content
   if sharedApp
     div.modal.fade#share-app-dialog(role='dialog')
@@ -33,7 +89,7 @@ block content
                 | &#20;
                 a.btn.btn-default(data-dismiss='modal') No, thanks
 
-  if message
+  for message in messages
     div.alert.alert-success.alert-dismissible.fade.in(role='alert')
       button(type='button', data-dismiss='alert', aria-label="Close").close
         span(aria-hidden='true') ×
@@ -84,3 +140,23 @@ block content
               if app.hasOutVariables
                 div.col-md-6
                   a(href='/apps/#{app.uniqueId}/results').btn.btn-sm.btn-success.btn-block Show results
+
+  div.row
+    div.col-sm-6.col-md-3
+      a(href='/thingpedia/apps').btn.btn-default.btn-block Find new apps
+
+  h2 My Devices
+
+  +device_list(physicalDevices, false)
+
+  div.row
+    div.col-sm-6.col-md-3
+      a(href='/devices/create?class=physical').btn.btn-primary.btn-block Configure new device
+
+  h2 My Accounts
+
+  +device_list(onlineDevices, true)
+
+  div.row
+    div.col-sm-6.col-md-3
+      a(href='/devices/create?class=online').btn.btn-primary.btn-block Add new account

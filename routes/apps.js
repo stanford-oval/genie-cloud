@@ -39,32 +39,72 @@ function getAllApps(engine) {
     })
 }
 
-function appsList(req, res, next, message, shareApp) {
+function getAllDevices(engine) {
+    return engine.devices.getAllDevices().then(function(devices) {
+        return Q.all(devices.map(function(d) {
+            return Q.all([d.uniqueId, d.name, d.description, d.state, d.ownerTier,
+                          d.checkAvailable(),
+                          d.hasKind('online-account'),
+                          d.hasKind('thingengine-system')])
+                .spread(function(uniqueId, name, description, state,
+                                 ownerTier,
+                                 available,
+                                 isOnlineAccount,
+                                 isThingEngine) {
+                    return { uniqueId: uniqueId, name: name || "Unknown device",
+                             description: description || "Description not available",
+                             kind: state.kind,
+                             ownerTier: ownerTier,
+                             available: available,
+                             isOnlineAccount: isOnlineAccount,
+                             isThingEngine: isThingEngine };
+                });
+        }));
+    }).then(function(devinfo) {
+        return devinfo.filter(function(d) {
+            return !d.isThingEngine;
+        });
+    });
+}
+
+router.get('/', user.redirectLogIn, function(req, res) {
+    var shareApps = req.flash('share-apps');
     var sharedApp = null;
 
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return getAllApps(engine);
-    }).tap(function(apps) {
-        if (shareApp !== undefined) {
+        return Q.all([getAllApps(engine), getAllDevices(engine)]);
+    }).spread(function(apps, devices) {
+        console.log('apps', apps);
+        console.log('devices', devices);
+        if (shareApps.length > 0) {
             apps.forEach(function(app) {
-                if (shareApp === app.uniqueId)
+                if (shareApps[0] === app.uniqueId)
                     sharedApp = app;
             });
         }
-    }).then(function(appinfo) {
+
+        return [apps, devices];
+    }).spread(function(appinfo, devinfo) {
+        var physical = [], online = [];
+        devinfo.forEach(function(d) {
+            if (d.isOnlineAccount)
+                online.push(d);
+            else
+                physical.push(d);
+        });
         res.render('my_stuff', { page_title: 'ThingEngine - installed apps',
-                                 message: message,
+                                 messages: req.flash('app-message'),
                                  sharedApp: sharedApp,
                                  csrfToken: req.csrfToken(),
-                                 apps: appinfo });
+                                 apps: appinfo,
+                                 physicalDevices: physical,
+                                 onlineDevices: online,
+                                });
     }).catch(function(e) {
+        console.log(e.stack);
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
     }).done();
-}
-
-router.get('/', user.redirectLogIn, function(req, res, next) {
-    appsList(req, res, next, '');
 });
 
 function appsCreate(error, req, res) {
@@ -127,13 +167,16 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
                                               name, description, true);
             });
         }).then(function() {
-            if (req.session['tutorial-continue'])
-                res.redirect(req.session['tutorial-continue']);
-            else if (compiler.feedAccess && !req.query.shared)
-                appsList(req, res, next, "Application successfully created",
-                         'app-' + compiler.name + state.$F.replace(/[^a-zA-Z0-9]+/g, '-'));
-            else
-                appsList(req, res, next, "Application successfully created");
+            if (req.session['tutorial-continue']) {
+                res.redirect(303, req.session['tutorial-continue']);
+            } else if (compiler.feedAccess && !req.query.shared) {
+                req.flash('app-message', "Application successfully created");
+                req.flash('share-apps', 'app-' + compiler.name + state.$F.replace(/[^a-zA-Z0-9]+/g, '-'));
+                res.redirect(303, '/apps');
+            } else {
+                req.flash('app-message', "Application successfully created");
+                res.redirect(303, '/apps');
+            }
         }).catch(function(e) {
             console.log(e.stack);
             return appsCreate(e.message, req, res);
@@ -157,7 +200,8 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
 
         return engine.apps.removeApp(app);
     }).then(function() {
-        appsList(req, res, next, "Application successfully deleted");
+        req.flash('app-message', "Application successfully deleted");
+        res.redirect(303, '/apps');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
@@ -177,7 +221,8 @@ router.post('/share', user.requireLogIn, function(req, res, next) {
 
         return app.shareYourSelf();
     }).then(function() {
-        appsList(req, res, next, "Application successfully shared");
+        req.flash('app-message', "Application successfully shared");
+        res.redirect(303, '/apps');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });

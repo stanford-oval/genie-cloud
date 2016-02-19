@@ -15,58 +15,6 @@ const EngineManager = require('../enginemanager');
 
 var router = express.Router();
 
-router.get('/', user.redirectLogIn, function(req, res, next) {
-    if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: "ThingEngine - Error",
-                                          message: "Invalid device class" });
-        return;
-    }
-
-    var online = req.query.class === 'online';
-
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.devices.getAllDevices();
-    }).then(function(devices) {
-        return Q.all(devices.map(function(d) {
-            return Q.all([d.uniqueId, d.name, d.description, d.state, d.ownerTier,
-                          d.checkAvailable(),
-                          d.hasKind('online-account'),
-                          d.hasKind('thingengine-system')])
-                .spread(function(uniqueId, name, description, state,
-                                 ownerTier,
-                                 available,
-                                 isOnlineAccount,
-                                 isThingEngine) {
-                    return { uniqueId: uniqueId, name: name || "Unknown device",
-                             description: description || "Description not available",
-                             kind: state.kind,
-                             ownerTier: ownerTier,
-                             available: available,
-                             isOnlineAccount: isOnlineAccount,
-                             isThingEngine: isThingEngine };
-                });
-        }));
-    }).then(function(devinfo) {
-        devinfo = devinfo.filter(function(d) {
-            if (d.isThingEngine)
-                return false;
-
-            if (online)
-                return d.isOnlineAccount;
-            else
-                return !d.isOnlineAccount;
-        });
-
-        res.render('devices_list', { page_title: 'ThingEngine - configured devices',
-                                     csrfToken: req.csrfToken(),
-                                     onlineAccounts: online,
-                                     devices: devinfo });
-    }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
-                                          message: e.message });
-    }).done();
-});
-
 router.get('/create', user.redirectLogIn, function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: "ThingEngine - Error",
@@ -102,12 +50,12 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
         return devices.loadOneDevice(req.body, true);
     }).then(function() {
         if (req.session['device-redirect-to']) {
-            res.redirect(req.session['device-redirect-to']);
+            res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];
         } else if (req.session['tutorial-continue']) {
-            res.redirect(req.session['tutorial-continue']);
+            res.redirect(303, req.session['tutorial-continue']);
         } else {
-            res.redirect('/devices?class=' + (req.query.class || 'physical'));
+            res.redirect(303, '/apps');
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
@@ -139,10 +87,10 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
         if (!ok)
             return;
         if (req.session['device-redirect-to']) {
-            res.redirect(req.session['device-redirect-to']);
+            res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];
         } else {
-            res.redirect('/devices?class=' + (req.query.class || 'physical'));
+            res.redirect(303, '/apps');
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
@@ -156,15 +104,15 @@ router.get('/oauth2/com.google', user.redirectLogIn, passport.authorize('google'
         ' https://www.googleapis.com/auth/fitness.activity.read' +
         ' https://www.googleapis.com/auth/fitness.location.read' +
         ' https://www.googleapis.com/auth/fitness.body.read',
-    failureRedirect: '/devices?class=online',
-    successRedirect: '/devices?class=online'
+    failureRedirect: '/apps',
+    successRedirect: '/apps'
 }));
 
 // special case facebook because we have login with facebook
 router.get('/oauth2/com.facebook', user.redirectLogIn, passport.authorize('facebook', {
     scope: 'public_profile email',
-    failureRedirect: '/devices?class=online',
-    successRedirect: '/devices?class=online'
+    failureRedirect: '/apps',
+    successRedirect: '/apps'
 }));
 
 router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
@@ -180,9 +128,9 @@ router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
             var session = result[1];
             for (var key in session)
                 req.session[key] = session[key];
-            res.redirect(redirect);
+            res.redirect(303, redirect);
         } else {
-            res.redirect('/devices?class=online');
+            res.redirect(303, '/apps');
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
@@ -209,10 +157,10 @@ router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next
         return devFactory.runOAuth2(kind, saneReq);
     }).then(function() {
         if (req.session['device-redirect-to']) {
-            res.redirect(req.session['device-redirect-to']);
+            res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];
         } else {
-            res.redirect('/devices?class=online');
+            res.redirect(303, '/apps');
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
