@@ -11,3 +11,11 @@ h2 {
     display: block;
 }
 
+.installed-app .btn-block {
+    margin-top: 7.5px;
+    margin-bottom: 7.5px;
+}
+
+.installed-dev .panel-heading {
+    display: block;
+}

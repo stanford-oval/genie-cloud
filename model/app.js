@@ -49,7 +49,7 @@ module.exports = {
                             + " u.human_name, u.username) as owner_name from app r left outer "
                             + "join users u on r.owner = u.id, app_tag rt where rt.app_id = r.id "
                             + " and rt.tag = ?"
-                            + (visible !== null ? " and (r.owner = ? or r.visible)" : ""),
+                            + (visible !== null ? " and (r.owner = ? or r.visible)" : "")
                             + " order by r.name", [tag, visible]);
     },
 
@@ -67,10 +67,10 @@ module.exports = {
                                 + " u.human_name, u.username) as owner_name from app r left outer "
                                 + "join users u on r.owner = u.id where name like ? or description like ?"
                                 + " and (r.owner = ? or r.visible)"
-                                + ") " +
+                                + ") "
                                 + "union distinct (select 2, r.*, if(u.human_name is not null and "
                                 + "u.human_name <> '', u.human_name, u.username) as owner_name from app"
-                                + " r left " +
+                                + " r left "
                                 + " outer join users u on r.owner = u.id, device_class d, app_device rd "
                                 + " where rd.device_id = d.id and rd.app_id = r.id and d.name like ? or "
                                 + "d.description like ?"
@@ -87,10 +87,10 @@ module.exports = {
                                 + "(select 1, r.*, if(u.human_name is not null and u.human_name <> '',"
                                 + " u.human_name, u.username) as owner_name from app r left outer "
                                 + "join users u on r.owner = u.id where name like ? or description like ?"
-                                + ") " +
+                                + ") "
                                 + "union distinct (select 2, r.*, if(u.human_name is not null and "
                                 + "u.human_name <> '', u.human_name, u.username) as owner_name from app"
-                                + " r left " +
+                                + " r left "
                                 + " outer join users u on r.owner = u.id, device_class d, app_device rd "
                                 + " where rd.device_id = d.id and rd.app_id = r.id and d.name like ? or "
                                 + "d.description like ?"

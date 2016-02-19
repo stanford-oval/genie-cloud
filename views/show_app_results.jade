@@ -4,6 +4,8 @@ block page_name
   | #{name}
 
 block content
+  if arrays.length === 0 && tuples.length === 0 && singles.length === 0
+    p This app has no visible result.
   for kw in arrays
     table.table.array-keyword
       caption= kw.name

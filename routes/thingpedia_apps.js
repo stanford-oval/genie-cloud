@@ -273,7 +273,47 @@ router.post('/delete/:id', user.requireLogIn, function(req, res) {
             return model.delete(dbClient, req.params.id);
         });
     }).then(function(app) {
-        res.redirect('/thingpedia/apps');
+        res.redirect('/apps');
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+router.post('/set-visible/:id', user.requireLogIn, function(req, res) {
+    db.withTransaction(function(dbClient) {
+        return model.get(dbClient, req.params.id).then(function(r) {
+            if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
+                r.owner !== req.user.id) {
+                res.status(403).render('error', { page_title: "ThingEngine - Error",
+                                                  message: "You are not authorized to perform the requested operation" });
+                return;
+            }
+
+            return model.update(dbClient, req.params.id, { visible: true });
+        });
+    }).then(function(app) {
+        res.redirect('/apps');
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: e.message });
+    }).done();
+});
+
+router.post('/set-invisible/:id', user.requireLogIn, function(req, res) {
+    db.withTransaction(function(dbClient) {
+        return model.get(dbClient, req.params.id).then(function(r) {
+            if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
+                r.owner !== req.user.id) {
+                res.status(403).render('error', { page_title: "ThingEngine - Error",
+                                                  message: "You are not authorized to perform the requested operation" });
+                return;
+            }
+
+            return model.update(dbClient, req.params.id, { visible: false });
+        });
+    }).then(function(app) {
+        res.redirect('/apps');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });

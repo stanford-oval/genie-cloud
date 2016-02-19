@@ -25,15 +25,14 @@ function getAllApps(engine) {
     return engine.apps.getAllApps().then(function(apps) {
         return Q.all(apps.map(function(a) {
             return Q.all([a.uniqueId, a.name, a.isRunning, a.isEnabled,
-                          a.currentTier, a.state, a.error, a.hasOutVariables])
+                          a.currentTier, a.state, a.error])
                 .spread(function(uniqueId, name, isRunning,
                                  isEnabled, currentTier, state,
-                                 error, hasOutVariables) {
+                                 error) {
                     var app = { uniqueId: uniqueId, name: name || "Some app",
                                 running: isRunning, enabled: isEnabled,
                                 currentTier: currentTier,
-                                state: state, error: error,
-                                hasOutVariables: hasOutVariables };
+                                state: state, error: error };
                     return app;
                 });
         }));
@@ -42,7 +41,7 @@ function getAllApps(engine) {
 
 function getMyThingpediaApps(req) {
     return db.withClient(function(dbClient) {
-        return thingpediaApps.getByOwner(dbClient, req.user.id).then(function(apps) {
+        return thingpediaApps.getByOwner(dbClient, null, req.user.id).then(function(apps) {
             return Q.all(apps.map(function(r) {
                 return thingpediaApps.getAllTags(dbClient, r.id).then(function(tags) {
                     r.tags = tags;
@@ -106,12 +105,20 @@ router.get('/', user.redirectLogIn, function(req, res) {
             else
                 physical.push(d);
         });
+        var invisible = [], visible = [];
+        thingpediaAppinfo.forEach(function(a) {
+            if (a.visible)
+                visible.push(a);
+            else
+                invisible.push(a);
+        });
         res.render('my_stuff', { page_title: 'ThingEngine - installed apps',
                                  messages: req.flash('app-message'),
                                  sharedApp: sharedApp,
                                  csrfToken: req.csrfToken(),
                                  apps: appinfo,
-                                 thingpediaApps: thingpediaAppinfo,
+                                 thingpediaVisible: visible,
+                                 thingpediaInvisible: invisible,
                                  physicalDevices: physical,
                                  onlineDevices: online,
                                 });

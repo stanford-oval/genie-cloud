@@ -12,17 +12,13 @@ block styles
 mixin device_list(devices, online)
   div.row
     each dev, i in devices
-      if i % 12 === 0
-        div.clearfix.visible-md.visible-md.visible-sm
-      else if i % 6 === 0
-        div.clearfix.visible-md.visible-sm
-      else if i % 4 === 0
-        div.clearfix.visible-lg.visible-sm
+      if i % 6 === 0
+        div.clearfix.visible-lg.visible-md
       else if i % 3 === 0
-        div.clearfix.visible-md
+        div.clearfix.visible-lg
       else if i % 2 === 0
-        div.clearfix.visible-sm
-      div.col-lg-3.col-md-4.col-sm-6
+        div.clearfix.visible-md
+      div.col-lg-4.col-md-6
         div.panel.panel-default.installed-dev
           if dev.kind
             a(href='/thingpedia/devices/by-id/' + dev.kind).panel-heading
@@ -61,6 +57,43 @@ mixin device_list(devices, online)
                   input(type='hidden',name='id',value=dev.uniqueId)
                   input(type='hidden',name='_csrf',value=csrfToken)
                   button(type='submit').btn.btn-danger.btn-sm.btn-block Delete
+
+mixin thingpedia_apps(apps, visible)
+  div.row
+    each app, i in apps
+      if i % 6 === 0
+        div.clearfix.visible-lg.visible-md
+      else if i % 3 === 0
+        div.clearfix.visible-lg
+      else if i % 2 === 0
+        div.clearfix.visible-md
+      div.col-lg-4.col-md-6.app-template
+        div.panel.panel-default
+          a.panel-heading(href='/thingpedia/apps/install/' + app.id)
+            h2.panel-title= app.name
+          div.panel-body
+            p #{app.description}
+            p
+              each tag in app.tags
+                a(href='/thingpedia/apps/by-tag/' + tag.tag) ##{tag.tag}
+                | &#x20;
+            p
+              a(href='/thingpedia/apps/' + app.id) Show code
+          div.panel-footer
+            div.row
+              div.col-md-6
+                if visible
+                  form.form-inline(action="/thingpedia/apps/set-invisible/" + app.id,method="post")
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    button(type='submit').btn.btn-sm.btn-success.btn-block Hide from Collection
+                else
+                  form.form-inline(action="/thingpedia/apps/set-visible/" + app.id,method="post")
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    button(type='submit').btn.btn-sm.btn-success.btn-block Publish
+              div.col-md-6
+                form(action='/thingpedia/apps/delete/' + app.id, method='post')
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-sm.btn-danger.btn-block Delete
 
 block content
   if sharedApp
@@ -106,8 +139,8 @@ block content
       else if i % 2 === 0
         div.clearfix.visible-md
       div.col-lg-4.col-md-6
-        div.panel.panel-default.installed-app
-          div.panel-heading
+        div.panel.panel-default.app-template
+          a.panel-heading(href='/apps/#{app.uniqueId}/results')
             h2.panel-title= app.name
           div.panel-body
             if app.error
@@ -122,13 +155,12 @@ block content
           div.panel-footer
             div.row
               div.col-md-6
+                a(href='/apps/#{app.uniqueId}/publish').btn.btn-sm.btn-success.btn-block Publish
+              div.col-md-6
                 form.form-inline(action="/apps/delete",method="post").form-delete-app
                   input(type='hidden',name='id',value=app.uniqueId)
                   input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-sm.btn-danger.btn-block Disable
-
-              div.col-md-6
-                a(href='/apps/#{app.uniqueId}/publish').btn.btn-sm.btn-success.btn-block Publish
+                  button(type='submit').btn.btn-sm.btn-danger.btn-block Delete
 
               if app.state && app.state.$F
                 div.col-md-6
@@ -137,37 +169,9 @@ block content
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-sm.btn-success.btn-block Share
 
-              if app.hasOutVariables
-                div.col-md-6
-                  a(href='/apps/#{app.uniqueId}/results').btn.btn-sm.btn-success.btn-block Show results
-
   div.row
     div.col-sm-6.col-md-3
       a(href='/thingpedia/apps').btn.btn-default.btn-block Find new apps
-
-  if thingpediaApps.length > 0
-    h2 My Published Apps
-    div.row
-      each app, i in thingpediaApps
-        if i % 12 === 0
-          div.clearfix.visible-md.visible-md.visible-sm
-        else if i % 6 === 0
-          div.clearfix.visible-md.visible-sm
-        else if i % 4 === 0
-          div.clearfix.visible-lg.visible-sm
-        else if i % 3 === 0
-          div.clearfix.visible-md
-        else if i % 2 === 0
-          div.clearfix.visible-sm
-        div.col-lg-3.col-md-4.col-sm-6.app-template
-          div.panel.panel-default
-            a.panel-heading(href='/thingpedia/apps/' + app.id)= app.name
-            div.panel-body
-              p #{app.description}
-              p
-                each tag in app.tags
-                  a(href='/thingpedia/apps/by-tag/' + tag.tag) ##{tag.tag}
-                  | &#x20;
 
   h2 My Devices
 
@@ -184,3 +188,19 @@ block content
   div.row
     div.col-sm-6.col-md-3
       a(href='/devices/create?class=online').btn.btn-primary.btn-block Add new account
+
+  h2 My Apps
+
+  if thingpediaInvisible.length > 0
+    +thingpedia_apps(thingpediaInvisible, false)
+  else
+    p You have not created any app yet.
+
+  div.row
+    div.col-sm-6.col-md-3
+      a(href='/thingpedia/apps/create').btn.btn-primary.btn-block Create a new app
+
+  if thingpediaVisible.length > 0
+    h2 My Published Apps
+    +thingpedia_apps(thingpediaVisible, true)
+

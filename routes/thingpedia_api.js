@@ -120,6 +120,10 @@ router.get('/devices', function(req, res) {
 router.get('/code/apps/:id', function(req, res) {
     db.withClient(function(dbClient) {
         return app.get(dbClient, req.params.id).then(function(app) {
+            if (!app.visible) {
+                res.status(403).json({ error: "Not Authorized" });
+            }
+
             res.cacheFor(86400000);
             res.status(200).json({
                 code: app.code,

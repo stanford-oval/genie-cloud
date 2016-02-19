@@ -18,37 +18,38 @@ block content
       div.form-group
         input.form-control#app-search-box(type='text', name='q', placeholder="I want to find a app...")
         button.btn.btn-primary(type="submit") Search
-    a.navbar-btn.btn.btn-warning#app-create(href="/thingpedia/apps/create") Publish a new app
 
   if apps.length === 0
     p Sorry, there are no apps in this list!
 
   div.row
     each app, i in apps
-      if i % 12 === 0
-        div.clearfix.visible-md.visible-md.visible-sm
-      else if i % 6 === 0
-        div.clearfix.visible-md.visible-sm
-      else if i % 4 === 0
-        div.clearfix.visible-lg.visible-sm
+      if i % 6 === 0
+        div.clearfix.visible-lg.visible-md
       else if i % 3 === 0
-        div.clearfix.visible-md
+        div.clearfix.visible-lg
       else if i % 2 === 0
-        div.clearfix.visible-sm
-      div.col-lg-3.col-md-4.col-sm-6.app-template
+        div.clearfix.visible-md
+      div.col-lg-4.col-md-6.app-template
         div.panel.panel-default
-          a.panel-heading(href='/thingpedia/apps/' + app.id)= app.name
+          a.panel-heading(href='/thingpedia/apps/install/' + app.id)= app.name
           div.panel-body
             p #{app.description}
             p
               each tag in app.tags
                 a(href='/thingpedia/apps/by-tag/' + tag.tag) ##{tag.tag}
                 | &#x20;
+            p
+              a(href='/thingpedia/apps/' + app.id) Show code
           div.panel-footer
             p
-              span By&#x20;
-                a(href='/thingpedia/apps/by-owner/' + app.owner)= app.owner_name
-                //span.badge Like #{app.like}
+              if authenticated && app.owner === user.id
+                span By&#x20;
+                  a(href='/apps') You
+              else
+                span By&#x20;
+                  a(href='/thingpedia/apps/by-owner/' + app.owner)= app.owner_name
+              //span.badge Like #{app.like}
             if !app.visible
               p This app is not public
 

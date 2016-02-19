@@ -13,7 +13,6 @@ const ThingPediaDiscovery = require('thingpedia-discovery');
 
 const db = require('./db');
 const device = require('../model/device');
-const app = require('../model/app');
 const user = require('../model/user');
 const schema = require('../model/schema');
 
