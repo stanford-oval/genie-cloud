@@ -99,7 +99,10 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
 });
 
 // special case google because we have login with google
-router.get('/oauth2/com.google', user.redirectLogIn, passport.authorize('google', {
+router.get('/oauth2/com.google', user.redirectLogIn, function(req, res, next) {
+    req.session.redirect_to = '/apps';
+    next();
+}, passport.authorize('google', {
     scope: 'openid profile email' +
         ' https://www.googleapis.com/auth/fitness.activity.read' +
         ' https://www.googleapis.com/auth/fitness.location.read' +
@@ -109,7 +112,10 @@ router.get('/oauth2/com.google', user.redirectLogIn, passport.authorize('google'
 }));
 
 // special case facebook because we have login with facebook
-router.get('/oauth2/com.facebook', user.redirectLogIn, passport.authorize('facebook', {
+router.get('/oauth2/com.facebook', user.redirectLogIn, function(req, res, next) {
+    req.session.redirect_to = '/apps';
+    next();
+}, passport.authorize('facebook', {
     scope: 'public_profile email',
     failureRedirect: '/apps',
     successRedirect: '/apps'

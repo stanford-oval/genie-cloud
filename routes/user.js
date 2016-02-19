@@ -43,7 +43,7 @@ router.get('/oauth2/google/callback', passport.authenticate('google'),
                    // Redirection back to the original page
                    var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
                    delete req.session.redirect_to;
-                   res.redirect(redirect_to);
+                   res.redirect(303, redirect_to);
                }
            });
 
@@ -65,7 +65,7 @@ router.get('/oauth2/facebook/callback', passport.authenticate('facebook'),
                    // Redirection back to the original page
                    var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
                    delete req.session.redirect_to;
-                   res.redirect(redirect_to);
+                   res.redirect(303, redirect_to);
                }
            });
 
@@ -86,7 +86,7 @@ router.post('/login', passport.authenticate('local', { failureRedirect: '/user/l
                 // Redirection back to the original page
                 var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
                 delete req.session.redirect_to;
-                res.redirect(redirect_to);
+                res.redirect(303, redirect_to);
             });
 
 
@@ -156,7 +156,7 @@ router.post('/register', function(req, res, next) {
 
 router.get('/logout', function(req, res, next) {
     req.logout();
-    res.redirect('/');
+    res.redirect(303, '/');
 });
 
 function getProfile(req, res, error) {
@@ -244,7 +244,7 @@ router.post('/change-password', user.requireLogIn, function(req, res, next) {
         return db.withTransaction(function(dbClient) {
             return user.update(dbClient, req.user, oldpassword, password);
         }).then(function() {
-            res.redirect('/user/profile');
+            res.redirect(303, '/user/profile');
         });
     }).catch(function(e) {
         return getProfile(req, res, e.message);
@@ -258,7 +258,7 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
         });
     }).then(function() {
         req.logout();
-        res.redirect('/');
+        res.redirect(303, '/');
     }).done();
 });
 
