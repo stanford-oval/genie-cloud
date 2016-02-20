@@ -82,7 +82,7 @@ const DEFAULT_ONLINE_CODE = {"name": "Example Account of %s",
 
 router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: "ThingEngine - Error",
+        res.status(404).render('error', { page_title: "ThingPedia - Error",
                                           message: "Invalid device class" });
         return;
     }
@@ -364,7 +364,7 @@ function doCreateOrUpdate(id, create, req, res) {
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     }).done();
 }
@@ -403,7 +403,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     }).done();
 });

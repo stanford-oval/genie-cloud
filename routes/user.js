@@ -15,7 +15,7 @@ const user = require('../util/user');
 const model = require('../model/user');
 const db = require('../util/db');
 
-var TITLE = "ThingEngine";
+var TITLE = "ThingPedia";
 
 const EngineManager = require('../enginemanager');
 
@@ -35,7 +35,7 @@ router.get('/oauth2/google/callback', passport.authenticate('google'),
                    res.locals.authenticated = true;
                    res.locals.user = user;
                    res.render('register_success', {
-                       page_title: "ThingEngine - Registration Successful",
+                       page_title: "ThingPedia - Registration Successful",
                        username: req.user.username,
                        cloudId: req.user.cloud_id,
                        authToken: req.user.auth_token });
@@ -57,7 +57,7 @@ router.get('/oauth2/facebook/callback', passport.authenticate('facebook'),
                    res.locals.authenticated = true;
                    res.locals.user = user;
                    res.render('register_success', {
-                       page_title: "ThingEngine - Registration Successful",
+                       page_title: "ThingPedia - Registration Successful",
                        username: req.user.username,
                        cloudId: req.user.cloud_id,
                        authToken: req.user.auth_token });
@@ -75,7 +75,7 @@ router.get('/login', function(req, res, next) {
     res.render('login', {
         csrfToken: req.csrfToken(),
         errors: req.flash('error'),
-        page_title: "ThingEngine - Login"
+        page_title: "ThingPedia - Login"
     });
 });
 
@@ -93,7 +93,7 @@ router.post('/login', passport.authenticate('local', { failureRedirect: '/user/l
 router.get('/register', function(req, res, next) {
     res.render('register', {
         csrfToken: req.csrfToken(),
-        page_title: "ThingEngine - Register"
+        page_title: "ThingPedia - Register"
     });
 });
 
@@ -125,7 +125,7 @@ router.post('/register', function(req, res, next) {
     } catch(e) {
         res.render('register', {
             csrfToken: req.csrfToken(),
-            page_title: "ThingEngine - Register",
+            page_title: "ThingPedia - Register",
             error: e.message
         });
         return;
@@ -139,7 +139,7 @@ router.post('/register', function(req, res, next) {
                 res.locals.authenticated = true;
                 res.locals.user = user;
                 res.render('register_success', {
-                    page_title: "ThingEngine - Registration Successful",
+                    page_title: "ThingPedia - Registration Successful",
                     username: username,
                     cloudId: user.cloud_id,
                     authToken: user.auth_token });
@@ -148,7 +148,7 @@ router.post('/register', function(req, res, next) {
     }).catch(function(error) {
         res.render('register', {
             csrfToken: req.csrfToken(),
-            page_title: "ThingEngine - Register",
+            page_title: "ThingPedia - Register",
             error: error.message });
     }).done();
 });
@@ -190,13 +190,13 @@ function getProfile(req, res, error) {
             }
         }
 
-        res.render('user_profile', { page_title: "ThingEngine - User Profile",
+        res.render('user_profile', { page_title: "ThingPedia - User Profile",
                                      csrfToken: req.csrfToken(),
                                      error: error,
                                      server: server,
                                      phone: phone });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     });
 }

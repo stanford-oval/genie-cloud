@@ -59,7 +59,7 @@ function getCachedModules(userId) {
 
 router.get('/', user.redirectLogIn, function(req, res) {
     getCachedModules(req.user.id).then(function(modules) {
-        res.render('status', { page_title: "ThingEngine - Status",
+        res.render('status', { page_title: "ThingPedia - Status",
                                csrfToken: req.csrfToken(),
                                modules: modules,
                                isRunning: EngineManager.get().isRunning(req.user.id) });
@@ -97,7 +97,7 @@ router.post('/start', user.requireLogIn, function(req, res) {
     engineManager.startUser(req.user).then(function() {
         res.redirect('/status');
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     }).done();
 });
@@ -108,7 +108,7 @@ router.post('/update-module/:kind', user.requireLogIn, function(req, res) {
     }).then(function() {
         res.redirect('/status');
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     }).done();
 });

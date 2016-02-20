@@ -56,9 +56,9 @@ function getDetails(fn, param, req, res) {
             var online = d.kinds.some(function(k) { return k.kind === 'online-account' });
             var title;
             if (online)
-                title = "ThingEngine - Account details";
+                title = "ThingPedia - Account details";
             else
-                title = "ThingEngine - Device details";
+                title = "ThingPedia - Device details";
 
             var triggers = [], actions = [];
             try {
@@ -135,7 +135,7 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
     }).then(function() {
         res.redirect('/thingpedia/devices/details/' + req.params.id);
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     }).done();
 });

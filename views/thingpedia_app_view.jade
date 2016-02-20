@@ -23,14 +23,14 @@ block content
     code= app.code
 
   div.row
-    div.col-sm-2
-      a.btn.btn-primary.btn-block(href='/thingpedia/apps/install/' + app.id).app-install-button Install
+    //div.col-sm-2
+      a.btn.btn-primary.btn-block(href='/thingpedia/apps/install/' + app.id).app-install-button Enable
 
     if authenticated && (app.owner === user.id || user.developer_status === 3)
       div.col-sm-2
         a(href='/thingpedia/apps/edit/' + app.id).btn.btn-default.btn-block Edit
     else
-      div.col-sm-2
+      //div.col-sm-2
         a(href='/thingpedia/apps/fork/' + app.id).btn.btn-default.btn-block Fork
     if authenticated && (app.owner === user.id || user.developer_status === 3)
       div.col-sm-2

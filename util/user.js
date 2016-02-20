@@ -292,7 +292,7 @@ module.exports = {
     requireLogIn: function(req, res, next) {
         if (!req.user) {
             res.status(401).render('login_required',
-                                   { page_title: "ThingEngine - Error" });
+                                   { page_title: "ThingPedia - Error" });
         } else {
             next();
         }
@@ -311,7 +311,7 @@ module.exports = {
         return function(req, res, next) {
             if (!req.user || ((req.user.roles & role) !== role)) {
                 res.status(401).render('login_required',
-                                       { page_title: "ThingEngine - Error" });
+                                       { page_title: "ThingPedia - Error" });
             } else {
                 next();
             }

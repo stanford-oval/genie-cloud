@@ -1,12 +1,9 @@
 extends layout
 
 block page_name
-  - index = true;
-  | Install App
+  | Enable App
 
 block content
-  h1 Do you want to install this app?
-
   div.well#app-install-well
     h3 #{name}
     p#app-install-description= description
@@ -36,10 +33,4 @@ block content
 
     div.form-group
       div.col-xs-12
-        button(type='submit').btn.btn-success Install
-
-  p
-    | If you are unsure of how you got to this page, or what this
-    | even means, you <strong>should not</strong> click "Install",
-    | as you might have clicked a link to a malicious app. Always
-    | review carefully what you install.
+        button(type='submit').btn.btn-success Enable

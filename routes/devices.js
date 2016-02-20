@@ -20,7 +20,7 @@ var router = express.Router();
 
 router.get('/create', user.redirectLogIn, function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: "ThingEngine - Error",
+        res.status(404).render('error', { page_title: "ThingPedia - Error",
                                           message: "Invalid device class" });
         return;
     }
@@ -37,7 +37,7 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
 
 router.post('/create', user.requireLogIn, function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: "ThingEngine - Error",
+        res.status(404).render('error', { page_title: "ThingPedia - Error",
                                           message: "Invalid device class" });
         return;
     }
@@ -59,14 +59,14 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
             res.redirect(303, '/apps');
         }
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     }).done();
 });
 
 router.post('/delete', user.requireLogIn, function(req, res, next) {
     if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: "ThingEngine - Error",
+        res.status(404).render('error', { page_title: "ThingPedia - Error",
                                           message: "Invalid device class" });
         return;
     }
@@ -74,7 +74,7 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         var id = req.body.id;
         if (!engine.devices.hasDevice(id)) {
-            res.status(404).render('error', { page_title: "ThingEngine - Error",
+            res.status(404).render('error', { page_title: "ThingPedia - Error",
                                               message: "Not found." });
             return false;
         }
@@ -94,7 +94,7 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
             res.redirect(303, '/apps');
         }
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     }).done();
 });
@@ -140,7 +140,7 @@ router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
             res.redirect(303, '/apps');
         }
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     }).done();
 });
@@ -182,7 +182,7 @@ router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, 
         }
     }).catch(function(e) {
         console.log(e.stack);
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     }).done();
 });
@@ -212,7 +212,7 @@ router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next
             res.redirect(303, '/apps');
         }
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });
     }).done();
 });
