@@ -22,7 +22,7 @@ router.get('/', function(req, res, next) {
                       device.getByTag(dbClient, 'featured')]);
     }).spread(function(categories, devices) {
         res.render('index', {
-            page_title: 'ThingEngine - run your things!',
+            page_title: 'ThingPedia - knowledge for your magic assistant',
             categories: categories,
             devices: devices,
             isRunning: req.user ? EngineManager.get().isRunning(req.user.id) : false
@@ -32,13 +32,13 @@ router.get('/', function(req, res, next) {
 
 router.get('/about', function(req, res, next) {
     res.render('about', {
-        page_title: 'About ThingEngine'
+        page_title: 'About ThingPedia'
     });
 });
 
 router.get('/about/toc', function(req, res, next) {
     res.render('toc', {
-        page_title: 'Terms & Conditions for ThingEngine'
+        page_title: 'Terms & Conditions for ThingPedia'
     });
 });
 

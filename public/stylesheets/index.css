@@ -30,8 +30,36 @@
 
 #index-banner p {
     font-size: 1.5em;
-    margin-bottom: 0.5em
+    margin-bottom: 0.5em;
     line-height: 1.5;
+}
+
+#examples p {
+    font-size: 1.5em;
+}
+
+#examples .row {
+    margin-top: 2em;
+}
+
+#examples .row:first-child {
+    margin-top: 0;
+}
+
+#examples img {
+    display: block;
+    margin: auto;
+    width: 75%;
+}
+
+#get-started {
+    text-align: center;
+}
+
+#get-started img {
+    display: block;
+    width: 75%;
+    margin: auto;
 }
 
 .section-title, .section-subtitle {

@@ -181,6 +181,7 @@ router.get('/by-owner/:id(\\d+)', function(req, res) {
 
 router.get('/create', user.redirectLogIn, function(req, res) {
     res.render('thingpedia_app_create', { page_title: "ThingEngine - create a new app",
+                                          csrfToken: req.csrfToken(),
                                           op: 'create',
                                           name: '',
                                           description: '',
@@ -228,6 +229,7 @@ router.post('/create', user.requireLogIn, function(req, res) {
     }).catch(function(err) {
         res.render('thingpedia_app_create', { error: err.message,
                                               op: 'create',
+                                              csrfToken: req.csrfToken(),
                                               name: name,
                                               description: description,
                                               code: code,
@@ -342,6 +344,7 @@ function forkApp(req, res, error, name, description, code, tags) {
         return res.render('thingpedia_app_create', { page_title: "ThingEngine - fork a app",
                                                      error: error,
                                                      op: 'fork',
+                                                     csrfToken: req.csrfToken(),
                                                      fork_id: app.id,
                                                      fork_owner: app.owner,
                                                      fork_owner_name: app.owner_name,
@@ -408,6 +411,7 @@ router.get('/edit/:id(\\d+)', user.redirectLogIn, function(req, res) {
 
         res.render('thingpedia_app_create', { page_title: "ThingEngine - edit a app",
                                               op: 'edit',
+                                              csrfToken: req.csrfToken(),
                                               app_id: app.id,
                                               name: app.name,
                                               description: app.description,
@@ -456,6 +460,7 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
         res.render('thingpedia_app_create', { page_title: "ThingEngine - edit a app",
                                               error: err.message,
                                               op: 'edit',
+                                              csrfToken: req.csrfToken(),
                                               app_id: req.params.id,
                                               name: name,
                                               description: description,
