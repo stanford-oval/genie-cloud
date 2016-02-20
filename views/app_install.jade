@@ -4,12 +4,9 @@ block scripts
   script(src='/javascripts/app-install.js')
 
 block page_name
-  - index = true;
   | Enable App
 
 block content
-  h1 Do you want to enable this app?
-
   div.well#app-install-well
     h3 #{name}
     p#app-install-description= description
