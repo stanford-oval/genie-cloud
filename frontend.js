@@ -126,7 +126,6 @@ Frontend.prototype._init = function _init() {
     this._app.use('/devices', require('./routes/devices'));
     this._app.use('/thingpedia/apps', require('./routes/thingpedia_apps'));
     this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
-    this._app.use('/assistant', require('./routes/assistant'));
     this._app.use('/admin', require('./routes/admin'));
     this._app.use('/status', require('./routes/status'));
     this._app.use('/doc', require('./routes/doc'));

@@ -10,6 +10,11 @@ block scripts
   script(src='/javascripts/admin.js')
 
 block content
+  if !assistantAvailable
+    h2.text-danger Your assistant is not yet configured.&#x20;
+      a(href='/admin/assistant-setup') Configure it
+      | .
+
   h2 Users
 
   div.modal.fade#modal-message-user

@@ -421,7 +421,7 @@ module.exports.runOAuth2Phase1 = function(req, res) {
         client.enable();
 
         return Q.ninvoke(client.auth, 'getAuthPage',
-                         platform.getOrigin() + '/assistant/setup/callback',
+                         platform.getOrigin() + '/admin/assistant-setup/callback',
                          ['PublicProfile', 'OmletChat']);
     }).then(function(resp) {
         var parsed = Url.parse(resp.Link, true);

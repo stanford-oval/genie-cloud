@@ -87,8 +87,6 @@ router.get('/', user.redirectLogIn, function(req, res) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return Q.all([getAllApps(engine), getAllDevices(engine), getMyThingpediaApps(req)]);
     }).spread(function(apps, devices, thingpediaApps) {
-        console.log('apps', apps);
-        console.log('devices', devices);
         if (shareApps.length > 0) {
             apps.forEach(function(app) {
                 if (shareApps[0] === app.uniqueId)

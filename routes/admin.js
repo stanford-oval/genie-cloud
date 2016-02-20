@@ -36,6 +36,7 @@ router.get('/', user.redirectRole(user.Role.ADMIN), function(req, res) {
 
         res.render('admin_user_list', { page_title: "ThingEngine - Administration",
                                         csrfToken: req.csrfToken(),
+                                        assistantAvailable: AssistantDispatcher.get().isAvailable,
                                         users: users });
     }).done();
 });
@@ -44,7 +45,7 @@ router.post('/kill-user/:id', user.requireRole(user.Role.ADMIN), function(req, r
     var engineManager = EngineManager.get();
 
     engineManager.killUser(req.params.id);
-    res.redirect('/admin');
+    res.redirect(303, '/admin');
 });
 
 router.post('/start-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
@@ -58,7 +59,7 @@ router.post('/start-user/:id', user.requireRole(user.Role.ADMIN), function(req, 
     }).then(function(user) {
         return engineManager.startUser(user);
     }).then(function() {
-        res.redirect('/admin');
+        res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
@@ -69,12 +70,12 @@ router.post('/kill-all', user.requireRole(user.Role.ADMIN), function(req, res) {
     var engineManager = EngineManager.get();
 
     engineManager.stop();
-    res.redirect('/admin');
+    res.redirect(303, '/admin');
 });
 
 router.post('/blow-view-cache', user.requireRole(user.Role.ADMIN), function(req, res) {
     jade.cache = {};
-    res.redirect('/admin');
+    res.redirect(303, '/admin');
 });
 
 router.post('/delete-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
@@ -89,7 +90,7 @@ router.post('/delete-user/:id', user.requireRole(user.Role.ADMIN), function(req,
             return model.delete(dbClient, req.params.id);
         });
     }).then(function() {
-        res.redirect('/admin');
+        res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
@@ -110,7 +111,7 @@ router.post('/promote-user/:id', user.requireRole(user.Role.ADMIN), function(req
             }
         });
     }).then(function() {
-        res.redirect('/admin');
+        res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
@@ -135,7 +136,7 @@ router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req,
                 return model.update(dbClient, user.id, { developer_status: user.developer_status - 1 });
         });
     }).then(function() {
-        res.redirect('/admin');
+        res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
@@ -147,7 +148,7 @@ router.post('/message-user/:id', user.requireRole(user.Role.ADMIN), function(req
         var feed = AssistantDispatcher.get().getUserFeed(req.params.id);
         return feed.send('Administrative message from ' + req.user.username + ': ' + req.body.body);
     }).then(function() {
-        res.redirect('/admin');
+        res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
@@ -165,6 +166,22 @@ router.post('/message-broadcast', user.requireRole(user.Role.ADMIN), function(re
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
+    }).done();
+});
+
+router.get('/assistant-setup', user.redirectRole(user.Role.ADMIN), function(req, res) {
+    if (platform.getSharedPreferences().get('assistant')) {
+        res.status(400).render('error', { page_title: "ThingEngine - Error",
+                                          message: "Assistant is already setup" });
+        return;
+    }
+
+    AssistantDispatcher.runOAuth2Phase1(req, res).done();
+});
+
+router.get('/assistant-setup/callback', user.requireRole(user.Role.ADMIN), function(req, res) {
+    AssistantDispatcher.runOAuth2Phase2(req, res).then(function() {
+        res.redirect(303, '/admin');
     }).done();
 });
 
