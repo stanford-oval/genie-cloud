@@ -117,7 +117,7 @@ block content
 
               div.form-group
                 button(type='submit').btn.btn-success Yes, share it
-                | &#20;
+                | &#x20;
                 a.btn.btn-default(data-dismiss='modal') No, thanks
 
   for message in messages
@@ -144,7 +144,10 @@ block content
             if app.error
               p This app had an error: #{app.error}
             else if app.running
-              p This app is running.
+              if app.feed
+                p This app is running in the chat room #{app.feed.name}.
+              else
+                p This app is running.
             else if app.enabled
               p This app is enabled but not running.
             else
@@ -158,7 +161,7 @@ block content
                 form.form-inline(action="/apps/delete",method="post").form-delete-app
                   input(type='hidden',name='id',value=app.uniqueId)
                   input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-sm.btn-danger.btn-block Delete
+                  button(type='submit').btn.btn-sm.btn-danger.btn-block Stop
 
               if app.state && app.state.$F
                 div.col-md-6

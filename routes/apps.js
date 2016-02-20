@@ -29,11 +29,21 @@ function getAllApps(engine) {
                 .spread(function(uniqueId, name, isRunning,
                                  isEnabled, currentTier, state,
                                  error) {
-                    var app = { uniqueId: uniqueId, name: name || "Some app",
-                                running: isRunning, enabled: isEnabled,
-                                currentTier: currentTier,
-                                state: state, error: error };
-                    return app;
+                    return Q.try(function() {
+                        if (state.$F) {
+                            return engine.messaging.getFeedMeta(state.$F).then(function(f) {
+                                return feeds.getFeedName(engine, f, true);
+                            });
+                        } else {
+                            return null;
+                        }
+                    }).then(function(feed) {
+                        var app = { uniqueId: uniqueId, name: name || "Some app",
+                                    running: isRunning, enabled: isEnabled,
+                                    currentTier: currentTier,
+                                    state: state, error: error, feed: feed };
+                        return app;
+                    });
                 });
         }));
     })
@@ -275,47 +285,6 @@ router.get('/:id/publish', user.redirectLogIn, function(req, res, next) {
     }).done();
 });
 
-router.get('/:id/show', user.redirectLogIn, function(req, res, next) {
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return Q.all([engine, engine.apps.getApp(req.params.id)]);
-    }).spread(function(engine, app) {
-        if (app === undefined) {
-            res.status(404).render('error', { page_title: "ThingEngine - Error",
-                                              message: "Not found." });
-            return;
-        }
-
-        return Q.all([app.name, app.description, app.code, app.state, app.hasOutVariables])
-            .spread(function(name, description, code, state, hasOutVariables) {
-                return Q.try(function() {
-                    if (state.$F) {
-                        return engine.messaging.getFeedMeta(state.$F).then(function(f) {
-                            return feeds.getFeedName(engine, f, true);
-                        });
-                    } else {
-                        return null;
-                    }
-                }).then(function(feed) {
-                    if (feed)
-                        delete state.$F;
-
-                    return res.render('show_app', { page_title: "ThingEngine App",
-                                                    appId: req.params.id,
-                                                    name: name,
-                                                    description: description || '',
-                                                    hasOutVariables: hasOutVariables,
-                                                    csrfToken: req.csrfToken(),
-                                                    code: code,
-                                                    feed: feed,
-                                                    params: JSON.stringify(state) });
-                });
-            });
-    }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
-                                          message: e.message });
-    }).done();
-});
-
 router.get('/:id/results', user.redirectLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return Q.all([engine, engine.apps.getApp(req.params.id)]);
@@ -353,67 +322,6 @@ router.get('/:id/results', user.redirectLogIn, function(req, res, next) {
             });
     }).catch(function(e) {
         console.log(e.stack);
-        res.status(400).render('error', { page_title: "ThingEngine - Error",
-                                          message: e.message });
-    }).done();
-});
-
-router.post('/:id/update', user.requireLogIn, function(req, res, next) {
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return Q.all([engine, engine.apps.getApp(req.params.id), engine.devices.schemas])
-    }).spread(function(engine, app, schemaRetriever) {
-        if (app === undefined) {
-            res.status(404).render('error', { page_title: "ThingEngine - Error",
-                                              message: "Not found." });
-            return;
-        }
-
-        var compiler = new AppCompiler();
-        compiler.setSchemaRetriever(schemaRetriever);
-
-        return Q.all([app.name, app.description, app.currentTier])
-            .spread(function(name, description, currentTier) {
-                var code = req.body.code;
-                var state;
-                return Q.try(function() {
-                    // sanity check the app
-                    return compiler.compileCode(code);
-                }).then(function() {
-                    state = JSON.parse(req.body.params);
-                    if (compiler.feedAccess) {
-                        if (!state.$F && !req.body.feedId)
-                            throw new Error('Missing feed for feed-shared app');
-                        if (!state.$F)
-                            state.$F = req.body.feedId;
-                    } else {
-                        delete state.$F;
-                    }
-
-                    return engine.apps.loadOneApp(code, state, req.params.id, currentTier, true);
-                }).then(function() {
-                    appsList(req, res, next, "Application successfully updated");
-                }).catch(function(e) {
-                    return app.state.then(function(state) {
-                        if (state.$F) {
-                            return engine.messaging.getFeedMeta(state.$F).then(function(f) {
-                                return feeds.getFeedName(engine, f, true);
-                            });
-                        } else {
-                            return null;
-                        }
-                    }).then(function(feed) {
-                        res.render('show_app', { page_title: 'ThingEngine App',
-                                                 name: name,
-                                                 description: description || '',
-                                                 csrfToken: req.csrfToken(),
-                                                 error: e.message,
-                                                 code: code,
-                                                 feed: feed,
-                                                 params: req.body.params });
-                    });
-                });
-            });
-    }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingEngine - Error",
                                           message: e.message });
     }).done();
