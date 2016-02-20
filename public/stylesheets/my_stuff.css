@@ -11,6 +11,11 @@ h2 {
     display: block;
 }
 
+.app-template .panel-footer button, .app-template .panel-footer a.btn {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
 .installed-app .btn-block {
     margin-top: 7.5px;
     margin-bottom: 7.5px;

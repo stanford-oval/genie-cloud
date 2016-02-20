@@ -197,9 +197,7 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
                                               name, description, true);
             });
         }).then(function() {
-            if (req.session['tutorial-continue']) {
-                res.redirect(303, req.session['tutorial-continue']);
-            } else if (compiler.feedAccess && !req.query.shared) {
+            if (compiler.feedAccess && !req.query.shared) {
                 req.flash('app-message', "Application successfully created");
                 req.flash('share-apps', 'app-' + compiler.name + state.$F.replace(/[^a-zA-Z0-9]+/g, '-'));
                 res.redirect(303, '/apps');
