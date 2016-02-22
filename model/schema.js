@@ -56,7 +56,7 @@ module.exports = {
 
     getTypesByKinds: function(client, kinds, developer) {
         return Q.try(function() {
-            if (developer !== null && developer.developer_access >= 3) {
+            if (developer !== null && developer.developer_status >= 3) {
                 return db.selectAll(client, "select types, ds.* from device_schema ds, "
                                     + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
                                     + " in (?) and ds.developer_version = dsv.version",

@@ -57,7 +57,7 @@ module.exports = {
     },
 
     getByDeveloperKey: function(client, key) {
-        return db.selectAll(client, "select * from users where developer_key = ?", [key]);
+        return db.selectAll(client, "select id,developer_status from users where developer_key = ? and developer_status > 0", [key]);
     },
 
     create: create,

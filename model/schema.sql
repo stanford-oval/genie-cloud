@@ -20,13 +20,13 @@ create table users (
     cloud_id char(64) unique not null,
     auth_token char(64) not null,
     assistant_feed_id varchar(255) default null,
-    developer_key char(64) unique default null,
+    developer_key char(64) key default null,
     developer_status tinyint not null default 0,
     roles tinyint not null default 0,
     constraint password_salt check ((password is not null and salt is not null) or
                                     (password is null and salt is null)),
     constraint auth_method check (password is not null or google_id is not null or facebook_id is not null),
-    constraint developer_key check (developer_key is null or developer_status > 0)
+    constraint developer_key check (developer_key is not null or developer_status == 0)
 ) collate = utf8_bin ;
 
 insert into users (

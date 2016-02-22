@@ -36,7 +36,7 @@ block content
     p
       i This is a builtin interface in every ThingEngine installation.
 
-  if user && user.developer_status >= 0
+  if user && user.developer_key
     h2.device-subtitle#device-version Version: 
       if device.approved_version === null
         | none (approved), #{device.developer_version} (developer)

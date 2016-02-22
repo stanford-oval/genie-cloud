@@ -46,13 +46,18 @@ block content
               a(href='/user/request-developer') apply to be a developer
               | )
 
-        if user.developer_status > 0
-          div.form-group
-            label.control-label ThingPedia Developer Key
+        div.form-group
+          label.control-label(for='developer-key') ThingPedia Developer Key
+          if user.developer_status > 0
             p.form-control-static= user.developer_key
             span.help-block
-              | You can use this developer key in other ThingEngines (such as one you're running
+              | You can use this developer key in other ThingEngines (such as one you&apos;re running
               | locally for testing) to access your devices before they are approved.
+          else
+            input(type='text', name='developer_key',value=user.developer_key).form-control#developer-key
+            span.help-block
+              | You can use the developer key of some other user to access his interfaces before they
+              | are approved.
 
         div.form-group
           button(type='submit').btn.btn-primary Update profile
