@@ -62,6 +62,12 @@
     margin: auto;
 }
 
+#thingpedia-arch-diagram {
+    display: block;
+    width: 80%;
+    margin: auto;
+}
+
 .section-title, .section-subtitle {
     text-align: center;
 }
