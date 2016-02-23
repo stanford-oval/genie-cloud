@@ -35,6 +35,7 @@ SchemaRetriever.prototype._ensureRequest = function() {
     this._request = Q.delay(0).then(function() {
         var pending = this._pendingRequests;
         this._pendingRequests = [];
+        this._request = null;
 
         return db.withClient(function(dbClient) {
             return schema.getTypesByKinds(dbClient, pending, null);
