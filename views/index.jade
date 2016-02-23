@@ -18,7 +18,21 @@ block content
     div
 
       if authenticated
-        if isRunning
+        if !isRunning
+          h1 Uh, oh!
+
+          h2 Your Sabrina died!
+          p It might have crashed or might have been killed by the site administrators.
+          p
+            a(href='/status').btn.btn-primary Check out what happened
+        else if user.assistant_feed_id === null
+          h1 Almost there
+
+          p Your Sabrina is almost ready to help you. You just need to configure Omlet.
+
+          p
+            a(href='/devices/oauth2/org.thingpedia.builtin.omlet').btn.btn-primary Configure Omlet
+        else
           h1 Welcome back!
 
           p Your Sabrina is running.
@@ -27,13 +41,6 @@ block content
             a(href='/apps').btn.btn-primary Check your apps
             | &#x20;
             a(href='/thingpedia/apps').btn.btn-primary Find new apps
-        else
-          h1 Uh, oh!
-
-          h2 Your Sabrina died!
-          p It might have crashed or might have been killed by the site administrators.
-          p
-            a(href='/status').btn.btn-primary Check out what happened
 
       else
         h1 Welcome to ThingPedia
