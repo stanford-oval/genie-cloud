@@ -31,9 +31,9 @@ try {
     console.error('Failed to setup journald');
     _logJournal = function(obj) {
         if (obj.PRIORITY <= 4)
-            console.error(obj.MESSAGE);
+            console.error('User ' + obj.THINGENGINE_USER_ID + ': ' + obj.MESSAGE);
         else
-            console.log(obj.MESSAGE);
+            console.log('User ' + obj.THINGENGINE_USER_ID + ': ' + obj.MESSAGE);
     }
 }
 const LOG_INFO = 6;

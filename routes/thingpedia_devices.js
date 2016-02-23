@@ -55,7 +55,7 @@ function getDetails(fn, param, req, res) {
                             return model.getDeveloperCode(client, d.id);
                         });
                 }).then(function(row) { d.code = row.code; })
-                .catch(function(e) { console.log(e.stack); d.code = null; });
+                .catch(function(e) { d.code = null; });
             });
         }).then(function(d) {
             var online = d.kinds.some(function(k) { return k.kind === 'online-account' });
