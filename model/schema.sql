@@ -77,7 +77,7 @@ create table app (
 create table device_class (
     id integer auto_increment primary key,
     primary_kind varchar(128) unique not null,
-    global_name varchar(128) default null,
+    global_name varchar(128) unique default null,
     owner integer not null,
     name varchar(255) not null collate utf8_general_ci,
     description text not null collate utf8_general_ci,

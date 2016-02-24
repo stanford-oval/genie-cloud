@@ -195,12 +195,7 @@ function validateDevice(dbClient, req) {
         throw new Error('Invalid zip file');
     }
 
-    if (ast['global-name'])
-        var allTypes = ast.types.concat([ast['global-name']]);
-    else
-        var allTypes = ast.types;
-
-    return Q.all(allTypes.map(function(type) {
+    return Q.all(ast.types.map(function(type) {
         return validateSchema(dbClient, type, ast, type === ast['global-name']);
     })).then(function() {
         return ast;
@@ -217,11 +212,9 @@ function ensurePrimarySchema(dbClient, kind, ast) {
         actions[name] = ast.actions[name].schema;
 
     return schema.getByKind(dbClient, kind).then(function(existing) {
-        existing.developer_version += 1;
-        existing.approved_version += 1;
         return schema.update(dbClient,
                              existing.id, { developer_version: existing.developer_version + 1,
-                                            approved_version: existing.approved_version + 1 },
+                                            approved_version: existing.approved_version + 1},
                              [triggers, actions]);
     }).catch(function(e) {
         return schema.create(dbClient, { developer_version: 0,
@@ -233,8 +226,10 @@ function ensurePrimarySchema(dbClient, kind, ast) {
             return;
 
         return schema.getByKind(dbClient, ast['global-name']).then(function(existing) {
-            console.log('existing', existing);
-            return;
+            return schema.update(dbClient,
+                                 existing.id, { developer_version: existing.developer_version + 1,
+                                                approved_version: existing.approved_version + 1 },
+                                 [triggers, actions]);
         }).catch(function(e) {
             return schema.create(dbClient, { developer_version: 0,
                                              approved_version: 0,
