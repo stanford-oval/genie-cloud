@@ -14,6 +14,7 @@ const Q = require('q');
 const Frontend = require('./frontend');
 const AssistantDispatcher = require('./assistantdispatcher');
 const EngineManager = require('./enginemanager');
+const WebhookDispatcher = require('./webhookdispatcher');
 
 function dropCaps() {
     if (process.getuid() == 0) {
@@ -55,10 +56,13 @@ function main() {
             // we bound the socket, no need for root now
             dropCaps();
 
-            console.log('Starting EngineManager');
+            new WebhookDispatcher();
+
+            console.log('Starting AssistantDispatcher');
             _assistantdispatcher = new AssistantDispatcher();
             return _assistantdispatcher.start();
         }).then(function() {
+            console.log('Starting EngineManager');
             _enginemanager = new EngineManager(_frontend);
             return _enginemanager.start();
         });

@@ -84,7 +84,8 @@ function runEngine() {
             console.log('RPC channel ready');
             return rpcSocket.call(rpcId, 'getThingPediaClient', []).then(function(client) {
                 console.log('Obtained ThingPedia client');
-                platform._setThingPediaClient(client);
+                platform._setPrivateFeature('thingpedia-client', client);
+                rpcSocket.call(rpcId, 'setWebhookClient', [platform.getCapability('webhook-api')]);
 
                 engine = new Engine();
 

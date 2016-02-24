@@ -10,6 +10,7 @@ const express = require('express');
 const passport = require('passport');
 
 const EngineManager = require('../enginemanager');
+const WebhookDispatcher = require('../webhookdispatcher');
 
 var router = express.Router();
 
@@ -33,5 +34,9 @@ router.post('/ui-command', passport.authenticate('bearer', { session: false }), 
 });
 
 router.use('/oauth2', require('./oauth2'));
+
+router.post('/webhook/:cloud_id/:id', function(req, res) {
+    WebhookDispatcher.get().dispatch(req, res);
+});
 
 module.exports = router;

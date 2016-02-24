@@ -12,6 +12,7 @@ const Q = require('q');
 const fs = require('fs');
 const os = require('os');
 const child_process = require('child_process');
+const lang = require('lang');
 
 const ThingPediaClient = require('thingpedia-client');
 
@@ -34,6 +35,7 @@ var _frontend = null;
 var _prefs = null;
 var _developerKey = null;
 var _thingpediaClient = null;
+var _webhookApi = null;
 
 function checkLocalStateDir() {
     fs.mkdirSync(_writabledir);
@@ -50,6 +52,43 @@ var _unzipApi = {
         });
     }
 };
+
+const WebhookApi = new lang.Class({
+    Name: 'WebhookApi',
+
+    $rpcMethods: ["handleCallback"],
+
+    _init: function() {
+        this._hooks = {}
+    },
+
+    handleCallback: function(id, payload) {
+        return Q.try(function() {
+            if (id in this._hooks)
+                this._hooks[id](payload);
+            else
+                console.log('Ignored webhook callback with ID ' + id);
+        }.bind(this)).catch(function(e) {
+            console.error(e.stack);
+            throw e;
+        });
+    },
+
+    getWebhookBase: function() {
+        return module.exports.getOrigin() + '/api/webhook/' + _cloudId;
+    },
+
+    registerWebhook: function(id, callback) {
+        if (id in this._hooks)
+            throw new Error('Duplicate webhook ' + id + ' registered');
+
+        this._hooks[id] = callback;
+    },
+
+    unregisterWebhook: function(id) {
+        delete this._hooks[id];
+    }
+});
 
 var _websocketHandler;
 
@@ -88,6 +127,7 @@ module.exports = {
                     socket.destroy();
             }
         };
+        _webhookApi = new WebhookApi();
 
         return sql.ensureSchema(_writabledir + '/sqlite.db',
                                 'schema.sql');
@@ -113,9 +153,8 @@ module.exports = {
             return true;
 
         case 'graphics-api':
-            return true;
-
         case 'thingpedia-client':
+        case 'webhook-api':
             return true;
 
         default:
@@ -138,6 +177,9 @@ module.exports = {
 
         case 'thingpedia-client':
             return _thingpediaClient;
+
+        case 'webhook-api':
+            return _webhookApi;
 
         default:
             return null;
@@ -242,7 +284,13 @@ module.exports = {
         }
     },
 
-    _setThingPediaClient: function(client) {
-        _thingpediaClient = client;
+    _setPrivateFeature: function(name, value) {
+        switch(name) {
+        case 'thingpedia-client':
+            _thingpediaClient = value;
+            break;
+        default:
+            throw new Error('Invalid private feature name (what are you trying to do?)');
+        }
     },
 };

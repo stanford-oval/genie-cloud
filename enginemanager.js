@@ -20,6 +20,7 @@ const db = require('./util/db');
 
 const ThingPediaClient = require('./util/thingpedia-client');
 const AssistantDispatcher = require('./assistantdispatcher');
+const WebhookDispatcher = require('./webhookdispatcher');
 
 var _logJournal;
 try {
@@ -144,6 +145,7 @@ const EngineManager = new lang.Class({
                 var engineProxy = Q.defer();
                 var obj = { child: child,
                             cwd: './' + cloudId,
+                            cloudId: cloudId,
                             engine: engineProxy.promise }
                 runningProcesses[userId] = obj;
 
@@ -157,6 +159,7 @@ const EngineManager = new lang.Class({
                     if (runningProcesses[userId] !== obj)
                         return;
                     AssistantDispatcher.get().removeEngine(userId);
+                    WebhookDispatcher().removeClient(cloudId);
                     frontend.unregisterWebSocketEndpoint('/ws/' + cloudId);
                     delete runningProcesses[userId];
                 });
@@ -168,10 +171,15 @@ const EngineManager = new lang.Class({
                 var rpcSocket = new rpc.Socket(socket);
                 var thingpediaClient = new ThingPediaClient(developerKey);
                 var rpcStub = {
-                    $rpcMethods: ['setEngine', 'getThingPediaClient'],
+                    $rpcMethods: ['setEngine', 'getThingPediaClient',
+                                  'setWebhookClient'],
 
                     getThingPediaClient: function() {
                         return thingpediaClient;
+                    },
+
+                    setWebhookClient: function(client) {
+                        WebhookDispatcher.get().addClient(cloudId, client);
                     },
 
                     setEngine: function(engine) {
@@ -252,10 +260,12 @@ const EngineManager = new lang.Class({
 
     stop: function() {
         var am = AssistantDispatcher.get();
+        var wd = WebhookDispatcher.get();
         for (var userId in this._runningProcesses) {
             var child = this._runningProcesses[userId].child;
-            child.kill();
             am.removeEngine(userId);
+            wd.removeClient(this._runningProcesses[userId].cloudId);
+            child.kill();
         }
     },
 
@@ -270,7 +280,6 @@ const EngineManager = new lang.Class({
         var process = this._runningProcesses[userId];
         var child = process.child;
         child.kill();
-        AssistantDispatcher.get().removeEngine(userId);
 
         return Q.nfcall(child_process.exec, 'rm -fr ' + process.cwd);
     },
