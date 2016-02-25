@@ -191,8 +191,9 @@ function validateDevice(dbClient, req) {
             if (!ast.actions[name].url)
                 throw new Error("Missing trigger url for " + name);
         }
-    } else if (!req.file || !req.file.buffer || !req.file.buffer.length) {
-        throw new Error('Invalid zip file');
+    } else if (!kind.startsWith('org.thingpedia.builtin.')) {
+        if (!req.file || !req.file.buffer || !req.file.buffer.length)
+            throw new Error('Invalid zip file');
     }
 
     return Q.all(ast.types.map(function(type) {
@@ -321,7 +322,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (obj === null)
                     return false;
 
-                if (!obj.fullcode) {
+                if (!obj.fullcode && !obj.primary_kind.startsWith('org.thingpedia.builtin.')) {
                     var zipFile = new JSZip(req.file.buffer, { checkCRC32: true });
 
                     var packageJson = zipFile.file('package.json');

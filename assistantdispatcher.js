@@ -10,6 +10,7 @@ const Q = require('q');
 const lang = require('lang');
 const events = require('events');
 const Url = require('url');
+const Tp = require('thingpedia');
 
 const Sempre = require('sabrina').Sempre;
 
@@ -140,7 +141,30 @@ const Feed = new lang.Class({
     sendRaw: function(rawItem) {
         return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, rawItem.type,
                          rawItem);
-    }
+    },
+
+    sendPicture: function(url) {
+        if (typeof url === 'string') {
+            if (url.startsWith('http')) {
+                return Tp.Helpers.Http.get(url, { raw: true }).spread(function(data, contentType) {
+                    return Q.ninvoke(this._client.messaging, '_pictureObjFromBytes', data, contentType);
+                }.bind(this)).spread(function(objType, obj) {
+                    return Q.ninvoke(this._client.messaging, '_sendObjToFeed',
+                                     this._feed, objType, obj);
+                }.bind(this));
+            } else {
+                throw new Error('Sending pictures by non-http url is not implemented, sorry');
+            }
+        } else if (Buffer.isBuffer(url)) {
+            return Q.ninvoke(this._client.messaging, '_pictureObjFromBytes', url)
+                .spread(function(objType, obj) {
+                    return Q.ninvoke(this._client.messaging, '_sendObjToFeed',
+                                     this._feed, objType, obj);
+                }.bind(this));
+        } else {
+            throw new TypeError('Invalid type for call to sendPicture, must be string or buffer');
+        }
+    },
 });
 
 const Messaging = new lang.Class({
@@ -256,7 +280,7 @@ const Messaging = new lang.Class({
 
 const AssistantFeed = new lang.Class({
     Name: 'AssistantFeed',
-    $rpcMethods: ['send', 'analyze'],
+    $rpcMethods: ['send', 'analyze', 'sendPicture'],
 
     _init: function(sempre, feed, engine) {
         this._sempre = sempre;
@@ -277,6 +301,10 @@ const AssistantFeed = new lang.Class({
 
     send: function(msg) {
         return this._feed.sendText(msg);
+    },
+
+    sendPicture: function(url) {
+        return this._feed.sendPicture(url);
     },
 
     analyze: function(utterance) {

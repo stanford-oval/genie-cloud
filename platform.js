@@ -16,13 +16,7 @@ const child_process = require('child_process');
 // FIXME we should not punch through the abstraction
 const prefs = require('thingengine-core/lib/prefs');
 
-var Config;
-try {
-Config = require('./platform_config');
-} catch(e) {
-Config = {};
-}
-
+const graphics = require('./instance/graphics');
 
 var _writabledir = null;
 var _cachedir = null;
@@ -55,11 +49,23 @@ module.exports = {
     type: 'cloud',
 
     hasCapability: function(cap) {
-        return false;
+        switch(cap) {
+        case 'graphics-api':
+            return true;
+
+        default:
+            return false;
+        }
     },
 
     getCapability: function(cap) {
-        return null;
+        switch(cap) {
+        case 'graphics-api':
+            return graphics;
+
+        default:
+            return null;
+        }
     },
 
     getSharedPreferences: function() {

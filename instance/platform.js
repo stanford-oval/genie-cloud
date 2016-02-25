@@ -22,13 +22,6 @@ const prefs = require('thingengine-core/lib/prefs');
 
 const graphics = require('./graphics');
 
-var Config;
-try {
-Config = require('../platform_config');
-} catch(e) {
-Config = {};
-}
-
 var _cloudId = null;
 var _writabledir = null;
 var _frontend = null;
