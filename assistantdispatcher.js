@@ -282,21 +282,37 @@ const AssistantFeed = new lang.Class({
     Name: 'AssistantFeed',
     $rpcMethods: ['send', 'analyze', 'sendPicture'],
 
-    _init: function(sempre, feed, engine) {
+    _init: function(sempre, feed, client, engine) {
         this._sempre = sempre;
         this._feed = feed;
+        this._client = client;
         this._remote = engine.assistant;
         this._newMessageListener = this._onNewMessage.bind(this);
     },
 
     _onNewMessage: function(msg) {
-        if (msg.type !== 'text')
-            return;
-        if (msg.hidden) // hidden messages are used by ThingTalk feed-shared keywords, ignore them
-            return;
-        this._remote.handleCommand(msg.text).catch(function(e) {
-            console.log('Failed to handle assistant command: ' + e.message);
-        }).done();
+        if (msg.type === 'text') {
+            if (msg.hidden) // hidden messages are used by ThingTalk feed-shared keywords, ignore them
+                return;
+            this._remote.handleCommand(msg.text).catch(function(e) {
+                console.log('Failed to handle assistant command: ' + e.message);
+            }).done();
+        } else if (msg.type === 'picture') {
+            var blob = this._client.blob;
+
+            setTimeout(function() {
+                blob.getDownloadLinkForHash(msg.fullSizeHash, function(error, url) {
+                    if (error) {
+                        console.log('failed to get download link for picture', error);
+                        return;
+                    }
+
+                    this._remote.handlePicture(url).catch(function(e) {
+                        console.log('Failed to handle assistant picture: ' + e.message);
+                    }).done();
+                }.bind(this));
+            }.bind(this), 5000);
+        }
     },
 
     send: function(msg) {
@@ -384,7 +400,7 @@ module.exports = new lang.Class({
 
     _startEngine: function(obj, firstTime) {
         var feed = this._messaging.getFeed(obj.feedId);
-        obj.feed = new AssistantFeed(this._sempre, feed, obj.engine);
+        obj.feed = new AssistantFeed(this._sempre, feed, this._messaging.client, obj.engine);
         obj.feed.start().done();
     },
 
