@@ -320,6 +320,10 @@ router.post('/request-developer', user.requireLogIn, function(req, res, next) {
         from: 'ThingPedia Spam <noreply@thingengine.stanford.edu>',
         to: 'gcampagn@cs.stanford.edu',
         subject: 'New Developer Access Requested',
+        replyTo: {
+            name: req.body.realname,
+            address: req.body.email
+        },
         text: req.body.realname + ' <' + req.body.email + '>, working for ' + req.body.organization
             + ', requests access to ThingPedia.\n\n'
             + 'Username: ' + req.user.username + '\n'
