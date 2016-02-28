@@ -106,11 +106,11 @@ block content
       if !user.google_id || !user.facebook_id
         p
           if !user.google_id
-            a.btn.btn-default(href='/devices/oauth2/google-account') Configure login with Google
+            a.btn.btn-default(href='/devices/oauth2/com.google') Configure login with Google
           if !user.google_id && !user.facebook_id
             |  
           if !user.facebook_id
-            a.btn.btn-default(href='/devices/oauth2/facebook') Configure login with Facebook
+            a.btn.btn-default(href='/devices/oauth2/com.facebook') Configure login with Facebook
 
       p
         a.btn.btn-danger(data-toggle='modal', data-target='#delete-account-dialog') Delete account
