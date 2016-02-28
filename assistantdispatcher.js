@@ -421,6 +421,11 @@ module.exports = new lang.Class({
             feedId: feedId,
             feed: null,
         };
+        if (this._engines[userId]) {
+            var old = this._engines[userId];
+            if (old.feed !== null)
+                old.feed.stop().done();
+        }
         this._engines[userId] = obj;
 
         if (this._client)
