@@ -65,6 +65,14 @@ block content
                 div.col-md-6
                   a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id) Update
 
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/thingpedia/devices?page=' + (page_num-1)) Previous
+      li
+        a(href='/thingpedia/devices?page=' + (page_num+1)) Next
+
   div.row
     div.col-sm-6.col-md-3
       a(href='/thingpedia/upload/create').btn.btn-primary.btn-block Upload new interface

@@ -23,13 +23,15 @@ router.get('/', function(req, res) {
     var page = req.query.page;
     if (page === undefined)
         page = 0;
-    if (isNaN(page))
+    page = parseInt(page);
+    if (isNaN(page) || page < 0)
         page = 0;
 
     db.withClient(function(client) {
         return model.getAll(client, page * 20, 20).then(function(devices) {
             res.render('thingpedia_dev_portal', { page_title: "ThingPedia Developer Portal",
                                                   devices: devices,
+                                                  page_num: page,
                                                   isRunning: (req.user ? EngineManager.get().isRunning(req.user.id) : false) });
         });
     }).done();

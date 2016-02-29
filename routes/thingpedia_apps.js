@@ -70,7 +70,7 @@ SchemaRetriever.prototype.getSchema = function(kind) {
 
 var router = express.Router();
 
-function renderAppList(dbClient, apps, res, page_h1, page_subtitle) {
+function renderAppList(dbClient, apps, res, page_h1, page_subtitle, page_num) {
     return Q.all(apps.map(function(r) {
         return model.getAllTags(dbClient, r.id).then(function(tags) {
             r.tags = tags;
@@ -78,9 +78,10 @@ function renderAppList(dbClient, apps, res, page_h1, page_subtitle) {
         });
     })).then(function(apps) {
 	res.render('thingpedia_app_list', { page_title: "ThingPedia - app collection",
-                                        page_h1: page_h1,
-                                        page_subtitle: page_subtitle,
-                                        apps: apps });
+                                            page_h1: page_h1,
+                                            page_subtitle: page_subtitle,
+                                            page_num: page_num,
+                                            apps: apps });
     });
 }
 
@@ -97,13 +98,14 @@ router.get('/', function(req, res) {
     var page = req.query.page;
     if (page === undefined)
         page = 0;
-    if (isNaN(page))
+    page = parseInt(page);
+    if (isNaN(page) || page < 0)
         page = 0;
 
     db.withTransaction(function(client) {
         return model.getAll(client, filterVisible(req), page * 20, 20).then(function(apps) {
             return renderAppList(client, apps, res,
-                                 "Try the following recommended apps");
+                                 "Try the following recommended apps", '', page);
         });
     }).done();
 });
