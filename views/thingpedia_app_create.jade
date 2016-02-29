@@ -58,7 +58,7 @@ block content
             span.label.label-default(id='tag-' + i).input-tag #{tag} | 
               a.tag-remove(data-target='#tag-' + i, aria-label='Remove tag')
                 span.glyphicon-minus
-            input(type='hidden', name='tags[]', value=tag)
+              input(type='hidden', name='tags[]', value=tag)
             |  
         |  
         input(type='text', placeholder='Add tag...').form-control.form-inline.input-sm#add-tag-input
