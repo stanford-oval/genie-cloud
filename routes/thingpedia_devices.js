@@ -28,7 +28,7 @@ router.get('/', function(req, res) {
         page = 0;
 
     db.withClient(function(client) {
-        return model.getAll(client, page * 20, 20).then(function(devices) {
+        return model.getAll(client, page * 18, 18).then(function(devices) {
             res.render('thingpedia_dev_portal', { page_title: "ThingPedia Developer Portal",
                                                   devices: devices,
                                                   page_num: page,

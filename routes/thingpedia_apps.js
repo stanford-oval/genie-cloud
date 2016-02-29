@@ -103,7 +103,7 @@ router.get('/', function(req, res) {
         page = 0;
 
     db.withTransaction(function(client) {
-        return model.getAll(client, filterVisible(req), page * 20, 20).then(function(apps) {
+        return model.getAll(client, filterVisible(req), page * 18, 18).then(function(apps) {
             return renderAppList(client, apps, res,
                                  "Try the following recommended apps", '', page);
         });
