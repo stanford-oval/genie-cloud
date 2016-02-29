@@ -70,8 +70,9 @@ block content
       if page_num > 0
         li
           a(href='/thingpedia/devices?page=' + (page_num-1)) Previous
-      li
-        a(href='/thingpedia/devices?page=' + (page_num+1)) Next
+      if devices.length >= 20
+        li
+          a(href='/thingpedia/devices?page=' + (page_num+1)) Next
 
   div.row
     div.col-sm-6.col-md-3

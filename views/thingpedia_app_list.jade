@@ -59,5 +59,6 @@ block content
         if page_num > 0
           li
             a(href='/thingpedia/apps?page=' + (page_num-1)) Previous
-        li
-          a(href='/thingpedia/apps?page=' + (page_num+1)) Next
+        if apps.length >= 20
+          li
+            a(href='/thingpedia/apps?page=' + (page_num+1)) Next
