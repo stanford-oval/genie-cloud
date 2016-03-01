@@ -55,10 +55,10 @@ const WebhookApi = new lang.Class({
         this._hooks = {}
     },
 
-    handleCallback: function(id, payload) {
+    handleCallback: function(id, method, query, headers, payload) {
         return Q.try(function() {
             if (id in this._hooks)
-                this._hooks[id](payload);
+                this._hooks[id](method, query, headers, payload);
             else
                 console.log('Ignored webhook callback with ID ' + id);
         }.bind(this)).catch(function(e) {

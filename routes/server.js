@@ -39,4 +39,8 @@ router.post('/webhook/:cloud_id/:id', function(req, res) {
     WebhookDispatcher.get().dispatch(req, res);
 });
 
+router.get('/webhook/:cloud_id/:id', function(req, res) {
+    WebhookDispatcher.get().dispatch(req, res);
+});
+
 module.exports = router;
