@@ -26,6 +26,7 @@ const url = require('url');
 const passport = require('passport');
 const connect_flash = require('connect-flash');
 const cacheable = require('cacheable-middleware');
+const xmlBodyParser = require('express-xml-bodyparser');
 
 const user = require('./util/user');
 const secretKey = require('./util/secret_key');
@@ -56,6 +57,7 @@ Frontend.prototype._init = function _init() {
 
     this._app.use(bodyParser.json());
     this._app.use(bodyParser.urlencoded({ extended: true }));
+    this._app.use(xmlBodyParser({ explicitArray: true, trim: false }));
     this._app.use(cookieParser());
     this._app.use(session({ resave: false,
                             saveUninitialized: false,

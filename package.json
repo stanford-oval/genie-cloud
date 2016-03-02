@@ -45,6 +45,7 @@
     "node-zip": "~1.1.1",
     "multer": "~1.1.0",
     "aws-sdk": "~2.2.35",
-    "nodemailer": "~2.1.0"
+    "nodemailer": "~2.1.0",
+    "express-xml-bodyparser": "~0.3.0"
   }
 }
