@@ -84,13 +84,13 @@ block content
             if user.roles & 0x1
               span(title=user.developer_key) Site Admin
             else if user.developer_status >= 3
-              span(title=user.developer_key) ThingPedia Admin
+              span(title=user.developer_key) Admin
             else if user.developer_status >= 2
-              span(title=user.developer_key) Trusted Developer
+              span(title=user.developer_key) Trusted Dev
             else if user.developer_status >= 1
               span(title=user.developer_key) Developer
             else
-              | User
+              span(title=user.developer_key) User
           td
             a(href='/thingpedia/apps/by-owner/' + user.id) Apps
           td
