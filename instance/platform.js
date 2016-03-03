@@ -37,7 +37,8 @@ function checkLocalStateDir() {
 var _unzipApi = {
     unzip: function(zipPath, dir) {
         var args = ['-uo', zipPath, '-d', dir];
-        return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args).then(function(zipResult) {
+        return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args, {
+            maxBuffer: 10 * 1024 * 1024 }).then(function(zipResult) {
             var stdout = zipResult[0];
             var stderr = zipResult[1];
             console.log('stdout', stdout);
