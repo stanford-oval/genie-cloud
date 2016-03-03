@@ -25,6 +25,23 @@ block content
       input(type='hidden',name='_csrf',value=csrfToken)
       button(type='submit').btn.btn-danger Start
 
+  if !isRunning
+    h2 Recovery options
+
+    div.row
+      div.col-md-3
+        form(action='/status/recovery/wipe-cache', method='post')
+          input(type='hidden',name='_csrf',value=csrfToken)
+          button(type='submit').btn.btn-danger.btn-block Remove cached modules
+      div.col-md-3
+        form(action='/status/recovery/remove-all-apps', method='post')
+          input(type='hidden',name='_csrf',value=csrfToken)
+          button(type='submit').btn.btn-danger.btn-block Remove all apps
+      div.col-md-3
+        form(action='/status/recovery/remove-all-devices', method='post')
+          input(type='hidden',name='_csrf',value=csrfToken)
+          button(type='submit').btn.btn-danger.btn-block Remove all devices and accounts
+
   h2 Cached Modules
 
   table.table#cached-module-table
