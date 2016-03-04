@@ -56,8 +56,10 @@ function deviceMakeFactory(d) {
     delete d.code;
     if (ast.auth.type === 'builtin') {
         d.factory = null;
-    } else if (ast.auth.type === 'oauth2' ||
-        (Object.keys(ast.params).length === 0 && ast.auth.type === 'none')) {
+    } else if (ast.auth.type === 'none' &&
+               Object.keys(ast.params).length === 0) {
+        d.factory = ({ type: 'none', text: d.name });
+    } else if (ast.auth.type === 'oauth2') {
         d.factory = ({ type: 'oauth2', text: d.name });
     } else {
         d.factory = ({ type: 'form',
