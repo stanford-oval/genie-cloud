@@ -30,6 +30,7 @@ router.get('/', function(req, res) {
     db.withClient(function(client) {
         return model.getAll(client, page * 18, 18).then(function(devices) {
             res.render('thingpedia_dev_portal', { page_title: "ThingPedia Developer Portal",
+                                                  csrfToken: req.csrfToken(),
                                                   devices: devices,
                                                   page_num: page,
                                                   isRunning: (req.user ? EngineManager.get().isRunning(req.user.id) : false) });
@@ -141,6 +142,25 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
         return model.approve(dbClient, req.params.id);
     }).then(function() {
         res.redirect('/thingpedia/devices/details/' + req.params.id);
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
+                                          message: e.message });
+    }).done();
+});
+
+router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function(req, res) {
+    db.withTransaction(function(dbClient) {
+        return model.get(dbClient, req.params.id).then(function(row) {
+            if (row.owner !== req.user.id && req.user.developer_status < user.DeveloperStatus.ADMIN) {
+                res.status(403).render('error', { page_title: "ThingPedia - Error",
+                                                  message: "Not Authorized" });
+                return;
+            }
+
+            return model.delete(dbClient, req.params.id).then(function() {
+                res.redirect(303, '/thingpedia/devices');
+            });
+        });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e.message });

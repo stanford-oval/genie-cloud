@@ -1,5 +1,8 @@
 extends layout
 
+block scripts
+  script(src='/javascripts/device.js')
+
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
@@ -89,5 +92,9 @@ block content
     if authenticated && (user.developer_status >= 3 || device.owner === user.id)
       div.col-md-2
         a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.id) Update
+      div.col-md-2
+        form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
+          input(type='hidden',name='_csrf',value=csrfToken)
+          button(type='submit').btn.btn-danger.btn-block Delete
       div.col-md-2
         a.btn.btn-default.btn-block(href='https://d3hpoqf2ntov6o.cloudfront.net/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip') Download code

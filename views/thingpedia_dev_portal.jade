@@ -1,5 +1,8 @@
 extends layout
 
+block scripts
+  script(src='/javascripts/device.js')
+
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
@@ -64,6 +67,11 @@ block content
                   a.btn.btn-sm.btn-default.btn-block(href='/thingpedia/apps/by-device/' + dev.id) Find Apps
                 div.col-md-6
                   a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id) Update
+
+                div.col-md-6
+                  form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    button(type='submit').btn.btn-sm.btn-danger.btn-block Delete
 
   nav
     ul.pager
