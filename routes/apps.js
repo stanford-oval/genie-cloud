@@ -68,11 +68,13 @@ function getAllDevices(engine) {
             return Q.all([d.uniqueId, d.name, d.description, d.state, d.ownerTier,
                           d.checkAvailable(),
                           d.hasKind('online-account'),
+                          d.hasKind('data-source'),
                           d.hasKind('thingengine-system')])
                 .spread(function(uniqueId, name, description, state,
                                  ownerTier,
                                  available,
                                  isOnlineAccount,
+                                 isDataSource,
                                  isThingEngine) {
                     return { uniqueId: uniqueId, name: name || "Unknown device",
                              description: description || "Description not available",
@@ -80,6 +82,7 @@ function getAllDevices(engine) {
                              ownerTier: ownerTier,
                              available: available,
                              isOnlineAccount: isOnlineAccount,
+                             isDataSource: isDataSource,
                              isThingEngine: isThingEngine };
                 });
         }));
@@ -106,9 +109,11 @@ router.get('/', user.redirectLogIn, function(req, res) {
 
         return [apps, devices, thingpediaApps];
     }).spread(function(appinfo, devinfo, thingpediaAppinfo) {
-        var physical = [], online = [];
+        var physical = [], online = [], datasource = [];
         devinfo.forEach(function(d) {
-            if (d.isOnlineAccount)
+            if (d.isDataSource)
+                datasource.push(d);
+            else if (d.isOnlineAccount)
                 online.push(d);
             else
                 physical.push(d);
@@ -127,6 +132,7 @@ router.get('/', user.redirectLogIn, function(req, res) {
                                  apps: appinfo,
                                  thingpediaVisible: visible,
                                  thingpediaInvisible: invisible,
+                                 datasourceDevices: datasource,
                                  physicalDevices: physical,
                                  onlineDevices: online,
                                 });

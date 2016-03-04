@@ -72,7 +72,7 @@ function deviceMakeFactory(d) {
 }
 
 router.get('/devices', function(req, res) {
-    if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
+    if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
         res.status(404).json("Invalid device class");
         return;
     }
@@ -96,10 +96,14 @@ router.get('/devices', function(req, res) {
                     devices = device.getAllApprovedWithKindWithCode(dbClient,
                                                                     'online-account',
                                                                     developer);
+                else if (req.query.class === 'data')
+                    devices = device.getAllApprovedWithKindWithCode(dbClient,
+                                                                    'data-source',
+                                                                    developer);
                 else
-                    devices = device.getAllApprovedWithoutKindWithCode(dbClient,
-                                                                       'online-account',
-                                                                       developer);
+                    devices = device.getAllApprovedWithoutKindsWithCode(dbClient,
+                                                                        ['online-account','data-source'],
+                                                                        developer);
             } else {
                 devices = device.getAllApprovedWithCode(dbClient, developer);
             }

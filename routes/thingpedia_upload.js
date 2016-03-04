@@ -81,7 +81,7 @@ const DEFAULT_ONLINE_CODE = {"name": "Example Account of %s",
                             };
 
 router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
-    if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
+    if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: "ThingPedia - Error",
                                           message: "Invalid device class" });
         return;
@@ -150,8 +150,10 @@ function validateDevice(dbClient, req) {
         ast.auth = {"type":"none"};
     if (!ast.auth.type || ['none','oauth2','basic','builtin'].indexOf(ast.auth.type) == -1)
         throw new Error("Invalid auth type");
-    if (ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
+    if (fullcode && ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
         throw new Error("Username and password must be provided for basic authentication");
+    if (ast.types.indexOf('online-account') >= 0 && ast.types.indexOf('data-source') >= 0)
+        throw new Error("Interface cannot be both marked online-account and data-source");
 
     if (!ast.triggers)
         ast.triggers = {};

@@ -19,29 +19,21 @@ const AssistantDispatcher = require('../assistantdispatcher');
 var router = express.Router();
 
 router.get('/create', user.redirectLogIn, function(req, res, next) {
-    if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
+    if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: "ThingPedia - Error",
                                           message: "Invalid device class" });
         return;
     }
 
-    var online = req.query.class === 'online';
-
     res.render('devices_create', { page_title: 'ThingEngine - configure device',
                                    csrfToken: req.csrfToken(),
                                    developerKey: req.user.developer_key,
-                                   onlineAccounts: online,
+                                   klass: req.query.class,
                                    ownTier: 'cloud',
                                  });
 });
 
 router.post('/create', user.requireLogIn, function(req, res, next) {
-    if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: "ThingPedia - Error",
-                                          message: "Invalid device class" });
-        return;
-    }
-
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         var devices = engine.devices;
 
@@ -65,12 +57,6 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
 });
 
 router.post('/delete', user.requireLogIn, function(req, res, next) {
-    if (req.query.class && ['online', 'physical'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: "ThingPedia - Error",
-                                          message: "Invalid device class" });
-        return;
-    }
-
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         var id = req.body.id;
         if (!engine.devices.hasDevice(id)) {

@@ -239,4 +239,33 @@ module.exports = {
             }
         }
     },
+
+    getAllApprovedWithoutKindsWithCode: function(client, kinds, developer, start, end) {
+        if (developer !== null) {
+            var query = "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "((dcv.version = d.developer_version and d.owner = ?) or "
+                + " (dcv.version = d.approved_version and d.owner <> ?)) and "
+                + "not exists (select 1 from device_class_kind dk where dk.device_id "
+                + "= d.id and dk.kind in (?)) order by d.name";
+            if (start !== undefined && end !== undefined) {
+                return db.selectAll(client, query + " limit ?,?",
+                                    [developer.id, developer.id, kinds, start, end]);
+            } else {
+                return db.selectAll(client, query, [developer.id, developer.id, kinds]);
+            }
+        } else {
+            var query = "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "dcv.version = d.approved_version and "
+                + "not exists (select 1 from device_class_kind dk where dk.device_id "
+                + "= d.id and dk.kind in (?)) order by d.name";
+            if (start !== undefined && end !== undefined) {
+                return db.selectAll(client, query + " limit ?,?", [kinds, start, end]);
+            } else {
+                return db.selectAll(client, query, [kinds]);
+            }
+        }
+    },
+
 }
