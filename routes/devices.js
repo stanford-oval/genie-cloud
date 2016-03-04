@@ -52,7 +52,7 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -81,7 +81,7 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -127,7 +127,7 @@ router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -169,7 +169,7 @@ router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, 
     }).catch(function(e) {
         console.log(e.stack);
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -199,7 +199,7 @@ router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 

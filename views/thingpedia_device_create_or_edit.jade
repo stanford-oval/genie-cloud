@@ -23,7 +23,17 @@ block content
           div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
             button(type='button', data-dismiss='alert', aria-label="Close").close
               span(aria-hidden='true') ×
-            p= error
+            if typeof error === 'string'
+              p= error
+            else if error.name === 'SyntaxError'
+              if error.location
+                p Syntax error at line #{error.location.start.line} column #{error.location.start.column}: #{error.message}
+              else
+                p Syntax error at #{error.fileName} line #{error.lineNumber}: #{error.message}
+            else if error.message
+              p= error.message
+            else
+              p= String(error)
 
     div.row
       div.col-xs-12

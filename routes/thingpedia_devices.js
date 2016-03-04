@@ -114,7 +114,7 @@ function getDetails(fn, param, req, res) {
         });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 }
 
@@ -144,7 +144,7 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
         res.redirect('/thingpedia/devices/details/' + req.params.id);
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 

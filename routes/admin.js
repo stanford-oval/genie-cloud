@@ -62,7 +62,7 @@ router.post('/start-user/:id', user.requireRole(user.Role.ADMIN), function(req, 
         res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -93,7 +93,7 @@ router.post('/delete-user/:id', user.requireRole(user.Role.ADMIN), function(req,
         res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -114,7 +114,7 @@ router.post('/promote-user/:id', user.requireRole(user.Role.ADMIN), function(req
         res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -139,7 +139,7 @@ router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req,
         res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -151,7 +151,7 @@ router.post('/message-user/:id', user.requireRole(user.Role.ADMIN), function(req
         res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -165,7 +165,7 @@ router.post('/message-broadcast', user.requireRole(user.Role.ADMIN), function(re
         res.redirect('/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 

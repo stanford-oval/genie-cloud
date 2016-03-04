@@ -100,7 +100,7 @@ router.post('/start', user.requireLogIn, function(req, res) {
         res.redirect(303, '/status');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -119,7 +119,7 @@ router.post('/recovery/wipe-cache', user.requireLogIn, function(req, res) {
         res.redirect(303, '/status');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -137,7 +137,7 @@ router.post('/recovery/remove-all-apps', user.requireLogIn, function(req, res) {
     var db = new sqlite3.Database(p, sqlite3.OPEN_READWRITE, function(err) {
         if (err) {
             res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                              message: err.message });
+                                              message: err });
         } else {
             Q.ninvoke(db, 'run', 'delete from app').then(function() {
                 return Q.ninvoke(db, 'close');
@@ -145,7 +145,7 @@ router.post('/recovery/remove-all-apps', user.requireLogIn, function(req, res) {
                 res.redirect(303, '/status');
             }).catch(function(e) {
                 res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                                  message: e.message });
+                                                  message: e });
             }).done();
         }
     });
@@ -165,7 +165,7 @@ router.post('/recovery/remove-all-devices', user.requireLogIn, function(req, res
     var db = new sqlite3.Database(p, sqlite3.OPEN_READWRITE, function(err) {
         if (err) {
             res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                              message: err.message });
+                                              message: err });
         } else {
             Q.ninvoke(db, 'run', 'delete from device').then(function() {
                 return Q.ninvoke(db, 'close');
@@ -173,7 +173,7 @@ router.post('/recovery/remove-all-devices', user.requireLogIn, function(req, res
                 res.redirect(303, '/status');
             }).catch(function(e) {
                 res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                                  message: e.message });
+                                                  message: e });
             }).done();
         }
     });
@@ -186,7 +186,7 @@ router.post('/update-module/:kind', user.requireLogIn, function(req, res) {
         res.redirect('/status');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 

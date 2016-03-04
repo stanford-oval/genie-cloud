@@ -201,9 +201,7 @@ function validateApp(name, description, code) {
 
         var compiler = new AppCompiler();
         compiler.setSchemaRetriever(_schemaRetriever);
-        return compiler.compileCode(code).catch(function(e) {
-            throw new Error("Syntax Error: " + e.message);
-        });
+        return compiler.compileCode(code);
     });
 }
 
@@ -230,7 +228,8 @@ router.post('/create', user.requireLogIn, function(req, res) {
     }).then(function(app) {
         res.redirect('/thingpedia/apps/' + app.id);
     }).catch(function(err) {
-        res.render('thingpedia_app_create', { error: err.message,
+        console.log(err);
+        res.render('thingpedia_app_create', { error: err,
                                               op: 'create',
                                               csrfToken: req.csrfToken(),
                                               name: name,
@@ -262,7 +261,7 @@ router.get('/:id(\\d+)', function(req, res) {
                                             app: app });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -282,7 +281,7 @@ router.post('/delete/:id(\\d+)', user.requireLogIn, function(req, res) {
         res.redirect('/apps');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -302,7 +301,7 @@ router.post('/set-visible/:id(\\d+)', user.requireLogIn, function(req, res) {
         res.redirect('/apps');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -322,7 +321,7 @@ router.post('/set-invisible/:id(\\d+)', user.requireLogIn, function(req, res) {
         res.redirect('/apps');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -359,7 +358,7 @@ function forkApp(req, res, error, name, description, code, tags) {
                                                      tags: tags || app.tags.map(function(t) { return t.tag; }) });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     });
 }
 
@@ -390,7 +389,7 @@ router.post('/fork/:id(\\d+)', user.requireLogIn, function(req, res) {
     }).then(function(app) {
         res.redirect('/thingpedia/apps/' + app.id);
     }).catch(function(err) {
-        return forkApp(req, res, err.message, name, description, code, tags);
+        return forkApp(req, res, err, name, description, code, tags);
     }).done();
 });
 
@@ -423,7 +422,7 @@ router.get('/edit/:id(\\d+)', user.redirectLogIn, function(req, res) {
                                               tags: app.tags.map(function(t) { return t.tag; }) });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
@@ -462,7 +461,7 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
         });
     }).catch(function(err) {
         res.render('thingpedia_app_create', { page_title: "ThingPedia - edit a app",
-                                              error: err.message,
+                                              error: err,
                                               op: 'edit',
                                               csrfToken: req.csrfToken(),
                                               app_id: req.params.id,
@@ -516,7 +515,7 @@ router.get('/install/:id(\\d+)', user.redirectLogIn, function(req, res, next) {
         });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 

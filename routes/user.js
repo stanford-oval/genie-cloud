@@ -126,7 +126,7 @@ router.post('/register', function(req, res, next) {
         res.render('register', {
             csrfToken: req.csrfToken(),
             page_title: "ThingPedia - Register",
-            error: e.message
+            error: e
         });
         return;
     }
@@ -149,7 +149,7 @@ router.post('/register', function(req, res, next) {
         res.render('register', {
             csrfToken: req.csrfToken(),
             page_title: "ThingPedia - Register",
-            error: error.message });
+            error: error });
     }).done();
 });
 
@@ -197,7 +197,7 @@ function getProfile(req, res, error) {
                                      phone: phone });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     });
 }
 
@@ -254,7 +254,7 @@ router.post('/change-password', user.requireLogIn, function(req, res, next) {
             res.redirect(303, '/user/profile');
         });
     }).catch(function(e) {
-        return getProfile(req, res, e.message);
+        return getProfile(req, res, e);
     }).done();
 });
 
@@ -336,7 +336,7 @@ router.post('/request-developer', user.requireLogIn, function(req, res, next) {
         res.render('developer_access_ok', { page_title: "ThingPedia - developer access required" });
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     });
 });
 

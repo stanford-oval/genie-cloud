@@ -261,7 +261,7 @@ function doCreateOrUpdate(id, create, req, res) {
                                                                   "ThingPedia - create new device" :
                                                                   "ThingPedia - edit device"),
                                                                  csrfToken: req.csrfToken(),
-                                                                 error: e.message,
+                                                                 error: e,
                                                                  id: id,
                                                                  device: { name: name,
                                                                            primary_kind: kind,
@@ -346,7 +346,7 @@ function doCreateOrUpdate(id, create, req, res) {
                                                                  platform: 'UNIX'}),
                                                obj.primary_kind, obj.developer_version)
                             .catch(function(e) {
-                                console.error('Failed to upload zip file to S3: ' + e.message);
+                                console.error('Failed to upload zip file to S3: ' + e);
                             }).done();
                     }, 0);
                 }
@@ -363,7 +363,7 @@ function doCreateOrUpdate(id, create, req, res) {
         });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 }
 
@@ -402,7 +402,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
         });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e.message });
+                                          message: e });
     }).done();
 });
 
