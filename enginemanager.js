@@ -22,24 +22,6 @@ const ThingPediaClient = require('./util/thingpedia-client');
 const AssistantDispatcher = require('./assistantdispatcher');
 const WebhookDispatcher = require('./webhookdispatcher');
 
-var _logJournal;
-try {
-    const journald = require('journald').Log;
-    _logJournal = function(obj) {
-        journald.log(obj);
-    };
-} catch(e) {
-    console.error('Failed to setup journald');
-    _logJournal = function(obj) {
-        if (obj.PRIORITY <= 4)
-            console.error('User ' + obj.THINGENGINE_USER_ID + ': ' + obj.MESSAGE);
-        else
-            console.log('User ' + obj.THINGENGINE_USER_ID + ': ' + obj.MESSAGE);
-    }
-}
-const LOG_INFO = 6;
-const LOG_ERR = 3;
-
 var _instance = null;
 
 const ChildProcessSocket = new lang.Class({
@@ -109,6 +91,7 @@ const EngineManager = new lang.Class({
                     if (envIsAllowed(name))
                         env[name] = process.env[name];
                 }
+                env.THINGENGINE_USER_ID = userId;
                 env.CLOUD_ID = cloudId;
                 env.AUTH_TOKEN = authToken;
                 if (developerKey !== null)
@@ -121,27 +104,9 @@ const EngineManager = new lang.Class({
                 var args = ['-i', cloudId, process.execPath].concat(process.execArgv);
                 args.push(enginePath);
                 var child = child_process.spawn(sandboxPath, args,
-                                                { stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+                                                { stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
                                                   cwd: './' + cloudId,
                                                   env: env });
-                function output(priority) {
-                    return (function(data) {
-                        var str = data.toString('utf8');
-                        str.split('\n').forEach(function(line) {
-                            var trimmed = line.trim();
-                            if (trimmed.length > 0) {
-                                _logJournal({ PRIORITY: priority,
-                                              MESSAGE: trimmed,
-                                              SYSLOG_IDENTIFIER: 'thingengine-child-' + userId,
-                                              THINGENGINE_PID: child.pid,
-                                              THINGENGINE_USER_ID: userId });
-                            }
-                        });
-                    });
-                }
-                child.stdout.on('data', output(LOG_INFO));
-                child.stderr.on('data', output(LOG_ERR));
-
                 var engineProxy = Q.defer();
                 var obj = { child: child,
                             cwd: './' + cloudId,

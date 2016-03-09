@@ -41,7 +41,7 @@ function readLogs(userId, startCursor) {
         args.push(unit);
     }
 
-    args.push('THINGENGINE_USER_ID=' + userId);
+    args.push('SYSLOG_IDENTIFIER=thingengine-child-' + userId);
 
     var child = child_process.spawn('/usr/bin/journalctl', args,
                                     { stdio: ['ignore', 'pipe', 'ignore'] });
