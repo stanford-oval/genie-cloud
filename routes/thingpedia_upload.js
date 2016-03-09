@@ -251,6 +251,8 @@ function doCreateOrUpdate(id, create, req, res) {
     var approve = !!req.body.approve;
     var online = false;
 
+    var gAst = undefined;
+
     Q.try(function() {
         return db.withTransaction(function(dbClient) {
             return Q.try(function() {
@@ -293,6 +295,7 @@ function doCreateOrUpdate(id, create, req, res) {
                     fullcode: fullcode,
                 };
                 var code = JSON.stringify(ast);
+                gAst = ast;
 
                 if (create) {
                     obj.owner = req.user.id;
@@ -336,6 +339,7 @@ function doCreateOrUpdate(id, create, req, res) {
                         throw new Error('Invalid package.json');
 
                     parsed['thingpedia-version'] = obj.developer_version;
+                    parsed['thingpedia-metadata'] = gAst;
 
                     // upload the file asynchronously to avoid blocking the request
                     setTimeout(function() {
