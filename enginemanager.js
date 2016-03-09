@@ -77,7 +77,7 @@ const EngineManager = new lang.Class({
             })
             .then(function() {
                 const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
-                                      'HOME', 'SHELL'];
+                                      'HOME', 'SHELL', 'THINGENGINE_PROXY'];
                 function envIsAllowed(name) {
                     if (name.startsWith('LC_'))
                         return true;
