@@ -16,7 +16,7 @@ const device = require('../model/device');
 const user = require('../model/user');
 const schema = require('../model/schema');
 
-const S3_HOST = 'https://d3hpoqf2ntov6o.cloudfront.net/devices/';
+const S3_HOST = 'https://d1ge76rambtuys.cloudfront.net/devices/';
 
 const LEGACY_MAPS = {
     'linkedin': 'com.linkedin',
