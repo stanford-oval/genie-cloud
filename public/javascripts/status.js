@@ -89,7 +89,7 @@ $(function() {
 
             var container = $('#log-view');
 
-            var date = new Date(parsed._SOURCE_REALTIME_TIMESTAMP/1000);
+            var date = new Date(parsed.__REALTIME_TIMESTAMP/1000);
 
             if (previous !== undefined &&
                 previous !== parsed.THINGENGINE_PID) {
