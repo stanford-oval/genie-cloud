@@ -90,10 +90,7 @@ router.get('/oauth2/com.google', user.redirectLogIn, function(req, res, next) {
     req.session.redirect_to = '/apps';
     next();
 }, passport.authorize('google', {
-    scope: 'openid profile email' +
-        ' https://www.googleapis.com/auth/fitness.activity.read' +
-        ' https://www.googleapis.com/auth/fitness.location.read' +
-        ' https://www.googleapis.com/auth/fitness.body.read',
+    scope: user.GOOGLE_SCOPES,
     failureRedirect: '/apps',
     successRedirect: '/apps'
 }));

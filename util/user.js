@@ -243,6 +243,14 @@ module.exports = {
         ADMIN: 1,
     },
 
+    GOOGLE_SCOPES: ['openid','profile','email',
+                    'https://mail.google.com/',
+                    'https://www.googleapis.com/auth/plus.me',
+                    'https://www.googleapis.com/auth/drive',
+                    'https://www.googleapis.com/auth/drive.appdata',
+                    'https://www.googleapis.com/auth/drive.file']
+                    .join(' '),
+
     initializePassport: initializePassport,
 
     register: function(dbClient, username, password, email) {
