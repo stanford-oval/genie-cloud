@@ -100,7 +100,7 @@ router.get('/oauth2/com.facebook', user.redirectLogIn, function(req, res, next) 
     req.session.redirect_to = '/apps';
     next();
 }, passport.authorize('facebook', {
-    scope: 'public_profile email',
+    scope: user.FACEBOOK_SCOPES,
     failureRedirect: '/apps',
     successRedirect: '/apps'
 }));

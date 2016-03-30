@@ -44,7 +44,7 @@ router.get('/oauth2/google/callback', passport.authenticate('google'),
            });
 
 router.get('/oauth2/facebook', passport.authenticate('facebook', {
-    scope: 'public_profile email'
+    scope: user.FACEBOOK_SCOPES,
 }));
 router.get('/oauth2/facebook/callback', passport.authenticate('facebook'),
            function(req, res, next) {
