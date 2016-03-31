@@ -118,7 +118,7 @@ const AssistantFeed = new lang.Class({
     },
 
     start: function() {
-        return this._engine.openConversation(this.feed.feedId, this).then(function(conversation) {
+        return this._engine.assistant.openConversation(this.feed.feedId, this).then(function(conversation) {
             this._remote = conversation;
             this.feed.on('incoming-message', this._newMessageListener);
             return this.feed.open();
@@ -169,7 +169,7 @@ module.exports = new lang.Class({
         this._conversations[feed.feedId] = Q.try(function() {
             return engine.then(function(engine) {
                 return new AssistantFeed(this._sempre, feed, account, this._messaging, engine);
-            }).tap(function() {
+            }.bind(this)).tap(function(conv) {
                 return conv.start();
             });
         }.bind(this)).catch(function(e) {
@@ -185,19 +185,31 @@ module.exports = new lang.Class({
         console.log('Rejecting feed ' + feed.feedId + ' because engine is not present');
     },
 
+    _rejectConversation: function(feedId) {
+        if (this._conversations[feedId]) {
+            var conv = this._conversations[feedId];
+            delete this._conversations[feedId];
+            return Q(conv).then(function(conv) {
+                conv.close();
+            });
+        }
+    },
+
     _makeConversation: function(feedId, accountId) {
         var feed = this._messaging.getFeed(feedId);
         return feed.open().then(function() {
             var members = feed.getMembers();
             if (members.length < 2) {
                 console.log('Ignored feed ' + feedId);
-                return;
+                return this._rejectConversation(feedId);
             }
             if (members.length >= 3) {
                 console.log('Rejected feed ' + feedId);
                 //return feed.sendText("Sabrina cannot be added to a group chat");
-                return;
+                return this._rejectConversation(feedId);
             }
+            if (this._conversations[feedId])
+                return;
 
             var user = members[1];
             console.log('Found conversation with account ' + user.account);
@@ -260,11 +272,12 @@ module.exports = new lang.Class({
         this._messaging.removeListener('feed-changed', this._feedChangedListener);
         this._messaging.removeListener('feed-removed', this._feedRemovedListener);
 
+        var promises = [];
         for (var feedId in this._conversations)
-            this._conversations[feedId].stop().done();
+            promises.push(Q(this._conversations[feedId]).then(function(conv) { return conv.stop(); }));
         this._conversations = {};
 
-        return Q();
+        return promises;
     },
 
     getOrCreateFeedForUser: function(omletId) {

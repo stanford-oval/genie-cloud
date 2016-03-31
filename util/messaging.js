@@ -102,7 +102,7 @@ const Feed = new lang.Class({
     _updateName: function() {
         if (this._feed.name) {
             this.name = this._feed.name;
-        } else if (this._memberList.every(function(m) { return m === this.ownId; }, this)) {
+        } else if (this._members.length < 2) {
             this.name = "You";
         } else {
             this.name = this._members[1].name;
