@@ -280,13 +280,13 @@ const Messaging = new lang.Class({
 
 const AssistantFeed = new lang.Class({
     Name: 'AssistantFeed',
-    $rpcMethods: ['send', 'analyze', 'sendPicture'],
+    $rpcMethods: ['send', 'sendPicture'],
 
     _init: function(sempre, feed, client, engine) {
         this._sempre = sempre;
         this._feed = feed;
         this._client = client;
-        this._remote = engine.assistant;
+        this._engine = engine;
         this._newMessageListener = this._onNewMessage.bind(this);
     },
 
@@ -294,7 +294,9 @@ const AssistantFeed = new lang.Class({
         if (msg.type === 'text') {
             if (msg.hidden) // hidden messages are used by ThingTalk feed-shared keywords, ignore them
                 return;
-            this._remote.handleCommand(msg.text).catch(function(e) {
+            this._analyze(msg.text).then(function(analyzed) {
+                return this._remote.handleCommand(msg.text, analyzed);
+            }.bind(this)).catch(function(e) {
                 console.log('Failed to handle assistant command: ' + e.message);
             }).done();
         } else if (msg.type === 'picture') {
@@ -323,19 +325,20 @@ const AssistantFeed = new lang.Class({
         return this._feed.sendPicture(url);
     },
 
-    analyze: function(utterance) {
+    _analyze: function(utterance) {
         return this._sempre.sendUtterance(this._feed.feedId, utterance);
     },
 
     start: function() {
-        this._feed.on('incoming-message', this._newMessageListener);
-        this._remote.setDelegate(this).done();
-        return this._feed.open();
+        return this._engine.openConversation(this._feed.feedId, this).then(function(conversation) {
+            this._remote = conversation;
+            this._feed.on('incoming-message', this._newMessageListener);
+            return this._feed.open();
+        }.bind(this));
     },
 
     stop: function() {
         this._feed.removeListener('incoming-message', this._newMessageListener);
-        this._remote.setDelegate(null).done();
         return this._feed.close();
     }
 });
