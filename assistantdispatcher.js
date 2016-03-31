@@ -16,6 +16,8 @@ const Sempre = require('sabrina').Sempre;
 
 const omclient = require('omclient').client;
 
+const Messaging = require('./util/messaging');
+
 const API_KEY = '00109b1ea59d9f46d571834870f0168b5ed20005871d8752ff';
 const API_SECRET = 'bccb852856c462e748193d6211c730199d62adcf0ba963416fcc715a2db4d76f';
 
@@ -61,231 +63,17 @@ function makeOmletClient(sync) {
     return client;
 }
 
-function oinvoke(object, method) {
-    var args = Array.prototype.slice.call(arguments, 2);
-
-    return Q.Promise(function(callback, errback) {
-        args.push(callback);
-        return object[method].apply(object, args);
-    });
-}
-
-const Feed = new lang.Class({
-    Name: 'Feed',
-    Extends: events.EventEmitter,
-
-    _init: function(messaging, feedId) {
-        events.EventEmitter.call(this);
-
-        this.feedId = feedId;
-        this._messaging = messaging;
-        this._client = messaging.client;
-        this._insertListener = null;
-        this._db = null;
-    },
-
-    _onInsert: function(o) {
-        this.emit('new-message', o);
-        if (this._messaging.ownId !== o.senderId)
-            this.emit('incoming-message', o);
-        else
-            this.emit('outgoing-message', o);
-    },
-
-    update: function(feed) {
-        this._feed = feed;
-    },
-
-    open: function() {
-        console.log('Opening feed with ID ' + this.feedId);
-
-        return this._getFeed().then(function(o) {
-            this._feed = o;
-            return oinvoke(this._client.store, 'getFeedObjects', this._client.store.getObjectId(this._feed));
-        }.bind(this)).then(function(db) {
-            this._db = db;
-            this._insertListener = this._onInsert.bind(this);
-            this._db._data.on('insert', this._insertListener);
-        }.bind(this));
-    },
-
-    close: function() {
-        if (this._insertListener)
-            this._db._data.removeListener('insert', this._insertListener);
-        this._insertListener = null;
-        this._messaging.feedClosed(this.feedId);
-
-        return Q();
-    },
-
-    _getFeed: function() {
-        return oinvoke(this._client.store, 'getFeeds').then(function(db) {
-            return oinvoke(db, 'getObjectByKey', this.feedId);
-        }.bind(this)).then(function(o) {
-            return o;
-        }.bind(this));
-    },
-
-    sendText: function(text) {
-        return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, 'text',
-                         { text: text });
-    },
-
-    sendItem: function(item) {
-        var silent = true;
-        return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, 'text',
-                         { text: JSON.stringify(item), silent: silent,
-                           hidden: silent });
-    },
-
-    sendRaw: function(rawItem) {
-        return Q.ninvoke(this._client.messaging, '_sendObjToFeedImmediate', this._feed, rawItem.type,
-                         rawItem);
-    },
-
-    sendPicture: function(url) {
-        if (typeof url === 'string') {
-            if (url.startsWith('http')) {
-                return Tp.Helpers.Http.get(url, { raw: true }).spread(function(data, contentType) {
-                    return Q.ninvoke(this._client.messaging, '_pictureObjFromBytes', data, contentType);
-                }.bind(this)).spread(function(objType, obj) {
-                    return Q.ninvoke(this._client.messaging, '_sendObjToFeed',
-                                     this._feed, objType, obj);
-                }.bind(this));
-            } else {
-                throw new Error('Sending pictures by non-http url is not implemented, sorry');
-            }
-        } else if (Buffer.isBuffer(url)) {
-            return Q.ninvoke(this._client.messaging, '_pictureObjFromBytes', url)
-                .spread(function(objType, obj) {
-                    return Q.ninvoke(this._client.messaging, '_sendObjToFeed',
-                                     this._feed, objType, obj);
-                }.bind(this));
-        } else {
-            throw new TypeError('Invalid type for call to sendPicture, must be string or buffer');
-        }
-    },
-});
-
-const Messaging = new lang.Class({
-    Name: 'Messaging',
-
-    _init: function(client) {
-        this.client = client;
-        this._feeds = {};
-    },
-
-    _onFeedRemoved: function(o) {
-        delete this._feeds[o.identifier];
-    },
-
-    _onFeedChanged: function(o) {
-        var feed = this._feeds[o.identifier];
-        if (feed)
-            feed.update(o);
-    },
-
-    feedClosed: function(identifier) {
-        delete this._feeds[identifier];
-    },
-
-    getFeed: function(feedId) {
-        if (feedId in this._feeds)
-            return this._feeds[feedId];
-
-        return this._feeds[feedId] = new Feed(this, feedId);
-    },
-
-    start: function() {
-        return oinvoke(this.client.store, 'getFeeds').then(function(db) {
-            this._feedRemovedListener = this._onFeedRemoved.bind(this);
-            this._feedChangedListener = this._onFeedChanged.bind(this);
-            db._data.on('delete', this._feedRemovedListener);
-            db._data.on('update', this._feedChangedListener);
-        }.bind(this)).then(function() {
-            return this.getOwnId();
-        }.bind(this)).then(function(ownId) {
-            this.ownId = ownId;
-        }.bind(this));
-    },
-
-    stop: function() {
-        return oinvoke(this.client.store, 'getFeeds').then(function(db) {
-            db._data.removeListener('delete', this._feedRemovedListener);
-            db._data.removeListener('update', this._feedChangedListener);
-        }.bind(this));
-    },
-
-    getOwnId: function() {
-        return oinvoke(this.client.store, 'getAccounts').then(function(db) {
-            return db._data.find({ owned: true }).map(function(o) {
-                return this.client.store.getObjectId(o);
-            }, this)[0];
-        }.bind(this));
-    },
-
-    getUserById: function(id) {
-        return oinvoke(this.client.store, 'getAccounts').then(function(db) {
-            return oinvoke(db, 'getObjectById', id).then(function(o) {
-                return new OmletUser(this.client.store.getObjectId(o), o);
-            }.bind(this));
-        }.bind(this));
-    },
-
-    getAccountById: function(id) {
-        return oinvoke(this.client.store, 'getAccounts').then(function(db) {
-            return oinvoke(db, 'getObjectById', id).then(function(o) {
-                return o.account;
-            });
-        }.bind(this));
-    },
-
-    getAccountNameById: function(id) {
-        return oinvoke(this.client.store, 'getAccounts').then(function(db) {
-            return oinvoke(db, 'getObjectById', id).then(function(o) {
-                return o.name;
-            });
-        }.bind(this));
-    },
-
-    getFeedList: function() {
-        return oinvoke(this.client.store, 'getFeeds').then(function(db) {
-            var data = db._data.find();
-            return data.map(function(d) {
-                return d.identifier;
-            });
-        }.bind(this));
-    },
-
-    createFeed: function() {
-        return Q.ninvoke(this.client.feed, 'createFeed').then(function(feed) {
-            return new OmletFeed(this, feed.identifier);
-        }.bind(this));
-    },
-
-    addAccountToContacts: function(contactId) {
-        return oinvoke(this.client.identity, '_addAccountToContacts', contactId);
-    },
-
-    getFeedWithContact: function(contactId) {
-        return Q.ninvoke(this.client.feed, 'getOrCreateFeedWithMembers', [contactId]).spread(function(feed, existing) {
-            if (existing)
-                console.log('Reusing feed ' + feed.identifier + ' with ' + contactId);
-            else
-                console.log('Created feed ' + feed.identifier + ' with ' + contactId);
-            return this.getFeed(feed.identifier);
-        }.bind(this));
-    },
-});
-
 const AssistantFeed = new lang.Class({
     Name: 'AssistantFeed',
     $rpcMethods: ['send', 'sendPicture'],
 
-    _init: function(sempre, feed, client, engine) {
+    _init: function(sempre, feed, account, messaging, engine) {
+        this.feed = feed;
+        this.account = account;
+
         this._sempre = sempre;
-        this._feed = feed;
-        this._client = client;
+        this._messaging = messaging;
+        this._client = messaging.client;
         this._engine = engine;
         this._newMessageListener = this._onNewMessage.bind(this);
     },
@@ -318,28 +106,32 @@ const AssistantFeed = new lang.Class({
     },
 
     send: function(msg) {
-        return this._feed.sendText(msg);
+        return this.feed.sendText(msg);
     },
 
     sendPicture: function(url) {
-        return this._feed.sendPicture(url);
+        return this.feed.sendPicture(url);
     },
 
     _analyze: function(utterance) {
-        return this._sempre.sendUtterance(this._feed.feedId, utterance);
+        return this._sempre.sendUtterance(this.feed.feedId, utterance);
     },
 
     start: function() {
-        return this._engine.openConversation(this._feed.feedId, this).then(function(conversation) {
+        return this._engine.openConversation(this.feed.feedId, this).then(function(conversation) {
             this._remote = conversation;
-            this._feed.on('incoming-message', this._newMessageListener);
-            return this._feed.open();
+            this.feed.on('incoming-message', this._newMessageListener);
+            return this.feed.open();
         }.bind(this));
     },
 
     stop: function() {
-        this._feed.removeListener('incoming-message', this._newMessageListener);
-        return this._feed.close();
+        this.feed.removeListener('incoming-message', this._newMessageListener);
+        return this.feed.close();
+    },
+
+    destroy: function() {
+        return this._messaging.leaveFeed(this.feed.feedId);
     }
 });
 
@@ -350,7 +142,12 @@ module.exports = new lang.Class({
         instance_ = this;
 
         this._engines = {};
+        this._conversations = {};
         this._sempre = new Sempre(false);
+
+        this._feedAddedListener = this._onFeedAdded.bind(this);
+        this._feedChangedListener = this._onFeedChanged.bind(this);
+        this._feedRemovedListener = this._onFeedRemoved.bind(this);
 
         this._client = null;
         this._prefs = platform.getSharedPreferences();
@@ -368,6 +165,72 @@ module.exports = new lang.Class({
         this._client = makeOmletClient(true);
     },
 
+    _makeConversationWithEngine: function(feed, account, engine) {
+        this._conversations[feed.feedId] = Q.try(function() {
+            return engine.then(function(engine) {
+                return new AssistantFeed(this._sempre, feed, account, this._messaging, engine);
+            }).tap(function() {
+                return conv.start();
+            });
+        }.bind(this)).catch(function(e) {
+            console.error('Failed to start conversation on feed ' + feed.feedId);
+            console.error(e.stack);
+        });
+    },
+
+    _makeConversationWithNewUser: function(feed) {
+        //feed.sendText('Welcome to Sabrina!');
+        //feed.sendText('Unfortunately, this function was not yet implemented');
+        //feed.sendText('You must create an account from ThingPedia instead');
+        console.log('Rejecting feed ' + feed.feedId + ' because engine is not present');
+    },
+
+    _makeConversation: function(feedId, accountId) {
+        var feed = this._messaging.getFeed(feedId);
+        return feed.open().then(function() {
+            var members = feed.getMembers();
+            if (members.length < 2) {
+                console.log('Ignored feed ' + feedId);
+                return;
+            }
+            if (members.length >= 3) {
+                console.log('Rejected feed ' + feedId);
+                //return feed.sendText("Sabrina cannot be added to a group chat");
+                return;
+            }
+
+            var user = members[1];
+            console.log('Found conversation with account ' + user.account);
+            var engine = this._engines[user.account];
+            if (engine)
+                return this._makeConversationWithEngine(feed, user.account, engine);
+            else
+                return this._makeConversationWithNewUser(feed);
+        }.bind(this)).finally(function() {
+            return feed.close();
+        });
+    },
+
+    _onFeedAdded: function(feedId) {
+        this._makeConversation(feedId).done();
+    },
+
+    _onFeedChanged: function(feedId) {
+        if (this._conversations[feedId])
+            return;
+        this._makeConversation(feedId).done();
+    },
+
+    _onFeedRemoved: function(feedId) {
+        var conv = this._conversations[feedId];
+        delete this._conversations[feedId];
+        if (conv) {
+            Q(conv).then(function(conv) {
+                return conv.stop();
+            }).done();
+        }
+    },
+
     start: function() {
         if (!this._client)
             return;
@@ -376,87 +239,83 @@ module.exports = new lang.Class({
         this._sempre.start();
         this._messaging = new Messaging(this._client);
         return this._messaging.start().then(function() {
-            for (var userId in this._engines) {
-                var obj = this._engines[userId];
-                if (obj.feed !== null)
-                    continue;
-
-                this._startEngine(obj, false);
-            }
+            return this._messaging.getFeedList();
+        }.bind(this)).then(function(feeds) {
+            this._messaging.on('feed-added', this._feedAddedListener);
+            this._messaging.on('feed-changed', this._feedChangedListener);
+            this._messaging.on('feed-removed', this._feedRemovedListener);
+            return Q.all(feeds.map(function(f) {
+                return this._makeConversation(f);
+            }, this));
         }.bind(this));
     },
 
     stop: function() {
         if (!this._client)
-            return;
+            return Q();
         this._client.disable();
         this._sempre.stop();
 
-        for (var userId in this._engines) {
-            var obj = this._engines[userId];
-            if (obj.feed === null)
-                continue;
+        this._messaging.removeListener('feed-added', this._feedAddedListener);
+        this._messaging.removeListener('feed-changed', this._feedChangedListener);
+        this._messaging.removeListener('feed-removed', this._feedRemovedListener);
 
-            obj.feed.stop().done();
-        }
+        for (var feedId in this._conversations)
+            this._conversations[feedId].stop().done();
+        this._conversations = {};
+
+        return Q();
     },
 
-    _startEngine: function(obj, firstTime) {
-        var feed = this._messaging.getFeed(obj.feedId);
-        obj.feed = new AssistantFeed(this._sempre, feed, this._messaging.client, obj.engine);
-        obj.feed.start().done();
-    },
-
-    createFeedForEngine: function(userId, engine, contactId) {
-        return this._messaging.addAccountToContacts(contactId)
+    getOrCreateFeedForUser: function(omletId) {
+        return this._messaging.addAccountToContacts(omletId)
             .then(function() {
-                return this._messaging.getFeedWithContact(contactId);
-            }.bind(this))
-            .then(function(feed) {
-                this.addEngine(userId, engine, feed.feedId);
-                return feed.feedId;
+                // this will trigger feed-added which will go through to _makeConversation
+                return this._messaging.getFeedWithContact(omletId);
             }.bind(this));
     },
 
-    addEngine: function(userId, engine, feedId) {
-        var obj = {
-            engine: engine,
-            feedId: feedId,
-            feed: null,
-        };
-        if (this._engines[userId]) {
-            var old = this._engines[userId];
-            if (old.feed !== null)
-                old.feed.stop().done();
+    deleteUser: function(omletId) {
+        for (var feedId in this._conversations) {
+            var conv = this._conversations[feedId];
+            Q(conv).then(function(conv) {
+                if (conv.account !== omletId)
+                    return;
+                conv.destroy();
+                // do not stop or delete the conversation here,
+                // it will happen as a side effect of leaving the feed
+            }.bind(this)).done();
         }
-        this._engines[userId] = obj;
-
-        if (this._client)
-            this._startEngine(obj);
     },
 
-    removeEngine: function(userId) {
-        var obj = this._engines[userId];
-        if (!obj)
-            return;
-
-        if (obj.feed !== null)
-            obj.feed.stop().done();
-
-        delete this._engines[userId];
+    addEngine: function(omletId, engine) {
+        console.log('Added engine for account ' + omletId);
+        this._engines[omletId] = Q(engine);
     },
 
-    getUserFeed: function(userId) {
-        var obj = this._engines[userId];
-        if (!obj)
-            throw new Error('User ' + userId + ' has no assistant');
+    removeEngine: function(omletId) {
+        var enginePromise = this._engines[omletId];
+        delete this._engines[omletId];
+        for (var feedId in this._conversations) {
+            var conv = this._conversations[feedId];
+            Q(conv).then(function(conv) {
+                if (conv.account !== omletId)
+                    return;
+                delete this._conversations[feedId];
+                return conv.stop();
+            }.bind(this)).done();
+        }
+    },
 
-        return obj.feed;
+    removeAllEngines: function() {
+        this._engines = {};
     },
 
     getAllFeeds: function() {
-        return Object.keys(this._engines).map(function(userId) {
-            return this._engines[userId].feed;
+        return Object.keys(this._conversations).map(function(feedId) {
+            return Q(this._conversations[feedId]).then(function(conv) {
+                return conv.feed;
+            });
         }, this);
     },
 });

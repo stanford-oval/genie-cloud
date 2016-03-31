@@ -145,8 +145,19 @@ router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req,
 
 router.post('/message-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
     Q.try(function() {
-        var feed = AssistantDispatcher.get().getUserFeed(req.params.id);
-        return feed.send('Administrative message from ' + req.user.username + ': ' + req.body.body);
+        return db.withClient(function(dbClient) {
+            return model.get(dbClient, req.params.id);
+        }).then(function(user) {
+            if (user.omlet_id === null)
+                throw new Error('User has no Omlet Account');
+            return AssistantDispatcher.get().getOrCreateFeedForUser(user.omlet_id);
+        }).then(function(feed) {
+            return feed.open().then(function() {
+                return feed.sendText('Administrative message from ' + req.user.username + ': ' + req.body.body);
+            }).finally(function() {
+                return feed.close();
+            });
+        });
     }).then(function() {
         res.redirect(303, '/admin');
     }).catch(function(e) {

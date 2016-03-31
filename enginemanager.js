@@ -66,7 +66,7 @@ const EngineManager = new lang.Class({
         _instance = this;
     },
 
-    _runUser: function(userId, cloudId, authToken, assistantFeedId, developerKey) {
+    _runUser: function(userId, cloudId, authToken, omletId, developerKey) {
         var runningProcesses = this._runningProcesses;
         var frontend = this._frontend;
 
@@ -111,6 +111,7 @@ const EngineManager = new lang.Class({
                 var obj = { child: child,
                             cwd: './' + cloudId,
                             cloudId: cloudId,
+                            omletId: omletId,
                             engine: engineProxy.promise }
                 runningProcesses[userId] = obj;
 
@@ -123,7 +124,8 @@ const EngineManager = new lang.Class({
 
                     if (runningProcesses[userId] !== obj)
                         return;
-                    AssistantDispatcher.get().removeEngine(userId);
+                    if (obj.omletId !== null)
+                        AssistantDispatcher.get().removeEngine(obj.omletId);
                     WebhookDispatcher.get().removeClient(cloudId);
                     frontend.unregisterWebSocketEndpoint('/ws/' + cloudId);
                     delete runningProcesses[userId];
@@ -167,9 +169,6 @@ const EngineManager = new lang.Class({
                                                   messaging: messaging
                                                };
                                   engineProxy.resolve(engine);
-
-                                  if (assistantFeedId !== null)
-                                      AssistantDispatcher.get().addEngine(userId, engine, assistantFeedId);
                         }, function(err) {
                             engineProxy.reject(err);
                         });
@@ -190,6 +189,9 @@ const EngineManager = new lang.Class({
                     child.send({type:'websocket', request: encodedReq,
                                 upgradeHead: head.toString('base64')}, socket);
                 });
+
+                if (omletId !== null)
+                    AssistantDispatcher.get().addEngine(omletId, obj.engine);
             });
     },
 
@@ -211,7 +213,7 @@ const EngineManager = new lang.Class({
             return user.getAll(client).then(function(rows) {
                 return Q.all(rows.map(function(r) {
                     return self._runUser(r.id, r.cloud_id, r.auth_token,
-                                         r.assistant_feed_id, r.developer_key);
+                                         r.omlet_id, r.developer_key);
                 }));
             });
         });
@@ -220,15 +222,24 @@ const EngineManager = new lang.Class({
     startUser: function(user) {
         console.log('Requested start of user ' + user.id);
         return this._runUser(user.id, user.cloud_id, user.auth_token,
-                             user.assistant_feed_id, user.developer_key);
+                             user.omlet_id, user.developer_key);
+    },
+
+    addOmletToUser: function(userId, omletId) {
+        var process = this._runningProcesses[userId];
+        if (process === undefined)
+            throw new Error(userId + ' is not running');
+
+        process.omletId = omletId;
+        AssistantDispatcher.get().addEngine(omletId, process.engine);
     },
 
     stop: function() {
         var am = AssistantDispatcher.get();
         var wd = WebhookDispatcher.get();
+        am.removeAllEngines();
         for (var userId in this._runningProcesses) {
             var child = this._runningProcesses[userId].child;
-            am.removeEngine(userId);
             wd.removeClient(this._runningProcesses[userId].cloudId);
             child.kill();
         }
@@ -243,6 +254,9 @@ const EngineManager = new lang.Class({
 
     deleteUser: function(userId) {
         var process = this._runningProcesses[userId];
+        if (process.omletId)
+            AssistantDispatcher.get().deleteUser(process.omletId);
+
         var child = process.child;
         child.kill();
 

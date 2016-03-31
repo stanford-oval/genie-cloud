@@ -11,9 +11,9 @@ const Q = require('q');
 
 function create(client, user) {
     var KEYS = ['username', 'human_name', 'email', 'google_id',
-                'facebook_id', 'password', 'salt',
+                'facebook_id', 'omlet_id', 'password', 'salt',
                 'cloud_id', 'auth_token',
-                'assistant_feed_id', 'developer_key'];
+                'developer_key'];
     KEYS.forEach(function(key) {
         if (user[key] === undefined)
             user[key] = null;
@@ -45,6 +45,10 @@ module.exports = {
 
     getByFacebookAccount: function(client, facebookId) {
         return db.selectAll(client, "select * from users where facebook_id = ?", [facebookId]);
+    },
+
+    getByOmletAccount: function(client, omletId) {
+        return db.selectAll(client, "select * from users where omlet_id = ?", [omletId]);
     },
 
     getByCloudId: function(client, cloudId) {

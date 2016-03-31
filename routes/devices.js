@@ -149,12 +149,13 @@ router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, 
             return engine.messaging.getOwnId();
         }).then(function(ownId) {
             return engine.messaging.getAccountById(ownId);
-        }).then(function(account) {
-            return AssistantDispatcher.get().createFeedForEngine(req.user.id, engine, account);
+        }).tap(function(omletId) {
+            EngineManager.get().addOmletToUser(req.user.id, omletId);
+            return AssistantDispatcher.get().getOrCreateFeedForUser(omletId);
         });
-    }).then(function(feedId) {
+    }).then(function(omletId) {
         return db.withTransaction(function(dbClient) {
-            return model.update(dbClient, req.user.id, { assistant_feed_id: feedId });
+            return model.update(dbClient, req.user.id, { omlet_id: omletId });
         });
     }).then(function() {
         if (req.session['device-redirect-to']) {
