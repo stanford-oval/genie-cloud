@@ -166,7 +166,7 @@ module.exports = new lang.Class({
     },
 
     _makeConversationWithEngine: function(feed, account, engine) {
-        this._conversations[feed.feedId] = Q.try(function() {
+        return this._conversations[feed.feedId] = Q.try(function() {
             return engine.then(function(engine) {
                 return new AssistantFeed(this._sempre, feed, account, this._messaging, engine);
             }.bind(this)).tap(function(conv) {
