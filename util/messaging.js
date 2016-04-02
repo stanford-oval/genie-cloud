@@ -279,6 +279,8 @@ module.exports = new lang.Class({
     getUserById: function(id) {
         return oinvoke(this.client.store, 'getAccounts').then(function(db) {
             return oinvoke(db, 'getObjectById', id).then(function(o) {
+                if (!o)
+                    return new OmletUser(null, { name: '', account: '' });
                 return new OmletUser(this.client.store.getObjectId(o), o);
             }.bind(this));
         }.bind(this));
