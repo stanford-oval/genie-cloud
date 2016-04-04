@@ -67,9 +67,10 @@ const AssistantFeed = new lang.Class({
     Name: 'AssistantFeed',
     $rpcMethods: ['send', 'sendPicture'],
 
-    _init: function(sempre, feed, account, messaging, engine) {
+    _init: function(sempre, feed, account, messaging, engine, enginePromise) {
         this.feed = feed;
         this.account = account;
+        this.enginePromise = enginePromise;
 
         this._sempre = sempre;
         this._messaging = messaging;
@@ -165,10 +166,10 @@ module.exports = new lang.Class({
         this._client = makeOmletClient(true);
     },
 
-    _makeConversationWithEngine: function(feed, account, engine) {
+    _makeConversationWithEngine: function(feed, account, enginePromise) {
         return this._conversations[feed.feedId] = Q.try(function() {
-            return engine.then(function(engine) {
-                return new AssistantFeed(this._sempre, feed, account, this._messaging, engine);
+            return enginePromise.then(function(engine) {
+                return new AssistantFeed(this._sempre, feed, account, this._messaging, engine, enginePromise);
             }.bind(this)).tap(function(conv) {
                 return conv.start();
             });
@@ -311,12 +312,12 @@ module.exports = new lang.Class({
         delete this._engines[omletId];
         for (var feedId in this._conversations) {
             var conv = this._conversations[feedId];
-            Q(conv).then(function(conv) {
-                if (conv.account !== omletId)
-                    return;
+            if (conv.enginePromise === enginePromise) {
                 delete this._conversations[feedId];
-                return conv.stop();
-            }.bind(this)).done();
+                Q(conv).then(function() {
+                    return conv.stop();
+                }.bind(this)).done();
+            }
         }
     },
 

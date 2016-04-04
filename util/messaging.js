@@ -116,7 +116,7 @@ const Feed = new lang.Class({
             if (this.ownId === null) {
                 return this._messaging.getOwnId().then(function(ownId) {
                     this.ownId = ownId;
-                });
+                }.bind(this));
             }
         }.bind(this)).then(function() {
             this._updateMembers();
