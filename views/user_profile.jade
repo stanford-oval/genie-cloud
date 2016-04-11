@@ -13,6 +13,22 @@ block content
       h2.panel-title Personal information
 
     div.panel-body
+      if profile_error
+        div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
+          button(type='button', data-dismiss='alert', aria-label="Close").close
+            span(aria-hidden='true') ×
+          if typeof profile_error === 'string'
+            p= profile_error
+          else if profile_error.name === 'SyntaxError'
+            if profile_error.location
+              p Syntax error at line #{profile_error.location.start.line} column #{profile_error.location.start.column}: #{profile_error.message}
+            else
+              p Syntax error at #{profile_error.fileName} line #{profile_error.lineNumber}: #{profile_error.message}
+          else if profile_error.message
+            p= profile_error.message
+          else
+            p= String(profile_error)
+
       form(action='/user/profile',method='post',data-toggle='validator')
         input(type='hidden',name='_csrf',value=csrfToken)
 
@@ -67,21 +83,21 @@ block content
       h2.panel-title Access information
 
     div.panel-body
-      if error
+      if pw_error
         div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
           button(type='button', data-dismiss='alert', aria-label="Close").close
             span(aria-hidden='true') ×
-          if typeof error === 'string'
-            p= error
-          else if error.name === 'SyntaxError'
-            if error.location
-              p Syntax error at line #{error.location.start.line} column #{error.location.start.column}: #{error.message}
+          if typeof pw_error === 'string'
+            p= pw_error
+          else if pw_error.name === 'SyntaxError'
+            if pw_error.location
+              p Syntax error at line #{pw_error.location.start.line} column #{pw_error.location.start.column}: #{pw_error.message}
             else
-              p Syntax error at #{error.fileName} line #{error.lineNumber}: #{error.message}
-          else if error.message
-            p= error.message
+              p Syntax error at #{pw_error.fileName} line #{pw_error.lineNumber}: #{pw_error.message}
+          else if pw_error.message
+            p= pw_error.message
           else
-            p= String(error)
+            p= String(pw_error)
 
       form(action='/user/change-password',method='post',data-toggle='validator')
         input(type='hidden',name='_csrf',value=csrfToken)

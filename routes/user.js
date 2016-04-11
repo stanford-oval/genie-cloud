@@ -155,7 +155,7 @@ router.get('/logout', function(req, res, next) {
     res.redirect(303, '/');
 });
 
-function getProfile(req, res, error) {
+function getProfile(req, res, pwError, profileError) {
     return EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return Q.all([engine.devices.getDevice('thingengine-own-server'),
                       engine.devices.getDevice('thingengine-own-phone')]);
@@ -188,7 +188,8 @@ function getProfile(req, res, error) {
 
         res.render('user_profile', { page_title: "ThingPedia - User Profile",
                                      csrfToken: req.csrfToken(),
-                                     error: error,
+                                     pw_error: pwError,
+                                     profile_error: profileError,
                                      server: server,
                                      phone: phone });
     }).catch(function(e) {
@@ -198,7 +199,7 @@ function getProfile(req, res, error) {
 }
 
 router.get('/profile', user.redirectLogIn, function(req, res, next) {
-    getProfile(req, res, undefined).done();
+    getProfile(req, res, undefined, undefined).done();
 });
 
 router.post('/profile', user.requireLogIn, function(req, res, next) {
@@ -222,7 +223,9 @@ router.post('/profile', user.requireLogIn, function(req, res, next) {
         req.user.human_name = req.body.human_name;
         req.user.developer_key = req.body.developer_key;
     }).then(function() {
-        return getProfile(req, res, undefined);
+        return getProfile(req, res, undefined, undefined);
+    }).catch(function(error) {
+        return getProfile(req, res, undefined, error);
     }).done();
 });
 
@@ -250,7 +253,7 @@ router.post('/change-password', user.requireLogIn, function(req, res, next) {
             res.redirect(303, '/user/profile');
         });
     }).catch(function(e) {
-        return getProfile(req, res, e);
+        return getProfile(req, res, e, undefined);
     }).done();
 });
 
