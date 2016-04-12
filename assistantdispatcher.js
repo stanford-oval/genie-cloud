@@ -110,10 +110,15 @@ const AssistantFeed = new lang.Class({
         this._engine = null;
         this._remote = null;
         this._hadEngine = false;
+        this._registering = false;
         this._newMessageListener = this._onNewMessage.bind(this);
     },
 
     setEngine: function(enginePromise) {
+        // new engine means new RpcSocket, so we must clear our old ID
+        delete this.$rpcId;
+        this._registering = false;
+
         this.enginePromise = enginePromise;
         if (enginePromise) {
             this._startWithEngine().then(function() {
@@ -147,7 +152,7 @@ const AssistantFeed = new lang.Class({
                 return;
             }
 
-            if (parsed.op === 'complete-registration') {
+            if (this._registering && parsed.op === 'complete-registration') {
                 Q.try(function() {
                     return registerWithOmlet(parsed, this.account);
                 }.bind(this)).catch(function(e) {
@@ -167,11 +172,17 @@ const AssistantFeed = new lang.Class({
                 console.log('Failed to handle assistant command: ' + e.message);
             }).done();
         } else {
-            if (this._hadEngine)
-                this.send("Sorry, your Sabrina died. She will not answer your messages until you restart it.").done();
-            else
-                this.send("Sorry, you must complete the registration before you interact with Sabrina.").done();
+            this._handleNoEngine();
         }
+    },
+
+    _handleNoEngine: function() {
+        if (this._hadEngine)
+            this.send("Sorry, your Sabrina died. She will not answer your messages until you restart it.").done();
+        else if (this._registering)
+            this.send("Sorry, you must complete the registration before you interact with Sabrina.").done();
+        else
+            this._startRegistration();
     },
 
     _onPicture: function(hash) {
@@ -184,9 +195,13 @@ const AssistantFeed = new lang.Class({
                     return;
                 }
 
-                this._remote.handlePicture(url).catch(function(e) {
-                    console.log('Failed to handle assistant picture: ' + e.message);
-                }).done();
+                if (this._remote) {
+                    this._remote.handlePicture(url).catch(function(e) {
+                        console.log('Failed to handle assistant picture: ' + e.message);
+                    }).done();
+                } else {
+                    this._handleNoEngine();
+                }
             }.bind(this));
         }.bind(this), 5000);
     },
@@ -214,7 +229,8 @@ const AssistantFeed = new lang.Class({
         return this._sempre.sendUtterance(this.feed.feedId, utterance);
     },
 
-    _startNoEngine: function() {
+    _startRegistration: function() {
+        this._registering = true;
         this.feed.sendText('Welcome to Sabrina!');
         this.feed.sendText('You must complete the registration before continuing');
         this.feed.sendRaw({ type: 'rdl', noun: 'app',
@@ -234,12 +250,12 @@ const AssistantFeed = new lang.Class({
         }.bind(this));
     },
 
-    start: function() {
+    start: function(newFeed) {
         return Q.try(function() {
             if (this.enginePromise)
                 return this._startWithEngine();
-            else
-                return this._startNoEngine();
+            else if (newFeed)
+                return this._startRegistration();
         }.bind(this)).then(function() {
             this.feed.on('incoming-message', this._newMessageListener);
             return this.feed.open();
@@ -305,10 +321,10 @@ module.exports = new lang.Class({
         conversations.splice(idx, 1);
     },
 
-    _makeConversationForAccount: function(feed, user, enginePromise) {
+    _makeConversationForAccount: function(feed, user, enginePromise, newFeed) {
         return this._conversations[feed.feedId] = Q.delay(500).then(function() {
             var conv = new AssistantFeed(this._sempre, feed, user, this._messaging, enginePromise);
-            return conv.start().then(function() {
+            return conv.start(newFeed).then(function() {
                 this._addConversationToAccount(conv, user.account);
                 return conv;
             }.bind(this));
@@ -349,11 +365,9 @@ module.exports = new lang.Class({
             console.log('Found conversation with account ' + user.account);
             var engine = this._engines[user.account];
             if (engine)
-                return this._makeConversationForAccount(feed, user, engine);
-            else if (newFeed)
-                return this._makeConversationForAccount(feed, user, null);
+                return this._makeConversationForAccount(feed, user, engine, false);
             else
-                console.log('Rejecting existing feed ' + feed.feedId + ' because engine is not present');
+                return this._makeConversationForAccount(feed, user, null, newFeed);
         }.bind(this)).finally(function() {
             return feed.close();
         });
