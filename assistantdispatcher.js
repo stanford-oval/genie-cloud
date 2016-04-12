@@ -17,6 +17,8 @@ const Sempre = require('sabrina').Sempre;
 const omclient = require('omclient').client;
 
 const Messaging = require('./util/messaging');
+const User = require('./util/user');
+const db = require('./util/db');
 
 const API_KEY = '00109b1ea59d9f46d571834870f0168b5ed20005871d8752ff';
 const API_SECRET = 'bccb852856c462e748193d6211c730199d62adcf0ba963416fcc715a2db4d76f';
@@ -63,46 +65,140 @@ function makeOmletClient(sync) {
     return client;
 }
 
+function registerWithOmlet(msg, account) {
+    var username, passwordHash, salt, email;
+    if (typeof msg['username'] !== 'string' ||
+        msg['username'].length == 0 ||
+        msg['username'].length > 255)
+        throw new Error("You must specify a valid username");
+    username = msg['username'];
+    if (typeof msg['email'] !== 'string' ||
+        msg['email'].length == 0 ||
+        msg['email'].indexOf('@') < 0 ||
+        msg['email'].length > 255)
+        throw new Error("You must specify a valid email");
+    email = msg['email'];
+
+    if (typeof msg['password-hash'] !== 'string' ||
+        msg['password-hash'].length !== 64 ||
+        typeof msg['salt'] !== 'string' ||
+        msg['salt'].length !== 64)
+        throw new Error("Invalid password");
+    passwordHash = msg['password-hash'];
+    salt = msg['salt'];
+
+    return db.withTransaction(function(dbClient) {
+        return User.registerWithOmlet(dbClient, username, salt, passwordHash, account, email).then(function(user) {
+            return require('./enginemanager').get().startUser(user);
+        });
+    });
+}
+
 const AssistantFeed = new lang.Class({
     Name: 'AssistantFeed',
     $rpcMethods: ['send', 'sendPicture'],
 
-    _init: function(sempre, feed, account, messaging, engine, enginePromise) {
+    _init: function(sempre, feed, user, messaging, enginePromise) {
         this.feed = feed;
-        this.account = account;
+        this.account = user.account;
         this.enginePromise = enginePromise;
 
         this._sempre = sempre;
         this._messaging = messaging;
         this._client = messaging.client;
-        this._engine = engine;
+        this._user = user;
+        this._engine = null;
+        this._remote = null;
+        this._hadEngine = false;
         this._newMessageListener = this._onNewMessage.bind(this);
+    },
+
+    setEngine: function(enginePromise) {
+        this.enginePromise = enginePromise;
+        if (enginePromise) {
+            this._startWithEngine().then(function() {
+                return this._remote.start();
+            }.bind(this)).catch(function(e) {
+                console.error('Failed to start conversation on feed ' + this.feed.feedId);
+                console.error(e.stack);
+            }.bind(this)).done();
+        } else {
+            this._engine = null;
+            this._remote = null;
+        }
+    },
+
+    _onHiddenMessage: function(text) {
+        if (text.startsWith('(')) {
+            // this is a pre-parsed message in SEMPRE format, to be used Sabrina
+            // to do buttons and stuff
+            // pass it down to the remote if we have one, otherwise ignore it
+            if (this._remote) {
+                this._remote.handleCommand(null, msg.text).catch(function(e) {
+                    console.log('Failed to handle assistant command: ' + e.message);
+                }).done();
+            }
+        } else {
+            // try parsing as JSON instead
+            try {
+                var parsed = JSON.parse(text);
+            } catch(e) {
+                console.log('Failed to parse hidden message as JSON: ' + e.message);
+                return;
+            }
+
+            if (parsed.op === 'complete-registration') {
+                Q.try(function() {
+                    return registerWithOmlet(parsed, this.account);
+                }.bind(this)).catch(function(e) {
+                    this.send("Sorry that did not work: " + e.message);
+                }.bind(this)).done();
+            }
+
+            // ignore everything else
+        }
+    },
+
+    _onTextMessage: function(text) {
+        if (this._remote) {
+            this._analyze(text).then(function(analyzed) {
+                return this._remote.handleCommand(text, analyzed);
+            }.bind(this)).catch(function(e) {
+                console.log('Failed to handle assistant command: ' + e.message);
+            }).done();
+        } else {
+            if (this._hadEngine)
+                this.send("Sorry, your Sabrina died. She will not answer your messages until you restart it.").done();
+            else
+                this.send("Sorry, you must complete the registration before you interact with Sabrina.").done();
+        }
+    },
+
+    _onPicture: function(hash) {
+        var blob = this._client.blob;
+
+        setTimeout(function() {
+            blob.getDownloadLinkForHash(hash, function(error, url) {
+                if (error) {
+                    console.log('failed to get download link for picture', error);
+                    return;
+                }
+
+                this._remote.handlePicture(url).catch(function(e) {
+                    console.log('Failed to handle assistant picture: ' + e.message);
+                }).done();
+            }.bind(this));
+        }.bind(this), 5000);
     },
 
     _onNewMessage: function(msg) {
         if (msg.type === 'text') {
-            if (msg.hidden) // hidden messages are used by ThingTalk feed-shared keywords, ignore them
-                return;
-            this._analyze(msg.text).then(function(analyzed) {
-                return this._remote.handleCommand(msg.text, analyzed);
-            }.bind(this)).catch(function(e) {
-                console.log('Failed to handle assistant command: ' + e.message);
-            }).done();
+            if (msg.hidden)
+                this._onHiddenMessage(msg.text);
+            else
+                this._onTextMessage(msg.text);
         } else if (msg.type === 'picture') {
-            var blob = this._client.blob;
-
-            setTimeout(function() {
-                blob.getDownloadLinkForHash(msg.fullSizeHash, function(error, url) {
-                    if (error) {
-                        console.log('failed to get download link for picture', error);
-                        return;
-                    }
-
-                    this._remote.handlePicture(url).catch(function(e) {
-                        console.log('Failed to handle assistant picture: ' + e.message);
-                    }).done();
-                }.bind(this));
-            }.bind(this), 5000);
+            this._onPicture(msg.fullSizeHash);
         }
     },
 
@@ -118,11 +214,38 @@ const AssistantFeed = new lang.Class({
         return this._sempre.sendUtterance(this.feed.feedId, utterance);
     },
 
-    start: function() {
-        return this._engine.assistant.openConversation(this.feed.feedId, this).then(function(conversation) {
+    _startNoEngine: function() {
+        this.feed.sendText('Welcome to Sabrina!');
+        this.feed.sendText('You must complete the registration before continuing');
+        this.feed.sendRaw({ type: 'rdl', noun: 'app',
+                            displayTitle: "Complete registration",
+                            displayText: "Click here to set up username and password",
+                            callback: platform.getOrigin() + '/omlet/register',
+                            webCallback: platform.getOrigin() + '/user/register' });
+    },
+
+    _startWithEngine: function() {
+        this._hadEngine = true;
+        return this.enginePromise.then(function(engine) {
+            this._engine = engine;
+            return this._engine.assistant.openConversation(this.feed.feedId, this._user, this);
+        }.bind(this)).then(function(conversation) {
             this._remote = conversation;
+        }.bind(this));
+    },
+
+    start: function() {
+        return Q.try(function() {
+            if (this.enginePromise)
+                return this._startWithEngine();
+            else
+                return this._startNoEngine();
+        }.bind(this)).then(function() {
             this.feed.on('incoming-message', this._newMessageListener);
             return this.feed.open();
+        }.bind(this)).then(function() {
+            if (this._remote)
+                return this._remote.start();
         }.bind(this));
     },
 
@@ -144,6 +267,8 @@ module.exports = new lang.Class({
 
         this._engines = {};
         this._conversations = {};
+        this._conversationsByAccount = {};
+        this._initialFeeds = {};
         this._sempre = new Sempre(false);
 
         this._feedAddedListener = this._onFeedAdded.bind(this);
@@ -166,24 +291,31 @@ module.exports = new lang.Class({
         this._client = makeOmletClient(true);
     },
 
-    _makeConversationWithEngine: function(feed, account, enginePromise) {
-        return this._conversations[feed.feedId] = Q.try(function() {
-            return enginePromise.then(function(engine) {
-                return new AssistantFeed(this._sempre, feed, account, this._messaging, engine, enginePromise);
-            }.bind(this)).tap(function(conv) {
-                return conv.start();
-            });
+    _addConversationToAccount: function(conv, account) {
+        if (!this._conversationsByAccount[account])
+            this._conversationsByAccount[account] = [];
+        this._conversationsByAccount[account].push(conv);
+    },
+
+    _removeConversationFromAccount: function(conv, account) {
+        var conversations = this._conversationsByAccount[account] || [];
+        var idx = conversations.indexOf(conv);
+        if (idx < 0)
+            return;
+        conversations.splice(idx, 1);
+    },
+
+    _makeConversationForAccount: function(feed, user, enginePromise) {
+        return this._conversations[feed.feedId] = Q.delay(500).then(function() {
+            var conv = new AssistantFeed(this._sempre, feed, user, this._messaging, enginePromise);
+            return conv.start().then(function() {
+                this._addConversationToAccount(conv, user.account);
+                return conv;
+            }.bind(this));
         }.bind(this)).catch(function(e) {
             console.error('Failed to start conversation on feed ' + feed.feedId);
             console.error(e.stack);
         });
-    },
-
-    _makeConversationWithNewUser: function(feed) {
-        //feed.sendText('Welcome to Sabrina!');
-        //feed.sendText('Unfortunately, this function was not yet implemented');
-        //feed.sendText('You must create an account from ThingPedia instead');
-        console.log('Rejecting feed ' + feed.feedId + ' because engine is not present');
     },
 
     _rejectConversation: function(feedId) {
@@ -191,12 +323,13 @@ module.exports = new lang.Class({
             var conv = this._conversations[feedId];
             delete this._conversations[feedId];
             return Q(conv).then(function(conv) {
-                conv.close();
+                this._removeConversationFromAccount(conv, conv.account);
+                return conv.stop();
             });
         }
     },
 
-    _makeConversation: function(feedId, accountId) {
+    _makeConversation: function(feedId, newFeed) {
         var feed = this._messaging.getFeed(feedId);
         return feed.open().then(function() {
             var members = feed.getMembers();
@@ -216,22 +349,24 @@ module.exports = new lang.Class({
             console.log('Found conversation with account ' + user.account);
             var engine = this._engines[user.account];
             if (engine)
-                return this._makeConversationWithEngine(feed, user.account, engine);
+                return this._makeConversationForAccount(feed, user, engine);
+            else if (newFeed)
+                return this._makeConversationForAccount(feed, user, null);
             else
-                return this._makeConversationWithNewUser(feed);
+                console.log('Rejecting existing feed ' + feed.feedId + ' because engine is not present');
         }.bind(this)).finally(function() {
             return feed.close();
         });
     },
 
     _onFeedAdded: function(feedId) {
-        this._makeConversation(feedId).done();
+        this._makeConversation(feedId, true).done();
     },
 
     _onFeedChanged: function(feedId) {
         if (this._conversations[feedId])
             return;
-        this._makeConversation(feedId).done();
+        this._makeConversation(feedId, !this._initialFeeds[feedId]).done();
     },
 
     _onFeedRemoved: function(feedId) {
@@ -239,8 +374,9 @@ module.exports = new lang.Class({
         delete this._conversations[feedId];
         if (conv) {
             Q(conv).then(function(conv) {
+                this._removeConversationFromAccount(conv, conv.account);
                 return conv.stop();
-            }).done();
+            }.bind(this)).done();
         }
     },
 
@@ -258,7 +394,8 @@ module.exports = new lang.Class({
             this._messaging.on('feed-changed', this._feedChangedListener);
             this._messaging.on('feed-removed', this._feedRemovedListener);
             return Q.all(feeds.map(function(f) {
-                return this._makeConversation(f);
+                this._initialFeeds[f] = true;
+                return this._makeConversation(f, false);
             }, this));
         }.bind(this));
     },
@@ -290,35 +427,34 @@ module.exports = new lang.Class({
     },
 
     deleteUser: function(omletId) {
-        for (var feedId in this._conversations) {
-            var conv = this._conversations[feedId];
-            Q(conv).then(function(conv) {
-                if (conv.account !== omletId)
-                    return;
-                conv.destroy();
+        var conversations = this._conversationsByAccount[omletId] || [];
+        conversations.forEach(function(conv) {
+            conv.destroy().catch(function(e) {
+                console.error('Failed to destroy conversation: ' + e.message);
+                console.error(e.stack);
                 // do not stop or delete the conversation here,
                 // it will happen as a side effect of leaving the feed
-            }.bind(this)).done();
-        }
+            }).done();
+        });
     },
 
     addEngine: function(omletId, engine) {
         console.log('Added engine for account ' + omletId);
-        this._engines[omletId] = Q(engine);
+        var promise = Q(engine);
+        this._engines[omletId] = promise;
+        var conversations = this._conversationsByAccount[omletId] || [];
+        conversations.forEach(function(conv) {
+            conv.setEngine(promise);
+        });
     },
 
     removeEngine: function(omletId) {
         var enginePromise = this._engines[omletId];
         delete this._engines[omletId];
-        for (var feedId in this._conversations) {
-            var conv = this._conversations[feedId];
-            if (conv.enginePromise === enginePromise) {
-                delete this._conversations[feedId];
-                Q(conv).then(function() {
-                    return conv.stop();
-                }.bind(this)).done();
-            }
-        }
+        var conversations = this._conversationsByAccount[omletId] || [];
+        conversations.forEach(function(conv) {
+            conv.setEngine(null);
+        });
     },
 
     removeAllEngines: function() {

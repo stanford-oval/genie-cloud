@@ -28,7 +28,7 @@ const connect_flash = require('connect-flash');
 const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
 
-const user = require('./util/user');
+const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
 
 function Frontend() {
@@ -74,7 +74,7 @@ Frontend.prototype._init = function _init() {
 
     this._app.use(passport.initialize());
     this._app.use(passport.session());
-    user.initializePassport();
+    passportUtil.initialize();
 
     var basicAuth = passport.authenticate('basic', { failWithError: true });
     this._app.use(function(req, res, next) {
@@ -131,6 +131,7 @@ Frontend.prototype._init = function _init() {
     this._app.use('/admin', require('./routes/admin'));
     this._app.use('/status', require('./routes/status'));
     this._app.use('/doc', require('./routes/doc'));
+    this._app.use('/omlet', require('./routes/omlet'));
 
     this._websocketEndpoints = {};
 }

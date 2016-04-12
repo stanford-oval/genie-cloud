@@ -12,6 +12,7 @@ const events = require('events');
 const rpc = require('transparent-rpc');
 
 const Engine = require('thingengine-core');
+const Assistant = require('./assistant');
 
 const ParentProcessSocket = new lang.Class({
     Name: 'ParentProcessSocket',
@@ -88,14 +89,17 @@ function runEngine() {
                 rpcSocket.call(rpcId, 'setWebhookClient', [platform.getCapability('webhook-api')]);
 
                 engine = new Engine();
+                engine.assistant = new Assistant(engine);
 
                 return engine.open().then(function() {
                     engineRunning = true;
                     rpcSocket.call(rpcId, 'setEngine', [engine]).done();
+                    engine.assistant.start().done();
 
                     if (earlyStop)
                         return;
                     return engine.run().finally(function() {
+                        engine.assistant.stop().done();
                         return engine.close();
                     });
                 });
