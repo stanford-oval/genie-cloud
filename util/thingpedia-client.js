@@ -14,6 +14,7 @@ const ThingPediaDiscovery = require('thingpedia-discovery');
 const db = require('./db');
 const device = require('../model/device');
 const user = require('../model/user');
+const organization = require('../model/organization');
 const schema = require('../model/schema');
 
 const S3_HOST = 'https://d1ge76rambtuys.cloudfront.net/devices/';
@@ -70,20 +71,20 @@ module.exports = new lang.Class({
         return db.withClient(function(dbClient) {
             return Q.try(function() {
                 if (developerKey)
-                    return user.getByDeveloperKey(dbClient, developerKey);
+                    return organization.getByDeveloperKey(dbClient, developerKey);
                 else
                     return [];
-            }).then(function(developers) {
-                var developer = null;
-                if (developers.length > 0)
-                    developer = developers[0];
+            }).then(function(orgs) {
+                var org = null;
+                if (orgs.length > 0)
+                    org = orgs[0];
 
                 return device.getByPrimaryKind(dbClient, kind)
                     .then(function(device) {
                         if (device.fullcode)
                             throw new Error('No Code Available');
 
-                        if (developer !== null && developer.id === device.owner)
+                        if (org !== null && org.id === device.owner)
                             return (S3_HOST + device.primary_kind + '-v' + device.developer_version + '.zip');
                         else if (device.approved_version !== null)
                             return (S3_HOST + device.primary_kind + '-v' + device.approved_version + '.zip');
@@ -103,18 +104,18 @@ module.exports = new lang.Class({
         return db.withClient(function(dbClient) {
             return Q.try(function() {
                 if (developerKey)
-                    return user.getByDeveloperKey(dbClient, developerKey);
+                    return organization.getByDeveloperKey(dbClient, developerKey);
                 else
                     return [];
-            }).then(function(developers) {
-                var developer = null;
-                if (developers.length > 0)
-                    developer = developers[0];
+            }).then(function(orgs) {
+                var org = null;
+                if (orgs.length > 0)
+                    org = orgs[0];
 
-                return device.getFullCodeByPrimaryKind(dbClient, kind, developer)
+                return device.getFullCodeByPrimaryKind(dbClient, kind, org)
                     .then(function(devs) {
                         if (devs.length < 1)
-                            throw new Error('Not Found');
+                            throw new Error(kind + ' not Found');
 
                         var dev = devs[0];
                         var ast = JSON.parse(dev.code);
@@ -136,15 +137,15 @@ module.exports = new lang.Class({
         return db.withClient(function(dbClient) {
             return Q.try(function() {
                 if (developerKey)
-                    return user.getByDeveloperKey(dbClient, developerKey);
+                    return organization.getByDeveloperKey(dbClient, developerKey);
                 else
                     return [];
-            }).then(function(developers) {
-                var developer = null;
-                if (developers.length > 0)
-                    developer = developers[0];
+            }).then(function(orgs) {
+                var org = null;
+                if (orgs.length > 0)
+                    org = orgs[0];
 
-                return schema.getTypesByKinds(dbClient, schemas, developer).then(function(rows) {
+                return schema.getTypesByKinds(dbClient, schemas, org).then(function(rows) {
                     var obj = {};
 
                     rows.forEach(function(row) {

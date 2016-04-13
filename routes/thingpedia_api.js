@@ -13,6 +13,7 @@ const db = require('../util/db');
 const device = require('../model/device');
 const app = require('../model/app');
 const user = require('../model/user');
+const organization = require('../model/organization');
 
 const ThingPediaClient = require('../util/thingpedia-client');
 
@@ -82,30 +83,30 @@ router.get('/devices', function(req, res) {
             var developerKey = req.query.developer_key;
 
             if (developerKey)
-                return user.getByDeveloperKey(dbClient, developerKey);
+                return organization.getByDeveloperKey(dbClient, developerKey);
             else
                 return [];
-        }).then(function(developers) {
-            var developer = null;
-            if (developers.length > 0)
-                developer = developers[0];
+        }).then(function(orgs) {
+            var org = null;
+            if (orgs.length > 0)
+                org = orgs[0];
 
             var devices;
             if (req.query.class) {
                 if (req.query.class === 'online')
                     devices = device.getAllApprovedWithKindWithCode(dbClient,
                                                                     'online-account',
-                                                                    developer);
+                                                                    org);
                 else if (req.query.class === 'data')
                     devices = device.getAllApprovedWithKindWithCode(dbClient,
                                                                     'data-source',
-                                                                    developer);
+                                                                    org);
                 else
                     devices = device.getAllApprovedWithoutKindsWithCode(dbClient,
                                                                         ['online-account','data-source'],
-                                                                        developer);
+                                                                        org);
             } else {
-                devices = device.getAllApprovedWithCode(dbClient, developer);
+                devices = device.getAllApprovedWithCode(dbClient, org);
             }
 
             return devices.then(function(devices) {

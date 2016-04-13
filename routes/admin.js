@@ -13,6 +13,7 @@ const crypto = require('crypto');
 
 const user = require('../util/user');
 const model = require('../model/user');
+const organization = require('../model/organization');
 const db = require('../util/db');
 
 function makeRandom() {
@@ -104,8 +105,10 @@ router.post('/promote-user/:id', user.requireRole(user.Role.ADMIN), function(req
                 return;
 
             if (user.developer_status == 0) {
-                return model.update(dbClient, user.id, { developer_status: 1,
-                                                         developer_key: makeRandom() });
+                return organization.insert({ name: '', developer_key: makeRandom() }).then(function(org) {
+                    return model.update(dbClient, user.id, { developer_status: 1,
+                                                             developer_org: org.id });
+                });
             } else {
                 return model.update(dbClient, user.id, { developer_status: user.developer_status + 1 });
             }
@@ -131,7 +134,7 @@ router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req,
                 return;
 
             if (user.developer_status == 1)
-                return model.update(dbClient, user.id, { developer_status: 0, developer_key: null });
+                return model.update(dbClient, user.id, { developer_status: 0, developer_org: null });
             else
                 return model.update(dbClient, user.id, { developer_status: user.developer_status - 1 });
         });

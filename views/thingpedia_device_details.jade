@@ -39,7 +39,7 @@ block content
     p
       i This is a builtin interface in every ThingEngine installation.
 
-  if user && user.developer_key
+  if user && user.developer_org !== null
     h2.device-subtitle#device-version Version: 
       if device.approved_version === null
         | none (approved), #{device.developer_version} (developer)
@@ -96,5 +96,5 @@ block content
         form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block Delete
-      div.col-md-2
-        a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip') Download code
+    div.col-md-2
+      a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip') Download code

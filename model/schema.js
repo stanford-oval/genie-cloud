@@ -54,19 +54,13 @@ module.exports = {
         return db.selectOne(client, "select * from device_schema where kind = ?", [kind]);
     },
 
-    getTypesByKinds: function(client, kinds, developer) {
+    getTypesByKinds: function(client, kinds, org) {
+        // FIXME use organization
         return Q.try(function() {
-            if (developer !== null && developer.developer_status >= 3) {
-                return db.selectAll(client, "select types, ds.* from device_schema ds, "
-                                    + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
-                                    + " in (?) and ds.developer_version = dsv.version",
-                                    [kinds]);
-            } else {
-                return db.selectAll(client, "select types, ds.* from device_schema ds, "
-                                    + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
-                                    + " in (?) and ds.approved_version = dsv.version",
-                                    [kinds]);
-            }
+            return db.selectAll(client, "select types, ds.* from device_schema ds, "
+                                + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
+                                + " in (?) and ds.approved_version = dsv.version",
+                                [kinds]);
         }).then(function(rows) {
             rows.forEach(function(row) {
                 try {

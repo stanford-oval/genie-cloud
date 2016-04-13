@@ -13,7 +13,7 @@ function create(client, user) {
     var KEYS = ['username', 'human_name', 'email', 'google_id',
                 'facebook_id', 'omlet_id', 'password', 'salt',
                 'cloud_id', 'auth_token',
-                'developer_key'];
+                'developer_org'];
     KEYS.forEach(function(key) {
         if (user[key] === undefined)
             user[key] = null;
@@ -32,36 +32,40 @@ function create(client, user) {
 
 module.exports = {
     get: function(client, id) {
-        return db.selectOne(client, "select * from users where id = ?", [id]);
+        return db.selectOne(client, "select u.*, o.developer_key from users u left join organizations o"
+                            + " on u.developer_org = o.id where u.id = ?", [id]);
     },
 
     getByName: function(client, username) {
-        return db.selectAll(client, "select * from users where username = ?", [username]);
+        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+                            + " on u.developer_org = o.id where username = ?", [username]);
     },
 
     getByGoogleAccount: function(client, googleId) {
-        return db.selectAll(client, "select * from users where google_id = ?", [googleId]);
+        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+                            + " on u.developer_org = o.id where google_id = ?", [googleId]);
     },
 
     getByFacebookAccount: function(client, facebookId) {
-        return db.selectAll(client, "select * from users where facebook_id = ?", [facebookId]);
+        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+                            + " on u.developer_org = o.id where facebook_id = ?", [facebookId]);
     },
 
     getByOmletAccount: function(client, omletId) {
-        return db.selectAll(client, "select * from users where omlet_id = ?", [omletId]);
+        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+                            + " on u.developer_org = o.id where omlet_id = ?", [omletId]);
     },
 
     getByCloudId: function(client, cloudId) {
-        return db.selectAll(client, "select * from users where cloud_id = ?", [cloudId]);
+        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+                            + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);
     },
 
     getByAccessToken: function(client, accessToken) {
-        return db.selectAll(client, "select u.* from users u, oauth2_access_tokens oat where oat.user_id = u.id and oat.token = ?",
+        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+                            + " on u.developer_org = o.id, oauth2_access_tokens oat where"
+                            + " oat.user_id = u.id and oat.token = ?",
                             [accessToken]);
-    },
-
-    getByDeveloperKey: function(client, key) {
-        return db.selectAll(client, "select id,developer_status from users where developer_key = ? and developer_status > 0", [key]);
     },
 
     create: create,
@@ -75,6 +79,7 @@ module.exports = {
     },
 
     getAll: function(client) {
-        return db.selectAll(client, "select * from users order by id");
+        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+                            + " on u.developer_org = o.id order by id");
     },
 }

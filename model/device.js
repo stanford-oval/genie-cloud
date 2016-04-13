@@ -73,13 +73,13 @@ module.exports = {
         return db.selectOne(client, "select * from device_class where id = ?", [id]);
     },
 
-    getFullCodeByPrimaryKind: function(client, kind, developer) {
-        if (developer !== null) {
+    getFullCodeByPrimaryKind: function(client, kind, org) {
+        if (org !== null) {
             return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
                                 + "where d.fullcode and d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and ((dcv.version = d.developer_version and d.owner = ?) "
                                 + "or (dcv.version = d.approved_version and d.owner <> ?))",
-                                [kind, developer.id, developer.id]);
+                                [kind, org.id, org.id]);
         } else {
             return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
                                 + "where d.fullcode and d.primary_kind = ? and dcv.device_id = d.id "
@@ -159,17 +159,17 @@ module.exports = {
         }
     },
 
-    getAllApprovedWithCode: function(client, developer, start, end) {
-        if (developer !== null) {
+    getAllApprovedWithCode: function(client, org, start, end) {
+        if (org !== null) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
-                                    [developer.id, developer.id, start, end]);
+                                    [org.id, org.id, start, end]);
             } else {
-                return db.selectAll(client, query, [developer.id, developer.id]);
+                return db.selectAll(client, query, [org.id, org.id]);
             }
         } else {
             var query = "select d.*, dcv.code from device_class d, "
@@ -184,8 +184,8 @@ module.exports = {
         }
     },
 
-    getAllApprovedWithKindWithCode: function(client, kind, developer, start, end) {
-        if (developer !== null) {
+    getAllApprovedWithKindWithCode: function(client, kind, org, start, end) {
+        if (org !== null) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
@@ -194,9 +194,9 @@ module.exports = {
                 + "= d.id and dk.kind = ?) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
-                                    [developer.id, developer.id, kind, start, end]);
+                                    [org.id, org.id, kind, start, end]);
             } else {
-                return db.selectAll(client, query, [developer.id, developer.id, kind]);
+                return db.selectAll(client, query, [org.id, org.id, kind]);
             }
         } else {
             var query = "select d.*, dcv.code from device_class d, "
@@ -212,8 +212,8 @@ module.exports = {
         }
     },
 
-    getAllApprovedWithoutKindWithCode: function(client, kind, developer, start, end) {
-        if (developer !== null) {
+    getAllApprovedWithoutKindWithCode: function(client, kind, org, start, end) {
+        if (org !== null) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
@@ -222,9 +222,9 @@ module.exports = {
                 + "= d.id and dk.kind = ?) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
-                                    [developer.id, developer.id, kind, start, end]);
+                                    [org.id, org.id, kind, start, end]);
             } else {
-                return db.selectAll(client, query, [developer.id, developer.id, kind]);
+                return db.selectAll(client, query, [org.id, org.id, kind]);
             }
         } else {
             var query = "select d.*, dcv.code from device_class d, "
@@ -240,8 +240,8 @@ module.exports = {
         }
     },
 
-    getAllApprovedWithoutKindsWithCode: function(client, kinds, developer, start, end) {
-        if (developer !== null) {
+    getAllApprovedWithoutKindsWithCode: function(client, kinds, org, start, end) {
+        if (org !== null) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
@@ -250,9 +250,9 @@ module.exports = {
                 + "= d.id and dk.kind in (?)) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
-                                    [developer.id, developer.id, kinds, start, end]);
+                                    [org.id, org.id, kinds, start, end]);
             } else {
-                return db.selectAll(client, query, [developer.id, developer.id, kinds]);
+                return db.selectAll(client, query, [org.id, org.id, kinds]);
             }
         } else {
             var query = "select d.*, dcv.code from device_class d, "

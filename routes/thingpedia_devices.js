@@ -13,7 +13,7 @@ const passport = require('passport');
 const db = require('../util/db');
 const model = require('../model/device');
 const user = require('../util/user');
-const userModel = require('../model/user');
+const organization = require('../model/organization');
 
 const EngineManager = require('../enginemanager');
 
@@ -46,17 +46,10 @@ function getDetails(fn, param, req, res) {
                     .then(function(kinds) { d.kinds = kinds; });
             }).tap(function(d) {
                 return Q.try(function() {
-                    if (!req.user || !req.user.developer_key)
-                        return model.getApprovedCode(client, d.id);
-                    if (req.user.id === d.owner)
+                    if (req.user && req.user.developer_org === d.owner)
                         return model.getDeveloperCode(client, d.id);
-
-                    return userModel.getByDeveloperKey(client, req.user.developer_key)
-                        .then(function(developers) {
-                            if (developers.length == 0 || developers[0].id !== d.owner)
-                                return model.getApprovedCode(client, d.id);
-                            return model.getDeveloperCode(client, d.id);
-                        });
+                    else
+                        return model.getApprovedCode(client, d.id);
                 }).then(function(row) { d.code = row.code; })
                 .catch(function(e) { d.code = null; });
             });
