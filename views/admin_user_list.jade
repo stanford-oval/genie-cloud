@@ -101,7 +101,7 @@ block content
               | No
           td
             if user.isRunning
-              | Running
+              span(title=user.engineId) Running
             else
               | Died
           td.dropdown

@@ -68,7 +68,7 @@ router.get('/', user.redirectLogIn, function(req, res) {
     }).done();
 });
 
-router.get('/logs', user.requireLogIn, function(req, res) {
+router.get('/logs', user.requireLogIn, user.requireDeveloper(), function(req, res) {
     var child = readLogs(req.user.id, req.query.startCursor);
     var stdout = child.stdout;
     res.set('Content-Type', 'text/event-stream');
@@ -104,7 +104,7 @@ router.post('/start', user.requireLogIn, function(req, res) {
     }).done();
 });
 
-router.post('/recovery/wipe-cache', user.requireLogIn, function(req, res) {
+router.post('/recovery/wipe-cache', user.requireLogIn, user.requireDeveloper(), function(req, res) {
     var engineManager = EngineManager.get();
 
     if (engineManager.isRunning(req.user.id)) {
@@ -123,7 +123,7 @@ router.post('/recovery/wipe-cache', user.requireLogIn, function(req, res) {
     }).done();
 });
 
-router.post('/recovery/remove-all-apps', user.requireLogIn, function(req, res) {
+router.post('/recovery/remove-all-apps', user.requireLogIn, user.requireDeveloper(), function(req, res) {
     var engineManager = EngineManager.get();
 
     if (engineManager.isRunning(req.user.id)) {
@@ -151,7 +151,7 @@ router.post('/recovery/remove-all-apps', user.requireLogIn, function(req, res) {
     });
 });
 
-router.post('/recovery/remove-all-devices', user.requireLogIn, function(req, res) {
+router.post('/recovery/remove-all-devices', user.requireLogIn, user.requireDeveloper(), function(req, res) {
     var engineManager = EngineManager.get();
 
     if (engineManager.isRunning(req.user.id)) {

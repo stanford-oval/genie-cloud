@@ -25,7 +25,7 @@ block content
       input(type='hidden',name='_csrf',value=csrfToken)
       button(type='submit').btn.btn-danger Start
 
-  if !isRunning
+  if !isRunning && user.developer_key
     h2 Recovery options
 
     div.row
@@ -66,5 +66,11 @@ block content
               input(type='hidden',name='_csrf',value=csrfToken)
               button(type='submit').btn.btn-default Update
 
-  h2 Logs
-  div#log-view
+  if user.developer_key
+    h2 Logs
+    div#log-view
+  else
+    p You are not approved developer, so you cannot see the logs of your engine.
+      | &#x20;
+      a(href='/user/request-developer') Apply to be a developer
+      | .

@@ -33,6 +33,7 @@ router.get('/', user.redirectRole(user.Role.ADMIN), function(req, res) {
     }).then(function(users) {
         users.forEach(function(u) {
             u.isRunning = engineManager.isRunning(u.id);
+            u.engineId = u.isRunning ? engineManager.getProcessId(u.id) : null;
         });
 
         res.render('admin_user_list', { page_title: "ThingPedia - Administration",
@@ -99,13 +100,16 @@ router.post('/delete-user/:id', user.requireRole(user.Role.ADMIN), function(req,
 });
 
 router.post('/promote-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
+    var needsRestart = false;
+
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(user) {
             if (user.developer_status >= 3)
                 return;
 
             if (user.developer_status == 0) {
-                return organization.insert({ name: '', developer_key: makeRandom() }).then(function(org) {
+                needsRestart = true;
+                return organization.create(dbClient, { name: '', developer_key: makeRandom() }).then(function(org) {
                     return model.update(dbClient, user.id, { developer_status: 1,
                                                              developer_org: org.id });
                 });
@@ -114,6 +118,8 @@ router.post('/promote-user/:id', user.requireRole(user.Role.ADMIN), function(req
             }
         });
     }).then(function() {
+        if (needsRestart)
+            EngineManager.get().restartUser(req.params.id);
         res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingPedia - Error",
@@ -128,17 +134,22 @@ router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req,
         return;
     }
 
+    var needsRestart = false;
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(user) {
             if (user.developer_status <= 0)
                 return;
 
-            if (user.developer_status == 1)
+            if (user.developer_status == 1) {
+                needsRestart = true;
                 return model.update(dbClient, user.id, { developer_status: 0, developer_org: null });
-            else
+            } else {
                 return model.update(dbClient, user.id, { developer_status: user.developer_status - 1 });
+            }
         });
     }).then(function() {
+        if (needsRestart)
+            EngineManager.get().restartUser(req.params.id);
         res.redirect(303, '/admin');
     }).catch(function(e) {
         res.status(500).render('error', { page_title: "ThingPedia - Error",

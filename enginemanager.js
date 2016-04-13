@@ -78,6 +78,10 @@ const EngineProcess = new lang.Class({
         this._rpcId = null;
     },
 
+    get id() {
+        return this._id;
+    },
+
     runEngine: function(cloudId, authToken, developerKey, thingpediaClient) {
         this.useCount++;
         return this._rpcSocket.call(this._rpcId, 'runEngine', [cloudId, authToken, developerKey, thingpediaClient]);
@@ -264,7 +268,11 @@ const EngineManager = new lang.Class({
     },
 
     isRunning: function(userId) {
-        return this._engines[userId] !== undefined;
+        return (this._engines[userId] !== undefined && this._engines[userId].process !== null);
+    },
+
+    getProcessId: function(userId) {
+        return this._engines[userId].process.id;
     },
 
     getEngine: function(userId) {
@@ -277,9 +285,14 @@ const EngineManager = new lang.Class({
 
     start: function() {
         var self = this;
+        var ncpus, nprocesses;
 
-        var ncpus = os.cpus().length;
-        var nprocesses = 2 * ncpus;
+        if (ENABLE_SHARED_PROCESS) {
+            ncpus = os.cpus().length;
+            nprocesses = 2 * ncpus;
+        } else {
+            ncpus = 0; nprocesses = 0;
+        }
         var promises = new Array(nprocesses);
         this._rrproc = new Array(nprocesses);
         this._nextProcess = 0;
@@ -328,8 +341,8 @@ const EngineManager = new lang.Class({
     killUser: function(userId) {
         var obj = this._engines[userId];
         if (!obj || obj.process === null)
-            return;
-        obj.process.killEngine(obj.cloudId);
+            return Q();
+        return Q(obj.process.killEngine(obj.cloudId));
     },
 
     deleteUser: function(userId) {
@@ -341,6 +354,19 @@ const EngineManager = new lang.Class({
 
         return Q.nfcall(child_process.exec, 'rm -fr ./' + obj.cloudId);
     },
+
+    restartUser: function(userId) {
+        this.killUser(userId).then(function() {
+            db.withClient(function(dbClient) {
+                return user.get(dbClient, userId);
+            }).then(function(user) {
+                return this.startUser(user);
+            }.bind(this));
+        }.bind(this)).catch(function(e) {
+            console.error('Failed to restart user ' + userId + ': ' + e.message);
+            console.error(e.stack);
+        }).done();
+    }
 });
 
 EngineManager.get = function() {

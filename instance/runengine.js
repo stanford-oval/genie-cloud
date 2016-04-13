@@ -93,6 +93,22 @@ function runEngine(cloudId, authToken, developerKey, thingpediaClient) {
     return [engine, platform.getCapability('webhook-api')];
 }
 
+function killEngine(cloudId) {
+    var idx = -1;
+    for (var i = 0; i < _engines.length; i++) {
+        if (_engines[i].cloudId === cloudId) {
+            idx = i;
+            break;
+        }
+    }
+
+    if (idx < 0)
+        return;
+    var obj = _engines[idx];
+    _engines.splice(idx, 1);
+    obj.engine.stop();
+}
+
 function main() {
     var shared = (process.argv[2] === '--shared');
 
@@ -116,25 +132,8 @@ function main() {
     var factory = {
         $rpcMethods: ['runEngine', 'killEngine'],
 
-        runEngine: function(cloudId, authToken, developerKey, thingpediaClient) {
-            return runEngine(cloudId, authToken, developerKey, thingpediaClient);
-        },
-
-        stopEngine: function(cloudId) {
-            var idx = -1;
-            for (var i = 0; i < _engines.length; i++) {
-                if (_engines[i].cloudId === cloudId) {
-                    idx = i;
-                    break;
-                }
-            }
-
-            if (idx < 0)
-                return;
-            var obj = _engines[idx];
-            _engines.splice(idx, 1);
-            obj.engine.stop();
-        }
+        runEngine: runEngine,
+        killEngine: killEngine,
     };
     var rpcId = rpcSocket.addStub(factory);
     PlatformModule.init(shared);

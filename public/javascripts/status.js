@@ -114,5 +114,7 @@ $(function() {
         }
     }
 
-    startEventSource();
+    $('#log-view').each(function() {
+        startEventSource();
+    });
 });
