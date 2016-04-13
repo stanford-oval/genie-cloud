@@ -59,6 +59,15 @@ const ChildProcessSocket = new lang.Class({
 
 const ENABLE_SHARED_PROCESS = false;
 
+function safeMkdirSync(dir) {
+    try {
+        fs.mkdirSync(dir);
+    } catch(e) {
+        if (e.code !== 'EEXIST')
+            throw e;
+    }
+}
+
 const EngineProcess = new lang.Class({
     Name: 'EngineProcess',
     Extends: events.EventEmitter,
@@ -73,6 +82,7 @@ const EngineProcess = new lang.Class({
 
         this._cloudId = cloudId;
         this._cwd = this.shared ? './' : ('./' + cloudId);
+        safeMkdirSync(this._cwd);
         this._child = null;
         this._rpcSocket = null;
         this._rpcId = null;
