@@ -127,10 +127,10 @@ block content
         p
           if !user.google_id
             a.btn.btn-default(href='/devices/oauth2/com.google') Configure login with Google
-          //if !user.google_id && !user.facebook_id
-          //  |
-          //if !user.facebook_id
-          //  a.btn.btn-default(href='/devices/oauth2/com.facebook') Configure login with Facebook
+          if !user.google_id && !user.facebook_id
+            |  
+          if !user.facebook_id
+            a.btn.btn-default(href='/devices/oauth2/com.facebook') Configure login with Facebook
 
       p
         a.btn.btn-danger(data-toggle='modal', data-target='#delete-account-dialog') Delete account
