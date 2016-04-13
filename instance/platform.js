@@ -133,6 +133,7 @@ const Platform = new lang.Class({
 
         this._websocketApi = new WebsocketApi();
         this._webhookApi = new WebhookApi();
+        _dispatcher.addCloudId(cloudId, this._webhookApi, this._websocketApi);
     },
 
     start: function() {
@@ -289,6 +290,7 @@ const Platform = new lang.Class({
 });
 
 var _shared;
+var _dispatcher = new FrontendDispatcher();
 
 module.exports = {
     // Initialize the platform code
@@ -301,7 +303,7 @@ module.exports = {
         return _shared;
     },
 
-    dispatcher: new FrontendDispatcher(),
+    dispatcher: _dispatcher,
 
     newInstance: function(cloudId, authToken, developerKey, thingpediaClient) {
         return new Platform(cloudId, authToken, developerKey, thingpediaClient);
