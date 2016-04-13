@@ -208,20 +208,13 @@ router.post('/profile', user.requireLogIn, function(req, res, next) {
             req.body.username.length == 0 ||
             req.body.username.length > 255)
             req.body.username = req.user.username;
-        // don't allow developers to change their own developer key
-        if (req.user.developer_status > 0)
-            req.body.developer_key = req.user.developer_key;
-        if (!req.body.developer_key)
-            req.body.developer_key = null;
 
         return model.update(dbClient, req.user.id,
                             { username: req.body.username,
-                              human_name: req.body.human_name,
-                              developer_key: req.body.developer_key });
+                              human_name: req.body.human_name });
     }).then(function() {
         req.user.username = req.body.username;
         req.user.human_name = req.body.human_name;
-        req.user.developer_key = req.body.developer_key;
     }).then(function() {
         return getProfile(req, res, undefined, undefined);
     }).catch(function(error) {
