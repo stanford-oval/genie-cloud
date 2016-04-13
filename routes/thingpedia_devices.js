@@ -144,7 +144,7 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
 router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function(req, res) {
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(row) {
-            if (row.owner !== req.user.id && req.user.developer_status < user.DeveloperStatus.ADMIN) {
+            if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
                 res.status(403).render('error', { page_title: "ThingPedia - Error",
                                                   message: "Not Authorized" });
                 return;

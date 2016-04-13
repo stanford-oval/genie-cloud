@@ -298,7 +298,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 gAst = ast;
 
                 if (create) {
-                    obj.owner = req.user.id;
+                    obj.owner = req.user.developer_org;
                     if (req.user.developer_status < user.DeveloperStatus.TRUSTED_DEVELOPER ||
                         !approve) {
                         obj.approved_version = null;
@@ -310,7 +310,7 @@ function doCreateOrUpdate(id, create, req, res) {
                     return model.create(dbClient, obj, extraKinds, code);
                 } else {
                     return model.get(dbClient, id).then(function(old) {
-                        if (old.owner !== req.user.id &&
+                        if (old.owner !== req.user.developer_org &&
                             req.user.developer_status < user.DeveloperStatus.ADMIN)
                             throw new Error("Not Authorized");
 
@@ -379,7 +379,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
     Q.try(function() {
         return db.withClient(function(dbClient) {
             return model.get(dbClient, req.params.id).then(function(d) {
-                if (d.owner !== req.user.id &&
+                if (d.owner !== req.user.developer_org &&
                     req.user.developer < user.DeveloperStatus.ADMIN)
                     throw new Error("Not Authorized");
 
