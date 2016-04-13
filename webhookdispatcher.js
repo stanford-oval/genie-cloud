@@ -30,6 +30,10 @@ module.exports = new lang.Class({
         delete this._clients[cloudId];
     },
 
+    removeAllClients: function() {
+        this._clients = {};
+    },
+
     dispatch: function(req, res) {
         var cloudId = req.params.cloud_id;
         var id = req.params.id;

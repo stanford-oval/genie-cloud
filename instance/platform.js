@@ -14,25 +14,11 @@ const os = require('os');
 const child_process = require('child_process');
 const lang = require('lang');
 
-const ThingPediaClient = require('thingpedia-client');
-
 // FIXME we should not punch through the abstraction
 const sql = require('thingengine-core/lib/db/sql');
 const prefs = require('thingengine-core/lib/prefs');
 
 const graphics = require('./graphics');
-
-var _cloudId = null;
-var _writabledir = null;
-var _frontend = null;
-var _prefs = null;
-var _developerKey = null;
-var _thingpediaClient = null;
-var _webhookApi = null;
-
-function checkLocalStateDir() {
-    fs.mkdirSync(_writabledir);
-}
 
 var _unzipApi = {
     unzip: function(zipPath, dir) {
@@ -47,13 +33,35 @@ var _unzipApi = {
     }
 };
 
+const FrontendDispatcher = new lang.Class({
+    Name: 'FrontendDispatcher',
+    $rpcMethods: ['handleCallback'],
+
+    _init: function() {
+        this._webhooks = {};
+        this._websockets = {};
+    },
+
+    addCloudId: function(cloudId, webhook, websocket) {
+        this._webhooks[cloudId] = webhook;
+        this._websockets[cloudId] = websocket;
+    },
+
+    handleCallback: function(cloudId, id, method, query, headers, payload) {
+        this._webhooks[cloudId].handleCallback(id, method, query, headers, payload);
+    },
+
+    handleWebsocket: function(cloudId, req, upgradeHead, socket) {
+        this._websockets[cloudId].handle(req, upgradeHead, socket);
+    }
+});
+
 const WebhookApi = new lang.Class({
     Name: 'WebhookApi',
 
-    $rpcMethods: ["handleCallback"],
-
-    _init: function() {
-        this._hooks = {}
+    _init: function(cloudId) {
+        this._hooks = {};
+        this._cloudId = cloudId;
     },
 
     handleCallback: function(id, method, query, headers, payload) {
@@ -69,7 +77,7 @@ const WebhookApi = new lang.Class({
     },
 
     getWebhookBase: function() {
-        return module.exports.getOrigin() + '/api/webhook/' + _cloudId;
+        return module.exports.getOrigin() + '/api/webhook/' + this._cloudId;
     },
 
     registerWebhook: function(id, callback) {
@@ -84,50 +92,66 @@ const WebhookApi = new lang.Class({
     }
 });
 
-var _websocketHandler;
+const WebsocketApi = new lang.Class({
+    Name: 'WebsocketApi',
 
-module.exports = {
-    // Initialize the platform code
-    // Will be called before instantiating the engine
-    init: function() {
-        _cloudId = process.env.CLOUD_ID;
-        var authToken = process.env.AUTH_TOKEN;
-        if (!_cloudId || !authToken)
-            throw new Error('Must specify CLOUD_ID and AUTH_TOKEN in the environment');
-        _developerKey = process.env.DEVELOPER_KEY;
+    _init: function() {
+        this._handler = null;
+    },
 
-        _writabledir = process.cwd();
+    setHandler: function(handler) {
+        this._handler = handler;
+    },
+
+    handle: function(req, upgradeHead, socket) {
+        this._handler(req, upgradeHead, socket);
+    }
+});
+
+const Platform = new lang.Class({
+    Name: 'Platform',
+    type: 'cloud',
+
+    _init: function(cloudId, authToken, developerKey, thingpediaClient) {
+        this._cloudId = cloudId;
+        this._authToken = authToken;
+        this._developerKey = developerKey;
+        this._thingpediaClient = thingpediaClient;
+
+        this._writabledir = _shared ? (process.cwd() + '/' + cloudId) : process.cwd();
         try {
-            fs.mkdirSync(_writabledir + '/cache');
+            fs.mkdirSync(this._writabledir + '/cache');
         } catch(e) {
             if (e.code != 'EEXIST')
                 throw e;
         }
+        this._prefs = new prefs.FilePreferences(this._writabledir + '/prefs.db');
+        if (this._prefs.get('cloud-id') === undefined)
+            this._prefs.set('cloud-id', cloudId);
+        if (this._prefs.get('auth-token') === undefined)
+            this._prefs.set('auth-token', authToken);
 
-        _prefs = new prefs.FilePreferences(_writabledir + '/prefs.db');
-        if (_prefs.get('cloud-id') === undefined)
-            _prefs.set('cloud-id', _cloudId);
-        if (_prefs.get('auth-token') === undefined)
-            _prefs.set('auth-token', authToken);
+        this._websocketApi = new WebsocketApi();
+        this._webhookApi = new WebhookApi();
+    },
 
-        _websocketHandler = {
-            set: function(handler) {
-                this._handler = handler;
-            },
-            handle: function(message, socket) {
-                if (this._handler)
-                    this._handler(message, socket);
-                else
-                    socket.destroy();
-            }
-        };
-        _webhookApi = new WebhookApi();
-
-        return sql.ensureSchema(_writabledir + '/sqlite.db',
+    start: function() {
+        return sql.ensureSchema(this._writabledir + '/sqlite.db',
                                 'schema.sql');
     },
 
-    type: 'cloud',
+    // Obtain a shared preference store
+    // Preferences are simple key/value store which is shared across all apps
+    // but private to this instance (tier) of the platform
+    // Preferences should be normally used only by the engine code, and a persistent
+    // shared store such as DataVault should be used by regular apps
+    getSharedPreferences: function() {
+        return this._prefs;
+    },
+
+    getCloudId: function() {
+        return this._cloudId;
+    },
 
     // Check if this platform has the required capability
     // (eg. long running, big storage, reliable connectivity, server
@@ -149,6 +173,7 @@ module.exports = {
         case 'graphics-api':
         case 'thingpedia-client':
         case 'webhook-api':
+        case 'websocket-api':
             return true;
 
         default:
@@ -170,23 +195,17 @@ module.exports = {
             return graphics;
 
         case 'thingpedia-client':
-            return _thingpediaClient;
+            return this._thingpediaClient;
 
         case 'webhook-api':
-            return _webhookApi;
+            return this._webhookApi;
+
+        case 'websocket-api':
+            return this._websocketApi;
 
         default:
             return null;
         }
-    },
-
-    // Obtain a shared preference store
-    // Preferences are simple key/value store which is shared across all apps
-    // but private to this instance (tier) of the platform
-    // Preferences should be normally used only by the engine code, and a persistent
-    // shared store such as DataVault should be used by regular apps
-    getSharedPreferences: function() {
-        return _prefs;
     },
 
     // Get the root of the application
@@ -196,15 +215,15 @@ module.exports = {
     },
 
     // Get a directory that is guaranteed to be writable
-    // (in the private data space for Android, in /var/lib for server)
+    // (in the private data space for Android, in the current directory for server)
     getWritableDir: function() {
-        return _writabledir;
+        return this._writabledir;
     },
 
     // Get a directory good for long term caching of code
     // and metadata
     getCacheDir: function() {
-        return _writabledir + '/cache';
+        return this._writabledir + '/cache';
     },
 
     // Make a symlink potentially to a file that does not exist physically
@@ -222,7 +241,7 @@ module.exports = {
 
     // Get the filename of the sqlite database
     getSqliteDB: function() {
-        return _writabledir + '/sqlite.db';
+        return this._writabledir + '/sqlite.db';
     },
 
     // Stop the main loop and exit
@@ -235,7 +254,7 @@ module.exports = {
 
     // Get the ThingPedia developer key, if one is configured
     getDeveloperKey: function() {
-        return _developerKey;
+        return this._developerKey;
     },
 
     // Change the ThingPedia developer key, if possible
@@ -254,37 +273,72 @@ module.exports = {
     },
 
     getCloudId: function() {
-        return _cloudId;
+        return this._cloudId;
     },
 
     // Change the auth token
     // Returns true if a change actually occurred, false if the change
     // was rejected
     setAuthToken: function(authToken) {
-        var oldAuthToken = _prefs.get('auth-token');
+        var oldAuthToken = this._prefs.get('auth-token');
         if (oldAuthToken !== undefined && authToken !== oldAuthToken)
             return false;
-        _prefs.set('auth-token', authToken);
+        this._prefs.set('auth-token', authToken);
         return true;
+    }
+});
+
+var _shared;
+
+module.exports = {
+    // Initialize the platform code
+    // Will be called before instantiating the engine
+    init: function(shared) {
+        _shared = shared;
     },
 
-    // For internal use only
-    _getPrivateFeature: function(name) {
-        switch(name) {
-        case 'websocket-handler':
-            return _websocketHandler;
+    get shared() {
+        return _shared;
+    },
+
+    dispatcher: new FrontendDispatcher(),
+
+    newInstance: function(cloudId, authToken, developerKey, thingpediaClient) {
+        return new Platform(cloudId, authToken, developerKey, thingpediaClient);
+    },
+
+    // for compat with existing code that does platform.getOrigin()
+    getOrigin: function() {
+        // Xor these comments for testing
+        //return 'http://127.0.0.1:8080';
+        return 'https://thingengine.stanford.edu';
+    },
+
+    // Check if this platform has the required capability
+    // This is only about caps that don't consider the current context
+    // for compat with existing code
+    hasCapability: function(cap) {
+        switch(cap) {
+        case 'code-download':
+        case 'graphics-api':
+            return true;
+
         default:
-            throw new Error('Invalid private feature name (what are you trying to do?)');
+            return false;
         }
     },
 
-    _setPrivateFeature: function(name, value) {
-        switch(name) {
-        case 'thingpedia-client':
-            _thingpediaClient = value;
-            break;
+    // Check if this platform has the required capability
+    // This is only about caps that don't consider the current context
+    // for compat with existing code
+    getCapability: function(cap) {
+        switch(cap) {
+        case 'code-download':
+            return _unzipApi;
+        case 'graphics-api':
+            return graphics;
         default:
-            throw new Error('Invalid private feature name (what are you trying to do?)');
+            return null;
         }
     },
 };

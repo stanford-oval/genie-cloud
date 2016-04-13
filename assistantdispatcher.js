@@ -9,6 +9,7 @@
 const Q = require('q');
 const lang = require('lang');
 const events = require('events');
+const fs = require('fs');
 const Url = require('url');
 const Tp = require('thingpedia');
 
@@ -56,9 +57,21 @@ const OmletStateStorage = new lang.Class({
 var storage_ = null;
 var instance_ = null;
 
+function safeMkdirSync(dir) {
+    try {
+        fs.mkdirSync(dir);
+    } catch(e) {
+        if (e.code !== 'EEXIST')
+            throw e;
+    }
+}
+
 function makeOmletClient(sync) {
+    var dbpath = platform.getWritableDir() + '/omlet-assistant';
+    safeMkdirSync(dbpath);
     var client = new omclient.Client({ instance: 'assistant',
                                        storage: storage_,
+                                       dbpath: dbpath,
                                        sync: sync,
                                        apiKey: { Id: API_KEY, Secret: API_SECRET } });
     client.longdanMessageConsumer.DEBUG = false;

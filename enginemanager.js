@@ -12,6 +12,7 @@ const child_process = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const net = require('net');
+const os = require('os');
 const events = require('events');
 const rpc = require('transparent-rpc');
 
@@ -56,128 +57,180 @@ const ChildProcessSocket = new lang.Class({
     }
 });
 
+const ENABLE_SHARED_PROCESS = false;
+
+const EngineProcess = new lang.Class({
+    Name: 'EngineProcess',
+    Extends: events.EventEmitter,
+
+    _init: function(id, cloudId) {
+        events.EventEmitter.call(this);
+
+        this._id = id;
+
+        this.useCount = 0;
+        this.shared = cloudId === null;
+
+        this._cloudId = cloudId;
+        this._cwd = this.shared ? './' : ('./' + cloudId);
+        this._child = null;
+        this._rpcSocket = null;
+        this._rpcId = null;
+    },
+
+    runEngine: function(cloudId, authToken, developerKey, thingpediaClient) {
+        this.useCount++;
+        return this._rpcSocket.call(this._rpcId, 'runEngine', [cloudId, authToken, developerKey, thingpediaClient]);
+    },
+
+    killEngine: function(cloudId) {
+        if (!this.shared)
+            return this.kill();
+        this.useCount--;
+        return this._rpcSocket.call(this._rpcId, 'killEngine', [cloudId]).then(function() {
+            this.emit('engine-removed', cloudId);
+        }.bind(this));
+    },
+
+    kill: function() {
+        console.log('Killing process with ID ' + this._id);
+        this._child.kill();
+    },
+
+    start: function() {
+        const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
+                              'HOME', 'SHELL', 'THINGENGINE_PROXY'];
+        function envIsAllowed(name) {
+            if (name.startsWith('LC_'))
+                return true;
+            if (ALLOWED_ENVS.indexOf(name) >= 0)
+                return true;
+            return false;
+        }
+
+        var env = {};
+        for (var name in process.env) {
+            if (envIsAllowed(name))
+                env[name] = process.env[name];
+        }
+        env.THINGENGINE_USER_ID = this._id;
+
+        var managerPath = path.dirname(module.filename);
+        var enginePath = managerPath + '/instance/runengine';
+        var child;
+
+        console.log('Spawning process with ID ' + this._id);
+
+        if (this.shared) {
+            var args = process.execArgv.slice();
+            args.push(enginePath);
+            args.push('--shared');
+            child = child_process.spawn(process.execPath, args,
+                                        { stdio: ['ignore', 1, 2, 'ipc'],
+                                          detached: true, // ignore ^C
+                                          cwd: this._cwd, env: env });
+        } else {
+            var sandboxPath = managerPath + '/sandbox/sandbox';
+            var args = ['-i', this._cloudId, process.execPath].concat(process.execArgv);
+            args.push(enginePath);
+            child = child_process.spawn(sandboxPath, args,
+                                        { stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
+                                          detached: true,
+                                          cwd: this._cwd, env: env });
+        }
+
+        // wrap child into something that looks like a Stream
+        // (readable + writable), at least as far as JsonDatagramSocket
+        // is concerned
+        var socket = new ChildProcessSocket(child);
+        this._rpcSocket = new rpc.Socket(socket);
+
+        var rpcDefer = Q.defer();
+        child.on('error', function(error) {
+            console.error('Child with ID ' + this._id + ' reported an error: ' + error);
+            rpcDefer.reject(new Error('Reported error ' + error));
+        }.bind(this));
+        child.on('exit', function(code, signal) {
+            if (this.shared || code !== 0)
+                console.error('Child with ID ' + this._id + ' exited with code ' + code);
+            rpcDefer.reject(new Error('Exited with code ' + code));
+            this.emit('exit');
+        }.bind(this));
+
+        this._child = child;
+
+        child.on('message', function(msg) {
+            if (msg.type === 'rpc-ready') {
+                this._rpcId = msg.id;
+                rpcDefer.resolve();
+            }
+        }.bind(this));
+        return rpcDefer.promise;
+    }
+});
+
 const EngineManager = new lang.Class({
     Name: 'EngineManager',
 
     _init: function(frontend) {
-        this._runningProcesses = {};
+        this._processes = {};
+        this._rrproc = [];
+        this._nextProcess = null;
+        this._engines = {};
         this._frontend = frontend;
 
         _instance = this;
     },
 
+    _findProcessForUser: function(userId, cloudId, developerKey) {
+        if (developerKey === null && ENABLE_SHARED_PROCESS) {
+            var process = this._rrproc[this._nextProcess];
+            this._nextProcess++;
+            this._nextProcess = this._nextProcess % this._rrproc.length;
+            return Q(process);
+        } else {
+            var process = new EngineProcess(userId, cloudId);
+            this._processes[userId] = process;
+            process.on('exit', function() {
+                if (this._processes[userId] === process)
+                    delete this._processes[userId];
+            }.bind(this));
+            return process.start().then(function() { return process; });
+        }
+    },
+
     _runUser: function(userId, cloudId, authToken, omletId, developerKey) {
-        var runningProcesses = this._runningProcesses;
-        var frontend = this._frontend;
+        var engines = this._engines;
+        var obj = { omletId: omletId, cloudId: cloudId, process: null, engine: null };
+        engines[userId] = obj;
+        var die = (function() {
+            if (engines[userId] !== obj)
+                return;
+            if (obj.omletId !== null)
+                AssistantDispatcher.get().removeEngine(obj.omletId);
+            WebhookDispatcher.get().removeClient(cloudId);
+            this._frontend.unregisterWebSocketEndpoint('/ws/' + cloudId);
+            delete engines[userId];
+        }).bind(this);
 
-        return Q.nfcall(fs.mkdir, './' + cloudId)
-            .catch(function(e) {
-                if (e.code !== 'EEXIST')
-                    throw e;
-            })
-            .then(function() {
-                const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
-                                      'HOME', 'SHELL', 'THINGENGINE_PROXY'];
-                function envIsAllowed(name) {
-                    if (name.startsWith('LC_'))
-                        return true;
-                    if (ALLOWED_ENVS.indexOf(name) >= 0)
-                        return true;
-                    return false;
-                }
+        return this._findProcessForUser(userId, cloudId, developerKey).then(function(process) {
+            console.log('Running engine for user ' + userId);
 
-                var env = {};
-                for (var name in process.env) {
-                    if (envIsAllowed(name))
-                        env[name] = process.env[name];
-                }
-                env.THINGENGINE_USER_ID = userId;
-                env.CLOUD_ID = cloudId;
-                env.AUTH_TOKEN = authToken;
-                if (developerKey !== null)
-                    env.DEVELOPER_KEY = developerKey;
-                console.log('Spawning child for user ' + userId);
+            obj.process = process;
+            process.on('engine-removed', function(deadCloudId) {
+                if (cloudId !== deadCloudId)
+                    return;
 
-                var managerPath = path.dirname(module.filename);
-                var enginePath = managerPath + '/instance/runengine';
-                var sandboxPath = managerPath + '/sandbox/sandbox';
-                var args = ['-i', cloudId, process.execPath].concat(process.execArgv);
-                args.push(enginePath);
-                var child = child_process.spawn(sandboxPath, args,
-                                                { stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
-                                                  cwd: './' + cloudId,
-                                                  env: env });
-                var engineProxy = Q.defer();
-                var obj = { child: child,
-                            cwd: './' + cloudId,
-                            cloudId: cloudId,
-                            omletId: omletId,
-                            engine: engineProxy.promise }
-                runningProcesses[userId] = obj;
+                die();
+            });
+            process.on('exit', die);
 
-                child.on('error', function(error) {
-                    console.error('Child with ID ' + userId + ' reported an error: ' + error);
-                });
-                child.on('exit', function(code, signal) {
-                    if (code !== 0)
-                        console.error('Child with ID ' + userId + ' exited with code ' + code);
+            return process.runEngine(cloudId, authToken, developerKey, new ThingPediaClient(developerKey));
+        }.bind(this)).spread(function(engine, webhookApi) {
+                console.log('Received engine from child ' + userId);
 
-                    if (runningProcesses[userId] !== obj)
-                        return;
-                    if (obj.omletId !== null)
-                        AssistantDispatcher.get().removeEngine(obj.omletId);
-                    WebhookDispatcher.get().removeClient(cloudId);
-                    frontend.unregisterWebSocketEndpoint('/ws/' + cloudId);
-                    delete runningProcesses[userId];
-                });
-
-                // wrap child into something that looks like a Stream
-                // (readable + writable), at least as far as JsonDatagramSocket
-                // is concerned
-                var socket = new ChildProcessSocket(child);
-                var rpcSocket = new rpc.Socket(socket);
-                var thingpediaClient = new ThingPediaClient(developerKey);
-                var rpcStub = {
-                    $rpcMethods: ['setEngine', 'getThingPediaClient',
-                                  'setWebhookClient'],
-
-                    getThingPediaClient: function() {
-                        return thingpediaClient;
-                    },
-
-                    setWebhookClient: function(client) {
-                        WebhookDispatcher.get().addClient(cloudId, client);
-                    },
-
-                    setEngine: function(engine) {
-                        console.log('Received engine from child ' + userId);
-
-                        // precache .apps, .devices, .channels instead of querying the
-                        // engine all the time, to reduce IPC latency
-                        Q.all([engine.apps,
-                               engine.devices,
-                               engine.channels,
-                               engine.ui,
-                               engine.assistant,
-                               engine.messaging
-                              ]).spread(function(apps, devices, channels, ui, assistant, messaging) {
-                                  var engine = { apps: apps,
-                                                  devices: devices,
-                                                  channels: channels,
-                                                  ui: ui,
-                                                  assistant: assistant,
-                                                  messaging: messaging
-                                               };
-                                  engineProxy.resolve(engine);
-                        }, function(err) {
-                            engineProxy.reject(err);
-                        });
-                    }
-                };
-                var rpcId = rpcSocket.addStub(rpcStub);
-                child.send({ type:'rpc-ready', id: rpcId });
-
-                frontend.registerWebSocketEndpoint('/ws/' + cloudId, function(req, socket, head) {
+                WebhookDispatcher.get().addClient(cloudId, webhookApi);
+                this._frontend.registerWebSocketEndpoint('/ws/' + cloudId, function(req, socket, head) {
                     var saneReq = {
                         httpVersion: req.httpVersion,
                         url: req.url,
@@ -185,36 +238,65 @@ const EngineManager = new lang.Class({
                         rawHeaders: req.rawHeaders,
                         method: req.method,
                     };
-                    var encodedReq = new Buffer(JSON.stringify(saneReq)).toString('base64');
-                    child.send({type:'websocket', request: encodedReq,
+                    child.send({type:'websocket', cloudId: cloudId, req: saneReq,
                                 upgradeHead: head.toString('base64')}, socket);
                 });
 
-                if (omletId !== null)
-                    AssistantDispatcher.get().addEngine(omletId, obj.engine);
-            });
+                // precache .apps, .devices, instead of querying the
+                // engine all the time, to reduce IPC latency
+                return Q.all([engine.apps,
+                              engine.devices,
+                              engine.ui,
+                              engine.assistant,
+                              engine.messaging]);
+        }.bind(this)).spread(function(apps, devices, ui, assistant, messaging) {
+            var engine = { apps: apps,
+                           devices: devices,
+                           ui: ui,
+                           assistant: assistant,
+                           messaging: messaging };
+            obj.engine = engine;
+            return engine;
+        }.bind(this)).then(function(engine) {
+            if (omletId !== null)
+                AssistantDispatcher.get().addEngine(omletId, engine);
+        }.bind(this));
     },
 
     isRunning: function(userId) {
-        return this._runningProcesses[userId] !== undefined;
+        return this._engines[userId] !== undefined;
     },
 
     getEngine: function(userId) {
-        var process = this._runningProcesses[userId];
-        if (process === undefined)
+        var obj = this._engines[userId];
+        if (obj === undefined || obj.engine === null)
             return Q.reject(new Error(userId + ' is not running'));
 
-        return process.engine;
+        return Q(obj.engine);
     },
 
     start: function() {
         var self = this;
-        return db.withClient(function(client) {
-            return user.getAll(client).then(function(rows) {
-                return Q.all(rows.map(function(r) {
-                    return self._runUser(r.id, r.cloud_id, r.auth_token,
-                                         r.omlet_id, r.developer_key);
-                }));
+
+        var ncpus = os.cpus().length;
+        var nprocesses = 2 * ncpus;
+        var promises = new Array(nprocesses);
+        this._rrproc = new Array(nprocesses);
+        this._nextProcess = 0;
+        for (var i = 0; i < nprocesses; i++) {
+            this._rrproc[i] = new EngineProcess('S' + i, null);
+            promises[i] = this._rrproc[i].start();
+            this._processes['S' + i] = this._rrproc[i];
+        }
+
+        return Q.all(promises).then(function() {
+            return db.withClient(function(client) {
+                return user.getAll(client).then(function(rows) {
+                    return Q.all(rows.map(function(r) {
+                        return self._runUser(r.id, r.cloud_id, r.auth_token,
+                                             r.omlet_id, r.developer_key);
+                    }));
+                });
             });
         });
     },
@@ -226,41 +308,38 @@ const EngineManager = new lang.Class({
     },
 
     addOmletToUser: function(userId, omletId) {
-        var process = this._runningProcesses[userId];
-        if (process === undefined)
+        var obj = this._engines[userId];
+        if (obj === undefined || obj.engine === null)
             throw new Error(userId + ' is not running');
 
-        process.omletId = omletId;
-        AssistantDispatcher.get().addEngine(omletId, process.engine);
+        obj.omletId = omletId;
+        AssistantDispatcher.get().addEngine(omletId, obj.engine);
     },
 
     stop: function() {
         var am = AssistantDispatcher.get();
         var wd = WebhookDispatcher.get();
         am.removeAllEngines();
-        for (var userId in this._runningProcesses) {
-            var child = this._runningProcesses[userId].child;
-            wd.removeClient(this._runningProcesses[userId].cloudId);
-            child.kill();
-        }
+        wd.removeAllClients();
+        for (var userId in this._processes)
+            this._processes[userId].kill();
     },
 
     killUser: function(userId) {
-        var process = this._runningProcesses[userId];
-        if (!process)
+        var obj = this._engines[userId];
+        if (!obj || obj.process === null)
             return;
-        process.child.kill();
+        obj.process.killEngine(obj.cloudId);
     },
 
     deleteUser: function(userId) {
-        var process = this._runningProcesses[userId];
-        if (process.omletId)
-            AssistantDispatcher.get().deleteUser(process.omletId);
+        var obj = this._engines[userId];
+        if (obj.omletId)
+            AssistantDispatcher.get().deleteUser(obj.omletId);
+        if (obj.process !== null)
+            obj.process.killEngine(obj.cloudId);
 
-        var child = process.child;
-        child.kill();
-
-        return Q.nfcall(child_process.exec, 'rm -fr ' + process.cwd);
+        return Q.nfcall(child_process.exec, 'rm -fr ./' + obj.cloudId);
     },
 });
 

@@ -13,6 +13,7 @@ const rpc = require('transparent-rpc');
 
 const Engine = require('thingengine-core');
 const Assistant = require('./assistant');
+const PlatformModule = require('./platform');
 
 const ParentProcessSocket = new lang.Class({
     Name: 'ParentProcessSocket',
@@ -40,75 +41,107 @@ const ParentProcessSocket = new lang.Class({
     },
 
     write: function(data, encoding, callback) {
-        process.send({type: 'rpc', data: data }, null, callback);
+        process.send({ type: 'rpc', data: data }, null, callback);
     }
 });
 
-function runEngine() {
-    global.platform = require('./platform');
+var _engines = [];
+var _stopped = false;
 
-    var engine;
-    var rpcSocket;
-    var earlyStop = false;
-    var engineRunning = false;
-    var rpcReady = Q.defer();
+function handleSignal() {
+    _engines.forEach(function(obj) {
+        console.log('Stopping engine of ' + obj.cloudId);
+        if (obj.running)
+            obj.engine.stop();
+    });
 
-    function handleSignal() {
-        if (engineRunning)
-            engine.stop();
-        else
-            earlyStop = true;
-    }
+    _stopped = true;
+    if (process.connected)
+        process.disconnect();
+
+    // give ourselves 10s to die gracefully, then just exit
+    setTimeout(function() {
+        process.exit();
+    }, 10000);
+}
+
+function runEngine(cloudId, authToken, developerKey, thingpediaClient) {
+    var platform = PlatformModule.newInstance(cloudId, authToken, developerKey, thingpediaClient);
+    if (!PlatformModule.shared)
+        global.platform = platform;
+
+    var engine = new Engine(platform);
+    engine.assistant = new Assistant(engine);
+
+    var obj = { cloudId: cloudId, engine: engine, running: false };
+    engine.open().then(function() {
+        obj.running = true;
+        engine.assistant.start().done();
+
+        if (_stopped)
+            return engine.close();
+        _engines.push(obj);
+        return engine.run().finally(function() {
+            engine.assistant.stop().done();
+            return engine.close();
+        });
+    }).catch(function(e) {
+        console.error('Engine ' + cloudId + ' had a fatal error: ' + e.message);
+        console.error(e.stack);
+    }).done();
+
+    return [engine, platform.getCapability('webhook-api')];
+}
+
+function main() {
+    var shared = (process.argv[2] === '--shared');
+
+    // for compat with platform.getOrigin()
+    // (but not platform.getCapability())
+    if (shared)
+        global.platform = PlatformModule;
+
     process.on('SIGINT', handleSignal);
     process.on('SIGTERM', handleSignal);
 
     var socket = new ParentProcessSocket();
-    rpcSocket = new rpc.Socket(socket);
+    var rpcSocket = new rpc.Socket(socket);
     process.on('message', function(message, socket) {
-        switch(message.type) {
-        case 'rpc-ready':
-            rpcReady.resolve(message.id);
-            break;
+        if (message.type !== 'websocket')
+            return;
 
-        case 'websocket':
-            platform._getPrivateFeature('websocket-handler')
-                .handle(message, socket);
-            break;
-
-        default:
-            break;
-        }
+        PlatformModule.dispatcher.handleWebsocket(message.cloudId, message.req, message.upgradeHead, socket);
     });
 
-    platform.init().then(function() {
-        return rpcReady.promise.then(function(rpcId) {
-            console.log('RPC channel ready');
-            return rpcSocket.call(rpcId, 'getThingPediaClient', []).then(function(client) {
-                console.log('Obtained ThingPedia client');
-                platform._setPrivateFeature('thingpedia-client', client);
-                rpcSocket.call(rpcId, 'setWebhookClient', [platform.getCapability('webhook-api')]);
+    var factory = {
+        $rpcMethods: ['runEngine', 'killEngine'],
 
-                engine = new Engine();
-                engine.assistant = new Assistant(engine);
+        runEngine: function(cloudId, authToken, developerKey, thingpediaClient) {
+            return runEngine(cloudId, authToken, developerKey, thingpediaClient);
+        },
 
-                return engine.open().then(function() {
-                    engineRunning = true;
-                    rpcSocket.call(rpcId, 'setEngine', [engine]).done();
-                    engine.assistant.start().done();
+        stopEngine: function(cloudId) {
+            var idx = -1;
+            for (var i = 0; i < _engines.length; i++) {
+                if (_engines[i].cloudId === cloudId) {
+                    idx = i;
+                    break;
+                }
+            }
 
-                    if (earlyStop)
-                        return;
-                    return engine.run().finally(function() {
-                        engine.assistant.stop().done();
-                        return engine.close();
-                    });
-                });
-            });
-        });
-    }).then(function () {
-        console.log('Cleaning up');
-        platform.exit();
-    }).done();
+            if (idx < 0)
+                return;
+            var obj = _engines[idx];
+            _engines.splice(idx, 1);
+            obj.engine.stop();
+        }
+    };
+    var rpcId = rpcSocket.addStub(factory);
+    PlatformModule.init(shared);
+    process.send({ type:'rpc-ready', id: rpcId });
+
+    // wait 10000 seconds for a newEngine message
+    setTimeout(function() {}, 10000);
 }
 
-runEngine();
+main();
