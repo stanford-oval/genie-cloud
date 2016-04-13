@@ -340,7 +340,7 @@ module.exports = new lang.Class({
                 req.Feed = ldFeed;
                 req.Member = account;
                 return Q.Promise(function(callback, errback) {
-                    return this.client._msgCall(req, function(err, resp) {
+                    return this.client._msg.call(req, function(err, resp) {
                         if (err)
                             errback(err);
                         else
