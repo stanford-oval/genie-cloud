@@ -57,7 +57,7 @@ const ChildProcessSocket = new lang.Class({
     }
 });
 
-const ENABLE_SHARED_PROCESS = false;
+const ENABLE_SHARED_PROCESS = true;
 
 function safeMkdirSync(dir) {
     try {
@@ -74,6 +74,7 @@ const EngineProcess = new lang.Class({
 
     _init: function(id, cloudId) {
         events.EventEmitter.call(this);
+        this.setMaxListeners(Infinity);
 
         this._id = id;
 
@@ -109,6 +110,10 @@ const EngineProcess = new lang.Class({
     kill: function() {
         console.log('Killing process with ID ' + this._id);
         this._child.kill();
+    },
+
+    send: function(msg, socket) {
+        this._child.send(msg, socket);
     },
 
     start: function() {
@@ -224,19 +229,23 @@ const EngineManager = new lang.Class({
                 AssistantDispatcher.get().removeEngine(obj.omletId);
             WebhookDispatcher.get().removeClient(cloudId);
             this._frontend.unregisterWebSocketEndpoint('/ws/' + cloudId);
+            process.removeListener('die', die);
             delete engines[userId];
         }).bind(this);
+        var onRemoved = function(deadCloudId) {
+            if (cloudId !== deadCloudId)
+                return;
+
+            die();
+            process.removeListener('engine-removed', onRemoved);
+        }
 
         return this._findProcessForUser(userId, cloudId, developerKey, forceSeparateProcess).then(function(process) {
             console.log('Running engine for user ' + userId);
 
             obj.process = process;
-            process.on('engine-removed', function(deadCloudId) {
-                if (cloudId !== deadCloudId)
-                    return;
 
-                die();
-            });
+            process.on('engine-removed', onRemoved);
             process.on('exit', die);
 
             return process.runEngine(cloudId, authToken, developerKey, new ThingPediaClient(developerKey));
@@ -252,8 +261,8 @@ const EngineManager = new lang.Class({
                         rawHeaders: req.rawHeaders,
                         method: req.method,
                     };
-                    child.send({type:'websocket', cloudId: cloudId, req: saneReq,
-                                upgradeHead: head.toString('base64')}, socket);
+                    process.send({type:'websocket', cloudId: cloudId, req: saneReq,
+                                 upgradeHead: head.toString('base64')}, socket);
                 });
 
                 // precache .apps, .devices, instead of querying the
