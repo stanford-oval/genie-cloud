@@ -229,7 +229,7 @@ const EngineManager = new lang.Class({
                 AssistantDispatcher.get().removeEngine(obj.omletId);
             WebhookDispatcher.get().removeClient(cloudId);
             this._frontend.unregisterWebSocketEndpoint('/ws/' + cloudId);
-            process.removeListener('die', die);
+            obj.process.removeListener('die', die);
             delete engines[userId];
         }).bind(this);
         var onRemoved = function(deadCloudId) {
@@ -237,7 +237,7 @@ const EngineManager = new lang.Class({
                 return;
 
             die();
-            process.removeListener('engine-removed', onRemoved);
+            obj.process.removeListener('engine-removed', onRemoved);
         }
 
         return this._findProcessForUser(userId, cloudId, developerKey, forceSeparateProcess).then(function(process) {
@@ -261,8 +261,8 @@ const EngineManager = new lang.Class({
                         rawHeaders: req.rawHeaders,
                         method: req.method,
                     };
-                    process.send({type:'websocket', cloudId: cloudId, req: saneReq,
-                                 upgradeHead: head.toString('base64')}, socket);
+                    obj.process.send({type:'websocket', cloudId: cloudId, req: saneReq,
+                                     upgradeHead: head.toString('base64')}, socket);
                 });
 
                 // precache .apps, .devices, instead of querying the
