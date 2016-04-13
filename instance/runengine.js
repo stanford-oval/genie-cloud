@@ -79,10 +79,13 @@ function runEngine(cloudId, authToken, developerKey, thingpediaClient) {
             obj.running = true;
             engine.assistant.start().done();
 
-            if (_stopped)
-                return engine.close();
-            _engines.push(obj);
-            return engine.run().finally(function() {
+            // delay actually starting the engine to avoid races with initialization
+            return Q.delay(10000).then(function() {
+                if (_stopped)
+                    return engine.close();
+                _engines.push(obj);
+                return engine.run();
+            }).finally(function() {
                 engine.assistant.stop().done();
                 return engine.close();
             });
