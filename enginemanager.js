@@ -186,8 +186,8 @@ const EngineManager = new lang.Class({
         _instance = this;
     },
 
-    _findProcessForUser: function(userId, cloudId, developerKey) {
-        if (developerKey === null && ENABLE_SHARED_PROCESS) {
+    _findProcessForUser: function(userId, cloudId, developerKey, forceSeparateProcess) {
+        if (ENABLE_SHARED_PROCESS && developerKey === null && !forceSeparateProcess) {
             var process = this._rrproc[this._nextProcess];
             this._nextProcess++;
             this._nextProcess = this._nextProcess % this._rrproc.length;
@@ -203,7 +203,7 @@ const EngineManager = new lang.Class({
         }
     },
 
-    _runUser: function(userId, cloudId, authToken, omletId, developerKey) {
+    _runUser: function(userId, cloudId, authToken, omletId, developerKey, forceSeparateProcess) {
         var engines = this._engines;
         var obj = { omletId: omletId, cloudId: cloudId, process: null, engine: null };
         engines[userId] = obj;
@@ -217,7 +217,7 @@ const EngineManager = new lang.Class({
             delete engines[userId];
         }).bind(this);
 
-        return this._findProcessForUser(userId, cloudId, developerKey).then(function(process) {
+        return this._findProcessForUser(userId, cloudId, developerKey, forceSeparateProcess).then(function(process) {
             console.log('Running engine for user ' + userId);
 
             obj.process = process;
@@ -307,7 +307,7 @@ const EngineManager = new lang.Class({
                 return user.getAll(client).then(function(rows) {
                     return Q.all(rows.map(function(r) {
                         return self._runUser(r.id, r.cloud_id, r.auth_token,
-                                             r.omlet_id, r.developer_key);
+                                             r.omlet_id, r.developer_key, r.force_separate_process);
                     }));
                 });
             });
@@ -317,7 +317,7 @@ const EngineManager = new lang.Class({
     startUser: function(user) {
         console.log('Requested start of user ' + user.id);
         return this._runUser(user.id, user.cloud_id, user.auth_token,
-                             user.omlet_id, user.developer_key);
+                             user.omlet_id, user.developer_key, user.force_separate_process);
     },
 
     addOmletToUser: function(userId, omletId) {

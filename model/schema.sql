@@ -24,6 +24,7 @@ create table users (
     developer_org int null default null,
     developer_status tinyint not null default 0,
     roles tinyint not null default 0,
+    force_separate_process boolean not null default false,
     constraint password_salt check ((password is not null and salt is not null) or
                                     (password is null and salt is null)),
     constraint auth_method check (password is not null or google_id is not null or facebook_id is not null),
