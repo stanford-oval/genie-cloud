@@ -112,6 +112,19 @@ const EngineProcess = new lang.Class({
         this._child.kill();
     },
 
+    restart: function(delay) {
+        this._child = null;
+        this._rpcSocket = null;
+        this._rpcId = null;
+        return this._starting = Q.delay(delay).then(function() {
+            return this.start();
+        }.bind(this));
+    },
+
+    waitReady: function() {
+        return Q(this._starting).then(function() { return this; }.bind(this));
+    },
+
     send: function(msg, socket) {
         this._child.send(msg, socket);
     },
@@ -181,10 +194,12 @@ const EngineProcess = new lang.Class({
         child.on('message', function(msg) {
             if (msg.type === 'rpc-ready') {
                 this._rpcId = msg.id;
+                this._starting = null;
                 rpcDefer.resolve();
             }
         }.bind(this));
-        return rpcDefer.promise;
+        this._starting = rpcDefer.promise;
+        return this._starting;
     }
 });
 
@@ -206,7 +221,7 @@ const EngineManager = new lang.Class({
             var process = this._rrproc[this._nextProcess];
             this._nextProcess++;
             this._nextProcess = this._nextProcess % this._rrproc.length;
-            return Q(process);
+            return process.waitReady();
         } else {
             var process = new EngineProcess(userId, cloudId);
             this._processes[userId] = process;
@@ -317,6 +332,10 @@ const EngineManager = new lang.Class({
         this._nextProcess = 0;
         for (var i = 0; i < nprocesses; i++) {
             this._rrproc[i] = new EngineProcess('S' + i, null);
+            this._rrproc[i].on('exit', function() {
+                var proc = this;
+                proc.restart(5000).done();
+            });
             promises[i] = this._rrproc[i].start();
             this._processes['S' + i] = this._rrproc[i];
         }
