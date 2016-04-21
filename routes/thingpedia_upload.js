@@ -44,8 +44,15 @@ const DEFAULT_CODE = {"params": {"username": ["Username","text"],
                               "args": ["power"],
                               "doc": "power on/off the device"
                           }
-                      }
-                     };
+                      },
+                      "queries": {
+                          "getpower": {
+                              "url": "http://www.example.com/api/1.0/post",
+                              "args": ["power"],
+                              "doc": "check if the device is on or off"
+                          }
+                     }
+                    };
 const DEFAULT_ONLINE_CODE = {"name": "Example Account of %s",
                              "description": "This is your Example Account",
                              "auth": {"type": "oauth2",
@@ -59,12 +66,6 @@ const DEFAULT_ONLINE_CODE = {"name": "Example Account of %s",
                              "types": ["online-account"],
                              "global-name": "example",
                              "triggers": {
-                                 "profile": {
-                                     "url": "https://www.example.com/api/1.0/profile",
-                                     "poll-interval": 86400000,
-                                     "args": ["username", "pictureUrl", "realName", "link"],
-                                     "doc": "trigger on user profile changes (once a day)"
-                                 },
                                  "onmessage": {
                                      "url": "wss://www.example.com/api/1.0/data",
                                      "args": ["message"],
@@ -77,6 +78,13 @@ const DEFAULT_ONLINE_CODE = {"name": "Example Account of %s",
                                      "args": ["message"],
                                      "doc": "post a new message",
                                  }
+                             },
+                             "queries": {
+                                "profile": {
+                                     "url": "https://www.example.com/api/1.0/profile",
+                                     "args": ["username", "pictureUrl", "realName", "link"],
+                                     "doc": "read the user profile"
+                                 },
                              }
                             };
 
@@ -128,6 +136,12 @@ function validateSchema(dbClient, type, ast, allowFailure) {
             if (!schemaCompatible(ast.actions[action].schema, types[1][action]))
                 throw new Error('Schema for ' + action + ' is not compatible with type ' + type);
         }
+        for (var query in (types[2] || {})) {
+            if (!(query in ast.queries))
+                throw new Error('Type ' + type + ' requires query ' + query);
+            if (!schemaCompatible(ast.queries[query].schema, (types[2] || {})[query]))
+                throw new Error('Schema for ' + query + ' is not compatible with type ' + type);
+        }
     });
 }
 
@@ -159,6 +173,8 @@ function validateDevice(dbClient, req) {
         ast.triggers = {};
     if (!ast.actions)
         ast.actions = {};
+    if (!ast.queries)
+        ast.queries = {};
     for (var name in ast.triggers) {
         if (!ast.triggers[name].schema)
             throw new Error("Missing trigger schema for " + name);
@@ -179,6 +195,16 @@ function validateDevice(dbClient, req) {
             ThingTalk.Type.fromString(t);
         });
     }
+    for (var name in ast.queries) {
+        if (!ast.queries[name].schema)
+            throw new Error("Missing query schema for " + name);
+        if ((ast.queries[name].args && ast.queries[name].args.length !== ast.queries[name].schema.length) ||
+            (ast.queries[name].params && ast.queries[name].params.length !== ast.queries[name].schema.length))
+            throw new Error("Invalid number of arguments in " + name);
+        ast.queries[name].schema.forEach(function(t) {
+            ThingTalk.Type.fromString(t);
+        });
+    }
 
     if (fullcode) {
         if (!ast.name)
@@ -191,7 +217,11 @@ function validateDevice(dbClient, req) {
         }
         for (var name in ast.actions) {
             if (!ast.actions[name].url)
-                throw new Error("Missing trigger url for " + name);
+                throw new Error("Missing action url for " + name);
+        }
+        for (var name in ast.queries) {
+            if (!ast.queries[name].url)
+                throw new Error("Missing query url for " + name);
         }
     } else if (!kind.startsWith('org.thingpedia.builtin.')) {
         if (!req.file || !req.file.buffer || !req.file.buffer.length)
@@ -208,22 +238,25 @@ function validateDevice(dbClient, req) {
 function ensurePrimarySchema(dbClient, kind, ast) {
     var triggers = {};
     var actions = {};
+    var queries = {};
 
     for (var name in ast.triggers)
         triggers[name] = ast.triggers[name].schema;
     for (var name in ast.actions)
         actions[name] = ast.actions[name].schema;
+    for (var name in ast.queries)
+        queries[name] = ast.queries[name].schema;
 
     return schema.getByKind(dbClient, kind).then(function(existing) {
         return schema.update(dbClient,
                              existing.id, { developer_version: existing.developer_version + 1,
                                             approved_version: existing.approved_version + 1},
-                             [triggers, actions]);
+                             [triggers, actions, queries]);
     }).catch(function(e) {
         return schema.create(dbClient, { developer_version: 0,
                                          approved_version: 0,
                                          kind: kind },
-                             [triggers, actions]);
+                             [triggers, actions, queries]);
     }).then(function() {
         if (!ast['global-name'])
             return;
@@ -232,12 +265,12 @@ function ensurePrimarySchema(dbClient, kind, ast) {
             return schema.update(dbClient,
                                  existing.id, { developer_version: existing.developer_version + 1,
                                                 approved_version: existing.approved_version + 1 },
-                                 [triggers, actions]);
+                                 [triggers, actions, queries]);
         }).catch(function(e) {
             return schema.create(dbClient, { developer_version: 0,
                                              approved_version: 0,
                                              kind: ast['global-name'] },
-                                 [triggers, actions]);
+                                 [triggers, actions, queries]);
         });
     });
 }

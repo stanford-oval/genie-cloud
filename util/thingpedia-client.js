@@ -153,7 +153,8 @@ module.exports = new lang.Class({
                             return;
                         obj[row.kind] = {
                             triggers: row.types[0],
-                            actions: row.types[1]
+                            actions: row.types[1],
+                            queries: (row.types[2] || {})
                         };
                     });
 
