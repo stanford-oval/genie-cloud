@@ -237,7 +237,7 @@ const EngineManager = new lang.Class({
         var engines = this._engines;
         var obj = { omletId: omletId, cloudId: cloudId, process: null, engine: null };
         engines[userId] = obj;
-        var die = (function() {
+        var die = (function(manual) {
             if (engines[userId] !== obj)
                 return;
             if (obj.omletId !== null)
@@ -245,14 +245,22 @@ const EngineManager = new lang.Class({
             WebhookDispatcher.get().removeClient(cloudId);
             this._frontend.unregisterWebSocketEndpoint('/ws/' + cloudId);
             obj.process.removeListener('die', die);
+            obj.process.removeListener('engine-removed', onRemoved);
             delete engines[userId];
+
+            if (!manual && obj.process.shared) {
+                // if the process died, some user might have been killed as a side effect
+                // set timeout to restart the user 10 s in the future
+                setTimeout(function() {
+                    this.restartUser(userId);
+                }.bind(this), 10000);
+            }
         }).bind(this);
         var onRemoved = function(deadCloudId) {
             if (cloudId !== deadCloudId)
                 return;
 
-            die();
-            obj.process.removeListener('engine-removed', onRemoved);
+            die(true);
         }
 
         return this._findProcessForUser(userId, cloudId, developerKey, forceSeparateProcess).then(function(process) {
