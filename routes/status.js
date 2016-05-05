@@ -16,7 +16,7 @@ const user = require('../util/user');
 const model = require('../model/user');
 const db = require('../util/db');
 
-const EngineManager = require('../enginemanager');
+const EngineManager = require('../lib/enginemanager');
 
 var router = express.Router();
 

@@ -5,9 +5,9 @@
 // Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
-const lang = require('lang');
 const events = require('events');
 const rpc = require('transparent-rpc');
 
@@ -15,12 +15,9 @@ const Engine = require('thingengine-core');
 const Assistant = require('./assistant');
 const PlatformModule = require('./platform');
 
-const ParentProcessSocket = new lang.Class({
-    Name: 'ParentProcessSocket',
-    Extends: events.EventEmitter,
-
-    _init: function() {
-        events.EventEmitter.call(this);
+class ParentProcessSocket extends events.EventEmitter {
+    constructor() {
+        super();
 
         process.on('message', function(message) {
             if (message.type !== 'rpc')
@@ -28,22 +25,22 @@ const ParentProcessSocket = new lang.Class({
 
             this.emit('data', message.data);
         }.bind(this));
-    },
+    }
 
-    setEncoding: function() {},
+    setEncoding() {}
 
-    end: function() {
+    end() {
         this.emit('end');
-    },
+    }
 
-    close: function() {
+    close() {
         this.emit('close', false);
-    },
+    }
 
-    write: function(data, encoding, callback) {
+    write(data, encoding, callback) {
         process.send({ type: 'rpc', data: data }, null, callback);
     }
-});
+}
 
 var _engines = [];
 var _stopped = false;
@@ -79,16 +76,13 @@ function runEngine(cloudId, authToken, developerKey, thingpediaClient) {
             obj.running = true;
             engine.assistant.start().done();
 
-            // delay actually starting the engine to avoid races with initialization
-            return Q.delay(10000).then(function() {
-                if (_stopped)
-                    return engine.close();
-                _engines.push(obj);
-                return engine.run();
-            }).finally(function() {
-                engine.assistant.stop().done();
+            if (_stopped)
                 return engine.close();
-            });
+            _engines.push(obj);
+            return engine.run();
+        }).then(function() {
+            engine.assistant.stop().done();
+            return engine.close();
         }).catch(function(e) {
             console.error('Engine ' + cloudId + ' had a fatal error: ' + e.message);
             console.error(e.stack);

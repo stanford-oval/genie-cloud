@@ -8,8 +8,6 @@
 
 const express = require('express');
 var router = express.Router();
-const user = require('../util/user');
-const db = require('../util/db');
 const fs = require('fs');
 const path = require('path');
 

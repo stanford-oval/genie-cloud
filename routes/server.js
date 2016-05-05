@@ -9,8 +9,8 @@
 const express = require('express');
 const passport = require('passport');
 
-const EngineManager = require('../enginemanager');
-const WebhookDispatcher = require('../webhookdispatcher');
+const EngineManager = require('../lib/enginemanager');
+const WebhookDispatcher = require('../lib/webhookdispatcher');
 
 var router = express.Router();
 

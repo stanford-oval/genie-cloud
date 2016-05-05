@@ -14,7 +14,7 @@ const user = require('../util/user');
 const userModel = require('../model/user');
 const feeds = require('../shared/util/feeds');
 const thingpediaApps = require('../model/app');
-const EngineManager = require('../enginemanager');
+const EngineManager = require('../lib/enginemanager');
 
 const ThingTalk = require('thingtalk');
 const AppCompiler = ThingTalk.Compiler;

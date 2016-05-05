@@ -21,7 +21,7 @@ const category = require('../model/category');
 const schema = require('../model/schema');
 const feeds = require('../shared/util/feeds');
 
-const EngineManager = require('../enginemanager');
+const EngineManager = require('../lib/enginemanager');
 
 function SchemaRetriever() {
     this._request = null;

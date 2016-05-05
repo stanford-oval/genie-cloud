@@ -1,18 +1,17 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of Stanford MPortal
+// This file is part of ThingPedia
 //
-// Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
-const lang = require('lang');
 const events = require('events');
 
-const omclient = require('omclient').client;
 // GIANT HACK
-const LDProto = require('omclient/lib/ldproto');
+const LDProto = require('omlib/lib/ldproto');
 
 const Tp = require('thingpedia');
 
@@ -34,23 +33,17 @@ function arrayEqual(a, b) {
     return true;
 }
 
-const OmletUser = new lang.Class({
-    Name: 'OmletUser',
-    Extends: Tp.Messaging.User,
-
-    _init: function(id, o) {
+class OmletUser {
+    constructor(id, o) {
         this.id = id;
         this.account = o.account;
         this.name = o.name;
     }
-});
+}
 
-const Feed = new lang.Class({
-    Name: 'Feed',
-    Extends: Tp.Messaging.Feed,
-
-    _init: function(messaging, feedId) {
-        this.parent(feedId);
+class Feed extends Tp.Messaging.Feed {
+    constructor(messaging, feedId) {
+        super(feedId);
 
         this._messaging = messaging;
         this._client = messaging.client;
@@ -62,9 +55,9 @@ const Feed = new lang.Class({
         this._memberList = [];
         this._members = [];
         this.name = null;
-    },
+    }
 
-    _onInsert: function(o) {
+    _onInsert(o) {
         if (o.serverTimestamp < this._lastMessage)
             return;
         this._lastMessage = o.serverTimestamp;
@@ -73,9 +66,9 @@ const Feed = new lang.Class({
             this.emit('incoming-message', o);
         else
             this.emit('outgoing-message', o);
-    },
+    }
 
-    _updateMembers: function() {
+    _updateMembers() {
         if (arrayEqual(this._memberList, this._feed.members))
             return Q();
         this._memberList = this._feed.members.slice();
@@ -97,9 +90,9 @@ const Feed = new lang.Class({
 
             console.log('New feed members', users.map(function(u) { return u.name; }));
         }.bind(this));
-    },
+    }
 
-    _updateName: function() {
+    _updateName() {
         if (this._feed.name) {
             this.name = this._feed.name;
         } else if (this._members.length < 2) {
@@ -107,9 +100,9 @@ const Feed = new lang.Class({
         } else {
             this.name = this._members[1].name;
         }
-    },
+    }
 
-    update: function(feed) {
+    update(feed) {
         this._feed = feed;
 
         Q.try(function() {
@@ -124,9 +117,9 @@ const Feed = new lang.Class({
             this._updateName();
             this.emit('changed');
         }.bind(this)).done();
-    },
+    }
 
-    _doOpen: function() {
+    _doOpen() {
         console.log('Opening feed with ID ' + this.feedId);
 
         return this._messaging.getOwnId().then(function(ownId) {
@@ -143,41 +136,41 @@ const Feed = new lang.Class({
             this._insertListener = this._onInsert.bind(this);
             this._db._data.on('insert', this._insertListener);
         }.bind(this));
-    },
+    }
 
-    _doClose: function() {
+    _doClose() {
         if (this._insertListener)
             this._db._data.removeListener('insert', this._insertListener);
         this._insertListener = null;
         this._messaging.feedClosed(this.feedId);
 
         return Q();
-    },
+    }
 
-    _getFeed: function() {
+    _getFeed() {
         return oinvoke(this._client.store, 'getFeeds').then(function(db) {
             return oinvoke(db, 'getObjectByKey', this.feedId);
         }.bind(this)).then(function(o) {
             return o;
         }.bind(this));
-    },
+    }
 
-    getMembers: function() {
+    getMembers() {
         return this._members;
-    },
+    }
 
-    sendText: function(text) {
-        return Q.ninvoke(this._client.messaging, '_sendObjToFeed', this._feed, 'text',
+    sendText(text) {
+        return Q.ninvoke(this._client._ldClient.messaging, '_sendObjToFeed', this._feed, 'text',
                          { text: text });
-    },
+    }
 
-    sendPicture: function(url) {
+    sendPicture(url) {
         if (typeof url === 'string') {
             if (url.startsWith('http')) {
                 return Tp.Helpers.Http.get(url, { raw: true }).spread(function(data, contentType) {
-                    return Q.ninvoke(this._client.messaging, '_pictureObjFromBytes', data, contentType);
+                    return Q.ninvoke(this._client._ldClient.messaging, '_pictureObjFromBytes', data, contentType);
                 }.bind(this)).spread(function(objType, obj) {
-                    return Q.ninvoke(this._client.messaging, '_sendObjToFeed',
+                    return Q.ninvoke(this._client._ldClient.messaging, '_sendObjToFeed',
                                      this._feed, objType, obj);
                 }.bind(this));
             } else {
@@ -192,60 +185,60 @@ const Feed = new lang.Class({
         } else {
             throw new TypeError('Invalid type for call to sendPicture, must be string or buffer');
         }
-    },
+    }
 
-    sendItem: function(item) {
+    sendItem(item) {
         var silent = true;
-        return Q.ninvoke(this._client.messaging, '_sendObjToFeed', this._feed, 'text',
+        return Q.ninvoke(this._client._ldClient.messaging, '_sendObjToFeed', this._feed, 'text',
                          { text: JSON.stringify(item), silent: silent,
                            hidden: silent });
-    },
+    }
 
-    sendRaw: function(rawItem) {
-        return Q.ninvoke(this._client.messaging, '_sendObjToFeed', this._feed, rawItem.type,
+    sendRaw(rawItem) {
+        return Q.ninvoke(this._client._ldClient.messaging, '_sendObjToFeed', this._feed, rawItem.type,
                          rawItem);
     }
-});
+}
 
-module.exports = new lang.Class({
-    Name: 'Messaging',
-    Extends: Tp.Messaging,
-
-    _init: function(client) {
-        this.parent();
-
+module.exports = class Messaging extends Tp.Messaging {
+    constructor(client) {
+        super();
         this.client = client;
         this._feeds = {};
-    },
+    }
 
-    _onFeedRemoved: function(o) {
+    get account() {
+        return this.client.auth.getAccount();
+    }
+
+    _onFeedRemoved(o) {
         this.emit('feed-removed', o.identifier);
         delete this._feeds[o.identifier];
-    },
+    }
 
-    _onFeedChanged: function(o) {
+    _onFeedChanged(o) {
         var feed = this._feeds[o.identifier];
         if (feed)
             feed.update(o);
         this.emit('feed-changed', o.identifier);
-    },
+    }
 
-    _onFeedAdded: function(o) {
+    _onFeedAdded(o) {
         this.emit('feed-added', o.identifier);
-    },
+    }
 
-    feedClosed: function(identifier) {
+    feedClosed(identifier) {
         delete this._feeds[identifier];
-    },
+    }
 
-    getFeed: function(feedId) {
+    getFeed(feedId) {
         if (feedId in this._feeds)
             return this._feeds[feedId];
 
         return this._feeds[feedId] = new Feed(this, feedId);
-    },
+    }
 
-    start: function() {
+    start() {
         return oinvoke(this.client.store, 'getFeeds').then(function(db) {
             this._feedRemovedListener = this._onFeedRemoved.bind(this);
             this._feedChangedListener = this._onFeedChanged.bind(this);
@@ -258,25 +251,25 @@ module.exports = new lang.Class({
         }.bind(this)).then(function(ownId) {
             this.ownId = ownId;
         }.bind(this));
-    },
+    }
 
-    stop: function() {
+    stop() {
         return oinvoke(this.client.store, 'getFeeds').then(function(db) {
             db._data.removeListener('delete', this._feedRemovedListener);
             db._data.removeListener('update', this._feedChangedListener);
             db._data.removeListener('insert', this._feedAddedListener);
         }.bind(this));
-    },
+    }
 
-    getOwnId: function() {
+    getOwnId() {
         return oinvoke(this.client.store, 'getAccounts').then(function(db) {
             return db._data.find({ owned: true }).map(function(o) {
                 return this.client.store.getObjectId(o);
             }, this)[0];
         }.bind(this));
-    },
+    }
 
-    getUserById: function(id) {
+    getUserById(id) {
         return oinvoke(this.client.store, 'getAccounts').then(function(db) {
             return oinvoke(db, 'getObjectById', id).then(function(o) {
                 if (!o)
@@ -284,63 +277,63 @@ module.exports = new lang.Class({
                 return new OmletUser(this.client.store.getObjectId(o), o);
             }.bind(this));
         }.bind(this));
-    },
+    }
 
-    getAccountById: function(id) {
+    getAccountById(id) {
         return oinvoke(this.client.store, 'getAccounts').then(function(db) {
             return oinvoke(db, 'getObjectById', id).then(function(o) {
                 return o.account;
             });
         }.bind(this));
-    },
+    }
 
-    getAccountNameById: function(id) {
+    getAccountNameById(id) {
         return oinvoke(this.client.store, 'getAccounts').then(function(db) {
             return oinvoke(db, 'getObjectById', id).then(function(o) {
                 return o.name;
             });
         }.bind(this));
-    },
+    }
 
-    getFeedList: function() {
+    getFeedList() {
         return oinvoke(this.client.store, 'getFeeds').then(function(db) {
             var data = db._data.find();
             return data.map(function(d) {
                 return d.identifier;
             });
         }.bind(this));
-    },
+    }
 
-    createFeed: function() {
-        return Q.ninvoke(this.client.feed, 'createFeed').then(function(feed) {
+    createFeed() {
+        return Q.ninvoke(this.client.feeds, 'createFeed').then(function(feed) {
             return new OmletFeed(this, feed.identifier);
         }.bind(this));
-    },
+    }
 
-    addAccountToContacts: function(contactId) {
-        return oinvoke(this.client.identity, '_addAccountToContacts', contactId);
-    },
+    addAccountToContacts(contactId) {
+        return oinvoke(this.client._ldClient.identity, '_addAccountToContacts', contactId);
+    }
 
-    getFeedWithContact: function(contactId) {
-        return Q.ninvoke(this.client.feed, 'getOrCreateFeedWithMembers', [contactId]).spread(function(feed, existing) {
+    getFeedWithContact(contactId) {
+        return Q.ninvoke(this.client.feeds, 'getOrCreateFeedWithAccounts', [contactId]).spread(function(feed, existing) {
             if (existing)
                 console.log('Reusing feed ' + feed.identifier + ' with ' + contactId);
             else
                 console.log('Created feed ' + feed.identifier + ' with ' + contactId);
             return this.getFeed(feed.identifier);
         }.bind(this));
-    },
+    }
 
-    leaveFeed: function(feedId) {
+    leaveFeed(feedId) {
         return oinvoke(this.client.store, 'getFeeds').then(function(db) {
             return oinvoke(db, 'getObjectByKey', feedId).then(function(feed) {
-                var ldFeed = this.client.feed.getLDFeed(feed);
-                var account = this.client.account;
+                var ldFeed = this.client._ldClient.feed.getLDFeed(feed);
+                var account = this.client.auth.getAccount();
                 var req = new LDProto.LDRemoveMemberRequest();
                 req.Feed = ldFeed;
                 req.Member = account;
                 return Q.Promise(function(callback, errback) {
-                    return this.client._msg.call(req, function(err, resp) {
+                    return this.client._ldClient._msg.call(req, function(err, resp) {
                         if (err)
                             errback(err);
                         else
@@ -356,5 +349,5 @@ module.exports = new lang.Class({
             }.bind(this));
         }.bind(this));
     }
-});
+}
 

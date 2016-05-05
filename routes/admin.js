@@ -20,8 +20,8 @@ function makeRandom() {
     return crypto.randomBytes(32).toString('hex');
 }
 
-const EngineManager = require('../enginemanager');
-const AssistantDispatcher = require('../assistantdispatcher');
+const EngineManager = require('../lib/enginemanager');
+const AssistantDispatcher = require('../assistant/dispatcher');
 
 var router = express.Router();
 

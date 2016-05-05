@@ -17,7 +17,7 @@ const db = require('../util/db');
 
 var TITLE = "ThingPedia";
 
-const EngineManager = require('../enginemanager');
+const EngineManager = require('../lib/enginemanager');
 
 var router = express.Router();
 

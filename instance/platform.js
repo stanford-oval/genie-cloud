@@ -5,23 +5,23 @@
 // Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-// Server platform
+// Cloud platform
 
 const Q = require('q');
 const fs = require('fs');
 const os = require('os');
 const child_process = require('child_process');
-const lang = require('lang');
 
 // FIXME we should not punch through the abstraction
-const sql = require('thingengine-core/lib/db/sql');
-const prefs = require('thingengine-core/lib/prefs');
+const sql = require('thingengine-core/lib/util/sql');
+const prefs = require('thingengine-core/lib/util/prefs');
 
 const graphics = require('./graphics');
 
 var _unzipApi = {
-    unzip: function(zipPath, dir) {
+    unzip(zipPath, dir) {
         var args = ['-uo', zipPath, '-d', dir];
         return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args, {
             maxBuffer: 10 * 1024 * 1024 }).then(function(zipResult) {
@@ -33,38 +33,34 @@ var _unzipApi = {
     }
 };
 
-const FrontendDispatcher = new lang.Class({
-    Name: 'FrontendDispatcher',
-    $rpcMethods: ['handleCallback'],
-
-    _init: function() {
+class FrontendDispatcher {
+    constructor() {
         this._webhooks = {};
         this._websockets = {};
-    },
+    }
 
-    addCloudId: function(cloudId, webhook, websocket) {
+    addCloudId(cloudId, webhook, websocket) {
         this._webhooks[cloudId] = webhook;
         this._websockets[cloudId] = websocket;
-    },
+    }
 
-    handleCallback: function(cloudId, id, method, query, headers, payload) {
+    handleCallback(cloudId, id, method, query, headers, payload) {
         this._webhooks[cloudId].handleCallback(id, method, query, headers, payload);
-    },
+    }
 
-    handleWebsocket: function(cloudId, req, upgradeHead, socket) {
+    handleWebsocket(cloudId, req, upgradeHead, socket) {
         this._websockets[cloudId].handle(req, upgradeHead, socket);
     }
-});
+}
+FrontendDispatcher.prototype.$rpcMethods = ['handleCallback'];
 
-const WebhookApi = new lang.Class({
-    Name: 'WebhookApi',
-
-    _init: function(cloudId) {
+class WebhookApi {
+    constructor(cloudId) {
         this._hooks = {};
         this._cloudId = cloudId;
-    },
+    }
 
-    handleCallback: function(id, method, query, headers, payload) {
+    handleCallback(id, method, query, headers, payload) {
         return Q.try(function() {
             if (id in this._hooks)
                 return this._hooks[id](method, query, headers, payload);
@@ -74,45 +70,40 @@ const WebhookApi = new lang.Class({
             console.error(e.stack);
             throw e;
         });
-    },
+    }
 
-    getWebhookBase: function() {
+    getWebhookBase() {
         return module.exports.getOrigin() + '/api/webhook/' + this._cloudId;
-    },
+    }
 
-    registerWebhook: function(id, callback) {
+    registerWebhook(id, callback) {
         if (id in this._hooks)
             throw new Error('Duplicate webhook ' + id + ' registered');
 
         this._hooks[id] = callback;
-    },
+    }
 
-    unregisterWebhook: function(id) {
+    unregisterWebhook(id) {
         delete this._hooks[id];
     }
-});
+}
 
-const WebsocketApi = new lang.Class({
-    Name: 'WebsocketApi',
-
-    _init: function() {
+class WebsocketApi {
+    constructor() {
         this._handler = null;
-    },
+    }
 
-    setHandler: function(handler) {
+    setHandler(handler) {
         this._handler = handler;
-    },
+    }
 
-    handle: function(req, upgradeHead, socket) {
+    handle(req, upgradeHead, socket) {
         this._handler(req, upgradeHead, socket);
     }
-});
+}
 
-const Platform = new lang.Class({
-    Name: 'Platform',
-    type: 'cloud',
-
-    _init: function(cloudId, authToken, developerKey, thingpediaClient) {
+class Platform {
+    constructor(cloudId, authToken, developerKey, thingpediaClient) {
         this._cloudId = cloudId;
         this._authToken = authToken;
         this._developerKey = developerKey;
@@ -134,32 +125,32 @@ const Platform = new lang.Class({
         this._websocketApi = new WebsocketApi();
         this._webhookApi = new WebhookApi();
         _dispatcher.addCloudId(cloudId, this._webhookApi, this._websocketApi);
-    },
+    }
 
-    start: function() {
+    start() {
         return sql.ensureSchema(this._writabledir + '/sqlite.db',
-                                'schema.sql');
-    },
+                                '../data/schema.sql');
+    }
 
     // Obtain a shared preference store
     // Preferences are simple key/value store which is shared across all apps
     // but private to this instance (tier) of the platform
     // Preferences should be normally used only by the engine code, and a persistent
     // shared store such as DataVault should be used by regular apps
-    getSharedPreferences: function() {
+    getSharedPreferences() {
         return this._prefs;
-    },
+    }
 
-    getCloudId: function() {
+    getCloudId() {
         return this._cloudId;
-    },
+    }
 
     // Check if this platform has the required capability
     // (eg. long running, big storage, reliable connectivity, server
     // connectivity, stable IP, local device discovery, bluetooth, etc.)
     //
     // Which capabilities are available affects which apps are allowed to run
-    hasCapability: function(cap) {
+    hasCapability(cap) {
         switch(cap) {
         case 'code-download':
             // If downloading code from the thingpedia server is allowed on
@@ -180,13 +171,13 @@ const Platform = new lang.Class({
         default:
             return false;
         }
-    },
+    }
 
     // Retrieve an interface to an optional functionality provided by the
     // platform
     //
     // This will return null if hasCapability(cap) is false
-    getCapability: function(cap) {
+    getCapability(cap) {
         switch(cap) {
         case 'code-download':
             // We have the support to download code
@@ -207,87 +198,84 @@ const Platform = new lang.Class({
         default:
             return null;
         }
-    },
+    }
 
     // Get the root of the application
     // (In android, this is the virtual root of the APK)
-    getRoot: function() {
+    getRoot() {
         return process.cwd();
-    },
+    }
 
     // Get a directory that is guaranteed to be writable
     // (in the private data space for Android, in the current directory for server)
-    getWritableDir: function() {
+    getWritableDir() {
         return this._writabledir;
-    },
+    }
 
     // Get a directory good for long term caching of code
     // and metadata
-    getCacheDir: function() {
+    getCacheDir() {
         return this._writabledir + '/cache';
-    },
+    }
 
     // Make a symlink potentially to a file that does not exist physically
-    makeVirtualSymlink: function(file, link) {
+    makeVirtualSymlink(file, link) {
         fs.symlinkSync(file, link);
-    },
+    }
 
     // Get a temporary directory
     // Also guaranteed to be writable, but not guaranteed
     // to persist across reboots or for long times
     // (ie, it could be periodically cleaned by the system)
-    getTmpDir: function() {
+    getTmpDir() {
         return os.tmpdir();
-    },
+    }
 
     // Get the filename of the sqlite database
-    getSqliteDB: function() {
+    getSqliteDB() {
         return this._writabledir + '/sqlite.db';
-    },
+    }
 
-    // Stop the main loop and exit
-    // (In Android, this only stops the node.js thread)
-    // This function should be called by the platform integration
-    // code, after stopping the engine
-    exit: function() {
-        return process.exit();
-    },
+    getGraphDB() {
+        return this._writabledir + '/rdf.db';
+    }
 
     // Get the ThingPedia developer key, if one is configured
-    getDeveloperKey: function() {
+    getDeveloperKey() {
         return this._developerKey;
-    },
+    }
 
     // Change the ThingPedia developer key, if possible
     // Returns true if the change actually happened
-    setDeveloperKey: function() {
+    setDeveloperKey() {
         return false;
-    },
+    }
 
     // Return a server/port URL that can be used to refer to this
     // installation. This is primarily used for OAuth redirects, and
     // so must match what the upstream services accept.
-    getOrigin: function() {
+    getOrigin() {
         // Xor these comments for testing
         //return 'http://127.0.0.1:8080';
         return 'https://thingengine.stanford.edu';
-    },
+    }
 
-    getCloudId: function() {
+    getCloudId() {
         return this._cloudId;
-    },
+    }
 
     // Change the auth token
     // Returns true if a change actually occurred, false if the change
     // was rejected
-    setAuthToken: function(authToken) {
+    setAuthToken(authToken) {
         var oldAuthToken = this._prefs.get('auth-token');
         if (oldAuthToken !== undefined && authToken !== oldAuthToken)
             return false;
         this._prefs.set('auth-token', authToken);
         return true;
     }
-});
+}
+Platform.prototype.type = 'cloud';
 
 var _shared;
 var _dispatcher = new FrontendDispatcher();
@@ -295,7 +283,7 @@ var _dispatcher = new FrontendDispatcher();
 module.exports = {
     // Initialize the platform code
     // Will be called before instantiating the engine
-    init: function(shared) {
+    init(shared) {
         _shared = shared;
     },
 
@@ -305,12 +293,12 @@ module.exports = {
 
     dispatcher: _dispatcher,
 
-    newInstance: function(cloudId, authToken, developerKey, thingpediaClient) {
+    newInstance(cloudId, authToken, developerKey, thingpediaClient) {
         return new Platform(cloudId, authToken, developerKey, thingpediaClient);
     },
 
     // for compat with existing code that does platform.getOrigin()
-    getOrigin: function() {
+    getOrigin() {
         // Xor these comments for testing
         //return 'http://127.0.0.1:8080';
         return 'https://thingengine.stanford.edu';
@@ -319,7 +307,7 @@ module.exports = {
     // Check if this platform has the required capability
     // This is only about caps that don't consider the current context
     // for compat with existing code
-    hasCapability: function(cap) {
+    hasCapability(cap) {
         switch(cap) {
         case 'code-download':
         case 'graphics-api':
@@ -333,7 +321,7 @@ module.exports = {
     // Check if this platform has the required capability
     // This is only about caps that don't consider the current context
     // for compat with existing code
-    getCapability: function(cap) {
+    getCapability(cap) {
         switch(cap) {
         case 'code-download':
             return _unzipApi;
@@ -342,5 +330,13 @@ module.exports = {
         default:
             return null;
         }
+    },
+
+    // Stop the main loop and exit
+    // (In Android, this only stops the node.js thread)
+    // This function should be called by the platform integration
+    // code, after stopping the engine
+    exit() {
+        return process.exit();
     },
 };

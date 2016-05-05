@@ -14,7 +14,7 @@ const os = require('os');
 const child_process = require('child_process');
 
 // FIXME we should not punch through the abstraction
-const prefs = require('thingengine-core/lib/prefs');
+const prefs = require('thingengine-core/lib/util/prefs');
 
 const graphics = require('./instance/graphics');
 
@@ -105,8 +105,8 @@ module.exports = {
     // so must match what the upstream services accept.
     getOrigin: function() {
         // Xor these comments for testing
-        //return 'http://127.0.0.1:8080';
-        return 'https://thingengine.stanford.edu';
+        return 'http://127.0.0.1:8080';
+        //return 'https://thingengine.stanford.edu';
     },
 
     setAuthToken: function(authToken) {

@@ -14,7 +14,7 @@ const db = require('../util/db');
 const category = require('../model/category');
 const device = require('../model/device');
 
-const EngineManager = require('../enginemanager');
+const EngineManager = require('../lib/enginemanager');
 
 router.get('/', function(req, res, next) {
     db.withTransaction(function(dbClient) {

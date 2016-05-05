@@ -14,11 +14,7 @@ all: platform_config.js
 	# remove duplicate copy of thingtalk
 	# we cannot rely on npm dedupe because we're playing submodule tricks
 	rm -fr node_modules/sabrina/node_modules/thingtalk
-	# remove duplicate copy of omclient
-	# we cannot rely on npm dedupe because it's a tarball module and it craps itself
-	rm -fr node_modules/thingpedia-builtins/node_modules/omclient
 	npm install
-	npm dedupe
 
 platform_config.js:
 	echo "exports.PKGLIBDIR = '$(prefix)'; exports.LOCALSTATEDIR = '$(localstatedir)';" > platform_config.js

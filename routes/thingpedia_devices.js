@@ -15,7 +15,7 @@ const model = require('../model/device');
 const user = require('../util/user');
 const organization = require('../model/organization');
 
-const EngineManager = require('../enginemanager');
+const EngineManager = require('../lib/enginemanager');
 
 var router = express.Router();
 
