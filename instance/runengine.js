@@ -9,35 +9,28 @@
 
 const Q = require('q');
 const events = require('events');
+const stream = require('stream');
 const rpc = require('transparent-rpc');
 
 const Engine = require('thingengine-core');
 const Assistant = require('./assistant');
 const PlatformModule = require('./platform');
 
-class ParentProcessSocket extends events.EventEmitter {
+class ParentProcessSocket extends stream.Duplex {
     constructor() {
-        super();
+        super({ objectMode: true });
 
         process.on('message', function(message) {
             if (message.type !== 'rpc')
                 return;
 
-            this.emit('data', message.data);
+            this.push(message.data);
         }.bind(this));
     }
 
-    setEncoding() {}
+    _read() {}
 
-    end() {
-        this.emit('end');
-    }
-
-    close() {
-        this.emit('close', false);
-    }
-
-    write(data, encoding, callback) {
+    _write(data, encoding, callback) {
         process.send({ type: 'rpc', data: data }, null, callback);
     }
 }
