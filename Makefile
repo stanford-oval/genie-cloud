@@ -11,10 +11,10 @@ all: platform_config.js
 	cd node_modules/thingpedia-discovery ; npm install --no-optional --only=prod
 	cd node_modules/thingpedia-builtins ; npm install --no-optional --only=prod
 	cd node_modules/thingtalk ; npm install --no-optional --only=prod
+	npm install --no-optional --only=prod
 	# remove duplicate copy of thingtalk
 	# we cannot rely on npm dedupe because we're playing submodule tricks
 	rm -fr node_modules/sabrina/node_modules/thingtalk
-	npm install
 
 platform_config.js:
 	echo "exports.PKGLIBDIR = '$(prefix)'; exports.LOCALSTATEDIR = '$(localstatedir)';" > platform_config.js

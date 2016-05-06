@@ -5,9 +5,9 @@
 // Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
-const lang = require('lang');
 
 const ThingPediaDiscovery = require('thingpedia-discovery');
 
@@ -27,42 +27,34 @@ const LEGACY_MAPS = {
     'facebook': 'com.facebook'
 };
 
-const ThingPediaDiscoveryDatabase = new lang.Class({
-    Name: 'ThingPediaDiscoveryDatabase',
-
-    _init: function() {},
-
-    getByAnyKind: function(kind) {
+class ThingPediaDiscoveryDatabase {
+    getByAnyKind(kind) {
         return db.withClient(function(dbClient) {
             return device.getByAnyKind(dbClient, kind);
         });
-    },
+    }
 
-    getAllKinds: function(deviceId) {
+    getAllKinds(deviceId) {
         return db.withClient(function(dbClient) {
             return device.getAllKinds(dbClient, deviceId);
         });
-    },
+    }
 
-    getByPrimaryKind: function(kind) {
+    getByPrimaryKind(kind) {
         return db.withClient(function(dbClient) {
             return device.getByPrimaryKind(dbClient, kind);
         });
     }
-});
+}
 
 var _discoveryServer = new ThingPediaDiscovery.Server(new ThingPediaDiscoveryDatabase());
 
-module.exports = new lang.Class({
-    Name: 'ThingPediaClientCloud',
-    $rpcMethods: ['getModuleLocation', 'getDeviceCode',
-                  'getSchemas', 'getKindByDiscovery'],
-
-    _init: function(developerKey) {
+module.exports = class ThingPediaClientCloud {
+    constructor(developerKey) {
         this.developerKey = developerKey;
-    },
+    }
 
-    getModuleLocation: function(kind) {
+    getModuleLocation(kind) {
         if (kind in LEGACY_MAPS)
             kind = LEGACY_MAPS[kind];
 
@@ -93,9 +85,9 @@ module.exports = new lang.Class({
                     });
             });
         });
-    },
+    }
 
-    getDeviceCode: function(kind) {
+    getDeviceCode(kind) {
         if (kind in LEGACY_MAPS)
             kind = LEGACY_MAPS[kind];
 
@@ -129,9 +121,9 @@ module.exports = new lang.Class({
                     });
             });
         });
-    },
+    }
 
-    getSchemas: function(schemas) {
+    getSchemas(schemas) {
         var developerKey = this.developerKey;
 
         return db.withClient(function(dbClient) {
@@ -162,9 +154,11 @@ module.exports = new lang.Class({
                 });
             });
         });
-    },
+    }
 
-    getKindByDiscovery: function(body) {
+    getKindByDiscovery(body) {
         return _discoveryServer.decode(body);
     }
-});
+}
+module.exports.prototype.$rpcMethods = ['getModuleLocation', 'getDeviceCode',
+                                        'getSchemas', 'getKindByDiscovery'];

@@ -3,7 +3,6 @@ platform_config.js
 home/
 
 node_modules/*/
-!node_modules/lang.js
 !node_modules/sabrina
 !node_modules/thingengine-core
 !node_modules/thingpedia
