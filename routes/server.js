@@ -22,17 +22,6 @@ router.post('/login', passport.authenticate('local', { session: false }), functi
     });
 });
 
-router.post('/ui-command', passport.authenticate('bearer', { session: false }), function(req, res, next) {
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        req.body.tier = 'cloud';
-        return engine.ui.injectUIEvent(req.body);
-    }).then(function() {
-        res.json({ result: 'ok' });
-    }).catch(function(e) {
-        res.json({ error: e.message, code: e.code });
-    }).done();
-});
-
 router.use('/oauth2', require('./oauth2'));
 
 router.post('/webhook/:cloud_id/:id', function(req, res) {
