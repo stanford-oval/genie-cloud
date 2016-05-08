@@ -145,6 +145,21 @@ class Platform {
         return this._cloudId;
     }
 
+    // Check if we need to load and run the given thingengine-module on
+    // this platform
+    // (eg we don't need discovery on the cloud, and we don't need graphdb,
+    // messaging or the apps on the phone client)
+    hasFeature(feature) {
+        switch(feature) {
+        // we would like to disable discovery but unfortunately discovery
+        // is also used for the global sportradar loading, so we just enable
+        // everything
+
+        default:
+            return true;
+        }
+    }
+
     // Check if this platform has the required capability
     // (eg. long running, big storage, reliable connectivity, server
     // connectivity, stable IP, local device discovery, bluetooth, etc.)
