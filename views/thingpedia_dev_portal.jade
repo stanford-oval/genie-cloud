@@ -60,7 +60,7 @@ block content
         div.panel.panel-default
           a(href='/thingpedia/devices/details/' + dev.id).panel-heading= dev.name
           div.panel-body= dev.description
-          if authenticated && (user.developer_status >= 3 || dev.owner === user.id)
+          if authenticated && (user.developer_status >= 3 || dev.owner === user.developer_org)
             div.panel-footer
               div.row
                 //div.col-md-6
