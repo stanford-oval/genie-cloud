@@ -117,10 +117,6 @@ class Platform {
                 throw e;
         }
         this._prefs = new prefs.FilePreferences(this._writabledir + '/prefs.db');
-        if (this._prefs.get('cloud-id') === undefined)
-            this._prefs.set('cloud-id', cloudId);
-        if (this._prefs.get('auth-token') === undefined)
-            this._prefs.set('auth-token', authToken);
 
         this._websocketApi = new WebsocketApi();
         this._webhookApi = new WebhookApi();
@@ -279,15 +275,17 @@ class Platform {
         return this._cloudId;
     }
 
+    getAuthToken() {
+        return this._authToken;
+    }
+
     // Change the auth token
     // Returns true if a change actually occurred, false if the change
     // was rejected
     setAuthToken(authToken) {
-        var oldAuthToken = this._prefs.get('auth-token');
-        if (oldAuthToken !== undefined && authToken !== oldAuthToken)
-            return false;
-        this._prefs.set('auth-token', authToken);
-        return true;
+        // the auth token is stored outside in the mysql db, we can never
+        // change it
+        return false;
     }
 }
 Platform.prototype.type = 'cloud';
