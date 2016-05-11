@@ -67,12 +67,14 @@ function getAllDevices(engine) {
         return Q.all(devices.map(function(d) {
             return Q.all([d.uniqueId, d.name, d.description, d.state, d.ownerTier,
                           d.checkAvailable(),
+                          d.isTransient,
                           d.hasKind('online-account'),
                           d.hasKind('data-source'),
                           d.hasKind('thingengine-system')])
                 .spread(function(uniqueId, name, description, state,
                                  ownerTier,
                                  available,
+                                 isTransient,
                                  isOnlineAccount,
                                  isDataSource,
                                  isThingEngine) {
@@ -81,6 +83,7 @@ function getAllDevices(engine) {
                              kind: state.kind,
                              ownerTier: ownerTier,
                              available: available,
+                             isTransient: isTransient,
                              isOnlineAccount: isOnlineAccount,
                              isDataSource: isDataSource,
                              isThingEngine: isThingEngine };

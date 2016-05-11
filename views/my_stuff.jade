@@ -52,14 +52,15 @@ mixin device_list(devices, online, datasource)
                   | Please check it is powered on and correctly configured.
           div.panel-footer
             div.row
-              div.col-md-6
-                form.form-inline(action="/devices/delete",method="post").form-delete-app
-                  input(type='hidden',name='id',value=dev.uniqueId)
-                  input(type='hidden',name='_csrf',value=csrfToken)
-                  if datasource
-                    button(type='submit').btn.btn-danger.btn-sm.btn-block Disable
-                  else
-                    button(type='submit').btn.btn-danger.btn-sm.btn-block Forget
+              if !dev.isTransient
+                div.col-md-6
+                  form.form-inline(action="/devices/delete",method="post").form-delete-app
+                    input(type='hidden',name='id',value=dev.uniqueId)
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    if datasource
+                      button(type='submit').btn.btn-danger.btn-sm.btn-block Disable
+                    else
+                      button(type='submit').btn.btn-danger.btn-sm.btn-block Forget
 
 mixin thingpedia_apps(apps, visible)
   div.row
