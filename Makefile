@@ -7,9 +7,7 @@ all: platform_config.js
 	make -C node_modules/thingengine-core all
 	make -C node_modules/sabrina all
 	cd node_modules/thingpedia ; npm install --no-optional --only=prod
-	cd node_modules/thingpedia-client ; npm install --no-optional --only=prod
 	cd node_modules/thingpedia-discovery ; npm install --no-optional --only=prod
-	cd node_modules/thingpedia-builtins ; npm install --no-optional --only=prod
 	cd node_modules/thingtalk ; npm install --no-optional --only=prod
 	npm install --no-optional --only=prod
 	# remove duplicate copy of thingtalk
