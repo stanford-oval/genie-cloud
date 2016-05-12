@@ -12,7 +12,7 @@
 const Q = require('q');
 const gm = require('gm');
 
-class GraphicsAPI {
+class Image {
     constructor(how) {
         this._gm = gm(how);
     }
