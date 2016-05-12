@@ -65,13 +65,13 @@ function getMyThingpediaApps(req) {
 function getAllDevices(engine) {
     return engine.devices.getAllDevices().then(function(devices) {
         return Q.all(devices.map(function(d) {
-            return Q.all([d.uniqueId, d.name, d.description, d.state, d.ownerTier,
+            return Q.all([d.uniqueId, d.name, d.description, d.kind, d.ownerTier,
                           d.checkAvailable(),
                           d.isTransient,
                           d.hasKind('online-account'),
                           d.hasKind('data-source'),
                           d.hasKind('thingengine-system')])
-                .spread(function(uniqueId, name, description, state,
+                .spread(function(uniqueId, name, description, kind,
                                  ownerTier,
                                  available,
                                  isTransient,
@@ -80,7 +80,7 @@ function getAllDevices(engine) {
                                  isThingEngine) {
                     return { uniqueId: uniqueId, name: name || "Unknown device",
                              description: description || "Description not available",
-                             kind: state.kind,
+                             kind: kind,
                              ownerTier: ownerTier,
                              available: available,
                              isTransient: isTransient,
