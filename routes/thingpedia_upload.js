@@ -251,12 +251,12 @@ function ensurePrimarySchema(dbClient, kind, ast) {
         return schema.update(dbClient,
                              existing.id, { developer_version: existing.developer_version + 1,
                                             approved_version: existing.approved_version + 1},
-                             [triggers, actions, queries]);
+                             [triggers, actions, queries], [{},{},{}]);
     }).catch(function(e) {
         return schema.create(dbClient, { developer_version: 0,
                                          approved_version: 0,
                                          kind: kind },
-                             [triggers, actions, queries]);
+                             [triggers, actions, queries], [{},{},{}]);
     }).then(function() {
         if (!ast['global-name'])
             return;
@@ -265,12 +265,12 @@ function ensurePrimarySchema(dbClient, kind, ast) {
             return schema.update(dbClient,
                                  existing.id, { developer_version: existing.developer_version + 1,
                                                 approved_version: existing.approved_version + 1 },
-                                 [triggers, actions, queries]);
+                                 [triggers, actions, queries], [{},{},{}]);
         }).catch(function(e) {
             return schema.create(dbClient, { developer_version: 0,
                                              approved_version: 0,
                                              kind: ast['global-name'] },
-                                 [triggers, actions, queries]);
+                                 [triggers, actions, queries], [{},{},{}]);
         });
     });
 }

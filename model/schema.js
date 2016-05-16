@@ -9,7 +9,7 @@
 const db = require('../util/db');
 const Q = require('q');
 
-function create(client, schema, types) {
+function create(client, schema, types, meta) {
     var KEYS = ['kind', 'approved_version', 'developer_version'];
     KEYS.forEach(function(key) {
         if (schema[key] === undefined)
@@ -25,20 +25,22 @@ function create(client, schema, types) {
         .then(function(id) {
             schema.id = id;
         }).then(function() {
-            return db.insertOne(client, 'insert into device_schema_version(schema_id, version, types) '
+            return db.insertOne(client, 'insert into device_schema_version(schema_id, version, types, meta) '
                                 + 'values(?, ?, ?)', [schema.id, schema.developer_version,
-                                                      JSON.stringify(types)]);
+                                                      JSON.stringify(types),
+                                                      JSON.stringify(meta)]);
         }).then(function() {
             return schema;
         });
 }
 
-function update(client, id, schema, types) {
+function update(client, id, schema, types, meta) {
     return db.query(client, "update device_schema set ? where id = ?", [schema, id])
         .then(function() {
             return db.insertOne(client, 'insert into device_schema_version(schema_id, version, types) '
                                 + 'values(?, ?, ?)', [id, schema.developer_version,
-                                                      JSON.stringify(types)]);
+                                                      JSON.stringify(types),
+                                                      JSON.stringify(meta)]);
         })
         .then(function() {
             return schema;

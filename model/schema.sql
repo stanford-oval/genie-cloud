@@ -111,6 +111,7 @@ create table device_schema_version (
     schema_id integer not null,
     version integer not null,
     types mediumtext not null,
+    meta mediumtext not null,
     primary key(schema_id, version),
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
 ) collate utf8_bin;
