@@ -15,10 +15,7 @@ block content
     ul.device-channels
       for t in triggers
         li
-          if t.schema
-            code #{t.name}(#{t.params.map(function(p, i) { return p + ' : ' + t.schema[i]; }).join(', ')})
-          else
-            code #{t.name}(#{t.params.join(', ')})
+          code #{t.name}(#{t.params.map(function(p, i) { return p + ' : ' + t.schema[i]; }).join(', ')})
           if t.doc
             | : #{t.doc}
 
@@ -27,10 +24,7 @@ block content
     ul.device-channels
       for q in queries
         li
-          if q.schema
-            code #{q.name}(#{q.params.map(function(p, i) { return p + ' : ' + q.schema[i]; }).join(', ')})
-          else
-            code #{q.name}(#{q.params.join(', ')})
+          code #{q.name}(#{q.params.map(function(p, i) { return p + ' : ' + q.schema[i]; }).join(', ')})
           if q.doc
             | : #{q.doc}
 
@@ -39,9 +33,6 @@ block content
     ul.device-channels
       for a in actions
         li
-          if a.schema
-            code #{a.name}(#{a.params.map(function(p, i) { return p + ' : ' + a.schema[i]; }).join(', ')})
-          else
-            code #{a.name}(#{a.params.join(', ')})
+          code #{a.name}(#{a.params.map(function(p, i) { return p + ' : ' + a.schema[i]; }).join(', ')})
           if a.doc
             | : #{a.doc}

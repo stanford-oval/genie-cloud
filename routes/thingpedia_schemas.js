@@ -33,8 +33,8 @@ router.get('/by-id/:kind', function(req, res) {
                     schema: rows[0].types[id][name]
                 };
                 if (name in rows[0].meta[id]) {
-                    obj.params = rows.meta[0][id].args;
-                    obj.doc = rows.meta[0][id].docs;
+                    obj.params = rows[0].meta[id][name].args;
+                    obj.doc = rows[0].meta[id][name].doc;
                 } else {
                     obj.params = obj.schema.map(function(_, i) {
                         return 'arg' + (i+1);
