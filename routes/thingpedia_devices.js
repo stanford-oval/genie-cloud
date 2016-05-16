@@ -61,9 +61,12 @@ function getDetails(fn, param, req, res) {
             else
                 title = "ThingPedia - Device details";
 
-            var triggers = [], actions = [];
+            d.child_types = [];
+            var triggers = [], actions = [], queries = [];
             try {
                 var ast = JSON.parse(d.code);
+                d.child_types = ast['child-types'] || [];
+
                 if (ast.triggers) {
                     for (var t in ast.triggers) {
                         var obj = {
@@ -96,6 +99,22 @@ function getDetails(fn, param, req, res) {
                         actions.push(obj);
                     }
                 }
+                if (ast.queries) {
+                    for (var q in ast.queries) {
+                        var obj = {
+                            name: q
+                        };
+                        if (ast.queries[q].params)
+                            obj.params = ast.queries[q].params;
+                        else if (ast.queries[q].args)
+                            obj.params = ast.queries[q].args;
+                        else
+                            obj.params = [];
+                        obj.schema = ast.queries[q].schema;
+                        obj.doc = ast.queries[q].doc;
+                        queries.push(obj);
+                    }
+                }
             } catch(e) {}
 
             res.render('thingpedia_device_details', { page_title: title,
@@ -103,6 +122,7 @@ function getDetails(fn, param, req, res) {
                                                       device: d,
                                                       triggers: triggers,
                                                       actions: actions,
+                                                      queries: queries,
                                                       online: online });
         });
     }).catch(function(e) {

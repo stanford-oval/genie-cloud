@@ -60,7 +60,15 @@ block content
       span.label.label-default= device.global_name
     for k in device.kinds
       |  
-      span.label.label-default= k.kind
+      a(href='/thingpedia/schemas/by-id/' + k.kind)
+        span.label.label-default= k.kind
+
+  if device.child_types.length > 0
+    h2.device-subtitle Child Types:
+      for k in device.child_types
+        | &#x20;
+        a(href='/thingpedia/schemas/by-id/' + k)
+          span.label.label-default= k
 
   if triggers.length > 0
     h2.device-subtitle Triggers
@@ -73,6 +81,18 @@ block content
             code #{t.name}(#{t.params.join(', ')})
           if t.doc
             | : #{t.doc}
+
+  if queries.length > 0
+    h2.device-subtitle Queries
+    ul.device-channels
+      for q in queries
+        li
+          if q.schema
+            code #{q.name}(#{q.params.map(function(p, i) { return p + ' : ' + q.schema[i]; }).join(', ')})
+          else
+            code #{q.name}(#{q.params.join(', ')})
+          if q.doc
+            | : #{q.doc}
 
   if actions.length > 0
     h2.device-subtitle Actions

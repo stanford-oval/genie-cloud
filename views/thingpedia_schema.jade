@@ -1,0 +1,47 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+
+block page_name
+  | Type: #{kind}
+
+block content
+  h2.device-subtitle#device-version Version:
+    | #{developer_version}
+
+  if triggers.length > 0
+    h2.device-subtitle Triggers
+    ul.device-channels
+      for t in triggers
+        li
+          if t.schema
+            code #{t.name}(#{t.params.map(function(p, i) { return p + ' : ' + t.schema[i]; }).join(', ')})
+          else
+            code #{t.name}(#{t.params.join(', ')})
+          if t.doc
+            | : #{t.doc}
+
+  if queries.length > 0
+    h2.device-subtitle Queries
+    ul.device-channels
+      for q in queries
+        li
+          if q.schema
+            code #{q.name}(#{q.params.map(function(p, i) { return p + ' : ' + q.schema[i]; }).join(', ')})
+          else
+            code #{q.name}(#{q.params.join(', ')})
+          if q.doc
+            | : #{q.doc}
+
+  if actions.length > 0
+    h2.device-subtitle Actions
+    ul.device-channels
+      for a in actions
+        li
+          if a.schema
+            code #{a.name}(#{a.params.map(function(p, i) { return p + ' : ' + a.schema[i]; }).join(', ')})
+          else
+            code #{a.name}(#{a.params.join(', ')})
+          if a.doc
+            | : #{a.doc}

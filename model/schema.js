@@ -94,6 +94,26 @@ module.exports = {
             });
     },
 
+    getTypesAndMetaByKind: function(client, kind) {
+        return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
+                            + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
+                            + " = ? and ds.developer_version = dsv.version",
+                            [kind])
+            .then(function(rows) {
+                rows.forEach(function(row) {
+                    try {
+                        row.types = JSON.parse(row.types);
+                        row.meta = JSON.parse(row.meta);
+                    } catch(e) {
+                        console.error("Failed to parse types in " + row.kind);
+                        row.types = null;
+                        row.meta = null;
+                    }
+                });
+                return rows;
+            });
+    },
+
     create: create,
     update: update,
 };

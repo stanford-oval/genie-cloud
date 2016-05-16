@@ -237,26 +237,44 @@ function validateDevice(dbClient, req) {
 
 function ensurePrimarySchema(dbClient, kind, ast) {
     var triggers = {};
+    var triggerMeta = {};
     var actions = {};
+    var actionMeta = {};
     var queries = {};
+    var queryMeta = {};
 
-    for (var name in ast.triggers)
+    for (var name in ast.triggers) {
         triggers[name] = ast.triggers[name].schema;
-    for (var name in ast.actions)
+        triggerMeta[name] = {
+            doc: ast.triggers[name].doc,
+            args: ast.triggers[name].params || ast.triggers[name].args
+        };
+    }
+    for (var name in ast.actions) {
         actions[name] = ast.actions[name].schema;
-    for (var name in ast.queries)
+        actionMeta[name] = {
+            doc: ast.actions[name].doc,
+            args: ast.actions[name].params || ast.actions[name].args
+        };
+    }
+    for (var name in ast.queries) {
         queries[name] = ast.queries[name].schema;
+        queryMeta[name] = {
+            doc: ast.queries[name].doc,
+            args: ast.queries[name].params || ast.queries[name].args
+        };
+    }
 
     return schema.getByKind(dbClient, kind).then(function(existing) {
         return schema.update(dbClient,
                              existing.id, { developer_version: existing.developer_version + 1,
                                             approved_version: existing.approved_version + 1},
-                             [triggers, actions, queries], [{},{},{}]);
+                             [triggers, actions, queries], [triggerMeta, actionMeta, queryMeta]);
     }).catch(function(e) {
         return schema.create(dbClient, { developer_version: 0,
                                          approved_version: 0,
                                          kind: kind },
-                             [triggers, actions, queries], [{},{},{}]);
+                             [triggers, actions, queries], [triggerMeta, actionMeta, queryMeta]);
     }).then(function() {
         if (!ast['global-name'])
             return;
@@ -265,12 +283,12 @@ function ensurePrimarySchema(dbClient, kind, ast) {
             return schema.update(dbClient,
                                  existing.id, { developer_version: existing.developer_version + 1,
                                                 approved_version: existing.approved_version + 1 },
-                                 [triggers, actions, queries], [{},{},{}]);
+                                 [triggers, actions, queries], [triggerMeta, actionMeta, queryMeta]);
         }).catch(function(e) {
             return schema.create(dbClient, { developer_version: 0,
                                              approved_version: 0,
                                              kind: ast['global-name'] },
-                                 [triggers, actions, queries], [{},{},{}]);
+                                 [triggers, actions, queries], [triggerMeta, actionMeta, queryMeta]);
         });
     });
 }
