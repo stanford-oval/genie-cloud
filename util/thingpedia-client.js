@@ -71,18 +71,17 @@ module.exports = class ThingPediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return device.getByPrimaryKind(dbClient, kind)
-                    .then(function(device) {
-                        if (device.fullcode)
-                            throw new Error('No Code Available');
+                return device.getByPrimaryKind(dbClient, kind);
+            }).then(function(device) {
+                if (device.fullcode)
+                    throw new Error('No Code Available');
 
-                        if (org !== null && org.id === device.owner)
-                            return (S3_HOST + device.primary_kind + '-v' + device.developer_version + '.zip');
-                        else if (device.approved_version !== null)
-                            return (S3_HOST + device.primary_kind + '-v' + device.approved_version + '.zip');
-                        else
-                            throw new Error('Not Authorized');
-                    });
+                if (org !== null && org.id === device.owner)
+                    return (S3_HOST + device.primary_kind + '-v' + device.developer_version + '.zip');
+                else if (device.approved_version !== null)
+                    return (S3_HOST + device.primary_kind + '-v' + device.approved_version + '.zip');
+                else
+                    throw new Error('Not Authorized');
             });
         });
     }
@@ -104,21 +103,20 @@ module.exports = class ThingPediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return device.getFullCodeByPrimaryKind(dbClient, kind, org)
-                    .then(function(devs) {
-                        if (devs.length < 1)
-                            throw new Error(kind + ' not Found');
+                return device.getFullCodeByPrimaryKind(dbClient, kind, org);
+            }).then(function(devs) {
+                if (devs.length < 1)
+                    throw new Error(kind + ' not Found');
 
-                        var dev = devs[0];
-                        var ast = JSON.parse(dev.code);
-                        ast.version = dev.version;
-                        if (dev.version !== dev.approved_version)
-                            ast.developer = true;
-                        else
-                            ast.developer = false;
+                var dev = devs[0];
+                var ast = JSON.parse(dev.code);
+                ast.version = dev.version;
+                if (dev.version !== dev.approved_version)
+                    ast.developer = true;
+                else
+                    ast.developer = false;
 
-                        return ast;
-                    });
+                return ast;
             });
         });
     }
@@ -137,21 +135,77 @@ module.exports = class ThingPediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return schema.getTypesByKinds(dbClient, schemas, org).then(function(rows) {
-                    var obj = {};
+                return schema.getTypesByKinds(dbClient, schemas, org);
+            }).then(function(rows) {
+                var obj = {};
 
-                    rows.forEach(function(row) {
-                        if (row.types === null)
-                            return;
-                        obj[row.kind] = {
-                            triggers: row.types[0],
-                            actions: row.types[1],
-                            queries: (row.types[2] || {})
-                        };
-                    });
-
-                    return obj;
+                rows.forEach(function(row) {
+                    if (row.types === null)
+                        return;
+                    obj[row.kind] = {
+                        triggers: row.types[0],
+                        actions: row.types[1],
+                        queries: (row.types[2] || {})
+                    };
                 });
+
+                return obj;
+            });
+        });
+    }
+
+    getMetas(schemas) {
+        var developerKey = this.developerKey;
+
+        return db.withClient(function(dbClient) {
+            return Q.try(function() {
+                if (developerKey)
+                    return organization.getByDeveloperKey(dbClient, developerKey);
+                else
+                    return [];
+            }).then(function(orgs) {
+                var org = null;
+                if (orgs.length > 0)
+                    org = orgs[0];
+
+                return schema.getMetasByKinds(dbClient, schemas, org);
+            }).then(function(rows) {
+                var obj = {};
+
+                rows.forEach(function(row) {
+                    if (row.types === null)
+                        return;
+
+                    var types = { triggers: {}, queries: {}, actions: {} };
+
+                    function doOne(what, id) {
+                        for (var name in row.types[id]) {
+                            var obj = {
+                                schema: row.types[id][name]
+                            };
+                            if (name in row.meta[id]) {
+                                obj.args = row.meta[id][name].args;
+                                obj.doc = row.meta[id][name].doc;
+                                obj.questions = rows.meta[id][name].questions || [];
+                            } else {
+                                obj.args = obj.schema.map(function(_, i) {
+                                    return 'arg' + (i+1);
+                                });
+                                obj.questions = obj.schema.map(function() {
+                                    return '';
+                                });
+                            }
+                            types[what][name] = obj;
+                        }
+                    }
+
+                    doOne('triggers', 0);
+                    doOne('actions', 1);
+                    doOne('queries', 2);
+                    obj[row.kind] = types;
+                });
+
+                return obj;
             });
         });
     }

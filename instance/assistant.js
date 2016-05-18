@@ -13,43 +13,7 @@ const util = require('util');
 
 const Sabrina = require('sabrina').Sabrina;
 
-class Conversation extends Sabrina {
-    _handleSparql(sparql) {
-        try {
-            var stream = this._engine.sparql.runQuery(sparql);
-
-            stream.on('data', (d) => {
-                this.sendReply(util.inspect(d));
-            });
-            stream.on('end', () => {
-                this.sendReply("Done");
-            });
-            stream.on('error', (e) => {
-                this.sendReply("Error: " + e.message);
-            });
-        } catch(e) {
-            console.error(e.stack);
-        }
-    }
-
-    handleCommand(command, analyzed) {
-        if (command.toLowerCase() === 'who are my friends')
-            this._handleSparql('prefix tp: <http://thingengine.stanford.edu/rdf/0.1/> ' +
-                               'prefix tpo: <http://thingengine.stanford.edu/ontology/0.1/#> ' +
-                               'prefix foaf: <http://xmlns.com/foaf/0.1/> ' +
-                               'select ?name from <http://thingengine.stanford.edu/rdf/0.1/me/@omlet> ' +
-                               '{ tp:me foaf:knows ?who . ?who foaf:name ?name }');
-        else if (command.toLowerCase() === 'how many friends do i have')
-            this._handleSparql('prefix tp: <http://thingengine.stanford.edu/rdf/0.1/> ' +
-                               'prefix tpo: <http://thingengine.stanford.edu/ontology/0.1/#> ' +
-                               'prefix foaf: <http://xmlns.com/foaf/0.1/> ' +
-                               'select (count(?who) as ?count) from <http://thingengine.stanford.edu/rdf/0.1/me/@omlet> ' +
-                               '{ tp:me foaf:knows ?who }');
-        else
-            super.handleCommand(command, analyzed);
-    }
-
-}
+class Conversation extends Sabrina {}
 Conversation.prototype.$rpcMethods = ['start', 'handleCommand', 'handlePicture'];
 
 module.exports = class Assistant extends events.EventEmitter {
