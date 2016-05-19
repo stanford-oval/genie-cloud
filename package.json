@@ -34,7 +34,7 @@
     "node-zip": "~1.1.1",
     "nodemailer": "~2.1.0",
     "oauth2orize": "~1.0.1",
-    "omlib": "https://github.com/Stanford-Mobisocial-IoT-Lab/omclient/tarball/new-api",
+    "omlib": "https://github.com/Stanford-Mobisocial-IoT-Lab/omclient/tarball/master",
     "passport": "~0.3.0",
     "passport-facebook": "~2.0.0",
     "passport-google-oauth": "~0.2.0",
