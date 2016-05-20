@@ -47,7 +47,7 @@ module.exports = class Assistant extends events.EventEmitter {
     openConversation(feedId, user, delegate) {
         if (this._conversations[feedId])
             return this._conversations[feedId];
-        var conv = new Conversation(this._engine, user, delegate);
+        var conv = new Conversation(this._engine, user, delegate, true);
         conv.on('picture', this.emit.bind(this, 'picture'));
         conv.on('message', this.emit.bind(this, 'message'));
         this._conversations[feedId] = conv;

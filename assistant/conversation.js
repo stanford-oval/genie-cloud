@@ -70,6 +70,14 @@ module.exports = class Conversation {
         return this.feed.sendRaw(rdl);
     }
 
+    sendChoice(idx, what, title, text) {
+        var url = 'https://web.stanford.edu/~gcampagn/choice.html#' + idx;
+        return this.sendRDL({ type: 'rdl', noun: what,
+                              displayTitle: title,
+                              callback: url,
+                              webCallback: url });
+    }
+
     setEngine(enginePromise) {
         // new engine means new RpcSocket, so we must clear our old ID
         delete this.$rpcId;
@@ -114,7 +122,7 @@ module.exports = class Conversation {
         // to do buttons and stuff
         // pass it down to the remote if we have one, otherwise ignore it
         if (this._remote) {
-            this._remote.handleCommand(text, null).catch(function(e) {
+            this._remote.handleCommand(null, text).catch(function(e) {
                 console.log('Failed to handle assistant command: ' + e.message);
             }).done();
         }
@@ -222,4 +230,4 @@ module.exports = class Conversation {
         return this._messaging.leaveFeed(this.feed.feedId);
     }
 }
-module.exports.prototype.$rpcMethods = ['send', 'sendPicture', 'sendRDL'];
+module.exports.prototype.$rpcMethods = ['send', 'sendPicture', 'sendRDL', 'sendChoice'];
