@@ -130,8 +130,6 @@ router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
 
 // special case omlet to create the assistant right away
 router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, function(req, res, next) {
-    var kind = req.params.kind;
-
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return engine.devices.factory.then(function(devFactory) {
             var saneReq = {
