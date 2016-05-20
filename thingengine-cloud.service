@@ -9,8 +9,6 @@ ExecStart=/usr/bin/node /opt/thingengine/main.js
 CapabilityBoundingSet=CAP_SYS_ADMIN
 KillMode=mixed
 Restart=on-failure
-# fix some node brokenness
-SuccessExitStatus=1
 RestartSec=1s
 
 [Install]
