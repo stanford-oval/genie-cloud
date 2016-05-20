@@ -17,7 +17,7 @@ const thingpediaApps = require('../model/app');
 const EngineManager = require('../lib/enginemanager');
 
 const ThingTalk = require('thingtalk');
-const AppCompiler = ThingTalk.Compiler;
+const AppGrammar = ThingTalk.Grammar;
 
 var router = express.Router();
 
@@ -25,10 +25,9 @@ function getAllApps(engine) {
     return engine.apps.getAllApps().then(function(apps) {
         return Q.all(apps.map(function(a) {
             return Q.all([a.uniqueId, a.name, a.isRunning, a.isEnabled,
-                          a.currentTier, a.state, a.error])
+                          a.state, a.error])
                 .spread(function(uniqueId, name, isRunning,
-                                 isEnabled, currentTier, state,
-                                 error) {
+                                 isEnabled, state, error) {
                     return Q.try(function() {
                         if (state.$F) {
                             return engine.messaging.getFeedMeta(state.$F).then(function(f) {
@@ -40,7 +39,6 @@ function getAllApps(engine) {
                     }).then(function(feed) {
                         var app = { uniqueId: uniqueId, name: name || "Some app",
                                     running: isRunning, enabled: isEnabled,
-                                    currentTier: currentTier,
                                     state: state, error: error, feed: feed };
                         return app;
                     });
@@ -146,76 +144,39 @@ router.get('/', user.redirectLogIn, function(req, res) {
     }).done();
 });
 
-function appsCreate(error, req, res) {
-    return EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return feeds.getFeedList(engine, true);
-    }).then(function(feeds) {
-        res.render('apps_create', { page_title: 'ThingEngine - create app',
-                                    csrfToken: req.csrfToken(),
-                                    error: error,
-                                    code: req.body.code,
-                                    parameters: req.body.params || '{}',
-                                    tier: req.body.tier || 'cloud',
-                                    omlet: { feeds: feeds,
-                                             feedId: req.body.feedId }
-                                  });
-    });
-}
-
-router.get('/create', user.redirectLogIn, function(req, res, next) {
-    appsCreate(undefined, req, res).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: e });
-    }).done();
-});
-
 router.post('/create', user.requireLogIn, function(req, res, next) {
     var compiler;
     var code = req.body.code;
     var name = req.body.name;
     var description = req.body.description;
-    var state, tier;
+    var state;
+    var ast;
 
     Q.try(function() {
         return EngineManager.get().getEngine(req.user.id).then(function(engine) {
-            compiler = new AppCompiler();
+            // sanity check the app
+            ast = AppGrammar.parse(code);
+            var state = JSON.parse(req.body.params);
+            if (ast.name.feedAccess) {
+                if (!state.$F && !req.body.feedId)
+                    throw new Error('Missing feed for feed-shared app');
+                if (!state.$F)
+                    state.$F = req.body.feedId;
+            } else {
+                delete state.$F;
+            }
 
-            return engine.devices.schemas.then(function(schemaRetriever) {
-                compiler.setSchemaRetriever(schemaRetriever);
-
-                return Q.try(function() {
-                    // sanity check the app
-                    return compiler.compileCode(code);
-                }).then(function() {
-                    state = JSON.parse(req.body.params);
-                    if (compiler.feedAccess) {
-                        if (!state.$F && !req.body.feedId)
-                            throw new Error('Missing feed for feed-shared app');
-                        if (!state.$F)
-                            state.$F = req.body.feedId;
-                    } else {
-                        delete state.$F;
-                    }
-
-                    tier = req.body.tier;
-                    if (tier !== 'server' && tier !== 'cloud' && tier !== 'phone')
-                        throw new Error('No such tier ' + tier);
-                })
-            }).then(function() {
-                return engine.apps.loadOneApp(code, state, null, tier,
-                                              name, description, true);
-            });
+            return engine.apps.loadOneApp(code, state, null, undefined,
+                                          name, description, true);
         }).then(function() {
-            if (compiler.feedAccess && !req.query.shared) {
+            if (ast.name.feedAccess && !req.query.shared) {
                 req.flash('app-message', "Application successfully created");
-                req.flash('share-apps', 'app-' + compiler.name + state.$F.replace(/[^a-zA-Z0-9]+/g, '-'));
+                req.flash('share-apps', 'app-' + ast.name.name + state.$F.replace(/[^a-zA-Z0-9]+/g, '-'));
                 res.redirect(303, '/apps');
             } else {
                 req.flash('app-message', "Application successfully created");
                 res.redirect(303, '/apps');
             }
-        }).catch(function(e) {
-            return appsCreate(e, req, res);
         });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",

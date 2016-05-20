@@ -43,16 +43,6 @@ block content
             for f in feeds
               option(value=f.identifier)= f.name
 
-    input(type='hidden',name='tier',value='cloud')
-    //div.form-group
-      div.col-sm-3.col-md-2
-        label(for='tier').control-label Run in:
-      div.col-sm-9.col-md-10
-        select#tier(name="tier").form-control
-          option(value="phone") Phone
-          option(value="server") Server
-          option(value="cloud",selected=true) Cloud
-
     div.form-group
       div.col-xs-12
         button(type='submit').btn.btn-success Enable
