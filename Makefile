@@ -4,15 +4,13 @@ localstatedir ?= /srv/thingengine
 
 all: platform_config.js
 	make -C sandbox all
-	make -C node_modules/thingengine-core all
+	cd node_modules/thingengine-core ; npm install --only=prod
 	make -C node_modules/sabrina all
-	cd node_modules/thingpedia ; npm install --no-optional --only=prod
-	cd node_modules/thingpedia-discovery ; npm install --no-optional --only=prod
-	cd node_modules/thingtalk ; npm install --no-optional --only=prod
-	npm install --no-optional --only=prod
-	# remove duplicate copy of thingtalk
-	# we cannot rely on npm dedupe because we're playing submodule tricks
-	rm -fr node_modules/sabrina/node_modules/thingtalk
+	cd node_modules/thingpedia ; npm install --only=prod
+	cd node_modules/thingpedia-discovery ; npm install --only=prod
+	cd node_modules/thingtalk ; npm install --only=prod
+	npm install --only=prod
+	npm dedupe
 
 platform_config.js:
 	echo "exports.PKGLIBDIR = '$(prefix)'; exports.LOCALSTATEDIR = '$(localstatedir)';" > platform_config.js
