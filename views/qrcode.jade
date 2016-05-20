@@ -29,14 +29,9 @@ block content
           |  You should clear the access information from the server (you can do
           |  so from the configuration page) and then link it again to this account.
 
-    else if for_ === 'thingpedia'
-      if authenticated
-        p If you were trying to install a ThingPedia rule, you should click on
-          |  the "Online" button, not the "Phone" button.
-
     else if for_ === 'cloud'
       if !authenticated
         p If you were trying to link your ThingEngine account to your phone, you
-          |  should 
+          |  should
           a(href='/user/login') log in
           |  first.
