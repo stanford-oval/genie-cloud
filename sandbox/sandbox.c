@@ -1313,7 +1313,7 @@ main (int argc,
   uid = getuid ();
   gid = getgid ();
 
-  newroot = "/srv/thingengine/sandbox-root";
+  newroot = THINGENGINE_LOCALSTATEDIR "/sandbox-root";
   if (mkdir (newroot, 0755) && errno != EEXIST)
     die_with_error ("Creating sandbox-root failed");
 
