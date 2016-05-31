@@ -67,21 +67,19 @@ function runEngine(cloudId, authToken, developerKey, thingpediaClient) {
         var obj = { cloudId: cloudId, engine: engine, running: false };
         engine.open().then(function() {
             obj.running = true;
-            engine.assistant.start().done();
 
             if (_stopped)
                 return engine.close();
             _engines.push(obj);
             return engine.run();
         }).then(function() {
-            engine.assistant.stop().done();
             return engine.close();
         }).catch(function(e) {
             console.error('Engine ' + cloudId + ' had a fatal error: ' + e.message);
             console.error(e.stack);
         }).done();
 
-        return [engine, platform.getCapability('webhook-api')];
+        return [engine, platform.getCapability('webhook-api'), platform.getCapability('assistant')];
     });
 }
 
