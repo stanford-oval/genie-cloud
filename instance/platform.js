@@ -18,6 +18,7 @@ const child_process = require('child_process');
 const sql = require('thingengine-core/lib/util/sql');
 const prefs = require('thingengine-core/lib/util/prefs');
 
+const Assistant = require('./assistant');
 const graphics = require('./graphics');
 
 var _unzipApi = {
@@ -121,11 +122,17 @@ class Platform {
         this._websocketApi = new WebsocketApi();
         this._webhookApi = new WebhookApi();
         _dispatcher.addCloudId(cloudId, this._webhookApi, this._websocketApi);
+
+        this._assistant = null;
     }
 
     start() {
         return sql.ensureSchema(this._writabledir + '/sqlite.db',
                                 '../data/schema.sql');
+    }
+
+    createAssistant(engine) {
+        this._assistant = new Assistant(engine);
     }
 
     // Obtain a shared preference store
@@ -205,6 +212,9 @@ class Platform {
 
         case 'websocket-api':
             return this._websocketApi;
+
+        case 'assistant':
+            return this._assistant;
 
         default:
             return null;

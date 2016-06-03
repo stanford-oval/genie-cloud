@@ -13,7 +13,6 @@ const stream = require('stream');
 const rpc = require('transparent-rpc');
 
 const Engine = require('thingengine-core');
-const Assistant = require('./assistant');
 const PlatformModule = require('./platform');
 
 class ParentProcessSocket extends stream.Duplex {
@@ -62,7 +61,7 @@ function runEngine(cloudId, authToken, developerKey, thingpediaClient) {
 
     return platform.start().then(function() {
         var engine = new Engine(platform);
-        engine.assistant = new Assistant(engine);
+        platform.createAssistant(engine);
 
         var obj = { cloudId: cloudId, engine: engine, running: false };
         engine.open().then(function() {
