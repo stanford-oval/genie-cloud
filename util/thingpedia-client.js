@@ -191,6 +191,7 @@ module.exports = class ThingPediaClientCloud {
                                 obj.args = obj.schema.map(function(_, i) {
                                     return 'arg' + (i+1);
                                 });
+                                obj.doc = name;
                                 obj.questions = obj.schema.map(function() {
                                     return '';
                                 });
