@@ -71,17 +71,17 @@ module.exports = class ThingPediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return device.getByPrimaryKind(dbClient, kind);
-            }).then(function(device) {
-                if (device.fullcode)
-                    throw new Error('No Code Available');
+                return device.getByPrimaryKind(dbClient, kind).then(function(device) {
+                    if (device.fullcode)
+                        throw new Error('No Code Available');
 
-                if (org !== null && org.id === device.owner)
-                    return (S3_HOST + device.primary_kind + '-v' + device.developer_version + '.zip');
-                else if (device.approved_version !== null)
-                    return (S3_HOST + device.primary_kind + '-v' + device.approved_version + '.zip');
-                else
-                    throw new Error('Not Authorized');
+                    if (org !== null && org.id === device.owner)
+                        return (S3_HOST + device.primary_kind + '-v' + device.developer_version + '.zip');
+                    else if (device.approved_version !== null)
+                        return (S3_HOST + device.primary_kind + '-v' + device.approved_version + '.zip');
+                    else
+                        throw new Error('Not Authorized');
+                });
             });
         });
     }
