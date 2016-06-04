@@ -270,7 +270,7 @@ function ensurePrimarySchema(dbClient, kind, ast) {
         queryMeta[name] = {
             doc: ast.queries[name].doc,
             args: ast.queries[name].params || ast.queries[name].args || [],
-            questions: ast.actions[name].questions || []
+            questions: ast.queries[name].questions || []
         };
     }
 
