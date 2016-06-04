@@ -55,6 +55,7 @@ router.get('/schema-metadata/:schemas', function(req, res) {
             res.cacheFor(86400000);
         res.json(obj);
     }).catch(function(e) {
+	console.error(e.stack);
         res.status(400).send('Error: ' + e.message);
     }).done();
 });

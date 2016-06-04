@@ -186,7 +186,7 @@ module.exports = class ThingPediaClientCloud {
                             if (name in row.meta[id]) {
                                 obj.args = row.meta[id][name].args;
                                 obj.doc = row.meta[id][name].doc;
-                                obj.questions = rows.meta[id][name].questions || [];
+                                obj.questions = row.meta[id][name].questions || [];
                             } else {
                                 obj.args = obj.schema.map(function(_, i) {
                                     return 'arg' + (i+1);
