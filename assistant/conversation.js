@@ -182,7 +182,7 @@ module.exports = class Conversation {
     }
 
     _analyze(utterance) {
-        return this._sempre.sendUtterance(this.feed.feedId, utterance);
+        return this._sempre.sendUtterance(utterance);
     }
 
     _startRegistration() {

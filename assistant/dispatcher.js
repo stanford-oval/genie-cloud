@@ -26,13 +26,17 @@ class FakeSempre {
     start() {}
     stop() {}
 
-    sendUtterance(session, utt) {
-        if (/yes/i.test(utt))
-            return Q(JSON.stringify({"special":"tt:root.special.yes"}));
-        else if (/no/i.test(utt))
-            return Q(JSON.stringify({"special":"tt:root.special.no"}));
-        else
-            return Q(JSON.stringify({"special":"tt:root.special.failed"}));
+    openSession() {
+        return {
+            sendUtterance(utt) {
+                if (/yes/i.test(utt))
+                    return Q(JSON.stringify({"special":"tt:root.special.yes"}));
+                else if (/no/i.test(utt))
+                    return Q(JSON.stringify({"special":"tt:root.special.no"}));
+                else
+                    return Q(JSON.stringify({"special":"tt:root.special.failed"}));
+            }
+        }
     }
 }
 
@@ -47,7 +51,7 @@ module.exports = class AssistantDispatcher {
         if (process.env.THINGENGINE_DISABLE_SEMPRE === '1')
             this._sempre = new FakeSempre();
         else
-            this._sempre = new Sempre(false);
+            this._sempre = new Sempre();
 
         this._feedAddedListener = this._onFeedAdded.bind(this);
         this._feedChangedListener = this._onFeedChanged.bind(this);
@@ -84,7 +88,7 @@ module.exports = class AssistantDispatcher {
 
     _makeConversationForAccount(feed, user, enginePromise, newFeed) {
         return this._conversations[feed.feedId] = Q.delay(500).then(function() {
-            var conv = new Conversation(this._sempre, feed, user, this._messaging, enginePromise);
+            var conv = new Conversation(this._sempre.openSession(), feed, user, this._messaging, enginePromise);
             return conv.start(newFeed).then(function() {
                 this._addConversationToAccount(conv, user.account);
                 return conv;
