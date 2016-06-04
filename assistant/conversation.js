@@ -66,6 +66,18 @@ module.exports = class Conversation {
         return this.feed.sendPicture(url);
     }
 
+    sendRDL(rdl) {
+        return this.feed.sendRaw(rdl);
+    }
+
+    sendChoice(idx, what, title, text) {
+        var url = 'https://web.stanford.edu/~gcampagn/choice.html#' + idx;
+        return this.sendRDL({ type: 'rdl', noun: what,
+                              displayTitle: title,
+                              callback: url,
+                              webCallback: url });
+    }
+
     setEngine(enginePromise) {
         // new engine means new RpcSocket, so we must clear our old ID
         delete this.$rpcId;
@@ -86,46 +98,46 @@ module.exports = class Conversation {
     }
 
     _onHiddenMessage(text) {
-        if (text.startsWith('(')) {
-            // this is a pre-parsed message in SEMPRE format, to be used Sabrina
-            // to do buttons and stuff
-            // pass it down to the remote if we have one, otherwise ignore it
-            if (this._remote) {
-                this._remote.handleCommand(null, msg.text).catch(function(e) {
-                    console.log('Failed to handle assistant command: ' + e.message);
-                }).done();
-            }
-        } else {
-            // try parsing as JSON instead
-            try {
-                var parsed = JSON.parse(text);
-            } catch(e) {
-                console.log('Failed to parse hidden message as JSON: ' + e.message);
-                return;
-            }
+        try {
+            var parsed = JSON.parse(text);
+        } catch(e) {
+            console.log('Failed to parse hidden message as JSON: ' + e.message);
+            return;
+        }
 
-            if (this._registering && parsed.op === 'complete-registration') {
-                Q.try(function() {
-                    return registerWithOmlet(parsed, this.account);
-                }.bind(this)).catch(function(e) {
-                    this.send("Sorry that did not work: " + e.message);
-                }.bind(this)).done();
-            }
+        if (this._registering && parsed.op === 'complete-registration') {
+            Q.try(function() {
+                return registerWithOmlet(parsed, this.account);
+            }.bind(this)).catch(function(e) {
+                this.send("Sorry that did not work: " + e.message);
+            }.bind(this)).done();
+        }
 
-            // ignore everything else
+        if (parsed.op !== undefined) {
+            // could be another thingengine internal message, ignore it
+            return;
+        }
+
+        // this is probably a pre-parsed message in SEMPRE format, used by Sabrina
+        // to do buttons and stuff
+        // pass it down to the remote if we have one, otherwise ignore it
+        if (this._remote) {
+            this._remote.handleCommand(null, text).catch(function(e) {
+                console.log('Failed to handle assistant command: ' + e.message);
+            }).done();
         }
     }
 
     _onTextMessage(text) {
-        if (this._remote) {
-            this._analyze(text).then(function(analyzed) {
+        this._analyze(text).then(function(analyzed) {
+            if (this._remote) {
                 return this._remote.handleCommand(text, analyzed);
-            }.bind(this)).catch(function(e) {
-                console.log('Failed to handle assistant command: ' + e.message);
-            }).done();
-        } else {
-            this._handleNoEngine();
-        }
+            } else {
+               this._handleNoEngine();
+            }
+        }.bind(this)).catch(function(e) {
+            console.log('Failed to handle assistant command: ' + e.message);
+        }).done();
     }
 
     _handleNoEngine() {
@@ -218,4 +230,4 @@ module.exports = class Conversation {
         return this._messaging.leaveFeed(this.feed.feedId);
     }
 }
-module.exports.prototype.$rpcMethods = ['send', 'sendPicture'];
+module.exports.prototype.$rpcMethods = ['send', 'sendPicture', 'sendRDL', 'sendChoice'];

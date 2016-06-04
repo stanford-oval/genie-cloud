@@ -39,10 +39,34 @@ router.get('/schema/:schemas', function(req, res) {
     }).done();
 });
 
+router.get('/schema-metadata/:schemas', function(req, res) {
+    var schemas = req.params.schemas.split(',');
+    if (schemas.length === 0) {
+        res.json({});
+        return;
+    }
+
+    var client = new ThingPediaClient(req.query.developer_key);
+
+    client.getMetas(schemas).then(function(obj) {
+        if (obj.developer)
+            res.cacheFor(3600000);
+        else
+            res.cacheFor(86400000);
+        res.json(obj);
+    }).catch(function(e) {
+        res.status(400).send('Error: ' + e.message);
+    }).done();
+});
+
 router.get('/code/devices/:kind', function(req, res) {
     var client = new ThingPediaClient(req.query.developer_key);
 
     client.getDeviceCode(req.params.kind).then(function(code) {
+        if (obj.developer)
+            res.cacheFor(3600000);
+        else
+            res.cacheFor(86400000);
         res.json(code);
     }).catch(function(e) {
         console.log('Failed to retrieve device code: ' + e.message);

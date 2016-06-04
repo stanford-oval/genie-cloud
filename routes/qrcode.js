@@ -24,9 +24,4 @@ router.get('/qrcode-cloud/:cloud_id/:auth_token', function(req, res, next) {
                            cloudId: req.params.cloud_id });
 });
 
-router.get('/qrcode-thingpedia/install/:thingpedia_id', function(req, res, next) {
-    res.render('qrcode', { for_: 'thingpedia',
-                           thingpediaId: req.params.thingpedia_id });
-});
-
 module.exports = router;

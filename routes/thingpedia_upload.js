@@ -181,6 +181,8 @@ function validateDevice(dbClient, req) {
         if ((ast.triggers[name].args && ast.triggers[name].args.length !== ast.triggers[name].schema.length) ||
             (ast.triggers[name].params && ast.triggers[name].params.length !== ast.triggers[name].schema.length))
             throw new Error("Invalid number of arguments in " + name);
+        if (ast.triggers[name].questions && triggers[name].args.length !== ast.triggers[name].schema.length)
+            throw new Error("Invalid number of questions in " + name);
         ast.triggers[name].schema.forEach(function(t) {
             ThingTalk.Type.fromString(t);
         });
@@ -191,6 +193,8 @@ function validateDevice(dbClient, req) {
         if ((ast.actions[name].args && ast.actions[name].args.length !== ast.actions[name].schema.length) ||
             (ast.actions[name].params && ast.actions[name].params.length !== ast.actions[name].schema.length))
             throw new Error("Invalid number of arguments in " + name);
+        if (ast.actions[name].questions && ast.actions[name].questions.length !== ast.actions[name].schema.length)
+            throw new Error("Invalid number of questions in " + name);
         ast.actions[name].schema.forEach(function(t) {
             ThingTalk.Type.fromString(t);
         });
@@ -201,6 +205,8 @@ function validateDevice(dbClient, req) {
         if ((ast.queries[name].args && ast.queries[name].args.length !== ast.queries[name].schema.length) ||
             (ast.queries[name].params && ast.queries[name].params.length !== ast.queries[name].schema.length))
             throw new Error("Invalid number of arguments in " + name);
+        if (ast.queries[name].questions && ast.queries[name].questions.length !== ast.queries[name].schema.length)
+            throw new Error("Invalid number of questions in " + name);
         ast.queries[name].schema.forEach(function(t) {
             ThingTalk.Type.fromString(t);
         });
@@ -247,21 +253,24 @@ function ensurePrimarySchema(dbClient, kind, ast) {
         triggers[name] = ast.triggers[name].schema;
         triggerMeta[name] = {
             doc: ast.triggers[name].doc,
-            args: ast.triggers[name].params || ast.triggers[name].args
+            args: ast.triggers[name].params || ast.triggers[name].args || [],
+            questions: ast.triggers[name].questions || []
         };
     }
     for (var name in ast.actions) {
         actions[name] = ast.actions[name].schema;
         actionMeta[name] = {
             doc: ast.actions[name].doc,
-            args: ast.actions[name].params || ast.actions[name].args
+            args: ast.actions[name].params || ast.actions[name].args || [],
+            questions: ast.actions[name].questions || []
         };
     }
     for (var name in ast.queries) {
         queries[name] = ast.queries[name].schema;
         queryMeta[name] = {
             doc: ast.queries[name].doc,
-            args: ast.queries[name].params || ast.queries[name].args
+            args: ast.queries[name].params || ast.queries[name].args || [],
+            questions: ast.actions[name].questions || []
         };
     }
 
