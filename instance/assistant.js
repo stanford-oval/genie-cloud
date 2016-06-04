@@ -72,21 +72,5 @@ module.exports = class Assistant extends events.EventEmitter {
         this._currentConversation = conv;
         return conv;
     }
-
-    start() {
-        return this._engine.ui.getAllNotify().then(function(notify) {
-            this._notify = notify;
-            notify.on('data', this._notifyListener);
-        }.bind(this));
-    }
-
-    stop() {
-        if (this._notify) {
-            this._notify.removeListener('data', this._notifyListener);
-            return this._notify.close();
-        } else {
-            return Q();
-        }
-    }
 }
 module.exports.prototype.$rpcMethods = ['openConversation'];
