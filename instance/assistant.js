@@ -54,12 +54,16 @@ module.exports = class Assistant extends events.EventEmitter {
 
     sendReply(msg) {
         if (this._currentConversation)
-            this._currentConversation.sendReply(msg);
+            return this._currentConversation.sendReply(msg);
+        else
+            return Q();
     }
 
     sendPicture(url) {
         if (this._currentConversation)
-            this._currentConversation.sendPicture(url);
+            return this._currentConversation.sendPicture(url);
+        else
+            return Q();
     }
 
     openConversation(feedId, user, delegate) {
