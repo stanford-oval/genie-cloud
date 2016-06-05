@@ -156,7 +156,7 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
         return EngineManager.get().getEngine(req.user.id).then(function(engine) {
             // sanity check the app
             ast = AppGrammar.parse(code);
-            var state = JSON.parse(req.body.params);
+            state = JSON.parse(req.body.params);
             if (ast.name.feedAccess) {
                 if (!state.$F && !req.body.feedId)
                     throw new Error('Missing feed for feed-shared app');
