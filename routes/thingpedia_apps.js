@@ -11,6 +11,7 @@ const express = require('express');
 
 const ThingTalk = require('thingtalk');
 const AppCompiler = ThingTalk.Compiler;
+const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const db = require('../util/db');
 const user = require('../util/user');
@@ -20,54 +21,9 @@ const device = require('../model/device');
 const category = require('../model/category');
 const schema = require('../model/schema');
 const feeds = require('../shared/util/feeds');
+const ThingPediaClient = require('../util/thingpedia-client');
 
 const EngineManager = require('../lib/enginemanager');
-
-function SchemaRetriever() {
-    this._request = null;
-    this._pendingRequests = [];
-}
-
-SchemaRetriever.prototype._ensureRequest = function() {
-    if (this._request !== null)
-        return;
-
-    this._request = Q.delay(0).then(function() {
-        var pending = this._pendingRequests;
-        this._pendingRequests = [];
-        this._request = null;
-
-        return db.withClient(function(dbClient) {
-            return schema.getTypesByKinds(dbClient, pending, null);
-        }).then(function(rows) {
-            var obj = {};
-
-            rows.forEach(function(row) {
-                if (row.types === null)
-                    return;
-                obj[row.kind] = {
-                    triggers: row.types[0],
-                    actions: row.types[1],
-                    queries: (row.types[2] || {})
-                };
-            });
-
-            return obj;
-        });
-    }.bind(this));
-};
-
-SchemaRetriever.prototype.getSchema = function(kind) {
-    if (this._pendingRequests.indexOf(kind) < 0)
-        this._pendingRequests.push(kind);
-    this._ensureRequest();
-    return this._request.then(function(everything) {
-        if (kind in everything)
-            return everything[kind];
-        else
-            return null;
-    });
-};
 
 var router = express.Router();
 
@@ -193,7 +149,7 @@ router.get('/create', user.redirectLogIn, function(req, res) {
                                           tags: [] });
 });
 
-var _schemaRetriever = new SchemaRetriever();
+var _schemaRetriever = new SchemaRetriever(new ThingPediaClient());
 
 function validateApp(name, description, code) {
     return Q.try(function() {
