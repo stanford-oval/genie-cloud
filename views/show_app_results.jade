@@ -4,6 +4,13 @@ block page_name
   | #{name}
 
 block content
+  p#app-install-description= description
+
+  div.row#show-hide-code
+    div.col-sm-2
+      a(aria-controls='code-block', data-toggle='collapse', data-target='#code-block').btn.btn-default.btn-sm.btn-block Show/hide code
+  pre.collapse#code-block= code
+
   if arrays.length === 0 && tuples.length === 0 && singles.length === 0
     p This app has no visible result.
   for kw in arrays
