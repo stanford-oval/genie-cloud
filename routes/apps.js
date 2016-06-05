@@ -262,8 +262,8 @@ router.get('/:id/results', user.redirectLogIn, function(req, res, next) {
             return;
         }
 
-        return Q.all([app.name, app.pollOutVariables()])
-            .spread(function(name, results) {
+        return Q.all([app.name, app.description, app.code, app.pollOutVariables()])
+            .spread(function(name, description, code, results) {
                 // FIXME do something smarter with feedAccessible keywords
                 // and complex types
 
@@ -283,6 +283,8 @@ router.get('/:id/results', user.redirectLogIn, function(req, res, next) {
                 return res.render('show_app_results', { page_title: "ThingPedia App",
                                                         appId: req.params.id,
                                                         name: name,
+                                                        description: description,
+                                                        code: code,
                                                         arrays: arrays,
                                                         tuples: tuples,
                                                         singles: singles });
