@@ -133,6 +133,8 @@ class Platform {
 
     createAssistant(engine) {
         this._assistant = new Assistant(engine);
+	// for compat
+	engine.assistant = this._assistant;
     }
 
     // Obtain a shared preference store
