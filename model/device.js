@@ -268,4 +268,20 @@ module.exports = {
         }
     },
 
+    getApprovedByGlobalNamesWithCode: function(client, names, org) {
+        if (org !== null) {
+            var query = "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "((dcv.version = d.developer_version and d.owner = ?) or "
+                + " (dcv.version = d.approved_version and d.owner <> ?)) and "
+                + "d.global_name in (?)";
+            return db.selectAll(client, query, [org.id, org.id, names]);
+        } else {
+            var query = "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "dcv.version = d.approved_version and "
+                + "d.global_name in (?)";
+            return db.selectAll(client, query, [names]);
+        }
+    }
 }
