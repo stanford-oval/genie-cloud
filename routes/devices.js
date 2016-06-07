@@ -56,6 +56,24 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
     }).done();
 });
 
+router.get('/create/:kind', user.requireLogIn, function(req, res, next) {
+    EngineManager.get().getEngine(req.user.id).then(function(engine) {
+        var devices = engine.devices;
+
+        return devices.loadOneDevice({ kind: req.params.kind }, true);
+    }).then(function() {
+        if (req.session['device-redirect-to']) {
+            res.redirect(303, req.session['device-redirect-to']);
+            delete req.session['device-redirect-to'];
+        } else {
+            res.redirect(303, '/apps');
+        }
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: "ThingPedia - Error",
+                                          message: e });
+    }).done();
+});
+
 router.post('/delete', user.requireLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         var id = req.body.id;

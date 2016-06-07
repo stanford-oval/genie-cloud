@@ -84,11 +84,11 @@ function deviceMakeFactory(d) {
         d.factory = null;
     } else if (ast.auth.type === 'none' &&
                Object.keys(ast.params).length === 0) {
-        d.factory = ({ type: 'none', text: d.name });
+        d.factory = ({ type: 'none', kind: d.primary_kind, text: d.name });
     } else if (ast.auth.type === 'oauth2') {
-        d.factory = ({ type: 'oauth2', text: d.name });
+        d.factory = ({ type: 'oauth2', kind: d.primary_kind, text: d.name });
     } else {
-        d.factory = ({ type: 'form',
+        d.factory = ({ type: 'form', kind: d.primary_kind,
                        fields: Object.keys(ast.params).map(function(k) {
                            var p = ast.params[k];
                            return ({ name: k, label: p[0], type: p[1] });
@@ -149,6 +149,55 @@ router.get('/devices', function(req, res) {
     }).done();
 });
 
+router.get('/devices/setup/:kinds', function(req, res) {
+    var kinds = req.params.kinds.split(',');
+    if (kinds.length === 0) {
+        res.json({});
+        return;
+    }
+    var result = {};
+
+    db.withClient(function(dbClient) {
+        return Q.try(function() {
+            var developerKey = req.query.developer_key;
+
+            if (developerKey)
+                return organization.getByDeveloperKey(dbClient, developerKey);
+            else
+                return [];
+        }).then(function(orgs) {
+            var org = null;
+            if (orgs.length > 0)
+                org = orgs[0];
+
+            return device.getApprovedByGlobalNamesWithCode(dbClient, kinds, org);
+        }).then(function(devices) {
+            devices.forEach(function(d) {
+                try {
+                    deviceMakeFactory(d);
+                    if (d.factory)
+                        result[d.global_name] = d.factory;
+                } catch(e) {}
+            });
+
+            var unresolved = kinds.filter((k) => !(k in result));
+            return Q.all(unresolved.map(function(k) {
+                return device.getAllWithKind(dbClient, k).then(function(devices) {
+                    result[k] = {
+                        type: 'multiple',
+                        choices: devices.map((d) => d.name)
+                    };
+                });
+            }));
+        });
+    }).then(function() {
+        res.cacheFor(86400000);
+        res.status(200).json(result);
+    }).catch(function(e) {
+        res.status(500).json({ error: e.message });
+    }).done();
+});
+
 router.get('/code/apps/:id', function(req, res) {
     db.withClient(function(dbClient) {
         return app.get(dbClient, req.params.id).then(function(app) {
@@ -165,7 +214,7 @@ router.get('/code/apps/:id', function(req, res) {
         });
     }).catch(function(e) {
         res.json({ error: e.message });
-    });
+    }).done();
 });
 router.post('/discovery', function(req, res) {
     var client = new ThingPediaClient(req.query.developer_key);
