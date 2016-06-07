@@ -78,6 +78,13 @@ module.exports = class Conversation {
                               webCallback: url });
     }
 
+    sendLink(title, url) {
+        return this.sendRDL({ type: 'rdl', noun: 'link',
+                              displayTitle: title,
+                              callback: url,
+                              webCallback: url });
+    }
+
     setEngine(enginePromise) {
         // new engine means new RpcSocket, so we must clear our old ID
         delete this.$rpcId;
@@ -230,4 +237,5 @@ module.exports = class Conversation {
         return this._messaging.leaveFeed(this.feed.feedId);
     }
 }
-module.exports.prototype.$rpcMethods = ['send', 'sendPicture', 'sendRDL', 'sendChoice'];
+module.exports.prototype.$rpcMethods = ['send', 'sendPicture', 'sendRDL',
+                                        'sendChoice', 'sendLink'];
