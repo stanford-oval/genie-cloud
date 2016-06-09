@@ -19,10 +19,13 @@ var router = express.Router();
 
 router.get('/by-id/:kind', function(req, res) {
     db.withClient(function(dbClient) {
-        return model.getTypesAndMetaByKind(dbClient, req.params.kind);
+        return model.getMetasByKinds(dbClient, req.params.kind);
     }).then(function(rows) {
-        if (rows.length === 0)
-            throw new Error('Not Found');
+        if (rows.length === 0) {
+            res.status(404).render('error', { page_title: "ThingPedia - Error",
+                                              message: 'Not Found' });
+            return;
+        }
 
         var types = { triggers: [], queries: [], actions: [] };
 
