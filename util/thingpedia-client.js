@@ -185,13 +185,17 @@ module.exports = class ThingPediaClientCloud {
                             };
                             if (name in row.meta[id]) {
                                 obj.args = row.meta[id][name].args;
-                                obj.doc = row.meta[id][name].doc;
+                                obj.label = row.meta[id][name].label || row.meta[id][name].doc;
+                                obj.doc = obj.label;
+                                obj.canonical = row.meta[id][name].canonical || '';
                                 obj.questions = row.meta[id][name].questions || [];
                             } else {
                                 obj.args = obj.schema.map(function(_, i) {
                                     return 'arg' + (i+1);
                                 });
+                                obj.label = name;
                                 obj.doc = name;
+                                obj.canonical = name;
                                 obj.questions = obj.schema.map(function() {
                                     return '';
                                 });

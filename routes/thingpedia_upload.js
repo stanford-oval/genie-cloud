@@ -253,6 +253,8 @@ function ensurePrimarySchema(dbClient, kind, ast) {
         triggers[name] = ast.triggers[name].schema;
         triggerMeta[name] = {
             doc: ast.triggers[name].doc,
+            label: ast.triggers[name].label,
+            canonical: ast.trigger[name].canonical,
             args: ast.triggers[name].params || ast.triggers[name].args || [],
             questions: ast.triggers[name].questions || []
         };
@@ -261,6 +263,8 @@ function ensurePrimarySchema(dbClient, kind, ast) {
         actions[name] = ast.actions[name].schema;
         actionMeta[name] = {
             doc: ast.actions[name].doc,
+            label: ast.actions[name].label,
+            canonical: ast.actions[name].canonical,
             args: ast.actions[name].params || ast.actions[name].args || [],
             questions: ast.actions[name].questions || []
         };
@@ -269,6 +273,8 @@ function ensurePrimarySchema(dbClient, kind, ast) {
         queries[name] = ast.queries[name].schema;
         queryMeta[name] = {
             doc: ast.queries[name].doc,
+            label: ast.queries[name].label,
+            canonical: ast.queries[name].canonical,
             args: ast.queries[name].params || ast.queries[name].args || [],
             questions: ast.queries[name].questions || []
         };
