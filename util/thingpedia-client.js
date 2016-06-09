@@ -277,7 +277,7 @@ module.exports = class ThingPediaClientCloud {
                     devices = devices.filter((d) => {
                         return !!d.factory;
                     });
-                    res.json(devices);
+                    return devices;
                 });
             });
         });

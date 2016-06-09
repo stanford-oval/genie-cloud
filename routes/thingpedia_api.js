@@ -73,6 +73,22 @@ router.get('/code/devices/:kind', function(req, res) {
     }).done();
 });
 
+router.get('/devices/setup/:kinds', function(req, res) {
+    var kinds = req.params.kinds.split(',');
+    if (kinds.length === 0) {
+        res.json({});
+        return;
+    }
+
+    var client = new ThingPediaClient(req.query.developer_key);
+    client.getDeviceSetup(kinds).then(function(result) {
+        res.cacheFor(86400000);
+        res.status(200).json(result);
+    }).catch(function(e) {
+        res.status(500).json({ error: e.message });
+    }).done();
+});
+
 router.get('/devices', function(req, res) {
     if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
         res.status(404).json("Invalid device class");
@@ -87,22 +103,6 @@ router.get('/devices', function(req, res) {
         console.error('Failed to retrieve device factories: ' + e.message);
         console.error(e.stack);
         res.status(500).send('Error: ' + e.message);
-    }).done();
-});
-
-router.get('/devices/setup/:kinds', function(req, res) {
-    var kinds = req.params.kinds.split(',');
-    if (kinds.length === 0) {
-        res.json({});
-        return;
-    }
-
-    var client = new ThingPediaClient(req.query.developer_key);
-    client.getDeviceFactories(req.query.class).then(function(result) {
-        res.cacheFor(86400000);
-        res.status(200).json(result);
-    }).catch(function(e) {
-        res.status(500).json({ error: e.message });
     }).done();
 });
 
