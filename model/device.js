@@ -9,21 +9,29 @@
 const db = require('../util/db');
 const Q = require('q');
 
-function insertKinds(client, deviceId, extraKinds) {
+function insertKinds(client, deviceId, extraKinds, extraChildKinds) {
     var extraMarks = [];
     var extraValues = [];
     for (var i = 0; i < extraKinds.length; i++) {
         var k = extraKinds[i];
-        extraMarks.push('(?,?)');
+        extraMarks.push('(?,?,?)');
         extraValues.push(deviceId);
         extraValues.push(k);
+        extraValues.push(false);
+    }
+    for (var i = 0; i < extraChildKinds.length; i++) {
+        var k = extraChildKinds[i];
+        extraMarks.push('(?,?,?)');
+        extraValues.push(deviceId);
+        extraValues.push(k);
+        extraValues.push(true);
     }
 
-    return db.query(client, 'insert into device_class_kind(device_id, kind) '
+    return db.query(client, 'insert into device_class_kind(device_id, kind, is_child) '
                     + 'values' + extraMarks.join(','), extraValues);
 }
 
-function create(client, device, extraKinds, code) {
+function create(client, device, extraKinds, extraChildKinds, code) {
     var KEYS = ['primary_kind', 'global_name', 'owner', 'name', 'description', 'fullcode',
                 'approved_version', 'developer_version'];
     KEYS.forEach(function(key) {
@@ -41,7 +49,7 @@ function create(client, device, extraKinds, code) {
             device.id = id;
 
             if (extraKinds && extraKinds.length > 0)
-                return insertKinds(client, device.id, extraKinds);
+                return insertKinds(client, device.id, extraKinds, extraChildKinds);
         }).then(function() {
             return db.insertOne(client, 'insert into device_code_version(device_id, version, code) '
                                 + 'values(?, ?, ?)', [device.id, device.developer_version, code]);
@@ -50,14 +58,14 @@ function create(client, device, extraKinds, code) {
         });
 }
 
-function update(client, id, device, extraKinds, code) {
+function update(client, id, device, extraKinds, extraChildKinds, code) {
     return db.query(client, "update device_class set ? where id = ?", [device, id])
         .then(function() {
             return db.query(client, "delete from device_class_kind where device_id = ?", [id]);
         })
         .then(function() {
             if (extraKinds && extraKinds.length > 0)
-                return insertKinds(client, id, extraKinds);
+                return insertKinds(client, id, extraKinds, extraChildKinds);
         })
         .then(function() {
             return db.insertOne(client, 'insert into device_code_version(device_id, version, code) '
@@ -107,7 +115,7 @@ module.exports = {
         return db.selectAll(client, "select * from device_class where primary_kind = ? or "
                             + "global_name = ? union "
                             + "(select d.* from device_class d, device_class_kind dk "
-                            + "where dk.device_id = d.id and dk.kind = ?)", [kind, kind, kind]);
+                            + "where dk.device_id = d.id and dk.kind = ? and not dk.is_child)", [kind, kind, kind]);
     },
 
     getByTag: function(client, tag) {
@@ -139,18 +147,8 @@ module.exports = {
         }
     },
 
-    getAllWithKind: function(client, kind, start, end) {
+    getAllWithKindOrChildKind: function(client, kind, start, end) {
         var query = "select d.* from device_class d where exists (select 1 from device_class_kind "
-            + "dk where dk.device_id = d.id and dk.kind = ?) order by d.name";
-        if (start !== undefined && end !== undefined) {
-            return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
-        } else {
-            return db.selectAll(client, query, [kind]);
-        }
-    },
-
-    getAllWithoutKind: function(client, kind, start, end) {
-        var query = "select d.* from device_class d where not exists (select 1 from device_class_kind "
             + "dk where dk.device_id = d.id and dk.kind = ?) order by d.name";
         if (start !== undefined && end !== undefined) {
             return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
@@ -191,7 +189,7 @@ module.exports = {
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) and "
                 + "exists (select 1 from device_class_kind dk where dk.device_id "
-                + "= d.id and dk.kind = ?) order by d.name";
+                + "= d.id and dk.kind = ? and not dk.is_child) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
                                     [org.id, org.id, kind, start, end]);
@@ -203,7 +201,7 @@ module.exports = {
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and "
                 + "exists (select 1 from device_class_kind dk where dk.device_id "
-                + "= d.id and dk.kind = ?) order by d.name";
+                + "= d.id and dk.kind = ? and not dk.is_child) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
             } else {
@@ -219,7 +217,7 @@ module.exports = {
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) and "
                 + "not exists (select 1 from device_class_kind dk where dk.device_id "
-                + "= d.id and dk.kind = ?) order by d.name";
+                + "= d.id and dk.kind = ? and not dk.is_child) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
                                     [org.id, org.id, kind, start, end]);
@@ -231,7 +229,7 @@ module.exports = {
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and "
                 + "not exists (select 1 from device_class_kind dk where dk.device_id "
-                + "= d.id and dk.kind = ?) order by d.name";
+                + "= d.id and dk.kind = ? and not dk.is_child) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
             } else {
@@ -247,7 +245,7 @@ module.exports = {
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) and "
                 + "not exists (select 1 from device_class_kind dk where dk.device_id "
-                + "= d.id and dk.kind in (?)) order by d.name";
+                + "= d.id and dk.kind in (?) and not dk.is_child) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?",
                                     [org.id, org.id, kinds, start, end]);
@@ -259,7 +257,7 @@ module.exports = {
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and "
                 + "not exists (select 1 from device_class_kind dk where dk.device_id "
-                + "= d.id and dk.kind in (?)) order by d.name";
+                + "= d.id and dk.kind in (?) and not dk.is_child) order by d.name";
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, query + " limit ?,?", [kinds, start, end]);
             } else {

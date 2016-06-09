@@ -310,7 +310,7 @@ module.exports = class ThingPediaClientCloud {
 
                 var unresolved = kinds.filter((k) => !(k in result));
                 return Q.all(unresolved.map((k) => {
-                    return device.getAllWithKind(dbClient, k).then((devices) => {
+                    return device.getAllWithKindOrChildKind(dbClient, k).then((devices) => {
                         result[k] = {
                             type: 'multiple',
                             choices: devices.map((d) => d.name)

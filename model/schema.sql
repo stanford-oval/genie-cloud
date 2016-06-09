@@ -150,6 +150,7 @@ create table device_class_tag (
 create table device_class_kind (
     device_id integer not null,
     kind varchar(128) not null,
+    is_child boolean not null default false,
     primary key(device_id, kind),
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
 ) collate utf8_bin;
