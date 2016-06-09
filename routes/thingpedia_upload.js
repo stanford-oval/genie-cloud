@@ -254,7 +254,7 @@ function ensurePrimarySchema(dbClient, kind, ast) {
         triggerMeta[name] = {
             doc: ast.triggers[name].doc,
             label: ast.triggers[name].label,
-            canonical: ast.trigger[name].canonical,
+            canonical: ast.triggers[name].canonical,
             args: ast.triggers[name].params || ast.triggers[name].args || [],
             questions: ast.triggers[name].questions || []
         };
@@ -432,6 +432,7 @@ function doCreateOrUpdate(id, create, req, res) {
             });
         });
     }).catch(function(e) {
+        console.error(e.stack);
         res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e });
     }).done();
