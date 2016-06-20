@@ -87,8 +87,6 @@ class Feed extends Tp.Messaging.Feed {
             return this._messaging.getUserById(m);
         }, this)).then(function(users) {
             this._members = users;
-
-            console.log('New feed members', users.map(function(u) { return u.name; }));
         }.bind(this));
     }
 
@@ -120,8 +118,6 @@ class Feed extends Tp.Messaging.Feed {
     }
 
     _doOpen() {
-        console.log('Opening feed with ID ' + this.feedId);
-
         return this._messaging.getOwnId().then(function(ownId) {
             this.ownId = ownId;
             return this._getFeed();

@@ -218,7 +218,6 @@ module.exports = class AssistantDispatcher {
     }
 
     addEngine(omletId, engine) {
-        console.log('Added engine for account ' + omletId);
         var promise = Q(engine);
         this._engines[omletId] = promise;
         var conversations = this._conversationsByAccount[omletId] || [];
