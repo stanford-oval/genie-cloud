@@ -37,7 +37,11 @@ block content
           else
             p Syntax error at #{error.fileName} line #{error.lineNumber}: #{error.message}
         else if error.message
-          p= error.message
+          if error.message.startsWith('ER_DUP_ENTRY:')
+            p The app ID (the name before the parenthesis) you chose is already in use,
+              |  pick a different one.
+          else
+            p= error.message
         else
           p= String(error)
 
