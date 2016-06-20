@@ -160,6 +160,8 @@ function validateDevice(dbClient, req) {
         ast.params = {};
     if (!ast.types)
         ast.types = [];
+    if (!ast.child_types)
+        ast.child_types = [];
     if (!ast.auth)
         ast.auth = {"type":"none"};
     if (!ast.auth.type || ['none','oauth2','basic','builtin'].indexOf(ast.auth.type) == -1)
@@ -348,6 +350,7 @@ function doCreateOrUpdate(id, create, req, res) {
                     return null;
 
                 var extraKinds = ast.types;
+                var extraChildKinds = ast.child_types;
                 var globalName = ast['global-name'];
                 if (!globalName)
                     globalName = null;
@@ -373,7 +376,7 @@ function doCreateOrUpdate(id, create, req, res) {
                         obj.approved_version = 0;
                         obj.developer_version = 0;
                     }
-                    return model.create(dbClient, obj, extraKinds, code);
+                    return model.create(dbClient, obj, extraKinds, extraChildKinds, code);
                 } else {
                     return model.get(dbClient, id).then(function(old) {
                         if (old.owner !== req.user.developer_org &&
@@ -386,7 +389,7 @@ function doCreateOrUpdate(id, create, req, res) {
                             approve)
                             obj.approved_version = obj.developer_version;
 
-                        return model.update(dbClient, id, obj, extraKinds, code);
+                        return model.update(dbClient, id, obj, extraKinds, extraChildKinds, code);
                     });
                 }
             }).then(function(obj) {

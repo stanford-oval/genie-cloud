@@ -58,10 +58,10 @@ block content
     if device.global_name
       |  
       span.label.label-default= device.global_name
-    for k in device.kinds
+    for k in device.types
       |  
-      a(href='/thingpedia/schemas/by-id/' + k.kind)
-        span.label.label-default= k.kind
+      a(href='/thingpedia/schemas/by-id/' + k)
+        span.label.label-default= k
 
   if device.child_types.length > 0
     h2.device-subtitle Child Types:

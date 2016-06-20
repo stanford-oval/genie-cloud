@@ -42,9 +42,6 @@ function getDetails(fn, param, req, res) {
     Q.try(function() {
         return db.withClient(function(client) {
             return fn(client, param).tap(function(d) {
-                return model.getAllKinds(client, d.id)
-                    .then(function(kinds) { d.kinds = kinds; });
-            }).tap(function(d) {
                 return Q.try(function() {
                     if (req.user && req.user.developer_org === d.owner)
                         return model.getDeveloperCode(client, d.id);
@@ -54,17 +51,15 @@ function getDetails(fn, param, req, res) {
                 .catch(function(e) { d.code = null; });
             });
         }).then(function(d) {
-            var online = d.kinds.some(function(k) { return k.kind === 'online-account' });
-            var title;
-            if (online)
-                title = "ThingPedia - Account details";
-            else
-                title = "ThingPedia - Device details";
+            var online = false;
 
+            d.types = [];
             d.child_types = [];
             var triggers = [], actions = [], queries = [];
             try {
                 var ast = JSON.parse(d.code);
+                d.types = ast['types'] || [];
+                online = d.types.some(function(k) { return k === 'online-account' });
                 d.child_types = ast['child-types'] || [];
 
                 if (ast.triggers) {
@@ -116,6 +111,12 @@ function getDetails(fn, param, req, res) {
                     }
                 }
             } catch(e) {}
+
+            var title;
+            if (online)
+                title = "ThingPedia - Account details";
+            else
+                title = "ThingPedia - Device details";
 
             res.render('thingpedia_device_details', { page_title: title,
                                                       csrfToken: req.csrfToken(),
