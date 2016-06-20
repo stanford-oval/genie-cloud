@@ -79,6 +79,7 @@ create table oauth2_auth_codes (
 create table app (
     id integer auto_increment primary key,
     owner integer,
+    app_id varchar(255) not null unique,
     name varchar(255) not null collate utf8_general_ci,
     description text not null collate utf8_general_ci,
     code mediumtext not null,
