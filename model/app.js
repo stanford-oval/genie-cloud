@@ -10,7 +10,7 @@ const db = require('../util/db');
 const Q = require('q');
 
 function create(client, app) {
-    var KEYS = ['owner', 'name', 'description', 'code'];
+    var KEYS = ['app_id', 'owner', 'name', 'description', 'code'];
     KEYS.forEach(function(key) {
         if (app[key] === undefined)
             app[key] = null;
@@ -33,6 +33,13 @@ module.exports = {
                             + " u.human_name, u.username) as owner_name from app r left outer "
                             + "join users u on r.owner = u.id where r.id = ?",
                             [id]);
+    },
+
+    getByAppId: function(client, appId) {
+        return db.selectOne(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
+                            + " u.human_name, u.username) as owner_name from app r left outer "
+                            + "join users u on r.owner = u.id where r.app_id = ?",
+                            [appId]);
     },
 
     getByOwner: function(client, visible, owner) {

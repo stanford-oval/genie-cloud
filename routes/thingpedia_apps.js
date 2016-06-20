@@ -152,13 +152,19 @@ router.get('/create', user.redirectLogIn, function(req, res) {
 var _schemaRetriever = new SchemaRetriever(new ThingPediaClient());
 
 function validateApp(name, description, code) {
+    var compiler = new AppCompiler();
+
     return Q.try(function() {
         if (!name || !description)
             throw new Error("A app must have a name and a description");
 
-        var compiler = new AppCompiler();
         compiler.setSchemaRetriever(_schemaRetriever);
         return compiler.compileCode(code);
+    }).then(function() {
+        if (compiler.feedAccess)
+            return compiler.name + '[F]';
+        else
+            return compiler.name;
     });
 }
 
@@ -170,11 +176,12 @@ router.post('/create', user.requireLogIn, function(req, res) {
 
     return Q.try(function() {
         return validateApp(name, description, code);
-    }).then(function() {
+    }).then(function(appId) {
         // FINISHME figure out what devices this app uses
 
         return db.withTransaction(function(dbClient) {
             return model.create(dbClient, { owner: req.user.id,
+                                            app_id: appId,
                                             name: name,
                                             description: description,
                                             code: code })
@@ -185,7 +192,6 @@ router.post('/create', user.requireLogIn, function(req, res) {
     }).then(function(app) {
         res.redirect('/thingpedia/apps/' + app.id);
     }).catch(function(err) {
-        console.log(err);
         res.render('thingpedia_app_create', { error: err,
                                               op: 'create',
                                               csrfToken: req.csrfToken(),
@@ -331,11 +337,12 @@ router.post('/fork/:id(\\d+)', user.requireLogIn, function(req, res) {
 
     Q.try(function() {
         return validateApp(name, description, code);
-    }).then(function() {
+    }).then(function(appId) {
         // FINISHME figure out what devices this app uses
 
         return db.withTransaction(function(dbClient) {
             return model.create(dbClient, { owner: req.user.id,
+                                            app_id: appId,
                                             name: name,
                                             description: description,
                                             code: code })
@@ -391,7 +398,7 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
 
     Q.try(function() {
         return validateApp(name, description, code);
-    }).then(function() {
+    }).then(function(appId) {
         return db.withTransaction(function(dbClient) {
             return model.get(dbClient, req.params.id).then(function(r) {
                 if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
@@ -403,6 +410,7 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
 
                 // FINISHME figure out what devices this app uses
                 return model.update(dbClient, req.params.id, { name: name,
+                                                               app_id: appId,
                                                                description: description,
                                                                code: code })
                     .then(function() {
@@ -428,8 +436,6 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
                                               tags: tags });
     }).done();
 });
-
-    var compiler;
 
 router.get('/install/:id(\\d+)', user.redirectLogIn, function(req, res, next) {
     db.withClient(function(dbClient) {
