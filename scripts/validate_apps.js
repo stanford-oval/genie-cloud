@@ -41,6 +41,7 @@ function main() {
 
                 return compileApp(a.code).catch(function(e) {
                     console.log('Compiling of ' + a.id + ' (' + a.name + ') failed: ' + e.message);
+                    return model.update(dbClient, a.id, { visible: false });
                 });
             }));
         });
