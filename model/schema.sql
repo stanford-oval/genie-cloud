@@ -82,6 +82,7 @@ create table app (
     app_id varchar(255) not null,
     name varchar(255) not null collate utf8_general_ci,
     description text not null collate utf8_general_ci,
+    canonical text null collate utf8_general_ci,
     code mediumtext not null,
     visible boolean not null default false,
     unique key (owner, app_id),
