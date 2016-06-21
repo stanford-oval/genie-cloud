@@ -36,9 +36,6 @@ function main() {
     db.withTransaction(function(dbClient) {
         return model.getAll(dbClient, -1).then(function(apps) {
             return Q.all(apps.map(function(a) {
-                if (a.app_id)
-                    return;
-
                 return compileApp(a.code).catch(function(e) {
                     console.log('Compiling of ' + a.id + ' (' + a.name + ') failed: ' + e.message);
                     return model.update(dbClient, a.id, { visible: false });
