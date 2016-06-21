@@ -146,6 +146,7 @@ router.get('/create', user.redirectLogIn, function(req, res) {
                                           name: '',
                                           description: '',
                                           code: '',
+                                          canonical: '',
                                           tags: [] });
 });
 
@@ -173,6 +174,7 @@ router.post('/create', user.requireLogIn, function(req, res) {
     var description = req.body.description;
     var code = req.body.code;
     var tags = req.body.tags || [];
+    var canonical = req.body.canonical || null;
 
     return Q.try(function() {
         return validateApp(name, description, code);
@@ -184,6 +186,7 @@ router.post('/create', user.requireLogIn, function(req, res) {
                                             app_id: appId,
                                             name: name,
                                             description: description,
+                                            canonical: canonical,
                                             code: code })
                 .tap(function(app) {
                     return model.addTags(dbClient, app.id, tags);
@@ -197,6 +200,7 @@ router.post('/create', user.requireLogIn, function(req, res) {
                                               csrfToken: req.csrfToken(),
                                               name: name,
                                               description: description,
+                                              canonical: canonical,
                                               code: code,
                                               tags: tags });
     }).done();
@@ -317,6 +321,7 @@ function forkApp(req, res, error, name, description, code, tags) {
                                                      fork_name: app.name,
                                                      name: name || app.name,
                                                      description: description || app.description,
+                                                     canonical: canonical,
                                                      code: code || app.code,
                                                      tags: tags || app.tags.map(function(t) { return t.tag; }) });
     }).catch(function(e) {
@@ -334,6 +339,7 @@ router.post('/fork/:id(\\d+)', user.requireLogIn, function(req, res) {
     var description = req.body.description;
     var code = req.body.code;
     var tags = req.body.tags || [];
+    var canonical = req.body.canonical || null;
 
     Q.try(function() {
         return validateApp(name, description, code);
@@ -345,6 +351,7 @@ router.post('/fork/:id(\\d+)', user.requireLogIn, function(req, res) {
                                             app_id: appId,
                                             name: name,
                                             description: description,
+                                            canonical: canonical,
                                             code: code })
                 .tap(function(app) {
                     return model.addTags(dbClient, app.id, tags);
@@ -382,6 +389,7 @@ router.get('/edit/:id(\\d+)', user.redirectLogIn, function(req, res) {
                                               app_id: app.id,
                                               name: app.name,
                                               description: app.description,
+                                              canonical: app.canonical,
                                               code: app.code,
                                               tags: app.tags.map(function(t) { return t.tag; }) });
     }).catch(function(e) {
@@ -395,6 +403,7 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
     var description = req.body.description;
     var code = req.body.code;
     var tags = req.body.tags || [];
+    var canonical = req.body.canonical || null;
 
     Q.try(function() {
         return validateApp(name, description, code);
@@ -432,6 +441,7 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
                                               app_id: req.params.id,
                                               name: name,
                                               description: description,
+                                              canonical: canonical,
                                               code: code,
                                               tags: tags });
     }).done();

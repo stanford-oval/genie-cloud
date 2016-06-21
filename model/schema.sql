@@ -79,11 +79,13 @@ create table oauth2_auth_codes (
 create table app (
     id integer auto_increment primary key,
     owner integer,
-    app_id varchar(255) not null unique,
+    app_id varchar(255) not null,
     name varchar(255) not null collate utf8_general_ci,
     description text not null collate utf8_general_ci,
+    canonical text null collate utf8_general_ci,
     code mediumtext not null,
     visible boolean not null default false,
+    unique key (owner, app_id),
     foreign key (owner) references users(id) on update cascade on delete set null
 ) collate = utf8_bin;
 
@@ -115,6 +117,19 @@ create table device_schema_version (
     meta mediumtext not null,
     primary key(schema_id, version),
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
+) collate utf8_bin;
+
+create table device_schema_channels (
+    schema_id integer not null,
+    version integer not null,
+    name varchar(128) not null,
+    channel_type enum('trigger', 'action', 'query') not null,
+    canonical text null collate utf8_general_ci,
+    types mediumtext not null,
+    argnames mediumtext not null,
+    primary key(schema_id, version, name),
+    foreign key (schema_id) references device_schema(id) on update cascade on delete cascade,
+    fulltext key(canonical)
 ) collate utf8_bin;
 
 create table device_code_version (

@@ -9,6 +9,31 @@
 const db = require('../util/db');
 const Q = require('q');
 
+function insertChannels(dbClient, schemaId, version, types, meta) {
+    var channels = [];
+
+    function makeList(what, from, fromMeta) {
+        for (var name in from) {
+            var meta = fromMeta[name];
+            var canonical = (meta ? meta.canonical : null) || null;
+            var types = from[name];
+            var argnames = meta ? meta.args : types.map((t, i) => 'arg' + (i+1));
+            channels.push([schemaId, version, name, what, canonical,
+                           JSON.stringify(types), JSON.stringify(argnames)]);
+        }
+    }
+
+    makeList('trigger', types[0], meta[0] || {});
+    makeList('action', types[1], meta[1] || {});
+    makeList('query', types[2] || {}, meta[2] || {});
+
+    if (channels.length === 0)
+        return;
+
+    return db.insertOne(dbClient, 'insert into device_schema_channels(schema_id, version, name, '
+        + 'channel_type, canonical, types, argnames) values ?', [channels]);
+}
+
 function create(client, schema, types, meta) {
     var KEYS = ['kind', 'approved_version', 'developer_version'];
     KEYS.forEach(function(key) {
@@ -30,6 +55,8 @@ function create(client, schema, types, meta) {
                                                          JSON.stringify(types),
                                                          JSON.stringify(meta)]);
         }).then(function() {
+            return insertChannels(client, schema.id, schema.developer_version, types, meta);
+        }).then(function() {
             return schema;
         });
 }
@@ -41,8 +68,9 @@ function update(client, id, schema, types, meta) {
                                 + 'values(?, ?, ?, ?)', [id, schema.developer_version,
                                                          JSON.stringify(types),
                                                          JSON.stringify(meta)]);
-        })
-        .then(function() {
+        }).then(function() {
+            return insertChannels(client, id, schema.developer_version, types, meta);
+        }).then(function() {
             return schema;
         });
 }
@@ -50,6 +78,12 @@ function update(client, id, schema, types, meta) {
 module.exports = {
     get: function(client, id) {
         return db.selectOne(client, "select * from device_schema where id = ?", [id]);
+    },
+
+    getAll: function(client, id) {
+        return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
+                            + "device_schema_version dsv where ds.id = dsv.schema_id "
+                            + "and ds.developer_version = dsv.version");
     },
 
     getByKind: function(client, kind) {
@@ -98,4 +132,6 @@ module.exports = {
 
     create: create,
     update: update,
+
+    insertChannels: insertChannels
 };

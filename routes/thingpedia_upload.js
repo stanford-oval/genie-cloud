@@ -110,12 +110,17 @@ function schemaCompatible(s1, s2) {
         s2.every(function(t, i) {
             var t1 = ThingTalk.Type.fromString(t);
             var t2 = ThingTalk.Type.fromString(s1[i]);
-            return ThingTalk.Type.compatible(t1, t2);
+            try {
+                ThingTalk.Type.typeUnify(t1, t2);
+                return true;
+            } catch(e) {
+                return false;
+            }
         });
 }
 
 function validateSchema(dbClient, type, ast, allowFailure) {
-    return schema.getTypesByKind(dbClient, type).then(function(rows) {
+    return schema.getTypesByKinds(dbClient, [type]).then(function(rows) {
         if (rows.length < 1) {
             if (allowFailure)
                 return;

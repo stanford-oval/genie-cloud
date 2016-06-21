@@ -10,7 +10,7 @@ const db = require('../util/db');
 const Q = require('q');
 
 function create(client, app) {
-    var KEYS = ['app_id', 'owner', 'name', 'description', 'code'];
+    var KEYS = ['app_id', 'owner', 'name', 'description', 'canonical', 'code'];
     KEYS.forEach(function(key) {
         if (app[key] === undefined)
             app[key] = null;
@@ -35,11 +35,18 @@ module.exports = {
                             [id]);
     },
 
-    getByAppId: function(client, appId) {
+    getByAppId: function(client, owner, appId) {
         return db.selectOne(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
                             + " u.human_name, u.username) as owner_name from app r left outer "
-                            + "join users u on r.owner = u.id where r.app_id = ?",
-                            [appId]);
+                            + "join users u on r.owner = u.id where r.owner = ? and r.app_id = ?",
+                            [owner, appId]);
+    },
+
+    getByCanonical: function(client, canonical) {
+        return db.selectOne(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
+                            + " u.human_name, u.username) as owner_name from app r left outer "
+                            + "join users u on r.owner = u.id where match (r.canonical) against "
+                            + "(? in natural language mode)", [canonical]);
     },
 
     getByOwner: function(client, visible, owner) {
@@ -147,6 +154,16 @@ module.exports = {
                                 + " outer join users u on r.owner = u.id"
                                 + (visible !== null ? " where (r.owner = ? or r.visible)" : "")
                                 + " order by r.name", [visible]);
+        }
+    },
+
+    getAllCanonicals: function(client, visible) {
+        if (visible !== null) {
+            return db.selectAll(client, "select id, canonical from app where (owner = ? or visible)",
+                                        [visible]);
+        } else {
+            return db.selectAll(client, "select id, canonical from app",
+                                        [visible]);
         }
     },
 
