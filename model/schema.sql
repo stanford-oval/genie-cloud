@@ -119,6 +119,19 @@ create table device_schema_version (
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
 ) collate utf8_bin;
 
+create table device_schema_channels (
+    schema_id integer not null,
+    version integer not null,
+    name varchar(128) not null,
+    channel_type enum('trigger', 'action', 'query') not null,
+    canonical text null collate utf8_general_ci,
+    types mediumtext not null,
+    argnames mediumtext not null,
+    primary key(schema_id, version, name),
+    foreign key (schema_id) references device_schema(id) on update cascade on delete cascade,
+    fulltext key(canonical)
+) collate utf8_bin;
+
 create table device_code_version (
     device_id integer not null,
     version integer not null,
