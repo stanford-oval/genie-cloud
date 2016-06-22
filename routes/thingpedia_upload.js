@@ -19,6 +19,8 @@ var code_storage = require('../util/code_storage');
 var model = require('../model/device');
 var schema = require('../model/schema');
 var user = require('../util/user');
+var expandExamples = require('../util/expand_examples');
+var exampleModel = require('../model/example');
 
 var router = express.Router();
 
@@ -256,47 +258,36 @@ function ensurePrimarySchema(dbClient, kind, ast) {
     var queries = {};
     var queryMeta = {};
 
-    for (var name in ast.triggers) {
-        triggers[name] = ast.triggers[name].schema;
-        triggerMeta[name] = {
-            doc: ast.triggers[name].doc,
-            label: ast.triggers[name].label,
-            canonical: ast.triggers[name].canonical,
-            args: ast.triggers[name].params || ast.triggers[name].args || [],
-            questions: ast.triggers[name].questions || []
-        };
+    function handleOne(ast, out, outMeta) {
+        for (var name in ast) {
+            out[name] = ast[name].schema;
+            outMeta[name] = {
+                doc: ast[name].doc,
+                label: (ast[name].confirmation || ast[name].label),
+                canonical: ast[name].canonical,
+                args: ast[name].params || ast[name].args || [],
+                questions: ast[name].questions || []
+            };
+        }
     }
-    for (var name in ast.actions) {
-        actions[name] = ast.actions[name].schema;
-        actionMeta[name] = {
-            doc: ast.actions[name].doc,
-            label: ast.actions[name].label,
-            canonical: ast.actions[name].canonical,
-            args: ast.actions[name].params || ast.actions[name].args || [],
-            questions: ast.actions[name].questions || []
-        };
-    }
-    for (var name in ast.queries) {
-        queries[name] = ast.queries[name].schema;
-        queryMeta[name] = {
-            doc: ast.queries[name].doc,
-            label: ast.queries[name].label,
-            canonical: ast.queries[name].canonical,
-            args: ast.queries[name].params || ast.queries[name].args || [],
-            questions: ast.queries[name].questions || []
-        };
-    }
+
+    handleOne(ast.triggers, triggers, triggerMeta);
+    handleOne(ast.actions, actions, actionMeta);
+    handleOne(ast.queries, queries, queryMeta);
+
+    var types = [triggers, actions, queries];
+    var meta = [triggerMeta, actionMeta, queryMeta];
 
     return schema.getByKind(dbClient, kind).then(function(existing) {
         return schema.update(dbClient,
                              existing.id, { developer_version: existing.developer_version + 1,
                                             approved_version: existing.approved_version + 1},
-                             [triggers, actions, queries], [triggerMeta, actionMeta, queryMeta]);
+                             types, meta);
     }).catch(function(e) {
         return schema.create(dbClient, { developer_version: 0,
                                          approved_version: 0,
                                          kind: kind },
-                             [triggers, actions, queries], [triggerMeta, actionMeta, queryMeta]);
+                             types, meta);
     }).then(function() {
         if (!ast['global-name'])
             return;
@@ -305,12 +296,89 @@ function ensurePrimarySchema(dbClient, kind, ast) {
             return schema.update(dbClient,
                                  existing.id, { developer_version: existing.developer_version + 1,
                                                 approved_version: existing.approved_version + 1 },
-                                 [triggers, actions, queries], [triggerMeta, actionMeta, queryMeta]);
+                                 types, meta);
         }).catch(function(e) {
             return schema.create(dbClient, { developer_version: 0,
                                              approved_version: 0,
                                              kind: ast['global-name'] },
-                                 [triggers, actions, queries], [triggerMeta, actionMeta, queryMeta]);
+                                 types, meta);
+        });
+    });
+}
+
+function exampleToAction(kind, actionName, assignments, argtypes) {
+    var args = [];
+
+    for (var name in assignments) {
+        var type = argtypes[name];
+        if (type.isString)
+            args.push({ name: name, type: 'String', value: assignments[name] });
+        else if (type.isNumber)
+            args.push({ name: name, type: 'Number', value: assignments[name] });
+        else if (type.isMeasure)
+            args.push({ name: name, type: 'Measure', value: assignments[name][0],
+                        unit: assignments[name][1] });
+        else if (type.isBoolean)
+            args.push({ name: name, type: 'Bool', value: assignments[name] });
+        else
+            throw new TypeError();
+    }
+
+    return {
+        action: { name: 'tt:' + kind + '.' + actionName,
+                  args: args }
+    }
+}
+
+function ensureExamples(dbClient, ast) {
+    if (!ast['global-name'])
+        return;
+
+    function generateChannelExamples(fromChannel) {
+
+    }
+
+    function generateAllExamples(schemaId) {
+        // only do actions for now
+        var out = [];
+
+        for (var name in ast.actions) {
+            var fromChannel = ast.actions[name];
+            if (!Array.isArray(fromChannel.examples))
+                continue;
+
+            var argtypes = {};
+            var argnames = fromChannel.params || fromChannel.args || [];
+            argnames.forEach(function(name, i) {
+                argtypes[name] = ThingTalk.Type.fromString(fromChannel.schema[i]);
+            });
+
+            fromChannel.examples.forEach(function(ex) {
+                var jsonAction = exampleToAction(ast['global-name'], name, {}, argtypes);
+                out.push({ schema_id: schemaId, is_base: true, utterance: ex,
+                           target_json: JSON.stringify(jsonAction) });
+            });
+
+            try {
+                var expanded = expandExamples(fromChannel.examples, argtypes);
+                expanded.forEach(function(ex) {
+                    var jsonAction = exampleToAction(ast['global-name'], name, ex.assignments, argtypes);
+                    out.push({ schema_id: schemaId, is_base: false, utterance: ex.utterance,
+                               target_json: JSON.stringify(jsonAction) });
+                });
+            } catch(e) {
+                console.log('Failed to expand examples: ' + e.message);
+            }
+        }
+
+        return out;
+    }
+
+    return schema.getByKind(dbClient, ast['global-name']).then(function(existing) {
+        return exampleModel.deleteBySchema(dbClient, existing.id).then(function() {
+            var examples = generateAllExamples(existing.id);
+            if (examples.length > 0)
+                return exampleModel.createMany(dbClient, examples);
         });
     });
 }
@@ -350,6 +418,8 @@ function doCreateOrUpdate(id, create, req, res) {
                     return;
 
                 return ensurePrimarySchema(dbClient, kind, ast);
+            }).tap(function(ast) {
+                return ensureExamples(dbClient, ast);
             }).then(function(ast) {
                 if (ast === null)
                     return null;

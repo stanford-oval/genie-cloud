@@ -20,7 +20,7 @@ function createMany(client, examples) {
         var vals = KEYS.map(function(key) {
             return ex[key];
         });
-        arrays.push(ex);
+        arrays.push(vals);
     });
 
     return db.insertOne(client, 'insert into example_utterances(' + KEYS.join(',') + ') '
