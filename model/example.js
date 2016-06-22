@@ -27,14 +27,23 @@ function createMany(client, examples) {
                         + 'values ?', [arrays]);
 }
 
+function tokenize(string) {
+    var tokens = string.split(/(\s+|[,\.\"\'])/g);
+    return tokens.filter((t) => !(/^\s*$/).test(t)).map((t) => t.toLowerCase());
+}
+
 module.exports = {
     getAll: function(client) {
         return db.selectAll(client, "select * from example_utterances");
     },
 
-    searchBase: function(client, key) {
-        return db.selectAll(client, "select * from example_utterances where is_base and "
-            + " match (utterance) against ?", [key]);
+    getByKey: function(client, base, key) {
+        var tokens = tokenize(key);
+
+        return db.selectAll(client, "select * from example_utterances where is_base = ? and "
+            + " match utterance against (? in natural language mode) union distinct (select eu.* from example_utterances eu, "
+            + " device_schema ds where eu.schema_id = ds.id and eu.is_base = ? and ds.kind in (?))",
+            [base, key, base, tokens]);
     },
 
     createMany: createMany,
