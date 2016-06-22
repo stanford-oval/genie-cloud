@@ -16,6 +16,7 @@ const device = require('../model/device');
 const user = require('../model/user');
 const organization = require('../model/organization');
 const schema = require('../model/schema');
+const exampleModel = require('../model/example');
 
 const S3_HOST = 'https://d1ge76rambtuys.cloudfront.net/devices/';
 
@@ -326,8 +327,14 @@ module.exports = class ThingPediaClientCloud {
     getKindByDiscovery(body) {
         return _discoveryServer.decode(body);
     }
+
+    getExamplesByKey(key, isBase) {
+        return db.withClient((dbClient) => {
+            return exampleModel.getByKey(dbClient, isBase, key);
+        });
+    }
 }
 module.exports.prototype.$rpcMethods = ['getModuleLocation', 'getDeviceCode',
                                         'getSchemas', 'getMetas',
                                         'getDeviceSetup',
-                                        'getKindByDiscovery'];
+                                        'getKindByDiscovery', 'getExamplesByKey'];

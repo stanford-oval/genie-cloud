@@ -71,9 +71,17 @@ module.exports = class Conversation {
     }
 
     sendChoice(idx, what, title, text) {
-        var url = 'https://web.stanford.edu/~gcampagn/choice.html#' + idx;
+        var url = 'https://web.stanford.edu/~gcampagn/sabrina/choice.html#' + idx;
         return this.sendRDL({ type: 'rdl', noun: what,
                               displayTitle: title,
+                              callback: url,
+                              webCallback: url });
+    }
+
+    sendButton(text, json) {
+        var url = 'https://web.stanford.edu/~gcampagn/sabrina/echo.html#' + encodeURIComponent(json);
+        return this.sendRDL({ type: 'rdl', noun: 'button',
+                              displayTitle: text,
                               callback: url,
                               webCallback: url });
     }
@@ -238,4 +246,4 @@ module.exports = class Conversation {
     }
 }
 module.exports.prototype.$rpcMethods = ['send', 'sendPicture', 'sendRDL',
-                                        'sendChoice', 'sendLink'];
+                                        'sendChoice', 'sendButton', 'sendLink'];

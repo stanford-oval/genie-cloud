@@ -132,6 +132,16 @@ create table device_schema_channels (
     fulltext key(canonical)
 ) collate utf8_bin;
 
+create table example_utterances (
+    id integer auto_increment primary key,
+    schema_id integer null,
+    is_base boolean default false,
+    utterance text not null collate utf8_general_ci,
+    target_json text not null,
+    key(schema_id),
+    fulltext key(utterance)
+) collate utf8_bin;
+
 create table device_code_version (
     device_id integer not null,
     version integer not null,
