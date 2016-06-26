@@ -141,4 +141,20 @@ router.post('/discovery', function(req, res) {
     });
 });
 
+router.get('/examples', function(req, res) {
+    var client = new ThingPediaClient(req.query.developer_key);
+
+    var isBase = req.query.base !== '0';
+
+    if (req.query.key) {
+        client.getExamplesByKey(req.query.key, isBase).then((result) => {
+            res.status(200).json(result);
+        }).catch((e) => {
+            res.status(500).json({ error: e.message });
+        });
+    } else {
+        res.status(400).json({ error: "Bad Request "});
+    }
+});
+
 module.exports = router;
