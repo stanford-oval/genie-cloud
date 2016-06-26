@@ -40,8 +40,9 @@ module.exports = {
     getByKey: function(client, base, key) {
         var tokens = tokenize(key);
 
-        return db.selectAll(client, "select * from example_utterances where is_base = ? and "
-            + " match utterance against (? in natural language mode) union distinct (select eu.* from example_utterances eu, "
+        return db.selectAll(client, "select eu.*, ds.kind from example_utterances eu, device_schema ds where"
+            + " eu.schema_id = ds.id and eu.is_base = ? and  match utterance against"
+            + " (? in natural language mode) union distinct (select eu.*, ds.kind from example_utterances eu,"
             + " device_schema ds where eu.schema_id = ds.id and eu.is_base = ? and ds.kind in (?))",
             [base, key, base, tokens]);
     },

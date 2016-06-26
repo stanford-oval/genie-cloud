@@ -156,9 +156,8 @@ class Platform {
     // messaging or the apps on the phone client)
     hasFeature(feature) {
         switch(feature) {
-        // we would like to disable discovery but unfortunately discovery
-        // is also used for the global sportradar loading, so we just enable
-        // everything
+        case 'discovery':
+            return false;
 
         default:
             return true;
