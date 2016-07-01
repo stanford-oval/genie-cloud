@@ -36,7 +36,7 @@ function registerWithOmlet(msg, account) {
 
     return db.withTransaction(function(dbClient) {
         return User.registerWithOmlet(dbClient, username, salt, passwordHash, account, email).then(function(user) {
-            return require('../enginemanager').get().startUser(user);
+            return require('../lib/enginemanager').get().startUser(user);
         });
     });
 }
