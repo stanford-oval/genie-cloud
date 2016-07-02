@@ -286,8 +286,9 @@ function ensurePrimarySchema(dbClient, kind, ast) {
 
     return schema.getByKind(dbClient, kind).then(function(existing) {
         return schema.update(dbClient,
-                             existing.id, { developer_version: existing.developer_version + 1,
-                                            approved_version: existing.approved_version + 1},
+                             existing.id, existing.kind,
+                             { developer_version: existing.developer_version + 1,
+                               approved_version: existing.approved_version + 1},
                              types, meta);
     }).catch(function(e) {
         return schema.create(dbClient, { developer_version: 0,
@@ -300,8 +301,10 @@ function ensurePrimarySchema(dbClient, kind, ast) {
 
         return schema.getByKind(dbClient, ast['global-name']).then(function(existing) {
             return schema.update(dbClient,
-                                 existing.id, { developer_version: existing.developer_version + 1,
-                                                approved_version: existing.approved_version + 1 },
+                                 existing.id,
+                                 existing.kind,
+                                 { developer_version: existing.developer_version + 1,
+                                   approved_version: existing.approved_version + 1 },
                                  types, meta);
         }).catch(function(e) {
             return schema.create(dbClient, { developer_version: 0,

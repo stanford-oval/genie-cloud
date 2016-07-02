@@ -9,13 +9,13 @@
 const db = require('../util/db');
 const Q = require('q');
 
-function insertChannels(dbClient, schemaId, version, types, meta) {
+function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
     var channels = [];
 
     function makeList(what, from, fromMeta) {
         for (var name in from) {
             var meta = fromMeta[name];
-            var canonical = (meta ? meta.canonical : null) || null;
+            var canonical = meta && meta.canonical ? (meta.canonical + ' on ' + schemaKind) : null;
             var confirmation = (meta ? (meta.confirmation || meta.label) : null) || null;
             var types = from[name];
             var argnames = meta ? meta.args : types.map((t, i) => 'arg' + (i+1));
@@ -58,13 +58,13 @@ function create(client, schema, types, meta) {
                                                          JSON.stringify(types),
                                                          JSON.stringify(meta)]);
         }).then(function() {
-            return insertChannels(client, schema.id, schema.developer_version, types, meta);
+            return insertChannels(client, schema.id, schema.kind, schema.developer_version, types, meta);
         }).then(function() {
             return schema;
         });
 }
 
-function update(client, id, schema, types, meta) {
+function update(client, id, kind, schema, types, meta) {
     return db.query(client, "update device_schema set ? where id = ?", [schema, id])
         .then(function() {
             return db.insertOne(client, 'insert into device_schema_version(schema_id, version, types, meta) '
@@ -72,7 +72,7 @@ function update(client, id, schema, types, meta) {
                                                          JSON.stringify(types),
                                                          JSON.stringify(meta)]);
         }).then(function() {
-            return insertChannels(client, id, schema.developer_version, types, meta);
+            return insertChannels(client, id, kind, schema.developer_version, types, meta);
         }).then(function() {
             return schema;
         });
