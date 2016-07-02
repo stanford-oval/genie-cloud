@@ -37,6 +37,7 @@ const DEFAULT_CODE = {"params": {"username": ["Username","text"],
                               "url": "https://www.example.com/api/1.0/poll",
                               "poll-interval": 300000,
                               "args": ["time", "measurement"],
+                              "schema": ["Date", "Measure(m)"],
                               "doc": "report the latest measurement"
                           }
                       },
@@ -44,6 +45,7 @@ const DEFAULT_CODE = {"params": {"username": ["Username","text"],
                           "setpower": {
                               "url": "http://www.example.com/api/1.0/post",
                               "args": ["power"],
+                              "schema": ["Boolean"],
                               "doc": "power on/off the device"
                           }
                       },
@@ -51,6 +53,7 @@ const DEFAULT_CODE = {"params": {"username": ["Username","text"],
                           "getpower": {
                               "url": "http://www.example.com/api/1.0/post",
                               "args": ["power"],
+                              "schema": ["Boolean"],
                               "doc": "check if the device is on or off"
                           }
                      }
@@ -71,6 +74,7 @@ const DEFAULT_ONLINE_CODE = {"name": "Example Account of %s",
                                  "onmessage": {
                                      "url": "wss://www.example.com/api/1.0/data",
                                      "args": ["message"],
+                                     "schema": ["String"],
                                      "doc": "trigger on each new message"
                                  }
                              },
@@ -78,6 +82,7 @@ const DEFAULT_ONLINE_CODE = {"name": "Example Account of %s",
                                  "post": {
                                      "url": "https://www.example.com/api/1.0/post",
                                      "args": ["message"],
+                                     "schema": ["String"],
                                      "doc": "post a new message",
                                  }
                              },
@@ -85,6 +90,7 @@ const DEFAULT_ONLINE_CODE = {"name": "Example Account of %s",
                                 "profile": {
                                      "url": "https://www.example.com/api/1.0/profile",
                                      "args": ["username", "pictureUrl", "realName", "link"],
+                                     "schema": ["String", "Picture", "String", "String"],
                                      "doc": "read the user profile"
                                  },
                              }
@@ -190,7 +196,7 @@ function validateDevice(dbClient, req) {
         if ((ast.triggers[name].args && ast.triggers[name].args.length !== ast.triggers[name].schema.length) ||
             (ast.triggers[name].params && ast.triggers[name].params.length !== ast.triggers[name].schema.length))
             throw new Error("Invalid number of arguments in " + name);
-        if (ast.triggers[name].questions && triggers[name].args.length !== ast.triggers[name].schema.length)
+        if (ast.triggers[name].questions && ast.triggers[name].args.length !== ast.triggers[name].schema.length)
             throw new Error("Invalid number of questions in " + name);
         ast.triggers[name].schema.forEach(function(t) {
             ThingTalk.Type.fromString(t);
@@ -334,10 +340,6 @@ function ensureExamples(dbClient, ast) {
     if (!ast['global-name'])
         return;
 
-    function generateChannelExamples(fromChannel) {
-
-    }
-
     function generateAllExamples(schemaId) {
         // only do actions for now
         var out = [];
@@ -399,6 +401,7 @@ function doCreateOrUpdate(id, create, req, res) {
             return Q.try(function() {
                 return validateDevice(dbClient, req);
             }).catch(function(e) {
+                console.error(e.stack);
                 res.render('thingpedia_device_create_or_edit', { page_title:
                                                                  (create ?
                                                                   "ThingPedia - create new device" :
@@ -419,6 +422,9 @@ function doCreateOrUpdate(id, create, req, res) {
 
                 return ensurePrimarySchema(dbClient, kind, ast);
             }).tap(function(ast) {
+                if (ast === null)
+                    return;
+
                 return ensureExamples(dbClient, ast);
             }).then(function(ast) {
                 if (ast === null)
@@ -469,7 +475,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 }
             }).then(function(obj) {
                 if (obj === null)
-                    return false;
+                    return null;
 
                 if (!obj.fullcode && !obj.primary_kind.startsWith('org.thingpedia.builtin.')) {
                     var zipFile = new JSZip(req.file.buffer, { checkCRC32: true });
@@ -499,17 +505,18 @@ function doCreateOrUpdate(id, create, req, res) {
                     }, 0);
                 }
 
-                return true;
+                return obj.primary_kind;
             }).then(function(done) {
                 if (done) {
                     if (online)
-                        res.redirect('/thingpedia/devices?class=online');
+                        res.redirect('/thingpedia/devices/by-id/' + done);
                     else
-                        res.redirect('/thingpedia/devices?class=physical');
+                        res.redirect('/thingpedia/devices/by-id/' + done);
                 }
             });
         });
     }).catch(function(e) {
+        console.error(e.stack);
         res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e });
     }).done();

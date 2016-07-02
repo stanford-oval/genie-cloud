@@ -19,3 +19,24 @@
     text-align: center;
     display: block;
 }
+
+#json-manifest-placeholder .well h3 {
+    margin-top: 10.5px;
+    margin-bottom: 0px;
+    font-size: 19px;
+}
+
+#json-manifest-placeholder .well {
+    min-height: 0px;
+    margin-bottom: 0px;
+}
+
+#json-manifest-placeholder > div > .well > div > .well {
+    padding-left: 0px;
+    padding-right: 0px;
+    border-radius: 0px;
+}
+
+#json-manifest-placeholder .form-group {
+    margin-bottom: 0px;
+}

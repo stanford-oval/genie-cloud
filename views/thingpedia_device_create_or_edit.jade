@@ -8,6 +8,7 @@ block styles
 block scripts
   script(src='/javascripts/jsonlint.js')
   script(src='/javascripts/codemirror.js')
+  script(src='/javascripts/jsoneditor.min.js')
   script(src='/javascripts/thingpedia-device-create.js')
 
 block content
@@ -37,7 +38,7 @@ block content
 
     div.row
       div.col-xs-12
-        form(action=(create ? '/thingpedia/upload/create' : '/thingpedia/upload/update/' + id), enctype='multipart/form-data', method='post', data-toggle='validator')
+        form(action=(create ? '/thingpedia/upload/create' : '/thingpedia/upload/update/' + id), enctype='multipart/form-data', method='post', data-toggle='validator')#thing-form
           input(type='hidden',name='_csrf',value=csrfToken)
 
           div.form-group
@@ -54,14 +55,16 @@ block content
             label(for='device-description-input').control-label Thing Description
             textarea(name='description',required=true).form-control#device-description #{device.description}
 
-          div.form-group
+          div.form-group.hidden
             label(for='device-code').control-label Thing Manifest
             textarea(name='code',required=true).form-control#device-code #{device.code}
-            span.help-block If your thing needs parameters for configurations (such as user names or
+            //span.help-block If your thing needs parameters for configurations (such as user names or
               |  passwords), you must declare them in the manifest. You can also use the manifest
               |  to declare actions and triggers for simple REST based services with a JSON API.
               |  In any case, you should use the manifest to document how your device is used, that
               |  is, what triggers and what actions are there!
+
+          div#json-manifest-placeholder
 
           div.checkbox
             label(for='device-fullcode').control-label
