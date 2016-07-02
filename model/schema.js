@@ -16,10 +16,13 @@ function insertChannels(dbClient, schemaId, version, types, meta) {
         for (var name in from) {
             var meta = fromMeta[name];
             var canonical = (meta ? meta.canonical : null) || null;
+            var confirmation = (meta ? (meta.confirmation || meta.label) : null) || null;
             var types = from[name];
             var argnames = meta ? meta.args : types.map((t, i) => 'arg' + (i+1));
-            channels.push([schemaId, version, name, what, canonical,
-                           JSON.stringify(types), JSON.stringify(argnames)]);
+            var questions = (meta ? meta.questions : null) || [];
+            channels.push([schemaId, version, name, what, canonical, confirmation,
+                           JSON.stringify(types), JSON.stringify(argnames),
+                           JSON.stringify(questions)]);
         }
     }
 
@@ -31,7 +34,7 @@ function insertChannels(dbClient, schemaId, version, types, meta) {
         return;
 
     return db.insertOne(dbClient, 'insert into device_schema_channels(schema_id, version, name, '
-        + 'channel_type, canonical, types, argnames) values ?', [channels]);
+        + 'channel_type, canonical, confirmation, types, argnames, questions) values ?', [channels]);
 }
 
 function create(client, schema, types, meta) {
