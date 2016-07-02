@@ -334,7 +334,7 @@ function exampleToAction(kind, actionName, assignments, argtypes) {
     }
 
     return {
-        action: { name: 'tt:' + kind + '.' + actionName,
+        action: { name: { id: 'tt:' + kind + '.' + actionName },
                   args: args }
     }
 }
