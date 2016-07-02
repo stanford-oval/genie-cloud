@@ -51,5 +51,9 @@ module.exports = {
 
     deleteBySchema: function(client, schemaId) {
         return db.query(client, "delete from example_utterances where schema_id = ?", [schemaId]);
+    },
+
+    update: function(client, id, example) {
+        return db.query(client, "update example_utterances set ? where id = ?", [example, id]);
     }
 };
