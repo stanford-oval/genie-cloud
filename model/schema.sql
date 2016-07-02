@@ -125,9 +125,12 @@ create table device_schema_channels (
     name varchar(128) not null,
     channel_type enum('trigger', 'action', 'query') not null,
     canonical text null collate utf8_general_ci,
+    confirmation varchar(255) collate utf8_general_ci default null,
     types mediumtext not null,
     argnames mediumtext not null,
+    questions mediumtext not null collate utf8_general_ci,
     primary key(schema_id, version, name),
+    key canonical_btree (canonical(30)),
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade,
     fulltext key(canonical)
 ) collate utf8_bin;
