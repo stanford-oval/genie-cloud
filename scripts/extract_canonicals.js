@@ -19,10 +19,11 @@ function main() {
             return Q.all(schemas.map(function(s) {
                 console.log('Processing ' + s.kind);
                 return Q.try(function() {
-                    return model.insertChannels(dbClient, s.id, s.developer_version,
+                    return model.insertChannels(dbClient, s.id, s.kind, s.developer_version,
                                                 JSON.parse(s.types), JSON.parse(s.meta));
                 }).catch(function(e) {
                     console.log('Extracting channels of ' + s.kind + ' failed: ' + e.message);
+		    console.log(e.stack);
                 });
             }));
         });
