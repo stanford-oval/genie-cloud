@@ -38,7 +38,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
 }
 
 function create(client, schema, types, meta) {
-    var KEYS = ['kind', 'kind_type', 'approved_version', 'developer_version'];
+    var KEYS = ['kind', 'kind_type', 'owner', 'approved_version', 'developer_version'];
     KEYS.forEach(function(key) {
         if (schema[key] === undefined)
             schema[key] = null;
@@ -94,12 +94,19 @@ module.exports = {
     },
 
     getTypesByKinds: function(client, kinds, org) {
-        // FIXME use organization
         return Q.try(function() {
-            return db.selectAll(client, "select types, ds.* from device_schema ds, "
-                                + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
-                                + " in (?) and ds.approved_version = dsv.version",
-                                [kinds]);
+            if (org !== null) {
+                return db.selectAll("select types, ds.* from device_schema ds, "
+                                    + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
+                                    + " in (?) and ((dsv.version = ds.developer_version and ds.owner = ?) or "
+                                    + " (dsv.version = ds.approved_version and ds.owner <> ?))",
+                                    [kinds, org.id, org.id]);
+            } else {
+                return db.selectAll("select types, ds.* from device_schema ds, "
+                                    + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
+                                    + " in (?) and dsv.version = ds.approved_version",
+                                    [kinds]);
+            }
         }).then(function(rows) {
             rows.forEach(function(row) {
                 try {
@@ -113,28 +120,41 @@ module.exports = {
         });
     },
 
-    getMetasByKinds: function(client, kinds) {
-        return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
-                            + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
-                            + " in (?) and ds.developer_version = dsv.version",
-                            [kinds])
-            .then(function(rows) {
-                rows.forEach(function(row) {
-                    try {
-                        row.types = JSON.parse(row.types);
-                        row.meta = JSON.parse(row.meta);
-                    } catch(e) {
-                        console.error("Failed to parse types in " + row.kind);
-                        row.types = null;
-                        row.meta = null;
-                    }
-                });
-                return rows;
+    getMetasByKinds: function(client, kinds, org) {
+        return Q.try(function() {
+            if (org !== null) {
+                return db.selectAll("select types, meta, ds.* from device_schema ds, "
+                                    + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
+                                    + " in (?) and ((dsv.version = ds.developer_version and ds.owner = ?) or "
+                                    + " (dsv.version = ds.approved_version and ds.owner <> ?))",
+                                    [kinds, org.id, org.id]);
+            } else {
+                return db.selectAll("select types, meta, ds.* from device_schema ds, "
+                                    + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
+                                    + " in (?) and dsv.version = ds.approved_version",
+                                    [kinds]);
+            }
+        }).then(function(rows) {
+            rows.forEach(function(row) {
+                try {
+                    row.types = JSON.parse(row.types);
+                    row.meta = JSON.parse(row.meta);
+                } catch(e) {
+                    console.error("Failed to parse types in " + row.kind);
+                    row.types = null;
+                    row.meta = null;
+                }
             });
+            return rows;
+        });
     },
 
     create: create,
     update: update,
+
+    approveByKind: function(dbClient, kind) {
+        return db.query(client, "update device_schema set approved_version = developer_version where kind = ?", [kind]);
+    },
 
     insertChannels: insertChannels
 };

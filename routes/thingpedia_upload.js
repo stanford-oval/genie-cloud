@@ -256,7 +256,39 @@ function validateDevice(dbClient, req) {
     });
 }
 
-function ensurePrimarySchema(dbClient, kind, ast) {
+function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve) {
+    return schema.getByKind(dbClient, kind).then(function(existing) {
+        var obj = {};
+        if (existing.owner !== req.user.developer_org &&
+            req.user.developer_status < user.DeveloperStatus.ADMIN)
+            throw new Error("Not Authorized");
+
+        obj.developer_version = existing.developer_version + 1;
+        if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER &&
+            approve)
+            obj.approved_version = obj.developer_version;
+
+        return schema.update(dbClient,
+                             existing.id, existing.kind, obj,
+                             types, meta);
+    }).catch(function(e) {
+        var obj = {
+            kind: kind,
+            kind_type: kind_type
+        };
+        if (req.user.developer_status < user.DeveloperStatus.TRUSTED_DEVELOPER ||
+            !approve) {
+            obj.approved_version = null;
+            obj.developer_version = 0;
+        } else {
+            obj.approved_version = 0;
+            obj.developer_version = 0;
+        }
+        return schema.create(dbClient, obj, types, meta);
+    });
+}
+
+function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
     var triggers = {};
     var triggerMeta = {};
     var actions = {};
@@ -284,36 +316,11 @@ function ensurePrimarySchema(dbClient, kind, ast) {
     var types = [triggers, actions, queries];
     var meta = [triggerMeta, actionMeta, queryMeta];
 
-    return schema.getByKind(dbClient, kind).then(function(existing) {
-        return schema.update(dbClient,
-                             existing.id, existing.kind,
-                             { developer_version: existing.developer_version + 1,
-                               approved_version: existing.approved_version + 1},
-                             types, meta);
-    }).catch(function(e) {
-        return schema.create(dbClient, { developer_version: 0,
-                                         approved_version: 0,
-                                         kind: kind,
-                                         kind_type: 'primary' },
-                             types, meta);
-    }).then(function() {
+    return getOrCreateSchema(dbClient, kind, 'primary', types, meta, req, approve).then(function() {
         if (!ast['global-name'])
             return;
 
-        return schema.getByKind(dbClient, ast['global-name']).then(function(existing) {
-            return schema.update(dbClient,
-                                 existing.id,
-                                 existing.kind,
-                                 { developer_version: existing.developer_version + 1,
-                                   approved_version: existing.approved_version + 1 },
-                                 types, meta);
-        }).catch(function(e) {
-            return schema.create(dbClient, { developer_version: 0,
-                                             approved_version: 0,
-                                             kind: ast['global-name'],
-                                             kind_type: 'global' },
-                                 types, meta);
-        });
+        return getOrCreateSchema(dbClient, ast['global-name'], 'global', types, meta, req, approve);
     });
 }
 
@@ -430,7 +437,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (ast === null)
                     return;
 
-                return ensurePrimarySchema(dbClient, kind, ast);
+                return ensurePrimarySchema(dbClient, kind, ast, req, approve);
             }).tap(function(ast) {
                 if (ast === null)
                     return;
