@@ -20,11 +20,27 @@ function main() {
                 console.log('Processing ' + ex.utterance);
                 return Q.try(function() {
                     var json = JSON.parse(ex.target_json);
-                    if (typeof json.action.name !== 'string')
+                    var anyChange = false;
+                    if (typeof json.action.name === 'string') {
+                        json.action.name = {
+                            id: json.action.name
+                        };
+                        anyChange = true;
+                    }
+                    json.args.forEach(function(arg) {
+                        if (typeof arg.name === 'string') {
+                            arg.name = {
+                                id: 'tt.param.' + arg.name
+                            };
+                            anyChange = true;
+                        }
+                        if (!arg.operator) {
+                            arg.operator = 'is';
+                            anyChange = true;
+                        }
+                    });
+                    if (!anyChange)
                         return;
-                    json.action.name = {
-                        id: json.action.name
-                    };
                     return model.update(dbClient, ex.id, {
                         target_json: JSON.stringify(json)
                     });

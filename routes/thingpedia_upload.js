@@ -320,15 +320,20 @@ function exampleToAction(kind, actionName, assignments, argtypes) {
 
     for (var name in assignments) {
         var type = argtypes[name];
+        var nameVal = { id: 'tt.param.' + name };
         if (type.isString)
-            args.push({ name: name, type: 'String', value: assignments[name] });
+            args.push({ name: nameVal, type: 'String', value: assignments[name],
+                        operator: 'is' });
         else if (type.isNumber)
-            args.push({ name: name, type: 'Number', value: assignments[name] });
+            args.push({ name: nameVal, type: 'Number', value: assignments[name],
+                        operator: 'is' });
         else if (type.isMeasure)
-            args.push({ name: name, type: 'Measure', value: assignments[name][0],
-                        unit: assignments[name][1] });
+            args.push({ name: nameVal, type: 'Measure', value: assignments[name][0],
+                        unit: assignments[name][1],
+                        operator: 'is' });
         else if (type.isBoolean)
-            args.push({ name: name, type: 'Bool', value: assignments[name] });
+            args.push({ name: nameVal, type: 'Bool', value: assignments[name],
+                        operator: 'is' });
         else
             throw new TypeError();
     }
