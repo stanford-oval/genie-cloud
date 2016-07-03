@@ -27,7 +27,7 @@ function main() {
                         };
                         anyChange = true;
                     }
-                    json.args.forEach(function(arg) {
+                    json.action.args.forEach(function(arg) {
                         if (typeof arg.name === 'string') {
                             arg.name = {
                                 id: 'tt.param.' + arg.name
@@ -36,6 +36,10 @@ function main() {
                         }
                         if (!arg.operator) {
                             arg.operator = 'is';
+                            anyChange = true;
+                        }
+                        if (typeof arg.value !== 'object') {
+                            arg.value = { value: arg.value };
                             anyChange = true;
                         }
                     });
