@@ -293,7 +293,8 @@ function ensurePrimarySchema(dbClient, kind, ast) {
     }).catch(function(e) {
         return schema.create(dbClient, { developer_version: 0,
                                          approved_version: 0,
-                                         kind: kind },
+                                         kind: kind,
+                                         kind_type: 'primary' },
                              types, meta);
     }).then(function() {
         if (!ast['global-name'])
@@ -309,7 +310,8 @@ function ensurePrimarySchema(dbClient, kind, ast) {
         }).catch(function(e) {
             return schema.create(dbClient, { developer_version: 0,
                                              approved_version: 0,
-                                             kind: ast['global-name'] },
+                                             kind: ast['global-name'],
+                                             kind_type: 'global' },
                                  types, meta);
         });
     });

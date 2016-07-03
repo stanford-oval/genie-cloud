@@ -106,6 +106,7 @@ create table device_class (
 create table device_schema (
     id integer auto_increment primary key,
     kind varchar(128) unique not null,
+    kind_type enum('primary', 'global', 'other') not null default 'other',
     developer_version integer(11) not null default 0,
     approved_version integer(11) default null
 ) collate utf8_bin;

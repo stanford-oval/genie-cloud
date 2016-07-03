@@ -38,7 +38,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
 }
 
 function create(client, schema, types, meta) {
-    var KEYS = ['kind', 'approved_version', 'developer_version'];
+    var KEYS = ['kind', 'kind_type', 'approved_version', 'developer_version'];
     KEYS.forEach(function(key) {
         if (schema[key] === undefined)
             schema[key] = null;
