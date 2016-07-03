@@ -141,12 +141,10 @@ module.exports = class ThingPediaClientCloud {
                 var obj = {};
 
                 rows.forEach(function(row) {
-                    if (row.types === null)
-                        return;
                     obj[row.kind] = {
-                        triggers: row.types[0],
-                        actions: row.types[1],
-                        queries: (row.types[2] || {})
+                        triggers: row.triggers,
+                        actions: row.actions,
+                        queries: row.queries
                     };
                 });
 

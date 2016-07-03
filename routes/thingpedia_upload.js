@@ -136,26 +136,34 @@ function validateSchema(dbClient, type, ast, allowFailure) {
                 throw new Error("Invalid device type " + type);
         }
 
-        var types = rows[0].types;
-        for (var trigger in types[0]) {
-            if (!(trigger in ast.triggers))
-                throw new Error('Type ' + type + ' requires trigger ' + trigger);
-            if (!schemaCompatible(ast.triggers[trigger].schema, types[0][trigger]))
-                throw new Error('Schema for ' + trigger + ' is not compatible with type ' + type);
+        function validate(where, what, against) {
+            for (var name in against) {
+                if (!(name in where))
+                    throw new Error('Type ' + type + ' requires ' + what + ' ' + name);
+                if (!schemaCompatible(where[name].schema, against[name]))
+                    throw new Error('Schema for ' + name + ' is not compatible with type ' + type);
+            }
         }
-        for (var action in types[1]) {
-            if (!(action in ast.actions))
-                throw new Error('Type ' + type + ' requires action ' + action);
-            if (!schemaCompatible(ast.actions[action].schema, types[1][action]))
-                throw new Error('Schema for ' + action + ' is not compatible with type ' + type);
-        }
-        for (var query in (types[2] || {})) {
-            if (!(query in ast.queries))
-                throw new Error('Type ' + type + ' requires query ' + query);
-            if (!schemaCompatible(ast.queries[query].schema, (types[2] || {})[query]))
-                throw new Error('Schema for ' + query + ' is not compatible with type ' + type);
-        }
+
+        validate(ast.triggers, 'trigger', rows[0].triggers);
+        validate(ast.actions, 'action', rows[0].actions);
+        validate(ast.queries, 'query', rows[0].queries);
     });
+}
+
+function validateInvocation(where, what) {
+    for (var name in where) {
+        if (!where[name].schema)
+            throw new Error("Missing " + what + " schema for " + name);
+        if ((where[name].args && where[name].args.length !== where[name].schema.length) ||
+            (where[name].params && where[name].params.length !== where[name].schema.length))
+            throw new Error("Invalid number of arguments in " + what + " " + name);
+        if (where[name].questions && where[name].questions.length !== where[name].schema.length)
+            throw new Error("Invalid number of questions in " + name);
+        where[name].schema.forEach(function(t) {
+            ThingTalk.Type.fromString(t);
+        });
+    }
 }
 
 function validateDevice(dbClient, req) {
@@ -190,42 +198,9 @@ function validateDevice(dbClient, req) {
         ast.actions = {};
     if (!ast.queries)
         ast.queries = {};
-    for (var name in ast.triggers) {
-        if (!ast.triggers[name].schema)
-            throw new Error("Missing trigger schema for " + name);
-        if ((ast.triggers[name].args && ast.triggers[name].args.length !== ast.triggers[name].schema.length) ||
-            (ast.triggers[name].params && ast.triggers[name].params.length !== ast.triggers[name].schema.length))
-            throw new Error("Invalid number of arguments in " + name);
-        if (ast.triggers[name].questions && ast.triggers[name].args.length !== ast.triggers[name].schema.length)
-            throw new Error("Invalid number of questions in " + name);
-        ast.triggers[name].schema.forEach(function(t) {
-            ThingTalk.Type.fromString(t);
-        });
-    }
-    for (var name in ast.actions) {
-        if (!ast.actions[name].schema)
-            throw new Error("Missing action schema for " + name);
-        if ((ast.actions[name].args && ast.actions[name].args.length !== ast.actions[name].schema.length) ||
-            (ast.actions[name].params && ast.actions[name].params.length !== ast.actions[name].schema.length))
-            throw new Error("Invalid number of arguments in " + name);
-        if (ast.actions[name].questions && ast.actions[name].questions.length !== ast.actions[name].schema.length)
-            throw new Error("Invalid number of questions in " + name);
-        ast.actions[name].schema.forEach(function(t) {
-            ThingTalk.Type.fromString(t);
-        });
-    }
-    for (var name in ast.queries) {
-        if (!ast.queries[name].schema)
-            throw new Error("Missing query schema for " + name);
-        if ((ast.queries[name].args && ast.queries[name].args.length !== ast.queries[name].schema.length) ||
-            (ast.queries[name].params && ast.queries[name].params.length !== ast.queries[name].schema.length))
-            throw new Error("Invalid number of arguments in " + name);
-        if (ast.queries[name].questions && ast.queries[name].questions.length !== ast.queries[name].schema.length)
-            throw new Error("Invalid number of questions in " + name);
-        ast.queries[name].schema.forEach(function(t) {
-            ThingTalk.Type.fromString(t);
-        });
-    }
+    validateInvocation(ast.triggers, 'trigger');
+    validateInvocation(ast.actions, 'action');
+    validateInvocation(ast.queries, 'query');
 
     if (fullcode) {
         if (!ast.name)

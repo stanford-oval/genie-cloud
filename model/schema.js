@@ -96,40 +96,62 @@ module.exports = {
     getTypesByKinds: function(client, kinds, org) {
         return Q.try(function() {
             if (org !== null) {
-                return db.selectAll("select types, ds.* from device_schema ds, "
-                                    + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
-                                    + " in (?) and ((dsv.version = ds.developer_version and ds.owner = ?) or "
-                                    + " (dsv.version = ds.approved_version and ds.owner <> ?))",
+                return db.selectAll(client, "select name, types, channel_type, ds.* from device_schema ds, "
+                                    + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
+                                    + " in (?) and ((dsc.version = ds.developer_version and ds.owner = ?) or "
+                                    + " (dsc.version = ds.approved_version and ds.owner <> ?))",
                                     [kinds, org.id, org.id]);
             } else {
-                return db.selectAll("select types, ds.* from device_schema ds, "
-                                    + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
-                                    + " in (?) and dsv.version = ds.approved_version",
+                return db.selectAll(client, "select name, types, channel_type, ds.* from device_schema ds, "
+                                    + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
+                                    + " in (?) and dsc.version = ds.approved_version",
                                     [kinds]);
             }
         }).then(function(rows) {
+            var out = [];
+            var current = null;
             rows.forEach(function(row) {
-                try {
-                    row.types = JSON.parse(row.types);
-                } catch(e) {
-                    console.error("Failed to parse types in " + row.kind);
-                    row.types = null;
+                if (current == null || current.kind !== row.kind) {
+                    current = {};
+                    for (var name in row) {
+                        if (name === 'name' || name === 'types' || name === 'channel_type')
+                            continue;
+                        current[name] = row[name];
+                    }
+                    current.triggers = {};
+                    current.queries = {};
+                    current.actions = {};
+                    out.push(current);
+                }
+                var types = JSON.parse(row.types);
+                switch (row.channel_type) {
+                case 'action':
+                    current.actions[row.name] = types;
+                    break;
+                case 'trigger':
+                    current.triggers[row.name] = types;
+                    break;
+                case 'query':
+                    current.queries[row.name] = types;
+                    break;
+                default:
+                    throw new TypeError();
                 }
             });
-            return rows;
+            return out;
         });
     },
 
     getMetasByKinds: function(client, kinds, org) {
         return Q.try(function() {
             if (org !== null) {
-                return db.selectAll("select types, meta, ds.* from device_schema ds, "
+                return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
                                     + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
                                     + " in (?) and ((dsv.version = ds.developer_version and ds.owner = ?) or "
                                     + " (dsv.version = ds.approved_version and ds.owner <> ?))",
                                     [kinds, org.id, org.id]);
             } else {
-                return db.selectAll("select types, meta, ds.* from device_schema ds, "
+                return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
                                     + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
                                     + " in (?) and dsv.version = ds.approved_version",
                                     [kinds]);
