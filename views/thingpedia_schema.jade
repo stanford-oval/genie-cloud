@@ -4,11 +4,43 @@ block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
 block page_name
-  | Type: #{kind}
+  | Type: #{schema.kind}
 
 block content
-  h2.device-subtitle#device-version Version:
-    | #{developer_version}
+  if schema.approved_version === null
+    div.alert.alert-warning(role='alert')
+      if user && user.developer_status >= 3
+        if schema.kind_type === 'other'
+          form(action='/thingpedia/schemas/approve/' + schema.id, method='post').form-inline
+            input(type='hidden',name='_csrf',value=csrfToken)
+            p.form-group This type is not yet approved.
+              | &#x20;
+              button(type='submit').btn.btn-success Approve it
+        else
+          p This type belongs to a device that was not yet approved.
+      else
+        p This type is not yet approved for general use. You need
+          |  a developer key to use it.
+  else if schema.approved_version !== schema.developer_version && user && user.developer_status >= 3
+    div.alert.alert-warning(role='alert')
+      if user && user.developer_status >= 3
+        form(action='/thingpedia/schemas/approve/' + schema.id, method='post').form-inline
+          input(type='hidden',name='_csrf',value=csrfToken)
+          p.form-group A newer version of this schema was submitted.
+            if schema.kind_type === 'other'
+              | &#x20;
+              button(type='submit').btn.btn-success Approve it
+            else
+              |  Go to the corresponding device page to approve it.
+
+  if user && user.developer_org !== null
+    h2.device-subtitle#device-version Version:
+      if schema.approved_version === null
+        | none (approved), #{schema.developer_version} (developer)
+      else if schema.approved_version !== schema.developer_version
+        | #{schema.approved_version} (approved), #{schema.developer_version} (developer)
+      else
+        | #{schema.approved_version}
 
   if triggers.length > 0
     h2.device-subtitle Triggers
@@ -36,3 +68,12 @@ block content
           code #{a.name}(#{a.params.map(function(p, i) { return p + ' : ' + a.schema[i]; }).join(', ')})
           if a.doc
             | : #{a.doc}
+
+  div.row#device-details-actions
+    if schema.kind_type === 'other' && authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
+      div.col-md-2
+        a.btn.btn-warning.btn-block(href='/thingpedia/schemas/edit/' + schema.id) Edit
+      div.col-md-2
+        form(action='/thingpedia/schemas/delete/' + schema.id, method='post').form-delete-device
+          input(type='hidden',name='_csrf',value=csrfToken)
+          button(type='submit').btn.btn-danger.btn-block Delete

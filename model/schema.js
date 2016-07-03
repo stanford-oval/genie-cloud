@@ -173,6 +173,13 @@ module.exports = {
 
     create: create,
     update: update,
+    delete: function(client, id) {
+        return db.query(client, "delete from device_schema where id = ?", [id]);
+    },
+
+    approve: function(client, id) {
+        return db.query(client, "update device_schema set approved_version = developer_version where id = ?", [id]);
+    },
 
     approveByKind: function(dbClient, kind) {
         return db.query(dbClient, "update device_schema set approved_version = developer_version where kind = ?", [kind]);
