@@ -100,7 +100,7 @@ module.exports = {
                                     + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
                                     + " in (?) and ((dsc.version = ds.developer_version and ds.owner = ?) or "
                                     + " (dsc.version = ds.approved_version and ds.owner <> ?))",
-                                    [kinds, org.id, org.id]);
+                                    [kinds, org, org]);
             } else {
                 return db.selectAll(client, "select name, types, channel_type, ds.* from device_schema ds, "
                                     + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
@@ -149,7 +149,7 @@ module.exports = {
                                     + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
                                     + " in (?) and ((dsv.version = ds.developer_version and ds.owner = ?) or "
                                     + " (dsv.version = ds.approved_version and ds.owner <> ?))",
-                                    [kinds, org.id, org.id]);
+                                    [kinds, org, org]);
             } else {
                 return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
                                     + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
@@ -175,7 +175,7 @@ module.exports = {
     update: update,
 
     approveByKind: function(dbClient, kind) {
-        return db.query(client, "update device_schema set approved_version = developer_version where kind = ?", [kind]);
+        return db.query(dbClient, "update device_schema set approved_version = developer_version where kind = ?", [kind]);
     },
 
     insertChannels: insertChannels

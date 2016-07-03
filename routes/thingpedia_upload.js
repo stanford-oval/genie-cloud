@@ -127,14 +127,10 @@ function schemaCompatible(s1, s2) {
         });
 }
 
-function validateSchema(dbClient, type, ast, allowFailure) {
-    return schema.getTypesByKinds(dbClient, [type]).then(function(rows) {
-        if (rows.length < 1) {
-            if (allowFailure)
-                return;
-            else
-                throw new Error("Invalid device type " + type);
-        }
+function validateSchema(dbClient, type, ast, req) {
+    return schema.getTypesByKinds(dbClient, [type], req.user.developer_org).then(function(rows) {
+        if (rows.length < 1)
+            throw new Error("Invalid device type " + type);
 
         function validate(where, what, against) {
             for (var name in against) {
@@ -225,7 +221,7 @@ function validateDevice(dbClient, req) {
     }
 
     return Q.all(ast.types.map(function(type) {
-        return validateSchema(dbClient, type, ast, type === ast['global-name']);
+        return validateSchema(dbClient, type, ast, req);
     })).then(function() {
         return ast;
     });

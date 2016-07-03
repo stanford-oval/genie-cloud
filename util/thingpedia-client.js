@@ -136,7 +136,7 @@ module.exports = class ThingPediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return schema.getTypesByKinds(dbClient, schemas, org);
+                return schema.getTypesByKinds(dbClient, schemas, org !== null ? org.id : null);
             }).then(function(rows) {
                 var obj = {};
 
@@ -167,7 +167,7 @@ module.exports = class ThingPediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return schema.getMetasByKinds(dbClient, schemas, org);
+                return schema.getMetasByKinds(dbClient, schemas, org !== null ? org.id : null);
             }).then(function(rows) {
                 var obj = {};
 

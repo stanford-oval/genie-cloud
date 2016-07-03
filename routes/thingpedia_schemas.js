@@ -19,7 +19,7 @@ var router = express.Router();
 
 router.get('/by-id/:kind', function(req, res) {
     db.withClient(function(dbClient) {
-        return model.getMetasByKinds(dbClient, req.params.kind);
+        return model.getMetasByKinds(dbClient, req.params.kind, req.user ? req.user.developer_org : null);
     }).then(function(rows) {
         if (rows.length === 0) {
             res.status(404).render('error', { page_title: "ThingPedia - Error",
