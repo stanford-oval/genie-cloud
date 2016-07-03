@@ -131,6 +131,7 @@ create table device_schema_channels (
     confirmation varchar(255) collate utf8_general_ci default null,
     types mediumtext not null,
     argnames mediumtext not null,
+    doc mediumtext not null,
     questions mediumtext not null collate utf8_general_ci,
     primary key(schema_id, version, name),
     key canonical_btree (canonical(30)),

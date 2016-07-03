@@ -20,7 +20,8 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
             var types = from[name];
             var argnames = meta ? meta.args : types.map((t, i) => 'arg' + (i+1));
             var questions = (meta ? meta.questions : null) || [];
-            channels.push([schemaId, version, name, what, canonical, confirmation,
+            var doc = meta ? meta.doc : '';
+            channels.push([schemaId, version, name, what, canonical, confirmation, doc,
                            JSON.stringify(types), JSON.stringify(argnames),
                            JSON.stringify(questions)]);
         }
@@ -34,7 +35,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
         return;
 
     return db.insertOne(dbClient, 'insert into device_schema_channels(schema_id, version, name, '
-        + 'channel_type, canonical, confirmation, types, argnames, questions) values ?', [channels]);
+        + 'channel_type, canonical, confirmation, doc, types, argnames, questions) values ?', [channels]);
 }
 
 function create(client, schema, types, meta) {
@@ -96,13 +97,13 @@ module.exports = {
     getTypesByKinds: function(client, kinds, org) {
         return Q.try(function() {
             if (org !== null) {
-                return db.selectAll(client, "select name, types, channel_type, ds.* from device_schema ds, "
+                return db.selectAll(client, "select name, types, channel_type, kind from device_schema ds, "
                                     + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
                                     + " in (?) and ((dsc.version = ds.developer_version and ds.owner = ?) or "
                                     + " (dsc.version = ds.approved_version and ds.owner <> ?))",
                                     [kinds, org, org]);
             } else {
-                return db.selectAll(client, "select name, types, channel_type, ds.* from device_schema ds, "
+                return db.selectAll(client, "select name, types, channel_type, kind from device_schema ds, "
                                     + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
                                     + " in (?) and dsc.version = ds.approved_version",
                                     [kinds]);
@@ -112,12 +113,9 @@ module.exports = {
             var current = null;
             rows.forEach(function(row) {
                 if (current == null || current.kind !== row.kind) {
-                    current = {};
-                    for (var name in row) {
-                        if (name === 'name' || name === 'types' || name === 'channel_type')
-                            continue;
-                        current[name] = row[name];
-                    }
+                    current = {
+                        kind: row.kind
+                    };
                     current.triggers = {};
                     current.queries = {};
                     current.actions = {};
@@ -145,29 +143,66 @@ module.exports = {
     getMetasByKinds: function(client, kinds, org) {
         return Q.try(function() {
             if (org !== null) {
-                return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
-                                    + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
-                                    + " in (?) and ((dsv.version = ds.developer_version and ds.owner = ?) or "
-                                    + " (dsv.version = ds.approved_version and ds.owner <> ?))",
+                return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types, "
+                                    + "argnames, questions, kind, kind_type, owner, developer_version, "
+                                    + "approved_version from device_schema ds, "
+                                    + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
+                                    + " in (?) and ((dsc.version = ds.developer_version and ds.owner = ?) or "
+                                    + " (dsc.version = ds.approved_version and ds.owner <> ?))",
                                     [kinds, org, org]);
             } else {
-                return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
-                                    + "device_schema_version dsv where ds.id = dsv.schema_id and ds.kind"
-                                    + " in (?) and dsv.version = ds.approved_version",
+                return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types, "
+                                    + "argnames, questions, kind, kind_type, owner, developer_version, "
+                                    + "approved_version from device_schema ds, "
+                                    + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
+                                    + " in (?) and dsc.version = ds.approved_version",
                                     [kinds]);
             }
         }).then(function(rows) {
+            var out = [];
+            var current = null;
             rows.forEach(function(row) {
-                try {
-                    row.types = JSON.parse(row.types);
-                    row.meta = JSON.parse(row.meta);
-                } catch(e) {
-                    console.error("Failed to parse types in " + row.kind);
-                    row.types = null;
-                    row.meta = null;
+                if (current == null || current.kind !== row.kind) {
+                    current = {
+                        kind: row.kind,
+                        kind_type: row.kind_type,
+                        owner: row.owner,
+                        developer_version: row.developer_version,
+                        approved_version: row.approved_version
+                    };
+                    current.triggers = {};
+                    current.queries = {};
+                    current.actions = {};
+                    out.push(current);
+                }
+                var types = JSON.parse(row.types);
+                var obj = {
+                    schema: types,
+                    args: JSON.parse(row.argnames),
+                    confirmation: row.confirmation,
+                    doc: row.doc,
+                    canonical: row.canonical,
+                    questions: JSON.parse(row.questions)
+                };
+                if (obj.args.length < types.length) {
+                    for (var i = obj.args.length; i < types.length; i++)
+                        obj.args[i] = 'arg' + (i+1);
+                }
+                switch (row.channel_type) {
+                case 'action':
+                    current.actions[row.name] = obj;
+                    break;
+                case 'trigger':
+                    current.triggers[row.name] = obj;
+                    break;
+                case 'query':
+                    current.queries[row.name] = obj;
+                    break;
+                default:
+                    throw new TypeError();
                 }
             });
-            return rows;
+            return out;
         });
     },
 

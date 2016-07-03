@@ -26,36 +26,13 @@ router.get('/by-id/:kind', function(req, res) {
             return;
         }
 
-        var types = { triggers: [], queries: [], actions: [] };
-
-        function doOne(what, id) {
-            for (var name in rows[0].types[id]) {
-                var obj = {
-                    name: name,
-                    schema: rows[0].types[id][name]
-                };
-                if (name in rows[0].meta[id]) {
-                    obj.params = rows[0].meta[id][name].args;
-                    obj.doc = rows[0].meta[id][name].doc;
-                } else {
-                    obj.params = obj.schema.map(function(_, i) {
-                        return 'arg' + (i+1);
-                    });
-                    obj.doc = '';
-                }
-                types[what].push(obj);
-            }
-        }
-
-        doOne('triggers', 0);
-        doOne('actions', 1);
-        doOne('queries', 2);
+        var row = rows[0];
         res.render('thingpedia_schema', { page_title: 'ThingPedia - Schema detail',
                                           csrfToken: req.csrfToken(),
-                                          schema: rows[0],
-                                          triggers: types.triggers,
-                                          actions: types.actions,
-                                          queries: types.queries });
+                                          schema: row,
+                                          triggers: row.triggers,
+                                          actions: row.actions,
+                                          queries: row.queries });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: "ThingPedia - Error",
                                           message: e });
