@@ -97,15 +97,16 @@ module.exports = {
     getTypesByKinds: function(client, kinds, org) {
         return Q.try(function() {
             if (org !== null) {
-                return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds, "
-                                    + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
-                                    + " in (?) and ((dsc.version = ds.developer_version and ds.owner = ?) or "
-                                    + " (dsc.version = ds.approved_version and ds.owner <> ?))",
+                return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds"
+                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
+                                    + " and ((dsc.version = ds.developer_version and ds.owner = ?) or "
+                                    + " (dsc.version = ds.approved_version and ds.owner <> ?)) where ds.kind"
+                                    + " in (?) ",
                                     [kinds, org, org]);
             } else {
-                return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds, "
-                                    + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
-                                    + " in (?) and dsc.version = ds.approved_version",
+                return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds"
+                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
+                                    + " and dsc.version = ds.approved_version where ds.kind in (?)",
                                     [kinds]);
             }
         }).then(function(rows) {
@@ -122,6 +123,8 @@ module.exports = {
                     current.actions = {};
                     out.push(current);
                 }
+                if (row.channel_type === null)
+                    return;
                 var types = JSON.parse(row.types);
                 switch (row.channel_type) {
                 case 'action':
@@ -144,19 +147,20 @@ module.exports = {
     getMetasByKinds: function(client, kinds, org) {
         return Q.try(function() {
             if (org !== null) {
-                return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types, "
-                                    + "argnames, questions, kind, kind_type, owner, developer_version, "
-                                    + "approved_version from device_schema ds, "
-                                    + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
-                                    + " in (?) and ((dsc.version = ds.developer_version and ds.owner = ?) or "
-                                    + " (dsc.version = ds.approved_version and ds.owner <> ?))",
+                return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types,"
+                                    + " argnames, questions, kind, kind_type, owner, developer_version,"
+                                    + " approved_version from device_schema ds"
+                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
+                                    + " and ((dsc.version = ds.developer_version and ds.owner = ?) or"
+                                    + " (dsc.version = ds.approved_version and ds.owner <> ?)) where ds.kind"
+                                    + " in (?) ",
                                     [kinds, org, org]);
             } else {
-                return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types, "
-                                    + "argnames, questions, kind, kind_type, owner, developer_version, "
-                                    + "approved_version from device_schema ds, "
-                                    + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
-                                    + " in (?) and dsc.version = ds.approved_version",
+                return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types,"
+                                    + " argnames, questions, kind, kind_type, owner, developer_version,"
+                                    + " approved_version from device_schema ds"
+                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
+                                    + " and dsc.version = ds.approved_version where ds.kind in (?)",
                                     [kinds]);
             }
         }).then(function(rows) {
@@ -176,6 +180,8 @@ module.exports = {
                     current.actions = {};
                     out.push(current);
                 }
+                if (row.channel_type === null)
+                    return;
                 var types = JSON.parse(row.types);
                 var obj = {
                     schema: types,
