@@ -173,6 +173,7 @@ module.exports = class ThingPediaClientCloud {
 
                 rows.forEach(function(row) {
                     obj[row.kind] = {
+                        kind_type: row.kind_type,
                         triggers: row.triggers,
                         actions: row.actions,
                         queries: row.queries
