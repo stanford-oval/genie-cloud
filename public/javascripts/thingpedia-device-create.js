@@ -56,6 +56,7 @@ $(function() {
 
     var ttSchema = {
         type: 'object',
+        required: false,
         properties: {
             args: {
                 type: 'array',
@@ -114,6 +115,10 @@ $(function() {
     var fullSchema = {
         type: 'object',
         title: "Thing Manifest",
+        additionalProperties: {
+            type: 'string',
+            required: false,
+        },
         properties: {
             params: {
                 type: 'object',
