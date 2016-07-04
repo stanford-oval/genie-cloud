@@ -188,7 +188,7 @@ module.exports = class ThingPediaClientCloud {
         var ast = JSON.parse(d.code);
 
         delete d.code;
-        if (ast.auth.type === 'builtin') {
+        if (ast.auth.type === 'builtin' || ast.auth.type === 'discovery') {
             d.factory = null;
         } else if (ast.auth.type === 'none' &&
                    Object.keys(ast.params).length === 0) {
