@@ -21,6 +21,7 @@ var schema = require('../model/schema');
 var user = require('../util/user');
 var expandExamples = require('../util/expand_examples');
 var exampleModel = require('../model/example');
+var tokenize = require('../util/tokenize');
 
 var router = express.Router();
 
@@ -296,7 +297,7 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
     });
 }
 
-function exampleToAction(kind, actionName, assignments, argtypes) {
+function assignmentsToArgs(assignments, argtypes) {
     var args = [];
 
     for (var name in assignments) {
@@ -319,9 +320,52 @@ function exampleToAction(kind, actionName, assignments, argtypes) {
             throw new TypeError();
     }
 
+    return args;
+}
+
+function exampleToAction(kind, actionName, assignments, argtypes) {
     return {
         action: { name: { id: 'tt:' + kind + '.' + actionName },
-                  args: args }
+                  args: assignmentsToArgs(assignments, argtypes) }
+    }
+}
+
+function exampleToQuery(kind, queryName, assignments, argtypes) {
+    return {
+        query: { name: { id: 'tt:' + kind + '.' + queryName },
+                 args: assignmentsToArgs(assignments, argtypes) }
+    }
+}
+
+function exampleToTrigger(kind, triggerName, assignments, argtypes) {
+    return {
+        trigger: { name: { id: 'tt:' + kind + '.' + triggerName },
+                   args: assignmentsToArgs(assignments, argtypes) }
+    }
+}
+
+function tokensToSlots(tokens) {
+    return tokens.filter((t) => t.startsWith('$')).map((t) => t.substr(1));
+}
+
+function exampleToBaseAction(kind, actionName, tokens) {
+    return {
+        action: { name: { id: 'tt:' + kind + '.' + actionName },
+                  args: [], slots: tokensToSlots(tokens) }
+    }
+}
+
+function exampleToBaseQuery(kind, queryName, tokens) {
+    return {
+        query: { name: { id: 'tt:' + kind + '.' + queryName },
+                 args: [], slots: tokensToSlots(tokens) }
+    }
+}
+
+function exampleToBaseTrigger(kind, triggerName, tokens) {
+    return {
+        trigger: { name: { id: 'tt:' + kind + '.' + triggerName },
+                   args: [], slots: tokensToSlots(tokens) }
     }
 }
 
@@ -329,12 +373,9 @@ function ensureExamples(dbClient, ast) {
     if (!ast['global-name'])
         return;
 
-    function generateAllExamples(schemaId) {
-        // only do actions for now
-        var out = [];
-
-        for (var name in ast.actions) {
-            var fromChannel = ast.actions[name];
+    function handleExamples(schemaId, from, howBase, howExpanded, out) {
+        for (var name in from) {
+            var fromChannel = from[name];
             if (!Array.isArray(fromChannel.examples))
                 continue;
 
@@ -345,22 +386,31 @@ function ensureExamples(dbClient, ast) {
             });
 
             fromChannel.examples.forEach(function(ex) {
-                var jsonAction = exampleToAction(ast['global-name'], name, {}, argtypes);
+                var tokens = tokenize.tokenize(ex);
+                var json = howBase(ast['global-name'], name, tokens);
                 out.push({ schema_id: schemaId, is_base: true, utterance: ex,
-                           target_json: JSON.stringify(jsonAction) });
+                           target_json: JSON.stringify(json) });
             });
 
             try {
                 var expanded = expandExamples(fromChannel.examples, argtypes);
                 expanded.forEach(function(ex) {
-                    var jsonAction = exampleToAction(ast['global-name'], name, ex.assignments, argtypes);
+                    var json = howExpanded(ast['global-name'], name, ex.assignments, argtypes);
                     out.push({ schema_id: schemaId, is_base: false, utterance: ex.utterance,
-                               target_json: JSON.stringify(jsonAction) });
+                               target_json: JSON.stringify(json) });
                 });
             } catch(e) {
                 console.log('Failed to expand examples: ' + e.message);
             }
         }
+    }
+
+    function generateAllExamples(schemaId) {
+        var out = [];
+
+        handleExamples(schemaId, ast.actions, exampleToBaseAction, exampleToAction, out);
+        handleExamples(schemaId, ast.queries, exampleToBaseQuery, exampleToQuery, out);
+        handleExamples(schemaId, ast.triggers, exampleToBaseTrigger, exampleToTrigger, out);
 
         return out;
     }
