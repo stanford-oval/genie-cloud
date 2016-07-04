@@ -97,13 +97,13 @@ module.exports = {
     getTypesByKinds: function(client, kinds, org) {
         return Q.try(function() {
             if (org !== null) {
-                return db.selectAll(client, "select name, types, channel_type, kind from device_schema ds, "
+                return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds, "
                                     + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
                                     + " in (?) and ((dsc.version = ds.developer_version and ds.owner = ?) or "
                                     + " (dsc.version = ds.approved_version and ds.owner <> ?))",
                                     [kinds, org, org]);
             } else {
-                return db.selectAll(client, "select name, types, channel_type, kind from device_schema ds, "
+                return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds, "
                                     + "device_schema_channels dsc where ds.id = dsc.schema_id and ds.kind"
                                     + " in (?) and dsc.version = ds.approved_version",
                                     [kinds]);
@@ -114,7 +114,8 @@ module.exports = {
             rows.forEach(function(row) {
                 if (current == null || current.kind !== row.kind) {
                     current = {
-                        kind: row.kind
+                        kind: row.kind,
+                        kind_type: row.kind_type
                     };
                     current.triggers = {};
                     current.queries = {};
