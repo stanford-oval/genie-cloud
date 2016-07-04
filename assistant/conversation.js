@@ -87,6 +87,8 @@ module.exports = class Conversation {
     }
 
     sendLink(title, url) {
+        if (url.startsWith('/'))
+            url = 'https://thingengine.stanford.edu' + url;
         return this.sendRDL({ type: 'rdl', noun: 'link',
                               displayTitle: title,
                               callback: url,
