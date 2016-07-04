@@ -102,7 +102,7 @@ module.exports = {
                                     + " and ((dsc.version = ds.developer_version and ds.owner = ?) or "
                                     + " (dsc.version = ds.approved_version and ds.owner <> ?)) where ds.kind"
                                     + " in (?) ",
-                                    [kinds, org, org]);
+                                    [org, org, kinds]);
             } else {
                 return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
@@ -154,7 +154,7 @@ module.exports = {
                                     + " and ((dsc.version = ds.developer_version and ds.owner = ?) or"
                                     + " (dsc.version = ds.approved_version and ds.owner <> ?)) where ds.kind"
                                     + " in (?) ",
-                                    [kinds, org, org]);
+                                    [org, org, kinds]);
             } else {
                 return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types,"
                                     + " argnames, questions, kind, kind_type, owner, developer_version,"
