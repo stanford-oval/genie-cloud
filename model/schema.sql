@@ -107,8 +107,10 @@ create table device_schema (
     id integer auto_increment primary key,
     kind varchar(128) unique not null,
     kind_type enum('primary', 'global', 'other') not null default 'other',
+    owner integer not null,
     developer_version integer(11) not null default 0,
-    approved_version integer(11) default null
+    approved_version integer(11) default null,
+    foreign key (owner) references organizations(id) on update cascade on delete cascade
 ) collate utf8_bin;
 
 create table device_schema_version (
@@ -129,6 +131,7 @@ create table device_schema_channels (
     confirmation varchar(255) collate utf8_general_ci default null,
     types mediumtext not null,
     argnames mediumtext not null,
+    doc mediumtext not null,
     questions mediumtext not null collate utf8_general_ci,
     primary key(schema_id, version, name),
     key canonical_btree (canonical(30)),

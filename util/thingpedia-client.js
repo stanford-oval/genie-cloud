@@ -136,17 +136,15 @@ module.exports = class ThingPediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return schema.getTypesByKinds(dbClient, schemas, org);
+                return schema.getTypesByKinds(dbClient, schemas, org !== null ? org.id : null);
             }).then(function(rows) {
                 var obj = {};
 
                 rows.forEach(function(row) {
-                    if (row.types === null)
-                        return;
                     obj[row.kind] = {
-                        triggers: row.types[0],
-                        actions: row.types[1],
-                        queries: (row.types[2] || {})
+                        triggers: row.triggers,
+                        actions: row.actions,
+                        queries: row.queries
                     };
                 });
 
@@ -169,46 +167,16 @@ module.exports = class ThingPediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return schema.getMetasByKinds(dbClient, schemas, org);
+                return schema.getMetasByKinds(dbClient, schemas, org !== null ? org.id : null);
             }).then(function(rows) {
                 var obj = {};
 
                 rows.forEach(function(row) {
-                    if (row.types === null)
-                        return;
-
-                    var types = { triggers: {}, queries: {}, actions: {} };
-
-                    function doOne(what, id) {
-                        for (var name in row.types[id]) {
-                            var obj = {
-                                schema: row.types[id][name]
-                            };
-                            if (name in row.meta[id]) {
-                                obj.args = row.meta[id][name].args;
-                                obj.label = row.meta[id][name].label || row.meta[id][name].doc;
-                                obj.doc = obj.label;
-                                obj.canonical = row.meta[id][name].canonical || '';
-                                obj.questions = row.meta[id][name].questions || [];
-                            } else {
-                                obj.args = obj.schema.map(function(_, i) {
-                                    return 'arg' + (i+1);
-                                });
-                                obj.label = name;
-                                obj.doc = name;
-                                obj.canonical = name;
-                                obj.questions = obj.schema.map(function() {
-                                    return '';
-                                });
-                            }
-                            types[what][name] = obj;
-                        }
-                    }
-
-                    doOne('triggers', 0);
-                    doOne('actions', 1);
-                    doOne('queries', 2);
-                    obj[row.kind] = types;
+                    obj[row.kind] = {
+                        triggers: row.triggers,
+                        actions: row.actions,
+                        queries: row.queries
+                    };
                 });
 
                 return obj;

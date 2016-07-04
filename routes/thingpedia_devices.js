@@ -14,6 +14,7 @@ const db = require('../util/db');
 const model = require('../model/device');
 const user = require('../util/user');
 const organization = require('../model/organization');
+const schema = require('../model/schema');
 
 const EngineManager = require('../lib/enginemanager');
 
@@ -153,7 +154,14 @@ router.get('/by-id/:kind', function(req, res) {
 
 router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
     db.withTransaction(function(dbClient) {
-        return model.approve(dbClient, req.params.id);
+        return model.get(dbClient, req.params.id).then(function(device) {
+            return model.approve(dbClient, req.params.id).then(function() {
+                return schema.approveByKind(dbClient, device.primary_kind);
+            }).then(function() {
+                if (device.global_name)
+                    return schema.approveByKind(dbClient, device.global_name);
+            });
+        });
     }).then(function() {
         res.redirect('/thingpedia/devices/details/' + req.params.id);
     }).catch(function(e) {
