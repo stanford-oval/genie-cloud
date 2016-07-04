@@ -245,7 +245,8 @@ function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve)
     }).catch(function(e) {
         var obj = {
             kind: kind,
-            kind_type: kind_type
+            kind_type: kind_type,
+            owner: req.user.developer_org
         };
         if (req.user.developer_status < user.DeveloperStatus.TRUSTED_DEVELOPER ||
             !approve) {
