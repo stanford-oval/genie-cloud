@@ -181,7 +181,7 @@ function validateDevice(dbClient, req) {
         ast.child_types = [];
     if (!ast.auth)
         ast.auth = {"type":"none"};
-    if (!ast.auth.type || ['none','oauth2','basic','builtin'].indexOf(ast.auth.type) == -1)
+    if (!ast.auth.type || ['none','oauth2','basic','builtin','discovery'].indexOf(ast.auth.type) == -1)
         throw new Error("Invalid auth type");
     if (fullcode && ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
         throw new Error("Username and password must be provided for basic authentication");

@@ -120,6 +120,7 @@ $(function() {
                 title: "Configuration Parameters",
                 additionalProperties: {
                     type: 'array',
+                    required: false,
                     minItems: 2,
                     maxItems: 2,
                     items: [
@@ -155,7 +156,7 @@ $(function() {
                     type: {
                         type: 'string',
                         title: "Auth Type",
-                        'enum': ['none', 'oauth2', 'basic', 'builtin']
+                        'enum': ['none', 'oauth2', 'basic', 'builtin', 'discovery']
                     }
                 },
                 additionalProperties: {
