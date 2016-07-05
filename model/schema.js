@@ -11,6 +11,7 @@ const Q = require('q');
 
 function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
     var channels = [];
+    var argobjects = [];
 
     function makeList(what, from, fromMeta) {
         for (var name in from) {
@@ -24,6 +25,14 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
             channels.push([schemaId, version, name, what, canonical, confirmation, doc,
                            JSON.stringify(types), JSON.stringify(argnames),
                            JSON.stringify(questions)]);
+
+            argobjects.forEach(function(argname, i) {
+                var argtype = types[i];
+
+                // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
+                var canonical = argname.replace('_', ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+                argobjects.push([argname, argtype, schemaId, version, name, canonical]);
+            });
         }
     }
 
@@ -35,7 +44,11 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
         return;
 
     return db.insertOne(dbClient, 'insert into device_schema_channels(schema_id, version, name, '
-        + 'channel_type, canonical, confirmation, doc, types, argnames, questions) values ?', [channels]);
+        + 'channel_type, canonical, confirmation, doc, types, argnames, questions) values ?', [channels])
+        .then(() => {
+            return db.insertOne(dbClient, 'insert into device_schema_arguments(argname, argtype, schema_id, version, '
+            + 'channel_name, canonical) values ?', [argobjects]);
+        });
 }
 
 function create(client, schema, types, meta) {
