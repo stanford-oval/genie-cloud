@@ -26,7 +26,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
                            JSON.stringify(types), JSON.stringify(argnames),
                            JSON.stringify(questions)]);
 
-            argobjects.forEach(function(argname, i) {
+            argnames.forEach(function(argname, i) {
                 var argtype = types[i];
 
                 // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
