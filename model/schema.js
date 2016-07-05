@@ -46,8 +46,9 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
     return db.insertOne(dbClient, 'insert into device_schema_channels(schema_id, version, name, '
         + 'channel_type, canonical, confirmation, doc, types, argnames, questions) values ?', [channels])
         .then(() => {
-            return db.insertOne(dbClient, 'insert into device_schema_arguments(argname, argtype, schema_id, version, '
-            + 'channel_name, canonical) values ?', [argobjects]);
+            if (argobjects.length > 0)
+                return db.insertOne(dbClient, 'insert into device_schema_arguments(argname, argtype, schema_id, version, '
+                + 'channel_name, canonical) values ?', [argobjects]);
         });
 }
 
