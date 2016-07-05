@@ -151,6 +151,7 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
     var description = req.body.description;
     var state;
     var ast;
+    var appId = req.body.appId || undefined;
 
     Q.try(function() {
         return EngineManager.get().getEngine(req.user.id).then(function(engine) {
@@ -166,7 +167,7 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
                 delete state.$F;
             }
 
-            return engine.apps.loadOneApp(code, state, null, undefined,
+            return engine.apps.loadOneApp(code, state, appId, undefined,
                                           name, description, true);
         }).then(function() {
             if (ast.name.feedAccess && !req.query.shared) {
@@ -298,7 +299,6 @@ router.get('/:id/results', user.redirectLogIn, function(req, res, next) {
 
 router.get('/shared/:cloudId/:appId/:feedId', user.redirectLogIn, function(req, res) {
     var feedId = (new Buffer(req.params.feedId, 'base64')).toString();
-    var appId = 'app-' + req.params.appId + feedId.replace(/[^a-zA-Z0-9]+/g, '-');
 
     db.withClient(function(dbClient) {
         return userModel.getByCloudId(dbClient, req.params.cloudId);
@@ -317,7 +317,7 @@ router.get('/shared/:cloudId/:appId/:feedId', user.redirectLogIn, function(req, 
                       remoteApp.state, remoteApp.code]);
     }).spread(function(name, description, state, code) {
         if (state.$F !== feedId)
-            throw new Error('Invalid feed ID');
+            throw new Error('Invalid app ID');
 
         return EngineManager.get().getEngine(req.user.id).then(function(engine) {
             return engine.apps.hasApp(appId);
@@ -329,6 +329,7 @@ router.get('/shared/:cloudId/:appId/:feedId', user.redirectLogIn, function(req, 
             } else {
                 return res.render('app_shared_install', { page_title: "ThingPedia - Enable App",
                                                           csrfToken: req.csrfToken(),
+                                                          appId: appId,
                                                           name: name,
                                                           description: description,
                                                           state: JSON.stringify(state),
