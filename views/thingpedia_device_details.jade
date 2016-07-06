@@ -13,9 +13,6 @@ block page_name
     | Device: #{device.name}
 
 block content
-  aside#device-icon-large
-    img(src=S3_CLOUDFRONT_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
-
   if device.approved_version === null
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
@@ -35,6 +32,9 @@ block content
           p.form-group A newer version of this device was submitted.
             |  
             button(type='submit').btn.btn-success Approve it
+
+  aside#device-icon-large
+    img(src=S3_CLOUDFRONT_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
 
   p#device-description= device.description
 
