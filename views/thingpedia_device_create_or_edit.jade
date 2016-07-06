@@ -55,6 +55,20 @@ block content
             label(for='device-description-input').control-label Thing Description
             textarea(name='description',required=true).form-control#device-description #{device.description}
 
+          div.form-group
+            label(for='device-icon').control-label Thing Icon
+            input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#device-icon
+
+          div.form-group
+            label(for='device-zipfile').control-label Upload JS module
+            input(type='file',name='zipfile')#device-zipfile
+
+
+          div.checkbox
+            label(for='device-fullcode').control-label
+              input(type='checkbox',name='fullcode',value='1',checked=!device.fullcode)#device-fullcode
+              |  The interface requires additional JS code
+
           div.form-group.hidden
             label(for='device-code').control-label Thing Manifest
             textarea(name='code',required=true).form-control#device-code #{device.code}
@@ -65,15 +79,6 @@ block content
               |  is, what triggers and what actions are there!
 
           div#json-manifest-placeholder
-
-          div.checkbox
-            label(for='device-fullcode').control-label
-              input(type='checkbox',name='fullcode',value='1',checked=!device.fullcode)#device-fullcode
-              |  The interface requires additional JS code
-
-          div.form-group
-            label(for='device-zipfile').control-label Upload JS module
-            input(type='file',name='zipfile')#device-zipfile
 
           if user.developer_status >= 2
             div.checkbox

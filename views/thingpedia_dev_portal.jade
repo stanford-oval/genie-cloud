@@ -59,7 +59,10 @@ block content
       div.col-lg-4.col-md-6.dev-template
         div.panel.panel-default
           a(href='/thingpedia/devices/details/' + dev.id).panel-heading= dev.name
-          div.panel-body= dev.description
+          div.panel-body
+            p.device-icon-small
+              img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
+            p=dev.description
           if authenticated && (user.developer_status >= 3 || dev.owner === user.developer_org)
             div.panel-footer
               div.row

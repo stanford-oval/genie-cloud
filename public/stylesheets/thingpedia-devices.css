@@ -40,3 +40,28 @@
 #json-manifest-placeholder .form-group {
     margin-bottom: 0px;
 }
+
+#device-icon-large {
+    display: block;
+    float: left;
+}
+
+#device-icon-large > img {
+    display: block;
+    width: 160px;
+    /* accept non-perfectly square images */
+    height: 160px;
+    object-fit: contain;
+    border-radius: 10px;
+    margin-right: 1em;
+    margin-bottom: 1em;
+}
+
+.device-icon-small > img {
+    display: block;
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 5px;
+    margin: 0 auto;
+}

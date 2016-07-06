@@ -8,10 +8,10 @@
 
 const Q = require('q');
 const express = require('express');
-const passport = require('passport');
+const fs = require('fs');
 const multer = require('multer');
 const csurf = require('csurf');
-const JSZip = require('node-zip');
+const JSZip = require('jszip');
 const ThingTalk = require('thingtalk');
 
 var db = require('../util/db');
@@ -25,7 +25,10 @@ var tokenize = require('../util/tokenize');
 
 var router = express.Router();
 
-router.use(multer().single('zipfile'));
+router.use(multer({ dest: platform.getTmpDir() }).fields([
+    { name: 'zipfile', maxCount: 1 },
+    { name: 'icon', maxCount: 1 }
+]));
 router.use(csurf({ cookie: false }));
 
 const DEFAULT_CODE = {"params": {"username": ["Username","text"],
@@ -217,7 +220,7 @@ function validateDevice(dbClient, req) {
                 throw new Error("Missing query url for " + name);
         }
     } else if (!kind.startsWith('org.thingpedia.builtin.')) {
-        if (!req.file || !req.file.buffer || !req.file.buffer.length)
+        if (!req.files || !req.files.zipfile || req.files.zipfile.length === 0)
             throw new Error('Invalid zip file');
     }
 
@@ -244,6 +247,7 @@ function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve)
                              existing.id, existing.kind, obj,
                              types, meta);
     }).catch(function(e) {
+        console.error(e.stack);
         var obj = {
             kind: kind,
             kind_type: kind_type,
@@ -517,34 +521,67 @@ function doCreateOrUpdate(id, create, req, res) {
                     return null;
 
                 if (!obj.fullcode && !obj.primary_kind.startsWith('org.thingpedia.builtin.')) {
-                    var zipFile = new JSZip(req.file.buffer, { checkCRC32: true });
+                    var zipFile = new JSZip();
+                    // unfortunately JSZip only loads from memory, so we need to load the entire file
+                    // at once
+                    // this is somewhat a problem, because the file can be up to 30-50MB in size
+                    // we just hope the GC will get rid of the buffer quickly
+                    return Q.nfcall(fs.readFile, req.files.zipfile[0].path).then(function(buffer) {
+                        return zipFile.loadAsync(buffer, { checkCRC32: true });
+                    }).then(function() {
+                        var packageJson = zipFile.file('package.json');
+                        if (!packageJson)
+                            throw new Error('package.json missing from device zip file');
 
-                    var packageJson = zipFile.file('package.json');
-                    if (!packageJson)
-                        throw new Error('package.json missing from device zip file');
+                        return packageJson.async('string');
+                    }).then(function(text) {
+                        var parsed = JSON.parse(text);
+                        if (!parsed.name || !parsed.main)
+                            throw new Error('Invalid package.json');
 
-                    var parsed = JSON.parse(packageJson.asText());
-                    if (!parsed.name || !parsed.main)
-                        throw new Error('Invalid package.json');
+                        parsed['thingpedia-version'] = obj.developer_version;
+                        parsed['thingpedia-metadata'] = gAst;
 
-                    parsed['thingpedia-version'] = obj.developer_version;
-                    parsed['thingpedia-metadata'] = gAst;
+                        // upload the file asynchronously to avoid blocking the request
+                        setTimeout(function() {
+                            zipFile.file('package.json', JSON.stringify(parsed));
 
-                    // upload the file asynchronously to avoid blocking the request
+                            code_storage.storeZipFile(zipFile.generateNodeStream({ compression: 'DEFLATE',
+                                                                                type: 'nodebuffer',
+                                                                                platform: 'UNIX'}),
+                                                      obj.primary_kind, obj.developer_version)
+                                .catch(function(e) {
+                                    console.error('Failed to upload zip file to S3: ' + e);
+                                }).done();
+                        }, 0);
+                    }).then(function() {
+                        return obj.primary_kind;
+                    });
+                } else {
+                    return obj.primary_kind;
+                }
+            }).then(function(done) {
+                if (!done)
+                    return done;
+
+                if (req.files.icon && req.files.icon.length) {
+                    console.log('req.files.icon', req.files.icon);
+                    // upload the icon asynchronously to avoid blocking the request
                     setTimeout(function() {
-                        zipFile.file('package.json', JSON.stringify(parsed));
-
-                        code_storage.storeFile(zipFile.generate({compression: 'DEFLATE',
-                                                                 type: 'nodebuffer',
-                                                                 platform: 'UNIX'}),
-                                               obj.primary_kind, obj.developer_version)
-                            .catch(function(e) {
-                                console.error('Failed to upload zip file to S3: ' + e);
-                            }).done();
+                        console.log('uploading icon');
+                        Q.try(function() {
+                            var graphicsApi = platform.getCapability('graphics-api');
+                            var image = graphicsApi.createImageFromPath(req.files.icon[0].path);
+                            image.resizeFit(512, 512);
+                            return Q.ninvoke(image, 'stream', 'png');
+                        }).spread(function(stdout, stderr) {
+                            return code_storage.storeIcon(stdout, done);
+                        }).catch(function(e) {
+                            console.error('Failed to upload icon to S3: ' + e);
+                        }).done();
                     }, 0);
                 }
-
-                return obj.primary_kind;
+                return done;
             }).then(function(done) {
                 if (done) {
                     if (online)
@@ -554,6 +591,15 @@ function doCreateOrUpdate(id, create, req, res) {
                 }
             });
         });
+    }).finally(function() {
+        var toDelete = [];
+        if (req.files) {
+            if (req.files.zipfile && req.files.zipfile.length)
+                toDelete.push(Q.nfcall(fs.unlink, req.files.zipfile[0].path));
+            if (req.files.icon && req.files.icon.length)
+                toDelete.push(Q.nfcall(fs.unlink, req.files.icon[0].path));
+        }
+        return Q.all(toDelete);
     }).catch(function(e) {
         console.error(e.stack);
         res.status(400).render('error', { page_title: "ThingPedia - Error",

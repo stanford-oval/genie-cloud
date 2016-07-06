@@ -10,6 +10,8 @@ const Q = require('q');
 const express = require('express');
 const passport = require('passport');
 
+const Config = require('../config');
+
 const db = require('../util/db');
 const model = require('../model/device');
 const user = require('../util/user');
@@ -31,6 +33,7 @@ router.get('/', function(req, res) {
     db.withClient(function(client) {
         return model.getAll(client, page * 18, 18).then(function(devices) {
             res.render('thingpedia_dev_portal', { page_title: "ThingPedia Developer Portal",
+                                                  S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
                                                   csrfToken: req.csrfToken(),
                                                   devices: devices,
                                                   page_num: page,
@@ -120,6 +123,7 @@ function getDetails(fn, param, req, res) {
                 title = "ThingPedia - Device details";
 
             res.render('thingpedia_device_details', { page_title: title,
+                                                      S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
                                                       csrfToken: req.csrfToken(),
                                                       device: d,
                                                       triggers: triggers,

@@ -11,6 +11,8 @@ const Q = require('q');
 
 const ThingPediaDiscovery = require('thingpedia-discovery');
 
+const Config = require('../config');
+
 const db = require('./db');
 const device = require('../model/device');
 const user = require('../model/user');
@@ -18,7 +20,7 @@ const organization = require('../model/organization');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
 
-const S3_HOST = 'https://d1ge76rambtuys.cloudfront.net/devices/';
+const S3_HOST = Config.S3_CLOUDFRONT_HOST + '/devices/';
 
 const LEGACY_MAPS = {
     'linkedin': 'com.linkedin',

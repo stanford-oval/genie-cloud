@@ -13,6 +13,9 @@ block page_name
     | Device: #{device.name}
 
 block content
+  aside#device-icon-large
+    img(src=S3_CLOUDFRONT_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
+
   if device.approved_version === null
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
@@ -69,6 +72,8 @@ block content
         | &#x20;
         a(href='/thingpedia/schemas/by-id/' + k)
           span.label.label-default= k
+
+  div.clearfix
 
   if triggers.length > 0
     h2.device-subtitle Triggers

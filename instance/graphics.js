@@ -29,8 +29,8 @@ class Image {
         this._gm = this._gm.resize(width, height);
     }
 
-    stream() {
-        return this._gm.stream();
+    stream(format, callback) {
+        return this._gm.stream(format, callback);
     }
 
     toBuffer() {
