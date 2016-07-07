@@ -158,11 +158,16 @@ module.exports = {
         });
     },
 
+    getTypesAndMeta: function(client, id, version) {
+        return db.selectOne(client, "select types, meta from device_schema_version "
+            + "where schema_id = ? and version = ?", [id, version]);
+    },
+
     getMetasByKinds: function(client, kinds, org) {
         return Q.try(function() {
             if (org !== null) {
                 return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types,"
-                                    + " argnames, questions, kind, kind_type, owner, developer_version,"
+                                    + " argnames, questions, id, kind, kind_type, owner, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                     + " and ((dsc.version = ds.developer_version and ds.owner = ?) or"
@@ -171,7 +176,7 @@ module.exports = {
                                     [org, org, kinds]);
             } else {
                 return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types,"
-                                    + " argnames, questions, kind, kind_type, owner, developer_version,"
+                                    + " argnames, questions, id, kind, kind_type, owner, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                     + " and dsc.version = ds.approved_version where ds.kind in (?)",
@@ -183,6 +188,7 @@ module.exports = {
             rows.forEach(function(row) {
                 if (current == null || current.kind !== row.kind) {
                     current = {
+                        id: row.id,
                         kind: row.kind,
                         kind_type: row.kind_type,
                         owner: row.owner,

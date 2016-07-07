@@ -88,4 +88,7 @@ block content
   div.row
     div.col-sm-6.col-md-3
       a(href='/thingpedia/upload/create').btn.btn-primary.btn-block Upload new interface
+    if authenticated && user.developer_status >= 3
+      div.col-sm-6.col-md-3
+        a(href='/thingpedia/schemas/create').btn.btn-default.btn-block Create a new type
 

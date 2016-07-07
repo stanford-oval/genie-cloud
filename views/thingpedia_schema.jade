@@ -72,7 +72,7 @@ block content
   div.row#device-details-actions
     if schema.kind_type === 'other' && authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
       div.col-md-2
-        a.btn.btn-warning.btn-block(href='/thingpedia/schemas/edit/' + schema.id) Edit
+        a.btn.btn-warning.btn-block(href='/thingpedia/schemas/update/' + schema.id) Edit
       div.col-md-2
         form(action='/thingpedia/schemas/delete/' + schema.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)

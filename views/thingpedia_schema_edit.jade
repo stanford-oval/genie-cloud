@@ -1,0 +1,63 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/codemirror.css')
+  link(rel='stylesheet', href='/stylesheets/lint.css')
+  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+
+block scripts
+  script(src='/javascripts/jsonlint.js')
+  script(src='/javascripts/codemirror.js')
+  script(src='/javascripts/jsoneditor.min.js')
+  script(src='/javascripts/thingpedia-schema-create.js')
+
+block content
+  if create
+    h1 Submit a new type
+  else
+    h1 Edit type
+
+  div.container
+    if error
+      div.row
+        div.col-xs-12
+          div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
+            button(type='button', data-dismiss='alert', aria-label="Close").close
+              span(aria-hidden='true') ×
+            if typeof error === 'string'
+              p= error
+            else if error.name === 'SyntaxError'
+              if error.location
+                p Syntax error at line #{error.location.start.line} column #{error.location.start.column}: #{error.message}
+              else
+                p Syntax error at #{error.fileName} line #{error.lineNumber}: #{error.message}
+            else if error.message
+              p= error.message
+            else
+              p= String(error)
+
+    div.row
+      div.col-xs-12
+        form(action=(create ? '/thingpedia/schemas/create' : '/thingpedia/schemas/update/' + id), method='post', data-toggle='validator')#thing-form
+          input(type='hidden',name='_csrf',value=csrfToken)
+
+          div.form-group
+            label(for='device-kind').control-label Type ID
+            input(type='text',name='kind',required=true,maxlength=128,value=schema.kind).form-control#device-kind
+            span.help-block The unique id of your type. This should be a short English-like identifier like "thermostat" or "speaker".
+
+          div.form-group.hidden
+            label(for='device-code').control-label Schema Manifest
+            textarea(name='code',required=true).form-control#device-code #{schema.code}
+
+          div#json-manifest-placeholder
+
+          if user.developer_status >= 2
+            div.checkbox
+              label(for='device-approve').control-label
+                input(type='checkbox',name='approve',value='1',checked=approve)#device-approve
+                |  Approve this schema right away.
+
+          div.form-group
+            button(type='submit').btn.btn-primary Submit
+

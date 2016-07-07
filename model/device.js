@@ -95,16 +95,9 @@ module.exports = {
         }
     },
 
-    getDeveloperCode: function(client, id) {
-        return db.selectOne(client, "select code from device_code_version dcv, device_class d "
-                            + "where dcv.device_id = d.id and d.id = ? and dcv.version = "
-                            + "d.developer_version", [id]);
-    },
-
-    getApprovedCode: function(client, id) {
-        return db.selectOne(client, "select code from device_code_version dcv, device_class d "
-                            + "where dcv.device_id = d.id and d.id = ? and dcv.version = "
-                            + "d.approved_version", [id]);
+    getCodeByVersion: function(client, id, version) {
+        return db.selectOne(client, "select code from device_code_version where device_id = ? and version = ?",
+            [id, version]);
     },
 
     getByPrimaryKind: function(client, kind) {

@@ -19,9 +19,9 @@ var code_storage = require('../util/code_storage');
 var model = require('../model/device');
 var schema = require('../model/schema');
 var user = require('../util/user');
-var expandExamples = require('../util/expand_examples');
-var exampleModel = require('../model/example');
-var tokenize = require('../util/tokenize');
+var Validation = require('../util/validation');
+var generateExamples = require('../util/generate_examples');
+var ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();
 
@@ -151,21 +151,6 @@ function validateSchema(dbClient, type, ast, req) {
     });
 }
 
-function validateInvocation(where, what) {
-    for (var name in where) {
-        if (!where[name].schema)
-            throw new Error("Missing " + what + " schema for " + name);
-        if ((where[name].args && where[name].args.length !== where[name].schema.length) ||
-            (where[name].params && where[name].params.length !== where[name].schema.length))
-            throw new Error("Invalid number of arguments in " + what + " " + name);
-        if (where[name].questions && where[name].questions.length !== where[name].schema.length)
-            throw new Error("Invalid number of questions in " + name);
-        where[name].schema.forEach(function(t) {
-            ThingTalk.Type.fromString(t);
-        });
-    }
-}
-
 function validateDevice(dbClient, req) {
     var name = req.body.name;
     var description = req.body.description;
@@ -192,15 +177,7 @@ function validateDevice(dbClient, req) {
     if (ast.types.indexOf('online-account') >= 0 && ast.types.indexOf('data-source') >= 0)
         throw new Error("Interface cannot be both marked online-account and data-source");
 
-    if (!ast.triggers)
-        ast.triggers = {};
-    if (!ast.actions)
-        ast.actions = {};
-    if (!ast.queries)
-        ast.queries = {};
-    validateInvocation(ast.triggers, 'trigger');
-    validateInvocation(ast.actions, 'action');
-    validateInvocation(ast.queries, 'query');
+    Validation.validateAllInvocations(ast);
 
     if (fullcode) {
         if (!ast.name)
@@ -266,32 +243,9 @@ function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve)
 }
 
 function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
-    var triggers = {};
-    var triggerMeta = {};
-    var actions = {};
-    var actionMeta = {};
-    var queries = {};
-    var queryMeta = {};
-
-    function handleOne(ast, out, outMeta) {
-        for (var name in ast) {
-            out[name] = ast[name].schema;
-            outMeta[name] = {
-                doc: ast[name].doc,
-                label: (ast[name].confirmation || ast[name].label),
-                canonical: ast[name].canonical,
-                args: ast[name].params || ast[name].args || [],
-                questions: ast[name].questions || []
-            };
-        }
-    }
-
-    handleOne(ast.triggers, triggers, triggerMeta);
-    handleOne(ast.actions, actions, actionMeta);
-    handleOne(ast.queries, queries, queryMeta);
-
-    var types = [triggers, actions, queries];
-    var meta = [triggerMeta, actionMeta, queryMeta];
+    var res = ManifestToSchema.toSchema(ast);
+    var types = res[0];
+    var meta = res[1];
 
     return getOrCreateSchema(dbClient, kind, 'primary', types, meta, req, approve).then(function() {
         if (!ast['global-name'])
@@ -301,131 +255,11 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
     });
 }
 
-function assignmentsToArgs(assignments, argtypes) {
-    var args = [];
-
-    for (var name in assignments) {
-        var type = argtypes[name];
-        var nameVal = { id: 'tt.param.' + name };
-        if (type.isString)
-            args.push({ name: nameVal, type: 'String', value: { value: assignments[name] },
-                        operator: 'is' });
-        else if (type.isNumber)
-            args.push({ name: nameVal, type: 'Number', value: { value: String(assignments[name]) },
-                        operator: 'is' });
-        else if (type.isMeasure)
-            args.push({ name: nameVal, type: 'Measure', value: { value: String(assignments[name][0]) },
-                        unit: assignments[name][1],
-                        operator: 'is' });
-        else if (type.isBoolean)
-            args.push({ name: nameVal, type: 'Bool', value: { value: String(assignments[name]) },
-                        operator: 'is' });
-        else
-            throw new TypeError();
-    }
-
-    return args;
-}
-
-function exampleToAction(kind, actionName, assignments, argtypes) {
-    return {
-        action: { name: { id: 'tt:' + kind + '.' + actionName },
-                  args: assignmentsToArgs(assignments, argtypes) }
-    }
-}
-
-function exampleToQuery(kind, queryName, assignments, argtypes) {
-    return {
-        query: { name: { id: 'tt:' + kind + '.' + queryName },
-                 args: assignmentsToArgs(assignments, argtypes) }
-    }
-}
-
-function exampleToTrigger(kind, triggerName, assignments, argtypes) {
-    return {
-        trigger: { name: { id: 'tt:' + kind + '.' + triggerName },
-                   args: assignmentsToArgs(assignments, argtypes) }
-    }
-}
-
-function tokensToSlots(tokens) {
-    return tokens.filter((t) => t.startsWith('$')).map((t) => t.substr(1));
-}
-
-function exampleToBaseAction(kind, actionName, tokens) {
-    return {
-        action: { name: { id: 'tt:' + kind + '.' + actionName },
-                  args: [], slots: tokensToSlots(tokens) }
-    }
-}
-
-function exampleToBaseQuery(kind, queryName, tokens) {
-    return {
-        query: { name: { id: 'tt:' + kind + '.' + queryName },
-                 args: [], slots: tokensToSlots(tokens) }
-    }
-}
-
-function exampleToBaseTrigger(kind, triggerName, tokens) {
-    return {
-        trigger: { name: { id: 'tt:' + kind + '.' + triggerName },
-                   args: [], slots: tokensToSlots(tokens) }
-    }
-}
-
 function ensureExamples(dbClient, ast) {
     if (!ast['global-name'])
         return;
 
-    function handleExamples(schemaId, from, howBase, howExpanded, out) {
-        for (var name in from) {
-            var fromChannel = from[name];
-            if (!Array.isArray(fromChannel.examples))
-                continue;
-
-            var argtypes = {};
-            var argnames = fromChannel.params || fromChannel.args || [];
-            argnames.forEach(function(name, i) {
-                argtypes[name] = ThingTalk.Type.fromString(fromChannel.schema[i]);
-            });
-
-            fromChannel.examples.forEach(function(ex) {
-                var tokens = tokenize.tokenize(ex);
-                var json = howBase(ast['global-name'], name, tokens);
-                out.push({ schema_id: schemaId, is_base: true, utterance: ex,
-                           target_json: JSON.stringify(json) });
-            });
-
-            try {
-                var expanded = expandExamples(fromChannel.examples, argtypes);
-                expanded.forEach(function(ex) {
-                    var json = howExpanded(ast['global-name'], name, ex.assignments, argtypes);
-                    out.push({ schema_id: schemaId, is_base: false, utterance: ex.utterance,
-                               target_json: JSON.stringify(json) });
-                });
-            } catch(e) {
-                console.log('Failed to expand examples: ' + e.message);
-            }
-        }
-    }
-
-    function generateAllExamples(schemaId) {
-        var out = [];
-
-        handleExamples(schemaId, ast.actions, exampleToBaseAction, exampleToAction, out);
-        handleExamples(schemaId, ast.queries, exampleToBaseQuery, exampleToQuery, out);
-        handleExamples(schemaId, ast.triggers, exampleToBaseTrigger, exampleToTrigger, out);
-
-        return out;
-    }
-
-    return schema.getByKind(dbClient, ast['global-name']).then(function(existing) {
-        return exampleModel.deleteBySchema(dbClient, existing.id).then(function() {
-            var examples = generateAllExamples(existing.id);
-            if (examples.length > 0)
-                return exampleModel.createMany(dbClient, examples);
-        });
-    });
+    return generateExamples(dbClient, ast['global-name'], ast);
 }
 
 function doCreateOrUpdate(id, create, req, res) {
@@ -435,7 +269,6 @@ function doCreateOrUpdate(id, create, req, res) {
     var fullcode = !req.body.fullcode;
     var kind = req.body.primary_kind;
     var approve = !!req.body.approve;
-    var online = false;
 
     var gAst = undefined;
 
@@ -478,7 +311,6 @@ function doCreateOrUpdate(id, create, req, res) {
                 var globalName = ast['global-name'];
                 if (!globalName)
                     globalName = null;
-                online = extraKinds.indexOf('online-account') >= 0;
 
                 var obj = {
                     primary_kind: kind,
@@ -583,12 +415,8 @@ function doCreateOrUpdate(id, create, req, res) {
                 }
                 return done;
             }).then(function(done) {
-                if (done) {
-                    if (online)
-                        res.redirect('/thingpedia/devices/by-id/' + done);
-                    else
-                        res.redirect('/thingpedia/devices/by-id/' + done);
-                }
+                if (done)
+                    res.redirect('/thingpedia/devices/by-id/' + done);
             });
         });
     }).finally(function() {
@@ -619,23 +447,18 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                     req.user.developer < user.DeveloperStatus.ADMIN)
                     throw new Error("Not Authorized");
 
-                return model.getDeveloperCode(dbClient, req.params.id).then(function(row) {
+                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then(function(row) {
                     d.code = row.code;
                     return d;
                 });
             }).then(function(d) {
-                try {
-                    code = JSON.stringify(JSON.parse(d.code), undefined, 2);
-                } catch(e) {
-                    code = d.code;
-                }
                 res.render('thingpedia_device_create_or_edit', { page_title: "ThingPedia - edit device",
                                                                  csrfToken: req.csrfToken(),
                                                                  id: req.params.id,
                                                                  device: { name: d.name,
                                                                            primary_kind: d.primary_kind,
                                                                            description: d.description,
-                                                                           code: code,
+                                                                           code: d.code,
                                                                            fullcode: d.fullcode },
                                                                  create: false });
             });

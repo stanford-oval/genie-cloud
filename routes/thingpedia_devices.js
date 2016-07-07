@@ -48,9 +48,9 @@ function getDetails(fn, param, req, res) {
             return fn(client, param).tap(function(d) {
                 return Q.try(function() {
                     if (req.user && req.user.developer_org === d.owner)
-                        return model.getDeveloperCode(client, d.id);
+                        return model.getCodeByVersion(client, d.id, d.developer_version);
                     else
-                        return model.getApprovedCode(client, d.id);
+                        return model.getCodeByVersion(client, d.id, d.approved_version);
                 }).then(function(row) { d.code = row.code; })
                 .catch(function(e) { d.code = null; });
             });
