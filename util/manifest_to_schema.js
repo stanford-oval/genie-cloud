@@ -24,7 +24,8 @@ module.exports = {
                     confirmation: (ast[name].confirmation || ast[name].label),
                     canonical: ast[name].canonical,
                     args: ast[name].params || ast[name].args || [],
-                    questions: ast[name].questions || []
+                    questions: ast[name].questions || [],
+                    required: ast[name].required || [],
                 };
             }
         }
@@ -57,7 +58,8 @@ module.exports = {
                     doc: channelMeta.doc || '',
                     confirmation: channelMeta.confirmation || '',
                     canonical: channelMeta.canonical || '',
-                    questions: channelMeta.questions || []
+                    questions: channelMeta.questions || [],
+                    required: channelMeta.required || [],
                 }
             }
         }

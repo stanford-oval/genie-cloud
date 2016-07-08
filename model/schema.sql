@@ -131,6 +131,7 @@ create table device_schema_channels (
     confirmation varchar(255) collate utf8_general_ci default null,
     types mediumtext not null,
     argnames mediumtext not null,
+    required mediumtext not null,
     doc mediumtext not null,
     questions mediumtext not null collate utf8_general_ci,
     primary key(schema_id, version, name),
@@ -142,6 +143,7 @@ create table device_schema_channels (
 create table device_schema_arguments (
     argname varchar(128) not null,
     argtype varchar(128) not null,
+    required boolean not null,
     schema_id integer not null,
     version integer not null,
     channel_name varchar(128) not null,

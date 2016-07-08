@@ -22,6 +22,14 @@ module.exports = {
                 throw new Error("Invalid number of arguments in " + what + " " + name);
             if (where[name].questions && where[name].questions.length !== where[name].schema.length)
                 throw new Error("Invalid number of questions in " + name);
+            if (where[name].required && where[name].required.length > where[name].schema.length)
+                throw new Error("Invalid number of required arguments in " + name);
+            if (where[name].required) {
+                where[name].required.forEach(function(argrequired, i) {
+                    if (argrequired && (!where[name].questions || !where[name].questions[i]))
+                        throw new Error('Required arguments in ' + name + ' must have slot filling questions');
+                });
+            }
             where[name].schema.forEach(function(t) {
                 ThingTalk.Type.fromString(t);
             });

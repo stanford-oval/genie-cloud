@@ -14,10 +14,12 @@ $(function() {
         inv.schema = [];
         var args = [];
         inv.questions = [];
+        inv.required = [];
         inv.args.forEach(function(arg) {
             inv.schema.push(arg.type);
             args.push(arg.name);
             inv.questions.push(arg.question);
+            inv.required.push(arg.required || false);
         });
         inv.args = args;
     }
@@ -36,13 +38,15 @@ $(function() {
             args.push({
                 type: schema,
                 name: inv.params ? inv.params[i] : inv.args[i],
-                question: (inv.questions ? inv.questions[i] : '') || ''
+                question: (inv.questions ? inv.questions[i] : '') || '',
+                required: (inv.required ? inv.required[i] : false) || false,
             });
         });
         inv.args = args;
         delete inv.schema;
         delete inv.params;
         delete inv.questions;
+        delete inv.required;
     }
     function manifestToJson(json) {
         for (var name in json.triggers)
@@ -76,6 +80,12 @@ $(function() {
                         question: {
                             type: 'string',
                             title: 'Slot Filling Question',
+                        },
+                        required: {
+                            type: 'boolean',
+                            required: false,
+                            format: 'checkbox',
+                            title: 'Argument is required'
                         }
                     }
                 }
