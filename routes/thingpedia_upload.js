@@ -359,7 +359,7 @@ function doCreateOrUpdate(id, create, req, res) {
                     // this is somewhat a problem, because the file can be up to 30-50MB in size
                     // we just hope the GC will get rid of the buffer quickly
                     return Q.nfcall(fs.readFile, req.files.zipfile[0].path).then(function(buffer) {
-                        return zipFile.loadAsync(buffer, { checkCRC32: true });
+                        return zipFile.loadAsync(buffer, { checkCRC32: false });
                     }).then(function() {
                         var packageJson = zipFile.file('package.json');
                         if (!packageJson)
