@@ -62,9 +62,9 @@ function getDetails(fn, param, req, res) {
             var triggers = [], actions = [], queries = [];
             try {
                 var ast = JSON.parse(d.code);
-                d.types = ast['types'] || [];
+                d.types = ast.types || [];
                 online = d.types.some(function(k) { return k === 'online-account' });
-                d.child_types = ast['child-types'] || [];
+                d.child_types = ast.child_types || [];
 
                 if (ast.triggers) {
                     for (var t in ast.triggers) {
