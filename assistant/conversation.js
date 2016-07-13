@@ -167,7 +167,7 @@ module.exports = class Conversation {
     }
 
     _onPicture(hash) {
-        var blob = this._client.blob;
+        var blob = this._client._ldClient.blob;
 
         setTimeout(function() {
             blob.getDownloadLinkForHash(hash, function(error, url) {
