@@ -169,22 +169,30 @@ module.exports = class Conversation {
     _onPicture(hash) {
         var blob = this._client._ldClient.blob;
 
-        setTimeout(function() {
-            blob.getDownloadLinkForHash(hash, function(error, url) {
+        // try repeatedly every 2 seconds for 10 times until we get the blob
+        var count = 0;
+        var interval = setInterval(() => {
+            blob.getDownloadLinkForHash(hash, (error, url) => {
+                count++;
+                if (count >= 10)
+                    clearInterval(interval);
+                if (error === 'Blob not found')
+                    return;
+                clearInterval(interval);
                 if (error) {
                     console.log('failed to get download link for picture', error);
                     return;
                 }
 
                 if (this._remote) {
-                    this._remote.handlePicture(url).catch(function(e) {
+                    this._remote.handlePicture(url).catch((e) => {
                         console.log('Failed to handle assistant picture: ' + e.message);
                     }).done();
                 } else {
                     this._handleNoEngine();
                 }
-            }.bind(this));
-        }.bind(this), 5000);
+            });
+        }, 2000);
     }
 
     _onNewMessage(msg) {
