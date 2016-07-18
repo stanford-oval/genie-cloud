@@ -95,6 +95,10 @@ module.exports = class Conversation {
                               webCallback: url });
     }
 
+    sendAskSpecial(what) {
+        // ignore all "ask special" calls
+    }
+
     setEngine(enginePromise) {
         // new engine means new RpcSocket, so we must clear our old ID
         delete this.$rpcId;
@@ -248,4 +252,5 @@ module.exports = class Conversation {
     }
 }
 module.exports.prototype.$rpcMethods = ['send', 'sendPicture', 'sendRDL',
-                                        'sendChoice', 'sendButton', 'sendLink'];
+                                        'sendChoice', 'sendButton', 'sendLink',
+                                        'sendAskSpecial'];
