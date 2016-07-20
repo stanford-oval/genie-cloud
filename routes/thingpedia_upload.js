@@ -31,85 +31,17 @@ router.use(multer({ dest: platform.getTmpDir() }).fields([
 ]));
 router.use(csurf({ cookie: false }));
 
-const DEFAULT_CODE = {"params": {"username": ["Username","text"],
-                                 "password": ["Password","password"]},
-                      "name": "Example Device of %s",
-                      "description": "This is your Example Device",
-                      "auth": {"type": "basic"},
-                      "triggers": {
-                          "source": {
-                              "url": "https://www.example.com/api/1.0/poll",
-                              "poll-interval": 300000,
-                              "args": ["time", "measurement"],
-                              "schema": ["Date", "Measure(m)"],
-                              "doc": "report the latest measurement"
-                          }
-                      },
-                      "actions": {
-                          "setpower": {
-                              "url": "http://www.example.com/api/1.0/post",
-                              "args": ["power"],
-                              "schema": ["Boolean"],
-                              "doc": "power on/off the device"
-                          }
-                      },
-                      "queries": {
-                          "getpower": {
-                              "url": "http://www.example.com/api/1.0/post",
-                              "args": ["power"],
-                              "schema": ["Boolean"],
-                              "doc": "check if the device is on or off"
-                          }
-                     }
+const DEFAULT_CODE = {"params": {},
+                      "auth": {"type": "none"},
+                      "types": [],
+                      "child_types": [],
+                      "triggers": {},
+                      "actions": {},
+                      "queries": {}
                     };
-const DEFAULT_ONLINE_CODE = {"name": "Example Account of %s",
-                             "description": "This is your Example Account",
-                             "auth": {"type": "oauth2",
-                                      "client_id": "your-oauth2-client-id",
-                                      "client_secret": "your-oauth2-secret-encrypted-with-rot13",
-                                      "authorize": "https://www.example.com/auth/2.0/authorize",
-                                      "get_access_token": "https://www.example.com/auth/2.0/token",
-                                      "get_profile": "https://www.example.com/api/1.0/profile",
-                                      "profile": ["username"],
-                                     },
-                             "types": ["online-account"],
-                             "global-name": "example",
-                             "triggers": {
-                                 "onmessage": {
-                                     "url": "wss://www.example.com/api/1.0/data",
-                                     "args": ["message"],
-                                     "schema": ["String"],
-                                     "doc": "trigger on each new message"
-                                 }
-                             },
-                             "actions": {
-                                 "post": {
-                                     "url": "https://www.example.com/api/1.0/post",
-                                     "args": ["message"],
-                                     "schema": ["String"],
-                                     "doc": "post a new message",
-                                 }
-                             },
-                             "queries": {
-                                "profile": {
-                                     "url": "https://www.example.com/api/1.0/profile",
-                                     "args": ["username", "pictureUrl", "realName", "link"],
-                                     "schema": ["String", "Picture", "String", "String"],
-                                     "doc": "read the user profile"
-                                 },
-                             }
-                            };
 
 router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
-    if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: "ThingPedia - Error",
-                                          message: "Invalid device class" });
-        return;
-    }
-
-    var online = req.query.class === 'online';
-
-    var code = JSON.stringify(online ? DEFAULT_ONLINE_CODE : DEFAULT_CODE, undefined, 2);
+    var code = JSON.stringify(DEFAULT_CODE, undefined, 2);
     res.render('thingpedia_device_create_or_edit', { page_title: "ThingPedia - create new device",
                                                      csrfToken: req.csrfToken(),
                                                      device: { fullcode: true,
@@ -196,9 +128,6 @@ function validateDevice(dbClient, req) {
             if (!ast.queries[name].url)
                 throw new Error("Missing query url for " + name);
         }
-    } else if (!kind.startsWith('org.thingpedia.builtin.')) {
-        if (!req.files || !req.files.zipfile || req.files.zipfile.length === 0)
-            throw new Error('Invalid zip file');
     }
 
     return Q.all(ast.types.map(function(type) {
@@ -260,6 +189,60 @@ function ensureExamples(dbClient, ast) {
         return;
 
     return generateExamples(dbClient, ast['global-name'], ast);
+}
+
+function uploadZipFile(req, obj, ast, stream) {
+    var cleanedMetadata = {
+        types: ast.types,
+        child_types: ast.child_types,
+        'global-name': ast['global-name']
+    };
+    var zipFile = new JSZip();
+
+    Q.try(function() {
+        // unfortunately JSZip only loads from memory, so we need to load the entire file
+        // at once
+        // this is somewhat a problem, because the file can be up to 30-50MB in size
+        // we just hope the GC will get rid of the buffer quickly
+
+        var buffers = [];
+        var length = 0;
+        return Q.Promise(function(callback, errback) {
+            stream.on('data', (buffer) => {
+                buffers.push(buffer);
+                length += buffer.length;
+            });
+            stream.on('end', () => {
+                callback(Buffer.concat(buffers, length));
+            });
+            stream.on('error', errback);
+        });
+    }).then((buffer) => {
+        return zipFile.loadAsync(buffer, { checkCRC32: false });
+    }).then(function() {
+        var packageJson = zipFile.file('package.json');
+        if (!packageJson)
+            throw new Error('package.json missing from device zip file');
+
+        return packageJson.async('string');
+    }).then(function(text) {
+        var parsed = JSON.parse(text);
+        if (!parsed.name || !parsed.main)
+            throw new Error('Invalid package.json');
+
+        parsed['thingpedia-version'] = obj.developer_version;
+        parsed['thingpedia-metadata'] = cleanedMetadata;
+
+        zipFile.file('package.json', JSON.stringify(parsed));
+
+        return code_storage.storeZipFile(zipFile.generateNodeStream({ compression: 'DEFLATE',
+                                                                      type: 'nodebuffer',
+                                                                      platform: 'UNIX'}),
+                                         obj.primary_kind, obj.developer_version);
+    }).catch(function(e) {
+        console.error('Failed to upload zip file to S3: ' + e);
+        console.error(e.stack);
+    }).done();
 }
 
 function doCreateOrUpdate(id, create, req, res) {
@@ -332,7 +315,11 @@ function doCreateOrUpdate(id, create, req, res) {
                         obj.approved_version = 0;
                         obj.developer_version = 0;
                     }
-                    return model.create(dbClient, obj, extraKinds, extraChildKinds, code);
+                    return model.create(dbClient, obj, extraKinds, extraChildKinds, code)
+                        .then(() => {
+                            obj.old_version = null;
+                            return obj;
+                        });
                 } else {
                     return model.get(dbClient, id).then(function(old) {
                         if (old.owner !== req.user.developer_org &&
@@ -345,53 +332,31 @@ function doCreateOrUpdate(id, create, req, res) {
                             approve)
                             obj.approved_version = obj.developer_version;
 
-                        return model.update(dbClient, id, obj, extraKinds, extraChildKinds, code);
+                        return model.update(dbClient, id, obj, extraKinds, extraChildKinds, code)
+                            .then(() => {
+                                obj.old_version = old.developer_version;
+                                return obj;
+                            });
                     });
                 }
             }).then(function(obj) {
                 if (obj === null)
                     return null;
 
-                if (!obj.fullcode && !obj.primary_kind.startsWith('org.thingpedia.builtin.')) {
-                    var zipFile = new JSZip();
-                    // unfortunately JSZip only loads from memory, so we need to load the entire file
-                    // at once
-                    // this is somewhat a problem, because the file can be up to 30-50MB in size
-                    // we just hope the GC will get rid of the buffer quickly
-                    return Q.nfcall(fs.readFile, req.files.zipfile[0].path).then(function(buffer) {
-                        return zipFile.loadAsync(buffer, { checkCRC32: false });
-                    }).then(function() {
-                        var packageJson = zipFile.file('package.json');
-                        if (!packageJson)
-                            throw new Error('package.json missing from device zip file');
-
-                        return packageJson.async('string');
-                    }).then(function(text) {
-                        var parsed = JSON.parse(text);
-                        if (!parsed.name || !parsed.main)
-                            throw new Error('Invalid package.json');
-
-                        parsed['thingpedia-version'] = obj.developer_version;
-                        parsed['thingpedia-metadata'] = gAst;
-
-                        // upload the file asynchronously to avoid blocking the request
-                        setTimeout(function() {
-                            zipFile.file('package.json', JSON.stringify(parsed));
-
-                            code_storage.storeZipFile(zipFile.generateNodeStream({ compression: 'DEFLATE',
-                                                                                type: 'nodebuffer',
-                                                                                platform: 'UNIX'}),
-                                                      obj.primary_kind, obj.developer_version)
-                                .catch(function(e) {
-                                    console.error('Failed to upload zip file to S3: ' + e);
-                                }).done();
-                        }, 0);
-                    }).then(function() {
-                        return obj.primary_kind;
-                    });
-                } else {
+                if (obj.fullcode || obj.primary_kind.startsWith('org.thingpedia.builtin.'))
                     return obj.primary_kind;
-                }
+
+                // do the whole zip file dance asynchronously, or the request will stall for a long time
+                // as we download the old file, modify it and reupload it
+                var stream;
+                if (req.files && req.files.zipfile && req.files.zipfile.length)
+                    stream = fs.createReadStream(req.files.zipfile[0].path);
+                else if (obj.old_version !== null)
+                    stream = code_storage.downloadZipFile(obj.primary_kind, obj.old_version);
+                else
+                    throw new Error('Invalid zip file');
+                uploadZipFile(req, obj, gAst, stream);
+                return obj.primary_kind;
             }).then(function(done) {
                 if (!done)
                     return done;
