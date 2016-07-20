@@ -25,6 +25,12 @@ module.exports = {
             console.log('Successfully uploading png file to S3 for ' + name);
         });
     },
+    downloadZipFile: function(name, version) {
+        var s3 = new AWS.S3();
+        var download = s3.getObject({ Bucket: 'thingpedia2',
+                                      Key: 'devices/' + name + '-v' + version + '.zip' });
+        return download.createReadStream();
+    },
     storeZipFile: function(blob, name, version) {
         var s3 = new AWS.S3();
         var upload = s3.upload({ Bucket: 'thingpedia2',
