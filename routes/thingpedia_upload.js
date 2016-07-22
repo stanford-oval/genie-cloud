@@ -370,7 +370,7 @@ function doCreateOrUpdate(id, create, req, res) {
                             var graphicsApi = platform.getCapability('graphics-api');
                             var image = graphicsApi.createImageFromPath(req.files.icon[0].path);
                             image.resizeFit(512, 512);
-                            return Q.ninvoke(image, 'stream', 'png');
+                            return image.stream('png');
                         }).spread(function(stdout, stderr) {
                             return code_storage.storeIcon(stdout, done);
                         }).catch(function(e) {

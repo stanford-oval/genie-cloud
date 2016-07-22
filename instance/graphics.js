@@ -21,16 +21,12 @@ class Image {
         return Q.ninvoke(this._gm, 'size');
     }
 
-    resize(width, height) {
-        this._gm = this._gm.resizeExact(width, height);
-    }
-
     resizeFit(width, height) {
         this._gm = this._gm.resize(width, height);
     }
 
-    stream(format, callback) {
-        return this._gm.stream(format, callback);
+    stream(format) {
+        return Q.ninvoke(this._gm, 'stream', format);
     }
 
     toBuffer() {
@@ -41,10 +37,6 @@ class Image {
 module.exports = {
     createImageFromPath(path) {
         return new Image(path);
-    },
-
-    createImageFromStream(stream) {
-        return new Image(stream);
     },
 
     createImageFromBuffer(buffer) {
