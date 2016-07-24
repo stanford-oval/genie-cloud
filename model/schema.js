@@ -32,7 +32,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
                 var argrequired = required[i] || false;
 
                 // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
-                var canonical = argname.replace('_', ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+                var canonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
                 argobjects.push([argname, argtype, argrequired, schemaId, version, name, canonical]);
             });
         }
