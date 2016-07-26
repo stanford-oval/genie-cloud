@@ -38,6 +38,10 @@ function assignmentsToArgs(assignments, argtypes) {
             args.push({ name: nameVal, type: 'Bool',
                         value: { value: assignments[name] },
                         operator: 'is' });
+        else if (type.isLocation)
+            args.push({ name: nameVal, type: 'Location',
+                        value: assignments[name],
+                        operator: 'is' });
         else
             throw new TypeError();
     }

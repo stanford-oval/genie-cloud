@@ -14,7 +14,7 @@ function identityMap(array) {
     return array.map((e) => [e, e]);
 }
 
-const STRING_ARGUMENTS = identityMap(['abc def', 'ghi jkl', 'mno pqr', 'stu vwz']);
+const STRING_ARGUMENTS = identityMap(['"abc def"', '"ghi jkl"', 'mno pqr', 'stu vwz']);
 const STRING_PLACEHOLDER = 'something';
 const NUMBER_ARGUMENTS = identityMap([42, 7, 14]);
 const NUMBER_PLACEHOLDER = 'some number';
@@ -22,6 +22,7 @@ const MEASURE_ARGUMENTS = {
     C: [['73 F', [73, 'F']], ['22 C', [22, 'C']]],
     m: [['1000 m', [1000, 'm']], ['42 cm', [42, 'cm']]],
     kg: [['82 kg', [82, 'kg']], ['155 lb', [155, 'lb']]],
+    ms: ['1 day', [1, 'day'], ['a fortnight', [14, 'day']], ['5 hours', [5, 'hour']]]
 };
 const PICTURE_ARGUMENTS = identityMap(['$URL']); // special token
 const PICTURE_PLACEHOLDER = 'some picture';
@@ -31,6 +32,12 @@ const BOOLEAN_ARGUMENTS = [['true', true], ['false', false],
 // the sentence here is "turn $power my tv" => "turn some way my tv"
 // maybe not that useful
 const BOOLEAN_PLACEHOLDER = 'some way';
+const LOCATION_ARGUMENTS = [['here', { relativeTag: 'rel_current_location' }],
+                            ['home', { relativeTag: 'rel_home' }],
+                            ['work', { relativeTag: 'rel_work' }],
+                            ['palo alto', { relativeTag: 'absolute', latitude: 37.442156, longitude: -122.1634471 }],
+                            ['los angeles', { relativeTag: 'absolute', latitude: 34.0543942, longitude: -118.2439408 }]];
+const LOCATION_PLACEHOLDER = 'some place';
 
 function expandOne(example, argtypes, into) {
     var tokens = tkutils.tokenize(example);
@@ -75,6 +82,9 @@ function expandOne(example, argtypes, into) {
         } else if (argtype.isPicture) {
             choices = PICTURE_ARGUMENTS;
             placeholder = PICTURE_PLACEHOLDER;
+        } else if (argtype.isLocation) {
+            choices = LOCATION_ARGUMENTS;
+            placeholder = LOCATION_PLACEHOLDER;
         }
 
         if (!choices)
