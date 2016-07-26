@@ -15,16 +15,22 @@ function identityMap(array) {
 }
 
 const STRING_ARGUMENTS = identityMap(['abc def', 'ghi jkl', 'mno pqr', 'stu vwz']);
+const STRING_PLACEHOLDER = 'something';
 const NUMBER_ARGUMENTS = identityMap([42, 7, 14]);
+const NUMBER_PLACEHOLDER = 'some number';
 const MEASURE_ARGUMENTS = {
     C: [['73 F', [73, 'F']], ['22 C', [22, 'C']]],
     m: [['1000 m', [1000, 'm']], ['42 cm', [42, 'cm']]],
     kg: [['82 kg', [82, 'kg']], ['155 lb', [155, 'lb']]],
 };
 const PICTURE_ARGUMENTS = identityMap(['$URL']); // special token
+const PICTURE_PLACEHOLDER = 'some picture';
 const BOOLEAN_ARGUMENTS = [['true', true], ['false', false],
                            ['yes', true], ['no', false],
                            ['on', true], ['off', false]];
+// the sentence here is "turn $power my tv" => "turn some way my tv"
+// maybe not that useful
+const BOOLEAN_PLACEHOLDER = 'some way';
 
 function expandOne(example, argtypes, into) {
     var tokens = tkutils.tokenize(example);
@@ -53,17 +59,23 @@ function expandOne(example, argtypes, into) {
         if (!argtype)
             throw new TypeError('Unrecognized placeholder ' + tokens[i]);
 
-        var choices;
-        if (argtype.isString)
+        var choices, placeholder;
+        if (argtype.isString) {
             choices = STRING_ARGUMENTS;
-        else if (argtype.isNumber)
+            placeholder = STRING_PLACEHOLDER;
+        } else if (argtype.isNumber) {
             choices = NUMBER_ARGUMENTS;
-        else if (argtype.isMeasure)
+            placeholder = NUMBER_PLACEHOLDER;
+        } else if (argtype.isMeasure) {
             choices = MEASURE_ARGUMENTS[argtype.unit];
-        else if (argtype.isBoolean)
+            placeholder = NUMBER_PLACEHOLDER;
+        } else if (argtype.isBoolean) {
             choices = BOOLEAN_ARGUMENTS;
-        else if (argtype.isPicture)
+            placeholder = BOOLEAN_PLACEHOLDER;
+        } else if (argtype.isPicture) {
             choices = PICTURE_ARGUMENTS;
+            placeholder = PICTURE_PLACEHOLDER;
+        }
 
         if (!choices)
             throw new TypeError('Cannot expand placeholder ' + tokens[i] + ' of type ' + argtype);
@@ -74,6 +86,15 @@ function expandOne(example, argtypes, into) {
             expandRecursively(i+1);
             assignments[argname] = undefined;
         });
+
+        // make one with lexical placeholders with no assignments
+        // the goal is to have utterances like
+        // "tweet something" in addition to "tweet abc def"
+        // where the latter would be slot filled
+        // the reason is that the NL is a lot happier with no
+        // arguments
+        expanded[i] = placeholder;
+        expandRecursively(i+1);
     }
 
     return expandRecursively(0);
