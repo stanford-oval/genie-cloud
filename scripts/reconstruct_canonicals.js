@@ -70,9 +70,22 @@ function reconstructCanonical(json) {
             buffer.push(argcanonical);
             buffer.push(arg.operator);
 
-            buffer.push(String(arg.value.value));
-            if (arg.type === 'Measure')
-                buffer.push(arg.value.unit || arg.unit);
+            if (arg.type === 'Location') {
+                if (arg.relativeTag === 'rel_current_location')
+                    buffer.push('here');
+                else if (arg.relativeTag === 'rel_home')
+                    buffer.push('home');
+                else if (arg.relativeTag === 'rel_work')
+                    buffer.push('work');
+                else if (arg.latitude === 37.442156 && arg.longitude === -122.1634471)
+                    buffer.push('palo alto');
+                else
+                    buffer.push('los angeles');
+            } else {
+                buffer.push(String(arg.value.value));
+                if (arg.type === 'Measure')
+                    buffer.push(arg.value.unit || arg.unit);
+            }
         });
 
         return buffer.join(' ');

@@ -19,6 +19,8 @@ function assignmentsToArgs(assignments, argtypes) {
     var args = [];
 
     for (var name in assignments) {
+        if (assignments[name] === undefined)
+            continue;
         var type = argtypes[name];
         var nameVal = { id: 'tt:param.' + name };
         if (type.isString)
@@ -103,7 +105,7 @@ function ensureExamples(dbClient, ast) {
 }
 
 module.exports = function(dbClient, kind, ast) {
-        function handleExamples(schemaId, from, howBase, howExpanded, out) {
+    function handleExamples(schemaId, from, howBase, howExpanded, out) {
         for (var name in from) {
             var fromChannel = from[name];
             if (!Array.isArray(fromChannel.examples))

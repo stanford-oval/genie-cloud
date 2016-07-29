@@ -14,7 +14,7 @@ function identityMap(array) {
     return array.map((e) => [e, e]);
 }
 
-const STRING_ARGUMENTS = identityMap(['"abc def"', '"ghi jkl"', 'mno pqr', 'stu vwz']);
+const STRING_ARGUMENTS = [['" abc def "', 'abc def'], ['" ghi jkl "', 'ghi jkl'], ['mno pqr', 'mno pqr'], ['stu vwz', 'stu vwz']];
 const STRING_PLACEHOLDER = 'something';
 const NUMBER_ARGUMENTS = identityMap([42, 7, 14]);
 const NUMBER_PLACEHOLDER = 'some number';
@@ -38,6 +38,8 @@ const LOCATION_ARGUMENTS = [['here', { relativeTag: 'rel_current_location' }],
                             ['palo alto', { relativeTag: 'absolute', latitude: 37.442156, longitude: -122.1634471 }],
                             ['los angeles', { relativeTag: 'absolute', latitude: 34.0543942, longitude: -118.2439408 }]];
 const LOCATION_PLACEHOLDER = 'some place';
+const DATE_ARGUMENTS = [['august 24th 1992', { year: 1992, month: 8, day: 24 }], ['may 4th 2016', { year: 2016, month: 5, day: 4 }]];
+const DATE_PLACEHOLDER = 'some day';
 
 function expandOne(example, argtypes, into) {
     var tokens = tkutils.tokenize(example);
@@ -85,6 +87,12 @@ function expandOne(example, argtypes, into) {
         } else if (argtype.isLocation) {
             choices = LOCATION_ARGUMENTS;
             placeholder = LOCATION_PLACEHOLDER;
+        } else if (argtype.isDate) {
+            choices = DATE_ARGUMENTS;
+            placeholder = DATE_PLACEHOLDER;
+        } else if (argtype.isEnum) {
+            choices = identityMap(argtype.entries);
+            placeholder = undefined;
         }
 
         if (!choices)
@@ -97,14 +105,16 @@ function expandOne(example, argtypes, into) {
             assignments[argname] = undefined;
         });
 
-        // make one with lexical placeholders with no assignments
-        // the goal is to have utterances like
-        // "tweet something" in addition to "tweet abc def"
-        // where the latter would be slot filled
-        // the reason is that the NL is a lot happier with no
-        // arguments
-        expanded[i] = placeholder;
-        expandRecursively(i+1);
+        if (placeholder) {
+            // make one with lexical placeholders with no assignments
+            // the goal is to have utterances like
+            // "tweet something" in addition to "tweet abc def"
+            // where the latter would be slot filled
+            // the reason is that the NL is a lot happier with no
+            // arguments
+            expanded[i] = placeholder;
+            expandRecursively(i+1);
+        }
     }
 
     return expandRecursively(0);
