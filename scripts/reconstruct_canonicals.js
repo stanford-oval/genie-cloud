@@ -81,6 +81,10 @@ function reconstructCanonical(json) {
                     buffer.push('palo alto');
                 else
                     buffer.push('los angeles');
+            } else if (arg.type === 'String') {
+                buffer.push('"');
+                buffer.push(arg.value.value);
+                buffer.push('"');
             } else {
                 buffer.push(String(arg.value.value));
                 if (arg.type === 'Measure')

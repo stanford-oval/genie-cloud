@@ -32,9 +32,9 @@ const BOOLEAN_ARGUMENTS = [['true', true], ['false', false],
 // the sentence here is "turn $power my tv" => "turn some way my tv"
 // maybe not that useful
 const BOOLEAN_PLACEHOLDER = 'some way';
-const LOCATION_ARGUMENTS = [['here', { relativeTag: 'rel_current_location' }],
-                            ['home', { relativeTag: 'rel_home' }],
-                            ['work', { relativeTag: 'rel_work' }],
+const LOCATION_ARGUMENTS = [['here', { relativeTag: 'rel_current_location', latitude: -1, longitude: -1 }],
+                            ['home', { relativeTag: 'rel_home', latitude: -1, longitude: -1 }],
+                            ['work', { relativeTag: 'rel_work', latitude: -1, longitude: -1 }],
                             ['palo alto', { relativeTag: 'absolute', latitude: 37.442156, longitude: -122.1634471 }],
                             ['los angeles', { relativeTag: 'absolute', latitude: 34.0543942, longitude: -118.2439408 }]];
 const LOCATION_PLACEHOLDER = 'some place';
