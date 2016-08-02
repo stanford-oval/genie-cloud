@@ -53,14 +53,9 @@ function reconstructCanonical(json) {
     return _schemaRetriever.getMeta(kind, schemaType, channelName).then(function(meta) {
         buffer.push(meta.canonical);
 
-        var sep;
-        if (parsed.action)
-            sep = 'with';
-        else
-            sep = 'and';
-
         args.forEach(function(arg) {
-            buffer.push(sep);
+            buffer.push('with');
+            buffer.push('arg');
 
             var match = /^tt[:\.]param\.(.+)$/.exec(arg.name.id);
             if (match === null)
@@ -103,6 +98,9 @@ function main() {
         return exampleModel.getAll(dbClient);
     }).then((examples) => {
         return Q.all(examples.map((ex) => {
+            if (ex.is_base)
+                return;
+
             return Q.try(function() {
                 return reconstructCanonical(ex.target_json);
             }).then(function(reconstructed) {
