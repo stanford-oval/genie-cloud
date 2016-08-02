@@ -31,7 +31,7 @@ router.get('/oauth2/google/callback', passport.authenticate('google'),
                    res.locals.authenticated = true;
                    res.locals.user = user;
                    res.render('register_success', {
-                       page_title: "ThingPedia - Registration Successful",
+                       page_title: req._("ThingPedia - Registration Successful"),
                        username: req.user.username,
                        cloudId: req.user.cloud_id,
                        authToken: req.user.auth_token });
@@ -53,7 +53,7 @@ router.get('/oauth2/facebook/callback', passport.authenticate('facebook'),
                    res.locals.authenticated = true;
                    res.locals.user = user;
                    res.render('register_success', {
-                       page_title: "ThingPedia - Registration Successful",
+                       page_title: req._("ThingPedia - Registration Successful"),
                        username: req.user.username,
                        cloudId: req.user.cloud_id,
                        authToken: req.user.auth_token });
@@ -71,7 +71,7 @@ router.get('/login', function(req, res, next) {
     res.render('login', {
         csrfToken: req.csrfToken(),
         errors: req.flash('error'),
-        page_title: "ThingPedia - Login"
+        page_title: req._("ThingPedia - Login")
     });
 });
 
@@ -89,7 +89,7 @@ router.post('/login', passport.authenticate('local', { failureRedirect: '/user/l
 router.get('/register', function(req, res, next) {
     res.render('register', {
         csrfToken: req.csrfToken(),
-        page_title: "ThingPedia - Register"
+        page_title: req._("ThingPedia - Register")
     });
 });
 
@@ -100,42 +100,42 @@ router.post('/register', function(req, res, next) {
         if (typeof req.body['username'] !== 'string' ||
             req.body['username'].length == 0 ||
             req.body['username'].length > 255)
-            throw new Error("You must specify a valid username");
+            throw new Error(req._("You must specify a valid username"));
         username = req.body['username'];
         if (typeof req.body['email'] !== 'string' ||
             req.body['email'].length == 0 ||
             req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
-            throw new Error("You must specify a valid email");
+            throw new Error(req._("You must specify a valid email"));
         email = req.body['email'];
 
         if (typeof req.body['password'] !== 'string' ||
             req.body['password'].length < 8 ||
             req.body['password'].length > 255)
-            throw new Error("You must specifiy a valid password (of at least 8 characters)");
+            throw new Error(req._("You must specifiy a valid password (of at least 8 characters)"));
 
         if (req.body['confirm-password'] !== req.body['password'])
-            throw new Error("The password and the confirmation do not match");
+            throw new Error(req._("The password and the confirmation do not match"));
             password = req.body['password']
 
     } catch(e) {
         res.render('register', {
             csrfToken: req.csrfToken(),
-            page_title: "ThingPedia - Register",
+            page_title: req._("ThingPedia - Register"),
             error: e
         });
         return;
     }
 
     return db.withTransaction(function(dbClient) {
-        return user.register(dbClient, username, password, email).then(function(user) {
+        return user.register(dbClient, req, username, password, email).then(function(user) {
             return EngineManager.get().startUser(user).then(function() {
                 return Q.ninvoke(req, 'login', user);
             }).then(function() {
                 res.locals.authenticated = true;
                 res.locals.user = user;
                 res.render('register_success', {
-                    page_title: "ThingPedia - Registration Successful",
+                    page_title: req._("ThingPedia - Registration Successful"),
                     username: username,
                     cloudId: user.cloud_id,
                     authToken: user.auth_token });
@@ -144,7 +144,7 @@ router.post('/register', function(req, res, next) {
     }).catch(function(error) {
         res.render('register', {
             csrfToken: req.csrfToken(),
-            page_title: "ThingPedia - Register",
+            page_title: req._("ThingPedia - Register"),
             error: error });
     }).done();
 });
@@ -186,14 +186,14 @@ function getProfile(req, res, pwError, profileError) {
             }
         }
 
-        res.render('user_profile', { page_title: "ThingPedia - User Profile",
+        res.render('user_profile', { page_title: req._("ThingPedia - User Profile"),
                                      csrfToken: req.csrfToken(),
                                      pw_error: pwError,
                                      profile_error: profileError,
                                      server: server,
                                      phone: phone });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     });
 }
@@ -228,15 +228,15 @@ router.post('/change-password', user.requireLogIn, function(req, res, next) {
         if (typeof req.body['password'] !== 'string' ||
             req.body['password'].length < 8 ||
             req.body['password'].length > 255)
-            throw new Error("You must specifiy a valid password (of at least 8 characters)");
+            throw new Error(req._("You must specifiy a valid password (of at least 8 characters)"));
 
         if (req.body['confirm-password'] !== req.body['password'])
-            throw new Error("The password and the confirmation do not match");
+            throw new Error(req._("The password and the confirmation do not match"));
         password = req.body['password'];
 
         if (req.user.password) {
             if (typeof req.body['old_password'] !== 'string')
-                throw new Error("You must specifiy your old password");
+                throw new Error(req._("You must specifiy your old password"));
             oldpassword = req.body['old_password'];
         }
 
@@ -290,21 +290,21 @@ function ensureTransporter() {
 
 router.get('/request-developer', user.redirectLogIn, function(req, res, next) {
     if (req.user.developer_status >= user.DeveloperStatus.DEVELOPER) {
-        res.render('error', { page_title: "ThingPedia - Error",
-                              message: "You are already an enrolled developer." });
+        res.render('error', { page_title: req._("ThingPedia - Error"),
+                              message: req._("You are already an enrolled developer.") });
         return;
     }
 
     res.render('developer_access_required',
-               { page_title: "ThingPedia - Developer Program",
-                 title: "Become a ThingPedia Developer",
+               { page_title: req._("ThingPedia - Developer Program"),
+                 title: req._("Become a ThingPedia Developer"),
                  csrfToken: req.csrfToken() });
 });
 
 router.post('/request-developer', user.requireLogIn, function(req, res, next) {
     if (req.user.developer_status >= user.DeveloperStatus.DEVELOPER) {
-        res.render('error', { page_title: "ThingPedia - Error",
-                              message: "You are already an enrolled developer." });
+        res.render('error', { page_title: req._("ThingPedia - Error"),
+                              message: req._("You are already an enrolled developer.") });
         return;
     }
 
@@ -325,9 +325,9 @@ router.post('/request-developer', user.requireLogIn, function(req, res, next) {
     };
 
     Q.ninvoke(ensureTransporter(), 'sendMail', mailOptions).then(function() {
-        res.render('developer_access_ok', { page_title: "ThingPedia - developer access required" });
+        res.render('developer_access_ok', { page_title: req._("ThingPedia - developer access required") });
     }).catch(function(e) {
-        res.status(500).render('error', { page_title: "ThingPedia - Error",
+        res.status(500).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     });
 });

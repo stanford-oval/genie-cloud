@@ -24,20 +24,20 @@ router.get('/by-id/:kind', function(req, res) {
         return model.getMetasByKinds(dbClient, req.params.kind, req.user ? req.user.developer_org : null);
     }).then(function(rows) {
         if (rows.length === 0) {
-            res.status(404).render('error', { page_title: "ThingPedia - Error",
-                                              message: 'Not Found' });
+            res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
+                                              message: req._("Not Found.") });
             return;
         }
 
         var row = rows[0];
-        res.render('thingpedia_schema', { page_title: 'ThingPedia - Schema detail',
+        res.render('thingpedia_schema', { page_title: req._("ThingPedia - Schema detail"),
                                           csrfToken: req.csrfToken(),
                                           schema: row,
                                           triggers: row.triggers,
                                           actions: row.actions,
                                           queries: row.queries });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -46,13 +46,13 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(schema) {
             if (schema.kind_type !== 'other')
-                throw new Error('This schema is associated with a device and should not be manipulated directly');
+                throw new Error(req._("This schema is associated with a device and should not be manipulated directly"));
             return model.approve(dbClient, req.params.id).then(function() {
                 res.redirect(303, '/thingpedia/schemas/by-id/' + schema.kind);
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -61,10 +61,10 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(row) {
             if (row.kind_type !== 'other')
-                throw new Error('This schema is associated with a device and should not be manipulated directly');
+                throw new Error(req._("This schema is associated with a device and should not be manipulated directly"));
             if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
-                res.status(403).render('error', { page_title: "ThingPedia - Error",
-                                                  message: "Not Authorized" });
+                res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                                                  message: req._("Not Authorized") });
                 return;
             }
 
@@ -73,14 +73,14 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e.message });
     }).done();
 });
 
 // only allow admins to deal with global schemas for now...
 router.get('/create', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
-    res.render('thingpedia_schema_edit', { page_title: "ThingPedia - Create new Type",
+    res.render('thingpedia_schema_edit', { page_title: req._("ThingPedia - Create new Type"),
                                            create: true,
                                            csrfToken: req.csrfToken(),
                                            schema: { kind: '',
@@ -96,7 +96,7 @@ function validateSchema(dbClient, req) {
     var kind = req.body.kind;
 
     if (!code || !kind)
-        throw new Error('Not all required fields were presents');
+        throw new Error(req._("Not all required fields were presents"));
 
     var ast = JSON.parse(code);
     Validation.validateAllInvocations(ast);
@@ -118,8 +118,8 @@ function doCreateOrUpdate(id, create, req, res) {
                 console.error(e.stack);
                 res.render('thingpedia_schema_edit', { page_title:
                                                        (create ?
-                                                        "ThingPedia - create new type" :
-                                                        "ThingPedia - edit type"),
+                                                        req._("ThingPedia - create new type") :
+                                                        req._("ThingPedia - edit type")),
                                                        csrfToken: req.csrfToken(),
                                                        error: e,
                                                        id: id,
@@ -155,10 +155,9 @@ function doCreateOrUpdate(id, create, req, res) {
                     return model.get(dbClient, id).then(function(old) {
                         if (old.owner !== req.user.developer_org &&
                             req.user.developer_status < user.DeveloperStatus.ADMIN)
-                            throw new Error("Not Authorized");
+                            throw new Error(req._("Not Authorized"));
                         if (old.kind_type !== 'other')
-                            throw new Error('Only non-device specific types can be modified from this page.'
-                                + ' Upload a new interface package to modify a device type');
+                            throw new Error(req._("Only non-device specific types can be modified from this page. Upload a new interface package to modify a device type"));
 
                         obj.developer_version = old.developer_version + 1;
                         if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER &&
@@ -182,7 +181,7 @@ function doCreateOrUpdate(id, create, req, res) {
         });
     }).catch(function(e) {
         console.error(e.stack);
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 }
@@ -198,10 +197,9 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
             return model.get(dbClient, req.params.id).then(function(d) {
                 if (d.owner !== req.user.developer_org &&
                     req.user.developer < user.DeveloperStatus.ADMIN)
-                    throw new Error("Not Authorized");
+                    throw new Error(req._("Not Authorized"));
                 if (d.kind_type !== 'other')
-                    throw new Error('Only non-device specific types can be modified from this page.'
-                        + ' Upload a new interface package to modify a device type');
+                    throw new Error(req._("Only non-device specific types can be modified from this page. Upload a new interface package to modify a device type"));
 
                 return model.getTypesAndMeta(dbClient, req.params.id, d.developer_version).then(function(row) {
                     d.types = JSON.parse(row.types);
@@ -211,7 +209,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
             }).then(function(d) {
                 var ast = ManifestToSchema.toManifest(d.types, d.meta);
                 d.code = JSON.stringify(ast);
-                res.render('thingpedia_schema_edit', { page_title: "ThingPedia - edit type",
+                res.render('thingpedia_schema_edit', { page_title: req._("ThingPedia - edit type"),
                                                        csrfToken: req.csrfToken(),
                                                        id: req.params.id,
                                                        schema: d,
@@ -219,7 +217,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });

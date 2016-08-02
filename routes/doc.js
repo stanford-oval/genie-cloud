@@ -14,14 +14,14 @@ const path = require('path');
 var router = express.Router();
 
 function render(res, what) {
-    res.render('doc_' + what, { page_title: "ThingPedia - Documentation" });
+    res.render('doc_' + what, { page_title: req._("ThingPedia - Documentation") });
 }
 
 router.get('/:what', function(req, res) {
     if (!/^[a-z0-9\-.]+$/.test(req.params.what) ||
         !req.params.what.endsWith('.md')) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: "Malformed request" });
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+                                          message: req._("Malformed request") });
         return;
     }
 
@@ -30,8 +30,8 @@ router.get('/:what', function(req, res) {
                                    '../views/doc_' + what + '.jade'))) {
         render(res, what);
     } else {
-        res.status(404).render('error', { page_title: "ThingPedia - Error",
-                                          message: "Not Found" });
+        res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
+                                          message: req._("Not Found.") });
     }
 });
 

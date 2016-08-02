@@ -1,5 +1,3 @@
-assistant/omlet.js
-assistant/messaging.js
 assistant/conversation.js
 assistant/dispatcher.js
 routes/oauth2.js
