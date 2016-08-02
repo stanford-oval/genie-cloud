@@ -27,7 +27,7 @@ const EngineManager = require('../lib/enginemanager');
 
 var router = express.Router();
 
-function renderAppList(dbClient, apps, res, page_h1, page_subtitle, page_num) {
+function renderAppList(dbClient, apps, req, res, page_h1, page_subtitle, page_num) {
     return Q.all(apps.map(function(r) {
         return model.getAllTags(dbClient, r.id).then(function(tags) {
             r.tags = tags;
@@ -61,7 +61,7 @@ router.get('/', function(req, res) {
 
     db.withTransaction(function(client) {
         return model.getAll(client, filterVisible(req), page * 18, 18).then(function(apps) {
-            return renderAppList(client, apps, res,
+            return renderAppList(client, apps, req, res,
                                  req._("Try the following recommended apps"), '', page);
         });
     }).done();
@@ -76,7 +76,7 @@ router.get('/search', function(req, res) {
 
     db.withTransaction(function(client) {
         return model.getByFuzzySearch(client, filterVisible(req), q).then(function(apps) {
-            return renderAppList(client, apps, res,
+            return renderAppList(client, apps, req, res,
                                  req._("Results of your search"));
         });
     }).done();
@@ -94,7 +94,7 @@ router.get('/by-category/:category(\\d+)', function(req, res) {
             }
 
             return model.getByTag(client, filterVisible(req), cats[0].tag).then(function(apps) {
-                return renderAppList(client, apps, res,
+                return renderAppList(client, apps, req, res,
                                      cats[0].name,
                                      cats[0].description);
             });
@@ -107,8 +107,8 @@ router.get('/by-tag/:tag', function(req, res) {
 
     db.withTransaction(function(client) {
         return model.getByTag(client, filterVisible(req), tag).then(function(apps) {
-            return renderAppList(client, apps, res,
-                                 req._("Apps with tag \"%s\"").format(tag));
+            return renderAppList(client, apps, req, res,
+                                 req._("Apps with tag “%s”").format(tag));
         });
     }).done();
 })
@@ -119,7 +119,7 @@ router.get('/by-device/:id(\\d+)', function(req, res) {
     db.withTransaction(function(client) {
         return device.get(client, deviceId).then(function(device) {
             return model.getByDevice(client, filterVisible(req), deviceId).then(function(apps) {
-                return renderAppList(client, apps, res,
+                return renderAppList(client, apps, req, res,
                                      req._("Apps for %s").format(device.name));
             });
         });
@@ -131,7 +131,7 @@ router.get('/by-owner/:id(\\d+)', function(req, res) {
         return userModel.get(client, req.params.id).then(function(user) {
             return model.getByOwner(client, filterVisible(req), req.params.id).then(function(apps) {
                 var username = user.human_name || user.username;
-                return renderAppList(client, apps, res,
+                return renderAppList(client, apps, req, res,
                                      req._("Apps contributed by %s").format(username));
             });
         });
@@ -434,7 +434,7 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
             });
         });
     }).catch(function(err) {
-        res.render('thingpedia_app_create', { page_title: req._("ThingPedia - edit a app"),
+        res.render('thingpedia_app_create', { page_title: req._("ThingPedia - edit an app"),
                                               error: err,
                                               op: 'edit',
                                               csrfToken: req.csrfToken(),

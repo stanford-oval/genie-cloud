@@ -118,8 +118,8 @@ function doCreateOrUpdate(id, create, req, res) {
                 console.error(e.stack);
                 res.render('thingpedia_schema_edit', { page_title:
                                                        (create ?
-                                                        req._("ThingPedia - create new type") :
-                                                        req._("ThingPedia - edit type")),
+                                                        req._("ThingPedia - Create new Type") :
+                                                        req._("ThingPedia - Edit Type")),
                                                        csrfToken: req.csrfToken(),
                                                        error: e,
                                                        id: id,

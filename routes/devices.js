@@ -25,7 +25,7 @@ router.get('/create', user.redirectLogIn, function(req, res, next) {
         return;
     }
 
-    res.render('devices_create', { page_title: req._("ThingEngine - configure device"),
+    res.render('devices_create', { page_title: req._("ThingPedia - Configure device"),
                                    csrfToken: req.csrfToken(),
                                    developerKey: req.user.developer_key,
                                    klass: req.query.class,
