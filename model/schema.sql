@@ -159,10 +159,12 @@ create table device_schema_arguments (
 create table example_utterances (
     id integer auto_increment primary key,
     schema_id integer null,
+    app_id integer null,
     is_base boolean default false,
     utterance text not null collate utf8_general_ci,
     target_json text not null,
     key(schema_id),
+    key(app_id)
     fulltext key(utterance)
 ) collate utf8_bin;
 
