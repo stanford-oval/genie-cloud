@@ -53,8 +53,11 @@ class ThingPediaDiscoveryDatabase {
 var _discoveryServer = new ThingPediaDiscovery.Server(new ThingPediaDiscoveryDatabase());
 
 module.exports = class ThingPediaClientCloud {
-    constructor(developerKey) {
+    constructor(developerKey, locale) {
         this.developerKey = developerKey;
+        // only keep the language part of the locale, we don't
+        // yet distinguish en_US from en_GB
+        this.language = (locale || 'en').split(/[-_\@\.]/)[0];
     }
 
     getModuleLocation(kind) {
@@ -301,7 +304,7 @@ module.exports = class ThingPediaClientCloud {
 
     getExamplesByKey(key, isBase) {
         return db.withClient((dbClient) => {
-            return exampleModel.getByKey(dbClient, isBase, key);
+            return exampleModel.getByKey(dbClient, isBase, this.language, key);
         });
     }
 }

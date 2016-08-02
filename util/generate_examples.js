@@ -120,7 +120,7 @@ module.exports = function(dbClient, kind, ast) {
             fromChannel.examples.forEach(function(ex) {
                 var tokens = tokenize.tokenize(ex);
                 var json = howBase(kind, name, tokens);
-                out.push({ schema_id: schemaId, is_base: true, utterance: ex,
+                out.push({ schema_id: schemaId, is_base: true, utterance: ex, language: 'en',
                            target_json: JSON.stringify(json) });
             });
 
@@ -128,7 +128,7 @@ module.exports = function(dbClient, kind, ast) {
                 var expanded = expandExamples(fromChannel.examples, argtypes);
                 expanded.forEach(function(ex) {
                     var json = howExpanded(kind, name, ex.assignments, argtypes);
-                    out.push({ schema_id: schemaId, is_base: false, utterance: ex.utterance,
+                    out.push({ schema_id: schemaId, is_base: false, utterance: ex.utterance, language: 'en',
                                target_json: JSON.stringify(json) });
                 });
             } catch(e) {
