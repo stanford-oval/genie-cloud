@@ -59,6 +59,7 @@ module.exports = {
                         username: username,
                         password: hash,
                         email: email,
+                        locale: 'en_US',
                         salt: salt,
                         cloud_id: cloudId,
                         auth_token: authToken
@@ -78,6 +79,7 @@ module.exports = {
                 username: username,
                 password: passwordHash,
                 email: email,
+                locale: 'en_US',
                 salt: salt,
                 cloud_id: cloudId,
                 auth_token: authToken,

@@ -105,14 +105,15 @@ class WebsocketApi {
 }
 
 class Platform {
-    constructor(cloudId, authToken, developerKey, thingpediaClient) {
+    constructor(cloudId, authToken, developerKey, locale, thingpediaClient) {
         this._cloudId = cloudId;
         this._authToken = authToken;
         this._developerKey = developerKey;
         this._thingpediaClient = thingpediaClient;
+        this._locale = locale;
 
         this._gettext = new Gettext();
-        this._gettext.setlocale(this.locale);
+        this._gettext.setlocale(locale);
 
         this._writabledir = _shared ? (process.cwd() + '/' + cloudId) : process.cwd();
         try {
@@ -131,7 +132,7 @@ class Platform {
     }
 
     get locale() {
-        return 'en_US';
+        return this._locale;
     }
 
     start() {
@@ -141,8 +142,8 @@ class Platform {
 
     createAssistant(engine) {
         this._assistant = new Assistant(engine);
-	// for compat
-	engine.assistant = this._assistant;
+	    // for compat
+	    engine.assistant = this._assistant;
     }
 
     // Obtain a shared preference store
@@ -343,14 +344,11 @@ module.exports = {
     },
 
     // Check if this platform has the required capability
-    // This is only about caps that don't consider the current context
-    // for compat with existing code
+    // This is only for compat with existing code
     hasCapability(cap) {
         switch(cap) {
-        case 'code-download':
         case 'graphics-api':
             return true;
-
         default:
             return false;
         }
@@ -361,8 +359,6 @@ module.exports = {
     // for compat with existing code
     getCapability(cap) {
         switch(cap) {
-        case 'code-download':
-            return _unzipApi;
         case 'graphics-api':
             return graphics;
         default:
