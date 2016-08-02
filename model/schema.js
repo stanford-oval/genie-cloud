@@ -11,6 +11,7 @@ const Q = require('q');
 
 function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
     var channels = [];
+    var channelCanonicals = [];
     var argobjects = [];
 
     function makeList(what, from, fromMeta) {
@@ -23,9 +24,9 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
             var questions = (meta ? meta.questions : null) || [];
             var required = (meta ? meta.required : null) || [];
             var doc = meta ? meta.doc : '';
-            channels.push([schemaId, version, name, what, canonical, confirmation, doc,
-                           JSON.stringify(types), JSON.stringify(argnames), JSON.stringify(required),
-                           JSON.stringify(questions)]);
+            channels.push([schemaId, version, name, what, doc,
+                           JSON.stringify(types), JSON.stringify(argnames), JSON.stringify(required)]);
+            channelCanonicals.push([schemaId, version, 'en', name, canonical, confirmation, JSON.stringify(questions)]);
 
             argnames.forEach(function(argname, i) {
                 var argtype = types[i];
@@ -33,7 +34,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
 
                 // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
                 var canonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-                argobjects.push([argname, argtype, argrequired, schemaId, version, name, canonical]);
+                argobjects.push([argname, argtype, argrequired, schemaId, version, 'en', name, canonical]);
             });
         }
     }
@@ -46,11 +47,14 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
         return;
 
     return db.insertOne(dbClient, 'insert into device_schema_channels(schema_id, version, name, '
-        + 'channel_type, canonical, confirmation, doc, types, argnames, required, questions) values ?', [channels])
+        + 'channel_type, doc, types, argnames, required) values ?', [channels])
         .then(() => {
+            return db.insertOne(dbClient, 'insert into device_schema_channel_canonicals(schema_id, version, language, name, '
+            + 'canonical, confirmation, questions) values ?', [channelCanonicals]);
+        }).then(() => {
             if (argobjects.length > 0)
                 return db.insertOne(dbClient, 'insert into device_schema_arguments(argname, argtype, required, schema_id, version, '
-                + 'channel_name, canonical) values ?', [argobjects]);
+                + 'language, channel_name, canonical) values ?', [argobjects]);
         });
 }
 
@@ -165,24 +169,27 @@ module.exports = {
             + "where schema_id = ? and version = ?", [id, version]);
     },
 
-    getMetasByKinds: function(client, kinds, org) {
+    getMetasByKinds: function(client, kinds, org, language) {
         return Q.try(function() {
             if (org !== null) {
-                return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types,"
+                return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
                                     + " argnames, required, questions, id, kind, kind_type, owner, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                     + " and ((dsc.version = ds.developer_version and ds.owner = ?) or"
-                                    + " (dsc.version = ds.approved_version and ds.owner <> ?)) where ds.kind"
-                                    + " in (?) ",
-                                    [org, org, kinds]);
+                                    + " (dsc.version = ds.approved_version and ds.owner <> ?)) "
+                                    + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
+                                    + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.kind in (?) ",
+                                    [org, org, language, kinds]);
             } else {
-                return db.selectAll(client, "select name, channel_type, canonical, confirmation, doc, types,"
+                return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
                                     + " argnames, required, questions, id, kind, kind_type, owner, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
-                                    + " and dsc.version = ds.approved_version where ds.kind in (?)",
-                                    [kinds]);
+                                    + " and dsc.version = ds.approved_version "
+                                    + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
+                                    + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.kind in (?)",
+                                    [language, kinds]);
             }
         }).then(function(rows) {
             var out = [];
@@ -208,10 +215,10 @@ module.exports = {
                 var obj = {
                     schema: types,
                     args: JSON.parse(row.argnames),
-                    confirmation: row.confirmation,
+                    confirmation: row.confirmation || row.doc,
                     doc: row.doc,
-                    canonical: row.canonical,
-                    questions: JSON.parse(row.questions),
+                    canonical: row.canonical || '',
+                    questions: JSON.parse(row.questions) || [],
                     required: JSON.parse(row.required)
                 };
                 if (obj.args.length < types.length) {

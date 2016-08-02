@@ -161,22 +161,22 @@ module.exports = class ThingPediaClientCloud {
     getMetas(schemas) {
         var developerKey = this.developerKey;
 
-        return db.withClient(function(dbClient) {
-            return Q.try(function() {
+        return db.withClient((dbClient) => {
+            return Q.try(() => {
                 if (developerKey)
                     return organization.getByDeveloperKey(dbClient, developerKey);
                 else
                     return [];
-            }).then(function(orgs) {
+            }).then((orgs) => {
                 var org = null;
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return schema.getMetasByKinds(dbClient, schemas, org !== null ? org.id : null);
-            }).then(function(rows) {
+                return schema.getMetasByKinds(dbClient, schemas, org !== null ? org.id : null, this.language);
+            }).then((rows) => {
                 var obj = {};
 
-                rows.forEach(function(row) {
+                rows.forEach((row) => {
                     obj[row.kind] = {
                         kind_type: row.kind_type,
                         triggers: row.triggers,

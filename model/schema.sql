@@ -128,16 +128,24 @@ create table device_schema_channels (
     version integer not null,
     name varchar(128) not null,
     channel_type enum('trigger', 'action', 'query') not null,
-    canonical text null collate utf8_general_ci,
-    confirmation varchar(255) collate utf8_general_ci default null,
     types mediumtext not null,
     argnames mediumtext not null,
     required mediumtext not null,
     doc mediumtext not null,
-    questions mediumtext not null collate utf8_general_ci,
     primary key(schema_id, version, name),
+    foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
+) collate utf8_bin;
+
+create table device_schema_channel_canonicals (
+    schema_id integer not null,
+    version integer not null,
+    language char(15) not null default 'en',
+    name varchar(128) not null,
+    canonical text null collate utf8_general_ci,
+    confirmation varchar(255) collate utf8_general_ci default null,
+    questions mediumtext not null collate utf8_general_ci,
+    primary key(schema_id, version, language, name),
     key canonical_btree (canonical(30)),
-    foreign key (schema_id) references device_schema(id) on update cascade on delete cascade,
     fulltext key(canonical)
 ) collate utf8_bin;
 
@@ -147,12 +155,13 @@ create table device_schema_arguments (
     required boolean not null,
     schema_id integer not null,
     version integer not null,
+    language char(15) not null default 'en',
     channel_name varchar(128) not null,
 
     -- canonical attribute is to handle splitting "inReplyTo" to become "in reply to"
     -- or "from_channel" to be "from channel"
     canonical tinytext not null,
-    primary key(argname, argtype, schema_id, version, channel_name),
+    primary key(argname, argtype, language, schema_id, version, channel_name),
     fulltext key(canonical),
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
 ) collate utf8_bin;
