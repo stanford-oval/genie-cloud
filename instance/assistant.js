@@ -14,32 +14,18 @@ const util = require('util');
 const Sabrina = require('sabrina').Sabrina;
 
 class Conversation extends Sabrina {
-    constructor(parent, engine, user, delegate) {
+    constructor(engine, user, delegate) {
         super(engine, user, delegate, true);
-        this._parent = parent;
-    }
-
-    handlePicture(url) {
-        this._parent.setCurrentConversation(this);
-        return super.handlePicture(url);
-    }
-
-    handleCommand(text, analyzed) {
-        this._parent.setCurrentConversation(this);
-        return super.handleCommand(text, analyzed);
     }
 }
-Conversation.prototype.$rpcMethods = ['start', 'handleCommand', 'handlePicture'];
+Conversation.prototype.$rpcMethods = ['start', 'handleCommand', 'handleParsedCommand'];
 
 module.exports = class Assistant extends events.EventEmitter {
     constructor(engine) {
         super();
 
         this._engine = engine;
-        this._notify = null;
-        this._notifyListener = this.notify.bind(this);
         this._conversations = {};
-        this._currentConversation = null;
     }
 
     notify(data) {
@@ -48,32 +34,11 @@ module.exports = class Assistant extends events.EventEmitter {
         }.bind(this)));
     }
 
-    setCurrentConversation(conv) {
-        this._currentConversation = conv;
-    }
-
-    sendReply(msg) {
-        if (this._currentConversation)
-            return this._currentConversation.sendReply(msg);
-        else
-            return Q();
-    }
-
-    sendPicture(url) {
-        if (this._currentConversation)
-            return this._currentConversation.sendPicture(url);
-        else
-            return Q();
-    }
-
     openConversation(feedId, user, delegate) {
         if (this._conversations[feedId])
             return this._conversations[feedId];
-        var conv = new Conversation(this, this._engine, user, delegate);
-        conv.on('picture', this.emit.bind(this, 'picture'));
-        conv.on('message', this.emit.bind(this, 'message'));
+        var conv = new Conversation(this._engine, user, delegate);
         this._conversations[feedId] = conv;
-        this._currentConversation = conv;
         return conv;
     }
 }

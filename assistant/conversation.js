@@ -42,12 +42,11 @@ function registerWithOmlet(msg, account) {
 }
 
 module.exports = class Conversation {
-    constructor(sempre, feed, user, messaging, enginePromise) {
+    constructor(feed, user, messaging, enginePromise) {
         this.feed = feed;
         this.account = user.account;
         this.enginePromise = enginePromise;
 
-        this._sempre = sempre;
         this._messaging = messaging;
         this._client = messaging.client;
         this._user = user;
@@ -143,16 +142,16 @@ module.exports = class Conversation {
         // to do buttons and stuff
         // pass it down to the remote if we have one, otherwise ignore it
         if (this._remote) {
-            this._remote.handleCommand(null, text).catch(function(e) {
+            this._remote.handleParsedCommand(text).catch(function(e) {
                 console.log('Failed to handle assistant command: ' + e.message);
             }).done();
         }
     }
 
     _onTextMessage(text) {
-        this._analyze(text).then(function(analyzed) {
+        Q.try(function() {
             if (this._remote) {
-                return this._remote.handleCommand(text, analyzed);
+                return this._remote.handleCommand(text);
             } else {
                this._handleNoEngine();
             }
@@ -181,7 +180,11 @@ module.exports = class Conversation {
                 }
 
                 if (this._remote) {
-                    this._remote.handlePicture(url).catch(function(e) {
+                    this._remote.handleParsedCommand(JSON.stringify({ answer: {
+                        name: { id: 'tt:param.answer' },
+                        type: 'Picture',
+                        value: { value: url }
+                    } })).catch(function(e) {
                         console.log('Failed to handle assistant picture: ' + e.message);
                     }).done();
                 } else {
@@ -200,10 +203,6 @@ module.exports = class Conversation {
         } else if (msg.type === 'picture') {
             this._onPicture(msg.fullSizeHash);
         }
-    }
-
-    _analyze(utterance) {
-        return this._sempre.sendUtterance(utterance);
     }
 
     _startRegistration() {

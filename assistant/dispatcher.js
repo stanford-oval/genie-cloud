@@ -10,35 +10,11 @@
 const Q = require('q');
 const Url = require('url');
 
-const Sempre = require('sabrina').Sempre;
-
 const Messaging = require('./messaging');
 const OmletFactory = require('./omlet');
 const Conversation = require('./conversation');
 
 var instance_ = null;
-
-class FakeSempre {
-    constructor() {
-        console.log('Using fake sempre');
-    }
-
-    start() {}
-    stop() {}
-
-    openSession() {
-        return {
-            sendUtterance(utt) {
-                if (/yes/i.test(utt))
-                    return Q(JSON.stringify({"special":"tt:root.special.yes"}));
-                else if (/no/i.test(utt))
-                    return Q(JSON.stringify({"special":"tt:root.special.no"}));
-                else
-                    return Q(JSON.stringify({"special":"tt:root.special.failed"}));
-            }
-        }
-    }
-}
 
 module.exports = class AssistantDispatcher {
     constructor() {
@@ -48,10 +24,6 @@ module.exports = class AssistantDispatcher {
         this._conversations = {};
         this._conversationsByAccount = {};
         this._initialFeeds = {};
-        if (process.env.THINGENGINE_DISABLE_SEMPRE === '1')
-            this._sempre = new FakeSempre();
-        else
-            this._sempre = new Sempre();
 
         this._feedAddedListener = this._onFeedAdded.bind(this);
         this._feedChangedListener = this._onFeedChanged.bind(this);
@@ -88,7 +60,7 @@ module.exports = class AssistantDispatcher {
 
     _makeConversationForAccount(feed, user, enginePromise, newFeed) {
         return this._conversations[feed.feedId] = Q.delay(500).then(function() {
-            var conv = new Conversation(this._sempre.openSession(), feed, user, this._messaging, enginePromise);
+            var conv = new Conversation(feed, user, this._messaging, enginePromise);
             return conv.start(newFeed).then(function() {
                 this._addConversationToAccount(conv, user.account);
                 return conv;
@@ -164,7 +136,6 @@ module.exports = class AssistantDispatcher {
             return;
 
         this._client.connect();
-        this._sempre.start();
         this._messaging = new Messaging(this._client);
         return this._messaging.start().then(function() {
             return this._messaging.getFeedList();
@@ -183,7 +154,6 @@ module.exports = class AssistantDispatcher {
         if (!this._client)
             return Q();
         this._client.disable();
-        this._sempre.stop();
 
         this._messaging.removeListener('feed-added', this._feedAddedListener);
         this._messaging.removeListener('feed-changed', this._feedChangedListener);

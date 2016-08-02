@@ -32,6 +32,7 @@
     "morgan": "~1.6.1",
     "multer": "~1.1.0",
     "mysql": "~2.8.0",
+    "node-gettext": "https://github.com/gcampax/node-gettext/tarball/master",
     "nodemailer": "~2.1.0",
     "oauth2orize": "~1.0.1",
     "omlib": "https://github.com/Stanford-Mobisocial-IoT-Lab/omclient/tarball/master",

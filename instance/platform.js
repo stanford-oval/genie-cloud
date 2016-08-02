@@ -12,6 +12,7 @@
 const Q = require('q');
 const fs = require('fs');
 const os = require('os');
+const Gettext = require('node-gettext');
 const child_process = require('child_process');
 
 // FIXME we should not punch through the abstraction
@@ -110,6 +111,9 @@ class Platform {
         this._developerKey = developerKey;
         this._thingpediaClient = thingpediaClient;
 
+        this._gettext = new Gettext();
+        this._gettext.setlocale(this.locale);
+
         this._writabledir = _shared ? (process.cwd() + '/' + cloudId) : process.cwd();
         try {
             fs.mkdirSync(this._writabledir + '/cache');
@@ -124,6 +128,10 @@ class Platform {
         _dispatcher.addCloudId(cloudId, this._webhookApi, this._websocketApi);
 
         this._assistant = null;
+    }
+
+    get locale() {
+        return 'en_US';
     }
 
     start() {
@@ -187,6 +195,9 @@ class Platform {
         case 'websocket-api':
             return true;
 
+        case 'gettext':
+            return true;
+
         default:
             return false;
         }
@@ -216,6 +227,9 @@ class Platform {
 
         case 'assistant':
             return this._assistant;
+
+        case 'gettext':
+            return this._gettext;
 
         default:
             return null;
