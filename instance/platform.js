@@ -332,8 +332,8 @@ module.exports = {
 
     dispatcher: _dispatcher,
 
-    newInstance(cloudId, authToken, developerKey, thingpediaClient) {
-        return new Platform(cloudId, authToken, developerKey, thingpediaClient);
+    newInstance(cloudId, authToken, developerKey, locale, thingpediaClient) {
+        return new Platform(cloudId, authToken, developerKey, locale, thingpediaClient);
     },
 
     // for compat with existing code that does platform.getOrigin()

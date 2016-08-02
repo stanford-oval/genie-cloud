@@ -27,6 +27,8 @@ const passport = require('passport');
 const connect_flash = require('connect-flash');
 const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
+const Gettext = require('node-gettext');
+const acceptLanguage = require('accept-language');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
@@ -96,6 +98,63 @@ Frontend.prototype._init = function _init() {
             res.locals.authenticated = false;
             res.locals.user = { isConfigured: true };
         }
+        next();
+    });
+
+    // i18n support
+    const LANGS = ['en-US', 'it', 'es'];
+    acceptLanguage.languages(LANGS);
+    var languages = {};
+    for (var l of LANGS) {
+        if (l !== 'en-US') {
+            var gt = new Gettext();
+            gt.setlocale(l);
+            var modir = path.resolve(path.dirname(module.filename), './po');
+            try {
+                gt.loadTextdomainDirectory('thingengine-platform-cloud', modir);
+            } catch(e) {
+                console.log('Failed to load translations for ' + l + ': ' + e.message);
+            }
+            gt.textdomain('thingengine-platform-cloud');
+            languages[l] = {
+                gettext: gt.gettext.bind(gt),
+                pgettext: gt.pgettext.bind(gt),
+                ngettext: gt.ngettext.bind(gt)
+            };
+        } else {
+            languages[l] = {
+                gettext: x => x,
+                pgettext: (c, x) => x,
+                ngettext: (m1, m2, n) => (n === 1 ? m1 : m2)
+            };
+        }
+    }
+    this._app.use(function(req, res, next) {
+        var locale = req.session.locale;
+        if (!locale && req.user)
+            locale = req.user.locale;
+        if (!locale && req.headers['accept-language'])
+            locale = acceptLanguage.get(req.headers['accept-language']);
+        if (!locale)
+            locale = 'en-US';
+        locale = locale.split(/[-_\@\.]/);
+        var lang = languages[locale.join('-')];
+        while (!lang && locale.length > 0) {
+            locale.pop();
+            lang = languages[locale.join('-')];
+        }
+        if (!lang)
+            lang = languages['en-US'];
+
+        req.gettext = lang.gettext;
+        req._ = req.gettext;
+        req.pgettext = lang.pgettext;
+        req.ngettext = lang.ngettext;
+
+        res.locals.gettext = req.gettext;
+        res.locals._ = req._;
+        res.locals.pgettext = req.pgettext;
+        res.locals.ngettext = req.ngettext;
         next();
     });
 

@@ -1,0 +1,78 @@
+# Italian translations for thingengine-platform-cloud package.
+# Copyright (C) 2016 THE thingengine-platform-cloud'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the thingengine-platform-cloud package.
+# Giovanni Campagna <gcampagn@cs.stanford.edu>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: thingengine-platform-cloud 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-08-02 20:50+0000\n"
+"PO-Revision-Date: 2016-08-02 13:15-0700\n"
+"Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
+"Language-Team: Italian\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: routes/index.js:25
+msgid "ThingPedia - knowledge for your magic assistant"
+msgstr "ThingPedia - sapere per il tuo assistente virtuale"
+
+#: routes/index.js:35
+msgid "About ThingPedia"
+msgstr "Informazioni su Thingpedia"
+
+#: routes/index.js:41
+msgid "Terms & Conditions for ThingPedia"
+msgstr "Termini e condizioni di ThingPedia"
+
+#: views/index.jade:12
+msgid "ThingPedia"
+msgstr "ThingPedia"
+
+#: views/index.jade:22
+msgid "Uh, oh!"
+msgstr "Oh oh!"
+
+#: views/index.jade:24
+msgid "Your Sabrina died!"
+msgstr "La tua Sabrina è morta!"
+
+#: views/index.jade:25
+msgid ""
+"It might have crashed or might have been killed by the site administrators."
+msgstr ""
+"Potrebbe essere crashata o potrebbe essere stata uccisa dagli amministratori "
+"del sito."
+
+#: views/index.jade:29
+msgid "Almost there"
+msgstr "Ci siamo quasi"
+
+#: views/index.jade:31
+msgid ""
+"Your Sabrina is almost ready to help you. You just need to configure Omlet."
+msgstr "La tua Sabrina è quasi pronta per aiutarti. Devi solo configurare Omlet."
+
+#: views/index.jade:34
+msgid "Configure Omlet"
+msgstr "Configura Omlet"
+
+#: views/index.jade:36
+msgid "Welcome back!"
+msgstr "Ben tornato!"
+
+#: views/index.jade:38
+msgid "Your Sabrina is running."
+msgstr "La tua Sabrina è in funzione."
+
+#: views/index.jade:41
+msgid "Check your apps"
+msgstr "Controlla le tue app"
+
+#: views/index.jade:43
+msgid "Find new apps"
+msgstr "Trova nuove app"
