@@ -23,12 +23,8 @@ function assignmentsToArgs(assignments, argtypes) {
             continue;
         var type = argtypes[name];
         var nameVal = { id: 'tt:param.' + name };
-        if (type.isString)
-            args.push({ name: nameVal, type: 'String',
-                        value: { value: assignments[name] },
-                        operator: 'is' });
-        else if (type.isNumber)
-            args.push({ name: nameVal, type: 'Number',
+        if (type.isString || type.isNumber || type.isEmailAddress || type.isPhoneNumber)
+            args.push({ name: nameVal, type: String(type),
                         value: { value: assignments[name] },
                         operator: 'is' });
         else if (type.isMeasure)
@@ -47,6 +43,10 @@ function assignmentsToArgs(assignments, argtypes) {
         else
             throw new TypeError();
     }
+
+    args.sort(function(a, b) {
+        return a.name.id === b.name.id ? 0 : (a.name.id < b.name.id ? -1 : +1);
+    });
 
     return args;
 }

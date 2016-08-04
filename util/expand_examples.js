@@ -40,6 +40,10 @@ const LOCATION_ARGUMENTS = [['here', { relativeTag: 'rel_current_location', lati
 const LOCATION_PLACEHOLDER = 'some place';
 const DATE_ARGUMENTS = [['august 24th 1992', { year: 1992, month: 8, day: 24 }], ['may 4th 2016', { year: 2016, month: 5, day: 4 }]];
 const DATE_PLACEHOLDER = 'some day';
+const EMAIL_ARGUMENTS = identityMap(['nobody@stanford.edu']);
+const EMAIL_PLACEHOLDER = 'someone';
+const PHONE_ARGUMENTS = identityMap(['1-555-555-5555']);
+const PHONE_PLACEHOLDER = 'someone';
 
 function expandOne(example, argtypes, into) {
     var tokens = tkutils.tokenize(example);
@@ -93,6 +97,12 @@ function expandOne(example, argtypes, into) {
         } else if (argtype.isEnum) {
             choices = identityMap(argtype.entries);
             placeholder = undefined;
+        } else if (argtype.isEmailAddress) {
+            choices = EMAIL_ARGUMENTS;
+            placeholder = EMAIL_PLACEHOLDER;
+        } else if (argtype.isPhoneNumber) {
+            choices = PHONE_ARGUMENTS;
+            placeholder = PHONE_PLACEHOLDER;
         }
 
         if (!choices)
