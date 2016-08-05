@@ -304,7 +304,7 @@ module.exports = class ThingPediaClientCloud {
 
     getExamplesByKey(key, isBase) {
         return db.withClient((dbClient) => {
-            return exampleModel.getByKey(dbClient, isBase, this.language, key);
+            return exampleModel.getByKey(dbClient, isBase, key, this.language);
         });
     }
 }
