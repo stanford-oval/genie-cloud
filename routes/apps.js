@@ -60,7 +60,7 @@ function getMyThingpediaApps(req) {
     });
 }
 
-function getAllDevices(engine) {
+function getAllDevices(req, engine) {
     return engine.devices.getAllDevices().then(function(devices) {
         return Q.all(devices.map(function(d) {
             return Q.all([d.uniqueId, d.name, d.description, d.kind, d.ownerTier,
