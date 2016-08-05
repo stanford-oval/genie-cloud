@@ -26,7 +26,7 @@ router.get('/schema/:schemas', function(req, res) {
         return;
     }
 
-    var client = new ThingPediaClient(req.query.developer_key);
+    var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
 
     client.getSchemas(schemas).then(function(obj) {
         if (obj.developer)
@@ -47,7 +47,7 @@ router.get('/schema-metadata/:schemas', function(req, res) {
         return;
     }
 
-    var client = new ThingPediaClient(req.query.developer_key);
+    var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
 
     client.getMetas(schemas).then(function(obj) {
         if (obj.developer)
@@ -61,7 +61,7 @@ router.get('/schema-metadata/:schemas', function(req, res) {
 });
 
 router.get('/code/devices/:kind', function(req, res) {
-    var client = new ThingPediaClient(req.query.developer_key);
+    var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
 
     client.getDeviceCode(req.params.kind).then(function(code) {
         if (obj.developer)
@@ -81,7 +81,7 @@ router.get('/devices/setup/:kinds', function(req, res) {
         return;
     }
 
-    var client = new ThingPediaClient(req.query.developer_key);
+    var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
     client.getDeviceSetup(kinds).then(function(result) {
         res.cacheFor(86400000);
         res.status(200).json(result);
@@ -96,7 +96,7 @@ router.get('/devices', function(req, res) {
         return;
     }
 
-    var client = new ThingPediaClient(req.query.developer_key);
+    var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
     client.getDeviceFactories(req.query.class).then(function(obj) {
         res.cacheFor(86400000);
         res.json(obj);
@@ -126,7 +126,7 @@ router.get('/code/apps/:id', function(req, res) {
     }).done();
 });
 router.post('/discovery', function(req, res) {
-    var client = new ThingPediaClient(req.query.developer_key);
+    var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
 
     client.getKindByDiscovery(req.body).then(function(result) {
         if (result === null) {
@@ -143,7 +143,7 @@ router.post('/discovery', function(req, res) {
 });
 
 router.get('/examples', function(req, res) {
-    var client = new ThingPediaClient(req.query.developer_key);
+    var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
 
     var isBase = req.query.base !== '0';
 

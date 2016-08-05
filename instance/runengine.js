@@ -54,8 +54,8 @@ function handleSignal() {
     }, 10000);
 }
 
-function runEngine(cloudId, authToken, developerKey, thingpediaClient) {
-    var platform = PlatformModule.newInstance(cloudId, authToken, developerKey, thingpediaClient);
+function runEngine(cloudId, authToken, developerKey, locale, thingpediaClient) {
+    var platform = PlatformModule.newInstance(cloudId, authToken, developerKey, locale, thingpediaClient);
     if (!PlatformModule.shared)
         global.platform = platform;
 

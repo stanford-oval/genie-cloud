@@ -12,6 +12,7 @@
 const Q = require('q');
 const fs = require('fs');
 const os = require('os');
+const Gettext = require('node-gettext');
 const child_process = require('child_process');
 
 // FIXME we should not punch through the abstraction
@@ -104,11 +105,15 @@ class WebsocketApi {
 }
 
 class Platform {
-    constructor(cloudId, authToken, developerKey, thingpediaClient) {
+    constructor(cloudId, authToken, developerKey, locale, thingpediaClient) {
         this._cloudId = cloudId;
         this._authToken = authToken;
         this._developerKey = developerKey;
         this._thingpediaClient = thingpediaClient;
+        this._locale = locale;
+
+        this._gettext = new Gettext();
+        this._gettext.setlocale(locale);
 
         this._writabledir = _shared ? (process.cwd() + '/' + cloudId) : process.cwd();
         try {
@@ -126,6 +131,10 @@ class Platform {
         this._assistant = null;
     }
 
+    get locale() {
+        return this._locale;
+    }
+
     start() {
         return sql.ensureSchema(this._writabledir + '/sqlite.db',
                                 '../data/schema.sql');
@@ -133,8 +142,8 @@ class Platform {
 
     createAssistant(engine) {
         this._assistant = new Assistant(engine);
-	// for compat
-	engine.assistant = this._assistant;
+	    // for compat
+	    engine.assistant = this._assistant;
     }
 
     // Obtain a shared preference store
@@ -187,6 +196,9 @@ class Platform {
         case 'websocket-api':
             return true;
 
+        case 'gettext':
+            return true;
+
         default:
             return false;
         }
@@ -216,6 +228,9 @@ class Platform {
 
         case 'assistant':
             return this._assistant;
+
+        case 'gettext':
+            return this._gettext;
 
         default:
             return null;
@@ -317,8 +332,8 @@ module.exports = {
 
     dispatcher: _dispatcher,
 
-    newInstance(cloudId, authToken, developerKey, thingpediaClient) {
-        return new Platform(cloudId, authToken, developerKey, thingpediaClient);
+    newInstance(cloudId, authToken, developerKey, locale, thingpediaClient) {
+        return new Platform(cloudId, authToken, developerKey, locale, thingpediaClient);
     },
 
     // for compat with existing code that does platform.getOrigin()
@@ -329,14 +344,11 @@ module.exports = {
     },
 
     // Check if this platform has the required capability
-    // This is only about caps that don't consider the current context
-    // for compat with existing code
+    // This is only for compat with existing code
     hasCapability(cap) {
         switch(cap) {
-        case 'code-download':
         case 'graphics-api':
             return true;
-
         default:
             return false;
         }
@@ -347,8 +359,6 @@ module.exports = {
     // for compat with existing code
     getCapability(cap) {
         switch(cap) {
-        case 'code-download':
-            return _unzipApi;
         case 'graphics-api':
             return graphics;
         default:

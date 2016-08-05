@@ -9,7 +9,7 @@ block scripts
 
 block page_name
   - index = true;
-  | ThingPedia
+  = _("ThingPedia")
 
 block content
   if authenticated
@@ -19,28 +19,28 @@ block content
 
       if authenticated
         if !isRunning
-          h1 Uh, oh!
+          h1= _("Uh, oh!")
 
-          h2 Your Sabrina died!
-          p It might have crashed or might have been killed by the site administrators.
+          h2= _("Your Sabrina died!")
+          p= _("It might have crashed or might have been killed by the site administrators.")
           p
             a(href='/status').btn.btn-primary Check out what happened
         else if user.omlet_id === null
-          h1 Almost there
+          h1= _("Almost there")
 
-          p Your Sabrina is almost ready to help you. You just need to configure Omlet.
+          p= _("Your Sabrina is almost ready to help you. You just need to configure Omlet.")
 
           p
-            a(href='/devices/oauth2/org.thingpedia.builtin.omlet').btn.btn-primary Configure Omlet
+            a(href='/devices/oauth2/org.thingpedia.builtin.omlet').btn.btn-primary= _("Configure Omlet")
         else
-          h1 Welcome back!
+          h1= _("Welcome back!")
 
-          p Your Sabrina is running.
+          p= _("Your Sabrina is running.")
 
           p
-            a(href='/apps').btn.btn-primary Check your apps
+            a(href='/apps').btn.btn-primary= _("Check your apps")
             | &#x20;
-            a(href='/thingpedia/apps').btn.btn-primary Find new apps
+            a(href='/thingpedia/apps').btn.btn-primary= _("Find new apps")
 
       else
         h1 Welcome to ThingPedia

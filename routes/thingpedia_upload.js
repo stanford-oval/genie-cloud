@@ -42,7 +42,7 @@ const DEFAULT_CODE = {"params": {},
 
 router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
     var code = JSON.stringify(DEFAULT_CODE, undefined, 2);
-    res.render('thingpedia_device_create_or_edit', { page_title: "ThingPedia - create new device",
+    res.render('thingpedia_device_create_or_edit', { page_title: req._("ThingPedia - create new device"),
                                                      csrfToken: req.csrfToken(),
                                                      device: { fullcode: true,
                                                                code: code },
@@ -66,14 +66,14 @@ function schemaCompatible(s1, s2) {
 function validateSchema(dbClient, type, ast, req) {
     return schema.getTypesByKinds(dbClient, [type], req.user.developer_org).then(function(rows) {
         if (rows.length < 1)
-            throw new Error("Invalid device type " + type);
+            throw new Error(req._("Invalid device type %s").format(type));
 
         function validate(where, what, against) {
             for (var name in against) {
                 if (!(name in where))
-                    throw new Error('Type ' + type + ' requires ' + what + ' ' + name);
+                    throw new Error(req._("Type %s requires %s %s").format(type, what, name));
                 if (!schemaCompatible(where[name].schema, against[name]))
-                    throw new Error('Schema for ' + name + ' is not compatible with type ' + type);
+                    throw new Error(req._("Schema for %s is not compatible with type %s").format(name, type));
             }
         }
 
@@ -103,11 +103,11 @@ function validateDevice(dbClient, req) {
     if (!ast.auth)
         ast.auth = {"type":"none"};
     if (!ast.auth.type || ['none','oauth2','basic','builtin','discovery'].indexOf(ast.auth.type) == -1)
-        throw new Error("Invalid auth type");
+        throw new Error(req._("Invalid auth type"));
     if (fullcode && ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
-        throw new Error("Username and password must be provided for basic authentication");
+        throw new Error(req._("Username and password must be provided for basic authentication"));
     if (ast.types.indexOf('online-account') >= 0 && ast.types.indexOf('data-source') >= 0)
-        throw new Error("Interface cannot be both marked online-account and data-source");
+        throw new Error(req._("Interface cannot be both marked online-account and data-source"));
 
     Validation.validateAllInvocations(ast);
 
@@ -118,15 +118,15 @@ function validateDevice(dbClient, req) {
             throw new Error("Missing description");
         for (var name in ast.triggers) {
             if (!ast.triggers[name].url)
-                throw new Error("Missing trigger url for " + name);
+                throw new Error(req._("Missing trigger url for %s").format(name));
         }
         for (var name in ast.actions) {
             if (!ast.actions[name].url)
-                throw new Error("Missing action url for " + name);
+                throw new Error(req._("Missing action url for %s").format(name));
         }
         for (var name in ast.queries) {
             if (!ast.queries[name].url)
-                throw new Error("Missing query url for " + name);
+                throw new Error(req._("Missing query url for %s").format(name));
         }
     }
 
@@ -142,7 +142,7 @@ function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve)
         var obj = {};
         if (existing.owner !== req.user.developer_org &&
             req.user.developer_status < user.DeveloperStatus.ADMIN)
-            throw new Error("Not Authorized");
+            throw new Error(req._("Not Authorized"));
 
         obj.developer_version = existing.developer_version + 1;
         if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER &&
@@ -222,13 +222,13 @@ function uploadZipFile(req, obj, ast, stream) {
     }).then(function() {
         var packageJson = zipFile.file('package.json');
         if (!packageJson)
-            throw new Error('package.json missing from device zip file');
+            throw new Error(req._("package.json missing from device zip file"));
 
         return packageJson.async('string');
     }).then(function(text) {
         var parsed = JSON.parse(text);
         if (!parsed.name || !parsed.main)
-            throw new Error('Invalid package.json');
+            throw new Error(req._("Invalid package.json"));
 
         parsed['thingpedia-version'] = obj.developer_version;
         parsed['thingpedia-metadata'] = cleanedMetadata;
@@ -263,8 +263,8 @@ function doCreateOrUpdate(id, create, req, res) {
                 console.error(e.stack);
                 res.render('thingpedia_device_create_or_edit', { page_title:
                                                                  (create ?
-                                                                  "ThingPedia - create new device" :
-                                                                  "ThingPedia - edit device"),
+                                                                  req._("ThingPedia - create new device") :
+                                                                  req._("ThingPedia - edit device")),
                                                                  csrfToken: req.csrfToken(),
                                                                  error: e,
                                                                  id: id,
@@ -324,7 +324,7 @@ function doCreateOrUpdate(id, create, req, res) {
                     return model.get(dbClient, id).then(function(old) {
                         if (old.owner !== req.user.developer_org &&
                             req.user.developer_status < user.DeveloperStatus.ADMIN)
-                            throw new Error("Not Authorized");
+                            throw new Error(req._("Not Authorized"));
 
                         obj.owner = old.owner;
                         obj.developer_version = old.developer_version + 1;
@@ -354,7 +354,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 else if (obj.old_version !== null)
                     stream = code_storage.downloadZipFile(obj.primary_kind, obj.old_version);
                 else
-                    throw new Error('Invalid zip file');
+                    throw new Error(req._("Invalid zip file"));
                 uploadZipFile(req, obj, gAst, stream);
                 return obj.primary_kind;
             }).then(function(done) {
@@ -370,7 +370,7 @@ function doCreateOrUpdate(id, create, req, res) {
                             var graphicsApi = platform.getCapability('graphics-api');
                             var image = graphicsApi.createImageFromPath(req.files.icon[0].path);
                             image.resizeFit(512, 512);
-                            return Q.ninvoke(image, 'stream', 'png');
+                            return image.stream('png');
                         }).spread(function(stdout, stderr) {
                             return code_storage.storeIcon(stdout, done);
                         }).catch(function(e) {
@@ -410,14 +410,14 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
             return model.get(dbClient, req.params.id).then(function(d) {
                 if (d.owner !== req.user.developer_org &&
                     req.user.developer < user.DeveloperStatus.ADMIN)
-                    throw new Error("Not Authorized");
+                    throw new Error(req._("Not Authorized"));
 
                 return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then(function(row) {
                     d.code = row.code;
                     return d;
                 });
             }).then(function(d) {
-                res.render('thingpedia_device_create_or_edit', { page_title: "ThingPedia - edit device",
+                res.render('thingpedia_device_create_or_edit', { page_title: req._("ThingPedia - edit device"),
                                                                  csrfToken: req.csrfToken(),
                                                                  id: req.params.id,
                                                                  device: { name: d.name,
@@ -429,7 +429,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });

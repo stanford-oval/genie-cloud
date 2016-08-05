@@ -20,12 +20,12 @@ var router = express.Router();
 
 router.get('/create', user.redirectLogIn, function(req, res, next) {
     if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: "ThingPedia - Error",
-                                          message: "Invalid device class" });
+        res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
+                                          message: req._("Invalid device class") });
         return;
     }
 
-    res.render('devices_create', { page_title: 'ThingEngine - configure device',
+    res.render('devices_create', { page_title: req._("ThingPedia - Configure device"),
                                    csrfToken: req.csrfToken(),
                                    developerKey: req.user.developer_key,
                                    klass: req.query.class,
@@ -39,7 +39,7 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
 
         if (typeof req.body['kind'] !== 'string' ||
             req.body['kind'].length == 0)
-            throw new Error("You must choose one kind of device");
+            throw new Error(req._("You must choose one kind of device"));
 
         delete req.body['_csrf'];
         return devices.loadOneDevice(req.body, true);
@@ -51,7 +51,7 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
             res.redirect(303, '/apps');
         }
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -69,7 +69,7 @@ router.get('/create/:kind', user.requireLogIn, function(req, res, next) {
             res.redirect(303, '/apps');
         }
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -78,8 +78,8 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         var id = req.body.id;
         if (!engine.devices.hasDevice(id)) {
-            res.status(404).render('error', { page_title: "ThingPedia - Error",
-                                              message: "Not found." });
+            res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
+                                              message: req._("Not found.") });
             return false;
         }
 
@@ -98,7 +98,7 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
             res.redirect(303, '/apps');
         }
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -141,7 +141,7 @@ router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
             res.redirect(303, '/apps');
         }
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -182,7 +182,7 @@ router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, 
         }
     }).catch(function(e) {
         console.log(e.stack);
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -212,7 +212,7 @@ router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next
             res.redirect(303, '/apps');
         }
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });

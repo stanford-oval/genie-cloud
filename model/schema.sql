@@ -14,6 +14,7 @@ create table users (
     username varchar(255) unique not null,
     human_name tinytext default null collate utf8_general_ci,
     email varchar(255) not null,
+    locale char(15) not null default 'en_US',
     google_id varchar(255) unique default null,
     facebook_id varchar(255) unique default null,
     omlet_id varchar(255) unique default null,
@@ -127,16 +128,24 @@ create table device_schema_channels (
     version integer not null,
     name varchar(128) not null,
     channel_type enum('trigger', 'action', 'query') not null,
-    canonical text null collate utf8_general_ci,
-    confirmation varchar(255) collate utf8_general_ci default null,
     types mediumtext not null,
     argnames mediumtext not null,
     required mediumtext not null,
     doc mediumtext not null,
-    questions mediumtext not null collate utf8_general_ci,
     primary key(schema_id, version, name),
+    foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
+) collate utf8_bin;
+
+create table device_schema_channel_canonicals (
+    schema_id integer not null,
+    version integer not null,
+    language char(15) not null default 'en',
+    name varchar(128) not null,
+    canonical text null collate utf8_general_ci,
+    confirmation varchar(255) collate utf8_general_ci default null,
+    questions mediumtext not null collate utf8_general_ci,
+    primary key(schema_id, version, language, name),
     key canonical_btree (canonical(30)),
-    foreign key (schema_id) references device_schema(id) on update cascade on delete cascade,
     fulltext key(canonical)
 ) collate utf8_bin;
 
@@ -146,12 +155,13 @@ create table device_schema_arguments (
     required boolean not null,
     schema_id integer not null,
     version integer not null,
+    language char(15) not null default 'en',
     channel_name varchar(128) not null,
 
     -- canonical attribute is to handle splitting "inReplyTo" to become "in reply to"
     -- or "from_channel" to be "from channel"
     canonical tinytext not null,
-    primary key(argname, argtype, schema_id, version, channel_name),
+    primary key(argname, argtype, language, schema_id, version, channel_name),
     fulltext key(canonical),
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
 ) collate utf8_bin;
@@ -159,10 +169,13 @@ create table device_schema_arguments (
 create table example_utterances (
     id integer auto_increment primary key,
     schema_id integer null,
-    is_base boolean default false,
+    app_id integer null,
+    is_base boolean not null default false,
+    language char(15) not null default 'en',
     utterance text not null collate utf8_general_ci,
     target_json text not null,
     key(schema_id),
+    key(app_id)
     fulltext key(utterance)
 ) collate utf8_bin;
 

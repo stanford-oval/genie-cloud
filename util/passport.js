@@ -54,6 +54,7 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
             var username = profile.username || profile.emails[0].value;
             return model.create(dbClient, { username: username,
                                             email: profile.emails[0].value,
+                                            locale: 'en_US',
                                             google_id: profile.id,
                                             human_name: profile.displayName,
                                             cloud_id: makeRandom(),
@@ -102,6 +103,7 @@ function authenticateFacebook(accessToken, refreshToken, profile, done) {
             var username = profile.username || profile.emails[0].value;
             return model.create(dbClient, { username: username,
                                             email: profile.emails[0].value,
+                                            locale: 'en_US',
                                             facebook_id: profile.id,
                                             human_name: profile.displayName,
                                             cloud_id: makeRandom(),

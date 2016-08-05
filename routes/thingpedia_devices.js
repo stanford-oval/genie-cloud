@@ -32,7 +32,7 @@ router.get('/', function(req, res) {
 
     db.withClient(function(client) {
         return model.getAll(client, page * 18, 18).then(function(devices) {
-            res.render('thingpedia_dev_portal', { page_title: "ThingPedia Developer Portal",
+            res.render('thingpedia_dev_portal', { page_title: req._("ThingPedia - Developer Portal"),
                                                   S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
                                                   csrfToken: req.csrfToken(),
                                                   devices: devices,
@@ -118,9 +118,9 @@ function getDetails(fn, param, req, res) {
 
             var title;
             if (online)
-                title = "ThingPedia - Account details";
+                title = req._("ThingPedia - Account details");
             else
-                title = "ThingPedia - Device details";
+                title = req._("ThingPedia - Device details");
 
             res.render('thingpedia_device_details', { page_title: title,
                                                       S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
@@ -132,7 +132,7 @@ function getDetails(fn, param, req, res) {
                                                       online: online });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 }
@@ -169,7 +169,7 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
     }).then(function() {
         res.redirect('/thingpedia/devices/details/' + req.params.id);
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -178,8 +178,8 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(row) {
             if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
-                res.status(403).render('error', { page_title: "ThingPedia - Error",
-                                                  message: "Not Authorized" });
+                res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                                                  message: req._("Not Authorized") });
                 return;
             }
 
@@ -188,7 +188,7 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e.message });
     }).done();
 });

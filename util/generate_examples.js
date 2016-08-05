@@ -19,24 +19,34 @@ function assignmentsToArgs(assignments, argtypes) {
     var args = [];
 
     for (var name in assignments) {
+        if (assignments[name] === undefined)
+            continue;
         var type = argtypes[name];
-        var nameVal = { id: 'tt.param.' + name };
-        if (type.isString)
-            args.push({ name: nameVal, type: 'String', value: { value: assignments[name] },
-                        operator: 'is' });
-        else if (type.isNumber)
-            args.push({ name: nameVal, type: 'Number', value: { value: String(assignments[name]) },
+        var nameVal = { id: 'tt:param.' + name };
+        if (type.isString || type.isNumber || type.isEmailAddress || type.isPhoneNumber)
+            args.push({ name: nameVal, type: String(type),
+                        value: { value: assignments[name] },
                         operator: 'is' });
         else if (type.isMeasure)
-            args.push({ name: nameVal, type: 'Measure', value: { value: String(assignments[name][0]) },
-                        unit: assignments[name][1],
+            args.push({ name: nameVal, type: 'Measure',
+                        value: { value: assignments[name][0],
+                                 unit: assignments[name][1] },
                         operator: 'is' });
         else if (type.isBoolean)
-            args.push({ name: nameVal, type: 'Bool', value: { value: String(assignments[name]) },
+            args.push({ name: nameVal, type: 'Bool',
+                        value: { value: assignments[name] },
+                        operator: 'is' });
+        else if (type.isLocation)
+            args.push({ name: nameVal, type: 'Location',
+                        value: assignments[name],
                         operator: 'is' });
         else
             throw new TypeError();
     }
+
+    args.sort(function(a, b) {
+        return a.name.id === b.name.id ? 0 : (a.name.id < b.name.id ? -1 : +1);
+    });
 
     return args;
 }
@@ -95,7 +105,7 @@ function ensureExamples(dbClient, ast) {
 }
 
 module.exports = function(dbClient, kind, ast) {
-        function handleExamples(schemaId, from, howBase, howExpanded, out) {
+    function handleExamples(schemaId, from, howBase, howExpanded, out) {
         for (var name in from) {
             var fromChannel = from[name];
             if (!Array.isArray(fromChannel.examples))
@@ -110,7 +120,7 @@ module.exports = function(dbClient, kind, ast) {
             fromChannel.examples.forEach(function(ex) {
                 var tokens = tokenize.tokenize(ex);
                 var json = howBase(kind, name, tokens);
-                out.push({ schema_id: schemaId, is_base: true, utterance: ex,
+                out.push({ schema_id: schemaId, is_base: true, utterance: ex, language: 'en',
                            target_json: JSON.stringify(json) });
             });
 
@@ -118,7 +128,7 @@ module.exports = function(dbClient, kind, ast) {
                 var expanded = expandExamples(fromChannel.examples, argtypes);
                 expanded.forEach(function(ex) {
                     var json = howExpanded(kind, name, ex.assignments, argtypes);
-                    out.push({ schema_id: schemaId, is_base: false, utterance: ex.utterance,
+                    out.push({ schema_id: schemaId, is_base: false, utterance: ex.utterance, language: 'en',
                                target_json: JSON.stringify(json) });
                 });
             } catch(e) {

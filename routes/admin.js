@@ -36,7 +36,7 @@ router.get('/', user.redirectRole(user.Role.ADMIN), function(req, res) {
             u.engineId = u.isRunning ? engineManager.getProcessId(u.id) : null;
         });
 
-        res.render('admin_user_list', { page_title: "ThingPedia - Administration",
+        res.render('admin_user_list', { page_title: req._("ThingPedia - Administration"),
                                         csrfToken: req.csrfToken(),
                                         assistantAvailable: AssistantDispatcher.get().isAvailable,
                                         users: users });
@@ -63,7 +63,7 @@ router.post('/start-user/:id', user.requireRole(user.Role.ADMIN), function(req, 
     }).then(function() {
         res.redirect(303, '/admin');
     }).catch(function(e) {
-        res.status(500).render('error', { page_title: "ThingPedia - Error",
+        res.status(500).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -82,8 +82,8 @@ router.post('/blow-view-cache', user.requireRole(user.Role.ADMIN), function(req,
 
 router.post('/delete-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
     if (req.user.id == req.params.id) {
-        res.render('error', { page_title: "ThingPedia - Error",
-                              message: "You cannot delete yourself" });
+        res.render('error', { page_title: req._("ThingPedia - Error"),
+                              message: req._("You cannot delete yourself") });
         return;
     }
 
@@ -94,7 +94,7 @@ router.post('/delete-user/:id', user.requireRole(user.Role.ADMIN), function(req,
     }).then(function() {
         res.redirect(303, '/admin');
     }).catch(function(e) {
-        res.status(500).render('error', { page_title: "ThingPedia - Error",
+        res.status(500).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -122,15 +122,15 @@ router.post('/promote-user/:id', user.requireRole(user.Role.ADMIN), function(req
             EngineManager.get().restartUser(req.params.id);
         res.redirect(303, '/admin');
     }).catch(function(e) {
-        res.status(500).render('error', { page_title: "ThingPedia - Error",
+        res.status(500).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
 
 router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
     if (req.user.id == req.params.id) {
-        res.render('error', { page_title: "ThingPedia - Error",
-                              message: "You cannot demote yourself" });
+        res.render('error', { page_title: req._("ThingPedia - Error"),
+                              message: req._("You cannot demote yourself") });
         return;
     }
 
@@ -152,7 +152,7 @@ router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req,
             EngineManager.get().restartUser(req.params.id);
         res.redirect(303, '/admin');
     }).catch(function(e) {
-        res.status(500).render('error', { page_title: "ThingPedia - Error",
+        res.status(500).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -175,7 +175,7 @@ router.post('/message-user/:id', user.requireRole(user.Role.ADMIN), function(req
     }).then(function() {
         res.redirect(303, '/admin');
     }).catch(function(e) {
-        res.status(500).render('error', { page_title: "ThingPedia - Error",
+        res.status(500).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -189,15 +189,15 @@ router.post('/message-broadcast', user.requireRole(user.Role.ADMIN), function(re
     }).then(function() {
         res.redirect('/admin');
     }).catch(function(e) {
-        res.status(500).render('error', { page_title: "ThingPedia - Error",
+        res.status(500).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
 
 router.get('/assistant-setup', user.redirectRole(user.Role.ADMIN), function(req, res) {
     if (platform.getSharedPreferences().get('assistant')) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
-                                          message: "Assistant is already setup" });
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+                                          message: req._("Assistant is already setup") });
         return;
     }
 

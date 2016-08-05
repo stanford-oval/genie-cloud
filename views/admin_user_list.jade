@@ -1,7 +1,7 @@
 extends layout
 
 block page_name
-  | Administration
+  = _("Administration")
 
 block styles
   link(rel='stylesheet', href='/stylesheets/admin.css')
@@ -11,8 +11,8 @@ block scripts
 
 block content
   if !assistantAvailable
-    h2.text-danger Your assistant is not yet configured.&#x20;
-      a(href='/admin/assistant-setup') Configure it
+    h2.text-danger= _("Your assistant is not yet configured. ")
+      a(href='/admin/assistant-setup') _("Configure it")
       | .
 
   h2 Users
@@ -22,47 +22,47 @@ block content
       div.modal-content
         form(method='post',data-toggle='validator')#form-message-user
           div.modal-header
-            h4.modal-title Send a message
+            h4.modal-title= _("Send a message")
           div.modal-body
             input(type='hidden',name='_csrf',value=csrfToken)
 
             div.form-group
-              label(for='message-body').control-label Message
+              label(for='message-body').control-label= _("Message")
               textarea(name='body',required=true).form-control#message-body
 
           div.modal-footer
             div.row
               div.col-md-6
-                button(type='submit').btn.btn-primary.btn-block Send
+                button(type='submit').btn.btn-primary.btn-block= _("Send")
               div.col-md-6
-                button(type='button',data-dismiss='modal').btn.btn-default.btn-block Close
+                button(type='button',data-dismiss='modal').btn.btn-default.btn-block= _("Close")
 
   div.row
     div.col-sm-2
       form(action='/admin/kill-all', method='post')
         input(type='hidden',name='_csrf',value=csrfToken)
-        button(type='submit').btn.btn-danger.btn-block Kill all users
+        button(type='submit').btn.btn-danger.btn-block= _("Kill all users")
 
     div.col-sm-2
       form(action='/admin/blow-view-cache', method='post')
         input(type='hidden',name='_csrf',value=csrfToken)
-        button(type='submit').btn.btn-default.btn-block Clear view cache
+        button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
 
     div.col-sm-2
-      button(type='button').btn.btn-default.btn-block#button-send-broadcast Broadcast message
+      button(type='button').btn.btn-default.btn-block#button-send-broadcast= _("Broadcast message")
 
   table.table#users-table
     thead
       tr
         th #
-        th User name
-        th Human name
-        th Login methods
-        th Roles
-        th Apps
-        th Omlet?
-        th Engine?
-        th(colspan=2) Actions
+        th= _("User name")
+        th= _("Human name")
+        th= _("Login methods")
+        th= _("Roles")
+        th= _("Apps")
+        th= _("Omlet?")
+        th= _("Engine?")
+        th(colspan=2)= _("Actions")
     tbody
       each user in users
         tr
@@ -82,31 +82,31 @@ block content
             | #{methods.join(', ')}
           td
             if user.roles & 0x1
-              span(title=user.developer_key) Site Admin
+              span(title=user.developer_key)= _("Site Admin")
             else if user.developer_status >= 3
-              span(title=user.developer_key) Admin
+              span(title=user.developer_key)= _("Admin")
             else if user.developer_status >= 2
-              span(title=user.developer_key) Trusted Dev
+              span(title=user.developer_key)= _("Trusted Dev")
             else if user.developer_status >= 1
-              span(title=user.developer_key) Developer
+              span(title=user.developer_key)= _("Developer")
             else
-              span(title=user.developer_key) User
+              span(title=user.developer_key)= _("User")
           td
-            a(href='/thingpedia/apps/by-owner/' + user.id) Apps
+            a(href='/thingpedia/apps/by-owner/' + user.id)= _("Apps")
           td
             if user.omlet_id !== null
               span.sr-only= user.omlet_id
-              span(aria-hidden='yes', title=user.omlet_id) Yes
+              span(aria-hidden='yes', title=user.omlet_id)= _("Yes")
             else
-              | No
+              = _("No")
           td
             if user.isRunning
-              span(title=user.engineId) Running
+              span(title=user.engineId)= _("Running")
             else
-              | Died
+              = _("Died")
           td.dropdown
             button(type='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false', id='button-actions-' + user.id).btn.btn-default
-              | Actions
+              = _("Actions")
               span.caret
 
             ul.dropdown-menu(aria-labelledby='button-actions-' + user.id).actions-dropdown
@@ -114,24 +114,24 @@ block content
                 if user.isRunning
                   form(action='/admin/kill-user/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-danger.form-control Kill user
+                    button(type='submit').btn.btn-danger.form-control= _("Kill user")
                 else
                   form(action='/admin/start-user/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-success.form-control Start user
+                    button(type='submit').btn.btn-success.form-control= _("Start user")
               li
-                button(type='button',data-user-id=user.id,data-has-assistant=(user.omlet_id !== null ? 1 : 0)).btn.btn-success.btn-block.button-send-message Send a message
+                button(type='button',data-user-id=user.id,data-has-assistant=(user.omlet_id !== null ? 1 : 0)).btn.btn-success.btn-block.button-send-message= _("Send a message")
               li
                 if user.developer_status < 3
                   form(action='/admin/promote-user/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-success.form-control Promote user
+                    button(type='submit').btn.btn-success.form-control= _("Promote user")
                 if user.developer_status > 0
                   form(action='/admin/demote-user/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-success.form-control Demote user
+                    button(type='submit').btn.btn-success.form-control= _("Demote user")
               li
                 form(action='/admin/delete-user/' + user.id, method='post').form-delete-user
                   input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-danger.form-control Delete user
+                  button(type='submit').btn.btn-danger.form-control= _("Delete user")
 

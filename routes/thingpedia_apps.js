@@ -27,18 +27,18 @@ const EngineManager = require('../lib/enginemanager');
 
 var router = express.Router();
 
-function renderAppList(dbClient, apps, res, page_h1, page_subtitle, page_num) {
+function renderAppList(dbClient, apps, req, res, page_h1, page_subtitle, page_num) {
     return Q.all(apps.map(function(r) {
         return model.getAllTags(dbClient, r.id).then(function(tags) {
             r.tags = tags;
             return r;
         });
     })).then(function(apps) {
-	res.render('thingpedia_app_list', { page_title: "ThingPedia - app collection",
-                                            page_h1: page_h1,
-                                            page_subtitle: page_subtitle,
-                                            page_num: page_num,
-                                            apps: apps });
+	res.render('thingpedia_app_list', { page_title: req._("ThingPedia - app collection"),
+                                        page_h1: page_h1,
+                                        page_subtitle: page_subtitle,
+                                        page_num: page_num,
+                                        apps: apps });
     });
 }
 
@@ -61,8 +61,8 @@ router.get('/', function(req, res) {
 
     db.withTransaction(function(client) {
         return model.getAll(client, filterVisible(req), page * 18, 18).then(function(apps) {
-            return renderAppList(client, apps, res,
-                                 "Try the following recommended apps", '', page);
+            return renderAppList(client, apps, req, res,
+                                 req._("Try the following recommended apps"), '', page);
         });
     }).done();
 });
@@ -76,8 +76,8 @@ router.get('/search', function(req, res) {
 
     db.withTransaction(function(client) {
         return model.getByFuzzySearch(client, filterVisible(req), q).then(function(apps) {
-            return renderAppList(client, apps, res,
-                                 "Results of your search");
+            return renderAppList(client, apps, req, res,
+                                 req._("Results of your search"));
         });
     }).done();
 });
@@ -88,13 +88,13 @@ router.get('/by-category/:category(\\d+)', function(req, res) {
     db.withTransaction(function(client) {
         return category.get(client, categoryId).then(function(cats) {
             if (cats.length < 1) {
-                res.status(404).render('error', { page_title: "ThingPedia - Error",
-                                                  message: "Invalid category" });
+                res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
+                                                  message: req._("Invalid category.") });
                 return;
             }
 
             return model.getByTag(client, filterVisible(req), cats[0].tag).then(function(apps) {
-                return renderAppList(client, apps, res,
+                return renderAppList(client, apps, req, res,
                                      cats[0].name,
                                      cats[0].description);
             });
@@ -107,8 +107,8 @@ router.get('/by-tag/:tag', function(req, res) {
 
     db.withTransaction(function(client) {
         return model.getByTag(client, filterVisible(req), tag).then(function(apps) {
-            return renderAppList(client, apps, res,
-                                 "Apps with tag \"" + tag + "\"");
+            return renderAppList(client, apps, req, res,
+                                 req._("Apps with tag “%s”").format(tag));
         });
     }).done();
 })
@@ -119,8 +119,8 @@ router.get('/by-device/:id(\\d+)', function(req, res) {
     db.withTransaction(function(client) {
         return device.get(client, deviceId).then(function(device) {
             return model.getByDevice(client, filterVisible(req), deviceId).then(function(apps) {
-                return renderAppList(client, apps, res,
-                                     "Apps for " + device.name);
+                return renderAppList(client, apps, req, res,
+                                     req._("Apps for %s").format(device.name));
             });
         });
     }).done();
@@ -131,8 +131,8 @@ router.get('/by-owner/:id(\\d+)', function(req, res) {
         return userModel.get(client, req.params.id).then(function(user) {
             return model.getByOwner(client, filterVisible(req), req.params.id).then(function(apps) {
                 var username = user.human_name || user.username;
-                return renderAppList(client, apps, res,
-                                     "Apps contributed by " + username);
+                return renderAppList(client, apps, req, res,
+                                     req._("Apps contributed by %s").format(username));
             });
         });
     }).done();
@@ -140,7 +140,7 @@ router.get('/by-owner/:id(\\d+)', function(req, res) {
 
 
 router.get('/create', user.redirectLogIn, function(req, res) {
-    res.render('thingpedia_app_create', { page_title: "ThingPedia - create a new app",
+    res.render('thingpedia_app_create', { page_title: req._("ThingPedia - create a new app"),
                                           csrfToken: req.csrfToken(),
                                           op: 'create',
                                           name: '',
@@ -152,12 +152,12 @@ router.get('/create', user.redirectLogIn, function(req, res) {
 
 var _schemaRetriever = new SchemaRetriever(new ThingPediaClient());
 
-function validateApp(name, description, code) {
+function validateApp(req, name, description, code) {
     var compiler = new AppCompiler();
 
     return Q.try(function() {
         if (!name || !description)
-            throw new Error("A app must have a name and a description");
+            throw new Error(req._("A app must have a name and a description"));
 
         compiler.setSchemaRetriever(_schemaRetriever);
         return compiler.compileCode(code);
@@ -177,7 +177,7 @@ router.post('/create', user.requireLogIn, function(req, res) {
     var canonical = req.body.canonical || null;
 
     return Q.try(function() {
-        return validateApp(name, description, code);
+        return validateApp(req, name, description, code);
     }).then(function(appId) {
         // FINISHME figure out what devices this app uses
 
@@ -218,16 +218,16 @@ router.get('/:id(\\d+)', function(req, res) {
         if ((!req.user || (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
                             app.owner !== req.user.id)) &&
             !app.visible) {
-            res.status(403).render('error', { page_title: "ThingPedia - Error",
-                                              message: "You are not authorized to perform the requested operation" });
+            res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                                              message: req._("You are not authorized to perform the requested operation.") });
             return;
         }
 
-        res.render('thingpedia_app_view', { page_title: "ThingPedia - app",
+        res.render('thingpedia_app_view', { page_title: req._("ThingPedia - app"),
                                             csrfToken: req.csrfToken(),
                                             app: app });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -237,8 +237,8 @@ router.post('/delete/:id(\\d+)', user.requireLogIn, function(req, res) {
         return model.get(dbClient, req.params.id).then(function(r) {
             if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
                 r.owner !== req.user.id) {
-                res.status(403).render('error', { page_title: "ThingPedia - Error",
-                                                  message: "You are not authorized to perform the requested operation" });
+                res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                                                  message: req._("You are not authorized to perform the requested operation.") });
                 return;
             }
 
@@ -247,7 +247,7 @@ router.post('/delete/:id(\\d+)', user.requireLogIn, function(req, res) {
     }).then(function(app) {
         res.redirect('/apps');
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -257,8 +257,8 @@ router.post('/set-visible/:id(\\d+)', user.requireLogIn, function(req, res) {
         return model.get(dbClient, req.params.id).then(function(r) {
             if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
                 r.owner !== req.user.id) {
-                res.status(403).render('error', { page_title: "ThingPedia - Error",
-                                                  message: "You are not authorized to perform the requested operation" });
+                res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                                                  message: req._("You are not authorized to perform the requested operation.") });
                 return;
             }
 
@@ -267,7 +267,7 @@ router.post('/set-visible/:id(\\d+)', user.requireLogIn, function(req, res) {
     }).then(function(app) {
         res.redirect('/apps');
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -277,8 +277,8 @@ router.post('/set-invisible/:id(\\d+)', user.requireLogIn, function(req, res) {
         return model.get(dbClient, req.params.id).then(function(r) {
             if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
                 r.owner !== req.user.id) {
-                res.status(403).render('error', { page_title: "ThingPedia - Error",
-                                                  message: "You are not authorized to perform the requested operation" });
+                res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                                                  message: req._("You are not authorized to perform the requested operation.") });
                 return;
             }
 
@@ -287,7 +287,7 @@ router.post('/set-invisible/:id(\\d+)', user.requireLogIn, function(req, res) {
     }).then(function(app) {
         res.redirect('/apps');
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -311,7 +311,7 @@ function forkApp(req, res, error, name, description, code, tags) {
         if (app === undefined)
             return;
 
-        return res.render('thingpedia_app_create', { page_title: "ThingPedia - fork a app",
+        return res.render('thingpedia_app_create', { page_title: req._("ThingPedia - fork an app"),
                                                      error: error,
                                                      op: 'fork',
                                                      csrfToken: req.csrfToken(),
@@ -325,7 +325,7 @@ function forkApp(req, res, error, name, description, code, tags) {
                                                      code: code || app.code,
                                                      tags: tags || app.tags.map(function(t) { return t.tag; }) });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     });
 }
@@ -369,8 +369,8 @@ router.get('/edit/:id(\\d+)', user.redirectLogIn, function(req, res) {
         return model.get(dbClient, req.params.id).then(function(r) {
             if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
                 r.owner !== req.user.id) {
-                res.status(403).render('error', { page_title: "ThingPedia - Error",
-                                                  message: "You are not authorized to perform the requested operation" });
+                res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                                                  message: req._("You are not authorized to perform the requested operation.") });
                 return;
             }
 
@@ -383,7 +383,7 @@ router.get('/edit/:id(\\d+)', user.redirectLogIn, function(req, res) {
         if (app === undefined)
             return;
 
-        res.render('thingpedia_app_create', { page_title: "ThingPedia - edit a app",
+        res.render('thingpedia_app_create', { page_title: req._("ThingPedia - edit an app"),
                                               op: 'edit',
                                               csrfToken: req.csrfToken(),
                                               app_id: app.id,
@@ -393,7 +393,7 @@ router.get('/edit/:id(\\d+)', user.redirectLogIn, function(req, res) {
                                               code: app.code,
                                               tags: app.tags.map(function(t) { return t.tag; }) });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });
@@ -412,8 +412,8 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
             return model.get(dbClient, req.params.id).then(function(r) {
                 if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
                     r.owner !== req.user.id) {
-                    res.status(403).render('error', { page_title: "ThingPedia - Error",
-                                                      message: "You are not authorized to perform the requested operation" });
+                    res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                                                      message: req._("You are not authorized to perform the requested operation.") });
                     return;
                 }
 
@@ -434,7 +434,7 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
             });
         });
     }).catch(function(err) {
-        res.render('thingpedia_app_create', { page_title: "ThingPedia - edit a app",
+        res.render('thingpedia_app_create', { page_title: req._("ThingPedia - edit an app"),
                                               error: err,
                                               op: 'edit',
                                               csrfToken: req.csrfToken(),
@@ -454,8 +454,8 @@ router.get('/install/:id(\\d+)', user.redirectLogIn, function(req, res, next) {
         if (req.user.developer_status !== user.DeveloperStatus.ADMIN &&
             app.owner !== req.user.id &&
             !app.visible) {
-            res.status(403).render('error', { page_title: "ThingPedia - Error",
-                                              message: "You are not authorized to perform the requested operation" });
+            res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                                              message: req._("You are not authorized to perform the requested operation.") });
             return;
         }
 
@@ -476,7 +476,7 @@ router.get('/install/:id(\\d+)', user.redirectLogIn, function(req, res, next) {
                     return null;
                 }
             }).then(function(feeds) {
-                res.render('app_install', { page_title: "ThingPedia - Install App",
+                res.render('app_install', { page_title: req._("ThingPedia - Enable App"),
                                             csrfToken: req.csrfToken(),
                                             thingpediaId: req.params.id,
                                             params: params,
@@ -487,7 +487,7 @@ router.get('/install/:id(\\d+)', user.redirectLogIn, function(req, res, next) {
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
 });

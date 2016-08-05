@@ -53,8 +53,11 @@ class ThingPediaDiscoveryDatabase {
 var _discoveryServer = new ThingPediaDiscovery.Server(new ThingPediaDiscoveryDatabase());
 
 module.exports = class ThingPediaClientCloud {
-    constructor(developerKey) {
+    constructor(developerKey, locale) {
         this.developerKey = developerKey;
+        // only keep the language part of the locale, we don't
+        // yet distinguish en_US from en_GB
+        this.language = (locale || 'en').split(/[-_\@\.]/)[0];
     }
 
     getModuleLocation(kind) {
@@ -158,22 +161,22 @@ module.exports = class ThingPediaClientCloud {
     getMetas(schemas) {
         var developerKey = this.developerKey;
 
-        return db.withClient(function(dbClient) {
-            return Q.try(function() {
+        return db.withClient((dbClient) => {
+            return Q.try(() => {
                 if (developerKey)
                     return organization.getByDeveloperKey(dbClient, developerKey);
                 else
                     return [];
-            }).then(function(orgs) {
+            }).then((orgs) => {
                 var org = null;
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return schema.getMetasByKinds(dbClient, schemas, org !== null ? org.id : null);
-            }).then(function(rows) {
+                return schema.getMetasByKinds(dbClient, schemas, org !== null ? org.id : null, this.language);
+            }).then((rows) => {
                 var obj = {};
 
-                rows.forEach(function(row) {
+                rows.forEach((row) => {
                     obj[row.kind] = {
                         kind_type: row.kind_type,
                         triggers: row.triggers,
@@ -301,7 +304,7 @@ module.exports = class ThingPediaClientCloud {
 
     getExamplesByKey(key, isBase) {
         return db.withClient((dbClient) => {
-            return exampleModel.getByKey(dbClient, isBase, key);
+            return exampleModel.getByKey(dbClient, isBase, this.language, key);
         });
     }
 }

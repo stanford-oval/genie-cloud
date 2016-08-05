@@ -45,10 +45,10 @@ module.exports = {
 
     FACEBOOK_SCOPES: ['email', 'public_profile', 'user_friends', 'user_photos', 'publish_actions'].join(' '),
 
-    register: function(dbClient, username, password, email) {
+    register: function(dbClient, req, username, password, email) {
         return model.getByName(dbClient, username).then(function(rows) {
             if (rows.length > 0)
-                throw new Error("An user with this name already exists");
+                throw new Error(req._("An user with this name already exists"));
 
             var salt = makeRandom();
             var cloudId = makeRandom();
@@ -59,6 +59,7 @@ module.exports = {
                         username: username,
                         password: hash,
                         email: email,
+                        locale: 'en_US',
                         salt: salt,
                         cloud_id: cloudId,
                         auth_token: authToken
@@ -78,6 +79,7 @@ module.exports = {
                 username: username,
                 password: passwordHash,
                 email: email,
+                locale: 'en_US',
                 salt: salt,
                 cloud_id: cloudId,
                 auth_token: authToken,
@@ -111,7 +113,7 @@ module.exports = {
     requireLogIn: function(req, res, next) {
         if (!req.user) {
             res.status(401).render('login_required',
-                                   { page_title: "ThingPedia - Error" });
+                                   { page_title: req._("ThingPedia - Error") });
         } else {
             next();
         }
@@ -130,7 +132,7 @@ module.exports = {
         return function(req, res, next) {
             if (!req.user || ((req.user.roles & role) !== role)) {
                 res.status(401).render('login_required',
-                                       { page_title: "ThingPedia - Error" });
+                                       { page_title: req._("ThingPedia - Error") });
             } else {
                 next();
             }
@@ -155,8 +157,8 @@ module.exports = {
         return function(req, res, next) {
             if (req.user.developer_status < required) {
                 res.status(403).render('developer_access_required',
-                                       { page_title: "ThingPedia - Error",
-                                         title: "Developer Access required",
+                                       { page_title: req._("ThingPedia - Error"),
+                                         title: req._("Developer Access required"),
                                          csrfToken: req.csrfToken() });
             } else {
                 next();
