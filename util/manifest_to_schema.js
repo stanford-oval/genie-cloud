@@ -60,6 +60,7 @@ module.exports = {
                     canonical: channelMeta.canonical || '',
                     questions: channelMeta.questions || [],
                     required: channelMeta.required || [],
+                    examples: []
                 }
             }
         }
