@@ -47,6 +47,10 @@ module.exports = {
             [base, language, key, base, language, tokens]);
     },
 
+    getBaseBySchema: function(client, schemaId) {
+        return db.selectAll(client, "select * from example_utterances where schema_id = ? and is_base", [schemaId]);
+    },
+
     createMany: createMany,
 
     deleteBySchema: function(client, schemaId) {

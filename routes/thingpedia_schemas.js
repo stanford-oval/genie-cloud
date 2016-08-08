@@ -13,6 +13,7 @@ const passport = require('passport');
 const db = require('../util/db');
 const user = require('../util/user');
 const model = require('../model/schema');
+const exampleModel = require('../model/example');
 const Validation = require('../util/validation');
 const generateExamples = require('../util/generate_examples');
 const ManifestToSchema = require('../util/manifest_to_schema');
@@ -191,6 +192,19 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(user.DeveloperSt
     doCreateOrUpdate(undefined, true, req, res);
 });
 
+function findInvocation(ex) {
+    const REGEXP = /^tt:([a-z0-9A-Z_]+)\.([a-z0-9A-Z_]+)$/;
+    var parsed = JSON.parse(ex.target_json);
+    if (parsed.action)
+        return ['actions', REGEXP.exec(parsed.action.name.id)];
+    else if (parsed.trigger)
+        return ['triggers', REGEXP.exec(parsed.trigger.name.id)];
+    else if (parsed.query)
+        return ['queries', REGEXP.exec(parsed.query.name.id)];
+    else
+        return null;
+}
+
 router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
     Q.try(function() {
         return db.withClient(function(dbClient) {
@@ -207,13 +221,35 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                     return d;
                 });
             }).then(function(d) {
-                var ast = ManifestToSchema.toManifest(d.types, d.meta);
-                d.code = JSON.stringify(ast);
-                res.render('thingpedia_schema_edit', { page_title: req._("ThingPedia - edit type"),
-                                                       csrfToken: req.csrfToken(),
-                                                       id: req.params.id,
-                                                       schema: d,
-                                                       create: false });
+                return exampleModel.getBaseBySchema(dbClient, req.params.id).then(function(examples) {
+                    var ast = ManifestToSchema.toManifest(d.types, d.meta);
+
+                    examples.forEach(function(ex) {
+                        var res;
+                        try {
+                            res = findInvocation(ex);
+                        } catch(e) {
+                            console.log(e.stack);
+                            return;
+                        }
+                        if (!res || !res[1])
+                            return;
+
+                        var where = res[0];
+                        var kind = res[1][1];
+                        var name = res[1][2];
+                        if (!ast[where][name])
+                            return;
+                        ast[where][name].examples.push(ex.utterance);
+                    });
+
+                    d.code = JSON.stringify(ast);
+                    res.render('thingpedia_schema_edit', { page_title: req._("ThingPedia - edit type"),
+                                                           csrfToken: req.csrfToken(),
+                                                           id: req.params.id,
+                                                           schema: d,
+                                                           create: false });
+                });
             });
         });
     }).catch(function(e) {
