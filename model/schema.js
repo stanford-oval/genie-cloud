@@ -107,7 +107,7 @@ module.exports = {
     getAll: function(client, id) {
         return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
                             + "device_schema_version dsv where ds.id = dsv.schema_id "
-                            + "and ds.developer_version = dsv.version");
+                            + "and ds.developer_version = dsv.version order by id");
     },
 
     getByKind: function(client, kind) {

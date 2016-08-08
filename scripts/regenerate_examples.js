@@ -5,6 +5,7 @@
 // Copyright 2015 The Mobisocial Stanford Lab <mobisocial@lists.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 require('thingengine-core/lib/polyfill');
 
@@ -18,22 +19,82 @@ const exampleModel = require('../model/example');
 const ManifestToSchema = require('../util/manifest_to_schema');
 const generateExamples = require('../util/generate_examples');
 
+function findInvocation(ex) {
+    const REGEXP = /^tt:([a-z0-9A-Z_]+)\.([a-z0-9A-Z_]+)$/;
+    var parsed = JSON.parse(ex.target_json);
+    if (parsed.action)
+        return ['actions', REGEXP.exec(parsed.action.name.id)];
+    else if (parsed.trigger)
+        return ['triggers', REGEXP.exec(parsed.trigger.name.id)];
+    else if (parsed.query)
+        return ['queries', REGEXP.exec(parsed.query.name.id)];
+    else
+        return null;
+}
+
 function main() {
     db.withTransaction(function(dbClient) {
-        return db.selectAll(dbClient, "select d.id, d.primary_kind, d.global_name, dcv.code from "
-            + "device_class d, device_code_version dcv where dcv.device_id = d.id and "
-            + "dcv.version = d.developer_version and d.global_name is not null").then(function(rows) {
-            return Q.all(rows.map(function(row) {
-                return Q.try(function() {
-                    var ast = JSON.parse(row.code);
-                    return generateExamples(dbClient, row.global_name, ast);
-                }).then(function() {
-                    console.log('Processed ' + row.global_name);
-                }).catch(function(e) {
-                    console.error('Failed to process ' + row.global_name + ': ' + e.message);
-                    console.error('Full row', row);
+        return schemaModel.getAll(dbClient).then(function(rows) {
+            return db.selectAll(dbClient, "select * from example_utterances where is_base and schema_id is not null")
+                .then(function(examples) {
+                    var exampleMap = {};
+
+                    examples.forEach(function(ex) {
+                        var res;
+                        try {
+                            res = findInvocation(ex);
+                        } catch(e) {
+                            console.log(e.stack);
+                            return;
+                        }
+                        if (!res || !res[1]) {
+                            console.log('Ignored example ' + ex.utterance);
+                            return;
+                        }
+
+                        var where = res[0];
+                        var kind = res[1][1];
+                        var name = res[1][2];
+                        if (!exampleMap[kind]) {
+                            exampleMap[kind] = {
+                                actions: {},
+                                triggers: {},
+                                queries: {}
+                            };
+                        }
+                        if (!exampleMap[kind][where][name])
+                            exampleMap[kind][where][name] = [];
+                        exampleMap[kind][where][name].push(ex.utterance);
+
+                    });
+
+                    return Q.all(rows.map(function(row) {
+                        if (row.kind_type === 'primary')
+                            return;
+
+                        return Q.try(function() {
+                            var ast = ManifestToSchema.toManifest(JSON.parse(row.types), JSON.parse(row.meta));
+
+                            var n = 0;
+                            for (var where of ['actions', 'triggers', 'queries']) {
+                                for (var name in ast[where]) {
+                                    if (exampleMap[row.kind] && exampleMap[row.kind][where][name]) {
+                                        ast[where][name].examples = exampleMap[row.kind][where][name];
+                                        n += ast[where][name].examples.length;
+                                    }
+                                }
+                            }
+                            console.log('Found ' + n + ' examples for ' + row.kind);
+
+                            return generateExamples(dbClient, row.kind, ast);
+                        }).then(function() {
+                            console.log('Processed ' + row.kind);
+                        }).catch(function(e) {
+                            console.error('Failed to process ' + row.kind + ': ' + e.message);
+                            console.error('Full row', row);
+                        });
+                    }));
                 });
-            }));
         });
     }).then(function() {
         console.log('Done');
