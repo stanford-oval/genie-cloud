@@ -48,7 +48,7 @@ function create(client, device, extraKinds, extraChildKinds, code) {
         .then(function(id) {
             device.id = id;
 
-            if (extraKinds && extraKinds.length > 0)
+            if (extraKinds.length > 0 || extraChildKinds.length > 0)
                 return insertKinds(client, device.id, extraKinds, extraChildKinds);
         }).then(function() {
             return db.insertOne(client, 'insert into device_code_version(device_id, version, code) '
@@ -64,7 +64,7 @@ function update(client, id, device, extraKinds, extraChildKinds, code) {
             return db.query(client, "delete from device_class_kind where device_id = ?", [id]);
         })
         .then(function() {
-            if (extraKinds && extraKinds.length > 0)
+            if (extraKinds.length > 0 || extraChildKinds.length > 0)
                 return insertKinds(client, id, extraKinds, extraChildKinds);
         })
         .then(function() {
