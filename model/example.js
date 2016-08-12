@@ -47,6 +47,12 @@ module.exports = {
             [base, language, key, base, language, tokens]);
     },
 
+    getByKinds: function(client, base, kinds, language) {
+        return db.selectAll(client, "select eu.*, ds.kind from example_utterances eu,"
+            + " device_schema ds where eu.schema_id = ds.id and eu.is_base = ? and language = ? and ds.kind in (?)",
+            [base, language, kinds]);
+    },
+
     getBaseBySchema: function(client, schemaId) {
         return db.selectAll(client, "select * from example_utterances where schema_id = ? and is_base", [schemaId]);
     },

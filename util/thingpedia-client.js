@@ -194,15 +194,18 @@ module.exports = class ThingPediaClientCloud {
         var ast = JSON.parse(d.code);
 
         delete d.code;
-        if (ast.auth.type === 'builtin' || ast.auth.type === 'discovery') {
+        if (ast.auth.type === 'builtin') {
             d.factory = null;
+        } else if (ast.auth.type === 'discovery') {
+            d.factory = ({ type: 'discovery', kind: d.primary_kind, text: d.name,
+                           discoveryType: ast.auth.discoveryType });
         } else if (ast.auth.type === 'none' &&
                    Object.keys(ast.params).length === 0) {
             d.factory = ({ type: 'none', kind: d.primary_kind, text: d.name });
         } else if (ast.auth.type === 'oauth2') {
             d.factory = ({ type: 'oauth2', kind: d.primary_kind, text: d.name });
         } else {
-            d.factory = ({ type: 'form', kind: d.primary_kind,
+            d.factory = ({ type: 'form', kind: d.primary_kind, text: d.name,
                            fields: Object.keys(ast.params).map(function(k) {
                                var p = ast.params[k];
                                return ({ name: k, label: p[0], type: p[1] });
@@ -305,6 +308,12 @@ module.exports = class ThingPediaClientCloud {
     getExamplesByKey(key, isBase) {
         return db.withClient((dbClient) => {
             return exampleModel.getByKey(dbClient, isBase, key, this.language);
+        });
+    }
+
+    getExamplesByKinds(kinds, isBase) {
+        return db.withClient((dbClient) => {
+            return exampleModel.getByKinds(dbClient, isBase, kinds, this.language);
         });
     }
 }

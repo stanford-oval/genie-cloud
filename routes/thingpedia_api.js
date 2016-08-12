@@ -142,6 +142,23 @@ router.post('/discovery', function(req, res) {
     });
 });
 
+router.get('/examples/by-kinds/:kinds', function(req, res) {
+    var kinds = req.params.kinds.split(',');
+    if (kinds.length === 0) {
+        res.json([]);
+        return;
+    }
+
+    var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
+    var isBase = req.query.base !== '0';
+
+    client.getExamplesByKinds(kinds, isBase).then((result) => {
+        res.status(200).json(result);
+    }).catch((e) => {
+        res.status(500).json({ error: e.message });
+    });
+});
+
 router.get('/examples', function(req, res) {
     var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
 
@@ -154,8 +171,9 @@ router.get('/examples', function(req, res) {
             res.status(500).json({ error: e.message });
         });
     } else {
-        res.status(400).json({ error: "Bad Request "});
+        res.status(400).json({ error: "Bad Request" });
     }
 });
+
 
 module.exports = router;

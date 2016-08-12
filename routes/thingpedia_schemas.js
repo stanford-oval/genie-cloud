@@ -193,7 +193,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(user.DeveloperSt
 });
 
 function findInvocation(ex) {
-    const REGEXP = /^tt:([a-z0-9A-Z_]+)\.([a-z0-9A-Z_]+)$/;
+    const REGEXP = /^tt:([a-z0-9A-Z_\-]+)\.([a-z0-9A-Z_]+)$/;
     var parsed = JSON.parse(ex.target_json);
     if (parsed.action)
         return ['actions', REGEXP.exec(parsed.action.name.id)];
