@@ -42,6 +42,12 @@ router.get('/', function(req, res) {
     }).done();
 });
 
+function localeToLanguage(locale) {
+    // only keep the language part of the locale, we don't
+    // yet distinguish en_US from en_GB
+    return (locale || 'en').split(/[-_\@\.]/)[0];
+}
+
 function getDetails(fn, param, req, res) {
     Q.try(function() {
         return db.withClient(function(client) {
@@ -53,6 +59,15 @@ function getDetails(fn, param, req, res) {
                         return model.getCodeByVersion(client, d.id, d.approved_version);
                 }).then(function(row) { d.code = row.code; })
                 .catch(function(e) { d.code = null; });
+            }).tap(function(d) {
+                var language = req.user ? localeToLanguage(req.user.locale) : 'en';
+                if (!d.global_name || language === 'en') {
+                    d.translated = true;
+                    return;
+                }
+                return schema.isKindTranslated(client, d.global_name, language).then(function(t) {
+                    d.translated = t;
+                });
             });
         }).then(function(d) {
             var online = false;

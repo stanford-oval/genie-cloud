@@ -1,0 +1,26 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+
+block page_name
+  | Translate #{english.kind}
+
+block content
+  form(action='/thingpedia/translate/schema/by-id/' + english.kind, method='post')
+    input(type='hidden', name='language', value=language)
+    input(type='hidden',name='_csrf',value=csrfToken)
+    table.table
+      thead
+        tr
+          th= _("English")
+          th= _("Translated")
+      tbody
+        for p in pairs
+          tr
+            td
+              label(for='control_' + p.id)= p.english
+            td
+              input(name=p.id, id='control_' + p.id, type='text', value=p.translated).form-control
+    div.form-group
+      button(type='submit').btn.btn-primary= _("Save")

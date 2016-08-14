@@ -33,6 +33,12 @@ block content
             else
               |  Go to the corresponding device page to approve it.
 
+  if !schema.translated
+    div.alert.alert-info(role='alert')
+      p
+        = _("The translation for this type in your language is incomplete. ")
+        a(href='/thingpedia/translate/schema/by-id/' + schema.kind).btn.btn-default= _("Contribute translation")
+
   if user && user.developer_org !== null
     h2.device-subtitle#device-version Version: &#x20;
       if schema.approved_version === null
@@ -51,7 +57,7 @@ block content
           if t.doc
             | : #{t.doc}
           br
-          span.canonical= _("Canonical: ") + t.canonical + ' on ' + schema.kind
+          span.canonical= _("Canonical: ") + t.canonical
           for e in t.examples
             br
             span.example= e
@@ -65,7 +71,7 @@ block content
           if q.doc
             | : #{q.doc}
           br
-          span.canonical= _("Canonical: ") + q.canonical + ' on ' + schema.kind
+          span.canonical= _("Canonical: ") + q.canonical
           for e in q.examples
             br
             span.example= q
@@ -79,7 +85,7 @@ block content
           if a.doc
             | : #{a.doc}
           br
-          span.canonical= _("Canonical: ") + a.canonical + ' on ' + schema.kind
+          span.canonical= _("Canonical: ") + a.canonical
           for e in a.examples
             br
             span.example= e
@@ -92,3 +98,6 @@ block content
         form(action='/thingpedia/schemas/delete/' + schema.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block Delete
+      if authenticated && user.locale !== 'en-US' && schema.kind_type !== 'primary'
+        div.col-md-2
+          a.btn.btn-default.btn-block(href='/thingpedia/translate/schema/by-id/' + schema.kind)= _("Translate")

@@ -33,6 +33,15 @@ block content
             |  
             button(type='submit').btn.btn-success Approve it
 
+  if !device.translated
+    div.alert.alert-info(role='alert')
+      p
+        if online
+          = _("The translation for this account in your language is incomplete. ")
+        else
+          = _("The translation for this device in your language is incomplete. ")
+        a(href='/thingpedia/translate/schema/by-id/' + device.global_name).btn.btn-default= _("Contribute translation")
+
   aside#device-icon-large
     img(src=S3_CLOUDFRONT_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
 
@@ -43,7 +52,8 @@ block content
       i This is a builtin interface in every ThingEngine installation.
 
   if user && user.developer_org !== null
-    h2.device-subtitle#device-version Version: 
+    h2.device-subtitle#device-version= _("Package: ")
+      = device.primary_kind + _(", version ")
       if device.approved_version === null
         | none (approved), #{device.developer_version} (developer)
       else if device.approved_version !== device.developer_version
@@ -51,20 +61,17 @@ block content
       else
         | #{device.approved_version}
 
-
   if device.global_name
-    h2.device-subtitle Name: 
-      code @#{device.global_name}
+    h2.device-subtitle= _("Name: ")
+      a(href='/thingpedia/schemas/by-id/' + device.global_name)
+        code @#{device.global_name}
 
-  h2.device-subtitle Types: 
-    span.label.label-default= device.primary_kind
-    if device.global_name
-      |  
-      span.label.label-default= device.global_name
-    for k in device.types
-      |  
-      a(href='/thingpedia/schemas/by-id/' + k)
-        span.label.label-default= k
+  if device.types.length > 0
+    h2.device-subtitle= _("Types: ")
+      for k in device.types
+        = " "
+        a(href='/thingpedia/schemas/by-id/' + k)
+          span.label.label-default= k
 
   if device.child_types.length > 0
     h2.device-subtitle Child Types:
@@ -123,3 +130,6 @@ block content
           button(type='submit').btn.btn-danger.btn-block Delete
     div.col-md-2
       a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip') Download code
+    if authenticated && user.locale !== 'en-US' && device.global_name
+        div.col-md-2
+          a.btn.btn-default.btn-block(href='/thingpedia/translate/schema/by-id/' + device.global_name)= _("Translate")

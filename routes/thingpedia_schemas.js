@@ -45,16 +45,25 @@ router.get('/', function(req, res) {
     }).done();
 });
 
+function localeToLanguage(locale) {
+    // only keep the language part of the locale, we don't
+    // yet distinguish en_US from en_GB
+    return (locale || 'en').split(/[-_\@\.]/)[0];
+}
+
 router.get('/by-id/:kind', function(req, res) {
+    var language = req.query.language || (req.user ? localeToLanguage(req.user.locale) : 'en');
     db.withClient(function(dbClient) {
-        return model.getMetasByKinds(dbClient, [req.params.kind], req.user ? req.user.developer_org : null, req.query.language || 'en').then(function(rows) {
-            if (rows.length === 0) {
+        return model.getMetasByKinds(dbClient, [req.params.kind], req.user ? req.user.developer_org : null, language).then(function(rows) {
+            if (rows.length === 0 || rows[0].kind_type === 'primary') {
                 res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
                                                   message: req._("Not Found.") });
                 return;
             }
 
             var row = rows[0];
+            return row;
+        }).tap(function(row) {
             return exampleModel.getBaseBySchema(dbClient, row.id).then(function(examples) {
                 for (var where of ['triggers', 'queries', 'actions']) {
                     for (var name in row[where]) {
@@ -79,7 +88,15 @@ router.get('/by-id/:kind', function(req, res) {
                         return;
                     row[where][name].examples.push(ex.utterance);
                 });
-                return row;
+            });
+        }).tap(function(row) {
+            var language = req.user ? localeToLanguage(req.user.locale) : 'en';
+            if (language === 'en') {
+                row.translated = true;
+                return;
+            }
+            return model.isKindTranslated(dbClient, row.kind, language).then(function(t) {
+                row.translated = t;
             });
         });
     }).then(function(row) {

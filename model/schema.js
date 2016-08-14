@@ -9,7 +9,25 @@
 const db = require('../util/db');
 const Q = require('q');
 
-function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
+function insertTranslations(dbClient, schemaId, version, language, translations) {
+    var channelCanonicals = [];
+
+    for (var name in translations) {
+        var meta = translations[name];
+        var canonical = meta.canonical;
+        var confirmation = meta.confirmation;
+        var questions = meta.questions || [];
+        channelCanonicals.push([schemaId, version, language, name, canonical, confirmation, JSON.stringify(questions)]);
+    }
+
+    if (channelCanonicals.length === 0)
+        return Q();
+
+    return db.insertOne(dbClient, 'replace into device_schema_channel_canonicals(schema_id, version, language, name, '
+            + 'canonical, confirmation, questions) values ?', [channelCanonicals]);
+}
+
+function insertChannels(dbClient, schemaId, schemaKind, version, language, types, meta) {
     var channels = [];
     var channelCanonicals = [];
     var argobjects = [];
@@ -26,7 +44,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
             var doc = meta ? meta.doc : '';
             channels.push([schemaId, version, name, what, doc,
                            JSON.stringify(types), JSON.stringify(argnames), JSON.stringify(required)]);
-            channelCanonicals.push([schemaId, version, 'en', name, canonical, confirmation, JSON.stringify(questions)]);
+            channelCanonicals.push([schemaId, version, language, name, canonical, confirmation, JSON.stringify(questions)]);
 
             argnames.forEach(function(argname, i) {
                 var argtype = types[i];
@@ -34,7 +52,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, types, meta) {
 
                 // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
                 var canonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-                argobjects.push([argname, argtype, argrequired, schemaId, version, 'en', name, canonical]);
+                argobjects.push([argname, argtype, argrequired, schemaId, version, language, name, canonical]);
             });
         }
     }
@@ -79,7 +97,7 @@ function create(client, schema, types, meta) {
                                                          JSON.stringify(types),
                                                          JSON.stringify(meta)]);
         }).then(function() {
-            return insertChannels(client, schema.id, schema.kind, schema.developer_version, types, meta);
+            return insertChannels(client, schema.id, schema.kind, schema.developer_version, 'en', types, meta);
         }).then(function() {
             return schema;
         });
@@ -93,7 +111,7 @@ function update(client, id, kind, schema, types, meta) {
                                                          JSON.stringify(types),
                                                          JSON.stringify(meta)]);
         }).then(function() {
-            return insertChannels(client, id, kind, schema.developer_version, types, meta);
+            return insertChannels(client, id, kind, schema.developer_version, 'en', types, meta);
         }).then(function() {
             return schema;
         });
@@ -247,6 +265,18 @@ module.exports = {
         });
     },
 
+    isKindTranslated: function(client, kind, language) {
+        return db.selectOne(client, " select"
+            + " (select count(*) from device_schema_channel_canonicals, device_schema"
+            + " where language = 'en' and id = schema_id and version = developer_version"
+            + " and kind = ?) as english_count, (select count(*) from "
+            + "device_schema_channel_canonicals, device_schema where language = ? and "
+            + "version = developer_version and id = schema_id and kind = ?) as translated_count",
+            [kind, language, kind]).then(function(row) {
+                return row.english_count <= row.translated_count;
+            });
+    },
+
     create: create,
     update: update,
     delete: function(client, id) {
@@ -261,5 +291,6 @@ module.exports = {
         return db.query(dbClient, "update device_schema set approved_version = developer_version where kind = ?", [kind]);
     },
 
-    insertChannels: insertChannels
+    insertChannels: insertChannels,
+    insertTranslations: insertTranslations
 };
