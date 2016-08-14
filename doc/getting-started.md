@@ -28,9 +28,10 @@ as a web service available free of charge to the research community.
 
 ## What can I do with Sabrina?
 
-Sabrina will execute apps that use things. Therefore, to have it do anything,
-you must associate her with your things, and tell her what apps
-to run by choosing them from ThingPedia.
+Sabrina will execute commands that use things. Therefore, to have it do anything,
+you must associate her with your things, and then give her a command. A command
+can be an action (eg. "post on twitter"), a time based rule (eg. "show a popup every 10 minutes")
+or a standing query (eg. "monitor xkcd").
 
 ## Step-by-step example: Twitter to Sabrina
 
@@ -82,34 +83,20 @@ and then on
 After you log in to Twitter and grant premission, you will be redirected to your
 Sabrina page, which now includes Twitter too.
 
-### Step 3: Creating the App
+### Step 3: Tell Sabrina what to do
 
-From [your Sabrina](/apps), click on
-[Create New App](/thingpedia/apps/create) in
- and copy-paste the following code in the _App Specification_ field:
+From your Omlet, write the following to Sabrina (mind the quotes!)
 
-    TwitterTutorial() {
-      @twitter.source(text, hashtags, _, from, _, _), $contains(hashtags, "sabrina")
-        => @$notify("Tweet from " + from + ": " + text);
-    }
+	notify me if i receive a tweet with hashtag "sabrinaapp"
 
-Pick a name and a description, then click "Create", and you will see the app right
-after your accounts. Don't worry about the name or the description you chose - nobody
-is seeing them yet until you click "Publish"!
+Follow the prompts to confirm, and congrats! You have your first standing query.
+Now you will be notified in your Omlet of all tweets with hashtags \#sabrinaapp
+(who would have guessed?)
 
-### Step 4: Enabling the App
-
-Finally you are ready to enable the app that will actually do the hard-work
-of filtering your Twitter.
-
-Just click on the app name from [your Sabrina page](/apps), confirm that
-you want to enable the app, and you're done! Your Sabrina should be telling you
-who is tweeting about her among your friends.
-
-### Deleting the app
+### Deleting the rule
 
 Whenever you're tired of Sabrina telling you about your tweets, you can disable the
-app by going in the [your Sabrina](/apps), looking for it, and clicking "Stop".
+rule by going in the [your Sabrina](/apps), looking for "Monitor Twitter", and clicking "Stop".
 
 And if you want to stop Sabrina from touching your Twitter
 altogheter, you can also do so from [your Sabrina page](/apps), by forgetting
@@ -126,8 +113,3 @@ Or maybe we made a mistake in writing ThingEngine, in which case, when you
 [report a bug](https://github.com/Stanford-IoT-Lab/ThingEngine/issues) we will
 appreciate seeing the full debug log (don't forget to redact your personal info
 away!).
-
-### Further Reading:
-
-* [ThingTalk Primer](/doc/thingtalk-intro.md): a more in-depth introduction to the language
-* [ThingTalk Reference](/doc/thingtalk-reference.md): the full ThingTalk reference manual

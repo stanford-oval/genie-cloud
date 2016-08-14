@@ -10,6 +10,8 @@
 * `String`: any string; strings do not have to be valid UTF-16, but
    they are stored as UCS-2 and cannot have embedded NUL characters
 
+* `Picture`: a URI to a picture; this
+
 * `Number`: [IEEE754](http://en.wikipedia/wiki/IEEE754) double
   precision floating point
 
