@@ -20,18 +20,70 @@ const ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();
 
+function findInvocation(ex) {
+    const REGEXP = /^tt:([a-z0-9A-Z_\-]+)\.([a-z0-9A-Z_]+)$/;
+    var parsed = JSON.parse(ex.target_json);
+    if (parsed.action)
+        return ['actions', REGEXP.exec(parsed.action.name.id)];
+    else if (parsed.trigger)
+        return ['triggers', REGEXP.exec(parsed.trigger.name.id)];
+    else if (parsed.query)
+        return ['queries', REGEXP.exec(parsed.query.name.id)];
+    else
+        return null;
+}
+
+router.get('/', function(req, res) {
+    db.withClient(function(dbClient) {
+        return model.getAllForList(dbClient);
+    }).then(function(rows) {
+        res.render('thingpedia_schema_list', { page_title: req._("ThingPedia - Supported Types"),
+                                               schemas: rows });
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+                                          message: e });
+    }).done();
+});
+
 router.get('/by-id/:kind', function(req, res) {
     db.withClient(function(dbClient) {
-        return model.getMetasByKinds(dbClient, req.params.kind, req.user ? req.user.developer_org : null, req.query.language || 'en');
-    }).then(function(rows) {
-        if (rows.length === 0) {
-            res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
-                                              message: req._("Not Found.") });
-            return;
-        }
+        return model.getMetasByKinds(dbClient, [req.params.kind], req.user ? req.user.developer_org : null, req.query.language || 'en').then(function(rows) {
+            if (rows.length === 0) {
+                res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
+                                                  message: req._("Not Found.") });
+                return;
+            }
 
-        var row = rows[0];
-        res.render('thingpedia_schema', { page_title: req._("ThingPedia - Schema detail"),
+            var row = rows[0];
+            return exampleModel.getBaseBySchema(dbClient, row.id).then(function(examples) {
+                for (var where of ['triggers', 'queries', 'actions']) {
+                    for (var name in row[where]) {
+                        row[where][name].examples = [];
+                    }
+                }
+                examples.forEach(function(ex) {
+                    var res;
+                    try {
+                        res = findInvocation(ex);
+                    } catch(e) {
+                        console.log(e.stack);
+                        return;
+                    }
+                    if (!res || !res[1])
+                        return;
+
+                    var where = res[0];
+                    var kind = res[1][1];
+                    var name = res[1][2];
+                    if (!row[where][name])
+                        return;
+                    row[where][name].examples.push(ex.utterance);
+                });
+                return row;
+            });
+        });
+    }).then(function(row) {
+        res.render('thingpedia_schema', { page_title: req._("ThingPedia - Type detail"),
                                           csrfToken: req.csrfToken(),
                                           schema: row,
                                           triggers: row.triggers,
@@ -192,18 +244,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(user.DeveloperSt
     doCreateOrUpdate(undefined, true, req, res);
 });
 
-function findInvocation(ex) {
-    const REGEXP = /^tt:([a-z0-9A-Z_\-]+)\.([a-z0-9A-Z_]+)$/;
-    var parsed = JSON.parse(ex.target_json);
-    if (parsed.action)
-        return ['actions', REGEXP.exec(parsed.action.name.id)];
-    else if (parsed.trigger)
-        return ['triggers', REGEXP.exec(parsed.trigger.name.id)];
-    else if (parsed.query)
-        return ['queries', REGEXP.exec(parsed.query.name.id)];
-    else
-        return null;
-}
+
 
 router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
     Q.try(function() {

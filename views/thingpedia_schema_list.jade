@@ -1,0 +1,17 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+
+block page_name
+  = _("Supported Thing Types")
+
+block content
+  ul#types
+    for s in schemas
+      li
+        a(href='/thingpedia/schemas/by-id/' + s.kind)
+          if s.kind_type === 'global'
+            = '@' + s.kind
+          else
+            = s.kind

@@ -50,6 +50,11 @@ block content
           code #{name}(#{t.args.map(function(p, i) { return p + ' : ' + t.schema[i]; }).join(', ')})
           if t.doc
             | : #{t.doc}
+          br
+          span.canonical= _("Canonical: ") + t.canonical + ' on ' + schema.kind
+          for e in t.examples
+            br
+            span.example= e
 
   if Object.keys(queries).length > 0
     h2.device-subtitle Queries
@@ -59,6 +64,11 @@ block content
           code #{name}(#{q.args.map(function(p, i) { return p + ' : ' + q.schema[i]; }).join(', ')})
           if q.doc
             | : #{q.doc}
+          br
+          span.canonical= _("Canonical: ") + q.canonical + ' on ' + schema.kind
+          for e in q.examples
+            br
+            span.example= q
 
   if Object.keys(actions).length > 0
     h2.device-subtitle Actions
@@ -68,6 +78,11 @@ block content
           code #{name}(#{a.args.map(function(p, i) { return p + ' : ' + a.schema[i]; }).join(', ')})
           if a.doc
             | : #{a.doc}
+          br
+          span.canonical= _("Canonical: ") + a.canonical + ' on ' + schema.kind
+          for e in a.examples
+            br
+            span.example= e
 
   div.row#device-details-actions
     if schema.kind_type === 'other' && authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)

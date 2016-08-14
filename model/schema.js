@@ -110,6 +110,10 @@ module.exports = {
                             + "and ds.developer_version = dsv.version order by id");
     },
 
+    getAllForList: function(client, id) {
+        return db.selectAll(client, "select * from device_schema where kind_type <> 'primary' order by kind_type desc, kind asc");
+    },
+
     getByKind: function(client, kind) {
         return db.selectOne(client, "select * from device_schema where kind = ?", [kind]);
     },
