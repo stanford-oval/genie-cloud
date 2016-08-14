@@ -91,7 +91,7 @@ module.exports = class Conversation {
             url = 'https://thingengine.stanford.edu' + url;
 
             if (this._engine) {
-                url += (hasQuery ? '?' : '&') + 'auth=omlet'
+                url += (hasQuery ? '&' : '?') + 'auth=omlet'
                        + '&cloudId=' + this._engine.user.cloud_id
                        + '&authToken=' + this._engine.user.auth_token;
             }
