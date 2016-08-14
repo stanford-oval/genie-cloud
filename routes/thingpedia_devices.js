@@ -17,6 +17,7 @@ const model = require('../model/device');
 const user = require('../util/user');
 const organization = require('../model/organization');
 const schema = require('../model/schema');
+const exampleModel = require('../model/example');
 
 const EngineManager = require('../lib/enginemanager');
 
@@ -49,6 +50,8 @@ function localeToLanguage(locale) {
 }
 
 function getDetails(fn, param, req, res) {
+    var language = req.user ? localeToLanguage(req.user.locale) : 'en';
+
     Q.try(function() {
         return db.withClient(function(client) {
             return fn(client, param).tap(function(d) {
@@ -60,7 +63,6 @@ function getDetails(fn, param, req, res) {
                 }).then(function(row) { d.code = row.code; })
                 .catch(function(e) { d.code = null; });
             }).tap(function(d) {
-                var language = req.user ? localeToLanguage(req.user.locale) : 'en';
                 if (!d.global_name || language === 'en') {
                     d.translated = true;
                     return;
@@ -68,7 +70,11 @@ function getDetails(fn, param, req, res) {
                 return schema.isKindTranslated(client, d.global_name, language).then(function(t) {
                     d.translated = t;
                 });
-            });
+            }).tap(function(d) {
+                return exampleModel.getByKinds(client, true, [d.global_name], language).then(function(examples) {
+                    d.examples = examples;
+                });
+            })
         }).then(function(d) {
             var online = false;
 

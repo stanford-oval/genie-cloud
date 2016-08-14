@@ -93,6 +93,10 @@ block content
             code #{t.name}(#{t.params.join(', ')})
           if t.doc
             | : #{t.doc}
+          if device.global_name
+            br
+            = _("Canonical: ")
+            span.canonical= t.canonical
 
   if queries.length > 0
     h2.device-subtitle Queries
@@ -105,6 +109,10 @@ block content
             code #{q.name}(#{q.params.join(', ')})
           if q.doc
             | : #{q.doc}
+          if device.global_name
+            br
+            = _("Canonical: ")
+            span.canonical= q.canonical
 
   if actions.length > 0
     h2.device-subtitle Actions
@@ -117,6 +125,18 @@ block content
             code #{a.name}(#{a.params.join(', ')})
           if a.doc
             | : #{a.doc}
+          if device.global_name
+            br
+            = _("Canonical: ")
+            span.canonical= a.canonical
+
+  h2.device-subtitle Example Commands
+  if device.examples.length > 0
+    ul.device-examples
+      for e in device.examples
+        li= e.utterance
+  else
+    p#no-commands= _("This device has no commands of its own. You might find how to interact with it by clicking on one of its types.")
 
   div.row#device-details-actions
     //div.col-md-2

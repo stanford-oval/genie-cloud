@@ -58,36 +58,14 @@ router.get('/by-id/:kind', function(req, res) {
             if (rows.length === 0 || rows[0].kind_type === 'primary') {
                 res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
                                                   message: req._("Not Found.") });
-                return;
+                return null;
             }
 
             var row = rows[0];
             return row;
         }).tap(function(row) {
             return exampleModel.getBaseBySchema(dbClient, row.id).then(function(examples) {
-                for (var where of ['triggers', 'queries', 'actions']) {
-                    for (var name in row[where]) {
-                        row[where][name].examples = [];
-                    }
-                }
-                examples.forEach(function(ex) {
-                    var res;
-                    try {
-                        res = findInvocation(ex);
-                    } catch(e) {
-                        console.log(e.stack);
-                        return;
-                    }
-                    if (!res || !res[1])
-                        return;
-
-                    var where = res[0];
-                    var kind = res[1][1];
-                    var name = res[1][2];
-                    if (!row[where][name])
-                        return;
-                    row[where][name].examples.push(ex.utterance);
-                });
+                row.examples = examples;
             });
         }).tap(function(row) {
             var language = req.user ? localeToLanguage(req.user.locale) : 'en';
@@ -100,6 +78,9 @@ router.get('/by-id/:kind', function(req, res) {
             });
         });
     }).then(function(row) {
+        if (row === null)
+            return;
+
         res.render('thingpedia_schema', { page_title: req._("ThingPedia - Type detail"),
                                           csrfToken: req.csrfToken(),
                                           schema: row,
