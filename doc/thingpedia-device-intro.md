@@ -14,14 +14,17 @@ such as account ID or IP/MAC address, and contains any authentication
 information.
 
 From each device instance, when needed the system will obtain
-_channels_. A channel is an abstraction over a trigger or an
-action, which is represented as an open connection to the device.
+_channels_. A channel is an abstraction over a trigger (a standing query),
+a query (instantenous) or an action, which is represented as an open connection
+to the device.
 
 A channel produces and handles _events_. These are just JS arrays of values
 that are processed by the ThingTalk rules. A trigger channel will
 produce new events to be handled by the rules, based on the data
 obtained by the device. An action channel will consume an event
-produced by a rule and turn into in an external action.
+produced by a rule and turn into in an external action. A query channel
+will consume a partially filled event representing a pattern to
+match, and will produce a list of events matching that pattern.
 
 Channels can be opened and closed. For triggers, an open channel
 is one that generates events, and a closed channel does not.
@@ -32,9 +35,21 @@ You should never need to open or instantiate channels yourself.
 Instead, you would set up your _channel class_ so that the system
 will create and open the channels at the right time.
 
+## Looking for examples?
+
+Go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
+to see the device packages we developed, and observe these concepts
+in action.
+
 ## The layout of a Device package
 
-The ThingPedia API assumes a precise layout for a device package.
+The ThingPedia API assumes a precise layout for a device package, which
+must be a zip file containing exactly the JS files and the package.json,
+as well as any dependency you need. You should not assume any nodejs
+module beyond the 'thingpedia' module illustrated here - if you need any,
+bundle them in your zip file. The JS version you should target is ES5,
+but you can assume runtime services for ES6 (provided by babel-polyfill, preloaded),
+and you are encouraged to use babel to compile from ES6 to ES5.
 
 The primary entry point (i.e., the one named as "main" in package.json)
 should be a _device class_. You would instantiate the device class
@@ -56,7 +71,7 @@ from the API and set it directly to `module.exports`, as in
 Then, for each trigger or action you want to expose, you would
 have a separate JS file for each, named after the trigger or action,
 exposing the channel class as `module.exports`. So for example, if
-you want to expose action `.frobnicate()`, you would put the following
+you want to expose action `frobnicate()`, you would put the following
 in a file named `frobnicate.js` at the toplevel of your device package:
 
     const Tp = require('thingpedia');
@@ -93,10 +108,13 @@ supports secondary kind `foo`, then a rule can refer to it as `@(type="foo")`.
 
 The most important secondary kind is `online-account`, which will flag
 the device as an account, and will change where it appears in the UI.
+Of a similar spirit is the kind `data-source`, which will flag the device
+as a public web service with no authentication, and will hide it from the
+Android UI or from the 'list devices' Sabrina command.
 
-Other important secondary kinds are `cloud-only`, `phone-only` or `server-only`,
+Other important secondary kinds are `cloud-only` and `phone-only`,
 which will prevent your code from being instantiated outside of the right
-ThingEngine installation.
+ThingEngine installation. Use them if you need platform specific APIs.
 
 ### _state_
 
@@ -128,7 +146,7 @@ if `AA:BB:CC:DD:EE:FF` is the MAC address of the ThingTV.
 If your device supports local discovery, the descriptors
 are identifiers obtained by the discovery protocol, such as `bluetooth-00-11-22-33-44-55`.
 
-Discovery will be described further in a later section
+Discovery will be described further in a later section.
 
 ## A closer look to the Device class
 
@@ -146,13 +164,12 @@ to preserve the modification to disk
 - `this.updateState(newState)`: conversely, if the state changes outside of you, and you
 want to recompute state, you should override `updateState()` to handle the new state; the overriding
 method should chain up (with `this.parent(newState)`) as the first statement
-- `this.hasKind(kind)`: check if the device has the given kind (primary or secondary); the
-default implementation has no secondary kinds, override it if you need it
-- `Kinds`: an array of secondary kinds, which provides a quick way to implement `hasKind` if
-you don't need dynamic behavior
+- `this.start()`, `this.stop()`: called when the engine starts and stops respectively, you can
+override them to run any async initialization for your device, by returning a promise that is
+resolved when your device is ready
 - `UseOAuth2`: if your device can be instantiated with an OAuth-like flow (user clicks on a button,
 is redirected to a login page), this should be set to the handler; despite the name, this is
-called also for OAuth 1 or no authentication at all
+called also for OAuth 1
 - `UseDiscovery`, `this.updateFromDiscovery`: discovery operations, described later
 - `this.queryInterface(iface)`: request an _extension interface_ for this device instance; extension
 interfaces are optional features that your device class supports; override this method if you have
@@ -166,14 +183,10 @@ object, which is shared among all device instances. The API on the
 `Engine` object is less stable than `Tp.BaseDevice`, but it is
 nevertheless useful.
 
-- `engine.ownTier`: the currently running tier of ThingEngine, ie `cloud`, `phone` or `server`
-- `engine.messaging`: gives you access to the primary messaging interface (or a dummy interface
-that always fails if there is no messaging account)
-- `engine.keywords`: the keyword database that holds the ThingTalk persistent data
-- `engine.channels`: the factory class that instantiates channels and deduplicates them
+- `engine.ownTier`: the currently running tier of ThingEngine, ie `cloud` or `phone`
 - `engine.devices`: the devices database
-- `engine.apps`: the apps database
 - `engine.platform`: the Platform API
+- `engine.thingpedia`: APIs to query the ThingPedia website
 
 ## The Platform API
 
@@ -194,21 +207,17 @@ ThingEngine can use on the file system
 - `platform.getDeveloperKey()`: the currently configured ThingPedia developer key (if any)
 - `platform.getOrigin()`: the web site hosting ThingEngine
 
-## Extension Interfaces and Messaging
+## Extension Interfaces and Collection Devices
 
 As mentioned before, `device.queryInterface()` can be used to retrieve
 extension interfaces for a device class. The most important extension
-interface is
-[`messaging`](https://github.com/Stanford-IoT-Lab/thingpedia-api/blob/master/lib/messaging.js),
-which is implemented by all devices that implement some sort of messaging layer, like Omlet
-or (hypothetically) Facebook Messenger or Telegram.
+interface is `subdevices`. If you implement it (i.e., you return anything that
+is not `null`), your device is assumed to be a collection of related devices
+(like a Nest Account or a Philips Hue bridge).
 
-If your device implements `messaging`, it becomes a candidate for being the primary messaging
-interface (the one exposed by `engine.messaging`), which is used by ThingTalk to implement
-feed shared keywords. In practice, only Omlet should implement `messaging`.
-
-Conversely, if you obtain a messaging device (for example with `engine.devices.getAllDevicesOfKind('messaging')`) you can use its messaging interface to send and receive messages on behalf
-of the user.
+You must return an instance of [`ObjectSet`](https://github.com/Stanford-IoT-Lab/thingpedia-api/blob/master/lib/object_set.js),
+containing the devices related to yours. You are responsible for calling `objectAdded`
+and `objectRemoved` if related devices can appear and disappear dynamically.
 
 ## Handling Authentication
 
@@ -226,25 +235,12 @@ Three ways to do authentication are supported:
 
 - `none`: means that the device has no authentication at all, it only uses publicly available APIs;
 the resulting configuration UI will be a single button (unless you need other data,
-in which case it will be a form)
+in which case it will be a form); in this case you have nothing to do
 - `basic`: traditional username and password; your state must contain `username` and `password`
 properties, which are set to the values provided by the user through a form
 - `oauth2`: OAuth 1.0 and 2.0 style authentication; the user clicks and is redirected to a login
 page, then the login page redirects back to ThingEngine giving you the authorization code
-
-If your device uses `none` or `oauth2` authentication, it must
-implement the `UseOAuth2(engine, req)` class method.
-
-For `none` authentication, you would just add yourself as a new device, filling in whatever
-state variables you need, as in:
-
-    UseOAuth2: function(engine) {
-        engine.devices.loadOneDevice({ kind: 'com.example.mydevice', someother: 'state' }, true);
-        return null;
-    }
-
-`true` indicates that the device should be saved to disk. `return null` indicates that the
-authentication process is complete and there is no redirect.
+- `discovery`: authentication by discovery and local interactive pairing
 
 ### `oauth2` authentication the slow way
 
@@ -311,19 +307,24 @@ can use a shorter helper:
     UseOAuth2: Tp.Helpers.OAuth2({
         kind: "com.example",
         client_id: "your_oauth2_client_id",
-        client_secret: "your_oauth2_client_secret_encrypted_as_rot13",
+        client_secret: "your_oauth2_client_secret_obfuscated_as_rot13",
         authorize: "https://api.example.com/1.0/authorize",
         scope: ['example_user_profile', 'example_basic_info']
         get_access_token: "https://api.example.com/1.0/token",
         callback: function(accessToken, refreshToken) { /* add device here */ }
     })
 
+NOTE: pay attention to the fact that the client secret needs to be obfuscated,
+because the helpers will deobfuscate it. This is not real security, and it's
+mostly to deter Github scrapers. You should choose 'Desktop app' or 'Mobile app'
+instead of 'Website' when obtaining the client ID and client secret if possible.
+
 ## Channel classes
 
 Great, so now you filled up your device class, and the user can add the device from
-the UI. Time to make some triggers and actions.
+the UI. Time to make some triggers, actions and queries.
 
-As mentioned, triggers and actions need channel classes, of the form:
+As mentioned, triggers, actions and queries need channel classes, of the form:
 
     const Tp = require('thingpedia');
 
@@ -343,10 +344,9 @@ As mentioned, triggers and actions need channel classes, of the form:
         }
     });
 
-`_doOpen` and `_doClose` should return a promise that is ready when your channel is.
-We don't provide a Promise library (and we're not running nodejs in ES6 mode), but we
-encourage you include [Q](https://github.com/kriskowal/q) in your dependencies, because
-that's what the rest of ThingEngine uses.
+`_doOpen` and `_doClose` should return a promise (or, strictly speaking, a thenable)
+that is ready when your channel is. If you return undefined (or don't override them), it is assumed you completed
+your initialization and deinitialization synchronously.
 
 `RequiredCapabilities` is an array of platform capabilities that your channel requires
 to work. If the platform does not have the capabilities you need, then your channel will
@@ -398,31 +398,28 @@ channel class, as in:
         sendEvent: function(event) {
             // do something
         },
-
-        _doOpen: function() {
-            // open the channel
-        },
-
-        _doClose: function() {
-            // close the channel
-        }
     });
 
-A lot of times action channels do not require any set up or tear down,
-in which case you can use `Tp.SimpleAction`:
+### Queries
+
+Queries should override `invokeQuery(filters)` in the channel class, and
+return an promise to a list of events, as in:
 
     const Tp = require('thingpedia');
 
     module.exports = new Tp.ChannelClass({
-        Name: 'MySimpleAction',
-        Extends: Tp.SimpleAction
+        Name: 'MyAction',
 
         _init: function(engine, device, params) {
             this.parent();
         },
 
-        _doInvoke: function(arg1, arg2, ...) {
-            // do something
+        sendEvent: function(filters) {
+            return makeServiceCall(filters).then(function(results) {
+                return results.map(function(result) {
+                    return [result.foo, result.bar];
+                });
+            });
         },
     });
 
@@ -434,8 +431,8 @@ ThingEngine if the rule is also going to filter out the data.
 
 To address some of those cases, rules that invoke a trigger with a
 constant value will see those values propagated to the params argument
-to the constructor, as an array of
-[`ThingTalk.Value`s](https://github.com/Stanford-IoT-Lab/ThingTalk/blob/master/lib/ast.js)
+to the constructor. Parameters that are unspecified in a rule will
+be set to `undefined` or `null` (you should check for both).
 
 If you make any use of that `params` argument, you should set
 `this.filterString` in your constructor to a stringified version of
@@ -536,16 +533,41 @@ of a [readable stream](https://nodejs.org/api/stream.html)
 - `Http.postStream(url, data, options)`: Perform a streaming HTTP POST; `data` should
 be a readable stream and will be piped.
 
+### Formatting data
+
+While actions only consume data, triggers and queries produce data that
+might be of direct interest to the user (instead of being piped to an action or
+another query).
+
+If that's the case of your channel, you should implement the `formatEvent(event, filters)`
+method on your channel class.
+
+The return value can be a single, user visible string, which will be sent as a
+single Sabrina message, or it can be an array of messages.
+
+Each message can be a string, a Picture or an RDL. Pictures are represented as
+objects of the form `{type: "picture", url: "..."}`. RDL (Rich Deep Link) are links
+with title and description, and they are represented as
+
+    {
+      type: "rdl",
+      callback: "omlet url",
+      webCallback: "browser url",
+      displayTitle: "...",
+      displayText: "..."
+    }
+
 ## Device Metadata
 
 In addition to a device package, each device specification published on
 ThingPedia must include some metadata, called a _device manifest_, which will parsed
-by ThingPedia to generate the web UI.
+by ThingPedia to generate the web UI, and by Sabrina to talk to the user.
 
 The manifest contains:
 
 - The list of types the device claims to conform to
-- The triggers and actions, their arguments, and the documentation for each
+- The triggers and actions, their arguments, the documentation for each and the natural
+  language metadata
 - The authentication method, and any parameter that needs to be configured manually by
   the user (such as IP address or username)
 
@@ -557,24 +579,76 @@ The manifest is written in JSON, and looks like this
         "p2": ["P2 Label", "password"]
       },
       "types": ["t1", "t2"],
+      "child_types": ["t3", "t4"]
       "auth": {
         "type": "none"
       },
+      "global-name": "foo",
       "triggers": {
         "trigger1": {
-            "args": ["astring", "anumber", "anothernumber"],
-            "schema": ["String", "Number", "Number"],
-            "doc": "produces a string and two numbers"
+            "args": [{
+        	"name": "a_string",
+        	"type": "String",
+        	"required": false,
+        	"question": "What astring are you interested in?",
+        	}, {
+        	"name": "a_number",
+        	"type": "Number",
+        	"required": true,
+        	"question": "What's the value of the first number?",
+        	}, {
+        	"name": "another_number",
+        	"type": "Number",
+        	"required": false,
+        	"question": ""
+        	}],
+            "doc": "produces a string and two numbers",
+            "canonical": "trigger first",
+            "confirmation": "something happens",
+            "examples": [
+            	"monitor if something happens with $a_number",
+            	"notify me if something happens with $a_number and astring is $a_string"
+            ]
         }
       },
       "actions": {
         "action1": {
-            "args": ["afeed","amessage"],
-            "schema": ["Feed", "String"],
-            "doc": "sends a message"
+            "args": [{
+        	"name": "a_feed",
+        	"type": "Feed",
+        	"question": "Who do you want to send the message to?",
+        	}, {
+        	"name": "a_message",
+        	"type": "String",
+        	"question": "What do you want to say in the message?",
+        	}],
+            "doc": "sends a message",
+            "canonical": "send message",
+            "confirmation": "send message to $a_feed saying $a_message",
+            "examples": [
+            	"message $a_feed saying $a_message"
+            ]
         }
       }
     }
+
+The global name is the user visible name of the interface in the natural
+language. Eg, if your name is "foo", the user will say "configure foo" or
+"send message on foo". It's a good idea to give the device the global
+name, but as the label suggests it needs to be global (so it should be
+a brand name, eg "hue" or "twitter"). If you don't specify a global name,
+the user will only interact with the device through one of the exposed
+types.
+
+The `types` array lists all the types that this device claims to conform
+to, eg. `thermostat` or `speaker`. If you list your device as having a
+certain type, you inherit the natural language annotations of that type.
+
+`child_types` is similar, but marks your device as a collection device,
+and informs the system of the types that your child devices will expose.
+If the user says "configure thermostat" and your device lists `thermostat`
+as a child type, he will be offered to configure your device among the
+many possibilities.
 
 The combination of `params` and `auth.type` determines the UI to configure
 the device. Valid types for `auth.type` are:
@@ -584,6 +658,30 @@ or a button otherwise
 - `"oauth2"`, in which case the UI will always show a button
 - `"basic"`, in which case the UI will always show a form; `username` and `password`
   parameters are required
+
+If you give your device a global name, worth noting are the natural language
+annotations that you need to provide for each trigger, action or query:
+
+- `canonical`: the canonical form of the channel name, used by the semantic parser;
+  it's a good idea to omit stop words for this, and to use a longer expression
+  such as `set target temperature`; you should assume that the full canonical
+  form of the channel is `<canonical> on <global-name>`, eg "send message on foo"
+- `confirmation`: a string used to construct the final confirmation question
+  before a rule is created or an action is invoked; use the imperative form,
+  and refer to required arguments with `$argname`. For triggers, the full formula of the confirmation
+  is "Ok so you want me to notify if `<trigger confirmation>`". For queries,
+  you should use the command form, eg "get something" or "list something".
+- `required`, `question`: these annotations are for each argument, and are
+  related to slot filling; if your argument is required, the user will be asked
+  `question` to fill the slot. Arguments for actions are always required, so
+  the `required` property is ignored.
+- `examples`: a list of examples using your channel; this provides both documentation
+  for the user (they will be provided by `list devices` and `help <global-name>`)
+  and training data for the system; so you should strive to provide as many
+  examples and as many paraphrases as possible.
+
+If you don't give your device a global name, the natural language annotations
+are ignored, and you will inherit those of the generic type.
 
 ## Publishing on ThingPedia
 
@@ -628,14 +726,45 @@ contains the generic capabilities inferred by discovery and is sent to ThingPedi
 to match the interface. `publicData.kind` is the identifier for the discovery
 protocol in use.
 
+The return value from `UseDiscovery` should be an instance of your device class
+appropriately configured. This device will not be used (and will not be initialized)
+until the user confirms the configuration.
+
+You must also implement `completeDiscovery(delegate)`, which will be invoked when the
+user clicks on your device among the many discovered. The delegate object provided
+is a way to interact with the user. It has the following methods:
+
+- `configDone()`: tell the user that configuration is complete
+- `confirm(question)`: ask the user a yes or no question, for example to confirm a
+   pairing code
+- `requestCode(question)`: request a free-form response from the user, for example
+   a password or PIN code
+- `configFailed(error)`: report a failure to pair
+
+The usual template for a `completeDiscovery` implementation will thus be:
+
+    completeDiscovery: function(delegate) {
+    	return this.service.pair().then(function(code) {
+    	    return delegate.confirm("Does the code %s match what you see on the device?".format(code));
+    	}).then(function(confirmed) {
+    	    if (confirmed) {
+    	    	return this.service.confirm().then(function() {
+    	    	    this.engine.devices.addDevice(this);
+    	    	}.bind(this));
+    	    } else {
+    	    	return delegate.confirmFailed(new Error("Unable to verify pairing code"));
+    	    }
+    	}.bind(this));
+    }
+
 Furthermore, your device should implement `updateFromDiscovery(publicData, privateData)`,
 which is called when a device that was already configured is rediscovered. You
 can use this method to update any cached data about the device based on the
 new advertisement, for example to update the Bluetooth alias.
 
-Finally, your device should set `this.descriptors` to a list of protocol specific
+Finally, your device must set `this.descriptors` to a list of protocol specific
 device descriptors that will help the generic code recognize if a device was
-already configured or not, and should set `state.discoveredBy` to `engine.ownTier`.
+already configured or not, and must set `state.discoveredBy` to `engine.ownTier`.
 
 ### Bluetooth discovery
 
