@@ -79,14 +79,18 @@ Frontend.prototype._init = function _init() {
     passportUtil.initialize();
 
     var basicAuth = passport.authenticate('basic', { failWithError: true });
+    var omletAuth = passport.authenticate('local-omlet', { failureRedirect: '/user/login',
+                                                           failureFlash: false });
     this._app.use(function(req, res, next) {
-        if (req.query.auth == 'app') {
+        if (req.query.auth === 'app') {
             basicAuth(req, res, function(err) {
                 if (err)
                     res.status(401);
                 // eat the error
                 next();
             });
+        } else if (req.query.auth === 'omlet') {
+            omletAuth(req, res, next);
         } else
             next();
     });

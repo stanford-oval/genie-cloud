@@ -86,8 +86,17 @@ module.exports = class Conversation {
     }
 
     sendLink(title, url) {
-        if (url.startsWith('/'))
+        var hasQuery = url.indexOf('?') >= 0;
+        if (url.startsWith('/')) {
             url = 'https://thingengine.stanford.edu' + url;
+
+            if (this._engine) {
+                url += (hasQuery ? '?' : '&') + 'auth=omlet'
+                       + '&cloudId=' + this._engine.user.cloud_id
+                       + '&authToken=' + this._engine.user.auth_token;
+            }
+        }
+
         return this.sendRDL({ type: 'rdl', noun: 'link',
                               displayTitle: title,
                               callback: url,

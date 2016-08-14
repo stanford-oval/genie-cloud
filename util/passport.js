@@ -169,7 +169,7 @@ exports.initialize = function() {
         }).done();
     }));
 
-    passport.use(new BasicStrategy(function(username, password, done) {
+    function verifyCloudIdAuthToken(username, password, done) {
         db.withClient(function(dbClient) {
             return model.getByCloudId(dbClient, username).then(function(rows) {
                 if (rows.length < 1 || rows[0].auth_token !== password)
@@ -178,7 +178,13 @@ exports.initialize = function() {
                 return rows[0];
             });
         }).nodeify(done);
-    }));
+    }
+
+    passport.use(new BasicStrategy(verifyCloudIdAuthToken));
+
+    passport.use('local-omlet',
+        new LocalStrategy({ usernameField: 'cloudId', passwordField: 'authToken' },
+        verifyCloudIdAuthToken));
 
     passport.use(new LocalStrategy(function(username, password, done) {
         db.withClient(function(dbClient) {
