@@ -44,6 +44,6 @@ block content
         for action, name in actions
           +translate_channel(_("Action: "), 'actions', name, action)
         for query, name in queries
-          +translate_channel(_("Query: "), 'queries', name, action)
+          +translate_channel(_("Query: "), 'queries', name, query)
     div.form-group
       button(type='submit').btn.btn-primary= _("Save")
