@@ -1,0 +1,49 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+
+block page_name
+  | Translate #{english.kind}
+
+- var uniqueId = 0;
+
+mixin do_one(id, english, translated)
+  tr
+    td
+      label(for='control_' + (++uniqueId))= english
+    td
+      input(name=id, id='control_' + uniqueId, type='text', value=translated).form-control
+
+mixin translate_channel(prefix, channelType, name, channel)
+  tr
+    th(colspan=2)
+      = prefix
+      code= name
+  +do_one(channelType + '_canonical_' + name, channel.canonical.english, channel.canonical.translated)
+  +do_one(channelType + '_confirmation_' + name, channel.confirmation.english, channel.confirmation.translated)
+  for arg in channel.args
+    +do_one(channelType + '_argname_' + arg.id + '_' + name, arg.name.english, arg.name.translated)
+    if arg.question.english
+      +do_one(channelType + '_question_' + arg.id + '_' + name, arg.question.english, arg.question.translated)
+  for ex in channel.examples
+    +do_one(channelType + '_examples_' + name + '[]', ex.english, ex.translated)
+
+block content
+  form(action='/thingpedia/translate/by-id/' + english.kind, method='post')
+    input(type='hidden', name='language', value=language)
+    input(type='hidden',name='_csrf',value=csrfToken)
+    table.table
+      thead
+        tr
+          th= _("English")
+          th= _("Translated")
+      tbody
+        for trigger, name in triggers
+          +translate_channel(_("Trigger: "), 'triggers', name, trigger)
+        for action, name in actions
+          +translate_channel(_("Action: "), 'actions', name, action)
+        for query, name in queries
+          +translate_channel(_("Query: "), 'queries', name, action)
+    div.form-group
+      button(type='submit').btn.btn-primary= _("Save")

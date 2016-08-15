@@ -20,7 +20,7 @@ function main() {
                 console.log('Processing ' + s.kind);
                 return Q.try(function() {
                     return model.insertChannels(dbClient, s.id, s.kind, s.developer_version,
-                                                JSON.parse(s.types), JSON.parse(s.meta));
+                                                'en', JSON.parse(s.types), JSON.parse(s.meta));
                 }).catch(function(e) {
                     console.log('Extracting channels of ' + s.kind + ' failed: ' + e.message);
 		    console.log(e.stack);

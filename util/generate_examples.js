@@ -97,14 +97,9 @@ function exampleToBaseTrigger(kind, triggerName, tokens) {
     }
 }
 
-function ensureExamples(dbClient, ast) {
-    if (!ast['global-name'])
-        return;
+module.exports = function(dbClient, kind, ast, language) {
+    language = language || 'en';
 
-
-}
-
-module.exports = function(dbClient, kind, ast) {
     function handleExamples(schemaId, from, howBase, howExpanded, out) {
         for (var name in from) {
             var fromChannel = from[name];
@@ -120,7 +115,7 @@ module.exports = function(dbClient, kind, ast) {
             fromChannel.examples.forEach(function(ex) {
                 var tokens = tokenize.tokenize(ex);
                 var json = howBase(kind, name, tokens);
-                out.push({ schema_id: schemaId, is_base: true, utterance: ex, language: 'en',
+                out.push({ schema_id: schemaId, is_base: true, utterance: ex, language: language,
                            target_json: JSON.stringify(json) });
             });
 
@@ -128,7 +123,7 @@ module.exports = function(dbClient, kind, ast) {
                 var expanded = expandExamples(fromChannel.examples, argtypes);
                 expanded.forEach(function(ex) {
                     var json = howExpanded(kind, name, ex.assignments, argtypes);
-                    out.push({ schema_id: schemaId, is_base: false, utterance: ex.utterance, language: 'en',
+                    out.push({ schema_id: schemaId, is_base: false, utterance: ex.utterance, language: language,
                                target_json: JSON.stringify(json) });
                 });
             } catch(e) {
@@ -148,7 +143,7 @@ module.exports = function(dbClient, kind, ast) {
     }
 
     return schema.getByKind(dbClient, kind).then(function(existing) {
-        return exampleModel.deleteBySchema(dbClient, existing.id).then(function() {
+        return exampleModel.deleteBySchema(dbClient, existing.id, language).then(function() {
             var examples = generateAllExamples(existing.id);
             if (examples.length > 0)
                 return exampleModel.createMany(dbClient, examples);

@@ -1,0 +1,39 @@
+extends layout
+
+block page_name
+  = _("Train Sabrina")
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/train-sabrina.css')
+
+block scripts
+  script(src='/javascripts/train-sabrina-kinds.js')
+  script(src='/javascripts/train-sabrina.js')
+
+block content
+  p
+    = _("Thanks for being part of the Sabrina virtual assistant project. ")
+    = _("In here you can help us train her to understand better and more complex sentences.")
+  p
+    = _("You can type a sentence in the box below, and Sabrina will respond with her best guess of what you mean. ")
+    = _("Unfortunately, she will not get it right most of the time, so your task is to then click on the correct interpretation in her pseudo-English.")
+  p
+    = _("You don't have to worry, nothing will happen as a result of playing with Sabrina here, and if you don't understand what Sabrina is responding for a particular sentence (or all Sabrina offers are wrong), just type a new sentence to continue.")
+  div#suggestions
+    small
+      p= _("A few suggestions to start:")
+      ul#suggestions-placeholder
+      button.btn.btn-default.btn-sm(type="button")#more-suggestions= _("More suggestions")
+  div#form
+    form
+      label.sr-only(for="utterance")= _("Utterance:")
+      input.form-control(type="text", placeholder="What do you want Sabrina to do?")#utterance
+  div#results-container
+    p#sabrina-thinks= _("Sabrina's choice: ")
+      span#prediction
+    p= _("Your choice:")
+    ul#results
+  div#counter-box
+    = _("You have trained Sabrina with ")
+    span#counter
+    = _(" sentences. Thank you!")

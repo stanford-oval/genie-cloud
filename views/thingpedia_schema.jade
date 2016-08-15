@@ -33,6 +33,28 @@ block content
             else
               |  Go to the corresponding device page to approve it.
 
+  if !schema.translated
+    div.alert.alert-info(role='alert')
+      p
+        = _("The translation for this type in your language is incomplete. ")
+        a(href='/thingpedia/translate/by-id/' + schema.kind).btn.btn-default= _("Contribute translation")
+
+  if schema.kind === 'data-source'
+    p= _("This type is just a marker that indicates a publicly available web service, such as Bing or Xkcd.")
+
+  if schema.kind === 'online-account'
+    p= _("This type is a marker that denotes an account, as opposed to a physical device.")
+
+  if schema.kind.startsWith('bluetooth-uuid-')
+    p
+      = _("This type is a marker for discovery. ")
+      = _("It is used by a device to indicate a certain low-level capability, and has no triggers or actions of its own. ")
+      != _("Most likely, you will find this type toghether with another more generic type, eg. <i>bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb</i>, indicating the A2DP Speaker capability, would be accompanied by <i>speaker</i>.")
+
+  if schema.kind_type === 'global'
+    p
+      = _("This type belongs to a specific device, which can be configured and manipulated by recalling the type by name.")
+
   if user && user.developer_org !== null
     h2.device-subtitle#device-version Version: &#x20;
       if schema.approved_version === null
@@ -50,6 +72,9 @@ block content
           code #{name}(#{t.args.map(function(p, i) { return p + ' : ' + t.schema[i]; }).join(', ')})
           if t.doc
             | : #{t.doc}
+          br
+          = _("Canonical: ")
+          span.canonical= t.canonical
 
   if Object.keys(queries).length > 0
     h2.device-subtitle Queries
@@ -59,6 +84,9 @@ block content
           code #{name}(#{q.args.map(function(p, i) { return p + ' : ' + q.schema[i]; }).join(', ')})
           if q.doc
             | : #{q.doc}
+          br
+          = _("Canonical: ")
+          span.canonical= q.canonical
 
   if Object.keys(actions).length > 0
     h2.device-subtitle Actions
@@ -68,6 +96,17 @@ block content
           code #{name}(#{a.args.map(function(p, i) { return p + ' : ' + a.schema[i]; }).join(', ')})
           if a.doc
             | : #{a.doc}
+          br
+          = _("Canonical: ")
+          span.canonical= a.canonical
+
+  h2.device-subtitle Example Commands
+  if schema.examples.length > 0
+    ul.device-examples
+      for e in schema.examples
+        li= e.utterance
+  else
+    p#no-commands= _("This type has no commands.")
 
   div.row#device-details-actions
     if schema.kind_type === 'other' && authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
@@ -77,3 +116,6 @@ block content
         form(action='/thingpedia/schemas/delete/' + schema.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block Delete
+    if authenticated && user.locale !== 'en-US' && schema.kind_type !== 'primary'
+      div.col-md-2
+        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + schema.kind)= _("Translate")

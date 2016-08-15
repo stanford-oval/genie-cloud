@@ -17,6 +17,7 @@ const model = require('../model/device');
 const user = require('../util/user');
 const organization = require('../model/organization');
 const schema = require('../model/schema');
+const exampleModel = require('../model/example');
 
 const EngineManager = require('../lib/enginemanager');
 
@@ -42,7 +43,15 @@ router.get('/', function(req, res) {
     }).done();
 });
 
+function localeToLanguage(locale) {
+    // only keep the language part of the locale, we don't
+    // yet distinguish en_US from en_GB
+    return (locale || 'en').split(/[-_\@\.]/)[0];
+}
+
 function getDetails(fn, param, req, res) {
+    var language = req.user ? localeToLanguage(req.user.locale) : 'en';
+
     Q.try(function() {
         return db.withClient(function(client) {
             return fn(client, param).tap(function(d) {
@@ -53,7 +62,19 @@ function getDetails(fn, param, req, res) {
                         return model.getCodeByVersion(client, d.id, d.approved_version);
                 }).then(function(row) { d.code = row.code; })
                 .catch(function(e) { d.code = null; });
-            });
+            }).tap(function(d) {
+                if (!d.global_name || language === 'en') {
+                    d.translated = true;
+                    return;
+                }
+                return schema.isKindTranslated(client, d.global_name, language).then(function(t) {
+                    d.translated = t;
+                });
+            }).tap(function(d) {
+                return exampleModel.getByKinds(client, true, [d.global_name], language).then(function(examples) {
+                    d.examples = examples;
+                });
+            })
         }).then(function(d) {
             var online = false;
 

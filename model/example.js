@@ -37,6 +37,12 @@ module.exports = {
         return db.selectAll(client, "select * from example_utterances");
     },
 
+    getBaseByLanguage: function(client, language) {
+        return db.selectAll(client, "select * from example_utterances where is_base and"
+            + " language = ? order by schema_id, utterance",
+            [language]);
+    },
+
     getByKey: function(client, base, key, language) {
         var tokens = tokenize(key);
 
@@ -56,14 +62,21 @@ module.exports = {
             [base, language, kinds, base, language, kinds]);
     },
 
-    getBaseBySchema: function(client, schemaId) {
-        return db.selectAll(client, "select * from example_utterances where schema_id = ? and is_base", [schemaId]);
+    getBaseBySchema: function(client, schemaId, language) {
+        return db.selectAll(client, "select * from example_utterances where schema_id = ?"
+            + " and is_base and language = ?", [schemaId, language]);
     },
 
     createMany: createMany,
 
-    deleteBySchema: function(client, schemaId) {
-        return db.query(client, "delete from example_utterances where schema_id = ?", [schemaId]);
+    deleteBySchema: function(client, schemaId, language) {
+        return db.query(client, "delete from example_utterances where schema_id = ? and language = ?",
+            [schemaId, language]);
+    },
+
+    deleteByLanguage: function(client, language) {
+        return db.query(client, "delete from example_utterances where language = ?",
+            [language]);
     },
 
     update: function(client, id, example) {

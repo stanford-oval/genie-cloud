@@ -20,18 +20,67 @@ const ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();
 
-router.get('/by-id/:kind', function(req, res) {
-    db.withClient(function(dbClient) {
-        return model.getMetasByKinds(dbClient, req.params.kind, req.user ? req.user.developer_org : null, req.query.language || 'en');
-    }).then(function(rows) {
-        if (rows.length === 0) {
-            res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
-                                              message: req._("Not Found.") });
-            return;
-        }
+function findInvocation(ex) {
+    const REGEXP = /^tt:([a-z0-9A-Z_\-]+)\.([a-z0-9A-Z_]+)$/;
+    var parsed = JSON.parse(ex.target_json);
+    if (parsed.action)
+        return ['actions', REGEXP.exec(parsed.action.name.id)];
+    else if (parsed.trigger)
+        return ['triggers', REGEXP.exec(parsed.trigger.name.id)];
+    else if (parsed.query)
+        return ['queries', REGEXP.exec(parsed.query.name.id)];
+    else
+        return null;
+}
 
-        var row = rows[0];
-        res.render('thingpedia_schema', { page_title: req._("ThingPedia - Schema detail"),
+router.get('/', function(req, res) {
+    db.withClient(function(dbClient) {
+        return model.getAllForList(dbClient);
+    }).then(function(rows) {
+        res.render('thingpedia_schema_list', { page_title: req._("ThingPedia - Supported Types"),
+                                               schemas: rows });
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+function localeToLanguage(locale) {
+    // only keep the language part of the locale, we don't
+    // yet distinguish en_US from en_GB
+    return (locale || 'en').split(/[-_\@\.]/)[0];
+}
+
+router.get('/by-id/:kind', function(req, res) {
+    var language = req.query.language || (req.user ? localeToLanguage(req.user.locale) : 'en');
+    db.withClient(function(dbClient) {
+        return model.getMetasByKinds(dbClient, [req.params.kind], req.user ? req.user.developer_org : null, language).then(function(rows) {
+            if (rows.length === 0 || rows[0].kind_type === 'primary') {
+                res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
+                                                  message: req._("Not Found.") });
+                return null;
+            }
+
+            var row = rows[0];
+            return row;
+        }).tap(function(row) {
+            return exampleModel.getBaseBySchema(dbClient, row.id, language).then(function(examples) {
+                row.examples = examples;
+            });
+        }).tap(function(row) {
+            if (language === 'en') {
+                row.translated = true;
+                return;
+            }
+            return model.isKindTranslated(dbClient, row.kind, language).then(function(t) {
+                row.translated = t;
+            });
+        });
+    }).then(function(row) {
+        if (row === null)
+            return;
+
+        res.render('thingpedia_schema', { page_title: req._("ThingPedia - Type detail"),
                                           csrfToken: req.csrfToken(),
                                           schema: row,
                                           triggers: row.triggers,
@@ -192,18 +241,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(user.DeveloperSt
     doCreateOrUpdate(undefined, true, req, res);
 });
 
-function findInvocation(ex) {
-    const REGEXP = /^tt:([a-z0-9A-Z_\-]+)\.([a-z0-9A-Z_]+)$/;
-    var parsed = JSON.parse(ex.target_json);
-    if (parsed.action)
-        return ['actions', REGEXP.exec(parsed.action.name.id)];
-    else if (parsed.trigger)
-        return ['triggers', REGEXP.exec(parsed.trigger.name.id)];
-    else if (parsed.query)
-        return ['queries', REGEXP.exec(parsed.query.name.id)];
-    else
-        return null;
-}
+
 
 router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
     Q.try(function() {
@@ -221,7 +259,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                     return d;
                 });
             }).then(function(d) {
-                return exampleModel.getBaseBySchema(dbClient, req.params.id).then(function(examples) {
+                return exampleModel.getBaseBySchema(dbClient, req.params.id, 'en').then(function(examples) {
                     var ast = ManifestToSchema.toManifest(d.types, d.meta);
 
                     examples.forEach(function(ex) {
