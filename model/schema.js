@@ -11,20 +11,36 @@ const Q = require('q');
 
 function insertTranslations(dbClient, schemaId, version, language, translations) {
     var channelCanonicals = [];
+    var argobjects = [];
 
     for (var name in translations) {
         var meta = translations[name];
         var canonical = meta.canonical;
         var confirmation = meta.confirmation;
-        var questions = meta.questions || [];
+        var questions = meta.questions;
+        var types = meta.schema;
+        var argnames = meta.args || types.map((t, i) => 'arg' + (i+1));
+        var required = meta.required;
+        var argcanonicals = meta.argcanonicals;
+
         channelCanonicals.push([schemaId, version, language, name, canonical, confirmation, JSON.stringify(questions)]);
+        argnames.forEach(function(argname, i) {
+            var argtype = types[i];
+            var argrequired = required[i] || false;
+            var argcanonical = argcanonicals[i];
+            argobjects.push([argname, argtype, argrequired, schemaId, version, language, name, argcanonical]);
+        });
     }
 
     if (channelCanonicals.length === 0)
         return Q();
 
     return db.insertOne(dbClient, 'replace into device_schema_channel_canonicals(schema_id, version, language, name, '
-            + 'canonical, confirmation, questions) values ?', [channelCanonicals]);
+            + 'canonical, confirmation, questions) values ?', [channelCanonicals]).then(() => {
+            if (argobjects.length > 0)
+                return db.insertOne(dbClient, 'replace into device_schema_arguments(argname, argtype, required, schema_id, version, '
+                + 'language, channel_name, canonical) values ?', [argobjects]);
+        });
 }
 
 function insertChannels(dbClient, schemaId, schemaKind, version, language, types, meta) {

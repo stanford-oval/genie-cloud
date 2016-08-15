@@ -64,11 +64,10 @@ router.get('/by-id/:kind', function(req, res) {
             var row = rows[0];
             return row;
         }).tap(function(row) {
-            return exampleModel.getBaseBySchema(dbClient, row.id).then(function(examples) {
+            return exampleModel.getBaseBySchema(dbClient, row.id, language).then(function(examples) {
                 row.examples = examples;
             });
         }).tap(function(row) {
-            var language = req.user ? localeToLanguage(req.user.locale) : 'en';
             if (language === 'en') {
                 row.translated = true;
                 return;
@@ -260,7 +259,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                     return d;
                 });
             }).then(function(d) {
-                return exampleModel.getBaseBySchema(dbClient, req.params.id).then(function(examples) {
+                return exampleModel.getBaseBySchema(dbClient, req.params.id, 'en').then(function(examples) {
                     var ast = ManifestToSchema.toManifest(d.types, d.meta);
 
                     examples.forEach(function(ex) {

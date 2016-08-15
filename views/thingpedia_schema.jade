@@ -37,7 +37,7 @@ block content
     div.alert.alert-info(role='alert')
       p
         = _("The translation for this type in your language is incomplete. ")
-        a(href='/thingpedia/translate/schema/by-id/' + schema.kind).btn.btn-default= _("Contribute translation")
+        a(href='/thingpedia/translate/by-id/' + schema.kind).btn.btn-default= _("Contribute translation")
 
   if schema.kind === 'data-source'
     p= _("This type is just a marker that indicates a publicly available web service, such as Bing or Xkcd.")
@@ -116,6 +116,6 @@ block content
         form(action='/thingpedia/schemas/delete/' + schema.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block Delete
-      if authenticated && user.locale !== 'en-US' && schema.kind_type !== 'primary'
-        div.col-md-2
-          a.btn.btn-default.btn-block(href='/thingpedia/translate/schema/by-id/' + schema.kind)= _("Translate")
+    if authenticated && user.locale !== 'en-US' && schema.kind_type !== 'primary'
+      div.col-md-2
+        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + schema.kind)= _("Translate")
