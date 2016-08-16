@@ -43,29 +43,25 @@ block content
             a(href='/thingpedia/apps').btn.btn-primary= _("Find new apps")
 
       else
-        h1 Welcome to ThingPedia
+        h1= _("Welcome to ThingPedia")
 
-        h2 Let's build the world's best virtual assistant.
+        h2= _("Let's build the world's best virtual assistant.")
 
-        p ThingPedia is a repository of apps and interfaces that support Sabrina, a
-          |  collaborative open source effort to build an extensible, privacy-aware
-          |  personal virtual assistant.
+        p= _("ThingPedia is a repository of apps and interfaces that support Sabrina, a collaborative open source effort to build an extensible, privacy-aware personal virtual assistant.")
 
         p
-          a(href='/user/register').btn.btn-primary Register now
+          a(href='/user/register').btn.btn-primary= _("Register now")
           | &#x20;
-          a(href='/user/login').btn.btn-primary Log in
+          a(href='/user/login').btn.btn-primary= _("Log in")
 
-  h2.section-title Examples
+  h2.section-title= _("Examples")
 
   section#examples
     div.row
       div.col-md-6.col-lg-6
-        p Alice is a passionate sports fan, and she's a strong supporter of
-          |  the Golden State Warriors. She does not want to miss an update on
-          |  their road to the next NBA title!
-        p She enables <a href='/thingpedia/apps/install/65'>Warrior Games</a> and
-          |  now her Sabrina keeps her up-to-date on the games.
+        p= _("Alice is a passionate sports fan, and she's a strong supporter of the Golden State Warriors. ")
+          = _("She does not want to miss an update on their road to the next NBA title!")
+        p!= _("She enables <a href='/thingpedia/apps/install/65'>Warrior Games</a> and now her Sabrina keeps her up-to-date on the games.")
 
       div.col-md-6.col-lg-6
         img(src='/images/warriors.jpg')
@@ -75,24 +71,16 @@ block content
         img(src='/images/social-media-cloud.png')
 
       div.col-md-6.col-lg-6
-        p Bob is a big social media user. He follows all sorts of interesting people
-          |  on Twitter and wants to be updated on all the trending discussions their having.
-        p He uses <a href='/thingpedia/apps/install/52'>Twitter Trending Hashtags</a>
-          |  so that Sabrina can tell him what his friends are talking about - be it
-          |  politics, sports, science or gossip!
+        p= _("Bob is a big social media user. ")
+          = _("He follows all sorts of interesting people on Twitter and wants to be updated on all the trending discussions their having.")
+        p!= _("He uses <a href='/thingpedia/apps/install/52'>Twitter Trending Hashtags</a> so that Sabrina can tell him what his friends are talking about - be it politics, sports, science or gossip!")
 
     div.row
       div.col-md-6.col-lg-6
-        p Carol is very attentive at her body shape and her weight, and she uses Sabrina
-          |  to monitor it. She can &#x20;
-          a(href='/apps/app-SabrinaPopulateDatabase/results') see her last measurements
-          |  and she uses&#x20;
-          a(href='/thingpedia/apps/install/66') Weekly Weight Report
-          |  to keep her boyfriend updated too.
+        p= _("Carol is very attentive at her body shape and her weight, and she uses Sabrina to monitor it. ")
+          != ("She can <a href='/apps/app-SabrinaPopulateDatabase/results'>see her last measurements</a> and she uses <a href='/thingpedia/apps/install/66'>Weekly Weight Report</a> to keep her boyfriend updated too.")
 
-        p She also engages her friends in friendly fitness competitions using&#x20;
-          a(href='/thingpedia/apps/install/67') Weekly Weight Wager
-          | .
+        p!= _("She also engages her friends in friendly fitness competitions using <a href='/thingpedia/apps/install/67'>Weekly Weight Wager</a>.")
 
       div.col-md-6.col-lg-6
         img(src='/images/body-scale.jpg')
@@ -102,50 +90,35 @@ block content
         img(src='/images/academic-conference.jpg')
 
       div.col-md-6.col-lg-6
-        p Daniel is a very busy professor, always jumping from one conference to another,
-          |  and he always regrets not having time to network enough. How many missed
-          |  occasions for mingling because he was not aware that someone was there!
+        p= _("Daniel is a very busy professor, always jumping from one conference to another, and he always regrets not having time to network enough. ")
+          = _("How many missed occasions for mingling because he was not aware that someone was there!")
 
-        p But that's no more: he configured Sabrina to access his LinkedIn account, and
-          |  now for every conference he goes to he enables&#x20;
-          a(href='/thingpedia/apps/install/62') LinkedIn Common Industry
-          | , which lets Sabrina suggest him people that he might be interested in meeting,
-          | based on the commonality of their profile.
+        p!= _("But that's no more: he configured Sabrina to access his LinkedIn account, and now for every conference he goes to he enables <a href='/thingpedia/apps/install/62'>LinkedIn Common Industry</a>, which lets Sabrina suggest him people that he might be interested in meeting, based on the commonality of their profile.")
 
   if !authenticated
     section#get-started
-      h2.section-title Get started
+      h2.section-title= _("Get started")
 
-      h4 Sabrina interacts with you on the mobile phone using&#x20;
-        a(href='http://www.omlet.me/') Omlet
-        | , the extensible messaging platform.
+      h4= _("Sabrina interacts with you on the mobile phone using <a href='http://www.omlet.me/'>Omlet</a>, the extensible messaging platform.")
 
       div.row
         div.col-md-offset-2.col-md-8
-          h3 Step 1:&#x20;
-            a(href='/user/register') register
-            |  and&#x20;
-            a(href='/devices/oauth2/org.thingpedia.builtin.omlet') create an Omlet account
-            | .
+          h3!= _("Step 1: <a href='/user/register'>register</a> and <a href='/devices/oauth2/org.thingpedia.builtin.omlet'>create an Omlet account</a>.")
       div.row
         div.col-md-offset-2.col-md-8
-          h3 Step 2:&#x20;
-            a(href='/thingpedia/apps') pick an app for your Sabrina
+          h3!= _("Step 2: <a href='/thingpedia/apps'>pick an app for your Sabrina</a>")
 
-          h4 Many apps are available
-            | , how about&#x20;
-            a(href='/thingpedia/apps/install/65') receiving updates for the Golden State Warriors
-            | ?
+          h4!= _("Many apps are available, how about <a href='/thingpedia/apps/install/65'>receiving updates for the Golden State Warriors</a>?")
       div.row
         div.col-md-offset-2.col-md-8
-          h3 Step 3: profit!
+          h3= _("Step 3: profit!")
           img(src='/images/sabrina-warriors.png')
 
   section
     if authenticated
-      h2.section-title What to do with Sabrina?
+      h2.section-title= _("What to do with Sabrina?")
     else
-      h2.section-title What can Sabrina do?
+      h2.section-title= _("What can Sabrina do?")
 
     div.row
       each cat in categories
@@ -155,22 +128,18 @@ block content
             h4.category-link= cat.catchphrase
 
   section
-    h2.section-title The Sabrina Architecture
+    h2.section-title= _("The Sabrina Architecture")
 
-    img(src='/images/thingpedia-arch-diagram.svg', alt='Sabrina uses ThingEngine, which communicates on Omlet and uses the ThingManager and the ThingPedia')#thingpedia-arch-diagram
+    img(src='/images/thingpedia-arch-diagram.svg', alt=_("Sabrina uses ThingEngine, which communicates on Omlet and uses the ThingManager and the ThingPedia"))#thingpedia-arch-diagram
 
   footer
     p
-      small Sabrina, ThingPedia and ThingEngine are part of a research project of the&#x20;
-        a(href='http://mobisocial.stanford.edu') Mobisocial Computing Laboratory
-        |  at Stanford University.&#x20;
-        a(href='/about') Read more
+      small!= _("Sabrina, ThingPedia and ThingEngine are part of a research project of the <a href='http://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> at Stanford University. ")
+        a(href='/about')= _("Read more")
         | .
     p
       small
-        |  Sabrina is free software, distributed under the&#x20;
-        a(href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html') GPLv2
-        |  license.&#x20;
-        a(href='https://github.com/Stanford-IoT-Lab/ThingEngine/issues') Report a bug
+        != _("Sabrina is free software, distributed under the <a href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html'>GPLv2 license</a>. ")
+        a(href='https://github.com/Stanford-IoT-Lab/ThingEngine/issues')= _("Report a bug")
         | &#x20;
         a(href='https://github.com/Stanford-IoT-Lab/ThingEngine').label.label-default Fork me on Github!

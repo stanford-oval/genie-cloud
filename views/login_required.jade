@@ -1,12 +1,12 @@
 extends layout
 
 block page_name
-  | Error
+  = _("Error")
 
 block content
-  h1 Login required
-  p Sorry but you must log in before opening this page
+  h1= _("Login required")
+  p= _("Sorry but you must log in before opening this page")
   p
-    a(href='javascript:history.back()').btn.btn-default Go back
+    a(href='javascript:history.back()').btn.btn-default= _("Go back")
     span= " "
-    a(href='/user/login').btn.btn-primary Log in
+    a(href='/user/login').btn.btn-primary= _("Log in")

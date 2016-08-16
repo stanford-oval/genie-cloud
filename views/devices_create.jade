@@ -1,1 +1,43 @@
-../shared/views/devices_create.jade
+extends layout
+
+block scripts
+  if ownTier
+    script(src='/javascripts/' + ownTier + '-devices-create.js')
+  else
+    script(src='/javascripts/shared-devices-create.js')
+  script(src='/javascripts/devices-create.js')
+
+block page_name
+  if klass === 'online'
+    = _("New Account")
+  else if klass === 'data'
+    = _("New Data Source")
+  else
+    = _("New Device")
+
+block content
+  if klass === 'online' || klass === 'data'
+    if klass === 'online'
+      p= _("What account do you want to set up?")
+    else
+      p= _("What data source do you want to set up?")
+
+    form(action="/devices/create", method="post")
+      input(type='hidden',name='_csrf',value=csrfToken)
+
+      if klass === 'online'
+        div#online-account-selector.container
+      else
+        div#data-source-selector.container
+  else
+    form(action="/devices/create", method="post")
+      input(type='hidden',name='_csrf',value=csrfToken)
+
+      div.form-group
+        label(for="device-kind").control-label= _("What kind of device are you trying to configure?")
+        select#device-kind(name="kind").form-control
+          option(value='',selected=true)= _("Select one device...")
+
+      div.well#device-placeholder
+
+  span.hidden#developer-key= developerKey

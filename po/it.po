@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: thingengine-platform-cloud 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-08-02 21:35+0000\n"
+"POT-Creation-Date: 2016-08-15 02:54+0000\n"
 "PO-Revision-Date: 2016-08-02 13:15-0700\n"
 "Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Italian\n"
@@ -17,43 +17,51 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: routes/oauth2.js:137
-msgid "ThingEngine - Authorize Access"
-msgstr ""
+#: util/user.js:51
+msgid "An user with this name already exists"
+msgstr "Un utente con questo nome esiste già"
+
+#: util/user.js:116 util/user.js:135 util/user.js:160 routes/admin.js:66
+#: routes/admin.js:85 routes/admin.js:97 routes/admin.js:125
+#: routes/admin.js:132 routes/admin.js:155 routes/admin.js:178
+#: routes/admin.js:192 routes/admin.js:199 routes/devices.js:23
+#: routes/devices.js:54 routes/devices.js:72 routes/devices.js:81
+#: routes/devices.js:101 routes/devices.js:144 routes/devices.js:185
+#: routes/devices.js:215 routes/omlet.js:22 routes/status.js:102
+#: routes/status.js:111 routes/status.js:121 routes/status.js:130
+#: routes/status.js:139 routes/status.js:147 routes/status.js:158
+#: routes/status.js:167 routes/status.js:175 routes/status.js:188
+#: routes/thingpedia_apps.js:91 routes/thingpedia_apps.js:221
+#: routes/thingpedia_apps.js:230 routes/thingpedia_apps.js:240
+#: routes/thingpedia_apps.js:250 routes/thingpedia_apps.js:260
+#: routes/thingpedia_apps.js:270 routes/thingpedia_apps.js:280
+#: routes/thingpedia_apps.js:290 routes/thingpedia_apps.js:328
+#: routes/thingpedia_apps.js:372 routes/thingpedia_apps.js:396
+#: routes/thingpedia_apps.js:415 routes/thingpedia_apps.js:457
+#: routes/thingpedia_apps.js:490 routes/user.js:196 routes/user.js:293
+#: routes/user.js:306 routes/user.js:330 routes/thingpedia_upload.js:432
+#: routes/apps.js:142 routes/apps.js:183 routes/apps.js:194 routes/apps.js:204
+#: routes/apps.js:215 routes/apps.js:225 routes/apps.js:235 routes/apps.js:251
+#: routes/apps.js:261 routes/apps.js:295 routes/apps.js:340 routes/doc.js:23
+#: routes/doc.js:33 routes/thingpedia_devices.js:156
+#: routes/thingpedia_devices.js:193 routes/thingpedia_devices.js:202
+#: routes/thingpedia_devices.js:212 routes/thingpedia_schemas.js:43
+#: routes/thingpedia_schemas.js:59 routes/thingpedia_schemas.js:90
+#: routes/thingpedia_schemas.js:105 routes/thingpedia_schemas.js:116
+#: routes/thingpedia_schemas.js:126 routes/thingpedia_schemas.js:234
+#: routes/thingpedia_schemas.js:294 routes/thingpedia_translate.js:51
+#: routes/thingpedia_translate.js:176 routes/thingpedia_translate.js:184
+#: routes/thingpedia_translate.js:189 routes/thingpedia_translate.js:249
+msgid "ThingPedia - Error"
+msgstr "ThingPedia - Errore"
+
+#: util/user.js:161
+msgid "Developer Access required"
+msgstr "Accesso sviluppatore richiesto"
 
 #: routes/admin.js:39
 msgid "ThingPedia - Administration"
-msgstr ""
-
-#: routes/admin.js:66 routes/admin.js:85 routes/admin.js:97 routes/admin.js:125
-#: routes/admin.js:132 routes/admin.js:155 routes/admin.js:178
-#: routes/admin.js:192 routes/admin.js:199 routes/doc.js:23 routes/doc.js:33
-#: routes/omlet.js:22 routes/user.js:196 routes/user.js:293 routes/user.js:306
-#: routes/user.js:330 routes/apps.js:142 routes/apps.js:183 routes/apps.js:194
-#: routes/apps.js:204 routes/apps.js:215 routes/apps.js:225 routes/apps.js:235
-#: routes/apps.js:251 routes/apps.js:261 routes/apps.js:295 routes/apps.js:340
-#: routes/devices.js:23 routes/devices.js:54 routes/devices.js:72
-#: routes/devices.js:81 routes/devices.js:101 routes/devices.js:144
-#: routes/devices.js:185 routes/devices.js:215 routes/thingpedia_apps.js:91
-#: routes/thingpedia_apps.js:221 routes/thingpedia_apps.js:230
-#: routes/thingpedia_apps.js:240 routes/thingpedia_apps.js:250
-#: routes/thingpedia_apps.js:260 routes/thingpedia_apps.js:270
-#: routes/thingpedia_apps.js:280 routes/thingpedia_apps.js:290
-#: routes/thingpedia_apps.js:328 routes/thingpedia_apps.js:372
-#: routes/thingpedia_apps.js:396 routes/thingpedia_apps.js:415
-#: routes/thingpedia_apps.js:457 routes/thingpedia_apps.js:490
-#: routes/thingpedia_devices.js:135 routes/thingpedia_devices.js:172
-#: routes/thingpedia_devices.js:181 routes/thingpedia_devices.js:191
-#: routes/thingpedia_schemas.js:27 routes/thingpedia_schemas.js:40
-#: routes/thingpedia_schemas.js:55 routes/thingpedia_schemas.js:66
-#: routes/thingpedia_schemas.js:76 routes/thingpedia_schemas.js:184
-#: routes/thingpedia_schemas.js:220 routes/status.js:102 routes/status.js:111
-#: routes/status.js:121 routes/status.js:130 routes/status.js:139
-#: routes/status.js:147 routes/status.js:158 routes/status.js:167
-#: routes/status.js:175 routes/status.js:188 routes/thingpedia_upload.js:432
-#: util/user.js:116 util/user.js:135 util/user.js:160
-msgid "ThingPedia - Error"
-msgstr "ThingPedia - Errore"
+msgstr "ThingPedia - Amministrazione"
 
 #: routes/admin.js:86
 msgid "You cannot delete yourself"
@@ -67,115 +75,6 @@ msgstr "Non puoi retrocedere te stesso"
 msgid "Assistant is already setup"
 msgstr "L'assistente è già configurato"
 
-#: routes/doc.js:17
-msgid "ThingPedia - Documentation"
-msgstr "ThingPedia - Documentazione"
-
-#: routes/doc.js:24
-msgid "Malformed request"
-msgstr "Richiesta malformata"
-
-#: routes/doc.js:34 routes/thingpedia_schemas.js:28
-msgid "Not Found."
-msgstr "Non trovato."
-
-#: routes/omlet.js:23
-msgid "You are already registered for ThingPedia"
-msgstr "Sei già registrato su ThingPedia"
-
-#: routes/omlet.js:27
-msgid "ThingPedia - Complete Registration"
-msgstr "ThingPedia - Completa la registrazione"
-
-#: routes/user.js:34 routes/user.js:56 routes/user.js:138
-msgid "ThingPedia - Registration Successful"
-msgstr "ThingPedia - Registrazione riuscita"
-
-#: routes/user.js:74
-msgid "ThingPedia - Login"
-msgstr "ThingPedia - Entra"
-
-#: routes/user.js:92 routes/user.js:124 routes/user.js:147
-msgid "ThingPedia - Register"
-msgstr "ThingPedia - Registrati"
-
-#: routes/user.js:103
-msgid "You must specify a valid username"
-msgstr "Devi specificare uno username valido"
-
-#: routes/user.js:109
-msgid "You must specify a valid email"
-msgstr "Devi specificare una email valida"
-
-#: routes/user.js:115 routes/user.js:231
-msgid "You must specifiy a valid password (of at least 8 characters)"
-msgstr "Devi specificare una password valida (di almeno 8 caratteri)"
-
-#: routes/user.js:118 routes/user.js:234
-msgid "The password and the confirmation do not match"
-msgstr "La password e la conferma non corrispondono"
-
-#: routes/user.js:189
-msgid "ThingPedia - User Profile"
-msgstr "ThingPedia - Profilo utente"
-
-#: routes/user.js:239
-msgid "You must specifiy your old password"
-msgstr "Devi specificare la tua vecchia password"
-
-#: routes/user.js:294 routes/user.js:307
-msgid "You are already an enrolled developer."
-msgstr "Sei già uno sviluppatore approvato."
-
-#: routes/user.js:299
-msgid "ThingPedia - Developer Program"
-msgstr "ThingPedia - Programma sviluppatori"
-
-#: routes/user.js:300
-msgid "Become a ThingPedia Developer"
-msgstr "Diventa uno sviluppatore per ThingPedia"
-
-#: routes/user.js:328
-msgid "ThingPedia - developer access required"
-msgstr "ThingPedia - Accesso sviluppatore necessario"
-
-#: routes/apps.js:40
-msgid "Some app"
-msgstr "Una certa app"
-
-#: routes/apps.js:79
-msgid "Unknown device"
-msgstr "Dispositivo sconosciuto"
-
-#: routes/apps.js:80
-msgid "Description not available"
-msgstr "Descrizione non disponibile"
-
-#: routes/apps.js:129
-msgid "ThingPedia - My Sabrina"
-msgstr "ThingPedia - La Mia Sabrina"
-
-#: routes/apps.js:163
-msgid "Missing feed for feed-shared app"
-msgstr "Feed mancante per app condivisa su feed"
-
-#: routes/apps.js:174 routes/apps.js:178
-msgid "Application successfully created"
-msgstr "Applicazione creata con successo"
-
-#: routes/apps.js:195 routes/apps.js:216 routes/apps.js:236 routes/apps.js:262
-#: routes/devices.js:82
-msgid "Not found."
-msgstr "Non trovato."
-
-#: routes/apps.js:242 routes/apps.js:284
-msgid "ThingPedia App"
-msgstr "App ThingPedia"
-
-#: routes/apps.js:326 routes/apps.js:330 routes/thingpedia_apps.js:479
-msgid "ThingPedia - Enable App"
-msgstr "ThingPedia - Abilita App"
-
 #: routes/devices.js:24
 msgid "Invalid device class"
 msgstr "Classe di dispositivo non valida"
@@ -187,6 +86,43 @@ msgstr "ThingPedia - Configura dispositivo"
 #: routes/devices.js:42
 msgid "You must choose one kind of device"
 msgstr "Devi scegliere un tipo di dispositivo"
+
+#: routes/devices.js:82 routes/apps.js:195 routes/apps.js:216
+#: routes/apps.js:236 routes/apps.js:262
+msgid "Not found."
+msgstr "Non trovato."
+
+#: routes/index.js:25
+msgid "ThingPedia - knowledge for your magic assistant"
+msgstr "ThingPedia - sapere per il tuo assistente virtuale"
+
+#: routes/index.js:35
+msgid "About ThingPedia"
+msgstr "Informazioni su Thingpedia"
+
+#: routes/index.js:41
+msgid "Terms & Conditions for ThingPedia"
+msgstr "Termini e condizioni di ThingPedia"
+
+#: routes/oauth2.js:137
+msgid "ThingPedia - Authorize Access"
+msgstr "ThingPedia - Autorizza l'accesso"
+
+#: routes/omlet.js:23
+msgid "You are already registered for ThingPedia"
+msgstr "Sei già registrato su ThingPedia"
+
+#: routes/omlet.js:27
+msgid "ThingPedia - Complete Registration"
+msgstr "ThingPedia - Completa la registrazione"
+
+#: routes/status.js:64
+msgid "ThingPedia - Status"
+msgstr "ThingPedia - Stato"
+
+#: routes/status.js:112 routes/status.js:131 routes/status.js:159
+msgid "Your engine is running, kill it before attempting recovery"
+msgstr "Il tuo motore è in funzione, fermalo prima di provare il recupero"
 
 #: routes/thingpedia_apps.js:37
 msgid "ThingPedia - app collection"
@@ -242,64 +178,65 @@ msgstr "ThingPedia - app"
 msgid "ThingPedia - fork an app"
 msgstr "ThingPedia - biforca una app"
 
-#: routes/thingpedia_apps.js:386
+#: routes/thingpedia_apps.js:386 routes/thingpedia_apps.js:437
 msgid "ThingPedia - edit an app"
 msgstr "ThingPedia - modifica una app"
 
-#: routes/thingpedia_devices.js:35
-msgid "ThingPedia - Developer Portal"
-msgstr "ThingPedia - Portale Sviluppatori"
+#: routes/thingpedia_apps.js:479 routes/apps.js:326 routes/apps.js:330
+msgid "ThingPedia - Enable App"
+msgstr "ThingPedia - Abilita App"
 
-#: routes/thingpedia_devices.js:121
-msgid "ThingPedia - Account details"
-msgstr "ThingPedia - Dettagli dell'account"
+#: routes/user.js:34 routes/user.js:56 routes/user.js:138
+msgid "ThingPedia - Registration Successful"
+msgstr "ThingPedia - Registrazione riuscita"
 
-#: routes/thingpedia_devices.js:123
-msgid "ThingPedia - Device details"
-msgstr "ThingPedia - Dettagli del dispositivo"
+#: routes/user.js:74
+msgid "ThingPedia - Login"
+msgstr "ThingPedia - Entra"
 
-#: routes/thingpedia_devices.js:182 routes/thingpedia_schemas.js:67
-#: routes/thingpedia_schemas.js:158 routes/thingpedia_schemas.js:200
-#: routes/thingpedia_upload.js:145 routes/thingpedia_upload.js:327
-#: routes/thingpedia_upload.js:413
-msgid "Not Authorized"
-msgstr "Non Autorizzato"
+#: routes/user.js:92 routes/user.js:124 routes/user.js:147
+msgid "ThingPedia - Register"
+msgstr "ThingPedia - Registrati"
 
-#: routes/thingpedia_schemas.js:33
-msgid "ThingPedia - Schema detail"
-msgstr "ThingPedia - Dettagli dello schema"
+#: routes/user.js:103
+msgid "You must specify a valid username"
+msgstr "Devi specificare uno username valido"
 
-#: routes/thingpedia_schemas.js:49 routes/thingpedia_schemas.js:64
-msgid ""
-"This schema is associated with a device and should not be manipulated "
-"directly"
-msgstr "Questo schema è associato a un dispositivo e non dovrebbe essere manipolato direttamente"
+#: routes/user.js:109
+msgid "You must specify a valid email"
+msgstr "Devi specificare una email valida"
 
-#: routes/thingpedia_schemas.js:83
-msgid "ThingPedia - Create new Type"
-msgstr "ThingPedia - Crea un nuovo tipo"
+#: routes/user.js:115 routes/user.js:231
+msgid "You must specifiy a valid password (of at least 8 characters)"
+msgstr "Devi specificare una password valida (di almeno 8 caratteri)"
 
-#: routes/thingpedia_schemas.js:99
-msgid "Not all required fields were presents"
-msgstr "Non tutti i campi richiesti erano presenti"
+#: routes/user.js:118 routes/user.js:234
+msgid "The password and the confirmation do not match"
+msgstr "La password e la conferma non corrispondono"
 
-#: routes/thingpedia_schemas.js:122 routes/thingpedia_schemas.js:212
-msgid "ThingPedia - Edit Type"
-msgstr "ThingPedia - Modifica tipo"
+#: routes/user.js:189
+msgid "ThingPedia - User Profile"
+msgstr "ThingPedia - Profilo utente"
 
-#: routes/thingpedia_schemas.js:160 routes/thingpedia_schemas.js:202
-msgid ""
-"Only non-device specific types can be modified from this page. Upload a new "
-"interface package to modify a device type"
-msgstr "Solo i tipi che non sono specifici a un dispositivo possono essere modificati da questa pagina. Carica un nuovo pacchetto interfaccia per modificare un tipo di dispositivo"
+#: routes/user.js:239
+msgid "You must specifiy your old password"
+msgstr "Devi specificare la tua vecchia password"
 
-#: routes/status.js:64
-msgid "ThingPedia - Status"
-msgstr "ThingPedia - Stato"
+#: routes/user.js:294 routes/user.js:307
+msgid "You are already an enrolled developer."
+msgstr "Sei già uno sviluppatore approvato."
 
-#: routes/status.js:112 routes/status.js:131 routes/status.js:159
-msgid "Your engine is running, kill it before attempting recovery"
-msgstr "Il tuo motore è in funzione, fermalo prima di provare il recupero"
+#: routes/user.js:299
+msgid "ThingPedia - Developer Program"
+msgstr "ThingPedia - Programma sviluppatori"
+
+#: routes/user.js:300
+msgid "Become a ThingPedia Developer"
+msgstr "Diventa uno sviluppatore per ThingPedia"
+
+#: routes/user.js:328
+msgid "ThingPedia - developer access required"
+msgstr "ThingPedia - Accesso sviluppatore necessario"
 
 #: routes/thingpedia_upload.js:45 routes/thingpedia_upload.js:266
 msgid "ThingPedia - create new device"
@@ -330,7 +267,8 @@ msgstr "Username e password devono essere forniti per l'autenticazione basic"
 
 #: routes/thingpedia_upload.js:110
 msgid "Interface cannot be both marked online-account and data-source"
-msgstr "L'interfaccia non può essere allo stesso tempo online-account e data-source"
+msgstr ""
+"L'interfaccia non può essere allo stesso tempo online-account e data-source"
 
 #: routes/thingpedia_upload.js:121
 #, javascript-format
@@ -346,6 +284,13 @@ msgstr "URL azione mancante per %s"
 #, javascript-format
 msgid "Missing query url for %s"
 msgstr "URL query mancante per %s"
+
+#: routes/thingpedia_upload.js:145 routes/thingpedia_upload.js:327
+#: routes/thingpedia_upload.js:413 routes/thingpedia_devices.js:203
+#: routes/thingpedia_schemas.js:117 routes/thingpedia_schemas.js:208
+#: routes/thingpedia_schemas.js:252
+msgid "Not Authorized"
+msgstr "Non Autorizzato"
 
 #: routes/thingpedia_upload.js:225
 msgid "package.json missing from device zip file"
@@ -363,33 +308,332 @@ msgstr "ThingPedia - modifica dispositivo"
 msgid "Invalid zip file"
 msgstr "File zip non valido"
 
-#: routes/index.js:25
-msgid "ThingPedia - knowledge for your magic assistant"
-msgstr "ThingPedia - sapere per il tuo assistente virtuale"
+#: routes/apps.js:40
+msgid "Some app"
+msgstr "Una certa app"
 
-#: routes/index.js:35
-msgid "About ThingPedia"
-msgstr "Informazioni su Thingpedia"
+#: routes/apps.js:79
+msgid "Unknown device"
+msgstr "Dispositivo sconosciuto"
 
-#: routes/index.js:41
-msgid "Terms & Conditions for ThingPedia"
-msgstr "Termini e condizioni di ThingPedia"
+#: routes/apps.js:80
+msgid "Description not available"
+msgstr "Descrizione non disponibile"
 
-#: util/user.js:51
-msgid "An user with this name already exists"
-msgstr "Un utente con questo nome esiste già"
+#: routes/apps.js:129
+msgid "ThingPedia - My Sabrina"
+msgstr "ThingPedia - La Mia Sabrina"
 
-#: util/user.js:161
-msgid "Developer Access required"
+#: routes/apps.js:163
+msgid "Missing feed for feed-shared app"
+msgstr "Feed mancante per app condivisa su feed"
+
+#: routes/apps.js:174 routes/apps.js:178
+msgid "Application successfully created"
+msgstr "Applicazione creata con successo"
+
+#: routes/apps.js:242 routes/apps.js:284
+msgid "ThingPedia App"
+msgstr "App ThingPedia"
+
+#: routes/doc.js:17
+msgid "ThingPedia - Documentation"
+msgstr "ThingPedia - Documentazione"
+
+#: routes/doc.js:24
+msgid "Malformed request"
+msgstr "Richiesta malformata"
+
+#: routes/doc.js:34 routes/thingpedia_schemas.js:60
+#: routes/thingpedia_translate.js:60 routes/thingpedia_translate.js:197
+msgid "Not Found."
+msgstr "Non trovato."
+
+#: routes/thingpedia_devices.js:36
+msgid "ThingPedia - Developer Portal"
+msgstr "ThingPedia - Portale Sviluppatori"
+
+#: routes/thingpedia_devices.js:142
+msgid "ThingPedia - Account details"
+msgstr "ThingPedia - Dettagli dell'account"
+
+#: routes/thingpedia_devices.js:144
+msgid "ThingPedia - Device details"
+msgstr "ThingPedia - Dettagli del dispositivo"
+
+#: routes/thingpedia_schemas.js:40
+msgid "ThingPedia - Supported Types"
+msgstr "ThingPedia - Tipi supportati"
+
+#: routes/thingpedia_schemas.js:83
+msgid "ThingPedia - Type detail"
+msgstr "ThingPedia - Dettagli del tipo"
+
+#: routes/thingpedia_schemas.js:99 routes/thingpedia_schemas.js:114
+msgid ""
+"This schema is associated with a device and should not be manipulated "
+"directly"
+msgstr ""
+"Questo schema è associato a un dispositivo e non dovrebbe essere manipolato "
+"direttamente"
+
+#: routes/thingpedia_schemas.js:133 routes/thingpedia_schemas.js:171
+msgid "ThingPedia - Create new Type"
+msgstr "ThingPedia - Crea un nuovo tipo"
+
+#: routes/thingpedia_schemas.js:149
+msgid "Not all required fields were presents"
+msgstr "Non tutti i campi richiesti erano presenti"
+
+#: routes/thingpedia_schemas.js:172
+msgid "ThingPedia - Edit Type"
+msgstr "ThingPedia - Modifica tipo"
+
+#: routes/thingpedia_schemas.js:210 routes/thingpedia_schemas.js:254
+msgid ""
+"Only non-device specific types can be modified from this page. Upload a new "
+"interface package to modify a device type"
+msgstr ""
+"Solo i tipi che non sono specifici a un dispositivo possono essere "
+"modificati da questa pagina. Carica un nuovo pacchetto interfaccia per "
+"modificare un tipo di dispositivo"
+
+#: routes/thingpedia_schemas.js:285
+msgid "ThingPedia - Edit type"
+msgstr "ThingPedia - Modifica tipo"
+
+#: routes/train_sabrina.js:15 views/navbar.jade:10
+msgid "Train Sabrina"
+msgstr "Allena Sabrina"
+
+#: routes/thingpedia_translate.js:26
+msgid "Translate ThingPedia"
+msgstr "Traduci Thingpedia"
+
+#: routes/thingpedia_translate.js:52 routes/thingpedia_translate.js:190
+msgid "Translations for English cannot be contributed."
+msgstr "Traduzioni per l'inglese non possono essere inviate."
+
+#: routes/thingpedia_translate.js:166
+msgid "ThingPedia - Translate Type"
+msgstr "ThingPedia - Traduci tipo"
+
+#: routes/thingpedia_translate.js:185
+msgid "Missing language."
+msgstr "Lingua mancante."
+
+#: views/login_required.jade:4 views/error.jade:4 views/qrcode.jade:5
+msgid "Error"
+msgstr "Errore"
+
+#: views/login_required.jade:7
+msgid "Login required"
+msgstr "Login richiesto"
+
+#: views/login_required.jade:8
+msgid "Sorry but you must log in before opening this page"
+msgstr "Mi dispiace ma devi eseguire il login prima di aprire questa pagina"
+
+#: views/login_required.jade:10 views/error.jade:16
+msgid "Go back"
+msgstr "Torna indietro"
+
+#: views/login_required.jade:12 views/login.jade:22 views/index.jade:55
+msgid "Log in"
+msgstr "Entra"
+
+#: views/oauth2_authorize.jade:7
+msgid "Authorize application to access your ThingPedia?"
+msgstr "Autorizzare questa applicazione ad accedere la tua ThingPedia?"
+
+#: views/oauth2_authorize.jade:9
+msgid ""
+"If you say yes, the application will be allowed full access to your devices "
+"and accounts and will be able to run rules on your behalf."
+msgstr "Se confermi, l'applicazione riceverà pieno accesso ai tuoi dispositivi e account e sarà in grado di eseguire regole al tuo posto."
+
+#: views/oauth2_authorize.jade:15
+msgid "Allow"
+msgstr "Consenti"
+
+#: views/oauth2_authorize.jade:17
+msgid "Deny"
+msgstr "Nega"
+
+#: views/doc_getting-started.jade:8 views/doc_thingtalk-intro.jade:8
+#: views/doc_thingtalk-reference.jade:8
+#: views/doc_thingpedia-device-intro.jade:8
+msgid "Documentation"
+msgstr "Documentazione"
+
+#: views/developer_access_required.jade:9
+msgid "Thanks for your interest in ThingPedia!"
+msgstr "Grazie per il tuo interesse in ThingPedia!"
+
+#: views/developer_access_required.jade:10
+msgid "At the moment, ThingPedia is still in closed beta. "
+msgstr "Al momento, ThingPedia è ancora in closed beta. "
+
+#: views/developer_access_required.jade:11
+msgid ""
+"If you would like to request developer access, please fill the form below "
+"and we'll get back to you."
+msgstr "Se vuoi richiede l'accesso come sviluppatore, per favore compila il modulo seguente e ti faremo sapere."
+
+#: views/developer_access_required.jade:13
+msgid " Please use English only."
+msgstr " Per favore usa soltanto inglese."
+
+#: views/developer_access_required.jade:21
+msgid "Full Name"
+msgstr "Nome completo"
+
+#: views/developer_access_required.jade:25
+msgid "Organization"
+msgstr "Organizzazione"
+
+#: views/developer_access_required.jade:29
+msgid "E-mail"
+msgstr "E-mail"
+
+#: views/developer_access_required.jade:33
+msgid "Reason to use ThingPedia (may leave blank)"
+msgstr "Motivo per usare ThingPedia (può essere lasciato vuoto)"
+
+#: views/developer_access_required.jade:37
+msgid "Additional comments (may leave blank)"
+msgstr "Altri commenti (può essere lasciato vuoto)"
+
+#: views/developer_access_required.jade:41
+msgid "Submit"
+msgstr "Invia"
+
+#: views/developer_access_ok.jade:4
+msgid "Developer Access requested"
 msgstr "Accesso sviluppatore richiesto"
 
-#: views/about.jade:7
+#: views/developer_access_ok.jade:9
+msgid ""
+"Thanks again for your interest in ThingPedia, we alerted the ThingPedia Team "
+"and they will get back to you as soon as possible."
+msgstr "Grazie ancora per il tuo interesse in ThingPedia, abbiamo avvisato il nostro team e saranno in contatto con te appena possibiel."
+
+#: views/developer_access_ok.jade:10
+msgid "Hope to see you contributing soon!"
+msgstr "Speriamo di vederti contribuire presto!"
+
+#: views/devices_create.jade:12
+msgid "New Account"
+msgstr "Nuovo account"
+
+#: views/devices_create.jade:14
+msgid "New Data Source"
+msgstr "Nuova sorgente dati"
+
+#: views/devices_create.jade:16
+msgid "New Device"
+msgstr "Nuovo dispositivo"
+
+#: views/devices_create.jade:21
+msgid "What account do you want to set up?"
+msgstr "Quale account vuoi configurare?"
+
+#: views/devices_create.jade:23
+msgid "What data source do you want to set up?"
+msgstr "Quale sorgente dati vuoi configurare?"
+
+#: views/devices_create.jade:37
+msgid "What kind of device are you trying to configure?"
+msgstr "Che tipo di dispositivo stai cercando di configurare?"
+
+#: views/devices_create.jade:39
+msgid "Select one device..."
+msgstr "Scegli un dispositivo..."
+
+#: views/error.jade:7
+msgid "Sorry that did not work"
+msgstr "Mi dispiace ma non ha funzionato"
+
+#: views/error.jade:11
+msgid "Syntax error at %s line %d: %s"
+msgstr "Errore di sintassi in %s linea %d: %s"
+
+#: views/about.jade:7 views/navbar.jade:27
 msgid "About"
 msgstr "Informazioni su"
 
-#: views/admin_user_list.jade:4
+#: views/navbar.jade:3
+msgid "Home"
+msgstr "Home"
+
+#: views/navbar.jade:5
+msgid "App Collection"
+msgstr "Collezione app"
+
+#: views/navbar.jade:8 views/my_stuff.jade:7
+msgid "My Sabrina"
+msgstr "La Mia Sabrina"
+
+#: views/navbar.jade:12
+msgid "Developers"
+msgstr "Sviluppatori"
+
+#: views/navbar.jade:15 views/admin_user_list.jade:4
 msgid "Administration"
 msgstr "Amministrazione"
+
+#: views/navbar.jade:20
+msgid "Settings"
+msgstr "Impostazioni"
+
+#: views/navbar.jade:23
+msgid "Log Out"
+msgstr "Esci"
+
+#: views/navbar.jade:25
+msgid "Log In"
+msgstr "Entra"
+
+#: views/register_success.jade:14
+msgid "Welcome to Sabrina, %s!"
+msgstr "Benvenuto in Sabrina, %s!"
+
+#: views/register_success.jade:16
+msgid "You're almost ready, you just need to create or link an Omlet account."
+msgstr ""
+"Sei quasi pronto, devi solo create o associare un account Omlet."
+
+#: views/register_success.jade:19
+msgid "Continue"
+msgstr "Continua"
+
+#: views/login.jade:4
+msgid "Login"
+msgstr "Entra"
+
+#: views/login.jade:16 views/omlet_register.jade:16 views/register.jade:24
+msgid "Username"
+msgstr "Nome utente"
+
+#: views/login.jade:19 views/omlet_register.jade:23 views/register.jade:31
+msgid "Password"
+msgstr "Password"
+
+#: views/login.jade:24
+msgid "Don't have a username and password yet?"
+msgstr "Non hai ancora uno username e password?"
+
+#: views/login.jade:25
+msgid "Sign up now!"
+msgstr "Registrati ora!"
+
+#: views/login.jade:27
+msgid "Log In with Google"
+msgstr "Entra con Google"
+
+#: views/login.jade:29
+msgid "Log In with Facebook"
+msgstr "Entra con Facebook"
 
 #: views/admin_user_list.jade:14
 msgid "Your assistant is not yet configured. "
@@ -456,6 +700,7 @@ msgid "Engine?"
 msgstr "Motore?"
 
 #: views/admin_user_list.jade:65 views/admin_user_list.jade:109
+#: views/status.jade:52
 msgid "Actions"
 msgstr "Azioni"
 
@@ -487,7 +732,7 @@ msgstr "Sì"
 msgid "No"
 msgstr "No"
 
-#: views/admin_user_list.jade:104
+#: views/admin_user_list.jade:104 views/status.jade:15
 msgid "Running"
 msgstr "In funzione"
 
@@ -560,6 +805,352 @@ msgstr "La tua Sabrina è in funzione."
 msgid "Check your apps"
 msgstr "Controlla le tue app"
 
-#: views/index.jade:43
+#: views/index.jade:43 views/my_stuff.jade:177
 msgid "Find new apps"
 msgstr "Trova nuove app"
+
+#: views/index.jade:46
+msgid "Welcome to ThingPedia"
+msgstr "Benvenuto in Thingpedia"
+
+#: views/index.jade:48
+msgid "Let's build the world's best virtual assistant."
+msgstr "Costruiamo assieme il miglior assistente virtuale al mondo."
+
+#: views/index.jade:50
+msgid ""
+"ThingPedia is a repository of apps and interfaces that support Sabrina, a "
+"collaborative open source effort to build an extensible, privacy-aware "
+"personal virtual assistant."
+msgstr "ThingPedia è un repository di app e interfacce che supportano Sabrina, un progetto collaborativo open source per costruire un assistente virtuale personale estensibile che rispetti la privacy."
+
+#: views/index.jade:53
+msgid "Register now"
+msgstr "Registrati ora"
+
+#: views/index.jade:57
+msgid "Examples"
+msgstr "Esempi"
+
+#: views/index.jade:100
+msgid "Get started"
+msgstr "Inizia"
+
+#: views/index.jade:102
+msgid ""
+"Sabrina interacts with you on the mobile phone using <a href='http://www."
+"omlet.me/'>Omlet</a>, the extensible messaging platform."
+msgstr "Sabrina interagisce con te sul cellulare attraverso <a href='http://www.omlet.me/'>Omlet</a>, la piattaforma di messaggistica estensibile."
+
+#: views/index.jade:106
+msgid ""
+"Step 1: <a href='/user/register'>register</a> and <a href='/devices/oauth2/"
+"org.thingpedia.builtin.omlet'>create an Omlet account</a>."
+msgstr "Step 1: <a href='/user/register'>registrati</a> e <a href='/devices/oauth2/"
+"org.thingpedia.builtin.omlet'>crea un account Omlet</a>."
+
+#: views/index.jade:109
+msgid "Step 2: <a href='/thingpedia/apps'>pick an app for your Sabrina</a>"
+msgstr "Step 2: <a href='/thingpedia/apps'>scegli una app per la tua Sabrina</a>"
+
+#: views/index.jade:111
+msgid ""
+"Many apps are available, how about <a href='/thingpedia/apps/"
+"install/65'>receiving updates for the Golden State Warriors</a>?"
+msgstr "Molte app sono disponibili, che ne dici di <a href='/thingpedia/apps/"
+"install/65'>ricevere aggiornamenti sui Golden State Warriors</a>?"
+
+#: views/index.jade:114
+msgid "Step 3: profit!"
+msgstr "Step 3: profit!"
+
+#: views/index.jade:119
+msgid "What to do with Sabrina?"
+msgstr "Che cosa fare con Sabrina?"
+
+#: views/index.jade:121
+msgid "What can Sabrina do?"
+msgstr "Cosa può fare Sabrina?"
+
+#: views/index.jade:131
+msgid "The Sabrina Architecture"
+msgstr "L'architettura di Sabrina"
+
+#: views/index.jade:133
+msgid ""
+"Sabrina uses ThingEngine, which communicates on Omlet and uses the "
+"ThingManager and the ThingPedia"
+msgstr "Sabrina usa ThingEngine, che comunica su Omlet e usa il ThingManager e la ThingPedia"
+
+#: views/index.jade:137
+msgid ""
+"Sabrina, ThingPedia and ThingEngine are part of a research project of the <a "
+"href='http://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> at "
+"Stanford University. "
+msgstr "Sabrina, ThingPedia e ThingEngine sono parte di un progetto di ricerca del <a "
+"href='http://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> presso la "
+"Stanford University."
+
+#: views/index.jade:138
+msgid "Read more"
+msgstr "Per saperne di più"
+
+#: views/index.jade:142
+msgid ""
+"Sabrina is free software, distributed under the <a href='https://www.gnu.org/"
+"licenses/old-licenses/gpl-2.0.html'>GPLv2 license</a>. "
+msgstr "Sabrina è software libero, distributio secondo la <a href='https://www.gnu.org/"
+"licenses/old-licenses/gpl-2.0.html'>licenza GPLv2</a>. "
+
+#: views/index.jade:143
+msgid "Report a bug"
+msgstr "Riporta un bug"
+
+#: views/omlet_register.jade:10
+msgid "Complete Registration"
+msgstr "Completa la registrazione"
+
+#: views/omlet_register.jade:19 views/register.jade:27
+msgid "E-Mail"
+msgstr "E-Mail"
+
+#: views/omlet_register.jade:21 views/register.jade:29
+msgid ""
+"This e-mail will only be used by the system administrators to contact you in "
+"case of necessity, and will not be divulgated or displayed publicly."
+msgstr "Questa e-mail sarà usata solo dagli amministratori di sistema per contattarti in caso di necessità, e non sarà divulgata o mostrata pubblicamente."
+
+#: views/omlet_register.jade:25 views/register.jade:33
+msgid "Minimum of 8 characters"
+msgstr "Minimo di 8 caratteri"
+
+#: views/omlet_register.jade:27 views/register.jade:35
+msgid "Confirm password"
+msgstr "Conferma password"
+
+#: views/omlet_register.jade:28 views/register.jade:36
+msgid "The password and the confirmation must match"
+msgstr "La password e la conferma devono corrispondere"
+
+#: views/omlet_register.jade:31 views/register.jade:7 views/register.jade:39
+msgid "Register"
+msgstr "Registrati"
+
+#: views/omlet_register.jade:34 views/register.jade:42
+msgid ""
+"By clicking Register above, you agree to the <a href='/about/toc'>terms and "
+"conditions</a> of the ThingPedia service."
+msgstr "Cliccano Registati sopra, confermi di aderire ai <a href='/about/toc'>termini e condizioni</a> del servizio ThingPedia."
+
+#: views/status.jade:10
+msgid "Status"
+msgstr "Stato"
+
+#: views/status.jade:13
+msgid "Status of your ThingEngine: "
+msgstr "Stato del tuo ThingEngine: "
+
+#: views/status.jade:17
+msgid "Killed"
+msgstr "Terminato"
+
+#: views/status.jade:22
+msgid "Kill"
+msgstr "Termina"
+
+#: views/status.jade:26
+msgid "Start"
+msgstr "Avvia"
+
+#: views/status.jade:29
+msgid "Recovery options"
+msgstr "Opzioni di recupero"
+
+#: views/status.jade:35
+msgid "Remove cached modules"
+msgstr "Rimuovi moduli in cache"
+
+#: views/status.jade:39
+msgid "Remove all apps"
+msgstr "Rimuovi tutte le app"
+
+#: views/status.jade:43
+msgid "Remove all devices and accounts"
+msgstr "Rimuovi dispositivi e accounti"
+
+#: views/status.jade:45
+msgid "Cached Modules"
+msgstr "Moduli in cache"
+
+#: views/status.jade:50
+msgid "Name"
+msgstr "Nome"
+
+#: views/status.jade:51
+msgid "Version"
+msgstr "Versione"
+
+#: views/status.jade:61
+msgid "Update"
+msgstr "Aggiorna"
+
+#: views/status.jade:64
+msgid "Logs"
+msgstr "Registri"
+
+#: views/status.jade:67
+msgid ""
+"You are not approved developer, so you cannot see the logs of your engine. "
+msgstr "Non sei uno sviluppatore approvato, non puoi vedere i registri del tuo motore. "
+
+#: views/status.jade:68
+msgid "Apply to be a developer"
+msgstr "Fai domanda per essere sviluppatore"
+
+#: views/my_stuff.jade:34
+msgid "This device is owned by your %s."
+msgstr "Questo dispositivo è posseduto dal tuo %s."
+
+#: views/my_stuff.jade:37
+msgid "The device is not available. It might be powered off or disconnected."
+msgstr "Questo dispositivo non è disponibile. Potrebbe essere spento o disconnesso."
+
+#: views/my_stuff.jade:39
+msgid "The device is available and working."
+msgstr "Questo dispositivo è disponibile e funzionante."
+
+#: views/my_stuff.jade:42
+msgid "The device is not available because your server is disconnected."
+msgstr "Questo dispositivo non è disponibile perchè il tuo server è disconnesso."
+
+#: views/my_stuff.jade:43
+msgid " Make sure that it is powered on and correctly configured."
+msgstr " Assicurati che sia acceso e correttamente configurato."
+
+#: views/my_stuff.jade:45
+msgid "The device is not available because your phone is disconnected."
+msgstr "Questo dispositivo non è disponibile perchè il tuo telefono è disconnesso."
+
+#: views/my_stuff.jade:46
+msgid " Make sure that it is powered on and connected to the network."
+msgstr " Assicurati che sia acceso e connesso alla rete."
+
+#: views/my_stuff.jade:48
+msgid ""
+"The device is not available because ThingEngine Online cannot be reached."
+msgstr "Questo dispositivo non è disponibile perchè ThingEngine Online non può essere raggiunto."
+
+#: views/my_stuff.jade:49
+msgid " There might be a temporary service outage."
+msgstr " Potrebbe esserci un'interruzione di servizio temporanea."
+
+#: views/my_stuff.jade:51
+msgid "It was not possible to verify if the device is available."
+msgstr "Non è stato possibile verificare che il dispositivo sia disponibile."
+
+#: views/my_stuff.jade:52
+msgid "Please check it is powered on and correctly configured."
+msgstr "Assicurati che sia acceso "
+
+#: views/thingpedia_schema.jade:39
+msgid "The translation for this type in your language is incomplete. "
+msgstr "La traduzione per questo tipo nella tua lingua è incompleta."
+
+#: views/thingpedia_schema.jade:40 views/thingpedia_device_details.jade:43
+msgid "Contribute translation"
+msgstr "Contribuisci traduzione"
+
+#: views/thingpedia_schema.jade:43
+msgid ""
+"This type is just a marker that indicates a publicly available web service, "
+"such as Bing or Xkcd."
+msgstr ""
+"Questo tipo è solo un marcatore che indica un servizio web accessibile "
+"pubblicamente, come Bing o Xkcd."
+
+#: views/thingpedia_schema.jade:46
+msgid ""
+"This type is a marker that denotes an account, as opposed to a physical "
+"device."
+msgstr ""
+"Questo tipo è un marcatore che denota un account, piuttosto che un "
+"dispositivo fisico."
+
+#: views/thingpedia_schema.jade:50
+msgid "This type is a marker for discovery. "
+msgstr "Questo tipo è un marcatore per la ricerca. "
+
+#: views/thingpedia_schema.jade:51
+msgid ""
+"It is used by a device to indicate a certain low-level capability, and has "
+"no triggers or actions of its own. "
+msgstr ""
+"È usato da un dispositivo per indicare una certa capability di basso "
+"livello, e non ha trigger o azioni proprie."
+
+#: views/thingpedia_schema.jade:52
+msgid ""
+"Most likely, you will find this type toghether with another more generic "
+"type, eg. <i>bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb</i>, "
+"indicating the A2DP Speaker capability, would be accompanied by <i>speaker</"
+"i>."
+msgstr ""
+"Molto probabilmente troverai questo tipo assieme ad un altro più generico, "
+"ad esempio <i>bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb</i>, che "
+"indica uno speaker Bluetooth A2DP, sarà probabilmente accompagnato da "
+"<i>speaker</i>."
+
+#: views/thingpedia_schema.jade:56
+msgid ""
+"This type belongs to a specific device, which can be configured and "
+"manipulated by recalling the type by name."
+msgstr ""
+"Questo tipo appartiene a un dispositivo specifico, che può essere "
+"configurato e manipolato richiamando il tipo per nome."
+
+#: views/thingpedia_schema.jade:76 views/thingpedia_schema.jade:88
+#: views/thingpedia_schema.jade:100 views/thingpedia_device_details.jade:98
+#: views/thingpedia_device_details.jade:114
+#: views/thingpedia_device_details.jade:130
+msgid "Canonical: "
+msgstr "Frase canonica: "
+
+#: views/thingpedia_schema.jade:109
+msgid "This type has no commands."
+msgstr "Questo tipo non ha comandi."
+
+#: views/thingpedia_schema.jade:121 views/thingpedia_device_details.jade:155
+msgid "Translate"
+msgstr "Traduci"
+
+#: views/thingpedia_device_details.jade:40
+msgid "The translation for this account in your language is incomplete. "
+msgstr "La traduzione per questo account nella tua lingua è incompleta. "
+
+#: views/thingpedia_device_details.jade:42
+msgid "The translation for this device in your language is incomplete. "
+msgstr "La traduzione per questo dispositivo nella tua lingua è incompleta. "
+
+#: views/thingpedia_device_details.jade:55
+msgid "Package: "
+msgstr "Pacchetto: "
+
+#: views/thingpedia_device_details.jade:56
+msgid ", version "
+msgstr ", versione "
+
+#: views/thingpedia_device_details.jade:65
+msgid "Name: "
+msgstr "Nome: "
+
+#: views/thingpedia_device_details.jade:70
+msgid "Types: "
+msgstr "Tipi: "
+
+#: views/thingpedia_device_details.jade:139
+msgid ""
+"This device has no commands of its own. You might find how to interact with "
+"it by clicking on one of its types."
+msgstr ""
+"Questo dispositivo non ha comandi propri. Troverai come interagire con esso "
+"cliccando su uno dei suoi tipi."

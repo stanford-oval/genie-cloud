@@ -1,27 +1,27 @@
 ul.nav.navbar-nav
   li.hidden-md.hidden-lg
-    a(href="/") Home
+    a(href="/")= _("Home")
   //li
-    a(href="/thingpedia/apps") App Collection
+    a(href="/thingpedia/apps")= _("App Collection")
   if authenticated
     li
-      a(href="/apps") My Sabrina
+      a(href="/apps")= _("My Sabrina")
   li
-    a(href='/thingpedia/training') Train Sabrina
+    a(href='/thingpedia/training')= _("Train Sabrina")
   li
-    a(href='/thingpedia/devices') Developers
+    a(href='/thingpedia/devices')= _("Developers")
   if authenticated && user.roles & 0x1
     li
-      a(href="/admin") Administration
+      a(href="/admin")= _("Administration")
 
 ul.nav.navbar-nav.navbar-right
   if authenticated
     li
-      a(href="/user/profile") Settings
+      a(href="/user/profile")= _("Settings")
   li
     if authenticated
-      a.navbar-login(href='/user/logout') Log Out
+      a.navbar-login(href='/user/logout')= _("Log Out")
     else
-      a.navbar-login(href='/user/login') Log In
+      a.navbar-login(href='/user/login')= _("Log In")
   li
-    a#navbar-login-button(href='/about') About
+    a#navbar-login-button(href='/about')= _("About")

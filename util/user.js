@@ -60,6 +60,7 @@ module.exports = {
                         password: hash,
                         email: email,
                         locale: 'en_US',
+                        timezone: 'America/Los_Angeles',
                         salt: salt,
                         cloud_id: cloudId,
                         auth_token: authToken
@@ -80,6 +81,7 @@ module.exports = {
                 password: passwordHash,
                 email: email,
                 locale: 'en_US',
+                timezone: 'America/Los_Angeles',
                 salt: salt,
                 cloud_id: cloudId,
                 auth_token: authToken,

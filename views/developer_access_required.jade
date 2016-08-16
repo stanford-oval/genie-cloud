@@ -6,9 +6,11 @@ block content
   div.container
     div.row
       div.col-xs-12
-        p Thanks for your interest in ThingPedia!
-        p At the moment, ThingPedia is still in closed beta. If you would like
-          | to request developer access, please fill the form below and we'll get back to you.
+        p= _("Thanks for your interest in ThingPedia!")
+        p= _("At the moment, ThingPedia is still in closed beta. ")
+          = _("If you would like to request developer access, please fill the form below and we'll get back to you.")
+          if user.locale !== 'en_US'
+            = _(" Please use English only.")
 
     div.row
       div.col-xs-12
@@ -16,24 +18,24 @@ block content
           input(type='hidden',name='_csrf',value=csrfToken)
 
           div.form-group
-            label(for='realname').control-label Full Name
+            label(for='realname').control-label= _("Full Name")
             input(type='text',name='realname',required=true,maxlength=255,value=user.human_name).form-control#realname
 
           div.form-group
-            label(for='organization').control-label Organization
+            label(for='organization').control-label= _("Organization")
             input(type='text',name='organization',maxlength=255).form-control#organization
 
           div.form-group
-            label(for='email').control-label E-mail
+            label(for='email').control-label= _("E-mail")
             input(type='email',name='email',required=true).form-control#email
 
           div.form-group
-            label(for='reason').control-label Reason to use ThingPedia (may leave blank)
+            label(for='reason').control-label= _("Reason to use ThingPedia (may leave blank)")
             textarea(name="reason").form-control#reason
 
           div.form-group
-            label(for='comments').control-label Additional comments (may leave blank)
+            label(for='comments').control-label= _("Additional comments (may leave blank)")
             textarea(name="comments").form-control#comments
 
           div.form-group
-            button(type='submit').btn.btn-primary Submit
+            button(type='submit').btn.btn-primary= _("Submit")

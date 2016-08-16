@@ -7,30 +7,28 @@ block scripts
   script(src='/javascripts/omlet_register.js')
 
 block page_name
-  | Complete Registration
+  = _("Complete Registration")
 
 block content
   form(data-toggle='validator')#register-form
     input(type='hidden',name='_csrf',value=csrfToken)
     div.form-group
-      label(for='username').control-label Username
+      label(for='username').control-label= _("Username")
       input(type='text',name='username',value='',required=true,maxlength=255).form-control#username
     div.form-group
-      label(for='email').control-label E-Mail
+      label(for='email').control-label= _("E-Mail")
       input(type='email',name='email',value='',required=true,maxlength=255).form-control#email
-      span.help-block This e-mail will only be used by the system administrators to contact you in case of necessity, and will not be divulgated or displayed publicly.
+      span.help-block= _("This e-mail will only be used by the system administrators to contact you in case of necessity, and will not be divulgated or displayed publicly.")
     div.form-group
-      label(for='password').control-label Password
+      label(for='password').control-label= _("Password")
       input(type='password',name='password',value='',required=true,maxlength=255,minlength=8,data-minlength=8).form-control#password
-      span.help-block Minimum of 8 characters
+      span.help-block= _("Minimum of 8 characters")
     div.form-group#confirm-password-group
-      label(for='confirm-password').control-label Confirm password
-      input(type='password',name='confirm-password',value='',required=true,data-match='#password',data-match-error="The password and the confirmation must match").form-control#confirm-password
+      label(for='confirm-password').control-label= _("Confirm password")
+      input(type='password',name='confirm-password',value='',required=true,data-match='#password',data-match-error=_("The password and the confirmation must match")).form-control#confirm-password
       span.help-block.with-errors
     div.form-group
-      button(type='submit').btn.btn-primary Register
+      button(type='submit').btn.btn-primary _("Register")
 
     p
-      small By clicking Register above, you agree to the
-        a(href='/about/toc') terms and conditions
-        |  of the ThingEngine service.
+      small!= _("By clicking Register above, you agree to the <a href='/about/toc'>terms and conditions</a> of the ThingPedia service.")
