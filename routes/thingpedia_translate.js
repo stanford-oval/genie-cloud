@@ -119,6 +119,8 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
                     translated[what][name].questions = [];
                 if (!translated[what][name].examples)
                     translated[what][name].examples = [];
+                if (!english[what][name].examples)
+                    english[what][name].examples = [];
                 // undo the fallback that schema.js does
                 if (translated[what][name].confirmation === english[what][name].doc)
                     translated[what][name].confirmation = '';
