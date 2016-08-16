@@ -10,7 +10,7 @@ const db = require('../util/db');
 const Q = require('q');
 
 function create(client, user) {
-    var KEYS = ['username', 'human_name', 'email', 'locale', 'google_id',
+    var KEYS = ['username', 'human_name', 'email', 'locale', 'timezone', 'google_id',
                 'facebook_id', 'omlet_id', 'password', 'salt',
                 'cloud_id', 'auth_token',
                 'developer_org'];

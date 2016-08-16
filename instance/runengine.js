@@ -54,8 +54,8 @@ function handleSignal() {
     }, 10000);
 }
 
-function runEngine(cloudId, authToken, developerKey, locale, thingpediaClient) {
-    var platform = PlatformModule.newInstance(cloudId, authToken, developerKey, locale, thingpediaClient);
+function runEngine(thingpediaClient, options) {
+    var platform = PlatformModule.newInstance(thingpediaClient, options);
     if (!PlatformModule.shared)
         global.platform = platform;
 
@@ -63,7 +63,7 @@ function runEngine(cloudId, authToken, developerKey, locale, thingpediaClient) {
         var engine = new Engine(platform);
         platform.createAssistant(engine);
 
-        var obj = { cloudId: cloudId, engine: engine, running: false };
+        var obj = { cloudId: options.cloudId, engine: engine, running: false };
         engine.open().then(function() {
             obj.running = true;
 

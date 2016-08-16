@@ -105,17 +105,18 @@ class WebsocketApi {
 }
 
 class Platform {
-    constructor(cloudId, authToken, developerKey, locale, thingpediaClient) {
-        this._cloudId = cloudId;
-        this._authToken = authToken;
-        this._developerKey = developerKey;
+    constructor(thingpediaClient, options) {
+        this._cloudId = options.cloudId;
+        this._authToken = options.authToken;
+        this._developerKey = options.developerKey;
         this._thingpediaClient = thingpediaClient;
-        this._locale = locale;
+        this._locale = options.locale;
+        this._timezone = options.timezone;
 
         this._gettext = new Gettext();
-        this._gettext.setlocale(locale);
+        this._gettext.setlocale(options.locale);
 
-        this._writabledir = _shared ? (process.cwd() + '/' + cloudId) : process.cwd();
+        this._writabledir = _shared ? (process.cwd() + '/' + options.cloudId) : process.cwd();
         try {
             fs.mkdirSync(this._writabledir + '/cache');
         } catch(e) {
@@ -126,13 +127,17 @@ class Platform {
 
         this._websocketApi = new WebsocketApi();
         this._webhookApi = new WebhookApi();
-        _dispatcher.addCloudId(cloudId, this._webhookApi, this._websocketApi);
+        _dispatcher.addCloudId(options.cloudId, this._webhookApi, this._websocketApi);
 
         this._assistant = null;
     }
 
     get locale() {
         return this._locale;
+    }
+
+    get timezone() {
+        return this._timezone;
     }
 
     start() {
@@ -332,8 +337,8 @@ module.exports = {
 
     dispatcher: _dispatcher,
 
-    newInstance(cloudId, authToken, developerKey, locale, thingpediaClient) {
-        return new Platform(cloudId, authToken, developerKey, locale, thingpediaClient);
+    newInstance(thingpediaClient, options) {
+        return new Platform(thingpediaClient, options);
     },
 
     // for compat with existing code that does platform.getOrigin()

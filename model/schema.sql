@@ -15,6 +15,7 @@ create table users (
     human_name tinytext default null collate utf8_general_ci,
     email varchar(255) not null,
     locale char(15) not null default 'en_US',
+    timezone varchar(64) not null default 'America/Los_Angeles',
     google_id varchar(255) unique default null,
     facebook_id varchar(255) unique default null,
     omlet_id varchar(255) unique default null,
