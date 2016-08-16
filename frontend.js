@@ -106,7 +106,7 @@ Frontend.prototype._init = function _init() {
     });
 
     // i18n support
-    const LANGS = ['en-US', 'it', 'es'];
+    const LANGS = ['en-US', 'it', 'es', 'zh-CN'];
     acceptLanguage.languages(LANGS);
     var languages = {};
     for (var l of LANGS) {

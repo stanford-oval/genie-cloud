@@ -1,0 +1,22 @@
+# Chinese translations for thingengine-platform-cloud package
+# thingengine-platform-cloud ÈíŒþ°üµÄŒòÌåÖÐÎÄ·­Òë.
+# Copyright (C) 2016 THE thingengine-platform-cloud'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the thingengine-platform-cloud package.
+# Silei Xu <silei@stanford.edu>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: thingengine-platform-cloud 1.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-08-16 23:45+0000\n"
+"PO-Revision-Date: 2016-08-16 16:37-0700\n"
+"Last-Translator: Silei Xu <silei@stanford.edu>\n"
+"Language-Team: Chinese (simplified)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: util/user.js:51
+msgid "An user with this name already exists"
+msgstr "已经存在使用这个名字的用户"
