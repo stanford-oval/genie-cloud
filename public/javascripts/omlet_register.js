@@ -16,6 +16,8 @@
             var confirm = $('#confirm-password').val();
             if (password !== confirm)
                 return;
+            var timezone = $('#timezone').val() || 'America/Los_Angeles';
+            var locale = $('#locale').val() || 'en-US';
 
             try {
                 var random = new Uint8Array(32);
@@ -33,6 +35,8 @@
                 exitWithMsg({ op: 'complete-registration',
                               username: username,
                               email: email,
+                              timezone: timezone,
+                              locale: locale,
                               salt: salt,
                               'password-hash': hash });
             } catch(e) {

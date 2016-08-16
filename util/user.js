@@ -45,22 +45,22 @@ module.exports = {
 
     FACEBOOK_SCOPES: ['email', 'public_profile', 'user_friends', 'user_photos', 'publish_actions'].join(' '),
 
-    register: function(dbClient, req, username, password, email) {
-        return model.getByName(dbClient, username).then(function(rows) {
+    register: function(dbClient, req, options) {
+        return model.getByName(dbClient, options.username).then(function(rows) {
             if (rows.length > 0)
                 throw new Error(req._("An user with this name already exists"));
 
             var salt = makeRandom();
             var cloudId = makeRandom();
             var authToken = makeRandom();
-            return hashPassword(salt, password)
+            return hashPassword(salt, options.password)
                 .then(function(hash) {
                     return model.create(dbClient, {
-                        username: username,
+                        username: options.username,
                         password: hash,
-                        email: email,
-                        locale: 'en-US',
-                        timezone: 'America/Los_Angeles',
+                        email: options.email,
+                        locale: options.locale,
+                        timezone: options.timezone,
                         salt: salt,
                         cloud_id: cloudId,
                         auth_token: authToken
@@ -69,23 +69,23 @@ module.exports = {
         });
     },
 
-    registerWithOmlet: function(dbClient, username, salt, passwordHash, omletId, email) {
-        return model.getByName(dbClient, username).then(function(rows) {
+    registerWithOmlet: function(dbClient, options) {
+        return model.getByName(dbClient, options.username).then(function(rows) {
             if (rows.length > 0)
                 throw new Error("An user with this name already exists");
 
             var cloudId = makeRandom();
             var authToken = makeRandom();
             return model.create(dbClient, {
-                username: username,
-                password: passwordHash,
-                email: email,
-                locale: 'en-US',
-                timezone: 'America/Los_Angeles',
-                salt: salt,
+                username: options.username,
+                password: options['password-hash'],
+                email: options.email,
+                locale: options.locale,
+                timezone: options.timezone,
+                salt: options.salt,
                 cloud_id: cloudId,
                 auth_token: authToken,
-                omlet_id: omletId,
+                omlet_id: options.account,
             });
         });
     },

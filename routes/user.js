@@ -95,19 +95,19 @@ router.get('/register', function(req, res, next) {
 
 
 router.post('/register', function(req, res, next) {
-    var username, password, email;
+    var options = {};
     try {
         if (typeof req.body['username'] !== 'string' ||
             req.body['username'].length == 0 ||
             req.body['username'].length > 255)
             throw new Error(req._("You must specify a valid username"));
-        username = req.body['username'];
+        options.username = req.body['username'];
         if (typeof req.body['email'] !== 'string' ||
             req.body['email'].length == 0 ||
             req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
             throw new Error(req._("You must specify a valid email"));
-        email = req.body['email'];
+        options.email = req.body['email'];
 
         if (typeof req.body['password'] !== 'string' ||
             req.body['password'].length < 8 ||
@@ -116,7 +116,17 @@ router.post('/register', function(req, res, next) {
 
         if (req.body['confirm-password'] !== req.body['password'])
             throw new Error(req._("The password and the confirmation do not match"));
-            password = req.body['password']
+        options.password = req.body['password'];
+
+        if (!req.body['timezone'])
+            req.body['timezone'] = 'America/Los_Angeles';
+        if (typeof req.body['timezone'] !== 'string' ||
+            typeof req.body['locale'] !== 'string' ||
+            !/^([a-z+\-0-9_]+\/[a-z+\-0-9_]+|[a-z+\-0-9_]+)$/i.test(req.body['timezone']) ||
+            !/^[a-z]{2,}-[a-z]{2,}/i.test(req.body['locale']))
+            throw new Error("Invalid localization data");
+        options.timezone = req.body['timezone'];
+        options.locale = req.body['locale'];
 
     } catch(e) {
         res.render('register', {
@@ -128,7 +138,7 @@ router.post('/register', function(req, res, next) {
     }
 
     return db.withTransaction(function(dbClient) {
-        return user.register(dbClient, req, username, password, email).then(function(user) {
+        return user.register(dbClient, req, options).then(function(user) {
             return EngineManager.get().startUser(user).then(function() {
                 return Q.ninvoke(req, 'login', user);
             }).then(function() {
@@ -136,7 +146,7 @@ router.post('/register', function(req, res, next) {
                 res.locals.user = user;
                 res.render('register_success', {
                     page_title: req._("ThingPedia - Registration Successful"),
-                    username: username,
+                    username: options.username,
                     cloudId: user.cloud_id,
                     authToken: user.auth_token });
             });

@@ -12,6 +12,7 @@ block page_name
 block content
   form(data-toggle='validator')#register-form
     input(type='hidden',name='_csrf',value=csrfToken)
+    input(type='hidden',name='timezone')#timezone
     div.form-group
       label(for='username').control-label= _("Username")
       input(type='text',name='username',value='',required=true,maxlength=255).form-control#username
@@ -27,6 +28,13 @@ block content
       label(for='confirm-password').control-label= _("Confirm password")
       input(type='password',name='confirm-password',value='',required=true,data-match='#password',data-match-error=_("The password and the confirmation must match")).form-control#confirm-password
       span.help-block.with-errors
+    div.form-group
+      label(for='locale').control-label= _("Language")
+      select(name='locale').form-control#locale
+        option(value='en-US',selected=true)= _("English (United States)")
+        option(value='en-GB')= _("English (United Kingdom)")
+        //option(value='it-IT')= _("Italian")
+        //option(value='es-ES')= _("Spanish")
     div.form-group
       button(type='submit').btn.btn-primary _("Register")
 

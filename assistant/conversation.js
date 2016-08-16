@@ -13,29 +13,30 @@ const User = require('../util/user');
 const db = require('../util/db');
 
 function registerWithOmlet(msg, account) {
-    var username, passwordHash, salt, email;
     if (typeof msg['username'] !== 'string' ||
         msg['username'].length == 0 ||
         msg['username'].length > 255)
         throw new Error("You must specify a valid username");
-    username = msg['username'];
     if (typeof msg['email'] !== 'string' ||
         msg['email'].length == 0 ||
         msg['email'].indexOf('@') < 0 ||
         msg['email'].length > 255)
         throw new Error("You must specify a valid email");
-    email = msg['email'];
-
     if (typeof msg['password-hash'] !== 'string' ||
         msg['password-hash'].length !== 64 ||
         typeof msg['salt'] !== 'string' ||
         msg['salt'].length !== 64)
         throw new Error("Invalid password");
-    passwordHash = msg['password-hash'];
-    salt = msg['salt'];
+    if (typeof msg['timezone'] !== 'string' ||
+        typeof msg['locale'] !== 'string' ||
+        !/^([a-z+\-0-9_]+\/[a-z+\-0-9_]+|[a-z+\-0-9_]+)$/i.test(msg['timezone']) ||
+        !/^[a-z]{2,}-[a-z]{2,}/i.test(msg['locale']))
+        throw new Error("Invalid localization data");
+
+    msg.account = account;
 
     return db.withTransaction(function(dbClient) {
-        return User.registerWithOmlet(dbClient, username, salt, passwordHash, account, email).then(function(user) {
+        return User.registerWithOmlet(dbClient, msg).then(function(user) {
             return require('../lib/enginemanager').get().startUser(user);
         });
     });
