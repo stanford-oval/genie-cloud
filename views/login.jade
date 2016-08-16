@@ -1,7 +1,7 @@
 extends layout
 
 block page_name
-  | Login
+  = _("Login")
 
 block content
   each error in errors
@@ -13,17 +13,17 @@ block content
   form(action='/user/login', method='post')
     input(type='hidden',name='_csrf',value=csrfToken)
     div.form-group
-      label(for='username').control-label Username
+      label(for='username').control-label= _("Username")
       input(type='text',name='username',value=username).form-control#username
     div.form-group
-      label(for='password').control-label Password
+      label(for='password').control-label= _("Password")
       input(type='password',name='password',value=password).form-control#password
     div.form-group
-      button(type='submit').btn.btn-primary Log in
+      button(type='submit').btn.btn-primary= _("Log in")
 
-  p Don't have a username and password yet? 
-    a(href='/user/register') Sign up now!
+  p= _("Don't have a username and password yet?")
+    a(href='/user/register')= _("Sign up now!")
   p
-    a.btn.btn-primary(href='/user/oauth2/google') Log In with Google
+    a.btn.btn-primary(href='/user/oauth2/google')= _("Log In with Google")
     |  
-    a.btn.btn-primary(href='/user/oauth2/facebook') Log In with Facebook
+    a.btn.btn-primary(href='/user/oauth2/facebook')= _("Log In with Facebook")

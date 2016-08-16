@@ -4,7 +4,7 @@ block scripts
   script(src='/javascripts/apps.js')
 
 block page_name
-  | My Sabrina
+  = _("My Sabrina")
 
 block styles
   link(rel='stylesheet', href='/stylesheets/my_stuff.css')
@@ -31,25 +31,25 @@ mixin device_list(devices, online, datasource)
 
             if !online
               if dev.ownerTier !== 'cloud'
-                p This device is owned by your #{dev.ownerTier}.
+                p= _("This device is owned by your %s.").format(dev.ownerTier)
 
               if dev.available == 0
-                p The device is not available. It might be powered off or disconnected.
+                p= _("The device is not available. It might be powered off or disconnected.")
               else if dev.available == 1
-                p The device is available and working.
+                p= _("The device is available and working.")
               else if dev.available == 2
                 if dev.ownerTier === 'server'
-                  p The device is not available because your server is disconnected.
-                    |  Make sure that it is powered on and correctly configured.
+                  p= _("The device is not available because your server is disconnected.")
+                    = _(" Make sure that it is powered on and correctly configured.")
                 else if dev.ownerTier === 'phone'
-                  p The device is not available because your phone is disconnected.
-                    |  Make sure that it is powered on and connected to the network.
+                  p= _("The device is not available because your phone is disconnected.")
+                    = _(" Make sure that it is powered on and connected to the network.")
                 else
-                  p The device is not available because ThingEngine Online cannot be reached.
-                    |  There might be a temporary service outage.
+                  p= _("The device is not available because ThingEngine Online cannot be reached.")
+                    = _(" There might be a temporary service outage.")
               else
-                p It was not possible to verify if the device is available.
-                  | Please check it is powered on and correctly configured.
+                p= _("It was not possible to verify if the device is available.")
+                  = _("Please check it is powered on and correctly configured.")
           div.panel-footer
             div.row
               if !dev.isTransient
@@ -58,9 +58,9 @@ mixin device_list(devices, online, datasource)
                     input(type='hidden',name='id',value=dev.uniqueId)
                     input(type='hidden',name='_csrf',value=csrfToken)
                     if datasource
-                      button(type='submit').btn.btn-danger.btn-sm.btn-block Disable
+                      button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Disable")
                     else
-                      button(type='submit').btn.btn-danger.btn-sm.btn-block Forget
+                      button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Forget")
 
 mixin thingpedia_apps(apps, visible)
   div.row
@@ -82,20 +82,20 @@ mixin thingpedia_apps(apps, visible)
                 a(href='/thingpedia/apps/by-tag/' + tag.tag) ##{tag.tag}
                 | &#x20;
             p
-              a(href='/thingpedia/apps/' + app.id) Show code
+              a(href='/thingpedia/apps/' + app.id)= _("Show code")
           div.panel-footer
             div.row
               div.col-md-6
                 if visible
                   form.form-inline(action="/thingpedia/apps/set-invisible/" + app.id,method="post")
                     input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-sm.btn-success.btn-block Hide from Collection
+                    button(type='submit').btn.btn-sm.btn-success.btn-block= _("Hide from Collection")
                 else
                   form.form-inline(action="/thingpedia/apps/set-visible/" + app.id,method="post")
                     input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-sm.btn-success.btn-block Publish
+                    button(type='submit').btn.btn-sm.btn-success.btn-block= _("Publish")
               div.col-md-6
-                button(data-app-id=app.id).btn.btn-sm.btn-danger.btn-block.button-delete-thingpedia-app Delete
+                button(data-app-id=app.id).btn.btn-sm.btn-danger.btn-block.button-delete-thingpedia-app= _("Delete")
 
 block content
   if sharedApp
@@ -106,23 +106,21 @@ block content
             a.close(data-dismiss='modal', aria-label="Close")
               span(aria-hidden='true') ×
 
-            h4.modal-title Do you want to share #{sharedApp.name}?
+            h4.modal-title= _("Do you want to share %s?").format(sharedApp.name)
 
           div.modal-body
-            p You just installed a shared application. Do you want to
-              | share it with everyone in the group?
+            p= _("You just installed a shared application. Do you want to share it with everyone in the group?")
 
-            p If you say yes, a link will be sent to the group allowing
-              | other people to install the same app.
+            p= _("If you say yes, a link will be sent to the group allowing other people to install the same app.")
 
             form(action='/apps/share', method='post')
               input(type='hidden',name='id',value=sharedApp.uniqueId)
               input(type='hidden',name='_csrf',value=csrfToken)
 
               div.form-group
-                button(type='submit').btn.btn-success Yes, share it
+                button(type='submit').btn.btn-success= _("Yes, share it")
                 | &#x20;
-                a.btn.btn-default(data-dismiss='modal') No, thanks
+                a.btn.btn-default(data-dismiss='modal')= _("No, thanks")
 
   for message in messages
     div.alert.alert-success.alert-dismissible.fade.in(role='alert')
@@ -130,7 +128,7 @@ block content
         span(aria-hidden='true') ×
       p= message
 
-  h2 Running Apps
+  h2= _("Running Apps")
 
   div.row
     each app, i in apps
@@ -146,61 +144,61 @@ block content
             h2.panel-title= app.name
           div.panel-body
             if app.error
-              p This app had an error: #{app.error}
+              p= _("This app had an error: %s").format(app.error)
             else if app.running
               if app.feed
-                p This app is running in the chat room #{app.feed.name}.
+                p= _("This app is running in the chat room %s.").format(app.feed.name)
               else
-                p This app is running.
+                p= _("This app is running.")
             else if app.enabled
-              p This app is enabled but not running.
+              p= _("This app is enabled but not running.")
             else
-              p This app is not enabled.
+              p= _("This app is not enabled.")
 
           div.panel-footer
             div.row
               div.col-md-6
-                a(href='/apps/#{app.uniqueId}/publish').btn.btn-sm.btn-success.btn-block Publish
+                a(href='/apps/#{app.uniqueId}/publish').btn.btn-sm.btn-success.btn-block= _("Publish")
               div.col-md-6
                 form.form-inline(action="/apps/delete",method="post").form-delete-app
                   input(type='hidden',name='id',value=app.uniqueId)
                   input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-sm.btn-danger.btn-block Stop
+                  button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Stop")
 
               if app.state && app.state.$F
                 div.col-md-6
                   form.form-inline(action="/apps/share",method="post")
                     input(type='hidden',name='id',value=app.uniqueId)
                     input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-sm.btn-success.btn-block Share
+                    button(type='submit').btn.btn-sm.btn-success.btn-block= _("Share")
 
   div.row
     div.col-sm-6.col-md-3
-      a(href='/thingpedia/apps').btn.btn-default.btn-block Find new apps
+      a(href='/thingpedia/apps').btn.btn-default.btn-block= _("Find new apps")
 
-  h2 Enabled Data Sources
+  h2= _("Enabled Data Sources")
 
   +device_list(datasourceDevices, true, true)
 
   div.row
     div.col-sm-6.col-md-3
-      a(href='/devices/create?class=data').btn.btn-primary.btn-block Enable new data source
+      a(href='/devices/create?class=data').btn.btn-primary.btn-block= _("Enable new data source")
 
-  h2 My Devices
+  h2= _("My Devices")
 
   +device_list(physicalDevices, false, false)
 
   div.row
     div.col-sm-6.col-md-3
-      a(href='/devices/create?class=physical').btn.btn-primary.btn-block Configure new device
+      a(href='/devices/create?class=physical').btn.btn-primary.btn-block= _("Configure new device")
 
-  h2 My Accounts
+  h2= _("My Accounts")
 
   +device_list(onlineDevices, true, false)
 
   div.row
     div.col-sm-6.col-md-3
-      a(href='/devices/create?class=online').btn.btn-primary.btn-block Add new account
+      a(href='/devices/create?class=online').btn.btn-primary.btn-block= _("Add new account")
 
   div.modal.fade#delete-thingpedia-app-dialog(role='dialog')
     div.modal-dialog
@@ -209,37 +207,36 @@ block content
           a.close(data-dismiss='modal', aria-label="Close")
             span(aria-hidden='true') ×
 
-          h4.modal-title Are you sure?
+          h4.modal-title= _("Are you sure?")
 
         div.modal-body
           div.container-fluid
             div.row
               div.col-xs-12
-                p If you delete your app, all other users will be
-                  | unable to enable it.
-                p This will not affect users who already enabled it.
+                p= _("If you delete your app, all other users will be unable to enable it.")
+                p= _("This will not affect users who already enabled it.")
 
             div.row
               div.col-sm-4
                 form(action='/',method='post')#delete-thingpedia-app-form
                   input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-danger.btn-block Delete App
+                  button(type='submit').btn.btn-danger.btn-block= _("Delete App")
 
               div.col-sm-4
-                button(type='button',data-dismiss='modal').btn.btn-primary.btn-block Cancel
+                button(type='button',data-dismiss='modal').btn.btn-primary.btn-block= _("Cancel")
 
-  h2 My Apps
+  h2= _("My Apps")
 
   if thingpediaInvisible.length > 0
     +thingpedia_apps(thingpediaInvisible, false)
   else
-    p You have not created any app yet.
+    p= _("You have not created any app yet.")
 
   div.row
     div.col-sm-6.col-md-3
-      a(href='/thingpedia/apps/create').btn.btn-primary.btn-block Create a new app
+      a(href='/thingpedia/apps/create').btn.btn-primary.btn-block= _("Create a new app")
 
   if thingpediaVisible.length > 0
-    h2 My Published Apps
+    h2= _("My Published Apps")
     +thingpedia_apps(thingpediaVisible, true)
 

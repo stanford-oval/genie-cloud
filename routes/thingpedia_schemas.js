@@ -282,7 +282,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                     });
 
                     d.code = JSON.stringify(ast);
-                    res.render('thingpedia_schema_edit', { page_title: req._("ThingPedia - edit type"),
+                    res.render('thingpedia_schema_edit', { page_title: req._("ThingPedia - Edit type"),
                                                            csrfToken: req.csrfToken(),
                                                            id: req.params.id,
                                                            schema: d,

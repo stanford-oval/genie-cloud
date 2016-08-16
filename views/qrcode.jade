@@ -2,36 +2,28 @@ extends layout
 
 block page_name
   - index = true;
-  | Error
+  = _("Error")
 
 block content
-  h2 This is not the page you're looking for
+  h2= _("This is not the page you're looking for")
 
   if for_ === 'cloud' && authenticated && user.auth_token !== authToken
     p
-      strong You should not have this link.
-      |  This is a pairing link for a different ThingEngine account than yours.
+      strong= _("You should not have this link.")
+      = _(" This is a pairing link for a different ThingEngine account than yours.")
     p
-      |  If you obtained it by mistake, you should destroy it immediately by clearing
-      |  the browser history and cache, and you should contact whoever gave this link
-      |  that they risk having their account compromised.
+      = _("If you obtained it by mistake, you should destroy it immediately by clearing the browser history and cache, and you should contact whoever gave this link that they risk having their account compromised.")
 
   else
-    p You must open the QR code link with the ThingEngine app, not with your browser.
+    p= _("You must open the QR code link with the ThingEngine app, not with your browser.")
 
     if for_ === 'server'
       if authenticated && user.auth_token !== authToken
         p
-          strong Also, it appears that your server and your current account belong
-            |  to different people.
-          |  This might indicate an error in the linking setup,
-          |  and could impact your ability to link your phone successfully to both.
-          |  You should clear the access information from the server (you can do
-          |  so from the configuration page) and then link it again to this account.
+          strong= _("Also, it appears that your server and your current account belong to different people.")
+          = _(" This might indicate an error in the linking setup, and could impact your ability to link your phone successfully to both.")
+          = _("You should clear the access information from the server (you can do so from the configuration page) and then link it again to this account.")
 
     else if for_ === 'cloud'
       if !authenticated
-        p If you were trying to link your ThingEngine account to your phone, you
-          |  should
-          a(href='/user/login') log in
-          |  first.
+        p!= _("If you were trying to link your ThingEngine account to your phone, you should <a href='/user/login'>log in</a> first.")

@@ -57,7 +57,7 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
         return Q.all([model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en'),
             model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, language)]).spread(function(englishrows, translatedrows) {
             if (englishrows.length === 0 || translatedrows.length === 0)
-                throw new Error(req._("Not Found"));
+                throw new Error(req._("Not Found."));
 
             var english = englishrows[0];
             var translated = translatedrows[0];
@@ -194,7 +194,7 @@ router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
     db.withTransaction(function(dbClient) {
         return model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en').then(function(englishrows) {
             if (englishrows.length === 0)
-                throw new Error(req._("Not Found"));
+                throw new Error(req._("Not Found."));
 
             var english = englishrows[0];
             var translations = {};

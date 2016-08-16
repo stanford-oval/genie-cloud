@@ -7,70 +7,63 @@ block scripts
   script(src='/javascripts/status.js')
 
 block page_name
-  | Status
+  = _("Status")
 
 block content
-  p Status of your ThingEngine: 
+  p= _("Status of your ThingEngine: ")
     if isRunning
-      strong Running
+      strong _("Running")
     else
-      strong Killed
+      strong _("Killed")
 
   if isRunning
     form(action='/status/kill', method='post')
       input(type='hidden',name='_csrf',value=csrfToken)
-      button(type='submit').btn.btn-danger Kill
+      button(type='submit').btn.btn-danger _("Kill")
   else
     form(action='/status/start', method='post')
       input(type='hidden',name='_csrf',value=csrfToken)
-      button(type='submit').btn.btn-danger Start
+      button(type='submit').btn.btn-danger _("Start")
 
   if !isRunning && user.developer_key
-    h2 Recovery options
+    h2= _("Recovery options")
 
     div.row
       div.col-md-3
         form(action='/status/recovery/wipe-cache', method='post')
           input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-danger.btn-block Remove cached modules
+          button(type='submit').btn.btn-danger.btn-block= _("Remove cached modules")
       div.col-md-3
         form(action='/status/recovery/remove-all-apps', method='post')
           input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-danger.btn-block Remove all apps
+          button(type='submit').btn.btn-danger.btn-block= _("Remove all apps")
       div.col-md-3
         form(action='/status/recovery/remove-all-devices', method='post')
           input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-danger.btn-block Remove all devices and accounts
+          button(type='submit').btn.btn-danger.btn-block= _("Remove all devices and accounts")
 
-  h2 Cached Modules
+  h2= _("Cached Modules")
 
   table.table#cached-module-table
     thead
       tr
-        th Name
-        th Version
-        th Generic?
-        th Actions
+        th= _("Name")
+        th= _("Version")
+        th= _("Actions")
     tbody
       each m in modules
         tr
           td= m.name
           td= m.version
           td
-            if m.generic
-              | Yes
-            else
-              | No
-          td
             form(action='/status/update-module/' + m.name, method='post')
               input(type='hidden',name='_csrf',value=csrfToken)
-              button(type='submit').btn.btn-default Update
+              button(type='submit').btn.btn-default= _("Update")
 
   if user.developer_key
-    h2 Logs
+    h2= _("Logs")
     div#log-view
   else
-    p You are not approved developer, so you cannot see the logs of your engine.
-      | &#x20;
-      a(href='/user/request-developer') Apply to be a developer
+    p= _("You are not approved developer, so you cannot see the logs of your engine. ")
+      a(href='/user/request-developer')= _("Apply to be a developer")
       | .

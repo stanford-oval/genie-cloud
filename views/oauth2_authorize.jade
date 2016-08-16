@@ -1,18 +1,17 @@
 extends layout
 
 block page_name
-  | ThingEngine
+  | ThingPedia
 
 block content
-  h1 Authorize application to access your ThingEngine?
+  h1= _("Authorize application to access your ThingPedia?")
 
-  p If you say yes, the application will be allowed full access to your
-    | devices and accounts and will be able to run rules on your behalf.
+  p= _("If you say yes, the application will be allowed full access to your devices and accounts and will be able to run rules on your behalf.")
 
   form(action='/api/oauth2/authorize', method='post').form-inline
     input(name='transaction_id', type='hidden', value=transaction_id)
 
     div.form-group
-      button.btn.btn-success(type='submit').form-control Allow
+      button.btn.btn-success(type='submit').form-control= _("Allow")
       span= " "
-      button.btn.btn-default(type='submit', name='cancel').form-control Deny
+      button.btn.btn-default(type='submit', name='cancel').form-control= _("Deny")
