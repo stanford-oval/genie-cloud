@@ -162,7 +162,7 @@ create table device_schema_arguments (
     -- canonical attribute is to handle splitting "inReplyTo" to become "in reply to"
     -- or "from_channel" to be "from channel"
     canonical tinytext not null,
-    primary key(argname, argtype, language, schema_id, version, channel_name),
+    primary key(language, schema_id, version, channel_name, argname),
     fulltext key(canonical),
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
 ) collate utf8_bin;
