@@ -845,7 +845,7 @@ msgstr "Stato"
 
 #: views/thingpedia_dev_portal.jade:16
 msgid "Your ThingEngine is running. "
-msgstr "Il tuo ThingEngine è in funzione."
+msgstr "Il tuo ThingEngine è in funzione. "
 
 #: views/thingpedia_dev_portal.jade:17 views/thingpedia_dev_portal.jade:21
 msgid "More Details"

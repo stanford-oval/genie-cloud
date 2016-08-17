@@ -12,18 +12,18 @@ block page_name
 block content
   p= _("Status of your ThingEngine: ")
     if isRunning
-      strong _("Running")
+      strong= _("Running")
     else
-      strong _("Killed")
+      strong= _("Killed")
 
   if isRunning
     form(action='/status/kill', method='post')
       input(type='hidden',name='_csrf',value=csrfToken)
-      button(type='submit').btn.btn-danger _("Kill")
+      button(type='submit').btn.btn-danger= _("Kill")
   else
     form(action='/status/start', method='post')
       input(type='hidden',name='_csrf',value=csrfToken)
-      button(type='submit').btn.btn-danger _("Start")
+      button(type='submit').btn.btn-danger= _("Start")
 
   if !isRunning && user.developer_key
     h2= _("Recovery options")
