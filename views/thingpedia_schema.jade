@@ -108,7 +108,7 @@ block content
     p#no-commands= _("This type has no commands.")
 
   div.row#device-details-actions
-    if schema.kind_type === 'other' && authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
+    if schema.kind_type === 'other' && authenticated && (user.developer_status >= 3 || schema.owner === user.developer_org)
       div.col-md-2
         a.btn.btn-warning.btn-block(href='/thingpedia/schemas/update/' + schema.id)= _("Edit")
       div.col-md-2
