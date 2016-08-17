@@ -37,6 +37,10 @@ module.exports = {
         return db.selectAll(client, "select * from example_utterances");
     },
 
+    getAllWithLanguage: function(client, language) {
+        return db.selectAll(client, "select * from example_utterances where language = ?", [language]);
+    },
+
     getBaseByLanguage: function(client, language) {
         return db.selectAll(client, "select * from example_utterances where is_base and"
             + " language = ? order by schema_id, utterance",

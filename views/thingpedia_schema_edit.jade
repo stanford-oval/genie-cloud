@@ -13,9 +13,9 @@ block scripts
 
 block content
   if create
-    h1 Submit a new type
+    h1= _("Submit a new type")
   else
-    h1 Edit type
+    h1= _("Edit type")
 
   div.container
     if error
@@ -27,10 +27,7 @@ block content
             if typeof error === 'string'
               p= error
             else if error.name === 'SyntaxError'
-              if error.location
-                p Syntax error at line #{error.location.start.line} column #{error.location.start.column}: #{error.message}
-              else
-                p Syntax error at #{error.fileName} line #{error.lineNumber}: #{error.message}
+              p= _("Syntax error at %s line %d: %s").format(error.fileName, error.lineNumber, error.message)
             else if error.message
               p= error.message
             else
@@ -42,12 +39,12 @@ block content
           input(type='hidden',name='_csrf',value=csrfToken)
 
           div.form-group
-            label(for='device-kind').control-label Type ID
+            label(for='device-kind').control-label= _("Type ID")
             input(type='text',name='kind',required=true,maxlength=128,value=schema.kind).form-control#device-kind
-            span.help-block The unique id of your type. This should be a short English-like identifier like "thermostat" or "speaker".
+            span.help-block= _("The unique id of your type. This should be a short English-like identifier like “thermostat” or “speaker”.")
 
           div.form-group.hidden
-            label(for='device-code').control-label Schema Manifest
+            label(for='device-code').control-label= _("Type Manifest")
             textarea(name='code',required=true).form-control#device-code #{schema.code}
 
           div#json-manifest-placeholder
@@ -56,7 +53,7 @@ block content
             div.checkbox
               label(for='device-approve').control-label
                 input(type='checkbox',name='approve',value='1',checked=approve)#device-approve
-                |  Approve this schema right away.
+                = _(" Approve this type right away.")
 
           div.form-group
             button(type='submit').btn.btn-primary Submit

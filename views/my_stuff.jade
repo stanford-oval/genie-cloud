@@ -30,7 +30,7 @@ mixin device_list(devices, online, datasource)
             p= dev.description
 
             if !online
-              if dev.ownerTier !== 'cloud'
+              if dev.ownerTier !== 'cloud' && dev.ownerTier !== 'global'
                 p= _("This device is owned by your %s.").format(dev.ownerTier)
 
               if dev.available == 0

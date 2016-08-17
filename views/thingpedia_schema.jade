@@ -4,7 +4,7 @@ block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
 block page_name
-  | Type: #{schema.kind}
+  = _("Type: %s").format(schema.kind)
 
 block content
   if schema.approved_version === null
@@ -13,25 +13,24 @@ block content
         if schema.kind_type === 'other'
           form(action='/thingpedia/schemas/approve/' + schema.id, method='post').form-inline
             input(type='hidden',name='_csrf',value=csrfToken)
-            p.form-group This type is not yet approved.
+            p.form-group= _("This type is not yet approved.")
               | &#x20;
-              button(type='submit').btn.btn-success Approve it
+              button(type='submit').btn.btn-success= _("Approve it")
         else
-          p This type belongs to a device that was not yet approved.
+          p= _("This type belongs to a device that was not yet approved.")
       else
-        p This type is not yet approved for general use. You need
-          |  a developer key to use it.
+        p= _("This type is not yet approved for general use. You need a developer key to use it.")
   else if schema.approved_version !== schema.developer_version && user && user.developer_status >= 3
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
         form(action='/thingpedia/schemas/approve/' + schema.id, method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
-          p.form-group A newer version of this schema was submitted.
+          p.form-group= _("A newer version of this schema was submitted.")
             if schema.kind_type === 'other'
               | &#x20;
-              button(type='submit').btn.btn-success Approve it
+              button(type='submit').btn.btn-success= _("Approve it")
             else
-              |  Go to the corresponding device page to approve it.
+              = _(" Go to the corresponding device page to approve it.")
 
   if !schema.translated
     div.alert.alert-info(role='alert')
@@ -56,16 +55,16 @@ block content
       = _("This type belongs to a specific device, which can be configured and manipulated by recalling the type by name.")
 
   if user && user.developer_org !== null
-    h2.device-subtitle#device-version Version: &#x20;
-      if schema.approved_version === null
-        | none (approved), #{schema.developer_version} (developer)
-      else if schema.approved_version !== schema.developer_version
-        | #{schema.approved_version} (approved), #{schema.developer_version} (developer)
+    h2.device-subtitle#device-version
+      if device.approved_version === null
+        = _("Version: none (approved), %d (developer)").format(device.developer_version)
+      else if device.approved_version !== device.developer_version
+        = _("Version: %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
       else
-        | #{schema.approved_version}
+        = _("Version: %d").format(device.approved_version)
 
   if Object.keys(triggers).length > 0
-    h2.device-subtitle Triggers
+    h2.device-subtitle= _("Triggers")
     ul.device-channels
       for t, name in triggers
         li
@@ -77,7 +76,7 @@ block content
           span.canonical= t.canonical
 
   if Object.keys(queries).length > 0
-    h2.device-subtitle Queries
+    h2.device-subtitle= _("Queries")
     ul.device-channels
       for q, name in queries
         li
@@ -89,7 +88,7 @@ block content
           span.canonical= q.canonical
 
   if Object.keys(actions).length > 0
-    h2.device-subtitle Actions
+    h2.device-subtitle= _("Actions")
     ul.device-channels
       for a, name in actions
         li
@@ -100,7 +99,7 @@ block content
           = _("Canonical: ")
           span.canonical= a.canonical
 
-  h2.device-subtitle Example Commands
+  h2.device-subtitle= _("Example Commands")
   if schema.examples.length > 0
     ul.device-examples
       for e in schema.examples
@@ -111,11 +110,11 @@ block content
   div.row#device-details-actions
     if schema.kind_type === 'other' && authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
       div.col-md-2
-        a.btn.btn-warning.btn-block(href='/thingpedia/schemas/update/' + schema.id) Edit
+        a.btn.btn-warning.btn-block(href='/thingpedia/schemas/update/' + schema.id)= _("Edit")
       div.col-md-2
         form(action='/thingpedia/schemas/delete/' + schema.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-danger.btn-block Delete
+          button(type='submit').btn.btn-danger.btn-block= _("Delete")
     if authenticated && user.locale !== 'en-US' && schema.kind_type !== 'primary'
       div.col-md-2
         a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + schema.kind)= _("Translate")

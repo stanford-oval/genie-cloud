@@ -4,7 +4,7 @@ block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
 block page_name
-  | Translate #{english.kind}
+  = _("Translate %s").format(english.kind)
 
 - var uniqueId = 0;
 

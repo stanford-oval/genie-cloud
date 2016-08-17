@@ -13,9 +13,9 @@ block scripts
 
 block content
   if create
-    h1 Submit a new thing class
+    h1= _("Submit a new thing class")
   else
-    h1 Edit thing class
+    h1= _("Edit thing class")
 
   div.container
     if error
@@ -27,10 +27,7 @@ block content
             if typeof error === 'string'
               p= error
             else if error.name === 'SyntaxError'
-              if error.location
-                p Syntax error at line #{error.location.start.line} column #{error.location.start.column}: #{error.message}
-              else
-                p Syntax error at #{error.fileName} line #{error.lineNumber}: #{error.message}
+              p= _("Syntax error at %s line %d: %s").format(error.fileName, error.lineNumber, error.message)
             else if error.message
               p= error.message
             else
@@ -42,32 +39,32 @@ block content
           input(type='hidden',name='_csrf',value=csrfToken)
 
           div.form-group
-            label(for='device-kind').control-label Thing ID
+            label(for='device-kind').control-label= _("Thing ID")
             input(type='text',name='primary_kind',required=true,maxlength=128,value=device.primary_kind).form-control#device-kind
-            span.help-block The unique name of your device class. This should be a namespaced name like "org.example" or "com.mything".
+            span.help-block= _("The unique name of your device class. This should be a namespaced name like “org.example” or “com.mything”.")
 
           div.form-group
-            label(for='device-name').control-label Thing Name
+            label(for='device-name').control-label= _("Thing Name")
             input(type='text',name='name',required=true,maxlength=255,value=device.name).form-control#device-name
-            span.help-block This will be shown in the ThingPedia catalog.
+            span.help-block= _("This will be shown in the ThingPedia catalog.")
 
           div.form-group
-            label(for='device-description-input').control-label Thing Description
+            label(for='device-description-input').control-label= _("Thing Description")
             textarea(name='description',required=true).form-control#device-description #{device.description}
 
           div.form-group
-            label(for='device-icon').control-label Thing Icon
+            label(for='device-icon').control-label= _("Thing Icon")
             input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#device-icon
 
           div.form-group
-            label(for='device-zipfile').control-label Upload JS module
+            label(for='device-zipfile').control-label= _("Upload JS module")
             input(type='file',name='zipfile')#device-zipfile
 
 
           div.checkbox
             label(for='device-fullcode').control-label
               input(type='checkbox',name='fullcode',value='1',checked=!device.fullcode)#device-fullcode
-              |  The interface requires additional JS code
+              = _(" The interface requires additional JS code")
 
           div.form-group.hidden
             label(for='device-code').control-label Thing Manifest
@@ -84,8 +81,8 @@ block content
             div.checkbox
               label(for='device-approve').control-label
                 input(type='checkbox',name='approve',value='1',checked=approve)#device-approve
-                |  Approve this interface right away.
+                = _(" Approve this interface right away.")
 
           div.form-group
-            button(type='submit').btn.btn-primary Submit
+            button(type='submit').btn.btn-primary= _("Submit")
 

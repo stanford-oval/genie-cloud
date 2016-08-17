@@ -64,11 +64,13 @@ $(function() {
     }
     $('#counter').text(localStorage.getItem('counter') || 0);
 
+    var locale = $('#language').text();
+
     function accept(event) {
         event.preventDefault();
 
         var a = $(this);
-        var url = SEMPRE_URL + '/learn?locale=en';
+        var url = SEMPRE_URL + '/learn?locale=' + locale;
         url += '&sessionId=' + sessionId;
         url += '&q=' + encodeURIComponent(utterance);
         url += '&target=' + encodeURIComponent(a.attr('data-target-json'));
@@ -149,7 +151,7 @@ $(function() {
 
         utterance = $('#utterance').val();
 
-        var url = SEMPRE_URL + '/query?locale=en&long=1';
+        var url = SEMPRE_URL + '/query?locale=' + locale + '&long=1';
         if (sessionId)
             url += '&sessionId=' + sessionId;
         url += '&q=' + encodeURIComponent(utterance);

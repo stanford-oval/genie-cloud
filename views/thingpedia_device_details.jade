@@ -8,9 +8,9 @@ block styles
 
 block page_name
   if online
-    | Account: #{device.name}
+    = _("Account: %s").format(device.name)
   else
-    | Device: #{device.name}
+    = _("Device: %s").format(device.name)
 
 block content
   if device.approved_version === null
@@ -18,20 +18,19 @@ block content
       if user && user.developer_status >= 3
         form(action='/thingpedia/devices/approve/' + device.id, method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
-          p.form-group This device is not yet approved.
+          p.form-group= _("This device is not yet approved.")
             |  
-            button(type='submit').btn.btn-success Approve it
+            button(type='submit').btn.btn-success= _("Approve it")
       else
-        p This device is not yet approved for general use. You need
-          |  a developer key to use it.
+        p= _("This device is not yet approved for general use. You need a developer key to use it.")
   else if device.approved_version !== device.developer_version && user && user.developer_status >= 3
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
         form(action='/thingpedia/devices/approve/' + device.id, method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
-          p.form-group A newer version of this device was submitted.
-            |  
-            button(type='submit').btn.btn-success Approve it
+          p.form-group= _("A newer version of this device was submitted.")
+            | &#x20;
+            button(type='submit').btn.btn-success= _("Approve it")
 
   if !device.translated
     div.alert.alert-info(role='alert')
@@ -49,17 +48,17 @@ block content
 
   if device.primary_kind.startsWith('org.thingpedia.builtin.')
     p
-      i This is a builtin interface in every ThingEngine installation.
+      i= _("This is a builtin interface in every ThingEngine installation.")
 
   if user && user.developer_org !== null
     h2.device-subtitle#device-version= _("Package: ")
-      = device.primary_kind + _(", version ")
+      = device.primary_kind
       if device.approved_version === null
-        | none (approved), #{device.developer_version} (developer)
+        = _(", version none (approved), %d (developer)").format(device.developer_version)
       else if device.approved_version !== device.developer_version
-        | #{device.approved_version} (approved), #{device.developer_version} (developer)
+        = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
       else
-        | #{device.approved_version}
+        = _(", version %d").format(device.approved_version)
 
   if device.global_name
     h2.device-subtitle= _("Name: ")
@@ -83,7 +82,7 @@ block content
   div.clearfix
 
   if triggers.length > 0
-    h2.device-subtitle Triggers
+    h2.device-subtitle= _("Triggers")
     ul.device-channels
       for t in triggers
         li
@@ -99,7 +98,7 @@ block content
             span.canonical= t.canonical
 
   if queries.length > 0
-    h2.device-subtitle Queries
+    h2.device-subtitle= _("Queries")
     ul.device-channels
       for q in queries
         li
@@ -115,7 +114,7 @@ block content
             span.canonical= q.canonical
 
   if actions.length > 0
-    h2.device-subtitle Actions
+    h2.device-subtitle= _("Actions")
     ul.device-channels
       for a in actions
         li
@@ -130,7 +129,7 @@ block content
             = _("Canonical: ")
             span.canonical= a.canonical
 
-  h2.device-subtitle Example Commands
+  h2.device-subtitle= _("Example Commands")
   if device.examples.length > 0
     ul.device-examples
       for e in device.examples
@@ -140,16 +139,16 @@ block content
 
   div.row#device-details-actions
     //div.col-md-2
-      a.btn.btn-default.btn-block(href='/thingpedia/apps/by-device/' + device.id) Find Apps
+      a.btn.btn-default.btn-block(href='/thingpedia/apps/by-device/' + device.id)= _("Find Apps")
     if authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
       div.col-md-2
-        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.id) Update
+        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.id)= _("Update")
       div.col-md-2
         form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-danger.btn-block Delete
+          button(type='submit').btn.btn-danger.btn-block= _("Delete")
     div.col-md-2
-      a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip') Download code
+      a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip')= _("Download code")
     if authenticated && user.locale !== 'en-US' && device.global_name
         div.col-md-2
           a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.global_name)= _("Translate")

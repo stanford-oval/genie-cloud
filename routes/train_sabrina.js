@@ -12,7 +12,8 @@ const router = express.Router();
 
 router.get('/', function(req, res, next) {
     res.render('train_sabrina', {
-        page_title: req._("Train Sabrina")
+        page_title: req._("Train Sabrina"),
+        locale: req.locale
     });
 });
 
