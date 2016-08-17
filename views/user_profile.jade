@@ -5,12 +5,12 @@ block scripts
   script(src='/javascripts/profile.js')
 
 block page_name
-  | User Profile
+  = _("User Profile")
 
 block content
   div.panel.panel-default
     div.panel-heading
-      h2.panel-title Personal information
+      h2.panel-title= _("Personal information")
 
     div.panel-body
       if profile_error
@@ -19,13 +19,8 @@ block content
             span(aria-hidden='true') ×
           if typeof profile_error === 'string'
             p= profile_error
-          else if profile_error.name === 'SyntaxError'
-            if profile_error.location
-              p Syntax error at line #{profile_error.location.start.line} column #{profile_error.location.start.column}: #{profile_error.message}
-            else
-              p Syntax error at #{profile_error.fileName} line #{profile_error.lineNumber}: #{profile_error.message}
           else if profile_error.message
-            p= profile_error.message
+              p= profile_error.message
           else
             p= String(profile_error)
 
@@ -33,48 +28,44 @@ block content
         input(type='hidden',name='_csrf',value=csrfToken)
 
         div.form-group
-          label.control-label(for='username') Username
+          label.control-label(for='username')= _("Username")
           input(type='text',name='username',value=user.username).form-control#username
 
         div.form-group
-          label.control-label E-Mail
+          label.control-label= _("E-Mail")
           p.form-control-static= user.email
 
         div.form-group
-          label.control-label(for='human-name') Real name
+          label.control-label(for='human-name')= _("Real name")
           input(type='text',name='human_name',value=user.human_name).form-control#human-name
-          span.help-block This will be shown next to the apps you decide to publish.
-            |  Leave empty to show your username instead.
+          span.help-block= _("This will be shown next to the apps you decide to publish. Leave empty to show your username instead.")
 
         div.form-group
-          label.control-label ThingPedia Developer Access
+          label.control-label= _("ThingPedia Developer Access")
           if user.developer_status >= 3
-            p.form-control-static Administrator
-            span.help-block You know what to do.
+            p.form-control-static= _("Administrator")
+            span.help-block= _("You know what to do.")
           else if user.developer_status >= 2
-            p.form-control-static Trusted Developer
-            span.help-block All code you submit will go live to all ThingEngines with no review. Be careful!
+            p.form-control-static= _("Trusted Developer")
+            span.help-block= _("All code you submit will go live to all ThingEngines with no review. Be careful!")
           else if user.developer_status >= 1
-            p.form-control-static Developer
-            span.help-block You can submit new thing interfaces, but they have to be reviewed by an administrator before users can see them.
+            p.form-control-static= _("Developer")
+            span.help-block= _("You can submit new thing interfaces, but they have to be reviewed by an administrator before users can see them.")
           else
-            p.form-control-static User (
-              a(href='/user/request-developer') apply to be a developer
-              | )
+            p.form-control-static!= _("User (<a href='/user/request-developer'>apply to be a developer</a>)")
 
         div.form-group
-          label.control-label(for='developer-key') ThingPedia Developer Key
+          label.control-label(for='developer-key')= _("ThingPedia Developer Key")
           p.form-control-static= user.developer_key
           span.help-block
-            | You can use this developer key in other ThingEngines (such as one you&apos;re running
-            | locally for testing) to access your devices before they are approved.
+            = _("You can use this developer key in other ThingEngines (such as one you're running locally for testing) to access your devices before they are approved.")
 
         div.form-group
-          button(type='submit').btn.btn-primary Update profile
+          button(type='submit').btn.btn-primary= _("Update profile")
 
   div.panel.panel-default
     div.panel-heading
-      h2.panel-title Access information
+      h2.panel-title= _("Access information")
 
     div.panel-body
       if pw_error
@@ -83,13 +74,8 @@ block content
             span(aria-hidden='true') ×
           if typeof pw_error === 'string'
             p= pw_error
-          else if pw_error.name === 'SyntaxError'
-            if pw_error.location
-              p Syntax error at line #{pw_error.location.start.line} column #{pw_error.location.start.column}: #{pw_error.message}
-            else
-              p Syntax error at #{pw_error.fileName} line #{pw_error.lineNumber}: #{pw_error.message}
           else if pw_error.message
-            p= pw_error.message
+              p= pw_error.message
           else
             p= String(pw_error)
 
@@ -97,43 +83,42 @@ block content
         input(type='hidden',name='_csrf',value=csrfToken)
 
         if !user.password
-          p.alert.alert-warning You did not configure a password. You should provide one, in
-            | case you lose access to the account you logged in with.
+          p.alert.alert-warning= _("You did not configure a password. You should provide one, in case you lose access to the account you logged in with.")
           div.form-group
-            label(for='password').control-label Password
+            label(for='password').control-label= _("Password")
             input(type='password',name='password',value='',maxlength=255,minlength=8,data-minlength=8).form-control#password
-            span.help-block Minimum of 8 characters
+            span.help-block= _("Minimum of 8 characters")
           div.form-group#confirm-password-group
-            label(for='confirm-password').control-label Confirm password
-            input(type='password',name='confirm-password',value='',data-match='#password',data-match-error="The password and the confirmation must match").form-control#confirm-password
+            label(for='confirm-password').control-label= _("Confirm password")
+            input(type='password',name='confirm-password',value='',data-match='#password',data-match-error=_("The password and the confirmation must match")).form-control#confirm-password
             span.help-block.with-errors
         else
           div.form-group
-            label(for='old-password').control-label Old Password
+            label(for='old-password').control-label= _("Old Password")
             input(type='password',name='old_password',value='',required=true,maxlength=255,minlength=8,data-minlength=8).form-control#old-password
           div.form-group
-            label(for='password').control-label Password
+            label(for='password').control-label= _("Password")
             input(type='password',name='password',value='',required=true,maxlength=255,minlength=8,data-minlength=8).form-control#password
-            span.help-block Minimum of 8 characters
+            span.help-block= _("Minimum of 8 characters")
           div.form-group#confirm-password-group
-            label(for='confirm-password').control-label Confirm password
-            input(type='password',name='confirm-password',value='',required=true,data-match='#password',data-match-error="The password and the confirmation must match").form-control#confirm-password
+            label(for='confirm-password').control-label= _("Confirm password")
+            input(type='password',name='confirm-password',value='',required=true,data-match='#password',data-match-error=_("The password and the confirmation must match")).form-control#confirm-password
             span.help-block.with-errors
 
         div.form-group
-          button(type='submit').btn.btn-primary Change password
+          button(type='submit').btn.btn-primary= _("Change password")
 
       if !user.google_id || !user.facebook_id
         p
           if !user.google_id
-            a.btn.btn-default(href='/devices/oauth2/com.google') Configure login with Google
+            a.btn.btn-default(href='/devices/oauth2/com.google')= _("Configure login with Google")
           if !user.google_id && !user.facebook_id
             |  
           if !user.facebook_id
-            a.btn.btn-default(href='/devices/oauth2/com.facebook') Configure login with Facebook
+            a.btn.btn-default(href='/devices/oauth2/com.facebook')= _("Configure login with Facebook")
 
       p
-        a.btn.btn-danger(data-toggle='modal', data-target='#delete-account-dialog') Delete account
+        a.btn.btn-danger(data-toggle='modal', data-target='#delete-account-dialog')= _("Delete account")
 
         div.modal.fade#delete-account-dialog(role='dialog')
           div.modal-dialog
@@ -142,56 +127,52 @@ block content
                 a.close(data-dismiss='modal', aria-label="Close")
                   span(aria-hidden='true') ×
 
-                h4.modal-title Are you sure you want to delete your account?
+                h4.modal-title= _("Are you sure you want to delete your account?")
 
               div.modal-body
-                p Deleting the account is an irreversible operation. All the data
-                  | stored on the server will be lost permanently.
+                p= _("Deleting the account is an irreversible operation. All the data stored on the server will be lost permanently.")
 
                 if server.isConfigured || phone.isConfigured
-                  p You will need to relink your server or phone if you make a new
-                    | account, but you will not lose the data stored in them.
+                  p= _("You will need to relink your server or phone if you make a new account, but you will not lose the data stored in them.")
 
                 form(action='/user/delete', method='post')
                   input(type='hidden',name='_csrf',value=csrfToken)
 
                   div.form-group
-                    button(type='submit').btn.btn-danger Yes, I want to delete my account
+                    button(type='submit').btn.btn-danger= _("Yes, I want to delete my account")
                     |  
-                    a.btn.btn-default(data-dismiss='modal') No, I changed my mind
+                    a.btn.btn-default(data-dismiss='modal')= _("No, I changed my mind")
 
-  div.panel.panel-default
+  //div.panel.panel-default
     div.panel-heading
-      h2.panel-title Server
+      h2.panel-title= _("Server")
 
     div.panel-body
       if server.isConfigured
-        p You linked a ThingEngine Server at #{server.name}, port #{server.port}.
+        p= _("You linked a ThingEngine Server at %s, port %d.").format(server.name, server.port)
         p
           form.form-inline(action='/user/unpair/server',method="post")
             input(type='hidden',name='_csrf',value=csrfToken)
-            button(type='submit').btn.btn-danger Unpair
+            button(type='submit').btn.btn-danger= _("Unpair")
       else
-        p You did not link a ThingEngine Server. If you want to link one, you should open
-          |  its configuration page and enter your credentials in the Cloud section.
+        p= _("You did not link a ThingEngine Server. If you want to link one, you should open its configuration page and enter your credentials in the Cloud section.")
 
   div.panel.panel-default
     div.panel-heading
-      h2.panel-title Phone
+      h2.panel-title= _("Phone")
 
     div.panel-body
       if phone.isConfigured
-        p You are running a ThingEngine in your phone.
+        p= _("You are running a ThingEngine in your phone.")
       else
-        p You did not link the ThingEngine in your phone to your account.
+        p= _("You did not link the ThingEngine in your phone to your account.")
         div#config-phone-desktop-browser
-          p If you are not running ThingEngine already, first 
-            a(href='http://web.stanford.edu/~gcampagn/misc/thingengine.apk') download the app
-            | . Then visit this page on a mobile browser, or scan this QR code.
+          p!= _("If you are not running ThingEngine already, first <a href='https://rink.hockeyapp.net/apps/d6e09574c0f9434e8e20e8d8f2234285'>download the app</a>.")
+            = _(" Then visit this page on a mobile browser, or scan this QR code.")
 
             div#qrcode-target= phone.qrcodeTarget
             div#qrcode-placeholder
 
         p#config-phone-mobile-browser(aria-hidden='true')
-          a(href=phone.qrcodeTarget).btn.btn-primary Configure
+          a(href=phone.qrcodeTarget).btn.btn-primary= _("Configure")
 

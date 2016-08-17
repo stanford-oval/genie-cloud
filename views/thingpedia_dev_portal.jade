@@ -7,23 +7,23 @@ block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
 block page_name
-  | Developer Portal
+  = _("Developer Portal")
 
 block content
   if authenticated
-    h2 Status
+    h2= _("Status")
     if isRunning
-      p Your ThingEngine is running.&#x20;
-        a(href="/status") More Details
+      p= _("Your ThingEngine is running. ")
+        a(href="/status")= _("More Details")
         | .
     else
-      p Your ThingEngine is dead.&#x20;
-        a(href="/status") More Details
+      p= _("Your ThingEngine is dead. ")
+        a(href="/status")= _("More Details")
         | .
 
-  h2 Documentation
+  h2= _("Documentation")
 
-  h3 ThingPedia documentation
+  h3= _("ThingPedia documentation")
 
   ul
     li
@@ -35,7 +35,7 @@ block content
     li
       a(href='/doc/thingtalk-reference.md') ThingTalk Reference
 
-  h3 Academic papers
+  h3= _("Academic papers")
 
   ul
     li
@@ -46,7 +46,7 @@ block content
       br
       i Work in progress
 
-  h2 Supported Interfaces
+  h2= _("Supported Interfaces")
 
   div.row
     each dev, i in devices
@@ -66,29 +66,27 @@ block content
           if authenticated && (user.developer_status >= 3 || dev.owner === user.developer_org)
             div.panel-footer
               div.row
-                //div.col-md-6
-                  a.btn.btn-sm.btn-default.btn-block(href='/thingpedia/apps/by-device/' + dev.id) Find Apps
                 div.col-md-6
-                  a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id) Update
+                  a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id)= _("Update")
 
                 div.col-md-6
                   form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
                     input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-sm.btn-danger.btn-block Delete
+                    button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
 
   nav
     ul.pager
       if page_num > 0
         li
-          a(href='/thingpedia/devices?page=' + (page_num-1)) Previous
+          a(href='/thingpedia/devices?page=' + (page_num-1))= _("Previous")
       if devices.length >= 18
         li
-          a(href='/thingpedia/devices?page=' + (page_num+1)) Next
+          a(href='/thingpedia/devices?page=' + (page_num+1))= _("Next")
 
   div.row
     div.col-sm-6.col-md-3
-      a(href='/thingpedia/upload/create').btn.btn-primary.btn-block Upload new interface
+      a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload new interface")
     if authenticated && user.developer_status >= 3
       div.col-sm-6.col-md-3
-        a(href='/thingpedia/schemas/create').btn.btn-default.btn-block Create a new type
+        a(href='/thingpedia/schemas/create').btn.btn-default.btn-block= _("Create a new type")
 
