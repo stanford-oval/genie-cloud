@@ -150,6 +150,7 @@ Frontend.prototype._init = function _init() {
         if (!lang)
             lang = languages['en-US'];
 
+        req.locale = locale;
         req.gettext = lang.gettext;
         req._ = req.gettext;
         req.pgettext = lang.pgettext;

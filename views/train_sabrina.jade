@@ -24,6 +24,8 @@ block content
       p= _("A few suggestions to start:")
       ul#suggestions-placeholder
       button.btn.btn-default.btn-sm(type="button")#more-suggestions= _("More suggestions")
+  p.hidden
+    Language <span id="language">#{locale}</span>
   div#form
     form
       label.sr-only(for="utterance")= _("Utterance:")
