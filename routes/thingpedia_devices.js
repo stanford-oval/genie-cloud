@@ -100,6 +100,7 @@ function getDetails(fn, param, req, res) {
                             obj.params = [];
                         obj.schema = ast.triggers[t].schema;
                         obj.doc = ast.triggers[t].doc;
+                        obj.canonical = ast.triggers[t].canonical;
                         triggers.push(obj);
                     }
                 }
@@ -116,6 +117,7 @@ function getDetails(fn, param, req, res) {
                             obj.params = [];
                         obj.schema = ast.actions[a].schema;
                         obj.doc = ast.actions[a].doc;
+                        obj.canonical = ast.actions[a].canonical;
                         actions.push(obj);
                     }
                 }
@@ -132,6 +134,7 @@ function getDetails(fn, param, req, res) {
                             obj.params = [];
                         obj.schema = ast.queries[q].schema;
                         obj.doc = ast.queries[q].doc;
+                        obj.canonical = ast.queries[q].canonical;
                         queries.push(obj);
                     }
                 }
