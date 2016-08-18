@@ -56,12 +56,12 @@ block content
 
   if user && user.developer_org !== null
     h2.device-subtitle#device-version
-      if device.approved_version === null
-        = _("Version: none (approved), %d (developer)").format(device.developer_version)
-      else if device.approved_version !== device.developer_version
-        = _("Version: %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
+      if schema.approved_version === null
+        = _("Version: none (approved), %d (developer)").format(schema.developer_version)
+      else if schema.approved_version !== schema.developer_version
+        = _("Version: %d (approved), %d (developer)").format(schema.approved_version, schema.developer_version)
       else
-        = _("Version: %d").format(device.approved_version)
+        = _("Version: %d").format(schema.approved_version)
 
   if Object.keys(triggers).length > 0
     h2.device-subtitle= _("Triggers")
