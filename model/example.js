@@ -53,8 +53,11 @@ module.exports = {
         return db.selectAll(client, "select eu.*, ds.kind from example_utterances eu, device_schema ds where"
             + " eu.schema_id = ds.id and eu.is_base = ? and language = ? and  match utterance against"
             + " (? in natural language mode) union distinct (select eu.*, ds.kind from example_utterances eu,"
-            + " device_schema ds where eu.schema_id = ds.id and eu.is_base = ? and language = ? and ds.kind in (?))",
-            [base, language, key, base, language, tokens]);
+            + " device_schema ds where eu.schema_id = ds.id and eu.is_base = ? and language = ? and ds.kind in (?))"
+            + " union distinct (select eu.*, ds.kind from example_utterances eu, device_schema ds where eu.schema_id ="
+            + " ds.id and eu.is_base = ? and language = ? and ds.kind in (select kind from device_class dc,"
+            + " device_class_kind dck where dc.global_name in (?) and dc.id = dck.device_id and dck.is_child))",
+            [base, language, key, base, language, tokens, base, language, tokens]);
     },
 
     getByKinds: function(client, base, kinds, language) {
