@@ -135,9 +135,15 @@ const SPECIAL_TO_GRAMMAR = {
 
 }
 const COMMAND_TO_GRAMMAR = {
+    configure: 'configure',
+    list: 'list',
+    discover: 'discover',
+    help: 'help'
+};
+const LIST_TO_GRAMMAR = {
     device: 'devices',
     query: 'queries',
-    command: 'commands'
+    command: 'commands',
 }
 
 function argToCanonical(grammar, buffer, arg) {
@@ -184,8 +190,12 @@ function reconstructCanonical(dbClient, grammar, language, json) {
 
         if (parsed.command.value.value === 'generic')
             return buffer.join(' ');
-
-        buffer.push(parsed.command.value.id.substr('tt:device.'.length));
+        if (parsed.command.type === 'configure' || parsed.command.type === 'help' ||
+            parsed.command.type === 'discover') {
+            buffer.push(parsed.command.value.id.substr('tt:device.'.length));
+        } else {
+            buffer.push(grammar[LIST_TO_GRAMMAR[parsed.command.value.value]]);
+        }
         return buffer.join(' ');
     }
     if (parsed.answer) {
