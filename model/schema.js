@@ -22,8 +22,11 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
         var argnames = meta.args || types.map((t, i) => 'arg' + (i+1));
         var required = meta.required;
         var argcanonicals = meta.argcanonicals;
+        var keywords = ''; // for now
 
-        channelCanonicals.push([schemaId, version, language, name, canonical, confirmation, JSON.stringify(questions)]);
+        channelCanonicals.push([schemaId, version, language, name, canonical, confirmation,
+                                JSON.stringify(argcanonicals), JSON.stringify(questions),
+                                keywords]);
         argnames.forEach(function(argname, i) {
             var argtype = types[i];
             var argrequired = required[i] || false;
@@ -36,7 +39,7 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
         return Q();
 
     return db.insertOne(dbClient, 'replace into device_schema_channel_canonicals(schema_id, version, language, name, '
-            + 'canonical, confirmation, questions) values ?', [channelCanonicals]).then(() => {
+            + 'canonical, confirmation, argcanonicals, questions, keywords) values ?', [channelCanonicals]).then(() => {
             if (argobjects.length > 0)
                 return db.insertOne(dbClient, 'replace into device_schema_arguments(argname, argtype, required, schema_id, version, '
                 + 'language, channel_name, canonical) values ?', [argobjects]);
@@ -55,20 +58,25 @@ function insertChannels(dbClient, schemaId, schemaKind, version, language, types
             var confirmation = (meta ? (meta.confirmation || meta.label) : null) || null;
             var types = from[name];
             var argnames = meta ? meta.args : types.map((t, i) => 'arg' + (i+1));
+            var argcanonicals = argnames.map(function(argname) {
+                // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
+                return argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+            });
             var questions = (meta ? meta.questions : null) || [];
             var required = (meta ? meta.required : null) || [];
             var doc = meta ? meta.doc : '';
+            var keywords = ''; // for now
             channels.push([schemaId, version, name, what, doc,
                            JSON.stringify(types), JSON.stringify(argnames), JSON.stringify(required)]);
-            channelCanonicals.push([schemaId, version, language, name, canonical, confirmation, JSON.stringify(questions)]);
+            channelCanonicals.push([schemaId, version, language, name, canonical, confirmation,
+                                    JSON.stringify(argcanonicals), JSON.stringify(questions), keywords]);
 
             argnames.forEach(function(argname, i) {
                 var argtype = types[i];
+                var argcanonical = argcanonicals[i];
                 var argrequired = required[i] || false;
 
-                // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
-                var canonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-                argobjects.push([argname, argtype, argrequired, schemaId, version, language, name, canonical]);
+                argobjects.push([argname, argtype, argrequired, schemaId, version, language, name, argcanonical]);
             });
         }
     }
@@ -84,7 +92,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, language, types
         + 'channel_type, doc, types, argnames, required) values ?', [channels])
         .then(() => {
             return db.insertOne(dbClient, 'insert into device_schema_channel_canonicals(schema_id, version, language, name, '
-            + 'canonical, confirmation, questions) values ?', [channelCanonicals]);
+            + 'canonical, confirmation, argcanonicals, questions, keywords) values ?', [channelCanonicals]);
         }).then(() => {
             if (argobjects.length > 0)
                 return db.insertOne(dbClient, 'insert into device_schema_arguments(argname, argtype, required, schema_id, version, '
@@ -211,7 +219,7 @@ module.exports = {
         return Q.try(function() {
             if (org !== null) {
                 return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
-                                    + " argnames, required, questions, id, kind, kind_type, owner, developer_version,"
+                                    + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                     + " and ((dsc.version = ds.developer_version and ds.owner = ?) or"
@@ -221,7 +229,7 @@ module.exports = {
                                     [org, org, language, kinds]);
             } else {
                 return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
-                                    + " argnames, required, questions, id, kind, kind_type, owner, developer_version,"
+                                    + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                     + " and dsc.version = ds.approved_version "
@@ -256,6 +264,7 @@ module.exports = {
                     confirmation: row.confirmation || row.doc,
                     doc: row.doc,
                     canonical: row.canonical || '',
+                    argcanonicals: JSON.parse(row.argcanonicals) || [],
                     questions: JSON.parse(row.questions) || [],
                     required: JSON.parse(row.required)
                 };
