@@ -54,7 +54,9 @@ function insertChannels(dbClient, schemaId, schemaKind, version, language, types
     function makeList(what, from, fromMeta) {
         for (var name in from) {
             var meta = fromMeta[name];
-            var canonical = meta && meta.canonical ? (meta.canonical + ' on ' + schemaKind) : null;
+            // convert security-camera to 'security camera' and googleDrive to 'google drive'
+            var kindCanonical = schemaKind.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+            var canonical = meta && meta.canonical ? (meta.canonical + ' on ' + kindCanonical) : null;
             var confirmation = (meta ? (meta.confirmation || meta.label) : null) || null;
             var types = from[name];
             var argnames = meta ? meta.args : types.map((t, i) => 'arg' + (i+1));
