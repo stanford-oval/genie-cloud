@@ -129,12 +129,21 @@ const SPECIAL_TO_GRAMMAR = {
     sorry: 'sorry',
     cool: 'cool',
     nevermind: 'never_mind',
-    failed: 'failuretoparse'
+    failed: 'failuretoparse',
+    yes: 'yes',
+    no: 'no'
+
 }
 const COMMAND_TO_GRAMMAR = {
+    configure: 'configure',
+    list: 'list',
+    discover: 'discover',
+    help: 'help'
+};
+const LIST_TO_GRAMMAR = {
     device: 'devices',
     query: 'queries',
-    command: 'commands'
+    command: 'commands',
 }
 
 function argToCanonical(grammar, buffer, arg) {
@@ -168,7 +177,7 @@ function reconstructCanonical(dbClient, grammar, language, json) {
     var parsed = JSON.parse(json);
 
     if (parsed.special) {
-        var token = SPECIAL_TO_GRAMMAR[parsed.special.id.substr('tt:root.special.'.length)]
+        var token = SPECIAL_TO_GRAMMAR[parsed.special.id.substr('tt:root.special.'.length)];
         if (token === 'failuretoparse' || token === 'debug')
             return token;
         else
@@ -181,8 +190,12 @@ function reconstructCanonical(dbClient, grammar, language, json) {
 
         if (parsed.command.value.value === 'generic')
             return buffer.join(' ');
-
-        buffer.push(parsed.command.value.id.substr('tt:device.'.length));
+        if (parsed.command.type === 'configure' || parsed.command.type === 'help' ||
+            parsed.command.type === 'discover') {
+            buffer.push(parsed.command.value.id.substr('tt:device.'.length));
+        } else {
+            buffer.push(grammar[LIST_TO_GRAMMAR[parsed.command.value.value]]);
+        }
         return buffer.join(' ');
     }
     if (parsed.answer) {
@@ -270,12 +283,14 @@ function main() {
     _schemaRetriever = new SchemaRetriever(new ThingPediaClient(undefined, language));
 
     db.withClient((dbClient) => {
+        var promises = [];
+
         return exampleModel.getAllWithLanguage(dbClient, language).then((examples) => {
-            return Q.all(examples.map((ex) => {
+            examples.forEach((ex) => {
                 if (ex.is_base)
                     return;
 
-                return Q.try(function() {
+                promises.push(Q.try(function() {
                     return reconstructCanonical(dbClient, grammar, language, ex.target_json);
                 }).then(function(reconstructed) {
                     output.write(ex.utterance);
@@ -284,36 +299,35 @@ function main() {
                     output.write('\n');
                 }).catch((e) => {
                     console.error('Failed to handle ' + ex.utterance + ': ' + e.message);
-                });
-            }));
+                }));
+            });
         }).then(() => {
             if (onlineLearn === null) {
                 return;
             }
 
-            var promises = [];
-            onlineLearn.on('data', (data) => {
-                var line = data.split(/\t/);
-                var utterance = line[0];
-                var target_json = line[1];
-                promises.push(Q.try(function() {
-                    return reconstructCanonical(dbClient, grammar, language, target_json);
-                }).then(function(reconstructed) {
-                    output.write(utterance);
-                    output.write('\t');
-                    output.write(reconstructed);
-                    output.write('\n');
-                }).catch((e) => {
-                    console.error('Failed to handle ' + utterance + ': ' + e.message);
-                }));
-            });
-
             return Q.Promise(function(callback, errback) {
+                onlineLearn.on('data', (data) => {
+                    var line = data.split(/\t/);
+                    var utterance = line[0];
+                    var target_json = line[1];
+                    promises.push(Q.try(function() {
+                        return reconstructCanonical(dbClient, grammar, language, target_json);
+                    }).then(function(reconstructed) {
+                        output.write(utterance);
+                        output.write('\t');
+                        output.write(reconstructed);
+                        output.write('\n');
+                    }).catch((e) => {
+                        console.error('Failed to handle ' + utterance + ': ' + e.message);
+                    }));
+                });
+
                 onlineLearn.on('end', () => callback());
                 onlineLearn.on('error', errback);
-            }).then(function() {
-                return Q.all(promises);
             });
+        }).then(function() {
+            return Q.all(promises);
         });
     }).finally(() => {
         output.end();

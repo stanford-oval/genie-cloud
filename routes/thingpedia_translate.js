@@ -139,14 +139,11 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
                 }
 
                 english[what][name].args.forEach(function(argname, i) {
-                    // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
-                    var canonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-
                     out[what][name].args.push({
                         id: argname,
                         name: {
-                            english: canonical,
-                            translated: translated[what][name].args[i]
+                            english: english[what][name].argcanonicals[i],
+                            translated: translated[what][name].argcanonicals[i]
                         },
                         question: {
                             english: english[what][name].questions[i],
@@ -216,7 +213,7 @@ router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
                     var argcanonicals = [];
                     english[what][name].args.forEach(function(argname, i) {
                         argcanonicals[i] = req.body[what + '_argname_' + argname + '_' + name] ||
-                            argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+                            english[what][name].argcanonicals[i] || argname;
                     });
 
                     translations[name] = {

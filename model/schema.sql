@@ -142,12 +142,14 @@ create table device_schema_channel_canonicals (
     version integer not null,
     language char(15) not null default 'en',
     name varchar(128) not null,
-    canonical text null collate utf8_general_ci,
+    canonical text not null collate utf8_general_ci,
     confirmation varchar(255) collate utf8_general_ci default null,
+    argcanonicals mediumtext not null collate utf8_general_ci,
     questions mediumtext not null collate utf8_general_ci,
+    keywords mediumtext not null collate utf8_general_ci,
     primary key(schema_id, version, language, name),
     key canonical_btree (canonical(30)),
-    fulltext key(canonical)
+    fulltext key(canonical, keywords)
 ) collate utf8_bin;
 
 create table device_schema_arguments (
