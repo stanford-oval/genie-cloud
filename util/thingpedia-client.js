@@ -319,5 +319,6 @@ module.exports = class ThingPediaClientCloud {
 }
 module.exports.prototype.$rpcMethods = ['getModuleLocation', 'getDeviceCode',
                                         'getSchemas', 'getMetas',
-                                        'getDeviceSetup',
-                                        'getKindByDiscovery', 'getExamplesByKey'];
+                                        'getDeviceSetup', 'getDeviceFactories',
+                                        'getKindByDiscovery',
+                                        'getExamplesByKinds', 'getExamplesByKey'];
