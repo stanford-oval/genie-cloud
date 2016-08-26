@@ -5,6 +5,7 @@
 // Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 require('thingengine-core/lib/polyfill');
 
@@ -12,12 +13,68 @@ const Q = require('q');
 const fs = require('fs');
 const byline = require('byline');
 
-const ThingTalk = require('thingtalk');
-
 const db = require('../util/db');
+const schema = require('../model/schema');
 const exampleModel = require('../model/example');
-const ThingPediaClient = require('../util/thingpedia-client');
-const SchemaRetriever = ThingTalk.SchemaRetriever;
+
+// A copy of ThingTalk SchemaRetriever
+// that uses schema.getDeveloperMetas instead of ThingPediaClient
+// (and also ignore builtins)
+class SchemaRetriever {
+    constructor(dbClient, language) {
+        this._metaRequest = null;
+        this._pendingMetaRequests = [];
+        this._metaCache = {};
+
+        this._dbClient = dbClient;
+        this._language = language;
+    }
+
+    _ensureMetaRequest() {
+        if (this._metaRequest !== null)
+            return;
+
+        this._metaRequest = Q.delay(0).then(() => {
+            var pending = this._pendingMetaRequests;
+            this._pendingMetaRequests = [];
+            this._metaRequest = null;
+            console.log('Batched schema-meta request for ' + pending);
+            return schema.getDeveloperMetas(this._dbClient, pending, this._language);
+        }).then((rows) => {
+            rows.forEach((row) => {
+                this._metaCache[row.kind] = {
+                    triggers: row.triggers,
+                    actions: row.actions,
+                    queries: row.queries
+                };
+            });
+            return this._metaCache;
+        });
+    }
+
+    _getFullMeta(kind) {
+        if (kind in this._metaCache)
+            return Q(this._metaCache[kind]);
+
+        if (this._pendingMetaRequests.indexOf(kind) < 0)
+            this._pendingMetaRequests.push(kind);
+        this._ensureMetaRequest();
+        return this._metaRequest.then(function(everything) {
+            if (kind in everything)
+                return everything[kind];
+            else
+                throw new Error('Invalid kind ' + kind);
+        });
+    }
+
+    getMeta(kind, where, name) {
+        return this._getFullMeta(kind).then((fullSchema) => {
+            if (!(name in fullSchema[where]))
+                throw new Error("Schema " + kind + " has no " + where + " " + name);
+            return fullSchema[where][name];
+        });
+    }
+}
 
 var _schemaRetriever;
 
@@ -232,41 +289,37 @@ function reconstructCanonical(dbClient, grammar, language, json) {
     return _schemaRetriever.getMeta(kind, schemaType, channelName).then(function(meta) {
         buffer.push(meta.canonical);
 
-        return db.selectAll(dbClient, "select argname, canonical from device_schema join device_schema_arguments on"
-            + " id = schema_id and version = approved_version where kind = ? and language = ? and channel_name = ?",
-            [kind, language, channelName]).then(function(argrows) {
-            var argmap = {};
-            argrows.forEach(function(arg) {
-                argmap[arg.argname] = arg.canonical;
-            });
-
-            args.forEach(function(arg) {
-                buffer.push(grammar.with);
-                buffer.push('arg');
-
-                var match = /^tt[:\.]param\.(.+)$/.exec(arg.name.id);
-                if (match === null)
-                    throw new TypeError('Argument name not in proper format, is ' + arg.name.id);
-                var argname = match[1];
-
-                var argcanonical;
-                if (argname in argmap)
-                    argcanonical = argmap[argname];
-                else
-                    argcanonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-                buffer.push(argcanonical);
-
-                if (arg.operator === '<')
-                    buffer.push(grammar.is_less_than);
-                else if (arg.operator === '>')
-                    buffer.push(grammar.is_greater_than);
-                else
-                    buffer.push(grammar[arg.operator]);
-                argToCanonical(grammar, buffer, arg);
-            });
-
-            return buffer.join(' ');
+        var argmap = {};
+        meta.argcanonicals.forEach(function(argcanonical, i) {
+            argmap[meta.args[i]] = argcanonical || meta.args[i];
         });
+
+        args.forEach(function(arg) {
+            buffer.push(grammar.with);
+            buffer.push('arg');
+
+            var match = /^tt[:\.]param\.(.+)$/.exec(arg.name.id);
+            if (match === null)
+                throw new TypeError('Argument name not in proper format, is ' + arg.name.id);
+            var argname = match[1];
+
+            var argcanonical;
+            if (argname in argmap)
+                argcanonical = argmap[argname];
+            else
+                argcanonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+            buffer.push(argcanonical);
+
+            if (arg.operator === '<')
+                buffer.push(grammar.is_less_than);
+            else if (arg.operator === '>')
+                buffer.push(grammar.is_greater_than);
+            else
+                buffer.push(grammar[arg.operator]);
+            argToCanonical(grammar, buffer, arg);
+        });
+
+        return buffer.join(' ');
     });
 }
 
@@ -280,9 +333,9 @@ function main() {
     var grammar = GRAMMAR_TOKENS[language];
     if (!grammar)
         throw new Error('Invalid language ' + language);
-    _schemaRetriever = new SchemaRetriever(new ThingPediaClient(undefined, language));
 
     db.withClient((dbClient) => {
+        _schemaRetriever = new SchemaRetriever(dbClient, language);
         var promises = [];
 
         return exampleModel.getAllWithLanguage(dbClient, language).then((examples) => {

@@ -141,6 +141,58 @@ function update(client, id, kind, schema, types, meta) {
         });
 }
 
+function processMetaRows(rows) {
+    var out = [];
+    var current = null;
+    rows.forEach(function(row) {
+        if (current == null || current.kind !== row.kind) {
+            current = {
+                id: row.id,
+                kind: row.kind,
+                kind_type: row.kind_type,
+                owner: row.owner,
+                developer_version: row.developer_version,
+                approved_version: row.approved_version
+            };
+            current.triggers = {};
+            current.queries = {};
+            current.actions = {};
+            out.push(current);
+        }
+        if (row.channel_type === null)
+            return;
+        var types = JSON.parse(row.types);
+        var obj = {
+            schema: types,
+            args: JSON.parse(row.argnames),
+            confirmation: row.confirmation || row.doc,
+            doc: row.doc,
+            canonical: row.canonical || '',
+            argcanonicals: JSON.parse(row.argcanonicals) || [],
+            questions: JSON.parse(row.questions) || [],
+            required: JSON.parse(row.required)
+        };
+        if (obj.args.length < types.length) {
+            for (var i = obj.args.length; i < types.length; i++)
+                obj.args[i] = 'arg' + (i+1);
+        }
+        switch (row.channel_type) {
+        case 'action':
+            current.actions[row.name] = obj;
+            break;
+        case 'trigger':
+            current.triggers[row.name] = obj;
+            break;
+        case 'query':
+            current.queries[row.name] = obj;
+            break;
+        default:
+            throw new TypeError();
+        }
+    });
+    return out;
+}
+
 module.exports = {
     get: function(client, id) {
         return db.selectOne(client, "select * from device_schema where id = ?", [id]);
@@ -238,55 +290,22 @@ module.exports = {
                                     [language, kinds]);
             }
         }).then(function(rows) {
-            var out = [];
-            var current = null;
-            rows.forEach(function(row) {
-                if (current == null || current.kind !== row.kind) {
-                    current = {
-                        id: row.id,
-                        kind: row.kind,
-                        kind_type: row.kind_type,
-                        owner: row.owner,
-                        developer_version: row.developer_version,
-                        approved_version: row.approved_version
-                    };
-                    current.triggers = {};
-                    current.queries = {};
-                    current.actions = {};
-                    out.push(current);
-                }
-                if (row.channel_type === null)
-                    return;
-                var types = JSON.parse(row.types);
-                var obj = {
-                    schema: types,
-                    args: JSON.parse(row.argnames),
-                    confirmation: row.confirmation || row.doc,
-                    doc: row.doc,
-                    canonical: row.canonical || '',
-                    argcanonicals: JSON.parse(row.argcanonicals) || [],
-                    questions: JSON.parse(row.questions) || [],
-                    required: JSON.parse(row.required)
-                };
-                if (obj.args.length < types.length) {
-                    for (var i = obj.args.length; i < types.length; i++)
-                        obj.args[i] = 'arg' + (i+1);
-                }
-                switch (row.channel_type) {
-                case 'action':
-                    current.actions[row.name] = obj;
-                    break;
-                case 'trigger':
-                    current.triggers[row.name] = obj;
-                    break;
-                case 'query':
-                    current.queries[row.name] = obj;
-                    break;
-                default:
-                    throw new TypeError();
-                }
-            });
-            return out;
+            return processMetaRows(rows);
+        });
+    },
+
+    getDeveloperMetas: function(client, kinds, language) {
+        return Q.try(function() {
+            return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
+                                + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, developer_version,"
+                                + " approved_version from device_schema ds"
+                                + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
+                                + " and dsc.version = ds.developer_version "
+                                + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
+                                + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.kind in (?) ",
+                                [language, kinds]);
+        }).then(function(rows) {
+            return processMetaRows(rows);
         });
     },
 
