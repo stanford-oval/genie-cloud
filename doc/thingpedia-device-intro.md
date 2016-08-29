@@ -64,6 +64,11 @@ bundle them in your zip file. The JS version you should target is ES5,
 but you can assume runtime services for ES6 (provided by babel-polyfill, preloaded),
 and you are encouraged to use babel to compile from ES6 to ES5.
 
+For the package.json file, don't wrory about the additional attributes
+_thingpedia-metadata_ and _thinepedia-version_ which appear in examples we
+provided. They will be generated automatically when you upload your code to 
+ThingPedia with proper device metadata which we will introduce later. 
+
 The primary entry point (i.e., the one named as "main" in package.json)
 should be a _device class_. You would instantiate the device class
 from the API and set it directly to `module.exports`, as in
