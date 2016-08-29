@@ -342,7 +342,7 @@ router.post('/fork/:id(\\d+)', user.requireLogIn, function(req, res) {
     var canonical = req.body.canonical || null;
 
     Q.try(function() {
-        return validateApp(name, description, code);
+        return validateApp(req, name, description, code);
     }).then(function(appId) {
         // FINISHME figure out what devices this app uses
 
@@ -406,7 +406,7 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
     var canonical = req.body.canonical || null;
 
     Q.try(function() {
-        return validateApp(name, description, code);
+        return validateApp(req, name, description, code);
     }).then(function(appId) {
         return db.withTransaction(function(dbClient) {
             return model.get(dbClient, req.params.id).then(function(r) {
