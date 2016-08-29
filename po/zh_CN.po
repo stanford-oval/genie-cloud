@@ -1,5 +1,4 @@
 # Chinese translations for thingengine-platform-cloud package
-# thingengine-platform-cloud ÈíŒþ°üµÄŒòÌåÖÐÎÄ·­Òë.
 # Copyright (C) 2016 THE thingengine-platform-cloud'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the thingengine-platform-cloud package.
 # Silei Xu <silei@stanford.edu>, 2016.
@@ -20,3 +19,1944 @@ msgstr ""
 #: util/user.js:51
 msgid "An user with this name already exists"
 msgstr "已经存在使用这个名字的用户"
+
+#: util/user.js:118 util/user.js:137 util/user.js:162 routes/admin.js:66
+#: routes/admin.js:85 routes/admin.js:97 routes/admin.js:125
+#: routes/admin.js:132 routes/admin.js:155 routes/admin.js:178
+#: routes/admin.js:192 routes/admin.js:199 routes/devices.js:23
+#: routes/devices.js:54 routes/devices.js:72 routes/devices.js:81
+#: routes/devices.js:101 routes/devices.js:144 routes/devices.js:185
+#: routes/devices.js:215 routes/omlet.js:22 routes/status.js:102
+#: routes/status.js:111 routes/status.js:121 routes/status.js:130
+#: routes/status.js:139 routes/status.js:147 routes/status.js:158
+#: routes/status.js:167 routes/status.js:175 routes/status.js:188
+#: routes/thingpedia_apps.js:91 routes/thingpedia_apps.js:221
+#: routes/thingpedia_apps.js:230 routes/thingpedia_apps.js:240
+#: routes/thingpedia_apps.js:250 routes/thingpedia_apps.js:260
+#: routes/thingpedia_apps.js:270 routes/thingpedia_apps.js:280
+#: routes/thingpedia_apps.js:290 routes/thingpedia_apps.js:328
+#: routes/thingpedia_apps.js:372 routes/thingpedia_apps.js:396
+#: routes/thingpedia_apps.js:415 routes/thingpedia_apps.js:457
+#: routes/thingpedia_apps.js:490 routes/user.js:206 routes/user.js:303
+#: routes/user.js:316 routes/user.js:340 routes/thingpedia_upload.js:432
+#: routes/apps.js:142 routes/apps.js:183 routes/apps.js:194 routes/apps.js:204
+#: routes/apps.js:215 routes/apps.js:225 routes/apps.js:235 routes/apps.js:251
+#: routes/apps.js:261 routes/apps.js:295 routes/apps.js:340 routes/doc.js:23
+#: routes/doc.js:33 routes/thingpedia_devices.js:156
+#: routes/thingpedia_devices.js:193 routes/thingpedia_devices.js:202
+#: routes/thingpedia_devices.js:212 routes/thingpedia_schemas.js:43
+#: routes/thingpedia_schemas.js:59 routes/thingpedia_schemas.js:90
+#: routes/thingpedia_schemas.js:105 routes/thingpedia_schemas.js:116
+#: routes/thingpedia_schemas.js:126 routes/thingpedia_schemas.js:234
+#: routes/thingpedia_schemas.js:294 routes/thingpedia_translate.js:51
+#: routes/thingpedia_translate.js:178 routes/thingpedia_translate.js:186
+#: routes/thingpedia_translate.js:191 routes/thingpedia_translate.js:251
+msgid "ThingPedia - Error"
+msgstr "ThingPedia - 错误"
+
+#: util/user.js:163
+msgid "Developer Access required"
+msgstr "需要开发者访问权限"
+
+#: routes/admin.js:39
+msgid "ThingPedia - Administration"
+msgstr "ThingPedia - 管理"
+
+#: routes/admin.js:86
+msgid "You cannot delete yourself"
+msgstr "不能删除自己"
+
+#: routes/admin.js:133
+msgid "You cannot demote yourself"
+msgstr "不能给自己降级"
+
+#: routes/admin.js:200
+msgid "Assistant is already setup"
+msgstr "助手已经完成设置"
+
+#: routes/devices.js:24
+msgid "Invalid device class"
+msgstr "无效的设备类"
+
+#: routes/devices.js:28
+msgid "ThingPedia - Configure device"
+msgstr "ThingPedia - 配置设备"
+
+#: routes/devices.js:42
+msgid "You must choose one kind of device"
+msgstr "必须选择一种设备"
+
+#: routes/devices.js:82 routes/apps.js:195 routes/apps.js:216
+#: routes/apps.js:236 routes/apps.js:262
+msgid "Not found."
+msgstr "无法找到。"
+
+#: routes/index.js:25
+msgid "ThingPedia - knowledge for your magic assistant"
+msgstr "ThingPedia - 你的神奇助手的知识库"
+
+#: routes/index.js:35
+msgid "About ThingPedia"
+msgstr "关于Thingpedia"
+
+#: routes/index.js:41
+msgid "Terms & Conditions for ThingPedia"
+msgstr "ThingPedia的条款与条件"
+
+#: routes/oauth2.js:137
+msgid "ThingPedia - Authorize Access"
+msgstr "ThingPedia - 访问授权"
+
+#: routes/omlet.js:23
+msgid "You are already registered for ThingPedia"
+msgstr "你已经在ThingPedia上注册了"
+
+#: routes/omlet.js:27
+msgid "ThingPedia - Complete Registration"
+msgstr "ThingPedia - 完成注册"
+
+#: routes/status.js:64
+msgid "ThingPedia - Status"
+msgstr "ThingPedia - 状态"
+
+#: routes/status.js:112 routes/status.js:131 routes/status.js:159
+msgid "Your engine is running, kill it before attempting recovery"
+msgstr "你的助手引擎正在运行，在尝试恢复前请先关闭引擎"
+
+#: routes/thingpedia_apps.js:37
+msgid "ThingPedia - app collection"
+msgstr "ThingPedia - 应用集合"
+
+#: routes/thingpedia_apps.js:65
+msgid "Try the following recommended apps"
+msgstr "尝试下列推荐应用"
+
+#: routes/thingpedia_apps.js:80
+msgid "Results of your search"
+msgstr "搜索结果"
+
+#: routes/thingpedia_apps.js:92
+msgid "Invalid category."
+msgstr "无效分类."
+
+#: routes/thingpedia_apps.js:111
+#, javascript-format
+msgid "Apps with tag “%s”"
+msgstr "有“%s”标签的应用"
+
+#: routes/thingpedia_apps.js:123
+#, javascript-format
+msgid "Apps for %s"
+msgstr "%s应用"
+
+#: routes/thingpedia_apps.js:135
+#, javascript-format
+msgid "Apps contributed by %s"
+msgstr "由%s提供的应用"
+
+#: routes/thingpedia_apps.js:143
+msgid "ThingPedia - create a new app"
+msgstr "ThingPedia - 创建一个新的应用"
+
+#: routes/thingpedia_apps.js:160
+msgid "A app must have a name and a description"
+msgstr "应用必须包含一个名字和一段描述"
+
+#: routes/thingpedia_apps.js:222 routes/thingpedia_apps.js:241
+#: routes/thingpedia_apps.js:261 routes/thingpedia_apps.js:281
+#: routes/thingpedia_apps.js:373 routes/thingpedia_apps.js:416
+#: routes/thingpedia_apps.js:458
+msgid "You are not authorized to perform the requested operation."
+msgstr "你没有权限执行该操作."
+
+#: routes/thingpedia_apps.js:226
+msgid "ThingPedia - app"
+msgstr "ThingPedia - 应用"
+
+#: routes/thingpedia_apps.js:314
+msgid "ThingPedia - fork an app"
+msgstr "ThingPedia - 基于现有app建立新的分支"
+
+#: routes/thingpedia_apps.js:386 routes/thingpedia_apps.js:437
+msgid "ThingPedia - edit an app"
+msgstr "ThingPedia - 编辑应用"
+
+#: routes/thingpedia_apps.js:479 routes/apps.js:326 routes/apps.js:330
+msgid "ThingPedia - Enable App"
+msgstr "ThingPedia - 启用应用"
+
+#: routes/user.js:34 routes/user.js:56 routes/user.js:148
+msgid "ThingPedia - Registration Successful"
+msgstr "ThingPedia - 注册成功"
+
+#: routes/user.js:74
+msgid "ThingPedia - Login"
+msgstr "ThingPedia - 登录"
+
+#: routes/user.js:92 routes/user.js:134 routes/user.js:157
+msgid "ThingPedia - Register"
+msgstr "ThingPedia - 注册"
+
+#: routes/user.js:103
+msgid "You must specify a valid username"
+msgstr "必须提供一个有效的用户名"
+
+#: routes/user.js:109
+msgid "You must specify a valid email"
+msgstr "必须提供一个有效的邮箱地址"
+
+#: routes/user.js:115 routes/user.js:241
+msgid "You must specifiy a valid password (of at least 8 characters)"
+msgstr "必须提供一个有效密码(至少8位)"
+
+#: routes/user.js:118 routes/user.js:244
+msgid "The password and the confirmation do not match"
+msgstr "密码与确认密码不匹配"
+
+#: routes/user.js:199
+msgid "ThingPedia - User Profile"
+msgstr "ThingPedia - 用户信息"
+
+#: routes/user.js:249
+msgid "You must specifiy your old password"
+msgstr "必须提供旧密码"
+
+#: routes/user.js:304 routes/user.js:317
+msgid "You are already an enrolled developer."
+msgstr "你已经注册成为一个开发者"
+
+#: routes/user.js:309
+msgid "ThingPedia - Developer Program"
+msgstr "ThingPedia - 开发者项目"
+
+#: routes/user.js:310
+msgid "Become a ThingPedia Developer"
+msgstr "成为一个ThingPedia开发者"
+
+#: routes/user.js:338
+msgid "ThingPedia - developer access required"
+msgstr "ThingPedia - 需要开发者账户访问"
+
+#: routes/thingpedia_upload.js:45 routes/thingpedia_upload.js:266
+msgid "ThingPedia - create new device"
+msgstr "ThingPedia - 创建新的设备"
+
+#: routes/thingpedia_upload.js:69
+#, javascript-format
+msgid "Invalid device type %s"
+msgstr "无效的设备类别%s"
+
+#: routes/thingpedia_upload.js:74
+#, javascript-format
+msgid "Type %s requires %s %s"
+msgstr "%s类别需要%s和%s"
+
+#: routes/thingpedia_upload.js:76
+#, javascript-format
+msgid "Schema for %s is not compatible with type %s"
+msgstr "%s的构架与%s类别不兼容"
+
+#: routes/thingpedia_upload.js:106
+msgid "Invalid auth type"
+msgstr "无效授权方式"
+
+#: routes/thingpedia_upload.js:108
+msgid "Username and password must be provided for basic authentication"
+msgstr "基本授权必须提供用户名和密码"
+
+#: routes/thingpedia_upload.js:110
+msgid "Interface cannot be both marked online-account and data-source"
+msgstr "接口不能同时被标记为online-account和data-source"
+
+#: routes/thingpedia_upload.js:121
+#, javascript-format
+msgid "Missing trigger url for %s"
+msgstr "触发URL%s缺失"
+
+#: routes/thingpedia_upload.js:125
+#, javascript-format
+msgid "Missing action url for %s"
+msgstr "操作URL%s缺失"
+
+#: routes/thingpedia_upload.js:129
+#, javascript-format
+msgid "Missing query url for %s"
+msgstr "请求URL%s缺失"
+
+#: routes/thingpedia_upload.js:145 routes/thingpedia_upload.js:327
+#: routes/thingpedia_upload.js:413 routes/thingpedia_devices.js:203
+#: routes/thingpedia_schemas.js:117 routes/thingpedia_schemas.js:208
+#: routes/thingpedia_schemas.js:252
+msgid "Not Authorized"
+msgstr "未授权"
+
+#: routes/thingpedia_upload.js:225
+msgid "package.json missing from device zip file"
+msgstr "压缩包中缺失package.json"
+
+#: routes/thingpedia_upload.js:231
+msgid "Invalid package.json"
+msgstr "无效的package.json"
+
+#: routes/thingpedia_upload.js:267 routes/thingpedia_upload.js:420
+msgid "ThingPedia - edit device"
+msgstr "ThingPedia - 编辑设备"
+
+#: routes/thingpedia_upload.js:357
+msgid "Invalid zip file"
+msgstr "无效压缩文件"
+
+#: routes/apps.js:40
+msgid "Some app"
+msgstr "一些应用"
+
+#: routes/apps.js:79
+msgid "Unknown device"
+msgstr "未知设备"
+
+#: routes/apps.js:80
+msgid "Description not available"
+msgstr "描述暂缺"
+
+#: routes/apps.js:129
+msgid "ThingPedia - My Sabrina"
+msgstr "ThingPedia - 我的Sabrina"
+
+#: routes/apps.js:163
+msgid "Missing feed for feed-shared app"
+msgstr "订阅分享应用缺少订阅"
+
+#: routes/apps.js:174 routes/apps.js:178
+msgid "Application successfully created"
+msgstr "成功创建应用"
+
+#: routes/apps.js:242 routes/apps.js:284
+msgid "ThingPedia App"
+msgstr "ThingPedia应用"
+
+#: routes/doc.js:17
+msgid "ThingPedia - Documentation"
+msgstr "ThingPedia - 文档"
+
+#: routes/doc.js:24
+msgid "Malformed request"
+msgstr "请求格式错误"
+
+#: routes/doc.js:34 routes/thingpedia_schemas.js:60
+#: routes/thingpedia_translate.js:60 routes/thingpedia_translate.js:199
+msgid "Not Found."
+msgstr "未找到。"
+
+#: routes/thingpedia_devices.js:36
+msgid "ThingPedia - Developer Portal"
+msgstr "ThingPedia - 开发者入口"
+
+#: routes/thingpedia_devices.js:142
+msgid "ThingPedia - Account details"
+msgstr "ThingPedia - 账户细节"
+
+#: routes/thingpedia_devices.js:144
+msgid "ThingPedia - Device details"
+msgstr "ThingPedia - 设备细节"
+
+#: routes/thingpedia_schemas.js:40
+msgid "ThingPedia - Supported Types"
+msgstr "ThingPedia - 支持的类别"
+
+#: routes/thingpedia_schemas.js:83
+msgid "ThingPedia - Type detail"
+msgstr "ThingPedia - 类别细节"
+
+#: routes/thingpedia_schemas.js:99 routes/thingpedia_schemas.js:114
+msgid ""
+"This schema is associated with a device and should not be manipulated "
+"directly"
+msgstr "此架构关联了一个无法直接操作的设备"
+
+#: routes/thingpedia_schemas.js:133 routes/thingpedia_schemas.js:171
+msgid "ThingPedia - Create new Type"
+msgstr "ThingPedia - 创建新的类别"
+
+#: routes/thingpedia_schemas.js:149
+msgid "Not all required fields were presents"
+msgstr "未提供所有必须的字段"
+
+#: routes/thingpedia_schemas.js:172
+msgid "ThingPedia - Edit Type"
+msgstr "ThingPedia - 编辑类别"
+
+#: routes/thingpedia_schemas.js:210 routes/thingpedia_schemas.js:254
+msgid ""
+"Only non-device specific types can be modified from this page. Upload a new "
+"interface package to modify a device type"
+msgstr ""
+"只有非设备特定的类别可以在此页面修改，上传一个新的接口来修改设备类别"
+
+#: routes/thingpedia_schemas.js:285
+msgid "ThingPedia - Edit type"
+msgstr "ThingPedia - 编辑类别"
+
+#: routes/train_sabrina.js:15 views/navbar.jade:10 views/train_sabrina.jade:4
+msgid "Train Sabrina"
+msgstr "训练Sabrina"
+
+#: routes/thingpedia_translate.js:26
+msgid "Translate ThingPedia"
+msgstr "翻译Thingpedia"
+
+#: routes/thingpedia_translate.js:52 routes/thingpedia_translate.js:192
+msgid "Translations for English cannot be contributed."
+msgstr "无法添加英语翻译"
+
+#: routes/thingpedia_translate.js:168
+msgid "ThingPedia - Translate Type"
+msgstr "ThingPedia - 翻译类别"
+
+#: routes/thingpedia_translate.js:187
+msgid "Missing language."
+msgstr "语言缺失。"
+
+#: views/toc.jade:4
+msgid "Terms & Conditions"
+msgstr "条件与条款"
+
+#: views/user_profile.jade:8
+msgid "User Profile"
+msgstr "用户信息"
+
+#: views/user_profile.jade:13
+msgid "Personal information"
+msgstr "个人信息"
+
+#: views/user_profile.jade:31 views/login.jade:16 views/omlet_register.jade:17
+#: views/register.jade:25
+msgid "Username"
+msgstr "用户名"
+
+#: views/user_profile.jade:35 views/omlet_register.jade:20
+#: views/register.jade:28
+msgid "E-Mail"
+msgstr "邮箱"
+
+#: views/user_profile.jade:39
+msgid "Real name"
+msgstr "真名"
+
+#: views/user_profile.jade:41
+msgid ""
+"This will be shown next to the apps you decide to publish. Leave empty to "
+"show your username instead."
+msgstr "该信息将会紧挨着你想要发布的应用显示，不填则显示你的用户名"
+
+#: views/user_profile.jade:44
+msgid "ThingPedia Developer Access"
+msgstr "ThingPedia开发者访问"
+
+#: views/user_profile.jade:46
+msgid "Administrator"
+msgstr "管理员"
+
+#: views/user_profile.jade:47
+msgid "You know what to do."
+msgstr "你知道该做什么"
+
+#: views/user_profile.jade:49
+msgid "Trusted Developer"
+msgstr "信任的开发者"
+
+#: views/user_profile.jade:50
+msgid ""
+"All code you submit will go live to all ThingEngines with no review. Be "
+"careful!"
+msgstr "所有你提交的代码将不需要审核直接发布于所有ThingEngine。谨慎提交代码！"
+
+#: views/user_profile.jade:52 views/admin_user_list.jade:91
+msgid "Developer"
+msgstr "开发者"
+
+#: views/user_profile.jade:53
+msgid ""
+"You can submit new thing interfaces, but they have to be reviewed by an "
+"administrator before users can see them."
+msgstr "你可以提交新的接口，但必须由管理员审核后才能被其他用户看见。"
+
+#: views/user_profile.jade:55
+msgid "User (<a href='/user/request-developer'>apply to be a developer</a>)"
+msgstr "用户(<a href='/user/request-developer'>请求成为管理员</a>)"
+
+#: views/user_profile.jade:58
+msgid "ThingPedia Developer Key"
+msgstr "ThingPedia管理员密钥"
+
+#: views/user_profile.jade:61
+msgid ""
+"You can use this developer key in other ThingEngines (such as one you're "
+"running locally for testing) to access your devices before they are approved."
+msgstr "你可以在别的ThingEngine使用该管理员密钥访问未通过审核的设备（例如本地测试）"
+
+#: views/user_profile.jade:64
+msgid "Update profile"
+msgstr "更新资料"
+
+#: views/user_profile.jade:68
+msgid "Access information"
+msgstr "访问信息"
+
+#: views/user_profile.jade:86
+msgid ""
+"You did not configure a password. You should provide one, in case you lose "
+"access to the account you logged in with."
+msgstr "你尚未设置密码。为防止你失去已有账户的访问，建议你提供一个密码。"
+
+#: views/user_profile.jade:88 views/user_profile.jade:100 views/login.jade:19
+#: views/omlet_register.jade:24 views/register.jade:32
+msgid "Password"
+msgstr "密码"
+
+#: views/user_profile.jade:90 views/user_profile.jade:102
+#: views/omlet_register.jade:26 views/register.jade:34
+msgid "Minimum of 8 characters"
+msgstr "至少8位"
+
+#: views/user_profile.jade:92 views/user_profile.jade:104
+#: views/omlet_register.jade:28 views/register.jade:36
+msgid "Confirm password"
+msgstr "确认密码"
+
+#: views/user_profile.jade:93 views/user_profile.jade:105
+#: views/omlet_register.jade:29 views/register.jade:37
+msgid "The password and the confirmation must match"
+msgstr "密码与确认密码必须匹配"
+
+#: views/user_profile.jade:97
+msgid "Old Password"
+msgstr "旧密码"
+
+#: views/user_profile.jade:109
+msgid "Change password"
+msgstr "修改密码"
+
+#: views/user_profile.jade:114
+msgid "Configure login with Google"
+msgstr "配置谷歌账户登录"
+
+#: views/user_profile.jade:118
+msgid "Configure login with Facebook"
+msgstr "配置脸书账户登录"
+
+#: views/user_profile.jade:121
+msgid "Delete account"
+msgstr "删除账户"
+
+#: views/user_profile.jade:130
+msgid "Are you sure you want to delete your account?"
+msgstr "你确定你要删除你的账户吗？"
+
+#: views/user_profile.jade:133
+msgid ""
+"Deleting the account is an irreversible operation. All the data stored on "
+"the server will be lost permanently."
+msgstr "删除的账户将无法恢复。所有储存在服务器中的数据将永久丢失。"
+
+#: views/user_profile.jade:136
+msgid ""
+"You will need to relink your server or phone if you make a new account, but "
+"you will not lose the data stored in them."
+msgstr "当你创建一个新的账户你将需要重新连接你的服务器或手机，但你不会丢失储存在上面的数据。"
+
+#: views/user_profile.jade:142
+msgid "Yes, I want to delete my account"
+msgstr "是的，我想删除我的账户"
+
+#: views/user_profile.jade:144
+msgid "No, I changed my mind"
+msgstr "不，我改变主意了"
+
+#: views/user_profile.jade:148
+msgid "Server"
+msgstr "服务器"
+
+#: views/user_profile.jade:152
+msgid "You linked a ThingEngine Server at %s, port %d."
+msgstr "你已连接位于%s，接口%d的ThingEngine服务器。"
+
+#: views/user_profile.jade:156
+msgid "Unpair"
+msgstr "取消配对"
+
+#: views/user_profile.jade:158
+msgid ""
+"You did not link a ThingEngine Server. If you want to link one, you should "
+"open its configuration page and enter your credentials in the Cloud section."
+msgstr "你尚未连接ThingEngine服务器。如果你想连接，你可以打开其配置页面并在云服务部分输入你的证书。"
+
+#: views/user_profile.jade:162
+msgid "Phone"
+msgstr "电话"
+
+#: views/user_profile.jade:166
+msgid "You are running a ThingEngine in your phone."
+msgstr "你正在你的手机上运行ThingEngline。"
+
+#: views/user_profile.jade:168
+msgid "You did not link the ThingEngine in your phone to your account."
+msgstr "你尚未连接你手机上的ThingEngine和你的账户。"
+
+#: views/user_profile.jade:170
+msgid ""
+"If you are not running ThingEngine already, first <a href='https://rink."
+"hockeyapp.net/apps/d6e09574c0f9434e8e20e8d8f2234285'>download the app</a>."
+msgstr "如果你尚未运行ThingEngine，请先于<a href='https://rink."
+"hockeyapp.net/apps/d6e09574c0f9434e8e20e8d8f2234285'>下载应用</a>."
+
+#: views/user_profile.jade:171
+msgid " Then visit this page on a mobile browser, or scan this QR code."
+msgstr " 然后在手机浏览器上访问此页面，或扫描这个QR码"
+
+#: views/user_profile.jade:177
+msgid "Configure"
+msgstr "设置"
+
+#: views/thingpedia_device_create_or_edit.jade:16
+msgid "Submit a new thing class"
+msgstr "提交一个新的thing类"
+
+#: views/thingpedia_device_create_or_edit.jade:18
+msgid "Edit thing class"
+msgstr "编辑thing类"
+
+#: views/thingpedia_device_create_or_edit.jade:30
+#: views/thingpedia_schema_edit.jade:30 views/error.jade:11
+msgid "Syntax error at %s line %d: %s"
+msgstr "语法错误: %s 第%d行: %s"
+
+#: views/thingpedia_device_create_or_edit.jade:42
+msgid "Thing ID"
+msgstr "Thing ID"
+
+#: views/thingpedia_device_create_or_edit.jade:44
+msgid ""
+"The unique name of your device class. This should be a namespaced name like "
+"“org.example” or “com.mything”."
+msgstr "设备类的唯一标识符。它应以“org.example”或“com.mything”的方式命名。"
+
+#: views/thingpedia_device_create_or_edit.jade:47
+msgid "Thing Name"
+msgstr "Thing 名称"
+
+#: views/thingpedia_device_create_or_edit.jade:49
+msgid "This will be shown in the ThingPedia catalog."
+msgstr "这会出现在ThingPedia的目录中。"
+
+#: views/thingpedia_device_create_or_edit.jade:52
+msgid "Thing Description"
+msgstr "Thing 描述"
+
+#: views/thingpedia_device_create_or_edit.jade:56
+msgid "Thing Icon"
+msgstr "Thing 图标"
+
+#: views/thingpedia_device_create_or_edit.jade:60
+msgid "Upload JS module"
+msgstr "上传JS模块"
+
+#: views/thingpedia_device_create_or_edit.jade:67
+msgid " The interface requires additional JS code"
+msgstr " 该接口需要额外的JS代码"
+
+#: views/thingpedia_device_create_or_edit.jade:84
+msgid " Approve this interface right away."
+msgstr " 直接审核通过这个接口。"
+
+#: views/thingpedia_device_create_or_edit.jade:87
+#: views/developer_access_required.jade:41
+msgid "Submit"
+msgstr "提交"
+
+#: views/thingpedia_schema_edit.jade:16
+msgid "Submit a new type"
+msgstr "提交一个新的类型"
+
+#: views/thingpedia_schema_edit.jade:18
+msgid "Edit type"
+msgstr "编辑类型"
+
+#: views/thingpedia_schema_edit.jade:42
+msgid "Type ID"
+msgstr "类型 ID"
+
+#: views/thingpedia_schema_edit.jade:44
+msgid ""
+"The unique id of your type. This should be a short English-like identifier "
+"like “thermostat” or “speaker”."
+msgstr "你的类别的唯一标识符。它应该以英语词语或短语来命名：例如“thermostat”或“speaker”。"
+
+#: views/thingpedia_schema_edit.jade:47
+msgid "类型明细"
+msgstr "Manifesto tipo"
+
+#: views/thingpedia_schema_edit.jade:56
+msgid " Approve this type right away."
+msgstr " 直接审核通过这个类型。"
+
+#: views/about.jade:7 views/navbar.jade:27
+msgid "About"
+msgstr "关于"
+
+#: views/admin_user_list.jade:4 views/navbar.jade:15
+msgid "Administration"
+msgstr "管理"
+
+#: views/admin_user_list.jade:14
+msgid "Your assistant is not yet configured. "
+msgstr "你尚未设置你的个人助手。"
+
+#: views/admin_user_list.jade:15
+msgid "Configure it"
+msgstr "设置"
+
+#: views/admin_user_list.jade:25 views/admin_user_list.jade:123
+msgid "Send a message"
+msgstr "发送一条消息"
+
+#: views/admin_user_list.jade:30
+msgid "Message"
+msgstr "消息"
+
+#: views/admin_user_list.jade:36
+msgid "Send"
+msgstr "发送"
+
+#: views/admin_user_list.jade:38
+msgid "Close"
+msgstr "关闭"
+
+#: views/admin_user_list.jade:44
+msgid "Kill all users"
+msgstr "切断所有用户"
+
+#: views/admin_user_list.jade:49
+msgid "Clear view cache"
+msgstr "清除视图缓存"
+
+#: views/admin_user_list.jade:52
+msgid "Broadcast message"
+msgstr "广播消息"
+
+#: views/admin_user_list.jade:58
+msgid "User name"
+msgstr "用户名"
+
+#: views/admin_user_list.jade:59
+msgid "Human name"
+msgstr "人名"
+
+#: views/admin_user_list.jade:60
+msgid "Login methods"
+msgstr "登陆方式"
+
+#: views/admin_user_list.jade:61
+msgid "Roles"
+msgstr "角色"
+
+#: views/admin_user_list.jade:62 views/admin_user_list.jade:95
+msgid "Apps"
+msgstr "应用"
+
+#: views/admin_user_list.jade:63
+msgid "Omlet?"
+msgstr "Omlet?"
+
+#: views/admin_user_list.jade:64
+msgid "Engine?"
+msgstr "引擎?"
+
+#: views/admin_user_list.jade:65 views/admin_user_list.jade:109
+#: views/thingpedia_device_details.jade:117 views/thingpedia_schema.jade:91
+#: views/status.jade:52
+msgid "Actions"
+msgstr "动作"
+
+#: views/admin_user_list.jade:85
+msgid "Site Admin"
+msgstr "站点管理员"
+
+#: views/admin_user_list.jade:87
+msgid "Admin"
+msgstr "管理员"
+
+#: views/admin_user_list.jade:89
+msgid "Trusted Dev"
+msgstr "信任的开发者"
+
+#: views/admin_user_list.jade:93
+msgid "User"
+msgstr "用户"
+
+#: views/admin_user_list.jade:99
+msgid "Yes"
+msgstr "是"
+
+#: views/admin_user_list.jade:101
+msgid "No"
+msgstr "否"
+
+#: views/admin_user_list.jade:104 views/status.jade:15
+msgid "Running"
+msgstr "运行中"
+
+#: views/admin_user_list.jade:106
+msgid "Died"
+msgstr "已死"
+
+#: views/admin_user_list.jade:117
+msgid "Kill user"
+msgstr "切断用户"
+
+#: views/admin_user_list.jade:121
+msgid "Start user"
+msgstr "启动用户"
+
+#: views/admin_user_list.jade:128
+msgid "Promote user"
+msgstr "提升用户等级"
+
+#: views/admin_user_list.jade:132
+msgid "Demote user"
+msgstr "降低用户等级"
+
+#: views/admin_user_list.jade:136
+msgid "Delete user"
+msgstr "删除用户"
+
+#: views/thingpedia_dev_portal.jade:10
+msgid "Developer Portal"
+msgstr "开发者入口"
+
+#: views/thingpedia_dev_portal.jade:14 views/status.jade:10
+msgid "Status"
+msgstr "状态"
+
+#: views/thingpedia_dev_portal.jade:16
+msgid "Your ThingEngine is running. "
+msgstr "你的ThingEngine正在运行。"
+
+#: views/thingpedia_dev_portal.jade:17 views/thingpedia_dev_portal.jade:21
+msgid "More Details"
+msgstr "更多细节"
+
+#: views/thingpedia_dev_portal.jade:20
+msgid "Your ThingEngine is dead. "
+msgstr "你的ThingEngine已经当机。"
+
+#: views/thingpedia_dev_portal.jade:24 views/doc_getting-started.jade:8
+#: views/doc_thingpedia-device-intro.jade:8 views/doc_thingtalk-intro.jade:8
+#: views/doc_thingtalk-reference.jade:8
+msgid "Documentation"
+msgstr "文档"
+
+#: views/thingpedia_dev_portal.jade:26
+msgid "ThingPedia documentation"
+msgstr "ThingPedia 文档"
+
+#: views/thingpedia_dev_portal.jade:38
+msgid "Academic papers"
+msgstr "学术论文"
+
+#: views/thingpedia_dev_portal.jade:49
+msgid "Supported Interfaces"
+msgstr "支持的接口"
+
+#: views/thingpedia_dev_portal.jade:70 views/thingpedia_device_details.jade:145
+#: views/status.jade:61
+msgid "Update"
+msgstr "更新"
+
+#: views/thingpedia_dev_portal.jade:75 views/thingpedia_device_details.jade:149
+#: views/thingpedia_schema.jade:117 views/my_stuff.jade:98
+msgid "Delete"
+msgstr "删除"
+
+#: views/thingpedia_dev_portal.jade:81
+msgid "Previous"
+msgstr "前一页"
+
+#: views/thingpedia_dev_portal.jade:84
+msgid "Next"
+msgstr "后一页"
+
+#: views/thingpedia_dev_portal.jade:88
+msgid "Upload new interface"
+msgstr "上传新的接口"
+
+#: views/thingpedia_dev_portal.jade:91
+msgid "Create a new type"
+msgstr "创建新的类型"
+
+#: views/thingpedia_device_details.jade:11
+msgid "Account: %s"
+msgstr "账户：%s"
+
+#: views/thingpedia_device_details.jade:13
+msgid "Device: %s"
+msgstr "设备：%s"
+
+#: views/thingpedia_device_details.jade:21
+msgid "This device is not yet approved."
+msgstr "该设备尚未通过审核。"
+
+#: views/thingpedia_device_details.jade:23
+#: views/thingpedia_device_details.jade:33 views/thingpedia_schema.jade:18
+#: views/thingpedia_schema.jade:31
+msgid "Approve it"
+msgstr "审核通过"
+
+#: views/thingpedia_device_details.jade:25
+msgid ""
+"This device is not yet approved for general use. You need a developer key to "
+"use it."
+msgstr "该设备尚未通过审核。你需要一个开发者密钥来使用它。"
+
+#: views/thingpedia_device_details.jade:31
+msgid "A newer version of this device was submitted."
+msgstr "该设备的一个更新的版本已经被提交。"
+
+#: views/thingpedia_device_details.jade:39
+msgid "The translation for this account in your language is incomplete. "
+msgstr "该账户的中文翻译尚未完成。"
+
+#: views/thingpedia_device_details.jade:41
+msgid "The translation for this device in your language is incomplete. "
+msgstr "该设备的中文翻译尚未完成。 "
+
+#: views/thingpedia_device_details.jade:42 views/thingpedia_schema.jade:39
+msgid "Contribute translation"
+msgstr "贡献翻译"
+
+#: views/thingpedia_device_details.jade:51
+msgid "This is a builtin interface in every ThingEngine installation."
+msgstr ""
+"这是每个ThingEngine都有的一个内置的接口"
+
+#: views/thingpedia_device_details.jade:54
+msgid "Package: "
+msgstr "包："
+
+#: views/thingpedia_device_details.jade:57
+msgid ", version none (approved), %d (developer)"
+msgstr "，版本 无（已审核），%d（开发者）"
+
+#: views/thingpedia_device_details.jade:59
+msgid ", version %d (approved), %d (developer)"
+msgstr "，版本 %d（已审核），%d（开发者）"
+
+#: views/thingpedia_device_details.jade:61
+msgid ", version %d"
+msgstr "，版本 %d"
+
+#: views/thingpedia_device_details.jade:64
+msgid "Name: "
+msgstr "名称："
+
+#: views/thingpedia_device_details.jade:69
+msgid "Types: "
+msgstr "类型："
+
+#: views/thingpedia_device_details.jade:85 views/thingpedia_schema.jade:67
+msgid "Triggers"
+msgstr "触发器"
+
+#: views/thingpedia_device_details.jade:97
+#: views/thingpedia_device_details.jade:113
+#: views/thingpedia_device_details.jade:129 views/thingpedia_schema.jade:75
+#: views/thingpedia_schema.jade:87 views/thingpedia_schema.jade:99
+msgid "Canonical: "
+msgstr "标准形式："
+
+#: views/thingpedia_device_details.jade:101 views/thingpedia_schema.jade:79
+msgid "Queries"
+msgstr "查询"
+
+#: views/thingpedia_device_details.jade:132 views/thingpedia_schema.jade:102
+msgid "Example Commands"
+msgstr "示例命令"
+
+#: views/thingpedia_device_details.jade:138
+msgid ""
+"This device has no commands of its own. You might find how to interact with "
+"it by clicking on one of its types."
+msgstr ""
+"该设备本身没有命令。你也许可以在它的类型中找到相关命令。"
+
+#: views/thingpedia_device_details.jade:142
+msgid "Find Apps"
+msgstr "寻找应用"
+
+#: views/thingpedia_device_details.jade:151
+msgid "Download code"
+msgstr "下载代码"
+
+#: views/thingpedia_device_details.jade:154 views/thingpedia_schema.jade:120
+msgid "Translate"
+msgstr "翻译"
+
+#: views/thingpedia_schema.jade:7
+msgid "Type: %s"
+msgstr "类型：%s"
+
+#: views/thingpedia_schema.jade:16
+msgid "This type is not yet approved."
+msgstr "该类型尚未通过审核。"
+
+#: views/thingpedia_schema.jade:20
+msgid "This type belongs to a device that was not yet approved."
+msgstr "该类型属于一个尚未通过审核的设备。"
+
+#: views/thingpedia_schema.jade:22
+msgid ""
+"This type is not yet approved for general use. You need a developer key to "
+"use it."
+msgstr "该类型尚未通过审核。你需要一个开发者密钥来使用它。"
+
+#: views/thingpedia_schema.jade:28
+msgid "A newer version of this schema was submitted."
+msgstr "一个更新版本的架构已经提交。"
+
+#: views/thingpedia_schema.jade:33
+msgid " Go to the corresponding device page to approve it."
+msgstr "前往相应的设备页面进行审核。"
+
+#: views/thingpedia_schema.jade:38
+msgid "The translation for this type in your language is incomplete. "
+msgstr "该类别的中文翻译尚未完成。"
+
+#: views/thingpedia_schema.jade:42
+msgid ""
+"This type is just a marker that indicates a publicly available web service, "
+"such as Bing or Xkcd."
+msgstr ""
+"该类型仅作为公共网络服务标记，如必应，Xkcd等。"
+
+#: views/thingpedia_schema.jade:45
+msgid ""
+"This type is a marker that denotes an account, as opposed to a physical "
+"device."
+msgstr ""
+"该类型为账户标记，相对于物理设备。"
+
+#: views/thingpedia_schema.jade:49
+msgid "This type is a marker for discovery. "
+msgstr "该类型是搜索标记。"
+
+#: views/thingpedia_schema.jade:50
+msgid ""
+"It is used by a device to indicate a certain low-level capability, and has "
+"no triggers or actions of its own. "
+msgstr ""
+"它会被一个设备使用，说明起具备一个基础的功能，它本身没有任何触发器或动作。"
+
+#: views/thingpedia_schema.jade:51
+msgid ""
+"Most likely, you will find this type toghether with another more generic "
+"type, eg. <i>bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb</i>, "
+"indicating the A2DP Speaker capability, would be accompanied by <i>speaker</"
+"i>."
+msgstr ""
+"通常你会发现该类别会与另一个通用类别同时出现"
+"例如<i>bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb</i>，"
+"指的是A2DP扬声器功能，将与<i>扬声器</i>同时出现。"
+
+#: views/thingpedia_schema.jade:55
+msgid ""
+"This type belongs to a specific device, which can be configured and "
+"manipulated by recalling the type by name."
+msgstr ""
+"该类别属于一个特定的设备，该设备可以通过类别名称进行设置和操作。"
+
+#: views/thingpedia_schema.jade:60
+msgid "Version: none (approved), %d (developer)"
+msgstr "版本：无（已审核），%d（开发者）"
+
+#: views/thingpedia_schema.jade:62
+msgid "Version: %d (approved), %d (developer)"
+msgstr "版本：%d（已审核），%d（开发者）"
+
+#: views/thingpedia_schema.jade:64
+msgid "Version: %d"
+msgstr "版本：%d"
+
+#: views/thingpedia_schema.jade:108
+msgid "This type has no commands."
+msgstr "该类型没有命令。"
+
+#: views/thingpedia_schema.jade:113
+msgid "Edit"
+msgstr "编辑"
+
+#: views/thingpedia_schema_list.jade:7
+msgid "Supported Thing Types"
+msgstr "支持的Thing类型"
+
+#: views/thingpedia_translate_schema.jade:7
+msgid "Translate %s"
+msgstr "翻译%s"
+
+#: views/thingpedia_translate_schema.jade:39
+msgid "English"
+msgstr "英语"
+
+#: views/thingpedia_translate_schema.jade:40
+msgid "Translated"
+msgstr "已翻译"
+
+#: views/thingpedia_translate_schema.jade:43
+msgid "Trigger: "
+msgstr "触发器："
+
+#: views/thingpedia_translate_schema.jade:45
+msgid "Action: "
+msgstr "动作："
+
+#: views/thingpedia_translate_schema.jade:47
+msgid "Query: "
+msgstr "查询："
+
+#: views/thingpedia_translate_schema.jade:49
+msgid "Save"
+msgstr "保存"
+
+#: views/developer_access_ok.jade:4
+msgid "Developer Access requested"
+msgstr "开发者权限申请已提交"
+
+#: views/developer_access_ok.jade:9
+msgid ""
+"Thanks again for your interest in ThingPedia, we alerted the ThingPedia Team "
+"and they will get back to you as soon as possible."
+msgstr ""
+"再次感谢对ThingPedia的关注与支持，我们已经通知了ThingPedia团队，他们会以最快速度联系你。"
+
+#: views/developer_access_ok.jade:10
+msgid "Hope to see you contributing soon!"
+msgstr "希望早日看到你贡献的代码！"
+
+#: views/devices_create.jade:12
+msgid "New Account"
+msgstr "新账户"
+
+#: views/devices_create.jade:14
+msgid "New Data Source"
+msgstr "新数据源"
+
+#: views/devices_create.jade:16
+msgid "New Device"
+msgstr "新设备"
+
+#: views/devices_create.jade:21
+msgid "What account do you want to set up?"
+msgstr "你想设置什么账户？"
+
+#: views/devices_create.jade:23
+msgid "What data source do you want to set up?"
+msgstr "你想设置什么数据源？"
+
+#: views/devices_create.jade:37
+msgid "What kind of device are you trying to configure?"
+msgstr "你想设置什么设备？"
+
+#: views/devices_create.jade:39
+msgid "Select one device..."
+msgstr "选择一个设备……"
+
+#: views/error.jade:4 views/login_required.jade:4 views/qrcode.jade:5
+msgid "Error"
+msgstr "错误"
+
+#: views/error.jade:7
+msgid "Sorry that did not work"
+msgstr "不好意思，出错了"
+
+#: views/error.jade:16 views/login_required.jade:10
+msgid "Go back"
+msgstr "退回"
+
+#: views/index.jade:12
+msgid "ThingPedia"
+msgstr "ThingPedia"
+
+#: views/index.jade:22
+msgid "Uh, oh!"
+msgstr "啊偶！"
+
+#: views/index.jade:24
+msgid "Your Sabrina died!"
+msgstr "你的Sabrina当机了！"
+
+#: views/index.jade:25
+msgid ""
+"It might have crashed or might have been killed by the site administrators."
+msgstr ""
+"她可能崩溃了，也有可能被站点管理员关闭了。"
+
+#: views/index.jade:29
+msgid "Almost there"
+msgstr "快好了"
+
+#: views/index.jade:31
+msgid ""
+"Your Sabrina is almost ready to help you. You just need to configure Omlet."
+msgstr ""
+"你的Sabrina马上就准备好帮助你了。你只需要设置你的Omlet账户。"
+
+#: views/index.jade:34
+msgid "Configure Omlet"
+msgstr "设置Omlet"
+
+#: views/index.jade:36
+msgid "Welcome back!"
+msgstr "欢迎回来"
+
+#: views/index.jade:38
+msgid "Your Sabrina is running."
+msgstr "你的Sabrina正在运行。"
+
+#: views/index.jade:41
+msgid "Check your apps"
+msgstr "查看你的应用"
+
+#: views/index.jade:43 views/my_stuff.jade:177
+msgid "Find new apps"
+msgstr "寻找新的应用"
+
+#: views/index.jade:46
+msgid "Welcome to ThingPedia"
+msgstr "欢迎来到Thingpedia"
+
+#: views/index.jade:48
+msgid "Let's build the world's best virtual assistant."
+msgstr "让我们一起创建世界上最好的虚拟助手。"
+
+#: views/index.jade:50
+msgid ""
+"ThingPedia is a repository of apps and interfaces that support Sabrina, a "
+"collaborative open source effort to build an extensible, privacy-aware "
+"personal virtual assistant."
+msgstr ""
+"ThingPedia是一个所有Sabrina支持的应用与接口的仓库，一个开源合作的可扩展并注重安全的个人"
+"虚拟助手。"
+
+#: views/index.jade:53
+msgid "Register now"
+msgstr "现在注册"
+
+#: views/index.jade:55 views/login.jade:22 views/login_required.jade:12
+msgid "Log in"
+msgstr "登入"
+
+#: views/index.jade:57
+msgid "Examples"
+msgstr "示例"
+
+#: views/index.jade:62
+msgid ""
+"Alice is a passionate sports fan, and she's a strong supporter of the Golden "
+"State Warriors. "
+msgstr ""
+"小红是一个疯狂体育迷，她是金州勇士队的铁杆粉丝。"
+
+#: views/index.jade:63
+msgid ""
+"She does not want to miss an update on their road to the next NBA title!"
+msgstr ""
+"她不想错过勇士通往下一个冠军的路上的每一个消息！"
+
+#: views/index.jade:64
+msgid ""
+"She enables <a href='/thingpedia/apps/install/65'>Warrior Games</a> and now "
+"her Sabrina keeps her up-to-date on the games."
+msgstr ""
+"她使用了<a href='/thingpedia/apps/install/65'>Warrior Games</a>，现在"
+"她的Sabrina帮助她跟上勇士的每场比赛。"
+
+#: views/index.jade:74
+msgid "Bob is a big social media user. "
+msgstr "小明是社交网络重度用户。"
+
+#: views/index.jade:75
+msgid ""
+"He follows all sorts of interesting people on Twitter and wants to be "
+"updated on all the trending discussions their having."
+msgstr ""
+"他关注了推特上各种有趣的人并且想时刻了解"
+"这些人在讨论些什么。"
+
+#: views/index.jade:76
+msgid ""
+"He uses <a href='/thingpedia/apps/install/52'>Twitter Trending Hashtags</a> "
+"so that Sabrina can tell him what his friends are talking about - be it "
+"politics, sports, science or gossip!"
+msgstr ""
+"他使用<a href='/thingpedia/apps/install/52'>Twitter Trending Hashtags</a>，"
+"所以Sabrina可以告诉他他关注的人都在说些什么，无论是政治，体育，科技还是小道消息！"
+
+#: views/index.jade:80
+msgid ""
+"Carol is very attentive at her body shape and her weight, and she uses "
+"Sabrina to monitor it. "
+msgstr ""
+"韩梅梅非常关注自己的体型和体重，所以她使用Sabrina来监控自己。"
+
+#: views/index.jade:83
+msgid ""
+"She also engages her friends in friendly fitness competitions using <a "
+"href='/thingpedia/apps/install/67'>Weekly Weight Wager</a>."
+msgstr ""
+"她还使用<a href='/thingpedia/apps/install/67'>Weekly Weight Wager</a>"
+"与她的朋友进行比赛。"
+
+#: views/index.jade:93
+msgid ""
+"Daniel is a very busy professor, always jumping from one conference to "
+"another, and he always regrets not having time to network enough. "
+msgstr ""
+"李雷是一个非常忙的教授，会总是一个接着一个，"
+"他总是后悔没有足够的时间进行社交。"
+
+#: views/index.jade:94
+msgid ""
+"How many missed occasions for mingling because he was not aware that someone "
+"was there!"
+msgstr ""
+"就因为不知道别人在那，他错过了很多交流的机会。"
+
+#: views/index.jade:96
+msgid ""
+"But that's no more: he configured Sabrina to access his LinkedIn account, "
+"and now for every conference he goes to he enables <a href='/thingpedia/apps/"
+"install/62'>LinkedIn Common Industry</a>, which lets Sabrina suggest him "
+"people that he might be interested in meeting, based on the commonality of "
+"their profile."
+msgstr ""
+"但现在不会了：他在Sabrina上设置了他的领英账号，"
+"现在每次开会，他就打开<a href='/thingpedia/apps/install/62'>LinkedIn Common "
+"Industry</a>，然后Sabrina就会基于领英账户的相关性会向他推荐同样在会场并且他可能有兴趣"
+"交流的人。"
+
+#: views/index.jade:100
+msgid "Get started"
+msgstr "开始"
+
+#: views/index.jade:102
+msgid ""
+"Sabrina interacts with you on the mobile phone using <a href='http://www."
+"omlet.me/'>Omlet</a>, the extensible messaging platform."
+msgstr ""
+"Sabrina通过手机上的<a href='http://www.omlet.me/'>Omlet</a>与你交流。"
+
+#: views/index.jade:106
+msgid ""
+"Step 1: <a href='/user/register'>register</a> and <a href='/devices/oauth2/"
+"org.thingpedia.builtin.omlet'>create an Omlet account</a>."
+msgstr ""
+"第一步：<a href='/user/register'>注册</a>并<a href='/devices/oauth2/"
+"org.thingpedia.builtin.omlet'>创建一个Omlet账户</a>。"
+
+#: views/index.jade:109
+msgid "Step 2: <a href='/thingpedia/apps'>pick an app for your Sabrina</a>"
+msgstr ""
+"第二步：<a href='/thingpedia/apps'>为你的Sabrina选择应用</a>。"
+
+#: views/index.jade:111
+msgid ""
+"Many apps are available, how about <a href='/thingpedia/apps/"
+"install/65'>receiving updates for the Golden State Warriors</a>?"
+msgstr ""
+"我们有很多应用，比如<a href='/thingpedia/apps/"
+"install/65'>随时追勇士队的比赛</a>怎么样？"
+
+#: views/index.jade:114
+msgid "Step 3: profit!"
+msgstr "第三步：享受便捷！"
+
+#: views/index.jade:119
+msgid "What to do with Sabrina?"
+msgstr "该怎么用Sabrina？"
+
+#: views/index.jade:121
+msgid "What can Sabrina do?"
+msgstr "Sabrina可以做些什么？"
+
+#: views/index.jade:131
+msgid "The Sabrina Architecture"
+msgstr "Sabrina架构"
+
+#: views/index.jade:133
+msgid ""
+"Sabrina uses ThingEngine, which communicates on Omlet and uses the "
+"ThingManager and the ThingPedia"
+msgstr ""
+"Sabrina使用ThingEngine，ThingEngine可以在Omlet上进行交流并使用ThingManager和"
+"ThingPedia"
+
+#: views/index.jade:137
+msgid ""
+"Sabrina, ThingPedia and ThingEngine are part of a research project of the <a "
+"href='http://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> at "
+"Stanford University. "
+msgstr ""
+"Sabrina，ThingPedia和ThingEngine是斯坦福大学"
+"<a href='http://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> "
+"一个科研项目的一部分。"
+
+#: views/index.jade:138
+msgid "Read more"
+msgstr "了解更多"
+
+#: views/index.jade:142
+msgid ""
+"Sabrina is free software, distributed under the <a href='https://www.gnu.org/"
+"licenses/old-licenses/gpl-2.0.html'>GPLv2 license</a>. "
+msgstr ""
+"Sabrina是一个基于<a href='https://www.gnu."
+"org/licenses/old-licenses/gpl-2.0.html'>licenza GPLv2</a>发布的免费软件。"
+
+#: views/index.jade:143
+msgid "Report a bug"
+msgstr "报告bug"
+
+#: views/login.jade:4
+msgid "Login"
+msgstr "登陆"
+
+#: views/login.jade:24
+msgid "Don't have a username and password yet?"
+msgstr "还没有用户名和密码？"
+
+#: views/login.jade:25
+msgid "Sign up now!"
+msgstr "现在注册！"
+
+#: views/login.jade:27
+msgid "Log In with Google"
+msgstr "使用谷歌登录"
+
+#: views/login.jade:29
+msgid "Log In with Facebook"
+msgstr "使用脸书登录"
+
+#: views/login_required.jade:7
+msgid "Login required"
+msgstr "需要登录"
+
+#: views/login_required.jade:8
+msgid "Sorry but you must log in before opening this page"
+msgstr "对不起，你必须登录才能打开该页面"
+
+#: views/navbar.jade:3
+msgid "Home"
+msgstr "主页"
+
+#: views/navbar.jade:5
+msgid "App Collection"
+msgstr "应用库"
+
+#: views/navbar.jade:8 views/my_stuff.jade:7
+msgid "My Sabrina"
+msgstr "我的Sabrina"
+
+#: views/navbar.jade:12
+msgid "Developers"
+msgstr "开发者"
+
+#: views/navbar.jade:20
+msgid "Settings"
+msgstr "设置"
+
+#: views/navbar.jade:23
+msgid "Log Out"
+msgstr "登出"
+
+#: views/navbar.jade:25
+msgid "Log In"
+msgstr "登入"
+
+#: views/oauth2_authorize.jade:7
+msgid "Authorize application to access your ThingPedia?"
+msgstr "授权应用访问你的ThingPedia?"
+
+#: views/oauth2_authorize.jade:9
+msgid ""
+"If you say yes, the application will be allowed full access to your devices "
+"and accounts and will be able to run rules on your behalf."
+msgstr ""
+"如果你说是，该应用将被允许完全访问你的设备和账户并且为你执行规则。"
+
+#: views/oauth2_authorize.jade:15
+msgid "Allow"
+msgstr "允许"
+
+#: views/oauth2_authorize.jade:17
+msgid "Deny"
+msgstr "拒绝"
+
+# NDT: ho visto star wars in inglese quindi non ho idea se la citazione sia corretta
+#: views/qrcode.jade:8
+msgid "This is not the page you're looking for"
+msgstr "这不是你要找的页面"
+
+#: views/qrcode.jade:12
+msgid "You should not have this link."
+msgstr "你不该有这个链接。"
+
+#: views/qrcode.jade:13
+msgid " This is a pairing link for a different ThingEngine account than yours."
+msgstr ""
+" 这是另一个ThingEngine账户的配对链接。"
+
+#: views/qrcode.jade:15
+msgid ""
+"If you obtained it by mistake, you should destroy it immediately by clearing "
+"the browser history and cache, and you should contact whoever gave this link "
+"that they risk having their account compromised."
+msgstr ""
+"如果你意外获得该链接，你应该立刻关闭并清空浏览器历史和缓存，你还应该联系给你提供该链接"
+"的人，他们的账户安全有隐患。"
+
+#: views/qrcode.jade:18
+msgid ""
+"You must open the QR code link with the ThingEngine app, not with your "
+"browser."
+msgstr "你必须使用ThingEngine应用而不是你的浏览器打开QR码链接。"
+
+#: views/qrcode.jade:23
+msgid ""
+"Also, it appears that your server and your current account belong to "
+"different people."
+msgstr ""
+"而且你的服务器和当前账户属于另外一个人。"
+
+#: views/qrcode.jade:24
+msgid ""
+" This might indicate an error in the linking setup, and could impact your "
+"ability to link your phone successfully to both."
+msgstr ""
+" 这表明配对设置时可能出错，这可能会影响你使用手机连接账户。"
+
+#: views/qrcode.jade:25
+msgid ""
+"You should clear the access information from the server (you can do so from "
+"the configuration page) and then link it again to this account."
+msgstr ""
+"你应该从服务器端清空访问信息（你可以在设置界面进行该操作），"
+"然后重新连接账户。"
+
+#: views/qrcode.jade:29
+msgid ""
+"If you were trying to link your ThingEngine account to your phone, you "
+"should <a href='/user/login'>log in</a> first."
+msgstr ""
+"如果你试图连接你的ThingEngine和你的手机，你应该先"
+"<a href='/user/login'>登录</a>。"
+
+#: views/register_success.jade:14
+msgid "Welcome to Sabrina, %s!"
+msgstr "欢迎来到Sabrina, %s!"
+
+#: views/register_success.jade:16
+msgid "You're almost ready, you just need to create or link an Omlet account."
+msgstr "你即将完成，你只需要创建或连接一个Omlet账户。"
+
+#: views/register_success.jade:19
+msgid "Continue"
+msgstr "继续"
+
+#: views/status.jade:13
+msgid "Status of your ThingEngine: "
+msgstr "你的ThingEngine的状态："
+
+#: views/status.jade:17
+msgid "Killed"
+msgstr "已终止"
+
+#: views/status.jade:22
+msgid "Kill"
+msgstr "终止"
+
+#: views/status.jade:26
+msgid "Start"
+msgstr "启动"
+
+#: views/status.jade:29
+msgid "Recovery options"
+msgstr "恢复选项"
+
+#: views/status.jade:35
+msgid "Remove cached modules"
+msgstr "删除缓存的模块"
+
+#: views/status.jade:39
+msgid "Remove all apps"
+msgstr "删除所有应用"
+
+#: views/status.jade:43
+msgid "Remove all devices and accounts"
+msgstr "删除所有设备和账户"
+
+#: views/status.jade:45
+msgid "Cached Modules"
+msgstr "缓存的模块"
+
+#: views/status.jade:50
+msgid "Name"
+msgstr "名称"
+
+#: views/status.jade:51
+msgid "Version"
+msgstr "版本"
+
+#: views/status.jade:64
+msgid "Logs"
+msgstr "日志"
+
+#: views/status.jade:67
+msgid ""
+"You are not approved developer, so you cannot see the logs of your engine. "
+msgstr ""
+"你没有通过开发者审核，所以你不能看到你自己ThingEngine的日志。"
+
+#: views/status.jade:68
+msgid "Apply to be a developer"
+msgstr "申请成为一个开发者"
+
+#: views/developer_access_required.jade:9
+msgid "Thanks for your interest in ThingPedia!"
+msgstr "感谢你对ThingPedia的关注！"
+
+#: views/developer_access_required.jade:10
+msgid "At the moment, ThingPedia is still in closed beta. "
+msgstr "当前，ThingPedia还只是beta内测版。"
+
+#: views/developer_access_required.jade:11
+msgid ""
+"If you would like to request developer access, please fill the form below "
+"and we'll get back to you."
+msgstr ""
+"如果你想要开发者全县，请先填写下面的表格，我们会与你联系。"
+
+#: views/developer_access_required.jade:13
+msgid " Please use English only."
+msgstr " 请使用英文。"
+
+#: views/developer_access_required.jade:21
+msgid "Full Name"
+msgstr "全名"
+
+#: views/developer_access_required.jade:25
+msgid "Organization"
+msgstr "公司或组织"
+
+#: views/developer_access_required.jade:29
+msgid "E-mail"
+msgstr "邮箱"
+
+#: views/developer_access_required.jade:33
+msgid "Reason to use ThingPedia (may leave blank)"
+msgstr "使用ThingPedia的理由（选填）"
+
+#: views/developer_access_required.jade:37
+msgid "Additional comments (may leave blank)"
+msgstr "其他留言（选填）"
+
+#: views/train_sabrina.jade:15
+msgid "Thanks for being part of the Sabrina virtual assistant project. "
+msgstr "感谢称为Sabrian个人助手项目的一份子。"
+
+#: views/train_sabrina.jade:16
+msgid ""
+"In here you can help us train her to understand better and more complex "
+"sentences."
+msgstr ""
+"在这里你可以帮助我们训练她更好的懂得复杂的句子。"
+
+#: views/train_sabrina.jade:18
+msgid ""
+"You can type a sentence in the box below, and Sabrina will respond with her "
+"best guess of what you mean. "
+msgstr ""
+"你可以在下面的输入框中输入句子，Sabrina会提供给你她对句子的理解。"
+
+#: views/train_sabrina.jade:19
+msgid ""
+"Unfortunately, she will not get it right most of the time, so your task is "
+"to then click on the correct interpretation in her pseudo-English."
+msgstr ""
+"不过多数情况下，她恐怕还不能正确理解，所以你的任务就是选择她列出的正确理解。"
+
+#: views/train_sabrina.jade:21
+msgid ""
+"You don't have to worry, nothing will happen as a result of playing with "
+"Sabrina here, and if you don't understand what Sabrina is responding for a "
+"particular sentence (or all Sabrina offers are wrong), just type a new "
+"sentence to continue."
+msgstr ""
+"不用担心，在这里训练Sabrina不会对实际系统造成任何影响。"
+"如果你不理解Sabrina的解释或者她的解释不对，重新输一个句子就好了。"
+
+#: views/train_sabrina.jade:24
+msgid "A few suggestions to start:"
+msgstr "你可以试试这些："
+
+#: views/train_sabrina.jade:26
+msgid "More suggestions"
+msgstr "更多建议"
+
+#: views/train_sabrina.jade:31
+msgid "Utterance:"
+msgstr "句子"
+
+#: views/train_sabrina.jade:34
+msgid "Sabrina's choice: "
+msgstr "Sabrina的选择："
+
+#: views/train_sabrina.jade:36
+msgid "Your choice:"
+msgstr "你的选择："
+
+#: views/train_sabrina.jade:39
+msgid "You have trained Sabrina with "
+msgstr "你已经训练Sabrina了"
+
+#: views/train_sabrina.jade:41
+msgid " sentences. Thank you!"
+msgstr "句话。十分感谢！"
+
+#: views/my_stuff.jade:34
+msgid "This device is owned by your %s."
+msgstr "你拥有该设备%s。"
+
+#: views/my_stuff.jade:37
+msgid "The device is not available. It might be powered off or disconnected."
+msgstr ""
+"该设备不可用。它可能被关闭或切段了连接。"
+
+#: views/my_stuff.jade:39
+msgid "The device is available and working."
+msgstr "设备运行正常。"
+
+#: views/my_stuff.jade:42
+msgid "The device is not available because your server is disconnected."
+msgstr ""
+"因为你的服务器连接已断开，该设备暂不可用。"
+
+#: views/my_stuff.jade:43
+msgid " Make sure that it is powered on and correctly configured."
+msgstr "请确保服务器已经打开并已正确配置好。"
+
+#: views/my_stuff.jade:45
+msgid "The device is not available because your phone is disconnected."
+msgstr ""
+"因为你的手机连接已断开，该设备暂不可用。"
+
+#: views/my_stuff.jade:46
+msgid " Make sure that it is powered on and connected to the network."
+msgstr "请确认你的手机已打开并且有网络连接。"
+
+#: views/my_stuff.jade:48
+msgid ""
+"The device is not available because ThingEngine Online cannot be reached."
+msgstr ""
+"因为ThingEngine Online无法连接，该设备暂不可用。"
+
+#: views/my_stuff.jade:49
+msgid " There might be a temporary service outage."
+msgstr "这可能是由于暂时的系统中断。"
+
+#: views/my_stuff.jade:51
+msgid "It was not possible to verify if the device is available."
+msgstr "无法确定你的设备是否可用。"
+
+#: views/my_stuff.jade:52
+msgid "Please check it is powered on and correctly configured."
+msgstr "请确认设备是否已经打开并且正确配置。"
+
+#: views/my_stuff.jade:61
+msgid "Disable"
+msgstr "关闭"
+
+#: views/my_stuff.jade:63
+msgid "Forget"
+msgstr "忘记"
+
+#: views/my_stuff.jade:85
+msgid "Show code"
+msgstr "显示代码"
+
+#: views/my_stuff.jade:92
+msgid "Hide from Collection"
+msgstr "在库中隐藏"
+
+#: views/my_stuff.jade:96 views/my_stuff.jade:161
+msgid "Publish"
+msgstr "发布"
+
+#: views/my_stuff.jade:109
+msgid "Do you want to share %s?"
+msgstr "你想分享%s吗？"
+
+#: views/my_stuff.jade:112
+msgid ""
+"You just installed a shared application. Do you want to share it with "
+"everyone in the group?"
+msgstr ""
+"你刚刚安装了一个共享应用，你想要把它分享给组里的每个人吗？"
+
+#: views/my_stuff.jade:114
+msgid ""
+"If you say yes, a link will be sent to the group allowing other people to "
+"install the same app."
+msgstr ""
+"如果你同意，我们将会向组里发一条链接，别人将可以通过该链接安装同样的应用。"
+
+#: views/my_stuff.jade:121
+msgid "Yes, share it"
+msgstr "同意"
+
+#: views/my_stuff.jade:123
+msgid "No, thanks"
+msgstr "不同意"
+
+#: views/my_stuff.jade:131
+msgid "Running Apps"
+msgstr "运行中的应用"
+
+#: views/my_stuff.jade:147
+msgid "This app had an error: %s"
+msgstr "该应用出错：%s"
+
+#: views/my_stuff.jade:150
+msgid "This app is running in the chat room %s."
+msgstr "该应用在聊天室中运行：%s。"
+
+#: views/my_stuff.jade:152
+msgid "This app is running."
+msgstr "该应用正在运行。"
+
+#: views/my_stuff.jade:154
+msgid "This app is enabled but not running."
+msgstr "这个应用已被启用但当前不在运行。"
+
+#: views/my_stuff.jade:156
+msgid "This app is not enabled."
+msgstr "该应用尚未开启。"
+
+#: views/my_stuff.jade:166
+msgid "Stop"
+msgstr "停止"
+
+#: views/my_stuff.jade:173
+msgid "Share"
+msgstr "分享"
+
+#: views/my_stuff.jade:179
+msgid "Enabled Data Sources"
+msgstr "启用数据源"
+
+#: views/my_stuff.jade:185
+msgid "Enable new data source"
+msgstr "启用新的数据源"
+
+#: views/my_stuff.jade:187
+msgid "My Devices"
+msgstr "我的设备"
+
+#: views/my_stuff.jade:193
+msgid "Configure new device"
+msgstr "配置新的设备"
+
+#: views/my_stuff.jade:195
+msgid "My Accounts"
+msgstr "我的账户"
+
+#: views/my_stuff.jade:201
+msgid "Add new account"
+msgstr "添加新的账户"
+
+#: views/my_stuff.jade:210
+msgid "Are you sure?"
+msgstr "你确定?"
+
+#: views/my_stuff.jade:216
+msgid "If you delete your app, all other users will be unable to enable it."
+msgstr ""
+"如果你删除你的应用，其他所有用户都不能启用它。"
+
+#: views/my_stuff.jade:217
+msgid "This will not affect users who already enabled it."
+msgstr "这不会影响已经启用它的用户。"
+
+#: views/my_stuff.jade:223
+msgid "Delete App"
+msgstr "删除应用"
+
+#: views/my_stuff.jade:226
+msgid "Cancel"
+msgstr "取消"
+
+#: views/my_stuff.jade:228
+msgid "My Apps"
+msgstr "我的应用"
+
+#: views/my_stuff.jade:233
+msgid "You have not created any app yet."
+msgstr "你还没有创建过应用"
+
+#: views/my_stuff.jade:237
+msgid "Create a new app"
+msgstr "创建一个应用"
+
+#: views/my_stuff.jade:240
+msgid "My Published Apps"
+msgstr "发布我的应用"
+
+#: views/omlet_register.jade:10
+msgid "Complete Registration"
+msgstr "完成注册"
+
+#: views/omlet_register.jade:22 views/register.jade:30
+msgid ""
+"This e-mail will only be used by the system administrators to contact you in "
+"case of necessity, and will not be divulgated or displayed publicly."
+msgstr ""
+"该邮箱只会被系统管理员在必要时用来与你联络，不会被公开。"
+
+#: views/omlet_register.jade:32 views/register.jade:40
+msgid "Language"
+msgstr "语言"
+
+#: views/omlet_register.jade:34 views/register.jade:42
+msgid "English (United States)"
+msgstr "英语（美国）"
+
+#: views/omlet_register.jade:35 views/register.jade:43
+msgid "English (United Kingdom)"
+msgstr "英语（英国）"
+
+#: views/omlet_register.jade:36 views/register.jade:44
+msgid "Italian"
+msgstr "意大利语"
+
+#: views/omlet_register.jade:37 views/register.jade:45
+msgid "Chinese (simplified)"
+msgstr "中文（简体）"
+
+#: views/omlet_register.jade:40 views/register.jade:7 views/register.jade:48
+msgid "Register"
+msgstr "注册"
+
+#: views/omlet_register.jade:43 views/register.jade:51
+msgid ""
+"By clicking Register above, you agree to the <a href='/about/toc'>terms and "
+"conditions</a> of the ThingPedia service."
+msgstr ""
+"当你点击注册按钮，代表你同意ThingPedia服务的<a href='/about/"
+"toc'>条款与条件</a>。"
