@@ -50,7 +50,9 @@ enable users to use it through Sabrina.
 
 Go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
 to see the device packages we developed, and observe these concepts
-in action.
+in action. In addition, you can download the source code of any existing 
+"supported interfaces" in 
+[Developer Portal](https://thingengine.stanford.edu/thingpedia/devices).
 
 ## The layout of a Device package
 
