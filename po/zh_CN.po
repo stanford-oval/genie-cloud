@@ -1669,7 +1669,7 @@ msgstr "其他留言（选填）"
 
 #: views/train_sabrina.jade:15
 msgid "Thanks for being part of the Sabrina virtual assistant project. "
-msgstr "感谢称为Sabrian个人助手项目的一份子。"
+msgstr "感谢成为Sabrian个人助手项目的一份子。"
 
 #: views/train_sabrina.jade:16
 msgid ""
@@ -1781,11 +1781,11 @@ msgstr "请确认设备是否已经打开并且正确配置。"
 
 #: views/my_stuff.jade:61
 msgid "Disable"
-msgstr "关闭"
+msgstr "停用"
 
 #: views/my_stuff.jade:63
 msgid "Forget"
-msgstr "忘记"
+msgstr "关闭"
 
 #: views/my_stuff.jade:85
 msgid "Show code"
@@ -1859,7 +1859,7 @@ msgstr "分享"
 
 #: views/my_stuff.jade:179
 msgid "Enabled Data Sources"
-msgstr "启用数据源"
+msgstr "已启用的数据源"
 
 #: views/my_stuff.jade:185
 msgid "Enable new data source"
