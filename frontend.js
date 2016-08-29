@@ -141,7 +141,7 @@ Frontend.prototype._init = function _init() {
             locale = acceptLanguage.get(req.headers['accept-language']);
         if (!locale)
             locale = 'en-US';
-        locale = locale.split(/[-_\@\.]/);
+        locale = locale.split(/[-_\@\.,]/);
         var lang = languages[locale.join('-')];
         while (!lang && locale.length > 0) {
             locale.pop();
