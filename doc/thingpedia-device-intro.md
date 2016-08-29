@@ -35,6 +35,17 @@ You should never need to open or instantiate channels yourself.
 Instead, you would set up your _channel class_ so that the system
 will create and open the channels at the right time.
 
+## Become a developer 
+
+At the moment, ThingPedia is still in closed beta. But you can request a 
+developer account from 
+[here](https://thingengine.stanford.edu/user/request-developer).
+Once you are approved by the ThingPedia administrators 
+(you can check your status
+from [your profile page](https://thingengine.stanford.edu/user/profile)),
+you will be able to upload your own devices or accounts to ThingPedia and 
+enable users to use it through Sabrina. 
+
 ## Looking for examples?
 
 Go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
