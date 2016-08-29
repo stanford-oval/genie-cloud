@@ -30,6 +30,9 @@ mixin translate_channel(prefix, channelType, name, channel)
     +do_one(channelType + '_examples_' + name + '[]', ex.english, ex.translated)
 
 block content
+  if fromVersion > 0
+    a(href='/thingpedia/translate/by-id/' + english.kind + '?fromVersion=' + (fromVersion-1)).btn.btn-default= _("Import from previous version")
+
   form(action='/thingpedia/translate/by-id/' + english.kind, method='post')
     input(type='hidden', name='language', value=language)
     input(type='hidden',name='_csrf',value=csrfToken)

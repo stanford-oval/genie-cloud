@@ -153,6 +153,7 @@ function processMetaRows(rows) {
                 kind: row.kind,
                 kind_type: row.kind_type,
                 owner: row.owner,
+                version: row.version,
                 developer_version: row.developer_version,
                 approved_version: row.approved_version
             };
@@ -273,7 +274,7 @@ module.exports = {
         return Q.try(function() {
             if (org !== null) {
                 return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
-                                    + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, developer_version,"
+                                    + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                     + " and ((dsc.version = ds.developer_version and ds.owner = ?) or"
@@ -283,7 +284,7 @@ module.exports = {
                                     [org, org, language, kinds]);
             } else {
                 return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
-                                    + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, developer_version,"
+                                    + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                     + " and dsc.version = ds.approved_version "
@@ -296,10 +297,25 @@ module.exports = {
         });
     },
 
+    getMetasByKindAtVersion: function(client, kind, version, language) {
+        return Q.try(function() {
+            return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
+                                + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
+                                + " approved_version from device_schema ds"
+                                + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
+                                + " and dsc.version = ? "
+                                + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
+                                + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.kind = ?",
+                                [version, language, kind]);
+        }).then(function(rows) {
+            return processMetaRows(rows);
+        });
+    },
+
     getDeveloperMetas: function(client, kinds, language) {
         return Q.try(function() {
             return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
-                                + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, developer_version,"
+                                + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                 + " approved_version from device_schema ds"
                                 + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                 + " and dsc.version = ds.developer_version "

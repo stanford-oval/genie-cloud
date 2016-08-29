@@ -52,10 +52,12 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
                                           message: req._("Translations for English cannot be contributed.") });
         return;
     }
+    var fromVersion = req.query.fromVersion || null;
 
     db.withTransaction(function(dbClient) {
         return Q.all([model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en'),
-            model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, language)]).spread(function(englishrows, translatedrows) {
+            fromVersion !== null ? model.getMetasByKindAtVersion(dbClient, req.params.kind, fromVersion, language)
+            : model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, language)]).spread(function(englishrows, translatedrows) {
             if (englishrows.length === 0 || translatedrows.length === 0)
                 throw new Error(req._("Not Found."));
 
@@ -113,6 +115,7 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
                         canonical: '',
                         confirmation: '',
                         questions: [],
+                        argcanonicals: []
                     };
                 }
                 if (!translated[what][name].questions)
@@ -165,6 +168,7 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
             page_title: req._("ThingPedia - Translate Type"),
             language: language,
             english: english,
+            fromVersion: translated.version !== null ? translated.version : fromVersion,
             triggers: out.triggers,
             actions: out.actions,
             queries: out.queries,
