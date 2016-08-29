@@ -1,11 +1,5 @@
 # Writing Interfaces for ThingPedia
 
-Table of Contents
-1. [Getting Started](#getting-started)
-2. [Write Device Package](#write-device-pacakge)
-3. [Device Metadata](#device-metadata)
-4. [Publishing and Testing](#publishing-and-testing-on-thingpedia)
-
 ## Getting Started
 
 ### The basics: Devices, Channels, and Events
