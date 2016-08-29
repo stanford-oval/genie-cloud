@@ -172,10 +172,22 @@ $(function() {
                         type: 'string',
                         title: "Auth Type",
                         'enum': ['none', 'oauth2', 'basic', 'builtin', 'discovery']
+                    },
+                    client_id: {
+                        type: 'string',
+                        title: "OAuth 2 Client ID",
+                        required: false,
+                    },
+                    client_secret: {
+                        type: 'string',
+                        title: "OAuth 2 Client Secret",
+                        required: false,
                     }
                 },
+
                 additionalProperties: {
-                    type: 'string'
+                    type: 'string',
+                    required: false,
                 }
             },
             triggers: {

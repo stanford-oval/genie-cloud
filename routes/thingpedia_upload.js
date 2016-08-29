@@ -193,6 +193,7 @@ function ensureExamples(dbClient, ast) {
 
 function uploadZipFile(req, obj, ast, stream) {
     var cleanedMetadata = {
+        auth: ast.auth,
         types: ast.types,
         child_types: ast.child_types,
         'global-name': ast['global-name']
