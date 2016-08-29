@@ -804,6 +804,13 @@ module which is always provided. This also includes any promise library you migh
 to use for channel classes.
 
 Once submitted, the device is not automatically available to all users. Instead,
-it is only available to you and people to who you give your _developer key_,
-which you can retrieve from your user profile. The device will become available
-after being reviewed and approved by a ThingPedia administrator.`
+it is only available to you with your _developer key_, which you can retrieve 
+from your [user profile](https://thingengine.stanford.edu/user/profile)
+if you have already been approved to be a developer. 
+If you are on Omlet, you should be able to test your device right away. 
+While if you want to test on Sabrina (which runs ThingEngine on your own 
+Android device with better privacy and discovery capability), you need one 
+more step: go to settings and enable cloud sync. 
+
+The device will become available after being reviewed and approved by a 
+ThingPedia administrator.
