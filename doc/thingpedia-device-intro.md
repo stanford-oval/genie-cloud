@@ -701,33 +701,6 @@ annotations that you need to provide for each trigger, action or query:
 If you don't give your device a global name, the natural language annotations
 are ignored, and you will inherit those of the generic type.
 
-## Publishing on ThingPedia
-
-Once you are ready to let other people try your device interface, after thorough
-local testing, you can publish it on ThingPedia.
-
-To do so, you must first
-[request a developer account](https://thingengine.stanford.edu/user/request-developer).
-Once the request is approved by the ThingPedia administrators (you can check the status
-from [your profile page](https://thingengine.stanford.edu/user/profile)), you will be
-able to upload a new device by clicking on
-[Propose it for inclusion](https://thingengine.stanford.edu/thingpedia/upload/create?class=physical)
-in the red banner in the ThingPedia page.
-
-In the creation page you will be required to upload a zip file containing your
-device package. The package.json must be at the toplevel of the zip file, not in a
-subdirectory. You should always tick "This device requires additional JS code"
-or your package will be ignored!
-
-Each device package must contain all its dependencies, except for the `thingpedia`
-module which is always provided. This also includes any promise library you might want
-to use for channel classes.
-
-Once submitted, the device is not automatically available to all users. Instead,
-it is only available to you and people to who you give your _developer key_,
-which you can retrieve from your user profile. The device will become available
-after being reviewed and approved by a ThingPedia administrator.
-
 ## Handling Discovery
 
 Local discovery in ThingPedia relies on the
@@ -807,3 +780,30 @@ The bluetooth class is used as a fallback, and an interface can expose the types
 `bluetooth-class-health` for Bluetooth class `0x900`, `bluetooth-class-audio-video`
 for Bluetooth class `0x400` and `bluetooth-class-phone` for Bluetooth class `0x200`.
 Other Bluetooth classes are ignored.
+
+## Publishing and Testing on ThingPedia
+
+Once you are ready to let other people try your device interface, after thorough
+local testing, you can publish it on ThingPedia.
+
+To do so, you must first
+[request a developer account](https://thingengine.stanford.edu/user/request-developer).
+Once the request is approved by the ThingPedia administrators (you can check the status
+from [your profile page](https://thingengine.stanford.edu/user/profile)), you will be
+able to upload a new device by clicking on
+[Propose it for inclusion](https://thingengine.stanford.edu/thingpedia/upload/create?class=physical)
+in the red banner in the ThingPedia page.
+
+In the creation page you will be required to upload a zip file containing your
+device package. The package.json must be at the toplevel of the zip file, not in a
+subdirectory. You should always tick "This device requires additional JS code"
+or your package will be ignored!
+
+Each device package must contain all its dependencies, except for the `thingpedia`
+module which is always provided. This also includes any promise library you might want
+to use for channel classes.
+
+Once submitted, the device is not automatically available to all users. Instead,
+it is only available to you and people to who you give your _developer key_,
+which you can retrieve from your user profile. The device will become available
+after being reviewed and approved by a ThingPedia administrator.`
