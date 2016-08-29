@@ -29,6 +29,14 @@ block content
     if authenticated && (app.owner === user.id || user.developer_status === 3)
       div.col-sm-2
         a(href='/thingpedia/apps/edit/' + app.id).btn.btn-default.btn-block Edit
+      div.col-sm-2
+        form.form-inline(action="/thingpedia/apps/set-invisible/" + app.id,method="post")
+          input(type='hidden',name='_csrf',value=csrfToken)
+          button(type='submit').btn.btn-default.btn-block= _("Hide from Collection")
+      div.col-sm-2
+        form.form-inline(action="/thingpedia/apps/set-visible/" + app.id,method="post")
+          input(type='hidden',name='_csrf',value=csrfToken)
+          button(type='submit').btn.btn-default.btn-block= _("Publish")
     else
       //div.col-sm-2
         a(href='/thingpedia/apps/fork/' + app.id).btn.btn-default.btn-block Fork
