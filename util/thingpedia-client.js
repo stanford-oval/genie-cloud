@@ -216,6 +216,7 @@ module.exports = class ThingPediaClientCloud {
 
     getDeviceFactories(klass) {
         var developerKey = this.developerKey;
+        var categories = ['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management'];
 
         return db.withClient((dbClient) => {
             return Q.try(() => {
@@ -237,6 +238,10 @@ module.exports = class ThingPediaClientCloud {
                     else if (klass === 'data')
                         devices = device.getAllApprovedWithKindWithCode(dbClient,
                                                                         'data-source',
+                                                                        org);
+                    else if (categories.indexOf(klass) !== -1)
+                        devices = device.getAllApprovedWithKindWithCode(dbClient,
+                                                                        klass,
                                                                         org);
                     else
                         devices = device.getAllApprovedWithoutKindsWithCode(dbClient,
