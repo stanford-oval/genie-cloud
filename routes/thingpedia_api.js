@@ -91,7 +91,9 @@ router.get('/devices/setup/:kinds', function(req, res) {
 });
 
 router.get('/devices', function(req, res) {
-    if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
+    if (req.query.class && ['online', 'physical', 'data',
+            'media', 'social-network', 'home', 'communication',
+            'health', 'service', 'data-management'].indexOf(req.query.class) < 0) {
         res.status(404).json("Invalid device class");
         return;
     }
