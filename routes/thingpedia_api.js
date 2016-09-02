@@ -64,7 +64,7 @@ router.get('/code/devices/:kind', function(req, res) {
     var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
 
     client.getDeviceCode(req.params.kind).then(function(code) {
-        if (obj.developer)
+        if (code.developer)
             res.cacheFor(3600000);
         else
             res.cacheFor(86400000);
