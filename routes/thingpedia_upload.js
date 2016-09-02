@@ -113,9 +113,9 @@ function validateDevice(dbClient, req) {
 
     if (fullcode) {
         if (!ast.name)
-            throw new Error("Missing name");
+            ast.name = name;
         if (!ast.description)
-            throw new Error("Missing description");
+            ast.description = description;
         for (var name in ast.triggers) {
             if (!ast.triggers[name].url)
                 throw new Error(req._("Missing trigger url for %s").format(name));
