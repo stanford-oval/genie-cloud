@@ -538,6 +538,8 @@ The manifest is written in JSON, and looks like this
     }
 ```
 
+### Global name
+
 The global name is the user visible name of the interface in the natural
 language. Eg, if your name is "foo", the user will say "configure foo" or
 "send message on foo". It's a good idea to give the device the global
@@ -545,6 +547,8 @@ name, but as the label suggests it needs to be global (so it should be
 a brand name, eg "hue" or "twitter"). If you don't specify a global name,
 the user will only interact with the device through one of the exposed
 types.
+
+### Types
 
 The `types` array lists all the types that this device claims to conform
 to, eg. `thermostat` or `speaker`. If you list your device as having a
@@ -569,6 +573,8 @@ If the user says "configure thermostat" and your device lists `thermostat`
 as a child type, he will be offered to configure your device among the
 many possibilities.
 
+### Authorization
+
 The combination of `params` and `auth.type` determines the UI to configure
 the device. Valid types for `auth.type` are:
 
@@ -577,6 +583,8 @@ or a button otherwise
 - `"oauth2"`, in which case the UI will always show a button
 - `"basic"`, in which case the UI will always show a form; `username` and `password`
   parameters are required
+
+### Channels
 
 If you give your device a global name, worth noting are the natural language
 annotations that you need to provide for each trigger, action or query:
@@ -596,10 +604,12 @@ annotations that you need to provide for each trigger, action or query:
   the `required` property is ignored.
 - `examples`: a list of examples using your channel; this provides both documentation
   for the user (they will be provided by `help <global-name>`)
-  and training data for the system; so you should strive to provide as many
-  examples and as many paraphrases as possible; note that if there are multiple
-  paraphrases for the same functionality, only the first one will be be shown
-  in help.   
+  and training data for the system; only the first one will be be shown
+  in help if there are multiple paraphrases for the same functionality, but
+  every example will help Sabrina to understand users command better,    
+  so you should strive to provide as many examples and as many paraphrases
+  as possible; the parameters is represented as `$<arg name>`, which
+  will be shown as underscore in help.
 
 If you don't give your device a global name, the natural language annotations
 are ignored, and you will inherit those of the generic type.
