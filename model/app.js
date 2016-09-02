@@ -10,7 +10,7 @@ const db = require('../util/db');
 const Q = require('q');
 
 function create(client, app) {
-    var KEYS = ['app_id', 'owner', 'name', 'description', 'canonical', 'code'];
+    var KEYS = ['app_id', 'owner', 'name', 'description', 'canonical', 'confirmation', 'language', 'code'];
     KEYS.forEach(function(key) {
         if (app[key] === undefined)
             app[key] = null;

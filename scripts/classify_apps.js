@@ -33,7 +33,7 @@ function compileApp(code) {
 
 function main() {
     db.withTransaction(function(dbClient) {
-        return model.getAll(dbClient, null).then(function(apps) {
+        return model.getAll(dbClient, undefined).then(function(apps) {
             return Q.all(apps.map(function(a) {
                 return compileApp(a.code).then(function(compiler) {
                     var nSabrinaInput = 0, nOtherInput = 0, nKeywordInput = 0, nTrueInput = 0;

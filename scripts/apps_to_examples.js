@@ -279,7 +279,7 @@ function main() {
     var output = fs.createWriteStream(process.argv[2]);
 
     db.withTransaction(function(dbClient) {
-        return model.getAll(dbClient, null).then(function(apps) {
+        return model.getAll(dbClient, undefined).then(function(apps) {
             return Q.all(apps.map(function(a) {
                 return Q.try(function() {
                     return compileApp(a.code).then(function() {
