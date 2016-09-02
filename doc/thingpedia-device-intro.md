@@ -56,7 +56,7 @@ in action. In addition, you can download the source code of any existing
 "supported interfaces" in
 [Developer Portal](https://thingengine.stanford.edu/thingpedia/devices).
 
-## Write Device Package
+## Writing Device Package
 
 ### The layout of a Device package
 
