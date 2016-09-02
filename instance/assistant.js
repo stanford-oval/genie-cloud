@@ -34,6 +34,12 @@ module.exports = class Assistant extends events.EventEmitter {
         }.bind(this)));
     }
 
+    notifyError(data) {
+        return Q.all(Object.keys(this._conversations).map(function(id) {
+            return this._conversations[id].notifyError(data);
+        }.bind(this)));
+    }
+
     openConversation(feedId, user, delegate) {
         if (this._conversations[feedId])
             return this._conversations[feedId];
