@@ -549,14 +549,19 @@ types.
 The `types` array lists all the types that this device claims to conform
 to, eg. `thermostat` or `speaker`. If you list your device as having a
 certain type, you inherit the natural language annotations of that type.
-The most important type is online-account, which will flag the device
+The most important type is `online-account`, which will flag the device
 as an account, and will change where it appears in the UI.
-Of a similar spirit is the kind data-source, which will flag the device as a
+Of a similar spirit is the kind `data-source`, which will flag the device as a
 public web service with no authentication, and will hide it from the Android UI
 or from the 'list devices' Sabrina command.
 Other important types are cloud-only and phone-only, which will prevent your
 code from being instantiated outside of the right ThingEngine installation.
 Use them if you need platform specific APIs.
+Apart from previously mentioned types, each device _must_ has at least one
+type from the following seven types: `media`, `social-network`, `home`,
+`communication`, `health`, `service`, and `data-management`. These types
+are used for categorizing devices. A device without these types will not be
+shown in the device list when users use `help` in Sabrina.  
 
 `child_types` is similar, but marks your device as a collection device,
 and informs the system of the types that your child devices will expose.
@@ -590,9 +595,11 @@ annotations that you need to provide for each trigger, action or query:
   `question` to fill the slot. Arguments for actions are always required, so
   the `required` property is ignored.
 - `examples`: a list of examples using your channel; this provides both documentation
-  for the user (they will be provided by `list devices` and `help <global-name>`)
+  for the user (they will be provided by `help <global-name>`)
   and training data for the system; so you should strive to provide as many
-  examples and as many paraphrases as possible.
+  examples and as many paraphrases as possible; note that if there are multiple
+  paraphrases for the same functionality, only the first one will be be shown
+  in help.   
 
 If you don't give your device a global name, the natural language annotations
 are ignored, and you will inherit those of the generic type.
