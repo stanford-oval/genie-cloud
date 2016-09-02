@@ -83,7 +83,6 @@ $(function() {
                         },
                         required: {
                             type: 'boolean',
-                            required: false,
                             format: 'checkbox',
                             title: 'Argument is required'
                         }
@@ -119,6 +118,17 @@ $(function() {
                 format: 'checkbox',
                 title: 'Is it a webhook?',
                 required: false,
+            },
+            rss: {
+                type: 'boolean',
+                format: 'checkbox',
+                title: 'Is it an RSS feed?',
+                required: false,
+            },
+            'poll-interval': {
+                type: 'number',
+                title: 'Polling Interval',
+                required: false,
             }
         }
     };
@@ -130,6 +140,16 @@ $(function() {
             required: false,
         },
         properties: {
+            name: {
+                type: 'string',
+                title: "User visible name",
+                required: false,
+            },
+            description: {
+                type: 'string',
+                title: "User visible description",
+                required: false,
+            },
             params: {
                 type: 'object',
                 title: "Configuration Parameters",
@@ -210,6 +230,7 @@ $(function() {
     var editor = new JSONEditor(element, {
         theme: 'bootstrap3',
         required_by_default: true,
+        display_required_only: true,
         disable_array_reorder: true,
         disable_array_delete_last_row: true,
         disable_array_delete_all_rows: true,
