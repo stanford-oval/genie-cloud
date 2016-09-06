@@ -55,7 +55,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, language, types
         for (var name in from) {
             var meta = fromMeta[name];
             // convert security-camera to 'security camera' and googleDrive to 'google drive'
-            var kindCanonical = schemaKind.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+            var kindCanonical = schemaKind.replace(/[_\-]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
             var canonical = meta && meta.canonical ? (meta.canonical + ' on ' + kindCanonical) : null;
             var confirmation = (meta ? (meta.confirmation || meta.label) : null) || null;
             var types = from[name];
@@ -103,7 +103,7 @@ function insertChannels(dbClient, schemaId, schemaKind, version, language, types
 }
 
 function create(client, schema, types, meta) {
-    var KEYS = ['kind', 'kind_type', 'owner', 'approved_version', 'developer_version'];
+    var KEYS = ['kind', 'kind_canonical', 'kind_type', 'owner', 'approved_version', 'developer_version'];
     KEYS.forEach(function(key) {
         if (schema[key] === undefined)
             schema[key] = null;

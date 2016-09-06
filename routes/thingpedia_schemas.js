@@ -187,6 +187,8 @@ function doCreateOrUpdate(id, create, req, res) {
                 var meta = res[1];
                 var obj = {
                     kind: kind,
+                    // convert security-camera to 'security camera' and googleDrive to 'google drive'
+                    kind_canonical: kind.replace(/[_\-]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase(),
                 };
 
                 if (create) {
