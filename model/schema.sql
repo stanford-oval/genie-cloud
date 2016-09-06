@@ -108,6 +108,7 @@ create table device_class (
 create table device_schema (
     id integer auto_increment primary key,
     kind varchar(128) unique not null,
+    kind_canonical varchar(128) not null collate utf8_general_ci,
     kind_type enum('primary', 'global', 'other') not null default 'other',
     owner integer not null,
     developer_version integer(11) not null default 0,

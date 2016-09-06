@@ -156,6 +156,8 @@ function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve)
         console.error(e.stack);
         var obj = {
             kind: kind,
+            // convert security-camera to 'security camera' and googleDrive to 'google drive'
+            kind_canonical: kind.replace(/[_\-]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase(),
             kind_type: kind_type,
             owner: req.user.developer_org
         };
