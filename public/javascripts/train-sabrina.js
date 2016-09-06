@@ -136,9 +136,6 @@ $(function() {
             return null;
     }
 
-    var FILTERED_STUFF = new Set(["yes", "debug", "never mind", "hello", "thanks", "cool", "no", "sorry", "list", "here",
-        "at work", "at home", "false", "true", "configure", "discover", "list devices", "list queries", "list commands"]);
-
     function format(canonical, utterance) {
         if (canonical === 'failuretoparse')
             return 'Search for “' + utterance + '” on the web';
@@ -172,10 +169,7 @@ $(function() {
             }
 
             var previous = null;
-            var filter = (location.hash !== '#show-all');
             data.candidates.forEach(function(result) {
-                if (filter && FILTERED_STUFF.has(result.canonical))
-                    return;
                 if (previous === result.answer)
                     return;
                 previous = result.answer;
