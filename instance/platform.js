@@ -37,24 +37,17 @@ var _unzipApi = {
 
 class FrontendDispatcher {
     constructor() {
-        this._webhooks = {};
         this._websockets = {};
     }
 
-    addCloudId(cloudId, webhook, websocket) {
-        this._webhooks[cloudId] = webhook;
+    addCloudId(cloudId, websocket) {
         this._websockets[cloudId] = websocket;
-    }
-
-    handleCallback(cloudId, id, method, query, headers, payload) {
-        this._webhooks[cloudId].handleCallback(id, method, query, headers, payload);
     }
 
     handleWebsocket(cloudId, req, upgradeHead, socket) {
         this._websockets[cloudId].handle(req, upgradeHead, socket);
     }
 }
-FrontendDispatcher.prototype.$rpcMethods = ['handleCallback'];
 
 class WebhookApi {
     constructor(cloudId) {
@@ -89,6 +82,7 @@ class WebhookApi {
         delete this._hooks[id];
     }
 }
+WebhookApi.prototype.$rpcMethods = ['handleCallback'];
 
 class WebsocketApi {
     constructor() {
@@ -126,8 +120,8 @@ class Platform {
         this._prefs = new prefs.FilePreferences(this._writabledir + '/prefs.db');
 
         this._websocketApi = new WebsocketApi();
-        this._webhookApi = new WebhookApi();
-        _dispatcher.addCloudId(options.cloudId, this._webhookApi, this._websocketApi);
+        this._webhookApi = new WebhookApi(this._cloudId);
+        _dispatcher.addCloudId(options.cloudId, this._websocketApi);
 
         this._assistant = null;
     }
