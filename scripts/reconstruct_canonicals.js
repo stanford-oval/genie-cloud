@@ -97,6 +97,8 @@ const GRAMMAR_TOKENS = {
         'monitor_if': 'monitor if',
         'every_day_at': 'every day at',
         'every': 'every',
+        'if': 'if',
+        'then': 'then',
         'help': 'help',
         'discover': 'discover',
         'configure': 'configure',
@@ -129,6 +131,8 @@ const GRAMMAR_TOKENS = {
         'monitor_if': 'osserva se',
         'every_day_at': 'ogni giorno alle',
         'every': 'ogni',
+        'if': 'se',
+        'then': 'allora',
         'help': 'aiuto',
         'discover': 'ricerca',
         'configure': 'configura',
@@ -161,6 +165,8 @@ const GRAMMAR_TOKENS = {
         'monitor_if': "监控 如果",
         'every_day_at': "每天 在",
         'every': "每",
+        'if': "如果",
+        'then': "就",
         'help': "帮助",
         'discover': "搜索",
         'configure': "设置",
@@ -205,29 +211,81 @@ const LIST_TO_GRAMMAR = {
 
 function argToCanonical(grammar, buffer, arg) {
     if (arg.type === 'Location') {
-        if (arg.relativeTag === 'rel_current_location')
+        if (arg.value.relativeTag === 'rel_current_location')
             buffer.push(grammar.here);
-        else if (arg.relativeTag === 'rel_home')
+        else if (arg.value.relativeTag === 'rel_home')
             buffer.push(grammar.home);
-        else if (arg.relativeTag === 'rel_work')
+        else if (arg.value.relativeTag === 'rel_work')
             buffer.push(grammar.work);
-        else if (arg.latitude === 37.442156 && arg.longitude === -122.1634471)
+        else if (arg.value.latitude === 37.442156 && arg.value.longitude === -122.1634471)
             buffer.push('palo alto');
-        else if (arg.latitude === 34.0543942 && arg.longitude === -118.2439408)
+        else if (arg.value.latitude === 34.0543942 && arg.value.longitude === -118.2439408)
             buffer.push('los angeles');
-        else
+        else {
+            console.log('Unknown location at ' + arg.value.latitude + ', ' + arg.value.longitude);
             buffer.push('some other place');
+        }
     } else if (arg.type === 'String') {
         buffer.push("``");
         buffer.push(arg.value.value);
         buffer.push("''");
     } else if (arg.type === 'Boolean') {
         buffer.push(grammar[String(arg.value.value)]);
+    } else if (arg.type === 'Date') {
+        buffer.push(arg.value.year + '/' + arg.value.month + '/' + arg.value.day);
+    } else if (arg.type === 'Time') {
+        buffer.push(arg.value.hour + ':' + arg.value.minute);
     } else {
         buffer.push(String(arg.value.value));
         if (arg.type === 'Measure')
             buffer.push(arg.value.unit || arg.unit);
     }
+}
+
+function invocationToCanonical(invocation, meta, grammar, buffer) {
+    var name = invocation.name;
+    var args = invocation.args;
+    buffer.push(meta.canonical);
+
+    var argmap = {};
+    meta.argcanonicals.forEach(function(argcanonical, i) {
+        argmap[meta.args[i]] = argcanonical || meta.args[i];
+    });
+
+    args.forEach(function(arg) {
+        buffer.push(grammar.with);
+        buffer.push('arg');
+
+        var match = /^tt[:\.]param\.(.+)$/.exec(arg.name.id);
+        if (match === null) {
+            throw new TypeError('Argument name not in proper format, is ' + arg.name.id);
+        }
+        var argname = match[1];
+
+        var argcanonical;
+        if (argname in argmap)
+            argcanonical = argmap[argname];
+        else
+            argcanonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+        buffer.push(argcanonical);
+
+        if (arg.operator === '<')
+            buffer.push(grammar.is_less_than);
+        else if (arg.operator === '>')
+            buffer.push(grammar.is_greater_than);
+        else
+            buffer.push(grammar[arg.operator]);
+        argToCanonical(grammar, buffer, arg);
+    });
+}
+
+function getMeta(invocation, schemaType) {
+    var match = /^tt:([^\.]+)\.(.+)$/.exec(invocation.name.id);
+    if (match === null)
+        throw new TypeError('Channel name not in proper format');
+    var kind = match[1];
+    var channelName = match[2];
+    return _schemaRetriever.getMeta(kind, schemaType, channelName);
 }
 
 function reconstructCanonical(dbClient, grammar, language, json) {
@@ -263,61 +321,69 @@ function reconstructCanonical(dbClient, grammar, language, json) {
     if (parsed.trigger)
         buffer.push(grammar.monitor_if);
 
+    var trigger = null, action = null, query = null;
+    var triggerMeta = null, actionMeta = null, queryMeta = null;
+
     var name, args, schemaType;
     if (parsed.action) {
-        name = parsed.action.name;
-        args = parsed.action.args;
-        schemaType = 'actions';
+        action = parsed.action;
+        actionMeta = getMeta(parsed.action, 'actions');
     } else if (parsed.query) {
-        name = parsed.query.name;
-        args = parsed.query.args;
-        schemaType = 'queries';
+        query = parsed.query;
+        queryMeta = getMeta(parsed.query, 'queries');
     } else if (parsed.trigger) {
-        name = parsed.trigger.name;
-        args = parsed.trigger.args;
-        schemaType = 'triggers';
+        trigger = parsed.trigger;
+        triggerMeta = getMeta(parsed.trigger, 'triggers');
+    } else if (parsed.rule) {
+        if (parsed.rule.action) {
+            action = parsed.rule.action;
+            actionMeta = getMeta(parsed.rule.action, 'actions');
+        }
+        if (parsed.rule.query) {
+            query = parsed.rule.query;
+            queryMeta = getMeta(parsed.rule.query, 'queries');
+        }
+        if (parsed.rule.trigger) {
+            trigger = parsed.rule.trigger;
+            triggerMeta = getMeta(parsed.rule.trigger, 'triggers');
+        }
     } else {
-        throw new TypeError('Not action, query or trigger');
+        throw new TypeError('Not action, query, trigger or rule');
     }
 
-    var match = /^tt:([^\.]+)\.(.+)$/.exec(name.id);
-    if (match === null)
-        throw new TypeError('Channel name not in proper format');
-    var kind = match[1];
-    var channelName = match[2];
-
-    return _schemaRetriever.getMeta(kind, schemaType, channelName).then(function(meta) {
-        buffer.push(meta.canonical);
-
-        var argmap = {};
-        meta.argcanonicals.forEach(function(argcanonical, i) {
-            argmap[meta.args[i]] = argcanonical || meta.args[i];
-        });
-
-        args.forEach(function(arg) {
-            buffer.push(grammar.with);
-            buffer.push('arg');
-
-            var match = /^tt[:\.]param\.(.+)$/.exec(arg.name.id);
-            if (match === null)
-                throw new TypeError('Argument name not in proper format, is ' + arg.name.id);
-            var argname = match[1];
-
-            var argcanonical;
-            if (argname in argmap)
-                argcanonical = argmap[argname];
-            else
-                argcanonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-            buffer.push(argcanonical);
-
-            if (arg.operator === '<')
-                buffer.push(grammar.is_less_than);
-            else if (arg.operator === '>')
-                buffer.push(grammar.is_greater_than);
-            else
-                buffer.push(grammar[arg.operator]);
-            argToCanonical(grammar, buffer, arg);
-        });
+    return Q.all([triggerMeta, actionMeta, queryMeta]).spread(function(triggerMeta, actionMeta, queryMeta) {
+        if (parsed.rule) {
+            if (parsed.rule.trigger) {
+                if (parsed.rule.trigger.name.id === 'tt:builtin.timer' &&
+                    parsed.rule.trigger.args.length === 1 &&
+                    parsed.rule.trigger.args[0].name.id === 'tt:param.interval') {
+                    buffer.push(grammar.every);
+                    argToCanonical(grammar, buffer, parsed.rule.trigger.args[0]);
+                } else if (parsed.rule.trigger.name.id === 'tt:builtin.at' &&
+                           parsed.rule.trigger.args.length === 1 &&
+                           parsed.rule.trigger.args[0].name.id === 'tt:param.time') {
+                    buffer.push(grammar.every_day_at);
+                    argToCanonical(grammar, buffer, parsed.rule.trigger.args[0]);
+                } else {
+                    buffer.push(grammar['if']);
+                    invocationToCanonical(parsed.rule.trigger, triggerMeta, grammar, buffer);
+                    buffer.push(grammar.then);
+                }
+            }
+            if (parsed.rule.query)
+                invocationToCanonical(parsed.rule.query, queryMeta, grammar, buffer);
+            if (parsed.rule.query && parsed.rule.action)
+                buffer.push(grammar.then);
+            if (parsed.rule.action)
+                invocationToCanonical(parsed.rule.action, actionMeta, grammar, buffer);
+        } else if (parsed.action) {
+            invocationToCanonical(parsed.action, actionMeta, grammar, buffer);
+        } else if (parsed.query) {
+            invocationToCanonical(parsed.query, queryMeta, grammar, buffer);
+        } else if (parsed.trigger) {
+            buffer.push(grammar.monitor_if);
+            invocationToCanonical(parsed.trigger, triggerMeta, grammar, buffer);
+        }
 
         return buffer.join(' ');
     });
