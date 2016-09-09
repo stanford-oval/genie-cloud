@@ -20,7 +20,7 @@ const ManifestToSchema = require('../util/manifest_to_schema');
 const generateExamples = require('../util/generate_examples');
 
 function findInvocation(ex) {
-    const REGEXP = /^tt:([a-z0-9A-Z_]+)\.([a-z0-9A-Z_]+)$/;
+    const REGEXP = /^tt:([a-z0-9A-Z_\-]+)\.([a-z0-9A-Z_]+)$/;
     var parsed = JSON.parse(ex.target_json);
     if (parsed.action)
         return ['actions', REGEXP.exec(parsed.action.name.id)];
@@ -33,9 +33,11 @@ function findInvocation(ex) {
 }
 
 function main() {
+    var language = process.argv[2] || 'en';
+
     db.withTransaction(function(dbClient) {
         return schemaModel.getAll(dbClient).then(function(rows) {
-            return db.selectAll(dbClient, "select * from example_utterances where is_base and schema_id is not null")
+            return db.selectAll(dbClient, "select * from example_utterances where is_base and schema_id is not null and language = ?", [language])
                 .then(function(examples) {
                     var exampleMap = {};
 
@@ -86,7 +88,7 @@ function main() {
                             }
                             console.log('Found ' + n + ' examples for ' + row.kind);
 
-                            return generateExamples(dbClient, row.kind, ast);
+                            return generateExamples(dbClient, row.kind, ast, language);
                         }).then(function() {
                             console.log('Processed ' + row.kind);
                         }).catch(function(e) {

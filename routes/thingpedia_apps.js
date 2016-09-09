@@ -147,6 +147,8 @@ router.get('/create', user.redirectLogIn, function(req, res) {
                                           description: '',
                                           code: '',
                                           canonical: '',
+                                          confirmation: '',
+                                          language: req.user.locale.split(/[\-_.]/g)[0],
                                           tags: [] });
 });
 
@@ -175,6 +177,8 @@ router.post('/create', user.requireLogIn, function(req, res) {
     var code = req.body.code;
     var tags = req.body.tags || [];
     var canonical = req.body.canonical || null;
+    var confirmation = req.body.confirmation || null;
+    var language = req.body.language || 'en';
 
     return Q.try(function() {
         return validateApp(req, name, description, code);
@@ -187,6 +191,8 @@ router.post('/create', user.requireLogIn, function(req, res) {
                                             name: name,
                                             description: description,
                                             canonical: canonical,
+                                            confirmation: confirmation,
+                                            language: language,
                                             code: code })
                 .tap(function(app) {
                     return model.addTags(dbClient, app.id, tags);
@@ -201,6 +207,8 @@ router.post('/create', user.requireLogIn, function(req, res) {
                                               name: name,
                                               description: description,
                                               canonical: canonical,
+                                              confirmation: confirmation,
+                                              language: language,
                                               code: code,
                                               tags: tags });
     }).done();
@@ -292,7 +300,7 @@ router.post('/set-invisible/:id(\\d+)', user.requireLogIn, function(req, res) {
     }).done();
 });
 
-function forkApp(req, res, error, name, description, code, tags) {
+function forkApp(req, res, error, name, description, canonical, confirmation, language, code, tags) {
     return db.withClient(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(r) {
             if (r.owner === req.user.id) {
@@ -321,7 +329,9 @@ function forkApp(req, res, error, name, description, code, tags) {
                                                      fork_name: app.name,
                                                      name: name || app.name,
                                                      description: description || app.description,
-                                                     canonical: canonical,
+                                                     canonical: canonical || app.canonical,
+                                                     confirmation: confirmation || app.confirmation,
+                                                     language: language || app.language,
                                                      code: code || app.code,
                                                      tags: tags || app.tags.map(function(t) { return t.tag; }) });
     }).catch(function(e) {
@@ -340,6 +350,8 @@ router.post('/fork/:id(\\d+)', user.requireLogIn, function(req, res) {
     var code = req.body.code;
     var tags = req.body.tags || [];
     var canonical = req.body.canonical || null;
+    var confirmation = req.body.confirmation || null;
+    var language = req.body.language || 'en';
 
     Q.try(function() {
         return validateApp(req, name, description, code);
@@ -352,6 +364,8 @@ router.post('/fork/:id(\\d+)', user.requireLogIn, function(req, res) {
                                             name: name,
                                             description: description,
                                             canonical: canonical,
+                                            confirmation: confirmation,
+                                            language: language,
                                             code: code })
                 .tap(function(app) {
                     return model.addTags(dbClient, app.id, tags);
@@ -360,7 +374,7 @@ router.post('/fork/:id(\\d+)', user.requireLogIn, function(req, res) {
     }).then(function(app) {
         res.redirect('/thingpedia/apps/' + app.id);
     }).catch(function(err) {
-        return forkApp(req, res, err, name, description, code, tags);
+        return forkApp(req, res, err, name, description, canonical, confirmation, language, code, tags);
     }).done();
 });
 
@@ -390,6 +404,8 @@ router.get('/edit/:id(\\d+)', user.redirectLogIn, function(req, res) {
                                               name: app.name,
                                               description: app.description,
                                               canonical: app.canonical,
+                                              confirmation: app.confirmation,
+                                              language: app.language,
                                               code: app.code,
                                               tags: app.tags.map(function(t) { return t.tag; }) });
     }).catch(function(e) {
@@ -404,6 +420,8 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
     var code = req.body.code;
     var tags = req.body.tags || [];
     var canonical = req.body.canonical || null;
+    var confirmation = req.body.confirmation || null;
+    var language = req.body.language || 'en';
 
     Q.try(function() {
         return validateApp(req, name, description, code);
@@ -420,7 +438,11 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
                 // FINISHME figure out what devices this app uses
                 return model.update(dbClient, req.params.id, { name: name,
                                                                app_id: appId,
+                                                               language: language,
                                                                description: description,
+                                                               canonical: canonical,
+                                                               confirmation: confirmation,
+                                                               language: language,
                                                                code: code })
                     .then(function() {
                         return model.removeAllTags(dbClient, req.params.id);
@@ -442,6 +464,8 @@ router.post('/edit/:id(\\d+)', user.requireLogIn, function(req, res) {
                                               name: name,
                                               description: description,
                                               canonical: canonical,
+                                              confirmation: confirmation,
+                                              language: language,
                                               code: code,
                                               tags: tags });
     }).done();

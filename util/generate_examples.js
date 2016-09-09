@@ -13,7 +13,6 @@ const db = require('./db');
 const schema = require('../model/schema');
 const expandExamples = require('./expand_examples');
 const exampleModel = require('../model/example');
-const tokenize = require('./tokenize');
 
 function assignmentsToArgs(assignments, argtypes) {
     var args = [];
@@ -23,8 +22,8 @@ function assignmentsToArgs(assignments, argtypes) {
             continue;
         var type = argtypes[name];
         var nameVal = { id: 'tt:param.' + name };
-        if (type.isString || type.isNumber || type.isEmailAddress || type.isPhoneNumber)
-            args.push({ name: nameVal, type: String(type),
+        if (type.isString || type.isNumber || type.isEmailAddress || type.isPhoneNumber || type.isEnum)
+            args.push({ name: nameVal, type: (type.isEnum ? 'Enum' : String(type)),
                         value: { value: assignments[name] },
                         operator: 'is' });
         else if (type.isMeasure)
@@ -40,8 +39,12 @@ function assignmentsToArgs(assignments, argtypes) {
             args.push({ name: nameVal, type: 'Location',
                         value: assignments[name],
                         operator: 'is' });
+        else if (type.isDate)
+            args.push({ name: nameVal, type: 'Date',
+                        value: assignments[name],
+                        operator: 'is' });
         else
-            throw new TypeError();
+            throw new TypeError('Unexpected type ' + type);
     }
 
     args.sort(function(a, b) {
@@ -51,56 +54,24 @@ function assignmentsToArgs(assignments, argtypes) {
     return args;
 }
 
-function exampleToAction(kind, actionName, assignments, argtypes) {
-    return {
-        action: { name: { id: 'tt:' + kind + '.' + actionName },
-                  args: assignmentsToArgs(assignments, argtypes) }
-    }
+function exampleToExpanded(what, kind, actionName, assignments, argtypes) {
+    var obj = {};
+    obj[what] = { name: { id: 'tt:' + kind + '.' + actionName },
+                  args: assignmentsToArgs(assignments, argtypes) };
+    return obj;
 }
 
-function exampleToQuery(kind, queryName, assignments, argtypes) {
-    return {
-        query: { name: { id: 'tt:' + kind + '.' + queryName },
-                 args: assignmentsToArgs(assignments, argtypes) }
-    }
-}
-
-function exampleToTrigger(kind, triggerName, assignments, argtypes) {
-    return {
-        trigger: { name: { id: 'tt:' + kind + '.' + triggerName },
-                   args: assignmentsToArgs(assignments, argtypes) }
-    }
-}
-
-function tokensToSlots(tokens) {
-    return tokens.filter((t) => t.startsWith('$')).map((t) => t.substr(1));
-}
-
-function exampleToBaseAction(kind, actionName, tokens) {
-    return {
-        action: { name: { id: 'tt:' + kind + '.' + actionName },
-                  args: [], slots: tokensToSlots(tokens) }
-    }
-}
-
-function exampleToBaseQuery(kind, queryName, tokens) {
-    return {
-        query: { name: { id: 'tt:' + kind + '.' + queryName },
-                 args: [], slots: tokensToSlots(tokens) }
-    }
-}
-
-function exampleToBaseTrigger(kind, triggerName, tokens) {
-    return {
-        trigger: { name: { id: 'tt:' + kind + '.' + triggerName },
-                   args: [], slots: tokensToSlots(tokens) }
-    }
+function exampleToBase(what, kind, actionName, slots) {
+    var obj = {};
+    obj[what] = { name: { id: 'tt:' + kind + '.' + actionName },
+                  args: [], slots: slots };
+    return obj;
 }
 
 module.exports = function(dbClient, kind, ast, language) {
     language = language || 'en';
 
-    function handleExamples(schemaId, from, howBase, howExpanded, out) {
+    function handleExamples(schemaId, from, what, out) {
         for (var name in from) {
             var fromChannel = from[name];
             if (!Array.isArray(fromChannel.examples))
@@ -113,8 +84,8 @@ module.exports = function(dbClient, kind, ast, language) {
             });
 
             fromChannel.examples.forEach(function(ex) {
-                var tokens = tokenize.tokenize(ex);
-                var json = howBase(kind, name, tokens);
+                var slots = argnames.filter((name) => ex.indexOf('$' + name) >= 0);
+                var json = exampleToBase(what, kind, name, slots);
                 out.push({ schema_id: schemaId, is_base: true, utterance: ex, language: language,
                            target_json: JSON.stringify(json) });
             });
@@ -122,7 +93,7 @@ module.exports = function(dbClient, kind, ast, language) {
             try {
                 var expanded = expandExamples(fromChannel.examples, argtypes);
                 expanded.forEach(function(ex) {
-                    var json = howExpanded(kind, name, ex.assignments, argtypes);
+                    var json = exampleToExpanded(what, kind, name, ex.assignments, argtypes);
                     out.push({ schema_id: schemaId, is_base: false, utterance: ex.utterance, language: language,
                                target_json: JSON.stringify(json) });
                 });
@@ -135,9 +106,9 @@ module.exports = function(dbClient, kind, ast, language) {
     function generateAllExamples(schemaId) {
         var out = [];
 
-        handleExamples(schemaId, ast.actions, exampleToBaseAction, exampleToAction, out);
-        handleExamples(schemaId, ast.queries, exampleToBaseQuery, exampleToQuery, out);
-        handleExamples(schemaId, ast.triggers, exampleToBaseTrigger, exampleToTrigger, out);
+        handleExamples(schemaId, ast.actions, 'action', out);
+        handleExamples(schemaId, ast.queries, 'query', out);
+        handleExamples(schemaId, ast.triggers, 'trigger', out);
 
         return out;
     }

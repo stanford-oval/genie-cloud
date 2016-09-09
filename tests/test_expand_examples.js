@@ -29,6 +29,13 @@ function main() {
     testOne('set my phone to $mode', { mode: Type.Enum(['vibrate', 'silent', 'normal']) });
     testOne('send sms to $to', { to: Type.PhoneNumber });
     testOne('send email to $to', { to: Type.EmailAddress });
+
+    // add a test with no spaces (for chinese)
+    testOne('sendemailto$to', { to: Type.EmailAddress });
+    testOne('sendemailto$tosaying$message', { to: Type.EmailAddress, message: Type.String });
+
+    // add a test with the same argument twice
+    testOne('frob$footo$foo', { foo: Type.Number });
 }
 
 main();

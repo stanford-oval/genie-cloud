@@ -218,9 +218,9 @@ function argToCanonical(grammar, buffer, arg) {
         else
             buffer.push('some other place');
     } else if (arg.type === 'String') {
-        buffer.push('"');
+        buffer.push("``");
         buffer.push(arg.value.value);
-        buffer.push('"');
+        buffer.push("''");
     } else if (arg.type === 'Boolean') {
         buffer.push(grammar[String(arg.value.value)]);
     } else {
