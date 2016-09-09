@@ -14,7 +14,7 @@ function identityMap(array) {
     return array.map((e) => [e, e]);
 }
 
-const STRING_ARGUMENTS = [['" abc def "', 'abc def'], ['" ghi jkl "', 'ghi jkl'], ['mno pqr', 'mno pqr'], ['stu vwz', 'stu vwz']];
+const STRING_ARGUMENTS = [['"abc def"', 'abc def'], ['"ghi jkl"', 'ghi jkl'], ['mno pqr', 'mno pqr'], ['stu vwz', 'stu vwz'], ['@foo', 'foo'], ['#bar', 'bar']];
 const STRING_PLACEHOLDER = 'something';
 const NUMBER_ARGUMENTS = identityMap([42, 7, 14]);
 const NUMBER_PLACEHOLDER = 'some number';
