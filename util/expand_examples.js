@@ -7,8 +7,6 @@
 // See COPYING for details
 "use strict";
 
-const tkutils = require('./tokenize');
-
 // intentionally use strings that don't
 function identityMap(array) {
     return array.map((e) => [e, e]);
@@ -46,31 +44,22 @@ const PHONE_ARGUMENTS = identityMap(['1-555-555-5555']);
 const PHONE_PLACEHOLDER = 'someone';
 
 function expandOne(example, argtypes, into) {
-    var tokens = tkutils.tokenize(example);
-    var expanded = [];
+    var argnames = Object.keys(argtypes);
     var assignments = {};
 
-    function expandRecursively(i) {
-        if (i === tokens.length) {
+    function expandRecursively(expanded, i) {
+        if (i === argnames.length) {
             var copy = {};
             Object.assign(copy, assignments);
-            return into.push({ utterance: tkutils.rejoin(expanded),
+            return into.push({ utterance: expanded,
                                assignments: copy });
         }
 
-        if (!tokens[i].startsWith('$')) {
-            expanded[i] = tokens[i];
-            return expandRecursively(i+1);
-        }
-        var argname = tokens[i].substr(1);
-        if (assignments[argname]) {
-            expanded[i] = assignments[argname];
-            return expandRecursively(i+1);
-        }
+        var argname = argnames[i];
+        if (expanded.indexOf('$' + argname) < 0)
+            return expandRecursively(expanded, i+1);
 
         var argtype = argtypes[argname];
-        if (!argtype)
-            throw new TypeError('Unrecognized placeholder ' + tokens[i]);
 
         var choices, placeholder;
         if (argtype.isString) {
@@ -106,12 +95,13 @@ function expandOne(example, argtypes, into) {
         }
 
         if (!choices)
-            throw new TypeError('Cannot expand placeholder ' + tokens[i] + ' of type ' + argtype);
+            throw new TypeError('Cannot expand placeholder $' + argname + ' of type ' + argtype);
+
+        var argnameRegex = '\\$' + argname;
 
         choices.forEach(function(c) {
-            expanded[i] = c[0];
             assignments[argname] = c[1];
-            expandRecursively(i+1);
+            expandRecursively(expanded.replace(new RegExp(argnameRegex, 'g'), c[0]), i+1);
             assignments[argname] = undefined;
         });
 
@@ -122,12 +112,11 @@ function expandOne(example, argtypes, into) {
             // where the latter would be slot filled
             // the reason is that the NL is a lot happier with no
             // arguments
-            expanded[i] = placeholder;
-            expandRecursively(i+1);
+            expandRecursively(expanded.replace(new RegExp(argnameRegex, 'g'), placeholder), i+1);
         }
     }
 
-    return expandRecursively(0);
+    return expandRecursively(example, 0);
 }
 
 module.exports = function expandExamples(examples, argtypes) {
