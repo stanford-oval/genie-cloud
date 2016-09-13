@@ -11,8 +11,8 @@ const Q = require('q');
 const readline = require('readline');
 
 const SempreSyntax = require('../util/sempre_syntax');
-const SempreClient = require('./sempreclient');
-const ThingPediaClient = require('./http_client');
+const SempreClient = require('./deps/sempreclient');
+const ThingPediaClient = require('./deps/http_client');
 const SchemaRetriever = require('thingtalk').SchemaRetriever;
 
 const URL = 'https://sabrina-nl.stanford.edu'
