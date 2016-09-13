@@ -160,6 +160,8 @@ function verifyOne(schemas, invocation, invocationType, scope) {
                     return;
                 if (valuehave === 'Measure' && valuetype.isMeasure)
                     return;
+                if (valuehave === 'Enum' && valuetype.isEnum)
+                    return;
                 throw new TypeError('Invalid value type ' + valuehave + ', expected ' + valuetype);
             }
         });
