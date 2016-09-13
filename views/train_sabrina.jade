@@ -28,9 +28,21 @@ block content
   p.hidden
     span#language= locale
   div#form
+    div.checkbox
+      label
+        input(type='checkbox')#edit-thingtalk
+        = _("Edit ThingTalk before learning.")
     form
-      label.sr-only(for="utterance")= _("Utterance:")
-      input.form-control(type="text", placeholder="What do you want Sabrina to do?")#utterance
+      div.form-group
+        label.sr-only(for="utterance")= _("Utterance:")
+        input.form-control(type="text", placeholder="What do you want Sabrina to do?")#utterance
+    div#thingtalk-editor.hidden
+      div.form-group#thingtalk-group
+        label(for='thingtalk')= _("Code (in reduced ThingTalk syntax):")
+        input.form-control(type="text")#thingtalk
+        span.help-block#thingtalk-error
+      div.form-group
+        button(type='button').btn.btn-primary#done= _("Learn")
   div#results-container
     p#sabrina-thinks= _("Sabrina's choice: ")
       span#prediction

@@ -16937,33 +16937,23 @@ module.exports = class ThingTalkTrainer {
     constructor(sempreUrl) {
         this.sempre = new SempreClient(sempreUrl, 'en-US');
         this.thingpedia = new ThingPediaClient();
-        this._schemaRetriever = new SchemaRetriever();
+        this._schemaRetriever = new SchemaRetriever(this.thingpedia);
 
         this._raw = null;
     }
 
-    toThingTalk() {
-        return SempreSyntax.toThingTalk(this._raw);
-    }
-
-    get prompt() {
-        if (this._raw === null) return 'Command   > ';else return 'ThingTalk > ';
-    }
-
-    reset() {
-        this._raw = null;
+    toThingTalk(json) {
+        return SempreSyntax.toThingTalk(json);
     }
 
     learnJSON(json) {
         var raw = this._raw;
-        this._raw = null;
         return this.sempre.onlineLearn(raw, json);
     }
 
     learnThingTalk(text) {
         var sempre = SempreSyntax.toSEMPRE(text);
         var raw = this._raw;
-        this._raw = null;
         return SempreSyntax.verify(this._schemaRetriever, sempre).then(() => {
             var json = JSON.stringify(sempre);
             return this.sempre.onlineLearn(raw, json);
@@ -16971,12 +16961,10 @@ module.exports = class ThingTalkTrainer {
     }
 
     handle(text) {
-        if (this._raw != null) {} else {
-            return this.sempre.sendUtterance(text, null, []).then(parsed => {
-                this._raw = text;
-                return parsed;
-            });
-        }
+        return this.sempre.sendUtterance(text, null, []).then(parsed => {
+            this._raw = text;
+            return parsed;
+        });
     }
 };
 

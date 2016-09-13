@@ -67,13 +67,28 @@ $(function() {
         event.preventDefault();
 
         var a = $(this);
-        trainer.learnJSON(a.attr('data-target-json')).then(function(data) {
-            $('#results-container').hide();
-            if (data.error)
-                console.log('Error in learning', data.error);
-            else
-                $('#counter').text(String(counter()));
-        });
+        var json = a.attr('data-target-json');
+
+        var editThingTalk = $('#edit-thingtalk').val();
+        if (editThingTalk) {
+            try {
+                var tt = trainer.toThingTalk(JSON.parse(json));
+                $('#thingtalk-editor').removeClass('hidden');
+                $('#thingtalk-group').removeClass('has-error');
+                $('#thingtalk-error').text('');
+                $('#thingtalk').val(tt);
+            } catch(e) {
+                alert(e.message);
+            }
+        } else {
+            trainer.learnJSON(json).then(function(data) {
+                $('#results-container').hide();
+                if (data.error)
+                    console.log('Error in learning', data.error);
+                else
+                    $('#counter').text(String(counter()));
+            });
+        }
     }
     // we can't train on a fully negative example, so we just do nothing
     function rejectAll(event) {
@@ -171,5 +186,37 @@ $(function() {
                     .click(rejectAll);
             results.append($('<li>').append(link));
         }).done();
+    });
+
+    $('#done').click(function(event) {
+        event.preventDefault();
+
+        var tt = $('#thingtalk').val();
+        trainer.learnThingTalk(tt).then(function(data) {
+            $('#thingtalk-group').removeClass('has-error');
+            $('#thingtalk-error').text('');
+            if (data.error)
+                console.log('Error in learning', data.error);
+            else
+                $('#counter').text(String(counter()));
+        }).catch(function(e) {
+            $('#thingtalk-group').addClass('has-error');
+
+            var err;
+            if (typeof e === 'string') {
+                err = e;
+            } else if (e.name === 'SyntaxError') {
+                if (e.location)
+                    err = "Syntax error at line " + e.location.start.line + " column " + e.location.start.column + ": " + e.message;
+                else
+                    err = "Syntax error at " + e.fileName + " line " + e.lineNumber + ": " + e.message;
+            } else if (e.message) {
+                err = e.message;
+            } else {
+                err = String(e);
+            }
+
+            $('#thingtalk-error').text(err);
+        });
     });
 });
