@@ -69,7 +69,7 @@ $(function() {
         var a = $(this);
         var json = a.attr('data-target-json');
 
-        var editThingTalk = $('#edit-thingtalk').val();
+        var editThingTalk = $('#edit-thingtalk')[0].checked;
         if (editThingTalk) {
             try {
                 var tt = trainer.toThingTalk(JSON.parse(json));
@@ -194,6 +194,7 @@ $(function() {
 
         var tt = $('#thingtalk').val();
         trainer.learnThingTalk(tt).then(function(data) {
+            $('#results-container').hide();
             $('#thingtalk-group').removeClass('has-error');
             $('#thingtalk-error').text('');
             if (data.error)
