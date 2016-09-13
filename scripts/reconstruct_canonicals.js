@@ -214,9 +214,9 @@ function argToCanonical(grammar, buffer, arg) {
         if (arg.value.relativeTag === 'rel_current_location')
             buffer.push(grammar.here);
         else if (arg.value.relativeTag === 'rel_home')
-            buffer.push(grammar.home);
+            buffer.push(grammar.at_home);
         else if (arg.value.relativeTag === 'rel_work')
-            buffer.push(grammar.work);
+            buffer.push(grammar.at_work);
         else if (arg.value.latitude === 37.442156 && arg.value.longitude === -122.1634471)
             buffer.push('palo alto');
         else if (arg.value.latitude === 34.0543942 && arg.value.longitude === -118.2439408)
@@ -232,9 +232,9 @@ function argToCanonical(grammar, buffer, arg) {
     } else if (arg.type === 'Boolean') {
         buffer.push(grammar[String(arg.value.value)]);
     } else if (arg.type === 'Date') {
-        buffer.push(arg.value.year + '/' + arg.value.month + '/' + arg.value.day);
+        buffer.push('%04d/%02d/%02d'.format(arg.value.year, arg.value.month, arg.value.day));
     } else if (arg.type === 'Time') {
-        buffer.push(arg.value.hour + ':' + arg.value.minute);
+        buffer.push('%02d:%02d'.format(arg.value.hour, arg.value.minute));
     } else {
         buffer.push(String(arg.value.value));
         if (arg.type === 'Measure')
