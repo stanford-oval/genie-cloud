@@ -54,6 +54,7 @@
   },
   "devDependencies": {
     "byline": "^5.0.0",
-    "jsxgettext": "^0.9.0"
+    "jsxgettext": "^0.9.0",
+    "pegjs": "^0.10.0"
   }
 }
