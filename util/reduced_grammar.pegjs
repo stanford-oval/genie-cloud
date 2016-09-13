@@ -83,7 +83,7 @@ condition = varName:ident _ op:comparator _ value:value {
 bool_function = '$contains' { return 'has'; }
 comparator "comparator" = '>=' / '<=' / '>' / '<' / '=~' { return 'contains'; } / ('=' !'>') { return 'is'; } / '!='
 
-value = var_ref_value / measure_value / number_value / date_value / time_value / bool_value / location_value / email_value / phone_value / string_value
+value = bool_value / var_ref_value / measure_value / number_value / date_value / time_value / location_value / email_value / phone_value / string_value
 
 var_ref_value = name:ident { return { type: 'VarRef', value: { id: 'tt:param.' + name } }; }
 measure_value = num:literal_number unit:ident { return { type: 'Measure', value: { value: num, unit: unit } }; }

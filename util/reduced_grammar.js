@@ -1352,17 +1352,17 @@ function peg$parse(input, options) {
   function peg$parsevalue() {
     var s0;
 
-    s0 = peg$parsevar_ref_value();
+    s0 = peg$parsebool_value();
     if (s0 === peg$FAILED) {
-      s0 = peg$parsemeasure_value();
+      s0 = peg$parsevar_ref_value();
       if (s0 === peg$FAILED) {
-        s0 = peg$parsenumber_value();
+        s0 = peg$parsemeasure_value();
         if (s0 === peg$FAILED) {
-          s0 = peg$parsedate_value();
+          s0 = peg$parsenumber_value();
           if (s0 === peg$FAILED) {
-            s0 = peg$parsetime_value();
+            s0 = peg$parsedate_value();
             if (s0 === peg$FAILED) {
-              s0 = peg$parsebool_value();
+              s0 = peg$parsetime_value();
               if (s0 === peg$FAILED) {
                 s0 = peg$parselocation_value();
                 if (s0 === peg$FAILED) {
