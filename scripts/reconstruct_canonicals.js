@@ -209,7 +209,7 @@ const LIST_TO_GRAMMAR = {
     command: 'commands',
 }
 
-function argToCanonical(grammar, buffer, arg) {
+function argToCanonical(grammar, buffer, arg, scope) {
     if (arg.type === 'Location') {
         if (arg.value.relativeTag === 'rel_current_location')
             buffer.push(grammar.here);
@@ -235,6 +235,8 @@ function argToCanonical(grammar, buffer, arg) {
         buffer.push('%04d/%02d/%02d'.format(arg.value.year, arg.value.month, arg.value.day));
     } else if (arg.type === 'Time') {
         buffer.push('%02d:%02d'.format(arg.value.hour, arg.value.minute));
+    } else if (arg.type === 'VarRef') {
+        buffer.push(scope[arg.value.id.substr('tt:param.'.length)]);
     } else {
         buffer.push(String(arg.value.value));
         if (arg.type === 'Measure')
@@ -242,7 +244,7 @@ function argToCanonical(grammar, buffer, arg) {
     }
 }
 
-function invocationToCanonical(invocation, meta, grammar, buffer) {
+function invocationToCanonical(invocation, meta, grammar, buffer, scope) {
     var name = invocation.name;
     var args = invocation.args;
     buffer.push(meta.canonical);
@@ -275,8 +277,11 @@ function invocationToCanonical(invocation, meta, grammar, buffer) {
             buffer.push(grammar.is_greater_than);
         else
             buffer.push(grammar[arg.operator]);
-        argToCanonical(grammar, buffer, arg);
+        argToCanonical(grammar, buffer, arg, scope);
     });
+
+    for (var name in argmap)
+        scope[name] = argmap[name];
 }
 
 function getMeta(invocation, schemaType) {
@@ -314,7 +319,7 @@ function reconstructCanonical(dbClient, grammar, language, json) {
         return buffer.join(' ');
     }
     if (parsed.answer) {
-        argToCanonical(grammar, buffer, parsed.answer);
+        argToCanonical(grammar, buffer, parsed.answer, {});
         return buffer.join(' ');
     }
 
@@ -352,37 +357,39 @@ function reconstructCanonical(dbClient, grammar, language, json) {
     }
 
     return Q.all([triggerMeta, actionMeta, queryMeta]).spread(function(triggerMeta, actionMeta, queryMeta) {
+        var scope = {};
+
         if (parsed.rule) {
             if (parsed.rule.trigger) {
                 if (parsed.rule.trigger.name.id === 'tt:builtin.timer' &&
                     parsed.rule.trigger.args.length === 1 &&
                     parsed.rule.trigger.args[0].name.id === 'tt:param.interval') {
                     buffer.push(grammar.every);
-                    argToCanonical(grammar, buffer, parsed.rule.trigger.args[0]);
+                    argToCanonical(grammar, buffer, parsed.rule.trigger.args[0], scope);
                 } else if (parsed.rule.trigger.name.id === 'tt:builtin.at' &&
                            parsed.rule.trigger.args.length === 1 &&
                            parsed.rule.trigger.args[0].name.id === 'tt:param.time') {
                     buffer.push(grammar.every_day_at);
-                    argToCanonical(grammar, buffer, parsed.rule.trigger.args[0]);
+                    argToCanonical(grammar, buffer, parsed.rule.trigger.args[0], scope);
                 } else {
                     buffer.push(grammar['if']);
-                    invocationToCanonical(parsed.rule.trigger, triggerMeta, grammar, buffer);
+                    invocationToCanonical(parsed.rule.trigger, triggerMeta, grammar, buffer, scope);
                     buffer.push(grammar.then);
                 }
             }
             if (parsed.rule.query)
-                invocationToCanonical(parsed.rule.query, queryMeta, grammar, buffer);
+                invocationToCanonical(parsed.rule.query, queryMeta, grammar, buffer, scope);
             if (parsed.rule.query && parsed.rule.action)
                 buffer.push(grammar.then);
             if (parsed.rule.action)
-                invocationToCanonical(parsed.rule.action, actionMeta, grammar, buffer);
+                invocationToCanonical(parsed.rule.action, actionMeta, grammar, buffer, scope);
         } else if (parsed.action) {
-            invocationToCanonical(parsed.action, actionMeta, grammar, buffer);
+            invocationToCanonical(parsed.action, actionMeta, grammar, buffer, scope);
         } else if (parsed.query) {
-            invocationToCanonical(parsed.query, queryMeta, grammar, buffer);
+            invocationToCanonical(parsed.query, queryMeta, grammar, buffer, scope);
         } else if (parsed.trigger) {
             buffer.push(grammar.monitor_if);
-            invocationToCanonical(parsed.trigger, triggerMeta, grammar, buffer);
+            invocationToCanonical(parsed.trigger, triggerMeta, grammar, buffer, scope);
         }
 
         return buffer.join(' ');
