@@ -81,6 +81,7 @@ $(function() {
                 alert(e.message);
             }
         } else {
+            $('#thingtalk-editor').addClass('hidden');
             trainer.learnJSON(json).then(function(data) {
                 $('#results-container').hide();
                 if (data.error)
