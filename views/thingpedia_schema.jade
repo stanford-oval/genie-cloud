@@ -44,7 +44,28 @@ block content
   if schema.kind === 'online-account'
     p= _("This type is a marker that denotes an account, as opposed to a physical device.")
 
-  if schema.kind.startsWith('bluetooth-uuid-')
+  if schema.kind === 'communication'
+    p= _("This type is a category marker for Communication services, such as texting or email.")
+
+  if schema.kind === 'data-management'
+    p= _("This type is a category marker for Data Management and Data Storage accounts, such as Dropbox and Google Drive.")
+
+  if schema.kind === 'health'
+    p= _("This type is a category marker for Health and Fitness devices, like FitBit and Jawbone UP.")
+
+  if schema.kind === 'home'
+    p= _("This type is a category marker for Home IoT devices, such as Philips Hue lightbulbs or the LG Smart TV.")
+
+  if schema.kind === 'media'
+    p= _("This type is a category marker for Mass Media and content aggregators, such as RSS, YouTube or newspapers.")
+
+  if schema.kind === 'social-network'
+    p= _("This type is a category marker for Social Network accounts, like Facebook or Twitter.")
+
+  if schema.kind === 'service'
+    p= _("This type is a category marker for generic services that don't fit in any other category, like Uber, eBay or the weather.")
+
+  if schema.kind.startsWith('bluetooth-uuid-') || schema.kind.startsWith('upnp-')
     p
       = _("This type is a marker for discovery. ")
       = _("It is used by a device to indicate a certain low-level capability, and has no triggers or actions of its own. ")
