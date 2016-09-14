@@ -388,7 +388,6 @@ function reconstructCanonical(dbClient, grammar, language, json) {
         } else if (parsed.query) {
             invocationToCanonical(parsed.query, queryMeta, grammar, buffer, scope);
         } else if (parsed.trigger) {
-            buffer.push(grammar.monitor_if);
             invocationToCanonical(parsed.trigger, triggerMeta, grammar, buffer, scope);
         }
 

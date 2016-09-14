@@ -99,13 +99,13 @@ function readAll(stream, promises) {
             var utterance = line[0];
             var target_json = line[1];
             promises.push(Q.try(function() {
-                var parsed = JSON.parse(ex.target_json);
+                var parsed = JSON.parse(target_json);
                 // if not ThingTalk-like, assume valid in syntax
                 if (!parsed.rule && !parsed.action && !parsed.query && !parsed.trigger)
                     return;
                 return SempreSyntax.verify(_schemaRetriever, parsed);
             }).catch((e) => {
-                console.error('Failed to handle ' + ex.utterance + ': ' + e.message);
+                console.error('Failed to handle ' + utterance + ': ' + e.message);
             }));
         });
 
@@ -138,7 +138,7 @@ function main() {
                 }));
             });
         }).then(() => {
-            return Q.all([readAll(onlineLearn), readAll(test)]);
+            return Q.all([readAll(onlineLearn, promises), readAll(test, promises)]);
         }).then(function() {
             return Q.all(promises);
         });
