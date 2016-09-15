@@ -40,7 +40,7 @@ const DATE_ARGUMENTS = [['august 24th 1992', { year: 1992, month: 8, day: 24 }],
 const DATE_PLACEHOLDER = 'some day';
 const EMAIL_ARGUMENTS = identityMap(['nobody@stanford.edu']);
 const EMAIL_PLACEHOLDER = 'someone';
-const PHONE_ARGUMENTS = identityMap(['1-555-555-5555']);
+const PHONE_ARGUMENTS = [['1-555-555-5555', '+15555555555']];
 const PHONE_PLACEHOLDER = 'someone';
 
 function expandOne(example, argtypes, into) {
