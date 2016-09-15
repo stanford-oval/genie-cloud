@@ -77,7 +77,7 @@ null_expression = '_' { return null; }
 condition = varName:ident _ op:comparator _ value:value {
     return { type: value.type, operator: op, value: value.value, name: { id: 'tt:param.' + varName } };
 } / func:bool_function _ '(' _ varName:ident _ ',' _ value:value _ ')' {
-    return { type: value.type, operator: op, value: value.value, name: { id: 'tt:param.' + varName } };
+    return { type: value.type, operator: func, value: value.value, name: { id: 'tt:param.' + varName } };
 }
 
 bool_function = '$contains' { return 'has'; }

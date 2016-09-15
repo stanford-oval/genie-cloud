@@ -12700,7 +12700,7 @@ function peg$parse(input, options) {
     return { type: value.type, operator: op, value: value.value, name: { id: 'tt:param.' + varName } };
   },
       peg$c29 = function (func, varName, value) {
-    return { type: value.type, operator: op, value: value.value, name: { id: 'tt:param.' + varName } };
+    return { type: value.type, operator: func, value: value.value, name: { id: 'tt:param.' + varName } };
   },
       peg$c30 = "$contains",
       peg$c31 = peg$literalExpectation("$contains", false),
