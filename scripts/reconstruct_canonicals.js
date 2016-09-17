@@ -87,11 +87,10 @@ const GRAMMAR_TOKENS = {
         'here': 'here',
         'at_work': 'at work',
         'at_home': 'at home',
-        'is': 'is',
-        'contains': 'contains',
-        'has': 'has',
-        'is greater than': 'is greater than',
-        'is less than': 'is less than',
+        'containing': 'containing',
+        'having': 'having',
+        'greater_than': 'greater than',
+        'less_than': 'less than',
         'with': 'with',
         'and': 'and',
         'monitor_if': 'monitor if',
@@ -121,11 +120,10 @@ const GRAMMAR_TOKENS = {
         'here': 'qui',
         'at_work': 'al lavoro',
         'at_home': 'a casa',
-        'is': 'è',
-        'contains': 'contiene',
-        'has': 'ha',
-        'is greater than': 'è maggiore di',
-        'is less than': 'è minore di',
+        'containing': 'contenente',
+        'having': 'avente',
+        'greater_than': 'maggiore di',
+        'less_than': 'minore di',
         'with': 'con',
         'and': 'e',
         'monitor_if': 'osserva se',
@@ -156,10 +154,10 @@ const GRAMMAR_TOKENS = {
         'at_work': "在 公司",
         'at_home': "在 家",
         'is': "是",
-        'contains': "包含",
-        'has': "有",
-        'is greater than': "大于",
-        'is less than': "少于",
+        'containing': "包含",
+        'having': "有",
+        'greater_than': "大于",
+        'less_than': "少于",
         'with': "把",
         'and': "和",
         'monitor_if': "监控 如果",
@@ -256,7 +254,6 @@ function invocationToCanonical(invocation, meta, grammar, buffer, scope) {
 
     args.forEach(function(arg) {
         buffer.push(grammar.with);
-        buffer.push('arg');
 
         var match = /^tt[:\.]param\.(.+)$/.exec(arg.name.id);
         if (match === null) {
@@ -271,12 +268,24 @@ function invocationToCanonical(invocation, meta, grammar, buffer, scope) {
             argcanonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
         buffer.push(argcanonical);
 
-        if (arg.operator === '<')
-            buffer.push(grammar.is_less_than);
-        else if (arg.operator === '>')
-            buffer.push(grammar.is_greater_than);
-        else
-            buffer.push(grammar[arg.operator]);
+        switch (arg.operator) {
+        case 'is':
+            break;
+        case '<':
+            buffer.push(grammar.less_than);
+            break;
+        case '>':
+            buffer.push(grammar.greater_than);
+            break;
+        case 'contains':
+            buffer.push(grammar.containing);
+            break;
+        case 'has':
+            buffer.push(grammar.having);
+            break;
+        default:
+            throw new Error('Invalid operator ' + arg.operator);
+        }
         argToCanonical(grammar, buffer, arg, scope);
     });
 
