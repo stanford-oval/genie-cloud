@@ -74,7 +74,7 @@ function runEngine(thingpediaClient, options) {
         }).then(function() {
             return engine.close();
         }).catch(function(e) {
-            console.error('Engine ' + cloudId + ' had a fatal error: ' + e.message);
+            console.error('Engine ' + options.cloudId + ' had a fatal error: ' + e.message);
             console.error(e.stack);
         }).done();
 
