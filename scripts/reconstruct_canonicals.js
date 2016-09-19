@@ -98,6 +98,9 @@ const GRAMMAR_TOKENS = {
         'every': 'every',
         'if': 'if',
         'then': 'then',
+        'event': 'the event',
+        'event_title', 'the event title',
+        'event_body', 'the event body',
         'help': 'help',
         'discover': 'discover',
         'configure': 'configure',
@@ -131,6 +134,9 @@ const GRAMMAR_TOKENS = {
         'every': 'ogni',
         'if': 'se',
         'then': 'allora',
+        'event': 'l\' evento',
+        'event_title', 'il titolo evento',
+        'event_body', 'il corpo evento',
         'help': 'aiuto',
         'discover': 'ricerca',
         'configure': 'configura',
@@ -165,6 +171,9 @@ const GRAMMAR_TOKENS = {
         'every': "每",
         'if': "如果",
         'then': "就",
+        'event': 'the event',
+        'event_title', 'the event title',
+        'event_body', 'the event body',
         'help': "帮助",
         'discover': "搜索",
         'configure': "设置",
@@ -234,7 +243,21 @@ function argToCanonical(grammar, buffer, arg, scope) {
     } else if (arg.type === 'Time') {
         buffer.push('%02d:%02d'.format(arg.value.hour, arg.value.minute));
     } else if (arg.type === 'VarRef') {
-        buffer.push(scope[arg.value.id.substr('tt:param.'.length)]);
+        if (arg.value.id.startsWith('tt:param.$event')) {
+            switch (arg.value.id) {
+            case 'tt:param.$event':
+                buffer.push(grammar.event);
+                break;
+            case 'tt:param.$event.title':
+                buffer.push(grammar.event_title);
+                break;
+            case 'tt:param.$event.body':
+                buffer.push(grammar.event_body);
+                break;
+            }
+        } else {
+            buffer.push(scope[arg.value.id.substr('tt:param.'.length)]);
+        }
     } else {
         buffer.push(String(arg.value.value));
         if (arg.type === 'Measure')
