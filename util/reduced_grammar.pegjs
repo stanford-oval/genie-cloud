@@ -83,7 +83,7 @@ condition = varName:ident _ op:comparator _ value:value {
 bool_function = '$contains' { return 'has'; }
 comparator "comparator" = '>=' / '<=' / '>' / '<' / '=~' { return 'contains'; } / ('=' !'>') { return 'is'; } / '!='
 
-value = bool_value / var_ref_value / measure_value / number_value / date_value / time_value / location_value / email_value / phone_value / string_value
+value = bool_value / var_ref_value / event_value / measure_value / number_value / date_value / time_value / location_value / enum_value / email_value / phone_value / string_value
 
 var_ref_value = name:ident { return { type: 'VarRef', value: { id: 'tt:param.' + name } }; }
 measure_value = num:literal_number unit:ident { return { type: 'Measure', value: { value: num, unit: unit } }; }
@@ -110,8 +110,14 @@ email_value = '$makeEmailAddress' _ '(' _ v:literal_string _ ')' {
 phone_value = '$makePhoneNumber' _ '(' _ v:literal_string _ ')' {
     return { type: 'PhoneNumber', value: { value: v } };
 }
+enum_value = '$enum' _ '(' _ v:ident _ ')' {
+    return { type: 'Enum', value: { value: v } };
+}
 string_value = v:literal_string {
     return { type: 'String', value: { value: v } };
+}
+event_value = v:$('$event' _ ('.' _ ('title' / 'body'))?) {
+    return { type: 'VarRef', value: { id: 'tt.param.' + v } };
 }
 
 literal_bool = true_bool { return true; } / false_bool { return false; }
