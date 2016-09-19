@@ -91,7 +91,7 @@ function codegenRule(rule) {
     if (rule.action)
         buf += codegenInvocation(rule.action);
     else
-        buf = '@$notify()';
+        buf += '@$notify()';
     return buf;
 }
 

@@ -16083,7 +16083,7 @@ function codegenRule(rule) {
     var buf = '';
     if (!rule.trigger) buf = '$now => ';else buf = codegenInvocation(rule.trigger) + ' => ';
     if (rule.query) buf += codegenInvocation(rule.query) + ' => ';
-    if (rule.action) buf += codegenInvocation(rule.action);else buf = '@$notify()';
+    if (rule.action) buf += codegenInvocation(rule.action);else buf += '@$notify()';
     return buf;
 }
 
