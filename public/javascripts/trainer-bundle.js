@@ -12842,7 +12842,7 @@ function peg$parse(input, options) {
     return { type: value.type, operator: op, value: value.value, name: { id: 'tt:param.' + varName } };
   },
       peg$c29 = function (func, varName, value) {
-    return { type: value.type, operator: op, value: value.value, name: { id: 'tt:param.' + varName } };
+    return { type: value.type, operator: func, value: value.value, name: { id: 'tt:param.' + varName } };
   },
       peg$c30 = "$contains",
       peg$c31 = peg$literalExpectation("$contains", false),
@@ -16131,7 +16131,7 @@ function verifyOne(schemas, invocation, invocationType, scope) {
             }
             if (arg.type === 'VarRef') {
                 var ref = arg.value.id.substr('tt:param.'.length);
-                if ((ref === '$event' || ref === '$event.title' || ref === '$event.body') && valuetype === 'String') return;
+                if ((ref === '$event' || ref === '$event.title' || ref === '$event.body') && valuetype.isString) return;
                 if (!(ref in scope)) throw new TypeError(ref + ' is not in scope');
                 if (!valuetype.equals(scope[ref])) throw new TypeError(ref + ' and ' + argname + ' are not type-compatible');
             } else {

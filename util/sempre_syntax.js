@@ -149,7 +149,7 @@ function verifyOne(schemas, invocation, invocationType, scope) {
             if (arg.type === 'VarRef') {
                 var ref = arg.value.id.substr('tt:param.'.length);
                 if ((ref === '$event' || ref === '$event.title' || ref === '$event.body') &&
-                    valuetype === 'String')
+                    valuetype.isString)
                     return;
                 if (!(ref in scope))
                     throw new TypeError(ref + ' is not in scope');
