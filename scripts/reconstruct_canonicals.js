@@ -441,7 +441,7 @@ function main() {
 
         return exampleModel.getAllWithLanguage(dbClient, language).then((examples) => {
             examples.forEach((ex) => {
-                if (ex.is_base)
+                if (ex.is_base || ex.type === 'test')
                     return;
 
                 promises.push(Q.try(function() {
