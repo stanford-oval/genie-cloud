@@ -126,24 +126,28 @@ module.exports = {
              base, language, kinds, kinds]);
     },
 
-    getBaseBySchema: function(client, schemaId, language) {
+    getBaseBySchema(client, schemaId, language) {
         return db.selectAll(client, "select * from example_utterances where schema_id = ?"
             + " and is_base and language = ?", [schemaId, language]);
     },
 
     createMany: createMany,
 
-    deleteBySchema: function(client, schemaId, language) {
+    deleteBySchema(client, schemaId, language) {
         return db.query(client, "delete from example_utterances where schema_id = ? and language = ?",
             [schemaId, language]);
     },
 
-    deleteByLanguage: function(client, language) {
+    deleteByLanguage(client, language) {
         return db.query(client, "delete from example_utterances where language = ?",
             [language]);
     },
 
-    update: function(client, id, example) {
+    update(client, id, example) {
         return db.query(client, "update example_utterances set ? where id = ?", [example, id]);
+    },
+
+    click(client, exampleId) {
+        return db.query(client, "update example_utterances set click_count = click_count + 1 where id = ?", [exampleId]);
     }
 };

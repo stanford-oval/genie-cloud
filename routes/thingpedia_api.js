@@ -177,5 +177,14 @@ router.get('/examples', function(req, res) {
     }
 });
 
+router.get('/examples/click/:id', function(req, res) {
+    var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
+
+    client.clickExample(req.params.id).then(() => {
+        res.status(200).json({ result: 'ok' });
+    }, (e) => {
+        res.status(500).json({ error: e.message });
+    });
+}
 
 module.exports = router;

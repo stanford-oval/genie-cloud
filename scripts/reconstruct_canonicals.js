@@ -99,8 +99,8 @@ const GRAMMAR_TOKENS = {
         'if': 'if',
         'then': 'then',
         'event': 'the event',
-        'event_title', 'the event title',
-        'event_body', 'the event body',
+        'event_title': 'the event title',
+        'event_body': 'the event body',
         'help': 'help',
         'discover': 'discover',
         'configure': 'configure',
@@ -135,8 +135,8 @@ const GRAMMAR_TOKENS = {
         'if': 'se',
         'then': 'allora',
         'event': 'l\' evento',
-        'event_title', 'il titolo evento',
-        'event_body', 'il corpo evento',
+        'event_title': 'il titolo evento',
+        'event_body': 'il corpo evento',
         'help': 'aiuto',
         'discover': 'ricerca',
         'configure': 'configura',
@@ -172,8 +172,8 @@ const GRAMMAR_TOKENS = {
         'if': "如果",
         'then': "就",
         'event': 'the event',
-        'event_title', 'the event title',
-        'event_body', 'the event body',
+        'event_title': 'the event title',
+        'event_body': 'the event body',
         'help': "帮助",
         'discover': "搜索",
         'configure': "设置",
@@ -441,7 +441,7 @@ function main() {
 
         return exampleModel.getAllWithLanguage(dbClient, language).then((examples) => {
             examples.forEach((ex) => {
-                if (ex.is_base)
+                if (ex.is_base || ex.type === 'test')
                     return;
 
                 promises.push(Q.try(function() {
