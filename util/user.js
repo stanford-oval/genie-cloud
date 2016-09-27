@@ -43,7 +43,7 @@ module.exports = {
                     'https://www.googleapis.com/auth/drive.file']
                     .join(' '),
 
-    FACEBOOK_SCOPES: ['email', 'public_profile', 'user_friends', 'user_photos', 'publish_actions'].join(' '),
+    FACEBOOK_SCOPES: ['email', 'public_profile', 'user_friends', 'publish_actions'].join(' '),
 
     register: function(dbClient, req, options) {
         return model.getByName(dbClient, options.username).then(function(rows) {

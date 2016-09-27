@@ -12937,7 +12937,7 @@ function peg$parse(input, options) {
       peg$c86 = "body",
       peg$c87 = peg$literalExpectation("body", false),
       peg$c88 = function (v) {
-    return { type: 'VarRef', value: { id: 'tt.param.' + v } };
+    return { type: 'VarRef', value: { id: 'tt:param.' + v } };
   },
       peg$c89 = function () {
     return true;
