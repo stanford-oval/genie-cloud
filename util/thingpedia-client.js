@@ -321,6 +321,12 @@ module.exports = class ThingPediaClientCloud {
             return exampleModel.getByKinds(dbClient, isBase, kinds, this.language);
         });
     }
+
+    clickExample(exampleId) {
+        return db.withClient((dbClient) => {
+            return exampleModel.click(dbClient, exampleId);
+        });
+    }
 }
 module.exports.prototype.$rpcMethods = ['getModuleLocation', 'getDeviceCode',
                                         'getSchemas', 'getMetas',
