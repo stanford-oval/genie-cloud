@@ -87,11 +87,10 @@ const GRAMMAR_TOKENS = {
         'here': 'here',
         'at_work': 'at work',
         'at_home': 'at home',
-        'is': 'is',
-        'contains': 'contains',
-        'has': 'has',
-        'is greater than': 'is greater than',
-        'is less than': 'is less than',
+        'containing': 'containing',
+        'having': 'having',
+        'greater_than': 'greater than',
+        'less_than': 'less than',
         'with': 'with',
         'and': 'and',
         'monitor_if': 'monitor if',
@@ -99,6 +98,9 @@ const GRAMMAR_TOKENS = {
         'every': 'every',
         'if': 'if',
         'then': 'then',
+        'event': 'the event',
+        'event_title', 'the event title',
+        'event_body', 'the event body',
         'help': 'help',
         'discover': 'discover',
         'configure': 'configure',
@@ -121,11 +123,10 @@ const GRAMMAR_TOKENS = {
         'here': 'qui',
         'at_work': 'al lavoro',
         'at_home': 'a casa',
-        'is': 'è',
-        'contains': 'contiene',
-        'has': 'ha',
-        'is greater than': 'è maggiore di',
-        'is less than': 'è minore di',
+        'containing': 'contenente',
+        'having': 'avente',
+        'greater_than': 'maggiore di',
+        'less_than': 'minore di',
         'with': 'con',
         'and': 'e',
         'monitor_if': 'osserva se',
@@ -133,6 +134,9 @@ const GRAMMAR_TOKENS = {
         'every': 'ogni',
         'if': 'se',
         'then': 'allora',
+        'event': 'l\' evento',
+        'event_title', 'il titolo evento',
+        'event_body', 'il corpo evento',
         'help': 'aiuto',
         'discover': 'ricerca',
         'configure': 'configura',
@@ -156,10 +160,10 @@ const GRAMMAR_TOKENS = {
         'at_work': "在 公司",
         'at_home': "在 家",
         'is': "是",
-        'contains': "包含",
-        'has': "有",
-        'is greater than': "大于",
-        'is less than': "少于",
+        'containing': "包含",
+        'having': "有",
+        'greater_than': "大于",
+        'less_than': "少于",
         'with': "把",
         'and': "和",
         'monitor_if': "监控 如果",
@@ -167,6 +171,9 @@ const GRAMMAR_TOKENS = {
         'every': "每",
         'if': "如果",
         'then': "就",
+        'event': 'the event',
+        'event_title', 'the event title',
+        'event_body', 'the event body',
         'help': "帮助",
         'discover': "搜索",
         'configure': "设置",
@@ -209,7 +216,7 @@ const LIST_TO_GRAMMAR = {
     command: 'commands',
 }
 
-function argToCanonical(grammar, buffer, arg) {
+function argToCanonical(grammar, buffer, arg, scope) {
     if (arg.type === 'Location') {
         if (arg.value.relativeTag === 'rel_current_location')
             buffer.push(grammar.here);
@@ -235,6 +242,22 @@ function argToCanonical(grammar, buffer, arg) {
         buffer.push('%04d/%02d/%02d'.format(arg.value.year, arg.value.month, arg.value.day));
     } else if (arg.type === 'Time') {
         buffer.push('%02d:%02d'.format(arg.value.hour, arg.value.minute));
+    } else if (arg.type === 'VarRef') {
+        if (arg.value.id.startsWith('tt:param.$event')) {
+            switch (arg.value.id) {
+            case 'tt:param.$event':
+                buffer.push(grammar.event);
+                break;
+            case 'tt:param.$event.title':
+                buffer.push(grammar.event_title);
+                break;
+            case 'tt:param.$event.body':
+                buffer.push(grammar.event_body);
+                break;
+            }
+        } else {
+            buffer.push(scope[arg.value.id.substr('tt:param.'.length)]);
+        }
     } else {
         buffer.push(String(arg.value.value));
         if (arg.type === 'Measure')
@@ -242,7 +265,7 @@ function argToCanonical(grammar, buffer, arg) {
     }
 }
 
-function invocationToCanonical(invocation, meta, grammar, buffer) {
+function invocationToCanonical(invocation, meta, grammar, buffer, scope) {
     var name = invocation.name;
     var args = invocation.args;
     buffer.push(meta.canonical);
@@ -254,7 +277,6 @@ function invocationToCanonical(invocation, meta, grammar, buffer) {
 
     args.forEach(function(arg) {
         buffer.push(grammar.with);
-        buffer.push('arg');
 
         var match = /^tt[:\.]param\.(.+)$/.exec(arg.name.id);
         if (match === null) {
@@ -269,14 +291,29 @@ function invocationToCanonical(invocation, meta, grammar, buffer) {
             argcanonical = argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
         buffer.push(argcanonical);
 
-        if (arg.operator === '<')
-            buffer.push(grammar.is_less_than);
-        else if (arg.operator === '>')
-            buffer.push(grammar.is_greater_than);
-        else
-            buffer.push(grammar[arg.operator]);
-        argToCanonical(grammar, buffer, arg);
+        switch (arg.operator) {
+        case 'is':
+            break;
+        case '<':
+            buffer.push(grammar.less_than);
+            break;
+        case '>':
+            buffer.push(grammar.greater_than);
+            break;
+        case 'contains':
+            buffer.push(grammar.containing);
+            break;
+        case 'has':
+            buffer.push(grammar.having);
+            break;
+        default:
+            throw new Error('Invalid operator ' + arg.operator);
+        }
+        argToCanonical(grammar, buffer, arg, scope);
     });
+
+    for (var name in argmap)
+        scope[name] = argmap[name];
 }
 
 function getMeta(invocation, schemaType) {
@@ -314,7 +351,7 @@ function reconstructCanonical(dbClient, grammar, language, json) {
         return buffer.join(' ');
     }
     if (parsed.answer) {
-        argToCanonical(grammar, buffer, parsed.answer);
+        argToCanonical(grammar, buffer, parsed.answer, {});
         return buffer.join(' ');
     }
 
@@ -352,37 +389,38 @@ function reconstructCanonical(dbClient, grammar, language, json) {
     }
 
     return Q.all([triggerMeta, actionMeta, queryMeta]).spread(function(triggerMeta, actionMeta, queryMeta) {
+        var scope = {};
+
         if (parsed.rule) {
             if (parsed.rule.trigger) {
                 if (parsed.rule.trigger.name.id === 'tt:builtin.timer' &&
                     parsed.rule.trigger.args.length === 1 &&
                     parsed.rule.trigger.args[0].name.id === 'tt:param.interval') {
                     buffer.push(grammar.every);
-                    argToCanonical(grammar, buffer, parsed.rule.trigger.args[0]);
+                    argToCanonical(grammar, buffer, parsed.rule.trigger.args[0], scope);
                 } else if (parsed.rule.trigger.name.id === 'tt:builtin.at' &&
                            parsed.rule.trigger.args.length === 1 &&
                            parsed.rule.trigger.args[0].name.id === 'tt:param.time') {
                     buffer.push(grammar.every_day_at);
-                    argToCanonical(grammar, buffer, parsed.rule.trigger.args[0]);
+                    argToCanonical(grammar, buffer, parsed.rule.trigger.args[0], scope);
                 } else {
                     buffer.push(grammar['if']);
-                    invocationToCanonical(parsed.rule.trigger, triggerMeta, grammar, buffer);
+                    invocationToCanonical(parsed.rule.trigger, triggerMeta, grammar, buffer, scope);
                     buffer.push(grammar.then);
                 }
             }
             if (parsed.rule.query)
-                invocationToCanonical(parsed.rule.query, queryMeta, grammar, buffer);
+                invocationToCanonical(parsed.rule.query, queryMeta, grammar, buffer, scope);
             if (parsed.rule.query && parsed.rule.action)
                 buffer.push(grammar.then);
             if (parsed.rule.action)
-                invocationToCanonical(parsed.rule.action, actionMeta, grammar, buffer);
+                invocationToCanonical(parsed.rule.action, actionMeta, grammar, buffer, scope);
         } else if (parsed.action) {
-            invocationToCanonical(parsed.action, actionMeta, grammar, buffer);
+            invocationToCanonical(parsed.action, actionMeta, grammar, buffer, scope);
         } else if (parsed.query) {
-            invocationToCanonical(parsed.query, queryMeta, grammar, buffer);
+            invocationToCanonical(parsed.query, queryMeta, grammar, buffer, scope);
         } else if (parsed.trigger) {
-            buffer.push(grammar.monitor_if);
-            invocationToCanonical(parsed.trigger, triggerMeta, grammar, buffer);
+            invocationToCanonical(parsed.trigger, triggerMeta, grammar, buffer, scope);
         }
 
         return buffer.join(' ');

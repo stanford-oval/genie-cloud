@@ -589,27 +589,42 @@ or a button otherwise
 If you give your device a global name, worth noting are the natural language
 annotations that you need to provide for each trigger, action or query:
 
-- `canonical`: the canonical form of the channel name, used by the semantic parser;
-  it's a good idea to omit stop words for this, and to use a longer expression
-  such as `set target temperature`; you should assume that the full canonical
-  form of the channel is `<canonical> on <global-name>`, eg "send message on foo"
-- `confirmation`: a string used to construct the final confirmation question
-  before a rule is created or an action is invoked; use the imperative form,
-  and refer to required arguments with `$argname`. For triggers, the full formula of the confirmation
-  is "Ok so you want me to notify if `<trigger confirmation>`". For queries,
-  you should use the command form, eg "get something" or "list something".
-- `required`, `question`: these annotations are for each argument, and are
+#### Arguments
+A list of arguments of the channel. To take full adventage of the 
+functionality we provided in ThingTalk (filtering, chaining, etc.),  
+everything needed for ___both input and output___ should be listed here. 
+Each of the argument includes the following attributes.  
+- `name`: the name of the argument, which we suggest to name with lower case 
+  letters with underscores between each word.  
+- `type`: the type of the argument inluding: String, Number, Boolean, Enum,
+  PhoneNumber, EmailAddress, Location, Measure, Date, Time, Picture. 
+- `required`, `question`: these annotations are
   related to slot filling; if your argument is required, the user will be asked
   `question` to fill the slot. Arguments for actions are always required, so
   the `required` property is ignored.
-- `examples`: a list of examples using your channel; this provides both documentation
-  for the user (they will be provided by `help <global-name>`)
-  and training data for the system; only the first one will be be shown
-  in help if there are multiple paraphrases for the same functionality, but
-  every example will help Sabrina to understand users command better,    
-  so you should strive to provide as many examples and as many paraphrases
-  as possible; the same with confirmation, argument can be referred
-  with `$argname`.
+
+#### canonical
+The canonical form of the channel name, used by the semantic parser;
+it's a good idea to omit stop words for this, and to use a longer expression
+such as `set target temperature`; you should assume that the full canonical
+form of the channel is `<canonical> on <global-name>`, eg "send message on foo"
+
+#### confirmation
+A string used to construct the final confirmation question
+before a rule is created or an action is invoked; use the imperative form,
+and refer to required arguments with `$argname`. For triggers, the full formula of the confirmation
+is "Ok so you want me to notify if `<trigger confirmation>`". For queries,
+you should use the command form, eg "get something" or "list something".
+
+#### examples
+A list of examples using your channel; this provides both documentation
+for the user (they will be provided by `help <global-name>`)
+and training data for the system; only one randomly chosed example will be be shown
+in help if there are multiple paraphrases for the same functionality, but
+every example will help Sabrina to understand users command better,    
+so you should strive to provide as many examples and as many paraphrases
+as possible; the same with confirmation, argument can be referred
+with `$argname`.
 
 If you don't give your device a global name, the natural language annotations
 are ignored, and you will inherit those of the generic type.

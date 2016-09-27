@@ -50,6 +50,8 @@ function codegenValue(type, value) {
         return '$makePhoneNumber(' + stringEscape(value.value) + ')';
     case 'Location':
         return codegenLocation(value);
+    case 'Enum':
+        return '$enum(' + value.value + ')';
     case 'VarRef':
         return value.id.substr('tt:param.'.length);
     default:
@@ -89,7 +91,7 @@ function codegenRule(rule) {
     if (rule.action)
         buf += codegenInvocation(rule.action);
     else
-        buf = '@$notify()';
+        buf += '@$notify()';
     return buf;
 }
 
@@ -146,6 +148,9 @@ function verifyOne(schemas, invocation, invocationType, scope) {
             }
             if (arg.type === 'VarRef') {
                 var ref = arg.value.id.substr('tt:param.'.length);
+                if ((ref === '$event' || ref === '$event.title' || ref === '$event.body') &&
+                    valuetype.isString)
+                    return;
                 if (!(ref in scope))
                     throw new TypeError(ref + ' is not in scope');
                 if (!valuetype.equals(scope[ref]))
@@ -159,6 +164,8 @@ function verifyOne(schemas, invocation, invocationType, scope) {
                 if (valuehave === 'Time' && valuetype.isString)
                     return;
                 if (valuehave === 'Measure' && valuetype.isMeasure)
+                    return;
+                if (valuehave === 'Enum' && valuetype.isEnum)
                     return;
                 throw new TypeError('Invalid value type ' + valuehave + ', expected ' + valuetype);
             }
