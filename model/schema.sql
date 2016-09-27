@@ -176,11 +176,21 @@ create table example_utterances (
     app_id integer null,
     is_base boolean not null default false,
     language char(15) not null default 'en',
+    type enum('thingpedia', 'ifttt', 'online', 'test', 'other') not null default 'other',
     utterance text not null collate utf8_general_ci,
     target_json text not null,
+    click_count integer not null default 0,
     key(schema_id),
     key(app_id)
     fulltext key(utterance)
+) collate utf8_bin;
+
+create table example_rule_schema (
+    schema_id integer not null,
+    example_id integer not null,
+    primary key(schema_id, example_id),
+    foreign key(schema_id) references device_schema(id) on update cascade on delete cascade,
+    foreign key(example_id) references example_utterances(id) on update cascade on delete cascade
 ) collate utf8_bin;
 
 create table device_code_version (
