@@ -429,11 +429,8 @@ function reconstructCanonical(dbClient, grammar, language, json) {
 
 function main() {
     var output = fs.createWriteStream(process.argv[2]);
-    var onlineLearn = process.argv.length >= 4 ? byline(fs.createReadStream(process.argv[3])) : null;
-    if (onlineLearn !== null)
-        onlineLearn.setEncoding('utf8');
 
-    var language = process.argv[4] || 'en';
+    var language = process.argv[3] || 'en';
     var grammar = GRAMMAR_TOKENS[language];
     if (!grammar)
         throw new Error('Invalid language ' + language);
@@ -457,31 +454,6 @@ function main() {
                 }).catch((e) => {
                     console.error('Failed to handle ' + ex.utterance + ': ' + e.message);
                 }));
-            });
-        }).then(() => {
-            if (onlineLearn === null) {
-                return;
-            }
-
-            return Q.Promise(function(callback, errback) {
-                onlineLearn.on('data', (data) => {
-                    var line = data.split(/\t/);
-                    var utterance = line[0];
-                    var target_json = line[1];
-                    promises.push(Q.try(function() {
-                        return reconstructCanonical(dbClient, grammar, language, target_json);
-                    }).then(function(reconstructed) {
-                        output.write(utterance);
-                        output.write('\t');
-                        output.write(reconstructed);
-                        output.write('\n');
-                    }).catch((e) => {
-                        console.error('Failed to handle ' + utterance + ': ' + e.message);
-                    }));
-                });
-
-                onlineLearn.on('end', () => callback());
-                onlineLearn.on('error', errback);
             });
         }).then(function() {
             return Q.all(promises);
