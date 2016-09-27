@@ -117,7 +117,7 @@ string_value = v:literal_string {
     return { type: 'String', value: { value: v } };
 }
 event_value = v:$('$event' _ ('.' _ ('title' / 'body'))?) {
-    return { type: 'VarRef', value: { id: 'tt.param.' + v } };
+    return { type: 'VarRef', value: { id: 'tt:param.' + v } };
 }
 
 literal_bool = true_bool { return true; } / false_bool { return false; }

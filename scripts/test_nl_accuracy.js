@@ -130,7 +130,8 @@ function main() {
                 return;
             }
 
-            console.log(utterance + ' failed to parse, is ' + candidates[0].answer + ', wants ' + target_json);
+            //console.log(utterance + ' failed to parse, is ' + candidates[0].answer + ', wants ' + target_json);
+            console.log(utterance + ' failed to parse');
             state.wrong_answer++;
         });
     });
