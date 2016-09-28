@@ -1,5 +1,8 @@
 extends layout
 
+block scripts
+  script(src='/javascripts/device.js')
+
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
@@ -121,10 +124,33 @@ block content
           span.canonical= a.canonical
 
   h2.device-subtitle= _("Example Commands")
-  if schema.examples.length > 0
+  if device.examples.length > 0
     ul.device-examples
-      for e in schema.examples
-        li= e.utterance
+      for e in device.examples
+        li
+          if authenticated && user.developer_status >= 3
+            span(title=e.target_json)= e.utterance
+          else
+            span= e.utterance
+          if authenticated
+            | &#x20;
+            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).upvote-btn
+              span.glyphicon.glyphicon-thumbs-up(aria-hidden='true')
+              span.sr-only= _("Upvote")
+            | &#x20;
+            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).downvote-btn
+              span.glyphicon.glyphicon-thumbs-down(aria-hidden='true')
+              span.sr-only= _("Downvote")
+          if authenticated && user.developer_status >= 3 && e.type !== 'thingpedia'
+            | &#x20;
+            if e.click_count < 0
+              = _("Hidden")
+            else
+              a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).hide-example-btn
+                = _("Hide")
+            | &#x20;
+            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).delete-example-btn
+              = _("Delete")
   else
     p#no-commands= _("This type has no commands.")
 

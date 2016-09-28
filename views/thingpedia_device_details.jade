@@ -133,7 +133,30 @@ block content
   if device.examples.length > 0
     ul.device-examples
       for e in device.examples
-        li= e.utterance
+        li
+          if authenticated && user.developer_status >= 3
+            span(title=e.target_json)= e.utterance
+          else
+            span= e.utterance
+          if authenticated
+            | &#x20;
+            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).upvote-btn
+              span.glyphicon.glyphicon-thumbs-up(aria-hidden='true')
+              span.sr-only= _("Upvote")
+            | &#x20;
+            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).downvote-btn
+              span.glyphicon.glyphicon-thumbs-down(aria-hidden='true')
+              span.sr-only= _("Downvote")
+          if authenticated && user.developer_status >= 3 && e.type !== 'thingpedia'
+            | &#x20;
+            if e.click_count < 0
+              = _("Hidden")
+            else
+              a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).hide-example-btn
+                = _("Hide")
+            | &#x20;
+            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).delete-example-btn
+              = _("Delete")
   else
     p#no-commands= _("This device has no commands of its own. You might find how to interact with it by clicking on one of its types.")
 

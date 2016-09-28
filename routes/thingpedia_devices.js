@@ -71,7 +71,11 @@ function getDetails(fn, param, req, res) {
                     d.translated = t;
                 });
             }).tap(function(d) {
-                return exampleModel.getByKinds(client, true, [d.global_name], language).then(function(examples) {
+                var minClickCount = 0;
+                if (req.user && req.user.developer_status >= user.DeveloperStatus.ADMIN)
+                    minClickCount = -1;
+
+                return exampleModel.getByKinds(client, true, [d.global_name], language, minClickCount).then(function(examples) {
                     d.examples = examples;
                 });
             })
