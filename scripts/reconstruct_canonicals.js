@@ -108,6 +108,7 @@ const GRAMMAR_TOKENS = {
         'queries': 'queries',
         'commands': 'commands',
         'list': 'list',
+        'make_rule': 'make rule',
         'yes': 'yes',
         'no': 'no',
         'hello': 'hello',
@@ -144,6 +145,7 @@ const GRAMMAR_TOKENS = {
         'queries': 'interrogazioni',
         'commands': 'comandi',
         'list': 'lista',
+        'make_rule': 'crea regola',
         'yes': 'sì',
         'no': 'no',
         'hello': 'ciao',
@@ -181,6 +183,7 @@ const GRAMMAR_TOKENS = {
         'queries': "查询",
         'commands': "命令",
         'list': "列出",
+        'make_rule': "创建 规则",
         'yes': "是",
         'no': "否",
         'hello': "你好",
@@ -338,6 +341,9 @@ function reconstructCanonical(dbClient, grammar, language, json) {
 
     var buffer = [];
     if (parsed.command) {
+        if (parsed.command.type === 'make' && parsed.command.value.value === 'rule')
+            return grammar.make_rule;
+
         buffer.push(grammar[COMMAND_TO_GRAMMAR[parsed.command.type]]);
 
         if (parsed.command.value.value === 'generic')
