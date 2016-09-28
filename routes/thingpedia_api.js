@@ -185,6 +185,6 @@ router.get('/examples/click/:id', function(req, res) {
     }, (e) => {
         res.status(500).json({ error: e.message });
     });
-}
+});
 
 module.exports = router;

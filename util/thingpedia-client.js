@@ -332,4 +332,5 @@ module.exports.prototype.$rpcMethods = ['getModuleLocation', 'getDeviceCode',
                                         'getSchemas', 'getMetas',
                                         'getDeviceSetup', 'getDeviceFactories',
                                         'getKindByDiscovery',
-                                        'getExamplesByKinds', 'getExamplesByKey'];
+                                        'getExamplesByKinds', 'getExamplesByKey',
+                                        'clickExample'];
