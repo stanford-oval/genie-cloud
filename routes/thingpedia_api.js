@@ -156,6 +156,7 @@ router.get('/examples/by-kinds/:kinds', function(req, res) {
     var isBase = req.query.base !== '0';
 
     client.getExamplesByKinds(kinds, isBase).then((result) => {
+        res.cacheFor(300000);
         res.status(200).json(result);
     }).catch((e) => {
         res.status(500).json({ error: e.message });
