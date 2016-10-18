@@ -87,10 +87,11 @@ module.exports = {
             + " order by click_count desc, type, id asc limit 50",
             [base, language, ftQuery,
              base, language, tokens,
+             base, language, tokens,
              base, language, tokens, tokens,
              language, tokens,
              language, tokens,
-             language, tokens]);
+             language, tokens, tokens]);
     },
 
     getByKinds: function(client, base, kinds, language, minClickCount) {
