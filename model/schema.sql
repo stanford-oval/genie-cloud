@@ -153,6 +153,15 @@ create table device_schema_channel_canonicals (
     fulltext key(canonical, keywords)
 ) collate utf8_bin;
 
+create table lexicon(
+    language char(15) not null default 'en',
+    token varchar(128) not null collate utf8_general_ci,
+    schema_id integer not null,
+    channel_name varchar(128) not null,
+    primary key(language, token, schema_id, channel_name),
+    foreign key (schema_id) references device_schema(id)
+) collate utf8_bin;
+
 create table device_schema_arguments (
     argname varchar(128) not null,
     argtype varchar(128) not null,
