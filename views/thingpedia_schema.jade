@@ -126,7 +126,7 @@ block content
   h2.device-subtitle= _("Example Commands")
   if device.examples.length > 0
     ul.device-examples
-      for e in device.examples
+      for e in schema.examples
         li
           if authenticated && user.developer_status >= 3
             span(title=e.target_json)= e.utterance

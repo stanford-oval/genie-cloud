@@ -136,6 +136,7 @@ router.post('/discovery', function(req, res) {
             return;
         }
 
+        res.cacheFor(86400000);
         res.status(200).send(result.primary_kind);
     }).catch(function(e) {
         console.log('Failed to complete discovery request: ' + e.message);
@@ -168,6 +169,7 @@ router.get('/examples', function(req, res) {
 
     if (req.query.key) {
         client.getExamplesByKey(req.query.key, isBase).then((result) => {
+            res.cacheFor(300000);
             res.status(200).json(result);
         }).catch((e) => {
             res.status(500).json({ error: e.message });
@@ -181,6 +183,7 @@ router.get('/examples/click/:id', function(req, res) {
     var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
 
     client.clickExample(req.params.id).then(() => {
+        res.cacheFor(300000);
         res.status(200).json({ result: 'ok' });
     }, (e) => {
         res.status(500).json({ error: e.message });

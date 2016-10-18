@@ -53,43 +53,44 @@ module.exports = {
 
     getByKey: function(client, base, key, language) {
         var tokens = tokenize(key);
+        var ftQuery = tokens.map((t) => t.replace(/[+\-@><~*"()]/g, '')).filter((t) => !!t).map((t) => t + '*').join(' ');
 
         return db.selectAll(client,
               " (select eu.*, ds.kind from example_utterances eu, device_schema ds where"
             + "  eu.schema_id = ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and match utterance against"
-            + "  (? in natural language mode) and eu.type <> 'ifttt' and eu.click_count >= 0)"
-            + " union distinct"
-            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds where"
-            + "  eu.schema_id = ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and ds.kind in (?) and eu.click_count >= 0)"
-            + " union distinct"
-            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds, device_class dc"
-            + "  where (eu.is_base = ? or eu.type <> 'thingpedia') and eu.language = ? and dc.primary_kind in (?) and eu.schema_id = ds.id"
-            + "  and ds.kind = dc.global_name and eu.click_count >= 0)"
-            + " union distinct"
-            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds where eu.schema_id ="
-            + "  ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and ds.kind in (select kind from device_class dc,"
-            + "  device_class_kind dck where (dc.global_name in (?) or dc.primary_kind in (?)) and dc.id = dck.device_id) and eu.click_count >= 0)"
-            + " union distinct"
-            + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds where"
-            + "  eu.id = ers.example_id and ers.schema_id = ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and ds.kind in (?)"
-            + "  and eu.type not in ('ifttt', 'thingpedia') and eu.click_count >= 0)"
-            + " union distinct"
+            + "  (? in boolean mode) and eu.type <> 'ifttt' and eu.click_count >= 0)"
+            + " union"
+            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds where eu.schema_id = ds.id"
+            + "  and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and ds.kind in (?) and eu.click_count >= 0)"
+            + " union"
+            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds, device_class dc where (eu.is_base = ? or"
+            + "  eu.type <> 'thingpedia') and eu.language = ? and dc.primary_kind in (?) and eu.schema_id = ds.id and"
+            + "  ds.kind = dc.global_name and eu.click_count >= 0)"
+            + " union"
+            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds, device_class dc, device_class_kind dck"
+            + "  where eu.schema_id = ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and"
+            + "  ds.kind = dck.kind and dc.id = dck.device_id and (dc.global_name in (?) or dc.primary_kind in (?))"
+            + "  and eu.click_count >= 0)"
+            + " union"
+            + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds where eu.id = ers.example_id"
+            + "  and ers.schema_id = ds.id and language = ? and ds.kind in (?) and eu.type not in ('ifttt', 'thingpedia')"
+            + "  and eu.click_count >= 0)"
+            + " union"
             + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds, device_class dc"
-            + "  where (eu.is_base = ? or eu.type <> 'thingpedia') and eu.language = ? and dc.primary_kind in (?) and eu.id = ers.example_id and"
-            + "  ers.schema_id = ds.id and ds.kind = dc.global_name and eu.type not in ('ifttt', 'thingpedia') and eu.click_count >= 0)"
-            + " union distinct"
-            + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds where eu.id ="
-            + "  ers.example_id and ers.schema_id = ds.id and ((eu.is_base = ? or eu.type <> 'thingpedia') or eu.type <> 'thingpedia') and language = ? and ds.kind in (select kind from device_class dc,"
-            + "  device_class_kind dck where (dc.global_name in (?) or dc.primary_kind in (?)) and dc.id = dck.device_id)"
-            + "  and eu.type not in ('ifttt', 'thingpedia') and eu.click_count >= 0)"
-            + " order by click_count desc, type, id asc",
-            [base, language, key,
-             base, language, tokens,
+            + "  where eu.language = ? and dc.primary_kind in (?) and eu.id = ers.example_id and ers.schema_id = ds.id"
+            + "  and ds.kind = dc.global_name and eu.type not in ('ifttt', 'thingpedia') and eu.click_count >= 0)"
+            + " union"
+            + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds, device_class dc, device_class_kind dck"
+            + "  where eu.id = ers.example_id and ers.schema_id = ds.id and language = ? and ds.kind = dck.kind and"
+            + "  dc.id = dck.device_id and (dc.global_name in (?) or dc.primary_kind in (?)) and eu.type not in ('ifttt', 'thingpedia')"
+            + "  and eu.click_count >= 0)"
+            + " order by click_count desc, type, id asc limit 50",
+            [base, language, ftQuery,
              base, language, tokens,
              base, language, tokens, tokens,
-             base, language, tokens,
-             base, language, tokens,
-             base, language, tokens, tokens]);
+             language, tokens,
+             language, tokens,
+             language, tokens]);
     },
 
     getByKinds: function(client, base, kinds, language, minClickCount) {
@@ -97,37 +98,37 @@ module.exports = {
             minClickCount = 0;
 
         return db.selectAll(client,
-              " (select eu.*, ds.kind from example_utterances eu, device_schema ds where"
-            + "  eu.schema_id = ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and ds.kind in (?) and eu.click_count >= ?)"
-            + " union distinct"
-            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds, device_class dc"
-            + "  where (eu.is_base = ? or eu.type <> 'thingpedia') and eu.language = ? and dc.primary_kind in (?) and eu.schema_id = ds.id"
-            + "  and ds.kind = dc.global_name and eu.click_count >= ?)"
-            + " union distinct"
-            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds where eu.schema_id ="
-            + "  ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and ds.kind in (select kind from device_class dc,"
-            + "  device_class_kind dck where (dc.global_name in (?) or dc.primary_kind in (?)) and dc.id = dck.device_id)"
+              " (select eu.*, ds.kind from example_utterances eu, device_schema ds where eu.schema_id = ds.id"
+            + "  and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and ds.kind in (?) and eu.click_count >= ?)"
+            + " union"
+            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds, device_class dc where (eu.is_base = ? or"
+            + "  eu.type <> 'thingpedia') and eu.language = ? and dc.primary_kind in (?) and eu.schema_id = ds.id and"
+            + "  ds.kind = dc.global_name and eu.click_count >= ?)"
+            + " union"
+            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds, device_class dc, device_class_kind dck"
+            + "  where eu.schema_id = ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and"
+            + "  ds.kind = dck.kind and dc.id = dck.device_id and (dc.global_name in (?) or dc.primary_kind in (?))"
             + "  and eu.click_count >= ?)"
-            + " union distinct"
-            + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds where"
-            + "  eu.id = ers.example_id and ers.schema_id = ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and ds.kind in (?)"
-            + "  and eu.type not in ('ifttt', 'thingpedia') and eu.click_count >= ?)"
-            + " union distinct"
+            + " union"
+            + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds where eu.id = ers.example_id"
+            + "  and ers.schema_id = ds.id and language = ? and ds.kind in (?) and eu.type not in ('ifttt', 'thingpedia')"
+            + "  and eu.click_count >= ?)"
+            + " union"
             + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds, device_class dc"
-            + "  where (eu.is_base = ? or eu.type <> 'thingpedia') and eu.language = ? and dc.primary_kind in (?) and eu.id = ers.example_id and"
-            + "  ers.schema_id = ds.id and ds.kind = dc.global_name and eu.type not in ('ifttt', 'thingpedia') and eu.click_count >= ?)"
-            + " union distinct"
-            + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds where eu.id ="
-            + "  ers.example_id and ers.schema_id = ds.id and ((eu.is_base = ? or eu.type <> 'thingpedia') or eu.type <> 'thingpedia') and language = ? and ds.kind in (select kind from device_class dc,"
-            + "  device_class_kind dck where (dc.global_name in (?) or dc.primary_kind in (?)) and dc.id = dck.device_id)"
-            + "  and eu.type not in ('ifttt', 'thingpedia') and eu.click_count >= ?)"
+            + "  where eu.language = ? and dc.primary_kind in (?) and eu.id = ers.example_id and ers.schema_id = ds.id"
+            + "  and ds.kind = dc.global_name and eu.type not in ('ifttt', 'thingpedia') and eu.click_count >= ?)"
+            + " union"
+            + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds, device_class dc, device_class_kind dck"
+            + "  where eu.id = ers.example_id and ers.schema_id = ds.id and language = ? and ds.kind = dck.kind and"
+            + "  dc.id = dck.device_id and (dc.global_name in (?) or dc.primary_kind in (?)) and eu.type not in ('ifttt', 'thingpedia')"
+            + "  and eu.click_count >= ?)"
             + " order by click_count desc, type, id asc",
             [base, language, kinds, minClickCount,
              base, language, kinds, minClickCount,
              base, language, kinds, kinds, minClickCount,
-             base, language, kinds, minClickCount,
-             base, language, kinds, minClickCount,
-             base, language, kinds, kinds, minClickCount]);
+             language, kinds, minClickCount,
+             language, kinds, minClickCount,
+             language, kinds, kinds, minClickCount]);
     },
 
     getBaseBySchema(client, schemaId, language) {
