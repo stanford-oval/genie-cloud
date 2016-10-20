@@ -377,7 +377,7 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
         if (pairs.length === 0)
             continue;
         var chosen = uniform(pairs);
-        to.args.push({ name: { id: 'tt:param.' + toArg }, operator: chosen, type: 'VarRef', value: { id: 'tt:param.' + fromArg } });
+        to.args.push({ name: { id: 'tt:param.' + toArg }, operator: chosen[1], type: 'VarRef', value: { id: 'tt:param.' + chosen[0] } });
     }
 }
 

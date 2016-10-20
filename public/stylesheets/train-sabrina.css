@@ -6,3 +6,12 @@
 #results-container {
     display: none;
 }
+
+#menu-block {
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+#code-to-sentence-form {
+    padding-top: 0.8em;
+}

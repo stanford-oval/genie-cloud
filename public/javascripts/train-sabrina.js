@@ -1,4 +1,15 @@
 $(function() {
+function counter() {
+    var v = localStorage.getItem('counter') || 0;
+    v++;
+    localStorage.setItem('counter', v);
+    return v;
+}
+$('#counter').text(localStorage.getItem('counter') || 0);
+
+var locale = $('#language').text();
+
+function prepareSentenceToCode() {
     var trainer = new (require('thingtalk-trainer'));
 
     function invocationFromJson(json) {
@@ -52,16 +63,6 @@ $(function() {
 
     $('#more-suggestions').click(loadSuggestions);
     loadSuggestions();
-
-    function counter() {
-        var v = localStorage.getItem('counter') || 0;
-        v++;
-        localStorage.setItem('counter', v);
-        return v;
-    }
-    $('#counter').text(localStorage.getItem('counter') || 0);
-
-    var locale = $('#language').text();
 
     function accept(event) {
         event.preventDefault();
@@ -149,7 +150,7 @@ $(function() {
 
     const FAILED = '{"special":{"id":"tt:root.special.failed"}}';
 
-    $('#form').submit(function(event) {
+    $('#sentence-to-code-form').submit(function(event) {
         event.preventDefault();
 
         trainer.handle($('#utterance').val()).then(function(candidates) {
@@ -189,7 +190,7 @@ $(function() {
         }).done();
     });
 
-    $('#done').click(function(event) {
+    $('#sentence-to-code-done').click(function(event) {
         event.preventDefault();
 
         var tt = $('#thingtalk').val();
@@ -221,4 +222,73 @@ $(function() {
             $('#thingtalk-error').text(err);
         });
     });
+}
+
+function prepareCodeToSentence() {
+    var trainer = new (require('thingtalk-trainer'));
+
+    function invocationFromJson(json) {
+        var parsed = JSON.parse(json);
+        if (parsed.action)
+            return parsed.action.name.id;
+        else if (parsed.trigger)
+            return parsed.trigger.name.id;
+        else if (parsed.query)
+            return parsed.query.name.id;
+        else
+            return 'unknown';
+    }
+
+    var rules = [];
+    function genRandomRules(limit) {
+        $.get('/thingpedia/api/random-rule?locale=en-US&limit=' + limit, function(result) {
+            rules = result;
+            showNext();
+        });
+    }
+    var current = null;
+
+    function showNext() {
+        var next = rules.shift();
+        if (!next)
+            return genRandomRules(20);
+
+        current = next;
+        $('#rule-thingtalk-proposal').text(trainer.toThingTalk(current));
+    }
+    $('#code-to-sentence-next').click(showNext);
+    showNext();
+
+    $('#code-to-sentence-form').submit(function(event) {
+        event.preventDefault();
+        if (!current)
+            return;
+
+        var json = JSON.stringify(current);
+        var text = $('#rule-sentence').val();
+
+        return trainer.handle(text).then(function() {
+            return trainer.learnJSON(json);
+        }).then(function(data) {
+            showNext();
+            $('#rule-sentence').val('');
+            if (data.error)
+                console.log('Error in learning', data.error);
+            else
+                $('#counter').text(String(counter()));
+        });
+    });
+}
+prepareSentenceToCode();
+prepareCodeToSentence();
+
+$('#sentence-to-code-btn').click(function() {
+    $('#sentence-to-code-block').removeClass('hidden');
+    $('#code-to-sentence-block').addClass('hidden');
 });
+$('#code-to-sentence-btn').click(function() {
+    $('#sentence-to-code-block').addClass('hidden');
+    $('#code-to-sentence-block').removeClass('hidden');
+});
+
+})

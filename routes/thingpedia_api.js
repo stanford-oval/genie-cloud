@@ -204,6 +204,6 @@ router.get('/random-rule', function(req, res) {
     }, (e) => {
         res.status(500).json({ error: e.message });
     }).done();
-}
+});
 
 module.exports = router;

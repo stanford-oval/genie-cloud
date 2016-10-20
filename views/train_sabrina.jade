@@ -15,39 +15,68 @@ block content
   p
     = _("Thanks for being part of the Sabrina virtual assistant project. ")
     = _("In here you can help us train her to understand better and more complex sentences.")
-  p
-    = _("You can type a sentence in the box below, and Sabrina will respond with her best guess of what you mean. ")
-    = _("Unfortunately, she will not get it right most of the time, so your task is to then click on the correct interpretation in her pseudo-English.")
-  p
-    = _("You don't have to worry, nothing will happen as a result of playing with Sabrina here, and if you don't understand what Sabrina is responding for a particular sentence (or all Sabrina offers are wrong), just type a new sentence to continue.")
-  div#suggestions
-    small
-      p= _("A few suggestions to start:")
-      ul#suggestions-placeholder
-      button.btn.btn-default.btn-sm(type="button")#more-suggestions= _("More suggestions")
+
   p.hidden
     span#language= locale
-  div#form
-    div.checkbox
+
+  div#menu-block
+    button(type='button').btn.btn-default#sentence-to-code-btn= _("Sentence To Code")
+    | &#x20;
+    button(type='button').btn.btn-default#code-to-sentence-btn= _("Code To Sentence")
+
+  div#sentence-to-code-block
+    p
+      = _("You can type a sentence in the box below, and Sabrina will respond with her best guess of what you mean. ")
+      = _("Unfortunately, she will not get it right most of the time, so your task is to then click on the correct interpretation in her pseudo-English.")
+    p
+      = _("You don't have to worry, nothing will happen as a result of playing with Sabrina here, and if you don't understand what Sabrina is responding for a particular sentence (or all Sabrina offers are wrong), just type a new sentence to continue.")
+
+    div#suggestions
+      small
+        p= _("A few suggestions to start:")
+        ul#suggestions-placeholder
+        button.btn.btn-default.btn-sm(type="button")#more-suggestions= _("More suggestions")
+    div
+      div.checkbox
       label
         input(type='checkbox')#edit-thingtalk
         = _("Edit ThingTalk before learning.")
-    form
+      form#sentence-to-code-form
+        div.form-group
+          label.sr-only(for="utterance")= _("Utterance:")
+          input.form-control(type="text", placeholder="What do you want Sabrina to do?")#utterance
+      div#thingtalk-editor.hidden
+        div.form-group#thingtalk-group
+          label(for='thingtalk')= _("Code (in reduced ThingTalk syntax):")
+          input.form-control(type="text")#thingtalk
+          span.help-block#thingtalk-error
+        div.form-group
+          button(type='button').btn.btn-primary#done= _("Learn")
+    div#results-container
+      p#sabrina-thinks= _("Sabrina's choice: ")
+        span#prediction
+      p= _("Your choice:")
+      ul#results
+
+  div#code-to-sentence-block.hidden
+    p
+      =_("You're given a line of ThingTalk code. Your job to provide the best virtual assistant command that should parse to that!")
+
+    p
+      =_("If you're not sure how to best describe some code, just click Skip to get the next proposal.")
+
+    div
+      label.control-label= _("ThingTalk:")
+    div.row
+      div.col-sm-10
+        p.form-control-static#rule-thingtalk-proposal
+      div.col-sm-2
+        button.btn.btn-primary.btn-sm.btn-block(type='button')#code-to-sentence-next= _("Skip")
+    form#code-to-sentence-form.clearfix
       div.form-group
-        label.sr-only(for="utterance")= _("Utterance:")
-        input.form-control(type="text", placeholder="What do you want Sabrina to do?")#utterance
-    div#thingtalk-editor.hidden
-      div.form-group#thingtalk-group
-        label(for='thingtalk')= _("Code (in reduced ThingTalk syntax):")
-        input.form-control(type="text")#thingtalk
-        span.help-block#thingtalk-error
-      div.form-group
-        button(type='button').btn.btn-primary#done= _("Learn")
-  div#results-container
-    p#sabrina-thinks= _("Sabrina's choice: ")
-      span#prediction
-    p= _("Your choice:")
-    ul#results
+        label.control-label.sr-only(for='rule-sentence')= _("Utterance:")
+        input.form-control(type='text')#rule-sentence
+
   div#counter-box
     = _("You have trained Sabrina with ")
     span#counter
