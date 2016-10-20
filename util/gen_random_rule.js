@@ -291,7 +291,9 @@ function applyFilters(invocation, isAction) {
         if (type.isPicture)
             continue;
 
-        var [sempreType, value] = chooseRandomValue(type);
+        var tmp = chooseRandomValue(type);
+	var sempreType = tmp[0];
+        var value = tmp[1];
         if (!sempreType)
             continue;
 
@@ -388,7 +390,7 @@ function genOneRandomRule(schemaRetriever, schemas, samplingPolicy) {
     var query = form[1] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'queries');
     var action = form[2] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'actions');
 
-    return Q.all([trigger, query, action]).then(([triggerMeta, queryMeta, actionMeta]) => {
+    return Q.all([trigger, query, action]).spread((triggerMeta, queryMeta, actionMeta) => {
         trigger = applyFilters(triggerMeta, false);
         query = applyFilters(queryMeta, false);
         action = applyFilters(actionMeta, true);
