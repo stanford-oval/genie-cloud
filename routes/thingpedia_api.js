@@ -16,6 +16,7 @@ const user = require('../model/user');
 const organization = require('../model/organization');
 
 const ThingPediaClient = require('../util/thingpedia-client');
+const genRandomRules = require('../util/gen_random_rule');
 
 var router = express.Router();
 
@@ -188,7 +189,22 @@ router.get('/examples/click/:id', function(req, res) {
         res.status(200).json({ result: 'ok' });
     }, (e) => {
         res.status(500).json({ error: e.message });
-    });
+    }).done();
+});
+
+router.get('/random-rule', function(req, res) {
+    var locale = req.query.locale || 'en-US';
+    var language = (locale || 'en').split(/[-_\@\.]/)[0];
+
+    var N = Math.min(parseInt(req.query.limit) || 20, 20);
+
+    var policy = req.query.policy || 'uniform';
+
+    genRandomRules(policy, language, N).then((rules) => {
+        res.status(200).json(rules);
+    }, (e) => {
+        res.status(500).json({ error: e.message });
+    }).done();
 });
 
 module.exports = router;
