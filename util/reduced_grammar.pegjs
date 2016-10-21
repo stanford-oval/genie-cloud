@@ -83,7 +83,22 @@ condition = varName:ident _ op:comparator _ value:value {
 bool_function = '$contains' { return 'has'; }
 comparator "comparator" = '>=' / '<=' / '>' / '<' / '=~' { return 'contains'; } / ('=' !'>') { return 'is'; } / '!='
 
-value = bool_value / var_ref_value / event_value / measure_value / number_value / date_value / time_value / location_value / enum_value / email_value / phone_value / string_value
+value =
+        bool_value /
+        var_ref_value /
+        event_value /
+        measure_value /
+        number_value /
+        date_value /
+        time_value /
+        location_value /
+        enum_value /
+        email_value /
+        phone_value /
+        username_value /
+        hashtag_value /
+        url_value /
+        string_value
 
 var_ref_value = name:ident { return { type: 'VarRef', value: { id: 'tt:param.' + name } }; }
 measure_value = num:literal_number unit:ident { return { type: 'Measure', value: { value: num, unit: unit } }; }
@@ -110,13 +125,22 @@ email_value = '$makeEmailAddress' _ '(' _ v:literal_string _ ')' {
 phone_value = '$makePhoneNumber' _ '(' _ v:literal_string _ ')' {
     return { type: 'PhoneNumber', value: { value: v } };
 }
+url_value = '$makeURL' _ '(' _ v:literal_string _ ')' {
+    return { type: 'URL', value: { value: v } };
+}
+username_value = '$makeUsername' _ '(' _ v:literal_string _ ')' {
+    return { type: 'Username', value: { value: v } };
+}
+hashtag_value = '$makeHashtag' _ '(' _ v:literal_string _ ')' {
+    return { type: 'Hashtag', value: { value: v } };
+}
 enum_value = '$enum' _ '(' _ v:ident _ ')' {
     return { type: 'Enum', value: { value: v } };
 }
 string_value = v:literal_string {
     return { type: 'String', value: { value: v } };
 }
-event_value = v:$('$event' _ ('.' _ ('title' / 'body'))?) {
+event_value = v:$('$event' ('.' ('title' / 'body'))?) {
     return { type: 'VarRef', value: { id: 'tt:param.' + v } };
 }
 
