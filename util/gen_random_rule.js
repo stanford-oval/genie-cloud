@@ -217,7 +217,10 @@ const OTHER_OP_WEIGHTS = {
     '': 2,
 }
 
-const STRING_ARGUMENTS = ['abc def', 'ghi jkl', 'mno pqr', 'stu vwz', 'foo', 'bar'];
+const STRING_ARGUMENTS = ['abc def', 'ghi jkl', 'mno pqr', 'stu vwz'];
+const USERNAME_ARGUMENTS = ['foo', 'bar'];
+const HASHTAG_ARGUMENTS = ['foo', 'bar'];
+const URL_ARGUMENTS = ['http://www.google.com'];
 const NUMBER_ARGUMENTS = [42, 7, 14];
 const MEASURE_ARGUMENTS = {
     C: [{ value: 73, unit: 'F' }, { value: 22, unit: 'C' }],
@@ -257,6 +260,12 @@ function chooseRandomValue(type) {
         return ['EmailAddress', { value: uniform(EMAIL_ARGUMENTS) }];
     if (type.isPhoneNumber)
         return ['PhoneNumber', { value: uniform(PHONE_ARGUMENTS) }];
+    if (type.isUsername)
+        return ['Username', { value: uniform(USERNAME_ARGUMENTS) }];
+    if (type.isHashtag)
+        return ['Hashtag', { value: uniform(HASHTAG_ARGUMENTS) }];
+    if (type.isURL)
+        return ['URL', { value: uniform(URL_ARGUMENTS) }];
     if (type.isEnum)
         return ['Enum', { value: uniform(type.entries) }];
 

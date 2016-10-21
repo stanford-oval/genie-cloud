@@ -22,7 +22,9 @@ function assignmentsToArgs(assignments, argtypes) {
             continue;
         var type = argtypes[name];
         var nameVal = { id: 'tt:param.' + name };
-        if (type.isString || type.isNumber || type.isEmailAddress || type.isPhoneNumber || type.isEnum)
+        if (type.isString || type.isNumber || type.isEmailAddress ||
+            type.isPhoneNumber || type.isEnum || type.isURL ||
+            type.isUsername || type.isHashtag)
             args.push({ name: nameVal, type: (type.isEnum ? 'Enum' : String(type)),
                         value: { value: assignments[name] },
                         operator: 'is' });

@@ -22,7 +22,7 @@ function testOne(base, argtypes) {
 function main() {
     testOne('post on twitter saying $text', { text: Type.String });
     testOne('set temperature to $temp', { temp: Type.Measure('C') });
-    testOne('monitor tweets coming from $from containing $string', { from: Type.String, string: Type.String });
+    testOne('monitor tweets coming from $from containing $string', { from: Type.Username, string: Type.String });
     testOne('turn $power coffee pot', { power: Type.Boolean });
     testOne('how far is uber from $location', { location: Type.Location });
     testOne('how much is uber from $src_location to $dest_location', { src_location: Type.Location, dest_location: Type.Location });

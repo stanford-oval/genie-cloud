@@ -12,7 +12,7 @@ function identityMap(array) {
     return array.map((e) => [e, e]);
 }
 
-const STRING_ARGUMENTS = [['"abc def"', 'abc def'], ['"ghi jkl"', 'ghi jkl'], ['mno pqr', 'mno pqr'], ['stu vwz', 'stu vwz'], ['@foo', 'foo'], ['#bar', 'bar']];
+const STRING_ARGUMENTS = [['"abc def"', 'abc def'], ['"ghi jkl"', 'ghi jkl'], ['mno pqr', 'mno pqr'], ['stu vwz', 'stu vwz']];
 const STRING_PLACEHOLDER = 'something';
 const NUMBER_ARGUMENTS = identityMap([42, 7, 14]);
 const NUMBER_PLACEHOLDER = 'some number';
@@ -42,6 +42,12 @@ const EMAIL_ARGUMENTS = identityMap(['nobody@stanford.edu']);
 const EMAIL_PLACEHOLDER = 'someone';
 const PHONE_ARGUMENTS = [['1-555-555-5555', '+15555555555']];
 const PHONE_PLACEHOLDER = 'someone';
+const USERNAME_ARGUMENTS = [['@foo', 'foo'], ['@bar', 'bar']];
+const USERNAME_PLACEHOLDER = 'someone';
+const HASHTAG_ARGUMENTS = [['#foo', 'foo'], ['#bar', 'bar']];
+const HASHTAG_PLACEHOLDER = 'some tag';
+const URL_ARGUMENTS = identityMap(['http://www.google.com']);
+const URL_PLACEHOLDER = 'some url';
 
 function expandOne(example, argtypes, into) {
     var argnames = Object.keys(argtypes);
@@ -92,6 +98,15 @@ function expandOne(example, argtypes, into) {
         } else if (argtype.isPhoneNumber) {
             choices = PHONE_ARGUMENTS;
             placeholder = PHONE_PLACEHOLDER;
+        } else if (argtype.isUsername) {
+            choices = USERNAME_ARGUMENTS;
+            placeholder = USERNAME_PLACEHOLDER;
+        } else if (argtype.isHashtag) {
+            choices = HASHTAG_ARGUMENTS;
+            placeholder = HASHTAG_PLACEHOLDER;
+        } else if (argtype.isURL) {
+            choices = URL_ARGUMENTS;
+            placeholder = URL_PLACEHOLDER;
         }
 
         if (!choices)
