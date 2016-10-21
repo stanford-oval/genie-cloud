@@ -48,6 +48,12 @@ function codegenValue(type, value) {
         return '$makeEmailAddress(' + stringEscape(value.value) + ')';
     case 'PhoneNumber':
         return '$makePhoneNumber(' + stringEscape(value.value) + ')';
+    case 'Username':
+        return '$makeUsername(' + stringEscape(value.value) + ')';
+    case 'URL':
+        return '$makeURL(' + stringEscape(value.value) + ')';
+    case 'Hashtag':
+        return '$makeHashtag(' + stringEscape(value.value) + ')';
     case 'Location':
         return codegenLocation(value);
     case 'Enum':
