@@ -261,6 +261,10 @@ function argToCanonical(grammar, buffer, arg, scope) {
         } else {
             buffer.push(scope[arg.value.id.substr('tt:param.'.length)]);
         }
+    } else if (arg.type === 'Username') {
+        buffer.push('@' + arg.value.value);
+    } else if (arg.type === 'Hashtag') {
+        buffer.push('#' + arg.value.value);
     } else {
         buffer.push(String(arg.value.value));
         if (arg.type === 'Measure')
