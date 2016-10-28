@@ -11,68 +11,7 @@ const Q = require('q');
 
 const ThingTalk = require('thingtalk');
 
-const db = require('../util/db');
-const schema = require('../model/schema');
-const exampleModel = require('../model/example');
-
-// A copy of ThingTalk SchemaRetriever
-// that uses schema.getDeveloperMetas instead of ThingPediaClient
-// (and also ignore builtins)
-class SchemaRetriever {
-    constructor(dbClient, language) {
-        this._metaRequest = null;
-        this._pendingMetaRequests = [];
-        this._metaCache = {};
-
-        this._dbClient = dbClient;
-        this._language = language;
-    }
-
-    _ensureMetaRequest() {
-        if (this._metaRequest !== null)
-            return;
-
-        this._metaRequest = Q.delay(0).then(() => {
-            var pending = this._pendingMetaRequests;
-            this._pendingMetaRequests = [];
-            this._metaRequest = null;
-            console.log('Batched schema-meta request for ' + pending);
-            return schema.getDeveloperMetas(this._dbClient, pending, this._language);
-        }).then((rows) => {
-            rows.forEach((row) => {
-                this._metaCache[row.kind] = {
-                    triggers: row.triggers,
-                    actions: row.actions,
-                    queries: row.queries
-                };
-            });
-            return this._metaCache;
-        });
-    }
-
-    getFullMeta(kind) {
-        if (kind in this._metaCache)
-            return Q(this._metaCache[kind]);
-
-        if (this._pendingMetaRequests.indexOf(kind) < 0)
-            this._pendingMetaRequests.push(kind);
-        this._ensureMetaRequest();
-        return this._metaRequest.then(function(everything) {
-            if (kind in everything)
-                return everything[kind];
-            else
-                throw new Error('Invalid kind ' + kind);
-        });
-    }
-
-    getMeta(kind, where, name) {
-        return this.getFullMeta(kind).then((fullSchema) => {
-            if (!(name in fullSchema[where]))
-                throw new Error("Schema " + kind + " has no " + where + " " + name);
-            return fullSchema[where][name];
-        });
-    }
-}
+const db = require('./db');
 
 function sample(distribution) {
     var keys = Object.keys(distribution);
@@ -105,8 +44,14 @@ const COMPOSITION_WEIGHTS = {
     'trigger+null+action': 1.5,
     'null+query+action': 1,
     'trigger+null+query': 0.5,
-    'trigger+action+query': 0.1
+    'trigger+action+query': 0
 };
+
+const FIXED_KINDS = ['washington_post', 'sportradar', 'giphy',
+    'yahoofinance', 'nasa', 'twitter', 'facebook', 'instagram',
+    'linkedin', 'youtube', 'github', 'lg_webos_tv', 'light-bulb',
+    'thermostat', 'security-camera', 'heatpad', 'phone',
+    'omlet', 'slack', 'gmail'];
 
 const DOMAIN_WEIGHTS = {
     media: 100,
@@ -147,7 +92,10 @@ function getSchemaDomain(schema) {
 
 function chooseSchema(allSchemas, policy) {
     if (policy === 'uniform')
-        return uniform(allSchemas);
+        return uniform(allSchemas).kind;
+
+    if (policy === 'uniform-fixed-kinds')
+        return uniform(FIXED_KINDS);
 
     if (policy === 'weighted-domain') {
         var domains = {
@@ -163,7 +111,7 @@ function chooseSchema(allSchemas, policy) {
         for (var schema of allSchemas)
             domains[getSchemaDomain(schema)].push(schema);
 
-        return uniform(domains[sample(DOMAIN_WEIGHTS)]);
+        return uniform(domains[sample(DOMAIN_WEIGHTS)]).kind;
     }
 
     throw new Error('Unknown sampling policy ' + policy);
@@ -179,16 +127,16 @@ function getAllSchemas(dbClient) {
 }
 
 function chooseInvocation(schemaRetriever, schemas, samplingPolicy, channelType) {
-    var schema = chooseSchema(schemas, samplingPolicy);
+    var kind = chooseSchema(schemas, samplingPolicy);
 
-    return schemaRetriever.getFullMeta(schema.kind).then((fullMeta) => {
+    return schemaRetriever.getFullMeta(kind).then((fullMeta) => {
         var channels = fullMeta[channelType];
         var choices = Object.keys(channels);
         if (choices.length === 0) // no channels of this type for this schema, try again
             return chooseInvocation(schemaRetriever, schemas, samplingPolicy, channelType);
 
         var channelName = uniform(choices);
-        channels[channelName].kind = schema.kind;
+        channels[channelName].kind = kind;
         channels[channelName].name = channelName;
         return channels[channelName];
     });
@@ -217,10 +165,10 @@ const OTHER_OP_WEIGHTS = {
     '': 2,
 }
 
-const STRING_ARGUMENTS = ['abc def', 'ghi jkl', 'mno pqr', 'stu vwz'];
-const USERNAME_ARGUMENTS = ['foo', 'bar'];
-const HASHTAG_ARGUMENTS = ['foo', 'bar'];
-const URL_ARGUMENTS = ['http://www.google.com'];
+const STRING_ARGUMENTS = ['work', "I'm happy", 'bob', "You would never believe what happened"];
+const USERNAME_ARGUMENTS = ['justinbieber', 'testeralice'];
+const HASHTAG_ARGUMENTS = ['funny', 'cat'];
+const URL_ARGUMENTS = ['http://www.google.com', 'http://example.com/file.jpg'];
 const NUMBER_ARGUMENTS = [42, 7, 14];
 const MEASURE_ARGUMENTS = {
     C: [{ value: 73, unit: 'F' }, { value: 22, unit: 'C' }],
@@ -229,7 +177,7 @@ const MEASURE_ARGUMENTS = {
     kcal: [{ value: 500, unit: 'kcal' }],
     mps: [{ value: 5, unit: 'kmph' }, { value: 25, unit: 'mph' }],
     ms: [{ value: 1, unit: 'h' }, { value: 14, unit: 'day' }],
-    byte: [{ value: 5, unit: 'kB' }, { value: 20, unit: 'MB' }]
+    byte: [{ value: 5, unit: 'KB' }, { value: 20, unit: 'MB' }]
 };
 const BOOLEAN_ARGUMENTS = [true, false];
 const LOCATION_ARGUMENTS = [{ relativeTag: 'rel_current_location', latitude: -1, longitude: -1 },
@@ -237,7 +185,7 @@ const LOCATION_ARGUMENTS = [{ relativeTag: 'rel_current_location', latitude: -1,
                             { relativeTag: 'rel_work', latitude: -1, longitude: -1 },
                             { relativeTag: 'absolute', latitude: 37.442156, longitude: -122.1634471 },
                             { relativeTag: 'absolute', latitude:    34.0543942, longitude: -118.2439408 }];
-const DATE_ARGUMENTS = [{ year: 1992, month: 8, day: 24 }, { year: 2016, month: 5, day: 4 }];
+const DATE_ARGUMENTS = [{ year: 1992, month: 8, day: 24, hour: -1, minute: -1, second: -1 }, { year: 2016, month: 5, day: 4, hour: -1, minute: -1, second: -1 }];
 const EMAIL_ARGUMENTS = ['nobody@stanford.edu'];
 const PHONE_ARGUMENTS = ['+15555555555'];
 
@@ -301,20 +249,23 @@ function applyFilters(invocation, isAction) {
             continue;
 
         var tmp = chooseRandomValue(type);
-	var sempreType = tmp[0];
+        var sempreType = tmp[0];
         var value = tmp[1];
         if (!sempreType)
             continue;
 
         if (argrequired) {
-            var fill = coin(0.6);
+            var fill = coin(0.8);
             if (fill)
                 ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else if (isAction) {
-            var fill = coin(0.3);
+            var fill = coin(0.8);
             if (fill)
                 ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else {
+            var fill = coin(0.2);
+            if (!fill)
+                continue;
             var operator = sample(getOpDistribution(type));
             if (operator)
                 ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: operator, type: sempreType, value: value });
@@ -364,7 +315,7 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
         var toType = toArgMap[toArg];
         var pairs = [];
 
-        if (coin(0.3))
+        if (coin(0.05))
             continue;
 
         for (var fromArg of fromArgs) {
@@ -381,15 +332,54 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
                     pairs.push([fromArg, 'has']);
                 } else if (String(fromType) === String(toType)) {
                     var operator = sample(getOpDistribution(fromType));
-                    pairs.push([fromArg, operator]);
+                    if (operator)
+                        pairs.push([fromArg, operator]);
                 }
             }
+        }
+        if (toType.isString) {
+            pairs.push(['$event', 'is']);
+            pairs.push(['$event.title', 'is']);
+            pairs.push(['$event.body', 'is']);
         }
         if (pairs.length === 0)
             continue;
         var chosen = uniform(pairs);
         to.args.push({ name: { id: 'tt:param.' + toArg }, operator: chosen[1], type: 'VarRef', value: { id: 'tt:param.' + chosen[0] } });
     }
+}
+
+function queryIsUseful(query, queryMeta, action) {
+    var argRequired = {};
+    queryMeta.args.forEach(function(name, i) {
+        argRequired[name] = queryMeta.required[i];
+    });
+
+    var anyFilter = false;
+    query.args.forEach((arg) => {
+        if (arg.operator !== 'is')
+            anyFilter = true;
+        if (!argRequired[arg.name.id.substr('tt:param.')])
+            anyFilter = true;
+    });
+    if (anyFilter)
+        return true;
+
+    var anyComposition = false;
+    action.args.forEach((arg) => {
+        if (arg.type === 'VarRef')
+            anyComposition = true;
+    });
+    if (anyComposition)
+        return true;
+
+    return false;
+}
+
+function connected(invocation) {
+    if (!invocation)
+        return false;
+    return invocation.args.some((a) => a.type === 'VarRef');
 }
 
 function genOneRandomRule(schemaRetriever, schemas, samplingPolicy) {
@@ -411,21 +401,23 @@ function genOneRandomRule(schemaRetriever, schemas, samplingPolicy) {
         if (trigger && action && !query)
             applyComposition(trigger, triggerMeta, action, actionMeta, true);
 
+        //if (query && action && !queryIsUseful(query, queryMeta, action)) // try again if not useful
+        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
+
+        if (!connected(query) && !connected(action))
+            return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
+
         return { rule: { trigger: trigger, query: query, action: action }};
     });
 }
 
-function genRandomRules(samplingPolicy, language, N) {
-    return db.withClient((dbClient) => {
-        var schemaRetriever = new SchemaRetriever(dbClient, language);
+function genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N) {
+    return getAllSchemas(dbClient).then((schemas) => {
+        var promises = [];
+        for (var i = 0; i < N; i++)
+            promises.push(genOneRandomRule(schemaRetriever, schemas, samplingPolicy));
 
-        return getAllSchemas(dbClient).then((schemas) => {
-            var promises = [];
-            for (var i = 0; i < N; i++)
-                promises.push(genOneRandomRule(schemaRetriever, schemas, samplingPolicy));
-
-            return Q.all(promises);
-        });
+        return Q.all(promises);
     });
 }
 

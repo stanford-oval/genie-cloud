@@ -15,6 +15,10 @@ const app = require('../model/app');
 const user = require('../model/user');
 const organization = require('../model/organization');
 
+const ThingTalk = require('thingtalk');
+const AppCompiler = ThingTalk.Compiler;
+const SchemaRetriever = ThingTalk.SchemaRetriever;
+
 const ThingPediaClient = require('../util/thingpedia-client');
 const genRandomRules = require('../util/gen_random_rule');
 
@@ -198,8 +202,12 @@ router.get('/random-rule', function(req, res) {
     var N = Math.min(parseInt(req.query.limit) || 20, 20);
 
     var policy = req.query.policy || 'uniform';
+    var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
 
-    genRandomRules(policy, language, N).then((rules) => {
+    return db.withClient((dbClient) => {
+        var schemaRetriever = new SchemaRetriever(client);
+        return genRandomRules(dbClient, schemaRetriever, policy, language, N);
+    }).then((rules) => {
         res.status(200).json(rules);
     }, (e) => {
         res.status(500).json({ error: e.message });

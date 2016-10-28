@@ -16,65 +16,7 @@ const byline = require('byline');
 const db = require('../util/db');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
-
-// A copy of ThingTalk SchemaRetriever
-// that uses schema.getDeveloperMetas instead of ThingPediaClient
-// (and also ignore builtins)
-class SchemaRetriever {
-    constructor(dbClient, language) {
-        this._metaRequest = null;
-        this._pendingMetaRequests = [];
-        this._metaCache = {};
-
-        this._dbClient = dbClient;
-        this._language = language;
-    }
-
-    _ensureMetaRequest() {
-        if (this._metaRequest !== null)
-            return;
-
-        this._metaRequest = Q.delay(0).then(() => {
-            var pending = this._pendingMetaRequests;
-            this._pendingMetaRequests = [];
-            this._metaRequest = null;
-            console.log('Batched schema-meta request for ' + pending);
-            return schema.getDeveloperMetas(this._dbClient, pending, this._language);
-        }).then((rows) => {
-            rows.forEach((row) => {
-                this._metaCache[row.kind] = {
-                    triggers: row.triggers,
-                    actions: row.actions,
-                    queries: row.queries
-                };
-            });
-            return this._metaCache;
-        });
-    }
-
-    _getFullMeta(kind) {
-        if (kind in this._metaCache)
-            return Q(this._metaCache[kind]);
-
-        if (this._pendingMetaRequests.indexOf(kind) < 0)
-            this._pendingMetaRequests.push(kind);
-        this._ensureMetaRequest();
-        return this._metaRequest.then(function(everything) {
-            if (kind in everything)
-                return everything[kind];
-            else
-                throw new Error('Invalid kind ' + kind);
-        });
-    }
-
-    getMeta(kind, where, name) {
-        return this._getFullMeta(kind).then((fullSchema) => {
-            if (!(name in fullSchema[where]))
-                throw new Error("Schema " + kind + " has no " + where + " " + name);
-            return fullSchema[where][name];
-        });
-    }
-}
+const SchemaRetriever = require('./deps/schema_retriever');
 
 var _schemaRetriever;
 

@@ -69,9 +69,11 @@ function codegenArg(arg) {
     if (arg.operator === 'has')
         return '$contains(' + arg.name.id.substr('tt:param.'.length) + ', ' + codegenValue(arg.type, arg.value) + ')';
     var op;
+    if (!arg.operator)
+        throw new Error('Invalid empty operator');
     if (arg.operator === 'is')
         op = '=';
-    else if (arg.operator == 'contains')
+    else if (arg.operator === 'contains')
         op = '=~';
     else
         op = arg.operator;
