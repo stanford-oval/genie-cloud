@@ -247,7 +247,7 @@ function applyFilters(invocation, isAction) {
 
         if (type.isPicture)
             continue;
-        if (args[i].startsWith('__')
+        if (args[i].startsWith('__'))
             continue;
 
         var tmp = chooseRandomValue(type);
