@@ -28,6 +28,8 @@ function processOneRow(dbClient, id, changes, row) {
 
         var changed = false;
         json.args.forEach((arg) => {
+            if (!arg.name.id)
+                throw new Error('Invalid example ' + row.id + ': ' + row.utterance);
             var name = arg.name.id.substr('tt:param.'.length);
             if (name in changes) {
                 var newName = changes[name];

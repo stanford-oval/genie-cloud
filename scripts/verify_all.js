@@ -49,18 +49,13 @@ function readAll(stream, promises) {
 }
 
 function main() {
-    var onlineLearn = process.argv.length >= 3 ? byline(fs.createReadStream(process.argv[2])) : null;
-    if (onlineLearn !== null)
-        onlineLearn.setEncoding('utf8');
-    var test = process.argv.length >= 4 ? byline(fs.createReadStream(process.argv[3])) : null;
-    if (test !== null)
-        test.setEncoding('utf8');
+    var language = process.argv[2] || 'en';
 
     db.withClient((dbClient) => {
-        _schemaRetriever = new SchemaRetriever(dbClient, 'en-US');
+        _schemaRetriever = new SchemaRetriever(dbClient, 'en-US', true);
         var promises = [];
 
-        return exampleModel.getAll(dbClient).then((examples) => {
+        return exampleModel.getAllWithLanguage(dbClient, language).then((examples) => {
             examples.forEach((ex) => {
                 if (ex.is_base)
                     return;
@@ -68,11 +63,9 @@ function main() {
                 promises.push(Q.try(function() {
                     return SempreSyntax.verify(_schemaRetriever, JSON.parse(ex.target_json));
                 }).catch((e) => {
-                    console.error('Failed to handle ' + ex.utterance + ': ' + e.message);
+                    console.error('Failed to handle ' + ex.id + ' ' + ex.utterance + ': ' + e.message);
                 }));
             });
-        }).then(() => {
-            return Q.all([readAll(onlineLearn, promises), readAll(test, promises)]);
         }).then(function() {
             return Q.all(promises);
         });

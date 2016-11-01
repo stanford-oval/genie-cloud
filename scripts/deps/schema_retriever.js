@@ -9,19 +9,21 @@
 
 const Q = require('q');
 
+const ThingTalk = require('thingtalk');
 const schema = require('../../model/schema');
 
 // A copy of ThingTalk SchemaRetriever
 // that uses schema.getDeveloperMetas instead of ThingPediaClient
 // (and also ignore builtins)
 module.exports = class SchemaRetriever {
-    constructor(dbClient, language) {
+    constructor(dbClient, language, parseTypes) {
         this._metaRequest = null;
         this._pendingMetaRequests = [];
         this._metaCache = {};
 
         this._dbClient = dbClient;
         this._language = language;
+        this._parseTypes = !!parseTypes;
     }
 
     _ensureMetaRequest() {
@@ -36,6 +38,11 @@ module.exports = class SchemaRetriever {
             return schema.getDeveloperMetas(this._dbClient, pending, this._language);
         }).then((rows) => {
             rows.forEach((row) => {
+                if (this._parseTypes) {
+                    this._parseMetaTypes(row.triggers);
+                    this._parseMetaTypes(row.actions);
+                    this._parseMetaTypes(row.queries);
+                }
                 this._metaCache[row.kind] = {
                     triggers: row.triggers,
                     actions: row.actions,
@@ -44,6 +51,11 @@ module.exports = class SchemaRetriever {
             });
             return this._metaCache;
         });
+    }
+
+    _parseMetaTypes(channels) {
+        for (var name in channels)
+            channels[name].schema = channels[name].schema.map(ThingTalk.Type.fromString);
     }
 
     getFullMeta(kind) {
