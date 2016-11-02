@@ -49,10 +49,6 @@ function assignmentsToArgs(assignments, argtypes) {
             throw new TypeError('Unexpected type ' + type);
     }
 
-    args.sort(function(a, b) {
-        return a.name.id === b.name.id ? 0 : (a.name.id < b.name.id ? -1 : +1);
-    });
-
     return args;
 }
 
