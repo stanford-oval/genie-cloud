@@ -352,9 +352,9 @@ module.exports = function reconstructCanonical(dlg, schemaRetriever, json) {
             if (trigger && query && action)
                 return dlg._("if %s then %s and then %s").format(triggerDesc, queryDesc, actionDesc);
             else if (trigger && query)
-                return dlg._("%s if %s").format(queryDesc, triggerDesc);
+                return dlg._("if %s then %s").format(triggerDesc, queryDesc);
             else if (trigger && action)
-                return dlg._("%s if %s").format(actionDesc, triggerDesc);
+                return dlg._("if %s then %s").format(triggerDesc, actionDesc);
             else if (query && action)
                 return dlg._("%s then %s").format(queryDesc, actionDesc);
             else

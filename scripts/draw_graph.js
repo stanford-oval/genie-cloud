@@ -25,7 +25,7 @@ function main() {
     var nodes = new Set;
     function maybeAddNode(channel, arg) {
         //var label = channel.substr('tt:'.length) + ':' + arg.substr('tt:param.'.length);
-        label = arg.substr('tt:param.'.length);
+        var label = arg.substr('tt:param.'.length);
         var id = label.replace(/[^a-z]/g, '_');
 
         if (!nodes.has(id)) {

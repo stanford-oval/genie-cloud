@@ -166,11 +166,12 @@ const OTHER_OP_WEIGHTS = {
     '': 2,
 }
 
-const STRING_ARGUMENTS = ['work', "i'm happy", "bob", "you would never believe what happened"];
+const STRING_ARGUMENTS = ['work', "i'm happy", "bob", "danger",
+    "you would never believe what happened", "merry christmas", "love you"];
 const USERNAME_ARGUMENTS = ['justinbieber', 'testeralice'];
-const HASHTAG_ARGUMENTS = ['funny', 'cat'];
+const HASHTAG_ARGUMENTS = ['funny', 'cat', 'lol'];
 const URL_ARGUMENTS = ['http://www.google.com', 'http://example.com/file.jpg'];
-const NUMBER_ARGUMENTS = [42, 7, 14];
+const NUMBER_ARGUMENTS = [42, 7, 14, 11];
 const MEASURE_ARGUMENTS = {
     C: [{ value: 73, unit: 'F' }, { value: 22, unit: 'C' }],
     m: [{ value: 1000, unit: 'm' }, { value: 42, unit: 'cm' }],
@@ -183,16 +184,17 @@ const MEASURE_ARGUMENTS = {
 const BOOLEAN_ARGUMENTS = [true, false];
 const LOCATION_ARGUMENTS = [{ relativeTag: 'rel_current_location', latitude: -1, longitude: -1 },
                             { relativeTag: 'rel_home', latitude: -1, longitude: -1 },
-                            { relativeTag: 'rel_work', latitude: -1, longitude: -1 },
-                            { relativeTag: 'absolute', latitude: 37.442156, longitude: -122.1634471 },
-                            { relativeTag: 'absolute', latitude:    34.0543942, longitude: -118.2439408 }];
-const DATE_ARGUMENTS = [{ year: 1992, month: 8, day: 24, hour: -1, minute: -1, second: -1 }, { year: 2016, month: 5, day: 4, hour: -1, minute: -1, second: -1 }];
+                            { relativeTag: 'rel_work', latitude: -1, longitude: -1 }];
+                            //{ relativeTag: 'absolute', latitude: 37.442156, longitude: -122.1634471 },
+                            //{ relativeTag: 'absolute', latitude:    34.0543942, longitude: -118.2439408 }];
+const DATE_ARGUMENTS = [{ year: 1992, month: 8, day: 24, hour: -1, minute: -1, second: -1 },
+    { year: 2016, month: 5, day: 4, hour: -1, minute: -1, second: -1 }];
 const EMAIL_ARGUMENTS = ['nobody@stanford.edu'];
 const PHONE_ARGUMENTS = ['+15555555555'];
 
 function chooseRandomValue(type) {
-    if (type.isArray && type.elem.isString)
-        return ['String', { value: uniform(STRING_ARGUMENTS) }];
+    if (type.isArray)
+        return chooseRandomValue(type.elem);
     if (type.isMeasure)
         return ['Measure', uniform(MEASURE_ARGUMENTS[type.unit])];
     if (type.isNumber)
@@ -258,7 +260,7 @@ function applyFilters(invocation, isAction) {
             continue;
 
         if (argrequired) {
-            var fill = coin(0.8);
+            var fill = coin(0.6);
             if (fill)
                 ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else if (isAction) {
@@ -266,7 +268,7 @@ function applyFilters(invocation, isAction) {
             if (fill)
                 ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else {
-            var fill = coin(0.2);
+            var fill = coin(0.1);
             if (!fill)
                 continue;
             var operator = sample(getOpDistribution(type));
@@ -316,42 +318,44 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
 
     for (var toArg of toArgs) {
         var toType = toArgMap[toArg];
-        var pairs = [];
+        var distribution = {};
 
-        if (coin(0.05))
+        if (toArg.startsWith('__'))
             continue;
-        if (toArg.startsWith('__')
-            continue;
+        distribution[''] = 0.5;
 
         for (var fromArg of fromArgs) {
             var fromType = fromArgMap[fromArg];
 
             if (fromArgRequired[fromArg])
                 continue;
-            if (fromArg.startsWith('__')
+            if (fromArg.startsWith('__'))
                 continue;
 
             if (toArgRequired[toArg] || isAction) {
                 if (String(fromType) === String(toType))
-                    pairs.push([fromArg, 'is']);
+                    distribution[fromArg + '+is'] = 1;
             } else {
                 if (toType.isArray && String(fromType) == String(toType.elem)) {
-                    pairs.push([fromArg, 'has']);
+                    distribution[fromArg + '+has'] = 1;
                 } else if (String(fromType) === String(toType)) {
-                    var operator = sample(getOpDistribution(fromType));
-                    if (operator)
-                        pairs.push([fromArg, operator]);
+                    var opdist = getOpDistribution(fromType);
+                    var sum = 0;
+                    for (var op in opdist)
+                        sum += opdist[key];
+                    for (var op in opdist)
+                        distribution[fromArg + '+' + op] = opdist[key]/sum;
                 }
             }
         }
         if (toType.isString) {
-            pairs.push(['$event', 'is']);
-            pairs.push(['$event.title', 'is']);
-            pairs.push(['$event.body', 'is']);
+            distribution['$event+is'] = 0.1;
+            distribution['$event.title+is'] = 0.05;
         }
-        if (pairs.length === 0)
+        var chosen = sample(distribution);
+        if (!chosen)
             continue;
-        var chosen = uniform(pairs);
+        chosen = chosen.split('+');
         to.args.push({ name: { id: 'tt:param.' + toArg }, operator: chosen[1], type: 'VarRef', value: { id: 'tt:param.' + chosen[0] } });
     }
 }
