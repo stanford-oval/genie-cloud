@@ -21,7 +21,7 @@ const SempreSyntax = require('../util/sempre_syntax');
 const dlg = { _(x) { return x; } };
 
 function postprocess(str) {
-    return str.replace(/your/g, 'my').replace(/you/g, 'me');
+    return str.replace(/your/g, 'my').replace(/ you /g, ' I ');
 }
 
 function main() {

@@ -47,9 +47,10 @@ const COMPOSITION_WEIGHTS = {
     'trigger+action+query': 0
 };
 
+// Rakesh : removed 'github'
 const FIXED_KINDS = ['washington_post', 'sportradar', 'giphy',
     'yahoofinance', 'nasa', 'twitter', 'facebook', 'instagram',
-    'linkedin', 'youtube', 'github', 'lg_webos_tv', 'light-bulb',
+    'linkedin', 'youtube', 'lg_webos_tv', 'light-bulb',
     'thermostat', 'security-camera', 'heatpad', 'phone',
     'omlet', 'slack', 'gmail'];
 

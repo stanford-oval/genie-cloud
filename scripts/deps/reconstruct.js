@@ -15,7 +15,7 @@ const Ast = ThingTalk.Ast;
 
 const SemanticAnalyzer = require('./semantic');
 
-function describeArg(dlg, arg, type) {
+function describeArg(dlg, arg, type, deviceLhs) {
     if (arg.isVarRef) {
         if (arg.name.startsWith('$contact('))
             return arg.name.substring('$contact('.length, arg.name.length-1);
@@ -27,13 +27,14 @@ function describeArg(dlg, arg, type) {
         case '$context.location.work':
             return dlg._("at work");
         case '$event':
-            return dlg._("the event");
+            return dlg._("the notification");
         case '$event.title':
-            return dlg._("the event's title");
+            return dlg._("the notification header");
         case '$event.body':
-            return dlg._("the event's long description");
+            return dlg._("the notification content");
         default:
-            return (type.isURL || type.isPicture ? "it" : "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
+            return "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase() + ((deviceLhs !== undefined) ? (" from " + deviceLhs) : "");
+	    //return (type.isURL || type.isPicture ? "it" : "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
         }
     }
     if (arg.isString)
@@ -70,7 +71,7 @@ function placeholder(type) {
     return "something";
 }
 
-function describe(dlg, kind, channel, schema, args, comparisons, isQuery) {
+function describe(dlg, kind, channel, schema, args, comparisons, isQuery, deviceLhs) {
     var confirm = schema.confirmation || (dlg._("%s on %s").format(channel, kind));
 
     var substitutedArgs = new Set;
@@ -79,8 +80,9 @@ function describe(dlg, kind, channel, schema, args, comparisons, isQuery) {
             type = ThingTalk.Type.fromString(type);
             if (confirm.indexOf('$' + schema.args[i]) >= 0)
                 substitutedArgs.add(schema.args[i]);
-            if (args[i] !== undefined)
-                confirm = confirm.replace('$' + schema.args[i], describeArg(dlg, args[i], type));
+            if (args[i] !== undefined) {
+                confirm = confirm.replace('$' + schema.args[i], describeArg(dlg, args[i], type, deviceLhs));
+	    }
             else
                 confirm = confirm.replace('$' + schema.args[i], placeholder(type));
         });
@@ -93,9 +95,9 @@ function describe(dlg, kind, channel, schema, args, comparisons, isQuery) {
         if (args[i] !== undefined) {
             type = ThingTalk.Type.fromString(type);
             if (isQuery && !any)
-                confirm += dlg._(" if %s is %s").format(schema.argcanonicals[i] || schema.args[i], describeArg(dlg, args[i], type));
+                confirm += dlg._(" if %s is %s").format(schema.argcanonicals[i] || schema.args[i], describeArg(dlg, args[i], type, deviceLhs));
             else
-                confirm += dlg._(" and %s is %s").format(schema.argcanonicals[i] || schema.args[i], describeArg(dlg, args[i], type));
+                confirm += dlg._(" and %s is %s").format(schema.argcanonicals[i] || schema.args[i], describeArg(dlg, args[i], type, deviceLhs));
             any = true;
         }
     });
@@ -117,33 +119,33 @@ function describe(dlg, kind, channel, schema, args, comparisons, isQuery) {
         switch (comp.operator) {
         case 'has':
             if (isQuery && !any)
-                confirm += dlg._(" if %s has %s").format(argcanonical, describeArg(dlg, comp.value, argtype));
+                confirm += dlg._(" if %s has %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             else
-                confirm += dlg._(" and %s has %s").format(argcanonical, describeArg(dlg, comp.value, argtype));
+                confirm += dlg._(" and %s has %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             break;
         case 'contains':
             if (isQuery && !any)
-                confirm += dlg._(" if %s contains %s").format(argcanonical, describeArg(dlg, comp.value, argtype));
+                confirm += dlg._(" if %s contains %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             else
-                confirm += dlg._(" and %s contains %s").format(argcanonical, describeArg(dlg, comp.value, argtype));
+                confirm += dlg._(" and %s contains %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             break;
         case 'is':
             if (isQuery && !any)
-                confirm += dlg._(" if %s is %s").format(argcanonical, describeArg(dlg, comp.value, argtype));
+                confirm += dlg._(" if %s is %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             else
-                confirm += dlg._(" and %s is %s").format(argcanonical, describeArg(dlg, comp.value, argtype));
+                confirm += dlg._(" and %s is %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             break;
         case '<':
             if (isQuery && !any)
-                confirm += dlg._(" if %s is less than %s").format(argcanonical, describeArg(dlg, comp.value, argtype));
+                confirm += dlg._(" if %s is less than %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             else
-                confirm += dlg._(" and %s is less than %s").format(argcanonical, describeArg(dlg, comp.value, argtype));
+                confirm += dlg._(" and %s is less than %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             break;
         case '>':
             if (isQuery && !any)
-                confirm += dlg._(" if %s is greater than %s").format(argcanonical, describeArg(dlg, comp.value, argtype));
+                confirm += dlg._(" if %s is greater than %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             else
-                confirm += dlg._(" and %s is greater than %s").format(argcanonical, describeArg(dlg, comp.value, argtype));
+                confirm += dlg._(" and %s is greater than %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             break;
         }
         any = true;
@@ -173,7 +175,6 @@ function assignSlots(slots, prefilled, values, comparisons, fillAll, mustFill, s
             if (pre.operator === 'is') {
                 if (!pre.value.isVarRef)
                     Type.typeUnify(slot.type, Ast.typeForValue(pre.value));
-
                 values[i] = pre.value;
                 pre.assigned = true;
                 found = true;
@@ -295,6 +296,7 @@ module.exports = function reconstructCanonical(dlg, schemaRetriever, json) {
                 var triggerValues = new Array(triggerSlots.length);
                 var triggerComparisons = [];
                 var toFill = [];
+
                 assignSlots(triggerSlots, analyzed.trigger.args, triggerValues, triggerComparisons,
                                     false, analyzed.trigger.slots, scope, toFill);
 
@@ -313,12 +315,15 @@ module.exports = function reconstructCanonical(dlg, schemaRetriever, json) {
                 var queryValues = new Array(querySlots.length);
                 var queryComparisons = [];
                 var toFill = [];
+
+		var deviceLhs = undefined;
+		if(trigger != null) deviceLhs = analyzed.trigger.kind;
                 assignSlots(querySlots, analyzed.query.args, queryValues, queryComparisons,
                             false, analyzed.query.slots, scope, toFill);
 
                 queryDesc = describe(dlg, analyzed.query.kind,
                                      analyzed.query.channel,
-                                     query, queryValues, queryComparisons, true);
+                                     query, queryValues, queryComparisons, true, deviceLhs);
             }
 
             if (action !== null) {
@@ -331,12 +336,17 @@ module.exports = function reconstructCanonical(dlg, schemaRetriever, json) {
                 var actionValues = new Array(actionSlots.length);
                 var actionComparisons = [];
                 var toFill = [];
+
+		var deviceLhs = undefined;
+		if(trigger != null) deviceLhs = analyzed.trigger.kind;
+		else if(query != null) deviceLhs = analyzed.query.kind;
+
                 assignSlots(actionSlots, analyzed.action.args, actionValues, actionComparisons,
                             true, analyzed.action.slots, scope, toFill);
 
                 actionDesc = describe(dlg, analyzed.action.kind,
                                       action.channel,
-                                      action, actionValues, actionComparisons, false);
+                                      action, actionValues, actionComparisons, false, deviceLhs);
             }
 
             if (trigger && query && action)
