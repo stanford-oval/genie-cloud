@@ -12,7 +12,7 @@ function identityMap(array) {
     return array.map((e) => [e, e]);
 }
 
-const STRING_ARGUMENTS = [['"abc def"', 'abc def'], ['"ghi jkl"', 'ghi jkl'], ['mno pqr', 'mno pqr'], ['stu vwz', 'stu vwz']];
+const STRING_ARGUMENTS = [['"abc def"', 'abc def'], ['"ghi jkl"', 'ghi jkl'], ['"mno pqr"', 'mno pqr'], ['"stu vwz"', 'stu vwz']];
 const STRING_PLACEHOLDER = 'something';
 const NUMBER_ARGUMENTS = identityMap([42, 7, 14]);
 const NUMBER_PLACEHOLDER = 'some number';
@@ -38,9 +38,9 @@ const LOCATION_ARGUMENTS = [['here', { relativeTag: 'rel_current_location', lati
 const LOCATION_PLACEHOLDER = 'some place';
 const DATE_ARGUMENTS = [['august 24th 1992', { year: 1992, month: 8, day: 24 }], ['may 4th 2016', { year: 2016, month: 5, day: 4 }]];
 const DATE_PLACEHOLDER = 'some day';
-const EMAIL_ARGUMENTS = identityMap(['nobody@stanford.edu']);
+const EMAIL_ARGUMENTS = identityMap(['nobody@stanford.edu', 'somebody@example.com']);
 const EMAIL_PLACEHOLDER = 'someone';
-const PHONE_ARGUMENTS = [['1-555-555-5555', '+15555555555']];
+const PHONE_ARGUMENTS = [['1-555-555-5555', '+15555555555'], ['1-800-SABRINA', '+18007227462']];
 const PHONE_PLACEHOLDER = 'someone';
 const USERNAME_ARGUMENTS = [['@foo', 'foo'], ['@bar', 'bar']];
 const USERNAME_PLACEHOLDER = 'someone';
@@ -127,7 +127,7 @@ function expandOne(example, argtypes, into) {
             // where the latter would be slot filled
             // the reason is that the NL is a lot happier with no
             // arguments
-            expandRecursively(expanded.replace(new RegExp(argnameRegex, 'g'), placeholder), i+1);
+            //expandRecursively(expanded.replace(new RegExp(argnameRegex, 'g'), placeholder), i+1);
         }
     }
 

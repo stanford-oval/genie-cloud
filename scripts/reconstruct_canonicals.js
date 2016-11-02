@@ -16,65 +16,7 @@ const byline = require('byline');
 const db = require('../util/db');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
-
-// A copy of ThingTalk SchemaRetriever
-// that uses schema.getDeveloperMetas instead of ThingPediaClient
-// (and also ignore builtins)
-class SchemaRetriever {
-    constructor(dbClient, language) {
-        this._metaRequest = null;
-        this._pendingMetaRequests = [];
-        this._metaCache = {};
-
-        this._dbClient = dbClient;
-        this._language = language;
-    }
-
-    _ensureMetaRequest() {
-        if (this._metaRequest !== null)
-            return;
-
-        this._metaRequest = Q.delay(0).then(() => {
-            var pending = this._pendingMetaRequests;
-            this._pendingMetaRequests = [];
-            this._metaRequest = null;
-            console.log('Batched schema-meta request for ' + pending);
-            return schema.getDeveloperMetas(this._dbClient, pending, this._language);
-        }).then((rows) => {
-            rows.forEach((row) => {
-                this._metaCache[row.kind] = {
-                    triggers: row.triggers,
-                    actions: row.actions,
-                    queries: row.queries
-                };
-            });
-            return this._metaCache;
-        });
-    }
-
-    _getFullMeta(kind) {
-        if (kind in this._metaCache)
-            return Q(this._metaCache[kind]);
-
-        if (this._pendingMetaRequests.indexOf(kind) < 0)
-            this._pendingMetaRequests.push(kind);
-        this._ensureMetaRequest();
-        return this._metaRequest.then(function(everything) {
-            if (kind in everything)
-                return everything[kind];
-            else
-                throw new Error('Invalid kind ' + kind);
-        });
-    }
-
-    getMeta(kind, where, name) {
-        return this._getFullMeta(kind).then((fullSchema) => {
-            if (!(name in fullSchema[where]))
-                throw new Error("Schema " + kind + " has no " + where + " " + name);
-            return fullSchema[where][name];
-        });
-    }
-}
+const SchemaRetriever = require('./deps/schema_retriever');
 
 var _schemaRetriever;
 
@@ -219,7 +161,7 @@ const LIST_TO_GRAMMAR = {
     command: 'commands',
 }
 
-function argToCanonical(grammar, buffer, arg, scope) {
+function argToCanonical(grammar, buffer, arg, scope, useArgName) {
     if (arg.type === 'Location') {
         if (arg.value.relativeTag === 'rel_current_location')
             buffer.push(grammar.here);
@@ -227,24 +169,17 @@ function argToCanonical(grammar, buffer, arg, scope) {
             buffer.push(grammar.at_home);
         else if (arg.value.relativeTag === 'rel_work')
             buffer.push(grammar.at_work);
-        else if (arg.value.latitude === 37.442156 && arg.value.longitude === -122.1634471)
+        /*else if (arg.value.latitude === 37.442156 && arg.value.longitude === -122.1634471)
             buffer.push('palo alto');
         else if (arg.value.latitude === 34.0543942 && arg.value.longitude === -118.2439408)
             buffer.push('los angeles');
         else {
             console.log('Unknown location at ' + arg.value.latitude + ', ' + arg.value.longitude);
             buffer.push('some other place');
-        }
-    } else if (arg.type === 'String') {
-        buffer.push("``");
-        buffer.push(arg.value.value);
-        buffer.push("''");
+        }*/
+        else buffer.push('LOCATION');
     } else if (arg.type === 'Boolean') {
         buffer.push(grammar[String(arg.value.value)]);
-    } else if (arg.type === 'Date') {
-        buffer.push('%04d/%02d/%02d'.format(arg.value.year, arg.value.month, arg.value.day));
-    } else if (arg.type === 'Time') {
-        buffer.push('%02d:%02d'.format(arg.value.hour, arg.value.minute));
     } else if (arg.type === 'VarRef') {
         if (arg.value.id.startsWith('tt:param.$event')) {
             switch (arg.value.id) {
@@ -261,10 +196,42 @@ function argToCanonical(grammar, buffer, arg, scope) {
         } else {
             buffer.push(scope[arg.value.id.substr('tt:param.'.length)]);
         }
-    } else {
+    } else if (arg.type === 'Enum' || arg.type === 'Bool') {
         buffer.push(String(arg.value.value));
-        if (arg.type === 'Measure')
-            buffer.push(arg.value.unit || arg.unit);
+    } else if (arg.type === 'String') {
+        //buffer.push("``");
+        //buffer.push(arg.value.value);
+        //buffer.push("''");
+        buffer.push('QUOTED_STRING');
+    } else if (arg.type === 'Date') {
+        //buffer.push('%04d/%02d/%02d'.format(arg.value.year, arg.value.month, arg.value.day));
+        buffer.push('DATE');
+    } else if (arg.type === 'Time') {
+        //buffer.push('%02d:%02d'.format(arg.value.hour, arg.value.minute));
+        buffer.push('TIME');
+    } else if (arg.type === 'Username') {
+        //buffer.push('@' + arg.value.value);
+        buffer.push('USERNAME');
+    } else if (arg.type === 'Hashtag') {
+        //buffer.push('#' + arg.value.value);
+        buffer.push('HASHTAG');
+    } else if (arg.type === 'Number') {
+        buffer.push('NUMBER');
+    } else if (arg.type === 'Measure') {
+        buffer.push('NUMBER');
+        buffer.push(arg.value.unit || arg.unit);
+    } else if (arg.type === 'PhoneNumber') {
+        buffer.push('PHONE_NUMBER');
+    } else if (arg.type === 'EmailAddress') {
+        buffer.push('EMAIL_ADDRESS');
+    } else if (arg.type === 'URL') {
+        buffer.push('URL');
+    } else if (arg.type === 'FileName') {
+        buffer.push('FILE_NAME');
+    } else {
+        throw new Error('Invalid argument type ' + arg.type);
+        //buffer.push(String(arg.value.value));
+        //if (arg.type === 'Measure')
     }
 }
 
@@ -312,7 +279,7 @@ function invocationToCanonical(invocation, meta, grammar, buffer, scope) {
         default:
             throw new Error('Invalid operator ' + arg.operator);
         }
-        argToCanonical(grammar, buffer, arg, scope);
+        argToCanonical(grammar, buffer, arg, scope, true);
     });
 
     for (var name in argmap)
@@ -357,7 +324,7 @@ function reconstructCanonical(dbClient, grammar, language, json) {
         return buffer.join(' ');
     }
     if (parsed.answer) {
-        argToCanonical(grammar, buffer, parsed.answer, {});
+        argToCanonical(grammar, buffer, parsed.answer, {}, false);
         return buffer.join(' ');
     }
 

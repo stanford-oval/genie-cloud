@@ -69,9 +69,11 @@ function codegenArg(arg) {
     if (arg.operator === 'has')
         return '$contains(' + arg.name.id.substr('tt:param.'.length) + ', ' + codegenValue(arg.type, arg.value) + ')';
     var op;
+    if (!arg.operator)
+        throw new Error('Invalid empty operator');
     if (arg.operator === 'is')
         op = '=';
-    else if (arg.operator == 'contains')
+    else if (arg.operator === 'contains')
         op = '=~';
     else
         op = arg.operator;
@@ -159,6 +161,9 @@ function verifyOne(schemas, invocation, invocationType, scope) {
                     return;
                 if (!(ref in scope))
                     throw new TypeError(ref + ' is not in scope');
+                // accept URLs in place of strings
+                if (valuetype.isString && scope[ref].isURL)
+                    return;
                 if (!valuetype.equals(scope[ref]))
                     throw new TypeError(ref + ' and ' + argname + ' are not type-compatible');
             } else {
@@ -167,11 +172,11 @@ function verifyOne(schemas, invocation, invocationType, scope) {
                     return;
                 if (valuehave === 'Bool' && valuetype.isBoolean)
                     return;
-                if (valuehave === 'Time' && valuetype.isString)
-                    return;
                 if (valuehave === 'Measure' && valuetype.isMeasure)
                     return;
                 if (valuehave === 'Enum' && valuetype.isEnum)
+                    return;
+                if (valuehave === 'String' && (valuetype.isUsername || valuetype.isHashtag))
                     return;
                 throw new TypeError('Invalid value type ' + valuehave + ', expected ' + valuetype);
             }
