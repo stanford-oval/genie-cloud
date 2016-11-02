@@ -404,6 +404,7 @@ function main() {
     var output = fs.createWriteStream(process.argv[2]);
 
     var language = process.argv[3] || 'en';
+    var types = (process.argv[4] || 'thingpedia,online,turking,generated').split(',');
     var grammar = GRAMMAR_TOKENS[language];
     if (!grammar)
         throw new Error('Invalid language ' + language);
@@ -412,11 +413,8 @@ function main() {
         _schemaRetriever = new SchemaRetriever(dbClient, language);
         var promises = [];
 
-        return exampleModel.getAllWithLanguage(dbClient, language).then((examples) => {
+        return db.selectAll(dbClient, "select id,utterance,target_json from example_utterances where language = ? and type in (?) and not is_base", [language, types]).then((examples) => {
             examples.forEach((ex) => {
-                if (ex.is_base || ex.type === 'test')
-                    return;
-
                 promises.push(Q.try(function() {
                     return reconstructCanonical(dbClient, grammar, language, ex.target_json);
                 }).then(function(reconstructed) {
@@ -433,7 +431,7 @@ function main() {
         });
     }).finally(() => {
         output.end();
-    });
+    }).done();
 
     output.on('finish', () => process.exit());
 }
