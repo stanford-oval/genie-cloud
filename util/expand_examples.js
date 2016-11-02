@@ -49,8 +49,20 @@ const HASHTAG_PLACEHOLDER = 'some tag';
 const URL_ARGUMENTS = identityMap(['http://www.google.com']);
 const URL_PLACEHOLDER = 'some url';
 
+function extractArgNames(example) {
+    var names = [];
+
+    var regexp = /\$([a-zA-Z\_]+)/g;
+    var match = regexp.exec(example);
+    while (match != null) {
+        names.push(match[1]);
+        match = regexp.exec(example);
+    }
+    return names;
+}
+
 function expandOne(example, argtypes, into) {
-    var argnames = Object.keys(argtypes);
+    var argnames = extractArgNames(example);
     var assignments = {};
 
     function expandRecursively(expanded, i) {
@@ -62,10 +74,9 @@ function expandOne(example, argtypes, into) {
         }
 
         var argname = argnames[i];
-        if (expanded.indexOf('$' + argname) < 0)
-            return expandRecursively(expanded, i+1);
-
         var argtype = argtypes[argname];
+        if (!argtype)
+            throw new TypeError('Invalid placeholder $' + argname);
 
         var choices, placeholder;
         if (argtype.isString) {

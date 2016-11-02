@@ -11,7 +11,7 @@ const Q = require('q');
 
 module.exports = {
     tokenize(string) {
-        var tokens = string.split(/(\s+|[,\.\"\'])/g);
+        var tokens = string.split(/(\s+|[,\.\"\'!\?])/g);
         return tokens.filter((t) => !(/^\s*$/).test(t)).map((t) => t.toLowerCase());
     },
 
