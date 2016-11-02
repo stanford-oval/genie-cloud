@@ -189,7 +189,7 @@ const LOCATION_ARGUMENTS = [{ relativeTag: 'rel_current_location', latitude: -1,
                             //{ relativeTag: 'absolute', latitude:    34.0543942, longitude: -118.2439408 }];
 const DATE_ARGUMENTS = [{ year: 1992, month: 8, day: 24, hour: -1, minute: -1, second: -1 },
     { year: 2016, month: 5, day: 4, hour: -1, minute: -1, second: -1 }];
-const EMAIL_ARGUMENTS = ['nobody@stanford.edu'];
+const EMAIL_ARGUMENTS = ['bob@stanford.edu'];
 const PHONE_ARGUMENTS = ['+15555555555'];
 
 function chooseRandomValue(type) {

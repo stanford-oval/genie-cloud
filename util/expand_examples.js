@@ -127,7 +127,7 @@ function expandOne(example, argtypes, into) {
             // where the latter would be slot filled
             // the reason is that the NL is a lot happier with no
             // arguments
-            expandRecursively(expanded.replace(new RegExp(argnameRegex, 'g'), placeholder), i+1);
+            //expandRecursively(expanded.replace(new RegExp(argnameRegex, 'g'), placeholder), i+1);
         }
     }
 

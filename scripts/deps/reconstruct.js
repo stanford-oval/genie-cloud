@@ -27,11 +27,9 @@ function describeArg(dlg, arg, type, deviceLhs) {
         case '$context.location.work':
             return dlg._("at work");
         case '$event':
-            return dlg._("the notification");
+            return dlg._("the result");
         case '$event.title':
-            return dlg._("the notification header");
-        case '$event.body':
-            return dlg._("the notification content");
+            return dlg._("the notification");
         default:
             return "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase() + ((deviceLhs !== undefined) ? (" from " + deviceLhs) : "");
 	    //return (type.isURL || type.isPicture ? "it" : "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
