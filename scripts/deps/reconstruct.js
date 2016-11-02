@@ -15,6 +15,10 @@ const Ast = ThingTalk.Ast;
 
 const SemanticAnalyzer = require('./semantic');
 
+function clean(name) {
+    return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+}
+
 function describeArg(dlg, arg, type, deviceLhs) {
     if (arg.isVarRef) {
         if (arg.name.startsWith('$contact('))
@@ -27,11 +31,12 @@ function describeArg(dlg, arg, type, deviceLhs) {
         case '$context.location.work':
             return dlg._("at work");
         case '$event':
-            return dlg._("the result");
+            //return dlg._("the result");
+            return dlg._("it");
         case '$event.title':
             return dlg._("the notification");
         default:
-            return "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase() + ((deviceLhs !== undefined) ? (" from " + deviceLhs) : "");
+            return "the " + clean(arg.name) + ((deviceLhs !== undefined) ? (" from " + clean(deviceLhs)) : "");
 	    //return (type.isURL || type.isPicture ? "it" : "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
         }
     }
@@ -41,7 +46,7 @@ function describeArg(dlg, arg, type, deviceLhs) {
         return '@' + arg.value;
     if (arg.isHashtag)
         return '#' + arg.value;
-    if (arg.isNumber || arg.isEnum || arg.isPhoneNumber || arg.isEmailAddress || arg.isURL)
+    if (arg.isNumber || arg.isPhoneNumber || arg.isEmailAddress || arg.isURL)
         return arg.value;
     if (arg.isMeasure)
         return arg.value + ' ' + arg.unit;
@@ -49,6 +54,8 @@ function describeArg(dlg, arg, type, deviceLhs) {
         return arg.value ? dlg._("on") : dlg._("off");
     if (arg.isDate)
         return arg.value.toString();
+    if (arg.isEnum)
+        return clean(arg.value);
 
     return String(arg);
 }
@@ -91,6 +98,8 @@ function describe(dlg, kind, channel, schema, args, comparisons, isQuery, device
         if (substitutedArgs.has(schema.args[i]))
             return;
         if (args[i] !== undefined) {
+            if (args[i].isVarRef)
+                return;
             type = ThingTalk.Type.fromString(type);
             if (isQuery && !any)
                 confirm += dlg._(" if %s is %s").format(schema.argcanonicals[i] || schema.args[i], describeArg(dlg, args[i], type, deviceLhs));

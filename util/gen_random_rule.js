@@ -220,7 +220,7 @@ function chooseRandomValue(type) {
     if (type.isEnum)
         return ['Enum', { value: uniform(type.entries) }];
 
-    console.log('Invalid type ' + type);
+    //console.log('Invalid type ' + type);
     return [null, null];
 }
 
@@ -251,6 +251,8 @@ function applyFilters(invocation, isAction) {
         if (type.isPicture)
             continue;
         if (args[i].startsWith('__'))
+            continue;
+        if (args[i].endsWith('_id') && args[i] !== 'stock_id')
             continue;
 
         var tmp = chooseRandomValue(type);
@@ -350,7 +352,7 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
         }
         if (toType.isString) {
             distribution['$event+is'] = 0.1;
-            distribution['$event.title+is'] = 0.05;
+            //distribution['$event.title+is'] = 0.05;
         }
         var chosen = sample(distribution);
         if (!chosen)
