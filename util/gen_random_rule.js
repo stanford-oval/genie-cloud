@@ -166,7 +166,7 @@ const OTHER_OP_WEIGHTS = {
     '': 2,
 }
 
-const STRING_ARGUMENTS = ['work', "I'm happy", 'bob', "You would never believe what happened"];
+const STRING_ARGUMENTS = ['work', "i'm happy", "bob", "you would never believe what happened"];
 const USERNAME_ARGUMENTS = ['justinbieber', 'testeralice'];
 const HASHTAG_ARGUMENTS = ['funny', 'cat'];
 const URL_ARGUMENTS = ['http://www.google.com', 'http://example.com/file.jpg'];
@@ -248,6 +248,8 @@ function applyFilters(invocation, isAction) {
 
         if (type.isPicture)
             continue;
+        if (args[i].startsWith('__'))
+            continue;
 
         var tmp = chooseRandomValue(type);
         var sempreType = tmp[0];
@@ -318,11 +320,15 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
 
         if (coin(0.05))
             continue;
+        if (toArg.startsWith('__')
+            continue;
 
         for (var fromArg of fromArgs) {
             var fromType = fromArgMap[fromArg];
 
             if (fromArgRequired[fromArg])
+                continue;
+            if (fromArg.startsWith('__')
                 continue;
 
             if (toArgRequired[toArg] || isAction) {
