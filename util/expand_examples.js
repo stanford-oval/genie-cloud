@@ -61,6 +61,16 @@ function extractArgNames(example) {
     return names;
 }
 
+function clean(name) {
+    return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+}
+
+function makeEnumChoices(choices) {
+    return choices.map((c) => {
+        return [clean(c), c];
+    });
+}
+
 function expandOne(example, argtypes, into) {
     var argnames = extractArgNames(example);
     var assignments = {};
@@ -101,7 +111,7 @@ function expandOne(example, argtypes, into) {
             choices = DATE_ARGUMENTS;
             placeholder = DATE_PLACEHOLDER;
         } else if (argtype.isEnum) {
-            choices = identityMap(argtype.entries);
+            choices = makeEnumChoices(argtype.entries);
             placeholder = undefined;
         } else if (argtype.isEmailAddress) {
             choices = EMAIL_ARGUMENTS;
