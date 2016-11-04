@@ -39,6 +39,9 @@ function main() {
 
     // add a test with the same argument twice
     testOne('frob$foo to$foo', { foo: Type.Number });
+
+    // enums
+    testOne('bla $foo', { foo: Type.Enum(['aaa_bbb', 'ccc']) });
 }
 
 main();
