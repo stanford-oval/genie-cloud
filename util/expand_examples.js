@@ -76,7 +76,7 @@ function expandOne(example, argtypes, into) {
     var argnames = extractArgNames(example);
     var assignments = {};
 
-    function expandRecursively(expanded, i) {
+    function expandRecursively(expanded, i, forcePlaceholder) {
         if (i === argnames.length) {
             var copy = {};
             Object.assign(copy, assignments);
@@ -136,11 +136,13 @@ function expandOne(example, argtypes, into) {
 
         var argnameRegex = '\\$' + argname;
 
-        choices.forEach(function(c) {
-            assignments[argname] = c[1];
-            expandRecursively(expanded.replace(new RegExp(argnameRegex, 'g'), c[0]), i+1);
-            assignments[argname] = undefined;
-        });
+        if (!forcePlaceholder) {
+            choices.forEach(function(c) {
+                assignments[argname] = c[1];
+                expandRecursively(expanded.replace(new RegExp(argnameRegex, 'g'), c[0]), i+1, false);
+                assignments[argname] = undefined;
+            });
+        }
 
         if (placeholder) {
             // make one with lexical placeholders with no assignments
@@ -149,11 +151,11 @@ function expandOne(example, argtypes, into) {
             // where the latter would be slot filled
             // the reason is that the NL is a lot happier with no
             // arguments
-            //expandRecursively(expanded.replace(new RegExp(argnameRegex, 'g'), placeholder), i+1);
+            expandRecursively(expanded.replace(new RegExp(argnameRegex, 'g'), placeholder), i+1, true);
         }
     }
 
-    return expandRecursively(example, 0);
+    return expandRecursively(example, 0, false);
 }
 
 module.exports = function expandExamples(examples, argtypes) {
