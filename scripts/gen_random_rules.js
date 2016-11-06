@@ -11,6 +11,8 @@ require('thingengine-core/lib/polyfill');
 
 const Q = require('q');
 const fs = require('fs');
+const csv = require('csv');
+const crypto = require('crypto');
 
 const db = require('../util/db');
 const genRandomRules = require('../util/gen_random_rule');
@@ -35,8 +37,14 @@ function coin(bias) {
     return Math.random() < bias;
 }
 
+function makeId() {
+    return crypto.randomBytes(8).toString('hex');
+}
+
 function main() {
-    var output = fs.createWriteStream(process.argv[2] || 'output.tsv');
+    var output = csv.stringify();
+    var file = fs.createWriteStream(process.argv[2] || 'output.csv');
+    output.pipe(file);
     var samplingPolicy = process.argv[3] || 'uniform';
     var language = process.argv[4] || 'en';
     var N = process.argv[5] || 100;
@@ -46,16 +54,13 @@ function main() {
         return genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N).then((rules) => {
             return Q.all(rules.map((r) => reconstruct(dlg, schemaRetriever, r))).then((reconstructed) => {
                 for (var i = 0; i < rules.length; i++) {
-                    output.write(SempreSyntax.toThingTalk(rules[i]));
-                    output.write('\t');
-                    output.write(postprocess(reconstructed[i]));
-                    output.write('\n');
+                    output.write([makeId(), SempreSyntax.toThingTalk(rules[i]), postprocess(reconstructed[i])]);
                 }
             });
         });
     }).then(() => output.end()).done();
 
-    output.on('finish', () => process.exit());
+    file.on('finish', () => process.exit());
 }
 
 main();
