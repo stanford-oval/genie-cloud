@@ -183,6 +183,8 @@ function describe(dlg, kind, channel, schema, args, comparisons, channelType, de
                 op = "below";
             if (argtype.isMeasure && argtype.unit === 'C' && coin(0.2))
                 op = "colder";
+            if (argtype.isMeasure && argtype.unit === 'byte' && coin(0.2))
+                op = "smaller";
             if (isQuery && !any)
                 confirm += dlg._(" if %s is %s %s").format(argcanonical, op, describeArg(dlg, comp.value, argtype, deviceLhs));
             else
@@ -198,6 +200,8 @@ function describe(dlg, kind, channel, schema, args, comparisons, channelType, de
                 op = "above";
             if (argtype.isMeasure && argtype.unit === 'C' && coin(0.2))
                 op = "hotter";
+            if (argtype.isMeasure && argtype.unit === 'byte' && coin(0.2))
+                op = "bigger";
             if (isQuery && !any)
                 confirm += dlg._(" if %s is %s than %s").format(argcanonical, op, describeArg(dlg, comp.value, argtype, deviceLhs));
             else

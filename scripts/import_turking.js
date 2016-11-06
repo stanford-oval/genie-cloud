@@ -17,8 +17,23 @@ const db = require('../util/db');
 const SchemaRetriever = require('./deps/schema_retriever');
 const SempreSyntax = require('../util/sempre_syntax');
 
+var insertBatch = [];
 function insert(dbClient, utterance, target_json) {
-    return db.insertOne(dbClient, "insert into example_utterances(language,type,utterance,target_json,click_count) values('en','generated',?,?,-1)", [utterance, target_json]);
+    if (insertBatch.length < 100) {
+        insertBatch.push(['en', 'generated', utterance, target_json, -1]);
+        return;
+    }
+
+    var batch = insertBatch;
+    insertBatch = [];
+    return db.insertOne(dbClient,
+        "insert into example_utterances(language,type,utterance,target_json,click_count) values ?", [batch]);
+}
+function finishBatch(dbClient) {
+    if (insertBatch.length === 0)
+        return;
+    return db.insertOne(dbClient,
+        "insert into example_utterances(language,type,utterance,target_json,click_count) values ?", [insertBatch]);
 }
 
 function main() {
@@ -65,6 +80,7 @@ function main() {
             parser.on('end', callback);
         })
         .then(() => Q.all(promises))
+        .then(() => finishBatch(dbClient));
         //.then(() => writer.end());
     }).then(() => process.exit()).done();
 }
