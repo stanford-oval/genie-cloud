@@ -122,6 +122,13 @@ function invocationToChannel(invocation) {
     return invocation.name.id;
 }
 
+function logFail(ex, parsedAnswer, parsedTarget) {
+    console.log("Utterance: " + ex.utterance);
+    console.log("Expected: " + JSON.stringify(parsedTarget));
+    console.log("Parsed: " + JSON.stringify(parsedAnswer));
+    console.log();
+}
+
 function main() {
     var language = process.argv[2] || 'en';
 
@@ -191,8 +198,11 @@ function main() {
                 return;
             }
             // ignore the first result if it does not come from ML
-            if (candidates[0].score === 'Infinity')
+            if (candidates[0].score === 'Infinity') {
+                if (candidates[0].answer !== target_json)
+                    console.log('Dataset problem at ' + ex.id + ', multiple conflicting answers');
                 candidates.shift();
+            }
 
             var parsedAnswer = JSON.parse(candidates[0].answer);
             var parsedTarget = JSON.parse(target_json);
@@ -238,10 +248,8 @@ function main() {
                 targetKeys[0] = 'simple';
 
             if (!arrayEqual(answerKeys, targetKeys)) {
-                if (substate === state.answer)
-                    console.log(ex.id + ' wrong everything (wants ' + target_json + ' has ' + candidates[0].answer + ')');
-                else
-                    console.log(ex.id + ' wrong everything');
+                console.log(ex.id + ' wrong everything');
+                logFail(ex, parsedAnswer, parsedTarget);
                 substate.wrong_everything++;
                 return;
             }
@@ -249,10 +257,8 @@ function main() {
             // good command type, let's see if we can refine
 
             if (['simple','rule'].indexOf(answerKeys[0]) < 0) {
-                if (substate === state.answer)
-                    console.log(ex.id + ' wrong but ok type (wants ' + target_json + ' has ' + candidates[0].answer + ')');
-                else
-                    console.log(ex.id + ' wrong everything');
+                console.log(ex.id + ' wrong everything');
+                logFail(ex, parsedAnswer, parsedTarget);
                 substate.wrong_but_ok_type++;
                 return;
             }
@@ -293,6 +299,7 @@ function main() {
 
             if (!arrayEqual(answerKinds, targetKinds)) {
                 console.log(ex.id + ' wrong but ok type');
+                logFail(ex, parsedAnswer, parsedTarget);
                 substate.wrong_but_ok_type++;
                 return;
             }
@@ -335,12 +342,14 @@ function main() {
 
             if (!arrayEqual(answerChannels, targetChannels)) {
                 console.log(ex.id + ' wrong but ok kind');
+                logFail(ex, parsedAnswer, parsedTarget);
                 substate.wrong_but_ok_kind++;
                 return;
             }
 
             // good kind and channel, that's the most we can do
             console.log(ex.id + ' wrong but ok channel');
+            logFail(ex, parsedAnswer, parsedTarget);
             substate.wrong_but_ok_channel++;
         });
     });

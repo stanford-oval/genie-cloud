@@ -424,6 +424,7 @@ function main() {
                     output.write('\n');
                 }).catch((e) => {
                     console.error('Failed to handle ' + ex.utterance + ': ' + e.message);
+                    console.error(e.stack);
                 }));
             });
         }).then(function() {

@@ -21,7 +21,18 @@ const SempreSyntax = require('../util/sempre_syntax');
 const dlg = { _(x) { return x; } };
 
 function postprocess(str) {
-    return str.replace(/your/g, 'my').replace(/ you /g, ' I ');
+    str = str.replace(/your/g, 'my').replace(/ you /g, ' I ');
+
+    if (coin(0.1))
+        str = str.replace(/ instagram /i, ' ig ');
+    if (coin(0.1))
+        str = str.replace(/ facebook /i, ' fb ');
+
+    return str;
+}
+
+function coin(bias) {
+    return Math.random() < bias;
 }
 
 function main() {

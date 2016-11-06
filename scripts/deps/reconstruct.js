@@ -19,6 +19,10 @@ function clean(name) {
     return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
+function coin(bias) {
+    return Math.random() < bias;
+}
+
 function describeArg(dlg, arg, type, deviceLhs) {
     if (arg.isVarRef) {
         if (arg.name.startsWith('$contact('))
@@ -31,13 +35,25 @@ function describeArg(dlg, arg, type, deviceLhs) {
         case '$context.location.work':
             return dlg._("at work");
         case '$event':
-            //return dlg._("the result");
-            return dlg._("it");
+            if (coin(0.5))
+                return dlg._("the result");
+            else
+                return dlg._("it");
         case '$event.title':
-            return dlg._("the notification");
+            if (coin(0.5))
+                return dlg._("the notification");
+            else
+                return dlg._("the result title");
         default:
-            return "the " + clean(arg.name) + ((deviceLhs !== undefined) ? (" from " + clean(deviceLhs)) : "");
-	    //return (type.isURL || type.isPicture ? "it" : "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
+            if (coin(0.1))
+                return "its " + clean(arg.name) + " value";
+            else if (coin(0.3))
+                return "the " + clean(arg.name) + ((deviceLhs !== undefined) ? (" from " + clean(deviceLhs)) : "");
+            else if (coin(0.5))
+                return "the " + clean(arg.name);
+            else
+                return "its " + clean(arg.name);
+        //return (type.isURL || type.isPicture ? "it" : "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
         }
     }
     if (arg.isString)
@@ -51,9 +67,12 @@ function describeArg(dlg, arg, type, deviceLhs) {
     if (arg.isMeasure)
         return arg.value + ' ' + arg.unit;
     if (arg.isBoolean)
-        return arg.value ? dlg._("on") : dlg._("off");
+        if (coin(0.5))
+            return arg.value ? dlg._("yes") : dlg._("no");
+        else
+            return arg.value ? dlg._("true") : dlg._("false");
     if (arg.isDate)
-        return arg.value.toString();
+        return arg.value.toDateString();
     if (arg.isEnum)
         return clean(arg.value);
 
@@ -76,7 +95,17 @@ function placeholder(type) {
     return "something";
 }
 
-function describe(dlg, kind, channel, schema, args, comparisons, isQuery, deviceLhs) {
+function simplifyType(type) {
+    var str = type.toString();
+    if (str.indexOf('(') >= 0)
+        return str.substr(0, str.indexOf('('));
+    else
+        return str;
+}
+
+function describe(dlg, kind, channel, schema, args, comparisons, channelType, deviceLhs, argMapLhs) {
+    var isQuery = channelType === 'query';
+    var isAction = channelType === 'action';
     var confirm = schema.confirmation || (dlg._("%s on %s").format(channel, kind));
 
     var substitutedArgs = new Set;
@@ -87,7 +116,7 @@ function describe(dlg, kind, channel, schema, args, comparisons, isQuery, device
                 substitutedArgs.add(schema.args[i]);
             if (args[i] !== undefined) {
                 confirm = confirm.replace('$' + schema.args[i], describeArg(dlg, args[i], type, deviceLhs));
-	    }
+        }
             else
                 confirm = confirm.replace('$' + schema.args[i], placeholder(type));
         });
@@ -98,10 +127,14 @@ function describe(dlg, kind, channel, schema, args, comparisons, isQuery, device
         if (substitutedArgs.has(schema.args[i]))
             return;
         if (args[i] !== undefined) {
-            if (args[i].isVarRef)
-                return;
+            if (args[i].isVarRef && !args[i].name.startsWith('$') && argMapLhs[simplifyType(type)] === 1) {
+                if (coin(0.9))
+                    return;
+            }
             type = ThingTalk.Type.fromString(type);
-            if (isQuery && !any)
+            if (isAction && coin(0.2))
+                confirm += dlg._(" with %s %s").format(schema.argcanonicals[i] || schema.args[i], describeArg(dlg, args[i], type, deviceLhs));
+            else if (isQuery && !any)
                 confirm += dlg._(" if %s is %s").format(schema.argcanonicals[i] || schema.args[i], describeArg(dlg, args[i], type, deviceLhs));
             else
                 confirm += dlg._(" and %s is %s").format(schema.argcanonicals[i] || schema.args[i], describeArg(dlg, args[i], type, deviceLhs));
@@ -143,16 +176,32 @@ function describe(dlg, kind, channel, schema, args, comparisons, isQuery, device
                 confirm += dlg._(" and %s is %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
             break;
         case '<':
-            if (isQuery && !any)
-                confirm += dlg._(" if %s is less than %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
+            var op;
+            if (coin(0.75))
+                op = "less than";
             else
-                confirm += dlg._(" and %s is less than %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
+                op = "below";
+            if (argtype.isMeasure && argtype.unit === 'C' && coin(0.2))
+                op = "colder";
+            if (isQuery && !any)
+                confirm += dlg._(" if %s is %s %s").format(argcanonical, op, describeArg(dlg, comp.value, argtype, deviceLhs));
+            else
+                confirm += dlg._(" and %s is %s %s").format(argcanonical, op, describeArg(dlg, comp.value, argtype, deviceLhs));
             break;
         case '>':
-            if (isQuery && !any)
-                confirm += dlg._(" if %s is greater than %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
+            var op;
+            if (coin(0.5))
+                op = "greater than";
+            else if (coin(0.5))
+                op = "more than";
             else
-                confirm += dlg._(" and %s is greater than %s").format(argcanonical, describeArg(dlg, comp.value, argtype, deviceLhs));
+                op = "above";
+            if (argtype.isMeasure && argtype.unit === 'C' && coin(0.2))
+                op = "hotter";
+            if (isQuery && !any)
+                confirm += dlg._(" if %s is %s than %s").format(argcanonical, op, describeArg(dlg, comp.value, argtype, deviceLhs));
+            else
+                confirm += dlg._(" and %s is %s %s").format(argcanonical, op, describeArg(dlg, comp.value, argtype, deviceLhs));
             break;
         }
         any = true;
@@ -291,10 +340,16 @@ module.exports = function reconstructCanonical(dlg, schemaRetriever, json) {
         return Q.all([triggerMeta, queryMeta, actionMeta]).spread(function(trigger, query, action) {
             var scope = {};
             var triggerDesc, queryDesc, actionDesc;
+            var triggerTypeMap = {}, queryTypeMap = {};
 
             // make up slots
             if (trigger !== null) {
                 var triggerSlots = trigger.schema.map(function(type, i) {
+                    var simpleType = simplifyType(type);
+                    if (triggerTypeMap[simpleType] === undefined)
+                        triggerTypeMap[simpleType] = 1;
+                    else
+                        triggerTypeMap[simpleType]++;
                     return { name: trigger.args[i], type: type,
                              question: trigger.questions[i],
                              required: (trigger.required[i] || false) };
@@ -305,15 +360,21 @@ module.exports = function reconstructCanonical(dlg, schemaRetriever, json) {
                 var toFill = [];
 
                 assignSlots(triggerSlots, analyzed.trigger.args, triggerValues, triggerComparisons,
-                                    false, analyzed.trigger.slots, scope, toFill);
+                            false, analyzed.trigger.slots, scope, toFill);
 
                 triggerDesc = describe(dlg, analyzed.trigger.kind,
                                        analyzed.trigger.channel,
-                                       trigger, triggerValues, triggerComparisons, false);
+                                       trigger, triggerValues, triggerComparisons, 'trigger',
+                                       null, {});
             }
 
             if (query !== null) {
                 var querySlots = query.schema.map(function(type, i) {
+                    var simpleType = simplifyType(type);
+                    if (queryTypeMap[simpleType] === undefined)
+                        queryTypeMap[simpleType] = 1;
+                    else
+                        queryTypeMap[simpleType]++;
                     return { name: query.args[i], type: type,
                              question: query.questions[i],
                              required: (query.required[i] || false) };
@@ -323,14 +384,20 @@ module.exports = function reconstructCanonical(dlg, schemaRetriever, json) {
                 var queryComparisons = [];
                 var toFill = [];
 
-		var deviceLhs = undefined;
-		if(trigger != null) deviceLhs = analyzed.trigger.kind;
+                var deviceLhs = null;
+                var argTypeMap = null;
+                if (trigger != null) {
+                    deviceLhs = analyzed.trigger.kind;
+                    argTypeMap = triggerTypeMap;
+                }
+
                 assignSlots(querySlots, analyzed.query.args, queryValues, queryComparisons,
                             false, analyzed.query.slots, scope, toFill);
 
                 queryDesc = describe(dlg, analyzed.query.kind,
                                      analyzed.query.channel,
-                                     query, queryValues, queryComparisons, true, deviceLhs);
+                                     query, queryValues, queryComparisons, 'query',
+                                     deviceLhs, argTypeMap);
             }
 
             if (action !== null) {
@@ -344,27 +411,54 @@ module.exports = function reconstructCanonical(dlg, schemaRetriever, json) {
                 var actionComparisons = [];
                 var toFill = [];
 
-		var deviceLhs = undefined;
-		if(trigger != null) deviceLhs = analyzed.trigger.kind;
-		else if(query != null) deviceLhs = analyzed.query.kind;
+                var deviceLhs = null;
+                var argTypeMap = null;
+                if (query != null) {
+                    deviceLhs = analyzed.query.kind;
+                    argTypeMap = queryTypeMap;
+                } else if (trigger != null) {
+                    deviceLhs = analyzed.trigger.kind;
+                    argTypeMap = triggerTypeMap;
+                }
 
                 assignSlots(actionSlots, analyzed.action.args, actionValues, actionComparisons,
                             true, analyzed.action.slots, scope, toFill);
 
                 actionDesc = describe(dlg, analyzed.action.kind,
                                       action.channel,
-                                      action, actionValues, actionComparisons, false, deviceLhs);
+                                      action, actionValues, actionComparisons, 'action',
+                                      deviceLhs, argTypeMap);
             }
 
-            if (trigger && query && action)
-                return dlg._("if %s then %s and then %s").format(triggerDesc, queryDesc, actionDesc);
-            else if (trigger && query)
-                return dlg._("if %s then %s").format(triggerDesc, queryDesc);
-            else if (trigger && action)
-                return dlg._("if %s then %s").format(triggerDesc, actionDesc);
-            else if (query && action)
-                return dlg._("%s then %s").format(queryDesc, actionDesc);
-            else
+            if (trigger && query && action) {
+                if (coin(0.2))
+                    return dlg._("%s then %s if %s").format(queryDesc, actionDesc, triggerDesc);
+                else
+                    return dlg._("if %s then %s and then %s").format(triggerDesc, queryDesc, actionDesc);
+            } else if (trigger && query) {
+                if (coin(0.1))
+                    return dlg._("%s when %s").format(queryDesc, triggerDesc);
+                else if (coin(0.5))
+                    return dlg._("if %s %s").format(triggerDesc, queryDesc);
+                else if (coin(0.5))
+                    return dlg._("if %s then %s").format(triggerDesc, queryDesc);
+                else
+                    return dlg._("when %s then %s").format(triggerDesc, queryDesc);
+            } else if (trigger && action) {
+                if (coin(0.1))
+                    return dlg._("%s when %s").format(actionDesc, triggerDesc);
+                else if (coin(0.5))
+                    return dlg._("if %s %s").format(triggerDesc, actionDesc);
+                else if (coin(0.5))
+                    return dlg._("if %s then %s").format(triggerDesc, actionDesc);
+                else
+                    return dlg._("when %s then %s").format(triggerDesc, actionDesc);
+            } else if (query && action) {
+                if (coin(0.3))
+                    return dlg._("%s and then %s").format(queryDesc, actionDesc);
+                else
+                    return dlg._("%s then %s").format(queryDesc, actionDesc);
+            } else
                 throw new TypeError("Must have at least 2 among trigger, query and action");
         });
     }
