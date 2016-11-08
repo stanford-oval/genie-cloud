@@ -53,6 +53,9 @@ const FIXED_KINDS = ['washington_post', 'sportradar', 'giphy',
     'linkedin', 'youtube', 'lg_webos_tv', 'light-bulb',
     'thermostat', 'security-camera', 'heatpad', 'phone',
     'omlet', 'slack', 'gmail'];
+FIXED_KINDS.push('thecatapi');
+FIXED_KINDS.push('tumblr');
+FIXED_KINDS.push('tumblr-blog');
 
 const DOMAIN_WEIGHTS = {
     media: 100,
