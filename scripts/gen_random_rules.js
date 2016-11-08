@@ -47,18 +47,34 @@ function main() {
     output.pipe(file);
     var samplingPolicy = process.argv[3] || 'uniform';
     var language = process.argv[4] || 'en';
-    var N = process.argv[5] || 100;
+    var N = parseInt(process.argv[5]) || 100;
 
+    var inflight = 0;
+    var done = false;
+    function maybeEnd() {
+        if (done && inflight === 0)
+            output.end();
+    }
     db.withClient((dbClient) => {
         var schemaRetriever = new SchemaRetriever(dbClient, language);
-        return genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N).then((rules) => {
-            return Q.all(rules.map((r) => reconstruct(dlg, schemaRetriever, r))).then((reconstructed) => {
-                for (var i = 0; i < rules.length; i++) {
-                    output.write([makeId(), SempreSyntax.toThingTalk(rules[i]), postprocess(reconstructed[i])]);
-                }
+        return genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N).then((stream) => {
+            return new Q.Promise((callback, errback) => {
+                stream.on('data', (r) => {
+                    inflight++;
+                    reconstruct(dlg, schemaRetriever, r).then((reconstructed) => {
+                        output.write([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);
+                        inflight--;
+                        maybeEnd();
+                    }).done();
+                });
+                stream.on('error', errback);
+                stream.on('end', callback);
             });
         });
-    }).then(() => output.end()).done();
+    }).then(() => {
+        done = true;
+        maybeEnd();
+    }).done();
 
     file.on('finish', () => process.exit());
 }

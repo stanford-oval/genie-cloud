@@ -8,6 +8,7 @@
 "use strict";
 
 const Q = require('q');
+const stream = require('stream');
 
 const ThingTalk = require('thingtalk');
 
@@ -429,11 +430,20 @@ function genOneRandomRule(schemaRetriever, schemas, samplingPolicy) {
 
 function genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N) {
     return getAllSchemas(dbClient).then((schemas) => {
-        var promises = [];
-        for (var i = 0; i < N; i++)
-            promises.push(genOneRandomRule(schemaRetriever, schemas, samplingPolicy));
+        var i = 0;
+        return new stream.Readable({
+            objectMode: true,
 
-        return Q.all(promises);
+            read: function() {
+                if (i === N) {
+                    this.push(null);
+                    return;
+                }
+                i++;
+                genOneRandomRule(schemaRetriever, schemas, samplingPolicy)
+                    .done((rule) => this.push(rule), (e) => this.emit('error', e));
+            }
+        });
     });
 }
 
