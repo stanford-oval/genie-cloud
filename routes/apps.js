@@ -12,7 +12,6 @@ const express = require('express');
 const db = require('../util/db');
 const user = require('../util/user');
 const userModel = require('../model/user');
-const feeds = require('../shared/util/feeds');
 const EngineManager = require('../lib/enginemanager');
 
 const ThingTalk = require('thingtalk');
@@ -27,20 +26,10 @@ function getAllApps(req, engine) {
                           a.state, a.error])
                 .spread(function(uniqueId, name, isRunning,
                                  isEnabled, state, error) {
-                    return Q.try(function() {
-                        if (state.$F) {
-                            return engine.messaging.getFeedMeta(state.$F).then(function(f) {
-                                return feeds.getFeedName(engine, f, true);
-                            });
-                        } else {
-                            return null;
-                        }
-                    }).then(function(feed) {
-                        var app = { uniqueId: uniqueId, name: name || req._("Some app"),
-                                    running: isRunning, enabled: isEnabled,
-                                    state: state, error: error, feed: feed };
-                        return app;
-                    });
+                    var app = { uniqueId: uniqueId, name: name || req._("Some app"),
+                                running: isRunning, enabled: isEnabled,
+                                state: state, error: error };
+                    return app;
                 });
         }));
     })
@@ -81,21 +70,9 @@ function getAllDevices(req, engine) {
 }
 
 router.get('/', user.redirectLogIn, function(req, res) {
-    var shareApps = req.flash('share-apps');
-    var sharedApp = null;
-
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return Q.all([getAllApps(req, engine), getAllDevices(req, engine)]);
-    }).spread(function(apps, devices) {
-        if (shareApps.length > 0) {
-            apps.forEach(function(app) {
-                if (shareApps[0] === app.uniqueId)
-                    sharedApp = app;
-            });
-        }
-
-        return [apps, devices];
-    }).spread(function(appinfo, devinfo, thingpediaAppinfo) {
+    }).spread(function(appinfo, devinfo) {
         var physical = [], online = [], datasource = [];
         devinfo.forEach(function(d) {
             if (d.isDataSource)
@@ -107,7 +84,6 @@ router.get('/', user.redirectLogIn, function(req, res) {
         });
         res.render('my_stuff', { page_title: req._("ThingPedia - My Sabrina"),
                                  messages: req.flash('app-message'),
-                                 sharedApp: sharedApp,
                                  csrfToken: req.csrfToken(),
                                  apps: appinfo,
                                  datasourceDevices: datasource,
@@ -183,27 +159,6 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
     }).done();
 });
 
-router.post('/share', user.requireLogIn, function(req, res, next) {
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        var id = req.body.id;
-        return Q.all([engine, engine.apps.getApp(id)]);
-    }).spread(function(engine, app) {
-        if (app === undefined) {
-            res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
-                                              message: req._("Not found.") });
-            return;
-        }
-
-        return app.shareYourSelf();
-    }).then(function() {
-        req.flash('app-message', "Application successfully shared");
-        res.redirect(303, '/apps');
-    }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
-                                          message: e });
-    }).done();
-});
-
 router.get('/:id/results', user.redirectLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return Q.all([engine, engine.apps.getApp(req.params.id)]);
@@ -243,51 +198,6 @@ router.get('/:id/results', user.redirectLogIn, function(req, res, next) {
             });
     }).catch(function(e) {
         console.log(e.stack);
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.get('/shared/:cloudId/:appId/:feedId', user.redirectLogIn, function(req, res) {
-    var feedId = (new Buffer(req.params.feedId, 'base64')).toString();
-
-    db.withClient(function(dbClient) {
-        return userModel.getByCloudId(dbClient, req.params.cloudId);
-    }).then(function(users) {
-        if (users.length === 0)
-            throw new Error('Invalid user ID');
-
-        return EngineManager.get().getEngine(users[0].id);
-    }).then(function(remoteEngine) {
-        return remoteEngine.apps.getApp(appId);
-    }).then(function(remoteApp) {
-        if (remoteApp === undefined)
-            throw new Error('Invalid app ID');
-
-        return Q.all([remoteApp.name, remoteApp.description,
-                      remoteApp.state, remoteApp.code]);
-    }).spread(function(name, description, state, code) {
-        if (state.$F !== feedId)
-            throw new Error('Invalid app ID');
-
-        return EngineManager.get().getEngine(req.user.id).then(function(engine) {
-            return engine.apps.hasApp(appId);
-        }).then(function(hasApp) {
-            if (hasApp) {
-                return res.render('app_shared_installed_already', { page_title: req._("ThingPedia - Enable App"),
-                                                                    appId: appId,
-                                                                    name: name });
-            } else {
-                return res.render('app_shared_install', { page_title: req._("ThingPedia - Enable App"),
-                                                          csrfToken: req.csrfToken(),
-                                                          appId: appId,
-                                                          name: name,
-                                                          description: description,
-                                                          state: JSON.stringify(state),
-                                                          code: code });
-            }
-        });
-    }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();
