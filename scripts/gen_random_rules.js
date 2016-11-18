@@ -25,10 +25,10 @@ const dlg = { _(x) { return x; } };
 function postprocess(str) {
     str = str.replace(/your/g, 'my').replace(/ you /g, ' I ');
 
-    if (coin(0.1))
-        str = str.replace(/ instagram /i, ' ig ');
-    if (coin(0.1))
-        str = str.replace(/ facebook /i, ' fb ');
+    //if (coin(0.1))
+    //    str = str.replace(/ instagram /i, ' ig ');
+    //if (coin(0.1))
+    //    str = str.replace(/ facebook /i, ' fb ');
 
     return str;
 }

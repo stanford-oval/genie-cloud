@@ -495,13 +495,15 @@ module.exports = function reconstructCanonical(dlg, schemaRetriever, json) {
                     analyzed.isAction, analyzed.slots, scope, toFill);
 
         if (analyzed.isTrigger) {
-            return dlg._("notify if %s").format(describeTrigger(dlg, analyzed.kind,
-                                                                analyzed.channel,
-                                                                meta, values, comparisons));
+            return dlg._("notify if %s").format(describe(dlg, analyzed.kind,
+                                                         analyzed.channel,
+                                                         meta, values, comparisons, 'trigger',
+                                                         null, {}));
         } else {
             return describe(dlg, analyzed.kind,
                             analyzed.channel,
-                            meta, values, comparisons);
+                            meta, values, comparisons, analyzed.isQuery ? 'query' : 'action',
+                            null, {});
         }
     });
 }

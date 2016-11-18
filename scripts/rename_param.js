@@ -98,9 +98,7 @@ function main() {
 
     return db.withTransaction(function(dbClient) {
         return Q.Promise(function(callback, errback) {
-            var q = dbClient.query("select eu.id, utterance, target_json from example_utterances eu, device_schema ds where eu.schema_id = ds.id and"
-                + " ds.kind = ? union (select eu.id, utterance, target_json from example_utterances eu, example_rule_schema ers, device_schema ds"
-                + " where eu.id = ers.example_id and ers.schema_id = ds.id and ds.kind = ?)", [kind, kind]);
+            var q = dbClient.query("select eu.id, utterance, target_json from example_utterances eu where target_json like ?", ['%' + kind + '%']);
             q.on('result', (row) => processOneRow(dbClient, id, changes, row));
             q.on('end', callback);
             q.on('error', errback);
