@@ -33,11 +33,11 @@ router.get('/', function(req, res) {
 
     db.withClient(function(client) {
         return model.getAll(client, page * 18, 18).then(function(devices) {
-            res.render('thingpedia_dev_portal', { page_title: req._("ThingPedia - Developer Portal"),
-                                                  S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
-                                                  csrfToken: req.csrfToken(),
-                                                  devices: devices,
-                                                  page_num: page });
+            res.render('thingpedia_device_list', { page_title: req._("ThingPedia - Supported Devices"),
+                                                   S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
+                                                   csrfToken: req.csrfToken(),
+                                                   devices: devices,
+                                                   page_num: page });
         });
     }).done();
 });

@@ -74,7 +74,7 @@ router.get('/', user.redirectLogIn, function(req, res) {
         res.render('my_stuff', { page_title: req._("ThingPedia - My Sabrina"),
                                  messages: req.flash('app-message'),
                                  csrfToken: req.csrfToken(),
-                                 isRunning: false
+                                 isRunning: false,
                                  apps: [],
                                  datasourceDevices: [],
                                  physicalDevices: [],

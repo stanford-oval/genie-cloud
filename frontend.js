@@ -172,7 +172,7 @@ Frontend.prototype._init = function _init() {
     // mount /api before CSRF
     // as we don't need CSRF protection for that
     this._app.use('/api/webhook', require('./routes/webhook'));
-    this._app.use('/me/api/oauth2', require('./oauth2'));
+    this._app.use('/me/api/oauth2', require('./routes/oauth2'));
     this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
     this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
     // initialize csurf after /upload too
@@ -195,9 +195,9 @@ Frontend.prototype._init = function _init() {
     this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
     this._app.use('/thingpedia/schemas', require('./routes/thingpedia_schemas'));
     this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
+    this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
     this._app.use('/user', require('./routes/user'));
     this._app.use('/admin', require('./routes/admin'));
-    this._app.use('/doc', require('./routes/doc'));
     this._app.use('/omlet', require('./routes/omlet'));
 
     this._websocketEndpoints = {};
