@@ -11,7 +11,6 @@ const express = require('express');
 
 const db = require('../util/db');
 const device = require('../model/device');
-const app = require('../model/app');
 const user = require('../model/user');
 const organization = require('../model/organization');
 
@@ -114,24 +113,6 @@ router.get('/devices', function(req, res) {
     }).done();
 });
 
-router.get('/code/apps/:id', function(req, res) {
-    db.withClient(function(dbClient) {
-        return app.get(dbClient, req.params.id).then(function(app) {
-            if (!app.visible) {
-                res.status(403).json({ error: "Not Authorized" });
-            }
-
-            res.cacheFor(86400000);
-            res.status(200).json({
-                code: app.code,
-                name: app.name,
-                description: app.description
-            });
-        });
-    }).catch(function(e) {
-        res.json({ error: e.message });
-    }).done();
-});
 router.post('/discovery', function(req, res) {
     var client = new ThingPediaClient(req.query.developer_key, req.query.locale);
 

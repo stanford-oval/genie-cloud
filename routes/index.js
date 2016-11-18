@@ -11,19 +11,16 @@ const express = require('express');
 const router = express.Router();
 const user = require('../util/user');
 const db = require('../util/db');
-const category = require('../model/category');
 const device = require('../model/device');
 
 const EngineManager = require('../lib/enginemanager');
 
 router.get('/', function(req, res, next) {
     db.withTransaction(function(dbClient) {
-        return Q.all([category.getAll(dbClient),
-                      device.getByTag(dbClient, 'featured')]);
-    }).spread(function(categories, devices) {
+        return device.getByTag(dbClient, 'featured');
+    }).spread(function(devices) {
         res.render('index', {
             page_title: req._("ThingPedia - knowledge for your magic assistant"),
-            categories: categories,
             devices: devices,
             isRunning: req.user ? EngineManager.get().isRunning(req.user.id) : false
         });

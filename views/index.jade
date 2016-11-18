@@ -115,19 +115,6 @@ block content
           img(src='/images/sabrina-warriors.png')
 
   section
-    if authenticated
-      h2.section-title= _("What to do with Sabrina?")
-    else
-      h2.section-title= _("What can Sabrina do?")
-
-    div.row
-      each cat in categories
-        div.col-md-4.col-lg-3.col-sm-6.category-button
-          a(href='/thingpedia/apps/by-category/' + cat.id)
-            span(class='glyphicon glyphicon-' + cat.icon)
-            h4.category-link= cat.catchphrase
-
-  section
     h2.section-title= _("The Sabrina Architecture")
 
     img(src='/images/thingpedia-arch-diagram.svg', alt=_("Sabrina uses ThingEngine, which communicates on Omlet and uses the ThingManager and the ThingPedia"))#thingpedia-arch-diagram
