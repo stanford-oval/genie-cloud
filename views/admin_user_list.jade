@@ -59,7 +59,6 @@ block content
         th= _("Human name")
         th= _("Login methods")
         th= _("Roles")
-        th= _("Apps")
         th= _("Omlet?")
         th= _("Engine?")
         th(colspan=2)= _("Actions")
@@ -91,8 +90,6 @@ block content
               span(title=user.developer_key)= _("Developer")
             else
               span(title=user.developer_key)= _("User")
-          td
-            a(href='/thingpedia/apps/by-owner/' + user.id)= _("Apps")
           td
             if user.omlet_id !== null
               span.sr-only= user.omlet_id
