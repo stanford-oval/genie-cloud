@@ -14,13 +14,11 @@ const WebhookDispatcher = require('../lib/webhookdispatcher');
 
 var router = express.Router();
 
-router.use('/oauth2', require('./oauth2'));
-
-router.post('/webhook/:cloud_id/:id', function(req, res) {
+router.post('/:cloud_id/:id', function(req, res) {
     WebhookDispatcher.get().dispatch(req, res);
 });
 
-router.get('/webhook/:cloud_id/:id', function(req, res) {
+router.get('/:cloud_id/:id', function(req, res) {
     WebhookDispatcher.get().dispatch(req, res);
 });
 

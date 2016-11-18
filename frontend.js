@@ -164,10 +164,6 @@ Frontend.prototype._init = function _init() {
     });
 
     // apis are CORS enabled always
-    this._app.use('/api', function(req, res, next) {
-        res.set('Access-Control-Allow-Origin', '*');
-        next();
-    });
     this._app.use('/thingpedia/api', function(req, res, next) {
         res.set('Access-Control-Allow-Origin', '*');
         next();
@@ -175,10 +171,11 @@ Frontend.prototype._init = function _init() {
 
     // mount /api before CSRF
     // as we don't need CSRF protection for that
-    this._app.use('/api', require('./routes/server'));
+    this._app.use('/api/webhook', require('./routes/webhook'));
+    this._app.use('/me/api/oauth2', require('./oauth2'));
     this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
     this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
-    // FIXME: initialize csurf after /upload too
+    // initialize csurf after /upload too
     // because upload uses multer, which is incompatible
     // with csurf
     // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
