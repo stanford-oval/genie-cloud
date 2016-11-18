@@ -11,12 +11,6 @@ const express = require('express');
 
 var router = express.Router();
 
-router.get('/qrcode/:server/:port/:auth_token', function(req, res, next) {
-    res.render('qrcode', { for_: 'server',
-                           link: req.originalUrl,
-                           authToken: req.params.auth_token });
-});
-
 router.get('/qrcode-cloud/:cloud_id/:auth_token', function(req, res, next) {
     res.render('qrcode', { for_: 'cloud',
                            link: req.originalUrl,

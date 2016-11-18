@@ -14,14 +14,6 @@ const WebhookDispatcher = require('../lib/webhookdispatcher');
 
 var router = express.Router();
 
-router.post('/login', passport.authenticate('local', { session: false }), function(req, res, next) {
-    res.json({
-        success: true,
-        cloudId: req.user.cloud_id,
-        authToken: req.user.auth_token
-    });
-});
-
 router.use('/oauth2', require('./oauth2'));
 
 router.post('/webhook/:cloud_id/:id', function(req, res) {
