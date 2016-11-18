@@ -97,47 +97,6 @@ router.get('/', user.redirectLogIn, function(req, res) {
     }).done();
 });
 
-router.post('/create', user.requireLogIn, function(req, res, next) {
-    var compiler;
-    var code = req.body.code;
-    var name = req.body.name;
-    var description = req.body.description;
-    var state;
-    var ast;
-    var appId = req.body.appId || undefined;
-
-    Q.try(function() {
-        return EngineManager.get().getEngine(req.user.id).then(function(engine) {
-            // sanity check the app
-            ast = AppGrammar.parse(code);
-            state = JSON.parse(req.body.params);
-            if (ast.name.feedAccess) {
-                if (!state.$F && !req.body.feedId)
-                    throw new Error(req._("Missing feed for feed-shared app"));
-                if (!state.$F)
-                    state.$F = req.body.feedId;
-            } else {
-                delete state.$F;
-            }
-
-            return engine.apps.loadOneApp(code, state, appId, undefined,
-                                          name, description, true);
-        }).then(function() {
-            if (ast.name.feedAccess && !req.query.shared) {
-                req.flash('app-message', req._("Application successfully created"));
-                req.flash('share-apps', 'app-' + ast.name.name + state.$F.replace(/[^a-zA-Z0-9]+/g, '-'));
-                res.redirect(303, '/apps');
-            } else {
-                req.flash('app-message', req._("Application successfully created"));
-                res.redirect(303, '/apps');
-            }
-        });
-    }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
-                                          message: e });
-    }).done();
-});
-
 router.post('/delete', user.requireLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         var id = req.body.id;
@@ -154,50 +113,6 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
         req.flash('app-message', "Application successfully deleted");
         res.redirect(303, '/apps');
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.get('/:id/results', user.redirectLogIn, function(req, res, next) {
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return Q.all([engine, engine.apps.getApp(req.params.id)]);
-    }).spread(function(engine, app) {
-        if (app === undefined) {
-            res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
-                                              message: req._("Not found.") });
-            return;
-        }
-
-        return Q.all([app.name, app.description, app.code, app.pollOutVariables()])
-            .spread(function(name, description, code, results) {
-                // FIXME do something smarter with feedAccessible keywords
-                // and complex types
-
-                var arrays = [];
-                var tuples = [];
-                var singles = [];
-                results.forEach(function(r) {
-                    if (Array.isArray(r.value)) {
-                        if (r.type.startsWith('(') && !r.feedAccess)
-                            tuples.push(r);
-                        else
-                            arrays.push(r);
-                    } else {
-                        singles.push(r);
-                    }
-                });
-                return res.render('show_app_results', { page_title: req._("ThingPedia App"),
-                                                        appId: req.params.id,
-                                                        name: name,
-                                                        description: description,
-                                                        code: code,
-                                                        arrays: arrays,
-                                                        tuples: tuples,
-                                                        singles: singles });
-            });
-    }).catch(function(e) {
-        console.log(e.stack);
         res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
     }).done();

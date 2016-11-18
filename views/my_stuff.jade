@@ -81,8 +81,7 @@ block content
         div.clearfix.visible-md
       div.col-lg-4.col-md-6
         div.panel.panel-default.app-template
-          a.panel-heading(href='/apps/#{app.uniqueId}/results')
-            h2.panel-title= app.name
+          h2.panel-title= app.name
           div.panel-body
             if app.error
               p= _("This app had an error: %s").format(app.error)
