@@ -48,25 +48,7 @@ router.post('/create', user.requireLogIn, function(req, res, next) {
             res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];
         } else {
-            res.redirect(303, '/apps');
-        }
-    }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.get('/create/:kind', user.requireLogIn, function(req, res, next) {
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        var devices = engine.devices;
-
-        return devices.loadOneDevice({ kind: req.params.kind }, true);
-    }).then(function() {
-        if (req.session['device-redirect-to']) {
-            res.redirect(303, req.session['device-redirect-to']);
-            delete req.session['device-redirect-to'];
-        } else {
-            res.redirect(303, '/apps');
+            res.redirect(303, '/me');
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
@@ -95,7 +77,7 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
             res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];
         } else {
-            res.redirect(303, '/apps');
+            res.redirect(303, '/me');
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
@@ -105,22 +87,22 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
 
 // special case google because we have login with google
 router.get('/oauth2/com.google', user.redirectLogIn, function(req, res, next) {
-    req.session.redirect_to = '/apps';
+    req.session.redirect_to = '/me';
     next();
 }, passport.authorize('google', {
     scope: user.GOOGLE_SCOPES,
-    failureRedirect: '/apps',
-    successRedirect: '/apps'
+    failureRedirect: '/me',
+    successRedirect: '/me'
 }));
 
 // special case facebook because we have login with facebook
 router.get('/oauth2/com.facebook', user.redirectLogIn, function(req, res, next) {
-    req.session.redirect_to = '/apps';
+    req.session.redirect_to = '/me';
     next();
 }, passport.authorize('facebook', {
     scope: user.FACEBOOK_SCOPES,
-    failureRedirect: '/apps',
-    successRedirect: '/apps'
+    failureRedirect: '/me',
+    successRedirect: '/me'
 }));
 
 router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
@@ -138,78 +120,7 @@ router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
                 req.session[key] = session[key];
             res.redirect(303, redirect);
         } else {
-            res.redirect(303, '/apps');
-        }
-    }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-// special case omlet to create the assistant right away
-router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, function(req, res, next) {
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.devices.factory.then(function(devFactory) {
-            var saneReq = {
-                httpVersion: req.httpVersion,
-                url: req.url,
-                headers: req.headers,
-                rawHeaders: req.rawHeaders,
-                method: req.method,
-                query: req.query,
-                body: req.body,
-                session: req.session,
-            };
-            return devFactory.runOAuth2('org.thingpedia.builtin.omlet', saneReq);
-        }).then(function() {
-            return engine.messaging.getOwnId();
-        }).then(function(ownId) {
-            return engine.messaging.getAccountById(ownId);
-        }).tap(function(omletId) {
-            EngineManager.get().addOmletToUser(req.user.id, omletId);
-            return AssistantDispatcher.get().getOrCreateFeedForUser(omletId);
-        });
-    }).then(function(omletId) {
-        return db.withTransaction(function(dbClient) {
-            return model.update(dbClient, req.user.id, { omlet_id: omletId });
-        });
-    }).then(function() {
-        if (req.session['device-redirect-to']) {
-            res.redirect(303, req.session['device-redirect-to']);
-            delete req.session['device-redirect-to'];
-        } else {
-            res.redirect(303, '/apps');
-        }
-    }).catch(function(e) {
-        console.log(e.stack);
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next) {
-    var kind = req.params.kind;
-
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.devices.factory;
-    }).then(function(devFactory) {
-        var saneReq = {
-            httpVersion: req.httpVersion,
-            url: req.url,
-            headers: req.headers,
-            rawHeaders: req.rawHeaders,
-            method: req.method,
-            query: req.query,
-            body: req.body,
-            session: req.session,
-        };
-        return devFactory.runOAuth2(kind, saneReq);
-    }).then(function() {
-        if (req.session['device-redirect-to']) {
-            res.redirect(303, req.session['device-redirect-to']);
-            delete req.session['device-redirect-to'];
-        } else {
-            res.redirect(303, '/apps');
+            res.redirect(303, '/me');
         }
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("ThingPedia - Error"),

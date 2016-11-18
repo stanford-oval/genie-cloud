@@ -54,7 +54,7 @@ mixin device_list(devices, online, datasource)
             div.row
               if !dev.isTransient
                 div.col-md-6
-                  form.form-inline(action="/devices/delete",method="post").form-delete-app
+                  form.form-inline(action="/me/devices/delete",method="post").form-delete-app
                     input(type='hidden',name='id',value=dev.uniqueId)
                     input(type='hidden',name='_csrf',value=csrfToken)
                     if datasource
@@ -81,7 +81,8 @@ block content
         div.clearfix.visible-md
       div.col-lg-4.col-md-6
         div.panel.panel-default.app-template
-          h2.panel-title= app.name
+          div.panel-heading
+            h2.panel-title= app.name
           div.panel-body
             if app.error
               p= _("This app had an error: %s").format(app.error)
@@ -95,7 +96,7 @@ block content
           div.panel-footer
             div.row
               div.col-md-6
-                form.form-inline(action="/apps/delete",method="post").form-delete-app
+                form.form-inline(action="/me/apps/delete",method="post").form-delete-app
                   input(type='hidden',name='id',value=app.uniqueId)
                   input(type='hidden',name='_csrf',value=csrfToken)
                   button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Stop")
@@ -106,7 +107,7 @@ block content
 
   div.row
     div.col-sm-6.col-md-3
-      a(href='/devices/create?class=data').btn.btn-primary.btn-block= _("Enable new data source")
+      a(href='/me/devices/create?class=data').btn.btn-primary.btn-block= _("Enable new data source")
 
   h2= _("My Devices")
 
@@ -114,7 +115,7 @@ block content
 
   div.row
     div.col-sm-6.col-md-3
-      a(href='/devices/create?class=physical').btn.btn-primary.btn-block= _("Configure new device")
+      a(href='/me/devices/create?class=physical').btn.btn-primary.btn-block= _("Configure new device")
 
   h2= _("My Accounts")
 
@@ -122,4 +123,4 @@ block content
 
   div.row
     div.col-sm-6.col-md-3
-      a(href='/devices/create?class=online').btn.btn-primary.btn-block= _("Add new account")
+      a(href='/me/devices/create?class=online').btn.btn-primary.btn-block= _("Add new account")

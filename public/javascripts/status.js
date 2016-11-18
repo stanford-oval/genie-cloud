@@ -54,7 +54,7 @@ $(function() {
             var newest = messages.peekNewest();
             cursor = newest.attr('data-cursor');
         }
-        var eventSource = new EventSource('/status/logs' + (cursor ? ('?startCursor=' + encodeURIComponent(cursor)) : ''));
+        var eventSource = new EventSource('/me/status/logs' + (cursor ? ('?startCursor=' + encodeURIComponent(cursor)) : ''));
 
         backoffMsgCount = 0;
         eventSource.onerror = function() {

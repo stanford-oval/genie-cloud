@@ -24,7 +24,7 @@ block content
           h2= _("Your Sabrina died!")
           p= _("It might have crashed or might have been killed by the site administrators.")
           p
-            a(href='/status').btn.btn-primary Check out what happened
+            a(href='/me/status').btn.btn-primary Check out what happened
         else if user.omlet_id === null
           h1= _("Almost there")
 
@@ -38,7 +38,7 @@ block content
           p= _("Your Sabrina is running.")
 
           p
-            a(href='/apps').btn.btn-primary= _("Check your dashboard")
+            a(href='/me').btn.btn-primary= _("Check your dashboard")
 
       else
         h1= _("Welcome to ThingPedia")

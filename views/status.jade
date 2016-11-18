@@ -17,11 +17,11 @@ block content
       strong= _("Killed")
 
   if isRunning
-    form(action='/status/kill', method='post')
+    form(action='/me/status/kill', method='post')
       input(type='hidden',name='_csrf',value=csrfToken)
       button(type='submit').btn.btn-danger= _("Kill")
   else
-    form(action='/status/start', method='post')
+    form(action='/me/status/start', method='post')
       input(type='hidden',name='_csrf',value=csrfToken)
       button(type='submit').btn.btn-danger= _("Start")
 
@@ -30,15 +30,15 @@ block content
 
     div.row
       div.col-md-3
-        form(action='/status/recovery/wipe-cache', method='post')
+        form(action='/me/status/recovery/wipe-cache', method='post')
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block= _("Remove cached modules")
       div.col-md-3
-        form(action='/status/recovery/remove-all-apps', method='post')
+        form(action='/me/status/recovery/remove-all-apps', method='post')
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block= _("Remove all apps")
       div.col-md-3
-        form(action='/status/recovery/remove-all-devices', method='post')
+        form(action='/me/status/recovery/remove-all-devices', method='post')
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block= _("Remove all devices and accounts")
 
@@ -56,7 +56,7 @@ block content
           td= m.name
           td= m.version
           td
-            form(action='/status/update-module/' + m.name, method='post')
+            form(action='/me/status/update-module/' + m.name, method='post')
               input(type='hidden',name='_csrf',value=csrfToken)
               button(type='submit').btn.btn-default= _("Update")
 

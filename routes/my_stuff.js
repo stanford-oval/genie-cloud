@@ -97,7 +97,7 @@ router.get('/', user.redirectLogIn, function(req, res) {
     }).done();
 });
 
-router.post('/delete', user.requireLogIn, function(req, res, next) {
+router.post('/apps/delete', user.requireLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         var id = req.body.id;
         return Q.all([engine, engine.apps.getApp(id)]);
@@ -111,7 +111,7 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
         return engine.apps.removeApp(app);
     }).then(function() {
         req.flash('app-message', "Application successfully deleted");
-        res.redirect(303, '/apps');
+        res.redirect(303, '/me');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });

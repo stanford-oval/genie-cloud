@@ -187,16 +187,19 @@ Frontend.prototype._init = function _init() {
     this._app.use(csurf({ cookie: false }));
     this._app.use('/', require('./routes/index'));
     this._app.use('/', require('./routes/qrcode'));
-    this._app.use('/user', require('./routes/user'));
-    this._app.use('/apps', require('./routes/apps'));
-    this._app.use('/devices', require('./routes/devices'));
+
+    this._app.use('/me', require('./routes/my_stuff'));
+    this._app.use('/me/devices', require('./routes/devices'));
+    this._app.use('/me/status', require('./routes/status'));
+    this._app.get('/devices', require('./routes/devices_compat'));
+
     this._app.use('/thingpedia/examples', require('./routes/thingpedia_examples'));
     this._app.use('/thingpedia/training', require('./routes/train_sabrina'));
     this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
     this._app.use('/thingpedia/schemas', require('./routes/thingpedia_schemas'));
     this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
+    this._app.use('/user', require('./routes/user'));
     this._app.use('/admin', require('./routes/admin'));
-    this._app.use('/status', require('./routes/status'));
     this._app.use('/doc', require('./routes/doc'));
     this._app.use('/omlet', require('./routes/omlet'));
 
