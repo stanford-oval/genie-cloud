@@ -34,8 +34,12 @@ router.get('/about', function(req, res, next) {
 });
 
 router.get('/about/toc', function(req, res, next) {
+    res.redirect(301, '/about/tos');
+});
+
+router.get('/about/tos', function(req, res, next) {
     res.render('toc', {
-        page_title: req._("Terms & Conditions for ThingPedia")
+        page_title: req._("Terms of Service for Sabrina & ThingPedia")
     });
 });
 
