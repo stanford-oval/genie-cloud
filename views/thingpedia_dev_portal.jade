@@ -10,17 +10,6 @@ block page_name
   = _("Developer Portal")
 
 block content
-  if authenticated
-    h2= _("Status")
-    if isRunning
-      p= _("Your ThingEngine is running. ")
-        a(href="/me/status")= _("More Details")
-        | .
-    else
-      p= _("Your ThingEngine is dead. ")
-        a(href="/me/status")= _("More Details")
-        | .
-
   h2= _("Documentation")
 
   h3= _("ThingPedia documentation")

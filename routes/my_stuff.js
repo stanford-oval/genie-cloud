@@ -70,6 +70,19 @@ function getAllDevices(req, engine) {
 }
 
 router.get('/', user.redirectLogIn, function(req, res) {
+    if (!EngineManager.get().isRunning(req.user.id)) {
+        res.render('my_stuff', { page_title: req._("ThingPedia - My Sabrina"),
+                                 messages: req.flash('app-message'),
+                                 csrfToken: req.csrfToken(),
+                                 isRunning: false
+                                 apps: [],
+                                 datasourceDevices: [],
+                                 physicalDevices: [],
+                                 onlineDevices: [],
+                                });
+        return;
+    }
+
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return Q.all([getAllApps(req, engine), getAllDevices(req, engine)]);
     }).spread(function(appinfo, devinfo) {
@@ -85,6 +98,7 @@ router.get('/', user.redirectLogIn, function(req, res) {
         res.render('my_stuff', { page_title: req._("ThingPedia - My Sabrina"),
                                  messages: req.flash('app-message'),
                                  csrfToken: req.csrfToken(),
+                                 isRunning: true,
                                  apps: appinfo,
                                  datasourceDevices: datasource,
                                  physicalDevices: physical,

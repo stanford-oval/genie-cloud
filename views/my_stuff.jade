@@ -69,6 +69,16 @@ block content
         span(aria-hidden='true') ×
       p= message
 
+  h2= _("Status")
+  if isRunning
+    p= _("Your Sabrina is running. ")
+      a(href="/me/status")= _("More Details")
+      | .
+  else
+    p= _("Your Sabrina is dead. ")
+      a(href="/me/status")= _("More Details")
+      | .
+
   h2= _("Running Apps")
 
   div.row

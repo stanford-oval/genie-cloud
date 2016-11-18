@@ -37,8 +37,7 @@ router.get('/', function(req, res) {
                                                   S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
                                                   csrfToken: req.csrfToken(),
                                                   devices: devices,
-                                                  page_num: page,
-                                                  isRunning: (req.user ? EngineManager.get().isRunning(req.user.id) : false) });
+                                                  page_num: page });
         });
     }).done();
 });
