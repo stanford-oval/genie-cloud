@@ -16,7 +16,6 @@ const Gettext = require('node-gettext');
 const child_process = require('child_process');
 
 // FIXME we should not punch through the abstraction
-const sql = require('thingengine-core/lib/util/sql');
 const prefs = require('thingengine-core/lib/util/prefs');
 
 const Assistant = require('./assistant');
@@ -135,8 +134,7 @@ class Platform {
     }
 
     start() {
-        return sql.ensureSchema(this._writabledir + '/sqlite.db',
-                                '../data/schema.sql');
+        return Q();
     }
 
     createAssistant(engine) {
