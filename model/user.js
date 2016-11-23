@@ -12,7 +12,7 @@ const Q = require('q');
 function create(client, user) {
     var KEYS = ['username', 'human_name', 'email', 'locale', 'timezone', 'google_id',
                 'facebook_id', 'omlet_id', 'password', 'salt',
-                'cloud_id', 'auth_token',
+                'cloud_id', 'auth_token', 'storage_key',
                 'developer_org'];
     KEYS.forEach(function(key) {
         if (user[key] === undefined)

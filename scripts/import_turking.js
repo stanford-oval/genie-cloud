@@ -17,8 +17,36 @@ const db = require('../util/db');
 const SchemaRetriever = require('./deps/schema_retriever');
 const SempreSyntax = require('../util/sempre_syntax');
 
-function insert(dbClient, utterance, target_json) {
-    return db.insertOne(dbClient, "insert into example_utterances(language,type,utterance,target_json,click_count) values('en','generated',?,?,-1)", [utterance, target_json]);
+var insertBatch = [];
+
+function makeType(testTrain, primCompound, nparams) {
+    //return (testTrain === 'test' ? 'test' : 'turking') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
+    return 'test' + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
+}
+
+function insert(dbClient, utterance, testTrain, primCompound, nparams, target_json) {
+    insertBatch.push(['en', 'test-old', utterance, target_json, -1]);
+    if (insertBatch.length < 100)
+        return;
+
+    var batch = insertBatch;
+    insertBatch = [];
+    return db.insertOne(dbClient,
+        "insert into example_utterances(language,type,utterance,target_json,click_count) values ?", [batch]);
+}
+function finishBatch(dbClient) {
+    if (insertBatch.length === 0)
+        return;
+    return db.insertOne(dbClient,
+        "insert into example_utterances(language,type,utterance,target_json,click_count) values ?", [insertBatch]);
+}
+
+function maybeInsert(dbClient, utterance, testTrain, primCompound, nparams, target_json) {
+    if (utterance.length < 25)
+        return Q();
+
+    utterance = utterance.replace(/[,.]"/g, '"').replace(/[\n\t]+/g, ' ');
+    return insert(dbClient, utterance, testTrain, primCompound, nparams, target_json);
 }
 
 function main() {
@@ -26,7 +54,7 @@ function main() {
         var promises = [];
         var schemas = new SchemaRetriever(dbClient, 'en-US', true);
 
-        var parser = csv.parse({ columns: null, relax: true, delimiter: '\t' });
+        var parser = csv.parse({ columns: null });
         process.stdin.pipe(parser);
         //var output = fs.createWriteStream(process.argv[2]);
         //var writer = csv.stringify({ delimiter: '\t' });
@@ -34,28 +62,25 @@ function main() {
 
         return Q.Promise((callback, errback) => {
             parser.on('data', (row) => {
-                //var tt = row.ThingTalk.trim();
-                var tt = row[0];
-                var utterance = row[1];
-                //var silei = row.Silei.trim();
-                //var silei2 = row['Silei 2'].trim();
-                //var giovanni = row.Giovanni.trim();
-
-                //if (row.Meaningfulness === 'N' || row['Meaningfulness for Giovanni'] === 'N')
-                //    return;
+                var id = row[0];
+                var tt = row[1];
+                //var original = row[2];
+                //var useful = row[3];
+                //var utterances = row.slice(2);
+                var utterance = row[2];
+                var testTrain = row[3];
+                var primCompound = row[4];
+                var nparams = row[5];
 
                 promises.push(Q.try(() => {
-                    var json = SempreSyntax.toSEMPRE(tt);
+                    //var json = SempreSyntax.toSEMPRE(tt);
+                    var json = JSON.parse(tt);
                     var json_str = JSON.stringify(json);
                     return SempreSyntax.verify(schemas, json).then(() => {
-                        return insert(dbClient, utterance, json_str);
-                        //console.log(utterance + '\t' + json_str);
-                    /*}).then(() => {
-                        if (silei2)
-                            return insert(dbClient, silei2, json_str);
-                    }).then(() => {
-                        if (giovanni)
-                            return insert(dbClient, giovanni, json_str);*/
+                        return insert(dbClient, utterance, testTrain, primCompound, nparams, json_str);
+                        //return Q.all(utterances.map((u) => {
+                        //    return maybeInsert(dbClient, u, json_str);
+                        //}));
                     });
                 }).catch((e) => {
                     console.error('Failed to verify ' + tt + '   :' + e.message);
@@ -65,6 +90,7 @@ function main() {
             parser.on('end', callback);
         })
         .then(() => Q.all(promises))
+        .then(() => finishBatch(dbClient));
         //.then(() => writer.end());
     }).then(() => process.exit()).done();
 }

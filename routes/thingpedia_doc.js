@@ -17,6 +17,10 @@ function render(req, res, what) {
     res.render('doc_' + what, { page_title: req._("ThingPedia - Documentation") });
 }
 
+router.get('/', function(req, res) {
+    res.render('thingpedia_dev_portal', { page_title: req._("ThingPedia - Developer Portal") });
+});
+
 router.get('/:what', function(req, res) {
     if (!/^[a-z0-9\-.]+$/.test(req.params.what) ||
         !req.params.what.endsWith('.md')) {

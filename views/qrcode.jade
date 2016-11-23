@@ -10,20 +10,13 @@ block content
   if for_ === 'cloud' && authenticated && user.auth_token !== authToken
     p
       strong= _("You should not have this link.")
-      = _(" This is a pairing link for a different ThingEngine account than yours.")
+      = _(" This is a pairing link for a different Sabrina account than yours.")
     p
       = _("If you obtained it by mistake, you should destroy it immediately by clearing the browser history and cache, and you should contact whoever gave this link that they risk having their account compromised.")
 
   else
-    p= _("You must open the QR code link with the ThingEngine app, not with your browser.")
+    p= _("You must open the QR code link with the Sabrina app, not with your browser.")
 
-    if for_ === 'server'
-      if authenticated && user.auth_token !== authToken
-        p
-          strong= _("Also, it appears that your server and your current account belong to different people.")
-          = _(" This might indicate an error in the linking setup, and could impact your ability to link your phone successfully to both.")
-          = _("You should clear the access information from the server (you can do so from the configuration page) and then link it again to this account.")
-
-    else if for_ === 'cloud'
+    if for_ === 'cloud'
       if !authenticated
-        p!= _("If you were trying to link your ThingEngine account to your phone, you should <a href='/user/login'>log in</a> first.")
+        p!= _("If you were trying to link your Sabrina account to your phone, you should <a href='/user/login'>log in</a> first.")

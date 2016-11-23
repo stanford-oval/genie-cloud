@@ -1,15 +1,15 @@
 ul.nav.navbar-nav
   li.hidden-md.hidden-lg
     a(href="/")= _("Home")
-  li
-    a(href="/thingpedia/apps")= _("App Collection")
   if authenticated
     li
-      a(href="/apps")= _("My Sabrina")
+      a(href="/me")= _("My Sabrina")
   li
     a(href='/thingpedia/training')= _("Train Sabrina")
   li
-    a(href='/thingpedia/devices')= _("Developers")
+    a(href='/thingpedia/devices')= _("Supported devices")
+  li
+    a(href='/thingpedia/developers')= _("Developers")
   if authenticated && user.roles & 0x1
     li
       a(href="/admin")= _("Administration")

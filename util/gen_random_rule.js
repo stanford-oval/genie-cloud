@@ -8,6 +8,7 @@
 "use strict";
 
 const Q = require('q');
+const stream = require('stream');
 
 const ThingTalk = require('thingtalk');
 
@@ -45,6 +46,9 @@ const COMPOSITION_WEIGHTS = {
     'null+query+action': 1,
     'trigger+null+query': 0.5,
     'trigger+action+query': 0
+//    'trigger+null+null': 1,
+//    'null+query+null': 1,
+//    'null+null+action': 1,
 };
 
 // Rakesh : removed 'github'
@@ -52,7 +56,9 @@ const FIXED_KINDS = ['washington_post', 'sportradar', 'giphy',
     'yahoofinance', 'nasa', 'twitter', 'facebook', 'instagram',
     'linkedin', 'youtube', 'lg_webos_tv', 'light-bulb',
     'thermostat', 'security-camera', 'heatpad', 'phone',
-    'omlet', 'slack', 'gmail'];
+    'omlet', 'slack', 'gmail', 'thecatapi'];
+//FIXED_KINDS.push('tumblr');
+//FIXED_KINDS.push('tumblr-blog');
 
 const DOMAIN_WEIGHTS = {
     media: 100,
@@ -190,11 +196,13 @@ const LOCATION_ARGUMENTS = [{ relativeTag: 'rel_current_location', latitude: -1,
 const DATE_ARGUMENTS = [{ year: 1992, month: 8, day: 24, hour: -1, minute: -1, second: -1 },
     { year: 2016, month: 5, day: 4, hour: -1, minute: -1, second: -1 }];
 const EMAIL_ARGUMENTS = ['bob@stanford.edu'];
-const PHONE_ARGUMENTS = ['+15555555555'];
+const PHONE_ARGUMENTS = ['+16501234567'];
 
-function chooseRandomValue(type) {
+function chooseRandomValue(argName, type) {
+    if (argName === 'stock_id')
+        return ['String', { value: uniform(['goog', 'aapl', 'msft']) }];
     if (type.isArray)
-        return chooseRandomValue(type.elem);
+        return chooseRandomValue(argName, type.elem);
     if (type.isMeasure)
         return ['Measure', uniform(MEASURE_ARGUMENTS[type.unit])];
     if (type.isNumber)
@@ -254,23 +262,25 @@ function applyFilters(invocation, isAction) {
             continue;
         if (args[i].endsWith('_id') && args[i] !== 'stock_id')
             continue;
+        if (args[i] === 'count')
+            continue;
 
-        var tmp = chooseRandomValue(type);
+        var tmp = chooseRandomValue(args[i], type);
         var sempreType = tmp[0];
         var value = tmp[1];
         if (!sempreType)
             continue;
 
         if (argrequired) {
-            var fill = coin(0.6);
+            var fill = type.isEnum || coin(0.4);
             if (fill)
                 ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else if (isAction) {
-            var fill = coin(0.8);
+            var fill = type.isEnum || coin(0.4);
             if (fill)
                 ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else {
-            var fill = coin(0.1);
+            var fill = coin(0.2);
             if (!fill)
                 continue;
             var operator = sample(getOpDistribution(type));
@@ -333,6 +343,8 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
                 continue;
             if (fromArg.startsWith('__'))
                 continue;
+            if (fromArg.endsWith('_id'))
+                continue;
 
             if (toArgRequired[toArg] || isAction) {
                 if (String(fromType) === String(toType))
@@ -359,6 +371,7 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
             continue;
         chosen = chosen.split('+');
         to.args.push({ name: { id: 'tt:param.' + toArg }, operator: chosen[1], type: 'VarRef', value: { id: 'tt:param.' + chosen[0] } });
+        //return;
     }
 }
 
@@ -395,6 +408,30 @@ function connected(invocation) {
     return invocation.args.some((a) => a.type === 'VarRef');
 }
 
+function checkPicture(to, toMeta) {
+    var hasPicture = false;
+
+    for (var arg of toMeta.args) {
+        if (arg === 'picture_url')
+            hasPicture = true;
+    }
+    if (!hasPicture)
+        return true;
+
+    var setPicture = false;
+    for (var arg of to.args) {
+        if (arg.name.id === 'tt:param.picture_url') {
+            setPicture = true;
+        }
+    }
+    if (setPicture)
+        return true;
+
+    if (coin(0.1))
+        return true;
+    return false;
+}
+
 function genOneRandomRule(schemaRetriever, schemas, samplingPolicy) {
     var form = sample(COMPOSITION_WEIGHTS).split('+');
 
@@ -414,23 +451,50 @@ function genOneRandomRule(schemaRetriever, schemas, samplingPolicy) {
         if (trigger && action && !query)
             applyComposition(trigger, triggerMeta, action, actionMeta, true);
 
-        //if (query && action && !queryIsUseful(query, queryMeta, action)) // try again if not useful
+        //if (trigger && trigger.args.length === 0)
+        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
+        //if (action && action.args.length === 0)
+        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
+        //if (query && query.args.length === 0)
         //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
 
-        if (!connected(query) && !connected(action))
+        if (query && action && !queryIsUseful(query, queryMeta, action)) // try again if not useful
             return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
 
+        if (trigger && action && !checkPicture(action, actionMeta))
+            return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
+        if (query && action && !checkPicture(action, actionMeta))
+            return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
+
+        //if (!connected(query) && !connected(action))
+        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
+
         return { rule: { trigger: trigger, query: query, action: action }};
+        //if (trigger)
+        //    return { trigger: trigger };
+        //if (action)
+        //    return { action: action };
+        //if (query)
+        //    return { query: query };
     });
 }
 
 function genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N) {
     return getAllSchemas(dbClient).then((schemas) => {
-        var promises = [];
-        for (var i = 0; i < N; i++)
-            promises.push(genOneRandomRule(schemaRetriever, schemas, samplingPolicy));
+        var i = 0;
+        return new stream.Readable({
+            objectMode: true,
 
-        return Q.all(promises);
+            read: function() {
+                if (i === N) {
+                    this.push(null);
+                    return;
+                }
+                i++;
+                genOneRandomRule(schemaRetriever, schemas, samplingPolicy)
+                    .done((rule) => this.push(rule), (e) => this.emit('error', e));
+            }
+        });
     });
 }
 

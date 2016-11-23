@@ -1,41 +1,22 @@
 extends layout
 
-block scripts
-  script(src='/javascripts/device.js')
-
-block styles
-  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
-
 block page_name
   = _("Developer Portal")
 
 block content
-  if authenticated
-    h2= _("Status")
-    if isRunning
-      p= _("Your ThingEngine is running. ")
-        a(href="/status")= _("More Details")
-        | .
-    else
-      p= _("Your ThingEngine is dead. ")
-        a(href="/status")= _("More Details")
-        | .
-
-  h2= _("Documentation")
-
-  h3= _("ThingPedia documentation")
+  h2= _("ThingPedia documentation")
 
   ul
     li
-      a(href='/doc/getting-started.md') Getting Started with Sabrina
+      a(href='/thingpedia/developers/getting-started.md') Getting Started with Sabrina
     li
-      a(href='/doc/thingtalk-intro.md') Introduction to ThingTalk
+      a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
     li
-      a(href='/doc/thingpedia-device-intro.md') Writing Interfaces for ThingPedia
+      a(href='/thingpedia/developers/thingpedia-device-intro.md') Writing Interfaces for ThingPedia
     li
-      a(href='/doc/thingtalk-reference.md') ThingTalk Reference
+      a(href='/thingpedia/developers/thingtalk-reference.md') ThingTalk Reference
 
-  h3= _("Academic papers")
+  h2= _("Academic papers")
 
   ul
     li
@@ -45,48 +26,4 @@ block content
       | Giovanni Campagna, Jiwon Seo, Michael Fischer and Monica S. Lam
       br
       i Work in progress
-
-  h2= _("Supported Interfaces")
-
-  div.row
-    each dev, i in devices
-      if i % 6 === 0
-        div.clearfix.visible-lg.visible-md
-      else if i % 3 === 0
-        div.clearfix.visible-lg
-      else if i % 2 === 0
-        div.clearfix.visible-md
-      div.col-lg-4.col-md-6.dev-template
-        div.panel.panel-default
-          a(href='/thingpedia/devices/details/' + dev.id).panel-heading= dev.name
-          div.panel-body
-            p.device-icon-small
-              img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
-            p=dev.description
-          if authenticated && (user.developer_status >= 3 || dev.owner === user.developer_org)
-            div.panel-footer
-              div.row
-                div.col-md-6
-                  a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id)= _("Update")
-
-                div.col-md-6
-                  form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
-                    input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
-
-  nav
-    ul.pager
-      if page_num > 0
-        li
-          a(href='/thingpedia/devices?page=' + (page_num-1))= _("Previous")
-      if devices.length >= 18
-        li
-          a(href='/thingpedia/devices?page=' + (page_num+1))= _("Next")
-
-  div.row
-    div.col-sm-6.col-md-3
-      a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload new interface")
-    if authenticated && user.developer_status >= 3
-      div.col-sm-6.col-md-3
-        a(href='/thingpedia/schemas/create').btn.btn-default.btn-block= _("Create a new type")
 

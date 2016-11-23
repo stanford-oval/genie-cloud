@@ -24,7 +24,7 @@ block content
           h2= _("Your Sabrina died!")
           p= _("It might have crashed or might have been killed by the site administrators.")
           p
-            a(href='/status').btn.btn-primary Check out what happened
+            a(href='/me/status').btn.btn-primary Check out what happened
         else if user.omlet_id === null
           h1= _("Almost there")
 
@@ -38,9 +38,7 @@ block content
           p= _("Your Sabrina is running.")
 
           p
-            a(href='/apps').btn.btn-primary= _("Check your apps")
-            | &#x20;
-            a(href='/thingpedia/apps').btn.btn-primary= _("Find new apps")
+            a(href='/me').btn.btn-primary= _("Check your dashboard")
 
       else
         h1= _("Welcome to ThingPedia")
@@ -53,79 +51,6 @@ block content
           a(href='/user/register').btn.btn-primary= _("Register now")
           | &#x20;
           a(href='/user/login').btn.btn-primary= _("Log in")
-
-  h2.section-title= _("Examples")
-
-  section#examples
-    div.row
-      div.col-md-6.col-lg-6
-        p= _("Alice is a passionate sports fan, and she's a strong supporter of the Golden State Warriors. ")
-          = _("She does not want to miss an update on their road to the next NBA title!")
-        p!= _("She enables <a href='/thingpedia/apps/install/65'>Warrior Games</a> and now her Sabrina keeps her up-to-date on the games.")
-
-      div.col-md-6.col-lg-6
-        img(src='/images/warriors.jpg')
-
-    div.row
-      div.col-md-6.col-lg-6
-        img(src='/images/social-media-cloud.png')
-
-      div.col-md-6.col-lg-6
-        p= _("Bob is a big social media user. ")
-          = _("He follows all sorts of interesting people on Twitter and wants to be updated on all the trending discussions their having.")
-        p!= _("He uses <a href='/thingpedia/apps/install/52'>Twitter Trending Hashtags</a> so that Sabrina can tell him what his friends are talking about - be it politics, sports, science or gossip!")
-
-    div.row
-      div.col-md-6.col-lg-6
-        p= _("Carol is very attentive at her body shape and her weight, and she uses Sabrina to monitor it. ")
-          != ("She can <a href='/thingpedia/devices/by-id/com.bodytrace.scale'>connect to her BodyTrace Scale</a> and she uses <a href='/thingpedia/apps/install/66'>Weekly Weight Report</a> to keep her boyfriend updated too.")
-
-        p!= _("She also engages her friends in friendly fitness competitions using <a href='/thingpedia/apps/install/67'>Weekly Weight Wager</a>.")
-
-      div.col-md-6.col-lg-6
-        img(src='/images/body-scale.jpg')
-
-    div.row
-      div.col-md-6.col-lg-6
-        img(src='/images/academic-conference.jpg')
-
-      div.col-md-6.col-lg-6
-        p= _("Daniel is a very busy professor, always jumping from one conference to another, and he always regrets not having time to network enough. ")
-          = _("How many missed occasions for mingling because he was not aware that someone was there!")
-
-        p!= _("But that's no more: he configured Sabrina to access his LinkedIn account, and now for every conference he goes to he enables <a href='/thingpedia/apps/install/62'>LinkedIn Common Industry</a>, which lets Sabrina suggest him people that he might be interested in meeting, based on the commonality of their profile.")
-
-  if !authenticated
-    section#get-started
-      h2.section-title= _("Get started")
-
-      h4!= _("Sabrina interacts with you on the mobile phone using <a href='http://www.omlet.me/'>Omlet</a>, the extensible messaging platform.")
-
-      div.row
-        div.col-md-offset-2.col-md-8
-          h3!= _("Step 1: <a href='/user/register'>register</a> and <a href='/devices/oauth2/org.thingpedia.builtin.omlet'>create an Omlet account</a>.")
-      div.row
-        div.col-md-offset-2.col-md-8
-          h3!= _("Step 2: <a href='/thingpedia/apps'>pick an app for your Sabrina</a>")
-
-          h4!= _("Many apps are available, how about <a href='/thingpedia/apps/install/65'>receiving updates for the Golden State Warriors</a>?")
-      div.row
-        div.col-md-offset-2.col-md-8
-          h3= _("Step 3: profit!")
-          img(src='/images/sabrina-warriors.png')
-
-  section
-    if authenticated
-      h2.section-title= _("What to do with Sabrina?")
-    else
-      h2.section-title= _("What can Sabrina do?")
-
-    div.row
-      each cat in categories
-        div.col-md-4.col-lg-3.col-sm-6.category-button
-          a(href='/thingpedia/apps/by-category/' + cat.id)
-            span(class='glyphicon glyphicon-' + cat.icon)
-            h4.category-link= cat.catchphrase
 
   section
     h2.section-title= _("The Sabrina Architecture")
@@ -140,6 +65,6 @@ block content
     p
       small
         != _("Sabrina is free software, distributed under the <a href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html'>GPLv2 license</a>. ")
-        a(href='https://github.com/Stanford-IoT-Lab/ThingEngine/issues')= _("Report a bug")
+        a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud/issues')= _("Report a bug")
         | &#x20;
-        a(href='https://github.com/Stanford-IoT-Lab/ThingEngine').label.label-default Fork me on Github!
+        a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud/ThingEngine').label.label-default Fork me on Github!

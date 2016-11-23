@@ -22,7 +22,7 @@ block content
     else
       p= _("What data source do you want to set up?")
 
-    form(action="/devices/create", method="post")
+    form(action="/me/devices/create", method="post")
       input(type='hidden',name='_csrf',value=csrfToken)
 
       if klass === 'online'
@@ -30,7 +30,7 @@ block content
       else
         div#data-source-selector.container
   else
-    form(action="/devices/create", method="post")
+    form(action="/me/devices/create", method="post")
       input(type='hidden',name='_csrf',value=csrfToken)
 
       div.form-group

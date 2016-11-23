@@ -38,7 +38,6 @@ block content
         div.form-group
           label.control-label(for='human-name')= _("Real name")
           input(type='text',name='human_name',value=user.human_name).form-control#human-name
-          span.help-block= _("This will be shown next to the apps you decide to publish. Leave empty to show your username instead.")
 
         div.form-group
           label.control-label= _("ThingPedia Developer Access")
@@ -47,7 +46,7 @@ block content
             span.help-block= _("You know what to do.")
           else if user.developer_status >= 2
             p.form-control-static= _("Trusted Developer")
-            span.help-block= _("All code you submit will go live to all ThingEngines with no review. Be careful!")
+            span.help-block= _("All code you submit will go live to all Sabrinas with no review. Be careful!")
           else if user.developer_status >= 1
             p.form-control-static= _("Developer")
             span.help-block= _("You can submit new thing interfaces, but they have to be reviewed by an administrator before users can see them.")
@@ -58,7 +57,7 @@ block content
           label.control-label(for='developer-key')= _("ThingPedia Developer Key")
           p.form-control-static= user.developer_key
           span.help-block
-            = _("You can use this developer key in other ThingEngines (such as one you're running locally for testing) to access your devices before they are approved.")
+            = _("You can use this developer key in other Sabrinas (such as one you're running locally for testing) to access your devices before they are approved.")
 
         div.form-group
           button(type='submit').btn.btn-primary= _("Update profile")
@@ -132,8 +131,8 @@ block content
               div.modal-body
                 p= _("Deleting the account is an irreversible operation. All the data stored on the server will be lost permanently.")
 
-                if server.isConfigured || phone.isConfigured
-                  p= _("You will need to relink your server or phone if you make a new account, but you will not lose the data stored in them.")
+                if phone.isConfigured
+                  p= _("You will need to relink your phone if you make a new account, but you will not lose the data stored in them.")
 
                 form(action='/user/delete', method='post')
                   input(type='hidden',name='_csrf',value=csrfToken)
@@ -143,31 +142,17 @@ block content
                     |  
                     a.btn.btn-default(data-dismiss='modal')= _("No, I changed my mind")
 
-  //div.panel.panel-default
-    div.panel-heading
-      h2.panel-title= _("Server")
-
-    div.panel-body
-      if server.isConfigured
-        p= _("You linked a ThingEngine Server at %s, port %d.").format(server.name, server.port)
-        p
-          form.form-inline(action='/user/unpair/server',method="post")
-            input(type='hidden',name='_csrf',value=csrfToken)
-            button(type='submit').btn.btn-danger= _("Unpair")
-      else
-        p= _("You did not link a ThingEngine Server. If you want to link one, you should open its configuration page and enter your credentials in the Cloud section.")
-
   div.panel.panel-default
     div.panel-heading
       h2.panel-title= _("Phone")
 
     div.panel-body
       if phone.isConfigured
-        p= _("You are running a ThingEngine in your phone.")
+        p= _("You are running a Sabrina in your phone.")
       else
-        p= _("You did not link the ThingEngine in your phone to your account.")
+        p= _("You did not link the Sabrina in your phone to your account.")
         div#config-phone-desktop-browser
-          p!= _("If you are not running ThingEngine already, first <a href='https://rink.hockeyapp.net/apps/d6e09574c0f9434e8e20e8d8f2234285'>download the app</a>.")
+          p!= _("If you are not running Sabrina already, first <a href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine'>download the app</a>.")
             = _(" Then visit this page on a mobile browser, or scan this QR code.")
 
             div#qrcode-target= phone.qrcodeTarget

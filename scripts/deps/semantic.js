@@ -196,6 +196,7 @@ module.exports = class SemanticAnalyzer {
         if ('action' in this.root) {
             this.isAction = true;
 
+            var action = this.root.action;
             var parsed = this._handleSelector(action.name);
             this.kind = parsed[0];
             this.channel = parsed[1];

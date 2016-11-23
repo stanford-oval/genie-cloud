@@ -87,7 +87,7 @@ router.post('/kill', user.requireLogIn, function(req, res) {
     var engineManager = EngineManager.get();
 
     engineManager.killUser(req.user.id);
-    res.redirect(303, '/status');
+    res.redirect(303, '/me/status');
 });
 
 router.post('/start', user.requireLogIn, function(req, res) {
@@ -97,7 +97,7 @@ router.post('/start', user.requireLogIn, function(req, res) {
         engineManager.killUser(req.user.id);
 
     engineManager.startUser(req.user).then(function() {
-        res.redirect(303, '/status');
+        res.redirect(303, '/me/status');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
@@ -116,7 +116,7 @@ router.post('/recovery/wipe-cache', user.requireLogIn, user.requireDeveloper(), 
     var p = path.resolve('./' + req.user.cloud_id + '/cache');
     console.log('Wiping path ' + path);
     Q.nfcall(child_process.execFile, '/usr/bin/rm', ['-rf', p]).then(function() {
-        res.redirect(303, '/status');
+        res.redirect(303, '/me/status');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });
@@ -142,7 +142,7 @@ router.post('/recovery/remove-all-apps', user.requireLogIn, user.requireDevelope
             Q.ninvoke(db, 'run', 'delete from app').then(function() {
                 return Q.ninvoke(db, 'close');
             }).then(function() {
-                res.redirect(303, '/status');
+                res.redirect(303, '/me/status');
             }).catch(function(e) {
                 res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                                   message: e });
@@ -170,7 +170,7 @@ router.post('/recovery/remove-all-devices', user.requireLogIn, user.requireDevel
             Q.ninvoke(db, 'run', 'delete from device').then(function() {
                 return Q.ninvoke(db, 'close');
             }).then(function() {
-                res.redirect(303, '/status');
+                res.redirect(303, '/me/status');
             }).catch(function(e) {
                 res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                                   message: e });
@@ -183,7 +183,7 @@ router.post('/update-module/:kind', user.requireLogIn, function(req, res) {
     return EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return engine.devices.updateDevicesOfKind(req.params.kind);
     }).then(function() {
-        res.redirect('/status');
+        res.redirect('/me/status');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
                                           message: e });

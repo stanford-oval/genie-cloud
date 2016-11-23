@@ -23,6 +23,7 @@ create table users (
     salt char(64) default null,
     cloud_id char(64) unique not null,
     auth_token char(64) not null,
+    storage_key char(64) not null,
     developer_org int null default null,
     developer_status tinyint not null default 0,
     roles tinyint not null default 0,
@@ -76,19 +77,6 @@ create table oauth2_auth_codes (
     key (code),
     foreign key (user_id) references users(id) on update cascade on delete cascade,
     foreign key (client_id) references oauth2_clients(id) on update cascade on delete cascade
-) collate = utf8_bin;
-
-create table app (
-    id integer auto_increment primary key,
-    owner integer,
-    app_id varchar(255) not null,
-    name varchar(255) not null collate utf8_general_ci,
-    description text not null collate utf8_general_ci,
-    canonical text null collate utf8_general_ci,
-    code mediumtext not null,
-    visible boolean not null default false,
-    unique key (owner, app_id),
-    foreign key (owner) references users(id) on update cascade on delete set null
 ) collate = utf8_bin;
 
 create table device_class (
@@ -210,22 +198,6 @@ create table device_code_version (
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
 ) collate utf8_bin;
 
-create table app_device (
-    app_id integer not null,
-    device_id integer not null,
-    primary key (app_id, device_id),
-    foreign key (app_id) references app(id) on update cascade on delete cascade,
-    foreign key (device_id) references device_class(id) on update cascade on delete cascade
-) collate utf8_bin;
-
-create table app_tag (
-    id integer auto_increment primary key,
-    app_id integer not null,
-    tag varchar(255) not null collate utf8_general_ci,
-    key(tag),
-    foreign key (app_id) references app(id) on update cascade on delete cascade
-) collate utf8_bin;
-
 create table device_class_tag (
     tag varchar(128) not null,
     device_id integer not null,
@@ -239,16 +211,5 @@ create table device_class_kind (
     is_child boolean not null default false,
     primary key(device_id, kind),
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
-) collate utf8_bin;
-
-create table category (
-    id integer auto_increment primary key,
-    catchphrase varchar(255) not null collate utf8_general_ci,
-    name varchar(255) not null collate utf8_general_ci,
-    description mediumtext not null collate utf8_general_ci,
-    tag varchar(255) not null collate utf8_general_ci,
-    icon varchar(255) not null,
-    order_position integer not null default 0,
-    key(order_position)
 ) collate utf8_bin;
 

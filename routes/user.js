@@ -167,23 +167,11 @@ router.get('/logout', function(req, res, next) {
 
 function getProfile(req, res, pwError, profileError) {
     return EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return Q.all([engine.devices.getDevice('thingengine-own-server'),
-                      engine.devices.getDevice('thingengine-own-phone')]);
-    }).spread(function(server, phone) {
-        return Q.all([server ? server.state : undefined, phone ? phone.state : undefined]);
-    }).spread(function(serverState, phoneState) {
-        var server, phone;
-        if (serverState) {
-            server = {
-                isConfigured: true,
-                name: serverState.host,
-                port: serverState.port
-            };
-        } else {
-            server = {
-                isConfigured: false
-            };
-        }
+        return engine.devices.getDevice('thingengine-own-phone');
+    }).then(function(phone) {
+        return phone ? phone.state : undefined;
+    }).then(function(phoneState) {
+        var phone;
         if (phoneState) {
             phone = {
                 isConfigured: true,
@@ -200,7 +188,6 @@ function getProfile(req, res, pwError, profileError) {
                                      csrfToken: req.csrfToken(),
                                      pw_error: pwError,
                                      profile_error: profileError,
-                                     server: server,
                                      phone: phone });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("ThingPedia - Error"),

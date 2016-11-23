@@ -16,7 +16,6 @@ const Gettext = require('node-gettext');
 const child_process = require('child_process');
 
 // FIXME we should not punch through the abstraction
-const sql = require('thingengine-core/lib/util/sql');
 const prefs = require('thingengine-core/lib/util/prefs');
 
 const Assistant = require('./assistant');
@@ -106,6 +105,7 @@ class Platform {
         this._thingpediaClient = thingpediaClient;
         this._locale = options.locale;
         this._timezone = options.timezone;
+        this._sqliteKey = options.storageKey;
 
         this._gettext = new Gettext();
         this._gettext.setlocale(options.locale);
@@ -135,8 +135,7 @@ class Platform {
     }
 
     start() {
-        return sql.ensureSchema(this._writabledir + '/sqlite.db',
-                                '../data/schema.sql');
+        return Q();
     }
 
     createAssistant(engine) {
@@ -270,6 +269,11 @@ class Platform {
     // Get the filename of the sqlite database
     getSqliteDB() {
         return this._writabledir + '/sqlite.db';
+    }
+
+    // Get the encryption key of the sqlite database
+    getSqliteKey() {
+        return this._sqliteKey;
     }
 
     getGraphDB() {

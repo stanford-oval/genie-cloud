@@ -104,7 +104,7 @@ var_ref_value = name:ident { return { type: 'VarRef', value: { id: 'tt:param.' +
 measure_value = num:literal_number unit:ident { return { type: 'Measure', value: { value: num, unit: unit } }; }
 number_value = v:literal_number { return { type: 'Number', value: { value: v } }; }
 date_value = '$makeDate' _ '(' year:literal_number _ ',' _ month:literal_number _ ',' _ day:literal_number _ ')' {
-    return { type: 'Date', value: { year: year, month: month, day: day } };
+    return { type: 'Date', value: { year: year, month: month, day: day, hour: 0, minute: 0, second: 0 } };
 }
 time_value = '$makeTime' _ '(' hour:literal_number _ ',' _ minute:literal_number _ ')' {
     return { type: 'Time', value: { year: -1, month: -1, day: -1, hour: hour, minute: minute, second: 0 } };

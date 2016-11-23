@@ -409,28 +409,45 @@ function main() {
     if (!grammar)
         throw new Error('Invalid language ' + language);
 
-    db.withClient((dbClient) => {
-        _schemaRetriever = new SchemaRetriever(dbClient, language);
-        var promises = [];
+    var done = false;
+    var inflight = 0;
+    function maybeEnd() {
+        if (done && inflight === 0)
+            output.end();
+    }
 
-        return db.selectAll(dbClient, "select id,utterance,target_json from example_utterances where language = ? and type in (?) and not is_base", [language, types]).then((examples) => {
-            examples.forEach((ex) => {
-                promises.push(Q.try(function() {
-                    return reconstructCanonical(dbClient, grammar, language, ex.target_json);
-                }).then(function(reconstructed) {
-                    output.write(ex.utterance);
-                    output.write('\t');
-                    output.write(reconstructed);
-                    output.write('\n');
-                }).catch((e) => {
-                    console.error('Failed to handle ' + ex.utterance + ': ' + e.message);
-                }));
+    // it's not possible to run a query concurrently while streaming the results of another one,
+    // so we open two connections and let the server sort it out
+    db.withClient((dbClientRegular) => {
+        return db.withClient((dbClientStream) => {
+            _schemaRetriever = new SchemaRetriever(dbClientRegular, language);
+
+            return Q.Promise(function(callback, errback) {
+                var query = dbClientStream.query("select id,utterance,target_json from example_utterances where language = ? and type in (?) and not is_base", [language, types]);
+                query.on('result', (ex) => {
+                    inflight++;
+                    Q.try(function() {
+                        return reconstructCanonical(dbClientRegular, grammar, language, ex.target_json);
+                    }).then(function(reconstructed) {
+                        output.write(ex.utterance);
+                        output.write('\t');
+                        output.write(reconstructed);
+                        output.write('\n');
+                    }).catch((e) => {
+                        console.error('Failed to handle ' + ex.utterance + ': ' + e.message);
+                        console.error(e.stack);
+                    }).finally(() => {
+                        inflight--;
+                        maybeEnd();
+                    });
+                });
+                query.on('error', errback);
+                query.on('end', callback);
             });
-        }).then(function() {
-            return Q.all(promises);
         });
     }).finally(() => {
-        output.end();
+        done = true;
+        maybeEnd();
     }).done();
 
     output.on('finish', () => process.exit());

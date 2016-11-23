@@ -228,7 +228,7 @@ function peg$parse(input, options) {
       peg$c53 = "$makeDate",
       peg$c54 = peg$literalExpectation("$makeDate", false),
       peg$c55 = function(year, month, day) {
-          return { type: 'Date', value: { year: year, month: month, day: day } };
+          return { type: 'Date', value: { year: year, month: month, day: day, hour: 0, minute: 0, second: 0 } };
       },
       peg$c56 = "$makeTime",
       peg$c57 = peg$literalExpectation("$makeTime", false),
