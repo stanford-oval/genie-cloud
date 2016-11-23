@@ -23,6 +23,7 @@ create table users (
     salt char(64) default null,
     cloud_id char(64) unique not null,
     auth_token char(64) not null,
+    storage_key char(64) not null,
     developer_org int null default null,
     developer_status tinyint not null default 0,
     roles tinyint not null default 0,

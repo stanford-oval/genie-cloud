@@ -53,6 +53,7 @@ module.exports = {
             var salt = makeRandom();
             var cloudId = makeRandom();
             var authToken = makeRandom();
+            var storageKey = makeRandom();
             return hashPassword(salt, options.password)
                 .then(function(hash) {
                     return model.create(dbClient, {
@@ -63,7 +64,8 @@ module.exports = {
                         timezone: options.timezone,
                         salt: salt,
                         cloud_id: cloudId,
-                        auth_token: authToken
+                        auth_token: authToken,
+                        storage_key: storageKey,
                     });
                 });
         });
@@ -76,6 +78,7 @@ module.exports = {
 
             var cloudId = makeRandom();
             var authToken = makeRandom();
+            var storageKey = makeRandom();
             return model.create(dbClient, {
                 username: options.username,
                 password: options['password-hash'],
@@ -86,6 +89,7 @@ module.exports = {
                 cloud_id: cloudId,
                 auth_token: authToken,
                 omlet_id: options.account,
+                storage_key: storageKey,
             });
         });
     },
