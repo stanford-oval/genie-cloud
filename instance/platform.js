@@ -105,6 +105,7 @@ class Platform {
         this._thingpediaClient = thingpediaClient;
         this._locale = options.locale;
         this._timezone = options.timezone;
+        this._sqliteKey = options.storageKey;
 
         this._gettext = new Gettext();
         this._gettext.setlocale(options.locale);
@@ -268,6 +269,11 @@ class Platform {
     // Get the filename of the sqlite database
     getSqliteDB() {
         return this._writabledir + '/sqlite.db';
+    }
+
+    // Get the encryption key of the sqlite database
+    getSqliteKey() {
+        return this._sqliteKey;
     }
 
     getGraphDB() {
