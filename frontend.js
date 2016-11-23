@@ -188,7 +188,7 @@ Frontend.prototype._init = function _init() {
     this._app.use('/me', require('./routes/my_stuff'));
     this._app.use('/me/devices', require('./routes/devices'));
     this._app.use('/me/status', require('./routes/status'));
-    this._app.get('/devices', require('./routes/devices_compat'));
+    this._app.use('/devices', require('./routes/devices_compat'));
 
     this._app.use('/thingpedia/examples', require('./routes/thingpedia_examples'));
     this._app.use('/thingpedia/training', require('./routes/train_sabrina'));
