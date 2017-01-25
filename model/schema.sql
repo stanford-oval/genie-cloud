@@ -213,3 +213,22 @@ create table device_class_kind (
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
 ) collate utf8_bin;
 
+CREATE TABLE `entity_names` (
+  `id` varchar(64) NOT NULL,
+  `language` char(15) NOT NULL DEFAULT 'en',
+  `name` varchar(255) NOT NULL collate utf8_general_ci,
+  `is_well_known` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`,`language`)
+) collate utf8_bin ;
+
+CREATE TABLE `entity_lexicon` (
+  `language` char(15) NOT NULL DEFAULT 'en',
+  `token` varchar(128) CHARACTER SET utf8 NOT NULL,
+  `entity_id` varchar(64) NOT NULL,
+  `entity_value` varchar(64) NOT NULL,
+  `entity_canonical` varchar(128) CHARACTER SET utf8 NOT NULL,
+  `entity_name` varchar(128) CHARACTER SET utf8 NOT NULL,
+  PRIMARY KEY (`language`,`token`,`entity_id`,`entity_value`,`entity_canonical`),
+  KEY `entity_id` (`entity_id`),
+  FOREIGN KEY (`entity_id`) REFERENCES `entity_names` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) collate utf8_bin ;
