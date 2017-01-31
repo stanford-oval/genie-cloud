@@ -28,12 +28,14 @@ function main() {
 
     rl.setPrompt('$ ');
 
-    var learned = fs.createWriteStream('learned.txt');
+    var learned = fs.createWriteStream('learned.txt', { flags: 'a' });
     learned.setDefaultEncoding('utf8');
-    var ignored = fs.createWriteStream('ignored.txt');
+    var ignored = fs.createWriteStream('dropped.txt', { flags: 'a' });
     ignored.setDefaultEncoding('utf8');
+    var failed = fs.createWriteStream('failed.txt', { flags: 'a' });
+    failed.setDefaultEncoding('utf8');
 
-    var finish = 2;
+    var finish = 3;
     function maybeFinish() {
         finish --;
         if (finish === 0)
@@ -41,6 +43,7 @@ function main() {
     }
     learned.on('finish', maybeFinish);
     ignored.on('finish', maybeFinish);
+    failed.on('finish', maybeFinish);
 
     function complete() {
     /*
@@ -54,6 +57,7 @@ function main() {
     */
         learned.end();
         ignored.end();
+        failed.end();
     }
 
     function quit() {
@@ -67,6 +71,7 @@ function main() {
     var lines = [];
     var candidates;
     var sentence;
+    var id = -1;
 
     fs.readFile(process.argv[2], function(err, data) {
         if (err)
@@ -74,10 +79,16 @@ function main() {
         lines = data.toString('utf8').split('\n');
         if (lines[lines.length-1].trim().length === 0)
             lines.pop();
+
+        if (process.argv.length > 3) {
+            id = parseInt(process.argv[3])-2;
+            lines = lines.slice(id+1, lines.length);
+        }
         next();
     });
 
     function next() {
+        id++;
         if (lines.length === 0)
             quit();
         state = 'loading';
@@ -88,7 +99,7 @@ function main() {
             if (candidates[0].score === 'Infinity')
                 candidates.shift();
 
-            console.log('Sentence: ' + sentence);
+            console.log('Sentence #' + (id+1) + ': ' + sentence);
             for (var i = 0; i < 3 && i < candidates.length; i++)
                 console.log((i+1) + ') ' + candidates[i].canonical);
             rl.prompt();
@@ -109,21 +120,22 @@ function main() {
                 return;
             }
             i -= 1;
-            learned.write(sentence + '\t' + candidates[i].answer + '\n');
+            learned.write(id + '\t' + sentence + '\t' + candidates[i].answer + '\n');
             next();
             return;
         } else if (line === 'n') {
             if (state === 'top3') {
                 state = 'full';
-                console.log('Sentence: ' + sentence);
+                console.log('Sentence #' + (id+1) + ': ' + sentence);
                 for (var i = 0; i < candidates.length; i++)
                     console.log((i+1) + ') ' + candidates[i].canonical);
+                rl.prompt();
             } else {
-                dropped.write(sentence + '\n');
+                failed.write(id + '\t' + sentence + '\n');
                 next();
             }
         } else if (line === 'd') {
-            dropped.write(sentence + '\n');
+            ignored.write(id + '\t' + sentence + '\n');
             next();
         } else {
             console.log('Invalid command');
@@ -131,6 +143,7 @@ function main() {
         }
     });
     rl.on('SIGINT', quit);
+    //process.stdin.on('end', quit);
 }
 
 main();
