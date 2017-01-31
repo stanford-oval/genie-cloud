@@ -57,6 +57,8 @@ const FIXED_KINDS = ['washington_post', 'sportradar', 'giphy',
     'linkedin', 'youtube', 'lg_webos_tv', 'light-bulb',
     'thermostat', 'security-camera', 'heatpad', 'phone',
     'omlet', 'slack', 'gmail', 'thecatapi'];
+
+const FIXED_KINDS2 = ['sportradar', 'slack', 'phone'];
 //FIXED_KINDS.push('tumblr');
 //FIXED_KINDS.push('tumblr-blog');
 
@@ -103,6 +105,8 @@ function chooseSchema(allSchemas, policy) {
 
     if (policy === 'uniform-fixed-kinds')
         return uniform(FIXED_KINDS);
+    if (policy === 'test')
+        return uniform(FIXED_KINDS2);
 
     if (policy === 'weighted-domain') {
         var domains = {
@@ -198,6 +202,42 @@ const DATE_ARGUMENTS = [{ year: 1992, month: 8, day: 24, hour: -1, minute: -1, s
 const EMAIL_ARGUMENTS = ['bob@stanford.edu'];
 const PHONE_ARGUMENTS = ['+16501234567'];
 
+const ENTITIES = {
+    'sportradar:eu_soccer_team': [["Juventus", "juv"], ["Barcellona", "bar"], ["Bayern Munchen", "fcb"]],
+    'sportradar:mlb_team': [["SF Giants", 'sf'], ["Chicago Cubs", 'chc']],
+    'sportradar:nba_team': [["Golden State Warriors", 'gsw'], ["LA Lakers", 'lal']],
+    'sportradar:ncaafb_team': [["Stanford Cardinals", 'stan'], ["California Bears", 'cal']],
+    'sportradar:ncaambb_team': [["Stanford Cardinals", 'stan'], ["California Bears", 'cal']],
+    'sportradar:nfl_team': [["Seattle Seahawks", 'sea'], ["SF 49ers", 'sf']],
+    'sportradar:us_soccer_team': [["San Jose Earthquakes", 'sje'], ["Toronto FC", 'tor']],
+    'tt:stock_id': [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft'], ['Red Hat', 'rht']]
+};
+
+function chooseEntity(entityType) {
+    if (entityType === 'tt:email_address')
+        return ['EmailAddress', { value: uniform(EMAIL_ARGUMENTS) }];
+    if (entityType === 'tt:phone_number')
+        return ['PhoneNumber', { value: uniform(PHONE_ARGUMENTS) }];
+    if (entityType === 'tt:username')
+        return ['Username', { value: uniform(USERNAME_ARGUMENTS) }];
+    if (entityType === 'tt:hashtag')
+        return ['Hashtag', { value: uniform(HASHTAG_ARGUMENTS) }];
+    if (entityType === 'tt:url')
+        return ['URL', { value: uniform(URL_ARGUMENTS) }];
+    if (entityType === 'tt:picture')
+        return [null, null];
+
+    var choices = ENTITIES[entityType];
+    if (!choices) {
+        console.log('Unrecognized entity type ' + entityType);
+        return [null, null];
+    }
+
+    var choice = uniform(choices);
+    var v = { value: choice[1], display: choice[0] };
+    return ['Entity(' + entityType + ')', v];
+}
+
 function chooseRandomValue(argName, type) {
     if (argName === 'stock_id')
         return ['String', { value: uniform(['goog', 'aapl', 'msft']) }];
@@ -227,8 +267,12 @@ function chooseRandomValue(argName, type) {
         return ['URL', { value: uniform(URL_ARGUMENTS) }];
     if (type.isEnum)
         return ['Enum', { value: uniform(type.entries) }];
+    if (type.isEntity)
+        return chooseEntity(type.type);
+    if (type.isPicture || type.isTime || type.isAny)
+        return [null, null];
 
-    //console.log('Invalid type ' + type);
+    console.log('Invalid type ' + type);
     return [null, null];
 }
 

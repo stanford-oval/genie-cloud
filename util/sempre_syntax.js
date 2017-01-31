@@ -31,6 +31,9 @@ function codegenLocation(value) {
 }
 
 function codegenValue(type, value) {
+    if (type.startsWith('Entity('))
+        return '$entity(' + stringEscape(value.value) + ',' + type.substring('Entity('.length, type.length-1) + ')';
+
     switch (type) {
     case 'Number':
         return String(value.value);
