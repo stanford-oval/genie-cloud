@@ -239,8 +239,6 @@ function chooseEntity(entityType) {
 }
 
 function chooseRandomValue(argName, type) {
-    if (argName === 'stock_id')
-        return ['String', { value: uniform(['goog', 'aapl', 'msft']) }];
     if (type.isArray)
         return chooseRandomValue(argName, type.elem);
     if (type.isMeasure)

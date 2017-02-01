@@ -16,18 +16,41 @@ const Tp = require('thingpedia');
 const db = require('../util/db');
 const tokenize = require('../util/tokenize');
 
+/**
+    frequently appearing tokens in the company stock dataset
+     41 bancshares
+     41 index
+     41 technology
+     43 ishares
+     47 trust
+     48 energy
+     49 incorporated
+     51 capital
+     52 limited
+     58 systems
+     64 fund
+     66 first
+     69 pharmaceuticals
+     78 technologies
+     79 company
+     83 holdings
+     87 international
+    120 ltd
+    125 group
+    137 financial
+    144 corp
+    159 bancorp
+    471 corporation
+*/
 const IGNORED_WORDS = new Set(["in", "is", "of", "or", "not", "at", "as", "by", "my", "i", "from", "for", "an",
     "on", "a", "to", "with", "and", "when", "notify", "monitor", "it",
     "me", "the", "if", "abc", "def", "ghi", "jkl", "mno", "pqr", "stu", "vwz",
 
-    "fc", "state", "college"]);
+    "bancshares", "index", "technology", "ishares", "trust", "energy", "incorporated", "capital",
+    "limited", "systems", "fund", "first", "pharmaceuticals", "technologies", "company", "holdings",
+    "international", "ltd", "group", "financial", "corp", "bancorp", "corporation"]);
 
 var insertBatch = [];
-
-function makeType(testTrain, primCompound, nparams) {
-    //return (testTrain === 'test' ? 'test' : 'turking') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
-    return 'test' + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
-}
 
 function insert(dbClient, language, token, entityId, entityValue, entityCanonical, entityName) {
     insertBatch.push([language, token, entityId, entityValue, entityCanonical, entityName]);
@@ -55,7 +78,7 @@ function main() {
   var parser = csv.parse({ columns: null });
   fstream.pipe(parser);
 
-  var leagueToEntity = {
+  /*var leagueToEntity = {
     'NBA': 'sportradar:nba_team',
     'MLB': 'sportradar:mlb_team',
     'NCAA-FB': 'sportradar:ncaafb_team',
@@ -63,26 +86,28 @@ function main() {
     'NFL': 'sportradar:nfl_team',
     'SOCCER-EU': 'sportradar:eu_soccer_team',
     'SOCCER-US': 'sportradar:us_soccer_team'
-  };
+  };*/
 
   db.withTransaction(function(dbClient) {
     var promises = [];
     return Q.Promise(function(callback, errback) {
       parser.on('data', (row) => {
-        var league = row[0];
-        var id = row[1].trim();
-        var name = row[2];
+        //var league = row[0];
+        var id = row[0].trim().toLowerCase();
+        var name = row[1];
+        var entityType = 'tt:stock_id';
 
         var tokens = tokenize.tokenize(name);
         var canonical = tokens.join(' ');
         for (var t of tokens) {
+          t = t.trim();
           if (IGNORED_WORDS.has(t))
             continue;
           if (t.length < 2)
             continue;
 
-          //console.log(language + ',' + leagueToEntity[league] + ',' + id + ',' + t + ',' + canonical + ',' + name);
-          promises.push(insert(dbClient, language, t, leagueToEntity[league], id.toLowerCase(), canonical, name));
+          //console.log(language + '\t' + entityType + '\t' + id + '\t' + t + '\t' + canonical + '\t' + name);
+          promises.push(insert(dbClient, language, t, entityType, id.toLowerCase(), canonical, name));
         }
       });
       parser.on('end', callback);
