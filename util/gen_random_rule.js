@@ -176,9 +176,9 @@ const OTHER_OP_WEIGHTS = {
     '': 2,
 }
 
-const STRING_ARGUMENTS = ['work', "i'm happy", "bob", "danger",
+const STRING_ARGUMENTS = ['work', "i'm happy", "danger",
     "you would never believe what happened", "merry christmas", "love you"];
-const USERNAME_ARGUMENTS = ['justinbieber', 'testeralice'];
+const USERNAME_ARGUMENTS = ['justinbieber', 'stanford'];
 const HASHTAG_ARGUMENTS = ['funny', 'cat', 'lol'];
 const URL_ARGUMENTS = ['http://www.google.com', 'http://example.com/file.jpg'];
 const NUMBER_ARGUMENTS = [42, 7, 14, 11];
