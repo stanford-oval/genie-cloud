@@ -83,6 +83,8 @@ function main() {
                     });
                 }).catch((e) => {
                     console.error('Failed to verify ' + tt + '   :' + e.message);
+                    // die uglily to fail the transaction
+                    process.exit();
                 }));
             });
             parser.on('error', errback);
