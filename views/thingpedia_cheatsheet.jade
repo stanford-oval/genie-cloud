@@ -1,0 +1,46 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-cheatsheet.css')
+
+block page_name
+  = _("Sabrina Cheatsheet")
+
+block content
+  div.row#cheatsheet
+    div.col-xs-12.col-sm-6.col-md-4.col-lg-3
+      h3= _("Suggested Rules")
+      ul
+        li Tweet the latest NASA Astronomy Picture of the Day
+        li Auto reply to my emails
+        li Set my phone to vibrate every day at 9 am
+        li Turn on my TV if there is a person in the room
+        li Translate Washington Post headlines to "Chinese"
+        li Post my new Instagram pictures on Twitter
+        li Get a snapshot from my security camera every hour
+        li Play some video from YouTube on my TV
+        li Send me a daily cat picture
+
+    each d in devices
+      if d.triggers.length === 0 && d.queries.length === 0 && d.actions.length === 0
+        - continue;
+      div.col-xs-12.col-sm-6.col-md-4.col-lg-3
+        h3
+          img(src=S3_CLOUDFRONT_HOST + '/icons/' + d.primary_kind + '.png', alt="Icon for " + d.name)
+          a(href='/thingpedia/devices/details/' + d.id)= d.name
+        ul
+          for ex in d.triggers
+            li
+              span.trigger=_("IF: ")
+              if ex.startsWith('notify me')
+                = ex.substr('notify me'.length)
+              else
+                = ex
+          for ex in d.queries
+            li
+              span.query= _("GET: ")
+              = ex
+          for ex in d.actions
+            li
+              span.action= _("DO: ")
+              = ex
