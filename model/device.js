@@ -140,6 +140,15 @@ module.exports = {
         }
     },
 
+    getAllApproved: function(client, start, end) {
+        if (start !== undefined && end !== undefined) {
+            return db.selectAll(client, "select * from device_class where approved_version is not null order by name limit ?,?",
+                                [start, end]);
+        } else {
+            return db.selectAll(client, "select * from device_class where approved_version is not null order by name");
+        }
+    },
+
     getAllWithKindOrChildKind: function(client, kind, start, end) {
         var query = "select d.* from device_class d where exists (select 1 from device_class_kind "
             + "dk where dk.device_id = d.id and dk.kind = ?) order by d.name";

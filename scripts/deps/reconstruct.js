@@ -56,6 +56,8 @@ function describeArg(dlg, arg, type, deviceLhs) {
         //return (type.isURL || type.isPicture ? "it" : "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
         }
     }
+    if (arg.display)
+        return arg.display;
     if (arg.isString)
         return '"' + arg.value + '"';
     if (arg.isUsername)

@@ -98,7 +98,8 @@ value =
         username_value /
         hashtag_value /
         url_value /
-        string_value
+        string_value /
+        entity_value
 
 var_ref_value = name:ident { return { type: 'VarRef', value: { id: 'tt:param.' + name } }; }
 measure_value = num:literal_number unit:ident { return { type: 'Measure', value: { value: num, unit: unit } }; }
@@ -142,6 +143,9 @@ string_value = v:literal_string {
 }
 event_value = v:$('$event' ('.' ('title' / 'body'))?) {
     return { type: 'VarRef', value: { id: 'tt:param.' + v } };
+}
+entity_value = '$entity(' _ v:literal_string _ ',' _ prefix:ident ':' entity:ident _ ')' {
+    return { type: 'Entity(' + prefix + ':' + entity + ')', value: { value: v } };
 }
 
 literal_bool = true_bool { return true; } / false_bool { return false; }

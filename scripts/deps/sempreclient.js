@@ -82,8 +82,8 @@ module.exports = class SempreClient {
         });
     }
 
-    sendUtterance(utterance, expecting, choices) {
-        var url = this._baseUrl + '/query?locale=' + this._locale + '&limit=20&q=' + encodeURIComponent(utterance);
+    sendUtterance(utterance, expecting, choices, long) {
+        var url = this._baseUrl + '/query?locale=' + this._locale + '&' + (long ? 'long=1' : 'limit=20') + '&q=' + encodeURIComponent(utterance);
         if (this._sessionId)
             url += '&sessionId=' + this._sessionId;
         if (expecting)

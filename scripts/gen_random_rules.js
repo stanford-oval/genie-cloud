@@ -55,11 +55,14 @@ function main() {
         if (done && inflight === 0)
             output.end();
     }
+    var i = 0;
     db.withClient((dbClient) => {
         var schemaRetriever = new SchemaRetriever(dbClient, language);
         return genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N).then((stream) => {
             return new Q.Promise((callback, errback) => {
                 stream.on('data', (r) => {
+                    //console.log('Rule #' + (i+1));
+                    i++;
                     inflight++;
                     reconstruct(dlg, schemaRetriever, r).then((reconstructed) => {
                         output.write([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);

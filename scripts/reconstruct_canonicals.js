@@ -17,6 +17,7 @@ const db = require('../util/db');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
 const SchemaRetriever = require('./deps/schema_retriever');
+const tokenize = require('../util/tokenize');
 
 var _schemaRetriever;
 
@@ -162,13 +163,20 @@ const LIST_TO_GRAMMAR = {
 }
 
 function argToCanonical(grammar, buffer, arg, scope, useArgName) {
-    if (arg.type === 'Location') {
+    if (arg.type.startsWith('Entity(')) {
+        if (arg.value.display)
+            buffer.push(tokenize.tokenize(arg.value.display).join(' '));
+        else
+            buffer.push(arg.value.value);
+    } else if (arg.type === 'Location') {
         if (arg.value.relativeTag === 'rel_current_location')
             buffer.push(grammar.here);
         else if (arg.value.relativeTag === 'rel_home')
             buffer.push(grammar.at_home);
         else if (arg.value.relativeTag === 'rel_work')
             buffer.push(grammar.at_work);
+        else if (arg.value.display)
+            buffer.push(arg.value.display.toLowerCase().replace(/[,\s+]/g, ' '));
         /*else if (arg.value.latitude === 37.442156 && arg.value.longitude === -122.1634471)
             buffer.push('palo alto');
         else if (arg.value.latitude === 34.0543942 && arg.value.longitude === -118.2439408)

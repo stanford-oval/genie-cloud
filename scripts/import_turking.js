@@ -20,12 +20,11 @@ const SempreSyntax = require('../util/sempre_syntax');
 var insertBatch = [];
 
 function makeType(testTrain, primCompound, nparams) {
-    //return (testTrain === 'test' ? 'test' : 'turking') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
-    return 'test' + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
+    return (testTrain === 'test' ? 'test2' : 'turking2') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
 }
 
 function insert(dbClient, utterance, testTrain, primCompound, nparams, target_json) {
-    insertBatch.push(['en', 'test-old', utterance, target_json, -1]);
+    insertBatch.push(['en', makeType(testTrain, primCompound, nparams), utterance, target_json, -1]);
     if (insertBatch.length < 100)
         return;
 
@@ -73,8 +72,8 @@ function main() {
                 var nparams = row[5];
 
                 promises.push(Q.try(() => {
-                    //var json = SempreSyntax.toSEMPRE(tt);
-                    var json = JSON.parse(tt);
+                    var json = SempreSyntax.toSEMPRE(tt);
+                    //var json = JSON.parse(tt);
                     var json_str = JSON.stringify(json);
                     return SempreSyntax.verify(schemas, json).then(() => {
                         return insert(dbClient, utterance, testTrain, primCompound, nparams, json_str);
@@ -84,6 +83,8 @@ function main() {
                     });
                 }).catch((e) => {
                     console.error('Failed to verify ' + tt + '   :' + e.message);
+                    // die uglily to fail the transaction
+                    process.exit();
                 }));
             });
             parser.on('error', errback);

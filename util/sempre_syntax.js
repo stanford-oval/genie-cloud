@@ -31,6 +31,9 @@ function codegenLocation(value) {
 }
 
 function codegenValue(type, value) {
+    if (type.startsWith('Entity('))
+        return '$entity(' + stringEscape(value.value) + ',' + type.substring('Entity('.length, type.length-1) + ')';
+
     switch (type) {
     case 'Number':
         return String(value.value);
@@ -176,7 +179,19 @@ function verifyOne(schemas, invocation, invocationType, scope) {
                     return;
                 if (valuehave === 'Enum' && valuetype.isEnum)
                     return;
-                if (valuehave === 'String' && (valuetype.isUsername || valuetype.isHashtag))
+                if (valuehave === 'Hashtag' && valuetype.isEntity && valuetype.type === 'tt:hashtag')
+                    return;
+                if (valuehave === 'Username' && valuetype.isEntity && valuetype.type === 'tt:username')
+                    return;
+                if (valuehave === 'PhoneNumber' && valuetype.isEntity && valuetype.type === 'tt:phone_number')
+                    return;
+                if (valuehave === 'EmailAddress' && valuetype.isEntity && valuetype.type === 'tt:email_address')
+                    return;
+                if (valuehave === 'Picture' && valuetype.isEntity && valuetype.type === 'tt:picture')
+                    return;
+                if (valuehave === 'URL' && valuetype.isEntity && valuetype.type === 'tt:url')
+                    return;
+                if (valuehave === 'String' && valuetype.isEntity)
                     return;
                 throw new TypeError('Invalid value type ' + valuehave + ', expected ' + valuetype);
             }
