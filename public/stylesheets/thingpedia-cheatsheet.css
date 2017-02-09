@@ -1,0 +1,31 @@
+#cheatsheet h3 {
+  font-size: medium;
+  font-weight: bold;
+}
+
+#cheatsheet h3 > img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-right: 0.5em;
+}
+
+#cheatsheet li {
+  font-size: small;
+}
+
+#cheatsheet ul {
+  padding-left: 10.5px;
+}
+
+#cheatsheet .trigger {
+  color: red;
+}
+
+#cheatsheet .query {
+  color: gold;
+}
+
+#cheatsheet .action {
+  color: green;
+}
