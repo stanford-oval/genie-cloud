@@ -157,30 +157,29 @@ const NUMBER_OP_WEIGHTS = {
     'is': 0.5,
     '>': 1,
     '<': 1,
-    '': 2,
+    '': 2
 };
 
 const ARRAY_OP_WEIGHTS = {
     'has': 1,
-    '': 2,
+    '': 2
 };
 
 const STRING_OP_WEIGHTS = {
     'is': 1,
     'contains': 1,
-    '': 2,
+    '': 2
 };
 
 const OTHER_OP_WEIGHTS = {
     'is': 1,
-    '': 2,
-}
+    '': 2
+};
 
-const STRING_ARGUMENTS = ['work', "i'm happy", "danger",
-    "you would never believe what happened", "merry christmas", "love you"];
+const STRING_ARGUMENTS = ["i'm happy", "you would never believe what happened", "merry christmas", "love you"];
 const USERNAME_ARGUMENTS = ['justinbieber', 'stanford'];
 const HASHTAG_ARGUMENTS = ['funny', 'cat', 'lol'];
-const URL_ARGUMENTS = ['http://www.google.com', 'http://example.com/file.jpg'];
+const URL_ARGUMENTS = ['http://www.abc.def'];
 const NUMBER_ARGUMENTS = [42, 7, 14, 11];
 const MEASURE_ARGUMENTS = {
     C: [{ value: 73, unit: 'F' }, { value: 22, unit: 'C' }],
@@ -188,7 +187,7 @@ const MEASURE_ARGUMENTS = {
     kg: [{ value: 82, unit: 'kg' }, { value: 155, unit: 'lb' }],
     kcal: [{ value: 500, unit: 'kcal' }],
     mps: [{ value: 5, unit: 'kmph' }, { value: 25, unit: 'mph' }],
-    ms: [{ value: 1, unit: 'h' }, { value: 14, unit: 'day' }],
+    ms: [{ value: 1, unit: 'h'}],
     byte: [{ value: 5, unit: 'KB' }, { value: 20, unit: 'MB' }]
 };
 const BOOLEAN_ARGUMENTS = [true, false];
@@ -241,12 +240,76 @@ function chooseEntity(entityType) {
 function chooseRandomValue(argName, type) {
     if (type.isArray)
         return chooseRandomValue(argName, type.elem);
-    if (type.isMeasure)
-        return ['Measure', uniform(MEASURE_ARGUMENTS[type.unit])];
-    if (type.isNumber)
-        return ['Number', { value: uniform(NUMBER_ARGUMENTS) }];
-    if (type.isString)
+    if (type.isString) {
+        if (argName === 'repo_name')
+            return ['String', { value: 'android_repository' }];
+        if (argName === 'file_name' || argName === 'old_name')
+            return ['String', { value: 'log.txt'}];
+        if (argName === 'new_name')
+            return ['String', { value: 'backup.txt'}];
+        if (argName === 'folder_name')
+            return ['String', { value: 'archive' }];
+        if (argName === 'purpose')
+            return ['String', { value: 'research project' }];
+        if (argName === 'company_name')
+            return ['String', { value: 'google' }];
+        if (argName === 'filter')
+            return ['String', { value: 'lo-fi' }];
+        if (argName === 'query')
+            return ['String', { value: 'nfl' }];
+        if (argName === 'summary')
+            return ['String', { value: 'meeting' }];
+        if (argName === 'category')
+            return ['String', { value: 'sports' }];
+        if (argName === 'from_name' || argName === 'formatted_name')
+            return ['String', { value: 'bob' }];
+        if (argName === 'blog_name')
+            return ['String', { value: 'government secret' }];
+        if (argName === 'camera_used')
+            return ['String', { value: 'mastcam' }];
+        if (argName === 'description') // nasa apod, calendar, wapo
+            return ['String', { value: 'christmas'}];
+        if (argName.endsWith('title'))
+            return ['String', { value: 'news' }];
+        if (argName.startsWith('label')) // label, labels
+            return ['String', { value: 'work' }];
+        if (argName === 'uber_type')
+            return ['String', { value: 'uberx' }];
+        if (argName === 'source_language')
+            return ['String', { value: 'english' }];
+        if (argName === 'target_language' || argName === 'detected_language')
+            return ['String', { value: 'chinese' }];
+        if (argName === 'organizer')
+            return ['String', { value: 'stanford' }];
+        if (argName === 'user') //reddit 
+            return ['String', { value: 'bob' }];
+        if (argName === 'headline') //linkedin
+            return ['String', { value: 'CEO' }];
         return ['String', { value: uniform(STRING_ARGUMENTS) }];
+    }
+    if (type.isHashtag) {
+        if (argName === 'channel')
+            return ['Hashtag', { value: 'work'}];
+        return ['Hashtag', { value: uniform(HASHTAG_ARGUMENTS) }];
+    }
+    if (type.isNumber) {
+        if (argName === 'surge')
+            return ['Number', { value : 1.5 }];
+        if (argName === 'heartrate')
+            return ['Number', { value : 80 }];
+        if (argName.startsWith('high'))
+            return ['Number', { value : 20 }];
+        if (argName.startsWith('low'))
+            return ['Number', { value : 10 }];
+        return ['Number', { value: uniform(NUMBER_ARGUMENTS) }];
+    }
+    if (type.isMeasure) {
+        if (argName === 'high')
+            return ['Number', { value : 75, unit: 'F' }];
+        if (argName === 'low')
+            return ['Number', { value : 70, unit: 'F' }];
+        return ['Measure', uniform(MEASURE_ARGUMENTS[type.unit])];
+    }
     if (type.isDate)
         return ['Date', uniform(DATE_ARGUMENTS)];
     if (type.isBoolean)
@@ -259,8 +322,6 @@ function chooseRandomValue(argName, type) {
         return ['PhoneNumber', { value: uniform(PHONE_ARGUMENTS) }];
     if (type.isUsername)
         return ['Username', { value: uniform(USERNAME_ARGUMENTS) }];
-    if (type.isHashtag)
-        return ['Hashtag', { value: uniform(HASHTAG_ARGUMENTS) }];
     if (type.isURL)
         return ['URL', { value: uniform(URL_ARGUMENTS) }];
     if (type.isEnum)
@@ -306,7 +367,21 @@ function applyFilters(invocation, isAction) {
             continue;
         if (args[i] === 'count')
             continue;
-
+        if (args[i] === 'currency_code')
+            continue;
+        if (args[i] === 'orbiting_body')
+            continue;
+        if (args[i] === 'home_name' || args[i] === 'away_name')
+            continue;
+        if (args[i] === 'home_alias' || args[i] === 'away_alias')
+            continue;
+        if (args[i] === 'watched_is_home')
+            continue;
+        if (args[i].startsWith('tournament'))
+            continue;
+        if (args[i] === 'day') // weird string parameter for jawbone move
+            continue;
+        
         var tmp = chooseRandomValue(args[i], type);
         var sempreType = tmp[0];
         var value = tmp[1];
@@ -325,7 +400,12 @@ function applyFilters(invocation, isAction) {
             var fill = coin(0.2);
             if (!fill)
                 continue;
-            var operator = sample(getOpDistribution(type));
+            if (args[i] === 'filter')
+                var operator = 'is';
+            if (args[i] === 'snippet')
+                var operator = 'contains';
+            else
+                var operator = sample(getOpDistribution(type));
             if (operator)
                 ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: operator, type: sempreType, value: value });
         }
@@ -376,6 +456,19 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
 
         if (toArg.startsWith('__'))
             continue;
+
+        // don't pass parameter to names of files, teams, repos, companies
+        // e.g., file_name, new_name, old_name, folder_name, repo_name, home_name, away_name
+        if (toArg.endsWith('_name'))
+            continue;
+        // don't pass numbers
+        if (toType.isNumber)
+            continue;
+        // don't pass to slack purpose
+        if (toArg === 'prupose')
+            continue;
+       
+
         distribution[''] = 0.5;
 
         for (var fromArg of fromArgs) {
@@ -386,6 +479,10 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
             if (fromArg.startsWith('__'))
                 continue;
             if (fromArg.endsWith('_id'))
+                continue;
+            if (fromArg === 'orbiting_body')
+                continue;
+            if (fromArg === 'camera_used')
                 continue;
 
             if (toArgRequired[toArg] || isAction) {
@@ -404,7 +501,8 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
                 }
             }
         }
-        if (toType.isString) {
+        // only pass $event when for 'message' and 'status'
+        if (toType.isString && (toArg === 'message' || toArg === 'status')) {
             distribution['$event+is'] = 0.1;
             //distribution['$event.title+is'] = 0.05;
         }
@@ -541,3 +639,4 @@ function genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N) 
 }
 
 module.exports = genRandomRules;
+
