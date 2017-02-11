@@ -332,9 +332,9 @@ function chooseRandomValue(argName, type) {
     }
     if (type.isMeasure) {
         if (argName === 'high')
-            return ['Number', { value : 75, unit: 'F' }];
+            return ['Measure', { value : 75, unit: 'F' }];
         if (argName === 'low')
-            return ['Number', { value : 70, unit: 'F' }];
+            return ['Measure', { value : 70, unit: 'F' }];
         return ['Measure', uniform(MEASURE_ARGUMENTS[type.unit])];
     }
     if (type.isDate)

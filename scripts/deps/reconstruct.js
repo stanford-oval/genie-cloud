@@ -68,16 +68,6 @@ function describeArg(dlg, arg, type, deviceLhs) {
         //return (type.isURL || type.isPicture ? "it" : "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
         }
     }
-    if (arg.display)
-        return arg.display;
-    if (arg.isString)
-        return '"' + arg.value + '"';
-    if (arg.isUsername)
-        return '@' + arg.value;
-    if (arg.isHashtag)
-        return '#' + arg.value;
-    if (arg.isNumber || arg.isPhoneNumber || arg.isEmailAddress || arg.isURL)
-        return arg.value;
     if (arg.isMeasure)
         return arg.value + ' ' + arg.unit;
     if (arg.isBoolean)
@@ -89,6 +79,16 @@ function describeArg(dlg, arg, type, deviceLhs) {
         return arg.value.toDateString();
     if (arg.isEnum)
         return clean(arg.value);
+    if (arg.display)
+        return arg.display;
+    if (arg.isString)
+        return '"' + arg.value + '"';
+    if (arg.isUsername)
+        return '@' + arg.value;
+    if (arg.isHashtag)
+        return '#' + arg.value;
+    if (arg.isNumber || arg.isPhoneNumber || arg.isEmailAddress || arg.isURL)
+        return arg.value;
 
     return String(arg);
 }

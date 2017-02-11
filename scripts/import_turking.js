@@ -20,7 +20,7 @@ const SempreSyntax = require('../util/sempre_syntax');
 var insertBatch = [];
 
 function makeType(testTrain, primCompound, nparams) {
-    return (testTrain === 'test' ? 'test2' : 'turking2') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
+    return (testTrain === 'test' ? 'test3' : 'turking3') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
 }
 
 function insert(dbClient, utterance, testTrain, primCompound, nparams, target_json) {
@@ -84,7 +84,7 @@ function main() {
                 }).catch((e) => {
                     console.error('Failed to verify ' + tt + '   :' + e.message);
                     // die uglily to fail the transaction
-                    process.exit();
+                    //process.exit();
                 }));
             });
             parser.on('error', errback);
