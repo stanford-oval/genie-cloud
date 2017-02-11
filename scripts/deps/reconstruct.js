@@ -13,6 +13,18 @@ const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
 const Ast = ThingTalk.Ast;
 
+// devices that shouldn't appear in sentences
+const BlackList = [
+    'holidays',
+    'icalendar',
+    'imgflip',
+    'builtin',
+    'sportradar',
+    'thecatapi',
+    'weatherapi',
+    'ytranslate',
+];
+
 const SemanticAnalyzer = require('./semantic');
 
 function clean(name) {
@@ -48,7 +60,7 @@ function describeArg(dlg, arg, type, deviceLhs) {
             if (coin(0.1))
                 return "its " + clean(arg.name) + " value";
             else if (coin(0.3))
-                return "the " + clean(arg.name) + ((deviceLhs !== undefined) ? (" from " + clean(deviceLhs)) : "");
+                return "the " + clean(arg.name) + ((deviceLhs !== undefined || BlackList.indexOf(deviceLhs) === -1) ? (" from " + clean(deviceLhs)) : "");
             else if (coin(0.5))
                 return "the " + clean(arg.name);
             else
@@ -56,16 +68,6 @@ function describeArg(dlg, arg, type, deviceLhs) {
         //return (type.isURL || type.isPicture ? "it" : "the " + arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
         }
     }
-    if (arg.display)
-        return arg.display;
-    if (arg.isString)
-        return '"' + arg.value + '"';
-    if (arg.isUsername)
-        return '@' + arg.value;
-    if (arg.isHashtag)
-        return '#' + arg.value;
-    if (arg.isNumber || arg.isPhoneNumber || arg.isEmailAddress || arg.isURL)
-        return arg.value;
     if (arg.isMeasure)
         return arg.value + ' ' + arg.unit;
     if (arg.isBoolean)
@@ -77,6 +79,16 @@ function describeArg(dlg, arg, type, deviceLhs) {
         return arg.value.toDateString();
     if (arg.isEnum)
         return clean(arg.value);
+    if (arg.display)
+        return arg.display;
+    if (arg.isString)
+        return '"' + arg.value + '"';
+    if (arg.isUsername)
+        return '@' + arg.value;
+    if (arg.isHashtag)
+        return '#' + arg.value;
+    if (arg.isNumber || arg.isPhoneNumber || arg.isEmailAddress || arg.isURL)
+        return arg.value;
 
     return String(arg);
 }

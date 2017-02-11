@@ -157,30 +157,29 @@ const NUMBER_OP_WEIGHTS = {
     'is': 0.5,
     '>': 1,
     '<': 1,
-    '': 2,
+    '': 2
 };
 
 const ARRAY_OP_WEIGHTS = {
     'has': 1,
-    '': 2,
+    '': 2
 };
 
 const STRING_OP_WEIGHTS = {
     'is': 1,
     'contains': 1,
-    '': 2,
+    '': 2
 };
 
 const OTHER_OP_WEIGHTS = {
     'is': 1,
-    '': 2,
-}
+    '': 2
+};
 
-const STRING_ARGUMENTS = ['work', "i'm happy", "danger",
-    "you would never believe what happened", "merry christmas", "love you"];
+const STRING_ARGUMENTS = ["i'm happy", "you would never believe what happened", "merry christmas", "love you"];
 const USERNAME_ARGUMENTS = ['justinbieber', 'stanford'];
 const HASHTAG_ARGUMENTS = ['funny', 'cat', 'lol'];
-const URL_ARGUMENTS = ['http://www.google.com', 'http://example.com/file.jpg'];
+const URL_ARGUMENTS = ['http://www.abc.def'];
 const NUMBER_ARGUMENTS = [42, 7, 14, 11];
 const MEASURE_ARGUMENTS = {
     C: [{ value: 73, unit: 'F' }, { value: 22, unit: 'C' }],
@@ -188,7 +187,7 @@ const MEASURE_ARGUMENTS = {
     kg: [{ value: 82, unit: 'kg' }, { value: 155, unit: 'lb' }],
     kcal: [{ value: 500, unit: 'kcal' }],
     mps: [{ value: 5, unit: 'kmph' }, { value: 25, unit: 'mph' }],
-    ms: [{ value: 1, unit: 'h' }, { value: 14, unit: 'day' }],
+    ms: [{ value: 1, unit: 'h'}],
     byte: [{ value: 5, unit: 'KB' }, { value: 20, unit: 'MB' }]
 };
 const BOOLEAN_ARGUMENTS = [true, false];
@@ -212,6 +211,71 @@ const ENTITIES = {
     'sportradar:us_soccer_team': [["San Jose Earthquakes", 'sje'], ["Toronto FC", 'tor']],
     'tt:stock_id': [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft'], ['Red Hat', 'rht']]
 };
+
+// params with special value
+const PARAMS_SPECIAL_STRING = {
+    'repo_name': 'android_repository',
+    'file_name': 'log.txt',
+    'old_name': 'log.txt',
+    'new_name': 'backup.txt',
+    'folder_name': 'archive',
+    'purpose': 'research project',
+    'fileter': 'lo-fi',
+    'query': 'super bowl',
+    'summary': 'celebration',
+    'category': 'sports',
+    'from_name': 'bob',
+    'blog_name': 'government secret',
+    'camera_used': 'mastcam',
+    'description': 'christmas',
+    'uber_type': 'uberx',
+    'source_language': 'english',
+    'target_language': 'chinese',
+    'detected_language': 'english',
+    'organizer': 'stanford',
+    'user': 'bob',
+    'position': 'ceo',
+    'industry': 'music',
+    'template': 'wtf',
+    'text_top': 'ummm... i have a question...',
+    'text_bottom': 'wtf?'
+};
+
+// params should never be assigned unless it's required
+const PARAMS_BLACKC_LIST = [
+    'company_name', 'weather', 'currency_code', 'orbiting_body',
+    'home_name', 'away_name', 'home_alias', 'away_alias',
+    'watched_is_home',
+    'day',
+    'bearing', //gps
+    'deep', 'light', 'rem', // sleep tracker
+    'yield', 'div', 'pay_date', 'ex_div_date', // yahoo finance
+    'cloudiness', 'fog',
+    'formatted_name', 'headline', // linkedin
+    'video_id',
+];
+
+// params should use operator is
+const PARAMS_OP_IS = [
+    'filter', 'source_language', 'target_language', 'detected_language',
+    'from_name', 'uber_type',
+];
+
+// params should use operator contain
+const PARAMS_OP_CONTAIN = [
+    'snippet'
+];
+
+// rhs params should not be assigned by a value from lhs
+const PARAMS_BLACKLIST_RHS = [
+    'file_name', 'new_name', 'old_name', 'folder_name', 'repo_name',
+    'home_name', 'away_name', 'purpose'
+];
+
+// lhs params should not be assigned to a parameter in the rhs
+const PARAMS_BLACKLIST_LHS = [
+    'orbiting_body', 'camera_used'
+];
 
 function chooseEntity(entityType) {
     if (entityType === 'tt:email_address')
@@ -241,12 +305,38 @@ function chooseEntity(entityType) {
 function chooseRandomValue(argName, type) {
     if (type.isArray)
         return chooseRandomValue(argName, type.elem);
-    if (type.isMeasure)
-        return ['Measure', uniform(MEASURE_ARGUMENTS[type.unit])];
-    if (type.isNumber)
-        return ['Number', { value: uniform(NUMBER_ARGUMENTS) }];
-    if (type.isString)
+    if (type.isString) {
+        if (argName in PARAMS_SPECIAL_STRING)
+            return ['String', { value: PARAMS_SPECIAL_STRING[argName]}];
+        if (argName.endsWith('title'))
+            return ['String', { value: 'news' }];
+        if (argName.startsWith('label')) // label, labels
+            return ['String', { value: 'work' }];
         return ['String', { value: uniform(STRING_ARGUMENTS) }];
+    }
+    if (type.isHashtag) {
+        if (argName === 'channel')
+            return ['Hashtag', { value: 'work'}];
+        return ['Hashtag', { value: uniform(HASHTAG_ARGUMENTS) }];
+    }
+    if (type.isNumber) {
+        if (argName === 'surge')
+            return ['Number', { value : 1.5 }];
+        if (argName === 'heartrate')
+            return ['Number', { value : 80 }];
+        if (argName.startsWith('high'))
+            return ['Number', { value : 20 }];
+        if (argName.startsWith('low'))
+            return ['Number', { value : 10 }];
+        return ['Number', { value: uniform(NUMBER_ARGUMENTS) }];
+    }
+    if (type.isMeasure) {
+        if (argName === 'high')
+            return ['Measure', { value : 75, unit: 'F' }];
+        if (argName === 'low')
+            return ['Measure', { value : 70, unit: 'F' }];
+        return ['Measure', uniform(MEASURE_ARGUMENTS[type.unit])];
+    }
     if (type.isDate)
         return ['Date', uniform(DATE_ARGUMENTS)];
     if (type.isBoolean)
@@ -259,8 +349,6 @@ function chooseRandomValue(argName, type) {
         return ['PhoneNumber', { value: uniform(PHONE_ARGUMENTS) }];
     if (type.isUsername)
         return ['Username', { value: uniform(USERNAME_ARGUMENTS) }];
-    if (type.isHashtag)
-        return ['Hashtag', { value: uniform(HASHTAG_ARGUMENTS) }];
     if (type.isURL)
         return ['URL', { value: uniform(URL_ARGUMENTS) }];
     if (type.isEnum)
@@ -298,34 +386,41 @@ function applyFilters(invocation, isAction) {
         var type = ThingTalk.Type.fromString(invocation.schema[i]);
         var argrequired = invocation.required[i];
 
-        if (type.isPicture)
-            continue;
+        if (type.isEntity)
+            if (type.type === 'tt:picture')
+                continue;
+            if (type.type === 'tt:url' && !argrequired)
+                continue;
         if (args[i].startsWith('__'))
             continue;
         if (args[i].endsWith('_id') && args[i] !== 'stock_id')
             continue;
-        if (args[i] === 'count')
+        if (PARAMS_BLACKC_LIST.indexOf(args[i]) > -1)
             continue;
-
+        if (args[i].startsWith('tournament'))
+            continue;
+        
         var tmp = chooseRandomValue(args[i], type);
         var sempreType = tmp[0];
         var value = tmp[1];
         if (!sempreType)
             continue;
 
+        // fill in all required one
         if (argrequired) {
-            var fill = type.isEnum || coin(0.4);
-            if (fill)
-                ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
+            ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else if (isAction) {
-            var fill = type.isEnum || coin(0.4);
-            if (fill)
-                ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
+            ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else {
-            var fill = coin(0.2);
+            var fill = type.isEnum || coin(0.2);
             if (!fill)
                 continue;
-            var operator = sample(getOpDistribution(type));
+            if (PARAMS_OP_IS.indexOf(args[i]) > -1)
+                var operator = 'is';
+            else if (PARAMS_OP_CONTAIN.indexOf(args[i]) > -1)
+                var operator = 'contains';
+            else
+                var operator = sample(getOpDistribution(type));
             if (operator)
                 ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: operator, type: sempreType, value: value });
         }
@@ -376,6 +471,13 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
 
         if (toArg.startsWith('__'))
             continue;
+
+        // don't pass numbers
+        if (toType.isNumber)
+            continue;
+        if (PARAMS_BLACKLIST_RHS.indexOf(toArg))
+            continue;
+
         distribution[''] = 0.5;
 
         for (var fromArg of fromArgs) {
@@ -386,6 +488,8 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
             if (fromArg.startsWith('__'))
                 continue;
             if (fromArg.endsWith('_id'))
+                continue;
+            if (PARAMS_BLACKLIST_LHS.indexOf(fromArg))
                 continue;
 
             if (toArgRequired[toArg] || isAction) {
@@ -404,7 +508,8 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
                 }
             }
         }
-        if (toType.isString) {
+        // only pass $event when for 'message' and 'status'
+        if (toType.isString && (toArg === 'message' || toArg === 'status')) {
             distribution['$event+is'] = 0.1;
             //distribution['$event.title+is'] = 0.05;
         }
@@ -541,3 +646,4 @@ function genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N) 
 }
 
 module.exports = genRandomRules;
+

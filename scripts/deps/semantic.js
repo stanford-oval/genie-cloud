@@ -140,7 +140,7 @@ function valueToCategoryAndValue(value) {
         var date = parseDate(value.value);
         return [ValueCategory.Date,
                 Ast.Value.Date(date),
-                date.toLocaleString()];
+                date.toDateString()];
     case 'Bool':
         return [ValueCategory.YesNo,
                 Ast.Value.Boolean(value.value.value),

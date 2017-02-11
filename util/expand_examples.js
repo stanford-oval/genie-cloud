@@ -50,6 +50,39 @@ const HASHTAG_PLACEHOLDER = 'some tag';
 const URL_ARGUMENTS = identityMap(['http://www.google.com']);
 const URL_PLACEHOLDER = 'some url';
 
+const ENTITIES = {
+    'sportradar:eu_soccer_team': [[["Juventus", "juv"], ["Barcellona", "bar"], ["Bayern Munchen", "fcb"]], 'some team'],
+    'sportradar:mlb_team': [[["SF Giants", 'sf'], ["Chicago Cubs", 'chc']], 'some team'],
+    'sportradar:nba_team': [[["Golden State Warriors", 'gsw'], ["LA Lakers", 'lal']], 'some team'],
+    'sportradar:ncaafb_team': [[["Stanford Cardinals", 'stan'], ["California Bears", 'cal']], 'some team'],
+    'sportradar:ncaambb_team': [[["Stanford Cardinals", 'stan'], ["California Bears", 'cal']], 'some team'],
+    'sportradar:nfl_team': [[["Seattle Seahawks", 'sea'], ["SF 49ers", 'sf']], 'some team'],
+    'sportradar:us_soccer_team': [[["San Jose Earthquakes", 'sje'], ["Toronto FC", 'tor']], 'some team'],
+    'tt:stock_id': [[["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft'], ['Red Hat', 'rht']], 'some company']
+};
+
+function chooseEntity(entityType) {
+    if (entityType === 'tt:email_address')
+        return [EMAIL_ARGUMENTS, EMAIL_PLACEHOLDER];
+    if (entityType === 'tt:phone_number')
+        return [PHONE_ARGUMENTS, PHONE_PLACEHOLDER];
+    if (entityType === 'tt:username')
+        return [USERNAME_ARGUMENTS, USERNAME_PLACEHOLDER];
+    if (entityType === 'tt:hashtag')
+        return [HASHTAG_ARGUMENTS, HASHTAG_PLACEHOLDER];
+    if (entityType === 'tt:url')
+        return [URL_ARGUMENTS, URL_PLACEHOLDER];
+    if (entityType === 'tt:picture')
+        return [PICTURE_ARGUMENTS, PICTURE_PLACEHOLDER];
+
+    var choices = ENTITIES[entityType];
+    if (!choices) {
+        console.log('Unrecognized entity type ' + entityType);
+        return [null, null];
+    }
+    return choices;
+}
+
 function extractArgNames(example) {
     var names = [];
 
@@ -90,7 +123,9 @@ function expandOne(example, argtypes, into) {
             throw new TypeError('Invalid placeholder $' + argname);
 
         var choices, placeholder;
-        if (argtype.isString) {
+        if (argtype.isEntity) {
+            [choices, placeholder] = chooseEntity(argtype.type);
+        } else if (argtype.isString) {
             choices = STRING_ARGUMENTS;
             placeholder = STRING_PLACEHOLDER;
         } else if (argtype.isNumber) {

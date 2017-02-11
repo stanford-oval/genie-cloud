@@ -46,9 +46,9 @@ function extract(dbClient, language, row) {
         if (token.length < 2)
             continue;
 
-        //console.log(token + ',' + kind + ':' + channelName);
-        dbClient.query("insert ignore into lexicon (language, token, schema_id, channel_name) "
-            + " select ?,?,id,? from device_schema where kind = ?", [language,token,channelName,kind]);
+        console.log(token + ',' + kind + ':' + channelName);
+        //dbClient.query("insert ignore into lexicon (language, token, schema_id, channel_name) "
+        //    + " select ?,?,id,? from device_schema where kind = ?", [language,token,channelName,kind]);
     }
 }
 
