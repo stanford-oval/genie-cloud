@@ -247,10 +247,11 @@ const PARAMS_BLACKC_LIST = [
     'home_name', 'away_name', 'home_alias', 'away_alias',
     'watched_is_home',
     'day',
-    'deep', 'light', 'rem',
-    'yield', 'div', 'pay_date', 'ex_div_date',
+    'bearing', //gps
+    'deep', 'light', 'rem', // sleep tracker
+    'yield', 'div', 'pay_date', 'ex_div_date', // yahoo finance
     'cloudiness', 'fog',
-    'formatted_name', 'headline',
+    'formatted_name', 'headline', // linkedin
     'video_id',
 ];
 
@@ -385,10 +386,11 @@ function applyFilters(invocation, isAction) {
         var type = ThingTalk.Type.fromString(invocation.schema[i]);
         var argrequired = invocation.required[i];
 
-        if (type.isPicture) {
-            console.log(type);
-            continue;
-        }
+        if (type.isEntity)
+            if (type.type === 'tt:picture')
+                continue;
+            if (type.type === 'tt:url' && !argrequired)
+                continue;
         if (args[i].startsWith('__'))
             continue;
         if (args[i].endsWith('_id') && args[i] !== 'stock_id')
@@ -396,10 +398,6 @@ function applyFilters(invocation, isAction) {
         if (PARAMS_BLACKC_LIST.indexOf(args[i]) > -1)
             continue;
         if (args[i].startsWith('tournament'))
-            continue;
-        if (type.isURL)
-            console.log(type, args[i], argrequired, invocation);
-        if (type.isURL && !argrequired)
             continue;
         
         var tmp = chooseRandomValue(args[i], type);
