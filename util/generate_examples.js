@@ -14,6 +14,22 @@ const schema = require('../model/schema');
 const expandExamples = require('./expand_examples');
 const exampleModel = require('../model/example');
 
+function entityToType(entityType) {
+    if (entityType === 'tt:email_address')
+        return 'EmailAddress';
+    if (entityType === 'tt:phone_number')
+        return 'PhoneNumber';
+    if (entityType === 'tt:username')
+        return 'Username';
+    if (entityType === 'tt:hashtag')
+        return 'Hashtag';
+    if (entityType === 'tt:url')
+        return 'URL';
+    if (entityType === 'tt:picture')
+        return 'Picture';
+    return 'Entity(' + entityType + ')';
+}
+
 function assignmentsToArgs(assignments, argtypes) {
     var args = [];
 
@@ -26,6 +42,10 @@ function assignmentsToArgs(assignments, argtypes) {
             type.isPhoneNumber || type.isEnum || type.isURL ||
             type.isUsername || type.isHashtag)
             args.push({ name: nameVal, type: (type.isEnum ? 'Enum' : String(type)),
+                        value: { value: assignments[name] },
+                        operator: 'is' });
+        else if (type.isEntity)
+            args.push({ name: nameVal, type: entityToType(type.type),
                         value: { value: assignments[name] },
                         operator: 'is' });
         else if (type.isMeasure)
