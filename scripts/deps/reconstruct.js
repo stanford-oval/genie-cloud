@@ -13,6 +13,18 @@ const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
 const Ast = ThingTalk.Ast;
 
+// devices that shouldn't appear in sentences
+const BlackList = [
+    'holidays',
+    'icalendar',
+    'imgflip',
+    'builtin',
+    'sportradar',
+    'thecatapi',
+    'weatherapi',
+    'ytranslate',
+];
+
 const SemanticAnalyzer = require('./semantic');
 
 function clean(name) {
@@ -48,7 +60,7 @@ function describeArg(dlg, arg, type, deviceLhs) {
             if (coin(0.1))
                 return "its " + clean(arg.name) + " value";
             else if (coin(0.3))
-                return "the " + clean(arg.name) + ((deviceLhs !== undefined) ? (" from " + clean(deviceLhs)) : "");
+                return "the " + clean(arg.name) + ((deviceLhs !== undefined || BlackList.indexOf(deviceLhs) === -1) ? (" from " + clean(deviceLhs)) : "");
             else if (coin(0.5))
                 return "the " + clean(arg.name);
             else

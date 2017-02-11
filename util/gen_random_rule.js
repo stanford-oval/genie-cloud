@@ -212,6 +212,70 @@ const ENTITIES = {
     'tt:stock_id': [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft'], ['Red Hat', 'rht']]
 };
 
+// params with special value
+const PARAMS_SPECIAL_STRING = {
+    'repo_name': 'android_repository',
+    'file_name': 'log.txt',
+    'old_name': 'log.txt',
+    'new_name': 'backup.txt',
+    'folder_name': 'archive',
+    'purpose': 'research project',
+    'fileter': 'lo-fi',
+    'query': 'super bowl',
+    'summary': 'celebration',
+    'category': 'sports',
+    'from_name': 'bob',
+    'blog_name': 'government secret',
+    'camera_used': 'mastcam',
+    'description': 'christmas',
+    'uber_type': 'uberx',
+    'source_language': 'english',
+    'target_language': 'chinese',
+    'detected_language': 'english',
+    'organizer': 'stanford',
+    'user': 'bob',
+    'position': 'ceo',
+    'industry': 'music',
+    'template': 'wtf',
+    'text_top': 'ummm... i have a question...',
+    'text_bottom': 'wtf?'
+};
+
+// params should never be assigned unless it's required
+const PARAMS_BLACKC_LIST = [
+    'company_name', 'weather', 'currency_code', 'orbiting_body',
+    'home_name', 'away_name', 'home_alias', 'away_alias',
+    'watched_is_home',
+    'day',
+    'deep', 'light', 'rem',
+    'yield', 'div', 'pay_date', 'ex_div_date',
+    'cloudiness', 'fog',
+    'formatted_name', 'headline',
+    'video_id',
+];
+
+// params should use operator is
+const PARAMS_OP_IS = [
+    'filter', 'source_language', 'target_language', 'detected_language',
+    'from_name', 'uber_type',
+];
+
+// params should use operator contain
+const PARAMS_OP_CONTAIN = [
+    'snippet'
+];
+
+// rhs params should not be assigned by a value from lhs
+const PARAMS_BLACKLIST_RHS = [
+    'file_name', 'new_name', 'old_name', 'folder_name', 'repo_name',
+    'home_name', 'away_name', 'purpose'
+];
+
+// lhs params should not be assigned to a parameter in the rhs
+const PARAMS_BLACKLIST_LHS = [
+    'orbiting_body', 'camera_used'
+];
+
 function chooseEntity(entityType) {
     if (entityType === 'tt:email_address')
         return ['EmailAddress', { value: uniform(EMAIL_ARGUMENTS) }];
@@ -241,50 +305,12 @@ function chooseRandomValue(argName, type) {
     if (type.isArray)
         return chooseRandomValue(argName, type.elem);
     if (type.isString) {
-        if (argName === 'repo_name')
-            return ['String', { value: 'android_repository' }];
-        if (argName === 'file_name' || argName === 'old_name')
-            return ['String', { value: 'log.txt'}];
-        if (argName === 'new_name')
-            return ['String', { value: 'backup.txt'}];
-        if (argName === 'folder_name')
-            return ['String', { value: 'archive' }];
-        if (argName === 'purpose')
-            return ['String', { value: 'research project' }];
-        if (argName === 'company_name')
-            return ['String', { value: 'google' }];
-        if (argName === 'filter')
-            return ['String', { value: 'lo-fi' }];
-        if (argName === 'query')
-            return ['String', { value: 'nfl' }];
-        if (argName === 'summary')
-            return ['String', { value: 'meeting' }];
-        if (argName === 'category')
-            return ['String', { value: 'sports' }];
-        if (argName === 'from_name' || argName === 'formatted_name')
-            return ['String', { value: 'bob' }];
-        if (argName === 'blog_name')
-            return ['String', { value: 'government secret' }];
-        if (argName === 'camera_used')
-            return ['String', { value: 'mastcam' }];
-        if (argName === 'description') // nasa apod, calendar, wapo
-            return ['String', { value: 'christmas'}];
+        if (argName in PARAMS_SPECIAL_STRING)
+            return ['String', { value: PARAMS_SPECIAL_STRING[argName]}];
         if (argName.endsWith('title'))
             return ['String', { value: 'news' }];
         if (argName.startsWith('label')) // label, labels
             return ['String', { value: 'work' }];
-        if (argName === 'uber_type')
-            return ['String', { value: 'uberx' }];
-        if (argName === 'source_language')
-            return ['String', { value: 'english' }];
-        if (argName === 'target_language' || argName === 'detected_language')
-            return ['String', { value: 'chinese' }];
-        if (argName === 'organizer')
-            return ['String', { value: 'stanford' }];
-        if (argName === 'user') //reddit 
-            return ['String', { value: 'bob' }];
-        if (argName === 'headline') //linkedin
-            return ['String', { value: 'CEO' }];
         return ['String', { value: uniform(STRING_ARGUMENTS) }];
     }
     if (type.isHashtag) {
@@ -359,27 +385,21 @@ function applyFilters(invocation, isAction) {
         var type = ThingTalk.Type.fromString(invocation.schema[i]);
         var argrequired = invocation.required[i];
 
-        if (type.isPicture)
+        if (type.isPicture) {
+            console.log(type);
             continue;
+        }
         if (args[i].startsWith('__'))
             continue;
         if (args[i].endsWith('_id') && args[i] !== 'stock_id')
             continue;
-        if (args[i] === 'count')
-            continue;
-        if (args[i] === 'currency_code')
-            continue;
-        if (args[i] === 'orbiting_body')
-            continue;
-        if (args[i] === 'home_name' || args[i] === 'away_name')
-            continue;
-        if (args[i] === 'home_alias' || args[i] === 'away_alias')
-            continue;
-        if (args[i] === 'watched_is_home')
+        if (PARAMS_BLACKC_LIST.indexOf(args[i]) > -1)
             continue;
         if (args[i].startsWith('tournament'))
             continue;
-        if (args[i] === 'day') // weird string parameter for jawbone move
+        if (type.isURL)
+            console.log(type, args[i], argrequired, invocation);
+        if (type.isURL && !argrequired)
             continue;
         
         var tmp = chooseRandomValue(args[i], type);
@@ -388,21 +408,18 @@ function applyFilters(invocation, isAction) {
         if (!sempreType)
             continue;
 
+        // fill in all required one
         if (argrequired) {
-            var fill = type.isEnum || coin(0.4);
-            if (fill)
-                ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
+            ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else if (isAction) {
-            var fill = type.isEnum || coin(0.4);
-            if (fill)
-                ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
+            ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else {
-            var fill = coin(0.2);
+            var fill = type.isEnum || coin(0.2);
             if (!fill)
                 continue;
-            if (args[i] === 'filter')
+            if (PARAMS_OP_IS.indexOf(args[i]) > -1)
                 var operator = 'is';
-            if (args[i] === 'snippet')
+            else if (PARAMS_OP_CONTAIN.indexOf(args[i]) > -1)
                 var operator = 'contains';
             else
                 var operator = sample(getOpDistribution(type));
@@ -457,17 +474,11 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
         if (toArg.startsWith('__'))
             continue;
 
-        // don't pass parameter to names of files, teams, repos, companies
-        // e.g., file_name, new_name, old_name, folder_name, repo_name, home_name, away_name
-        if (toArg.endsWith('_name'))
-            continue;
         // don't pass numbers
         if (toType.isNumber)
             continue;
-        // don't pass to slack purpose
-        if (toArg === 'prupose')
+        if (PARAMS_BLACKLIST_RHS.indexOf(toArg))
             continue;
-       
 
         distribution[''] = 0.5;
 
@@ -480,9 +491,7 @@ function applyComposition(from, fromMeta, to, toMeta, isAction) {
                 continue;
             if (fromArg.endsWith('_id'))
                 continue;
-            if (fromArg === 'orbiting_body')
-                continue;
-            if (fromArg === 'camera_used')
+            if (PARAMS_BLACKLIST_LHS.indexOf(fromArg))
                 continue;
 
             if (toArgRequired[toArg] || isAction) {
