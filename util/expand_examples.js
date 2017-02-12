@@ -36,7 +36,7 @@ const LOCATION_ARGUMENTS = [['here', { relativeTag: 'rel_current_location', lati
                             ['palo alto', { relativeTag: 'absolute', latitude: 37.442156, longitude: -122.1634471 }],
                             ['los angeles', { relativeTag: 'absolute', latitude:    34.0543942, longitude: -118.2439408 }]];
 const LOCATION_PLACEHOLDER = 'some place';
-const DATE_ARGUMENTS = [['august 24th 1992', { year: 1992, month: 8, day: 24, hour: 0, minute: 0, second: 0 }],
+const DATE_ARGUMENTS = [['feb 14th 2017', { year: 2017, month: 2, day: 14, hour: 0, minute: 0, second: 0 }],
     ['may 4th 2016', { year: 2016, month: 5, day: 4, hour: 0, minute: 0, second: 0 }]];
 const DATE_PLACEHOLDER = 'some day';
 const EMAIL_ARGUMENTS = identityMap(['nobody@stanford.edu', 'somebody@example.com']);

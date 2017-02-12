@@ -177,7 +177,7 @@ const OTHER_OP_WEIGHTS = {
 };
 
 const STRING_ARGUMENTS = ["i'm happy", "you would never believe what happened", "merry christmas", "love you"];
-const USERNAME_ARGUMENTS = ['justinbieber', 'stanford'];
+const USERNAME_ARGUMENTS = ['bob'];
 const HASHTAG_ARGUMENTS = ['funny', 'cat', 'lol'];
 const URL_ARGUMENTS = ['http://www.abc.def'];
 const NUMBER_ARGUMENTS = [42, 7, 14, 11];
@@ -196,7 +196,7 @@ const LOCATION_ARGUMENTS = [{ relativeTag: 'rel_current_location', latitude: -1,
                             { relativeTag: 'rel_work', latitude: -1, longitude: -1 }];
                             //{ relativeTag: 'absolute', latitude: 37.442156, longitude: -122.1634471 },
                             //{ relativeTag: 'absolute', latitude:    34.0543942, longitude: -118.2439408 }];
-const DATE_ARGUMENTS = [{ year: 1992, month: 8, day: 24, hour: -1, minute: -1, second: -1 },
+const DATE_ARGUMENTS = [{ year: 2017, month: 2, day: 14, hour: -1, minute: -1, second: -1 },
     { year: 2016, month: 5, day: 4, hour: -1, minute: -1, second: -1 }];
 const EMAIL_ARGUMENTS = ['bob@stanford.edu'];
 const PHONE_ARGUMENTS = ['+16501234567'];
@@ -209,7 +209,7 @@ const ENTITIES = {
     'sportradar:ncaambb_team': [["Stanford Cardinals", 'stan'], ["California Bears", 'cal']],
     'sportradar:nfl_team': [["Seattle Seahawks", 'sea'], ["SF 49ers", 'sf']],
     'sportradar:us_soccer_team': [["San Jose Earthquakes", 'sje'], ["Toronto FC", 'tor']],
-    'tt:stock_id': [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft'], ['Red Hat', 'rht']]
+    'tt:stock_id': [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft']]
 };
 
 // params with special value
@@ -228,31 +228,38 @@ const PARAMS_SPECIAL_STRING = {
     'blog_name': 'government secret',
     'camera_used': 'mastcam',
     'description': 'christmas',
-    'uber_type': 'uberx',
     'source_language': 'english',
     'target_language': 'chinese',
     'detected_language': 'english',
     'organizer': 'stanford',
     'user': 'bob',
-    'position': 'ceo',
+    'positions': 'ceo',
     'industry': 'music',
     'template': 'wtf',
     'text_top': 'ummm... i have a question...',
-    'text_bottom': 'wtf?'
+    'text_bottom': 'wtf?',
+    'phase': 'moon'
 };
 
 // params should never be assigned unless it's required
 const PARAMS_BLACKC_LIST = [
     'company_name', 'weather', 'currency_code', 'orbiting_body',
     'home_name', 'away_name', 'home_alias', 'away_alias',
-    'watched_is_home',
+    'watched_is_home', 'scheduled_time', 'game_status',
+    'home_points', 'away_points', // should be replaced by watched_points, other_points eventually
     'day',
-    'bearing', //gps
-    'deep', 'light', 'rem', // sleep tracker
+    'bearing', 'updateTime', //gps
+    'deep', 'light', 'rem', 'awakeTime', 'asleepTime', // sleep tracker
     'yield', 'div', 'pay_date', 'ex_div_date', // yahoo finance
     'cloudiness', 'fog',
     'formatted_name', 'headline', // linkedin
     'video_id',
+    'uber_type',
+    'count',
+    'timestamp', //slack
+    'last_modified', 'full_path', 'total', // dropbox
+    'estimated_diameter_min', 'estimated_diameter_max',
+    'translated_text'
 ];
 
 // params should use operator is
@@ -264,6 +271,11 @@ const PARAMS_OP_IS = [
 // params should use operator contain
 const PARAMS_OP_CONTAIN = [
     'snippet'
+];
+
+// params should use operator greater
+const PARAMS_OP_GREATER = [
+    'file_size'
 ];
 
 // rhs params should not be assigned by a value from lhs
@@ -395,7 +407,7 @@ function applyFilters(invocation, isAction) {
             continue;
         if (args[i].endsWith('_id') && args[i] !== 'stock_id')
             continue;
-        if (PARAMS_BLACKC_LIST.indexOf(args[i]) > -1)
+        if (!argrequired && PARAMS_BLACKC_LIST.indexOf(args[i]) > -1)
             continue;
         if (args[i].startsWith('tournament'))
             continue;
@@ -419,6 +431,8 @@ function applyFilters(invocation, isAction) {
                 var operator = 'is';
             else if (PARAMS_OP_CONTAIN.indexOf(args[i]) > -1)
                 var operator = 'contains';
+            else if (PARAMS_OP_GREATER.indexOf(args[i]) > -1)
+                var operator = '>';
             else
                 var operator = sample(getOpDistribution(type));
             if (operator)
