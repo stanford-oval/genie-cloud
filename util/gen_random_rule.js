@@ -234,6 +234,7 @@ const PARAMS_SPECIAL_STRING = {
     'organizer': 'stanford',
     'user': 'bob',
     'positions': 'ceo',
+    'specialties': 'java'
     'industry': 'music',
     'template': 'wtf',
     'text_top': 'ummm... i have a question...',
@@ -259,7 +260,8 @@ const PARAMS_BLACKC_LIST = [
     'timestamp', //slack
     'last_modified', 'full_path', 'total', // dropbox
     'estimated_diameter_min', 'estimated_diameter_max',
-    'translated_text'
+    'translated_text',
+    'sunset', 'sunrise'
 ];
 
 // params should use operator is
@@ -353,8 +355,13 @@ function chooseRandomValue(argName, type) {
         return ['Date', uniform(DATE_ARGUMENTS)];
     if (type.isBoolean)
         return ['Bool', { value: uniform(BOOLEAN_ARGUMENTS) }];
-    if (type.isLocation)
+    if (type.isLocation) {
+        if (argName === 'start')
+            return ['Location', { relativeTag: 'rel_home', latitude: -1, longitude: -1 }];
+        if (argName === 'end')
+            return ['Location', { relativeTag: 'rel_work', latitude: -1, longitude: -1 }];
         return ['Location', uniform(LOCATION_ARGUMENTS)];
+    }
     if (type.isEmailAddress)
         return ['EmailAddress', { value: uniform(EMAIL_ARGUMENTS) }];
     if (type.isPhoneNumber)
