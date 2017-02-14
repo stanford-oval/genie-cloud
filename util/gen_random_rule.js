@@ -261,7 +261,8 @@ const PARAMS_BLACKC_LIST = [
     'last_modified', 'full_path', 'total', // dropbox
     'estimated_diameter_min', 'estimated_diameter_max',
     'translated_text',
-    'sunset', 'sunrise'
+    'sunset', 'sunrise',
+    'name' //nasa, meme
 ];
 
 // params should use operator is
@@ -667,4 +668,3 @@ function genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N) 
 }
 
 module.exports = genRandomRules;
-
