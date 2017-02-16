@@ -204,7 +204,7 @@ Most devices will require some kind of authentication, three ways to do
 authentication are supported, including `basic` (traditional username and
 password), `oauth2` (OAuth 1.0 and 2.0 style authentication), and `discovery`
 (authentication by discovery and local interactive paring). Here's a
-[complete guide for authentication and discovery](https://thingengine.stanford.edu/doc/thingpedia-device-intro-auth-n-discovery.md).  
+[complete guide for authentication and discovery](/thingpedia/developers/thingpedia-device-intro-auth-n-discovery.md).  
 
 ### Channel classes
 
