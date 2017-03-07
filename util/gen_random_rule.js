@@ -234,7 +234,7 @@ const PARAMS_SPECIAL_STRING = {
     'organizer': 'stanford',
     'user': 'bob',
     'positions': 'ceo',
-    'specialties': 'java'
+    'specialties': 'java',
     'industry': 'music',
     'template': 'wtf',
     'text_top': 'ummm... i have a question...',
