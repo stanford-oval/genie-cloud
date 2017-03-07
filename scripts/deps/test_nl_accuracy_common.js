@@ -165,7 +165,7 @@ function increase(v) {
         return v+1;
 }
 
-function compare(candidates, ex, state) {
+function compare(candidates, ex, state, succeeded) {
     var utterance = ex.utterance;
     var target_json = ex.target_json;
 
@@ -203,12 +203,14 @@ function compare(candidates, ex, state) {
     substate.programs.add(normalizedString);
     substate.total++;
 
+
     if (candidates[0].answer === target_json) {
         console.log(ex.id + ' ok');
         state.yes_literal++;
         substate.yes++;
         substate.correctPrograms[0].add(normalizedString);
         substate.oracle[0] = increase(substate.oracle[0]);
+        succeeded.push(ex);
         return;
     }
 
@@ -219,6 +221,7 @@ function compare(candidates, ex, state) {
         substate.yes++;
         substate.correctPrograms[0].add(normalizedString);
         substate.oracle[0] = increase(substate.oracle[0]);
+        succeeded.push(ex);
         return;
     }
 
@@ -423,12 +426,14 @@ module.exports = function() {
         }
     }
 
+    var succeeded = [];
+
     var queue = new PromiseQueue(function(ex) {
         state.total++;
 
         return sempre.sendUtterance(ex.utterance).then(function(candidates) {
             try {
-                compare(candidates, ex, state);
+                compare(candidates, ex, state, succeeded);
             } catch(e) {
                 console.error('Failed to compare: ' + e.message);
             }
@@ -454,6 +459,10 @@ module.exports = function() {
             }
         }
 
+        console.log('Succeeded: ');
+        succeeded.forEach(function(ex){
+            console.log(ex.id + '\t' + ex.utterance);
+        });
         console.log('Final state: ' + util.inspect(state, { depth: null }));
 
         var overall = state.simple.total + state.rule.total;
