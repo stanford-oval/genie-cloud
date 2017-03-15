@@ -101,7 +101,7 @@ const ENTITIES = {
     'sportradar:eu_soccer_team': [["Juventus", "juv"], ["Barcellona", "bar"], ["Bayern Munchen", "fcb"]],
     'sportradar:mlb_team': [["SF Giants", 'sf'], ["Chicago Cubs", 'chc']],
     'sportradar:nba_team': [["Golden State Warriors", 'gsw'], ["LA Lakers", 'lal']],
-    'sportradar:ncaafb_team': [["Stanford Cardinals", 'stan'], ["California Bears", 'cal']],
+    'sportradar:ncaafb_team': [["Stanford Cardinals", 'sta'], ["California Bears", 'cal']],
     'sportradar:ncaambb_team': [["Stanford Cardinals", 'stan'], ["California Bears", 'cal']],
     'sportradar:nfl_team': [["Seattle Seahawks", 'sea'], ["SF 49ers", 'sf']],
     'sportradar:us_soccer_team': [["San Jose Earthquakes", 'sje'], ["Toronto FC", 'tor']],
@@ -189,7 +189,7 @@ function chooseEntity(entityType) {
 function chooseRandomValue(argName, type) {
     console.log(argName, type, type.isString);
     if (type.isArray)
-        return chooseRandomValue(type.elem);
+        return chooseRandomValue(argName, type.elem);
     if (type.isMeasure) {
         if (argName === 'high')
             return ['Measure', { value : 75, unit: 'F' }];
@@ -290,6 +290,8 @@ function processOneInvocation(output, schemaRetriever, channelType, kind, channe
             return;
         else 
             var [sempreType, value] = chooseRandomValue(argname, type);
+        if (!sempreType)
+            return;
 
         invocation.args.push({ name: { id: 'tt:param.' + argname },
             operator: 'is', type: sempreType, value: value });
