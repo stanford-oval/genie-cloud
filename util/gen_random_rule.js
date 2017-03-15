@@ -205,7 +205,7 @@ const ENTITIES = {
     'sportradar:eu_soccer_team': [["Juventus", "juv"], ["Barcellona", "bar"], ["Bayern Munchen", "fcb"]],
     'sportradar:mlb_team': [["SF Giants", 'sf'], ["Chicago Cubs", 'chc']],
     'sportradar:nba_team': [["Golden State Warriors", 'gsw'], ["LA Lakers", 'lal']],
-    'sportradar:ncaafb_team': [["Stanford Cardinals", 'stan'], ["California Bears", 'cal']],
+    'sportradar:ncaafb_team': [["Stanford Cardinals", 'sta'], ["California Bears", 'cal']],
     'sportradar:ncaambb_team': [["Stanford Cardinals", 'stan'], ["California Bears", 'cal']],
     'sportradar:nfl_team': [["Seattle Seahawks", 'sea'], ["SF 49ers", 'sf']],
     'sportradar:us_soccer_team': [["San Jose Earthquakes", 'sje'], ["Toronto FC", 'tor']],

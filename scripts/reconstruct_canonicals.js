@@ -412,7 +412,7 @@ function main() {
     var output = fs.createWriteStream(process.argv[2]);
 
     var language = process.argv[3] || 'en';
-    var types = (process.argv[4] || 'thingpedia,online,turking,generated').split(',');
+    var types = (process.argv[4] || 'thingpedia,online').split(',');
     var grammar = GRAMMAR_TOKENS[language];
     if (!grammar)
         throw new Error('Invalid language ' + language);
