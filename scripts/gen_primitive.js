@@ -151,6 +151,8 @@ const PARAMS_BLACK_LIST = [
     'cloudiness', 'fog',
     'formatted_name', 'headline', // linkedin
     'video_id',
+    'image_id',
+    '__reserved', // twitter
     'uber_type',
     'count',
     'timestamp', //slack
@@ -187,7 +189,6 @@ function chooseEntity(entityType) {
 }
 
 function chooseRandomValue(argName, type) {
-    console.log(argName, type, type.isString);
     if (type.isArray)
         return chooseRandomValue(argName, type.elem);
     if (type.isMeasure) {
@@ -280,8 +281,10 @@ function processOneInvocation(output, schemaRetriever, channelType, kind, channe
         var argcanonical = meta.argcanonicals[i];
         var argrequired = channelType === 'action' || meta.required[i];
 
-        if (argname in PARAMS_BLACK_LIST)
+        if (PARAMS_BLACK_LIST.indexOf(argname) > -1) {
+            console.log(argname);
             return;
+        }
         else if (type.isEntity && type.type == 'tt:picture')
             return;
         else if (type.isTime)
@@ -328,4 +331,5 @@ function main() {
 }
 
 main();
+
 

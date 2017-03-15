@@ -255,6 +255,8 @@ const PARAMS_BLACK_LIST = [
     'cloudiness', 'fog',
     'formatted_name', 'headline', // linkedin
     'video_id',
+    'image_id',
+    '__reserved', // twitter
     'uber_type',
     'count',
     'timestamp', //slack
