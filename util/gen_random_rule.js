@@ -177,7 +177,7 @@ const OTHER_OP_WEIGHTS = {
 };
 
 const STRING_ARGUMENTS = ["i'm happy", "you would never believe what happened", "merry christmas", "love you"];
-const USERNAME_ARGUMENTS = ['bob'];
+const USERNAME_ARGUMENTS = ['alice'];
 const HASHTAG_ARGUMENTS = ['funny', 'cat', 'lol'];
 const URL_ARGUMENTS = ['http://www.abc.def'];
 const NUMBER_ARGUMENTS = [42, 7, 14, 11];
@@ -187,7 +187,7 @@ const MEASURE_ARGUMENTS = {
     kg: [{ value: 82, unit: 'kg' }, { value: 155, unit: 'lb' }],
     kcal: [{ value: 500, unit: 'kcal' }],
     mps: [{ value: 5, unit: 'kmph' }, { value: 25, unit: 'mph' }],
-    ms: [{ value: 1, unit: 'h'}],
+    ms: [{ value: 2, unit: 'h'}],
     byte: [{ value: 5, unit: 'KB' }, { value: 20, unit: 'MB' }]
 };
 const BOOLEAN_ARGUMENTS = [true, false];
@@ -243,7 +243,7 @@ const PARAMS_SPECIAL_STRING = {
 };
 
 // params should never be assigned unless it's required
-const PARAMS_BLACKC_LIST = [
+const PARAMS_BLACK_LIST = [
     'company_name', 'weather', 'currency_code', 'orbiting_body',
     'home_name', 'away_name', 'home_alias', 'away_alias',
     'watched_is_home', 'scheduled_time', 'game_status',
@@ -415,7 +415,7 @@ function applyFilters(invocation, isAction) {
             continue;
         if (args[i].endsWith('_id') && args[i] !== 'stock_id')
             continue;
-        if (!argrequired && PARAMS_BLACKC_LIST.indexOf(args[i]) > -1)
+        if (!argrequired && PARAMS_BLACK_LIST.indexOf(args[i]) > -1)
             continue;
         if (args[i].startsWith('tournament'))
             continue;
