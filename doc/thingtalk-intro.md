@@ -2,7 +2,7 @@
 
 ## What is ThingTalk?
 
-ThingTalk is the programming language that ThingEngine (and by extension Sabrina) uses. It's a _declarative
+ThingTalk is the programming language that ThingEngine (and by extension Almond) uses. It's a _declarative
 domain-specific language_, which means it's a language that we specifically developed
 for the Internet of Things (hence the name) and it does not use common constructs
 like for, if or lambdas, hopefully providing a higher level abstraction for connecting
@@ -20,7 +20,7 @@ and the conditions further limit it.
 ## The Basics
 
 Let's start with the basics: like every programming language, we start from Hello World.
-This tutorial assumes that you already have configured Sabrina. If not, see the [Getting Started Tutorial](/getting-started.md)
+This tutorial assumes that you already have configured Almond. If not, see the [Getting Started Tutorial](/getting-started.md)
 first.
 
 This is the code for the Hello World app:
@@ -30,7 +30,7 @@ This is the code for the Hello World app:
     }
 
 Go ahead and copy paste it in the [New App](/thingpedia/apps/create) form,
-then enable the resulting app from [your Sabrina](/apps).
+then enable the resulting app from [your Almond](/apps).
 
 Here we can see we define our app to have codename `HelloWorld`, and we include one rule in it, composed of everything
 in the block up to the semicolon.
@@ -71,7 +71,7 @@ This is similar to Datalog or other logic programming languages, and effectively
 every time the trigger happen, the `text` variable in the scope of the rule will contain the
 first value produced by the trigger.
 Furthermore, in place of `from` we put a constant `"sabrinaapp"`, which
-means we only want tweets from that account (the official Sabrina account on
+means we only want tweets from that account (the official Almond account on
 Twitter).
 
 So this is notifying us of all tweets from `"sabrinaapp"` as we receive
@@ -109,7 +109,7 @@ This second condition uses `$regex(text, regexp, flags)`, a condition which is t
 matches the regular expression `regexp` (in [JavaScript syntax][JSRegExp]).
 
 In this case the rule matches when the tweet contains "hello" as a substring -
-including "hello", "hello Sabrina" but also "othello". If you want to match just "hello" as a
+including "hello", "hello Almond" but also "othello". If you want to match just "hello" as a
 word, you could instead use `"\\\\sshello\\\\s"` or `"\\\\bhello\\\\b"` (note the double escaping of
 backlashes, which are special characters in strings).
 
@@ -167,7 +167,7 @@ We used `@twitter` for Twitter, but `@(type="scale")` for a scale. Why is that?
 
 Well, some things have _global names_, for example `@omlet`, `@twitter`, `@facebook`,
 while other things can only be referred to by attributes. The attribute `type`,
-which is required, can be any of the types of the device as listed on ThingPedia.
+which is required, can be any of the types of the device as listed on Thingpedia.
 
 So for example:
 

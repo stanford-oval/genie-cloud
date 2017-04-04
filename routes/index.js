@@ -20,7 +20,7 @@ router.get('/', function(req, res, next) {
         return device.getByTag(dbClient, 'featured');
     }).spread(function(devices) {
         res.render('index', {
-            page_title: req._("ThingPedia - knowledge for your magic assistant"),
+            page_title: req._("Thingpedia - knowledge for your magic assistant"),
             devices: devices,
             isRunning: req.user ? EngineManager.get().isRunning(req.user.id) : false
         });
@@ -29,7 +29,7 @@ router.get('/', function(req, res, next) {
 
 router.get('/about', function(req, res, next) {
     res.render('about', {
-        page_title: req._("About ThingPedia")
+        page_title: req._("About Thingpedia")
     });
 });
 
@@ -39,7 +39,7 @@ router.get('/about/toc', function(req, res, next) {
 
 router.get('/about/tos', function(req, res, next) {
     res.render('toc', {
-        page_title: req._("Terms of Service for Sabrina & ThingPedia")
+        page_title: req._("Terms of Service for Almond & Thingpedia")
     });
 });
 

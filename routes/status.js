@@ -61,7 +61,7 @@ function getCachedModules(userId) {
 
 router.get('/', user.redirectLogIn, function(req, res) {
     getCachedModules(req.user.id).then(function(modules) {
-        res.render('status', { page_title: req._("ThingPedia - Status"),
+        res.render('status', { page_title: req._("Thingpedia - Status"),
                                csrfToken: req.csrfToken(),
                                modules: modules,
                                isRunning: EngineManager.get().isRunning(req.user.id) });
@@ -99,7 +99,7 @@ router.post('/start', user.requireLogIn, function(req, res) {
     engineManager.startUser(req.user).then(function() {
         res.redirect(303, '/me/status');
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
@@ -108,7 +108,7 @@ router.post('/recovery/wipe-cache', user.requireLogIn, user.requireDeveloper(), 
     var engineManager = EngineManager.get();
 
     if (engineManager.isRunning(req.user.id)) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Your engine is running, kill it before attempting recovery") });
         return;
     }
@@ -118,7 +118,7 @@ router.post('/recovery/wipe-cache', user.requireLogIn, user.requireDeveloper(), 
     Q.nfcall(child_process.execFile, '/usr/bin/rm', ['-rf', p]).then(function() {
         res.redirect(303, '/me/status');
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
@@ -127,7 +127,7 @@ router.post('/recovery/remove-all-apps', user.requireLogIn, user.requireDevelope
     var engineManager = EngineManager.get();
 
     if (engineManager.isRunning(req.user.id)) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Your engine is running, kill it before attempting recovery") });
         return;
     }
@@ -136,7 +136,7 @@ router.post('/recovery/remove-all-apps', user.requireLogIn, user.requireDevelope
 
     var db = new sqlite3.Database(p, sqlite3.OPEN_READWRITE, function(err) {
         if (err) {
-            res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: err });
         } else {
             Q.ninvoke(db, 'run', 'delete from app').then(function() {
@@ -144,7 +144,7 @@ router.post('/recovery/remove-all-apps', user.requireLogIn, user.requireDevelope
             }).then(function() {
                 res.redirect(303, '/me/status');
             }).catch(function(e) {
-                res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+                res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: e });
             }).done();
         }
@@ -155,7 +155,7 @@ router.post('/recovery/remove-all-devices', user.requireLogIn, user.requireDevel
     var engineManager = EngineManager.get();
 
     if (engineManager.isRunning(req.user.id)) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Your engine is running, kill it before attempting recovery") });
         return;
     }
@@ -164,7 +164,7 @@ router.post('/recovery/remove-all-devices', user.requireLogIn, user.requireDevel
 
     var db = new sqlite3.Database(p, sqlite3.OPEN_READWRITE, function(err) {
         if (err) {
-            res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: err });
         } else {
             Q.ninvoke(db, 'run', 'delete from device').then(function() {
@@ -172,7 +172,7 @@ router.post('/recovery/remove-all-devices', user.requireLogIn, user.requireDevel
             }).then(function() {
                 res.redirect(303, '/me/status');
             }).catch(function(e) {
-                res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+                res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: e });
             }).done();
         }
@@ -185,7 +185,7 @@ router.post('/update-module/:kind', user.requireLogIn, function(req, res) {
     }).then(function() {
         res.redirect('/me/status');
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });

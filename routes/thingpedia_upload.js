@@ -1,6 +1,6 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingPedia
+// This file is part of Thingpedia
 //
 // Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -42,7 +42,7 @@ const DEFAULT_CODE = {"params": {},
 
 router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
     var code = JSON.stringify(DEFAULT_CODE, undefined, 2);
-    res.render('thingpedia_device_create_or_edit', { page_title: req._("ThingPedia - create new device"),
+    res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - create new device"),
                                                      csrfToken: req.csrfToken(),
                                                      device: { fullcode: true,
                                                                code: code },
@@ -266,8 +266,8 @@ function doCreateOrUpdate(id, create, req, res) {
                 console.error(e.stack);
                 res.render('thingpedia_device_create_or_edit', { page_title:
                                                                  (create ?
-                                                                  req._("ThingPedia - create new device") :
-                                                                  req._("ThingPedia - edit device")),
+                                                                  req._("Thingpedia - create new device") :
+                                                                  req._("Thingpedia - edit device")),
                                                                  csrfToken: req.csrfToken(),
                                                                  error: e,
                                                                  id: id,
@@ -398,7 +398,7 @@ function doCreateOrUpdate(id, create, req, res) {
         return Q.all(toDelete);
     }).catch(function(e) {
         console.error(e.stack);
-        res.status(400).render('error', { page_title: "ThingPedia - Error",
+        res.status(400).render('error', { page_title: "Thingpedia - Error",
                                           message: e });
     }).done();
 }
@@ -420,7 +420,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                     return d;
                 });
             }).then(function(d) {
-                res.render('thingpedia_device_create_or_edit', { page_title: req._("ThingPedia - edit device"),
+                res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - edit device"),
                                                                  csrfToken: req.csrfToken(),
                                                                  id: req.params.id,
                                                                  device: { name: d.name,
@@ -432,7 +432,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });

@@ -12,7 +12,7 @@ const readline = require('readline');
 
 const SempreSyntax = require('../util/sempre_syntax');
 const SempreClient = require('./deps/sempreclient');
-const ThingPediaClient = require('./deps/http_client');
+const ThingpediaClient = require('./deps/http_client');
 const SchemaRetriever = require('thingtalk').SchemaRetriever;
 
 const URL = 'https://sabrina-nl.stanford.edu'
@@ -20,7 +20,7 @@ const URL = 'https://sabrina-nl.stanford.edu'
 class Trainer {
     constructor(sempreUrl) {
         this._sempre = new SempreClient(sempreUrl, 'en-US');
-        this._schemaRetriever = new SchemaRetriever(new ThingPediaClient());
+        this._schemaRetriever = new SchemaRetriever(new ThingpediaClient());
 
         this._raw = null;
     }

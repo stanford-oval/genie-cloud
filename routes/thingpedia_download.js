@@ -1,6 +1,6 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingPedia
+// This file is part of Thingpedia
 //
 // Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -9,7 +9,7 @@
 const Q = require('q');
 const express = require('express');
 
-const ThingPediaClient = require('../util/thingpedia-client');
+const ThingpediaClient = require('../util/thingpedia-client');
 
 var router = express.Router();
 
@@ -26,7 +26,7 @@ router.get('/devices/:device', function(req, res) {
         return;
     }
 
-    var client = new ThingPediaClient(req.query.developer_key);
+    var client = new ThingpediaClient(req.query.developer_key);
 
     client.getModuleLocation(kind).then(function(location) {
         res.cacheFor(86400000);

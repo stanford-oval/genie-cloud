@@ -19,12 +19,12 @@ var router = express.Router();
 
 router.get('/register', function(req, res) {
     if (req.user) {
-        res.render('error', { page_title: req._("ThingPedia - Error"),
-                              error: req._("You are already registered for ThingPedia") });
+        res.render('error', { page_title: req._("Thingpedia - Error"),
+                              error: req._("You are already registered for Thingpedia") });
         return;
     }
 
-    res.render('omlet_register', { page_title: req._("ThingPedia - Complete Registration") });
+    res.render('omlet_register', { page_title: req._("Thingpedia - Complete Registration") });
 });
 
 module.exports = router;

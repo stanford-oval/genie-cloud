@@ -1,6 +1,6 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingPedia
+// This file is part of Thingpedia
 //
 // Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -47,7 +47,7 @@ module.exports = {
 
     getBaseByLanguage: function(client, language) {
         return db.selectAll(client, "select * from example_utterances where is_base and"
-            + " language = ? order by schema_id, utterance",
+            + " language = ? order by id",
             [language]);
     },
 

@@ -1,5 +1,5 @@
 (function() {
-    window.ThingEngine.getThingPedia = function() {
+    window.ThingEngine.getThingpedia = function() {
         return '';
     };
 })();

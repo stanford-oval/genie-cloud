@@ -40,13 +40,13 @@ block content
           input(type='text',name='human_name',value=user.human_name).form-control#human-name
 
         div.form-group
-          label.control-label= _("ThingPedia Developer Access")
+          label.control-label= _("Thingpedia Developer Access")
           if user.developer_status >= 3
             p.form-control-static= _("Administrator")
             span.help-block= _("You know what to do.")
           else if user.developer_status >= 2
             p.form-control-static= _("Trusted Developer")
-            span.help-block= _("All code you submit will go live to all Sabrinas with no review. Be careful!")
+            span.help-block= _("All code you submit will go live to all Almonds with no review. Be careful!")
           else if user.developer_status >= 1
             p.form-control-static= _("Developer")
             span.help-block= _("You can submit new thing interfaces, but they have to be reviewed by an administrator before users can see them.")
@@ -54,10 +54,10 @@ block content
             p.form-control-static!= _("User (<a href='/user/request-developer'>apply to be a developer</a>)")
 
         div.form-group
-          label.control-label(for='developer-key')= _("ThingPedia Developer Key")
+          label.control-label(for='developer-key')= _("Thingpedia Developer Key")
           p.form-control-static= user.developer_key
           span.help-block
-            = _("You can use this developer key in other Sabrinas (such as one you're running locally for testing) to access your devices before they are approved.")
+            = _("You can use this developer key in other Almonds (such as one you're running locally for testing) to access your devices before they are approved.")
 
         div.form-group
           button(type='submit').btn.btn-primary= _("Update profile")
@@ -148,11 +148,11 @@ block content
 
     div.panel-body
       if phone.isConfigured
-        p= _("You are running a Sabrina in your phone.")
+        p= _("You are running a Almond in your phone.")
       else
-        p= _("You did not link the Sabrina in your phone to your account.")
+        p= _("You did not link the Almond in your phone to your account.")
         div#config-phone-desktop-browser
-          p!= _("If you are not running Sabrina already, first <a href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine'>download the app</a>.")
+          p!= _("If you are not running Almond already, first <a href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine'>download the app</a>.")
             = _(" Then visit this page on a mobile browser, or scan this QR code.")
 
             div#qrcode-target= phone.qrcodeTarget

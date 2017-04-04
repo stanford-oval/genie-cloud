@@ -119,7 +119,7 @@ module.exports = {
     requireLogIn: function(req, res, next) {
         if (!req.user) {
             res.status(401).render('login_required',
-                                   { page_title: req._("ThingPedia - Error") });
+                                   { page_title: req._("Thingpedia - Error") });
         } else {
             next();
         }
@@ -138,7 +138,7 @@ module.exports = {
         return function(req, res, next) {
             if (!req.user || ((req.user.roles & role) !== role)) {
                 res.status(401).render('login_required',
-                                       { page_title: req._("ThingPedia - Error") });
+                                       { page_title: req._("Thingpedia - Error") });
             } else {
                 next();
             }
@@ -163,7 +163,7 @@ module.exports = {
         return function(req, res, next) {
             if (req.user.developer_status < required) {
                 res.status(403).render('developer_access_required',
-                                       { page_title: req._("ThingPedia - Error"),
+                                       { page_title: req._("Thingpedia - Error"),
                                          title: req._("Developer Access required"),
                                          csrfToken: req.csrfToken() });
             } else {

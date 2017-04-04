@@ -9,7 +9,7 @@ block scripts
 
 block page_name
   - index = true;
-  = _("ThingPedia")
+  = _("Thingpedia")
 
 block content
   if authenticated
@@ -21,50 +21,50 @@ block content
         if !isRunning
           h1= _("Uh, oh!")
 
-          h2= _("Your Sabrina died!")
+          h2= _("Your Almond died!")
           p= _("It might have crashed or might have been killed by the site administrators.")
           p
             a(href='/me/status').btn.btn-primary Check out what happened
         else if user.omlet_id === null
           h1= _("Almost there")
 
-          p= _("Your Sabrina is almost ready to help you. You just need to configure Omlet.")
+          p= _("Your Almond is almost ready to help you. You just need to configure Omlet.")
 
           p
             a(href='/devices/oauth2/org.thingpedia.builtin.omlet').btn.btn-primary= _("Configure Omlet")
         else
           h1= _("Welcome back!")
 
-          p= _("Your Sabrina is running.")
+          p= _("Your Almond is running.")
 
           p
             a(href='/me').btn.btn-primary= _("Check your dashboard")
 
       else
-        h1= _("Welcome to ThingPedia")
+        h1= _("Welcome to Thingpedia")
 
         h2= _("Let's build the world's best virtual assistant.")
 
-        p= _("ThingPedia is a repository of apps and interfaces that support Sabrina, a collaborative open source effort to build an extensible, privacy-aware personal virtual assistant.")
+        p= _("Thingpedia is a repository of apps and interfaces that support Almond, a collaborative open source effort to build an extensible, privacy-aware personal virtual assistant.")
 
         p
           a(href='/user/register').btn.btn-primary= _("Register now")
           | &#x20;
           a(href='/user/login').btn.btn-primary= _("Log in")
 
-  section
-    h2.section-title= _("The Sabrina Architecture")
+  //section
+    h2.section-title= _("The Almond Architecture")
 
-    img(src='/images/thingpedia-arch-diagram.svg', alt=_("Sabrina uses ThingEngine, which communicates on Omlet and uses the ThingManager and the ThingPedia"))#thingpedia-arch-diagram
+    img(src='/images/thingpedia-arch-diagram.svg', alt=_("Almond uses ThingEngine, which communicates on Omlet and uses the ThingManager and the Thingpedia"))#thingpedia-arch-diagram
 
   footer
     p
-      small!= _("Sabrina, ThingPedia and ThingEngine are part of a research project of the <a href='http://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> at Stanford University. ")
+      small!= _("Almond, Thingpedia and ThingEngine are part of a research project of the <a href='http://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> at Stanford University. ")
         a(href='/about')= _("Read more")
         | .
     p
       small
-        != _("Sabrina is free software, distributed under the <a href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html'>GPLv2 license</a>. ")
+        != _("Almond is free software, distributed under the <a href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html'>GPLv2 license</a>. ")
         a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud/issues')= _("Report a bug")
         | &#x20;
         a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud/ThingEngine').label.label-default Fork me on Github!

@@ -9,7 +9,7 @@
 
 const Q = require('q');
 
-const ThingPediaDiscovery = require('thingpedia-discovery');
+const ThingpediaDiscovery = require('thingpedia-discovery');
 
 const Config = require('../config');
 
@@ -30,7 +30,7 @@ const LEGACY_MAPS = {
     'facebook': 'com.facebook'
 };
 
-class ThingPediaDiscoveryDatabase {
+class ThingpediaDiscoveryDatabase {
     getByAnyKind(kind) {
         return db.withClient(function(dbClient) {
             return device.getByAnyKind(dbClient, kind);
@@ -50,9 +50,9 @@ class ThingPediaDiscoveryDatabase {
     }
 }
 
-var _discoveryServer = new ThingPediaDiscovery.Server(new ThingPediaDiscoveryDatabase());
+var _discoveryServer = new ThingpediaDiscovery.Server(new ThingpediaDiscoveryDatabase());
 
-module.exports = class ThingPediaClientCloud {
+module.exports = class ThingpediaClientCloud {
     constructor(developerKey, locale) {
         this.developerKey = developerKey;
         // only keep the language part of the locale, we don't

@@ -15,7 +15,7 @@ const user = require('../util/user');
 const model = require('../model/user');
 const db = require('../util/db');
 
-var TITLE = "ThingPedia";
+var TITLE = "Thingpedia";
 
 const EngineManager = require('../lib/enginemanager');
 
@@ -31,7 +31,7 @@ router.get('/oauth2/google/callback', passport.authenticate('google'),
                    res.locals.authenticated = true;
                    res.locals.user = user;
                    res.render('register_success', {
-                       page_title: req._("ThingPedia - Registration Successful"),
+                       page_title: req._("Thingpedia - Registration Successful"),
                        username: req.user.username,
                        cloudId: req.user.cloud_id,
                        authToken: req.user.auth_token });
@@ -53,7 +53,7 @@ router.get('/oauth2/facebook/callback', passport.authenticate('facebook'),
                    res.locals.authenticated = true;
                    res.locals.user = user;
                    res.render('register_success', {
-                       page_title: req._("ThingPedia - Registration Successful"),
+                       page_title: req._("Thingpedia - Registration Successful"),
                        username: req.user.username,
                        cloudId: req.user.cloud_id,
                        authToken: req.user.auth_token });
@@ -71,7 +71,7 @@ router.get('/login', function(req, res, next) {
     res.render('login', {
         csrfToken: req.csrfToken(),
         errors: req.flash('error'),
-        page_title: req._("ThingPedia - Login")
+        page_title: req._("Thingpedia - Login")
     });
 });
 
@@ -89,7 +89,7 @@ router.post('/login', passport.authenticate('local', { failureRedirect: '/user/l
 router.get('/register', function(req, res, next) {
     res.render('register', {
         csrfToken: req.csrfToken(),
-        page_title: req._("ThingPedia - Register")
+        page_title: req._("Thingpedia - Register")
     });
 });
 
@@ -131,7 +131,7 @@ router.post('/register', function(req, res, next) {
     } catch(e) {
         res.render('register', {
             csrfToken: req.csrfToken(),
-            page_title: req._("ThingPedia - Register"),
+            page_title: req._("Thingpedia - Register"),
             error: e
         });
         return;
@@ -145,7 +145,7 @@ router.post('/register', function(req, res, next) {
                 res.locals.authenticated = true;
                 res.locals.user = user;
                 res.render('register_success', {
-                    page_title: req._("ThingPedia - Registration Successful"),
+                    page_title: req._("Thingpedia - Registration Successful"),
                     username: options.username,
                     cloudId: user.cloud_id,
                     authToken: user.auth_token });
@@ -154,7 +154,7 @@ router.post('/register', function(req, res, next) {
     }).catch(function(error) {
         res.render('register', {
             csrfToken: req.csrfToken(),
-            page_title: req._("ThingPedia - Register"),
+            page_title: req._("Thingpedia - Register"),
             error: error });
     }).done();
 });
@@ -184,13 +184,13 @@ function getProfile(req, res, pwError, profileError) {
             }
         }
 
-        res.render('user_profile', { page_title: req._("ThingPedia - User Profile"),
+        res.render('user_profile', { page_title: req._("Thingpedia - User Profile"),
                                      csrfToken: req.csrfToken(),
                                      pw_error: pwError,
                                      profile_error: profileError,
                                      phone: phone });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     });
 }
@@ -287,26 +287,26 @@ function ensureTransporter() {
 
 router.get('/request-developer', user.redirectLogIn, function(req, res, next) {
     if (req.user.developer_status >= user.DeveloperStatus.DEVELOPER) {
-        res.render('error', { page_title: req._("ThingPedia - Error"),
+        res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You are already an enrolled developer.") });
         return;
     }
 
     res.render('developer_access_required',
-               { page_title: req._("ThingPedia - Developer Program"),
-                 title: req._("Become a ThingPedia Developer"),
+               { page_title: req._("Thingpedia - Developer Program"),
+                 title: req._("Become a Thingpedia Developer"),
                  csrfToken: req.csrfToken() });
 });
 
 router.post('/request-developer', user.requireLogIn, function(req, res, next) {
     if (req.user.developer_status >= user.DeveloperStatus.DEVELOPER) {
-        res.render('error', { page_title: req._("ThingPedia - Error"),
+        res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You are already an enrolled developer.") });
         return;
     }
 
     var mailOptions = {
-        from: 'ThingPedia Spam <noreply@thingengine.stanford.edu>',
+        from: 'Thingpedia Spam <noreply@thingengine.stanford.edu>',
         to: 'gcampagn@cs.stanford.edu',
         subject: 'New Developer Access Requested',
         replyTo: {
@@ -314,17 +314,17 @@ router.post('/request-developer', user.requireLogIn, function(req, res, next) {
             address: req.body.email
         },
         text: req.body.realname + ' <' + req.body.email + '>, working for ' + req.body.organization
-            + ', requests access to ThingPedia.\n\n'
+            + ', requests access to Thingpedia.\n\n'
             + 'Username: ' + req.user.username + '\n'
             + 'Reason:\n' + req.body.reason + '\n\nComments:\n'
             + req.body.comments + '\n\nBla bla bla no reply autogenerated spam spam spam.\nCheers,\n'
-            + 'The ThingPedia AutoMailer',
+            + 'The Thingpedia AutoMailer',
     };
 
     Q.ninvoke(ensureTransporter(), 'sendMail', mailOptions).then(function() {
-        res.render('developer_access_ok', { page_title: req._("ThingPedia - developer access required") });
+        res.render('developer_access_ok', { page_title: req._("Thingpedia - developer access required") });
     }).catch(function(e) {
-        res.status(500).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     });
 });

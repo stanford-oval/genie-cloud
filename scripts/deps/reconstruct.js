@@ -1,6 +1,6 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of Sabrina
+// This file is part of Almond
 //
 // Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //

@@ -14,17 +14,17 @@ const path = require('path');
 var router = express.Router();
 
 function render(req, res, what) {
-    res.render('doc_' + what, { page_title: req._("ThingPedia - Documentation") });
+    res.render('doc_' + what, { page_title: req._("Thingpedia - Documentation") });
 }
 
 router.get('/', function(req, res) {
-    res.render('thingpedia_dev_portal', { page_title: req._("ThingPedia - Developer Portal") });
+    res.render('thingpedia_dev_portal', { page_title: req._("Thingpedia - Developer Portal") });
 });
 
 router.get('/:what', function(req, res) {
     if (!/^[a-z0-9\-.]+$/.test(req.params.what) ||
         !req.params.what.endsWith('.md')) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Malformed request") });
         return;
     }
@@ -34,7 +34,7 @@ router.get('/:what', function(req, res) {
                                    '../views/doc_' + what + '.jade'))) {
         render(req, res, what);
     } else {
-        res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Not Found.") });
     }
 });

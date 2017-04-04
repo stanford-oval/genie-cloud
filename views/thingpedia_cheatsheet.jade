@@ -4,7 +4,7 @@ block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-cheatsheet.css')
 
 block page_name
-  = _("Sabrina Cheatsheet")
+  = _("Almond Cheatsheet")
 
 block content
   div.row#cheatsheet
@@ -31,15 +31,20 @@ block content
         ul
           for ex in d.triggers
             li
-              span.trigger=_("IF: ")
-              if ex.startsWith('notify me')
-                = ex.substr('notify me'.length)
+              span.trigger=_("WHEN: ")
+              if ex.startsWith('when')
+                = ex.substr('when'.length).trim()
               else
                 = ex
           for ex in d.queries
             li
               span.query= _("GET: ")
-              = ex
+              if ex.startsWith('get')
+                = ex.substr('get'.length).trim()
+              else if ex.startsWith('show')
+                = ex.substr('show'.length).trim()
+              else
+                = ex
           for ex in d.actions
             li
               span.action= _("DO: ")

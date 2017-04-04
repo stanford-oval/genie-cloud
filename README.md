@@ -2,7 +2,7 @@
 
 ## Help the World Connect the Dots
 
-ThingEngine is the workhorse behind ThingPedia, the open source platform for IoT rules
+ThingEngine is the workhorse behind Thingpedia, the open source platform for IoT rules
 that you can execute anywhere you want.
 
 ThingEngine comes in three form:

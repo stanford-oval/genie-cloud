@@ -1,6 +1,6 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingPedia
+// This file is part of Thingpedia
 //
 // Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -37,10 +37,10 @@ router.get('/', function(req, res) {
     db.withClient(function(dbClient) {
         return model.getAllForList(dbClient);
     }).then(function(rows) {
-        res.render('thingpedia_schema_list', { page_title: req._("ThingPedia - Supported Types"),
+        res.render('thingpedia_schema_list', { page_title: req._("Thingpedia - Supported Types"),
                                                schemas: rows });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
@@ -56,7 +56,7 @@ router.get('/by-id/:kind', function(req, res) {
     db.withClient(function(dbClient) {
         return model.getMetasByKinds(dbClient, [req.params.kind], req.user ? req.user.developer_org : null, language).then(function(rows) {
             if (rows.length === 0 || rows[0].kind_type === 'primary') {
-                res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
+                res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: req._("Not Found.") });
                 return null;
             }
@@ -80,14 +80,14 @@ router.get('/by-id/:kind', function(req, res) {
         if (row === null)
             return;
 
-        res.render('thingpedia_schema', { page_title: req._("ThingPedia - Type detail"),
+        res.render('thingpedia_schema', { page_title: req._("Thingpedia - Type detail"),
                                           csrfToken: req.csrfToken(),
                                           schema: row,
                                           triggers: row.triggers,
                                           actions: row.actions,
                                           queries: row.queries });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
@@ -102,7 +102,7 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
@@ -113,7 +113,7 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
             if (row.kind_type !== 'other')
                 throw new Error(req._("This schema is associated with a device and should not be manipulated directly"));
             if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
-                res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: req._("Not Authorized") });
                 return;
             }
@@ -123,14 +123,14 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e.message });
     }).done();
 });
 
 // only allow admins to deal with global schemas for now...
 router.get('/create', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
-    res.render('thingpedia_schema_edit', { page_title: req._("ThingPedia - Create new Type"),
+    res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Create new Type"),
                                            create: true,
                                            csrfToken: req.csrfToken(),
                                            schema: { kind: '',
@@ -168,8 +168,8 @@ function doCreateOrUpdate(id, create, req, res) {
                 console.error(e.stack);
                 res.render('thingpedia_schema_edit', { page_title:
                                                        (create ?
-                                                        req._("ThingPedia - Create new Type") :
-                                                        req._("ThingPedia - Edit Type")),
+                                                        req._("Thingpedia - Create new Type") :
+                                                        req._("Thingpedia - Edit Type")),
                                                        csrfToken: req.csrfToken(),
                                                        error: e,
                                                        id: id,
@@ -233,7 +233,7 @@ function doCreateOrUpdate(id, create, req, res) {
         });
     }).catch(function(e) {
         console.error(e.stack);
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 }
@@ -284,7 +284,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                     });
 
                     d.code = JSON.stringify(ast);
-                    res.render('thingpedia_schema_edit', { page_title: req._("ThingPedia - Edit type"),
+                    res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Edit type"),
                                                            csrfToken: req.csrfToken(),
                                                            id: req.params.id,
                                                            schema: d,
@@ -293,7 +293,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
