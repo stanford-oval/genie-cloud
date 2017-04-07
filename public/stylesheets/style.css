@@ -1,1 +1,99 @@
-../../shared/public/stylesheets/style.css
+body {
+    padding: 50px;
+    padding-top: 0px;
+}
+
+.navbar .stanford {
+    margin-left: -10px;
+    margin-right: 10px;
+    padding-top: 5px;
+}
+
+.navbar-icon-divider {
+    margin-left: -9px;
+    position: absolute;
+    margin-top: 11px;
+    height: 60%;
+    border-left: 2px solid white
+}
+
+#page-body {
+    margin-top: 81px;
+}
+
+#page-title {
+    margin-top: 0px;
+    margin-bottom: 0.5em;
+    text-align: center;
+}
+
+.placeholder {
+    font-style: italic;
+}
+
+.form-inline .form-control {
+    margin-left: 6px;
+    margin-right: 12px;
+}
+
+.form-inline .form-block {
+    margin-bottom: 15px;
+}
+
+#navbar-login-button {
+    margin-right: 30px;
+}
+
+#qrcode-placeholder > img {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#qrcode-target {
+    display:none;
+}
+
+#config-phone-mobile-browser {
+    display:none;
+}
+
+.app-content {
+    font-size: 120%;
+}
+
+.app-content h1 {
+    font-size: 200%;
+}
+
+.app-content h2 {
+    font-size: 110%;
+}
+
+#code {
+    height: 20em;
+}
+
+.online-account-choice {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.online-account-expander {
+    padding-top: 1em;
+}
+
+#app-install-description {
+    font-style: italic;
+}
+
+#app-install-well .btn, #show-hide-code .btn {
+    margin-bottom: 1em;
+}
+
+#app-install-alert {
+    margin-bottom: 1em;
+}
+
+pre, pre code {
+    color: black;
+}
