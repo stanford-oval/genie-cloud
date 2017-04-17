@@ -1,6 +1,6 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingPedia
+// This file is part of Thingpedia
 //
 // Copyright 2015 The Mobisocial Stanford Lab <mobisocial@lists.stanford.edu>
 //

@@ -161,9 +161,9 @@ function prepareSentenceToCode() {
             var prediction = predict(candidates);
             console.log('prediction', prediction);
             if (prediction === null || prediction.answer === FAILED) {
-                $('#prediction').text('Sabrina is confused and does not know what to do.');
+                $('#prediction').text('Almond is confused and does not know what to do.');
             } else if (prediction === DO_FALLBACK) {
-                $('#prediction').text('Sabrina is somewhat confused. She needs your help!');
+                $('#prediction').text('Almond is somewhat confused. She needs your help!');
             } else {
                 $('#prediction').text(format(prediction.canonical));
             }

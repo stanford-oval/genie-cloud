@@ -5,15 +5,15 @@ block scripts
 
 block page_name
   - index = true;
-  | ThingPedia
+  | Thingpedia
 
 block content
   div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
 
   div.jumbotron.text-center
-    h1= _("Welcome to Sabrina, %s!").format(username)
+    h1= _("Welcome to Almond, %s!").format(username)
 
-    p= _("You're almost ready, you just need to create or link an Omlet account.")
+    p= _("You're almost ready, you just need to download the Almond App.")
 
     p
-      a(href='/devices/oauth2/org.thingpedia.builtin.omlet').btn.btn-primary= _("Continue")
+      a(href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine').btn.btn-primary= _("Download")

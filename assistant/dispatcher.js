@@ -92,7 +92,7 @@ module.exports = class AssistantDispatcher {
             }
             if (members.length >= 3) {
                 console.log('Rejected feed ' + feedId);
-                //return feed.sendText("Sabrina cannot be added to a group chat");
+                //return feed.sendText("Almond cannot be added to a group chat");
                 return this._rejectConversation(feedId);
             }
             if (this._conversations[feedId])

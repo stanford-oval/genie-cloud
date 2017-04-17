@@ -4,7 +4,7 @@ block scripts
   script(src='/javascripts/apps.js')
 
 block page_name
-  = _("My Sabrina")
+  = _("My Almond")
 
 block styles
   link(rel='stylesheet', href='/stylesheets/my_stuff.css')
@@ -71,11 +71,11 @@ block content
 
   h2= _("Status")
   if isRunning
-    p= _("Your Sabrina is running. ")
+    p= _("Your Almond is running. ")
       a(href="/me/status")= _("More Details")
       | .
   else
-    p= _("Your Sabrina is dead. ")
+    p= _("Your Almond is dead. ")
       a(href="/me/status")= _("More Details")
       | .
 

@@ -13,7 +13,7 @@ const ThingTalk = require('thingtalk');
 const schema = require('../../model/schema');
 
 // A copy of ThingTalk SchemaRetriever
-// that uses schema.getDeveloperMetas instead of ThingPediaClient
+// that uses schema.getDeveloperMetas instead of ThingpediaClient
 // (and also ignore builtins)
 module.exports = class SchemaRetriever {
     constructor(dbClient, language, parseTypes) {

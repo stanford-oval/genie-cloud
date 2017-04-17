@@ -46,7 +46,7 @@ block content
           div.form-group
             label(for='device-name').control-label= _("Thing Name")
             input(type='text',name='name',required=true,maxlength=255,value=device.name).form-control#device-name
-            span.help-block= _("This will be shown in the ThingPedia catalog.")
+            span.help-block= _("This will be shown in the Thingpedia catalog.")
 
           div.form-group
             label(for='device-description-input').control-label= _("Thing Description")
@@ -57,14 +57,14 @@ block content
             input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#device-icon
 
           div.form-group
-            label(for='device-zipfile').control-label= _("Upload JS module")
+            label(for='device-zipfile').control-label= _("Upload ZIP file with JS code")
             input(type='file',name='zipfile')#device-zipfile
 
 
           div.checkbox
             label(for='device-fullcode').control-label
-              input(type='checkbox',name='fullcode',value='1',checked=!device.fullcode)#device-fullcode
-              = _(" The interface requires additional JS code")
+              input(type='checkbox',name='fullcode',value='1',checked=create || !device.fullcode)#device-fullcode
+              = _(" The interface uses a ZIP file with JS code")
 
           div.form-group.hidden
             label(for='device-code').control-label Thing Manifest

@@ -185,7 +185,7 @@ class Platform {
 
         case 'assistant':
             // If we can create a full AssistantManager (because the platform
-            // will back with a Sabrina account)
+            // will back with a Almond account)
             return true;
 
         case 'graphics-api':
@@ -280,12 +280,12 @@ class Platform {
         return this._writabledir + '/rdf.db';
     }
 
-    // Get the ThingPedia developer key, if one is configured
+    // Get the Thingpedia developer key, if one is configured
     getDeveloperKey() {
         return this._developerKey;
     }
 
-    // Change the ThingPedia developer key, if possible
+    // Change the Thingpedia developer key, if possible
     // Returns true if the change actually happened
     setDeveloperKey() {
         return false;

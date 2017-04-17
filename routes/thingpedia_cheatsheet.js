@@ -1,6 +1,6 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingPedia
+// This file is part of Thingpedia
 //
 // Copyright 2015-2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -112,7 +112,7 @@ router.get('/', function(req, res) {
             });
 
             var devices = Object.keys(deviceMap).map((k) => deviceMap[k]);
-            res.render('thingpedia_cheatsheet', { page_title: req._("ThingPedia - Supported Operations"),
+            res.render('thingpedia_cheatsheet', { page_title: req._("Thingpedia - Supported Operations"),
                                                   S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
                                                   csrfToken: req.csrfToken(),
                                                   devices: devices });

@@ -9,7 +9,7 @@
 
 const Q = require('q');
 
-const ThingPediaDiscovery = require('thingpedia-discovery');
+const ThingpediaDiscovery = require('thingpedia-discovery');
 
 const Config = require('../config');
 
@@ -30,7 +30,7 @@ const LEGACY_MAPS = {
     'facebook': 'com.facebook'
 };
 
-class ThingPediaDiscoveryDatabase {
+class ThingpediaDiscoveryDatabase {
     getByAnyKind(kind) {
         return db.withClient(function(dbClient) {
             return device.getByAnyKind(dbClient, kind);
@@ -50,9 +50,9 @@ class ThingPediaDiscoveryDatabase {
     }
 }
 
-var _discoveryServer = new ThingPediaDiscovery.Server(new ThingPediaDiscoveryDatabase());
+var _discoveryServer = new ThingpediaDiscovery.Server(new ThingpediaDiscoveryDatabase());
 
-module.exports = class ThingPediaClientCloud {
+module.exports = class ThingpediaClientCloud {
     constructor(developerKey, locale) {
         this.developerKey = developerKey;
         // only keep the language part of the locale, we don't
@@ -81,7 +81,7 @@ module.exports = class ThingPediaClientCloud {
                     if (device.fullcode)
                         throw new Error('No Code Available');
 
-                    if (org !== null && org.id === device.owner)
+                    if (org !== null && (org.id === device.owner) || org.is_admin)
                         return (S3_HOST + device.primary_kind + '-v' + device.developer_version + '.zip');
                     else if (device.approved_version !== null)
                         return (S3_HOST + device.primary_kind + '-v' + device.approved_version + '.zip');
@@ -141,7 +141,7 @@ module.exports = class ThingPediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return schema.getTypesByKinds(dbClient, schemas, org !== null ? org.id : null);
+                return schema.getTypesByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null);
             }).then(function(rows) {
                 var obj = {};
 
@@ -172,7 +172,7 @@ module.exports = class ThingPediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return schema.getMetasByKinds(dbClient, schemas, org !== null ? org.id : null, this.language);
+                return schema.getMetasByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null, this.language);
             }).then((rows) => {
                 var obj = {};
 

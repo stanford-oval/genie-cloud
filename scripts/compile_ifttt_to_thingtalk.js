@@ -21,7 +21,7 @@ const exampleModel = require('../model/example');
 const SempreSyntax = require('../util/sempre_syntax');
 
 // A copy of ThingTalk SchemaRetriever
-// that uses schema.getDeveloperMetas instead of ThingPediaClient
+// that uses schema.getDeveloperMetas instead of ThingpediaClient
 // (and also ignore builtins)
 class SchemaRetriever {
     constructor(dbClient, language) {

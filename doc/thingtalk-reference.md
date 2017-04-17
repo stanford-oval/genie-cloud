@@ -197,7 +197,7 @@ with no logic combinators between them), which allow for slightly better behavio
 
 ## Builtin Actions
 
-* `@$notify(... : Any)`: an action that notifies the user through Sabrina
+* `@$notify(... : Any)`: an action that notifies the user through Almond
 
 * `@$return(... : Any)`: similar to `@$notify`, but also terminates the app
 

@@ -11,9 +11,9 @@ const Q = require('q');
 const events = require('events');
 const util = require('util');
 
-const Sabrina = require('sabrina').Sabrina;
+const Almond = require('sabrina').Almond;
 
-class Conversation extends Sabrina {
+class Conversation extends Almond {
     constructor(engine, user, delegate) {
         super(engine, user, delegate, true);
     }

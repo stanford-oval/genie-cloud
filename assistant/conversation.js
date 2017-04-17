@@ -148,7 +148,7 @@ module.exports = class Conversation {
             return;
         }
 
-        // this is probably a pre-parsed message in SEMPRE format, used by Sabrina
+        // this is probably a pre-parsed message in SEMPRE format, used by Almond
         // to do buttons and stuff
         // pass it down to the remote if we have one, otherwise ignore it
         if (this._remote) {
@@ -172,9 +172,9 @@ module.exports = class Conversation {
 
     _handleNoEngine() {
         if (this._hadEngine)
-            this.send("Sorry, your Sabrina died. She will not answer your messages until you restart it.").done();
+            this.send("Sorry, your Almond died. She will not answer your messages until you restart it.").done();
         else if (this._registering)
-            this.send("Sorry, you must complete the registration before you interact with Sabrina.").done();
+            this.send("Sorry, you must complete the registration before you interact with Almond.").done();
         else
             this._startRegistration();
     }
@@ -225,7 +225,7 @@ module.exports = class Conversation {
 
     _startRegistration() {
         this._registering = true;
-        this.feed.sendText('Welcome to Sabrina!');
+        this.feed.sendText('Welcome to Almond!');
         this.feed.sendText('You must complete the registration before continuing');
         this.feed.sendRaw({ type: 'rdl', noun: 'app',
                             displayTitle: "Complete registration",

@@ -1,10 +1,10 @@
-# Writing Interfaces for ThingPedia
+# Writing Interfaces for Thingpedia
 
 ## Getting Started
 
 ### The basics: Devices, Channels, and Events
 
-At the highest level, a ThingPedia interface is just a nodejs
+At the highest level, a Thingpedia interface is just a nodejs
 package, whose main entry point is a _device class_.
 
 From a device class, the system will obtain _device instances_,
@@ -39,14 +39,14 @@ will create and open the channels at the right time.
 
 ### Become a developer
 
-At the moment, ThingPedia is still in closed beta. But you can request a
+At the moment, Thingpedia is still in closed beta. But you can request a
 developer account from
 [here](https://thingengine.stanford.edu/user/request-developer).
-Once you are approved by the ThingPedia administrators
+Once you are approved by the Thingpedia administrators
 (you can check your status
 from [your profile page](https://thingengine.stanford.edu/user/profile)),
-you will be able to upload your own devices or accounts to ThingPedia and
-enable users to use it through Sabrina.
+you will be able to upload your own devices or accounts to Thingpedia and
+enable users to use it through Almond.
 
 ### Looking for examples?
 
@@ -60,7 +60,7 @@ in action. In addition, you can download the source code of any existing
 
 ### The layout of a Device package
 
-The ThingPedia API assumes a precise layout for a device package, which
+The Thingpedia API assumes a precise layout for a device package, which
 must be a zip file containing exactly the JS files and the package.json,
 as well as any dependency you need. You should not assume any nodejs
 module beyond the 'thingpedia' module illustrated here - if you need any,
@@ -71,7 +71,7 @@ and you are encouraged to use babel to compile from ES6 to ES5.
 For the package.json file, don't wrory about the additional attributes
 _thingpedia-metadata_ and _thinepedia-version_ which appear in examples we
 provided. They will be generated automatically when you upload your code to
-ThingPedia with proper device metadata which we will introduce later.
+Thingpedia with proper device metadata which we will introduce later.
 
 The primary entry point (i.e., the one named as "main" in package.json)
 should be a _device class_. You would instantiate the device class
@@ -130,7 +130,7 @@ members stating with lower case are instance methods and variables.
 `Tp.BaseDevice` has you the following API:
 
 - `this.kind`: The name of your nodejs package, and the unique identifier of
-your device class that will use to publish your device to ThingPedia.
+your device class that will use to publish your device to Thingpedia.
 - `this.state`: An arbitrary serializable JS object with data you will need to
 talk to the device - including IP address, OAuth tokens, variable portions
 of API urls, etc.  
@@ -177,7 +177,7 @@ nevertheless useful.
 - `engine.ownTier`: the currently running tier of ThingEngine, ie `cloud` or `phone`
 - `engine.devices`: the devices database
 - `engine.platform`: the Platform API
-- `engine.thingpedia`: APIs to query the ThingPedia website
+- `engine.thingpedia`: APIs to query the Thingpedia website
 
 #### The Platform API
 
@@ -195,7 +195,7 @@ which is a ThingEngine wide store of key-value pairs backed to disk
 - `platform.getRoot()`, `platform.getWritableDir()`,
 `platform.getCacheDir()`, `platform.getTmpDir()`: the paths that
 ThingEngine can use on the file system
-- `platform.getDeveloperKey()`: the currently configured ThingPedia developer key (if any)
+- `platform.getDeveloperKey()`: the currently configured Thingpedia developer key (if any)
 - `platform.getOrigin()`: the web site hosting ThingEngine
 
 #### Handling authentication and discovery
@@ -444,7 +444,7 @@ If that's the case of your channel, you should implement the `formatEvent(event,
 method on your channel class.
 
 The return value can be a single, user visible string, which will be sent as a
-single Sabrina message, or it can be an array of messages.
+single Almond message, or it can be an array of messages.
 
 Each message can be a string, a Picture or an RDL. Pictures are represented as
 objects of the form `{type: "picture", url: "..."}`. RDL (Rich Deep Link) are links
@@ -464,8 +464,8 @@ with title and description, and they are represented as
 ## Device Metadata
 
 In addition to a device package, each device specification published on
-ThingPedia must include some metadata, called a _device manifest_, which will parsed
-by ThingPedia to generate the web UI, and by Sabrina to talk to the user.
+Thingpedia must include some metadata, called a _device manifest_, which will parsed
+by Thingpedia to generate the web UI, and by Almond to talk to the user.
 
 The manifest contains:
 
@@ -557,7 +557,7 @@ The most important type is `online-account`, which will flag the device
 as an account, and will change where it appears in the UI.
 Of a similar spirit is the kind `data-source`, which will flag the device as a
 public web service with no authentication, and will hide it from the Android UI
-or from the 'list devices' Sabrina command.
+or from the 'list devices' Almond command.
 Other important types are cloud-only and phone-only, which will prevent your
 code from being instantiated outside of the right ThingEngine installation.
 Use them if you need platform specific APIs.
@@ -565,7 +565,7 @@ Apart from previously mentioned types, each device _must_ has at least one
 type from the following seven types: `media`, `social-network`, `home`,
 `communication`, `health`, `service`, and `data-management`. These types
 are used for categorizing devices. A device without these types will not be
-shown in the device list when users use `help` in Sabrina.  
+shown in the device list when users use `help` in Almond.  
 
 `child_types` is similar, but marks your device as a collection device,
 and informs the system of the types that your child devices will expose.
@@ -621,7 +621,7 @@ A list of examples using your channel; this provides both documentation
 for the user (they will be provided by `help <global-name>`)
 and training data for the system; only one randomly chosed example will be be shown
 in help if there are multiple paraphrases for the same functionality, but
-every example will help Sabrina to understand users command better,    
+every example will help Almond to understand users command better,    
 so you should strive to provide as many examples and as many paraphrases
 as possible; the same with confirmation, argument can be referred
 with `$argname`.
@@ -630,18 +630,18 @@ If you don't give your device a global name, the natural language annotations
 are ignored, and you will inherit those of the generic type.
 
 
-## Publishing and Testing on ThingPedia
+## Publishing and Testing on Thingpedia
 
 Once you are ready to let other people try your device interface, after thorough
-local testing, you can publish it on ThingPedia.
+local testing, you can publish it on Thingpedia.
 
 To do so, you must first
 [request a developer account](https://thingengine.stanford.edu/user/request-developer).
-Once the request is approved by the ThingPedia administrators (you can check the status
+Once the request is approved by the Thingpedia administrators (you can check the status
 from [your profile page](https://thingengine.stanford.edu/user/profile)), you will be
 able to upload a new device by clicking on
 [Propose it for inclusion](https://thingengine.stanford.edu/thingpedia/upload/create?class=physical)
-in the red banner in the ThingPedia page.
+in the red banner in the Thingpedia page.
 
 In the creation page you will be required to upload a zip file containing your
 device package. The package.json must be at the toplevel of the zip file, not in a
@@ -657,9 +657,9 @@ it is only available to you with your _developer key_, which you can retrieve
 from your [user profile](https://thingengine.stanford.edu/user/profile)
 if you have already been approved to be a developer.
 If you are on Omlet, you should be able to test your device right away.
-While if you want to test on Sabrina (which runs ThingEngine on your own
+While if you want to test on Almond (which runs ThingEngine on your own
 Android device with better privacy and discovery capability), you need one
 more step: go to settings and enable cloud sync.
 
 The device will become available after being reviewed and approved by a
-ThingPedia administrator.
+Thingpedia administrator.

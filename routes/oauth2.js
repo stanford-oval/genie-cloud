@@ -134,7 +134,7 @@ router.get('/authorize', user.redirectLogIn,
            }),
            function(req, res, next) {
                return res.render('oauth2_authorize', {
-                   page_title: req._("ThingPedia - Authorize Access"),
+                   page_title: req._("Thingpedia - Authorize Access"),
                    transaction_id: req.oauth2.transactionID,
                });
            });

@@ -17,12 +17,12 @@ const SempreSyntax = require('../util/sempre_syntax');
 const SchemaRetriever = require('thingtalk').SchemaRetriever;
 
 const SempreClient = require('./sempreclient');
-const ThingPediaClient = require('./thingpediaclient');
+const ThingpediaClient = require('./thingpediaclient');
 
 module.exports = class ThingTalkTrainer {
     constructor(sempreUrl) {
         this.sempre = new SempreClient(sempreUrl, 'en-US');
-        this.thingpedia = new ThingPediaClient();
+        this.thingpedia = new ThingpediaClient();
         this._schemaRetriever = new SchemaRetriever(this.thingpedia);
 
         this._raw = null;

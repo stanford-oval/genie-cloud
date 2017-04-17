@@ -1,6 +1,6 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingPedia
+// This file is part of Thingpedia
 //
 // Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -23,7 +23,7 @@ const ManifestToSchema = require('../util/manifest_to_schema');
 var router = express.Router();
 
 router.get('/', function(req, res) {
-    res.render('thingpedia_translate_portal', { page_title: req._("Translate ThingPedia") });
+    res.render('thingpedia_translate_portal', { page_title: req._("Translate Thingpedia") });
 });
 
 function localeToLanguage(locale) {
@@ -48,7 +48,7 @@ function findInvocation(ex) {
 router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
     var language = req.query.language || localeToLanguage(req.user.locale);
     if (language === 'en') {
-        res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Translations for English cannot be contributed.") });
         return;
     }
@@ -165,7 +165,7 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
         }
 
         res.render('thingpedia_translate_schema', {
-            page_title: req._("ThingPedia - Translate Type"),
+            page_title: req._("Thingpedia - Translate Type"),
             language: language,
             english: english,
             fromVersion: translated.version !== null ? translated.version : fromVersion,
@@ -176,7 +176,7 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
         });
     }).catch(function(e) {
         console.error(e.stack);
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
@@ -184,12 +184,12 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
 router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
     var language = req.body.language;
     if (!language) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: req._("Missing language.") });
         return;
     }
     if (language === 'en') {
-        res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Translations for English cannot be contributed.") });
         return;
     }
@@ -249,7 +249,7 @@ router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
         res.redirect(303, '/thingpedia/schemas/by-id/' + req.params.kind);
     }).catch(function(e) {
         console.error(e.stack);
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });

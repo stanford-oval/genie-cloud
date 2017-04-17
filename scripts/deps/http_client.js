@@ -23,7 +23,7 @@ function getModule(parsed) {
         return http;
 }
 
-module.exports = class ThingPediaClientHttp {
+module.exports = class ThingpediaClientHttp {
     constructor(developerKey, locale) {
         this.developerKey = developerKey;
         this.locale = locale || 'en_US';

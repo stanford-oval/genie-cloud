@@ -26,7 +26,7 @@ function httpRequest(url) {
     });
 }
 
-module.exports = class ThingPediaClientBrowser {
+module.exports = class ThingpediaClientBrowser {
     constructor(developerKey, locale) {
         this.developerKey = developerKey;
         this.locale = locale || 'en_US';

@@ -6,8 +6,8 @@ block content
   div.container
     div.row
       div.col-xs-12
-        p= _("Thanks for your interest in ThingPedia!")
-        p= _("At the moment, ThingPedia is still in closed beta. ")
+        p= _("Thanks for your interest in Thingpedia!")
+        p= _("At the moment, Thingpedia is still in closed beta. ")
           = _("If you would like to request developer access, please fill the form below and we'll get back to you.")
           if user.locale !== 'en-US'
             = _(" Please use English only.")
@@ -30,7 +30,7 @@ block content
             input(type='email',name='email',required=true).form-control#email
 
           div.form-group
-            label(for='reason').control-label= _("Reason to use ThingPedia (may leave blank)")
+            label(for='reason').control-label= _("Reason to use Thingpedia (may leave blank)")
             textarea(name="reason").form-control#reason
 
           div.form-group

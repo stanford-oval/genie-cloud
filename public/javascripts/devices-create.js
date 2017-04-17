@@ -83,7 +83,7 @@ $(function() {
 
     function handleOnlineLike(selector, klass) {
         var developerKey = $('#developer-key').text();
-        var url = ThingEngine.getThingPedia() + '/thingpedia/api/devices?class=' + klass + '&developer_key='
+        var url = ThingEngine.getThingpedia() + '/thingpedia/api/devices?class=' + klass + '&developer_key='
             + developerKey;
         $.get(url, function(factoryList) {
             for (var i = 0; i < factoryList.length; i += 3) {
@@ -112,7 +112,7 @@ $(function() {
         var deviceFactories = {};
 
         var developerKey = $('#developer-key').text();
-        var url = ThingEngine.getThingPedia() + '/thingpedia/api/devices?class=physical&developer_key='
+        var url = ThingEngine.getThingpedia() + '/thingpedia/api/devices?class=physical&developer_key='
             + developerKey;
         $.get(url, function(factoryList) {
             factoryList.forEach(function(f) {

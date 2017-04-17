@@ -9,7 +9,7 @@ access token. After the device is set up and stored to disk, this is easy becaus
 the authentication data, but you need a way to obtain it at first.
 
 The way it is handled is through the `auth` field in the _manifest file_, which describes
-the device metadata in ThingPedia and is used to generate the UI show in ThingEngine. The
+the device metadata in Thingpedia and is used to generate the UI show in ThingEngine. The
 manifest will be described in more detail later.
 
 Three ways to do authentication are supported:
@@ -109,7 +109,7 @@ instead of 'Website' when obtaining the client ID and client secret if possible.
 
 ## Handling Discovery
 
-Local discovery in ThingPedia relies on the
+Local discovery in Thingpedia relies on the
 [thingpedia-discovery](https://github.com/Stanford-IoT-Lab/thingpedia-discovery)
 nodejs module, which contains the generic code to run the discovery protocols and
 to match the discovery information to a specific interface.
@@ -119,7 +119,7 @@ If your interface supports discovery, your must implement the
 `privateData` are objects that contain information derived from the discovery
 protocol, and are discovery protocol specific; `privateData` contains user
 identifying information (such as serial numbers and HW addresses), while `publicData`
-contains the generic capabilities inferred by discovery and is sent to ThingPedia
+contains the generic capabilities inferred by discovery and is sent to Thingpedia
 to match the interface. `publicData.kind` is the identifier for the discovery
 protocol in use.
 
@@ -178,7 +178,7 @@ Discovery data:
 - `privateData.trusted`: if the device is trusted to access services on the host
 - `descriptor`: `bluetooth/` followed by the HW address
 
-ThingPedia matching of interfaces is based on UUIDs.
+Thingpedia matching of interfaces is based on UUIDs.
 If your interface wants to be a candidate for any device with a given UUID, it
 should expose the type `bluetooth-uuid-`_uuid_, e.g. an interface implementing
 the A2DP sink profile  would mark itself

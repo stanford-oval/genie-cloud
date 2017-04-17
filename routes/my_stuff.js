@@ -71,7 +71,7 @@ function getAllDevices(req, engine) {
 
 router.get('/', user.redirectLogIn, function(req, res) {
     if (!EngineManager.get().isRunning(req.user.id)) {
-        res.render('my_stuff', { page_title: req._("ThingPedia - My Sabrina"),
+        res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
                                  messages: req.flash('app-message'),
                                  csrfToken: req.csrfToken(),
                                  isRunning: false,
@@ -95,7 +95,7 @@ router.get('/', user.redirectLogIn, function(req, res) {
             else
                 physical.push(d);
         });
-        res.render('my_stuff', { page_title: req._("ThingPedia - My Sabrina"),
+        res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
                                  messages: req.flash('app-message'),
                                  csrfToken: req.csrfToken(),
                                  isRunning: true,
@@ -106,7 +106,7 @@ router.get('/', user.redirectLogIn, function(req, res) {
                                 });
     }).catch(function(e) {
         console.log(e.stack);
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
@@ -117,7 +117,7 @@ router.post('/apps/delete', user.requireLogIn, function(req, res, next) {
         return Q.all([engine, engine.apps.getApp(id)]);
     }).spread(function(engine, app) {
         if (app === undefined) {
-            res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
+            res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: req._("Not found.") });
             return;
         }
@@ -127,7 +127,7 @@ router.post('/apps/delete', user.requireLogIn, function(req, res, next) {
         req.flash('app-message', "Application successfully deleted");
         res.redirect(303, '/me');
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });

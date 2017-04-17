@@ -1,6 +1,6 @@
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingPedia
+// This file is part of Thingpedia
 //
 // Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -33,7 +33,7 @@ router.get('/', function(req, res) {
 
     db.withClient(function(client) {
         return model.getAll(client, page * 18, 18).then(function(devices) {
-            res.render('thingpedia_device_list', { page_title: req._("ThingPedia - Supported Devices"),
+            res.render('thingpedia_device_list', { page_title: req._("Thingpedia - Supported Devices"),
                                                    S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
                                                    csrfToken: req.csrfToken(),
                                                    devices: devices,
@@ -145,9 +145,9 @@ function getDetails(fn, param, req, res) {
 
             var title;
             if (online)
-                title = req._("ThingPedia - Account details");
+                title = req._("Thingpedia - Account details");
             else
-                title = req._("ThingPedia - Device details");
+                title = req._("Thingpedia - Device details");
 
             res.render('thingpedia_device_details', { page_title: title,
                                                       S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
@@ -159,7 +159,7 @@ function getDetails(fn, param, req, res) {
                                                       online: online });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 }
@@ -196,7 +196,7 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
     }).then(function() {
         res.redirect('/thingpedia/devices/details/' + req.params.id);
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
@@ -205,7 +205,7 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(row) {
             if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
-                res.status(403).render('error', { page_title: req._("ThingPedia - Error"),
+                res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: req._("Not Authorized") });
                 return;
             }
@@ -215,7 +215,7 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
             });
         });
     }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("ThingPedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e.message });
     }).done();
 });

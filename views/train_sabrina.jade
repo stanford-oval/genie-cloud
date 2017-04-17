@@ -1,7 +1,7 @@
 extends layout
 
 block page_name
-  = _("Train Sabrina")
+  = _("Train Almond")
 
 block styles
   link(rel='stylesheet', href='/stylesheets/train-sabrina.css')
@@ -13,7 +13,7 @@ block scripts
 
 block content
   p
-    = _("Thanks for being part of the Sabrina virtual assistant project. ")
+    = _("Thanks for being part of the Almond virtual assistant project. ")
     = _("In here you can help us train her to understand better and more complex sentences.")
 
   p.hidden
@@ -26,10 +26,10 @@ block content
 
   div#sentence-to-code-block
     p
-      = _("You can type a sentence in the box below, and Sabrina will respond with her best guess of what you mean. ")
+      = _("You can type a sentence in the box below, and Almond will respond with her best guess of what you mean. ")
       = _("Unfortunately, she will not get it right most of the time, so your task is to then click on the correct interpretation in her pseudo-English.")
     p
-      = _("You don't have to worry, nothing will happen as a result of playing with Sabrina here, and if you don't understand what Sabrina is responding for a particular sentence (or all Sabrina offers are wrong), just type a new sentence to continue.")
+      = _("You don't have to worry, nothing will happen as a result of playing with Almond here, and if you don't understand what Almond is responding for a particular sentence (or all Almond offers are wrong), just type a new sentence to continue.")
 
     div#suggestions
       small
@@ -44,16 +44,16 @@ block content
       form#sentence-to-code-form
         div.form-group
           label.sr-only(for="utterance")= _("Utterance:")
-          input.form-control(type="text", placeholder="What do you want Sabrina to do?")#utterance
+          input.form-control(type="text", placeholder="What do you want Almond to do?")#utterance
       div#thingtalk-editor.hidden
         div.form-group#thingtalk-group
           label(for='thingtalk')= _("Code (in reduced ThingTalk syntax):")
           input.form-control(type="text")#thingtalk
           span.help-block#thingtalk-error
         div.form-group
-          button(type='button').btn.btn-primary#done= _("Learn")
+          button(type='button').btn.btn-primary#sentence-to-code-done= _("Learn")
     div#results-container
-      p#sabrina-thinks= _("Sabrina's choice: ")
+      p#sabrina-thinks= _("Almond's choice: ")
         span#prediction
       p= _("Your choice:")
       ul#results
@@ -78,6 +78,6 @@ block content
         input.form-control(type='text')#rule-sentence
 
   div#counter-box
-    = _("You have trained Sabrina with ")
+    = _("You have trained Almond with ")
     span#counter
     = _(" sentences. Thank you!")
