@@ -201,6 +201,7 @@ function compare(candidates, ex, state, succeeded) {
         substate = state.simple;
 
     substate.programs.add(normalizedString);
+    substate.predictedPrograms.add(JSON.stringify(parsedAnswer));
     substate.total++;
 
 
@@ -420,6 +421,7 @@ module.exports = function() {
         var substate = state[substateKey];
         substate.programs = new Set;
         substate.correctPrograms = [];
+        substate.predictedPrograms = new Set;
         for (var i = 0; i < 10; i++) {
             substate.oracle.push(0);
             substate.correctPrograms.push(new Set);
@@ -445,9 +447,17 @@ module.exports = function() {
 
             var oracleSum = 0;
             var correctSum = 0;
-            substate.programs = substate.programs.size;
             substate.accuracy = [];
             substate.recall = [];
+
+            var overallRecall = 0;
+            for (var prog of substate.predictedPrograms) {
+                if (substate.programs.has(prog))
+                    overallRecall++;
+            }
+            substate.programs = substate.programs.size;
+            delete substate.predictedPrograms;
+            substate.overallRecall = overallRecall/substate.programs;
 
             for (var i = 0; i < 10; i++) {
                 oracleSum += substate.oracle[i];
@@ -455,7 +465,7 @@ module.exports = function() {
                 correctSum += substate.correctPrograms[i];
 
                 substate.accuracy[i] = oracleSum/substate.total;
-                substate.recall[i] = oracleSum/substate.programs;
+                substate.recall[i] = correctSum/substate.programs;
             }
         }
 
