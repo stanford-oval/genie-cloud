@@ -430,11 +430,11 @@ function applyFilters(invocation, isAction) {
 
         // fill in all required one
         if (argrequired) {
-            ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
+            if (coin(0.9)) ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else if (isAction) {
-            ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
+            if (coin(0.9)) ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
         } else {
-            var fill = type.isEnum || coin(0.2);
+            var fill = type.isEnum || coin(0.6);
             if (!fill)
                 continue;
             if (PARAMS_OP_IS.indexOf(args[i]) > -1)
