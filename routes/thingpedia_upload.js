@@ -44,7 +44,7 @@ router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req,
     var code = JSON.stringify(DEFAULT_CODE, undefined, 2);
     res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - create new device"),
                                                      csrfToken: req.csrfToken(),
-                                                     device: { fullcode: true,
+                                                     device: { fullcode: false,
                                                                code: code },
                                                      create: true });
 });
@@ -202,7 +202,7 @@ function uploadZipFile(req, obj, ast, stream) {
     };
     var zipFile = new JSZip();
 
-    Q.try(function() {
+    return Q.try(function() {
         // unfortunately JSZip only loads from memory, so we need to load the entire file
         // at once
         // this is somewhat a problem, because the file can be up to 30-50MB in size
@@ -229,9 +229,13 @@ function uploadZipFile(req, obj, ast, stream) {
 
         return packageJson.async('string');
     }).then(function(text) {
-        var parsed = JSON.parse(text);
+        try {
+            var parsed = JSON.parse(text);
+        } catch(e) {
+            throw new Error("Invalid package.json: SyntaxError at line " + e.lineNumber + ": " + e.message);
+        }
         if (!parsed.name || !parsed.main)
-            throw new Error(req._("Invalid package.json"));
+            throw new Error(req._("Invalid package.json (missing name or main)"));
 
         parsed['thingpedia-version'] = obj.developer_version;
         parsed['thingpedia-metadata'] = cleanedMetadata;
@@ -245,7 +249,8 @@ function uploadZipFile(req, obj, ast, stream) {
     }).catch(function(e) {
         console.error('Failed to upload zip file to S3: ' + e);
         console.error(e.stack);
-    }).done();
+        throw e;
+    });
 }
 
 function doCreateOrUpdate(id, create, req, res) {
@@ -358,8 +363,7 @@ function doCreateOrUpdate(id, create, req, res) {
                     stream = code_storage.downloadZipFile(obj.primary_kind, obj.old_version);
                 else
                     throw new Error(req._("Invalid zip file"));
-                uploadZipFile(req, obj, gAst, stream);
-                return obj.primary_kind;
+                return uploadZipFile(req, obj, gAst, stream).then(() => obj.primary_kind);
             }).then(function(done) {
                 if (!done)
                     return done;
