@@ -25,13 +25,6 @@ block content
           p= _("It might have crashed or might have been killed by the site administrators.")
           p
             a(href='/me/status').btn.btn-primary Check out what happened
-        else if user.omlet_id === null
-          h1= _("Almost there")
-
-          p= _("Your Almond is almost ready to help you. You just need to configure Omlet.")
-
-          p
-            a(href='/devices/oauth2/org.thingpedia.builtin.omlet').btn.btn-primary= _("Configure Omlet")
         else
           h1= _("Welcome back!")
 

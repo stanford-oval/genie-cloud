@@ -23,7 +23,7 @@ block content
     input(type='hidden',name='timezone')#timezone
     div.form-group
       label(for='username').control-label= _("Username")
-      input(type='text',name='username',value='',required=true,maxlength=255).form-control#username
+      input(type='text',name='username',value='',required=true,maxlength=255,autocorrect='off',autocapitalize='none').form-control#username
     div.form-group
       label(for='email').control-label= _("E-Mail")
       input(type='email',name='email',value='',required=true,maxlength=255).form-control#email

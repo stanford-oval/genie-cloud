@@ -14,7 +14,7 @@ block content
     input(type='hidden',name='_csrf',value=csrfToken)
     div.form-group
       label(for='username').control-label= _("Username")
-      input(type='text',name='username',value=username).form-control#username
+      input(type='text',name='username',value=username,autocorrect='off',autocapitalize='none').form-control#username
     div.form-group
       label(for='password').control-label= _("Password")
       input(type='password',name='password',value=password).form-control#password
