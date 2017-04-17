@@ -308,7 +308,7 @@ return an promise to a list of events, as in:
             this.parent();
         },
 
-        sendEvent: function(filters) {
+        invokeQuery: function(filters) {
             return makeServiceCall(filters).then(function(results) {
                 return results.map(function(result) {
                     return [result.foo, result.bar];
