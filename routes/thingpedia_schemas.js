@@ -54,7 +54,7 @@ function localeToLanguage(locale) {
 router.get('/by-id/:kind', function(req, res) {
     var language = req.query.language || (req.user ? localeToLanguage(req.user.locale) : 'en');
     db.withClient(function(dbClient) {
-        return model.getMetasByKinds(dbClient, [req.params.kind], req.user ? req.user.developer_org : null, language).then(function(rows) {
+        return model.getMetasByKinds(dbClient, [req.params.kind], req.user ? (req.user.developer_status >= 3 ? -1 : req.user.developer_org) : null, language).then(function(rows) {
             if (rows.length === 0 || rows[0].kind_type === 'primary') {
                 res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: req._("Not Found.") });

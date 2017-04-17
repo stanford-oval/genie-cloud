@@ -34,7 +34,7 @@ module.exports = {
     },
 
     getByDeveloperKey: function(client, key) {
-        return db.selectAll(client, "select id from organizations where developer_key = ?", [key]);
+        return db.selectAll(client, "select id,is_admin from organizations where developer_key = ?", [key]);
     },
 
     create: create,

@@ -37,7 +37,8 @@ create table users (
 create table organizations (
     id integer auto_increment primary key,
     name varchar(255) not null collate utf8_general_ci,
-    developer_key char(64) unique not null
+    developer_key char(64) unique not null,
+    is_admin boolean not null default false
 ) collate = utf8_bin ;
 
 insert into organizations values (

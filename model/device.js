@@ -82,7 +82,11 @@ module.exports = {
     },
 
     getFullCodeByPrimaryKind: function(client, kind, org) {
-        if (org !== null) {
+        if (org !== null && org.is_admin) {
+            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
+                                + "where d.fullcode and d.primary_kind = ? and dcv.device_id = d.id "
+                                + "and dcv.version = d.developer_version", [kind]);
+        } else if (org !== null) {
             return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
                                 + "where d.fullcode and d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and ((dcv.version = d.developer_version and d.owner = ?) "
@@ -160,7 +164,17 @@ module.exports = {
     },
 
     getAllApprovedWithCode: function(client, org, start, end) {
-        if (org !== null) {
+        if (org !== null && org.is_admin) {
+            var query = "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "dcv.version = d.developer_version order by d.name";
+            if (start !== undefined && end !== undefined) {
+                return db.selectAll(client, query + " limit ?,?",
+                                    [start, end]);
+            } else {
+                return db.selectAll(client, query, []);
+            }
+        } else if (org !== null) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
@@ -185,7 +199,18 @@ module.exports = {
     },
 
     getAllApprovedWithKindWithCode: function(client, kind, org, start, end) {
-        if (org !== null) {
+        if (org != null && org.is_admin) {
+            var query = "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "dcv.version = d.developer_version and "
+                + "exists (select 1 from device_class_kind dk where dk.device_id "
+                + "= d.id and dk.kind = ? and not dk.is_child) order by d.name";
+            if (start !== undefined && end !== undefined) {
+                return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
+            } else {
+                return db.selectAll(client, query, [kind]);
+            }            
+        } else if (org !== null) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
@@ -213,7 +238,18 @@ module.exports = {
     },
 
     getAllApprovedWithoutKindsWithCode: function(client, kinds, org, start, end) {
-        if (org !== null) {
+        if (org !== null && org.is_admin) {
+            var query = "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "dcv.version = d.developer_version and "
+                + "not exists (select 1 from device_class_kind dk where dk.device_id "
+                + "= d.id and dk.kind in (?) and not dk.is_child) order by d.name";
+            if (start !== undefined && end !== undefined) {
+                return db.selectAll(client, query + " limit ?,?", [kinds, start, end]);
+            } else {
+                return db.selectAll(client, query, [kinds]);
+            }
+        } else if (org !== null) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
@@ -241,7 +277,13 @@ module.exports = {
     },
 
     getApprovedByGlobalNamesWithCode: function(client, names, org) {
-        if (org !== null) {
+        if (org !== null && org.is_admin) {
+            var query = "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "dcv.version = d.developer_version and "
+                + "d.global_name in (?)";
+            return db.selectAll(client, query, [names]);
+        } else if (org !== null) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "

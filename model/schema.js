@@ -217,7 +217,12 @@ module.exports = {
 
     getTypesByKinds: function(client, kinds, org) {
         return Q.try(function() {
-            if (org !== null) {
+            if (org === -1) {
+                return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds"
+                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
+                                    + " and dsc.version = ds.developer_version where ds.kind in (?)",
+                                    [kinds]);
+            } else if (org !== null) {
                 return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
                                     + " and ((dsc.version = ds.developer_version and ds.owner = ?) or "
@@ -272,7 +277,16 @@ module.exports = {
 
     getMetasByKinds: function(client, kinds, org, language) {
         return Q.try(function() {
-            if (org !== null) {
+            if (org === -1) {
+                return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
+                                    + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
+                                    + " approved_version from device_schema ds"
+                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
+                                    + " and dsc.version = ds.developer_version "
+                                    + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
+                                    + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.kind in (?)",
+                                    [language, kinds]);
+            } if (org !== null) {
                 return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
                                     + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                     + " approved_version from device_schema ds"
