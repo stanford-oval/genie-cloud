@@ -164,8 +164,8 @@ function verifyOne(schemas, invocation, invocationType, scope) {
                     return;
                 if (!(ref in scope))
                     throw new TypeError(ref + ' is not in scope');
-                // accept URLs in place of strings
-                if (valuetype.isString && scope[ref].isURL)
+                // accept entities in place of strings
+                if (valuetype.isString && scope[ref].isEntity)
                     return;
                 if (!valuetype.equals(scope[ref]))
                     throw new TypeError(ref + ' and ' + argname + ' are not type-compatible');
@@ -229,6 +229,8 @@ function verify(schemas, prog) {
         return verifyOne(schemas, prog.query, 'queries', {});
     } else if (prog.action) {
         return verifyOne(schemas, prog.action, 'actions', {});
+    } else {
+        return Q({});
     }
 }
 

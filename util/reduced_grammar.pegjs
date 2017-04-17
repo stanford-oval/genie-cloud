@@ -12,8 +12,6 @@
     }
 
     function postprocess(prog) {
-        if (prog.action !== undefined && prog.action.name.id === 'tt:builtin.notify' && prog.action.args.length === 0)
-            prog.action = undefined;
         var parts = 0;
         if (prog.trigger)
             parts++;
@@ -49,8 +47,11 @@ rule = first:rule_part_list _ '=>' _ second:rule_part_list _ third:('=>' _ rule_
     }
     return obj;
 }
-rule_part_list = invocation:invocation _ conditions:(',' _ condition _)* {
-    return { name: invocation.name, args: take(conditions, 2) };
+rule_part_list = '@$notify' _ '(' _ ')' {
+    // return undefined to remove the action from the json
+    return undefined;
+} / invocation:channel_spec _ '(' _ ')' _ conditions:(',' _ condition _)* {
+    return { name: invocation, args: take(conditions, 2) };
 }
 command = '$now' _ '=>' _ second:rule_part_list _ third:('=>' _ rule_part_list)? {
     if (third !== null)
@@ -58,21 +59,9 @@ command = '$now' _ '=>' _ second:rule_part_list _ third:('=>' _ rule_part_list)?
     else
         return { trigger: undefined, query: undefined, action: second };
 }
-
-invocation = name:(channel_spec / builtin_spec) _ args:channel_param_list {
-    return { name: name, args: args };
-}
 channel_spec = '@' kind:genident _ '.' _ name:ident {
     return { id: 'tt:' + kind + '.' + name };
 }
-builtin_spec = '@$' name:ident {
-    return { id: 'tt:builtin.' + name };
-}
-channel_param_list = '(' _ ')' { return []; } /
-    '(' _ first:(null_expression / ident) _ rest:(',' _ (null_expression / ident) _)* ')' {
-        return [first].concat(take(rest, 2));
-    }
-null_expression = '_' { return null; }
 
 condition = varName:ident _ op:comparator _ value:value {
     return { type: value.type, operator: op, value: value.value, name: { id: 'tt:param.' + varName } };
@@ -160,9 +149,9 @@ literal_string "string" = '"' chars:dqstrchar* '"' { return chars.join(''); }
     / "'" chars:sqstrchar* "'" { return chars.join(''); }
 digit "digit" = [0-9]
 literal_number "number" =
-    num:$(digit+ '.' digit* ('e' digit+)?) { return parseFloat(num); } /
-    num:$('.' digit+ ('e' digit+)?) { return parseFloat(num); } /
-    num:$(digit+ ('e' digit+)?) { return parseFloat(num); }
+    num:$('-'? digit+ '.' digit* ('e' digit+)?) { return parseFloat(num); } /
+    num:$('-'? '.' digit+ ('e' digit+)?) { return parseFloat(num); } /
+    num:$('-'? digit+ ('e' digit+)?) { return parseFloat(num); }
 
 identstart = [A-Za-z_]
 identchar = [A-Za-z0-9_]
