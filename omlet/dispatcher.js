@@ -12,7 +12,11 @@ const Url = require('url');
 
 const Messaging = require('./messaging');
 const OmletFactory = require('./omlet');
-const Conversation = require('../almond/conversation');
+const Conversation = require('./conversation');
+
+const EngineManagerClient = require('../almond/enginemanagerclient');
+const userModel = require('../model/user');
+const db = require('../util/db');
 
 var instance_ = null;
 
@@ -20,9 +24,13 @@ module.exports = class AssistantDispatcher {
     constructor() {
         instance_ = this;
 
-        this._engines = {};
+        this._engines = new EngineManagerClient();
+        this._engines.on('socket-closed', (userId) => {
+            this.removeEngine(userId);
+        });
+
         this._conversations = {};
-        this._conversationsByAccount = {};
+        this._conversationsByUserId = {};
         this._initialFeeds = {};
 
         this._feedAddedListener = this._onFeedAdded.bind(this);
@@ -30,39 +38,36 @@ module.exports = class AssistantDispatcher {
         this._feedRemovedListener = this._onFeedRemoved.bind(this);
 
         this._client = null;
-        this._prefs = platform.getSharedPreferences();
-        if (this._prefs.get('assistant') === undefined)
+    }
+
+    _addConversationToUser(conv, userId) {
+        if (userId === null)
             return;
-        this.init();
+        if (!this._conversationsByUserId[userId])
+            this._conversationsByUserId[userId] = [];
+        this._conversationsByUserId[userId].push(conv);
     }
 
-    get isAvailable() {
-        return this._client !== null;
-    }
-
-    init() {
-        this._client = OmletFactory();
-    }
-
-    _addConversationToAccount(conv, account) {
-        if (!this._conversationsByAccount[account])
-            this._conversationsByAccount[account] = [];
-        this._conversationsByAccount[account].push(conv);
-    }
-
-    _removeConversationFromAccount(conv, account) {
-        var conversations = this._conversationsByAccount[account] || [];
+    _removeConversationFromUser(conv, userId) {
+        if (userId === null)
+            return;
+        var conversations = this._conversationsByUserId[userId] || [];
         var idx = conversations.indexOf(conv);
         if (idx < 0)
             return;
         conversations.splice(idx, 1);
     }
 
-    _makeConversationForAccount(feed, user, enginePromise, newFeed) {
+    _makeConversationForAccount(feed, user, almondUser, newFeed) {
         return this._conversations[feed.feedId] = Q.delay(500).then(function() {
-            var conv = new Conversation(feed, user, this._messaging, enginePromise);
+            var conv = new Conversation(feed, user, this._messaging, this._engines, almondUser);
+            if (!almondUser) {
+                conv.on('registered', () => {
+                    this._addConversationToUser(conv, conv.userId);
+                });
+            }
             return conv.start(newFeed).then(function() {
-                this._addConversationToAccount(conv, user.account);
+                this._addConversationToUser(conv, conv.userId);
                 return conv;
             }.bind(this));
         }.bind(this)).catch(function(e) {
@@ -76,7 +81,7 @@ module.exports = class AssistantDispatcher {
             var conv = this._conversations[feedId];
             delete this._conversations[feedId];
             return Q(conv).then(function(conv) {
-                this._removeConversationFromAccount(conv, conv.account);
+                this._removeConversationFromUser(conv, conv.userId);
                 return conv.stop();
             });
         }
@@ -100,11 +105,21 @@ module.exports = class AssistantDispatcher {
 
             var user = members[1];
             console.log('Found conversation with account ' + user.account);
-            var engine = this._engines[user.account];
-            if (engine)
-                return this._makeConversationForAccount(feed, user, engine, false);
-            else
-                return this._makeConversationForAccount(feed, user, null, newFeed);
+
+            return db.withClient((dbClient) => {
+                return userModel.getByOmletAccount(dbClient, user.account);
+            }).then((rows) => {
+                if (rows.length > 0) {
+                    return rows[0];
+                } else {
+                    return null;
+                }
+            }).then((almondUser) => {
+                if (almondUser)
+                    return this._makeConversationForAccount(feed, user, almondUser, false);
+                else
+                    return this._makeConversationForAccount(feed, user, null, newFeed);
+            });
         }.bind(this)).finally(function() {
             return feed.close();
         });
@@ -125,16 +140,18 @@ module.exports = class AssistantDispatcher {
         delete this._conversations[feedId];
         if (conv) {
             Q(conv).then(function(conv) {
-                this._removeConversationFromAccount(conv, conv.account);
+                this._removeConversationFromUser(conv, conv.userId);
                 return conv.stop();
             }.bind(this)).done();
         }
     }
 
     start() {
-        if (!this._client)
-            return;
+        this._prefs = platform.getSharedPreferences();
+        if (this._prefs.get('assistant') === undefined)
+            throw new Error('Assistant is not configured');
 
+        this._client = OmletFactory();
         this._client.connect();
         this._messaging = new Messaging(this._client);
         return this._messaging.start().then(function() {
@@ -164,7 +181,7 @@ module.exports = class AssistantDispatcher {
             promises.push(Q(this._conversations[feedId]).then(function(conv) { return conv.stop(); }));
         this._conversations = {};
 
-        return promises;
+        return Q.all(promises);
     }
 
     getOrCreateFeedForUser(omletId) {
@@ -175,86 +192,14 @@ module.exports = class AssistantDispatcher {
             }.bind(this));
     }
 
-    deleteUser(omletId) {
-        var conversations = this._conversationsByAccount[omletId] || [];
+    removeEngine(userId) {
+        var conversations = this._conversationsByUserId[userId] || [];
         conversations.forEach(function(conv) {
-            conv.destroy().catch(function(e) {
-                console.error('Failed to destroy conversation: ' + e.message);
-                console.error(e.stack);
-                // do not stop or delete the conversation here,
-                // it will happen as a side effect of leaving the feed
-            }).done();
+            conv.removeEngine();
         });
-    }
-
-    addEngine(omletId, engine) {
-        var promise = Q(engine);
-        this._engines[omletId] = promise;
-        var conversations = this._conversationsByAccount[omletId] || [];
-        conversations.forEach(function(conv) {
-            conv.setEngine(promise);
-        });
-    }
-
-    removeEngine(omletId) {
-        var enginePromise = this._engines[omletId];
-        delete this._engines[omletId];
-        var conversations = this._conversationsByAccount[omletId] || [];
-        conversations.forEach(function(conv) {
-            conv.setEngine(null);
-        });
-    }
-
-    removeAllEngines() {
-        this._engines = {};
-    }
-
-    getAllFeeds() {
-        return Object.keys(this._conversations).map(function(feedId) {
-            return Q(this._conversations[feedId]).then(function(conv) {
-                return conv.feed;
-            });
-        }, this);
     }
 
     static get() {
         return instance_;
-    }
-
-    static runOAuth2Phase1(req, res) {
-        var client = OmletFactory();
-
-        return Q.try(function() {
-            client.connect();
-
-            return Q.ninvoke(client._ldClient.auth, 'getAuthPage',
-                             platform.getOrigin() + '/admin/assistant-setup/callback',
-                             ['PublicProfile', 'OmletChat']);
-        }).then(function(resp) {
-            var parsed = Url.parse(resp.Link, true);
-            req.session['omlet-query-key'] = parsed.query.k;
-            res.redirect(resp.Link);
-        }).finally(function() {
-            return client.disable();
-        });
-    }
-
-    static runOAuth2Phase2(req, res) {
-        var client = OmletFactory();
-
-        var code = req.query.code;
-        var key = req.session['omlet-query-key'];
-
-        return Q.Promise(function(callback, errback) {
-            client.connect();
-
-            client._ldClient.onSignedUp = callback;
-            client._ldClient.auth.confirmAuth(code, key);
-        }).finally(function() {
-            client.disable();
-        }).then(function() {
-            instance_.init();
-            instance_.start();
-        });
     }
 }

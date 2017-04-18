@@ -21,8 +21,9 @@ const JsonDatagramSocket = require('./json_datagram_socket');
 
 var _instance;
 
-class EngineManagerClient {
+class EngineManagerClient extends events.EventEmitter {
     constructor() {
+        super();
         this._cachedEngines = new Map;
 
         _instance = this;
@@ -41,8 +42,10 @@ class EngineManagerClient {
 
         var deleted = false;
         rpcSocket.on('close', () => {
-            if (!deleted)
+            if (!deleted) {
                 this._cachedEngines.delete(userId);
+                this.emit('socket-closed', userId);
+            }
             deleted = true;
         });
 

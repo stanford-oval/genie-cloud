@@ -42,7 +42,7 @@ module.exports = class Assistant extends events.EventEmitter {
 
     openConversation(feedId, user, delegate) {
         if (this._conversations[feedId])
-            return this._conversations[feedId];
+            delete this._conversations[feedId];
         var conv = new Conversation(this._engine, user, delegate);
         this._conversations[feedId] = conv;
         return conv;

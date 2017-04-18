@@ -25,7 +25,6 @@ class DirectSocketServer {
 
             jsonSocket.on('data', function(msg) {
                 if (msg.control === 'init') {
-                    console.log('Got init message, handing out the direct socket');
                     try {
                         engines.sendSocket(msg.target, msg.replyId, socket);
                     } catch(e) {

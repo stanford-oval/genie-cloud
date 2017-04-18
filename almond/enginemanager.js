@@ -289,9 +289,8 @@ class EngineManager extends events.EventEmitter {
         var ncpus, nprocesses;
 
         if (ENABLE_SHARED_PROCESS) {
-            //ncpus = os.cpus().length;
-            //nprocesses = 2 * ncpus;
-            nprocesses = 2;
+            ncpus = os.cpus().length;
+            nprocesses = 2 * ncpus;
         } else {
             ncpus = 0; nprocesses = 0;
         }
@@ -312,7 +311,7 @@ class EngineManager extends events.EventEmitter {
             return db.withClient(function(client) {
                 return user.getAll(client).then(function(rows) {
                     return Q.all(rows.map(function(r) {
-                        //return self._runUser(r);
+                        return self._runUser(r);
                     }));
                 });
             });

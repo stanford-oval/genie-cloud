@@ -12,7 +12,6 @@ require('thingengine-core/lib/polyfill');
 const Q = require('q');
 
 const Frontend = require('./frontend');
-const AssistantDispatcher = require('./assistant/dispatcher');
 const EngineManager = require('./almond/enginemanagerclient');
 
 function dropCaps() {
@@ -29,42 +28,26 @@ var _enginemanager;
 
 function handleSignal() {
     _frontend.close().then(function() {
-        if (_assistantdispatcher)
-            return _assistantdispatcher.stop();
-    }).then(function() {
-        if (_enginemanager)
-            return _enginemanager.stop();
-    }).then(function() {
         platform.exit();
     }).done();
 }
 
 function main() {
-    Q.longStackSupport = true;
-
     global.platform = require('./platform');
+    platform.init();
 
-    platform.init().then(function() {
-        _frontend = new Frontend();
+    _frontend = new Frontend();
 
-        process.on('SIGINT', handleSignal);
-        process.on('SIGTERM', handleSignal);
+    process.on('SIGINT', handleSignal);
+    process.on('SIGTERM', handleSignal);
 
-        // open the HTTP server
-        return _frontend.open().then(function() {
-            // we bound the socket, no need for root now
-            dropCaps();
+    // open the HTTP server
+    return _frontend.open().then(function() {
+        // we bound the socket, no need for root now
+        dropCaps();
 
-            _enginemanager = new EngineManager();
-            _assistantdispatcher = new AssistantDispatcher();
-
-            console.log('Starting EngineManager');
-            return _enginemanager.start();
-        }).then(function() {
-            console.log('Starting AssistantDispatcher');
-            return _assistantdispatcher.start();
-        });
-    }).done();
+        _enginemanager = new EngineManager();
+        _enginemanager.start();
+    });
 }
-
 main();

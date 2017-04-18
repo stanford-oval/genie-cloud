@@ -14,11 +14,10 @@ const db = require('../util/db');
 const model = require('../model/user');
 const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
-const AssistantDispatcher = require('../assistant/dispatcher');
 
 var router = express.Router();
 
-// special case omlet to create the assistant right away
+// special case omlet to store the omlet ID
 router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, function(req, res, next) {
     EngineManager.get().getEngine(req.user.id).then(function(engine) {
         return engine.devices.factory.then(function(devFactory) {
@@ -37,9 +36,6 @@ router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, 
             return engine.messaging.getOwnId();
         }).then(function(ownId) {
             return engine.messaging.getAccountById(ownId);
-        }).tap(function(omletId) {
-            EngineManager.get().addOmletToUser(req.user.id, omletId);
-            return AssistantDispatcher.get().getOrCreateFeedForUser(omletId);
         });
     }).then(function(omletId) {
         return db.withTransaction(function(dbClient) {
