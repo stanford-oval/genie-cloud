@@ -34,24 +34,10 @@ var _unzipApi = {
     }
 };
 
-class FrontendDispatcher {
-    constructor() {
-        this._websockets = {};
-    }
-
-    addCloudId(cloudId, websocket) {
-        this._websockets[cloudId] = websocket;
-    }
-
-    handleWebsocket(cloudId, req, upgradeHead, socket) {
-        this._websockets[cloudId].handle(req, upgradeHead, socket);
-    }
-}
-
 class WebhookApi {
-    constructor(cloudId) {
+    constructor(userId) {
         this._hooks = {};
-        this._cloudId = cloudId;
+        this._userId = userId;
     }
 
     handleCallback(id, method, query, headers, payload) {
@@ -67,7 +53,7 @@ class WebhookApi {
     }
 
     getWebhookBase() {
-        return module.exports.getOrigin() + '/api/webhook/' + this._cloudId;
+        return module.exports.getOrigin() + '/api/webhook/' + this._userId;
     }
 
     registerWebhook(id, callback) {
@@ -83,22 +69,9 @@ class WebhookApi {
 }
 WebhookApi.prototype.$rpcMethods = ['handleCallback'];
 
-class WebsocketApi {
-    constructor() {
-        this._handler = null;
-    }
-
-    setHandler(handler) {
-        this._handler = handler;
-    }
-
-    handle(req, upgradeHead, socket) {
-        this._handler(req, upgradeHead, socket);
-    }
-}
-
 class Platform {
     constructor(thingpediaClient, options) {
+        this._userId = options.userId;
         this._cloudId = options.cloudId;
         this._authToken = options.authToken;
         this._developerKey = options.developerKey;
@@ -119,9 +92,7 @@ class Platform {
         }
         this._prefs = new prefs.FilePreferences(this._writabledir + '/prefs.db');
 
-        this._websocketApi = new WebsocketApi();
-        this._webhookApi = new WebhookApi(this._cloudId);
-        _dispatcher.addCloudId(options.cloudId, this._websocketApi);
+        this._webhookApi = new WebhookApi(this._userId);
 
         this._assistant = null;
     }
@@ -191,7 +162,6 @@ class Platform {
         case 'graphics-api':
         case 'thingpedia-client':
         case 'webhook-api':
-        case 'websocket-api':
             return true;
 
         case 'gettext':
@@ -222,7 +192,8 @@ class Platform {
             return this._webhookApi;
 
         case 'websocket-api':
-            return this._websocketApi;
+            // FIXME return this._websocketApi;
+            return null;
 
         case 'assistant':
             return this._assistant;
@@ -320,7 +291,6 @@ class Platform {
 Platform.prototype.type = 'cloud';
 
 var _shared;
-var _dispatcher = new FrontendDispatcher();
 
 module.exports = {
     // Initialize the platform code
@@ -332,8 +302,6 @@ module.exports = {
     get shared() {
         return _shared;
     },
-
-    dispatcher: _dispatcher,
 
     newInstance(thingpediaClient, options) {
         return new Platform(thingpediaClient, options);

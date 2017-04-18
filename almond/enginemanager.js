@@ -20,23 +20,12 @@ const rpc = require('transparent-rpc');
 const user = require('../model/user');
 const db = require('../util/db');
 const ThingpediaClient = require('../util/thingpedia-client');
-const AssistantDispatcher = require('../assistant/dispatcher');
-const WebhookDispatcher = require('./webhookdispatcher');
-
-var _instance = null;
 
 class ChildProcessSocket extends stream.Duplex {
     constructor(child) {
         super({ objectMode: true });
 
         this._child = child;
-
-        child.on('message', function(message) {
-            if (message.type !== 'rpc')
-                return;
-
-            this.push(message.data);
-        }.bind(this));
     }
 
     _read() {}
@@ -79,9 +68,11 @@ class EngineProcess extends events.EventEmitter {
         return this._id;
     }
 
-    runEngine(user, thingpediaClient) {
+    runEngine(user) {
         this.useCount++;
-        return this._rpcSocket.call(this._rpcId, 'runEngine', [thingpediaClient, {
+
+        return this._rpcSocket.call(this._rpcId, 'runEngine', [new ThingpediaClient(user.developer_key, user.locale), {
+            userId: user.id,
             cloudId: user.cloud_id,
             authToken: user.auth_token,
             developerKey: user.developer_key,
@@ -90,16 +81,19 @@ class EngineProcess extends events.EventEmitter {
             storageKey: user.storage_key }]);
     }
 
-    killEngine(cloudId) {
+    killEngine(userId) {
         if (!this.shared)
             return this.kill();
         this.useCount--;
-        return this._rpcSocket.call(this._rpcId, 'killEngine', [cloudId]).then(function() {
-            this.emit('engine-removed', cloudId);
+        return this._rpcSocket.call(this._rpcId, 'killEngine', [userId]).then(function() {
+            this.emit('engine-removed', userId);
         }.bind(this));
     }
 
     kill() {
+        if (this._child === null)
+            return;
+
         console.log('Killing process with ID ' + this._id);
         this._child.kill();
     }
@@ -140,7 +134,7 @@ class EngineProcess extends events.EventEmitter {
         env.THINGENGINE_USER_ID = this._id;
 
         var managerPath = path.dirname(module.filename);
-        var enginePath = path.resolve(managerPath, '../instance/runengine');
+        var enginePath = path.resolve(managerPath, './worker');
         var child;
 
         console.log('Spawning process with ID ' + this._id);
@@ -192,28 +186,30 @@ class EngineProcess extends events.EventEmitter {
         }.bind(this));
 
         this._child = child;
-
-        child.on('message', function(msg) {
-            if (msg.type === 'rpc-ready') {
+        child.on('message', (msg) => {
+            switch (msg.type) {
+            case 'ready':
                 this._rpcId = msg.id;
                 this._starting = null;
                 rpcDefer.resolve();
+                break;
+            case 'rpc':
+                socket.push(msg.data);
+                break;
             }
-        }.bind(this));
+        });
         this._starting = rpcDefer.promise;
         return this._starting;
     }
 }
 
-class EngineManager {
-    constructor(frontend) {
+class EngineManager extends events.EventEmitter {
+    constructor() {
+        super();
         this._processes = {};
         this._rrproc = [];
         this._nextProcess = null;
         this._engines = {};
-        this._frontend = frontend;
-
-        _instance = this;
     }
 
     _findProcessForUser(user) {
@@ -235,15 +231,11 @@ class EngineManager {
 
     _runUser(user) {
         var engines = this._engines;
-        var obj = { omletId: user.omlet_id, cloudId: user.cloud_id, process: null, engine: null };
+        var obj = { cloudId: user.cloud_id, process: null, engine: null };
         engines[user.id] = obj;
         var die = (function(manual) {
             if (engines[user.id] !== obj)
                 return;
-            if (obj.omlet_id !== null)
-                AssistantDispatcher.get().removeEngine(obj.omlet_id);
-            WebhookDispatcher.get().removeClient(user.cloud_id);
-            this._frontend.unregisterWebSocketEndpoint('/ws/' + user.cloud_id);
             obj.process.removeListener('die', die);
             obj.process.removeListener('engine-removed', onRemoved);
             delete engines[user.id];
@@ -256,14 +248,14 @@ class EngineManager {
                 }.bind(this), 10000);
             }
         }).bind(this);
-        var onRemoved = function(deadCloudId) {
-            if (user.cloud_id !== deadCloudId)
+        var onRemoved = function(deadUserId) {
+            if (user.id !== deadUserId)
                 return;
 
             die(true);
         }
 
-        return this._findProcessForUser(user).then(function(process) {
+        return this._findProcessForUser(user).then((process) => {
             console.log('Running engine for user ' + user.id);
 
             obj.process = process;
@@ -271,39 +263,8 @@ class EngineManager {
             process.on('engine-removed', onRemoved);
             process.on('exit', die);
 
-            return process.runEngine(user, new ThingpediaClient(user.developer_key, user.locale));
-        }.bind(this)).spread(function(engine, webhookApi, assistant) {
-                WebhookDispatcher.get().addClient(user.cloud_id, webhookApi);
-                this._frontend.registerWebSocketEndpoint('/ws/' + user.cloud_id, function(req, socket, head) {
-                    var saneReq = {
-                        httpVersion: req.httpVersion,
-                        url: req.url,
-                        headers: req.headers,
-                        rawHeaders: req.rawHeaders,
-                        method: req.method,
-                    };
-                    obj.process.send({type:'websocket', cloudId: user.cloud_id, req: saneReq,
-                                     upgradeHead: head.toString('base64')}, socket);
-                });
-
-                // precache .apps, .devices, instead of querying the
-                // engine all the time, to reduce IPC latency
-                return Q.all([engine.apps,
-                              engine.devices,
-                              engine.messaging,
-                              assistant]);
-        }.bind(this)).spread(function(apps, devices, messaging, assistant) {
-            var engine = { apps: apps,
-                           devices: devices,
-                           assistant: assistant,
-                           messaging: messaging,
-                           user: user };
-            obj.engine = engine;
-            return engine;
-        }.bind(this)).then(function(engine) {
-            if (user.omlet_id !== null)
-                AssistantDispatcher.get().addEngine(user.omlet_id, engine);
-        }.bind(this));
+            return process.runEngine(user);
+        });
     }
 
     isRunning(userId) {
@@ -311,15 +272,16 @@ class EngineManager {
     }
 
     getProcessId(userId) {
-        return this._engines[userId].process.id;
+        return (this._engines[userId] !== undefined && this._engines[userId].process !== null) ? this._engines[userId].process.id : -1;
     }
 
-    getEngine(userId) {
-        var obj = this._engines[userId];
-        if (obj === undefined || obj.engine === null)
-            return Q.reject(new Error(userId + ' is not running'));
+    sendSocket(userId, replyId, socket) {
+        if (this._engines[userId] === undefined)
+            throw new Error('Invalid user ID');
+        if (this._engines[userId].process === null)
+            throw new Error('Engine dead');
 
-        return Q(obj.engine);
+        this._engines[userId].process.send({ type: 'direct', target: userId, replyId: replyId }, socket);
     }
 
     start() {
@@ -327,8 +289,9 @@ class EngineManager {
         var ncpus, nprocesses;
 
         if (ENABLE_SHARED_PROCESS) {
-            ncpus = os.cpus().length;
-            nprocesses = 2 * ncpus;
+            //ncpus = os.cpus().length;
+            //nprocesses = 2 * ncpus;
+            nprocesses = 2;
         } else {
             ncpus = 0; nprocesses = 0;
         }
@@ -349,37 +312,23 @@ class EngineManager {
             return db.withClient(function(client) {
                 return user.getAll(client).then(function(rows) {
                     return Q.all(rows.map(function(r) {
-                        return self._runUser(r);
+                        //return self._runUser(r);
                     }));
                 });
             });
         });
     }
 
-    startUser(user) {
-        console.log('Requested start of user ' + user.id);
-        return this._runUser(user);
-    }
-
-    addOmletToUser(userId, omletId) {
-        var obj = this._engines[userId];
-        if (obj === undefined || obj.engine === null)
-            throw new Error(userId + ' is not running');
-        if (obj.omletId === omletId)
-            return;
-
-        var ad = AssistantDispatcher.get();
-        if (obj.omletId !== null)
-            ad.removeEngine(obj.omletId);
-        obj.omletId = omletId;
-        ad.addEngine(omletId, obj.engine);
+    startUser(userId) {
+        console.log('Requested start of user ' + userId);
+        return db.withClient((dbClient) => {
+            return user.get(dbClient, userId);
+        }).then((user) => {
+            return this._runUser(user);
+        });
     }
 
     stop() {
-        var am = AssistantDispatcher.get();
-        var wd = WebhookDispatcher.get();
-        am.removeAllEngines();
-        wd.removeAllClients();
         for (var userId in this._processes)
             this._processes[userId].kill();
     }
@@ -388,34 +337,21 @@ class EngineManager {
         var obj = this._engines[userId];
         if (!obj || obj.process === null)
             return Q();
-        return Q(obj.process.killEngine(obj.cloudId));
+        return Q(obj.process.killEngine(userId));
     }
 
     deleteUser(userId) {
         var obj = this._engines[userId];
-        if (obj.omletId)
-            AssistantDispatcher.get().deleteUser(obj.omletId);
         if (obj.process !== null)
-            obj.process.killEngine(obj.cloudId);
+            obj.process.killEngine(userId);
 
         return Q.nfcall(child_process.exec, 'rm -fr ./' + obj.cloudId);
     }
 
     restartUser(userId) {
-        this.killUser(userId).then(function() {
-            db.withClient(function(dbClient) {
-                return user.get(dbClient, userId);
-            }).then(function(user) {
-                return this.startUser(user);
-            }.bind(this));
-        }.bind(this)).catch(function(e) {
-            console.error('Failed to restart user ' + userId + ': ' + e.message);
-            console.error(e.stack);
-        }).done();
-    }
-
-    static get() {
-        return _instance;
+        return this.killUser(userId).then(() => {
+            return this.startUser(userId);
+        });
     }
 }
 

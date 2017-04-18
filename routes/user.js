@@ -17,7 +17,7 @@ const db = require('../util/db');
 
 var TITLE = "Thingpedia";
 
-const EngineManager = require('../lib/enginemanager');
+const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 

@@ -26,7 +26,6 @@
     "errorhandler": "~1.4.2",
     "express": "~4.13.3",
     "express-session": "~1.11.3",
-    "express-ws": "~0.2.6",
     "express-xml-bodyparser": "~0.3.0",
     "gm": "~1.21.1",
     "jade": "*",
@@ -51,7 +50,8 @@
     "serve-favicon": "~2.3.0",
     "sqlite3": "^3.1.3",
     "transparent-rpc": "0.0.1",
-    "url": "~0.10.3"
+    "url": "~0.10.3",
+    "ws": "^2.2.3"
   },
   "devDependencies": {
     "babel-preset-es2015": "^6.14.0",

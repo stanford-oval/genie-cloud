@@ -14,17 +14,11 @@ const rpc = require('transparent-rpc');
 
 const Engine = require('thingengine-core');
 const PlatformModule = require('./platform');
+const JsonDatagramSocket = require('./json_datagram_socket');
 
 class ParentProcessSocket extends stream.Duplex {
     constructor() {
         super({ objectMode: true });
-
-        process.on('message', function(message) {
-            if (message.type !== 'rpc')
-                return;
-
-            this.push(message.data);
-        }.bind(this));
     }
 
     _read() {}
@@ -63,7 +57,7 @@ function runEngine(thingpediaClient, options) {
         var engine = new Engine(platform);
         platform.createAssistant(engine);
 
-        var obj = { cloudId: options.cloudId, engine: engine, running: false };
+        var obj = { userId: options.userId, cloudId: options.cloudId, engine: engine, running: false };
         engine.open().then(function() {
             obj.running = true;
 
@@ -77,15 +71,13 @@ function runEngine(thingpediaClient, options) {
             console.error('Engine ' + options.cloudId + ' had a fatal error: ' + e.message);
             console.error(e.stack);
         }).done();
-
-        return [engine, platform.getCapability('webhook-api'), platform.getCapability('assistant')];
     });
 }
 
-function killEngine(cloudId) {
+function killEngine(userId) {
     var idx = -1;
     for (var i = 0; i < _engines.length; i++) {
-        if (_engines[i].cloudId === cloudId) {
+        if (_engines[i].userId === userId) {
             idx = i;
             break;
         }
@@ -96,6 +88,22 @@ function killEngine(cloudId) {
     var obj = _engines[idx];
     _engines.splice(idx, 1);
     obj.engine.stop();
+}
+
+function handleDirectSocket(userId, replyId, socket) {
+    console.log('Handling direct connection for ' + userId);
+
+    var rpcSocket = new rpc.Socket(new JsonDatagramSocket(socket, socket, 'utf8'));
+
+    for (var i = 0; i < _engines.length; i++) {
+        if (_engines[i].userId === userId) {
+            var obj = _engines[i];
+            rpcSocket.call(replyId, 'ready', [obj.engine, obj.engine.platform.getCapability('webhook-api'), obj.engine.platform.getCapability('assistant')]);
+            return;
+        }
+    }
+
+    rpcSocket.end();
 }
 
 function main() {
@@ -109,13 +117,17 @@ function main() {
     process.on('SIGINT', handleSignal);
     process.on('SIGTERM', handleSignal);
 
-    var socket = new ParentProcessSocket();
-    var rpcSocket = new rpc.Socket(socket);
+    var rpcWrapped = new ParentProcessSocket();
+    var rpcSocket = new rpc.Socket(rpcWrapped);
     process.on('message', function(message, socket) {
-        if (message.type !== 'websocket')
-            return;
-
-        PlatformModule.dispatcher.handleWebsocket(message.cloudId, message.req, message.upgradeHead, socket);
+        switch (message.type) {
+            case 'direct':
+                handleDirectSocket(message.target, message.replyId, socket);
+                break;
+            case 'rpc':
+                rpcWrapped.push(message.data);
+                break;
+        }
     });
 
     var factory = {
@@ -126,9 +138,9 @@ function main() {
     };
     var rpcId = rpcSocket.addStub(factory);
     PlatformModule.init(shared);
-    process.send({ type:'rpc-ready', id: rpcId });
+    process.send({ type: 'ready', id: rpcId });
 
-    // wait 10000 seconds for a newEngine message
+    // wait 10 seconds for a newEngine message
     setTimeout(function() {}, 10000);
 }
 

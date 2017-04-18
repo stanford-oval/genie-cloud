@@ -13,8 +13,7 @@ const Q = require('q');
 
 const Frontend = require('./frontend');
 const AssistantDispatcher = require('./assistant/dispatcher');
-const EngineManager = require('./lib/enginemanager');
-const WebhookDispatcher = require('./lib/webhookdispatcher');
+const EngineManager = require('./almond/enginemanagerclient');
 
 function dropCaps() {
     if (process.getuid() == 0) {
@@ -56,9 +55,7 @@ function main() {
             // we bound the socket, no need for root now
             dropCaps();
 
-            new WebhookDispatcher();
-
-            _enginemanager = new EngineManager(_frontend);
+            _enginemanager = new EngineManager();
             _assistantdispatcher = new AssistantDispatcher();
 
             console.log('Starting EngineManager');

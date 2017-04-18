@@ -249,12 +249,4 @@ Frontend.prototype.getApp = function() {
     return this._app;
 }
 
-Frontend.prototype.registerWebSocketEndpoint = function(path, callback) {
-    this._websocketEndpoints[path] = callback;
-}
-
-Frontend.prototype.unregisterWebSocketEndpoint = function(path) {
-    delete this._websocketEndpoints[path];
-}
-
 module.exports = Frontend;

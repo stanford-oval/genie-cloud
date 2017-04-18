@@ -20,7 +20,7 @@ function makeRandom() {
     return crypto.randomBytes(32).toString('hex');
 }
 
-const EngineManager = require('../lib/enginemanager');
+const EngineManager = require('../almond/enginemanagerclient');
 const AssistantDispatcher = require('../assistant/dispatcher');
 
 var router = express.Router();
@@ -30,12 +30,19 @@ router.get('/', user.redirectRole(user.Role.ADMIN), function(req, res) {
 
     db.withClient(function(dbClient) {
         return model.getAll(dbClient);
+    }).tap(function(users) {
+        return Q.all(users.map((u) => {
+            return engineManager.getProcessId(u.id).then((pid) => {
+                if (pid === -1) {
+                    u.isRunning = false;
+                    u.engineId = null;
+                } else {
+                    u.isRunning = true;
+                    u.engineId = pid;
+                }
+            });
+        }));
     }).then(function(users) {
-        users.forEach(function(u) {
-            u.isRunning = engineManager.isRunning(u.id);
-            u.engineId = u.isRunning ? engineManager.getProcessId(u.id) : null;
-        });
-
         res.render('admin_user_list', { page_title: req._("Thingpedia - Administration"),
                                         csrfToken: req.csrfToken(),
                                         assistantAvailable: AssistantDispatcher.get().isAvailable,
@@ -53,13 +60,11 @@ router.post('/kill-user/:id', user.requireRole(user.Role.ADMIN), function(req, r
 router.post('/start-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
     var engineManager = EngineManager.get();
 
-    if (engineManager.isRunning(req.params.id))
-        engineManager.killUser(req.params.id);
-
-    db.withClient(function(dbClient) {
-        return model.get(dbClient, req.params.id);
-    }).then(function(user) {
-        return engineManager.startUser(user);
+    engineManager.isRunning(req.params.id).then(function(isRunning) {
+        if (isRunning)
+            return engineManager.killUser(req.params.id);
+    }).then(function() {
+        return engineManager.startUser(req.params.id);
     }).then(function() {
         res.redirect(303, '/admin');
     }).catch(function(e) {

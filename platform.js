@@ -16,7 +16,7 @@ const child_process = require('child_process');
 // FIXME we should not punch through the abstraction
 const prefs = require('thingengine-core/lib/util/prefs');
 
-const graphics = require('./instance/graphics');
+const graphics = require('./almond/graphics');
 
 var _writabledir = null;
 var _cachedir = null;

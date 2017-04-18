@@ -12,7 +12,7 @@ const express = require('express');
 const db = require('../util/db');
 const user = require('../util/user');
 const userModel = require('../model/user');
-const EngineManager = require('../lib/enginemanager');
+const EngineManager = require('../almond/enginemanagerclient');
 
 const ThingTalk = require('thingtalk');
 const AppGrammar = ThingTalk.Grammar;

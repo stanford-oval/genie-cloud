@@ -12,7 +12,7 @@ const Url = require('url');
 
 const Messaging = require('./messaging');
 const OmletFactory = require('./omlet');
-const Conversation = require('./conversation');
+const Conversation = require('../almond/conversation');
 
 var instance_ = null;
 

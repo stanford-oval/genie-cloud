@@ -19,7 +19,7 @@ const FacebookStrategy = require('passport-facebook').Strategy;
 const BearerStrategy = require('passport-http-bearer').Strategy;
 const BasicStrategy = require('passport-http').BasicStrategy;
 
-const EngineManager = require('../lib/enginemanager');
+const EngineManager = require('../almond/enginemanagerclient');
 
 var GOOGLE_CLIENT_ID = '739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com';
 var FACEBOOK_APP_ID = '979879085397010';

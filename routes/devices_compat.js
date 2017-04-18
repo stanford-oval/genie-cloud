@@ -13,7 +13,7 @@ const passport = require('passport');
 const db = require('../util/db');
 const model = require('../model/user');
 const user = require('../util/user');
-const EngineManager = require('../lib/enginemanager');
+const EngineManager = require('../almond/enginemanagerclient');
 const AssistantDispatcher = require('../assistant/dispatcher');
 
 var router = express.Router();
