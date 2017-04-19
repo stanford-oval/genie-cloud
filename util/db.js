@@ -56,12 +56,16 @@ function selectOne(client, string, args) {
 }
 
 var _pool;
-function connect() {
+function getPool() {
     if (_pool === undefined) {
         _pool = mysql.createPool(getDB());
     }
 
-    return Q.ninvoke(_pool, 'getConnection').then(function(connection) {
+    return _pool;
+}
+
+function connect() {
+    return Q.ninvoke(getPool(), 'getConnection').then(function(connection) {
         function done(error) {
             if (error !== undefined)
                 connection.destroy();
@@ -73,6 +77,7 @@ function connect() {
 }
 
 module.exports = {
+    getPool: getPool,
     connect: connect,
 
     withClient: function(callback) {
