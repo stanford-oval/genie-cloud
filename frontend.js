@@ -20,6 +20,7 @@ const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 const csurf = require('csurf');
 const errorHandler = require('errorhandler');
 const url = require('url');
@@ -32,6 +33,7 @@ const acceptLanguage = require('accept-language');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
+const db = require('./util/db');
 
 function Frontend() {
     this._init.apply(this, arguments);
@@ -64,8 +66,11 @@ Frontend.prototype._init = function _init() {
     this._app.use(bodyParser.urlencoded({ extended: true }));
     this._app.use(xmlBodyParser({ explicitArray: true, trim: false }));
     this._app.use(cookieParser());
+
+    this._sessionStore = new MySQLStore({}, db.getPool());
     this._app.use(session({ resave: false,
                             saveUninitialized: false,
+                            store: this._sessionStore,
                             secret: secretKey.getSecretKey(this._app) }));
     this._app.use(connect_flash());
     this._app.use(express.static(path.join(__dirname, 'public'),
@@ -230,6 +235,8 @@ Frontend.prototype.close = function() {
             console.log('Express server stopped');
         }
     });
+    this._sessionStore.close();
+
     return Q();
 }
 
