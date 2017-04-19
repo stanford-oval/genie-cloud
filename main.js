@@ -48,6 +48,6 @@ function main() {
 
         _enginemanager = new EngineManager();
         _enginemanager.start();
-    });
+    }).done();
 }
 main();

@@ -181,6 +181,7 @@ module.exports = class Conversation extends events.EventEmitter {
             return this._engine.assistant.openConversation(this.feed.feedId, this._omletUser, this);
         }).then((conversation) => {
             this._remote = conversation;
+            return this._remote.start();
         });
     }
 
@@ -258,18 +259,15 @@ module.exports = class Conversation extends events.EventEmitter {
     }
 
     start(newFeed) {
-        return Q.try(function() {
+        return Q.try(() => {
+            this.feed.on('incoming-message', this._newMessageListener);
+            return this.feed.open();
+        }).then(() => {
             if (this._almondUser)
                 return this._tryGetRemote();
             else if (newFeed)
                 return this._startRegistration();
-        }.bind(this)).then(function() {
-            this.feed.on('incoming-message', this._newMessageListener);
-            return this.feed.open();
-        }.bind(this)).then(function() {
-            if (this._remote)
-                return this._remote.start();
-        }.bind(this));
+        });
     }
 
     stop() {

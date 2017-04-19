@@ -35,8 +35,14 @@ class DirectSocketServer {
                 }
             });
         });
+    }
 
-        this._server.listen('./direct');
+    start() {
+        return Q.ninvoke(this._server, 'listen', './direct');
+    }
+
+    stop() {
+        return Q.ninvoke(this._server, 'close');
     }
 }
 
@@ -83,14 +89,16 @@ class ControlSocketServer {
             this._connections.add(control);
             control.on('close', () => this._connections.delete(control));
         });
-
-        this._server.listen('./control');
     }
 
-    close() {
+    start() {
+        return Q.ninvoke(this._server, 'listen', './control');
+    }
+
+    stop() {
         for (var conn of this._connections)
             conn.end();
-        this._server.close();
+        return Q.ninvoke(this._server, 'close');
     }
 }
 
@@ -100,10 +108,12 @@ function main() {
     var controlSocket = new ControlSocketServer(enginemanager);
     var directSocket = new DirectSocketServer(enginemanager);
 
-    enginemanager.start();
+    Q.all([controlSocket.start(), directSocket.start()]).then(() => {
+        return enginemanager.start();
+    }).done();
 
     function stop() {
-        return Q.all([enginemanager.stop(), controlSocket.close()]).catch((e) => {
+        return Q.all([enginemanager.stop(), directSocket.stop(), controlSocket.stop()]).catch((e) => {
             console.error('Failed to stop: ' + e.message);
             console.error(e.stack);
             process.exit(1);

@@ -24,9 +24,14 @@ var _instance;
 class EngineManagerClient extends events.EventEmitter {
     constructor() {
         super();
+        this.setMaxListeners(Infinity);
         this._cachedEngines = new Map;
 
         _instance = this;
+    }
+
+    static get() {
+        return _instance;
     }
 
     getEngine(userId) {
@@ -42,6 +47,7 @@ class EngineManagerClient extends events.EventEmitter {
 
         var deleted = false;
         rpcSocket.on('close', () => {
+            console.log('Socket to user ID ' + userId + ' closed');
             if (!deleted) {
                 this._cachedEngines.delete(userId);
                 this.emit('socket-closed', userId);
@@ -148,10 +154,6 @@ class EngineManagerClient extends events.EventEmitter {
 
     restartUser(userId) {
         return this._rpcControl.restartUser(userId);
-    }
-
-    static get() {
-        return _instance;
     }
 }
 

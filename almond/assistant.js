@@ -47,5 +47,9 @@ module.exports = class Assistant extends events.EventEmitter {
         this._conversations[feedId] = conv;
         return conv;
     }
+
+    closeConversation(feedId) {
+        delete this._conversations[feedId];
+    }
 }
-module.exports.prototype.$rpcMethods = ['openConversation'];
+module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation'];

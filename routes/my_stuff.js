@@ -8,6 +8,8 @@
 
 const Q = require('q');
 const express = require('express');
+const crypto = require('crypto');
+const passport = require('passport');
 
 const db = require('../util/db');
 const user = require('../util/user');
@@ -16,6 +18,10 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 const ThingTalk = require('thingtalk');
 const AppGrammar = ThingTalk.Grammar;
+
+function makeRandom(bytes) {
+    return crypto.randomBytes(bytes).toString('hex');
+}
 
 var router = express.Router();
 
@@ -130,6 +136,81 @@ router.post('/apps/delete', user.requireLogIn, function(req, res, next) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
+});
+
+router.use('/api', function(req, res, next) {
+    passport.authenticate('bearer', function(err, user, info) {
+        // ignore auth failures and ignore sessions
+        if (err) { return next(err); }
+        if (!user) { return next(); }
+        req.login(user, next);
+    })(req, res, next);
+}, user.requireLogIn);
+
+router.ws('/api/conversation', function(ws, req, next) {
+    var user = req.user;
+
+    Q.try(() => {
+        return EngineManager.get().getEngine(user.id);
+    }).then(function(engine) {
+        const onclosed = (userId) => {
+            if (userId === user.id) {
+                ws.close();
+            }
+            EngineManager.get().removeListener('socket-closed', onclosed);
+        };
+        EngineManager.get().on('socket-closed', onclosed);
+
+        var assistantUser = { name: user.human_name || user.username };
+        const COMMANDS = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton',
+            'sendAskSpecial', 'sendRDL'];
+
+        var delegate = { $rpcMethods: [] };
+        function wrap(command) {
+            delegate[command] = function() {
+                return ws.send(JSON.stringify({command: command, arguments: Array.prototype.slice.call(arguments) }));
+            };
+            delegate.$rpcMethods.push(command);
+        }
+        COMMANDS.forEach(wrap);
+
+        var opened = false;
+        const id = 'web-' + makeRandom(16);
+        ws.on('error', (err) => {
+            ws.close();
+        });
+        ws.on('close', () => {
+            if (opened)
+                engine.assistant.closeConversation(id); // ignore errors if engine died
+            opened = false;
+        });
+
+        return engine.assistant.openConversation(id, assistantUser, delegate)
+            .tap((conversation) => {
+                opened = true;
+                return conversation.start();
+            }).then((conversation) => {
+                ws.on('message', (data) => {
+                    Q.try(() => {
+                        var parsed = JSON.parse(data);
+                        switch(parsed.type) {
+                        case 'command':
+                            return conversation.handleCommand(parsed.text);
+                            break;
+                        case 'parsed':
+                            return conversation.handleParsedCommand(JSON.stringify(parsed.json));
+                            break;
+                        }
+                    }).catch((e) => {
+                        console.error(e.stack);
+                        ws.send(JSON.stringify({error:e.message}));
+                    });
+                });
+            });
+    }).catch((error) => {
+        console.error('Error in conversation websocket: ' + error.message);
+        ws.close();
+    });
 });
 
 module.exports = router;
