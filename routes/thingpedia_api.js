@@ -189,8 +189,24 @@ router.get('/random-rule', function(req, res) {
     return db.withClient((dbClient) => {
         var schemaRetriever = new SchemaRetriever(client);
         return genRandomRules(dbClient, schemaRetriever, policy, language, N);
-    }).then((rules) => {
-        res.status(200).json(rules);
+    }).then((stream) => {
+        res.status(200).set('Content-Type', 'application/json');
+
+        res.write('[');
+        var first = true;
+        stream.on('data', (rule) => {
+            if (!first)
+                res.write(',');
+            first = false;
+            res.write(JSON.stringify(rule));
+        });
+        stream.on('error', (err) => {
+            console.error('Error generating one rule: ' + err.message);
+        });
+        stream.on('end', () => {
+            res.write(']');
+            res.end();
+        });
     }, (e) => {
         res.status(500).json({ error: e.message });
     }).done();
