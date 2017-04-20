@@ -1,0 +1,76 @@
+#input-form {
+  overflow: auto;
+  display: block;
+}
+
+#cancel {
+  float: right;
+  display: block;
+  font-size: 24px;
+  padding-top: 8px;
+  padding-left: 12px;
+  cursor: pointer;
+}
+
+#chat {
+  margin-bottom: 1em;
+}
+
+.message-container {
+  display: block;
+  overflow: auto;
+  clear: both;
+}
+
+.message-container > img.icon {
+  height: 48px;
+  width: 48px;
+  object-fit: contain;
+  padding-right: 12px;
+  float: left;
+}
+
+.message-container.from-almond {
+  width: 90%;
+  text-align: left;
+  margin-right: auto;
+}
+
+.message.from-user {
+  display: block;
+  width: 90%;
+  text-align: right;
+  margin-left: auto;
+
+  border-image-source: url(/images/bubble_user.png);
+  border-image-slice: 88 130 93 97 fill;
+  border-image-width: 13px 24px 12px 24px;
+  padding: 13px 24px 12px 24px;
+}
+
+.from-almond > .message {
+  display: block;
+  overflow: auto;
+  border-image-source: url(/images/bubble_almond.png);
+  border-image-slice: 90 97 94 120 fill;
+  border-image-width: 13px 24px 12px 24px;
+  padding: 13px 24px 12px 24px;
+}
+
+.message {
+  display: block;
+}
+
+.button-grid {
+  width: 80%;
+}
+
+.button-grid .btn {
+  margin-bottom: 6px;
+}
+
+#ui {
+  overflow: auto;
+  height: auto;
+  max-height: calc(100vh - 64px);
+}

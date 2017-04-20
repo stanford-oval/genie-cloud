@@ -138,6 +138,10 @@ router.post('/apps/delete', user.requireLogIn, function(req, res, next) {
     }).done();
 });
 
+router.get('/conversation', user.redirectLogIn, function(req, res, next) {
+    res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond") });
+});
+
 router.use('/api', function(req, res, next) {
     passport.authenticate('bearer', function(err, user, info) {
         // ignore auth failures and ignore sessions
@@ -147,7 +151,43 @@ router.use('/api', function(req, res, next) {
     })(req, res, next);
 }, user.requireLogIn);
 
+class WebsocketAssistantDelegate {
+    constructor(ws) {
+        this._ws = ws;
+    }
+
+    send(text, icon) {
+        return this._ws.send(JSON.stringify({ type: 'text', text: text, icon: icon }));
+    }
+
+    sendPicture(url, icon) {
+        return this._ws.send(JSON.stringify({ type: 'picture', url: url, icon: icon }));
+    }
+
+    sendRDL(rdl, icon) {
+        return this._ws.send(JSON.stringify({ type: 'rdl', rdl: rdl, icon: icon }));
+    }
+
+    sendChoice(idx, what, title, text) {
+        return this._ws.send(JSON.stringify({ type: 'choice', idx: idx, title: title, text: text }));
+    }
+
+    sendButton(title, json) {
+        return this._ws.send(JSON.stringify({ type: 'button', title: title, json: json }));
+    }
+
+    sendLink(title, url) {
+        return this._ws.send(JSON.stringify({ type: 'link', title: title, url: url }));
+    }
+
+    sendAskSpecial(what) {
+        return this._ws.send(JSON.stringify({ type: 'askSpecial', ask: what }));
+    }
+}
+WebsocketAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
+
 router.ws('/api/conversation', function(ws, req, next) {
+    console.log('got here');
     var user = req.user;
 
     Q.try(() => {
@@ -162,17 +202,7 @@ router.ws('/api/conversation', function(ws, req, next) {
         EngineManager.get().on('socket-closed', onclosed);
 
         var assistantUser = { name: user.human_name || user.username };
-        const COMMANDS = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton',
-            'sendAskSpecial', 'sendRDL'];
-
-        var delegate = { $rpcMethods: [] };
-        function wrap(command) {
-            delegate[command] = function() {
-                return ws.send(JSON.stringify({command: command, arguments: Array.prototype.slice.call(arguments) }));
-            };
-            delegate.$rpcMethods.push(command);
-        }
-        COMMANDS.forEach(wrap);
+        var delegate = new WebsocketAssistantDelegate(ws);
 
         var opened = false;
         const id = 'web-' + makeRandom(16);
@@ -198,12 +228,12 @@ router.ws('/api/conversation', function(ws, req, next) {
                             return conversation.handleCommand(parsed.text);
                             break;
                         case 'parsed':
-                            return conversation.handleParsedCommand(JSON.stringify(parsed.json));
+                            return conversation.handleParsedCommand(parsed.json);
                             break;
                         }
                     }).catch((e) => {
                         console.error(e.stack);
-                        ws.send(JSON.stringify({error:e.message}));
+                        ws.send(JSON.stringify({ type: 'error', error:e.message }));
                     });
                 });
             });
