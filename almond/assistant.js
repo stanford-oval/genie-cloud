@@ -41,14 +41,18 @@ module.exports = class Assistant extends events.EventEmitter {
     }
 
     openConversation(feedId, user, delegate, options) {
-        if (this._conversations[feedId])
+        if (this._conversations[feedId]) {
+            this._conversations[feedId].$free();
             delete this._conversations[feedId];
+        }
         var conv = new Conversation(this._engine, user, delegate, options);
         this._conversations[feedId] = conv;
         return conv;
     }
 
     closeConversation(feedId) {
+        if (this._conversations[feedId])
+            this._conversations[feedId].$free();
         delete this._conversations[feedId];
     }
 }

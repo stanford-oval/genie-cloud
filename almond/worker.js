@@ -98,7 +98,11 @@ function handleDirectSocket(userId, replyId, socket) {
     for (var i = 0; i < _engines.length; i++) {
         if (_engines[i].userId === userId) {
             var obj = _engines[i];
-            rpcSocket.call(replyId, 'ready', [obj.engine, obj.engine.platform.getCapability('webhook-api'), obj.engine.platform.getCapability('assistant')]);
+            var platform = obj.engine.platform;
+            rpcSocket.call(replyId, 'ready', [obj.engine,
+                platform.getCapability('websocket-api'),
+                platform.getCapability('webhook-api'),
+                platform.getCapability('assistant')]);
             return;
         }
     }

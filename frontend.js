@@ -181,6 +181,8 @@ Frontend.prototype._init = function _init() {
     // as we don't need CSRF protection for that
     this._app.use('/api/webhook', require('./routes/webhook'));
     this._app.use('/me/api/oauth2', require('./routes/oauth2'));
+    this._app.use('/me/api', require('./routes/my_api'));
+    this._app.use('/ws', require('./routes/thingengine_ws'));
     this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
     this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
     // initialize csurf after /upload too

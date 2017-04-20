@@ -64,7 +64,7 @@ class EngineManagerClient extends events.EventEmitter {
         jsonSocket.on('data', initError);
 
         var stub = {
-            ready(engine, webhook, assistant) {
+            ready(engine, websocket, webhook, assistant) {
                 jsonSocket.removeListener('data', initError);
 
                 Q.all([engine.apps, engine.devices, engine.messaging]).spread((apps, devices, messaging) => {
@@ -72,6 +72,7 @@ class EngineManagerClient extends events.EventEmitter {
                         apps: apps,
                         devices: devices,
                         messaging: messaging,
+                        websocket: websocket,
                         webhook: webhook,
                         assistant: assistant
                     };

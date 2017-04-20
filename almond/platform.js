@@ -12,6 +12,7 @@
 const Q = require('q');
 const fs = require('fs');
 const os = require('os');
+const events = require('events');
 const Gettext = require('node-gettext');
 const child_process = require('child_process');
 
@@ -69,6 +70,65 @@ class WebhookApi {
 }
 WebhookApi.prototype.$rpcMethods = ['handleCallback'];
 
+
+class WebSocketWrapper extends events.EventEmitter {
+    constructor(delegate) {
+        super();
+
+        this._delegate = delegate;
+    }
+
+    ping() {
+        this._delegate.ping();
+    }
+
+    pong() {
+        this._delegate.pong();
+    }
+
+    terminate() {
+        this._delegate.terminate();
+    }
+
+    send(data) {
+        this._delegate.send(data);
+    }
+
+    onPing() {
+        this.emit('ping');
+    }
+
+    onPong() {
+        this.emit('pong');
+    }
+
+    onMessage(data) {
+        this.emit('message', data);
+    }
+
+    onClose() {
+        this.emit('close');
+    }
+}
+WebSocketWrapper.prototype.$rpcMethods = ['onPing', 'onPong', 'onMessage', 'onClose'];
+
+class WebSocketApi extends events.EventEmitter {
+    constructor() {
+        super();
+    }
+
+    newConnection(delegate) {
+        var wrapper = new WebSocketWrapper(delegate);
+        this.emit('connection', wrapper);
+        wrapper.on('close', () => {
+            delegate.$free();
+            wrapper.$free();
+        });
+        return wrapper;
+    }
+}
+WebSocketApi.prototype.$rpcMethods = ['newConnection'];
+
 class Platform {
     constructor(thingpediaClient, options) {
         this._userId = options.userId;
@@ -93,6 +153,7 @@ class Platform {
         this._prefs = new prefs.FilePreferences(this._writabledir + '/prefs.db');
 
         this._webhookApi = new WebhookApi(this._userId);
+        this._websocketApi = new WebSocketApi();
 
         this._assistant = null;
     }
@@ -162,6 +223,7 @@ class Platform {
         case 'graphics-api':
         case 'thingpedia-client':
         case 'webhook-api':
+        case 'websocket-api':
             return true;
 
         case 'gettext':
@@ -192,8 +254,7 @@ class Platform {
             return this._webhookApi;
 
         case 'websocket-api':
-            // FIXME return this._websocketApi;
-            return null;
+            return this._websocketApi;
 
         case 'assistant':
             return this._assistant;
