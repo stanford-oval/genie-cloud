@@ -12,7 +12,9 @@
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}; xargs -a po/POTFILES.jade jsxgettext -k _,gettext,ngettext,pgettext -L jade -o po/${npm_package_name}.pot -j",
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
-    "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done"
+    "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
+    "update-grammar": "pegjs --cache util/reduced_grammar.pegjs",
+    "update-bundle": "browserify -r ./browser/trainer.js:thingtalk-trainer -o public/javascripts/trainer-bundle.js"
   },
   "dependencies": {
     "accept-language": "^2.0.17",

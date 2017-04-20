@@ -14,7 +14,7 @@ block scripts
 block content
   p#first-blurb
     = _("Thanks for being part of the Almond virtual assistant project. ")
-    = _("In here you can help us train her to understand better and more complex sentences.")
+    = _("In here you can help us train it to understand better and more complex sentences.")
 
   p.hidden
     span#language= locale
@@ -26,10 +26,10 @@ block content
 
   div#sentence-to-code-block
     p
-      = _("You can type a sentence in the box below, and Almond will respond with her best guess of what you mean. ")
-      = _("Unfortunately, she will not get it right most of the time, so your task is to then click on the correct interpretation in her pseudo-English.")
+      = _("You can type a sentence in the box below, and Almond will respond with its best guess of what you mean. ")
+      = _("Unfortunately, Almond will not get it right most of the time, so your task is to then click on the correct interpretation in her pseudo-English.")
     p
-      = _("You don't have to worry, nothing will happen as a result of playing with Almond here, and if you don't understand what Almond is responding for a particular sentence (or all Almond offers are wrong), just type a new sentence to continue.")
+      = _("You don't have to worry, nothing will happen as a result of playing with Almond here, and if you don't understand what Almond is responding for a particular sentence (or all Almond's offers are wrong), just type a new sentence to continue.")
 
     div#suggestions
       small
@@ -47,7 +47,7 @@ block content
           input.form-control(type="text", placeholder="What do you want Almond to do?")#utterance
       div#thingtalk-editor.hidden
         div.form-group#thingtalk-group
-          label(for='thingtalk')= _("Code (in reduced ThingTalk syntax):")
+          label(for='thingtalk')= _("Code:")
           input.form-control(type="text")#thingtalk
           span.help-block#thingtalk-error
         div.form-group

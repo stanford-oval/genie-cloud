@@ -34,8 +34,6 @@ function prepareSentenceToCode() {
             var filtered = [];
             var invocations = {};
 
-            console.log('data', data);
-
             if (data.length < 5) {
                 filtered = data;
             } else {
@@ -163,7 +161,7 @@ function prepareSentenceToCode() {
             if (prediction === null || prediction.answer === FAILED) {
                 $('#prediction').text('Almond is confused and does not know what to do.');
             } else if (prediction === DO_FALLBACK) {
-                $('#prediction').text('Almond is somewhat confused. She needs your help!');
+                $('#prediction').text('Almond is somewhat confused and needs your help!');
             } else {
                 $('#prediction').text(format(prediction.canonical));
             }
