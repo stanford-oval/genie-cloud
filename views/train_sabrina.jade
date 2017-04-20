@@ -12,7 +12,7 @@ block scripts
   script(src='/javascripts/train-sabrina.js')
 
 block content
-  p
+  p#first-blurb
     = _("Thanks for being part of the Almond virtual assistant project. ")
     = _("In here you can help us train her to understand better and more complex sentences.")
 
@@ -38,9 +38,9 @@ block content
         button.btn.btn-default.btn-sm(type="button")#more-suggestions= _("More suggestions")
     div
       div.checkbox
-      label
-        input(type='checkbox')#edit-thingtalk
-        = _("Edit ThingTalk before learning.")
+        label
+          input(type='checkbox')#edit-thingtalk
+          = _("Edit ThingTalk before learning.")
       form#sentence-to-code-form
         div.form-group
           label.sr-only(for="utterance")= _("Utterance:")
