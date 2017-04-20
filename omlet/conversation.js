@@ -178,7 +178,7 @@ module.exports = class Conversation extends events.EventEmitter {
 
         return this._engines.getEngine(this._almondUser.id).then((engine) => {
             this._engine = engine;
-            return this._engine.assistant.openConversation(this.feed.feedId, this._omletUser, this);
+            return this._engine.assistant.openConversation(this.feed.feedId, this._omletUser, this, { showWelcome: false });
         }).then((conversation) => {
             this._remote = conversation;
             return this._remote.start();

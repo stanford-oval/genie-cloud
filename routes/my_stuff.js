@@ -187,7 +187,6 @@ class WebsocketAssistantDelegate {
 WebsocketAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
 
 router.ws('/api/conversation', function(ws, req, next) {
-    console.log('got here');
     var user = req.user;
 
     Q.try(() => {
@@ -215,7 +214,7 @@ router.ws('/api/conversation', function(ws, req, next) {
             opened = false;
         });
 
-        return engine.assistant.openConversation(id, assistantUser, delegate)
+        return engine.assistant.openConversation(id, assistantUser, delegate, { showWelcome: true })
             .tap((conversation) => {
                 opened = true;
                 return conversation.start();

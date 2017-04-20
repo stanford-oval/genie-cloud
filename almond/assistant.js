@@ -14,8 +14,8 @@ const util = require('util');
 const Almond = require('sabrina');
 
 class Conversation extends Almond {
-    constructor(engine, user, delegate) {
-        super(engine, user, delegate, true);
+    constructor(engine, user, delegate, options) {
+        super(engine, user, delegate, options);
     }
 }
 Conversation.prototype.$rpcMethods = ['start', 'handleCommand', 'handleParsedCommand'];
@@ -40,10 +40,10 @@ module.exports = class Assistant extends events.EventEmitter {
         }.bind(this)));
     }
 
-    openConversation(feedId, user, delegate) {
+    openConversation(feedId, user, delegate, options) {
         if (this._conversations[feedId])
             delete this._conversations[feedId];
-        var conv = new Conversation(this._engine, user, delegate);
+        var conv = new Conversation(this._engine, user, delegate, options);
         this._conversations[feedId] = conv;
         return conv;
     }
