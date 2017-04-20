@@ -11,6 +11,8 @@ const express = require('express');
 const crypto = require('crypto');
 const passport = require('passport');
 
+const Config = require('../config');
+
 const db = require('../util/db');
 const user = require('../util/user');
 const userModel = require('../model/user');
@@ -28,13 +30,10 @@ var router = express.Router();
 function getAllApps(req, engine) {
     return engine.apps.getAllApps().then(function(apps) {
         return Q.all(apps.map(function(a) {
-            return Q.all([a.uniqueId, a.name, a.isRunning, a.isEnabled,
-                          a.state, a.error])
-                .spread(function(uniqueId, name, isRunning,
-                                 isEnabled, state, error) {
-                    var app = { uniqueId: uniqueId, name: name || req._("Some app"),
-                                running: isRunning, enabled: isEnabled,
-                                state: state, error: error };
+            return Q.all([a.uniqueId, a.description, a.error])
+                .spread(function(uniqueId, description, error) {
+                    var app = { uniqueId: uniqueId, description: description || req._("Some app"),
+                                error: error };
                     return app;
                 });
         }));
@@ -65,6 +64,7 @@ function getAllDevices(req, engine) {
                              isTransient: isTransient,
                              isOnlineAccount: isOnlineAccount,
                              isDataSource: isDataSource,
+                             isPhysical: !isOnlineAccount && !isDataSource,
                              isThingEngine: isThingEngine };
                 });
         }));
@@ -76,39 +76,33 @@ function getAllDevices(req, engine) {
 }
 
 router.get('/', user.redirectLogIn, function(req, res) {
-    if (!EngineManager.get().isRunning(req.user.id)) {
-        res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
-                                 messages: req.flash('app-message'),
-                                 csrfToken: req.csrfToken(),
-                                 isRunning: false,
-                                 apps: [],
-                                 datasourceDevices: [],
-                                 physicalDevices: [],
-                                 onlineDevices: [],
-                                });
-        return;
-    }
-
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return Q.all([getAllApps(req, engine), getAllDevices(req, engine)]);
-    }).spread(function(appinfo, devinfo) {
-        var physical = [], online = [], datasource = [];
-        devinfo.forEach(function(d) {
-            if (d.isDataSource)
-                datasource.push(d);
-            else if (d.isOnlineAccount)
-                online.push(d);
+    EngineManager.get().isRunning(req.user.id).then((isRunning) => {
+        if (!isRunning)
+            return null;
+        else
+            return EngineManager.get().getEngine(req.user.id);
+    }).then((engine) => {
+        if (engine)
+            return Q.all([true, getAllApps(req, engine), getAllDevices(req, engine)]);
+        else
+            return [false, [],[]];
+    }).spread(function(isRunning, appinfo, devinfo) {
+        devinfo.sort((d1, d2) => {
+            if (d1.name < d2.name)
+                return -1;
+            else if (d1.name > d2.name)
+                return 1;
             else
-                physical.push(d);
+                return 0;
         });
+
         res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
                                  messages: req.flash('app-message'),
                                  csrfToken: req.csrfToken(),
-                                 isRunning: true,
+                                 isRunning: isRunning,
                                  apps: appinfo,
-                                 datasourceDevices: datasource,
-                                 physicalDevices: physical,
-                                 onlineDevices: online,
+                                 devices: devinfo,
+                                 S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST
                                 });
     }).catch(function(e) {
         console.log(e.stack);

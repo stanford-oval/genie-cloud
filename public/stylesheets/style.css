@@ -1,7 +1,3 @@
-body {
-    padding-top: 0px;
-}
-
 .navbar .stanford {
     margin-left: -10px;
     margin-right: 10px;
@@ -17,12 +13,10 @@ body {
 }
 
 #page-body {
-    margin-top: 81px;
+    margin-top: 60px;
 }
 
 #page-title {
-    margin-top: 0px;
-    margin-bottom: 0.5em;
     text-align: center;
 }
 
@@ -95,4 +89,23 @@ body {
 
 pre, pre code {
     color: black;
+}
+
+.app-template {
+  margin-bottom: 0.5em;
+}
+
+.device-icon-small > img {
+    display: block;
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 5px;
+    margin: 0 auto;
+}
+
+.dev-template .panel-heading {
+    font-weight: bold;
+    text-align: center;
+    display: block;
 }

@@ -6,10 +6,13 @@
 //
 // See COPYING for details
 
+const Q = require('q');
 const express = require('express');
 var router = express.Router();
 const fs = require('fs');
 const path = require('path');
+
+const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
@@ -18,7 +21,18 @@ function render(req, res, what) {
 }
 
 router.get('/', function(req, res) {
-    res.render('thingpedia_dev_portal', { page_title: req._("Thingpedia - Developer Portal") });
+    Q.try(function() {
+        if (req.user) {
+            return EngineManager.get().isRunning(req.user.id);
+        } else {
+            return false;
+        }
+    }).then((isRunning) => {
+        res.render('thingpedia_dev_portal', { page_title: req._("Thingpedia - Developer Portal"), isRunning: isRunning });
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
 });
 
 router.get('/:what', function(req, res) {
