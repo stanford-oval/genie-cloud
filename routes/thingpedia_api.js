@@ -67,7 +67,7 @@ router.get('/schema-metadata/:schemas', function(req, res) {
 router.get('/code/devices/:kind', function(req, res) {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
-    client.getDeviceCode(req.params.kind).then(function(code) {
+    client.getDeviceCode(req.params.kind, req.query.version).then(function(code) {
         if (code.developer)
             res.cacheFor(3600000);
         else

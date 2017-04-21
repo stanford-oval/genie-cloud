@@ -81,21 +81,39 @@ module.exports = {
         return db.selectOne(client, "select * from device_class where id = ?", [id]);
     },
 
-    getFullCodeByPrimaryKind: function(client, kind, org) {
-        if (org !== null && org.is_admin) {
-            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
-                                + "where d.fullcode and d.primary_kind = ? and dcv.device_id = d.id "
-                                + "and dcv.version = d.developer_version", [kind]);
-        } else if (org !== null) {
-            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
-                                + "where d.fullcode and d.primary_kind = ? and dcv.device_id = d.id "
-                                + "and ((dcv.version = d.developer_version and d.owner = ?) "
-                                + "or (dcv.version = d.approved_version and d.owner <> ?))",
-                                [kind, org.id, org.id]);
+    getFullCodeByPrimaryKind: function(client, kind, org, includeNotFullCode) {
+        if (includeNotFullCode) {
+            if (org !== null && org.is_admin) {
+                return db.selectAll(client, "select fullcode, code, version, approved_version from device_code_version dcv, device_class d "
+                                    + "where d.primary_kind = ? and dcv.device_id = d.id "
+                                    + "and dcv.version = d.developer_version", [kind]);
+            } else if (org !== null) {
+                return db.selectAll(client, "select fullcode, code, version, approved_version from device_code_version dcv, device_class d "
+                                    + "where d.primary_kind = ? and dcv.device_id = d.id "
+                                    + "and ((dcv.version = d.developer_version and d.owner = ?) "
+                                    + "or (dcv.version = d.approved_version and d.owner <> ?))",
+                                    [kind, org.id, org.id]);
+            } else {
+                return db.selectAll(client, "select fullcode, code, version, approved_version from device_code_version dcv, device_class d "
+                                    + "where d.primary_kind = ? and dcv.device_id = d.id "
+                                    + "and dcv.version = d.approved_version", [kind]);
+            }
         } else {
-            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
-                                + "where d.fullcode and d.primary_kind = ? and dcv.device_id = d.id "
-                                + "and dcv.version = d.approved_version", [kind]);
+            if (org !== null && org.is_admin) {
+                return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
+                                    + "where d.fullcode and d.primary_kind = ? and dcv.device_id = d.id "
+                                    + "and dcv.version = d.developer_version", [kind]);
+            } else if (org !== null) {
+                return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
+                                    + "where d.fullcode and d.primary_kind = ? and dcv.device_id = d.id "
+                                    + "and ((dcv.version = d.developer_version and d.owner = ?) "
+                                    + "or (dcv.version = d.approved_version and d.owner <> ?))",
+                                    [kind, org.id, org.id]);
+            } else {
+                return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
+                                    + "where d.fullcode and d.primary_kind = ? and dcv.device_id = d.id "
+                                    + "and dcv.version = d.approved_version", [kind]);
+            }
         }
     },
 

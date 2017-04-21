@@ -19,7 +19,6 @@ router.get('/devices/:device', function(req, res) {
         res.status(400).send('Bad Request');
         return;
     }
-
     var kind = device.substr(0, device.length-4);
     if (device.substr(device.length-4, 4) !== '.zip') {
         res.status(404).send('Not Found');
@@ -27,8 +26,7 @@ router.get('/devices/:device', function(req, res) {
     }
 
     var client = new ThingpediaClient(req.query.developer_key);
-
-    client.getModuleLocation(kind).then(function(location) {
+    client.getModuleLocation(kind, req.query.version).then(function(location) {
         res.cacheFor(86400000);
         res.redirect(301, location);
     }).catch(function(e) {
