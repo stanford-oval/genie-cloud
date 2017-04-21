@@ -31,7 +31,9 @@ router.use(multer({ dest: platform.getTmpDir() }).fields([
 ]));
 router.use(csurf({ cookie: false }));
 
-const DEFAULT_CODE = {"params": {},
+const DEFAULT_CODE = {"module_type": "org.thingpedia.v1",
+                      "global-name": "my_device",
+                      "params": {},
                       "auth": {"type": "none"},
                       "types": [],
                       "child_types": [],
@@ -88,12 +90,15 @@ function validateDevice(dbClient, req) {
     var description = req.body.description;
     var code = req.body.code;
     var kind = req.body.primary_kind;
-    var fullcode = !req.body.fullcode;
 
     if (!name || !description || !code || !kind)
-        throw new Error('Not all required fields were presents');
+        throw new Error(req._("Not all required fields were presents"));
 
     var ast = JSON.parse(code);
+    if (!ast.module_type)
+        throw new Error(req._("Invalid module type"));
+    var fullcode = ast.module_type !== 'org.thingpedia.v1' && ast.module_type !== 'org.thingpedia.builtin';
+
     if (!ast.params)
         ast.params = {};
     if (!ast.types)
@@ -103,11 +108,15 @@ function validateDevice(dbClient, req) {
     if (!ast.auth)
         ast.auth = {"type":"none"};
     if (!ast.auth.type || ['none','oauth2','basic','builtin','discovery'].indexOf(ast.auth.type) == -1)
-        throw new Error(req._("Invalid auth type"));
-    if (fullcode && ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
-        throw new Error(req._("Username and password must be provided for basic authentication"));
+        throw new Error(req._("Invalid authentication type"));
+    if (ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
+        throw new Error(req._("Username and password must be declared for basic authentication"));
+    //if (ast.auth.type === 'oauth2' && !ast.auth.client_id && !ast.auth.client_secret)
+    //    throw new Error(req._("Client ID and Client Secret must be provided for OAuth 2 authentication"));
     if (ast.types.indexOf('online-account') >= 0 && ast.types.indexOf('data-source') >= 0)
         throw new Error(req._("Interface cannot be both marked online-account and data-source"));
+    if (ast['global-name'])
+        Validation.validateKind(ast['global-name'], 'global name');
 
     Validation.validateAllInvocations(ast);
 
@@ -145,8 +154,7 @@ function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve)
             throw new Error(req._("Not Authorized"));
 
         obj.developer_version = existing.developer_version + 1;
-        if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER &&
-            approve)
+        if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER && approve)
             obj.approved_version = obj.developer_version;
 
         return schema.update(dbClient,
@@ -157,7 +165,7 @@ function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve)
         var obj = {
             kind: kind,
             // convert security-camera to 'security camera' and googleDrive to 'google drive'
-            kind_canonical: kind.replace(/[_\-]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase(),
+            kind_canonical: kind_type === 'primary' ? '' : kind.replace(/[_\-]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase(),
             kind_type: kind_type,
             owner: req.user.developer_org
         };
@@ -257,7 +265,6 @@ function doCreateOrUpdate(id, create, req, res) {
     var name = req.body.name;
     var description = req.body.description;
     var code = req.body.code;
-    var fullcode = !req.body.fullcode;
     var kind = req.body.primary_kind;
     var approve = !!req.body.approve;
 
@@ -302,6 +309,8 @@ function doCreateOrUpdate(id, create, req, res) {
                 var globalName = ast['global-name'];
                 if (!globalName)
                     globalName = null;
+
+                var fullcode = ast.module_type !== 'org.thingpedia.v1' && ast.module_type !== 'org.thingpedia.builtin';
 
                 var obj = {
                     primary_kind: kind,
@@ -351,7 +360,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (obj === null)
                     return null;
 
-                if (obj.fullcode || obj.primary_kind.startsWith('org.thingpedia.builtin.'))
+                if (obj.fullcode || gAst.module_type == 'org.thingpedia.builtin')
                     return obj.primary_kind;
 
                 // do the whole zip file dance asynchronously, or the request will stall for a long time

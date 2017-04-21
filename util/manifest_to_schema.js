@@ -18,14 +18,20 @@ module.exports = {
 
         function handleOne(ast, out, outMeta) {
             for (var name in ast) {
-                out[name] = ast[name].schema;
+                out[name] = [];
                 outMeta[name] = {
                     doc: ast[name].doc,
                     confirmation: (ast[name].confirmation || ast[name].label),
                     canonical: ast[name].canonical,
-                    args: ast[name].params || ast[name].args || [],
-                    questions: ast[name].questions || [],
-                    required: ast[name].required || [],
+                    args: [],
+                    questions: [],
+                    required: []
+                };
+                for (var arg of ast[name].args) {
+                    out[name].push(arg.type);
+                    outMeta[name].args.push(arg.name);
+                    outMeta[name].questions.push(arg.question);
+                    outMeta[name].required.push(arg.required);
                 };
             }
         }
@@ -52,14 +58,23 @@ module.exports = {
 
             for (var name in schemas) {
                 var channelMeta = metas[name] || {};
+                var args = [];
+                var argnames = channelMeta.args || (schemas[name].map((_, i) => ('arg' + (i+1))));
+                var questions = channelMeta.questions || [];
+                var argrequired = channelMeta.required || [];
+                schemas[name].forEach(function(schema, i) {
+                    args.push({
+                        type: schema,
+                        name: argnames[i],
+                        question: inv.questions[i] || '',
+                        required: inv.required[i] || false,
+                    });
+                });
                 out[name] = {
-                    schema: schemas[name],
-                    args: channelMeta.args || (schemas[name].map((_, i) => ('arg' + (i+1)))),
+                    args: args,
                     doc: channelMeta.doc || '',
                     confirmation: channelMeta.confirmation || '',
                     canonical: channelMeta.canonical || '',
-                    questions: channelMeta.questions || [],
-                    required: channelMeta.required || [],
                     examples: []
                 }
             }

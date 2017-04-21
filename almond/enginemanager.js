@@ -68,10 +68,10 @@ class EngineProcess extends events.EventEmitter {
         return this._id;
     }
 
-    runEngine(user) {
+    runEngine(user, thingpediaClient) {
         this.useCount++;
 
-        return this._rpcSocket.call(this._rpcId, 'runEngine', [new ThingpediaClient(user.developer_key, user.locale), {
+        return this._rpcSocket.call(this._rpcId, 'runEngine', [thingpediaClient, {
             userId: user.id,
             cloudId: user.cloud_id,
             authToken: user.auth_token,
@@ -238,6 +238,8 @@ class EngineManager extends events.EventEmitter {
                 return;
             obj.process.removeListener('die', die);
             obj.process.removeListener('engine-removed', onRemoved);
+            if (obj.thingpediaClient)
+                obj.thingpediaClient.$free();
             delete engines[user.id];
 
             if (!manual && obj.process.shared) {
@@ -263,7 +265,8 @@ class EngineManager extends events.EventEmitter {
             process.on('engine-removed', onRemoved);
             process.on('exit', die);
 
-            return process.runEngine(user);
+            obj.thingpediaClient = new ThingpediaClient(user.developer_key, user.locale);
+            return process.runEngine(user, obj.thingpediaClient);
         });
     }
 

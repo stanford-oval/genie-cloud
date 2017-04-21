@@ -12,27 +12,40 @@ const Q = require('q');
 
 const ThingTalk = require('thingtalk');
 
+const KIND_REGEX = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
 module.exports = {
+    validateKind(name, what) {
+        if (!KIND_REGEX.test(name))
+            throw new Error('Invalid ' + what + ', must conform to ' + KIND_REGEX);
+    },
+
     validateInvocation(where, what) {
         for (var name in where) {
-            if (!where[name].schema)
-                throw new Error("Missing " + what + " schema for " + name);
-            if ((where[name].args && where[name].args.length !== where[name].schema.length) ||
-                (where[name].params && where[name].params.length !== where[name].schema.length))
-                throw new Error("Invalid number of arguments in " + what + " " + name);
-            if (where[name].questions && where[name].questions.length !== where[name].schema.length)
-                throw new Error("Invalid number of questions in " + name);
-            if (where[name].required && where[name].required.length > where[name].schema.length)
-                throw new Error("Invalid number of required arguments in " + name);
-            if (where[name].required) {
-                where[name].required.forEach(function(argrequired, i) {
-                    if (argrequired && (!where[name].questions || !where[name].questions[i]))
-                        throw new Error('Required arguments in ' + name + ' must have slot filling questions');
-                });
+            if (!where[name].canonical)
+                throw new Error('Missing canonical form for ' + name);
+            if (!where[name].confirmation)
+                throw new Error('Missing confirmation form for ' + name);
+            if (!where[name].examples || where[name].examples.length === 0)
+                throw new Error('Must include at least one example in ' + name);
+            where[name].doc = where[name].doc || '';
+            where[name].args = where[name].args || [];
+
+            for (var arg of where[name].args) {
+                if (!arg.name)
+                    throw new Error('Missing argument name in ' + name);
+                if (!arg.type)
+                    throw new Error("Missing type for argument " + name + '.' + arg.name);
+                try {
+                    ThingTalk.Type.fromString(arg.type);
+                } catch(e) {
+                    throw new Error('Invalid type ' + arg.type + ' for argument ' + name + '.' + arg.name);
+                }
+                arg.question = arg.question || '';
+                arg.required = arg.required || false;
+                if (arg.required && !arg.question)
+                    throw new Error('Required argument ' + name + '.' + arg.name + ' must have a slot filling question');
             }
-            where[name].schema.forEach(function(t) {
-                ThingTalk.Type.fromString(t);
-            });
         }
     },
 

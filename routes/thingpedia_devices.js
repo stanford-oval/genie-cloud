@@ -81,64 +81,16 @@ function getDetails(fn, param, req, res) {
 
             d.types = [];
             d.child_types = [];
-            var triggers = [], actions = [], queries = [];
+            var triggers = {}, actions = {}, queries = {};
             try {
                 var ast = JSON.parse(d.code);
                 d.types = ast.types || [];
                 online = d.types.some(function(k) { return k === 'online-account' });
                 d.child_types = ast.child_types || [];
 
-                if (ast.triggers) {
-                    for (var t in ast.triggers) {
-                        var obj = {
-                            name: t
-                        };
-                        if (ast.triggers[t].params)
-                            obj.params = ast.triggers[t].params;
-                        else if (ast.triggers[t].args)
-                            obj.params = ast.triggers[t].args;
-                        else
-                            obj.params = [];
-                        obj.schema = ast.triggers[t].schema;
-                        obj.doc = ast.triggers[t].doc;
-                        obj.canonical = ast.triggers[t].canonical;
-                        triggers.push(obj);
-                    }
-                }
-                if (ast.actions) {
-                    for (var a in ast.actions) {
-                        var obj = {
-                            name: a
-                        };
-                        if (ast.actions[a].params)
-                            obj.params = ast.actions[a].params;
-                        else if (ast.actions[a].args)
-                            obj.params = ast.actions[a].args;
-                        else
-                            obj.params = [];
-                        obj.schema = ast.actions[a].schema;
-                        obj.doc = ast.actions[a].doc;
-                        obj.canonical = ast.actions[a].canonical;
-                        actions.push(obj);
-                    }
-                }
-                if (ast.queries) {
-                    for (var q in ast.queries) {
-                        var obj = {
-                            name: q
-                        };
-                        if (ast.queries[q].params)
-                            obj.params = ast.queries[q].params;
-                        else if (ast.queries[q].args)
-                            obj.params = ast.queries[q].args;
-                        else
-                            obj.params = [];
-                        obj.schema = ast.queries[q].schema;
-                        obj.doc = ast.queries[q].doc;
-                        obj.canonical = ast.queries[q].canonical;
-                        queries.push(obj);
-                    }
-                }
+                triggers = ast.triggers || {};
+                actions = ast.actions || {};
+                queries = ast.queries || {};
             } catch(e) {}
 
             var title;

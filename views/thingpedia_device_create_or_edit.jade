@@ -60,12 +60,6 @@ block content
             label(for='device-zipfile').control-label= _("Upload ZIP file with JS code")
             input(type='file',name='zipfile')#device-zipfile
 
-
-          div.checkbox
-            label(for='device-fullcode').control-label
-              input(type='checkbox',name='fullcode',value='1',checked=create || !device.fullcode)#device-fullcode
-              = _(" The interface uses a ZIP file with JS code")
-
           div.form-group.hidden
             label(for='device-code').control-label Thing Manifest
             textarea(name='code',required=true).form-control#device-code #{device.code}

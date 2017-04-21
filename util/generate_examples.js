@@ -96,9 +96,10 @@ module.exports = function(dbClient, kind, ast, language) {
                 continue;
 
             var argtypes = {};
-            var argnames = fromChannel.params || fromChannel.args || [];
-            argnames.forEach(function(name, i) {
-                argtypes[name] = ThingTalk.Type.fromString(fromChannel.schema[i]);
+            var argnames = [];
+            fromChannel.args.forEach((arg) => {
+                argnames.push(arg.name);
+                argtypes[arg.name] = ThingTalk.Type.fromString(arg.type);
             });
 
             fromChannel.examples.forEach(function(ex) {

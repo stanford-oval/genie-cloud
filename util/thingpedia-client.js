@@ -60,9 +60,12 @@ module.exports = class ThingpediaClientCloud {
         this.language = (locale || 'en').split(/[-_\@\.]/)[0];
     }
 
-    getModuleLocation(kind) {
+    getModuleLocation(kind, version) {
         if (kind in LEGACY_MAPS)
             kind = LEGACY_MAPS[kind];
+
+        if (version)
+            return Q(S3_HOST + kind + '-v' + version + '.zip');
 
         var developerKey = this.developerKey;
 
@@ -92,11 +95,32 @@ module.exports = class ThingpediaClientCloud {
         });
     }
 
-    getDeviceCode(kind) {
+    getDeviceCode(kind, apiVersion) {
         if (kind in LEGACY_MAPS)
             kind = LEGACY_MAPS[kind];
 
         var developerKey = this.developerKey;
+        var newApi = apiVersion >= 2;
+
+        if (newApi) {
+            if (kind === 'org.thingpedia.builtin.thingengine' ||
+                kind === 'org.thingpedia.builtin.sabrina' ||
+                kind === 'org.thingpedia.builtin.graphdb') {
+                // legacy devices and failed experiments that we don't want to put
+                // in thingpedia because they would just confuse everything
+
+                return {
+                    module_type: 'org.thingpedia.builtin',
+                    version: 0,
+                    developer: false,
+                    types: ['thingengine-system'],
+                    child_types: [],
+                    triggers: {},
+                    queries: {},
+                    actions: {}
+                };
+            }
+        }
 
         return db.withClient(function(dbClient) {
             return Q.try(function() {
@@ -109,7 +133,7 @@ module.exports = class ThingpediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return device.getFullCodeByPrimaryKind(dbClient, kind, org);
+                return device.getFullCodeByPrimaryKind(dbClient, kind, org, newApi);
             }).then(function(devs) {
                 if (devs.length < 1)
                     throw new Error(kind + ' not Found');
@@ -121,7 +145,14 @@ module.exports = class ThingpediaClientCloud {
                     ast.developer = true;
                 else
                     ast.developer = false;
-
+                if (newApi && !ast.module_type) {
+                    if (kind.startsWith('org.thingpedia.builtin.'))
+                        ast.module_type = 'org.thingpedia.builtin';
+                    else if (!dev.fullcode)
+                        ast.module_type = 'org.thingpedia.v1';
+                    else
+                        ast.module_type = 'org.thingpedia.legacy_generic';
+                }
                 return ast;
             });
         });

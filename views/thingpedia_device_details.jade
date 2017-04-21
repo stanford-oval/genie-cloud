@@ -81,53 +81,44 @@ block content
 
   div.clearfix
 
-  if triggers.length > 0
+  if Object.keys(triggers).length > 0
     h2.device-subtitle= _("Triggers")
     ul.device-channels
-      for t in triggers
+      for inv, name in triggers
         li
-          if t.schema
-            code #{t.name}(#{t.params.map(function(p, i) { return p + ' : ' + t.schema[i]; }).join(', ')})
-          else
-            code #{t.name}(#{t.params.join(', ')})
-          if t.doc
-            | : #{t.doc}
+          code #{name}(#{inv.args.map(function(a) { return a.name + ' : ' + a.type; }).join(', ')})
+          if inv.doc
+            | : #{inv.doc}
           if device.global_name
             br
             = _("Canonical: ")
-            span.canonical= t.canonical
+            span.canonical= inv.canonical
 
-  if queries.length > 0
+  if Object.keys(queries).length > 0
     h2.device-subtitle= _("Queries")
     ul.device-channels
-      for q in queries
+      for inv, name in queries
         li
-          if q.schema
-            code #{q.name}(#{q.params.map(function(p, i) { return p + ' : ' + q.schema[i]; }).join(', ')})
-          else
-            code #{q.name}(#{q.params.join(', ')})
-          if q.doc
-            | : #{q.doc}
+          code #{name}(#{inv.args.map(function(a) { return a.name + ' : ' + a.type; }).join(', ')})
+          if inv.doc
+            | : #{inv.doc}
           if device.global_name
             br
             = _("Canonical: ")
-            span.canonical= q.canonical
+            span.canonical= inv.canonical
 
-  if actions.length > 0
+  if Object.keys(actions).length > 0
     h2.device-subtitle= _("Actions")
     ul.device-channels
-      for a in actions
+      for inv, name in actions
         li
-          if a.schema
-            code #{a.name}(#{a.params.map(function(p, i) { return p + ' : ' + a.schema[i]; }).join(', ')})
-          else
-            code #{a.name}(#{a.params.join(', ')})
-          if a.doc
-            | : #{a.doc}
+          code #{name}(#{inv.args.map(function(a) { return a.name + ' : ' + a.type; }).join(', ')})
+          if inv.doc
+            | : #{inv.doc}
           if device.global_name
             br
             = _("Canonical: ")
-            span.canonical= a.canonical
+            span.canonical= inv.canonical
 
   h2.device-subtitle= _("Example Commands")
   if device.examples.length > 0
