@@ -16,7 +16,7 @@ const user = require('../util/user');
 const model = require('../model/user');
 const db = require('../util/db');
 
-const EngineManager = require('../lib/enginemanager');
+const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
@@ -61,10 +61,12 @@ function getCachedModules(userId) {
 
 router.get('/', user.redirectLogIn, function(req, res) {
     getCachedModules(req.user.id).then(function(modules) {
-        res.render('status', { page_title: req._("Thingpedia - Status"),
-                               csrfToken: req.csrfToken(),
-                               modules: modules,
-                               isRunning: EngineManager.get().isRunning(req.user.id) });
+        return EngineManager.get().isRunning(req.user.id).then(function(isRunning) {
+            res.render('status', { page_title: req._("Thingpedia - Status"),
+                                   csrfToken: req.csrfToken(),
+                                   modules: modules,
+                                   isRunning: isRunning });
+        });
     }).done();
 });
 
@@ -93,10 +95,12 @@ router.post('/kill', user.requireLogIn, function(req, res) {
 router.post('/start', user.requireLogIn, function(req, res) {
     var engineManager = EngineManager.get();
 
-    if (engineManager.isRunning(req.user.id))
-        engineManager.killUser(req.user.id);
-
-    engineManager.startUser(req.user).then(function() {
+    engineManager.isRunning(req.user.id).then(function(isRunning) {
+        if (isRunning)
+            return engineManager.killUser(req.user.id);
+    }).then(function() {
+        return engineManager.startUser(req.user.id);
+    }).then(function() {
         res.redirect(303, '/me/status');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),

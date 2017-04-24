@@ -10,7 +10,7 @@ var Q = require('q');
 var TTGrammar = require('./reduced_grammar');
 
 function stringEscape(str) {
-    return '"' + str.replace(/([\"\'\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
+    return '"' + str.replace(/([\"\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
 }
 // the following is to fix bugginess in GtkSourceView's syntax highlighting
 //[]/
@@ -32,7 +32,7 @@ function codegenLocation(value) {
 
 function codegenValue(type, value) {
     if (type.startsWith('Entity('))
-        return '$entity(' + stringEscape(value.value) + ',' + type.substring('Entity('.length, type.length-1) + ')';
+        return stringEscape(value.value) + '^^' + type.substring('Entity('.length, type.length-1);
 
     switch (type) {
     case 'Number':
@@ -48,15 +48,15 @@ function codegenValue(type, value) {
     case 'Bool':
         return String(value.value);
     case 'EmailAddress':
-        return '$makeEmailAddress(' + stringEscape(value.value) + ')';
+        return stringEscape(value.value) + '^^tt:email_address';
     case 'PhoneNumber':
-        return '$makePhoneNumber(' + stringEscape(value.value) + ')';
+        return stringEscape(value.value) + '^^tt:phone_number';
     case 'Username':
-        return '$makeUsername(' + stringEscape(value.value) + ')';
+        return stringEscape(value.value) + '^^tt:username';
     case 'URL':
-        return '$makeURL(' + stringEscape(value.value) + ')';
+        return stringEscape(value.value) + '^^tt:url';
     case 'Hashtag':
-        return '$makeHashtag(' + stringEscape(value.value) + ')';
+        return stringEscape(value.value) + '^^tt:hashtag';
     case 'Location':
         return codegenLocation(value);
     case 'Enum':
@@ -94,7 +94,7 @@ function codegenInvocation(invocation) {
 function codegenRule(rule) {
     var buf = '';
     if (!rule.trigger)
-        buf = '$now => ';
+        buf = 'now => ';
     else
         buf = codegenInvocation(rule.trigger) + ' => ';
     if (rule.query)
@@ -102,7 +102,7 @@ function codegenRule(rule) {
     if (rule.action)
         buf += codegenInvocation(rule.action);
     else
-        buf += '@$notify()';
+        buf += 'notify';
     return buf;
 }
 
@@ -110,11 +110,11 @@ function toThingTalk(sempre) {
     if (sempre.rule)
         return codegenRule(sempre.rule);
     if (sempre.trigger)
-        return codegenInvocation(sempre.trigger) + ' => @$notify()';
+        return codegenInvocation(sempre.trigger) + ' => notify';
     if (sempre.query)
-        return '$now => ' + codegenInvocation(sempre.query) + ' => @$notify()';
+        return 'now => ' + codegenInvocation(sempre.query) + ' => notify';
     if (sempre.action)
-        return '$now => ' + codegenInvocation(sempre.action);
+        return 'now => ' + codegenInvocation(sempre.action);
     throw new TypeError('Not rule, trigger, query or action');
 }
 
@@ -164,8 +164,8 @@ function verifyOne(schemas, invocation, invocationType, scope) {
                     return;
                 if (!(ref in scope))
                     throw new TypeError(ref + ' is not in scope');
-                // accept URLs in place of strings
-                if (valuetype.isString && scope[ref].isURL)
+                // accept entities in place of strings
+                if (valuetype.isString && scope[ref].isEntity)
                     return;
                 if (!valuetype.equals(scope[ref]))
                     throw new TypeError(ref + ' and ' + argname + ' are not type-compatible');
@@ -229,6 +229,8 @@ function verify(schemas, prog) {
         return verifyOne(schemas, prog.query, 'queries', {});
     } else if (prog.action) {
         return verifyOne(schemas, prog.action, 'actions', {});
+    } else {
+        return Q({});
     }
 }
 

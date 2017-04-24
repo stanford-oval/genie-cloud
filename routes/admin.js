@@ -16,12 +16,13 @@ const model = require('../model/user');
 const organization = require('../model/organization');
 const db = require('../util/db');
 
+const OmletOAuth = require('../omlet/oauth2');
+
 function makeRandom() {
     return crypto.randomBytes(32).toString('hex');
 }
 
-const EngineManager = require('../lib/enginemanager');
-const AssistantDispatcher = require('../assistant/dispatcher');
+const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
@@ -30,15 +31,22 @@ router.get('/', user.redirectRole(user.Role.ADMIN), function(req, res) {
 
     db.withClient(function(dbClient) {
         return model.getAll(dbClient);
+    }).tap(function(users) {
+        return Q.all(users.map((u) => {
+            return engineManager.getProcessId(u.id).then((pid) => {
+                if (pid === -1) {
+                    u.isRunning = false;
+                    u.engineId = null;
+                } else {
+                    u.isRunning = true;
+                    u.engineId = pid;
+                }
+            });
+        }));
     }).then(function(users) {
-        users.forEach(function(u) {
-            u.isRunning = engineManager.isRunning(u.id);
-            u.engineId = u.isRunning ? engineManager.getProcessId(u.id) : null;
-        });
-
         res.render('admin_user_list', { page_title: req._("Thingpedia - Administration"),
                                         csrfToken: req.csrfToken(),
-                                        assistantAvailable: AssistantDispatcher.get().isAvailable,
+                                        assistantAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
                                         users: users });
     }).done();
 });
@@ -53,13 +61,11 @@ router.post('/kill-user/:id', user.requireRole(user.Role.ADMIN), function(req, r
 router.post('/start-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
     var engineManager = EngineManager.get();
 
-    if (engineManager.isRunning(req.params.id))
-        engineManager.killUser(req.params.id);
-
-    db.withClient(function(dbClient) {
-        return model.get(dbClient, req.params.id);
-    }).then(function(user) {
-        return engineManager.startUser(user);
+    engineManager.isRunning(req.params.id).then(function(isRunning) {
+        if (isRunning)
+            return engineManager.killUser(req.params.id);
+    }).then(function() {
+        return engineManager.startUser(req.params.id);
     }).then(function() {
         res.redirect(303, '/admin');
     }).catch(function(e) {
@@ -157,43 +163,6 @@ router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req,
     }).done();
 });
 
-router.post('/message-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
-    Q.try(function() {
-        return db.withClient(function(dbClient) {
-            return model.get(dbClient, req.params.id);
-        }).then(function(user) {
-            if (user.omlet_id === null)
-                throw new Error('User has no Omlet Account');
-            return AssistantDispatcher.get().getOrCreateFeedForUser(user.omlet_id);
-        }).then(function(feed) {
-            return feed.open().then(function() {
-                return feed.sendText('Administrative message from ' + req.user.username + ': ' + req.body.body);
-            }).finally(function() {
-                return feed.close();
-            });
-        });
-    }).then(function() {
-        res.redirect(303, '/admin');
-    }).catch(function(e) {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.post('/message-broadcast', user.requireRole(user.Role.ADMIN), function(req, res) {
-    Q.try(function() {
-        var msg = 'Broadcast message from ' + req.user.username + ': ' + req.body.body;
-        return Q.all(AssistantDispatcher.get().getAllFeeds().map(function(feed) {
-            return feed.send(msg);
-        }));
-    }).then(function() {
-        res.redirect('/admin');
-    }).catch(function(e) {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
 router.get('/assistant-setup', user.redirectRole(user.Role.ADMIN), function(req, res) {
     if (platform.getSharedPreferences().get('assistant')) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
@@ -201,11 +170,11 @@ router.get('/assistant-setup', user.redirectRole(user.Role.ADMIN), function(req,
         return;
     }
 
-    AssistantDispatcher.runOAuth2Phase1(req, res).done();
+    OmletOAuth.phase1(req, res).done();
 });
 
 router.get('/assistant-setup/callback', user.requireRole(user.Role.ADMIN), function(req, res) {
-    AssistantDispatcher.runOAuth2Phase2(req, res).then(function() {
+    OmletOAuth.phase2(req, res).then(function() {
         res.redirect(303, '/admin');
     }).done();
 });

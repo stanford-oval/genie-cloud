@@ -1,26 +1,13 @@
-h2 {
-    margin-bottom: 0.75em;
-    margin-top: 1.5em;
-}
-
 .app-template {
-    text-align: center;
-}
-
-.app-template .panel-heading {
-    display: block;
-}
-
-.app-template .panel-footer button, .app-template .panel-footer a.btn {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
-}
-
-.installed-app .btn-block {
-    margin-top: 7.5px;
-    margin-bottom: 7.5px;
+    border: 1px gray;
+    border-radius: 5px;
 }
 
 .installed-dev .panel-heading {
     display: block;
 }
+
+.form-delete-app {
+    float: right;
+}
+

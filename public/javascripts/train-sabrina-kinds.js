@@ -34,7 +34,6 @@ window.THINGPEDIA_KINDS = [
 //"hackernews",
 "ytranslate",
 //"ny_times",
-"emailsender",
 //"topapps",
 //"giphy",
 //"dropbox",

@@ -31,7 +31,9 @@ block content
           p= _("Your Almond is running.")
 
           p
-            a(href='/me').btn.btn-primary= _("Check your dashboard")
+            a(href='/me/conversation').btn.btn-primary=_("Start a conversation")
+            | &#x20;
+            a(href='/me').btn.btn-default= _("Check your dashboard")
 
       else
         h1= _("Welcome to Thingpedia")

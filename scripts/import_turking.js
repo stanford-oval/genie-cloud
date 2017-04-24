@@ -12,10 +12,12 @@ require('thingengine-core/lib/polyfill');
 const Q = require('q');
 const fs = require('fs');
 const csv = require('csv');
+const byline = require('byline');
 
 const db = require('../util/db');
 const SchemaRetriever = require('./deps/schema_retriever');
 const SempreSyntax = require('../util/sempre_syntax');
+const tokenizer = require('../util/tokenize');
 
 var insertBatch = [];
 
@@ -71,9 +73,14 @@ function main() {
                 var primCompound = row[4];
                 var nparams = row[5];
 
+                //if (tokenizer.tokenize(utterance).length < 3)
+                //    return;
+
                 promises.push(Q.try(() => {
-                    var json = SempreSyntax.toSEMPRE(tt);
-                    //var json = JSON.parse(tt);
+                    if (tt.startsWith('{'))
+                        var json = JSON.parse(tt);
+                    else
+                        var json = SempreSyntax.toSEMPRE(tt);
                     var json_str = JSON.stringify(json);
                     return SempreSyntax.verify(schemas, json).then(() => {
                         return insert(dbClient, utterance, testTrain, primCompound, nparams, json_str);
@@ -84,7 +91,7 @@ function main() {
                 }).catch((e) => {
                     console.error('Failed to verify ' + tt + '   :' + e.message);
                     // die uglily to fail the transaction
-                    //process.exit();
+                    process.exit();
                 }));
             });
             parser.on('error', errback);

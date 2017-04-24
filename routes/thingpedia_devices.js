@@ -19,8 +19,6 @@ const organization = require('../model/organization');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
 
-const EngineManager = require('../lib/enginemanager');
-
 var router = express.Router();
 
 router.get('/', function(req, res) {

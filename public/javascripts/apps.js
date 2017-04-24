@@ -1,5 +1,5 @@
 $(function() {
-    $('.form-delete-app').on('submit', function() {
+    $('.form-delete').on('submit', function() {
         return confirm("Are you sure?");
     });
 });

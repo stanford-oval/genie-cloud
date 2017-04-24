@@ -16,7 +16,7 @@ const child_process = require('child_process');
 // FIXME we should not punch through the abstraction
 const prefs = require('thingengine-core/lib/util/prefs');
 
-const graphics = require('./instance/graphics');
+const graphics = require('./almond/graphics');
 
 var _writabledir = null;
 var _cachedir = null;
@@ -33,7 +33,7 @@ function safeMkdirSync(dir) {
 
 // Most of this code is compat code to run engine modules from the main cloud process
 // and so it is stubbed out. But this also helps with relocation and dynamic paths
-// Look in instance/platform.js for the actual cloud platform code
+// Look in almond/platform.js for the actual cloud platform code
 module.exports = {
     // Initialize the platform code
     init: function() {
@@ -43,7 +43,6 @@ module.exports = {
         safeMkdirSync(_cachedir);
 
         _prefs = new prefs.FilePreferences(_writabledir + '/prefs.db');
-        return Q();
     },
 
     type: 'cloud',

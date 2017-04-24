@@ -12,7 +12,7 @@ block scripts
 block content
   if !assistantAvailable
     h2.text-danger= _("Your assistant is not yet configured. ")
-      a(href='/admin/assistant-setup') _("Configure it")
+      a(href='/admin/assistant-setup')= _("Configure it")
       | .
 
   h2 Users

@@ -43,6 +43,9 @@ Frontend.prototype._init = function _init() {
     // all environments
     this._app = express();
 
+    this.server = http.createServer(this._app);
+    require('express-ws')(this._app, this.server);
+
     this._app.set('port', process.env.PORT || 8080);
     this._app.set('views', path.join(__dirname, 'views'));
     this._app.set('view engine', 'jade');
@@ -178,6 +181,8 @@ Frontend.prototype._init = function _init() {
     // as we don't need CSRF protection for that
     this._app.use('/api/webhook', require('./routes/webhook'));
     this._app.use('/me/api/oauth2', require('./routes/oauth2'));
+    this._app.use('/me/api', require('./routes/my_api'));
+    this._app.use('/ws', require('./routes/thingengine_ws'));
     this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
     this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
     // initialize csurf after /upload too
@@ -212,25 +217,10 @@ Frontend.prototype._init = function _init() {
 var server = null;
 
 Frontend.prototype.open = function() {
-    var server = http.createServer(this._app);
-    server.on('upgrade', function(req, socket, head) {
-        var parsed = url.parse(req.url);
-        var endpoint = this._websocketEndpoints[parsed.pathname];
-        if (endpoint === undefined) {
-            socket.write('HTTP/1.1 404 Not Found\r\n');
-            socket.write('Content-type: text/plain;charset=utf8;\r\n');
-            socket.write('\r\n\r\n');
-            socket.end('Invalid cloud ID');
-            return;
-        }
-
-        endpoint(req, socket, head);
-    }.bind(this));
-    this.server = server;
 
     // '::' means the same as 0.0.0.0 but for IPv6
     // without it, node.js will only listen on IPv4
-    return Q.ninvoke(server, 'listen', this._app.get('port'), '::')
+    return Q.ninvoke(this.server, 'listen', this._app.get('port'), '::')
         .then(function() {
             console.log('Express server listening on port ' + this._app.get('port'));
         }.bind(this));
@@ -239,8 +229,8 @@ Frontend.prototype.open = function() {
 Frontend.prototype.close = function() {
     // close the server asynchronously to avoid waiting on open
     // connections
-    this.server.close(function(err) {
-        if (err) {
+    this.server.close(function(error) {
+        if (error) {
             console.log('Error stopping Express server: ' + error);
             console.log(error.stack);
         } else {
@@ -254,14 +244,6 @@ Frontend.prototype.close = function() {
 
 Frontend.prototype.getApp = function() {
     return this._app;
-}
-
-Frontend.prototype.registerWebSocketEndpoint = function(path, callback) {
-    this._websocketEndpoints[path] = callback;
-}
-
-Frontend.prototype.unregisterWebSocketEndpoint = function(path) {
-    delete this._websocketEndpoints[path];
 }
 
 module.exports = Frontend;

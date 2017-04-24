@@ -9,7 +9,7 @@ block page_name
 block styles
   link(rel='stylesheet', href='/stylesheets/my_stuff.css')
 
-mixin device_list(devices, online, datasource)
+mixin device_list(devices)
   div.row
     each dev, i in devices
       if i % 6 === 0
@@ -20,16 +20,14 @@ mixin device_list(devices, online, datasource)
         div.clearfix.visible-md
       div.col-lg-4.col-md-6
         div.panel.panel-default.installed-dev
-          if dev.kind
-            a(href='/thingpedia/devices/by-id/' + dev.kind).panel-heading
-              h2.panel-title= dev.name
-          else
-            div.panel-heading
-              h2.panel-title= dev.name
+          a(href='/thingpedia/devices/by-id/' + dev.kind).panel-heading
+            h2.panel-title= dev.name
           div.panel-body
+            p.device-icon-small
+              img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.kind + '.png', alt="Icon for " + dev.name)
             p= dev.description
 
-            if !online
+            if dev.isPhysical
               if dev.ownerTier !== 'cloud' && dev.ownerTier !== 'global'
                 p= _("This device is owned by your %s.").format(dev.ownerTier)
 
@@ -45,7 +43,7 @@ mixin device_list(devices, online, datasource)
                   p= _("The device is not available because your phone is disconnected.")
                     = _(" Make sure that it is powered on and connected to the network.")
                 else
-                  p= _("The device is not available because ThingEngine Online cannot be reached.")
+                  p= _("The device is not available because Cloud Almond cannot be reached.")
                     = _(" There might be a temporary service outage.")
               else
                 p= _("It was not possible to verify if the device is available.")
@@ -54,7 +52,7 @@ mixin device_list(devices, online, datasource)
             div.row
               if !dev.isTransient
                 div.col-md-6
-                  form.form-inline(action="/me/devices/delete",method="post").form-delete-app
+                  form.form-inline(action="/me/devices/delete",method="post").form-delete
                     input(type='hidden',name='id',value=dev.uniqueId)
                     input(type='hidden',name='_csrf',value=csrfToken)
                     if datasource
@@ -69,68 +67,30 @@ block content
         span(aria-hidden='true') ×
       p= message
 
-  h2= _("Status")
-  if isRunning
-    p= _("Your Almond is running. ")
-      a(href="/me/status")= _("More Details")
-      | .
-  else
-    p= _("Your Almond is dead. ")
-      a(href="/me/status")= _("More Details")
-      | .
+  if !isRunning
+    div.alert.alert-danger(role='alert')
+      p= _("Your Almond is dead. ")
+        a.btn.btn-default.btn-sm(href="/me/status")= _("More Details")
 
-  h2= _("Running Apps")
+  h2= _("Enabled Rules")
 
-  div.row
-    each app, i in apps
-      if i % 6 === 0
-        div.clearfix.visible-lg.visible-md
-      else if i % 3 === 0
-        div.clearfix.visible-lg
-      else if i % 2 === 0
-        div.clearfix.visible-md
-      div.col-lg-4.col-md-6
-        div.panel.panel-default.app-template
-          div.panel-heading
-            h2.panel-title= app.name
-          div.panel-body
-            if app.error
-              p= _("This app had an error: %s").format(app.error)
-            else if app.running
-              p= _("This app is running.")
-            else if app.enabled
-              p= _("This app is enabled but not running.")
-            else
-              p= _("This app is not enabled.")
+  for app in apps
+    div.row
+      div.col-lg-6.col-xs-12.app-template
+        form.form-inline(action="/me/apps/delete",method="post").form-delete.form-delete-app
+          input(type='hidden',name='id',value=app.uniqueId)
+          input(type='hidden',name='_csrf',value=csrfToken)
+          button(type='submit').btn.btn-sm.btn-danger= _("Stop")
+        p= app.description
+        if app.error
+          p= _("This rule had an error: %s").format(app.error)
 
-          div.panel-footer
-            div.row
-              div.col-md-6
-                form.form-inline(action="/me/apps/delete",method="post").form-delete-app
-                  input(type='hidden',name='id',value=app.uniqueId)
-                  input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Stop")
+  h2= _("Devices and Accounts")
 
-  h2= _("Enabled Data Sources")
-
-  +device_list(datasourceDevices, true, true)
-
-  div.row
-    div.col-sm-6.col-md-3
-      a(href='/me/devices/create?class=data').btn.btn-primary.btn-block= _("Enable new data source")
-
-  h2= _("My Devices")
-
-  +device_list(physicalDevices, false, false)
+  +device_list(devices)
 
   div.row
     div.col-sm-6.col-md-3
       a(href='/me/devices/create?class=physical').btn.btn-primary.btn-block= _("Configure new device")
-
-  h2= _("My Accounts")
-
-  +device_list(onlineDevices, true, false)
-
-  div.row
     div.col-sm-6.col-md-3
       a(href='/me/devices/create?class=online').btn.btn-primary.btn-block= _("Add new account")

@@ -4,6 +4,17 @@ block page_name
   = _("Developer Portal")
 
 block content
+  if authenticated
+    h2= _("Status")
+    if isRunning
+      p= _("Your Almond is running. ")
+        a(href="/me/status")= _("More Details")
+        | .
+    else
+      p= _("Your Almond is dead. ")
+        a(href="/me/status")= _("More Details")
+        | .
+
   h2= _("Thingpedia documentation")
 
   ul

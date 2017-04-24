@@ -1,0 +1,21 @@
+extends layout
+
+block scripts
+  script(src='/javascripts/conversation.js')
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/conversation.css')
+
+block page_name
+  = _("Web Almond")
+
+block content
+  div#ui
+    div#chat
+    div#input-block
+      span(role='button').hidden#cancel
+        span(aria-hidden='true').glyphicon.glyphicon-remove-circle
+        span.sr-only= _("Cancel")
+      form(action='#')#input-form
+        label(for='#chat-input').sr-only= _("Command:")
+        input(type='text',placeholder=_("Write your command or answer here")).form-control#input

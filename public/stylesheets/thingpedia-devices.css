@@ -14,12 +14,6 @@
     margin-top: 1em;
 }
 
-.dev-template .panel-heading {
-    font-weight: bold;
-    text-align: center;
-    display: block;
-}
-
 #json-manifest-placeholder .well h3 {
     margin-top: 10.5px;
     margin-bottom: 0px;

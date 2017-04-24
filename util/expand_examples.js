@@ -20,7 +20,7 @@ const MEASURE_ARGUMENTS = {
     C: [['73 F', [73, 'F']], ['22 C', [22, 'C']]],
     m: [['1000 m', [1000, 'm']], ['42 cm', [42, 'cm']]],
     kg: [['82 kg', [82, 'kg']], ['155 lb', [155, 'lb']]],
-    ms: [['1 day', [1, 'day']], ['a fortnight', [14, 'day']], ['5 hours', [5, 'hour']]]
+    ms: [['1 day', [1, 'day']], ['a fortnight', [14, 'day']], ['5 hours', [5, 'h']]]
 };
 const PICTURE_ARGUMENTS = identityMap(['$URL']); // special token
 const PICTURE_PLACEHOLDER = 'some picture';
@@ -36,7 +36,7 @@ const LOCATION_ARGUMENTS = [['here', { relativeTag: 'rel_current_location', lati
                             ['palo alto', { relativeTag: 'absolute', latitude: 37.442156, longitude: -122.1634471 }],
                             ['los angeles', { relativeTag: 'absolute', latitude:    34.0543942, longitude: -118.2439408 }]];
 const LOCATION_PLACEHOLDER = 'some place';
-const DATE_ARGUMENTS = [['august 24th 1992', { year: 1992, month: 8, day: 24, hour: 0, minute: 0, second: 0 }],
+const DATE_ARGUMENTS = [['feb 14th 2017', { year: 2017, month: 2, day: 14, hour: 0, minute: 0, second: 0 }],
     ['may 4th 2016', { year: 2016, month: 5, day: 4, hour: 0, minute: 0, second: 0 }]];
 const DATE_PLACEHOLDER = 'some day';
 const EMAIL_ARGUMENTS = identityMap(['nobody@stanford.edu', 'somebody@example.com']);
@@ -54,7 +54,7 @@ const ENTITIES = {
     'sportradar:eu_soccer_team': [[["Juventus", "juv"], ["Barcellona", "bar"], ["Bayern Munchen", "fcb"]], 'some team'],
     'sportradar:mlb_team': [[["SF Giants", 'sf'], ["Chicago Cubs", 'chc']], 'some team'],
     'sportradar:nba_team': [[["Golden State Warriors", 'gsw'], ["LA Lakers", 'lal']], 'some team'],
-    'sportradar:ncaafb_team': [[["Stanford Cardinals", 'stan'], ["California Bears", 'cal']], 'some team'],
+    'sportradar:ncaafb_team': [[["Stanford Cardinals", 'sta'], ["California Bears", 'cal']], 'some team'],
     'sportradar:ncaambb_team': [[["Stanford Cardinals", 'stan'], ["California Bears", 'cal']], 'some team'],
     'sportradar:nfl_team': [[["Seattle Seahawks", 'sea'], ["SF 49ers", 'sf']], 'some team'],
     'sportradar:us_soccer_team': [[["San Jose Earthquakes", 'sje'], ["Toronto FC", 'tor']], 'some team'],
