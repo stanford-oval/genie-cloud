@@ -1,0 +1,16 @@
+[Unit]
+Description=ThingEngine Cloud Website
+After=thingengine-cloud.service
+Requires=thingengine-cloud.service
+
+[Service]
+User=thingengine
+WorkingDirectory=/srv/thingengine
+EnvironmentFile=/etc/sysconfig/thingengine-cloud
+ExecStart=/usr/bin/node /opt/thingengine/main.js
+CapabilityBoundingSet=
+Restart=on-failure
+RestartSec=1s
+
+[Install]
+WantedBy=multi-user.target

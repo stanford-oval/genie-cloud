@@ -94,6 +94,9 @@ function handleDirectSocket(userId, replyId, socket) {
     console.log('Handling direct connection for ' + userId);
 
     var rpcSocket = new rpc.Socket(new JsonDatagramSocket(socket, socket, 'utf8'));
+    rpcSocket.on('error', (e) => {
+        console.log('Error on direct RPC socket: ' + e.message);
+    });
 
     for (var i = 0; i < _engines.length; i++) {
         if (_engines[i].userId === userId) {
@@ -107,6 +110,7 @@ function handleDirectSocket(userId, replyId, socket) {
         }
     }
 
+    console.log('Could not find an engine with the required user ID');
     rpcSocket.end();
 }
 

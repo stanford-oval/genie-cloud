@@ -1,5 +1,5 @@
 $(function() {
-    var url = (location.protocol === 'https' ? 'wss' : 'ws') + '://' + location.host
+    var url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host
         + '/me/api/conversation';
     console.log(url);
     var ws = new WebSocket(url);
