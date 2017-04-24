@@ -199,7 +199,7 @@ module.exports = {
     },
 
     getAllApprovedWithKindWithCode: function(client, kind, org, start, end) {
-        if (org != null && org.is_admin) {
+        if (org !== null && org.is_admin) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.developer_version and "

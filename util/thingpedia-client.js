@@ -81,7 +81,7 @@ module.exports = class ThingpediaClientCloud {
                     if (device.fullcode)
                         throw new Error('No Code Available');
 
-                    if (org !== null && (org.id === device.owner) || org.is_admin)
+                    if (org !== null && ((org.id === device.owner) || org.is_admin))
                         return (S3_HOST + device.primary_kind + '-v' + device.developer_version + '.zip');
                     else if (device.approved_version !== null)
                         return (S3_HOST + device.primary_kind + '-v' + device.approved_version + '.zip');

@@ -22,7 +22,7 @@ const ThingpediaClient = require('./thingpediaclient');
 module.exports = class ThingTalkTrainer {
     constructor(sempreUrl) {
         this.sempre = new SempreClient(sempreUrl, 'en-US');
-        this.thingpedia = new ThingpediaClient();
+        this.thingpedia = new ThingpediaClient($('#developer-key').text(), $('#language').text());
         this._schemaRetriever = new SchemaRetriever(this.thingpedia);
 
         this._raw = null;
