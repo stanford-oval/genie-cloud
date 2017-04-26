@@ -286,8 +286,7 @@ function doCreateOrUpdate(id, create, req, res) {
                                                                  device: { name: name,
                                                                            primary_kind: kind,
                                                                            description: description,
-                                                                           code: code,
-                                                                           fullcode: fullcode },
+                                                                           code: code },
                                                                  create: create });
                 return null;
             }).tap(function(ast) {

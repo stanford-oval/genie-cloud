@@ -109,7 +109,7 @@ module.exports = class ThingpediaClientCloud {
                 // legacy devices and failed experiments that we don't want to put
                 // in thingpedia because they would just confuse everything
 
-                return {
+                return Q({
                     module_type: 'org.thingpedia.builtin',
                     version: 0,
                     developer: false,
@@ -118,7 +118,7 @@ module.exports = class ThingpediaClientCloud {
                     triggers: {},
                     queries: {},
                     actions: {}
-                };
+                });
             }
         }
 
