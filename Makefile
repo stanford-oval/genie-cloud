@@ -2,13 +2,13 @@
 prefix ?= /opt/thingengine
 localstatedir ?= /srv/thingengine
 
-SUBMODULE_DEPS = thingengine-core sabrina thingpedia thingpedia-discovery thingtalk
+SUBMODULE_DEPS = thingengine-core almond thingpedia thingpedia-discovery thingtalk
 
 all: $(SUBMODULE_DEPS) platform_config.js
 	make -C sandbox prefix=$(prefix) localstatedir=$(localstatedir) all
 	npm install --only=prod
 	npm dedupe
-	cd node_modules/sabrina ; npm run compile-mo
+	cd node_modules/almond ; npm run compile-mo
 	cd node_modules/thingengine-core ; npm run compile-mo
 	npm run compile-mo
 

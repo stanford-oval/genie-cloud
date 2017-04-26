@@ -11,7 +11,7 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', function(req, res, next) {
-    res.render('train_sabrina', {
+    res.render('train_almond', {
         page_title: req._("Train Almond"),
         locale: req.locale
     });
