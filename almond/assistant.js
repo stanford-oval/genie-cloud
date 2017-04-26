@@ -14,9 +14,6 @@ const util = require('util');
 const Almond = require('sabrina');
 
 class Conversation extends Almond {
-    constructor(engine, user, delegate, options) {
-        super(engine, user, delegate, options);
-    }
 }
 Conversation.prototype.$rpcMethods = ['start', 'handleCommand', 'handleParsedCommand'];
 
@@ -26,18 +23,26 @@ module.exports = class Assistant extends events.EventEmitter {
 
         this._engine = engine;
         this._conversations = {};
+        this._lastConversation = null;
     }
 
-    notify(data) {
+    notifyAll(data) {
         return Q.all(Object.keys(this._conversations).map(function(id) {
             return this._conversations[id].notify(data);
         }.bind(this)));
     }
 
-    notifyError(data) {
+    notifyErrorAll(data) {
         return Q.all(Object.keys(this._conversations).map(function(id) {
             return this._conversations[id].notifyError(data);
         }.bind(this)));
+    }
+
+    getConversation(id) {
+        if (id !== undefined && this._conversations[id])
+            return this._conversations[id];
+        else
+            return this._lastConversation;
     }
 
     openConversation(feedId, user, delegate, options) {
@@ -45,7 +50,9 @@ module.exports = class Assistant extends events.EventEmitter {
             this._conversations[feedId].$free();
             delete this._conversations[feedId];
         }
-        var conv = new Conversation(this._engine, user, delegate, options);
+        var conv = new Conversation(this._engine, feedId, user, delegate, options);
+        conv.on('active', () => this._lastConversation = conv);
+        this._lastConversation = conv;
         this._conversations[feedId] = conv;
         return conv;
     }
@@ -53,6 +60,8 @@ module.exports = class Assistant extends events.EventEmitter {
     closeConversation(feedId) {
         if (this._conversations[feedId])
             this._conversations[feedId].$free();
+        if (this._conversations[feedId] === this._lastConversation)
+            this._lastConversation = null;
         delete this._conversations[feedId];
     }
 }

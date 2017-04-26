@@ -270,6 +270,65 @@ module.exports = {
         });
     },
 
+    getTypesAndNamesByKinds: function(client, kinds, org) {
+        return Q.try(function() {
+            if (org === -1) {
+                return db.selectAll(client, "select name, types, argnames, required, channel_type, kind, kind_type from device_schema ds"
+                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
+                                    + " and dsc.version = ds.developer_version where ds.kind in (?)",
+                                    [kinds]);
+            } else if (org !== null) {
+                return db.selectAll(client, "select name, types, argnames, required, channel_type, kind, kind_type from device_schema ds"
+                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
+                                    + " and ((dsc.version = ds.developer_version and ds.owner = ?) or "
+                                    + " (dsc.version = ds.approved_version and ds.owner <> ?)) where ds.kind"
+                                    + " in (?) ",
+                                    [org, org, kinds]);
+            } else {
+                return db.selectAll(client, "select name, types, argnames, required, channel_type, kind, kind_type from device_schema ds"
+                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
+                                    + " and dsc.version = ds.approved_version where ds.kind in (?)",
+                                    [kinds]);
+            }
+        }).then(function(rows) {
+            var out = [];
+            var current = null;
+            rows.forEach(function(row) {
+                if (current == null || current.kind !== row.kind) {
+                    current = {
+                        kind: row.kind,
+                        kind_type: row.kind_type
+                    };
+                    current.triggers = {};
+                    current.queries = {};
+                    current.actions = {};
+                    out.push(current);
+                }
+                if (row.channel_type === null)
+                    return;
+                var obj = {
+                    types: JSON.parse(row.types),
+                    args: JSON.parse(row.argnames),
+                    required: JSON.parse(row.required)
+                };
+                switch (row.channel_type) {
+                case 'action':
+                    current.actions[row.name] = obj;
+                    break;
+                case 'trigger':
+                    current.triggers[row.name] = obj;
+                    break;
+                case 'query':
+                    current.queries[row.name] = obj;
+                    break;
+                default:
+                    throw new TypeError();
+                }
+            });
+            return out;
+        });
+    },
+
     getTypesAndMeta: function(client, id, version) {
         return db.selectOne(client, "select types, meta from device_schema_version "
             + "where schema_id = ? and version = ?", [id, version]);

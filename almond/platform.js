@@ -327,9 +327,7 @@ class Platform {
     // installation. This is primarily used for OAuth redirects, and
     // so must match what the upstream services accept.
     getOrigin() {
-        // Xor these comments for testing
-        //return 'http://127.0.0.1:8080';
-        return 'https://thingengine.stanford.edu';
+        return module.exports.getOrigin();
     }
 
     getCloudId() {
@@ -373,6 +371,7 @@ module.exports = {
         // Xor these comments for testing
         //return 'http://127.0.0.1:8080';
         return 'https://thingengine.stanford.edu';
+        //return 'http://parmesan.stanford.edu:8080';
     },
 
     // Check if this platform has the required capability

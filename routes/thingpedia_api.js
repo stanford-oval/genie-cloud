@@ -32,7 +32,7 @@ router.get('/schema/:schemas', function(req, res) {
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
-    client.getSchemas(schemas).then(function(obj) {
+    client.getSchemas(schemas, req.query.version).then(function(obj) {
         if (obj.developer)
             res.cacheFor(3600000);
         else

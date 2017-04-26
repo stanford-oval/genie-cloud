@@ -11,7 +11,7 @@ const Q = require('q');
 const events = require('events');
 
 // GIANT HACK
-const LDProto = require('omlib/lib/ldproto');
+const LDRemoveMemberRequest = require('omlib/lib/longdan/ldproto/LDRemoveMemberRequest');
 
 const Tp = require('thingpedia');
 
@@ -275,22 +275,6 @@ module.exports = class Messaging extends Tp.Messaging {
         }.bind(this));
     }
 
-    getAccountById(id) {
-        return oinvoke(this.client.store, 'getAccounts').then(function(db) {
-            return oinvoke(db, 'getObjectById', id).then(function(o) {
-                return o.account;
-            });
-        }.bind(this));
-    }
-
-    getAccountNameById(id) {
-        return oinvoke(this.client.store, 'getAccounts').then(function(db) {
-            return oinvoke(db, 'getObjectById', id).then(function(o) {
-                return o.name;
-            });
-        }.bind(this));
-    }
-
     getFeedList() {
         return oinvoke(this.client.store, 'getFeeds').then(function(db) {
             var data = db._data.find();
@@ -325,7 +309,7 @@ module.exports = class Messaging extends Tp.Messaging {
             return oinvoke(db, 'getObjectByKey', feedId).then(function(feed) {
                 var ldFeed = this.client._ldClient.feed.getLDFeed(feed);
                 var account = this.client.auth.getAccount();
-                var req = new LDProto.LDRemoveMemberRequest();
+                var req = new LDRemoveMemberRequest();
                 req.Feed = ldFeed;
                 req.Member = account;
                 return Q.Promise(function(callback, errback) {
