@@ -10,7 +10,6 @@
 const Q = require('q');
 const Url = require('url');
 
-const Messaging = require('./messaging');
 const OmletFactory = require('./omlet');
 
 module.exports = {

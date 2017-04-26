@@ -158,8 +158,9 @@ module.exports = class ThingpediaClientCloud {
         });
     }
 
-    getSchemas(schemas) {
+    getSchemas(schemas, apiVersion) {
         var developerKey = this.developerKey;
+        apiVersion = apiVersion || 1;
 
         return db.withClient(function(dbClient) {
             return Q.try(function() {
@@ -171,8 +172,10 @@ module.exports = class ThingpediaClientCloud {
                 var org = null;
                 if (orgs.length > 0)
                     org = orgs[0];
-
-                return schema.getTypesByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null);
+                if (apiVersion >= 2)
+                    return schema.getTypesAndNamesByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null);
+                else
+                    return schema.getTypesByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null);
             }).then(function(rows) {
                 var obj = {};
 

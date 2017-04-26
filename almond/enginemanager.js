@@ -314,7 +314,9 @@ class EngineManager extends events.EventEmitter {
             return db.withClient(function(client) {
                 return user.getAll(client).then(function(rows) {
                     return Q.all(rows.map(function(r) {
-                        return self._runUser(r);
+                        return self._runUser(r).catch((e) => {
+                            console.error('User ' + r.id + ' failed to start: ' + e.message);
+                        });
                     }));
                 });
             });
