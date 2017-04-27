@@ -68,6 +68,9 @@ block content
   if schema.kind === 'service'
     p= _("This type is a category marker for generic services that don't fit in any other category, like Uber, eBay or the weather.")
 
+  if schema.kind === 'thingengine-system'
+    p= _("This type is a category marker for special pseudo-devices that are created and managed by the ThingSystem, and are invisible to the user.")
+
   if schema.kind.startsWith('bluetooth-uuid-') || schema.kind.startsWith('upnp-')
     p
       = _("This type is a marker for discovery. ")

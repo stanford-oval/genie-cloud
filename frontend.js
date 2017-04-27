@@ -55,8 +55,8 @@ Frontend.prototype._init = function _init() {
     this._app.use(logger('dev'));
 
     this._app.use(function(req, res, next) {
-        if (req.headers['x-forwarded-proto'] === 'http') {
-            res.redirect(301, 'https://' + req.hostname + req.originalUrl);
+        if (req.headers['x-forwarded-proto'] === 'http' || (/*req.hostname === 'thingengine.stanford.edu' || */req.hostname === 'almond.stanford.edu')) {
+            res.redirect(301, 'https://thingpedia.stanford.edu' + req.originalUrl);
             return;
         }
         next();
