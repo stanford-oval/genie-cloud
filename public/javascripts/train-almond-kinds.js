@@ -2,7 +2,6 @@ window.THINGPEDIA_KINDS = [
 "twitter",
 "omlet",
 "linkedin",
-"sabrina",
 //"online-account",
 "scale",
 "tv",

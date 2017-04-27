@@ -11,7 +11,7 @@ const Q = require('q');
 const events = require('events');
 const util = require('util');
 
-const Almond = require('sabrina');
+const Almond = require('almond');
 
 class Conversation extends Almond {
 }
