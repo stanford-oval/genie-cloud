@@ -100,6 +100,9 @@ function getSchemaDomain(schema) {
 }
 
 function chooseSchema(allSchemas, policy) {
+    if (allSchemas.some((schema) => {return schema.kind === policy}))
+        return policy;
+
     if (policy === 'uniform')
         return uniform(allSchemas).kind;
 
@@ -137,9 +140,21 @@ function getAllSchemas(dbClient) {
         + " (select ds.*, null from device_schema ds where ds.kind_type = 'other' and ds.approved_version is not null)");
 }
 
+function chooseChannel(schemaRetriever, kind, form) {
+    return schemaRetriever.getFullMeta(kind).then((fullMeta) => {
+        var options = [];
+        if (form[0] !== 'null' && Object.keys(fullMeta['triggers']).length !== 0) options.push('trigger');
+        if (form[1] !== 'null' && Object.keys(fullMeta['queries']).length !== 0) options.push('query');
+        if (form[2] !== 'null' && Object.keys(fullMeta['actions']).length !== 0) options.push('action');
+        if (options.length === 0)
+            return 'null';
+        else
+            return uniform(options);
+    });
+}
+
 function chooseInvocation(schemaRetriever, schemas, samplingPolicy, channelType) {
     var kind = chooseSchema(schemas, samplingPolicy);
-
     return schemaRetriever.getFullMeta(kind).then((fullMeta) => {
         var channels = fullMeta[channelType];
         var choices = Object.keys(channels);
@@ -151,6 +166,36 @@ function chooseInvocation(schemaRetriever, schemas, samplingPolicy, channelType)
         channels[channelName].name = channelName;
         return channels[channelName];
     });
+}
+
+function chooseRule(schemaRetriever, schemas, samplingPolicy) {
+    var form = sample(COMPOSITION_WEIGHTS).split('+');
+    var trigger, query, action;
+    if (schemas.every((schema) => {return schema.kind !== samplingPolicy})) {
+        trigger = form[0] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'triggers');
+        query = form[1] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'queries');
+        action = form[2] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'actions');
+        return Q.all([trigger, query, action]);
+    } else {
+        var kind = samplingPolicy;
+        trigger = form[0] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, 'uniform', 'triggers');
+        query = form[1] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, 'uniform', 'queries');
+        action = form[2] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, 'uniform', 'actions');
+        return chooseChannel(schemaRetriever, kind, form).then((channel) => {
+            console.log(channel);
+            if (channel === 'trigger')
+                trigger = chooseInvocation(schemaRetriever, schemas, kind, 'triggers');
+            else if (channel === 'query')
+                query = chooseInvocation(schemaRetriever, schemas, kind, 'queries');
+            else if (channel === 'action')
+                action = chooseInvocation(schemaRetriever, schemas, kind, 'actions');
+            else {
+                console.log('AGAIN');
+                return chooseRule(schemaRetriever, schemas, samplingPolicy);
+            }
+            return Q.all([trigger, query, action]);
+        });
+    }
 }
 
 const NUMBER_OP_WEIGHTS = {
@@ -604,16 +649,10 @@ function checkPicture(to, toMeta) {
 }
 
 function genOneRandomRule(schemaRetriever, schemas, samplingPolicy) {
-    var form = sample(COMPOSITION_WEIGHTS).split('+');
-
-    var trigger = form[0] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'triggers');
-    var query = form[1] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'queries');
-    var action = form[2] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'actions');
-
-    return Q.all([trigger, query, action]).spread((triggerMeta, queryMeta, actionMeta) => {
-        trigger = applyFilters(triggerMeta, false);
-        query = applyFilters(queryMeta, false);
-        action = applyFilters(actionMeta, true);
+    return chooseRule(schemaRetriever, schemas, samplingPolicy).then(([triggerMeta, queryMeta, actionMeta]) => {
+        var trigger = applyFilters(triggerMeta, false);
+        var query = applyFilters(queryMeta, false);
+        var action = applyFilters(actionMeta, true);
 
         if (query && action)
             applyComposition(query, queryMeta, action, actionMeta, true);
@@ -629,13 +668,12 @@ function genOneRandomRule(schemaRetriever, schemas, samplingPolicy) {
         //if (query && query.args.length === 0)
         //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
 
-        if (query && action && !queryIsUseful(query, queryMeta, action)) // try again if not useful
-            return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
-
-        if (trigger && action && !checkPicture(action, actionMeta))
-            return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
-        if (query && action && !checkPicture(action, actionMeta))
-            return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
+        //if (query && action && !queryIsUseful(query, queryMeta, action)) // try again if not useful
+        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
+        //if (trigger && action && !checkPicture(action, actionMeta))
+        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
+        //if (query && action && !checkPicture(action, actionMeta))
+        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
 
         //if (!connected(query) && !connected(action))
         //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
