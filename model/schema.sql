@@ -262,14 +262,3 @@ CREATE TABLE `entity_lexicon` (
   KEY `entity_id` (`entity_id`),
   FOREIGN KEY (`entity_id`) REFERENCES `entity_names` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) collate utf8_bin ;
-
-create table category (
-    id integer auto_increment primary key,
-    catchphrase varchar(255) not null collate utf8_general_ci,
-    name varchar(255) not null collate utf8_general_ci,
-    description mediumtext not null collate utf8_general_ci,
-    tag varchar(255) not null collate utf8_general_ci,
-    icon varchar(255) not null,
-    order_position integer not null default 0,
-    key(order_position)
-) collate utf8_bin;

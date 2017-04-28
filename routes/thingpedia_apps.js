@@ -18,7 +18,6 @@ const user = require('../util/user');
 const userModel = require('../model/user');
 const model = require('../model/app');
 const device = require('../model/device');
-const category = require('../model/category');
 const schema = require('../model/schema');
 const feeds = require('../shared/util/feeds');
 const ThingPediaClient = require('../util/thingpedia-client');
@@ -80,26 +79,6 @@ router.get('/search', function(req, res) {
                                  req._("Results of your search"));
         });
     }).done();
-});
-
-router.get('/by-category/:category(\\d+)', function(req, res) {
-    var categoryId = req.params.category;
-
-    db.withTransaction(function(client) {
-        return category.get(client, categoryId).then(function(cats) {
-            if (cats.length < 1) {
-                res.status(404).render('error', { page_title: req._("ThingPedia - Error"),
-                                                  message: req._("Invalid category.") });
-                return;
-            }
-
-            return model.getByTag(client, filterVisible(req), cats[0].tag).then(function(apps) {
-                return renderAppList(client, apps, req, res,
-                                     cats[0].name,
-                                     cats[0].description);
-            });
-        });
-    });
 });
 
 router.get('/by-tag/:tag', function(req, res) {
