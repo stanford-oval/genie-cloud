@@ -114,22 +114,28 @@ router.get('/devices', function(req, res) {
     }).done();
 });
 
-router.get('/code/apps/:id', function(req, res) {
-    db.withClient(function(dbClient) {
-        return app.get(dbClient, req.params.id).then(function(app) {
-            if (!app.visible) {
-                res.status(403).json({ error: "Not Authorized" });
-            }
+router.get('/apps', function(req, res) {
+    var start = parseInt(req.query.start) || 0;
+    var limit = Math.min(parseInt(req.query.limit) || 20, 20);
 
-            res.cacheFor(86400000);
-            res.status(200).json({
-                code: app.code,
-                name: app.name,
-                description: app.description
-            });
-        });
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    client.getApps(start, limit).then(function(obj) {
+        res.cacheFor(86400000);
+        res.json(obj);
     }).catch(function(e) {
-        res.json({ error: e.message });
+        console.error('Failed to retrieve device factories: ' + e.message);
+        console.error(e.stack);
+        res.status(500).send('Error: ' + e.message);
+    }).done();
+});
+
+router.get('/code/apps/:app_id', function(req, res) {
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    client.getAppCode(req.params.app_id).then(function(obj) {
+        res.cacheFor(86400000);
+        res.status(200).json(obj);
+    }).catch(function(e) {
+        res.status(400).send('Error: ' + e.message);
     }).done();
 });
 router.post('/discovery', function(req, res) {

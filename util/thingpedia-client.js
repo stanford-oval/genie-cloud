@@ -19,6 +19,7 @@ const user = require('../model/user');
 const organization = require('../model/organization');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
+const app = require('../model/app');
 
 const S3_HOST = Config.S3_CLOUDFRONT_HOST + '/devices/';
 
@@ -58,6 +59,18 @@ module.exports = class ThingpediaClientCloud {
         // only keep the language part of the locale, we don't
         // yet distinguish en_US from en_GB
         this.language = (locale || 'en').split(/[-_\@\.]/)[0];
+    }
+
+    getAppCode(appId) {
+        return db.withClient((dbClient) => {
+            return app.getByAppId(dbClient, appId);
+        });
+    }
+
+    getApps(start, limit) {
+        return db.withClient((dbClient) => {
+            return app.getAllQuick(dbClient, start, start+limit);
+        });
     }
 
     getModuleLocation(kind, version) {
@@ -181,6 +194,7 @@ module.exports = class ThingpediaClientCloud {
 
                 rows.forEach(function(row) {
                     obj[row.kind] = {
+                        kind_type: row.kind_type,
                         triggers: row.triggers,
                         actions: row.actions,
                         queries: row.queries
@@ -362,7 +376,8 @@ module.exports = class ThingpediaClientCloud {
         });
     }
 }
-module.exports.prototype.$rpcMethods = ['getModuleLocation', 'getDeviceCode',
+module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
+                                        'getModuleLocation', 'getDeviceCode',
                                         'getSchemas', 'getMetas',
                                         'getDeviceSetup', 'getDeviceFactories',
                                         'getKindByDiscovery',

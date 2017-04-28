@@ -190,6 +190,7 @@ Frontend.prototype._init = function _init() {
     // with csurf
     // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
     this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
+    this._app.use('/thingpedia/apps', require('./routes/thingpedia_app_upload'));
 
     this._app.use(csurf({ cookie: false }));
     this._app.use('/', require('./routes/index'));

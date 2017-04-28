@@ -118,6 +118,9 @@ function validateDevice(dbClient, req) {
     if (ast['global-name'])
         Validation.validateKind(ast['global-name'], 'global name');
 
+    if (!/^[a-zA-Z0-9_\.]$/.test(kind))
+        throw new Error(req._("Invalid primary kind, must use alphanumeric characters, underscore and period only."));
+
     Validation.validateAllInvocations(ast);
 
     if (fullcode) {
@@ -377,10 +380,8 @@ function doCreateOrUpdate(id, create, req, res) {
                     return done;
 
                 if (req.files.icon && req.files.icon.length) {
-                    console.log('req.files.icon', req.files.icon);
                     // upload the icon asynchronously to avoid blocking the request
                     setTimeout(function() {
-                        console.log('uploading icon');
                         Q.try(function() {
                             var graphicsApi = platform.getCapability('graphics-api');
                             var image = graphicsApi.createImageFromPath(req.files.icon[0].path);

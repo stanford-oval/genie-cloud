@@ -134,6 +134,8 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     isRunning(userId) {
+        if (!this._rpcControl)
+             return Q(false);
         return this._rpcControl.isRunning(userId);
     }
 
