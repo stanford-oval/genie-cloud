@@ -41,10 +41,10 @@ will create and open the channels at the right time.
 
 At the moment, Thingpedia is still in closed beta. But you can request a
 developer account from
-[here](https://thingengine.stanford.edu/user/request-developer).
+[here](https://thingpedia.stanford.edu/user/request-developer).
 Once you are approved by the Thingpedia administrators
 (you can check your status
-from [your profile page](https://thingengine.stanford.edu/user/profile)),
+from [your profile page](https://thingpedia.stanford.edu/user/profile)),
 you will be able to upload your own devices or accounts to Thingpedia and
 enable users to use it through Almond.
 
@@ -54,7 +54,7 @@ Go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thi
 to see the device packages we developed, and observe these concepts
 in action. In addition, you can download the source code of any existing
 "supported interfaces" in
-[Developer Portal](https://thingengine.stanford.edu/thingpedia/devices).
+[Developer Portal](https://thingpedia.stanford.edu/thingpedia/devices).
 
 ## Writing Device Package
 
@@ -135,7 +135,7 @@ your device class that will use to publish your device to Thingpedia.
 talk to the device - including IP address, OAuth tokens, variable portions
 of API urls, etc.  
 - `this.uniqueId`: A string that uniquely identifies the device instance in the
-context of a given ThingEngine; you are supposed to compute it based on the
+context of a given ThingSystem; you are supposed to compute it based on the
 state and set it at the end of your constructor.
 A common way to compute an unique ID is to concatenate the kind, a dash, and
 then some device specific ID, as in `org.thingpedia.demos.thingtv-AA-BB-CC-DD-EE-FF` if `AA:BB:CC:DD:EE:FF`
@@ -174,14 +174,14 @@ object, which is shared among all device instances. The API on the
 `Engine` object is less stable than `Tp.BaseDevice`, but it is
 nevertheless useful.
 
-- `engine.ownTier`: the currently running tier of ThingEngine, ie `cloud` or `phone`
+- `engine.ownTier`: the currently running tier of ThingSystem, ie `cloud` or `phone`
 - `engine.devices`: the devices database
 - `engine.platform`: the Platform API
 - `engine.thingpedia`: APIs to query the Thingpedia website
 
 #### The Platform API
 
-Anywhere in ThingEngine code you will be able to access the Platform API through the `engine.platform`
+Anywhere in ThingSystem code you will be able to access the Platform API through the `engine.platform`
 property.
 
 Most of the API is for internal use only, but you might find the following useful:
@@ -191,12 +191,12 @@ Most of the API is for internal use only, but you might find the following usefu
   unzipping, showing popups or interacting with the assistant
 - `platform.getSharedPreferences()`: access an instance of
 [`Preferences`](https://github.com/Stanford-IoT-Lab/thingengine-core/blob/master/lib/prefs.js),
-which is a ThingEngine wide store of key-value pairs backed to disk
+which is a ThingSystem wide store of key-value pairs backed to disk
 - `platform.getRoot()`, `platform.getWritableDir()`,
 `platform.getCacheDir()`, `platform.getTmpDir()`: the paths that
-ThingEngine can use on the file system
+ThingSystem can use on the file system
 - `platform.getDeveloperKey()`: the currently configured Thingpedia developer key (if any)
-- `platform.getOrigin()`: the web site hosting ThingEngine
+- `platform.getOrigin()`: the web site hosting ThingSystem; use this for OAuth redirect URIs
 
 #### Handling authentication and discovery
 
@@ -322,7 +322,7 @@ return an promise to a list of events, as in:
 
 It is possible that web services will support server side filtering of
 event streams, which can reduce the number of wake ups required on
-ThingEngine if the rule is also going to filter out the data.
+ThingSystem if the rule is also going to filter out the data.
 
 To address some of those cases, rules that invoke a trigger with a
 constant value will see those values propagated to the params argument
@@ -338,7 +338,7 @@ your channel across rules with different filter values.
 
 Often times, you will want to preserve state between different invocations
 of your channel. Keeping it in memory is not enough though, because the
-ThingEngine might be restarted at any time and the state would be lost.
+ThingSystem might be restarted at any time and the state would be lost.
 
 Instead, you can require the `channel-state` capability (with `RequiredCapabilities: ['channel-state']`). If you do, the signature of your constructor becomes
 
@@ -559,7 +559,7 @@ Of a similar spirit is the kind `data-source`, which will flag the device as a
 public web service with no authentication, and will hide it from the Android UI
 or from the 'list devices' Almond command.
 Other important types are cloud-only and phone-only, which will prevent your
-code from being instantiated outside of the right ThingEngine installation.
+code from being instantiated outside of the right ThingSystem installation.
 Use them if you need platform specific APIs.
 Apart from previously mentioned types, each device _must_ has at least one
 type from the following seven types: `media`, `social-network`, `home`,
@@ -636,11 +636,11 @@ Once you are ready to let other people try your device interface, after thorough
 local testing, you can publish it on Thingpedia.
 
 To do so, you must first
-[request a developer account](https://thingengine.stanford.edu/user/request-developer).
+[request a developer account](https://thingpedia.stanford.edu/user/request-developer).
 Once the request is approved by the Thingpedia administrators (you can check the status
-from [your profile page](https://thingengine.stanford.edu/user/profile)), you will be
+from [your profile page](https://thingpedia.stanford.edu/user/profile)), you will be
 able to upload a new device by clicking on
-[Propose it for inclusion](https://thingengine.stanford.edu/thingpedia/upload/create?class=physical)
+[Propose it for inclusion](https://thingpedia.stanford.edu/thingpedia/upload/create?class=physical)
 in the red banner in the Thingpedia page.
 
 In the creation page you will be required to upload a zip file containing your
@@ -654,10 +654,10 @@ to use for channel classes.
 
 Once submitted, the device is not automatically available to all users. Instead,
 it is only available to you with your _developer key_, which you can retrieve
-from your [user profile](https://thingengine.stanford.edu/user/profile)
+from your [user profile](https://thingpedia.stanford.edu/user/profile)
 if you have already been approved to be a developer.
-If you are on Omlet, you should be able to test your device right away.
-While if you want to test on Almond (which runs ThingEngine on your own
+You should be able to test your device right away using the [Web Almond](/me/conversation) interface.
+While if you want to test on Android Almond (which runs ThingSystem on your own
 Android device with better privacy and discovery capability), you need one
 more step: go to settings and enable cloud sync.
 
