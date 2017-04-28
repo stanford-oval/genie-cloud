@@ -11,6 +11,7 @@ const express = require('express');
 const router = express.Router();
 const user = require('../util/user');
 const db = require('../util/db');
+const category = require('../model/category');
 const device = require('../model/device');
 
 const EngineManager = require('../almond/enginemanagerclient');

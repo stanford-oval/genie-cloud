@@ -80,6 +80,19 @@ create table oauth2_auth_codes (
     foreign key (client_id) references oauth2_clients(id) on update cascade on delete cascade
 ) collate = utf8_bin;
 
+create table app (
+    id integer auto_increment primary key,
+    owner integer,
+    app_id varchar(255) not null,
+    name varchar(255) not null collate utf8_general_ci,
+    description text not null collate utf8_general_ci,
+    canonical text null collate utf8_general_ci,
+    code mediumtext not null,
+    visible boolean not null default false,
+    unique key (owner, app_id),
+    foreign key (owner) references users(id) on update cascade on delete set null
+) collate = utf8_bin;
+
 create table device_class (
     id integer auto_increment primary key,
     primary_kind varchar(128) unique not null,
@@ -199,6 +212,22 @@ create table device_code_version (
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
 ) collate utf8_bin;
 
+create table app_device (
+    app_id integer not null,
+    device_id integer not null,
+    primary key (app_id, device_id),
+    foreign key (app_id) references app(id) on update cascade on delete cascade,
+    foreign key (device_id) references device_class(id) on update cascade on delete cascade
+) collate utf8_bin;
+
+create table app_tag (
+    id integer auto_increment primary key,
+    app_id integer not null,
+    tag varchar(255) not null collate utf8_general_ci,
+    key(tag),
+    foreign key (app_id) references app(id) on update cascade on delete cascade
+) collate utf8_bin;
+
 create table device_class_tag (
     tag varchar(128) not null,
     device_id integer not null,
@@ -233,3 +262,14 @@ CREATE TABLE `entity_lexicon` (
   KEY `entity_id` (`entity_id`),
   FOREIGN KEY (`entity_id`) REFERENCES `entity_names` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) collate utf8_bin ;
+
+create table category (
+    id integer auto_increment primary key,
+    catchphrase varchar(255) not null collate utf8_general_ci,
+    name varchar(255) not null collate utf8_general_ci,
+    description mediumtext not null collate utf8_general_ci,
+    tag varchar(255) not null collate utf8_general_ci,
+    icon varchar(255) not null,
+    order_position integer not null default 0,
+    key(order_position)
+) collate utf8_bin;
