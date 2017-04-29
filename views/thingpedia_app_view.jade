@@ -7,6 +7,9 @@ block page_name
   | App: #{app.name}
 
 block content
+  aside#app-icon-large
+    img(src=S3_CLOUDFRONT_HOST + '/icons/app:' + app.app_id + '.png', alt="Icon for " + app.name)
+
   p
     i= app.description
 
@@ -22,6 +25,8 @@ block content
   pre
     code= app.code
 
+  div.clearfix
+
   div.row
     //div.col-sm-2
       a.btn.btn-primary.btn-block(href='/thingpedia/apps/install/' + app.id).app-install-button Enable
@@ -29,17 +34,16 @@ block content
     if authenticated && (app.owner === user.id || user.developer_status === 3)
       div.col-sm-2
         a(href='/thingpedia/apps/edit/' + app.id).btn.btn-default.btn-block Edit
-      div.col-sm-2
-        form.form-inline(action="/thingpedia/apps/set-invisible/" + app.id,method="post")
-          input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-default.btn-block= _("Hide from Collection")
-      div.col-sm-2
-        form.form-inline(action="/thingpedia/apps/set-visible/" + app.id,method="post")
-          input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-default.btn-block= _("Publish")
-    else
-      //div.col-sm-2
-        a(href='/thingpedia/apps/fork/' + app.id).btn.btn-default.btn-block Fork
+      if app.visible
+        div.col-sm-2
+          form.form-inline(action="/thingpedia/apps/set-invisible/" + app.id,method="post")
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-default.btn-block= _("Hide from Collection")
+      else
+        div.col-sm-2
+          form.form-inline(action="/thingpedia/apps/set-visible/" + app.id,method="post")
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-default.btn-block= _("Publish")
     if authenticated && (app.owner === user.id || user.developer_status === 3)
       div.col-sm-2
         a.btn.btn-danger.btn-block(data-toggle='modal', data-target='#delete-app-dialog') Delete

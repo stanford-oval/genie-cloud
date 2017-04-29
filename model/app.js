@@ -10,7 +10,7 @@ const db = require('../util/db');
 const Q = require('q');
 
 function create(client, app) {
-    var KEYS = ['app_id', 'owner', 'name', 'description', 'canonical', 'confirmation', 'language', 'code'];
+    var KEYS = ['app_id', 'owner', 'name', 'description', 'code'];
     KEYS.forEach(function(key) {
         if (app[key] === undefined)
             app[key] = null;
@@ -35,11 +35,8 @@ module.exports = {
                             [id]);
     },
 
-    getByAppId: function(client, owner, appId) {
-        return db.selectOne(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
-                            + " u.human_name, u.username) as owner_name from app r left outer "
-                            + "join users u on r.owner = u.id where r.owner = ? and r.app_id = ?",
-                            [owner, appId]);
+    getByAppId: function(client, appId) {
+        return db.selectOne(client, "select code, name, description from app r where app_id = ? and visible", [appId]);
     },
 
     getByCanonical: function(client, canonical) {
@@ -81,14 +78,6 @@ module.exports = {
                                 + " u.human_name, u.username) as owner_name from app r left outer "
                                 + "join users u on r.owner = u.id where name like ? or description like ?"
                                 + " and (r.owner = ? or r.visible)"
-                                + ") "
-                                + "union distinct (select 2, r.*, if(u.human_name is not null and "
-                                + "u.human_name <> '', u.human_name, u.username) as owner_name from app"
-                                + " r left "
-                                + " outer join users u on r.owner = u.id, device_class d, app_device rd "
-                                + " where rd.device_id = d.id and rd.app_id = r.id and d.name like ? or "
-                                + "d.description like ?"
-                                + " and (r.owner = ? or r.visible)"
                                 + ") order by weight asc, name asc limit 20",
                                 [tag, visible, pctag, pctag, visible, pctag, pctag, visible]);
         } else {
@@ -101,26 +90,9 @@ module.exports = {
                                 + "(select 1, r.*, if(u.human_name is not null and u.human_name <> '',"
                                 + " u.human_name, u.username) as owner_name from app r left outer "
                                 + "join users u on r.owner = u.id where name like ? or description like ?"
-                                + ") "
-                                + "union distinct (select 2, r.*, if(u.human_name is not null and "
-                                + "u.human_name <> '', u.human_name, u.username) as owner_name from app"
-                                + " r left "
-                                + " outer join users u on r.owner = u.id, device_class d, app_device rd "
-                                + " where rd.device_id = d.id and rd.app_id = r.id and d.name like ? or "
-                                + "d.description like ?"
                                 + ") order by weight asc, name asc limit 20",
                                 [tag, pctag, pctag, pctag, pctag]);
         }
-    },
-
-    getByDevice: function(client, visible, deviceId) {
-        return db.selectAll(client, "select r.*, if(u.human_name is not null and u.human_name <> '',"
-                            + " u.human_name, u.username) as owner_name from app r left outer "
-                            + "join users u on r.owner = u.id, app_device rd "
-                            + " where rd.app_id = r.id and rd.device_id = ?"
-                            + (visible !== null ? " and (r.owner = ? or r.visible)" : "")
-                            + " order by r.name asc",
-                            [deviceId, visible]);
     },
 
     create: create,
@@ -131,6 +103,10 @@ module.exports = {
 
     'delete': function(client, id) {
         return db.query(client, "delete from app where id = ?", [id]);
+    },
+
+    getAllQuick: function(client, start, end) {
+        return db.selectAll(client, "select id, app_id, name, description from app where visible order by name limit ?,?", [start, end]);
     },
 
     getAll: function(client, visible, start, end) {
@@ -154,16 +130,6 @@ module.exports = {
                                 + " outer join users u on r.owner = u.id"
                                 + (visible !== null ? " where (r.owner = ? or r.visible)" : "")
                                 + " order by r.name", [visible]);
-        }
-    },
-
-    getAllCanonicals: function(client, visible) {
-        if (visible !== null) {
-            return db.selectAll(client, "select id, canonical from app where (owner = ? or visible)",
-                                        [visible]);
-        } else {
-            return db.selectAll(client, "select id, canonical from app",
-                                        [visible]);
         }
     },
 

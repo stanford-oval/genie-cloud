@@ -1,5 +1,4 @@
 drop table if exists device_class_kind cascade;
-drop table if exists app_device cascade;
 drop table if exists app_tag cascade;
 drop table if exists device_class cascade;
 drop table if exists app cascade;
@@ -83,13 +82,11 @@ create table oauth2_auth_codes (
 create table app (
     id integer auto_increment primary key,
     owner integer,
-    app_id varchar(255) not null,
+    app_id varchar(255) unique not null,
     name varchar(255) not null collate utf8_general_ci,
     description text not null collate utf8_general_ci,
-    canonical text null collate utf8_general_ci,
     code mediumtext not null,
     visible boolean not null default false,
-    unique key (owner, app_id),
     foreign key (owner) references users(id) on update cascade on delete set null
 ) collate = utf8_bin;
 
@@ -184,7 +181,6 @@ create table device_schema_arguments (
 create table example_utterances (
     id integer auto_increment primary key,
     schema_id integer null,
-    app_id integer null,
     is_base boolean not null default false,
     language char(15) not null default 'en',
     type enum('thingpedia', 'ifttt', 'online', 'test', 'other') not null default 'other',
@@ -192,7 +188,6 @@ create table example_utterances (
     target_json text not null,
     click_count integer not null default 0,
     key(schema_id),
-    key(app_id)
     fulltext key(utterance)
 ) collate utf8_bin;
 
@@ -209,14 +204,6 @@ create table device_code_version (
     version integer not null,
     code mediumtext not null,
     primary key(device_id, version),
-    foreign key (device_id) references device_class(id) on update cascade on delete cascade
-) collate utf8_bin;
-
-create table app_device (
-    app_id integer not null,
-    device_id integer not null,
-    primary key (app_id, device_id),
-    foreign key (app_id) references app(id) on update cascade on delete cascade,
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
 ) collate utf8_bin;
 
@@ -262,14 +249,3 @@ CREATE TABLE `entity_lexicon` (
   KEY `entity_id` (`entity_id`),
   FOREIGN KEY (`entity_id`) REFERENCES `entity_names` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) collate utf8_bin ;
-
-create table category (
-    id integer auto_increment primary key,
-    catchphrase varchar(255) not null collate utf8_general_ci,
-    name varchar(255) not null collate utf8_general_ci,
-    description mediumtext not null collate utf8_general_ci,
-    tag varchar(255) not null collate utf8_general_ci,
-    icon varchar(255) not null,
-    order_position integer not null default 0,
-    key(order_position)
-) collate utf8_bin;

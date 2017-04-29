@@ -1,8 +1,6 @@
 ul.nav.navbar-nav
   li.hidden-md.hidden-lg
     a(href="/")= _("Home")
-  li
-    a(href="/thingpedia/apps")= _("App Collection")
   if authenticated
     li
       a(href="/me")= _("My Almond")
@@ -13,7 +11,9 @@ ul.nav.navbar-nav
   li
     a(href='/thingpedia/training')= _("Train Almond")
   li
-    a(href='/thingpedia/devices')= _("Supported devices")
+    a(href="/thingpedia/apps")= _("App Collection")
+  li
+    a(href='/thingpedia/devices')= _("Supported Devices")
   li
     a(href='/thingpedia/developers')= _("Developers")
   if authenticated && user.roles & 0x1

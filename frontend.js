@@ -35,6 +35,8 @@ const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
 const db = require('./util/db');
 
+const Config = require('./config');
+
 function Frontend() {
     this._init.apply(this, arguments);
 }
@@ -110,6 +112,10 @@ Frontend.prototype._init = function _init() {
             res.locals.authenticated = false;
             res.locals.user = { isConfigured: true };
         }
+        next();
+    });
+    this._app.use(function(req, res, next) {
+        res.locals.S3_CLOUDFRONT_HOST = Config.S3_CLOUDFRONT_HOST;
         next();
     });
 
@@ -190,6 +196,7 @@ Frontend.prototype._init = function _init() {
     // with csurf
     // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
     this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
+    this._app.use('/thingpedia/apps', require('./routes/thingpedia_app_upload'));
 
     this._app.use(csurf({ cookie: false }));
     this._app.use('/', require('./routes/index'));

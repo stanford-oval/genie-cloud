@@ -96,7 +96,7 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(schema) {
             if (schema.kind_type !== 'other')
-                throw new Error(req._("This schema is associated with a device and should not be manipulated directly"));
+                throw new Error(req._("This schema is associated with a device or app and should not be manipulated directly"));
             return model.approve(dbClient, req.params.id).then(function() {
                 res.redirect(303, '/thingpedia/schemas/by-id/' + schema.kind);
             });
@@ -111,7 +111,7 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
     db.withTransaction(function(dbClient) {
         return model.get(dbClient, req.params.id).then(function(row) {
             if (row.kind_type !== 'other')
-                throw new Error(req._("This schema is associated with a device and should not be manipulated directly"));
+                throw new Error(req._("This schema is associated with a device or app and should not be manipulated directly"));
             if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
                 res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: req._("Not Authorized") });
@@ -254,7 +254,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                     req.user.developer < user.DeveloperStatus.ADMIN)
                     throw new Error(req._("Not Authorized"));
                 if (d.kind_type !== 'other')
-                    throw new Error(req._("Only non-device specific types can be modified from this page. Upload a new interface package to modify a device type"));
+                    throw new Error(req._("Only non-device and non-app specific types can be modified from this page. Upload a new interface package to modify a device type"));
 
                 return model.getTypesAndMeta(dbClient, req.params.id, d.developer_version).then(function(row) {
                     d.types = JSON.parse(row.types);

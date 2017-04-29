@@ -7,9 +7,18 @@ block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
 block page_name
+  - index = true;
   = _("Supported Devices")
 
 block content
+  h1= page_h1
+
+  div.navbar.navbar-default#device-list-navbar
+    form.navbar-form.navbar-left(action='/thingpedia/devices/search',method='get')
+      div.form-group
+        input.form-control#device-search-box(type='text', name='q', placeholder=_("I want to find a device..."))
+        button.btn.btn-primary(type="submit")= _("Search")
+
   div.row
     each dev, i in devices
       if i % 6 === 0
@@ -41,7 +50,7 @@ block content
       if page_num > 0
         li
           a(href='/thingpedia/devices?page=' + (page_num-1))= _("Previous")
-      if devices.length >= 18
+      if devices.length > 18
         li
           a(href='/thingpedia/devices?page=' + (page_num+1))= _("Next")
 
