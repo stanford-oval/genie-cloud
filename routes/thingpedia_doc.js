@@ -15,6 +15,7 @@ const path = require('path');
 const db = require('../util/db');
 const organization = require('../model/organization');
 const device = require('../model/device');
+const oauth2 = require('../model/oauth2');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -36,16 +37,21 @@ router.get('/', function(req, res) {
             return db.withClient((dbClient) => {
                 return Q.all([isRunning,
                               organization.get(dbClient, req.user.developer_org),
-                              device.getByOwner(dbClient, req.user.developer_org)]);
+                              organization.getMembers(dbClient, req.user.developer_org),
+                              device.getByOwner(dbClient, req.user.developer_org),
+                              oauth2.getClientsByOwner(dbClient, req.user.developer_org)]);
             });
         } else {
-            return [isRunning, {}, []];
+            return [isRunning, {}, [], []];
         }
-    }).then(([isRunning, developer_org, developer_devices]) => {
+    }).then(([isRunning, developer_org, developer_org_members, developer_devices, developer_oauth2_clients]) => {
         res.render('thingpedia_dev_portal', { page_title: req._("Thingpedia - Developer Portal"),
                                               isRunning: isRunning,
+                                              csrfToken: req.csrfToken(),
                                               developer_org_name: developer_org.name,
-                                              developer_devices: developer_devices
+                                              developer_org_members: developer_org_members,
+                                              developer_devices: developer_devices,
+                                              developer_oauth2_clients: developer_oauth2_clients
         });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),

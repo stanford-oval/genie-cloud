@@ -54,8 +54,11 @@ insert into users values (
 
 create table oauth2_clients (
     id char(64) primary key,
+    owner int not null,
+    name varchar(255) not null collate utf8_general_ci,
     secret char(64) not null,
-    magic_power boolean not null default false
+    magic_power boolean not null default false,
+    foreign key (owner) references organizations(id) on update cascade on delete cascade,
 ) collate = utf8_bin ;
 
 create table oauth2_access_tokens (

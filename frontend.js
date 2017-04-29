@@ -50,7 +50,7 @@ Frontend.prototype._init = function _init() {
 
     this._app.set('port', process.env.PORT || 8080);
     this._app.set('views', path.join(__dirname, 'views'));
-    this._app.set('view engine', 'jade');
+    this._app.set('view engine', 'pug');
     this._app.enable('trust proxy');
     this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
 

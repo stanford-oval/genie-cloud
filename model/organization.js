@@ -33,6 +33,10 @@ module.exports = {
                             [id]);
     },
 
+    getMembers: function(client, id) {
+        return db.selectAll(client, "select username from users where developer_org = ?", [id]);
+    },
+
     getByDeveloperKey: function(client, key) {
         return db.selectAll(client, "select id,is_admin from organizations where developer_key = ?", [key]);
     },

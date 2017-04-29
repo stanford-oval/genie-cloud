@@ -44,8 +44,7 @@ block content
       br
       | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer and Monica S. Lam
       br
-      | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>,
-2017.
+      | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, 2017.
 
   if authenticated && user.developer_org !== null
     h2= _("Your Developer Organization")
@@ -63,6 +62,48 @@ block content
         = _("Trusted Dev")
       else if user.developer_status == 3
         = _("Administrator")
+    
+    p
+      b= _("Members: ")
+      = developer_org_members.map((m) => m.username).join(', ')
+        
+    h3= _("Your OAuth 2.0 Applications")
+    
+    if developer_oauth2_clients.length > 0
+      each client, i in developer_oauth2_clients
+        div.row
+          div.col-xs-12.col-md-6
+            div.panel.panel-default
+              p.panel-heading= client.name
+              div.panel-body
+                p
+                  b= _("Client ID: ")
+                  span= client.id
+                if user.developer_status > 0
+                  p
+                    b= _("Client Secret: ")
+                    span= client.secret
+    else
+      p= _("Your organization does not have any OAuth 2.0 Client IDs yet.")
+
+    if user.developer_status > 0
+      div.row
+        div.col-xs-12.col-md-6
+          div.panel.panel-default
+              p.panel-heading= _("Create a new OAuth 2.0 Client ID")
+              div.panel-body
+                form(action='/me/api/oauth2/clients/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  div.form-group
+                    label(for='new-oauth-name').control-label= _("Name")
+                    input(type='text',name='name').form-control#new-oauth-name
+                  
+                  div.form-group
+                    label(for='new-oauth-icon').control-label= _("Icon")
+                    input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#new-oauth-icon
+                  
+                  div.form-group
+                    button(type='submit').btn.btn-primary= _("Create")
 
     h3= _("Your Devices")
 
@@ -93,4 +134,6 @@ block content
                       button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
     else
       p= _("Your organization does not own any device yet.")
+      
+   
 
