@@ -27,7 +27,7 @@ block content
       div.col-xs-12.col-sm-6.col-md-4.col-lg-3
         h3
           img(src=S3_CLOUDFRONT_HOST + '/icons/' + d.primary_kind + '.png', alt="Icon for " + d.name)
-          a(href='/thingpedia/devices/details/' + d.id)= d.name
+          a(href='/thingpedia/devices/by-id/' + d.primary_kind)= d.name
         ul
           for ex in d.triggers
             li

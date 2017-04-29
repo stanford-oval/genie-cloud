@@ -58,9 +58,9 @@ router.get('/', function(req, res) {
         page = 0;
 
     db.withTransaction(function(client) {
-        return model.getAll(client, filterVisible(req), page * 18, 18).then(function(apps) {
+        return model.getAll(client, filterVisible(req), page * 18, 19).then(function(apps) {
             return renderAppList(client, apps, req, res,
-                                 req._("Try the following recommended apps"), page);
+                                 req._("App Collection"), page);
         });
     }).done();
 });
@@ -75,7 +75,7 @@ router.get('/search', function(req, res) {
     db.withTransaction(function(client) {
         return model.getByFuzzySearch(client, filterVisible(req), q).then(function(apps) {
             return renderAppList(client, apps, req, res,
-                                 req._("Results of your search"));
+                                 req._("Results of Your Search"));
         });
     }).done();
 });

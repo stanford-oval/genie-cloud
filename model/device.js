@@ -117,6 +117,21 @@ module.exports = {
         }
     },
 
+    getByFuzzySearch: function(client, tag) {
+        var pctag = '%' + tag + '%';
+        return db.selectAll(client, "(select 0 as weight, d.* from device_class d where primary_kind = ? or"
+                                + " global_name = ?) union "
+                                + " (select 1, d.* from device_class d where name like ? or description like ?)"
+                                + " union "
+                                + " (select 2, d.* from device_class d, device_class_kind dk "
+                                + " where dk.device_id = d.id and dk.kind = ?)"
+                                + " union "
+                                + " (select 3, d.* from device_class d, device_class_tag dct "
+                                + " where dct.device_id = d.id and dct.tag = ?)"
+                                + " order by weight asc, name asc limit 20",
+                                [tag, tag, pctag, pctag, tag, tag]);
+    },
+
     getCodeByVersion: function(client, id, version) {
         return db.selectOne(client, "select code from device_code_version where device_id = ? and version = ?",
             [id, version]);

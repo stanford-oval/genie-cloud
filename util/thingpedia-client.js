@@ -69,7 +69,7 @@ module.exports = class ThingpediaClientCloud {
 
     getApps(start, limit) {
         return db.withClient((dbClient) => {
-            return app.getAllQuick(dbClient, start, start+limit);
+            return app.getAllQuick(dbClient, start, limit);
         });
     }
 
