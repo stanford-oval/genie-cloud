@@ -81,6 +81,10 @@ module.exports = {
         return db.selectOne(client, "select * from device_class where id = ?", [id]);
     },
 
+    getByOwner: function(client, owner) {
+        return db.selectAll(client, "select * from device_class where owner = ? order by name asc", [owner]);
+    },
+
     getFullCodeByPrimaryKind: function(client, kind, org, includeNotFullCode) {
         if (includeNotFullCode) {
             if (org !== null && org.is_admin) {

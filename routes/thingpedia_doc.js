@@ -12,6 +12,10 @@ var router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
+const db = require('../util/db');
+const organization = require('../model/organization');
+const device = require('../model/device');
+
 const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
@@ -28,7 +32,21 @@ router.get('/', function(req, res) {
             return false;
         }
     }).then((isRunning) => {
-        res.render('thingpedia_dev_portal', { page_title: req._("Thingpedia - Developer Portal"), isRunning: isRunning });
+        if (req.user && req.user.developer_org !== null) {
+            return db.withClient((dbClient) => {
+                return Q.all([isRunning,
+                              organization.get(dbClient, req.user.developer_org),
+                              device.getByOwner(dbClient, req.user.developer_org)]);
+            });
+        } else {
+            return [isRunning, {}, []];
+        }
+    }).then(([isRunning, developer_org, developer_devices]) => {
+        res.render('thingpedia_dev_portal', { page_title: req._("Thingpedia - Developer Portal"),
+                                              isRunning: isRunning,
+                                              developer_org_name: developer_org.name,
+                                              developer_devices: developer_devices
+        });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
