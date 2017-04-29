@@ -61,12 +61,17 @@
   display: block;
 }
 
+.message-picture {
+  max-width: 80%;
+}
+
 .button-grid {
   width: 80%;
 }
 
 .button-grid .btn {
   margin-bottom: 6px;
+  white-space: normal;
 }
 
 #ui {

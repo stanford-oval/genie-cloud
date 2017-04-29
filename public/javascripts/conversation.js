@@ -58,7 +58,7 @@ $(function() {
     }
 
     function choice(idx, title) {
-        var holder = $('<div>').addClass('col-xs-12 col-sm-4 col-md-3');
+        var holder = $('<div>').addClass('col-xs-12 col-sm-6');
         var btn = $('<a>').addClass('message message-choice btn btn-default')
             .attr('href', '#').text(title);
         btn.click(function(event) {
@@ -71,7 +71,7 @@ $(function() {
     }
 
     function buttonMessage(title, json) {
-        var holder = $('<div>').addClass('col-xs-12 col-sm-4 col-md-3');
+        var holder = $('<div>').addClass('col-xs-12 col-sm-6 col-md-4');
         var btn = $('<a>').addClass('message message-button btn btn-default')
             .attr('href', '#').text(title);
         btn.click(function(event) {
