@@ -137,6 +137,11 @@ module.exports = {
             + " and is_base and language = ?", [schemaId, language]);
     },
 
+    getBaseBySchemaKind(client, schemaKind, language) {
+        return db.selectAll(client, "select eu.* from example_utterances eu, device_schema ds where"
+            + " eu.schema_id = ds.id and ds.kind = ? and is_base and language = ?", [schemaKind, language]);
+    },
+
     createMany: createMany,
 
     deleteBySchema(client, schemaId, language) {

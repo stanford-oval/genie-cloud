@@ -1,0 +1,83 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-apps.css')
+
+block scripts
+  script(src='/javascripts/jsonlint.js')
+  script(src='/javascripts/codemirror.js')
+  script(src='/javascripts/jsoneditor.min.js')
+  script(src='/javascripts/thingpedia-app-create.js', type='text/javascript')
+
+block page_name
+  - var action, page_h1;
+  - if(op === 'create')
+    - action = '/thingpedia/apps/create';
+    - page_h1 = _("Create a new app");
+  - else if(op === 'edit')
+    - action = '/thingpedia/apps/edit/' + app_id
+    - page_h1 = _("Edit App")
+  - else
+    - throw new TypeError('Invalid op');
+  | #{page_h1}
+
+block content
+  form(action=action, enctype='multipart/form-data', method='post', data-toggle='validator')
+    input(type='hidden',name='_csrf',value=csrfToken)
+
+    if error
+      div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
+        button(type='button', data-dismiss='alert', aria-label="Close").close
+          span(aria-hidden='true') ×
+        if typeof error === 'string'
+          p= error
+        else if error.name === 'SyntaxError'
+          if error.location
+            p= _("Syntax error at line %d column %d: %s").format(error.location.start.line, error.location.start.column, error.message)
+          else
+            p= _("Syntax error at %s line %d: %s").format(error.fileName, error.lineNumber, error.message)
+        else if error.message
+          if error.message.startsWith('ER_DUP_ENTRY:')
+            p= _("The app ID (the name before the parenthesis) you chose is already in use, pick a different one.")
+          else
+            p= error.message
+        else
+          p= String(error)
+
+    div.form-group
+      label(for='input-app-name').control-label= _("App Name")
+      input.form-control#input-app-name(type="text",name="name",required=true,value=name)
+
+    div.form-group
+      label(for='input-app-description').control-label= _("App Description")
+      textarea.form-control#input-app-description(name="description",required=true,placeholder=_("What does the app accomplish?"))= description
+
+    div.form-group
+      label(for='input-app-code').control-label= _("App Code")
+      textarea.form-control#input-app-code(name="code",required=true,placeholder=_("Code Here..."))= code
+
+    div.form-group
+      label(for='input-app-icon').control-label= _("App Icon")
+      input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#input-app-icon
+
+    div(data-manifest=JSON.stringify(manifest))#json-manifest-placeholder
+
+    div.form-group
+      label.control-label= _("Tags")
+      p.form-control-static
+        span#tag-container
+          each tag, i in tags
+            span.label.label-default(id='tag-' + i).input-tag #{tag} |
+              a.tag-remove(data-target='#tag-' + i, aria-label=_("Remove tag"))
+                span.glyphicon-minus
+              input(type='hidden', name='tags[]', value=tag)
+            | &#x20;
+        | &#x20;
+        input(type='text', placeholder=_("Add tag...")).form-control.form-inline.input-sm#add-tag-input
+
+    div.row
+      div.col-sm-2
+        if op === 'edit'
+          button(type='submit').form-control.btn.btn-primary.btn-block= _("Save")
+        else
+          button(type='submit').form-control.btn.btn-primary.btn-block= _("Create")

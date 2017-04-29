@@ -66,8 +66,8 @@ module.exports = {
                     args.push({
                         type: schema,
                         name: argnames[i],
-                        question: inv.questions[i] || '',
-                        required: inv.required[i] || false,
+                        question: questions[i] || '',
+                        required: argrequired[i] || false,
                     });
                 });
                 out[name] = {

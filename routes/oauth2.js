@@ -11,6 +11,8 @@ const crypto = require('crypto');
 const express = require('express');
 const passport = require('passport');
 const oauth2orize = require('oauth2orize');
+const multer = require('multer');
+const csurf = require('csurf');
 
 const BasicStrategy = require('passport-http').BasicStrategy;
 const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
@@ -21,6 +23,7 @@ var server = oauth2orize.createServer();
 const model = require('../model/oauth2');
 const user = require('../util/user');
 const db = require('../util/db');
+const code_storage = require('../util/code_storage');
 
 var router = express.Router();
 
@@ -136,14 +139,59 @@ router.get('/authorize', user.redirectLogIn,
                return res.render('oauth2_authorize', {
                    page_title: req._("Thingpedia - Authorize Access"),
                    transaction_id: req.oauth2.transactionID,
+                   client: req.oauth2.client
                });
            });
 
-router.post('/authorize', user.requireLogIn,
-            server.decision());
+router.post('/authorize', user.requireLogIn, server.decision());
 
 router.post('/token',
             passport.authenticate(['oauth2-client-basic', 'oauth2-client-password'], { session: false }),
             server.token(), server.errorHandler());
+
+function uploadIcon(clientId, req) {
+    if (req.files.icon && req.files.icon.length) {
+        // upload the icon asynchronously to avoid blocking the request
+        setTimeout(function() {
+            Q.try(function() {
+                var graphicsApi = platform.getCapability('graphics-api');
+                var image = graphicsApi.createImageFromPath(req.files.icon[0].path);
+                image.resizeFit(512, 512);
+                return image.stream('png');
+            }).spread(function(stdout, stderr) {
+                return code_storage.storeIcon(stdout, 'oauth:' + clientId);
+            }).catch(function(e) {
+                console.error('Failed to upload icon to S3: ' + e);
+            }).done();
+        }, 0);
+    }
+}
+
+router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
+    { name: 'icon', maxCount: 1 }
+]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(), function(req, res) {
+    db.withTransaction((dbClient) => {
+        var name = req.body.name;
+        if (!name)
+            throw new Error(req._("Name must be provided"));
+        if (!req.files.icon || !req.files.icon.length)
+            throw new Error(req._("Must upload an icon"));
+
+        var clientId = makeRandom();
+        var clientSecret = makeRandom();
+        return model.createClient(dbClient, {
+            id: clientId,
+            secret: clientSecret,
+            name: name,
+            owner: req.user.developer_org
+        }).then(() => uploadIcon(clientId, req));
+    }).then(() => {
+        res.redirect(303, '/thingpedia/developers');
+    }).catch(function(e) {
+        console.error(e.stack);
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
 
 module.exports = router;

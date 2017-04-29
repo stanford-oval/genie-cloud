@@ -35,6 +35,8 @@ const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
 const db = require('./util/db');
 
+const Config = require('./config');
+
 function Frontend() {
     this._init.apply(this, arguments);
 }
@@ -48,7 +50,7 @@ Frontend.prototype._init = function _init() {
 
     this._app.set('port', process.env.PORT || 8080);
     this._app.set('views', path.join(__dirname, 'views'));
-    this._app.set('view engine', 'jade');
+    this._app.set('view engine', 'pug');
     this._app.enable('trust proxy');
     this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
 
@@ -110,6 +112,10 @@ Frontend.prototype._init = function _init() {
             res.locals.authenticated = false;
             res.locals.user = { isConfigured: true };
         }
+        next();
+    });
+    this._app.use(function(req, res, next) {
+        res.locals.S3_CLOUDFRONT_HOST = Config.S3_CLOUDFRONT_HOST;
         next();
     });
 
@@ -190,6 +196,7 @@ Frontend.prototype._init = function _init() {
     // with csurf
     // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
     this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
+    this._app.use('/thingpedia/apps', require('./routes/thingpedia_app_upload'));
 
     this._app.use(csurf({ cookie: false }));
     this._app.use('/', require('./routes/index'));
@@ -201,6 +208,7 @@ Frontend.prototype._init = function _init() {
     this._app.use('/devices', require('./routes/devices_compat'));
 
     this._app.use('/thingpedia/examples', require('./routes/thingpedia_examples'));
+    this._app.use('/thingpedia/apps', require('./routes/thingpedia_apps'));
     this._app.use('/thingpedia/training', require('./routes/train_almond'));
     this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
     this._app.use('/thingpedia/schemas', require('./routes/thingpedia_schemas'));

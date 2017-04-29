@@ -30,12 +30,37 @@ router.get('/', function(req, res) {
         page = 0;
 
     db.withClient(function(client) {
-        return model.getAll(client, page * 18, 18).then(function(devices) {
+        return model.getAll(client, page * 18, 19).then(function(devices) {
             res.render('thingpedia_device_list', { page_title: req._("Thingpedia - Supported Devices"),
-                                                   S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
+                                                   page_h1: req._("Supported Devices"),
                                                    csrfToken: req.csrfToken(),
                                                    devices: devices,
                                                    page_num: page });
+        });
+    }).done();
+});
+
+router.get('/search', function(req, res) {
+    var q = req.query.q;
+    if (!q) {
+        res.redirect('/thingpedia/devices');
+        return;
+    }
+
+    db.withTransaction(function(client) {
+        return model.getByFuzzySearch(client, q).then(function(devices) {
+            var kinds = new Set;
+            devices = devices.filter((d) => {
+                if (kinds.has(d.primary_kind))
+                    return false;
+                kinds.add(d.primary_kind);
+                return true;
+            });
+
+            res.render('thingpedia_device_list', { page_title: req._("Thingpedia - Supported Devices"),
+                                                   page_h1: req._("Results of Your Search"),
+                                                   csrfToken: req.csrfToken(),
+                                                   devices: devices });
         });
     }).done();
 });
@@ -114,10 +139,6 @@ function getDetails(fn, param, req, res) {
     }).done();
 }
 
-router.get('/details/:id', function(req, res) {
-    getDetails(model.get, req.params.id, req, res);
-});
-
 const LEGACY_MAPS = {
     'omlet': 'org.thingpedia.builtin.omlet',
     'linkedin': 'com.linkedin',
@@ -141,10 +162,10 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
             }).then(function() {
                 if (device.global_name)
                     return schema.approveByKind(dbClient, device.global_name);
-            });
+            }).then(() => device);
         });
-    }).then(function() {
-        res.redirect('/thingpedia/devices/details/' + req.params.id);
+    }).then(function(device) {
+        res.redirect('/thingpedia/devices/by-id/' + device.primary_kind);
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });

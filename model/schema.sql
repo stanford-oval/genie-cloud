@@ -1,5 +1,4 @@
 drop table if exists device_class_kind cascade;
-drop table if exists app_device cascade;
 drop table if exists app_tag cascade;
 drop table if exists device_class cascade;
 drop table if exists app cascade;
@@ -55,8 +54,11 @@ insert into users values (
 
 create table oauth2_clients (
     id char(64) primary key,
+    owner int not null,
+    name varchar(255) not null collate utf8_general_ci,
     secret char(64) not null,
-    magic_power boolean not null default false
+    magic_power boolean not null default false,
+    foreign key (owner) references organizations(id) on update cascade on delete cascade,
 ) collate = utf8_bin ;
 
 create table oauth2_access_tokens (
@@ -78,6 +80,17 @@ create table oauth2_auth_codes (
     key (code),
     foreign key (user_id) references users(id) on update cascade on delete cascade,
     foreign key (client_id) references oauth2_clients(id) on update cascade on delete cascade
+) collate = utf8_bin;
+
+create table app (
+    id integer auto_increment primary key,
+    owner integer,
+    app_id varchar(255) unique not null,
+    name varchar(255) not null collate utf8_general_ci,
+    description text not null collate utf8_general_ci,
+    code mediumtext not null,
+    visible boolean not null default false,
+    foreign key (owner) references users(id) on update cascade on delete set null
 ) collate = utf8_bin;
 
 create table device_class (
@@ -171,7 +184,6 @@ create table device_schema_arguments (
 create table example_utterances (
     id integer auto_increment primary key,
     schema_id integer null,
-    app_id integer null,
     is_base boolean not null default false,
     language char(15) not null default 'en',
     type enum('thingpedia', 'ifttt', 'online', 'test', 'other') not null default 'other',
@@ -179,7 +191,6 @@ create table example_utterances (
     target_json text not null,
     click_count integer not null default 0,
     key(schema_id),
-    key(app_id)
     fulltext key(utterance)
 ) collate utf8_bin;
 
@@ -197,6 +208,14 @@ create table device_code_version (
     code mediumtext not null,
     primary key(device_id, version),
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
+) collate utf8_bin;
+
+create table app_tag (
+    id integer auto_increment primary key,
+    app_id integer not null,
+    tag varchar(255) not null collate utf8_general_ci,
+    key(tag),
+    foreign key (app_id) references app(id) on update cascade on delete cascade
 ) collate utf8_bin;
 
 create table device_class_tag (

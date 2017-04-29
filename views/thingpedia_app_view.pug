@@ -1,0 +1,76 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-apps.css')
+
+block page_name
+  | App: #{app.name}
+
+block content
+  aside#app-icon-large
+    img(src=S3_CLOUDFRONT_HOST + '/icons/app:' + app.app_id + '.png', alt="Icon for " + app.name)
+
+  p
+    i= app.description
+
+  p Contributed by 
+    a(href='/thingpedia/apps/by-owner/' + app.owner)= app.owner_name
+    | .
+    if app.tags.length > 0
+      |  Tags: 
+      each tag in app.tags
+        span.label.label-default= tag.tag
+        |  
+
+  pre
+    code= app.code
+
+  div.clearfix
+
+  div.row
+    //div.col-sm-2
+      a.btn.btn-primary.btn-block(href='/thingpedia/apps/install/' + app.id).app-install-button Enable
+
+    if authenticated && (app.owner === user.id || user.developer_status === 3)
+      div.col-sm-2
+        a(href='/thingpedia/apps/edit/' + app.id).btn.btn-default.btn-block Edit
+      if app.visible
+        div.col-sm-2
+          form.form-inline(action="/thingpedia/apps/set-invisible/" + app.id,method="post")
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-default.btn-block= _("Hide from Collection")
+      else
+        div.col-sm-2
+          form.form-inline(action="/thingpedia/apps/set-visible/" + app.id,method="post")
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-default.btn-block= _("Publish")
+    if authenticated && (app.owner === user.id || user.developer_status === 3)
+      div.col-sm-2
+        a.btn.btn-danger.btn-block(data-toggle='modal', data-target='#delete-app-dialog') Delete
+
+        div.modal.fade#delete-app-dialog(role='dialog')
+          div.modal-dialog
+            div.modal-content
+              div.modal-header
+                a.close(data-dismiss='modal', aria-label="Close")
+                  span(aria-hidden='true') ×
+
+                h4.modal-title Are you sure?
+
+              div.modal-body
+                div.container-fluid
+                  div.row
+                    div.col-xs-12
+                      p If you delete your app, all other users will be
+                        | unable to install it.
+                      p This will not affect users who already installed it.
+
+                  div.row
+                    div.col-sm-4
+                      form(action='/thingpedia/apps/delete/' + app.id, method='post')
+                        input(type='hidden',name='_csrf',value=csrfToken)
+                        button(type='submit').btn.btn-danger.btn-block Delete App
+
+                    div.col-sm-4
+                      button(type='button',data-dismiss='modal').btn.btn-primary.btn-block Cancel
+

@@ -282,7 +282,6 @@ function processOneInvocation(output, schemaRetriever, channelType, kind, channe
         var argrequired = channelType === 'action' || meta.required[i];
 
         if (PARAMS_BLACK_LIST.indexOf(argname) > -1) {
-            console.log(argname);
             return;
         }
         else if (type.isEntity && type.type == 'tt:picture')
@@ -307,14 +306,15 @@ function processOneInvocation(output, schemaRetriever, channelType, kind, channe
 
 function main() {
     var output = csv.stringify();
-    var file = fs.createWriteStream(process.argv[2]);
+    var file = fs.createWriteStream(process.argv[2] || 'output.csv');
     output.pipe(file);
     var language = process.argv[3] || 'en';
+    var kinds = process.argv[4] ? [process.argv[4]] : FIXED_KINDS;
 
     var promises = [];
     db.withClient((dbClient) => {
         var schemaRetriever = new SchemaRetriever(dbClient, language);
-        return model.getMetasByKinds(dbClient, FIXED_KINDS, null, language).then(function(schemas) {
+        return model.getMetasByKinds(dbClient, kinds, null, language).then(function(schemas) {
             for (var s of schemas) {
                 for (var t in s.triggers)
                     promises.push(processOneInvocation(output, schemaRetriever, 'trigger', s.kind, t, s.triggers[t]));

@@ -20,7 +20,7 @@ function createOAuth2Code(client, code) {
     });
     var marks = KEYS.map(function() { return '?'; });
 
-    return db.insertOne(client, 'insert into oauth2_auth_codes(' + KEYS.join(',') + ') '
+    return db.insertOne(client, 'replace into oauth2_auth_codes(' + KEYS.join(',') + ') '
                         + 'values (' + marks.join(',') + ')', vals).then(function(id) {
                             return code;
                         });
@@ -37,9 +37,26 @@ function createOAuth2Token(client, token) {
     });
     var marks = KEYS.map(function() { return '?'; });
 
-    return db.insertOne(client, 'insert into oauth2_access_tokens(' + KEYS.join(',') + ') '
+    return db.insertOne(client, 'replace into oauth2_access_tokens(' + KEYS.join(',') + ') '
                         + 'values (' + marks.join(',') + ')', vals).then(function(id) {
                             return token;
+                        });
+}
+
+function createClient(dbClient, client) {
+    var KEYS = ['id', 'secret', 'owner', 'name'];
+    KEYS.forEach(function(key) {
+        if (client[key] === undefined)
+            client[key] = null;
+    });
+    var vals = KEYS.map(function(key) {
+        return client[key];
+    });
+    var marks = KEYS.map(function() { return '?'; });
+
+    return db.insertOne(dbClient, 'insert into oauth2_clients(' + KEYS.join(',') + ') '
+                        + 'values (' + marks.join(',') + ')', vals).then(function(id) {
+                            return client;
                         });
 }
 
@@ -52,6 +69,10 @@ module.exports = {
         return db.selectAll(client, "select * from oauth2_clients where id = ?", [id]);
     },
 
+    getClientsByOwner: function(client, owner) {
+        return db.selectAll(client, "select * from oauth2_clients where owner = ?", [owner]);
+    },
+
     getCodes: function(client, oauth2ClientId, code) {
         return db.selectAll(client, "select * from oauth2_auth_codes where client_id = ? and code = ?",
                             [oauth2ClientId, code]);
@@ -62,6 +83,7 @@ module.exports = {
                         [oauth2ClientId, userId]);
     },
 
+    createClient: createClient,
     createCode: createOAuth2Code,
     createToken: createOAuth2Token,
 }

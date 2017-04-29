@@ -12,6 +12,11 @@ var router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
+const db = require('../util/db');
+const organization = require('../model/organization');
+const device = require('../model/device');
+const oauth2 = require('../model/oauth2');
+
 const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
@@ -28,7 +33,26 @@ router.get('/', function(req, res) {
             return false;
         }
     }).then((isRunning) => {
-        res.render('thingpedia_dev_portal', { page_title: req._("Thingpedia - Developer Portal"), isRunning: isRunning });
+        if (req.user && req.user.developer_org !== null) {
+            return db.withClient((dbClient) => {
+                return Q.all([isRunning,
+                              organization.get(dbClient, req.user.developer_org),
+                              organization.getMembers(dbClient, req.user.developer_org),
+                              device.getByOwner(dbClient, req.user.developer_org),
+                              oauth2.getClientsByOwner(dbClient, req.user.developer_org)]);
+            });
+        } else {
+            return [isRunning, {}, [], []];
+        }
+    }).then(([isRunning, developer_org, developer_org_members, developer_devices, developer_oauth2_clients]) => {
+        res.render('thingpedia_dev_portal', { page_title: req._("Thingpedia - Developer Portal"),
+                                              isRunning: isRunning,
+                                              csrfToken: req.csrfToken(),
+                                              developer_org_name: developer_org.name,
+                                              developer_org_members: developer_org_members,
+                                              developer_devices: developer_devices,
+                                              developer_oauth2_clients: developer_oauth2_clients
+        });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
@@ -45,7 +69,7 @@ router.get('/:what', function(req, res) {
 
     var what = req.params.what.substr(0, req.params.what.length - 3);
     if (fs.existsSync(path.resolve(path.dirname(module.filename),
-                                   '../views/doc_' + what + '.jade'))) {
+                                   '../views/doc_' + what + '.pug'))) {
         render(req, res, what);
     } else {
         res.status(404).render('error', { page_title: req._("Thingpedia - Error"),

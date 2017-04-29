@@ -46,7 +46,7 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
         });
 }
 
-function insertChannels(dbClient, schemaId, schemaKind, version, language, types, meta) {
+function insertChannels(dbClient, schemaId, schemaKind, kindType, version, language, types, meta) {
     var channels = [];
     var channelCanonicals = [];
     var argobjects = [];
@@ -56,7 +56,11 @@ function insertChannels(dbClient, schemaId, schemaKind, version, language, types
             var meta = fromMeta[name];
             // convert security-camera to 'security camera' and googleDrive to 'google drive'
             var kindCanonical = schemaKind.replace(/[_\-]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-            var canonical = meta && meta.canonical ? (meta.canonical + ' on ' + kindCanonical) : null;
+            var canonical;
+            if (kindType !== 'app')
+                canonical = meta && meta.canonical ? (meta.canonical + ' on ' + kindCanonical) : null;
+            else
+                canonical = meta && meta.canonical ? meta.canonical : null;
             var confirmation = (meta ? (meta.confirmation || meta.label) : null) || null;
             var types = from[name];
             var argnames = meta ? meta.args : types.map((t, i) => 'arg' + (i+1));
@@ -123,7 +127,7 @@ function create(client, schema, types, meta) {
                                                          JSON.stringify(types),
                                                          JSON.stringify(meta)]);
         }).then(function() {
-            return insertChannels(client, schema.id, schema.kind, schema.developer_version, 'en', types, meta);
+            return insertChannels(client, schema.id, schema.kind, schema.kind_type, schema.developer_version, 'en', types, meta);
         }).then(function() {
             return schema;
         });
@@ -137,7 +141,7 @@ function update(client, id, kind, schema, types, meta) {
                                                          JSON.stringify(types),
                                                          JSON.stringify(meta)]);
         }).then(function() {
-            return insertChannels(client, id, kind, schema.developer_version, 'en', types, meta);
+            return insertChannels(client, id, kind, schema.kind_type, schema.developer_version, 'en', types, meta);
         }).then(function() {
             return schema;
         });
@@ -334,6 +338,11 @@ module.exports = {
             + "where schema_id = ? and version = ?", [id, version]);
     },
 
+    getTypesAndMetaByKind: function(client, kind) {
+        return db.selectOne(client, "select types, meta from device_schema ds, device_schema_version dsv "
+            + "where dsv.schema_id = ds.id and ds.kind = ? and dsv.version = ds.developer_version", [kind]);
+    },
+
     getMetasByKinds: function(client, kinds, org, language) {
         return Q.try(function() {
             if (org === -1) {
@@ -416,6 +425,9 @@ module.exports = {
     update: update,
     delete: function(client, id) {
         return db.query(client, "delete from device_schema where id = ?", [id]);
+    },
+    deleteByKind: function(client, kind) {
+        return db.query(client, "delete from device_schema where kind = ?", [kind]);
     },
 
     approve: function(client, id) {

@@ -1,12 +1,21 @@
 extends layout
 
+block styles
+  link(rel='stylesheet', href='/stylesheets/oauth2.css')
+
 block page_name
-  | Thingpedia
+  - var index = true;
+  = _("Web Almond")
 
 block content
-  h1= _("Authorize application to access your Thingpedia?")
+  h1= _("Authorize %s to access your Almond?").format(client.name)
+
+  aside#app-icon-large
+    img(src=S3_CLOUDFRONT_HOST + '/icons/oauth:' + client.id + '.png', alt="Icon for " + client.name)
 
   p= _("If you say yes, the application will be allowed full access to your devices and accounts and will be able to run rules on your behalf.")
+
+  div.clearfix
 
   form(action='/me/api/oauth2/authorize', method='post').form-inline
     input(name='transaction_id', type='hidden', value=transaction_id)
@@ -14,4 +23,4 @@ block content
     div.form-group
       button.btn.btn-success(type='submit').form-control= _("Allow")
       span= " "
-      button.btn.btn-default(type='submit', name='cancel').form-control= _("Deny")
+      button.btn.btn-default(type='submit', name='cancel', value='deny').form-control= _("Deny")
