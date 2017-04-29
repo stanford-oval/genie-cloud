@@ -69,7 +69,7 @@ router.get('/:what', function(req, res) {
 
     var what = req.params.what.substr(0, req.params.what.length - 3);
     if (fs.existsSync(path.resolve(path.dirname(module.filename),
-                                   '../views/doc_' + what + '.jade'))) {
+                                   '../views/doc_' + what + '.pug'))) {
         render(req, res, what);
     } else {
         res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
