@@ -100,8 +100,8 @@ function getSchemaDomain(schema) {
 }
 
 function chooseSchema(allSchemas, policy) {
-    if (allSchemas.some((schema) => {return schema.kind === policy}))
-        return policy;
+    if (policy.startsWith('only-'))
+        return policy.substr('only-'.length);
 
     if (policy === 'uniform')
         return uniform(allSchemas).kind;
@@ -171,26 +171,24 @@ function chooseInvocation(schemaRetriever, schemas, samplingPolicy, channelType)
 function chooseRule(schemaRetriever, schemas, samplingPolicy) {
     var form = sample(COMPOSITION_WEIGHTS).split('+');
     var trigger, query, action;
-    if (schemas.every((schema) => {return schema.kind !== samplingPolicy})) {
+    if (!samplingPolicy.startsWith('only-')) {
         trigger = form[0] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'triggers');
         query = form[1] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'queries');
         action = form[2] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'actions');
         return Q.all([trigger, query, action]);
     } else {
-        var kind = samplingPolicy;
+        var kind = samplingPolicy.substr('only-'.length);
         trigger = form[0] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, 'uniform', 'triggers');
         query = form[1] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, 'uniform', 'queries');
         action = form[2] === 'null' ? undefined : chooseInvocation(schemaRetriever, schemas, 'uniform', 'actions');
         return chooseChannel(schemaRetriever, kind, form).then((channel) => {
-            console.log(channel);
             if (channel === 'trigger')
-                trigger = chooseInvocation(schemaRetriever, schemas, kind, 'triggers');
+                trigger = chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'triggers');
             else if (channel === 'query')
-                query = chooseInvocation(schemaRetriever, schemas, kind, 'queries');
+                query = chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'queries');
             else if (channel === 'action')
-                action = chooseInvocation(schemaRetriever, schemas, kind, 'actions');
+                action = chooseInvocation(schemaRetriever, schemas, samplingPolicy, 'actions');
             else {
-                console.log('AGAIN');
                 return chooseRule(schemaRetriever, schemas, samplingPolicy);
             }
             return Q.all([trigger, query, action]);

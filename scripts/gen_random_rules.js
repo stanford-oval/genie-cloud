@@ -79,7 +79,6 @@ function main() {
                         if (format === 'turk') {
                             row = row.concat([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);
                             if (row.length === sentences_per_hit * 3) {
-                                console.log(row);
                                 output.write(row);
                                 row = []
                             }
