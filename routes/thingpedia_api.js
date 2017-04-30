@@ -8,6 +8,8 @@
 
 const Q = require('q');
 const express = require('express');
+const csv = require('express-csv');
+const crypto = require('crypto');
 
 const db = require('../util/db');
 const device = require('../model/device');
@@ -21,8 +23,12 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const ThingpediaClient = require('../util/thingpedia-client');
 const genRandomRules = require('../util/gen_random_rule');
+const SempreSyntax = require('../util/sempre_syntax');
+const reconstruct = require('../scripts/deps/reconstruct');
 
 var router = express.Router();
+
+
 
 router.get('/schema/:schemas', function(req, res) {
     var schemas = req.params.schemas.split(',');
@@ -230,6 +236,54 @@ router.get('/random-rule', function(req, res) {
         });
         stream.on('end', () => {
             res.write(']');
+            res.end();
+        });
+    }, (e) => {
+        res.status(500).json({ error: e.message });
+    }).done();
+});
+
+router.get('/random-rule/by-kind/:kind', function(req, res) {
+    var locale = req.query.locale || 'en-US';
+    var language = (locale || 'en').split(/[-_\@\.]/)[0];
+    var N = Math.min(parseInt(req.query.limit) || 150, 150);
+    var policy = 'only-' + req.params.kind;
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var sentences_per_hit = 3;
+
+    const dlg = { _(x) { return x; } };
+    function makeId() { return crypto.randomBytes(8).toString('hex'); }
+    function postprocess(str) { return str.replace(/your/g, 'my').replace(/ you /g, ' I '); }
+
+    console.log(policy);
+    return db.withClient((dbClient) => {
+        var schemaRetriever = new SchemaRetriever(client);
+        return genRandomRules(dbClient, schemaRetriever, policy, language, N);
+    }).then((stream) => {
+        var schemaRetriever = new SchemaRetriever(client);
+        res.setHeader('Content-disposition', 'attachment; filename=synthetic_sentences_for_turk.csv');
+        res.status(200).set('Content-Type', 'text/csv');
+        var headers = [];
+        for (var i = 1; i <= 3; i ++) {
+            headers = headers.concat(['id' + i, 'thingtalk' + i, 'sentence' + i]);
+        }
+        var row = [];
+        var data = [headers];
+
+        stream.on('data', (r) => {
+            reconstruct(dlg, schemaRetriever, r).then((reconstructed) => {
+                row = row.concat([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);
+                if (row.length === sentences_per_hit * 3) {
+                    data.push(row);
+                    row = []
+                }
+            }).done();
+        });
+        stream.on('error', (err) => {
+            console.error('Error generating one rule: ' + err.message);
+        });
+        stream.on('end', () => {
+            res.csv(data);
             res.end();
         });
     }, (e) => {
