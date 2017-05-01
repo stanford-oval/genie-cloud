@@ -255,36 +255,38 @@ router.get('/random-rule/by-kind/:kind', function(req, res) {
     function makeId() { return crypto.randomBytes(8).toString('hex'); }
     function postprocess(str) { return str.replace(/your/g, 'my').replace(/ you /g, ' I '); }
 
+    var schemaRetriever = new SchemaRetriever(client);
     console.log(policy);
     return db.withClient((dbClient) => {
-        var schemaRetriever = new SchemaRetriever(client);
         return genRandomRules(dbClient, schemaRetriever, policy, language, N);
     }).then((stream) => {
-        var schemaRetriever = new SchemaRetriever(client);
-        res.setHeader('Content-disposition', 'attachment; filename=synthetic_sentences_for_turk.csv');
+        res.set('Content-disposition', 'attachment; filename=synthetic_sentences_for_turk.csv');
         res.status(200).set('Content-Type', 'text/csv');
         var headers = [];
         for (var i = 1; i <= 3; i ++) {
             headers = headers.concat(['id' + i, 'thingtalk' + i, 'sentence' + i]);
         }
-        var row = [];
         var data = [headers];
+        var row = [];
+        var promises = [];
 
         stream.on('data', (r) => {
-            reconstruct(dlg, schemaRetriever, r).then((reconstructed) => {
+            promises.push(reconstruct(dlg, schemaRetriever, r).then((reconstructed) => {
                 row = row.concat([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);
                 if (row.length === sentences_per_hit * 3) {
                     data.push(row);
                     row = []
                 }
-            }).done();
+            }));
         });
         stream.on('error', (err) => {
             console.error('Error generating one rule: ' + err.message);
         });
         stream.on('end', () => {
-            res.csv(data);
-            res.end();
+            Q.all(promises).then(() => {
+                res.csv(data);
+                res.end();
+            });
         });
     }, (e) => {
         res.status(500).json({ error: e.message });

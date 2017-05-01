@@ -161,10 +161,10 @@ block content
         form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
-      div.col-md-2
-        form(action='/thingpedia/api/random-rule/by-kind/' + device.global_name + '?developer_key=' + user.developer_key, method='get').form-generate-rules
-          input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-default.btn-block= _("Generate sentences")
+      if device.global_name
+        div.col-md-2
+          a.btn.btn-default.btn-block(href='/thingpedia/api/random-rule/by-kind/' + device.global_name + '?developer_key=' + user.developer_key)
+            = _("Generate sentences")
       div.col-md-2
         a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/templates/turk-template.html')= _("MTurk Template")
     div.col-md-2
