@@ -165,6 +165,8 @@ block content
         form(action='/thingpedia/api/random-rule/by-kind/' + device.global_name + '?developer_key=' + user.developer_key, method='get').form-generate-rules
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-default.btn-block= _("Generate sentences")
+      div.col-md-2
+        a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/templates/turk-template.html')= _("MTurk Template")
     div.col-md-2
       a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip')= _("Download code")
     if authenticated && user.locale !== 'en-US' && device.global_name
