@@ -320,6 +320,7 @@ function doCreateOrUpdate(id, create, req, res) {
                     name: name,
                     description: description,
                     fullcode: fullcode,
+                    module_type: ast.module_type,
                 };
                 var code = JSON.stringify(ast);
                 gAst = ast;

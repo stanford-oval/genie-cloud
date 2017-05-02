@@ -32,7 +32,7 @@ function insertKinds(client, deviceId, extraKinds, extraChildKinds) {
 }
 
 function create(client, device, extraKinds, extraChildKinds, code) {
-    var KEYS = ['primary_kind', 'global_name', 'owner', 'name', 'description', 'fullcode',
+    var KEYS = ['primary_kind', 'global_name', 'owner', 'name', 'description', 'fullcode', 'module_type',
                 'approved_version', 'developer_version'];
     KEYS.forEach(function(key) {
         if (device[key] === undefined)
