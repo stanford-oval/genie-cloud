@@ -48,6 +48,17 @@ function main() {
     var samplingPolicy = process.argv[3] || 'uniform';
     var language = process.argv[4] || 'en';
     var N = parseInt(process.argv[5]) || 100;
+    var format = process.argv[6] || 'default';
+
+    if (format === 'turk') {
+        var sentences_per_hit = process.argv[7] || 3;
+        var headers = [];
+        var row = [];
+        for (var i = 1; i <= sentences_per_hit; i ++) {
+            headers = headers.concat(['id' + i, 'thingtalk' + i, 'sentence' + i]);
+        }
+        output.write(headers);
+    }
 
     var inflight = 0;
     var done = false;
@@ -65,7 +76,15 @@ function main() {
                     i++;
                     inflight++;
                     reconstruct(dlg, schemaRetriever, r).then((reconstructed) => {
-                        output.write([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);
+                        if (format === 'turk') {
+                            row = row.concat([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);
+                            if (row.length === sentences_per_hit * 3) {
+                                output.write(row);
+                                row = []
+                            }
+                        } else {
+                            output.write([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);
+                        }
                         inflight--;
                         maybeEnd();
                     }).done();
