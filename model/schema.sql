@@ -101,6 +101,7 @@ create table device_class (
     name varchar(255) not null collate utf8_general_ci,
     description text not null collate utf8_general_ci,
     fullcode boolean not null default false,
+    module_type varchar(64) not null,
     approved_version integer(11) default null,
     developer_version integer(11) not null default 0,
     foreign key (owner) references organizations(id) on update cascade on delete cascade,
