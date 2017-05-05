@@ -40,7 +40,11 @@ $(function() {
             },
             confirmation: {
                 type: 'string',
-                title: 'Confirmation String',
+                title: 'Local Confirmation String',
+            },
+            confirmation_remote: {
+                type: 'string',
+                title: 'Remote Confirmation String',
             },
             canonical: {
                 type: 'string',

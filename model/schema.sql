@@ -148,6 +148,8 @@ create table device_schema_channel_canonicals (
     name varchar(128) not null,
     canonical text not null collate utf8_general_ci,
     confirmation varchar(255) collate utf8_general_ci default null,
+    confirmation_remote varchar(255) collate utf8_general_ci default null,
+    formatted mediumtext collate utf8_general_ci default null,
     argcanonicals mediumtext not null collate utf8_general_ci,
     questions mediumtext not null collate utf8_general_ci,
     keywords mediumtext not null collate utf8_general_ci,

@@ -8,6 +8,7 @@
 "use strict";
 
 const Q = require('q');
+Q.longStackSupport = true;
 const events = require('events');
 const stream = require('stream');
 const rpc = require('transparent-rpc');

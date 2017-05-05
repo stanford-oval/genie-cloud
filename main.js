@@ -10,6 +10,7 @@
 require('thingengine-core/lib/polyfill');
 
 const Q = require('q');
+Q.longStackSupport = true;
 
 const Frontend = require('./frontend');
 const EngineManager = require('./almond/enginemanagerclient');

@@ -303,39 +303,7 @@ function getMeta(invocation, schemaType) {
     return _schemaRetriever.getMeta(kind, schemaType, channelName);
 }
 
-function reconstructCanonical(dbClient, grammar, language, json) {
-    var parsed = JSON.parse(json);
-
-    if (parsed.special) {
-        var token = SPECIAL_TO_GRAMMAR[parsed.special.id.substr('tt:root.special.'.length)];
-        if (token === 'failuretoparse' || token === 'debug')
-            return token;
-        else
-            return grammar[token];
-    }
-
-    var buffer = [];
-    if (parsed.command) {
-        if (parsed.command.type === 'make' && parsed.command.value.value === 'rule')
-            return grammar.make_rule;
-
-        buffer.push(grammar[COMMAND_TO_GRAMMAR[parsed.command.type]]);
-
-        if (parsed.command.value.value === 'generic')
-            return buffer.join(' ');
-        if (parsed.command.type === 'configure' || parsed.command.type === 'help' ||
-            parsed.command.type === 'discover') {
-            buffer.push(parsed.command.value.id.substr('tt:device.'.length));
-        } else {
-            buffer.push(grammar[LIST_TO_GRAMMAR[parsed.command.value.value]]);
-        }
-        return buffer.join(' ');
-    }
-    if (parsed.answer) {
-        argToCanonical(grammar, buffer, parsed.answer, {}, false);
-        return buffer.join(' ');
-    }
-
+function reconstructPrimRule(parsed, buffer, grammar) {
     if (parsed.trigger)
         buffer.push(grammar.monitor_if);
 
@@ -408,6 +376,49 @@ function reconstructCanonical(dbClient, grammar, language, json) {
     });
 }
 
+function reconstructCanonical(dbClient, grammar, language, json) {
+    var parsed = JSON.parse(json);
+
+    if (parsed.special) {
+        var token = SPECIAL_TO_GRAMMAR[parsed.special.id.substr('tt:root.special.'.length)];
+        if (token === 'failuretoparse' || token === 'debug')
+            return token;
+        else
+            return grammar[token];
+    }
+
+    var buffer = [];
+    if (parsed.command) {
+        if (parsed.command.type === 'make' && parsed.command.value.value === 'rule')
+            return grammar.make_rule;
+
+        buffer.push(grammar[COMMAND_TO_GRAMMAR[parsed.command.type]]);
+
+        if (parsed.command.value.value === 'generic')
+            return buffer.join(' ');
+        if (parsed.command.type === 'configure' || parsed.command.type === 'help' ||
+            parsed.command.type === 'discover') {
+            buffer.push(parsed.command.value.id.substr('tt:device.'.length));
+        } else {
+            buffer.push(grammar[LIST_TO_GRAMMAR[parsed.command.value.value]]);
+        }
+        return buffer.join(' ');
+    }
+    if (parsed.answer) {
+        argToCanonical(grammar, buffer, parsed.answer, {}, false);
+        return buffer.join(' ');
+    }
+
+    if(parsed.setup) {
+        // FIXME: Make tell translatable
+        buffer.push("tell @" + parsed.setup.person);
+        delete parsed.setup.person;
+        return reconstructPrimRule(parsed.setup, buffer, grammar);
+    }
+
+    return reconstructPrimRule(parsed, buffer, grammar);
+}
+
 function main() {
     var output = fs.createWriteStream(process.argv[2]);
 
@@ -423,6 +434,8 @@ function main() {
         if (done && inflight === 0)
             output.end();
     }
+
+    var once = false;
 
     // it's not possible to run a query concurrently while streaming the results of another one,
     // so we open two connections and let the server sort it out

@@ -22,6 +22,7 @@ module.exports = {
                 outMeta[name] = {
                     doc: ast[name].doc,
                     confirmation: (ast[name].confirmation || ast[name].label),
+                    confirmation_remote: (ast[name].confirmation_remote || ast[name].confirmation),
                     canonical: ast[name].canonical,
                     args: [],
                     questions: [],
@@ -74,6 +75,7 @@ module.exports = {
                     args: args,
                     doc: channelMeta.doc || '',
                     confirmation: channelMeta.confirmation || '',
+                    confirmation_remote: channelMeta.confirmation_remote || '',
                     canonical: channelMeta.canonical || '',
                     examples: []
                 }

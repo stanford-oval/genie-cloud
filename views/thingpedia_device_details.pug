@@ -81,44 +81,39 @@ block content
 
   div.clearfix
 
+  mixin invocation(inv, name)
+    li
+      code #{name}(#{inv.args.map(function(a) { return a.name + ' : ' + a.type; }).join(', ')})
+      if inv.doc
+        | : #{inv.doc}
+      if device.global_name
+        br
+        = _("Canonical: ")
+        span.canonical= inv.canonical
+        br
+        = _("Local Confirmation: ")
+        span.confirmation= inv.confirmation
+        br
+        = _("Remote Confirmation: ")
+        span.confirmation_remote= inv.confirmation_remote
+
   if Object.keys(triggers).length > 0
     h2.device-subtitle= _("Triggers")
     ul.device-channels
       for inv, name in triggers
-        li
-          code #{name}(#{inv.args.map(function(a) { return a.name + ' : ' + a.type; }).join(', ')})
-          if inv.doc
-            | : #{inv.doc}
-          if device.global_name
-            br
-            = _("Canonical: ")
-            span.canonical= inv.canonical
+        +invocation(inv, name)
 
   if Object.keys(queries).length > 0
     h2.device-subtitle= _("Queries")
     ul.device-channels
       for inv, name in queries
-        li
-          code #{name}(#{inv.args.map(function(a) { return a.name + ' : ' + a.type; }).join(', ')})
-          if inv.doc
-            | : #{inv.doc}
-          if device.global_name
-            br
-            = _("Canonical: ")
-            span.canonical= inv.canonical
+        +invocation(inv, name)
 
   if Object.keys(actions).length > 0
     h2.device-subtitle= _("Actions")
     ul.device-channels
       for inv, name in actions
-        li
-          code #{name}(#{inv.args.map(function(a) { return a.name + ' : ' + a.type; }).join(', ')})
-          if inv.doc
-            | : #{inv.doc}
-          if device.global_name
-            br
-            = _("Canonical: ")
-            span.canonical= inv.canonical
+        +invocation(inv, name)
 
   h2.device-subtitle= _("Example Commands")
   if device.examples.length > 0
