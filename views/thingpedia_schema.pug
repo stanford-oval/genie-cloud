@@ -87,41 +87,38 @@ block content
       else
         = _("Version: %d").format(schema.approved_version)
 
+  mixin invocation(inv, name)
+    li
+      code #{name}(#{inv.args.map(function(p, i) { return p + ' : ' + inv.schema[i]; }).join(', ')})
+      if inv.doc
+        | : #{inv.doc}
+      br
+      = _("Canonical: ")
+      span.canonical= inv.canonical
+      br
+      = _("Local Confirmation: ")
+      span.confirmation= inv.confirmation
+      br
+      = _("Remote Confirmation: ")
+      span.confirmation_remote= inv.confirmation_remote
+
   if Object.keys(triggers).length > 0
     h2.device-subtitle= _("Triggers")
     ul.device-channels
       for t, name in triggers
-        li
-          code #{name}(#{t.args.map(function(p, i) { return p + ' : ' + t.schema[i]; }).join(', ')})
-          if t.doc
-            | : #{t.doc}
-          br
-          = _("Canonical: ")
-          span.canonical= t.canonical
+        +invocation(t, name)
 
   if Object.keys(queries).length > 0
     h2.device-subtitle= _("Queries")
     ul.device-channels
       for q, name in queries
-        li
-          code #{name}(#{q.args.map(function(p, i) { return p + ' : ' + q.schema[i]; }).join(', ')})
-          if q.doc
-            | : #{q.doc}
-          br
-          = _("Canonical: ")
-          span.canonical= q.canonical
+        +invocation(q, name)
 
   if Object.keys(actions).length > 0
     h2.device-subtitle= _("Actions")
     ul.device-channels
       for a, name in actions
-        li
-          code #{name}(#{a.args.map(function(p, i) { return p + ' : ' + a.schema[i]; }).join(', ')})
-          if a.doc
-            | : #{a.doc}
-          br
-          = _("Canonical: ")
-          span.canonical= a.canonical
+        +invocation(a, name)
 
   h2.device-subtitle= _("Example Commands")
   if schema.examples.length > 0

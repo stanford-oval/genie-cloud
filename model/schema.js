@@ -17,6 +17,8 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
         var meta = translations[name];
         var canonical = meta.canonical;
         var confirmation = meta.confirmation;
+        var confirmation_remote = meta.confirmation_remote || meta.confirmation;
+        var formatted = meta.formatted || [];
         var questions = meta.questions;
         var types = meta.schema;
         var argnames = meta.args || types.map((t, i) => 'arg' + (i+1));
@@ -25,6 +27,7 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
         var keywords = ''; // for now
 
         channelCanonicals.push([schemaId, version, language, name, canonical, confirmation,
+                                confirmation_remote, JSON.stringify(formatted),
                                 JSON.stringify(argcanonicals), JSON.stringify(questions),
                                 keywords]);
         argnames.forEach(function(argname, i) {
@@ -39,7 +42,7 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
         return Q();
 
     return db.insertOne(dbClient, 'replace into device_schema_channel_canonicals(schema_id, version, language, name, '
-            + 'canonical, confirmation, argcanonicals, questions, keywords) values ?', [channelCanonicals]).then(() => {
+            + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions, keywords) values ?', [channelCanonicals]).then(() => {
             if (argobjects.length > 0)
                 return db.insertOne(dbClient, 'replace into device_schema_arguments(argname, argtype, required, schema_id, version, '
                 + 'language, channel_name, canonical) values ?', [argobjects]);
@@ -62,6 +65,8 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
             else
                 canonical = meta && meta.canonical ? meta.canonical : null;
             var confirmation = (meta ? (meta.confirmation || meta.label) : null) || null;
+            var confirmation_remote = (meta ? meta.confirmation_remote : null) || confirmation;
+            var formatted = (meta ? meta.formatted : null) || [];
             var types = from[name];
             var argnames = meta ? meta.args : types.map((t, i) => 'arg' + (i+1));
             var argcanonicals = argnames.map(function(argname) {
@@ -75,6 +80,7 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
             channels.push([schemaId, version, name, what, doc,
                            JSON.stringify(types), JSON.stringify(argnames), JSON.stringify(required)]);
             channelCanonicals.push([schemaId, version, language, name, canonical, confirmation,
+                                    confirmation_remote, JSON.stringify(formatted),
                                     JSON.stringify(argcanonicals), JSON.stringify(questions), keywords]);
 
             argnames.forEach(function(argname, i) {
@@ -98,7 +104,7 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
         + 'channel_type, doc, types, argnames, required) values ?', [channels])
         .then(() => {
             return db.insertOne(dbClient, 'insert into device_schema_channel_canonicals(schema_id, version, language, name, '
-            + 'canonical, confirmation, argcanonicals, questions, keywords) values ?', [channelCanonicals]);
+            + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions, keywords) values ?', [channelCanonicals]);
         }).then(() => {
             if (argobjects.length > 0)
                 return db.insertOne(dbClient, 'insert into device_schema_arguments(argname, argtype, required, schema_id, version, '
@@ -173,6 +179,8 @@ function processMetaRows(rows) {
             schema: types,
             args: JSON.parse(row.argnames),
             confirmation: row.confirmation || row.doc,
+            confirmation_remote: row.confirmation_remote || row.confirmation || row.doc,
+            formatted: JSON.parse(row.formatted) || [],
             doc: row.doc,
             canonical: row.canonical || '',
             argcanonicals: JSON.parse(row.argcanonicals) || [],
@@ -346,7 +354,7 @@ module.exports = {
     getMetasByKinds: function(client, kinds, org, language) {
         return Q.try(function() {
             if (org === -1) {
-                return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
+                return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
                                     + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
@@ -355,7 +363,7 @@ module.exports = {
                                     + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.kind in (?)",
                                     [language, kinds]);
             } if (org !== null) {
-                return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
+                return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
                                     + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
@@ -365,7 +373,7 @@ module.exports = {
                                     + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.kind in (?) ",
                                     [org, org, language, kinds]);
             } else {
-                return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
+                return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
                                     + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
@@ -381,7 +389,7 @@ module.exports = {
 
     getMetasByKindAtVersion: function(client, kind, version, language) {
         return Q.try(function() {
-            return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
+            return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
                                 + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                 + " approved_version from device_schema ds"
                                 + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
@@ -396,7 +404,7 @@ module.exports = {
 
     getDeveloperMetas: function(client, kinds, language) {
         return Q.try(function() {
-            return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, doc, types,"
+            return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
                                 + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                 + " approved_version from device_schema ds"
                                 + " left join device_schema_channels dsc on ds.id = dsc.schema_id"

@@ -24,8 +24,8 @@ module.exports = {
         for (var name in where) {
             if (!where[name].canonical)
                 throw new Error('Missing canonical form for ' + name);
-            if (!where[name].confirmation)
-                throw new Error('Missing confirmation form for ' + name);
+            if (!where[name].confirmation || !where[name].confirmation_remote)
+                throw new Error('Missing confirmation for ' + name);
             if (!where[name].examples || where[name].examples.length === 0)
                 throw new Error('Must include at least one example in ' + name);
             where[name].doc = where[name].doc || '';
