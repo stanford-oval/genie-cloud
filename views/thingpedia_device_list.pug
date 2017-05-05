@@ -20,7 +20,7 @@ block content
         button.btn.btn-primary(type="submit")= _("Search")
 
   div.row
-    each dev, i in devices
+    each dev, i in devices.slice(0, 18)
       if i % 6 === 0
         div.clearfix.visible-lg.visible-md
       else if i % 3 === 0

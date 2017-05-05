@@ -11,7 +11,4 @@ block content
     for s in schemas
       li
         a(href='/thingpedia/schemas/by-id/' + s.kind)
-          if s.kind_type === 'global'
-            = '@' + s.kind
-          else
-            = s.kind
+          = s.kind

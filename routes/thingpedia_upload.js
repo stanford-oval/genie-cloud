@@ -118,7 +118,7 @@ function validateDevice(dbClient, req) {
     if (ast['global-name'])
         Validation.validateKind(ast['global-name'], 'global name');
 
-    if (!/^[a-zA-Z0-9_\.]$/.test(kind))
+    if (!/^[a-zA-Z0-9_\.]+$/.test(kind))
         throw new Error(req._("Invalid primary kind, must use alphanumeric characters, underscore and period only."));
 
     Validation.validateAllInvocations(ast);

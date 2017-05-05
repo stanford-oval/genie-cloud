@@ -8,7 +8,7 @@
 
 const Q = require('q');
 const express = require('express');
-const jade = require('jade');
+const jade = require('pug');
 const crypto = require('crypto');
 
 const user = require('../util/user');
