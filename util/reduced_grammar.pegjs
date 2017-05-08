@@ -50,8 +50,14 @@ rule = first:rule_part_list _ '=>' _ second:rule_part_list _ third:('=>' _ rule_
 rule_part_list = ('notify' / '@$notify' _ '(' _ ')') {
     // return undefined to remove the action from the json
     return undefined;
-} / invocation:channel_spec _ '(' _ ')' _ conditions:(',' _ condition _)* {
-    return { name: invocation, args: take(conditions, 2) };
+} / invocation:channel_spec _ ('(' _ ')')? _ conditions:(',' _ condition _)* {
+    var person = invocation.person;
+    delete invocation.person;
+    if (person)
+        return { name: invocation, person: person, args: take(conditions, 2) };
+    else
+        return { name: invocation, args: take(conditions, 2) }
+
 }
 command = ('now' / '$now') _ '=>' _ second:rule_part_list _ third:('=>' _ rule_part_list)? {
     if (third !== null)
@@ -61,6 +67,30 @@ command = ('now' / '$now') _ '=>' _ second:rule_part_list _ third:('=>' _ rule_p
 }
 channel_spec = '@' kind:genident _ '.' _ name:ident {
     return { id: 'tt:' + kind + '.' + name };
+} / '@' _ '(' _ firstAttr:attribute _ restAttrs:(',' _ attribute _)+ ')' _ '.' _ name:ident {
+    var attrs = [firstAttr].concat(take(restAttrs, 2));
+    function findAttr(attrName) {
+        for (var attr of attrs) {
+            if (attr.name === attrName)
+                return attr.value;
+        }
+        return undefined;
+    }
+
+    var type = findAttr('type');
+    var principal = findAttr('principal');
+
+    if (!type)
+        return error('Missing type attribute');
+    if (principal !== undefined && !principal)
+        return error('Principal cannot be empty');
+    if (principal)
+        return ({ id: 'tt:' + type + '.' + name, person: principal });
+    else
+        return ({ id: 'tt:' + type + '.' + name });
+}
+attribute = name:('type'/'principal') _ '=' _ value:literal_string {
+    return { name: name, value: value };
 }
 
 condition = varName:ident _ op:comparator _ value:value {
