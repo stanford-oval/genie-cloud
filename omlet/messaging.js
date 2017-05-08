@@ -11,7 +11,7 @@ const Q = require('q');
 const events = require('events');
 
 // GIANT HACK
-const LDRemoveMemberRequest = require('omlib/lib/longdan/ldproto/LDRemoveMemberRequest');
+const LDRemoveMemberRequest = require('omlib/src/longdan/ldproto/LDRemoveMemberRequest');
 
 const Tp = require('thingpedia');
 

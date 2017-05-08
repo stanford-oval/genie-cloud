@@ -85,9 +85,17 @@ function codegenArg(arg) {
 }
 
 function codegenInvocation(invocation) {
-    var name = invocation.name.id;
+    const REGEXP = /^tt:([a-z0-9A-Z_\-]+)\.([a-z0-9A-Z_]+)$/;
+    var name = REGEXP.exec(invocation.name.id);
+    var principal = invocation.person;
 
-    return '@' + name.substr('tt:'.length) + '()'
+    var selector;
+    if (principal)
+        selector = '@(type=' + stringEscape(name[1]) + ', principal=' + stringEscape(principal) + ')';
+    else
+        selector = '@' + name[1];
+
+    return selector + '.' + name[2]
         + (invocation.args.map(function(a) { return ', ' + codegenArg(a); })).join('');
 }
 
