@@ -13,7 +13,7 @@ block content
   div.jumbotron.text-center
     h1= _("Welcome to Almond, %s!").format(username)
 
-    p= _("You're almost ready, you just need to download the Almond App.")
-
     p
-      a(href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine').btn.btn-primary= _("Download")
+      a(href='/me/conversation').btn.btn-primary Use Web Almond
+      |  
+      a(href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine').btn.btn-primary= _("Download The Android App")

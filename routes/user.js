@@ -137,19 +137,21 @@ router.post('/register', function(req, res, next) {
         return;
     }
 
-    return db.withTransaction(function(dbClient) {
-        return user.register(dbClient, req, options).then(function(user) {
-            return EngineManager.get().startUser(user).then(function() {
-                return Q.ninvoke(req, 'login', user);
-            }).then(function() {
-                res.locals.authenticated = true;
-                res.locals.user = user;
-                res.render('register_success', {
-                    page_title: req._("Thingpedia - Registration Successful"),
-                    username: options.username,
-                    cloudId: user.cloud_id,
-                    authToken: user.auth_token });
+    return Q.try(() => {
+        return db.withTransaction(function(dbClient) {
+            return user.register(dbClient, req, options).then((user) => {
+                return Q.ninvoke(req, 'login', user).then(() => user);
             });
+        }).then(function(user) {
+            return EngineManager.get().startUser(user.id).then(() => user);
+        }).then(function(user) {
+            res.locals.authenticated = true;
+            res.locals.user = user;
+            res.render('register_success', {
+                page_title: req._("Thingpedia - Registration Successful"),
+                username: options.username,
+                cloudId: user.cloud_id,
+                authToken: user.auth_token });
         });
     }).catch(function(error) {
         res.render('register', {

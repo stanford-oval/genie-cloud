@@ -71,6 +71,8 @@ class EngineProcess extends events.EventEmitter {
     runEngine(user, thingpediaClient) {
         this.useCount++;
 
+        if (this.shared)
+            safeMkdirSync(this._cwd + '/' + user.cloud_id);
         return this._rpcSocket.call(this._rpcId, 'runEngine', [thingpediaClient, {
             userId: user.id,
             cloudId: user.cloud_id,
