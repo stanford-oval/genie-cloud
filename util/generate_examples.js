@@ -104,6 +104,7 @@ module.exports = function(dbClient, kind, ast, language) {
 
             fromChannel.examples.forEach(function(ex) {
                 var slots = argnames.filter((name) => ex.indexOf('$' + name) >= 0);
+                if (ex.indexOf('$__person') >= 0) slots.push('__person');
                 var json = exampleToBase(what, kind, name, slots);
                 out.push({ schema_id: schemaId, is_base: true, utterance: ex, language: language,
                            target_json: JSON.stringify(json) });
