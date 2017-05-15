@@ -310,6 +310,80 @@ function compare(candidates, ex, state, succeeded) {
     }
 
     // good kind, let's see if we can refine
+    var answerPrincipals = [];
+    if (parsedAnswer.trigger) {
+        if (parsedAnswer.trigger.person) {
+            answerPrincipals.push(parsedAnswer.trigger.person);
+        }
+    } else if (parsedAnswer.action) {
+        if (parsedAnswer.action.person) {
+            answerPrincipals.push(parsedAnswer.action.person);
+        }
+    } else if (parsedAnswer.query) {
+        if (parsedAnswer.query.person) {
+            answerPrincipals.push(parsedAnswer.query.person);
+        }
+    } else {
+        if (parsedAnswer.rule.trigger) {
+            if (parsedAnswer.rule.trigger.person) {
+                answerPrincipals.push(parsedAnswer.rule.trigger.person);
+            }
+        }
+        if (parsedAnswer.rule.action) {
+            if (parsedAnswer.rule.action.person) {
+                answerPrincipals.push(parsedAnswer.rule.action.person);
+            }
+        }
+        if (parsedAnswer.rule.query) {
+            if (parsedAnswer.rule.query.person) {
+                answerPrincipals.push(parsedAnswer.rule.query.person);
+            }
+        }
+    }
+    answerPrincipals.sort();
+
+    var targetPrincipals = [];
+    if (parsedTarget.trigger) {
+        if (parsedTarget.trigger.person) {
+            targetPrincipals.push(parsedTarget.trigger.person);
+        }
+    } else if (parsedTarget.action) {
+        if (parsedTarget.action.person) {
+            targetPrincipals.push(parsedTarget.action.person);
+        }
+    } else if (parsedTarget.query) {
+        if (parsedTarget.query.person) {
+            targetPrincipals.push(parsedTarget.query.person);
+        }
+    } else {
+        if (parsedTarget.rule.trigger) {
+            if (parsedTarget.rule.trigger.person) {
+                targetPrincipals.push(parsedTarget.rule.trigger.person);
+            }
+        }
+        if (parsedTarget.rule.action) {
+            if (parsedTarget.rule.action.person) {
+                targetPrincipals.push(parsedTarget.rule.action.person);
+            }
+        }
+        if (parsedTarget.rule.query) {
+            if (parsedTarget.rule.query.person) {
+                targetPrincipals.push(parsedTarget.rule.query.person);
+            }
+        }
+    }
+    targetPrincipals.sort();
+
+    var principalWrong = false;
+    if (!arrayEqual(answerPrincipals, targetPrincipals)) {
+        console.log(ex.id + ' wrong but ok kind');
+        logFail(ex, parsedAnswer, parsedTarget);
+        substate.wrong_but_ok_kind++;
+        principalWrong = true;
+        return;
+    }
+
+    // good principal, let's see if we can refine
 
     var answerChannels = [];
     if (parsedAnswer.trigger) {
@@ -346,9 +420,9 @@ function compare(candidates, ex, state, succeeded) {
     targetChannels.sort();
 
     if (!arrayEqual(answerChannels, targetChannels)) {
-        console.log(ex.id + ' wrong but ok kind');
+        console.log(ex.id + ' wrong but ok principal');
         logFail(ex, parsedAnswer, parsedTarget);
-        substate.wrong_but_ok_kind++;
+        substate.wrong_but_ok_principal++;
         return;
     }
 
@@ -374,6 +448,7 @@ module.exports = function() {
             wrong_everything: 0,
             wrong_but_ok_type: 0,
             wrong_but_ok_kind: 0,
+            wrong_but_ok_principal: 0,
             wrong_but_ok_channel: 0,
         },
         answer: {
@@ -384,6 +459,7 @@ module.exports = function() {
             wrong_everything: 0,
             wrong_but_ok_type: 0,
             wrong_but_ok_kind: 0,
+            wrong_but_ok_principal: 0,
             wrong_but_ok_channel: 0,
         },
         meta: {
@@ -394,6 +470,7 @@ module.exports = function() {
             wrong_everything: 0,
             wrong_but_ok_type: 0,
             wrong_but_ok_kind: 0,
+            wrong_but_ok_principal: 0,
             wrong_but_ok_channel: 0,
         },
         simple: {
@@ -404,7 +481,9 @@ module.exports = function() {
             wrong_everything: 0,
             wrong_but_ok_type: 0,
             wrong_but_ok_kind: 0,
+            wrong_but_ok_principal: 0,
             wrong_but_ok_channel: 0,
+            misc_count: 0,
         },
         rule: {
             total: 0,
@@ -414,6 +493,7 @@ module.exports = function() {
             wrong_everything: 0,
             wrong_but_ok_type: 0,
             wrong_but_ok_kind: 0,
+            wrong_but_ok_principal: 0,
             wrong_but_ok_channel: 0,
         }
     };
@@ -478,21 +558,30 @@ module.exports = function() {
         var overall = state.simple.total + state.rule.total;
         var overallYes = state.simple.yes + state.rule.yes;
         var overallCorrectFunction = overallYes + state.simple.wrong_but_ok_channel + state.rule.wrong_but_ok_channel;
-        var overallCorrectDevice = overallCorrectFunction + state.simple.wrong_but_ok_kind + state.rule.wrong_but_ok_kind;
+        var overallCorrectPrincipal = overallCorrectFunction + state.simple.wrong_but_ok_principal + state.rule.wrong_but_ok_principal;
+        var overallCorrectDevice = overallCorrectPrincipal + state.simple.wrong_but_ok_kind + state.rule.wrong_but_ok_kind;
+        var overallCorrectType = overallCorrectDevice + state.simple.wrong_but_ok_type + state.rule.wrong_but_ok_type;
 
         console.log('Overall full accuracy: ' + (overallYes/overall));
         console.log('Overall correct function: ' + (overallCorrectFunction/overall));
+        console.log('Overall correct principal: ' + (overallCorrectPrincipal/overall));
         console.log('Overall correct device: ' + (overallCorrectDevice/overall));
+        console.log('Overall correct type: ' + (overallCorrectType/overall));
 
         if (state.simple.total > 0) {
             console.log('Primitive full accuracy: ' + (state.simple.yes/state.simple.total));
             console.log('Primitive correct function: ' + ((state.simple.yes + state.simple.wrong_but_ok_channel)/state.simple.total));
-            console.log('Primitive correct device: ' + ((state.simple.yes + state.simple.wrong_but_ok_channel + state.simple.wrong_but_ok_kind)/state.simple.total));
+            console.log('Primitive correct principal: ' + ((state.simple.yes + state.simple.wrong_but_ok_channel + state.simple.wrong_but_ok_principal)/state.simple.total));
+            console.log('Primitive correct device: ' + ((state.simple.yes + state.simple.wrong_but_ok_channel + state.simple.wrong_but_ok_principal + state.simple.wrong_but_ok_kind)/state.simple.total));
+            console.log('Primitive correct type: ' + ((state.simple.yes + state.simple.wrong_but_ok_channel + state.simple.wrong_but_ok_principal + state.simple.wrong_but_ok_kind + state.simple.wrong_but_ok_type)/state.simple.total));
         }
         if (state.rule.total > 0) {
             console.log('Compound full accuracy: ' + (state.rule.yes/state.rule.total));
             console.log('Compound correct function: ' + ((state.rule.yes + state.rule.wrong_but_ok_channel)/state.rule.total));
-            console.log('Compound correct device: ' + ((state.rule.yes + state.rule.wrong_but_ok_channel + state.rule.wrong_but_ok_kind)/state.rule.total));
+            console.log('Compound correct principal: ' + ((state.rule.yes + state.rule.wrong_but_ok_channel + state.rule.wrong_but_ok_principal)/state.rule.total));
+            console.log('Compound correct device: ' + ((state.rule.yes + state.rule.wrong_but_ok_channel + state.rule.wrong_but_ok_principal + state.rule.wrong_but_ok_kind)/state.rule.total));
+            console.log('Compound correct type: ' + ((state.rule.yes + state.rule.wrong_but_ok_channel + state.rule.wrong_but_ok_principal + state.rule.wrong_but_ok_kind + state.rule.wrong_but_ok_type)/state.rule.total));
+
         }
         process.exit();
     });
