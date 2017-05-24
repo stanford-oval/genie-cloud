@@ -165,6 +165,67 @@ function increase(v) {
         return v+1;
 }
 
+function getFunction(parsedAnswer) {
+    if (parsedAnswer.trigger) {
+        return invocationToChannel(parsedAnswer.trigger);
+    } else if (parsedAnswer.action) {
+        return invocationToChannel(parsedAnswer.action);
+    } else if (parsedAnswer.query) {
+        return invocationToChannel(parsedAnswer.query);
+    } else {
+        throw new Error('not a primitive');
+    }
+}
+
+function isPrimitive(parsedAnswer) {
+    if (parsedAnswer.trigger || parsedAnswer.action || parsedAnswer.query)
+        return true;
+    else
+        return false;
+}
+
+function isCorrectFunction(parsedAnswer, parsedTarget) {
+    var answerChannels = [];
+    if (parsedAnswer.trigger) {
+        answerChannels.push(invocationToChannel(parsedAnswer.trigger));
+    } else if (parsedAnswer.action) {
+        answerChannels.push(invocationToChannel(parsedAnswer.action));
+    } else if (parsedAnswer.query) {
+        answerChannels.push(invocationToChannel(parsedAnswer.query));
+    } else {
+        if (!parsedAnswer.rule)
+            throw new Error('not thingtalk');
+        if (parsedAnswer.rule.trigger)
+            answerChannels.push(invocationToChannel(parsedAnswer.rule.trigger));
+        if (parsedAnswer.rule.action)
+            answerChannels.push(invocationToChannel(parsedAnswer.rule.action));
+        if (parsedAnswer.rule.query)
+            answerChannels.push(invocationToChannel(parsedAnswer.rule.query));
+    }
+    answerChannels.sort();
+
+    var targetChannels = [];
+    if (parsedTarget.trigger) {
+        targetChannels.push(invocationToChannel(parsedTarget.trigger));
+    } else if (parsedTarget.action) {
+        targetChannels.push(invocationToChannel(parsedTarget.action));
+    } else if (parsedTarget.query) {
+        targetChannels.push(invocationToChannel(parsedTarget.query));
+    } else {
+        if (!parsedTarget.rule)
+            throw new Error('not thingtalk');
+        if (parsedTarget.rule.trigger)
+            targetChannels.push(invocationToChannel(parsedTarget.rule.trigger));
+        if (parsedTarget.rule.action)
+            targetChannels.push(invocationToChannel(parsedTarget.rule.action));
+        if (parsedTarget.rule.query)
+            targetChannels.push(invocationToChannel(parsedTarget.rule.query));
+    }
+    targetChannels.sort();
+
+    return arrayEqual(answerChannels, targetChannels);
+}
+
 function compare(candidates, ex, state, succeeded) {
     var utterance = ex.utterance;
     var target_json = ex.target_json;
@@ -202,6 +263,7 @@ function compare(candidates, ex, state, succeeded) {
 
     substate.programs.add(normalizedString);
     substate.predictedPrograms.add(JSON.stringify(parsedAnswer));
+    substate.functions.add(getFunction(parsedTarget));
     substate.total++;
 
 
@@ -211,6 +273,8 @@ function compare(candidates, ex, state, succeeded) {
         substate.yes++;
         substate.correctPrograms[0].add(normalizedString);
         substate.oracle[0] = increase(substate.oracle[0]);
+        substate.oracleFunctions[0] = increase(substate.oracleFunctions[0]);
+        substate.correctFunctions[0].add(getFunction(parsedAnswer));
         succeeded.push(ex);
         return;
     }
@@ -222,6 +286,8 @@ function compare(candidates, ex, state, succeeded) {
         substate.yes++;
         substate.correctPrograms[0].add(normalizedString);
         substate.oracle[0] = increase(substate.oracle[0]);
+        substate.oracleFunctions[0] = increase(substate.oracleFunctions[0]);
+        substate.correctFunctions[0].add(getFunction(parsedAnswer));
         succeeded.push(ex);
         return;
     }
@@ -239,6 +305,15 @@ function compare(candidates, ex, state, succeeded) {
         if (deq(parsedTarget, parsedCandidate)) {
             substate.correctPrograms[i].add(normalizedString);
             substate.oracle[i] = increase(substate.oracle[i]);
+            break;
+        }
+    }
+
+    for (var i = 0; i < Math.min(10, candidates.length); i++) {
+        var parsedCandidate = JSON.parse(candidates[i].answer);
+        if (isPrimitive(parsedCandidate) && isCorrectFunction(parsedCandidate, parsedTarget)) {
+            substate.oracleFunctions[i] = increase(substate.oracleFunctions[i]);
+            substate.correctFunctions[i].add(getFunction(parsedCandidate));
             break;
         }
     }
@@ -385,41 +460,7 @@ function compare(candidates, ex, state, succeeded) {
 
     // good principal, let's see if we can refine
 
-    var answerChannels = [];
-    if (parsedAnswer.trigger) {
-        answerChannels.push(invocationToChannel(parsedAnswer.trigger));
-    } else if (parsedAnswer.action) {
-        answerChannels.push(invocationToChannel(parsedAnswer.action));
-    } else if (parsedAnswer.query) {
-        answerChannels.push(invocationToChannel(parsedAnswer.query));
-    } else {
-        if (parsedAnswer.rule.trigger)
-            answerChannels.push(invocationToChannel(parsedAnswer.rule.trigger));
-        if (parsedAnswer.rule.action)
-            answerChannels.push(invocationToChannel(parsedAnswer.rule.action));
-        if (parsedAnswer.rule.query)
-            answerChannels.push(invocationToChannel(parsedAnswer.rule.query));
-    }
-    answerChannels.sort();
-
-    var targetChannels = [];
-    if (parsedTarget.trigger) {
-        targetChannels.push(invocationToChannel(parsedTarget.trigger));
-    } else if (parsedTarget.action) {
-        targetChannels.push(invocationToChannel(parsedTarget.action));
-    } else if (parsedTarget.query) {
-        targetChannels.push(invocationToChannel(parsedTarget.query));
-    } else {
-        if (parsedTarget.rule.trigger)
-            targetChannels.push(invocationToChannel(parsedTarget.rule.trigger));
-        if (parsedTarget.rule.action)
-            targetChannels.push(invocationToChannel(parsedTarget.rule.action));
-        if (parsedTarget.rule.query)
-            targetChannels.push(invocationToChannel(parsedTarget.rule.query));
-    }
-    targetChannels.sort();
-
-    if (!arrayEqual(answerChannels, targetChannels)) {
+    if (!isCorrectFunction(parsedAnswer, parsedTarget)) {
         console.log(ex.id + ' wrong but ok principal');
         logFail(ex, parsedAnswer, parsedTarget);
         substate.wrong_but_ok_principal++;
@@ -501,10 +542,15 @@ module.exports = function() {
         var substate = state[substateKey];
         substate.programs = new Set;
         substate.correctPrograms = [];
+        substate.correctFunctions = [];
+        substate.functions = new Set;
+        substate.oracleFunctions = [];
         substate.predictedPrograms = new Set;
         for (var i = 0; i < 10; i++) {
             substate.oracle.push(0);
+            substate.oracleFunctions.push(0);
             substate.correctPrograms.push(new Set);
+            substate.correctFunctions.push(new Set);
         }
     }
 
@@ -518,6 +564,7 @@ module.exports = function() {
                 compare(candidates, ex, state, succeeded);
             } catch(e) {
                 console.error('Failed to compare: ' + e.message);
+                console.error(e.stack);
             }
         });
     });
@@ -527,8 +574,12 @@ module.exports = function() {
 
             var oracleSum = 0;
             var correctSum = 0;
+            var oracleFunctionSum = 0;
+            var functionSum = 0;
             substate.accuracy = [];
             substate.recall = [];
+            substate.functionAccuracy = [];
+            substate.functionRecall = [];
 
             var overallRecall = 0;
             for (var prog of substate.predictedPrograms) {
@@ -538,14 +589,39 @@ module.exports = function() {
             substate.programs = substate.programs.size;
             delete substate.predictedPrograms;
             substate.overallRecall = overallRecall/substate.programs;
+            substate.functions = substate.functions.size;
+
+            var progset = new Set;
+            var fnset = new Set;
+            for (var i = 0; i < 10; i++) {
+                for (var prog of substate.correctPrograms[i]) {
+                    if (progset.has(prog)) {
+                        substate.correctPrograms[i].delete(prog);
+                    } else {
+                        progset.add(prog);
+                    }
+                }
+                for (var fn of substate.correctFunctions[i]) {
+                    if (fnset.has(fn)) {
+                        substate.correctFunctions[i].delete(fn);
+                    } else {
+                        fnset.add(fn);
+                    }
+                }
+            }
 
             for (var i = 0; i < 10; i++) {
                 oracleSum += substate.oracle[i];
+                oracleFunctionSum += substate.oracleFunctions[i];
                 substate.correctPrograms[i] = substate.correctPrograms[i].size;
+                substate.correctFunctions[i] = substate.correctFunctions[i].size;
                 correctSum += substate.correctPrograms[i];
+                functionSum += substate.correctFunctions[i];
 
                 substate.accuracy[i] = oracleSum/substate.total;
                 substate.recall[i] = correctSum/substate.programs;
+                substate.functionAccuracy[i] = oracleFunctionSum/substate.total;
+                substate.functionRecall[i] = functionSum/substate.functions;
             }
         }
 
