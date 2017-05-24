@@ -50,7 +50,7 @@ rule = first:rule_part_list _ '=>' _ second:rule_part_list _ third:('=>' _ rule_
 rule_part_list = ('notify' / '@$notify' _ '(' _ ')') {
     // return undefined to remove the action from the json
     return undefined;
-} / invocation:channel_spec _ ('(' _ ')')? _ conditions:(',' _ condition _)* {
+} / invocation:channel_spec _ conditions:(',' _ condition _)* {
     var person = invocation.person;
     delete invocation.person;
     if (person)
@@ -59,7 +59,7 @@ rule_part_list = ('notify' / '@$notify' _ '(' _ ')') {
         return { name: invocation, args: take(conditions, 2) }
 
 }
-command = ('now' / '$now') _ '=>' _ second:rule_part_list _ third:('=>' _ rule_part_list)? {
+command = 'now' _ '=>' _ second:rule_part_list _ third:('=>' _ rule_part_list)? {
     if (third !== null)
         return { trigger: undefined, query: second, action: third[2] };
     else
@@ -112,12 +112,12 @@ value =
         time_value /
         location_value /
         enum_value /
-        email_value / email_value_new /
-        phone_value / phone_value_new /
-        username_value / username_value_new /
-        hashtag_value / hashtag_value_new /
-        url_value / url_value_new /
-        entity_value / entity_value /
+        email_value /
+        phone_value /
+        username_value /
+        hashtag_value /
+        url_value /
+        entity_value /
         string_value
 
 var_ref_value = name:ident { return { type: 'VarRef', value: { id: 'tt:param.' + name } }; }
@@ -139,34 +139,19 @@ location_value = '$makeLocation' _ '(' _ lat:literal_number _ ',' _ lon:literal_
 } / '$here' {
     return { type: 'Location', value: { relativeTag: 'rel_current_location', latitude: -1, longitude: -1 } };
 }
-email_value = '$makeEmailAddress' _ '(' _ v:literal_string _ ')' {
+email_value = v:literal_string _ '^^' 'tt:'? 'email_address' {
     return { type: 'EmailAddress', value: { value: v } };
 }
-email_value_new = v:literal_string _ '^^' 'tt:'? 'email_address' {
-    return { type: 'EmailAddress', value: { value: v } };
-}
-phone_value = '$makePhoneNumber' _ '(' _ v:literal_string _ ')' {
+phone_value = v:literal_string _ '^^' 'tt:'? 'phone_number' {
     return { type: 'PhoneNumber', value: { value: v } };
 }
-phone_value_new = v:literal_string _ '^^' 'tt:'? 'phone_number' {
-    return { type: 'PhoneNumber', value: { value: v } };
-}
-url_value = '$makeURL' _ '(' _ v:literal_string _ ')' {
+url_value = v:literal_string _ '^^' 'tt:'? 'url' {
     return { type: 'URL', value: { value: v } };
 }
-url_value_new = v:literal_string _ '^^' 'tt:'? 'url' {
-    return { type: 'URL', value: { value: v } };
-}
-username_value = '$makeUsername' _ '(' _ v:literal_string _ ')' {
+username_value = v:literal_string _ '^^' 'tt:'? 'username' {
     return { type: 'Username', value: { value: v } };
 }
-username_value_new = v:literal_string _ '^^' 'tt:'? 'username' {
-    return { type: 'Username', value: { value: v } };
-}
-hashtag_value = '$makeHashtag' _ '(' _ v:literal_string _ ')' {
-    return { type: 'Hashtag', value: { value: v } };
-}
-hashtag_value_new = v:literal_string _ '^^' 'tt:'? 'hashtag' {
+hashtag_value = v:literal_string _ '^^' 'tt:'? 'hashtag' {
     return { type: 'Hashtag', value: { value: v } };
 }
 enum_value = '$enum' _ '(' _ v:ident _ ')' {
@@ -178,16 +163,11 @@ string_value = v:literal_string {
 event_value = v:$('$event' ('.' ('title' / 'body'))?) {
     return { type: 'VarRef', value: { id: 'tt:param.' + v } };
 }
-entity_value = '$entity(' _ v:literal_string _ ',' _ prefix:ident ':' entity:ident _ ')' {
-    return { type: 'Entity(' + prefix + ':' + entity + ')', value: { value: v } };
-}
-entity_value_new = v:literal_string _ '^^' _ prefix:$(ident ':')? entity:ident {
+entity_value = v:literal_string _ '^^' _ prefix:$(ident ':')? entity:ident {
     return { type: 'Entity(' + (prefix || 'tt:') + entity + ')', value: { value: v } };
 }
 
-literal_bool = true_bool { return true; } / false_bool { return false; }
-true_bool = 'on' / 'true'
-false_bool = 'off' / 'false'
+literal_bool = 'true' { return true; } / 'false' { return false; }
 
 // dqstrchar = double quote string char
 // sqstrchar = single quote string char
