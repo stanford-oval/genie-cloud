@@ -252,7 +252,9 @@ const ENTITIES = {
     'sportradar:ncaambb_team': [["Stanford Cardinals", 'stan'], ["California Bears", 'cal']],
     'sportradar:nfl_team': [["Seattle Seahawks", 'sea'], ["SF 49ers", 'sf']],
     'sportradar:us_soccer_team': [["San Jose Earthquakes", 'sje'], ["Toronto FC", 'tor']],
-    'tt:stock_id': [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft']]
+    'tt:stock_id': [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft']],
+    'tt:iso_lang_code': [["Italian", 'it'], ["English", 'en'], ["Chinese", 'zh']],
+    'tt:device': [["Twitter", 'twitter'], ["Facebook", 'facebook'], ["my scale", 'scale']],
 };
 
 // params with special value
@@ -420,7 +422,9 @@ function chooseRandomValue(argName, type) {
         return ['Enum', { value: uniform(type.entries) }];
     if (type.isEntity)
         return chooseEntity(type.type);
-    if (type.isPicture || type.isTime || type.isAny)
+    if (type.isTime)
+        return ['Time', uniform([{ hour: 7, minute: 30 }, { hour: 15, minute: 0 }, { hour: 20, minute: 30 }])];
+    if (type.isPicture || type.isAny)
         return [null, null];
 
     console.log('Invalid type ' + type);
