@@ -70,15 +70,14 @@ function prepareSentenceToCode() {
 
         var editThingTalk = $('#edit-thingtalk')[0].checked;
         if (editThingTalk) {
-            try {
-                var tt = trainer.toThingTalk(JSON.parse(json));
+            trainer.toThingTalk(JSON.parse(json)).then(function(tt) {
                 $('#thingtalk-editor').removeClass('hidden');
                 $('#thingtalk-group').removeClass('has-error');
                 $('#thingtalk-error').text('');
                 $('#thingtalk').val(tt);
-            } catch(e) {
-                alert(e.message);
-            }
+            }).catch(function(e) {
+                alert(e.message+'\n'+e.stack);
+            });
         } else {
             $('#thingtalk-editor').addClass('hidden');
             trainer.learnJSON(json).then(function(data) {
@@ -252,7 +251,9 @@ function prepareCodeToSentence() {
             return genRandomRules(20);
 
         current = next;
-        $('#rule-thingtalk-proposal').text(trainer.toThingTalk(current));
+        trainer.toThingTalk(current).then((tt) => {
+            $('#rule-thingtalk-proposal').text(tt);
+        });
     }
     $('#code-to-sentence-next').click(showNext);
     showNext();

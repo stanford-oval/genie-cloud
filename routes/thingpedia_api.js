@@ -23,12 +23,9 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const ThingpediaClient = require('../util/thingpedia-client');
 const genRandomRules = require('../util/gen_random_rule');
-const SempreSyntax = require('../util/sempre_syntax');
 const reconstruct = require('../scripts/deps/reconstruct');
 
 var router = express.Router();
-
-
 
 router.get('/schema/:schemas', function(req, res) {
     var schemas = req.params.schemas.split(',');
@@ -243,6 +240,12 @@ router.get('/random-rule', function(req, res) {
     }).done();
 });
 
+function toThingTalk(schemaRetriever, rule) {
+    return ThingTalk.SEMPRESyntax.parseToplevel(schemaRetriever, rule).then((prog) => {
+        return ThingTalk.Ast.prettyprint(prog, true);
+    });
+}
+
 router.get('/random-rule/by-kind/:kind', function(req, res) {
     var locale = req.query.locale || 'en-US';
     var language = (locale || 'en').split(/[-_\@\.]/)[0];
@@ -271,8 +274,9 @@ router.get('/random-rule/by-kind/:kind', function(req, res) {
         var promises = [];
 
         stream.on('data', (r) => {
-            promises.push(reconstruct(dlg, schemaRetriever, r).then((reconstructed) => {
-                row = row.concat([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);
+            promises.push(Q.all([reconstruct(dlg, schemaRetriever, r),
+                                 toThingTalk(schemaRetriever, r)]).then(([reconstructed, tt]) => {
+                row = row.concat([makeId(), tt, postprocess(reconstructed)]);
                 if (row.length === sentences_per_hit * 3) {
                     data.push(row);
                     row = []

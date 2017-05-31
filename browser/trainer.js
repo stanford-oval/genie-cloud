@@ -13,8 +13,9 @@
 
 const Q = require('q');
 
-const SempreSyntax = require('../util/sempre_syntax');
-const SchemaRetriever = require('thingtalk').SchemaRetriever;
+const ThingTalk = require('thingtalk');
+const SEMPRESyntax = ThingTalk.SEMPRESyntax;
+const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const SempreClient = require('./sempreclient');
 const ThingpediaClient = require('./thingpediaclient');
@@ -29,7 +30,9 @@ module.exports = class ThingTalkTrainer {
     }
 
     toThingTalk(json) {
-        return SempreSyntax.toThingTalk(json);
+        return SEMPRESyntax.parseToplevel(this._schemaRetriever, json).then((ast) => {
+            return ThingTalk.Ast.prettyprint(ast, true);
+        });
     }
 
     learnJSON(json) {
@@ -38,7 +41,7 @@ module.exports = class ThingTalkTrainer {
     }
 
     learnThingTalk(text) {
-        var sempre = SempreSyntax.toSEMPRE(text);
+        var sempre = SempreSyntax.toSEMPRE(text, false);
         var raw = this._raw;
         return SempreSyntax.verify(this._schemaRetriever, sempre).then(() => {
             var json = JSON.stringify(sempre);
