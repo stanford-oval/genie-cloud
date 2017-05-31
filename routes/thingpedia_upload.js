@@ -56,12 +56,7 @@ function schemaCompatible(s1, s2) {
         s2.every(function(t, i) {
             var t1 = ThingTalk.Type.fromString(t);
             var t2 = ThingTalk.Type.fromString(s1[i]);
-            try {
-                ThingTalk.Type.typeUnify(t1, t2);
-                return true;
-            } catch(e) {
-                return false;
-            }
+            return t1.equals(t2);
         });
 }
 
@@ -74,7 +69,8 @@ function validateSchema(dbClient, type, ast, req) {
             for (var name in against) {
                 if (!(name in where))
                     throw new Error(req._("Type %s requires %s %s").format(type, what, name));
-                if (!schemaCompatible(where[name].schema, against[name]))
+                var types = where[name].args.map((a) => a.type);
+                if (!schemaCompatible(types, against[name]))
                     throw new Error(req._("Schema for %s is not compatible with type %s").format(name, type));
             }
         }
@@ -118,7 +114,7 @@ function validateDevice(dbClient, req) {
     if (ast['global-name'])
         Validation.validateKind(ast['global-name'], 'global name');
 
-    if (!/^[a-zA-Z0-9_\.]$/.test(kind))
+    if (!/^[a-zA-Z0-9_\.]+$/.test(kind))
         throw new Error(req._("Invalid primary kind, must use alphanumeric characters, underscore and period only."));
 
     Validation.validateAllInvocations(ast);
