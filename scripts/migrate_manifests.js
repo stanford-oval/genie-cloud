@@ -13,47 +13,38 @@ const Q = require('q');
 
 const db = require('../util/db');
 
-function processOne(dbClient, device) {
-    var manifest = JSON.parse(device.code);
-    manifest.module_type = 'org.thingpedia.v1';
+function processOne(dbClient, schema) {
+    try {
+        var manifest = JSON.parse(schema.meta);
+    } catch(e) {
+        console.log('Failed to parse meta in ' + schema.schema_id + ' version ' + schema.version);
+        return;
+    }
+    var kindCanonical = schema.kind_canonical;
 
-    for (var ftype of ['triggers', 'queries', 'actions']) {
+    var changed = true;
+    for (var ftype of [0,1,2]) {
         var where = (manifest[ftype] || {});
         for (var name in where) {
             var inv = where[name];
-            var args = [];
-            if (!Array.isArray(inv.schema)) {
-                console.log('Weird manifest in ' + device.device_id + '.' + name, inv);
-                inv.args = args;
-                delete inv.schema;
-                delete inv.params;
-                delete inv.questions;
-                delete inv.required;
+            if (!inv.canonical)
                 continue;
-            }
-            inv.schema.forEach(function(schema, i) {
-                args.push({
-                    type: schema,
-                    name: inv.params ? inv.params[i] : inv.args[i],
-                    question: (inv.questions ? inv.questions[i] : '') || '',
-                    required: (inv.required ? inv.required[i] : false) || false,
-                });
-            });
-            inv.args = args;
-            delete inv.schema;
-            delete inv.params;
-            delete inv.questions;
-            delete inv.required;
+            if (inv.canonical.endsWith(' on ' + kindCanonical))
+                continue;
+            inv.canonical += ' on ' + kindCanonical;
+            changed = true;
         }
     }
+    if (!changed)
+        return;
 
-    return db.query(dbClient, 'update device_code_version set code = ? where device_id = ? and version = ?', [JSON.stringify(manifest), device.device_id, device.version])
-        .then(() => console.log('Processed ' + device.device_id + ' at version ' + device.version));
+    return db.query(dbClient, 'update device_schema_version set meta = ? where schema_id = ? and version = ?', [JSON.stringify(manifest), schema.schema_id, schema.version])
+        .then(() => console.log('Processed ' + schema.schema_id + ' at version ' + schema.version));
 }
 
 function main() {
     db.withTransaction((dbClient) => {
-        return db.selectAll(dbClient, "select * from device_code_version").then((devices) => {
+        return db.selectAll(dbClient, "select * from device_schema_version, device_schema where id = schema_id").then((devices) => {
             return Q.all(devices.map((d) => processOne(dbClient, d)));
         });
     }).then(() => process.exit()).done();

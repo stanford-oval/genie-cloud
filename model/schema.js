@@ -56,26 +56,22 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
 
     function makeList(what, from, fromMeta) {
         for (var name in from) {
-            var meta = fromMeta[name];
+            var meta = fromMeta[name] || {};
             // convert security-camera to 'security camera' and googleDrive to 'google drive'
             var kindCanonical = schemaKind.replace(/[_\-]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-            var canonical;
-            if (kindType !== 'app')
-                canonical = meta && meta.canonical ? (meta.canonical + ' on ' + kindCanonical) : null;
-            else
-                canonical = meta && meta.canonical ? meta.canonical : null;
-            var confirmation = (meta ? (meta.confirmation || meta.label) : null) || null;
-            var confirmation_remote = (meta ? meta.confirmation_remote : null) || confirmation;
-            var formatted = (meta ? meta.formatted : null) || [];
+            var canonical = meta.canonical;
+            var confirmation = meta.confirmation || meta.label;
+            var confirmation_remote = meta.confirmation_remote || confirmation;
+            var formatted = meta.formatted || [];
             var types = from[name];
-            var argnames = meta ? meta.args : types.map((t, i) => 'arg' + (i+1));
+            var argnames = meta.args || types.map((t, i) => 'arg' + (i+1));
             var argcanonicals = argnames.map(function(argname) {
                 // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
                 return argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
             });
-            var questions = (meta ? meta.questions : null) || [];
-            var required = (meta ? meta.required : null) || [];
-            var doc = meta ? meta.doc : '';
+            var questions = meta.questions || [];
+            var required = meta.required || [];
+            var doc = meta.doc || '';
             var keywords = ''; // for now
             channels.push([schemaId, version, name, what, doc,
                            JSON.stringify(types), JSON.stringify(argnames), JSON.stringify(required)]);
