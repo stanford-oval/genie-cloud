@@ -16,10 +16,6 @@ const crypto = require('crypto');
 const ThingTalk = require('thingtalk');
 
 const db = require('../util/db');
-const genRandomRules = require('../util/gen_random_rule');
-const reconstruct = require('./deps/reconstruct');
-const SchemaRetriever = require('./deps/schema_retriever');
-const SempreSyntax = require('../util/sempre_syntax');
 const model = require('../model/schema');
 const exampleModel = require('../model/example');
 const deviceModel = require('../model/device');

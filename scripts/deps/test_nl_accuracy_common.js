@@ -20,7 +20,6 @@ const ThingTalk = require('thingtalk');
 
 const db = require('../../util/db');
 const SempreClient = require('./sempreclient');
-const SempreSyntax = require('../../util/sempre_syntax');
 
 function deq(a, b) {
     return deepEqual(a, b, { strict: true });
@@ -125,8 +124,8 @@ function invocationToChannel(invocation) {
 
 function logFail(ex, parsedAnswer, parsedTarget) {
     console.log("Utterance: " + ex.utterance);
-    console.log("Expected: " + SempreSyntax.toThingTalk(parsedTarget));
-    console.log("Parsed: " + SempreSyntax.toThingTalk(parsedAnswer));
+    console.log("Expected: " + parsedTarget);
+    console.log("Parsed: " + parsedAnswer);
     console.log();
 }
 

@@ -13,10 +13,10 @@ const Q = require('q');
 const fs = require('fs');
 const csv = require('csv');
 const byline = require('byline');
+const ThingTalk = require('thingtalk');
 
 const db = require('../util/db');
 const SchemaRetriever = require('./deps/schema_retriever');
-const SempreSyntax = require('../util/sempre_syntax');
 const tokenizer = require('../util/tokenize');
 
 var insertBatch = [];
@@ -78,11 +78,14 @@ function main() {
 
                 promises.push(Q.try(() => {
                     if (tt.startsWith('{'))
-                        var json = JSON.parse(tt);
+                        return ThingTalk.SEMPRESyntax.parseToplevel(schemas, JSON.parse(tt));
                     else
-                        var json = SempreSyntax.toSEMPRE(tt);
-                    var json_str = JSON.stringify(json);
-                    return SempreSyntax.verify(schemas, json).then(() => {
+                        return ThingTalk.Grammar.parse(tt);
+                }).then((prog) => {
+                    var compiler = new ThingTalk.Compiler();
+                    compiler.setSchemaRetriever(schemas);
+                    return compiler.verifyProgram(prog).then(() => {
+                        var json = ThingTalk.SEMPRESyntax.toSEMPRE(prog, false);
                         return insert(dbClient, utterance, testTrain, primCompound, nparams, json_str);
                         //return Q.all(utterances.map((u) => {
                         //    return maybeInsert(dbClient, u, json_str);

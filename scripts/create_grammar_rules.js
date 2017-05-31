@@ -14,8 +14,6 @@ const fs = require('fs');
 const csv = require('csv');
 
 const db = require('../util/db');
-const SchemaRetriever = require('./deps/schema_retriever');
-const SempreSyntax = require('../util/sempre_syntax');
 const tokenize = require('../util/tokenize');
 
 var insertBatch = [];

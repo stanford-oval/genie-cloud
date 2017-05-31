@@ -11,7 +11,6 @@ const Q = require('q');
 const fs = require('fs');
 const readline = require('readline');
 
-const SempreSyntax = require('../util/sempre_syntax');
 const SempreClient = require('./deps/sempreclient');
 const ThingpediaClient = require('./deps/http_client');
 const SchemaRetriever = require('thingtalk').SchemaRetriever;
