@@ -100,7 +100,7 @@ router.get('/', function(req, res) {
                 } else {
                     var tokens = tokenize.tokenize(ex.utterance);
 
-                    var sentence = tokens.map((t) => t.startsWith('$') ? '____' : t).join(' ')
+                    var sentence = tokens.map((t) => t === '$__person' ? "@____" : (t.startsWith('$') ? '____' : t)).join(' ')
                         .replace(/ \' /g, "'");
                     if (parsed.trigger)
                         deviceMap[kind].triggers.push(sentence);

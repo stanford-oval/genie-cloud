@@ -23,9 +23,9 @@
 }
 
 #cheatsheet .query {
-  color: gold;
+  color: rgb(220,136,8);
 }
 
 #cheatsheet .action {
-  color: green;
+  color: rgb(34,139,34);
 }

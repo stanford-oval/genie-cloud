@@ -85,24 +85,24 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
 });
 
 // special case google because we have login with google
-router.get('/oauth2/com.google', user.redirectLogIn, function(req, res, next) {
+/*router.get('/oauth2/com.google', user.redirectLogIn, function(req, res, next) {
     req.session.redirect_to = '/me';
     next();
 }, passport.authorize('google', {
     scope: user.GOOGLE_SCOPES,
     failureRedirect: '/me',
     successRedirect: '/me'
-}));
+}));*/
 
 // special case facebook because we have login with facebook
-router.get('/oauth2/com.facebook', user.redirectLogIn, function(req, res, next) {
+/*router.get('/oauth2/com.facebook', user.redirectLogIn, function(req, res, next) {
     req.session.redirect_to = '/me';
     next();
 }, passport.authorize('facebook', {
     scope: user.FACEBOOK_SCOPES,
     failureRedirect: '/me',
     successRedirect: '/me'
-}));
+}));*/
 
 router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
     var kind = req.params.kind;

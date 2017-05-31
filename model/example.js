@@ -84,7 +84,7 @@ module.exports = {
             + "  where eu.id = ers.example_id and ers.schema_id = ds.id and language = ? and ds.kind = dck.kind and"
             + "  dc.id = dck.device_id and (dc.global_name in (?) or dc.primary_kind in (?)) and eu.type not in ('ifttt', 'thingpedia')"
             + "  and eu.click_count >= 0)"
-            + " order by click_count desc, type, id asc limit 50",
+            + " order by type desc, id asc limit 50",
             [base, language, ftQuery,
              base, language, tokens,
              base, language, tokens,
@@ -123,7 +123,7 @@ module.exports = {
             + "  where eu.id = ers.example_id and ers.schema_id = ds.id and language = ? and ds.kind = dck.kind and"
             + "  dc.id = dck.device_id and (dc.global_name in (?) or dc.primary_kind in (?)) and eu.type not in ('ifttt', 'thingpedia')"
             + "  and eu.click_count >= ?)"
-            + " order by click_count desc, type, id asc",
+            + " order by type desc, id asc",
             [base, language, kinds, minClickCount,
              base, language, kinds, minClickCount,
              base, language, kinds, kinds, minClickCount,

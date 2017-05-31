@@ -60,21 +60,20 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
                                             human_name: profile.displayName,
                                             cloud_id: makeRandom(),
                                             auth_token: makeRandom(),
-                                            storage_key: makeRandom() })
-                .then(function(user) {
-                    return EngineManager.get().startUser(user).then(function() {
-                        // asynchronously inject google-account device
-                        EngineManager.get().getEngine(user.id).then(function(engine) {
-                            return engine.devices.loadOneDevice({ kind: 'com.google',
-                                                                  profileId: profile.id,
-                                                                  accessToken: accessToken,
-                                                                  refreshToken: refreshToken }, true);
-                        }).done();
+                                            storage_key: makeRandom() });
+        });
+    }).then(function(user) {
+        return EngineManager.get().startUser(user.id).then(function() {
+            // asynchronously inject google-account device
+            EngineManager.get().getEngine(user.id).then(function(engine) {
+                return engine.devices.loadOneDevice({ kind: 'com.google',
+                                                      profileId: profile.id,
+                                                      accessToken: accessToken,
+                                                      refreshToken: refreshToken }, true);
+            }).done();
 
-                        user.newly_created = true;
-                        return user;
-                    });
-                });
+            user.newly_created = true;
+            return user;
         });
     }).nodeify(done);
 }
@@ -111,21 +110,20 @@ function authenticateFacebook(accessToken, refreshToken, profile, done) {
                                             human_name: profile.displayName,
                                             cloud_id: makeRandom(),
                                             auth_token: makeRandom(),
-                                            storage_key: makeRandom() })
-                .then(function(user) {
-                    return EngineManager.get().startUser(user).then(function() {
-                        // asynchronously inject facebook device
-                        EngineManager.get().getEngine(user.id).then(function(engine) {
-                            return engine.devices.loadOneDevice({ kind: 'com.facebook',
-                                                                  profileId: profile.id,
-                                                                  accessToken: accessToken,
-                                                                  refreshToken: refreshToken }, true);
-                        }).done();
+                                            storage_key: makeRandom() });
+        });
+    }).then(function(user) {
+        return EngineManager.get().startUser(user.id).then(function() {
+             // asynchronously inject facebook device
+             EngineManager.get().getEngine(user.id).then(function(engine) {
+                 return engine.devices.loadOneDevice({ kind: 'com.facebook',
+                                                       profileId: profile.id,
+                                                       accessToken: accessToken,
+                                                       refreshToken: refreshToken }, true);
+             }).done();
 
-                        user.newly_created = true;
-                        return user;
-                    });
-                });
+             user.newly_created = true;
+             return user;
         });
     }).nodeify(done);
 }
