@@ -11,7 +11,8 @@ const path = require('path');
 const fs = require('fs');
 const csv = require('csv')
 
-const SempreSyntax = require('../util/sempre_syntax.js');
+const ThingTalk = require('thingtalk');
+const SEMPRESyntax = ThingTalk.SEMPRESyntax;
 
 function main() {
     var inp_format = process.argv[2];
@@ -20,23 +21,14 @@ function main() {
 
     var output = csv.stringify();
     var parser = csv.parse();
-    var file = fs.createWriteStream(fout || output.csv)
+    var file = fs.createWriteStream(fout);
     output.pipe(file);
 
     fs.createReadStream(fin)
         .pipe(parser)
         .on('data', (row) => {
-            //console.log(row);
-            var tt;
-            var json;
-
-            if(inp_format === 'tt') {
-                tt = row[1];
-                json = SempreSyntax.toSEMPRE(tt);
-            } else {
-                json = row[1];
-                tt = SempreSyntax.toThingTalk(JSON.parse(json));
-            }
+            var tt = ThingTalk.Grammar.parse(row[1]);
+            var json = SEMPRESyntax.toSEMPRE(tt, false);
 
             var ex = {
                 id: row[0],
@@ -48,8 +40,6 @@ function main() {
             output.write(ex);
         })
         .on('error', (err) => { console.error(err) });
-
-    file.on('finish', () => process.exit());
 }
 
 main();

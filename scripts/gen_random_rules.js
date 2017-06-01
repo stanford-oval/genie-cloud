@@ -14,11 +14,13 @@ const fs = require('fs');
 const csv = require('csv');
 const crypto = require('crypto');
 
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+
 const db = require('../util/db');
 const genRandomRules = require('../util/gen_random_rule');
 const reconstruct = require('./deps/reconstruct');
 const SchemaRetriever = require('./deps/schema_retriever');
-const SempreSyntax = require('../util/sempre_syntax');
 
 const dlg = { _(x) { return x; } };
 
@@ -60,43 +62,26 @@ function main() {
         output.write(headers);
     }
 
-    var inflight = 0;
-    var done = false;
-    function maybeEnd() {
-        if (done && inflight === 0)
-            output.end();
-    }
-    var i = 0;
+    //var i = 0;
     db.withClient((dbClient) => {
         var schemaRetriever = new SchemaRetriever(dbClient, language);
         return genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N).then((stream) => {
-            return new Q.Promise((callback, errback) => {
-                stream.on('data', (r) => {
-                    //console.log('Rule #' + (i+1));
-                    i++;
-                    inflight++;
-                    reconstruct(dlg, schemaRetriever, r).then((reconstructed) => {
-                        if (format === 'turk') {
-                            row = row.concat([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);
-                            if (row.length === sentences_per_hit * 3) {
-                                output.write(row);
-                                row = []
-                            }
-                        } else {
-                            output.write([makeId(), SempreSyntax.toThingTalk(r), postprocess(reconstructed)]);
-                        }
-                        inflight--;
-                        maybeEnd();
-                    }).done();
-                });
-                stream.on('error', errback);
-                stream.on('end', callback);
+            stream.on('data', (r) => {
+                //console.log('Rule #' + (i+1));
+                //i++;
+                if (format === 'turk') {
+                    row = row.concat([makeId(), Ast.prettyprint(r, true).trim(), postprocess(reconstruct(dlg, r))]);
+                    if (row.length === sentences_per_hit * 3) {
+                        output.write(row);
+                        row = []
+                    }
+                } else {
+                    output.write([makeId(), Ast.prettyprint(r, true).trim(), postprocess(reconstruct(dlg, r))]);
+                }
             });
+            stream.on('end', () => output.end());
         });
-    }).then(() => {
-        done = true;
-        maybeEnd();
-    }).done();
+    });
 
     file.on('finish', () => process.exit());
 }

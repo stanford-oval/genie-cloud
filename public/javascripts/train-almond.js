@@ -224,18 +224,6 @@ function prepareSentenceToCode() {
 function prepareCodeToSentence() {
     var trainer = new (require('thingtalk-trainer'));
 
-    function invocationFromJson(json) {
-        var parsed = JSON.parse(json);
-        if (parsed.action)
-            return parsed.action.name.id;
-        else if (parsed.trigger)
-            return parsed.trigger.name.id;
-        else if (parsed.query)
-            return parsed.query.name.id;
-        else
-            return 'unknown';
-    }
-
     var rules = [];
     function genRandomRules(limit) {
         $.get('/thingpedia/api/random-rule?locale=en-US&limit=' + limit, function(result) {
@@ -251,9 +239,7 @@ function prepareCodeToSentence() {
             return genRandomRules(20);
 
         current = next;
-        trainer.toThingTalk(current).then((tt) => {
-            $('#rule-thingtalk-proposal').text(tt);
-        });
+        $('#rule-thingtalk-proposal').text(current);
     }
     $('#code-to-sentence-next').click(showNext);
     showNext();
@@ -263,7 +249,7 @@ function prepareCodeToSentence() {
         if (!current)
             return;
 
-        var json = JSON.stringify(current);
+        var json = trainer.toSEMPRE(current);
         var text = $('#rule-sentence').val();
 
         return trainer.handle(text).then(function() {

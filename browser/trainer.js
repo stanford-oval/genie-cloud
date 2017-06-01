@@ -35,6 +35,10 @@ module.exports = class ThingTalkTrainer {
         });
     }
 
+    toSEMPRE(tt) {
+        return JSON.stringify(SEMPRESyntax.toSEMPRE(ThingTalk.Grammar.parse(current), false));
+    }
+
     learnJSON(json) {
         var raw = this._raw;
         return this.sempre.onlineLearn(raw, json);
