@@ -11,7 +11,6 @@ const Q = require('q');
 
 function insertTranslations(dbClient, schemaId, version, language, translations) {
     var channelCanonicals = [];
-    var argobjects = [];
 
     for (var name in translations) {
         var meta = translations[name];
@@ -30,23 +29,13 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
                                 confirmation_remote, JSON.stringify(formatted),
                                 JSON.stringify(argcanonicals), JSON.stringify(questions),
                                 keywords]);
-        argnames.forEach(function(argname, i) {
-            var argtype = types[i];
-            var argrequired = required[i] || false;
-            var argcanonical = argcanonicals[i];
-            argobjects.push([argname, argtype, argrequired, schemaId, version, language, name, argcanonical]);
-        });
     }
 
     if (channelCanonicals.length === 0)
         return Q();
 
     return db.insertOne(dbClient, 'replace into device_schema_channel_canonicals(schema_id, version, language, name, '
-            + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions, keywords) values ?', [channelCanonicals]).then(() => {
-            if (argobjects.length > 0)
-                return db.insertOne(dbClient, 'replace into device_schema_arguments(argname, argtype, required, schema_id, version, '
-                + 'language, channel_name, canonical) values ?', [argobjects]);
-        });
+            + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions, keywords) values ?', [channelCanonicals]);
 }
 
 function insertChannels(dbClient, schemaId, schemaKind, kindType, version, language, types, meta) {
@@ -78,14 +67,6 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
             channelCanonicals.push([schemaId, version, language, name, canonical, confirmation,
                                     confirmation_remote, JSON.stringify(formatted),
                                     JSON.stringify(argcanonicals), JSON.stringify(questions), keywords]);
-
-            argnames.forEach(function(argname, i) {
-                var argtype = types[i];
-                var argcanonical = argcanonicals[i];
-                var argrequired = required[i] || false;
-
-                argobjects.push([argname, argtype, argrequired, schemaId, version, language, name, argcanonical]);
-            });
         }
     }
 
@@ -101,10 +82,6 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
         .then(() => {
             return db.insertOne(dbClient, 'insert into device_schema_channel_canonicals(schema_id, version, language, name, '
             + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions, keywords) values ?', [channelCanonicals]);
-        }).then(() => {
-            if (argobjects.length > 0)
-                return db.insertOne(dbClient, 'insert into device_schema_arguments(argname, argtype, required, schema_id, version, '
-                + 'language, channel_name, canonical) values ?', [argobjects]);
         });
 }
 
