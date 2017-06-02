@@ -45,4 +45,10 @@ router.get('/about/tos', function(req, res, next) {
     });
 });
 
+router.get('/about/privacy', function(req, res, next) {
+    res.render('about_privacy', {
+        page_title: req._("Almond Privacy Policy")
+    });
+});
+
 module.exports = router;
