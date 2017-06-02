@@ -11,8 +11,13 @@ const Q = require('q');
 const stream = require('stream');
 
 const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+// FIXME
+const ThingTalkUtils = require('thingtalk/lib/utils');
 
 const db = require('./db');
+const genValueList = require('./gen_random_value');
 
 function sample(distribution) {
     var keys = Object.keys(distribution);
@@ -162,9 +167,11 @@ function chooseInvocation(schemaRetriever, schemas, samplingPolicy, channelType)
             return chooseInvocation(schemaRetriever, schemas, samplingPolicy, channelType);
 
         var channelName = uniform(choices);
-        channels[channelName].kind = kind;
-        channels[channelName].name = channelName;
-        return channels[channelName];
+        channels[channelName].schema = channels[channelName].schema.map((t) => Type.fromString(t));
+        var result = ThingTalkUtils.splitArgsForSchema(channels[channelName], channelType, true);
+        result.kind = kind;
+        result.name = channelName;
+        return result;
     });
 }
 
@@ -197,96 +204,30 @@ function chooseRule(schemaRetriever, schemas, samplingPolicy) {
 }
 
 const NUMBER_OP_WEIGHTS = {
-    'is': 0.5,
+    '=': 0.5,
     '>': 1,
     '<': 1,
     '': 2
 };
 
 const ARRAY_OP_WEIGHTS = {
-    'has': 1,
-    '': 2
-};
-
-const STRING_OP_WEIGHTS = {
-    'is': 1,
     'contains': 1,
     '': 2
 };
 
-const OTHER_OP_WEIGHTS = {
-    'is': 1,
+const STRING_OP_WEIGHTS = {
+    '=': 1,
+    '=~': 1,
     '': 2
 };
 
-const STRING_ARGUMENTS = ["i'm happy", "you would never believe what happened", "merry christmas", "love you"];
-const USERNAME_ARGUMENTS = ['alice'];
-const HASHTAG_ARGUMENTS = ['funny', 'cat', 'lol'];
-const URL_ARGUMENTS = ['http://www.abc.def'];
-const NUMBER_ARGUMENTS = [42, 7, 14, 11];
-const MEASURE_ARGUMENTS = {
-    C: [{ value: 73, unit: 'F' }, { value: 22, unit: 'C' }],
-    m: [{ value: 1000, unit: 'm' }, { value: 42, unit: 'cm' }],
-    kg: [{ value: 82, unit: 'kg' }, { value: 155, unit: 'lb' }],
-    kcal: [{ value: 500, unit: 'kcal' }],
-    mps: [{ value: 5, unit: 'kmph' }, { value: 25, unit: 'mph' }],
-    ms: [{ value: 2, unit: 'h'}],
-    byte: [{ value: 5, unit: 'KB' }, { value: 20, unit: 'MB' }]
-};
-const BOOLEAN_ARGUMENTS = [true, false];
-const LOCATION_ARGUMENTS = [{ relativeTag: 'rel_current_location', latitude: -1, longitude: -1 },
-                            { relativeTag: 'rel_home', latitude: -1, longitude: -1 },
-                            { relativeTag: 'rel_work', latitude: -1, longitude: -1 }];
-                            //{ relativeTag: 'absolute', latitude: 37.442156, longitude: -122.1634471 },
-                            //{ relativeTag: 'absolute', latitude:    34.0543942, longitude: -118.2439408 }];
-const DATE_ARGUMENTS = [{ year: 2017, month: 2, day: 14, hour: -1, minute: -1, second: -1 },
-    { year: 2016, month: 5, day: 4, hour: -1, minute: -1, second: -1 }];
-const EMAIL_ARGUMENTS = ['bob@stanford.edu'];
-const PHONE_ARGUMENTS = ['+16501234567'];
-
-const ENTITIES = {
-    'sportradar:eu_soccer_team': [["Juventus", "juv"], ["Barcellona", "bar"], ["Bayern Munchen", "fcb"]],
-    'sportradar:mlb_team': [["SF Giants", 'sf'], ["Chicago Cubs", 'chc']],
-    'sportradar:nba_team': [["Golden State Warriors", 'gsw'], ["LA Lakers", 'lal']],
-    'sportradar:ncaafb_team': [["Stanford Cardinals", 'sta'], ["California Bears", 'cal']],
-    'sportradar:ncaambb_team': [["Stanford Cardinals", 'stan'], ["California Bears", 'cal']],
-    'sportradar:nfl_team': [["Seattle Seahawks", 'sea'], ["SF 49ers", 'sf']],
-    'sportradar:us_soccer_team': [["San Jose Earthquakes", 'sje'], ["Toronto FC", 'tor']],
-    'tt:stock_id': [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft']]
-};
-
-// params with special value
-const PARAMS_SPECIAL_STRING = {
-    'repo_name': 'android_repository',
-    'file_name': 'log.txt',
-    'old_name': 'log.txt',
-    'new_name': 'backup.txt',
-    'folder_name': 'archive',
-    'purpose': 'research project',
-    'fileter': 'lo-fi',
-    'query': 'super bowl',
-    'summary': 'celebration',
-    'category': 'sports',
-    'from_name': 'bob',
-    'blog_name': 'government secret',
-    'camera_used': 'mastcam',
-    'description': 'christmas',
-    'source_language': 'english',
-    'target_language': 'chinese',
-    'detected_language': 'english',
-    'organizer': 'stanford',
-    'user': 'bob',
-    'positions': 'ceo',
-    'specialties': 'java',
-    'industry': 'music',
-    'template': 'wtf',
-    'text_top': 'ummm... i have a question...',
-    'text_bottom': 'wtf?',
-    'phase': 'moon'
+const OTHER_OP_WEIGHTS = {
+    '=': 1,
+    '': 2
 };
 
 // params should never be assigned unless it's required
-const PARAMS_BLACK_LIST = [
+const PARAMS_BLACK_LIST = new Set([
     'company_name', 'weather', 'currency_code', 'orbiting_body',
     'home_name', 'away_name', 'home_alias', 'away_alias',
     'watched_is_home', 'scheduled_time', 'game_status',
@@ -308,124 +249,34 @@ const PARAMS_BLACK_LIST = [
     'translated_text',
     'sunset', 'sunrise',
     'name' //nasa, meme
-];
+]);
 
 // params should use operator is
-const PARAMS_OP_IS = [
+const PARAMS_OP_IS = new Set([
     'filter', 'source_language', 'target_language', 'detected_language',
     'from_name', 'uber_type',
-];
+]);
 
 // params should use operator contain
-const PARAMS_OP_CONTAIN = [
+const PARAMS_OP_CONTAIN = new Set([
     'snippet'
-];
+]);
 
 // params should use operator greater
-const PARAMS_OP_GREATER = [
+const PARAMS_OP_GREATER = new Set([
     'file_size'
-];
+]);
 
 // rhs params should not be assigned by a value from lhs
-const PARAMS_BLACKLIST_RHS = [
+const PARAMS_BLACKLIST_RHS = new Set([
     'file_name', 'new_name', 'old_name', 'folder_name', 'repo_name',
     'home_name', 'away_name', 'purpose'
-];
+]);
 
 // lhs params should not be assigned to a parameter in the rhs
-const PARAMS_BLACKLIST_LHS = [
+const PARAMS_BLACKLIST_LHS = new Set([
     'orbiting_body', 'camera_used'
-];
-
-function chooseEntity(entityType) {
-    if (entityType === 'tt:email_address')
-        return ['EmailAddress', { value: uniform(EMAIL_ARGUMENTS) }];
-    if (entityType === 'tt:phone_number')
-        return ['PhoneNumber', { value: uniform(PHONE_ARGUMENTS) }];
-    if (entityType === 'tt:username')
-        return ['Username', { value: uniform(USERNAME_ARGUMENTS) }];
-    if (entityType === 'tt:hashtag')
-        return ['Hashtag', { value: uniform(HASHTAG_ARGUMENTS) }];
-    if (entityType === 'tt:url')
-        return ['URL', { value: uniform(URL_ARGUMENTS) }];
-    if (entityType === 'tt:picture')
-        return [null, null];
-
-    var choices = ENTITIES[entityType];
-    if (!choices) {
-        console.log('Unrecognized entity type ' + entityType);
-        return [null, null];
-    }
-
-    var choice = uniform(choices);
-    var v = { value: choice[1], display: choice[0] };
-    return ['Entity(' + entityType + ')', v];
-}
-
-function chooseRandomValue(argName, type) {
-    if (type.isArray)
-        return chooseRandomValue(argName, type.elem);
-    if (type.isString) {
-        if (argName in PARAMS_SPECIAL_STRING)
-            return ['String', { value: PARAMS_SPECIAL_STRING[argName]}];
-        if (argName.endsWith('title'))
-            return ['String', { value: 'news' }];
-        if (argName.startsWith('label')) // label, labels
-            return ['String', { value: 'work' }];
-        return ['String', { value: uniform(STRING_ARGUMENTS) }];
-    }
-    if (type.isHashtag) {
-        if (argName === 'channel')
-            return ['Hashtag', { value: 'work'}];
-        return ['Hashtag', { value: uniform(HASHTAG_ARGUMENTS) }];
-    }
-    if (type.isNumber) {
-        if (argName === 'surge')
-            return ['Number', { value : 1.5 }];
-        if (argName === 'heartrate')
-            return ['Number', { value : 80 }];
-        if (argName.startsWith('high'))
-            return ['Number', { value : 20 }];
-        if (argName.startsWith('low'))
-            return ['Number', { value : 10 }];
-        return ['Number', { value: uniform(NUMBER_ARGUMENTS) }];
-    }
-    if (type.isMeasure) {
-        if (argName === 'high')
-            return ['Measure', { value : 75, unit: 'F' }];
-        if (argName === 'low')
-            return ['Measure', { value : 70, unit: 'F' }];
-        return ['Measure', uniform(MEASURE_ARGUMENTS[type.unit])];
-    }
-    if (type.isDate)
-        return ['Date', uniform(DATE_ARGUMENTS)];
-    if (type.isBoolean)
-        return ['Bool', { value: uniform(BOOLEAN_ARGUMENTS) }];
-    if (type.isLocation) {
-        if (argName === 'start')
-            return ['Location', { relativeTag: 'rel_home', latitude: -1, longitude: -1 }];
-        if (argName === 'end')
-            return ['Location', { relativeTag: 'rel_work', latitude: -1, longitude: -1 }];
-        return ['Location', uniform(LOCATION_ARGUMENTS)];
-    }
-    if (type.isEmailAddress)
-        return ['EmailAddress', { value: uniform(EMAIL_ARGUMENTS) }];
-    if (type.isPhoneNumber)
-        return ['PhoneNumber', { value: uniform(PHONE_ARGUMENTS) }];
-    if (type.isUsername)
-        return ['Username', { value: uniform(USERNAME_ARGUMENTS) }];
-    if (type.isURL)
-        return ['URL', { value: uniform(URL_ARGUMENTS) }];
-    if (type.isEnum)
-        return ['Enum', { value: uniform(type.entries) }];
-    if (type.isEntity)
-        return chooseEntity(type.type);
-    if (type.isPicture || type.isTime || type.isAny)
-        return [null, null];
-
-    console.log('Invalid type ' + type);
-    return [null, null];
-}
+]);
 
 function getOpDistribution(type) {
     if (type.isNumber || type.isMeasure)
@@ -439,211 +290,130 @@ function getOpDistribution(type) {
 
 function applyFilters(invocation, isAction) {
     if (invocation === undefined)
-        return undefined;
+        return null;
 
     var args = invocation.args;
-    var ret = {
-        name: { id: 'tt:' + invocation.kind + '.' + invocation.name },
-        args: []
-    };
+    var inParams = [];
+    var filters = [];
+    var outParams = [];
 
     for (var i = 0; i < args.length; i++) {
-        var type = ThingTalk.Type.fromString(invocation.schema[i]);
-        var argrequired = invocation.required[i];
+        var argname = args[i];
+        var type = invocation.inReq[argname] || invocation.inOpt[argname] || invocation.out[argname];
+        if (!type)
+            continue;
+        var argrequired = !!invocation.inReq[argname];
 
-        if (type.isEntity)
+        if (type.isEntity) {
             if (type.type === 'tt:picture')
                 continue;
             if (type.type === 'tt:url' && !argrequired)
                 continue;
-        if (args[i].startsWith('__'))
+        }
+        if (argname.endsWith('_id') && argname !== 'stock_id')
             continue;
-        if (args[i].endsWith('_id') && args[i] !== 'stock_id')
+        if (!argrequired && PARAMS_BLACK_LIST.has(argname))
             continue;
-        if (!argrequired && PARAMS_BLACK_LIST.indexOf(args[i]) > -1)
-            continue;
-        if (args[i].startsWith('tournament'))
-            continue;
-        
-        var tmp = chooseRandomValue(args[i], type);
-        var sempreType = tmp[0];
-        var value = tmp[1];
-        if (!sempreType)
+        if (argname.startsWith('tournament'))
             continue;
 
-        // fill in all required one
-        if (argrequired) {
-            if (coin(0.9)) ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
-        } else if (isAction) {
-            if (coin(0.9)) ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: 'is', type: sempreType, value: value });
+        var valueList = genValueList(argname, type);
+        if (valueList.length === 0)
+            continue;
+
+        var isInput = !!(invocation.inReq[argname] || invocation.inOpt[argname]);
+
+        if (isInput) {
+            if (type.isEnum) {
+                inParams.push(Ast.InputParam(argname, uniform(valueList)));
+            } else if (isAction) {
+                if (coin(0.6)) inParams.push(Ast.InputParam(argname, uniform(valueList)));
+                else inParams.push(Ast.InputParam(argname, Ast.Value.Undefined(true)));
+            } else if (argrequired) {
+                if (coin(0.9)) inParams.push(Ast.InputParam(argname, uniform(valueList)));
+                else inParams.push(Ast.InputParam(argname, Ast.Value.Undefined(true)));
+            } else {
+                if (coin(0.6)) inParams.push(Ast.InputParam(argname, uniform(valueList)));
+            }
         } else {
-            var fill = type.isEnum || coin(0.6);
-            if (!fill)
-                continue;
-            if (PARAMS_OP_IS.indexOf(args[i]) > -1)
-                var operator = 'is';
-            else if (PARAMS_OP_CONTAIN.indexOf(args[i]) > -1)
-                var operator = 'contains';
-            else if (PARAMS_OP_GREATER.indexOf(args[i]) > -1)
-                var operator = '>';
+            let operator;
+            if (PARAMS_OP_IS.has(argname))
+                operator = '=';
+            else if (PARAMS_OP_CONTAIN.has(argname))
+                operator = '=~';
+            else if (PARAMS_OP_GREATER.has(argname))
+                operator = '>';
             else
-                var operator = sample(getOpDistribution(type));
+                operator = sample(getOpDistribution(type));
             if (operator)
-                ret.args.push({ name: { id: 'tt:param.' + args[i] }, operator: operator, type: sempreType, value: value });
+                filters.push(Ast.Filter(argname, operator, uniform(valueList)));
         }
     }
 
+    for (var name in invocation.out)
+        outParams.push(Ast.OutputParam('v_' + name, name));
+
+    var ret= Ast.RulePart(Ast.Selector.Device(invocation.kind, null, null), invocation.name, inParams, filters, outParams);
+    ret.schema = invocation;
     return ret;
 }
 
-function applyComposition(from, fromMeta, to, toMeta, isAction) {
+function applyComposition(from, to, isAction) {
     var usedFromArgs = new Set();
-    for (var arg of from.args) {
-        if (arg.operator === 'is')
-            usedFromArgs.add(arg.name.id);
+    for (var arg of from.filters) {
+        if (arg.operator === '=')
+            usedFromArgs.add(arg.name);
     }
+    for (var arg of from.in_params)
+        usedFromArgs.add(arg.name);
     var usedToArgs = new Set();
-    for (var arg of to.args) {
-        usedToArgs.add(arg.name.id);
+    for (var arg of to.in_params) {
+        usedToArgs.add(arg.name);
     }
 
-    var fromArgs = fromMeta.args.filter((arg, i) => {
-        if (fromMeta.required[i])
-            return false;
-
-        if (usedFromArgs.has('tt:param.' + arg))
-            return false;
-
-        return true;
-    });
-
-    var fromArgMap = {};
-    var fromArgRequired = {};
-    fromMeta.args.forEach(function(name, i) {
-        fromArgMap[name] = ThingTalk.Type.fromString(fromMeta.schema[i]);
-        fromArgRequired[name] = fromMeta.required[i];
-    });
-    var toArgMap = {};
-    var toArgRequired = {};
-    toMeta.args.forEach(function(name, i) {
-        toArgMap[name] = ThingTalk.Type.fromString(toMeta.schema[i]);
-        toArgRequired[name] = toMeta.required[i];
-    });
-
-    var toArgs = toMeta.args.filter((arg, i) => !usedToArgs.has('tt:param.' + arg));
+    var fromArgs = from.schema.args.filter((arg) => from.schema.out[arg] && !usedFromArgs.has(arg));
+    var toArgs = to.schema.args.filter((arg) => ((to.schema.inReq[arg] || to.schema.inOpt[arg]) && !usedToArgs.has(arg)));
 
     for (var toArg of toArgs) {
-        var toType = toArgMap[toArg];
+        var toType = to.schema.inReq[toArg] || to.schema.inOpt[toArg];
         var distribution = {};
-
-        if (toArg.startsWith('__'))
-            continue;
 
         // don't pass numbers
         if (toType.isNumber)
             continue;
-        if (PARAMS_BLACKLIST_RHS.indexOf(toArg))
+        if (PARAMS_BLACKLIST_RHS.has(toArg))
             continue;
 
         distribution[''] = 0.5;
 
         for (var fromArg of fromArgs) {
-            var fromType = fromArgMap[fromArg];
+            var fromType = from.schema.out[fromArg];
 
-            if (fromArgRequired[fromArg])
-                continue;
-            if (fromArg.startsWith('__'))
-                continue;
             if (fromArg.endsWith('_id'))
                 continue;
-            if (PARAMS_BLACKLIST_LHS.indexOf(fromArg))
+            if (PARAMS_BLACKLIST_LHS.has(fromArg))
                 continue;
 
-            if (toArgRequired[toArg] || isAction) {
-                if (String(fromType) === String(toType))
-                    distribution[fromArg + '+is'] = 1;
+            if (to.schema.inReq[toArg] || isAction) {
+                if (Type.isAssignable(toType, fromType))
+                    distribution[fromArg] = 1;
             } else {
-                if (toType.isArray && String(fromType) == String(toType.elem)) {
-                    distribution[fromArg + '+has'] = 1;
-                } else if (String(fromType) === String(toType)) {
-                    var opdist = getOpDistribution(fromType);
-                    var sum = 0;
-                    for (var op in opdist)
-                        sum += opdist[key];
-                    for (var op in opdist)
-                        distribution[fromArg + '+' + op] = opdist[key]/sum;
-                }
+                if (Type.isAssignable(toType, fromType))
+                    distribution[fromArg] = 0.5;
             }
         }
         // only pass $event when for 'message' and 'status'
         if (toType.isString && (toArg === 'message' || toArg === 'status')) {
-            distribution['$event+is'] = 0.1;
-            //distribution['$event.title+is'] = 0.05;
+            distribution['$event'] = 0.1;
         }
         var chosen = sample(distribution);
         if (!chosen)
             continue;
-        chosen = chosen.split('+');
-        to.args.push({ name: { id: 'tt:param.' + toArg }, operator: chosen[1], type: 'VarRef', value: { id: 'tt:param.' + chosen[0] } });
-        //return;
+        if (chosen === '$event')
+            to.in_params.push(Ast.InputParam(toArg, Ast.Value.Event(null)));
+        else
+            to.in_params.push(Ast.InputParam(toArg, Ast.Value.VarRef(chosen)));
     }
-}
-
-function queryIsUseful(query, queryMeta, action) {
-    var argRequired = {};
-    queryMeta.args.forEach(function(name, i) {
-        argRequired[name] = queryMeta.required[i];
-    });
-
-    var anyFilter = false;
-    query.args.forEach((arg) => {
-        if (arg.operator !== 'is')
-            anyFilter = true;
-        if (!argRequired[arg.name.id.substr('tt:param.')])
-            anyFilter = true;
-    });
-    if (anyFilter)
-        return true;
-
-    var anyComposition = false;
-    action.args.forEach((arg) => {
-        if (arg.type === 'VarRef')
-            anyComposition = true;
-    });
-    if (anyComposition)
-        return true;
-
-    return false;
-}
-
-function connected(invocation) {
-    if (!invocation)
-        return false;
-    return invocation.args.some((a) => a.type === 'VarRef');
-}
-
-function checkPicture(to, toMeta) {
-    var hasPicture = false;
-
-    for (var arg of toMeta.args) {
-        if (arg === 'picture_url')
-            hasPicture = true;
-    }
-    if (!hasPicture)
-        return true;
-
-    var setPicture = false;
-    for (var arg of to.args) {
-        if (arg.name.id === 'tt:param.picture_url') {
-            setPicture = true;
-        }
-    }
-    if (setPicture)
-        return true;
-
-    if (coin(0.1))
-        return true;
-    return false;
 }
 
 function genOneRandomRule(schemaRetriever, schemas, samplingPolicy) {
@@ -653,36 +423,13 @@ function genOneRandomRule(schemaRetriever, schemas, samplingPolicy) {
         var action = applyFilters(actionMeta, true);
 
         if (query && action)
-            applyComposition(query, queryMeta, action, actionMeta, true);
+            applyComposition(query, action, true);
         if (trigger && query)
-            applyComposition(trigger, triggerMeta, query, queryMeta, false);
+            applyComposition(trigger, query, false);
         if (trigger && action && !query)
-            applyComposition(trigger, triggerMeta, action, actionMeta, true);
+            applyComposition(trigger, action, true);
 
-        //if (trigger && trigger.args.length === 0)
-        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
-        //if (action && action.args.length === 0)
-        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
-        //if (query && query.args.length === 0)
-        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
-
-        //if (query && action && !queryIsUseful(query, queryMeta, action)) // try again if not useful
-        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
-        //if (trigger && action && !checkPicture(action, actionMeta))
-        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
-        //if (query && action && !checkPicture(action, actionMeta))
-        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
-
-        //if (!connected(query) && !connected(action))
-        //    return genOneRandomRule(schemaRetriever, schemas, samplingPolicy);
-
-        return { rule: { trigger: trigger, query: query, action: action }};
-        //if (trigger)
-        //    return { trigger: trigger };
-        //if (action)
-        //    return { action: action };
-        //if (query)
-        //    return { query: query };
+        return Ast.Program('AlmondGenerated', [], [Ast.Rule(trigger, query ? [query] : [], [action || Ast.RulePart(Ast.Selector.Builtin, 'notify', [],[], [])], false)]);
     });
 }
 

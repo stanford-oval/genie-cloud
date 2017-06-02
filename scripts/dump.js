@@ -14,7 +14,6 @@ const fs = require('fs');
 const csv = require('csv');
 
 const db = require('../util/db');
-const SempreSyntax = require('../util/sempre_syntax');
 
 function countOne(invocation) {
     if (!invocation)

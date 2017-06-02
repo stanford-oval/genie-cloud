@@ -11,7 +11,6 @@ const Q = require('q');
 
 function insertTranslations(dbClient, schemaId, version, language, translations) {
     var channelCanonicals = [];
-    var argobjects = [];
 
     for (var name in translations) {
         var meta = translations[name];
@@ -22,7 +21,6 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
         var questions = meta.questions;
         var types = meta.schema;
         var argnames = meta.args || types.map((t, i) => 'arg' + (i+1));
-        var required = meta.required;
         var argcanonicals = meta.argcanonicals;
         var keywords = ''; // for now
 
@@ -30,23 +28,13 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
                                 confirmation_remote, JSON.stringify(formatted),
                                 JSON.stringify(argcanonicals), JSON.stringify(questions),
                                 keywords]);
-        argnames.forEach(function(argname, i) {
-            var argtype = types[i];
-            var argrequired = required[i] || false;
-            var argcanonical = argcanonicals[i];
-            argobjects.push([argname, argtype, argrequired, schemaId, version, language, name, argcanonical]);
-        });
     }
 
     if (channelCanonicals.length === 0)
         return Q();
 
     return db.insertOne(dbClient, 'replace into device_schema_channel_canonicals(schema_id, version, language, name, '
-            + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions, keywords) values ?', [channelCanonicals]).then(() => {
-            if (argobjects.length > 0)
-                return db.insertOne(dbClient, 'replace into device_schema_arguments(argname, argtype, required, schema_id, version, '
-                + 'language, channel_name, canonical) values ?', [argobjects]);
-        });
+            + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions, keywords) values ?', [channelCanonicals]);
 }
 
 function insertChannels(dbClient, schemaId, schemaKind, kindType, version, language, types, meta) {
@@ -71,21 +59,14 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
             });
             var questions = meta.questions || [];
             var required = meta.required || [];
+            var is_input = meta.is_input || meta.required || [];
             var doc = meta.doc || '';
             var keywords = ''; // for now
             channels.push([schemaId, version, name, what, doc,
-                           JSON.stringify(types), JSON.stringify(argnames), JSON.stringify(required)]);
+                           JSON.stringify(types), JSON.stringify(argnames), JSON.stringify(required), JSON.stringify(is_input)]);
             channelCanonicals.push([schemaId, version, language, name, canonical, confirmation,
                                     confirmation_remote, JSON.stringify(formatted),
                                     JSON.stringify(argcanonicals), JSON.stringify(questions), keywords]);
-
-            argnames.forEach(function(argname, i) {
-                var argtype = types[i];
-                var argcanonical = argcanonicals[i];
-                var argrequired = required[i] || false;
-
-                argobjects.push([argname, argtype, argrequired, schemaId, version, language, name, argcanonical]);
-            });
         }
     }
 
@@ -97,14 +78,10 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
         return;
 
     return db.insertOne(dbClient, 'insert into device_schema_channels(schema_id, version, name, '
-        + 'channel_type, doc, types, argnames, required) values ?', [channels])
+        + 'channel_type, doc, types, argnames, required, is_input) values ?', [channels])
         .then(() => {
             return db.insertOne(dbClient, 'insert into device_schema_channel_canonicals(schema_id, version, language, name, '
             + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions, keywords) values ?', [channelCanonicals]);
-        }).then(() => {
-            if (argobjects.length > 0)
-                return db.insertOne(dbClient, 'insert into device_schema_arguments(argname, argtype, required, schema_id, version, '
-                + 'language, channel_name, canonical) values ?', [argobjects]);
         });
 }
 
@@ -181,7 +158,8 @@ function processMetaRows(rows) {
             canonical: row.canonical || '',
             argcanonicals: JSON.parse(row.argcanonicals) || [],
             questions: JSON.parse(row.questions) || [],
-            required: JSON.parse(row.required)
+            required: JSON.parse(row.required),
+            is_input: JSON.parse(row.is_input)
         };
         if (obj.args.length < types.length) {
             for (var i = obj.args.length; i < types.length; i++)
@@ -281,19 +259,19 @@ module.exports = {
     getTypesAndNamesByKinds: function(client, kinds, org) {
         return Q.try(function() {
             if (org === -1) {
-                return db.selectAll(client, "select name, types, argnames, required, channel_type, kind, kind_type from device_schema ds"
+                return db.selectAll(client, "select name, types, argnames, required, is_input, channel_type, kind, kind_type from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
                                     + " and dsc.version = ds.developer_version where ds.kind in (?)",
                                     [kinds]);
             } else if (org !== null) {
-                return db.selectAll(client, "select name, types, argnames, required, channel_type, kind, kind_type from device_schema ds"
+                return db.selectAll(client, "select name, types, argnames, required, is_input, channel_type, kind, kind_type from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
                                     + " and ((dsc.version = ds.developer_version and ds.owner = ?) or "
                                     + " (dsc.version = ds.approved_version and ds.owner <> ?)) where ds.kind"
                                     + " in (?) ",
                                     [org, org, kinds]);
             } else {
-                return db.selectAll(client, "select name, types, argnames, required, channel_type, kind, kind_type from device_schema ds"
+                return db.selectAll(client, "select name, types, argnames, required, is_input, channel_type, kind, kind_type from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
                                     + " and dsc.version = ds.approved_version where ds.kind in (?)",
                                     [kinds]);
@@ -317,7 +295,8 @@ module.exports = {
                 var obj = {
                     types: JSON.parse(row.types),
                     args: JSON.parse(row.argnames),
-                    required: JSON.parse(row.required)
+                    required: JSON.parse(row.required),
+                    is_input: JSON.parse(row.is_input)
                 };
                 switch (row.channel_type) {
                 case 'action':
@@ -351,7 +330,7 @@ module.exports = {
         return Q.try(function() {
             if (org === -1) {
                 return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
-                                    + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
+                                    + " argnames, argcanonicals, required, is_input, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                     + " and dsc.version = ds.developer_version "
@@ -360,7 +339,7 @@ module.exports = {
                                     [language, kinds]);
             } if (org !== null) {
                 return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
-                                    + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
+                                    + " argnames, argcanonicals, required, is_input, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                     + " and ((dsc.version = ds.developer_version and ds.owner = ?) or"
@@ -370,7 +349,7 @@ module.exports = {
                                     [org, org, language, kinds]);
             } else {
                 return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
-                                    + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
+                                    + " argnames, argcanonicals, required, is_input, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                     + " approved_version from device_schema ds"
                                     + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                     + " and dsc.version = ds.approved_version "
@@ -386,7 +365,7 @@ module.exports = {
     getMetasByKindAtVersion: function(client, kind, version, language) {
         return Q.try(function() {
             return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
-                                + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
+                                + " argnames, argcanonicals, required, is_input, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                 + " approved_version from device_schema ds"
                                 + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                 + " and dsc.version = ? "
@@ -401,7 +380,7 @@ module.exports = {
     getDeveloperMetas: function(client, kinds, language) {
         return Q.try(function() {
             return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
-                                + " argnames, argcanonicals, required, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
+                                + " argnames, argcanonicals, required, is_input, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
                                 + " approved_version from device_schema ds"
                                 + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                 + " and dsc.version = ds.developer_version "

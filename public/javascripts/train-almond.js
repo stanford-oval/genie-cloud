@@ -70,15 +70,14 @@ function prepareSentenceToCode() {
 
         var editThingTalk = $('#edit-thingtalk')[0].checked;
         if (editThingTalk) {
-            try {
-                var tt = trainer.toThingTalk(JSON.parse(json));
+            trainer.toThingTalk(JSON.parse(json)).then(function(tt) {
                 $('#thingtalk-editor').removeClass('hidden');
                 $('#thingtalk-group').removeClass('has-error');
                 $('#thingtalk-error').text('');
                 $('#thingtalk').val(tt);
-            } catch(e) {
-                alert(e.message);
-            }
+            }).catch(function(e) {
+                alert(e.message+'\n'+e.stack);
+            });
         } else {
             $('#thingtalk-editor').addClass('hidden');
             trainer.learnJSON(json).then(function(data) {
@@ -225,18 +224,6 @@ function prepareSentenceToCode() {
 function prepareCodeToSentence() {
     var trainer = new (require('thingtalk-trainer'));
 
-    function invocationFromJson(json) {
-        var parsed = JSON.parse(json);
-        if (parsed.action)
-            return parsed.action.name.id;
-        else if (parsed.trigger)
-            return parsed.trigger.name.id;
-        else if (parsed.query)
-            return parsed.query.name.id;
-        else
-            return 'unknown';
-    }
-
     var rules = [];
     function genRandomRules(limit) {
         $.get('/thingpedia/api/random-rule?locale=en-US&limit=' + limit, function(result) {
@@ -252,7 +239,7 @@ function prepareCodeToSentence() {
             return genRandomRules(20);
 
         current = next;
-        $('#rule-thingtalk-proposal').text(trainer.toThingTalk(current));
+        $('#rule-thingtalk-proposal').text(current);
     }
     $('#code-to-sentence-next').click(showNext);
     showNext();
@@ -262,7 +249,7 @@ function prepareCodeToSentence() {
         if (!current)
             return;
 
-        var json = JSON.stringify(current);
+        var json = trainer.toSEMPRE(current);
         var text = $('#rule-sentence').val();
 
         return trainer.handle(text).then(function() {

@@ -49,6 +49,9 @@ module.exports = class ThingpediaClientBrowser {
 
     getSchemas(kinds) {
         var to = THINGPEDIA_URL + '/api/schema/' + kinds.join(',');
+        to += '?version=2&locale=' + this.locale;
+        if (this.developerKey)
+            to += '&developer_key=' + this.developerKey;
         return this._simpleRequest(to);
     }
 

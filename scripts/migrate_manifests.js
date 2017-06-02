@@ -13,25 +13,27 @@ const Q = require('q');
 
 const db = require('../util/db');
 
-function processOne(dbClient, schema) {
+function processOne(dbClient, device) {
     try {
-        var manifest = JSON.parse(schema.meta);
+        var manifest = JSON.parse(device.code);
     } catch(e) {
-        console.log('Failed to parse meta in ' + schema.schema_id + ' version ' + schema.version);
+        console.log('Failed to parse meta in ' + device.device_id + ' version ' + device.version);
         return;
     }
-    var kindCanonical = schema.kind_canonical;
 
     var changed = true;
-    for (var ftype of [0,1,2]) {
+    for (var ftype of ['triggers','queries','actions']) {
         var where = (manifest[ftype] || {});
         for (var name in where) {
             var inv = where[name];
-            if (!inv.canonical)
-                continue;
-            if (inv.canonical.endsWith(' on ' + kindCanonical))
-                continue;
-            inv.canonical += ' on ' + kindCanonical;
+            inv.args.forEach((arg) => {
+                if (ftype === 'actions') {
+                    // action
+                    arg.required = arg.is_input = true;
+                } else {
+                    arg.is_input = arg.required;
+                }
+            });
             changed = true;
         }
     }

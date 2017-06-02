@@ -25,9 +25,13 @@ $(function() {
                             type: 'string',
                             title: 'Slot Filling Question',
                         },
+                        is_input: {
+                            type: 'boolean',
+                            format: 'checkbox',
+                            title: 'Argument is input'
+                        },
                         required: {
                             type: 'boolean',
-                            required: false,
                             format: 'checkbox',
                             title: 'Argument is required'
                         }

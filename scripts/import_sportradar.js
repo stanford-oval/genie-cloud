@@ -72,10 +72,14 @@ function finishBatch(dbClient) {
 function main() {
   var file = process.argv[2];
   var language = process.argv[3] || 'en';
+  var entityType = process.argv[4];
+  if (!entityType)
+    throw new Error('Missing entity type');
 
   var fstream = fs.createReadStream(file);
   fstream.setEncoding('utf8');
-  var parser = csv.parse({ columns: null });
+  //var parser = csv.parse({ columns: null });
+  var parser = csv.parse();
   fstream.pipe(parser);
 
   /*var leagueToEntity = {
@@ -93,9 +97,8 @@ function main() {
     return Q.Promise(function(callback, errback) {
       parser.on('data', (row) => {
         //var league = row[0];
-        var id = row[0].trim().toLowerCase();
+        var id = row[0].trim();
         var name = row[1];
-        var entityType = 'tt:stock_id';
 
         var tokens = tokenize.tokenize(name);
         var canonical = tokens.join(' ');
@@ -107,7 +110,7 @@ function main() {
             continue;
 
           //console.log(language + '\t' + entityType + '\t' + id + '\t' + t + '\t' + canonical + '\t' + name);
-          promises.push(insert(dbClient, language, t, entityType, id.toLowerCase(), canonical, name));
+          promises.push(insert(dbClient, language, t, entityType, id, canonical, name));
         }
       });
       parser.on('end', callback);

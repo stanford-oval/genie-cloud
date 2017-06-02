@@ -3,8 +3,8 @@ import os, sys, csv
 from Naked.toolshed.shell import execute_js 
 from turk_scrubber import scrubber
 
-def format(path):
-    """ format raw turk data to: 'id, thingtalk, sentence, paraphrase'
+def format(inp_format, path):
+    """ format raw turk data to: 'id, tt/target_json, sentence, paraphrase'
     """
     with open(path + 'raw.csv', 'r') as fin, open(path + 'data.csv', 'w') as fout:
         reader = csv.reader(fin, delimiter=',', quotechar='\"')
@@ -21,11 +21,17 @@ def format(path):
                 continue
             for i in range(3):
                 ttid = row[idx_info + i*3]
-                thingtalk = row[idx_info + i*3 + 1]
+                if inp_format == 'tt':
+                    tt = row[idx_info + i*3 + 1]
+                else:
+                    target_json = row[idx_info + i*3 + 1]
                 sentence = row[idx_info + i*3 + 2].lower()
                 for j in range(3):
                     paraphrase = row[idx_paraphrase + i*3 + j].replace('\n', ' ').lower()
-                    writer.writerow([ttid, thingtalk, sentence, paraphrase])
+                    if inp_format == 'tt':
+                        writer.writerow([ttid, tt, sentence, paraphrase])
+                    else:
+                        writer.writerow([ttid, target_json, sentence, paraphrase])
 
 
 def tt_to_sempre(path):
@@ -53,8 +59,11 @@ def clean(path):
 
 
 def main():
-    path = os.path.join(sys.argv[1])
-    format(path)
+    # argv[1] = 'tt' or 'json'
+    inp_format = sys.argv[1]
+    assert (inp_format == 'tt' or inp_format == 'json'), "wrong input format: %s" % inp_format
+    path = os.path.join(sys.argv[2])
+    format(inp_format, path)
     tt_to_sempre(path)
     clean(path)
 
