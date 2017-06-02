@@ -13,38 +13,40 @@ const Q = require('q');
 
 const db = require('../util/db');
 
-function processOne(dbClient, schema) {
+function processOne(dbClient, device) {
     try {
-        var manifest = JSON.parse(schema.meta);
+        var manifest = JSON.parse(device.code);
     } catch(e) {
-        console.log('Failed to parse meta in ' + schema.schema_id + ' version ' + schema.version);
+        console.log('Failed to parse meta in ' + device.device_id + ' version ' + device.version);
         return;
     }
-    var kindCanonical = schema.kind_canonical;
 
     var changed = true;
-    for (var ftype of [0,1,2]) {
+    for (var ftype of ['triggers','queries','actions']) {
         var where = (manifest[ftype] || {});
         for (var name in where) {
             var inv = where[name];
-            if (!inv.canonical)
-                continue;
-            if (inv.canonical.endsWith(' on ' + kindCanonical))
-                continue;
-            inv.canonical += ' on ' + kindCanonical;
+            inv.args.forEach((arg) => {
+                if (ftype === 'actions') {
+                    // action
+                    arg.required = arg.is_input = true;
+                } else {
+                    arg.is_input = arg.required;
+                }
+            });
             changed = true;
         }
     }
     if (!changed)
         return;
 
-    return db.query(dbClient, 'update device_schema_version set meta = ? where schema_id = ? and version = ?', [JSON.stringify(manifest), schema.schema_id, schema.version])
-        .then(() => console.log('Processed ' + schema.schema_id + ' at version ' + schema.version));
+    return db.query(dbClient, 'update device_code_version set code = ? where device_id = ? and version = ?', [JSON.stringify(manifest), device.device_id, device.version])
+        .then(() => console.log('Processed ' + device.device_id + ' at version ' + device.version));
 }
 
 function main() {
     db.withTransaction((dbClient) => {
-        return db.selectAll(dbClient, "select * from device_schema_version, device_schema where id = schema_id").then((devices) => {
+        return db.selectAll(dbClient, "select * from device_code_version").then((devices) => {
             return Q.all(devices.map((d) => processOne(dbClient, d)));
         });
     }).then(() => process.exit()).done();

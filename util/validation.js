@@ -43,8 +43,13 @@ module.exports = {
                 }
                 arg.question = arg.question || '';
                 arg.required = arg.required || false;
+                arg.is_input = arg.is_input || false;
+                if (!arg.is_input && what === 'action')
+                    throw new Error('Action ' + name + ' cannot have output argument ' + arg.name);
                 if (arg.required && !arg.question)
                     throw new Error('Required argument ' + name + '.' + arg.name + ' must have a slot filling question');
+                if (arg.required && !arg.is_input)
+                    throw new Error('Argument ' + name + '.' + arg.name + ' cannot be both output and required');
             }
         }
     },

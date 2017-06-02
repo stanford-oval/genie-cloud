@@ -89,7 +89,7 @@ block content
 
   mixin invocation(inv, name)
     li
-      code #{name}(#{inv.args.map(function(p, i) { return p + ' : ' + inv.schema[i]; }).join(', ')})
+      code #{name}(#{inv.args.map(function(p, i) { return (inv.is_input[i] ? ('in ' + (inv.required[i] ? 'req ' : 'opt ')) : 'out ') + p + ' : ' + inv.schema[i]; }).join(', ')})
       if inv.doc
         | : #{inv.doc}
       br

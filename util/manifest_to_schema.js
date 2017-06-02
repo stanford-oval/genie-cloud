@@ -26,13 +26,15 @@ module.exports = {
                     canonical: ast[name].canonical,
                     args: [],
                     questions: [],
-                    required: []
+                    required: [],
+                    is_input: []
                 };
                 for (var arg of ast[name].args) {
                     out[name].push(arg.type);
                     outMeta[name].args.push(arg.name);
                     outMeta[name].questions.push(arg.question);
-                    outMeta[name].required.push(arg.required);
+                    outMeta[name].required.push(!!arg.required);
+                    outMeta[name].is_input.push(!!arg.is_input);
                 };
             }
         }
@@ -63,12 +65,14 @@ module.exports = {
                 var argnames = channelMeta.args || (schemas[name].map((_, i) => ('arg' + (i+1))));
                 var questions = channelMeta.questions || [];
                 var argrequired = channelMeta.required || [];
+                var argsinput = channelMeta.is_input || [];
                 schemas[name].forEach(function(schema, i) {
                     args.push({
                         type: schema,
                         name: argnames[i],
                         question: questions[i] || '',
                         required: argrequired[i] || false,
+                        is_input: argisinput[i] || false,
                     });
                 });
                 out[name] = {

@@ -83,7 +83,7 @@ block content
 
   mixin invocation(inv, name)
     li
-      code #{name}(#{inv.args.map(function(a) { return a.name + ' : ' + a.type; }).join(', ')})
+      code #{name}(#{inv.args.map(function(a) { return (a.is_input ? ('in ' + (a.required ? 'req ' : 'opt ')) : 'out ') + a.name + ' : ' + a.type; }).join(', ')})
       if inv.doc
         | : #{inv.doc}
       if device.global_name
