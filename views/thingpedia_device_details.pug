@@ -39,7 +39,7 @@ block content
           = _("The translation for this account in your language is incomplete. ")
         else
           = _("The translation for this device in your language is incomplete. ")
-        a(href='/thingpedia/translate/by-id/' + device.global_name).btn.btn-default= _("Contribute translation")
+        a(href='/thingpedia/translate/by-id/' + device.primary_kind).btn.btn-default= _("Contribute translation")
 
   aside#device-icon-large
     img(src=S3_CLOUDFRONT_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
@@ -51,8 +51,8 @@ block content
       i= _("This is a builtin interface in every ThingEngine installation.")
 
   if user && user.developer_org !== null
-    h2.device-subtitle#device-version= _("Package: ")
-      = device.primary_kind
+    h2.device-subtitle#device-version= _("Class: ")
+      code= '@' + device.primary_kind
       if device.approved_version === null
         = _(", version none (approved), %d (developer)").format(device.developer_version)
       else if device.approved_version !== device.developer_version
@@ -60,20 +60,15 @@ block content
       else
         = _(", version %d").format(device.approved_version)
 
-  if device.global_name
-    h2.device-subtitle= _("Name: ")
-      a(href='/thingpedia/schemas/by-id/' + device.global_name)
-        code @#{device.global_name}
-
   if device.types.length > 0
-    h2.device-subtitle= _("Types: ")
+    h2.device-subtitle= _("Extends: ")
       for k in device.types
         = " "
         a(href='/thingpedia/schemas/by-id/' + k)
           span.label.label-default= k
 
   if device.child_types.length > 0
-    h2.device-subtitle Child Types:
+    h2.device-subtitle Child Devices:
       for k in device.child_types
         | &#x20;
         a(href='/thingpedia/schemas/by-id/' + k)
@@ -86,16 +81,15 @@ block content
       code #{name}(#{inv.args.map(function(a) { return (a.is_input ? ('in ' + (a.required ? 'req ' : 'opt ')) : 'out ') + a.name + ' : ' + a.type; }).join(', ')})
       if inv.doc
         | : #{inv.doc}
-      if device.global_name
-        br
-        = _("Canonical: ")
-        span.canonical= inv.canonical
-        br
-        = _("Local Confirmation: ")
-        span.confirmation= inv.confirmation
-        br
-        = _("Remote Confirmation: ")
-        span.confirmation_remote= inv.confirmation_remote
+      br
+      = _("Canonical: ")
+      span.canonical= inv.canonical
+      br
+      = _("Local Confirmation: ")
+      span.confirmation= inv.confirmation
+      br
+      = _("Remote Confirmation: ")
+      span.confirmation_remote= inv.confirmation_remote
 
   if Object.keys(triggers).length > 0
     h2.device-subtitle= _("Triggers")
@@ -144,7 +138,8 @@ block content
             a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).delete-example-btn
               = _("Delete")
   else
-    p#no-commands= _("This device has no commands of its own. You might find how to interact with it by clicking on one of its types.")
+    // this cannot really happen anymore, because we show commands of the child types too
+    p#no-commands= _("This device has no commands of its own.")
 
   div.row#device-details-actions
     //div.col-md-2
@@ -156,14 +151,13 @@ block content
         form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
-      if device.global_name
-        div.col-md-2
-          a.btn.btn-default.btn-block(href='/thingpedia/api/random-rule/by-kind/' + device.global_name + '?developer_key=' + user.developer_key)
-            = _("Generate sentences")
+      div.col-md-2
+        a.btn.btn-default.btn-block(href='/thingpedia/api/random-rule/by-kind/' + device.primary_kind + '?developer_key=' + user.developer_key)
+          = _("Generate sentences")
       div.col-md-2
         a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/templates/turk-template.html')= _("MTurk Template")
     div.col-md-2
       a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip')= _("Download code")
-    if authenticated && user.locale !== 'en-US' && device.global_name
+    if authenticated && user.locale !== 'en-US'
         div.col-md-2
-          a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.global_name)= _("Translate")
+          a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind)= _("Translate")
