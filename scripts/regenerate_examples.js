@@ -71,7 +71,7 @@ function main() {
                     });
 
                     return Q.all(rows.map(function(row) {
-                        if (row.kind_type === 'primary')
+                        if (row.kind_type === 'global')
                             return;
 
                         return Q.try(function() {

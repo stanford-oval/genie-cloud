@@ -58,7 +58,7 @@ def main():
     cursor = conn.cursor(cursorclass=MySQLdb.cursors.DictCursor)
     cursor.execute("select kind, name, confirmation, confirmation_remote, version from "
                    + "device_schema ds, device_schema_channel_canonicals dsc where ds.id = dsc.schema_id and"
-                   + " dsc.version = ds.developer_version and kind_type <> 'primary' and language = 'en'")
+                   + " dsc.version = ds.developer_version and kind_type <> 'global' and language = 'en'")
     for row in cursor.fetchall():
         if row['confirmation_remote'] != row['confirmation']:
             continue

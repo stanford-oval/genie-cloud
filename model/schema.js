@@ -194,7 +194,7 @@ module.exports = {
     },
 
     getAllForList: function(client, id) {
-        return db.selectAll(client, "select * from device_schema where kind_type <> 'primary' order by kind_type desc, kind asc");
+        return db.selectAll(client, "select * from device_schema where kind_type <> 'global' order by kind_type desc, kind asc");
     },
 
     getByKind: function(client, kind) {
