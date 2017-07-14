@@ -138,11 +138,7 @@ function chooseSchema(allSchemas, policy) {
 
 function getAllSchemas(dbClient) {
     return db.selectAll(dbClient,
-          " (select ds.*, dck.kind as domain from device_schema ds, device_class dc, device_class_kind dck"
-        + "  where ds.kind = dc.global_name and dc.id = dck.device_id and ds.approved_version is not null and dck.kind"
-        + "  in ('media', 'home', 'social-network', 'communication', 'data-management', 'health', 'service'))"
-        + " union"
-        + " (select ds.*, null from device_schema ds where ds.kind_type = 'other' and ds.approved_version is not null)");
+          "select ds.*, null from device_schema ds where ds.kind_type in ('other','primary') and ds.approved_version is not null");
 }
 
 function chooseChannel(schemaRetriever, kind, form) {

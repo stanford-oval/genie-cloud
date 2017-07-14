@@ -85,11 +85,11 @@ function getDetails(fn, param, req, res) {
                 }).then(function(row) { d.code = row.code; })
                 .catch(function(e) { d.code = null; });
             }).tap(function(d) {
-                if (!d.global_name || language === 'en') {
+                if (language === 'en') {
                     d.translated = true;
                     return;
                 }
-                return schema.isKindTranslated(client, d.global_name, language).then(function(t) {
+                return schema.isKindTranslated(client, d.primary_kind, language).then(function(t) {
                     d.translated = t;
                 });
             }).tap(function(d) {
@@ -97,7 +97,7 @@ function getDetails(fn, param, req, res) {
                 if (req.user && req.user.developer_status >= user.DeveloperStatus.ADMIN)
                     minClickCount = -1;
 
-                return exampleModel.getByKinds(client, true, [d.global_name], language, minClickCount).then(function(examples) {
+                return exampleModel.getByKinds(client, true, [d.primary_kind], language, minClickCount).then(function(examples) {
                     d.examples = examples;
                 });
             })

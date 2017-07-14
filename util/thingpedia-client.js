@@ -334,8 +334,11 @@ module.exports = class ThingpediaClientCloud {
                 devices.forEach((d) => {
                     try {
                         this._deviceMakeFactory(d);
-                        if (d.factory)
-                            result[d.global_name] = d.factory;
+                        if (d.factory) {
+                            if (d.global_name)
+                                result[d.global_name] = d.factory;
+                            result[d.primary_kind] = d.factory;
+                        }
                     } catch(e) {}
                 });
 

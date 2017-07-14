@@ -51,11 +51,9 @@ router.get('/', function(req, res) {
 
         return deviceModel.getAll(dbClient).then((devices) => {
             devices.forEach((d) => {
-                if (!d.global_name)
-                    return;
                 if (!d.approved_version)
                     return;
-                deviceMap[d.global_name] = {
+                deviceMap[d.primary_kind] = {
                     name: d.name,
                     primary_kind: d.primary_kind,
                     id: d.id,
@@ -68,18 +66,18 @@ router.get('/', function(req, res) {
             return exampleModel.getBaseByLanguage(dbClient, 'en');
         }).then((examples) => {
             const kindMap = {
-                'thermostat': 'nest',
-                'light-bulb': 'hue',
-                'security-camera': 'nest',
-                'car': 'tesla',
-                'speaker': 'bluetooth_speaker',
-                'scale': 'bodytrace',
-                'heatpad': 'parklon_heatpad',
-                'activity-tracker': 'jawbone_up',
-                'fitness-tracker': 'jawbone_up',
-                'heartrate-monitor': 'jawbone_up',
-                'sleep-tracker': 'jawbone_up',
-                'tumblr-blog': 'tumblr'
+                'thermostat': 'com.nest',
+                'light-bulb': 'com.hue',
+                'security-camera': 'com.nest',
+                'car': 'com.tesla',
+                'speaker': 'org.thingpedia.bluetooth.speaker.a2dp',
+                'scale': 'com.bodytrace.scale',
+                'heatpad': 'com.parklonamerica.heatpad',
+                'activity-tracker': 'com.jawbone.up',
+                'fitness-tracker': 'com.jawbone.up',
+                'heartrate-monitor': 'com.jawbone.up',
+                'sleep-tracker': 'com.jawbone.up',
+                'tumblr-blog': 'com.tumblr'
             };
 
             var dupes = new Set;

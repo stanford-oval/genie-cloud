@@ -488,7 +488,6 @@ The manifest is written in JSON, and looks like this
       "auth": {
         "type": "none"
       },
-      "global-name": "foo",
       "triggers": {
         "trigger1": {
             "args": [{
@@ -606,8 +605,7 @@ Each of the argument includes the following attributes.
 #### canonical
 The canonical form of the channel name, used by the semantic parser;
 it's a good idea to omit stop words for this, and to use a longer expression
-such as `set target temperature`; you should assume that the full canonical
-form of the channel is `<canonical> on <global-name>`, eg "send message on foo"
+such as `set target temperature on thermostat`.
 
 #### confirmation
 A string used to construct the final confirmation question

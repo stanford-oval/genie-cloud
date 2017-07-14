@@ -32,7 +32,6 @@ router.use(multer({ dest: platform.getTmpDir() }).fields([
 router.use(csurf({ cookie: false }));
 
 const DEFAULT_CODE = {"module_type": "org.thingpedia.v1",
-                      "global-name": "my_device",
                       "params": {},
                       "auth": {"type": "none"},
                       "types": [],
@@ -193,11 +192,8 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
     });
 }
 
-function ensureExamples(dbClient, ast) {
-    if (!ast['global-name'])
-        return;
-
-    return generateExamples(dbClient, ast['global-name'], ast);
+function ensureExamples(dbClient, kind, ast) {
+    return generateExamples(dbClient, kind, ast);
 }
 
 function uploadZipFile(req, obj, ast, stream) {
@@ -297,7 +293,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (ast === null)
                     return;
 
-                return ensureExamples(dbClient, ast);
+                return ensureExamples(dbClient, kind, ast);
             }).then(function(ast) {
                 if (ast === null)
                     return null;
