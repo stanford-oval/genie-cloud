@@ -54,6 +54,47 @@ $(function() {
                 type: 'string',
                 title: 'Canonical Form',
             },
+            formatted: {
+                type: 'array',
+                title: 'Formatted Output',
+                items: {
+                    title: "Message",
+                    type: ['string', 'object'],
+                    properties: {
+                        type: {
+                            type: 'string',
+                            enum: ['picture', 'rdl', 'code'],
+                            title: "Output Type",
+                            required: true,
+                        },
+                        url: {
+                            type: 'string',
+                            title: "Picture URL",
+                            required: false,
+                        },
+                        callback: {
+                            type: 'string',
+                            title: "Deep-Link URL",
+                            required: false,
+                        },
+                        webCallback: {
+                            type: 'string',
+                            title: "Link URL",
+                            required: false,
+                        },
+                        displayTitle: {
+                            type: 'string',
+                            title: "Link Title",
+                            required: false,
+                        },
+                        displayText: {
+                            type: 'string',
+                            title: "Link Text",
+                            required: false,
+                        },
+                    }
+                }
+            },
             examples: {
                 type: 'array',
                 title: 'Example Commands',
