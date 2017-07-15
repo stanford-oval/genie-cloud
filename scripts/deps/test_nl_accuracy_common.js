@@ -19,6 +19,8 @@ const deepEqual = require('deep-equal');
 const ThingTalk = require('thingtalk');
 
 const db = require('../../util/db');
+
+const SchemaRetriever = require('./schema_retriever');
 const SempreClient = require('./sempreclient');
 
 function deq(a, b) {
@@ -75,6 +77,8 @@ class PromiseQueue extends events.EventEmitter {
 
     done() {
         this._done = true;
+        if (this._queue.isEmpty)
+            this.emit('done');
     }
 
     enqueue(task) {
@@ -124,8 +128,8 @@ function invocationToChannel(invocation) {
 
 function logFail(ex, parsedAnswer, parsedTarget) {
     console.log("Utterance: " + ex.utterance);
-    console.log("Expected: " + parsedTarget);
-    console.log("Parsed: " + parsedAnswer);
+    console.log("Expected: " + JSON.stringify(parsedTarget));
+    console.log("Parsed: " + JSON.stringify(parsedAnswer));
     console.log();
 }
 
@@ -262,7 +266,7 @@ function compare(candidates, ex, state, succeeded) {
 
     substate.programs.add(normalizedString);
     substate.predictedPrograms.add(JSON.stringify(parsedAnswer));
-    substate.functions.add(getFunction(parsedTarget));
+    //substate.functions.add(getFunction(parsedTarget));
     substate.total++;
 
 
@@ -273,7 +277,7 @@ function compare(candidates, ex, state, succeeded) {
         substate.correctPrograms[0].add(normalizedString);
         substate.oracle[0] = increase(substate.oracle[0]);
         substate.oracleFunctions[0] = increase(substate.oracleFunctions[0]);
-        substate.correctFunctions[0].add(getFunction(parsedAnswer));
+        //substate.correctFunctions[0].add(getFunction(parsedAnswer));
         succeeded.push(ex);
         return;
     }
@@ -286,7 +290,7 @@ function compare(candidates, ex, state, succeeded) {
         substate.correctPrograms[0].add(normalizedString);
         substate.oracle[0] = increase(substate.oracle[0]);
         substate.oracleFunctions[0] = increase(substate.oracleFunctions[0]);
-        substate.correctFunctions[0].add(getFunction(parsedAnswer));
+        //substate.correctFunctions[0].add(getFunction(parsedAnswer));
         succeeded.push(ex);
         return;
     }
@@ -312,7 +316,7 @@ function compare(candidates, ex, state, succeeded) {
         var parsedCandidate = JSON.parse(candidates[i].answer);
         if (isPrimitive(parsedCandidate) && isCorrectFunction(parsedCandidate, parsedTarget)) {
             substate.oracleFunctions[i] = increase(substate.oracleFunctions[i]);
-            substate.correctFunctions[i].add(getFunction(parsedCandidate));
+            //substate.correctFunctions[i].add(getFunction(parsedCandidate));
             break;
         }
     }
@@ -328,18 +332,16 @@ function compare(candidates, ex, state, succeeded) {
 
     if (!arrayEqual(answerKeys, targetKeys)) {
         console.log(ex.id + ' wrong everything');
-        logFail(ex, parsedAnswer, parsedTarget);
         substate.wrong_everything++;
-        return;
+        return logFail(ex, parsedAnswer, parsedTarget);
     }
 
     // good command type, let's see if we can refine
 
     if (['simple','rule'].indexOf(answerKeys[0]) < 0) {
         console.log(ex.id + ' wrong everything');
-        logFail(ex, parsedAnswer, parsedTarget);
         substate.wrong_but_ok_type++;
-        return;
+        return logFail(ex, parsedAnswer, parsedTarget);
     }
 
     var answerKinds = [];
@@ -378,9 +380,8 @@ function compare(candidates, ex, state, succeeded) {
 
     if (!arrayEqual(answerKinds, targetKinds)) {
         console.log(ex.id + ' wrong but ok type');
-        logFail(ex, parsedAnswer, parsedTarget);
         substate.wrong_but_ok_type++;
-        return;
+        return logFail(ex, parsedAnswer, parsedTarget);
     }
 
     // good kind, let's see if we can refine
@@ -451,25 +452,23 @@ function compare(candidates, ex, state, succeeded) {
     var principalWrong = false;
     if (!arrayEqual(answerPrincipals, targetPrincipals)) {
         console.log(ex.id + ' wrong but ok kind');
-        logFail(ex, parsedAnswer, parsedTarget);
         substate.wrong_but_ok_kind++;
         principalWrong = true;
-        return;
+        return logFail(ex, parsedAnswer, parsedTarget);
     }
 
     // good principal, let's see if we can refine
 
     if (!isCorrectFunction(parsedAnswer, parsedTarget)) {
         console.log(ex.id + ' wrong but ok principal');
-        logFail(ex, parsedAnswer, parsedTarget);
         substate.wrong_but_ok_principal++;
-        return;
+        return logFail(ex, parsedAnswer, parsedTarget);
     }
 
     // good kind and channel, that's the most we can do
     console.log(ex.id + ' wrong but ok channel');
-    logFail(ex, parsedAnswer, parsedTarget);
     substate.wrong_but_ok_channel++;
+    return logFail(ex, parsedAnswer, parsedTarget);
 }
 
 module.exports = function() {
@@ -559,12 +558,10 @@ module.exports = function() {
         state.total++;
 
         return sempre.sendUtterance(ex.utterance).then(function(candidates) {
-            try {
-                compare(candidates, ex, state, succeeded);
-            } catch(e) {
-                console.error('Failed to compare: ' + e.message);
-                console.error(e.stack);
-            }
+            return compare(candidates, ex, state, succeeded)
+        }).catch((e) => {
+            console.error('Failed to compare: ' + e.message);
+            console.error(e.stack);
         });
     });
     queue.on('done', () => {
@@ -624,10 +621,10 @@ module.exports = function() {
             }
         }
 
-        console.log('Succeeded: ');
+        /*console.log('Succeeded: ');
         succeeded.forEach(function(ex){
             console.log(ex.id + '\t' + ex.utterance);
-        });
+        });*/
         console.log('Final state: ' + util.inspect(state, { depth: null }));
 
         var overall = state.simple.total + state.rule.total;
