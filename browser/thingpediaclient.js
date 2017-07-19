@@ -52,7 +52,7 @@ module.exports = class ThingpediaClientBrowser {
         to += '?version=2&locale=' + this.locale;
         if (this.developerKey)
             to += '&developer_key=' + this.developerKey;
-        return this._simpleRequest(to);
+        return this._simpleRequest(to, true);
     }
 
     getMetas(kinds) {

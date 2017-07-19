@@ -87,10 +87,8 @@ module.exports = {
             + " order by type desc, id asc",
             [base, language, kinds, minClickCount,
              base, language, kinds, minClickCount,
-             base, language, kinds, kinds, minClickCount,
              language, kinds, minClickCount,
-             language, kinds, minClickCount,
-             language, kinds, kinds, minClickCount]);
+             language, kinds, minClickCount]);
     },
 
     getBaseBySchema(client, schemaId, language) {

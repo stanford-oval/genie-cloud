@@ -45,9 +45,9 @@ module.exports = class ThingTalkTrainer {
     }
 
     learnThingTalk(text) {
-        var sempre = SempreSyntax.toSEMPRE(text, false);
         var raw = this._raw;
-        return SempreSyntax.verify(this._schemaRetriever, sempre).then(() => {
+        return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((prog) => {
+            var sempre = SEMPRESyntax.toSEMPRE(prog, false);
             var json = JSON.stringify(sempre);
             return this.sempre.onlineLearn(raw, json);
         });
