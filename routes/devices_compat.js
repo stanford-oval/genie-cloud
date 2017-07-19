@@ -33,9 +33,7 @@ router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, 
             };
             return devFactory.runOAuth2('org.thingpedia.builtin.omlet', saneReq);
         }).then(function() {
-            return engine.messaging.getOwnId();
-        }).then(function(ownId) {
-            return engine.messaging.getAccountById(ownId);
+            return engine.messaging.account;
         });
     }).then(function(omletId) {
         return db.withTransaction(function(dbClient) {

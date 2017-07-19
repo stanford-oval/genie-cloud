@@ -31,6 +31,7 @@ where global_name is not null and ds2.kind = primary_kind and ds1.kind = global_
 function migrateThingpediaExamples(dbClient, schemaIdMap) {
     let migrations = Array.from(schemaIdMap.entries());
 
+    return Q();
     return Q.all(migrations.map(([from, to]) => {
         return db.query(dbClient, `update example_utterances set schema_id = ? where schema_id = ?`, [to, from]);
     }));
@@ -68,7 +69,7 @@ function processExample(dbClient, ex, nameMap) {
             name = name.id || name.value;
         let match = /^(?:tt:)?(\$?[a-z0-9A-Z_.-]+)\.([a-z0-9A-Z_]+)$/.exec(name);
         if (match === null)
-            throw new TypeError('Invalid selector ' + name);
+            throw new TypeError('Invalid selector ' + name + ' in example ' + ex.id);
 
         let [kind, channel] = [match[1], match[2]];
         if (nameMap.has(kind)) {
@@ -77,7 +78,23 @@ function processExample(dbClient, ex, nameMap) {
         }
     }
 
-    if (parsed.rule) {
+    if (parsed.setup) {
+        if (parsed.setup.rule) {
+            if (parsed.setup.rule.rule) {
+                processInvocation(parsed.setup.rule.rule.trigger);
+                processInvocation(parsed.setup.rule.rule.query);
+                processInvocation(parsed.setup.rule.rule.action);
+            } else {
+                processInvocation(parsed.setup.rule.trigger);
+                processInvocation(parsed.setup.rule.query);
+                processInvocation(parsed.setup.rule.action);
+            }
+        } else {
+            processInvocation(parsed.setup.trigger);
+            processInvocation(parsed.setup.query);
+            processInvocation(parsed.setup.action);
+        }
+    } else if (parsed.rule) {
         processInvocation(parsed.rule.trigger);
         processInvocation(parsed.rule.query);
         processInvocation(parsed.rule.action);
@@ -115,13 +132,13 @@ function main() {
             console.log('Obtained migration map');
             return migrateThingpediaExamples(dbClient, schemaIdMap).then(() => {
                 console.log('Migrated Thingpedia examples');
-                return migrateExampleRuleSchema(dbClient, schemaIdMap);
+                //return migrateExampleRuleSchema(dbClient, schemaIdMap);
             }).then(() => {
                 console.log('Migrated example_rule_schema');
-                return migrateLexicon(dbClient, schemaIdMap);
+                //return migrateLexicon(dbClient, schemaIdMap);
             }).then(() => {
                 console.log('Migrated lexicon');
-                return migrateLexicon2(dbClient, schemaIdMap);
+               // return migrateLexicon2(dbClient, schemaIdMap);
             }).then(() => {
                 console.log('Migrated lexicon2');
                 return migrateExamples(dbClient, nameMap);

@@ -229,6 +229,9 @@ router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
                         schema: english[what][name].schema,
                         required: english[what][name].required,
                     };
+                    english[what][name].args = english[what][name].args.map((arg, i) => {
+                        return { name: arg, type: english[what][name].schema[i], argcanonical: argcanonicals[i], required: english[what][name].required[i], question: questions[i] };
+                    });
 
                     var examples = req.body[what + '_examples_' + name] || [];
                     examples = examples.filter((ex) => !!ex);

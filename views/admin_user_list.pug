@@ -58,6 +58,8 @@ block content
         th= _("User name")
         th= _("Human name")
         th= _("Login methods")
+        th= _("Locale")
+        th= _("Timezone")
         th= _("Roles")
         th= _("Omlet?")
         th= _("Engine?")
@@ -79,6 +81,8 @@ block content
             - if (user.google_id !== null)
               - methods.push("Google")
             | #{methods.join(', ')}
+          td= user.locale
+          td= user.timezone
           td
             if user.roles & 0x1
               span(title=user.developer_key)= _("Site Admin")
