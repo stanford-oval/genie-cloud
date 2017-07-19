@@ -162,7 +162,7 @@ const LIST_TO_GRAMMAR = {
     command: 'commands',
 }
 
-function argToCanonical(grammar, buffer, arg, scope, useArgName) {
+function argToCanonical(grammar, buffer, arg, scope) {
     if (arg.type.startsWith('Entity(')) {
         if (arg.value.display)
             buffer.push(tokenize.tokenize(arg.value.display).join(' '));

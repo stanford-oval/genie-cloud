@@ -12,7 +12,7 @@ const http = require('http');
 const https = require('https');
 const Url = require('url');
 
-const URL = 'https://pepperjack.stanford.edu';
+const URL = process.env.SEMPRE_URL || 'https://pepperjack.stanford.edu';
 
 function getModule(parsed) {
     if (parsed.protocol === 'https:')
