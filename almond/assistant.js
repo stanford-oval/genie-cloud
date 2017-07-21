@@ -32,6 +32,9 @@ module.exports = class Assistant extends events.EventEmitter {
     parse(sentence) {
         return this._api.parse(sentence);
     }
+    createApp(data) {
+        return this._api.createApp(data);
+    }
 
     notifyAll(data) {
         return Q.all(Object.keys(this._conversations).map(function(id) {
@@ -72,4 +75,4 @@ module.exports = class Assistant extends events.EventEmitter {
         delete this._conversations[feedId];
     }
 }
-module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'parse'];
+module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'parse', 'createApp'];

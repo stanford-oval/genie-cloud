@@ -21,11 +21,214 @@ const Config = require('../config');
 // FIXME move this somewhere better
 const SempreClient = require('almond/lib/sempreclient');
 const Intent = require('almond/lib/semantic').Intent;
+const Formatter = require('almond/lib/formatter');
 
 module.exports = class AlmondApi {
     constructor(engine) {
         this._engine = engine;
         this._sempre = new SempreClient(undefined, engine.platform.locale);
+    }
+
+    _findPrimaryIdentity() {
+        let identities = this._engine.messaging.getIdentities();
+        var omletId = null;
+        var email = null;
+        var phone = null;
+        for (var i = 0; i < identities.length; i++) {
+            var id = identities[i];
+            if (id.startsWith('omlet:') && omletId === null)
+                omletId = id;
+            else if (id.startsWith('email:') && email === null)
+                email = id;
+            else if (id.startsWith('phone:') && phone === null)
+                phone = id;
+        }
+        if (phone !== null)
+            return phone;
+        if (email !== null)
+            return email;
+        if (omletId !== null)
+            return omletId;
+        return null;
+    }
+
+    createApp(data) {
+        let code = data.code;
+        let slots = data.slots || {};
+        let locations = data.locations || {};
+        let devices = data.devices || {};
+
+        let sharedPrefs = this._engine.platform.getSharedPreferences();
+        for (loc in locations) {
+            if (loc === 'home' || loc === 'work') {
+                let location = Ast.Value.fromJSON(ThingTalk.Type.Location, locations[loc]);
+                sharedPrefs.set('context-$context.location.' + loc, location.toJS());
+            }
+        }
+
+        return ThingTalk.Grammar.parseAndTypecheck(code, this._engine.schemas, true).then((program) => {
+            // step 1: list the primitives
+            let primitives = [];
+            program.rules.forEach((rule, i) => {
+                if (rule.trigger)
+                    primitives.push([`r${i}_t`, rule.trigger]);
+                rule.queries.forEach((query, j) => {
+                    primitives.push([`r${i}_q${j}`, query]);
+                })
+                rule.actions.forEach((action, j) => {
+                    if (!action.selector.isBuiltin)
+                        primitives.push([`r${i}_a${j}`, action]);
+                });
+            });
+
+            // step 2, for each primitive...
+            return Promise.all(primitives.map(([primId, prim]) => {
+                return Promise.resolve().then(() => {
+                    if (prim.selector.principal) {
+                        if (prim.selector.principal.type == 'tt:contact_name') {
+                            let slot = slots[`principal_${primId}`];
+                            if (!slot)
+                                throw new TypeError(`missing slot principal_${primId}`);
+                            prim.selector.principal = Ast.Value.fromJSON(slot);
+                        }
+                        let messaging = this._engine.messaging;
+                        let principal = prim.selector.principal;
+                        if (principal.value.startsWith(messaging.type + '-account:'))
+                            return;
+                        return messaging.getAccountForIdentity(principal.value).then((account) => {
+                            if (account) {
+                                let accountPrincipal = messaging.type + '-account:' + account;
+                                console.log('Converted ' + principal.value + ' to ' + accountPrincipal);
+                                prim.selector.principal = Ast.Value.Entity(accountPrincipal, 'tt:contact', principal.display);
+                            }
+                            return true;
+                        });
+                    } else {
+                        if (prim.selector.id === null)
+                            prim.selector.id = devices[primId];
+                        if (typeof prim.selector.id !== 'string')
+                            throw new TypeError(`must select a device for primitive ${primId}`);
+                        if (!this._engine.devices.hasDevice(prim.selector.id)) {
+                            throw new TypeError(`invalid device ${prim.selector.id} for primitive ${primId}`);
+                        }
+                    }
+                }).then(() => {
+                    let [toFill, toConcretize] = ThingTalk.Generate.computeSlots(prim);
+                    if (toFill.length > 0)
+                        throw new TypeError(`cannot have slots in this API, call /parse first`);
+                    for (let slot of toConcretize) {
+                        if (slot.value.isLocation && slot.value.value.isRelative) {
+                            let relativeTag = slot.value.value.relativeTag;
+                            if (relativeTag === 'current_location')
+                                slot.value = locations['current_location'] ? Ast.Value.fromJSON(ThingTalk.Type.Location, locations['current_location']) : null;
+                            else
+                                slot.value = this._resolveUserContext('$context.location.' + relativeTag);
+                            if (!slot.value)
+                                throw new TypeError(`missing location ${relativeTag} in primitive ${primId}`);
+                        }
+                    }
+                });
+            })).then(() => {
+                let gettext = this._engine.platform.getCapability('gettext');
+                let description = Describe.describeProgram(gettext, program);
+                let name = Describe.getProgramName(gettext, program);
+
+                let icon = null;
+                for (let [primId, prim] of primitives) {
+                    if (prim.selector.kind !== 'org.thingpedia.builtin.thingengine.remote' &&
+                        !prim.selector.kind.startsWith('__dyn')
+                        && prim.selector.id) {
+                        let device = this._engine.devices.getDevice(prim.selector.id);
+                        icon = device.kind;
+                        break;
+                    }
+                }
+
+                let appMeta = slots;
+                appMeta.$icon = icon;
+
+                let [newprogram, sendprograms] = ThingTalk.Generate.factorProgram(this._engine.messaging, program);
+
+                let app = null;
+                if (newprogram !== null) {
+                    let code = Ast.prettyprint(newprogram);
+                    app = this._engine.apps.loadOneApp(code, appMeta, undefined, undefined,
+                                                       name, description, true);
+                } else {
+                    app = Promise.resolve(null);
+                }
+
+                return app.then((app) => {
+                    let identity = this._findPrimaryIdentity();
+                    for (let [principal, program] of sendprograms) {
+                        //console.log('program: ' + Ast.prettyprint(program));
+                        this._engine.remote.installProgramRemote(principal.value, identity, program).catch((e) => {
+                            if (app) {
+                                app.reportError(e);
+                                // destroy the app if the user denied it
+                                this._engine.apps.removeApp(app);
+                            } else {
+                                console.log('Ignored error from permission control request: ' + e.code + ': ' + e.message);
+                                console.log(e.stack);
+                            }
+                        });
+                    }
+
+                    // drain the queue of results from the app
+                    let results = [];
+                    let errors = [];
+
+                    let formatter = new Formatter(this._engine);
+                    function loop() {
+                        if (!app)
+                            return;
+                        return app.mainOutput.next().then(({ item: next, resolve, reject }) => {
+                            if (next.isDone) {
+                                resolve();
+                                return;
+                            }
+
+                            let value;
+                            if (next.isNotification) {
+                                return formatter.formatForType(next.outputType, next.outputValue, next.currentChannel, 'messages').then((messages) => {
+                                    results.push({ raw: next.outputValue, type: next.outputType, formatted: messages });
+                                    resolve();
+                                    return loop();
+                                }).catch((e) => {
+                                    reject(e);
+                                    return loop();
+                                });
+                            } else if (next.isError) {
+                                errors.push(next.error);
+                            } else if (next.isQuestion) {
+                                let e = new Error('User cancelled');
+                                e.code = 'ECANCELLED';
+                                reject(e);
+                            }
+                            resolve();
+                            return loop();
+                        });
+                    }
+
+                    return loop().then(() => {
+                        return {
+                            uniqueId: app.uniqueId,
+                            description: app.description,
+                            code: app.code,
+                            icon: app.icon ? Config.S3_CLOUDFRONT_HOST + '/icons/' + app.icon + '.png' : null,
+                            slots: slots,
+                            results, errors
+                        }
+                    });
+                });
+            });
+        }).catch((e) => {
+            console.error(e.stack);
+            if (e instanceof TypeError)
+                return { error: e.message };
+            else
+                throw e;
+        });
     }
 
     parse(sentence) {
@@ -81,7 +284,7 @@ module.exports = class AlmondApi {
                 name: device.name,
                 description: device.description,
                 kind: device.kind,
-                icon: Config.S3_CLOUDFRONT_HOST + '/' + device.kind + '.png',
+                icon: Config.S3_CLOUDFRONT_HOST + '/icons/' + device.kind + '.png',
             };
         }
 
@@ -145,13 +348,6 @@ module.exports = class AlmondApi {
         }
     }
 
-    _valueFromJs(category, value) {
-        if (category.isLocation)
-            return Ast.Value.Location(Ast.Location.Absolute(value.y, value.x, value.display||null));
-        else
-            return null; // FIXME handle other types when we have more context values
-    }
-
     _resolveUserContext(variable) {
         let sharedPrefs = this._engine.platform.getSharedPreferences();
 
@@ -162,7 +358,7 @@ module.exports = class AlmondApi {
             case '$context.location.work':
                 let value = sharedPrefs.get('context-' + variable);
                 if (value !== undefined)
-                    return this._valueFromJs(category, value);
+                    return Ast.Value.fromJSON(Type.Location, value);
                 else
                     return null;
             default:
@@ -288,7 +484,7 @@ module.exports = class AlmondApi {
                 }
                 if (icon === null)
                     icon = 'org.thingpedia.builtin.thingengine.builtin';
-                icon = Config.S3_CLOUDFRONT_HOST + '/' + icon + '.png';
+                icon = Config.S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png';
 
                 let commandClass = 'rule';
                 if (primitives.length === 1) {

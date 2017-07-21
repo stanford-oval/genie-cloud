@@ -27,6 +27,27 @@ function makeRandom(bytes) {
 
 var router = express.Router();
 
+const ALLOWED_ORIGINS = ['http://127.0.0.1:8080',
+    'https://thingpedia.stanford.edu', 'https://thingengine.stanford.edu',
+    'https://almond.stanford.edu'];
+
+function isOriginOk(req) {
+    if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer'))
+        return true;
+    if (!req.headers['origin'])
+        return true;
+    if (req.headers['origin'].startsWith('http://127.0.0.1'))
+        return true;
+    return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
+}
+
+function checkOrigin(req, res, next) {
+    if (isOriginOk(req))
+        next();
+    else
+        res.status(403).send('Forbidden Cross Origin Request');
+}
+
 router.use('/', function(req, res, next) {
     passport.authenticate('bearer', function(err, user, info) {
         // ignore auth failures and ignore sessions
@@ -34,7 +55,7 @@ router.use('/', function(req, res, next) {
         if (!user) { return next(); }
         req.login(user, next);
     })(req, res, next);
-}, user.requireLogIn);
+}, checkOrigin, user.requireLogIn);
 
 router.get('/parse', function(req, res, next) {
     var query = req.query.q;
@@ -47,6 +68,84 @@ router.get('/parse', function(req, res, next) {
         return EngineManager.get().getEngine(req.user.id);
     }).then(function(engine) {
         return engine.assistant.parse(query);
+    }).then((result) => {
+        res.json(result);
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).json({error:e.message});
+    });
+});
+
+function describeApp(app) {
+    return Promise.all([app.uniqueId, app.description, app.error, app.code, app.state, app.icon])
+        .then(([uniqueId, description, error, code, state, icon]) => ({
+            uniqueId, description, error: error, code, slots: state,
+            icon: icon ? Config.S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png' : null
+        }));
+}
+
+router.post('/apps/create', function(req, res, next) {
+    Q.try(() => {
+        return EngineManager.get().getEngine(req.user.id);
+    }).then(function(engine) {
+        return engine.assistant.createApp(req.body);
+    }).then((result) => {
+        if (result.error)
+            res.status(400);
+        res.json(result);
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).json({error:e.message});
+    });
+});
+
+router.get('/apps/list', function(req, res, next) {
+    Q.try(() => {
+        return EngineManager.get().getEngine(req.user.id);
+    }).then(function(engine) {
+        return engine.apps.getAllApps().then((apps) => {
+            return Promise.all(apps.map((a) => describeApp(a)));
+        });
+    }).then((result) => {
+        res.json(result);
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).json({error:e.message});
+    });
+});
+
+router.get('/apps/get/:appId', function(req, res, next) {
+    Q.try(() => {
+        return EngineManager.get().getEngine(req.user.id);
+    }).then(function(engine) {
+        return engine.apps.getApp(req.params.appId).then((app) => {
+            if (!app) {
+                res.status(404);
+                return { error: 'No such app' };
+            } else {
+                return describeApp(app);
+            }
+        });
+    }).then((result) => {
+        res.json(result);
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).json({error:e.message});
+    });
+});
+
+router.post('/apps/delete/:appId', function(req, res, next) {
+    Q.try(() => {
+        return EngineManager.get().getEngine(req.user.id);
+    }).then((engine) => {
+        return engine.apps.getApp(req.params.appId).then((app) => {
+            if (!app) {
+                res.status(404);
+                return { error: 'No such app' };
+            } else {
+                return engine.apps.removeApp(app).then(() => ({status:'ok'}));
+            }
+        });
     }).then((result) => {
         res.json(result);
     }).catch((e) => {
