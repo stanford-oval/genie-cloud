@@ -12,6 +12,7 @@ const events = require('events');
 const util = require('util');
 
 const Almond = require('almond');
+const AlmondApi = require('./almond_api');
 
 class Conversation extends Almond {
 }
@@ -24,6 +25,12 @@ module.exports = class Assistant extends events.EventEmitter {
         this._engine = engine;
         this._conversations = {};
         this._lastConversation = null;
+
+        this._api = new AlmondApi(this._engine);
+    }
+
+    parse(sentence) {
+        return this._api.parse(sentence);
     }
 
     notifyAll(data) {
@@ -65,4 +72,4 @@ module.exports = class Assistant extends events.EventEmitter {
         delete this._conversations[feedId];
     }
 }
-module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation'];
+module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'parse'];

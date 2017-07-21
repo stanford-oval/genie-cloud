@@ -36,6 +36,25 @@ router.use('/', function(req, res, next) {
     })(req, res, next);
 }, user.requireLogIn);
 
+router.get('/parse', function(req, res, next) {
+    var query = req.query.q;
+    if (!query) {
+        res.status(400).json({error:'Missing query'});
+        return;
+    }
+
+    Q.try(() => {
+        return EngineManager.get().getEngine(req.user.id);
+    }).then(function(engine) {
+        return engine.assistant.parse(query);
+    }).then((result) => {
+        res.json(result);
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).json({error:e.message});
+    });
+});
+
 class WebsocketAssistantDelegate {
     constructor(ws) {
         this._ws = ws;
