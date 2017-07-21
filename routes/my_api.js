@@ -154,6 +154,53 @@ router.post('/apps/delete/:appId', function(req, res, next) {
     });
 });
 
+class WebsocketApiDelegate {
+    constructor(ws) {
+        this._ws = ws;
+    }
+
+    send(str) {
+        try {
+            return this._ws.send(str);
+        } catch(e) {
+            // ignore if the socket is closed
+            if (e.message !== 'not opened')
+                throw e;
+        }
+    }
+}
+WebsocketApiDelegate.prototype.$rpcMethods = ['send'];
+
+router.ws('/results', function(ws, req, next) {
+    var user = req.user;
+
+    Q.try(() => {
+        return EngineManager.get().getEngine(user.id);
+    }).then(function(engine) {
+        const onclosed = (userId) => {
+            if (userId === user.id) {
+                ws.close();
+            }
+            EngineManager.get().removeListener('socket-closed', onclosed);
+        };
+        EngineManager.get().on('socket-closed', onclosed);
+
+        let delegate = new WebsocketApiDelegate(ws);
+        ws.on('error', (err) => {
+            ws.close();
+        });
+        ws.on('close', () => {
+            engine.assistant.removeOutput(delegate); // ignore errors if engine died
+            delegate.$free();
+        });
+
+        return engine.assistant.addOutput(delegate);
+    }).catch((error) => {
+        console.error('Error in API websocket: ' + error.message);
+        ws.close();
+    });
+});
+
 class WebsocketAssistantDelegate {
     constructor(ws) {
         this._ws = ws;
@@ -214,6 +261,7 @@ router.ws('/conversation', function(ws, req, next) {
         ws.on('close', () => {
             if (opened)
                 engine.assistant.closeConversation(id); // ignore errors if engine died
+            delegate.$free();
             opened = false;
         });
 

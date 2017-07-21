@@ -27,6 +27,41 @@ module.exports = class AlmondApi {
     constructor(engine) {
         this._engine = engine;
         this._sempre = new SempreClient(undefined, engine.platform.locale);
+        this._formatter = new Formatter(this._engine);
+
+        this._outputs = new Set;
+    }
+
+    _sendWs(obj) {
+        let str = JSON.stringify(obj);
+        for (let out of this._outputs)
+            out.send(str);
+    }
+    addOutput(out) {
+        this._outputs.add(out);
+    }
+    removeOutput(out) {
+        this._outputs.delete(out);
+    }
+
+    notify(appId, icon, outputType, outputValue, currentChannel) {
+        return this._formatter.formatForType(outputType, outputValue, currentChannel, 'messages').then((messages) => {
+            this._sendWs({ result: {
+                appId: appId,
+                icon: icon ? Config.S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png' : null,
+                raw: outputValue,
+                type: outputType,
+                formatted: messages
+            }});
+        });
+    }
+
+    notifyError(appId, icon, error) {
+        this._sendWs({ error: {
+            appId: appId,
+            icon: icon ? Config.S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png' : null,
+            error: error
+        }})
     }
 
     _findPrimaryIdentity() {
@@ -178,7 +213,6 @@ module.exports = class AlmondApi {
                     let results = [];
                     let errors = [];
 
-                    let formatter = new Formatter(this._engine);
                     function loop() {
                         if (!app)
                             return;
@@ -190,13 +224,13 @@ module.exports = class AlmondApi {
 
                             let value;
                             if (next.isNotification) {
-                                return formatter.formatForType(next.outputType, next.outputValue, next.currentChannel, 'messages').then((messages) => {
+                                return this._formatter.formatForType(next.outputType, next.outputValue, next.currentChannel, 'messages').then((messages) => {
                                     results.push({ raw: next.outputValue, type: next.outputType, formatted: messages });
                                     resolve();
-                                    return loop();
+                                    return loop.call(this);
                                 }).catch((e) => {
                                     reject(e);
-                                    return loop();
+                                    return loop.call(this);
                                 });
                             } else if (next.isError) {
                                 errors.push(next.error);
@@ -206,11 +240,11 @@ module.exports = class AlmondApi {
                                 reject(e);
                             }
                             resolve();
-                            return loop();
+                            return loop.call(this);
                         });
                     }
 
-                    return loop().then(() => {
+                    return loop.call(this).then(() => {
                         return {
                             uniqueId: app.uniqueId,
                             description: app.description,

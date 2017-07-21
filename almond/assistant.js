@@ -27,6 +27,7 @@ module.exports = class Assistant extends events.EventEmitter {
         this._lastConversation = null;
 
         this._api = new AlmondApi(this._engine);
+        this._conversations['api'] = this._api;
     }
 
     parse(sentence) {
@@ -35,16 +36,23 @@ module.exports = class Assistant extends events.EventEmitter {
     createApp(data) {
         return this._api.createApp(data);
     }
+    addOutput(out) {
+        this._api.addOutput(out);
+    }
+    removeOutput(out) {
+        this._api.removeOutput(out);
+        out.$free();
+    }
 
-    notifyAll(data) {
+    notifyAll(...data) {
         return Q.all(Object.keys(this._conversations).map(function(id) {
-            return this._conversations[id].notify(data);
+            return this._conversations[id].notify(...data);
         }.bind(this)));
     }
 
-    notifyErrorAll(data) {
+    notifyErrorAll(...data) {
         return Q.all(Object.keys(this._conversations).map(function(id) {
-            return this._conversations[id].notifyError(data);
+            return this._conversations[id].notifyError(...data);
         }.bind(this)));
     }
 
@@ -75,4 +83,4 @@ module.exports = class Assistant extends events.EventEmitter {
         delete this._conversations[feedId];
     }
 }
-module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'parse', 'createApp'];
+module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'parse', 'createApp', 'addOutput', 'removeOutput'];
