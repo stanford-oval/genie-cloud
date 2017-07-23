@@ -181,12 +181,21 @@ module.exports = {
         }
     },
 
-    getAllApproved: function(client, start, end) {
-        if (start !== undefined && end !== undefined) {
-            return db.selectAll(client, "select * from device_class where approved_version is not null order by name limit ?,?",
-                                [start, end]);
+    getAllApproved: function(client, start, end, org) {
+        if (org !== null) {
+            if (start !== undefined && end !== undefined) {
+                return db.selectAll(client, "select * from device_class where (approved_version is not null or owner = ?) order by name limit ?,?",
+                                    [org, start, end]);
+            } else {
+                return db.selectAll(client, "select * from device_class where (approved_version is not null or owner = ?) order by name", [org]);
+            }
         } else {
-            return db.selectAll(client, "select * from device_class where approved_version is not null order by name");
+            if (start !== undefined && end !== undefined) {
+                return db.selectAll(client, "select * from device_class where approved_version is not null order by name limit ?,?",
+                                    [start, end]);
+            } else {
+                return db.selectAll(client, "select * from device_class where approved_version is not null order by name");
+            }
         }
     },
 
@@ -246,7 +255,7 @@ module.exports = {
                 return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
             } else {
                 return db.selectAll(client, query, [kind]);
-            }            
+            }
         } else if (org !== null) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
