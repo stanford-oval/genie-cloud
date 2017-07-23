@@ -29,8 +29,13 @@ router.get('/', function(req, res) {
     if (isNaN(page) || page < 0)
         page = 0;
 
-    db.withClient(function(client) {
-        return model.getAll(client, page * 18, 19).then(function(devices) {
+    db.withClient((client) => {
+        let devices;
+        if (req.user && req.user.developer_status >= user.DeveloperStatus.ADMIN)
+            devices = model.getAll(client, page * 18, 19);
+        else
+            devices = model.getAllApproved(client, page * 18, 19, req.user ? req.user.developer_org : null);
+        return devices.then((devices) => {
             res.render('thingpedia_device_list', { page_title: req._("Thingpedia - Supported Devices"),
                                                    page_h1: req._("Supported Devices"),
                                                    csrfToken: req.csrfToken(),
@@ -78,7 +83,8 @@ function getDetails(fn, param, req, res) {
         return db.withClient(function(client) {
             return fn(client, param).tap(function(d) {
                 return Q.try(function() {
-                    if (req.user && req.user.developer_org === d.owner)
+                    if (req.user && (req.user.developer_org === d.owner ||
+                        req.user.developer_status >= user.DeveloperStatus.ADMIN))
                         return model.getCodeByVersion(client, d.id, d.developer_version);
                     else
                         return model.getCodeByVersion(client, d.id, d.approved_version);
