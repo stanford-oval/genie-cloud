@@ -41,7 +41,7 @@ module.exports = class ThingTalkTrainer {
 
     learnJSON(json) {
         var raw = this._raw;
-        return this.sempre.onlineLearn(raw, json);
+        return this.sempre.onlineLearn(raw, json, 'online');
     }
 
     learnThingTalk(text) {
@@ -49,7 +49,7 @@ module.exports = class ThingTalkTrainer {
         return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((prog) => {
             var sempre = SEMPRESyntax.toSEMPRE(prog, false);
             var json = JSON.stringify(sempre);
-            return this.sempre.onlineLearn(raw, json);
+            return this.sempre.onlineLearn(raw, json, 'online');
         });
     }
 

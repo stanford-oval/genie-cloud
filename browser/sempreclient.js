@@ -39,9 +39,11 @@ module.exports = class SempreClient {
         console.log('Using SEMPRE at ' + this._baseUrl + ' with locale ' + this._locale);
     }
 
-    onlineLearn(utterance, json) {
+    onlineLearn(utterance, json, storeAs) {
         var url = this._baseUrl + '/learn?locale=' + this._locale + '&q=' + encodeURIComponent(utterance)
             + '&sessionId=' + this._sessionId + '&target=' + encodeURIComponent(json);
+        if (storeAs)
+            url += '&store=' + storeAs;
         return httpRequest(url).then((data) => {
             console.log('Sent "' + utterance + '" to SEMPRE for learning');
             return data;
@@ -51,7 +53,7 @@ module.exports = class SempreClient {
     }
 
     sendUtterance(utterance, expecting, choices) {
-        var url = this._baseUrl + '/query?locale=' + this._locale + '&long=1&q=' + encodeURIComponent(utterance);
+        var url = this._baseUrl + '/query?locale=' + this._locale + '&long=1&store=no&q=' + encodeURIComponent(utterance);
         if (this._sessionId)
             url += '&sessionId=' + this._sessionId;
         if (expecting)
