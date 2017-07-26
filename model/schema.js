@@ -158,8 +158,8 @@ function processMetaRows(rows) {
             canonical: row.canonical || '',
             argcanonicals: JSON.parse(row.argcanonicals) || [],
             questions: JSON.parse(row.questions) || [],
-            required: JSON.parse(row.required),
-            is_input: JSON.parse(row.is_input)
+            required: JSON.parse(row.required) || [],
+            is_input: JSON.parse(row.is_input) || []
         };
         if (obj.args.length < types.length) {
             for (var i = obj.args.length; i < types.length; i++)
