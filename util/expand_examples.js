@@ -20,7 +20,7 @@ const MEASURE_ARGUMENTS = {
     C: [['73 F', [73, 'F']], ['22 C', [22, 'C']]],
     m: [['1000 m', [1000, 'm']], ['42 cm', [42, 'cm']]],
     kg: [['82 kg', [82, 'kg']], ['155 lb', [155, 'lb']]],
-    ms: [['1 day', [1, 'day']], ['a fortnight', [14, 'day']], ['5 hours', [5, 'h']]]
+    ms: [['1 day', [1, 'day']], ['5 hours', [5, 'h']]]
 };
 const PICTURE_ARGUMENTS = identityMap(['$URL']); // special token
 const PICTURE_PLACEHOLDER = 'some picture';
@@ -51,7 +51,7 @@ const URL_ARGUMENTS = identityMap(['http://www.google.com']);
 const URL_PLACEHOLDER = 'some url';
 
 const ENTITIES = {
-    'sportradar:eu_soccer_team': [[["Juventus", "juv"], ["Barcellona", "bar"], ["Bayern Munchen", "fcb"]], 'some team'],
+    'sportradar:eu_soccer_team': [[["Juventus", "juv"], ["Barcelona", "bar"], ["Bayern Munich", "fcb"]], 'some team'],
     'sportradar:mlb_team': [[["SF Giants", 'sf'], ["Chicago Cubs", 'chc']], 'some team'],
     'sportradar:nba_team': [[["Golden State Warriors", 'gsw'], ["LA Lakers", 'lal']], 'some team'],
     'sportradar:ncaafb_team': [[["Stanford Cardinals", 'sta'], ["California Bears", 'cal']], 'some team'],

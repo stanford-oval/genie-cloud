@@ -16,17 +16,12 @@ const device = require('../model/device');
 const EngineManager = require('../almond/enginemanagerclient');
 
 router.get('/', function(req, res, next) {
-    db.withTransaction(function(dbClient) {
-        return device.getByTag(dbClient, 'featured');
-    }).spread(function(devices) {
-        return Q(req.user ? EngineManager.get().isRunning(req.user.id) : false).then(function(isRunning) {
-            res.render('index', {
-                page_title: req._("Thingpedia - knowledge for your magic assistant"),
-                devices: devices,
-                isRunning: isRunning
-            });
+    return Promise.resolve(req.user ? EngineManager.get().isRunning(req.user.id) : false).then(function(isRunning) {
+        res.render('index', {
+            page_title: req._("Thingpedia - knowledge for your magic assistant"),
+            isRunning: isRunning
         });
-    }).done();
+    });
 });
 
 router.get('/about', function(req, res, next) {

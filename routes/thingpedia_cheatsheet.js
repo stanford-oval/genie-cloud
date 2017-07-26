@@ -34,7 +34,7 @@ function findInvocation(parsed, id) {
 }
 
 function getMeta(invocation) {
-    var match = /^tt:([^\.]+)\.(.+)$/.exec(invocation.name.id);
+    var match = /^(?:tt:)?(\$?[a-z0-9A-Z_.-]+)\.([a-z0-9A-Z_]+)$/.exec(invocation.name.id);
     if (match === null)
         throw new TypeError('Channel name not in proper format');
     var kind = match[1];

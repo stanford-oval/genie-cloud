@@ -58,14 +58,19 @@ $(function() {
                 type: 'array',
                 title: 'Formatted Output',
                 items: {
-                    title: "Message",
-                    type: ['string', 'object'],
+                    title: "Item",
+                    type: 'object',
                     properties: {
                         type: {
                             type: 'string',
-                            enum: ['picture', 'rdl', 'code'],
+                            enum: ['text', 'picture', 'rdl', 'code'],
                             title: "Output Type",
                             required: true,
+                        },
+                        text: {
+                            type: 'string',
+                            title: "Message",
+                            required: false,
                         },
                         url: {
                             type: 'string',
@@ -92,6 +97,12 @@ $(function() {
                             title: "Link Text",
                             required: false,
                         },
+                        code: {
+                            type: 'string',
+                            title: "Formatting Function",
+                            format: 'textarea',
+                            required: false,
+                        }
                     }
                 }
             },

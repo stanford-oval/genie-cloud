@@ -57,7 +57,20 @@ Frontend.prototype._init = function _init() {
     this._app.use(logger('dev'));
 
     this._app.use(function(req, res, next) {
-        if (req.headers['x-forwarded-proto'] === 'http' || (/*req.hostname === 'thingengine.stanford.edu' || */req.hostname === 'almond.stanford.edu')) {
+        let redirect = false;
+        if (req.headers['x-forwarded-proto'] === 'http')
+            redirect = true;
+        if (req.hostname !== 'thingpedia.stanford.edu')
+            redirect = true;
+        // don't redirect unless it's one of the stanford.edu hostnames
+        // (it's a health-check from the load balancer)
+        if (!req.hostname.endsWith('.stanford.edu'))
+            redirect = false;
+        // don't redirect /thingpedia/api because the client code
+        // doesn't cope well
+        if (req.originalUrl.startsWith('/thingpedia/api'))
+            redirect = false;
+        if (redirect) {
             res.redirect(301, 'https://thingpedia.stanford.edu' + req.originalUrl);
             return;
         }
