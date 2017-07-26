@@ -22,7 +22,8 @@ const tokenizer = require('../util/tokenize');
 var insertBatch = [];
 
 function makeType(testTrain, primCompound, nparams) {
-    return (testTrain === 'test' ? 'test3' : 'turking3') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
+    //return (testTrain === 'test' ? 'test3' : 'turking3') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
+    return 'generated-cheatsheet';
 }
 
 function insert(dbClient, utterance, testTrain, primCompound, nparams, target_json) {
@@ -55,7 +56,7 @@ function main() {
         var promises = [];
         var schemas = new SchemaRetriever(dbClient, 'en-US', true);
 
-        var parser = csv.parse({ columns: null });
+        var parser = csv.parse({ columns: null, delimiter: '\t' });
         process.stdin.pipe(parser);
         //var output = fs.createWriteStream(process.argv[2]);
         //var writer = csv.stringify({ delimiter: '\t' });
@@ -63,12 +64,12 @@ function main() {
 
         return Q.Promise((callback, errback) => {
             parser.on('data', (row) => {
-                var id = row[0];
+                //var id = row[0];
                 var tt = row[1];
                 //var original = row[2];
                 //var useful = row[3];
                 //var utterances = row.slice(2);
-                var utterance = row[2];
+                var utterance = row[0];
                 var testTrain = row[3];
                 var primCompound = row[4];
                 var nparams = row[5];
@@ -80,17 +81,16 @@ function main() {
                     if (tt.startsWith('{'))
                         return ThingTalk.SEMPRESyntax.parseToplevel(schemas, JSON.parse(tt));
                     else
-                        return ThingTalk.Grammar.parse(tt);
+                        return ThingTalk.Grammar.parseAndTypecheck(schemas, tt);
                 }).then((prog) => {
-                    var compiler = new ThingTalk.Compiler();
-                    compiler.setSchemaRetriever(schemas);
-                    return compiler.verifyProgram(prog).then(() => {
-                        var json = ThingTalk.SEMPRESyntax.toSEMPRE(prog, false);
-                        return insert(dbClient, utterance, testTrain, primCompound, nparams, json_str);
-                        //return Q.all(utterances.map((u) => {
-                        //    return maybeInsert(dbClient, u, json_str);
-                        //}));
-                    });
+                    let json_str;
+                    if (tt.startsWith('{')) {
+                        json_str = tt;
+                    } else {
+                        let json = ThingTalk.SEMPRESyntax.toSEMPRE(prog, false);
+                        json_str = JSON.stringify(json);
+                    }
+                    return insert(dbClient, utterance, testTrain, primCompound, nparams, json_str);
                 }).catch((e) => {
                     console.error('Failed to verify ' + tt + '   :' + e.message);
                     // die uglily to fail the transaction

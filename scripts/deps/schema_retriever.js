@@ -10,6 +10,7 @@
 const Q = require('q');
 
 const ThingTalk = require('thingtalk');
+const Type = ThingTalk.Type;
 const schema = require('../../model/schema');
 
 // A copy of ThingTalk SchemaRetriever
@@ -17,8 +18,11 @@ const schema = require('../../model/schema');
 // (and also ignore builtins)
 module.exports = class SchemaRetriever {
     constructor(dbClient, language, parseTypes) {
+        this._schemaRequest = null;
+        this._pendingSchemaRequests = [];
         this._metaRequest = null;
         this._pendingMetaRequests = [];
+        this._cache = {};
         this._metaCache = {};
 
         this._dbClient = dbClient;
@@ -79,5 +83,65 @@ module.exports = class SchemaRetriever {
                 throw new Error("Schema " + kind + " has no " + where + " " + name);
             return fullSchema[where][name];
         });
+    }
+
+    _getFullSchema(kind) {
+        if (typeof kind !== 'string')
+            throw new TypeError();
+        if (kind in this._cache)
+            return Q(this._cache[kind]);
+
+        if (this._pendingSchemaRequests.indexOf(kind) < 0)
+            this._pendingSchemaRequests.push(kind);
+        this._ensureSchemaRequest();
+        return this._schemaRequest.then((everything) => {
+            if (kind in everything)
+                return everything[kind];
+            else
+                throw new Error('Invalid kind ' + kind);
+        });
+    }
+
+    getSchemaAndNames(kind, where, name) {
+        return this._getFullSchema(kind).then((fullSchema) => {
+            if (!(name in fullSchema[where]))
+                throw new Error("Schema " + kind + " has no " + where + " " + name);
+            return fullSchema[where][name];
+        });
+    }
+
+    _ensureSchemaRequest() {
+        if (this._schemaRequest !== null)
+            return;
+
+        this._schemaRequest = Q.delay(0).then(() => {
+            var pending = this._pendingSchemaRequests;
+            this._pendingSchemaRequests = [];
+            this._schemaRequest = null;
+            if (pending.length === 0)
+                return {};
+            if (!this._silent)
+                console.log('Batched schema request for ' + pending);
+            return schema.getDeveloperMetas(this._dbClient, pending, this._language);
+        }).then((rows) => {
+            rows.forEach((row) => {
+                this._parseSchemaTypes(row, row.triggers);
+                this._parseSchemaTypes(row, row.actions);
+                this._parseSchemaTypes(row, row.queries);
+                this._cache[row.kind] = {
+                    triggers: row.triggers,
+                    actions: row.actions,
+                    queries: row.queries
+                };
+            });
+            return this._cache;
+        });
+    }
+
+    _parseSchemaTypes(schema, channels) {
+        for (var name in channels) {
+            channels[name].kind_type = schema.kind_type;
+            channels[name].types = channels[name].schema.map(Type.fromString);
+        }
     }
 }
