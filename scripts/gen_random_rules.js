@@ -15,11 +15,10 @@ const csv = require('csv');
 const crypto = require('crypto');
 
 const ThingTalk = require('thingtalk');
+const Describe = ThingTalk.Describe;
 const Ast = ThingTalk.Ast;
 
 const db = require('../util/db');
-const genRandomRules = require('../util/gen_random_rule');
-const reconstruct = require('./deps/reconstruct');
 const SchemaRetriever = require('./deps/schema_retriever');
 
 const dlg = { _(x) { return x; } };
@@ -43,6 +42,24 @@ function makeId() {
     return crypto.randomBytes(8).toString('hex');
 }
 
+const gettext = new (require('node-gettext'));
+gettext.setlocale('en-US');
+
+function describeRule(r) {
+    let scope = {};
+    let triggerDesc = r.trigger ? `WHEN: ${Describe.describePrimitive(gettext, r.trigger, 'trigger', scope, true)}` :'';
+
+    let queryDesc = r.queries.map((q) => `GET: ${Describe.describePrimitive(gettext, q, 'query', scope, true)}`).join(' ');
+    let actions = r.actions.filter((a) => !a.selector.isBuiltin);
+    let actionDesc = actions.map((a) => `DO: ${Describe.describePrimitive(gettext, a, 'action', scope, true)}`).join(' ');
+
+    return (triggerDesc + ' ' + queryDesc + ' ' + actionDesc).trim();
+}
+
+function describeProgram(prog) {
+    return prog.rules.map((r) => describeRule(r)).join('; ');
+}
+
 function main() {
     var output = csv.stringify();
     var file = fs.createWriteStream(process.argv[2] || 'output.csv');
@@ -61,27 +78,49 @@ function main() {
         }
         output.write(headers);
     }
+    process.on('unhandledRejection', (e) => {
+        console.error('Unhandled rejection: ' +e.message);
+        console.error(e.stack);
+    });
 
     //var i = 0;
     db.withClient((dbClient) => {
-        var schemaRetriever = new SchemaRetriever(dbClient, language);
-        return genRandomRules(dbClient, schemaRetriever, samplingPolicy, language, N).then((stream) => {
+        return db.selectAll(dbClient, "select kind from device_schema where approved_version is not null and kind_type <> 'global'", []).then((rows) => {
+            let kinds = rows.map(r => r.kind);
+            let schemaRetriever = new SchemaRetriever(dbClient, language);
+
+            let stream = ThingTalk.Generate.genRandomRules(kinds, schemaRetriever, N, {
+                applyHeuristics: true,
+                allowUnsynthesizable: false,
+                strictParameterPassing: true,
+                samplingPolicy: 'uniform',
+                actionArgConstantProbability: 0.7,
+                argConstantProbability: 0.3,
+                requiredArgConstantProbability: 0.9,
+                applyFiltersToInputs: false,
+                filterClauseProbability: 0.3
+            });
             stream.on('data', (r) => {
                 //console.log('Rule #' + (i+1));
                 //i++;
                 if (format === 'turk') {
-                    row = row.concat([makeId(), Ast.prettyprint(r, true).trim(), postprocess(reconstruct(dlg, r))]);
+                    row = row.concat([makeId(), Ast.prettyprint(r, true).trim(), postprocess(describeProgram(r))]);
                     if (row.length === sentences_per_hit * 3) {
                         output.write(row);
                         row = []
                     }
                 } else {
-                    output.write([makeId(), Ast.prettyprint(r, true).trim(), postprocess(reconstruct(dlg, r))]);
+                    output.write([makeId(), Ast.prettyprint(r, true).trim(), postprocess(describeProgram(r))]);
                 }
+            });
+            stream.on('error', (err) => {
+                console.error('Error:' + err.message);
+                console.error(err.stack);
+                process.exit(1);
             });
             stream.on('end', () => output.end());
         });
-    });
+    }).done();
 
     file.on('finish', () => process.exit());
 }
