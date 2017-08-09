@@ -12,21 +12,21 @@ const Type = ThingTalk.Type;
 
 const expandExamples = require('../util/expand_examples');
 
-function testOne(base, argtypes) {
-    var expanded = expandExamples([base], argtypes);
+function testOne(base, argtypes, argrequired) {
+    var expanded = expandExamples([base], argtypes, argrequired||{});
     expanded.forEach(function(exp) {
         console.log();
         console.log(exp.utterance);
         for (var name in exp.assignments)
-            console.log(name, exp.assignments[name]);
+            console.log(name, String(exp.assignments[name]));
     });
 }
 
 function main() {
-    testOne('post on twitter saying $text', { text: Type.String });
-    testOne('set temperature to $temp', { temp: Type.Measure('C') });
+    testOne('post on twitter saying $text', { text: Type.String }, { text: true });
+    testOne('set temperature to $temp', { temp: Type.Measure('C') }, { temp: true });
     testOne('monitor tweets coming from $from containing $string', { from: Type.Entity('tt:username'), string: Type.String });
-    testOne('turn $power coffee pot', { power: Type.Boolean });
+    testOne('turn $power coffee pot', { power: Type.Boolean }, { power: true });
     testOne('how far is uber from $location', { location: Type.Location });
     testOne('how much is uber from $src_location to $dest_location', { dest_location: Type.Location, src_location: Type.Location });
     testOne('set my phone to $mode', { mode: Type.Enum(['vibrate', 'silent', 'normal']) });

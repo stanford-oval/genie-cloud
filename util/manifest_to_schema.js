@@ -65,7 +65,7 @@ module.exports = {
                 var argnames = channelMeta.args || (schemas[name].map((_, i) => ('arg' + (i+1))));
                 var questions = channelMeta.questions || [];
                 var argrequired = channelMeta.required || [];
-                var argsinput = channelMeta.is_input || [];
+                var argisinput = channelMeta.is_input || [];
                 schemas[name].forEach(function(schema, i) {
                     args.push({
                         type: schema,
