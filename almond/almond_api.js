@@ -265,12 +265,22 @@ module.exports = class AlmondApi {
         });
     }
 
-    parse(sentence) {
+    _doParse(sentence) {
         return this._sempre.sendUtterance(sentence, null, null).then((candidates) => {
             if (candidates[0].score === 'Infinity')
                 candidates = [candidates[0]];
             candidates = candidates.filter((c) => c.prob >= 0.1);
+            return candidates;
+        });
+    }
 
+    parse(sentence, targetJson) {
+        return Promise.resolve().then(() => {
+            if (targetJson)
+                return [{ score: 'Infinity', prob: 1, answer: targetJson }];
+            else
+                return this._doParse(sentence);
+        }).then((candidates) => {
             return Promise.all(candidates.slice(0, 5).map((candidate) => {
                 return this._processCandidate(candidate).then((result) => {
                     return result;

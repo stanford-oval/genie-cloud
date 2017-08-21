@@ -70,8 +70,9 @@ router.options('/.*', function(req, res, next) {
 });
 
 router.get('/parse', function(req, res, next) {
-    var query = req.query.q;
-    if (!query) {
+    let query = req.query.q || null;
+    let targetJson = req.query.target_json || null;
+    if (!query && !targetJson) {
         res.status(400).json({error:'Missing query'});
         return;
     }
@@ -79,7 +80,7 @@ router.get('/parse', function(req, res, next) {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then(function(engine) {
-        return engine.assistant.parse(query);
+        return engine.assistant.parse(query, targetJson);
     }).then((result) => {
         res.json(result);
     }).catch((e) => {

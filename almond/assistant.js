@@ -30,8 +30,8 @@ module.exports = class Assistant extends events.EventEmitter {
         this._conversations['api'] = this._api;
     }
 
-    parse(sentence) {
-        return this._api.parse(sentence);
+    parse(sentence, targetJson) {
+        return this._api.parse(sentence, targetJson);
     }
     createApp(data) {
         return this._api.createApp(data);
