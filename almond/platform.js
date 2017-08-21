@@ -13,7 +13,6 @@ const Q = require('q');
 const fs = require('fs');
 const os = require('os');
 const events = require('events');
-const Gettext = require('node-gettext');
 const child_process = require('child_process');
 
 // FIXME we should not punch through the abstraction
@@ -21,6 +20,7 @@ const prefs = require('thingengine-core/lib/util/prefs');
 
 const Assistant = require('./assistant');
 const graphics = require('./graphics');
+const i18n = require('../util/i18n');
 
 var _unzipApi = {
     unzip(zipPath, dir) {
@@ -140,8 +140,7 @@ class Platform {
         this._timezone = options.timezone;
         this._sqliteKey = options.storageKey;
 
-        this._gettext = new Gettext();
-        this._gettext.setlocale(options.locale);
+        this._gettext = i18n.get(this._locale);
 
         this._writabledir = _shared ? (process.cwd() + '/' + options.cloudId) : process.cwd();
         try {

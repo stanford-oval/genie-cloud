@@ -9,28 +9,54 @@
 
 const path = require('path');
 const Gettext = require('node-gettext');
+const gettextParser = require('gettext-parser');
+const fs = require('fs');
 
 const LANGS = ['en-US', 'it', 'zh-CN'];
 const languages = {};
-for (let l of LANGS) {
-    let gt = new Gettext();
-    gt.setlocale(l);
-    if (l !== 'en-US') {
-        try {
+
+function loadTextdomainDirectory(gt, locale, domain, modir) {
+    let split = locale.split(/[-_\.@]/);
+    let mo = modir + '/' + split.join('_') + '.mo';
+
+    while (!fs.existsSync(mo) && split.length) {
+        split.pop();
+        mo = modir + '/' + split.join('_') + '.mo';
+    }
+    if (split.length === 0)
+        return;
+    try {
+        let loaded = gettextParser.mo.parse(fs.readFileSync(mo), 'utf-8');
+        gt.addTranslations(locale, domain, loaded);
+    } catch(e) {
+        console.log(`Failed to load translations for ${locale}/${domain}: ${e.message}`);
+    }
+}
+
+function load() {
+    for (let l of LANGS) {
+        let gt = new Gettext();
+        if (l !== 'en-US') {
             let modir = path.resolve(path.dirname(module.filename), '../po');
-            gt.loadTextdomainDirectory('thingengine-platform-cloud', modir);
-        } catch(e) {
-            console.log('Failed to load translations for ' + l + ': ' + e.message);
+            loadTextdomainDirectory(gt, l, 'thingengine-platform-cloud', modir);
+            modir = path.resolve(path.dirname(module.filename), '../node_modules/thingtalk/po');
+            loadTextdomainDirectory(gt, l, 'thingtalk', modir);
+            modir = path.resolve(path.dirname(module.filename), '../node_modules/almond/po');
+            loadTextdomainDirectory(gt, l, 'almond', modir);
+            modir = path.resolve(path.dirname(module.filename), '../node_modules/thingengine-core/po');
+            loadTextdomainDirectory(gt, l, 'thingengine-core', modir);
         }
-        try {
-            let modir = path.resolve(path.dirname(module.filename), '../node_modules/thingtalk/po');
-            gt.loadTextdomainDirectory('thingtalk', modir);
-        } catch(e) {
-            console.log('Failed to load translations for ' + l + ': ' + e.message);
+        gt.textdomain('thingengine-platform-cloud');
+        gt.setLocale(l);
+
+        let split = l.split('-');
+        while (split.length > 0) {
+            languages[split.join('-')] = gt;
+            split.pop();
         }
     }
-    languages[l] = gt;
 }
+load();
 
 module.exports = {
     LANGS,
