@@ -7,26 +7,27 @@ block page_name
   = _("Translate %s").format(english.kind)
   - var uniqueId = 0;
 
-mixin do_one(id, english, translated)
+mixin do_one(id, obj)
   tr
     td
-      label(for='control_' + (++uniqueId))= english
+      label(for='control_' + (++uniqueId))= obj.english
     td
-      input(name=id, id='control_' + uniqueId, type='text', value=translated).form-control
+      input(name=id, id='control_' + uniqueId, type='text', value=obj.translated).form-control
 
 mixin translate_channel(prefix, channelType, name, channel)
   tr
     th(colspan=2)
       = prefix
       code= name
-  +do_one(channelType + '_canonical_' + name, channel.canonical.english, channel.canonical.translated)
-  +do_one(channelType + '_confirmation_' + name, channel.confirmation.english, channel.confirmation.translated)
+  +do_one(channelType + '_canonical_' + name, channel.canonical)
+  +do_one(channelType + '_confirmation_' + name, channel.confirmation)
+  +do_one(channelType + '_confirmation_remote_' + name, channel.confirmation_remote)
   for arg in channel.args
-    +do_one(channelType + '_argname_' + arg.id + '_' + name, arg.name.english, arg.name.translated)
+    +do_one(channelType + '_argname_' + arg.id + '_' + name, arg.name)
     if arg.question.english
-      +do_one(channelType + '_question_' + arg.id + '_' + name, arg.question.english, arg.question.translated)
+      +do_one(channelType + '_question_' + arg.id + '_' + name, arg.question)
   for ex in channel.examples
-    +do_one(channelType + '_examples_' + name + '[]', ex.english, ex.translated)
+    +do_one(channelType + '_examples_' + name + '[]', ex)
 
 block content
   if fromVersion > 0
