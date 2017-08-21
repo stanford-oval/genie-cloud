@@ -22,6 +22,7 @@ const AppCompiler = ThingTalk.Compiler;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const ThingpediaClient = require('../util/thingpedia-client');
+const i18n = require('../util/i18n');
 
 var router = express.Router();
 
@@ -204,14 +205,14 @@ router.get('/examples/click/:id', function(req, res) {
 });
 
 router.get('/random-rule', function(req, res) {
-    var locale = req.query.locale || 'en-US';
-    var language = (locale || 'en').split(/[-_\@\.]/)[0];
+    const locale = req.query.locale || 'en-US';
+    const language = (locale || 'en').split(/[-_\@\.]/)[0];
 
-    var N = Math.min(parseInt(req.query.limit) || 20, 20);
+    const N = Math.min(parseInt(req.query.limit) || 20, 20);
 
-    var policy = req.query.policy || 'uniform';
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var schemaRetriever = new SchemaRetriever(client);
+    const policy = req.query.policy || 'uniform';
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const schemaRetriever = new SchemaRetriever(client);
 
     return db.withClient((dbClient) => {
         return db.selectAll(dbClient, "select kind from device_schema where approved_version is not null and kind_type <> 'global'", []);
@@ -252,22 +253,19 @@ router.get('/random-rule', function(req, res) {
     }).done();
 });
 
-const gettext = new (require('node-gettext'));
-gettext.setlocale('en-US');
-
 router.get('/random-rule/by-kind/:kind', function(req, res) {
-    var locale = req.query.locale || 'en-US';
-    var language = (locale || 'en').split(/[-_\@\.]/)[0];
-    var N = Math.min(parseInt(req.query.limit) || 150, 150);
-    var policy = 'only-' + req.params.kind;
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var sentences_per_hit = 3;
+    const locale = req.query.locale || 'en-US';
+    const language = (locale || 'en').split(/[-_\@\.]/)[0];
+    const gettext = i18n.get(locale);
+    const N = Math.min(parseInt(req.query.limit) || 150, 150);
+    const policy = 'only-' + req.params.kind;
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const sentences_per_hit = 3;
 
-    const dlg = { _(x) { return x; } };
     function makeId() { return crypto.randomBytes(8).toString('hex'); }
     function postprocess(str) { return str.replace(/your/g, 'my').replace(/ you /g, ' I '); }
 
-    var schemaRetriever = new SchemaRetriever(client);
+    const schemaRetriever = new SchemaRetriever(client);
 
     return db.withClient((dbClient) => {
         return db.selectAll(dbClient, "select kind from device_schema where approved_version is not null and kind_type <> 'global'", []);
@@ -288,18 +286,18 @@ router.get('/random-rule/by-kind/:kind', function(req, res) {
 
         res.set('Content-disposition', 'attachment; filename=synthetic_sentences_for_turk.csv');
         res.status(200).set('Content-Type', 'text/csv');
-        var output = csv.stringify();
+        let output = csv.stringify();
         output.pipe(res);
-        var headers = [];
+        let headers = [];
         for (var i = 1; i <= 3; i ++) {
             headers = headers.concat(['id' + i, 'thingtalk' + i, 'sentence' + i]);
         }
         output.write(headers);
 
-        var row = [];
+        let row = [];
         stream.on('data', (prog) => {
-            var reconstructed = ThingTalk.Describe.describeProgram(gettext, prog, true);
-            var tt = ThingTalk.Ast.prettyprint(prog, true).trim();
+            const reconstructed = ThingTalk.Describe.describeProgram(gettext, prog, true);
+            const tt = ThingTalk.Ast.prettyprint(prog, true).trim();
             row = row.concat([makeId(), tt, postprocess(reconstructed)]);
             if (row.length === sentences_per_hit * 3) {
                 output.write(row);

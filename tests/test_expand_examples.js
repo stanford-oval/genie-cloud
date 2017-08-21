@@ -12,8 +12,11 @@ const Type = ThingTalk.Type;
 
 const expandExamples = require('../util/expand_examples');
 
+const gettext = new (require('node-gettext'));
+gettext.setlocale('en-US');
+
 function testOne(base, argtypes, argrequired) {
-    var expanded = expandExamples([base], argtypes, argrequired||{});
+    var expanded = expandExamples(gettext, [base], argtypes, argrequired||{});
     expanded.forEach(function(exp) {
         console.log();
         console.log(exp.utterance);

@@ -122,10 +122,7 @@ function chooseValues(valueList, usedValues) {
     return filtered;
 }
 
-const gettext = new (require('node-gettext'));
-gettext.setlocale('en-US');
-
-function expandOne(example, argtypes, argrequired, into) {
+function expandOne(gettext, example, argtypes, argrequired, into) {
     let argnames = extractArgNames(example);
     let assignments = {};
     let usedValues = new Set;
@@ -176,11 +173,11 @@ function expandOne(example, argtypes, argrequired, into) {
     })(example, 0, false);
 }
 
-module.exports = function expandExamples(examples, argtypes, argrequired) {
+module.exports = function expandExamples(gettext, examples, argtypes, argrequired) {
     var into = [];
 
     examples.forEach(function(ex) {
-        expandOne(ex, argtypes, argrequired, into);
+        expandOne(gettext, ex, argtypes, argrequired, into);
     });
 
     return into;
