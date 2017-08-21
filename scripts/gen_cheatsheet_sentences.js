@@ -20,6 +20,7 @@ const Type = ThingTalk.Type;
 
 const SchemaRetriever = require('./deps/schema_retriever');
 const db = require('../util/db');
+const i18n = require('../util/i18n');
 
 const STRICTLY_CHEATSHEET = false;
 
@@ -203,10 +204,7 @@ function valueToSEMPRE(value) {
     throw new TypeError('Unhandled type ' + type);
 }
 
-const gettext = new (require('node-gettext'));
-gettext.setlocale('en-US');
-
-function genPart(schemaRetriever, example, channelType, schemaType) {
+function genPart(gettext, schemaRetriever, example, channelType, schemaType) {
     let prim = example.target_json[channelType];
     let [kind, channel] = handleSelector(prim);
 
@@ -266,16 +264,16 @@ function genPart(schemaRetriever, example, channelType, schemaType) {
     });
 }
 
-function genOne(output, schemaRetriever, triggers, queries, actions) {
+function genOne(output, gettext, schemaRetriever, triggers, queries, actions) {
     let structure = sample(STRUCTURE_DISTRIBUTION);
 
     let trigger = undefined, query = undefined, action = undefined;
     if (structure.indexOf('trigger') >= 0)
-        trigger = genPart(schemaRetriever, uniform(triggers), 'trigger', 'triggers');
+        trigger = genPart(gettext, schemaRetriever, uniform(triggers), 'trigger', 'triggers');
     if (structure.indexOf('query') >= 0)
-        query = genPart(schemaRetriever, uniform(queries), 'query', 'queries');
+        query = genPart(gettext, schemaRetriever, uniform(queries), 'query', 'queries');
     if (structure.indexOf('action') >= 0)
-        action = genPart(schemaRetriever, uniform(actions), 'action', 'actions');
+        action = genPart(gettext, schemaRetriever, uniform(actions), 'action', 'actions');
 
     return Promise.all([trigger, query, action]).then(([triggerRes, queryRes, actionRes]) => {
         let trigger, triggerSentence, query, querySentence, action, actionSentence;
@@ -297,8 +295,9 @@ function genOne(output, schemaRetriever, triggers, queries, actions) {
 }
 
 function main() {
-    let language = process.argv[2] || 'en';
-    let N = parseInt(process.argv[3] || 2000);
+    const language = process.argv[2] || 'en';
+    const gettext = i18n.get(language);
+    const N = parseInt(process.argv[3] || 2000);
 
     let file = fs.createWriteStream(process.argv[4] || 'output.tsv');
     let output = csv.stringify({ delimiter: '\t' });
@@ -323,7 +322,7 @@ function main() {
 
             let promises = [];
             for (let i = 0; i < N; i++)
-                promises.push(genOne(output, schemaRetriever, triggers, queries, actions));
+                promises.push(genOne(output, gettext, schemaRetriever, triggers, queries, actions));
             return Promise.all(promises);
         });
     }).then(() => output.end()).done();

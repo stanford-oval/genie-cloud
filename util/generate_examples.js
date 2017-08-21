@@ -7,6 +7,8 @@
 // See COPYING for details
 "use strict";
 
+const path = require('path');
+const Gettext = require('node-gettext');
 const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
 
@@ -14,6 +16,7 @@ const db = require('./db');
 const schema = require('../model/schema');
 const expandExamples = require('./expand_examples');
 const exampleModel = require('../model/example');
+const i18n = require('./i18n');
 
 function timeToSEMPRE(jsArg) {
     var split = jsArg.split(':');
@@ -119,6 +122,7 @@ function exampleToBase(what, kind, actionName, slots) {
 
 module.exports = function(dbClient, kind, ast, language) {
     language = language || 'en';
+    const gettext = i18n.get(language);
 
     function handleExamples(schemaId, from, what, out) {
         for (var name in from) {
@@ -147,7 +151,7 @@ module.exports = function(dbClient, kind, ast, language) {
             });
 
             try {
-                var expanded = expandExamples(fromChannel.examples, argtypes, argrequired);
+                var expanded = expandExamples(gettext, fromChannel.examples, argtypes, argrequired);
                 expanded.forEach(function(ex) {
                     var json = exampleToExpanded(what, kind, name, ex.assignments, argtypes);
                     out.push({ schema_id: schemaId, is_base: false,

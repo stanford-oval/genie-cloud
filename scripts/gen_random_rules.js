@@ -19,6 +19,7 @@ const Describe = ThingTalk.Describe;
 const Ast = ThingTalk.Ast;
 
 const db = require('../util/db');
+const i18n = require('../util/i18n');
 const SchemaRetriever = require('./deps/schema_retriever');
 
 const dlg = { _(x) { return x; } };
@@ -42,10 +43,7 @@ function makeId() {
     return crypto.randomBytes(8).toString('hex');
 }
 
-const gettext = new (require('node-gettext'));
-gettext.setlocale('en-US');
-
-function describeRule(r) {
+function describeRule(gettext, r) {
     let scope = {};
     let triggerDesc = r.trigger ? `WHEN: ${Describe.describePrimitive(gettext, r.trigger, 'trigger', scope, true)}` :'';
 
@@ -56,18 +54,19 @@ function describeRule(r) {
     return (triggerDesc + ' ' + queryDesc + ' ' + actionDesc).trim();
 }
 
-function describeProgram(prog) {
-    return prog.rules.map((r) => describeRule(r)).join('; ');
+function describeProgram(gettext, prog) {
+    return prog.rules.map((r) => describeRule(gettext, r)).join('; ');
 }
 
 function main() {
-    var output = csv.stringify();
-    var file = fs.createWriteStream(process.argv[2] || 'output.csv');
+    const output = csv.stringify();
+    const file = fs.createWriteStream(process.argv[2] || 'output.csv');
     output.pipe(file);
-    var samplingPolicy = process.argv[3] || 'uniform';
-    var language = process.argv[4] || 'en';
-    var N = parseInt(process.argv[5]) || 100;
-    var format = process.argv[6] || 'default';
+    const samplingPolicy = process.argv[3] || 'uniform';
+    const language = process.argv[4] || 'en';
+    const gettext = i18n.get(language);
+    const N = parseInt(process.argv[5]) || 100;
+    const format = process.argv[6] || 'default';
 
     if (format === 'turk') {
         var sentences_per_hit = process.argv[7] || 3;
@@ -104,13 +103,13 @@ function main() {
                 //console.log('Rule #' + (i+1));
                 //i++;
                 if (format === 'turk') {
-                    row = row.concat([makeId(), Ast.prettyprint(r, true).trim(), postprocess(describeProgram(r))]);
+                    row = row.concat([makeId(), Ast.prettyprint(r, true).trim(), postprocess(describeProgram(gettext, r))]);
                     if (row.length === sentences_per_hit * 3) {
                         output.write(row);
                         row = []
                     }
                 } else {
-                    output.write([makeId(), Ast.prettyprint(r, true).trim(), postprocess(describeProgram(r))]);
+                    output.write([makeId(), Ast.prettyprint(r, true).trim(), postprocess(describeProgram(gettext, r))]);
                 }
             });
             stream.on('error', (err) => {
