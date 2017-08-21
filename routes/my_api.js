@@ -29,23 +29,31 @@ var router = express.Router();
 
 const ALLOWED_ORIGINS = ['http://127.0.0.1:8080',
     'https://thingpedia.stanford.edu', 'https://thingengine.stanford.edu',
-    'https://almond.stanford.edu'];
+    'https://almond.stanford.edu', 'null'];
 
 function isOriginOk(req) {
     if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer'))
         return true;
-    if (!req.headers['origin'])
+    if (typeof req.headers['origin'] !== 'string')
         return true;
     if (req.headers['origin'].startsWith('http://127.0.0.1'))
+        return true;
+    if (req.headers['origin'].startsWith('http://localhost'))
         return true;
     return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
 }
 
 function checkOrigin(req, res, next) {
-    if (isOriginOk(req))
+    if (isOriginOk(req)) {
+        if (req.headers['origin']) {
+            res.set('Access-Control-Allow-Origin', req.headers['origin']);
+            res.set('Vary', 'Origin');
+        }
+         res.set('Access-Control-Allow-Credentials', 'true');
         next();
-    else
+    } else {
         res.status(403).send('Forbidden Cross Origin Request');
+    }
 }
 
 router.use('/', function(req, res, next) {
@@ -56,6 +64,10 @@ router.use('/', function(req, res, next) {
         req.login(user, next);
     })(req, res, next);
 }, checkOrigin, user.requireLogIn);
+
+router.options('/.*', function(req, res, next) {
+    res.send('');
+});
 
 router.get('/parse', function(req, res, next) {
     var query = req.query.q;
