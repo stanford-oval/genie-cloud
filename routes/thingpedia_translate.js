@@ -127,6 +127,8 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
                 // undo the fallback that schema.js does
                 if (translated[what][name].confirmation === english[what][name].doc)
                     translated[what][name].confirmation = '';
+                if (translated[what][name].confirmation_remote === english[what][name].confirmation)
+                    translated[what][name].confirmation_remote = '';
 
                 out[what][name] = {
                     canonical: {
@@ -136,6 +138,10 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
                     confirmation: {
                         english: english[what][name].confirmation,
                         translated: translated[what][name].confirmation
+                    },
+                    confirmation_remote: {
+                        english: english[what][name].confirmation_remote,
+                        translated: translated[what][name].confirmation_remote
                     },
                     args: [],
                     examples: []
@@ -206,6 +212,7 @@ router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
                 for (var name in english[what]) {
                     var canonical = req.body[what + '_canonical_' + name] || english[what][name].canonical;
                     var confirmation = req.body[what + '_confirmation_' + name] || english[what][name].confirmation;
+                    var confirmation_remote = req.body[what + '_confirmation_remote_' + name] || english[what].confirmation_remote;
 
                     var questions = [];
                     english[what][name].questions.forEach(function(q, i) {
@@ -224,6 +231,7 @@ router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
                         args: english[what][name].args,
                         canonical: canonical,
                         confirmation: confirmation,
+                        confirmation_remote: confirmation_remote,
                         questions: questions,
                         argcanonicals: argcanonicals,
                         schema: english[what][name].schema,
