@@ -512,6 +512,67 @@ module.exports = class AlmondApi {
                 });
             })).then((res) => {
                 if (res === null || res.some((x) => x === null))
+                    return [null, null];
+
+                // step 2.5 extract extra info
+                let entityValues = [];
+                function extractEntityValuesInvocation(prim) {
+                    for (let in_param of prim.in_params) {
+                        if (in_param.value.isEntity)
+                            entityValues.push(in_param.value)
+                    }
+                    (function filterRecurse(expr) {
+                        if (expr.isTrue || expr.isFalse)
+                            return
+                        if (expr.isAnd || expr.isOr) {
+                            expr.operands.forEach(filterRecurse)
+                            return
+                        }
+                        if (expr.isNot) {
+                            filterRecurse(expr.expr)
+                            return
+                        }
+                        if (expr.filter.value.isEntity)
+                            entityValues.push(expr.filter.value)
+                    })(prim.filter)
+                }
+                res.forEach((prim) => {
+                    extractEntityValuesInvocation(prim);
+                });
+                let contacts = new Map;
+                for (let entity of entityValues) {
+                    if (entity.type === 'tt:contact')
+                        contacts.set(entity.value, entity.display);
+                    else if (entity.type === 'tt:email_address')
+                        contacts.set('email:' + entity.value, entity.display);
+                    else if (entity.type === 'tt:phone_number')
+                        contacts.set('phone:' + entity.value, entity.display);
+                }
+                contacts = Array.from(contacts.entries());
+
+                const messagingType = this._engine.messaging.type + '-account:'
+                return Q.all(contacts.map(([contact, display]) => {
+                    return Q.try(() => {
+                        if (contact.startsWith(messagingType))
+                            return contact.split(':')[1];
+                        else
+                            return this._engine.messaging.getAccountForIdentity(contact);
+                    }).then((account) => {
+                        return this._engine.messaging.getUserByAccount(account);
+                    }).then((user) => {
+                        return this._engine.messaging.getBlobDownloadLink(user.thumbnail).then((thumbnail) => ({
+                            contact: contact,
+                            omletAccount: omletAccount,
+                            omletName: omletName,
+                            display: display,
+                            profileUrl: thumbnail
+                        }));
+                    });
+                })).then((contacts) => {
+                    return [res, contacts];
+                });
+            }).then(([res, contacts]) => {
+                if (res === null)
                     return null;
 
                 // step 3 put everything toghether
@@ -553,7 +614,8 @@ module.exports = class AlmondApi {
                     primitives: primMap,
                     devices: devices,
                     slots: slots,
-                    locations: locations
+                    locations: locations,
+                    contacts: contacts
                 };
             });
         });
