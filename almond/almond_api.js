@@ -94,7 +94,7 @@ module.exports = class AlmondApi {
         let devices = data.devices || {};
 
         let sharedPrefs = this._engine.platform.getSharedPreferences();
-        for (loc in locations) {
+        for (let loc in locations) {
             if (loc === 'home' || loc === 'work') {
                 let location = Ast.Value.fromJSON(ThingTalk.Type.Location, locations[loc]);
                 sharedPrefs.set('context-$context.location.' + loc, location.toJS());
@@ -143,9 +143,9 @@ module.exports = class AlmondApi {
                             prim.selector.id = devices[primId];
                         if (typeof prim.selector.id !== 'string')
                             throw new TypeError(`must select a device for primitive ${primId}`);
-                        if (!this._engine.devices.hasDevice(prim.selector.id)) {
+                        /*if (!this._engine.devices.hasDevice(prim.selector.id)) {
                             throw new TypeError(`invalid device ${prim.selector.id} for primitive ${primId}`);
-                        }
+                        }*/
                     }
                 }).then(() => {
                     let [toFill, toConcretize] = ThingTalk.Generate.computeSlots(prim);
@@ -174,8 +174,8 @@ module.exports = class AlmondApi {
                         !prim.selector.kind.startsWith('__dyn')
                         && prim.selector.id) {
                         let device = this._engine.devices.getDevice(prim.selector.id);
-                        icon = device.kind;
-                        break;
+                        icon = device ? device.kind : null;
+                        if (icon) break;
                     }
                 }
 
@@ -346,6 +346,7 @@ module.exports = class AlmondApi {
         if (devices.length === 0) {
             return this._tryConfigureDevice(kind).then(([device, factory]) => {
                 if (device) {
+                    selector.device = device;
                     selector.id = device.uniqueId;
                     devMap[primId] = [describeDevice(device)];
                     return true;
@@ -357,8 +358,10 @@ module.exports = class AlmondApi {
                 }
             });
         } else {
-            if (devices.length === 1)
+            if (devices.length === 1) {
+                selector.device = devices[0];
                 selector.id = devices[0].uniqueId;
+            }
 
             devMap[primId] = devices.map((dev) => describeDevice(dev));
             return true;
@@ -461,7 +464,7 @@ module.exports = class AlmondApi {
 
                     // step 2.2 slot fill
                     let [toFill, toConcretize] = ThingTalk.Generate.computeSlots(prim);
-                    for (let slot of toFill) {
+                    /*for (let slot of toFill) {
                         let slotId = nextSlotId++;
                         let argname = slot.name;
                         let schema = prim.schema;
@@ -481,7 +484,7 @@ module.exports = class AlmondApi {
                             type: String(type),
                             question: question
                         };
-                    }
+                    }*/
 
                     for (let slot of toConcretize) {
                         let argname = slot.name;
@@ -509,9 +512,11 @@ module.exports = class AlmondApi {
                             }
                         }
                     }
+
+                    return true;
                 });
             })).then((res) => {
-                if (res === null || res.some((x) => x === null))
+                if (res === null || res.some((x) => !x))
                     return [null, null];
 
                 // step 2.5 extract extra info
@@ -536,7 +541,7 @@ module.exports = class AlmondApi {
                             entityValues.push(expr.filter.value)
                     })(prim.filter)
                 }
-                res.forEach((prim) => {
+                primitives.forEach(([primId, prim]) => {
                     extractEntityValuesInvocation(prim);
                 });
                 let contacts = new Map;
@@ -562,10 +567,16 @@ module.exports = class AlmondApi {
                     }).then((user) => {
                         return this._engine.messaging.getBlobDownloadLink(user.thumbnail).then((thumbnail) => ({
                             contact: contact,
-                            omletAccount: omletAccount,
-                            omletName: omletName,
+                            omletAccount: user.account,
+                            omletName: user.name,
                             display: display,
                             profileUrl: thumbnail
+                        })).catch((e) => ({
+                            contact: contact,
+                            omletAccount: user.account,
+                            omletName: user.name,
+                            display: display,
+                            profileUrl: 'https://openclipart.org/image/2400px/svg_to_png/202776/pawn.png'
                         }));
                     });
                 })).then((contacts) => {
@@ -582,7 +593,7 @@ module.exports = class AlmondApi {
                     if (prim.selector.kind !== 'org.thingpedia.builtin.thingengine.remote' &&
                         !prim.selector.kind.startsWith('__dyn')
                         && prim.selector.id) {
-                        let device = this._engine.devices.getDevice(prim.selector.id);
+                        let device = prim.selector.device;//this._engine.devices.getDevice(prim.selector.id);
                         icon = device.kind;
                         break;
                     }
