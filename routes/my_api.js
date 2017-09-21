@@ -32,6 +32,7 @@ const ALLOWED_ORIGINS = ['http://127.0.0.1:8080',
     'https://almond.stanford.edu', 'null'];
 
 function isOriginOk(req) {
+    return true;
     if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer'))
         return true;
     if (typeof req.headers['origin'] !== 'string')
