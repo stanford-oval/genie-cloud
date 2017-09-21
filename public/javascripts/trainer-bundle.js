@@ -76,7 +76,7 @@ module.exports = class SempreClient {
     }
 }
 
-},{"q":4}],2:[function(require,module,exports){
+},{"q":5}],2:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -173,7 +173,7 @@ module.exports = class ThingpediaClientBrowser {
     }
 }
 
-},{"q":4}],3:[function(require,module,exports){
+},{"q":5}],3:[function(require,module,exports){
 // adt.js 
 // ------
 // Algebraic data types and immutable structures in Javascript
@@ -716,6 +716,165 @@ module.exports = class ThingpediaClientBrowser {
 })(typeof exports !== 'undefined' ? exports : (this.adt = {}));
 
 },{}],4:[function(require,module,exports){
+(function (Buffer){
+// Copyright (C) 2011-2015 John Hewson
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+
+var stream = require('stream'),
+    util = require('util'),
+    timers = require('timers');
+
+// convinience API
+module.exports = function(readStream, options) {
+  return module.exports.createStream(readStream, options);
+};
+
+// basic API
+module.exports.createStream = function(readStream, options) {
+  if (readStream) {
+    return createLineStream(readStream, options);
+  } else {
+    return new LineStream(options);
+  }
+};
+
+// deprecated API
+module.exports.createLineStream = function(readStream) {
+  console.log('WARNING: byline#createLineStream is deprecated and will be removed soon');
+  return createLineStream(readStream);
+};
+
+function createLineStream(readStream, options) {
+  if (!readStream) {
+    throw new Error('expected readStream');
+  }
+  if (!readStream.readable) {
+    throw new Error('readStream must be readable');
+  }
+  var ls = new LineStream(options);
+  readStream.pipe(ls);
+  return ls;
+}
+
+//
+// using the new node v0.10 "streams2" API
+//
+
+module.exports.LineStream = LineStream;
+
+function LineStream(options) {
+  stream.Transform.call(this, options);
+  options = options || {};
+
+  // use objectMode to stop the output from being buffered
+  // which re-concatanates the lines, just without newlines.
+  this._readableState.objectMode = true;
+  this._lineBuffer = [];
+  this._keepEmptyLines = options.keepEmptyLines || false;
+  this._lastChunkEndedWithCR = false;
+
+  // take the source's encoding if we don't have one
+  var self = this;
+  this.on('pipe', function(src) {
+    if (!self.encoding) {
+      // but we can't do this for old-style streams
+      if (src instanceof stream.Readable) {
+        self.encoding = src._readableState.encoding;
+      }
+    }
+  });
+}
+util.inherits(LineStream, stream.Transform);
+
+LineStream.prototype._transform = function(chunk, encoding, done) {
+  // decode binary chunks as UTF-8
+  encoding = encoding || 'utf8';
+  
+  if (Buffer.isBuffer(chunk)) {
+    if (encoding == 'buffer') {
+      chunk = chunk.toString(); // utf8
+      encoding = 'utf8';
+    }
+    else {
+     chunk = chunk.toString(encoding);
+    }
+  }
+  this._chunkEncoding = encoding;
+  
+  // see: http://www.unicode.org/reports/tr18/#Line_Boundaries
+  var lines = chunk.split(/\r\n|[\n\v\f\r\x85\u2028\u2029]/g);
+  
+  // don't split CRLF which spans chunks
+  if (this._lastChunkEndedWithCR && chunk[0] == '\n') {
+    lines.shift();
+  }
+  
+  if (this._lineBuffer.length > 0) {
+    this._lineBuffer[this._lineBuffer.length - 1] += lines[0];
+    lines.shift();
+  }
+
+  this._lastChunkEndedWithCR = chunk[chunk.length - 1] == '\r';
+  this._lineBuffer = this._lineBuffer.concat(lines);
+  this._pushBuffer(encoding, 1, done);
+};
+
+LineStream.prototype._pushBuffer = function(encoding, keep, done) {
+  // always buffer the last (possibly partial) line
+  while (this._lineBuffer.length > keep) {
+    var line = this._lineBuffer.shift();
+    // skip empty lines
+    if (this._keepEmptyLines || line.length > 0 ) {
+      if (!this.push(this._reencode(line, encoding))) {
+        // when the high-water mark is reached, defer pushes until the next tick
+        var self = this;
+        timers.setImmediate(function() {
+          self._pushBuffer(encoding, keep, done);
+        });
+        return;
+      }
+    }
+  }
+  done();
+};
+
+LineStream.prototype._flush = function(done) {
+  this._pushBuffer(this._chunkEncoding, 0, done);
+};
+
+// see Readable::push
+LineStream.prototype._reencode = function(line, chunkEncoding) {
+  if (this.encoding && this.encoding != chunkEncoding) {
+    return new Buffer(line, chunkEncoding).toString(this.encoding);
+  }
+  else if (this.encoding) {
+    // this should be the most common case, i.e. we're using an encoded source stream
+    return line;
+  }
+  else {
+    return new Buffer(line, chunkEncoding);
+  }
+};
+
+}).call(this,require("buffer").Buffer)
+},{"buffer":81,"stream":171,"timers":173,"util":177}],5:[function(require,module,exports){
 (function (process){
 // vim:ts=4:sts=4:sw=4:
 /*!
@@ -2767,7 +2926,306 @@ return Q;
 });
 
 }).call(this,require('_process'))
-},{"_process":134}],5:[function(require,module,exports){
+},{"_process":141}],6:[function(require,module,exports){
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See LICENSE for details
+"use strict";
+
+module.exports = require('./lib/smtlib');
+
+module.exports.BaseSolver = require('./lib/base_solver');
+module.exports.LocalCVC4Solver = require('./lib/local_cvc4');
+
+},{"./lib/base_solver":7,"./lib/local_cvc4":8,"./lib/smtlib":9}],7:[function(require,module,exports){
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See LICENSE for details
+"use strict";
+
+const smt = require('./smtlib');
+
+module.exports = class BaseSmtSolver {
+    constructor(logic) {
+        this._statements = [
+            smt.SetLogic('QF_ALL_SUPPORTED')
+        ];
+
+        this.withAssignments = false;
+        this.timeLimit = 180000;
+    }
+
+    enableAssignments() {
+        this.withAssignments = true;
+        this.add(smt.SetOption('produce-assignments'));
+        this.add(smt.SetOption('produce-models'));
+    }
+
+    dump() {
+        for (let stmt of this._statements)
+            console.log(stmt.toString());
+    }
+
+    forEachStatement(callback) {
+        this._statements.forEach(callback);
+    }
+
+    checkSat() {
+        throw new Error('checkSat not implemented for this solver');
+    }
+
+    add(stmt) {
+        this._statements.push(stmt);
+    }
+
+    assert(expr) {
+        this.add(smt.Assert(expr));
+    }
+
+    setOption(opt, value = true) {
+        this.add(smt.SetOption(opt, value));
+    }
+
+    declareFun(name, args, type) {
+        this.add(smt.DeclareFun(name, args, type));
+    }
+};
+
+},{"./smtlib":9}],8:[function(require,module,exports){
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See LICENSE for details
+"use strict";
+
+const child_process = require('child_process');
+const byline = require('byline');
+
+const smt = require('./smtlib');
+const BaseSolver = require('./base_solver');
+
+module.exports = class LocalCVC4Solver extends BaseSolver {
+    constructor(logic) {
+        super(logic);
+        this.setOption('strings-exp');
+        this.setOption('strings-guess-model');
+    }
+
+    checkSat() {
+        return new Promise((callback, errback) => {
+            this.add(smt.CheckSat());
+
+            let args = ['--lang', 'smt2.6', '--tlimit=' + this.timeLimit, '--cpu-time'];
+            if (this.withAssignments) {
+                args.push('--dump-models');
+            }
+
+            let now = new Date;
+            let child = child_process.spawn('cvc4', args);
+
+            child.stdin.setDefaultEncoding('utf8');
+            this.forEachStatement((stmt) => child.stdin.write(stmt.toString()));
+            child.stdin.end();
+            child.stderr.setEncoding('utf8');
+            let stderr = byline(child.stderr);
+            stderr.on('data', (data) => {
+                console.error('SMT-ERR:', data);
+            });
+            child.stdout.setEncoding('utf8');
+            let stdout = byline(child.stdout);
+            let sat = undefined;
+            let assignment = {};
+            let cidx = 0;
+            let constants = {};
+            stdout.on('data', (line) => {
+                //console.log('SMT:', line);
+                if (line === 'sat') {
+                    sat = true;
+                    return;
+                }
+                if (line === 'unsat') {
+                    sat = false;
+                    return;
+                }
+                if (line === 'unknown') {
+                    sat = true;
+                    console.error('SMT TIMED OUT');
+                    this.dump();
+                    return;
+                }
+                if (line.startsWith('(error')) {
+                    return errback(new Error('SMT error: ' + line));
+                }
+
+                const CONSTANT_REGEX = /; rep: @uc_([A-Za-z0-9_]+)$/;
+                let match = CONSTANT_REGEX.exec(line);
+                if (match !== null) {
+                    constants[match[1]] = cidx++;
+                    return;
+                }
+                const ASSIGN_CONST_REGEX = /\(define-fun ([A-Za-z0-9_.]+) \(\) ([A-Za-z0-9_]+) @uc_([A-Za-z0-9_]+)\)$/
+                match = ASSIGN_CONST_REGEX.exec(line);
+                if (match !== null) {
+                    assignment[match[1]] = constants[match[3]];
+                    return;
+                }
+
+                const ASSIGN_BOOL_REGEX = /\(define-fun ([A-Za-z0-9_.]+) \(\) Bool (true|false)\)$/;
+                match = ASSIGN_BOOL_REGEX.exec(line);
+                if (match !== null) {
+                    assignment[match[1]] = (match[2] === 'true');
+                    return;
+                }
+
+                // ignore everything else
+            });
+            stdout.on('end', () => {
+                console.log('SMT elapsed time: ' + ((new Date).getTime() - now.getTime()));
+
+                if (sat)
+                    callback([true, assignment]);
+                else
+                    callback([false, undefined])
+            });
+
+            child.stdout.on('error', errback);
+        });
+    }
+}
+
+},{"./base_solver":7,"./smtlib":9,"byline":4,"child_process":34}],9:[function(require,module,exports){
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See LICENSE for details
+"use strict";
+
+function stringEscape(str) {
+    return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
+    // the following comment fixes broken syntax highlighting in GtkSourceView
+    //]/
+}
+
+class SExpr {
+    constructor(...children) {
+        this._children = children;
+    }
+
+    toString() {
+        return '(' + this._children.join(' ') + ')';
+    }
+}
+
+function SetLogic(logic) {
+    return new SExpr('set-logic', logic);
+}
+function SetOption(opt, value = true) {
+    return new SExpr('set-option', ':' + opt, value);
+}
+function DeclareDatatype(name, constructors) {
+    let sortdec = new SExpr(name, 0);
+    let datatypedec = new SExpr(...constructors.map((c) => Array.isArray(c) ? new SExpr(...c) : new SExpr(c)));
+
+    return new SExpr('declare-datatypes', new SExpr(sortdec), new SExpr(datatypedec));
+}
+function DeclareSort(name) {
+    return new SExpr('declare-sort', name, '0');
+}
+function DeclareFun(name, args, ret) {
+    return new SExpr('declare-fun', name, new SExpr(...args), ret);
+}
+function DefineFun(name, args, ret, def) {
+    return new SExpr('define-fun', name, new SExpr(...args), ret, def);
+}
+function Assert(assert) {
+    return new SExpr('assert', assert);
+}
+function Predicate(pred, ...args) {
+    if (args.length === 0)
+        return pred;
+    else
+        return new SExpr(pred, ...args);
+}
+function Implies(lhs, rhs) {
+    return new SExpr('=>', lhs, rhs);
+}
+function And(...args) {
+    if (args.length === 1)
+        return args[0];
+    return new SExpr('and', ...args);
+}
+function Or(...args) {
+    if (args.length === 1)
+        return args[0];
+    return new SExpr('or', ...args);
+}
+function Not(expr) {
+    return new SExpr('not', expr);
+}
+function Eq(lhs, rhs) {
+    return new SExpr('=', lhs, rhs);
+}
+function NEq(lhs, rhs) {
+    return Not(Eq(lhs, rhs));
+}
+function LEq(lhs, rhs) {
+    return new SExpr('<=', lhs, rhs);
+}
+function GEq(lhs, rhs) {
+    return new SExpr('>=', lhs, rhs);
+}
+function LT(lhs, rhs) {
+    return new SExpr('<', lhs, rhs);
+}
+function GT(lhs, rhs) {
+    return new SExpr('>', lhs, rhs);
+}
+function SetType(elementType) {
+    return new SExpr('Set', elementType);
+}
+function StringLiteral(str) {
+    return stringEscape(str);
+}
+function Named(name, expr) {
+    return new SExpr('!', expr, ':named', name);
+}
+function CheckSat(name) {
+    return new SExpr('check-sat');
+}
+
+module.exports = {
+    SExpr,
+    SetLogic,
+    SetOption,
+    DeclareSort,
+    DeclareDatatype,
+    DeclareFun,
+    DefineFun,
+    Assert,
+    Predicate,
+    Implies,
+    And,
+    Or,
+    Not,
+    Eq,
+    NEq,
+    LEq,
+    GEq,
+    LT,
+    GT,
+    Named,
+    SetType,
+    StringLiteral,
+    CheckSat
+};
+
+},{}],10:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -2786,6 +3244,7 @@ const SchemaRetriever = require('./lib/schema');
 const Generate = require('./lib/generate');
 const Describe = require('./lib/describe');
 const Formatter = require('./lib/formatter');
+const PermissionChecker = require('./lib/permission_checker');
 
 let { genRandomRules, genRandomPermissionRule } = require('./lib/gen_random_rule');
 Generate.genRandomRules = genRandomRules;
@@ -2812,12 +3271,13 @@ module.exports = {
     Describe: Describe,
     SEMPRESyntax: SEMPRESyntax,
     Formatter: Formatter,
+    PermissionChecker: PermissionChecker,
 
     Location: builtin_values.Location,
     Entity: builtin_values.Entity,
 };
 
-},{"./lib/ast":6,"./lib/builtin_values":8,"./lib/compiler":9,"./lib/describe":10,"./lib/exec_environment":11,"./lib/formatter":12,"./lib/gen_random_rule":13,"./lib/gen_random_value":14,"./lib/generate":15,"./lib/grammar_api":17,"./lib/ir":19,"./lib/optimize":21,"./lib/schema":23,"./lib/sempre_syntax":24,"./lib/type":25,"./lib/typecheck":26}],6:[function(require,module,exports){
+},{"./lib/ast":11,"./lib/builtin_values":13,"./lib/compiler":14,"./lib/describe":15,"./lib/exec_environment":16,"./lib/formatter":17,"./lib/gen_random_rule":18,"./lib/gen_random_value":19,"./lib/generate":20,"./lib/grammar_api":22,"./lib/ir":24,"./lib/optimize":26,"./lib/permission_checker":27,"./lib/schema":29,"./lib/sempre_syntax":30,"./lib/type":31,"./lib/typecheck":32}],11:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -2840,7 +3300,7 @@ adt.nativeClone = function nativeClone(x) {
     if (Array.isArray(x))
         return x.map((el) => nativeClone(el));
     return x;
-}
+};
 
 const Location = adt.data({
     Absolute: {
@@ -2919,16 +3379,16 @@ Value.fromJS = function fromJS(type, v) {
     if (type.isLocation)
         return Value.Location(Location.Absolute(v.y, v.x, v.display||null));
     throw new TypeError('Invalid type ' + type);
-}
+};
 Value.fromJSON = function fromJSON(type, v) {
     if (type.isDate) {
         let date = new Date;
         date.setTime(v);
         return new Value.Date(date);
     } else {
-        return Value.fromJS()
+        return Value.fromJS(type, v);
     }
-}
+};
 
 Value.prototype.isConcrete = function isConcrete() {
     if (this.isLocation && this.value.isRelative)
@@ -2938,7 +3398,7 @@ Value.prototype.isConcrete = function isConcrete() {
     if (this.isEntity && !this.display)
         return false;
     return true;
-}
+};
 Value.prototype.toJS = function toJS() {
     const v = this;
     if (v.isArray)
@@ -2948,7 +3408,7 @@ Value.prototype.toJS = function toJS() {
     if (v.isUndefined)
         return undefined;
     if (v.isLocation && v.value.isAbsolute)
-        return new builtin.Location(v.value.lat, v.value.lon, v.value.display)
+        return new builtin.Location(v.value.lat, v.value.lon, v.value.display);
     if (v.isLocation)
         throw new TypeError('Location is unknown');
     if (v.isTime)
@@ -3042,7 +3502,7 @@ var BooleanExpression = adt.data(function() {
         },
         True: null,
         False: null
-    }
+    };
 });
 module.exports.BooleanExpression = BooleanExpression.seal();
 
@@ -3054,6 +3514,7 @@ var FunctionDef = adt.newtype('FunctionDef', {
     inReq: adt.only(Object),
     inOpt: adt.only(Object),
     out: adt.only(Object),
+    canonical: adt.only(String),
     confirmation: adt.only(String),
     confirmation_remote: adt.only(String),
     argcanonicals: adt.only(Array),
@@ -3123,7 +3584,7 @@ module.exports.prettyprint = prettyprint;
 module.exports.prettyprintPermissionRule = prettyprintPermissionRule;
 module.exports.prettyprintFilterExpression = prettyprintFilterExpression;
 
-},{"./builtin_values":8,"./internal":18,"./prettyprint":22,"./type":25,"adt":3}],7:[function(require,module,exports){
+},{"./builtin_values":13,"./internal":23,"./prettyprint":28,"./type":31,"adt":3}],12:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -3139,6 +3600,8 @@ const Ast = require('./ast');
 // we split the module so that AST can also load it, because
 // we need Ast to define function def at the end of the file
 module.exports = require('./builtin_values');
+const Location = module.exports.Location;
+const Entity = module.exports.Entity;
 
 function arrayEquals(a, b) {
     if (a.length !== b.length)
@@ -3298,7 +3761,7 @@ module.exports.UnaryOps = {
 
 module.exports.Triggers = {};
 module.exports.Actions = {
-    'notify': Ast.FunctionDef(
+    'notify': new Ast.FunctionDef(
         'global',
         [], // args
         [], // types
@@ -3306,6 +3769,7 @@ module.exports.Actions = {
         {}, // inReq
         {}, // inOpt
         {}, // out
+        '', // canonical
         '', // confirmation
         '', // confirmation_remote,
         [], // argcanonicals,
@@ -3314,7 +3778,7 @@ module.exports.Actions = {
 };
 module.exports.Queries = {};
 
-},{"./ast":6,"./builtin_values":8,"./type":25}],8:[function(require,module,exports){
+},{"./ast":11,"./builtin_values":13,"./type":31}],13:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -3349,7 +3813,7 @@ class Location {
 }
 module.exports.Location = Location;
 
-},{}],9:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -3360,16 +3824,13 @@ module.exports.Location = Location;
 "use strict";
 
 const Q = require('q');
-const assert = require('assert');
 
 const Ast = require('./ast');
 const Ir = require('./ir');
 const Grammar = require('./grammar');
 const Type = require('./type');
-const Utils = require('./utils');
-const Builtin = require('./builtin');
 const JSIr = require('./jsir');
-const { typeCheckInput, typeCheckOutput, typeCheckRule } = require('./typecheck');
+const { typeCheckRule } = require('./typecheck');
 
 function compileEvent(irBuilder, name) {
     let reg;
@@ -3482,7 +3943,7 @@ function compileTriggerOrQuery(ast, scope, inParamAccess, outParamAccess) {
                 lhs = outParamAccess(irBuilder, ast, filter.name);
             } else {
                 lhsType = scope[filter.name];
-                lhs = compileValue(irBuilder, Ast.Value.VarRef(filter.name));
+                lhs = compileValue(irBuilder, Ast.Value.VarRef(filter.name), scope);
             }
             lhs = compileCast(irBuilder, lhs, lhsType, filter.overload[0]);
             let rhs = compileValue(irBuilder, filter.value, scope);
@@ -3565,9 +4026,7 @@ function compileBuiltinNotify(ast) {
 
     return Ir.Invocation.Action(ast.selector, ast.channel, irBuilder.compile());
     */
-    return Ir.Invocation.Action(ast.selector, ast.channel, function(env) {
-        return [env.getEventType(), env.getCurrentEvent()];
-    });
+    return Ir.Invocation.Action(ast.selector, ast.channel, (env) => [env.getEventType(), env.getCurrentEvent()]);
 }
 
 function compileAction(ast, scope) {
@@ -3669,7 +4128,7 @@ module.exports = class AppCompiler {
 };
 
 
-},{"./ast":6,"./builtin":7,"./grammar":16,"./ir":19,"./jsir":20,"./type":25,"./typecheck":26,"./utils":27,"assert":42,"q":4}],10:[function(require,module,exports){
+},{"./ast":11,"./grammar":21,"./ir":24,"./jsir":25,"./type":31,"./typecheck":32,"q":5}],15:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
@@ -3680,7 +4139,13 @@ module.exports = class AppCompiler {
 "use strict";
 
 function clean(name) {
+    if (name.startsWith('v_'))
+        name = name.substr('v_'.length);
     return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+}
+
+function coin(bias) {
+    return Math.random() < bias;
 }
 
 function displayLocation(_, loc) {
@@ -3688,7 +4153,7 @@ function displayLocation(_, loc) {
         if (loc.display)
             return loc.display;
         else
-            return '[Latitude: ' + Number(loc.lat).toFixed(3) + ' deg, Longitude: ' + Number(loc.lon).toFixed(3) + ' deg]'
+            return '[Latitude: ' + Number(loc.lat).toFixed(3) + ' deg, Longitude: ' + Number(loc.lon).toFixed(3) + ' deg]';
     } else {
         switch (loc.relativeTag) {
         case 'current_location':
@@ -3703,26 +4168,63 @@ function displayLocation(_, loc) {
     }
 }
 
-function describeArg(_, arg, scope = {}) {
+function describeDate(date, applyHeuristics) {
+    if (applyHeuristics) {
+        if (date.getHours() === 0 && date.getMinutes() === 0)
+            return date.toLocaleDateString();
+    }
+    return date.toLocaleString();
+}
+
+function describeArg(_, arg, scope = {}, applyHeuristics = false) {
     if (arg.display)
         return arg.display;
     if (arg.isVarRef) {
+        let name;
         if (arg.name in scope)
-            return scope[arg.name];
-        return clean(arg.name.startsWith('v_') ? arg.name.substr('v_'.length) : arg.name);
+            name = scope[arg.name];
+        else
+            name = clean(arg.name);
+        if (applyHeuristics) {
+            if (coin(0.1))
+                return _("the %s value").format(name);
+            else if (coin(0.5))
+                return _("the %s").format(name);
+            else
+                return _("its %s").format(name);
+        } else {
+            return name;
+        }
     }
     if (arg.isUndefined)
         return '____';
     if (arg.isEvent) {
-        switch (arg.name) {
-        case null:
-            return _("the event");
-        case 'title':
-            return _("the event's title");
-        case 'body':
-            return _("the event's long description");
-        default:
-            return arg.name;
+        if (applyHeuristics) {
+            switch (arg.name) {
+            case null:
+                if (coin(0.5))
+                    return _("the result");
+                else
+                    return _("it");
+            case 'title':
+                if (coin(0.5))
+                    return _("the notification");
+                else
+                    return _("the result title");
+            case 'body':
+                return _("the notification body");
+            }
+        } else {
+            switch (arg.name) {
+            case null:
+                return _("the event");
+            case 'title':
+                return _("the event's title");
+            case 'body':
+                return _("the event's long description");
+            default:
+                return arg.name;
+            }
         }
     }
     if (arg.isLocation)
@@ -3742,17 +4244,61 @@ function describeArg(_, arg, scope = {}) {
         return clean(arg.value);
     if (arg.isMeasure)
         return arg.value + ' ' + arg.unit;
-    if (arg.isBoolean)
-        return arg.value ? _("yes") : _("no");
+    if (arg.isBoolean) {
+        if (applyHeuristics && coin(0.5))
+            return arg.value ? _("yes") : _("no");
+        else
+            return arg.value ? _("true") : _("false");
+    }
     if (arg.isDate)
-        return arg.value.toLocaleString();
+        return describeDate(arg.value, applyHeuristics);
     if (arg.isTime)
         return "%02d:%02d".format(arg.hour, arg.minute);
 
     return String(arg);
 }
 
-function describePrimitive(_, obj, primType, scope) {
+function describePlaceholder(_, type, applyHeuristics = false) {
+    if (!applyHeuristics)
+        return '____';
+    if (type.isEntity) {
+        switch (type.type) {
+        case 'tt:email_address':
+        case 'tt:phone_number':
+        case 'tt:username':
+        case 'tt:contact_name':
+        case 'tt:contact':
+            return _("someone");
+        case 'tt:iso_lang_code':
+            return _("some language");
+        case 'sportradar:eu_soccer_team':
+        case 'sportradar:us_soccer_team':
+        case 'sportradar:mlb_team':
+        case 'sportradar:nba_team':
+        case 'sportradar:ncaafb_team':
+        case 'sportradar:ncaambb_team':
+            return _("some team");
+        case 'tt:stock_id':
+            return _("some company");
+        default:
+            return _("something");
+        }
+    } else if (type.isNumber) {
+        return _("some number");
+    } else if (type.isMeasure) {
+        return _("some value");
+    } else if (type.isDate) {
+        return _("some date");
+    } else if (type.isTime) {
+        return _("some time");
+    } else if (type.isLocation) {
+        return _("some place");
+    } else {
+        return _("something");
+    }
+}
+
+function describePrimitive(_, obj, primType, scope, applyHeuristics = false) {
     var kind = obj.selector.kind;
     var owner = obj.selector.principal;
     var channel = obj.channel;
@@ -3772,9 +4318,9 @@ function describePrimitive(_, obj, primType, scope) {
         if (!confirm)
             confirm = schema.confirmation;
         if (confirm === schema.confirmation)
-            confirm = confirm.replace('your', describeArg(_, owner) + '\'s').replace('you', describeArg(_, owner));
+            confirm = confirm.replace('your', describeArg(_, owner, applyHeuristics) + '\'s').replace('you', describeArg(_, owner, applyHeuristics));
         else
-            confirm = confirm.replace('$__person', describeArg(_, owner));
+            confirm = confirm.replace('$__person', describeArg(_, owner, applyHeuristics));
     } else {
         confirm = schema.confirmation;
         if (obj.selector.device)
@@ -3786,9 +4332,10 @@ function describePrimitive(_, obj, primType, scope) {
     let firstExtra = true;
     for (let inParam of obj.in_params) {
         let argname = inParam.name;
+        let ptype = obj.schema.inReq[argname] || obj.schema.inOpt[argname];
         let index = obj.schema.index[argname];
         let argcanonical = obj.schema.argcanonicals[index] || clean(argname);
-        let value = describeArg(_, inParam.value, scope);
+        let value = inParam.value.isUndefined ? describePlaceholder(_, ptype, applyHeuristics) : describeArg(_, inParam.value, scope, applyHeuristics);
         if (confirm.indexOf('$' + argname) >= 0) {
             confirm = confirm.replace('$' + argname, value);
         } else {
@@ -3830,7 +4377,7 @@ function describePrimitive(_, obj, primType, scope) {
         } else {
             argcanonical = scope[argname];
         }
-        let value =  describeArg(_, filter.value, scope);
+        let value =  describeArg(_, filter.value, scope, applyHeuristics);
         switch (filter.operator) {
         case 'contains':
         case 'substr':
@@ -3914,7 +4461,7 @@ function describeProgram(_, program) {
 }
 
 function capitalize(str) {
-    return (str[0].toUpperCase() + str.substr(1)).replace(/[\.\-_]([a-z])/g, function(whole, char) { return char.toUpperCase(); }).replace(/[\.\-_]/g, '');
+    return (str[0].toUpperCase() + str.substr(1)).replace(/[.\-_]([a-z])/g, (whole, char) => char.toUpperCase()).replace(/[.\-_]/g, '');
 }
 
 function capitalizeSelector(prim) {
@@ -3937,7 +4484,7 @@ function capitalizeSelector(prim) {
         kind = kind.substr('org.'.length);
 
     let channel = prim.channel;
-    if (kind === 'builtin')
+    if (kind === 'builtin' || kind === 'remote' || kind.startsWith('__dyn_'))
         return capitalize(channel);
     else
         return capitalize(kind);
@@ -3969,8 +4516,8 @@ function getProgramName(_, program) {
     return program.rules.map((r) => getRuleName(_, r)).join(', ');
 }
 
-function pubDescribeArg(gettext, arg) {
-    return describeArg(gettext.dgettext.bind(gettext, 'thingtalk'), arg);
+function pubDescribeArg(gettext, arg, applyHeuristics = false) {
+    return describeArg(gettext.dgettext.bind(gettext, 'thingtalk'), arg, {}, applyHeuristics);
 }
 function pubDescribeProgram(gettext, program) {
     return describeProgram(gettext.dgettext.bind(gettext, 'thingtalk'), program);
@@ -3978,8 +4525,8 @@ function pubDescribeProgram(gettext, program) {
 function pubGetProgramName(gettext, program) {
     return getProgramName(gettext.dgettext.bind(gettext, 'thingtalk'), program);
 }
-function pubDescribePrimitive(gettext, prim, primType, scope) {
-    return describePrimitive(gettext.dgettext.bind(gettext, 'thingtalk'), prim, primType, scope);
+function pubDescribePrimitive(gettext, prim, primType, scope, applyHeuristics = false) {
+    return describePrimitive(gettext.dgettext.bind(gettext, 'thingtalk'), prim, primType, scope, applyHeuristics);
 }
 
 module.exports = {
@@ -3987,9 +4534,9 @@ module.exports = {
     describeProgram: pubDescribeProgram,
     describePrimitive: pubDescribePrimitive,
     getProgramName: pubGetProgramName
-}
+};
 
-},{}],11:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -3999,8 +4546,6 @@ module.exports = {
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-const Internal = require('./internal');
 const builtin = require('./builtin_values');
 
 const Formatter = require('./formatter');
@@ -4027,6 +4572,23 @@ module.exports = class ExecEnvironment {
             return this.queryValue;
         else
             return this.triggerValue;
+    }
+
+    getMeta() {
+        let where;
+        if (this.queryInput !== null)
+            where = 'queries';
+        else
+            where = 'triggers';
+        return this.currentChannel.device.constructor.metadata[where][this.currentChannel.name];
+    }
+
+    getChannelName() {
+        return this.currentChannel.name;
+    }
+
+    getDeviceId() {
+        return this.currentChannel.device.uniqueId;
     }
 
     getEventType() {
@@ -4072,7 +4634,7 @@ module.exports = class ExecEnvironment {
     }
 };
 
-},{"./builtin_values":8,"./formatter":12,"./internal":18,"q":4}],12:[function(require,module,exports){
+},{"./builtin_values":13,"./formatter":17}],17:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
@@ -4151,7 +4713,7 @@ module.exports = class Formatter {
                 return {
                     type: 'picture',
                     url: this._replaceInString(f.url, argMap)
-                }
+                };
             }
             if (f.type === 'rdl') {
                 return {
@@ -4187,8 +4749,12 @@ module.exports = class Formatter {
             throw new TypeError();
         }
 
-        let block = currentChannel.device.constructor.metadata[where][currentChannel.name];
-        assert(block);
+        let container = currentChannel.device.constructor.metadata[where];
+        if (!container)
+            return this._legacyFormat(currentChannel, channelType, value, input, hint);
+        let block = container[currentChannel.name];
+        if (!block)
+            return this._legacyFormat(currentChannel, channelType, value, input, hint);
         let argnames = block.args.map((a) => a.name);
         let format = block.formatted;
         if (!format)
@@ -4315,9 +4881,9 @@ module.exports = class Formatter {
         else
             return String(o);
     }
-}
+};
 
-},{"./internal":18,"assert":42,"q":4,"vm":170}],13:[function(require,module,exports){
+},{"./internal":23,"assert":49,"q":5,"vm":178}],18:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -4327,7 +4893,6 @@ module.exports = class Formatter {
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const stream = require('stream');
 
 const Ast = require('./ast');
@@ -4340,18 +4905,18 @@ const { optimizeProgram, optimizeFilter } = require('./optimize');
 const { typeCheckProgram } = require('./typecheck');
 
 function sample(distribution) {
-    var keys = Object.keys(distribution);
-    var sums = new Array(keys.length);
-    var rolling = 0;
-    for (var i = 0; i < keys.length; i++) {
+    let keys = Object.keys(distribution);
+    let sums = new Array(keys.length);
+    let rolling = 0;
+    for (let i = 0; i < keys.length; i++) {
         sums[i] = rolling + distribution[keys[i]];
         rolling = sums[i];
     }
 
-    var total = sums[keys.length-1];
-    var choice = Math.random() * total;
+    let total = sums[keys.length-1];
+    let choice = Math.random() * total;
 
-    for (var i = 0; i < keys.length; i++) {
+    for (let i = 0; i < keys.length; i++) {
         if (choice <= sums[i])
             return keys[i];
     }
@@ -4409,7 +4974,7 @@ const PERMISSION_DEFAULT_COMPOSITION_WEIGHTS = {
     //'null+star+star': 0.05,
 
     // 'star+star+star': 0
-}
+};
 
 function chooseSchema(allSchemas, policy) {
     if (policy.startsWith('only-'))
@@ -4644,6 +5209,8 @@ function genRandomFilter(invocation, applyFiltersToInputs, applyFiltersToOutputs
                 return;
             if (applyHeuristics && argname.startsWith('tournament'))
                 return;
+            if (applyHeuristics && type.isDate)
+                return;
 
             let valueList = genValueList(argname, type, applyHeuristics);
             if (allowUnsynthesizable)
@@ -4685,13 +5252,8 @@ function genRandomFilter(invocation, applyFiltersToInputs, applyFiltersToOutputs
 function applyFilters(invocation, options, isAction) {
     if (invocation === undefined)
         return null;
-    let { applyHeuristics,
-          allowUnsynthesizable,
-          applyFiltersToInputs,
-          actionArgConstantProbability,
-          argConstantProbability,
-          requiredArgConstantProbability,
-          filterClauseProbability } = options;
+    let { allowUnsynthesizable,
+          applyFiltersToInputs } = options;
 
     let outParams = [];
 
@@ -4712,16 +5274,64 @@ function applyFilters(invocation, options, isAction) {
     return ret;
 }
 
-function addConstantInputArguments(invocation, to, options, isAction) {
+function mustAvoidDuplicates(value) {
+    if (value.isLocation && value.value.isRelative)
+        return false;
+    if (value.isEnum || value.isBoolean)
+        return false;
+    if (value.isEntity && value.type === 'tt:device')
+        return false;
+    if (value.isEvent)
+        return false;
+    if (value.isUndefined || value.isVarRef)
+        return false;
+    return true;
+}
+
+function stringHash(value) {
+    if (value.isEntity)
+        return `entity-${value.type}:${value.value}`;
+    if (value.isMeasure)
+        return `measure-${value.unit}:${value.value}`;
+    if (value.isString)
+        return `string-"${value.value}"`;
+    if (value.isNumber)
+        return `num-${value.value}`;
+    if (value.isLocation)
+        return `loc-lat:${value.value.lat}-lon:${value.value.lon}`;
+    if (value.isDate)
+        return `date-${value.value.toISOString()}`;
+    if (value.isTime)
+        return `time-${value.hour}-${value.minute}`;
+    throw new TypeError('Should not hash a value of the form ' + value);
+}
+
+function chooseValue(valueList, usedValues) {
+    let tries = 3;
+    while (tries > 0) {
+        let value = uniform(valueList);
+        if (mustAvoidDuplicates(value)) {
+            let hash = stringHash(value);
+            if (usedValues.has(hash)) {
+                tries--;
+                continue;
+            }
+            usedValues.add(hash);
+            return value;
+        } else {
+            return value;
+        }
+    }
+    return null;
+}
+
+function addConstantInputArguments(invocation, to, options, isAction, usedValues) {
     if (invocation === undefined)
         return;
     let { applyHeuristics,
-          allowUnsynthesizable,
-          applyFiltersToInputs,
           actionArgConstantProbability,
           argConstantProbability,
-          requiredArgConstantProbability,
-          filterClauseProbability } = options;
+          requiredArgConstantProbability } = options;
     let inParams = to.in_params;
     let usedParams = new Set;
     for (let inParam of inParams)
@@ -4729,36 +5339,47 @@ function addConstantInputArguments(invocation, to, options, isAction) {
 
     function addInputArgument(argname, type, argrequired) {
         if (usedParams.has(argname))
-            return;
+            return true;
         if (applyHeuristics && type.isEntity && type.type === 'tt:url' && !argrequired)
-            return;
+            return false;
         if (applyHeuristics && argname.endsWith('_id') && argname !== 'stock_id')
-            return;
+            return false;
         if (applyHeuristics && !argrequired && PARAMS_BLACK_LIST.has(argname))
-            return;
+            return false;
         if (applyHeuristics && argname.startsWith('tournament'))
-            return;
+            return false;
 
         let valueList = genValueList(argname, type, applyHeuristics);
         if (valueList.length === 0)
-            return;
+            return false;
 
         if (type.isEnum) {
             inParams.push(Ast.InputParam(argname, uniform(valueList)));
-        } else if (isAction) {
-            if (coin(actionArgConstantProbability)) inParams.push(Ast.InputParam(argname, uniform(valueList)));
-            else inParams.push(Ast.InputParam(argname, Ast.Value.Undefined(true)));
-        } else if (argrequired) {
-            if (coin(requiredArgConstantProbability)) inParams.push(Ast.InputParam(argname, uniform(valueList)));
-            else inParams.push(Ast.InputParam(argname, Ast.Value.Undefined(true)));
+            return true;
         } else {
-            if (coin(argConstantProbability)) inParams.push(Ast.InputParam(argname, uniform(valueList)));
+            let shouldFill = false;
+
+            if (isAction)
+                shouldFill = coin(actionArgConstantProbability);
+            else if (argrequired)
+                shouldFill = coin(requiredArgConstantProbability);
+            else
+                shouldFill = coin(argConstantProbability);
+            if (shouldFill) {
+                let value = chooseValue(valueList, usedValues);
+                if (value) {
+                    inParams.push(Ast.InputParam(argname, value));
+                    return true;
+                }
+            }
         }
+        return false;
     }
 
     for (let argname in invocation.inReq) {
         let type = invocation.inReq[argname];
-        addInputArgument(argname, type, true);
+        if (!addInputArgument(argname, type, true))
+            inParams.push(Ast.InputParam(argname, Ast.Value.Undefined(true)));
     }
     for (let argname in invocation.inOpt) {
         let type = invocation.inOpt[argname];
@@ -4766,26 +5387,27 @@ function addConstantInputArguments(invocation, to, options, isAction) {
     }
 }
 
-function applyComposition(from, to, { applyHeuristics, allowUnsynthesizable }, isAction) {
+function applyComposition(from, to, { applyHeuristics, allowUnsynthesizable, strictParameterPassing }, isAction) {
     let usedFromArgs = new Set();
 
     function filterHelper(filter) {
         if (filter.isTrue || filter.isFalse)
-            return;
+            return undefined;
         if (filter.isOr || filter.isAnd)
             return filter.operands.forEach(filterHelper);
         if (filter.isNot)
             return filterHelper(filter.expr);
         if (filter.filter.operator === '=')
             usedFromArgs.add(filter.filter.name);
+        return undefined;
     }
     filterHelper(from.filter);
     for (let arg of from.in_params)
         usedFromArgs.add(arg.name);
     let usedToArgs = new Set();
-    for (let arg of to.in_params) {
+    for (let arg of to.in_params)
         usedToArgs.add(arg.name);
-    }
+
 
     let fromArgs = from.schema.args.filter((arg) => from.schema.out[arg] && !usedFromArgs.has(arg));
     let toArgs = to.schema.args.filter((arg) => ((to.schema.inReq[arg] || to.schema.inOpt[arg]) && !usedToArgs.has(arg)));
@@ -4813,14 +5435,19 @@ function applyComposition(from, to, { applyHeuristics, allowUnsynthesizable }, i
                 continue;
             if (fromType.isAny)
                 continue;
-
-            if (to.schema.inReq[toArg] || isAction) {
-                if (Type.isAssignable(toType, fromType))
-                    distribution[fromArg] = 1.5;
+            if (strictParameterPassing) {
+                if (!toType.equals(fromType))
+                    continue;
             } else {
-                if (Type.isAssignable(toType, fromType))
-                    distribution[fromArg] = 0.5;
+                if (!Type.isAssignable(toType, fromType))
+                    continue;
             }
+
+            if (to.schema.inReq[toArg] || isAction)
+                distribution[fromArg] = 1.5;
+             else
+                distribution[fromArg] = 0.5;
+
         }
         // only pass $event when for 'message' and 'status'
         if (applyHeuristics) {
@@ -4854,9 +5481,10 @@ function genOneRandomRule(schemaRetriever, schemas, options) {
             applyComposition(trigger, query, options, false);
         if (trigger && action && !query)
             applyComposition(trigger, action, options, true);
-        addConstantInputArguments(triggerMeta, trigger, options, false);
-        addConstantInputArguments(queryMeta, query, options, false);
-        addConstantInputArguments(actionMeta, action, options, true);
+        let usedValues = new Set;
+        addConstantInputArguments(triggerMeta, trigger, options, false, usedValues);
+        addConstantInputArguments(queryMeta, query, options, false, usedValues);
+        addConstantInputArguments(actionMeta, action, options, true, usedValues);
 
         let rule = new Ast.Rule(trigger, query ? [query] : [], [action || notifyAction()], false);
 
@@ -4905,6 +5533,7 @@ const GEN_RULE_DEFAULT_OPTIONS = {
     applyHeuristics: true,
     allowUnsynthesizable: false,
     applyFiltersToInputs: false,
+    strictParameterPassing: false,
     filterClauseProbability: 0.2,
     actionArgConstantProbability: 0.3,
     argConstantProbability: 0.1,
@@ -4920,7 +5549,7 @@ const GEN_PERMISSIONS_DEFAULT_OPTIONS = {
     actionArgConstantProbability: 0.3,
     argConstantProbability: 0.1,
     requiredArgConstantProbability: 0.6
-}
+};
 
 function makeStream(N, next) {
     var i = 0;
@@ -4967,7 +5596,7 @@ module.exports = {
     genRandomPermissionRule
 };
 
-},{"./ast":6,"./gen_random_value":14,"./generate":15,"./optimize":21,"./type":25,"./typecheck":26,"./utils":27,"q":4,"stream":164}],14:[function(require,module,exports){
+},{"./ast":11,"./gen_random_value":19,"./generate":20,"./optimize":26,"./type":31,"./typecheck":32,"./utils":33,"stream":171}],19:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -4977,45 +5606,43 @@ module.exports = {
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-const stream = require('stream');
-
 const Ast = require('./ast');
 
-//const STRING_ARGUMENTS = ["i'm happy", "you would never believe what happened", "merry christmas", "love you"];
-const STRING_ARGUMENTS = ["0123456789", "12345", "9876543210", "0123456788", "23456789", "ABCDEFGHIJ"];
+const STRING_ARGUMENTS = ["i'm happy", "you would never believe what happened", "merry christmas", "love you"];
+//const STRING_ARGUMENTS = ["0123456789", "12345", "9876543210", "0123456788", "23456789", "ABCDEFGHIJ"];
 const NUMBER_ARGUMENTS = [42, 7, 14, 11, 55];
 const MEASURE_ARGUMENTS = {
-    C: [{ value: 73, unit: 'F' }, { value: 22, unit: 'C' }],
-    m: [{ value: 1000, unit: 'm' }, { value: 42, unit: 'cm' }],
-    kg: [{ value: 82, unit: 'kg' }, { value: 155, unit: 'lb' }],
+    C: [{ value: 73, unit: 'F' }, { value: 75, unit: 'F' }, { value: 80, unit: 'F' }],
+    m: [{ value: 1000, unit: 'm' }, { value: 42, unit: 'cm' }, { value: 5, unit: 'm' }],
+    kg: [{ value: 82, unit: 'kg' }, { value: 155, unit: 'lb' }, { value: 75, unit: 'kg' }],
     kcal: [{ value: 500, unit: 'kcal' }],
     mps: [{ value: 5, unit: 'kmph' }, { value: 25, unit: 'mph' }],
-    ms: [{ value: 2, unit: 'h'}, { value: 30, unit: 'min' }],
-    byte: [{ value: 5, unit: 'KB' }, { value: 20, unit: 'MB' }]
+    ms: [{ value: 2, unit: 'h'}, { value: 30, unit: 'min' }, { value: 3, unit: 'day' }],
+    byte: [{ value: 5, unit: 'KB' }, { value: 20, unit: 'MB' }, { value: 2, unit: 'GB' }]
 };
 const BOOLEAN_ARGUMENTS = [true, false];
 const LOCATION_ARGUMENTS = [Ast.Location.Relative('current_location'),
                             Ast.Location.Relative('home'),
                             Ast.Location.Relative('work'),
-                            Ast.Location.Absolute(37.442156, -122.1634471, 'Palo Alto, CA'),
-                            Ast.Location.Absolute(34.0543942, -118.2439408, 'Los Angeles, CA')];
-const DATE_ARGUMENTS = ['2017-02-14', '2016-05-04'];
+                            Ast.Location.Absolute(37.442156, -122.1634471, 'Palo Alto, California'),
+                            Ast.Location.Absolute(34.0543942, -118.2439408, 'Los Angeles, California')];
+const DATE_ARGUMENTS = ['2017-02-14T00:00:00-08:00', '2016-05-04T00:00:00-07:00',
+    '2017-08-02T00:00:00-07:00'];
 const TIME_ARGUMENTS = [{ hour: 7, minute: 30 }, { hour: 15, minute: 0 }, { hour: 20, minute: 30 }];
 
 const ENTITIES = {
-    'tt:email_address': [[null, 'bob@stanford.edu'], [null, 'alice@gmail.com']],
-    'tt:phone_number': [[null, '+16501234567'], [null, '+15551234567']],
-    'tt:hashtag': [[null, 'funny'], [null, 'cat'], [null, 'lol']],
-    'tt:username': [[null, 'alice'], [null, 'bob']],
-    'tt:contact_name': [[null, 'alice'], [null, 'bob']],
-    'tt:url': [[null, 'http://www.abc.def'], [null, 'http://www.google.com']],
+    'tt:email_address': [[null, 'bob@gmail.com'], [null, 'alice@gmail.com'], [null, 'charlie@hotmail.com']],
+    'tt:phone_number': [[null, '+16501234567'], [null, '+15551234567'], [null, '+123456789']],
+    'tt:hashtag': [[null, 'funny'], [null, 'cat'], [null, 'lol'], [null, 'covfefe']],
+    'tt:username': [[null, 'alice'], [null, 'bob'], [null, 'charlie']],
+    'tt:contact_name': [[null, 'alice'], [null, 'bob'], [null, 'charlie']],
+    'tt:url': [[null, 'http://www.abc.def'], [null, 'http://www.google.com'], [null, 'http://www.example.com']],
     'tt:picture': [[null, 'http://www.abc.def/foo.jpeg']],
 
-    'tt:stock_id': [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft']],
-    'tt:iso_lang_code': [["Italian", 'it'], ["English", 'en'], ["Chinese", 'zh']],
-    'tt:device': [["Twitter", 'twitter'], ["Facebook", 'facebook'], ["my scale", 'scale']],
-    'sportradar:eu_soccer_team': [["Juventus", "juv"], ["Barcellona", "bar"], ["Bayern Munchen", "fcb"]],
+    'tt:stock_id': [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft'], ['Walmart', 'wmt']],
+    'tt:iso_lang_code': [["Italian", 'it'], ["English", 'en'], ["Chinese", 'zh'], ['Spanish', 'es']],
+    'tt:device': [["Twitter", 'com.twitter'], ["Facebook", 'com.facebook'], ["my GMail", 'com.gmail']],
+    'sportradar:eu_soccer_team': [["Juventus", "juv"], ["Barcelona", "bar"], ["Bayern Munich", "fcb"], ["Chelsea", 'che']],
     'sportradar:mlb_team': [["SF Giants", 'sf'], ["Chicago Cubs", 'chc']],
     'sportradar:nba_team': [["Golden State Warriors", 'gsw'], ["LA Lakers", 'lal']],
     'sportradar:ncaafb_team': [["Stanford Cardinals", 'sta'], ["California Bears", 'cal']],
@@ -5023,6 +5650,7 @@ const ENTITIES = {
     'sportradar:nfl_team': [["Seattle Seahawks", 'sea'], ["SF 49ers", 'sf']],
     'sportradar:us_soccer_team': [["San Jose Earthquakes", 'sje'], ["Toronto FC", 'tor']],
     'instagram:media_id': [],
+    'omlet:feed_id': [],
 };
 
 function chooseEntity(entityType, applyHeuristics) {
@@ -5046,7 +5674,7 @@ const PARAMS_SPECIAL_STRING = {
     'new_name': 'backup.txt',
     'folder_name': 'archive',
     'purpose': 'research project',
-    'fileter': 'lo-fi',
+    'filter': 'lo-fi',
     'query': 'super bowl',
     'summary': 'celebration',
     'category': 'sports',
@@ -5132,7 +5760,7 @@ function genValueList(argName, type, applyHeuristics = true) {
 
 module.exports = genValueList;
 
-},{"./ast":6,"q":4,"stream":164}],15:[function(require,module,exports){
+},{"./ast":11}],20:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
@@ -5203,8 +5831,8 @@ function factorPureRemoteActions(messaging, actions, sendrules) {
         // a pure action should result in nothing local and everything
         // sent out
 
-        var toSend = Ast.Program('AlmondGenerated', [], [
-            Ast.Rule(null, [], [cloneRemote(action)], false)
+        var toSend = new Ast.Program('AlmondGenerated', [], [], [
+            new Ast.Rule(null, [], [cloneRemote(action)], false)
         ]);
         sendrules.push([action.selector.principal, toSend]);
     });
@@ -5224,7 +5852,7 @@ function makeIndex(args) {
 
 function makeSendSchema(sendFrom) {
     let args = ['__principal', '__token', '__kindChannel'];
-    let types = [Type.Entity('tt:contact'), Type.Entity('tt:flow_token'), Type.Entity('tt:function')]
+    let types = [Type.Entity('tt:contact'), Type.Entity('tt:flow_token'), Type.Entity('tt:function')];
     let inReq = {
         __principal: Type.Entity('tt:contact'),
         __token: Type.Entity('tt:flow_token'),
@@ -5241,6 +5869,7 @@ function makeSendSchema(sendFrom) {
     return new Ast.FunctionDef('other',
         args, types, makeIndex(args),
         inReq, inOpt, {},
+        '', // canonical
         '', // confirmation
         '', // confirmation_remote
         [], // argcanonicals
@@ -5249,7 +5878,7 @@ function makeSendSchema(sendFrom) {
 }
 function makeReceiveSchema(receiveFrom) {
     let args = ['__principal', '__token', '__kindChannel'];
-    let types = [Type.Entity('tt:contact'), Type.Entity('tt:flow_token'), Type.Entity('tt:function')]
+    let types = [Type.Entity('tt:contact'), Type.Entity('tt:flow_token'), Type.Entity('tt:function')];
     let inReq = {
         __principal: Type.Entity('tt:contact'),
         __token: Type.Entity('tt:flow_token'),
@@ -5267,6 +5896,7 @@ function makeReceiveSchema(receiveFrom) {
     return new Ast.FunctionDef('other',
         args, types, makeIndex(args),
         inReq, {}, out,
+        '', // canonical
         '', // confirmation
         '', // confirmation_remote
         [], // argcanonicals
@@ -5466,9 +6096,9 @@ function factorRule(messaging, newclasses, rule) {
     if (!rule.trigger && rule.queries.length === 0) {
         rule.actions = factorPureRemoteActions(messaging, rule.actions, sendrules);
         if (rule.actions.length === 0)
-            return [[], [], sendrules];
+            return [[], sendrules];
         else
-            return [[rule], [], sendrules];
+            return [[rule], sendrules];
     }
 
     if (rule.trigger !== null)
@@ -5516,7 +6146,7 @@ function computeSlots(prim) {
     }
     function filterRecurse(expr) {
         if (expr.isTrue || expr.isFalse)
-            return;
+            return undefined;
         if (expr.isAnd || expr.isOr)
             return expr.operands.forEach(filterRecurse);
         if (expr.isNot)
@@ -5528,6 +6158,7 @@ function computeSlots(prim) {
             toFill.push(filter);
         else if (!value.isConcrete())
             toConcretize.push(filter);
+        return undefined;
     }
     filterRecurse(prim.filter);
 
@@ -5544,12 +6175,12 @@ function getFlowTokens(program) {
         }
     }
 
-    for (let rule of program) {
+    for (let rule of program.rules) {
         if (rule.trigger)
             extractTokensInvocation(rule.trigger, tokens);
-        for (let query of rule.query)
+        for (let query of rule.queries)
             extractTokensInvocation(query, tokens);
-        for (let action of rule.action)
+        for (let action of rule.actions)
             extractTokensInvocation(action, tokens);
     }
 
@@ -5564,7 +6195,7 @@ module.exports = {
     getFlowTokens
 };
 
-},{"./ast":6,"./builtin":7,"./type":25,"adt":3,"assert":42,"crypto":82}],16:[function(require,module,exports){
+},{"./ast":11,"./builtin":12,"./type":31,"adt":3,"assert":49,"crypto":89}],21:[function(require,module,exports){
 module.exports = (function() {
   "use strict";
 
@@ -5712,7 +6343,7 @@ module.exports = (function() {
         peg$c47 = ";",
         peg$c48 = { type: "literal", value: ";", description: "\";\"" },
         peg$c49 = function(type, name, params) {
-            var fn = FunctionDef('other', [], [], {}, {}, {}, {}, '','',[], []);
+            var fn = new FunctionDef('other', [], [], {}, {}, {}, {}, '', '','',[], []);
             for (var i = 0; i < params.length; i++) {
                 var [direction, argname, argtype] = params[i];
                 fn.args.push(argname);
@@ -12756,7 +13387,7 @@ module.exports = (function() {
   };
 })();
 
-},{"./ast":6,"./optimize":21,"./type":25}],17:[function(require,module,exports){
+},{"./ast":11,"./optimize":26,"./type":31}],22:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
@@ -12779,15 +13410,15 @@ module.exports = {
     },
 
     parseType(typeStr) {
-        return Grammar.parse(typeStr, { startRule: 'type_ref' })
+        return Grammar.parse(typeStr, { startRule: 'type_ref' });
     },
 
     parsePermissionRule(code) {
         return Grammar.parse(code, { startRule: 'permission_rule' });
     }
-}
+};
 
-},{"./grammar":16,"./typecheck":26}],18:[function(require,module,exports){
+},{"./grammar":21,"./typecheck":32}],23:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -12908,7 +13539,7 @@ exports.transformToBaseUnit = function(value, unit) {
         return value * transform;
 };
 
-},{}],19:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -12960,7 +13591,7 @@ const Command = adt.newtype('Command', {
 });
 module.exports.Command = Command.seal();
 
-},{"./ast":6,"adt":3}],20:[function(require,module,exports){
+},{"./ast":11,"adt":3}],25:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -12970,11 +13601,9 @@ module.exports.Command = Command.seal();
 // See COPYING for details
 "use strict";
 
-const adt = require('adt');
 const assert = require('assert');
 
 const Type = require('./type');
-const Ast = require('./ast');
 const Builtin = require('./builtin');
 
 // A register-based IR for ThingTalk to JS
@@ -13027,7 +13656,7 @@ class ReadTriggerValue {
     }
 
     codegen(prefix) {
-        return prefix + '_t_' + this._into + ' = env.triggerValue[' + this._index + '];'
+        return prefix + '_t_' + this._into + ' = env.triggerValue[' + this._index + '];';
     }
 }
 
@@ -13040,7 +13669,7 @@ class ReadQueryValue {
     }
 
     codegen(prefix) {
-        return prefix + '_t_' + this._into + ' = env.queryValue[' + this._index + '];'
+        return prefix + '_t_' + this._into + ' = env.queryValue[' + this._index + '];';
     }
 }
 
@@ -13053,7 +13682,7 @@ class ReadTriggerInput {
     }
 
     codegen(prefix) {
-        return prefix + '_t_' + this._into + ' = env.triggerInput[' + this._index + '];'
+        return prefix + '_t_' + this._into + ' = env.triggerInput[' + this._index + '];';
     }
 }
 
@@ -13066,7 +13695,7 @@ class ReadQueryInput {
     }
 
     codegen(prefix) {
-        return prefix + '_t_' + this._into + ' = env.queryInput[' + this._index + '];'
+        return prefix + '_t_' + this._into + ' = env.queryInput[' + this._index + '];';
     }
 }
 
@@ -13095,7 +13724,7 @@ class GetVariable {
 function stringEscape(str) {
     if (str === null || str === undefined)
         return 'null';
-    return '"' + str.replace(/([\"\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
+    return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
     // the following comment fixes broken syntax highlighting in GtkSourceView
     //]/
 }
@@ -13158,15 +13787,14 @@ class BinaryOp {
     }
 
     codegen(prefix) {
-        if (this._op === '=~') {
+        if (this._op === '=~')
             return this._codegenFunc(prefix, '__builtin.like');
-        } else if (this._op === 'contains') {
+        else if (this._op === 'contains')
             return this._codegenFunc(prefix, '__builtin.contains');
-        } else if (this._op === '=') {
+        else if (this._op === '=')
             return this._codegenFunc(prefix, '__builtin.equality');
-        } else {
+        else
             return prefix + '_t_' + this._into + ' = ' + '_t_' + this._a + ' ' + this._op + ' ' + '_t_' + this._b + ';';
-        }
     }
 }
 
@@ -13295,7 +13923,7 @@ module.exports = {
     GetEventType
 };
 
-},{"./ast":6,"./builtin":7,"./type":25,"adt":3,"assert":42}],21:[function(require,module,exports){
+},{"./builtin":12,"./type":31,"assert":49}],26:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
@@ -13424,7 +14052,1110 @@ module.exports = {
     optimizeFilter
 };
 
-},{"./ast":6,"assert":42}],22:[function(require,module,exports){
+},{"./ast":11,"assert":49}],27:[function(require,module,exports){
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+"use strict";
+
+const Q = require('q');
+const assert = require('assert');
+const smt = require('smtlib');
+
+const Ast = require('./ast');
+const Type = require('./type');
+const Utils = require('./utils');
+const Builtin = require('./builtin');
+const { optimizeFilter, optimizeProgram } = require('./optimize');
+const { typeCheckProgram, typeCheckFilter } = require('./typecheck');
+
+function arrayEquals(a, b) {
+    if (a === null && b === null)
+        return true;
+    if (a === null || b === null)
+        return false;
+    if (a.length !== b.length)
+        return false;
+
+    for (var i = 0; i < a.length; i++) {
+        if (a[i] !== b[i])
+            return false;
+    }
+
+    return true;
+}
+
+function isGroupMember(principal, group, groupmap) {
+    return (groupmap.get(principal) || []).indexOf(group) >= 0;
+}
+
+// Reduces a program and a set of Allowed rules into one call to the SMT, and invokes
+// the SMT solver
+class SmtReduction {
+    constructor(SolverClass) {
+        this._solver = new SolverClass();
+
+        this._declarations = [];
+        this._declarations.push(smt.DeclareDatatype('Location',
+            ['loc.home', 'loc.work', 'loc.current_location',
+             ['loc.absolute', '(loc.lat Real)', '(loc.lon Real)']]));
+        this._entityTypes = new Set;
+        let contactType = this._declareEntityType(Type.Entity('tt:contact'));
+        let contactGroupType = this._declareEntityType(Type.Entity('tt:contact_group'));
+        this._declarations.push(smt.DeclareFun('Entity_tt_contact.getGroups', [contactType], smt.SetType(contactGroupType)));
+        this._enumtypes = [];
+
+        this._constants = new Map;
+        this._constants.set('pi', 'Entity_tt_contact');
+
+        this._classes = {};
+        this._functions = new Set;
+        this._asserts = [];
+
+        this._filteridx = 0;
+        this._filtermap = [];
+        this._filterrevmap = new Map;
+    }
+
+    _add(stmt) {
+        this._solver.add(stmt);
+    }
+
+    _declare(stmt) {
+        this._declarations.push(stmt);
+    }
+
+    _addEverything() {
+        for (let [name, t] of this._enumtypes)
+            this._add(smt.DeclareDatatype(name, t.entries.map((e) => name + '.' + e)));
+        for (let decl of this._declarations)
+            this._add(decl);
+        for (let [name, t] of this._constants.entries())
+            this._add(smt.DeclareFun(name, [], t));
+        for (let assert of this._asserts)
+            this._solver.assert(assert);
+    }
+
+    _makeEnumType(type) {
+        for (let [name, enumType] of this._enumtypes) {
+            if (arrayEquals(type.entries, enumType.entries))
+                return name;
+        }
+        let name = 'Enum_' + this._enumtypes.length;
+        this._enumtypes.push([name, type]);
+        return name;
+    }
+
+    _declareEntityType(type) {
+        let entityType = type.type;
+        let smtType = 'Entity_' + entityType.replace(/[^A-Za-z0-9_]/g, '_');
+        if (this._entityTypes.has(entityType))
+            return smtType;
+
+        this._entityTypes.add(entityType);
+        this._declarations.push(smt.DeclareDatatype(smtType,
+            [['mk.' + smtType, '(' + smtType + '.get String)']]));
+        return smtType;
+    }
+
+    _getEntityValue(value, type) {
+        this._declareEntityType(type);
+        let entityType = type.type;
+        let smtType = 'Entity_' + entityType.replace(/[^A-Za-z0-9_]/g, '_');
+        return new smt.SExpr(smtType + '.get', value);
+    }
+
+    _typeToSmtType(type) {
+        if (type.isArray)
+            return smt.SetType(this._typeToSmtType(type.elem));
+        if (type.isNumber || type.isMeasure)
+            return 'Real';
+        if (type.isBoolean)
+            return 'Bool';
+        if (type.isString)
+            return 'String';
+        if (type.isLocation)
+            return 'Location';
+        if (type.isTime || type.isDate)
+            return 'Int';
+        if (type.isEntity)
+            return this._declareEntityType(type);
+        if (type.isEnum)
+            return this._makeEnumType(type);
+
+        throw new TypeError('Unsupported type ' + type);
+    }
+
+    _numberToSmt(v) {
+        if (v >= 0)
+            return String(v);
+        else
+            return new smt.SExpr('-', -v);
+    }
+
+    _locToSmtValue(loc) {
+        if (loc.isRelative)
+            return 'loc.' + loc.relativeTag;
+
+        return new smt.SExpr('loc.absolute', this._numberToSmt(loc.lat),
+            this._numberToSmt(loc.lon));
+    }
+
+    _encodeEntityValue(ev) {
+        return ev.replace(/[^A-Za-z0-9]/g, (c) =>
+            '_' + c.charCodeAt(0).toString(16).toUpperCase());
+    }
+
+    _entityToSmtValue(entityValue, entityType) {
+        let smtType = this._declareEntityType(Type.Entity(entityType));
+        return new smt.SExpr('mk.' + smtType, smt.StringLiteral(entityValue));
+    }
+
+    _enumToSmtValue(enumerant, type) {
+        let typename = this._makeEnumType(type);
+        return typename + '.' + enumerant;
+    }
+
+    _valueToSmtValue(v, type) {
+        if (v.isVarRef && v.name === '__pi')
+            return 'pi';
+        if (v.isVarRef)
+            throw new TypeError('Unexpected var ref in filter');
+        if (v.isUndefined)
+            throw new TypeError('Unexpected undefined TT value');
+        if (v.isBoolean)
+            return v.value ? 'true' : 'false';
+        if (v.isString)
+            return smt.StringLiteral(v.value);
+        if (v.isNumber || v.isMeasure)
+            return this._numberToSmt(v.toJS()); // toJS() normalizes the measurement
+        if (v.isLocation)
+            return this._locToSmtValue(v.value);
+        if (v.isEntity)
+            return this._entityToSmtValue(v.value, v.type);
+        if (v.isEnum)
+            return this._enumToSmtValue(v.value, type);
+        if (v.isTime)
+            return String(v.hour * 3600 + v.minute * 60);
+        if (v.isDate)
+            return String(v.value.getTime());
+        throw new TypeError('Unsupported value ' + v);
+    }
+
+    addGroups(principal, groups) {
+        let lhs = smt.Predicate('Entity_tt_contact.getGroups', this._valueToSmtValue(principal, Type.Entity('tt:contact')));
+        let contactGroupType = this._declareEntityType(Type.Entity('tt:contact_group'));
+
+        let rhs;
+        if (groups.length === 0) {
+            rhs = new smt.SExpr('as', 'emptyset', smt.SetType(contactGroupType));
+        } else if (groups.length === 1) {
+            rhs = new smt.SExpr('singleton', this._valueToSmtValue(groups[0], Type.Entity('tt:contact_group')));
+        } else {
+            rhs = new smt.SExpr('insert',
+                ...groups.slice(1).map((g) => this._valueToSmtValue(g, Type.Entity('tt:contact_group'))),
+                new smt.SExpr('singleton', this._valueToSmtValue(groups[0], Type.Entity('tt:contact_group'))));
+        }
+
+        this._asserts.push(smt.Eq(lhs, rhs));
+    }
+
+    _getVarName(prefix, type) {
+        let idx = 0;
+        let vname = 'prog_' + prefix + '_' + idx;
+        while (this._constants.has(vname))
+            vname = 'prog_' + prefix + '_' + (++idx);
+        this._constants.set(vname, this._typeToSmtType(type));
+        return vname;
+    }
+
+    _filterToSmt(operator, param, paramType, value, valueType) {
+        if (valueType.isEnum)
+            valueType = paramType;
+        if (operator !== 'group_member' && !valueType.equals(paramType)) {
+            if (valueType.isEntity)
+                value = this._getEntityValue(value, valueType);
+            if (paramType.isEntity)
+                param = this._getEntityValue(param, paramType);
+        }
+
+        switch (operator) {
+        case '=':
+            return smt.Eq(param, value);
+        case '>=':
+            return smt.GEq(param, value);
+        case '<=':
+            return smt.LEq(param, value);
+        case '>':
+            return smt.GT(param, value);
+        case '<':
+            return smt.LT(param, value);
+        case '=~':
+            return smt.Predicate('str.contains', param, value);
+        case '~=':
+            return smt.Predicate('str.contains', value, param);
+        case 'contains': // value is the element, param is the array
+            return smt.Predicate('member', value, param);
+        case 'in_array': // flip version of contains
+            return smt.Predicate('member', param, value);
+        case 'group_member': // value is the group, param is the principal
+            return smt.Predicate('member', value, smt.Predicate('Entity_tt_contact.getGroups', param));
+        case 'has_member': // flip version of group_member
+            return smt.Predicate('member', param, smt.Predicate('Entity_tt_contact.getGroups', value));
+        default:
+            throw new TypeError('Unsupported operator ' + operator);
+        }
+    }
+
+    _processFilter(ast, fnvar, schema, scope, scopeType) {
+        assert(scopeType);
+        if (ast.isTrue)
+            return 'true';
+        if (ast.isFalse)
+            return 'false';
+        if (ast.isAnd && ast.operands.length === 0)
+            return 'true';
+        if (ast.isOr && ast.operands.length === 0)
+            return 'false';
+        if (ast.isAnd)
+            return smt.And(...ast.operands.map((o) => this._processFilter(o, fnvar, schema, scope, scopeType)));
+        if (ast.isOr)
+            return smt.Or(...ast.operands.map((o) => this._processFilter(o, fnvar, schema, scope, scopeType)));
+        if (ast.isNot)
+            return smt.Not(this._processFilter(ast.expr, fnvar, schema, scope, scopeType));
+
+        let filter = ast.filter;
+        let ptype = schema.inReq[filter.name] || schema.inOpt[filter.name] || schema.out[filter.name];
+        let pname;
+        if (ptype) {
+            pname = 'param_' + fnvar + '_' + filter.name;
+        } else if (scope[filter.name]) {
+            pname = scope[filter.name];
+            ptype = scopeType[filter.name];
+        } else {
+            throw new TypeError('Invalid filter left-hand-side ' + filter.name);
+        }
+        if (filter.operator === 'contains')
+            ptype = ptype.elem;
+        if (filter.value.isUndefined)
+            throw new TypeError('Invalid filter right hand side (should be slot filled)');
+        if (filter.value.isVarRef) {
+            return this._filterToSmt(filter.operator, pname, ptype,
+                scope[filter.value.name], scopeType[filter.value.name]);
+        } else {
+            return this._filterToSmt(filter.operator, pname, ptype,
+                this._valueToSmtValue(filter.value, ptype), filter.value.getType());
+        }
+    }
+
+    _declareFunction(kind, fn, suffix, def) {
+        kind = kind.replace(/[^A-Za-z0-9_]/g, '_');
+        let fnvar = kind + '_' + fn + '_' + suffix;
+        if (this._functions.has(fnvar))
+            return fnvar;
+        this._functions.add(fnvar);
+
+        for (let arg of def.args) {
+            let p = 'param_' + fnvar + '_' + arg;
+            let type = def.inReq[arg] || def.inOpt[arg] || def.out[arg];
+            if (type.isAny)
+                continue;
+            if (type.isTime)
+                this._asserts.push(smt.And(smt.GEq(p, 0), smt.LEq(p, 86400)));
+            this._declare(smt.DeclareFun(p, [], this._typeToSmtType(type)));
+        }
+        return fnvar;
+    }
+
+    addRule(principal, program, rule) {
+        for (let classdef of program.classes)
+            this._classes[classdef.name] = classdef;
+
+        this._asserts.push(smt.Eq('pi', this._valueToSmtValue(principal)));
+
+        let scope = {
+            __pi: 'pi',
+        };
+        let scopeType = {
+            __pi: Type.Entity('tt:contact')
+        };
+        if (rule.trigger)
+            this._addFunction(rule.trigger, 't', scope, scopeType);
+        rule.queries.forEach((query, i) => {
+            this._addFunction(query, 'q_' + i, scope, scopeType);
+        });
+        rule.actions.forEach((action, i) => {
+            if (action.selector.isDevice)
+                this._addFunction(action, 'a_' + i, scope, scopeType);
+        });
+    }
+
+    _addPermissionFunction(fn, suffix, scope, scopeType) {
+        let fnvar = this._declareFunction(fn.kind, fn.channel, suffix, fn.schema);
+
+        let ands = [];
+        let filter = this._processFilter(fn.filter, fnvar, fn.schema, scope, scopeType);
+        let name = this._filteridx++;
+        this._filtermap[name] = fn.filter;
+        this._filterrevmap.set(fn.filter, name);
+        this._constants.set('filter_' + name, 'Bool');
+        this._asserts.push(smt.Eq('filter_' + name, filter));
+        ands.push('filter_' + name);
+
+        for (let outParam of fn.out_params) {
+            let pname = 'param_' + fnvar + '_' + outParam.value;
+            let ptype = fn.schema.out[outParam.value];
+            if (ptype.isAny)
+                continue;
+            let vname = this._getVarName(outParam.name, ptype);
+            ands.push(smt.Eq(vname, pname));
+            scope[outParam.name] = vname;
+            scopeType[outParam.name] = ptype;
+        }
+
+        if (ands.length > 1)
+            return smt.And(...ands);
+        else
+            return ands[0];
+    }
+
+    addPermission(permissionRule) {
+        let ands = [];
+        let scope = {
+            __pi: 'pi',
+        };
+        let scopeType = {
+            __pi: Type.Entity('tt:contact')
+        };
+
+        if (permissionRule.trigger.isSpecified)
+            ands.push(this._addPermissionFunction(permissionRule.trigger, 't', scope, scopeType));
+        if (permissionRule.query.isSpecified)
+            ands.push(this._addPermissionFunction(permissionRule.query, 'q_0', scope, scopeType));
+        if (permissionRule.action.isSpecified)
+            ands.push(this._addPermissionFunction(permissionRule.action, 'a_0', scope, scopeType));
+        if (ands.length > 1)
+            return smt.And(...ands);
+        if (ands.length === 1)
+            return ands[0];
+        return 'true';
+    }
+
+    addAssert(v) {
+        this._asserts.push(v);
+    }
+
+    _addFunction(fn, suffix, scope, scopeType) {
+        let fnvar = this._declareFunction(fn.selector.kind, fn.channel, suffix, fn.schema);
+
+        for (let inParam of fn.in_params) {
+            let pname = 'param_' + fnvar + '_' + inParam.name;
+            let ptype = fn.schema.inReq[inParam.name] || fn.schema.inOpt[inParam.name];
+            if (inParam.value.isUndefined)
+                continue;
+            if (inParam.value.isVarRef) {
+                this._asserts.push(this._filterToSmt('=', pname, ptype, scope[inParam.value.name], scopeType[inParam.value.name]));
+            } else {
+                this._asserts.push(this._filterToSmt('=', pname, ptype,
+                    this._valueToSmtValue(inParam.value, ptype), inParam.value.getType()));
+            }
+        }
+        this._asserts.push(this._processFilter(fn.filter, fnvar, fn.schema, scope, scopeType));
+
+        for (let outParam of fn.out_params) {
+            let pname = 'param_' + fnvar + '_' + outParam.value;
+            let ptype = fn.schema.out[outParam.value];
+            if (ptype.isAny)
+                continue;
+            let vname = this._getVarName(outParam.name, ptype);
+            this._asserts.push(smt.Eq(vname, pname));
+            scope[outParam.name] = vname;
+            scopeType[outParam.name] = ptype;
+        }
+    }
+
+    checkSatisfiable(enableAssignments = false) {
+        if (enableAssignments)
+            this._solver.enableAssignments();
+        this._addEverything();
+        //this._solver.dump();
+        return this._solver.checkSat().then(([sat, assignment, constants, unsatCore]) => {
+            //console.log('CVC4 result: ', sat);
+            this._assignment = assignment;
+            this._assignedConstants = constants;
+            this._unsatCore = unsatCore;
+            return sat;
+        });
+    }
+
+    getFilterName(filter) {
+        let name = this._filterrevmap.get(filter);
+        assert(typeof name === 'number');
+        return 'filter_' + name;
+    }
+
+    isFilterTrue(filter) {
+        if (!this._assignment) // unsat
+            throw new Error('Not satifisiable');
+        return this._assignment[this.getFilterName(filter)];
+    }
+
+    clone() {
+        let self = new SmtReduction(this._solver.constructor);
+        self._declarations = this._declarations;
+        self._constants = this._constants;
+        self._classes = this._classes;
+        self._functions = this._functions;
+        // make a copy of the array
+        self._asserts = this._asserts.slice();
+
+        self._filteridx = this._filteridx;
+        self._filtermap = this._filtermap;
+        self._filterrevmap = this._filterrevmap;
+
+        return self;
+    }
+}
+
+// Verifies that a program is allowed, with the help of an SMT solver
+
+function promiseLoop(array, fn) {
+    return (function loop(i) {
+        if (i === array.length)
+            return Q();
+        return Q(fn(array[i], i)).then(() => loop(i+1));
+    })(0);
+}
+
+const PARALLEL_DO_ALL = false;
+function promiseDoAll(array, fn) {
+    if (PARALLEL_DO_ALL)
+        return Q.all(array.map(fn));
+    else
+        return promiseLoop(array, fn);
+
+}
+
+function flipOperator(op) {
+    switch (op) {
+    case '=':
+    case '!=':
+        return op;
+    case '<':
+        return '>';
+    case '<=':
+        return '>=';
+    case '>':
+        return '<';
+    case '>=':
+        return '>=';
+    case 'contains':
+        return 'in_array';
+    case 'in_array':
+        return 'contains';
+    case '=~':
+        return '~=';
+    case '~=':
+        return '=~';
+    case 'group_member':
+        return 'has_member';
+    case 'has_member':
+        return 'group_member';
+    default:
+        throw new TypeError('invalid operator ' + op);
+    }
+}
+
+class RuleTransformer {
+    constructor(SolverClass, principal, program, rule, permissiondb, groupmap) {
+        this._SolverClass = SolverClass;
+        this._groupmap = groupmap;
+
+        this._principal = principal;
+        this._program = program;
+        this._classes = [];
+        for (let classdef of program.classes)
+            this._classes[classdef.name] = classdef;
+
+        this._rule = rule;
+        if (rule.trigger)
+            this._trigger = rule.trigger;
+        else
+            this._trigger = null;
+        if (rule.queries.length > 1)
+            throw new Error('NOT IMPLEMENTED: cannot support more than one query');
+        if (rule.queries.length === 1)
+            this._query = rule.queries[0];
+        else
+            this._query = null;
+        if (rule.actions.length > 1)
+            throw new Error('NOT IMPLEMENTED: cannot support more than one action');
+        if (rule.actions[0].selector.isBuiltin)
+            this._action = null;
+        else
+            this._action = rule.actions[0];
+        this._relevantPermissions = this._computeRelevantPermissions(permissiondb);
+        //console.log('Found ' + this._relevantPermissions.length + ' relevant permissions');
+        //for (let permission of this._relevantPermissions)
+        //    console.log(Ast.prettyprintPermissionRule(permission));
+
+        this._newrule = null;
+    }
+
+    _addAllGroups(reduction) {
+        for (let [principal, groups] of this._groupmap.entries()) {
+            reduction.addGroups(Ast.Value.Entity(principal, 'tt:contact', null),
+                groups.map((g) => Ast.Value.Entity(g, 'tt:contact_group', null)));
+        }
+    }
+
+    _isFunctionPermissionRelevant(rulefn, programfn) {
+        if (programfn === null) {
+            return (rulefn === Ast.PermissionFunction.Star || rulefn === Ast.PermissionFunction.Builtin);
+        } else {
+            if (rulefn === Ast.PermissionFunction.Star)
+                return true;
+            let kind = programfn.selector.kind;
+            if (kind in this._classes)
+                kind = this._classes[kind].extends;
+            if (rulefn.isClassStar)
+                return kind === rulefn.kind;
+            if (rulefn.isSpecified)
+                return kind === rulefn.kind && programfn.channel === rulefn.channel;
+            return false;
+        }
+    }
+
+    _isPermissionRelevantForFunctions(rule) {
+        return this._isFunctionPermissionRelevant(rule.trigger, this._trigger) &&
+            this._isFunctionPermissionRelevant(rule.query, this._query) &&
+            this._isFunctionPermissionRelevant(rule.action, this._action);
+    }
+
+    _computeRelevantPermissions(permissiondb) {
+        let ret = [];
+        for (let rule of permissiondb) {
+            if (this._isPermissionRelevantForFunctions(rule))
+                ret.push(rule);
+        }
+        return ret;
+    }
+
+    _addProgram(reduction, permissiondb = undefined) {
+        reduction.addRule(this._principal, this._program, this._rule, permissiondb);
+    }
+
+    _isPermissionApplicable(permission) {
+        // if we only have one permission, and we checked that the program was conditionally
+        // allowed, skip the call and say yes
+        if (this._relevantPermissions.length === 1) {
+            console.error('Hit OPT 0');
+            return Q(true);
+        }
+        let filters = [];
+        if (permission.trigger.isSpecified && !permission.trigger.filter.isTrue)
+            filters.push(permission.trigger.filter);
+        if (permission.query.isSpecified && !permission.query.filter.isTrue)
+            filters.push(permission.query.filter);
+        if (permission.action.isSpecified && !permission.action.filter.isTrue)
+            filters.push(permission.action.filter);
+        if (filters.every((f) => this._firstReduction.isFilterTrue(f))) {
+            // we got lucky! the main reduction found a case where the filters
+            // are all true
+            // skip the call and say yes
+            console.error('Hit OPT 1');
+            return Q(true);
+        }
+        if (filters.every((f) => this._secondReduction.isFilterTrue(f))) {
+            // same thing, but with the second reduction
+            console.error('Hit OPT 1');
+            return Q(true);
+        }
+
+        let reduction = new SmtReduction(this._SolverClass);
+        this._addAllGroups(reduction);
+        this._addProgram(reduction);
+        reduction.addAssert(reduction.addPermission(permission));
+        //console.log('Checking that permission ' + prettyprintPermissionRule(permission) + ' is applicable');
+        return reduction.checkSatisfiable();
+    }
+
+    _isFilterImplied(permission, permissionFunction, check) {
+        if (!permissionFunction.isSpecified)
+            return Q(true);
+        let filter = permissionFunction.filter;
+        if (filter.isTrue)
+            return Q(true);
+        if (filter.isFalse)
+            return Q(false);
+        if (!this._firstReduction.isFilterTrue(filter)) {
+            // we got lucky! the main reduction found a case where this filter
+            // is false
+            // skip the call and say no
+            console.error('Hit OPT 2');
+            return Q(false);
+        }
+        if (!this._secondReduction.isFilterTrue(filter)) {
+            // same thing, but with the second reduction
+            console.error('Hit OPT 2');
+            return Q(false);
+        }
+
+        let reduction = new SmtReduction(this._SolverClass);
+        this._addAllGroups(reduction);
+        this._addProgram(reduction);
+        reduction.addPermission(permission);
+        check(reduction);
+        //console.log('Checking that filter ' + filter + ' in permission ' + prettyprintPermissionRule(permission) + ' is valid');
+        return reduction.checkSatisfiable().then((r) => !r);
+    }
+
+    _partiallyEvalFilter(expr, scope, inParamMap, previousPrimitiveDef = {}) {
+        const groupmap = this._groupmap;
+
+        return (function recursiveHelper(expr) {
+            if (expr.isTrue || expr.isFalse)
+                return expr;
+            if (expr.isOr)
+                return Ast.BooleanExpression.Or(expr.operands.map(recursiveHelper));
+            if (expr.isAnd)
+                return Ast.BooleanExpression.And(expr.operands.map(recursiveHelper));
+            if (expr.isNot)
+                return Ast.BooleanExpression.Not(recursiveHelper(expr.expr));
+
+            let filter = expr.filter;
+            // the filter comes from tne Allowed() rule, should it should not have anything funky
+            assert(!filter.value.isUndefined);
+
+            if (!inParamMap[filter.name] && !scope[filter.name])
+                return expr;
+            let lhs = inParamMap[filter.name] || Ast.Value.VarRef(scope[filter.name]);
+            let rhs = filter.value;
+            assert(!rhs.isVarRef || scope[rhs.name]);
+            if (rhs.isVarRef)
+                rhs = Ast.Value.VarRef(scope[rhs.name]);
+            if (rhs.isVarRef && inParamMap[rhs.name])
+                rhs = inParamMap[rhs.name];
+            if (rhs.isVarRef && previousPrimitiveDef[rhs.name])
+                rhs = Ast.Value.VarRef(previousPrimitiveDef[rhs.name]);
+            if (lhs.isUndefined)
+                throw new Error('Unexpected $undefined');
+            if (lhs.isVarRef) {
+                if (previousPrimitiveDef[lhs.name])
+                    return new Ast.BooleanExpression.Atom(Ast.Filter(previousPrimitiveDef[lhs.name], filter.operator, rhs));
+                else
+                    return new Ast.BooleanExpression.Atom(Ast.Filter(lhs.name, filter.operator, rhs));
+            } else {
+                if ((lhs.isLocation && lhs.value.isRelative) ||
+                    (rhs.isLocation && rhs.value.isRelative))
+                    return expr;
+                if (rhs.isVarRef)
+                    return new Ast.BooleanExpression.Atom(Ast.Filter(rhs.name, flipOperator(filter.operator), lhs));
+                let jslhs = lhs.toJS();
+                let jsrhs = rhs.toJS();
+                let result;
+                if (filter.operator === 'group_member')
+                    result = isGroupMember(jslhs, jsrhs, groupmap);
+                else
+                    result = Builtin.BinaryOps[filter.operator].op(jslhs, jsrhs);
+                if (result === true)
+                    return Ast.BooleanExpression.True;
+                else if (result === false)
+                    return Ast.BooleanExpression.False;
+                else
+                    throw new TypeError('Partially evaluated filter is not boolean?');
+            }
+        })(expr);
+    }
+
+    _adjust() {
+        const newrule = this._newrule;
+        if (newrule.trigger)
+            this._trigger = newrule.trigger;
+        else
+            this._trigger = null;
+        if (newrule.queries.length === 1)
+            this._query = newrule.queries[0];
+        else
+            this._query = null;
+        if (newrule.actions[0].selector.isBuiltin)
+            this._action = null;
+        else
+            this._action = newrule.actions[0];
+
+        let triggerparams = {};
+        let triggerdef = {};
+        if (this._trigger) {
+            for (let outParam of this._trigger.out_params) {
+                triggerparams[outParam.value] = outParam.name;
+                triggerdef[outParam.name] = outParam.value;
+            }
+        }
+        let queryparams = {};
+        let querydef = {};
+        if (this._query) {
+            for (let outParam of this._query.out_params) {
+                queryparams[outParam.value] = outParam.name;
+                querydef[outParam.name] = outParam.value;
+            }
+        }
+
+        let newtriggerfilter = [];
+        let newqueryfilter = [];
+        let vidx = 0;
+        return promiseDoAll(this._relevantPermissions, (permission) => this._isPermissionApplicable(permission).then((isApplicable) => {
+            if (!isApplicable) {
+                //console.log('Not applicable');
+                return Promise.resolve();
+            }
+
+            const scope = {
+                __pi: this._principal
+            };
+            let triggerpredicate;
+            let querypredicate;
+
+            return this._isFilterImplied(permission, permission.trigger, (reduction) => {
+                reduction.addAssert(smt.Not(reduction.getFilterName(permission.trigger.filter)));
+            }).then((isTriggerValid) => {
+                //console.log('isTriggerValid ' + isTriggerValid);
+                if (isTriggerValid) {
+                    triggerpredicate = Ast.BooleanExpression.True;
+                    return;
+                }
+
+                let inParamMap = {};
+                for (let inParam of this._trigger.in_params)
+                    inParamMap[inParam.name] = inParam.value;
+
+                triggerpredicate = this._partiallyEvalFilter(permission.trigger.filter, scope, inParamMap);
+            }).then(() => {
+                if (!permission.trigger.isSpecified)
+                    return;
+
+                for (let outParam of permission.trigger.out_params) {
+                    let pname = outParam.value;
+                    if (pname in triggerparams) {
+                        scope[outParam.name] = triggerparams[pname];
+                    } else {
+                        let vname = 'v_' + (vidx++);
+                        this._trigger.out_params.push(Ast.OutputParam(vname, pname));
+                        triggerparams[pname] = vname;
+                        scope[outParam.name] = vname;
+                    }
+                }
+            }).then(() => this._isFilterImplied(permission, permission.query, (reduction) => {
+                if (permission.trigger.isSpecified)
+                    reduction.addAssert(reduction.getFilterName(permission.trigger.filter));
+                reduction.addAssert(smt.Not(reduction.getFilterName(permission.query.filter)));
+            })).then((isQueryValid) => {
+                //console.log('isQueryValid ' + isQueryValid);
+                if (isQueryValid) {
+                    querypredicate = Ast.BooleanExpression.True;
+                    return;
+                }
+
+                let inParamMap = {};
+                for (let inParam of this._query.in_params)
+                    inParamMap[inParam.name] = inParam.value;
+
+                querypredicate = Ast.BooleanExpression.And([triggerpredicate,
+                    this._partiallyEvalFilter(permission.query.filter, scope, inParamMap)]);
+            }).then(() => {
+                if (!permission.query.isSpecified)
+                    return;
+
+                for (let outParam of permission.query.out_params) {
+                    let pname = outParam.value;
+                    if (pname in queryparams) {
+                        scope[outParam.name] = queryparams[pname];
+                    } else {
+                        let vname = 'v_' + (vidx++);
+                        this._query.out_params.push(Ast.OutputParam(vname, pname));
+                        queryparams[pname] = vname;
+                        scope[outParam.name] = vname;
+                    }
+                }
+            }).then(() => this._isFilterImplied(permission, permission.action, (reduction) => {
+                if (permission.trigger.isSpecified)
+                    reduction.addAssert(reduction.getFilterName(permission.trigger.filter));
+                if (permission.query.isSpecified)
+                    reduction.addAssert(reduction.getFilterName(permission.query.filter));
+                reduction.addAssert(smt.Not(reduction.getFilterName(permission.action.filter)));
+            })).then((isActionValid) => {
+                //console.log('isActionValid ' + isActionValid);
+                if (isActionValid)
+                    return;
+
+
+                let inParamMap = {};
+                for (let inParam of this._action.in_params)
+                    inParamMap[inParam.name] = inParam.value;
+
+                let previousPrimitiveDef;
+                if (this._query)
+                    previousPrimitiveDef = querydef;
+                else if (this._trigger)
+                    previousPrimitiveDef = triggerdef;
+                else
+                    previousPrimitiveDef = {};
+                querypredicate = Ast.BooleanExpression.And([
+                    querypredicate, this._partiallyEvalFilter(permission.action.filter, scope, inParamMap, previousPrimitiveDef)]);
+            }).then(() => {
+                newtriggerfilter.push(triggerpredicate);
+                newqueryfilter.push(querypredicate);
+            });
+        })).then(() => {
+            //console.log(Ast.prettyprintFilterExpression(Ast.BooleanExpression.Or(newfilter)));
+            let triggerfilter = optimizeFilter(Ast.BooleanExpression.Or(newtriggerfilter));
+            if (triggerfilter.isFalse)
+                return null;
+
+            // as weird as that sounds, it can occur that triggerfilter is not true or false,
+            // but we don't have a trigger
+            // this can occur with optional input arguments,
+            // eg:
+            // policy: now => @xkcd.get_comic, number < 11 => notify;
+            // prog: now => @xkcd.get_comic() => notify;
+            //
+            // or
+            // @instagram.new_picture() => @almond_bike_market.search, info = "i'm happy" => notify;
+            // @instagram.new_picture() => @almond_bike_market.search() => notify;
+            // (yeah, info is an "in opt" argument of @almond_bike_market)
+            //
+            // in this case, we just reject the program, as if the precondition was not satisfied
+            if (this._trigger)
+                this._trigger.filter = Ast.BooleanExpression.And([this._trigger.filter, triggerfilter]);
+            else if (!triggerfilter.isTrue)
+                return null;
+
+            let queryfilter = optimizeFilter(Ast.BooleanExpression.Or(newqueryfilter));
+            if (queryfilter.isFalse)
+                return null;
+            if (this._query)
+                this._query.filter = Ast.BooleanExpression.And([this._query.filter, queryfilter]);
+            else if (this._trigger)
+                this._trigger.filter = Ast.BooleanExpression.And([this._trigger.filter, queryfilter]);
+            else if (!queryfilter.isTrue)
+                return null;
+
+            return this._newrule;
+        });
+    }
+
+    transform() {
+        if (this._relevantPermissions.length === 0)
+            return Q(null);
+        return Q.try(() => {
+            let satReduction = new SmtReduction(this._SolverClass);
+            this._addAllGroups(satReduction);
+            this._addProgram(satReduction);
+            return satReduction.checkSatisfiable();
+        }).then((isSatisfiable) => {
+            if (!isSatisfiable) {
+                //console.log('Rule not satifisiable');
+                //console.log(Ast.prettyprint(this._program, true));
+                return null;
+            }
+
+            this._firstReduction = new SmtReduction(this._SolverClass);
+            this._addAllGroups(this._firstReduction);
+            this._addProgram(this._firstReduction);
+            let ors = [];
+            for (let permission of this._relevantPermissions)
+                ors.push(this._firstReduction.addPermission(permission));
+            this._firstReduction.addAssert(smt.Not(smt.Or(...ors)));
+            return this._firstReduction.checkSatisfiable(true).then((isSatisfiable) => {
+                if (!isSatisfiable)
+                    return this._rule.clone();
+
+                this._secondReduction = new SmtReduction(this._SolverClass);
+                this._addAllGroups(this._secondReduction);
+                this._addProgram(this._secondReduction);
+                let ors = [];
+                for (let permission of this._relevantPermissions)
+                    ors.push(this._secondReduction.addPermission(permission));
+                this._secondReduction.addAssert(smt.Or(...ors));
+                return this._secondReduction.checkSatisfiable(true).then((isSatisfiable) => {
+                    if (!isSatisfiable)
+                        return null;
+
+                    this._newrule = this._rule.clone();
+                    return this._adjust();
+                });
+            });
+        });
+    }
+}
+
+module.exports = class PermissionChecker {
+    constructor(SolverClass, schemaRetriever, groupDelegate) {
+        this._SolverClass = SolverClass;
+        this._schemaRetriever = schemaRetriever;
+        this._groupDelegate = groupDelegate;
+        this._permissiondb = [];
+        this._principals = new Set;
+
+        this._principal = null;
+        // maps a principal to its array of groups, as returned by the group delegate
+        this._groupmap = new Map;
+        this._program = null;
+
+        this._newprogram = null;
+    }
+
+    _collectPrincipalsFilter(filter, into) {
+        return (function recursiveHelper(expr) {
+            if (expr.isTrue || expr.isFalse)
+                return undefined;
+            if (expr.isNot)
+                return recursiveHelper(expr.expr);
+            if (expr.isAnd || expr.isOr) {
+                expr.operands.forEach((op) => recursiveHelper(op));
+                return undefined;
+            }
+
+            let filter = expr.filter;
+            if (filter.value.isEntity && filter.value.type === 'tt:contact')
+                into.add(filter.value.value);
+            return undefined;
+        })(filter);
+    }
+
+    _collectPrincipalsInvocation(invocation, into) {
+        for (let inParam of invocation.in_params) {
+            if (inParam.value.isEntity && inParam.value.type === 'tt:contact')
+                into.add(inParam.value.value);
+        }
+        this._collectPrincipalsFilter(invocation.filter, into);
+    }
+
+    _collectPrincipals(program, into) {
+        program.rules.forEach((rule) => {
+            if (rule.trigger)
+                this._collectPrincipalsInvocation(rule.trigger, into);
+            for (let query of rule.queries)
+                this._collectPrincipalsInvocation(query, into);
+            for (let
+            action of rule.actions)
+                this._collectPrincipalsInvocation(action, into);
+        });
+    }
+
+    _setProgram(principal, program) {
+        this._principal = principal;
+        return typeCheckProgram(program, this._schemaRetriever).then(() => {
+            this._program = program;
+
+            this._principals.add(principal.value);
+            let programPrincipals = new Set(this._principals);
+            this._collectPrincipals(program, programPrincipals);
+
+            return Q.all(Array.from(programPrincipals).map((principal) => this._groupDelegate.getGroups(principal).then((groups) => {
+                this._groupmap.set(principal, groups);
+            })));
+        }).then(() => {
+            // FIXME
+            /*return Q.all(program.classes.map((classdef) => {
+                // make a default Allowed rule for @remote.send/@remote.receive
+                if (classdef.extends === 'org.thingpedia.builtin.thingengine.remote') {
+                    let promises = [];
+                    if (classdef.triggers.receive) {
+                        let allowed = Ast.Allowed(classdef.name, 'receive', 'trigger',
+                            Ast.BooleanExpression.Atom(Ast.Filter('__principal', '=', Ast.Value.VarRef('__pi'))),
+                            Ast.BooleanExpression.True,
+                            classdef.triggers.receive);
+                        promises.push(this.allowed(allowed));
+                    }
+                    if (classdef.actions.send) {
+                        let allowed = Ast.Allowed(classdef.name, 'send', 'action',
+                            Ast.BooleanExpression.Atom(Ast.Filter('__principal', '=', Ast.Value.VarRef('__pi'))),
+                            Ast.BooleanExpression.True,
+                            classdef.actions.send);
+                        promises.push(this.allowed(allowed));
+                    }
+                    return Q.all(promises);
+                }
+            }));*/
+        });
+    }
+
+    check(principal, program) {
+        return this._setProgram(principal, program).then(() => {
+            let newrules = [];
+            return promiseDoAll(program.rules, (rule) => {
+                let transformer = new RuleTransformer(this._SolverClass, principal, program, rule, this._permissiondb, this._groupmap);
+                return transformer.transform().then((newrule) => {
+                    if (newrule !== null)
+                        newrules.push(newrule);
+                });
+            }).then(() => {
+                if (newrules.length === 0)
+                    return null;
+                return optimizeProgram(new Ast.Program(program.name, program.params, program.classes, newrules));
+            });
+        });
+    }
+
+    _getAllowedSchema(allowed, schemaType) {
+        if (!allowed.isSpecified)
+            return Promise.resolve();
+        if (allowed.schema) {
+            return Promise.resolve(allowed.schema);
+        } else {
+            return Utils.getSchemaForSelector(this._schemaRetriever, allowed.kind, allowed.channel, schemaType, false, {})
+                .then((schema) => {
+                    allowed.schema = schema;
+                    return schema;
+                });
+        }
+    }
+
+    _typeCheckPermissionRule(permissionRule) {
+        const scope = {
+            __pi: Type.Entity('tt:contact')
+        };
+        function typecheckPermissionFunction(fn) {
+            if (!fn.isSpecified)
+                return;
+
+            typeCheckFilter(fn.filter, fn.schema, scope);
+
+            for (let outParam of fn.out_params) {
+                let ptype = fn.schema.inReq[outParam.value] || fn.schema.inOpt[outParam.value] || fn.schema.out[outParam.value];
+                scope[outParam.name] = ptype;
+            }
+        }
+
+        typecheckPermissionFunction(permissionRule.trigger);
+        typecheckPermissionFunction(permissionRule.query);
+        typecheckPermissionFunction(permissionRule.action);
+    }
+
+    allowed(permissionRule) {
+        return Promise.all([
+            this._getAllowedSchema(permissionRule.trigger, 'triggers'),
+            this._getAllowedSchema(permissionRule.query, 'queries'),
+            this._getAllowedSchema(permissionRule.action, 'actions')
+        ]).then(() => {
+            this._typeCheckPermissionRule(permissionRule);
+            this._permissiondb.push(permissionRule);
+
+            if (permissionRule.trigger.isSpecified)
+                this._collectPrincipalsFilter(permissionRule.trigger.filter, this._principals);
+            if (permissionRule.query.isSpecified)
+                this._collectPrincipalsFilter(permissionRule.query.filter, this._principals);
+            if (permissionRule.action.isSpecified)
+                this._collectPrincipalsFilter(permissionRule.action.filter, this._principals);
+        });
+    }
+};
+
+},{"./ast":11,"./builtin":12,"./optimize":26,"./type":31,"./typecheck":32,"./utils":33,"assert":49,"q":5,"smtlib":6}],28:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -13599,7 +15330,7 @@ function prettyprint(ast, short) {
 
 function prettyprintPermissionFunction(fn) {
     if (fn.isStar)
-        return '*'
+        return '*';
     if (fn.isClassStar)
         return '@' + fn.kind + '.*';
 
@@ -13620,7 +15351,7 @@ module.exports = {
     prettyprintPermissionRule
 };
 
-},{}],23:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -13774,7 +15505,7 @@ module.exports = class SchemaRetriever {
     }
 };
 
-},{"./type":25,"q":4}],24:[function(require,module,exports){
+},{"./type":31,"q":5}],30:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingTalk
@@ -14026,6 +15757,25 @@ function dateToSEMPRE(jsArg) {
         hour: jsArg.getHours(), minute: jsArg.getMinutes(), second: jsArg.getSeconds() };
 }
 
+function handleCompatEntityType(type) {
+    switch (type.type) {
+    case 'tt:username':
+        return 'Username';
+    case 'tt:hashtag':
+        return 'Hashtag';
+    case 'tt:picture':
+        return 'Picture';
+    case 'tt:email_address':
+        return 'EmailAddress';
+    case 'tt:phone_number':
+        return 'PhoneNumber';
+    case 'tt:url':
+        return 'URL';
+    default:
+        return String(type);
+    }
+}
+
 function valueToSEMPRE(value, scope, revscope) {
     if (value.isVarRef) {
         let origParamName = scope[value.name];
@@ -14052,7 +15802,7 @@ function valueToSEMPRE(value, scope, revscope) {
     if (value.isNumber)
         return ['Number', { value: jsArg }];
     if (value.isEntity)
-        return [String(type), { value: jsArg }];
+        return [handleCompatEntityType(type), jsArg];
     if (value.isMeasure) // don't use jsArg as that normalizes the unit
         return ['Measure', { value: value.value, unit: value.unit }];
     if (value.isEnum)
@@ -14244,7 +15994,7 @@ module.exports.parseRule = parseRule;
 module.exports.parseToplevel = parseToplevel;
 module.exports.toSEMPRE = toSEMPRE;
 
-},{"./ast":6,"./optimize":21,"./type":25,"./typecheck":26,"./utils":27,"assert":42,"q":4}],25:[function(require,module,exports){
+},{"./ast":11,"./optimize":26,"./type":31,"./typecheck":32,"./utils":33,"assert":49,"q":5}],31:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -14376,7 +16126,7 @@ module.exports.isAssignable = function isAssignable(type, assignableTo, typeScop
     return false;
 };
 
-},{"./grammar":16,"./internal":18,"adt":3}],26:[function(require,module,exports){
+},{"./grammar":21,"./internal":23,"adt":3}],32:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -14387,15 +16137,11 @@ module.exports.isAssignable = function isAssignable(type, assignableTo, typeScop
 "use strict";
 
 const Q = require('q');
-const assert = require('assert');
 
 const Ast = require('./ast');
-const Ir = require('./ir');
-const Grammar = require('./grammar');
 const Type = require('./type');
 const Utils = require('./utils');
 const Builtin = require('./builtin');
-const JSIr = require('./jsir');
 
 function typeForValue(value, scope) {
     if (value.isVarRef) {
@@ -14629,9 +16375,9 @@ module.exports = {
     typeCheckRule,
     typeCheckProgram,
     typeCheckFilter,
-}
+};
 
-},{"./ast":6,"./builtin":7,"./grammar":16,"./ir":19,"./jsir":20,"./type":25,"./utils":27,"assert":42,"q":4}],27:[function(require,module,exports){
+},{"./ast":11,"./builtin":12,"./type":31,"./utils":33,"q":5}],33:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -14678,6 +16424,7 @@ module.exports = {
                                inReqParams,
                                inOptParams,
                                outParams,
+                               schema.canonical || '',
                                schema.confirmation || '',
                                schema.confirmation_remote || '',
                                schema.argcanonicals || schema.args,
@@ -14700,7 +16447,9 @@ module.exports = {
     }
 };
 
-},{"./ast":6,"q":4}],28:[function(require,module,exports){
+},{"./ast":11,"q":5}],34:[function(require,module,exports){
+
+},{}],35:[function(require,module,exports){
 var asn1 = exports;
 
 asn1.bignum = require('bn.js');
@@ -14711,7 +16460,7 @@ asn1.constants = require('./asn1/constants');
 asn1.decoders = require('./asn1/decoders');
 asn1.encoders = require('./asn1/encoders');
 
-},{"./asn1/api":29,"./asn1/base":31,"./asn1/constants":35,"./asn1/decoders":37,"./asn1/encoders":40,"bn.js":44}],29:[function(require,module,exports){
+},{"./asn1/api":36,"./asn1/base":38,"./asn1/constants":42,"./asn1/decoders":44,"./asn1/encoders":47,"bn.js":51}],36:[function(require,module,exports){
 var asn1 = require('../asn1');
 var inherits = require('inherits');
 
@@ -14774,7 +16523,7 @@ Entity.prototype.encode = function encode(data, enc, /* internal */ reporter) {
   return this._getEncoder(enc).encode(data, reporter);
 };
 
-},{"../asn1":28,"inherits":120,"vm":170}],30:[function(require,module,exports){
+},{"../asn1":35,"inherits":127,"vm":178}],37:[function(require,module,exports){
 var inherits = require('inherits');
 var Reporter = require('../base').Reporter;
 var Buffer = require('buffer').Buffer;
@@ -14892,7 +16641,7 @@ EncoderBuffer.prototype.join = function join(out, offset) {
   return out;
 };
 
-},{"../base":31,"buffer":74,"inherits":120}],31:[function(require,module,exports){
+},{"../base":38,"buffer":81,"inherits":127}],38:[function(require,module,exports){
 var base = exports;
 
 base.Reporter = require('./reporter').Reporter;
@@ -14900,7 +16649,7 @@ base.DecoderBuffer = require('./buffer').DecoderBuffer;
 base.EncoderBuffer = require('./buffer').EncoderBuffer;
 base.Node = require('./node');
 
-},{"./buffer":30,"./node":32,"./reporter":33}],32:[function(require,module,exports){
+},{"./buffer":37,"./node":39,"./reporter":40}],39:[function(require,module,exports){
 var Reporter = require('../base').Reporter;
 var EncoderBuffer = require('../base').EncoderBuffer;
 var DecoderBuffer = require('../base').DecoderBuffer;
@@ -15536,7 +17285,7 @@ Node.prototype._isPrintstr = function isPrintstr(str) {
   return /^[A-Za-z0-9 '\(\)\+,\-\.\/:=\?]*$/.test(str);
 };
 
-},{"../base":31,"minimalistic-assert":124}],33:[function(require,module,exports){
+},{"../base":38,"minimalistic-assert":131}],40:[function(require,module,exports){
 var inherits = require('inherits');
 
 function Reporter(options) {
@@ -15659,7 +17408,7 @@ ReporterError.prototype.rethrow = function rethrow(msg) {
   return this;
 };
 
-},{"inherits":120}],34:[function(require,module,exports){
+},{"inherits":127}],41:[function(require,module,exports){
 var constants = require('../constants');
 
 exports.tagClass = {
@@ -15703,7 +17452,7 @@ exports.tag = {
 };
 exports.tagByName = constants._reverse(exports.tag);
 
-},{"../constants":35}],35:[function(require,module,exports){
+},{"../constants":42}],42:[function(require,module,exports){
 var constants = exports;
 
 // Helper
@@ -15724,7 +17473,7 @@ constants._reverse = function reverse(map) {
 
 constants.der = require('./der');
 
-},{"./der":34}],36:[function(require,module,exports){
+},{"./der":41}],43:[function(require,module,exports){
 var inherits = require('inherits');
 
 var asn1 = require('../../asn1');
@@ -16050,13 +17799,13 @@ function derDecodeLen(buf, primitive, fail) {
   return len;
 }
 
-},{"../../asn1":28,"inherits":120}],37:[function(require,module,exports){
+},{"../../asn1":35,"inherits":127}],44:[function(require,module,exports){
 var decoders = exports;
 
 decoders.der = require('./der');
 decoders.pem = require('./pem');
 
-},{"./der":36,"./pem":38}],38:[function(require,module,exports){
+},{"./der":43,"./pem":45}],45:[function(require,module,exports){
 var inherits = require('inherits');
 var Buffer = require('buffer').Buffer;
 
@@ -16107,7 +17856,7 @@ PEMDecoder.prototype.decode = function decode(data, options) {
   return DERDecoder.prototype.decode.call(this, input, options);
 };
 
-},{"./der":36,"buffer":74,"inherits":120}],39:[function(require,module,exports){
+},{"./der":43,"buffer":81,"inherits":127}],46:[function(require,module,exports){
 var inherits = require('inherits');
 var Buffer = require('buffer').Buffer;
 
@@ -16404,13 +18153,13 @@ function encodeTag(tag, primitive, cls, reporter) {
   return res;
 }
 
-},{"../../asn1":28,"buffer":74,"inherits":120}],40:[function(require,module,exports){
+},{"../../asn1":35,"buffer":81,"inherits":127}],47:[function(require,module,exports){
 var encoders = exports;
 
 encoders.der = require('./der');
 encoders.pem = require('./pem');
 
-},{"./der":39,"./pem":41}],41:[function(require,module,exports){
+},{"./der":46,"./pem":48}],48:[function(require,module,exports){
 var inherits = require('inherits');
 
 var DEREncoder = require('./der');
@@ -16433,7 +18182,7 @@ PEMEncoder.prototype.encode = function encode(data, options) {
   return out.join('\n');
 };
 
-},{"./der":39,"inherits":120}],42:[function(require,module,exports){
+},{"./der":46,"inherits":127}],49:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -16927,7 +18676,7 @@ var objectKeys = Object.keys || function (obj) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"util/":169}],43:[function(require,module,exports){
+},{"util/":177}],50:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -17043,7 +18792,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],44:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 (function (module, exports) {
   'use strict';
 
@@ -20472,7 +22221,7 @@ function fromByteArray (uint8) {
   };
 })(typeof module === 'undefined' || module, this);
 
-},{}],45:[function(require,module,exports){
+},{}],52:[function(require,module,exports){
 var r;
 
 module.exports = function rand(len) {
@@ -20539,9 +22288,9 @@ if (typeof self === 'object') {
   }
 }
 
-},{"crypto":46}],46:[function(require,module,exports){
-
-},{}],47:[function(require,module,exports){
+},{"crypto":53}],53:[function(require,module,exports){
+arguments[4][34][0].apply(exports,arguments)
+},{"dup":34}],54:[function(require,module,exports){
 (function (Buffer){
 // based on the aes implimentation in triple sec
 // https://github.com/keybase/triplesec
@@ -20722,7 +22471,7 @@ AES.prototype._doCryptBlock = function (M, keySchedule, SUB_MIX, SBOX) {
 exports.AES = AES
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74}],48:[function(require,module,exports){
+},{"buffer":81}],55:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -20823,7 +22572,7 @@ function xorTest (a, b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":47,"./ghash":52,"buffer":74,"buffer-xor":73,"cipher-base":75,"inherits":120}],49:[function(require,module,exports){
+},{"./aes":54,"./ghash":59,"buffer":81,"buffer-xor":80,"cipher-base":82,"inherits":127}],56:[function(require,module,exports){
 var ciphers = require('./encrypter')
 exports.createCipher = exports.Cipher = ciphers.createCipher
 exports.createCipheriv = exports.Cipheriv = ciphers.createCipheriv
@@ -20836,7 +22585,7 @@ function getCiphers () {
 }
 exports.listCiphers = exports.getCiphers = getCiphers
 
-},{"./decrypter":50,"./encrypter":51,"./modes":53}],50:[function(require,module,exports){
+},{"./decrypter":57,"./encrypter":58,"./modes":60}],57:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -20977,7 +22726,7 @@ exports.createDecipher = createDecipher
 exports.createDecipheriv = createDecipheriv
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":47,"./authCipher":48,"./modes":53,"./modes/cbc":54,"./modes/cfb":55,"./modes/cfb1":56,"./modes/cfb8":57,"./modes/ctr":58,"./modes/ecb":59,"./modes/ofb":60,"./streamCipher":61,"buffer":74,"cipher-base":75,"evp_bytestokey":110,"inherits":120}],51:[function(require,module,exports){
+},{"./aes":54,"./authCipher":55,"./modes":60,"./modes/cbc":61,"./modes/cfb":62,"./modes/cfb1":63,"./modes/cfb8":64,"./modes/ctr":65,"./modes/ecb":66,"./modes/ofb":67,"./streamCipher":68,"buffer":81,"cipher-base":82,"evp_bytestokey":117,"inherits":127}],58:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -21103,7 +22852,7 @@ exports.createCipheriv = createCipheriv
 exports.createCipher = createCipher
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":47,"./authCipher":48,"./modes":53,"./modes/cbc":54,"./modes/cfb":55,"./modes/cfb1":56,"./modes/cfb8":57,"./modes/ctr":58,"./modes/ecb":59,"./modes/ofb":60,"./streamCipher":61,"buffer":74,"cipher-base":75,"evp_bytestokey":110,"inherits":120}],52:[function(require,module,exports){
+},{"./aes":54,"./authCipher":55,"./modes":60,"./modes/cbc":61,"./modes/cfb":62,"./modes/cfb1":63,"./modes/cfb8":64,"./modes/ctr":65,"./modes/ecb":66,"./modes/ofb":67,"./streamCipher":68,"buffer":81,"cipher-base":82,"evp_bytestokey":117,"inherits":127}],59:[function(require,module,exports){
 (function (Buffer){
 var zeros = new Buffer(16)
 zeros.fill(0)
@@ -21205,7 +22954,7 @@ function xor (a, b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74}],53:[function(require,module,exports){
+},{"buffer":81}],60:[function(require,module,exports){
 exports['aes-128-ecb'] = {
   cipher: 'AES',
   key: 128,
@@ -21378,7 +23127,7 @@ exports['aes-256-gcm'] = {
   type: 'auth'
 }
 
-},{}],54:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 var xor = require('buffer-xor')
 
 exports.encrypt = function (self, block) {
@@ -21397,7 +23146,7 @@ exports.decrypt = function (self, block) {
   return xor(out, pad)
 }
 
-},{"buffer-xor":73}],55:[function(require,module,exports){
+},{"buffer-xor":80}],62:[function(require,module,exports){
 (function (Buffer){
 var xor = require('buffer-xor')
 
@@ -21432,7 +23181,7 @@ function encryptStart (self, data, decrypt) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74,"buffer-xor":73}],56:[function(require,module,exports){
+},{"buffer":81,"buffer-xor":80}],63:[function(require,module,exports){
 (function (Buffer){
 function encryptByte (self, byteParam, decrypt) {
   var pad
@@ -21470,7 +23219,7 @@ function shiftIn (buffer, value) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74}],57:[function(require,module,exports){
+},{"buffer":81}],64:[function(require,module,exports){
 (function (Buffer){
 function encryptByte (self, byteParam, decrypt) {
   var pad = self._cipher.encryptBlock(self._prev)
@@ -21489,7 +23238,7 @@ exports.encrypt = function (self, chunk, decrypt) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74}],58:[function(require,module,exports){
+},{"buffer":81}],65:[function(require,module,exports){
 (function (Buffer){
 var xor = require('buffer-xor')
 
@@ -21524,7 +23273,7 @@ exports.encrypt = function (self, chunk) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74,"buffer-xor":73}],59:[function(require,module,exports){
+},{"buffer":81,"buffer-xor":80}],66:[function(require,module,exports){
 exports.encrypt = function (self, block) {
   return self._cipher.encryptBlock(block)
 }
@@ -21532,7 +23281,7 @@ exports.decrypt = function (self, block) {
   return self._cipher.decryptBlock(block)
 }
 
-},{}],60:[function(require,module,exports){
+},{}],67:[function(require,module,exports){
 (function (Buffer){
 var xor = require('buffer-xor')
 
@@ -21552,7 +23301,7 @@ exports.encrypt = function (self, chunk) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74,"buffer-xor":73}],61:[function(require,module,exports){
+},{"buffer":81,"buffer-xor":80}],68:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -21581,7 +23330,7 @@ StreamCipher.prototype._final = function () {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":47,"buffer":74,"cipher-base":75,"inherits":120}],62:[function(require,module,exports){
+},{"./aes":54,"buffer":81,"cipher-base":82,"inherits":127}],69:[function(require,module,exports){
 var ebtk = require('evp_bytestokey')
 var aes = require('browserify-aes/browser')
 var DES = require('browserify-des')
@@ -21656,7 +23405,7 @@ function getCiphers () {
 }
 exports.listCiphers = exports.getCiphers = getCiphers
 
-},{"browserify-aes/browser":49,"browserify-aes/modes":53,"browserify-des":63,"browserify-des/modes":64,"evp_bytestokey":110}],63:[function(require,module,exports){
+},{"browserify-aes/browser":56,"browserify-aes/modes":60,"browserify-des":70,"browserify-des/modes":71,"evp_bytestokey":117}],70:[function(require,module,exports){
 (function (Buffer){
 var CipherBase = require('cipher-base')
 var des = require('des.js')
@@ -21703,7 +23452,7 @@ DES.prototype._final = function () {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74,"cipher-base":75,"des.js":83,"inherits":120}],64:[function(require,module,exports){
+},{"buffer":81,"cipher-base":82,"des.js":90,"inherits":127}],71:[function(require,module,exports){
 exports['des-ecb'] = {
   key: 8,
   iv: 0
@@ -21729,7 +23478,7 @@ exports['des-ede'] = {
   iv: 0
 }
 
-},{}],65:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 (function (Buffer){
 var bn = require('bn.js');
 var randomBytes = require('randombytes');
@@ -21773,10 +23522,10 @@ function getr(priv) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"bn.js":44,"buffer":74,"randombytes":141}],66:[function(require,module,exports){
+},{"bn.js":51,"buffer":81,"randombytes":148}],73:[function(require,module,exports){
 module.exports = require('./browser/algorithms.json')
 
-},{"./browser/algorithms.json":67}],67:[function(require,module,exports){
+},{"./browser/algorithms.json":74}],74:[function(require,module,exports){
 module.exports={
   "sha224WithRSAEncryption": {
     "sign": "rsa",
@@ -21930,7 +23679,7 @@ module.exports={
   }
 }
 
-},{}],68:[function(require,module,exports){
+},{}],75:[function(require,module,exports){
 module.exports={
   "1.3.132.0.10": "secp256k1",
   "1.3.132.0.33": "p224",
@@ -21940,7 +23689,7 @@ module.exports={
   "1.3.132.0.35": "p521"
 }
 
-},{}],69:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 (function (Buffer){
 var createHash = require('create-hash')
 var stream = require('stream')
@@ -22035,7 +23784,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./algorithms.json":67,"./sign":70,"./verify":71,"buffer":74,"create-hash":78,"inherits":120,"stream":164}],70:[function(require,module,exports){
+},{"./algorithms.json":74,"./sign":77,"./verify":78,"buffer":81,"create-hash":85,"inherits":127,"stream":171}],77:[function(require,module,exports){
 (function (Buffer){
 // much of this based on https://github.com/indutny/self-signed/blob/gh-pages/lib/rsa.js
 var createHmac = require('create-hmac')
@@ -22184,7 +23933,7 @@ module.exports.getKey = getKey
 module.exports.makeKey = makeKey
 
 }).call(this,require("buffer").Buffer)
-},{"./curves.json":68,"bn.js":44,"browserify-rsa":65,"buffer":74,"create-hmac":81,"elliptic":93,"parse-asn1":130}],71:[function(require,module,exports){
+},{"./curves.json":75,"bn.js":51,"browserify-rsa":72,"buffer":81,"create-hmac":88,"elliptic":100,"parse-asn1":137}],78:[function(require,module,exports){
 (function (Buffer){
 // much of this based on https://github.com/indutny/self-signed/blob/gh-pages/lib/rsa.js
 var BN = require('bn.js')
@@ -22271,7 +24020,7 @@ function checkValue (b, q) {
 module.exports = verify
 
 }).call(this,require("buffer").Buffer)
-},{"./curves.json":68,"bn.js":44,"buffer":74,"elliptic":93,"parse-asn1":130}],72:[function(require,module,exports){
+},{"./curves.json":75,"bn.js":51,"buffer":81,"elliptic":100,"parse-asn1":137}],79:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -22383,7 +24132,7 @@ exports.allocUnsafeSlow = function allocUnsafeSlow(size) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"buffer":74}],73:[function(require,module,exports){
+},{"buffer":81}],80:[function(require,module,exports){
 (function (Buffer){
 module.exports = function xor (a, b) {
   var length = Math.min(a.length, b.length)
@@ -22397,7 +24146,7 @@ module.exports = function xor (a, b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74}],74:[function(require,module,exports){
+},{"buffer":81}],81:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -24105,7 +25854,7 @@ function numberIsNaN (obj) {
   return obj !== obj // eslint-disable-line no-self-compare
 }
 
-},{"base64-js":43,"ieee754":118}],75:[function(require,module,exports){
+},{"base64-js":50,"ieee754":125}],82:[function(require,module,exports){
 (function (Buffer){
 var Transform = require('stream').Transform
 var inherits = require('inherits')
@@ -24199,7 +25948,7 @@ CipherBase.prototype._toString = function (value, enc, fin) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74,"inherits":120,"stream":164,"string_decoder":165}],76:[function(require,module,exports){
+},{"buffer":81,"inherits":127,"stream":171,"string_decoder":172}],83:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -24310,7 +26059,7 @@ function objectToString(o) {
 }
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":121}],77:[function(require,module,exports){
+},{"../../is-buffer/index.js":128}],84:[function(require,module,exports){
 (function (Buffer){
 var elliptic = require('elliptic');
 var BN = require('bn.js');
@@ -24436,7 +26185,7 @@ function formatReturnValue(bn, enc, len) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"bn.js":44,"buffer":74,"elliptic":93}],78:[function(require,module,exports){
+},{"bn.js":51,"buffer":81,"elliptic":100}],85:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var inherits = require('inherits')
@@ -24492,7 +26241,7 @@ module.exports = function createHash (alg) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./md5":80,"buffer":74,"cipher-base":75,"inherits":120,"ripemd160":155,"sha.js":157}],79:[function(require,module,exports){
+},{"./md5":87,"buffer":81,"cipher-base":82,"inherits":127,"ripemd160":162,"sha.js":164}],86:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var intSize = 4;
@@ -24529,7 +26278,7 @@ function hash(buf, fn, hashSize, bigEndian) {
 }
 exports.hash = hash;
 }).call(this,require("buffer").Buffer)
-},{"buffer":74}],80:[function(require,module,exports){
+},{"buffer":81}],87:[function(require,module,exports){
 'use strict';
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
@@ -24686,7 +26435,7 @@ function bit_rol(num, cnt)
 module.exports = function md5(buf) {
   return helpers.hash(buf, core_md5, 16);
 };
-},{"./helpers":79}],81:[function(require,module,exports){
+},{"./helpers":86}],88:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var createHash = require('create-hash/browser');
@@ -24758,7 +26507,7 @@ module.exports = function createHmac(alg, key) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74,"create-hash/browser":78,"inherits":120,"stream":164}],82:[function(require,module,exports){
+},{"buffer":81,"create-hash/browser":85,"inherits":127,"stream":171}],89:[function(require,module,exports){
 'use strict'
 
 exports.randomBytes = exports.rng = exports.pseudoRandomBytes = exports.prng = require('randombytes')
@@ -24837,7 +26586,7 @@ var publicEncrypt = require('public-encrypt')
   }
 })
 
-},{"browserify-cipher":62,"browserify-sign":69,"browserify-sign/algos":66,"create-ecdh":77,"create-hash":78,"create-hmac":81,"diffie-hellman":89,"pbkdf2":131,"public-encrypt":135,"randombytes":141}],83:[function(require,module,exports){
+},{"browserify-cipher":69,"browserify-sign":76,"browserify-sign/algos":73,"create-ecdh":84,"create-hash":85,"create-hmac":88,"diffie-hellman":96,"pbkdf2":138,"public-encrypt":142,"randombytes":148}],90:[function(require,module,exports){
 'use strict';
 
 exports.utils = require('./des/utils');
@@ -24846,7 +26595,7 @@ exports.DES = require('./des/des');
 exports.CBC = require('./des/cbc');
 exports.EDE = require('./des/ede');
 
-},{"./des/cbc":84,"./des/cipher":85,"./des/des":86,"./des/ede":87,"./des/utils":88}],84:[function(require,module,exports){
+},{"./des/cbc":91,"./des/cipher":92,"./des/des":93,"./des/ede":94,"./des/utils":95}],91:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -24913,7 +26662,7 @@ proto._update = function _update(inp, inOff, out, outOff) {
   }
 };
 
-},{"inherits":120,"minimalistic-assert":124}],85:[function(require,module,exports){
+},{"inherits":127,"minimalistic-assert":131}],92:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -25056,7 +26805,7 @@ Cipher.prototype._finalDecrypt = function _finalDecrypt() {
   return this._unpad(out);
 };
 
-},{"minimalistic-assert":124}],86:[function(require,module,exports){
+},{"minimalistic-assert":131}],93:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -25201,7 +26950,7 @@ DES.prototype._decrypt = function _decrypt(state, lStart, rStart, out, off) {
   utils.rip(l, r, out, off);
 };
 
-},{"../des":83,"inherits":120,"minimalistic-assert":124}],87:[function(require,module,exports){
+},{"../des":90,"inherits":127,"minimalistic-assert":131}],94:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -25258,7 +27007,7 @@ EDE.prototype._update = function _update(inp, inOff, out, outOff) {
 EDE.prototype._pad = DES.prototype._pad;
 EDE.prototype._unpad = DES.prototype._unpad;
 
-},{"../des":83,"inherits":120,"minimalistic-assert":124}],88:[function(require,module,exports){
+},{"../des":90,"inherits":127,"minimalistic-assert":131}],95:[function(require,module,exports){
 'use strict';
 
 exports.readUInt32BE = function readUInt32BE(bytes, off) {
@@ -25516,7 +27265,7 @@ exports.padSplit = function padSplit(num, size, group) {
   return out.join(' ');
 };
 
-},{}],89:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 (function (Buffer){
 var generatePrime = require('./lib/generatePrime')
 var primes = require('./lib/primes.json')
@@ -25562,7 +27311,7 @@ exports.DiffieHellmanGroup = exports.createDiffieHellmanGroup = exports.getDiffi
 exports.createDiffieHellman = exports.DiffieHellman = createDiffieHellman
 
 }).call(this,require("buffer").Buffer)
-},{"./lib/dh":90,"./lib/generatePrime":91,"./lib/primes.json":92,"buffer":74}],90:[function(require,module,exports){
+},{"./lib/dh":97,"./lib/generatePrime":98,"./lib/primes.json":99,"buffer":81}],97:[function(require,module,exports){
 (function (Buffer){
 var BN = require('bn.js');
 var MillerRabin = require('miller-rabin');
@@ -25730,7 +27479,7 @@ function formatReturnValue(bn, enc) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./generatePrime":91,"bn.js":44,"buffer":74,"miller-rabin":123,"randombytes":141}],91:[function(require,module,exports){
+},{"./generatePrime":98,"bn.js":51,"buffer":81,"miller-rabin":130,"randombytes":148}],98:[function(require,module,exports){
 var randomBytes = require('randombytes');
 module.exports = findPrime;
 findPrime.simpleSieve = simpleSieve;
@@ -25837,7 +27586,7 @@ function findPrime(bits, gen) {
 
 }
 
-},{"bn.js":44,"miller-rabin":123,"randombytes":141}],92:[function(require,module,exports){
+},{"bn.js":51,"miller-rabin":130,"randombytes":148}],99:[function(require,module,exports){
 module.exports={
     "modp1": {
         "gen": "02",
@@ -25872,7 +27621,7 @@ module.exports={
         "prime": "ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08ca18217c32905e462e36ce3be39e772c180e86039b2783a2ec07a28fb5c55df06f4c52c9de2bcbf6955817183995497cea956ae515d2261898fa051015728e5a8aaac42dad33170d04507a33a85521abdf1cba64ecfb850458dbef0a8aea71575d060c7db3970f85a6e1e4c7abf5ae8cdb0933d71e8c94e04a25619dcee3d2261ad2ee6bf12ffa06d98a0864d87602733ec86a64521f2b18177b200cbbe117577a615d6c770988c0bad946e208e24fa074e5ab3143db5bfce0fd108e4b82d120a92108011a723c12a787e6d788719a10bdba5b2699c327186af4e23c1a946834b6150bda2583e9ca2ad44ce8dbbbc2db04de8ef92e8efc141fbecaa6287c59474e6bc05d99b2964fa090c3a2233ba186515be7ed1f612970cee2d7afb81bdd762170481cd0069127d5b05aa993b4ea988d8fddc186ffb7dc90a6c08f4df435c93402849236c3fab4d27c7026c1d4dcb2602646dec9751e763dba37bdf8ff9406ad9e530ee5db382f413001aeb06a53ed9027d831179727b0865a8918da3edbebcf9b14ed44ce6cbaced4bb1bdb7f1447e6cc254b332051512bd7af426fb8f401378cd2bf5983ca01c64b92ecf032ea15d1721d03f482d7ce6e74fef6d55e702f46980c82b5a84031900b1c9e59e7c97fbec7e8f323a97a7e36cc88be0f1d45b7ff585ac54bd407b22b4154aacc8f6d7ebf48e1d814cc5ed20f8037e0a79715eef29be32806a1d58bb7c5da76f550aa3d8a1fbff0eb19ccb1a313d55cda56c9ec2ef29632387fe8d76e3c0468043e8f663f4860ee12bf2d5b0b7474d6e694f91e6dbe115974a3926f12fee5e438777cb6a932df8cd8bec4d073b931ba3bc832b68d9dd300741fa7bf8afc47ed2576f6936ba424663aab639c5ae4f5683423b4742bf1c978238f16cbe39d652de3fdb8befc848ad922222e04a4037c0713eb57a81a23f0c73473fc646cea306b4bcbc8862f8385ddfa9d4b7fa2c087e879683303ed5bdd3a062b3cf5b3a278a66d2a13f83f44f82ddf310ee074ab6a364597e899a0255dc164f31cc50846851df9ab48195ded7ea1b1d510bd7ee74d73faf36bc31ecfa268359046f4eb879f924009438b481c6cd7889a002ed5ee382bc9190da6fc026e479558e4475677e9aa9e3050e2765694dfc81f56e880b96e7160c980dd98edd3dfffffffffffffffff"
     }
 }
-},{}],93:[function(require,module,exports){
+},{}],100:[function(require,module,exports){
 'use strict';
 
 var elliptic = exports;
@@ -25887,7 +27636,7 @@ elliptic.curves = require('./elliptic/curves');
 elliptic.ec = require('./elliptic/ec');
 elliptic.eddsa = require('./elliptic/eddsa');
 
-},{"../package.json":108,"./elliptic/curve":96,"./elliptic/curves":99,"./elliptic/ec":100,"./elliptic/eddsa":103,"./elliptic/utils":107,"brorand":45}],94:[function(require,module,exports){
+},{"../package.json":115,"./elliptic/curve":103,"./elliptic/curves":106,"./elliptic/ec":107,"./elliptic/eddsa":110,"./elliptic/utils":114,"brorand":52}],101:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -26264,7 +28013,7 @@ BasePoint.prototype.dblp = function dblp(k) {
   return r;
 };
 
-},{"../../elliptic":93,"bn.js":44}],95:[function(require,module,exports){
+},{"../../elliptic":100,"bn.js":51}],102:[function(require,module,exports){
 'use strict';
 
 var curve = require('../curve');
@@ -26699,7 +28448,7 @@ Point.prototype.eqXToP = function eqXToP(x) {
 Point.prototype.toP = Point.prototype.normalize;
 Point.prototype.mixedAdd = Point.prototype.add;
 
-},{"../../elliptic":93,"../curve":96,"bn.js":44,"inherits":120}],96:[function(require,module,exports){
+},{"../../elliptic":100,"../curve":103,"bn.js":51,"inherits":127}],103:[function(require,module,exports){
 'use strict';
 
 var curve = exports;
@@ -26709,7 +28458,7 @@ curve.short = require('./short');
 curve.mont = require('./mont');
 curve.edwards = require('./edwards');
 
-},{"./base":94,"./edwards":95,"./mont":97,"./short":98}],97:[function(require,module,exports){
+},{"./base":101,"./edwards":102,"./mont":104,"./short":105}],104:[function(require,module,exports){
 'use strict';
 
 var curve = require('../curve');
@@ -26891,7 +28640,7 @@ Point.prototype.getX = function getX() {
   return this.x.fromRed();
 };
 
-},{"../../elliptic":93,"../curve":96,"bn.js":44,"inherits":120}],98:[function(require,module,exports){
+},{"../../elliptic":100,"../curve":103,"bn.js":51,"inherits":127}],105:[function(require,module,exports){
 'use strict';
 
 var curve = require('../curve');
@@ -27831,7 +29580,7 @@ JPoint.prototype.isInfinity = function isInfinity() {
   return this.z.cmpn(0) === 0;
 };
 
-},{"../../elliptic":93,"../curve":96,"bn.js":44,"inherits":120}],99:[function(require,module,exports){
+},{"../../elliptic":100,"../curve":103,"bn.js":51,"inherits":127}],106:[function(require,module,exports){
 'use strict';
 
 var curves = exports;
@@ -28038,7 +29787,7 @@ defineCurve('secp256k1', {
   ]
 });
 
-},{"../elliptic":93,"./precomputed/secp256k1":106,"hash.js":111}],100:[function(require,module,exports){
+},{"../elliptic":100,"./precomputed/secp256k1":113,"hash.js":118}],107:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -28280,7 +30029,7 @@ EC.prototype.getKeyRecoveryParam = function(e, signature, Q, enc) {
   throw new Error('Unable to find valid recovery factor');
 };
 
-},{"../../elliptic":93,"./key":101,"./signature":102,"bn.js":44,"hmac-drbg":117}],101:[function(require,module,exports){
+},{"../../elliptic":100,"./key":108,"./signature":109,"bn.js":51,"hmac-drbg":124}],108:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -28401,7 +30150,7 @@ KeyPair.prototype.inspect = function inspect() {
          ' pub: ' + (this.pub && this.pub.inspect()) + ' >';
 };
 
-},{"../../elliptic":93,"bn.js":44}],102:[function(require,module,exports){
+},{"../../elliptic":100,"bn.js":51}],109:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -28538,7 +30287,7 @@ Signature.prototype.toDER = function toDER(enc) {
   return utils.encode(res, enc);
 };
 
-},{"../../elliptic":93,"bn.js":44}],103:[function(require,module,exports){
+},{"../../elliptic":100,"bn.js":51}],110:[function(require,module,exports){
 'use strict';
 
 var hash = require('hash.js');
@@ -28658,7 +30407,7 @@ EDDSA.prototype.isPoint = function isPoint(val) {
   return val instanceof this.pointClass;
 };
 
-},{"../../elliptic":93,"./key":104,"./signature":105,"hash.js":111}],104:[function(require,module,exports){
+},{"../../elliptic":100,"./key":111,"./signature":112,"hash.js":118}],111:[function(require,module,exports){
 'use strict';
 
 var elliptic = require('../../elliptic');
@@ -28756,7 +30505,7 @@ KeyPair.prototype.getPublic = function getPublic(enc) {
 
 module.exports = KeyPair;
 
-},{"../../elliptic":93}],105:[function(require,module,exports){
+},{"../../elliptic":100}],112:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -28824,7 +30573,7 @@ Signature.prototype.toHex = function toHex() {
 
 module.exports = Signature;
 
-},{"../../elliptic":93,"bn.js":44}],106:[function(require,module,exports){
+},{"../../elliptic":100,"bn.js":51}],113:[function(require,module,exports){
 module.exports = {
   doubles: {
     step: 4,
@@ -29606,7 +31355,7 @@ module.exports = {
   }
 };
 
-},{}],107:[function(require,module,exports){
+},{}],114:[function(require,module,exports){
 'use strict';
 
 var utils = exports;
@@ -29728,7 +31477,7 @@ function intFromLE(bytes) {
 utils.intFromLE = intFromLE;
 
 
-},{"bn.js":44,"minimalistic-assert":124,"minimalistic-crypto-utils":125}],108:[function(require,module,exports){
+},{"bn.js":51,"minimalistic-assert":131,"minimalistic-crypto-utils":132}],115:[function(require,module,exports){
 module.exports={
   "_args": [
     [
@@ -29852,7 +31601,7 @@ module.exports={
   "version": "6.4.0"
 }
 
-},{}],109:[function(require,module,exports){
+},{}],116:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -30156,7 +31905,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],110:[function(require,module,exports){
+},{}],117:[function(require,module,exports){
 (function (Buffer){
 var md5 = require('create-hash/md5')
 module.exports = EVP_BytesToKey
@@ -30228,7 +31977,7 @@ function EVP_BytesToKey (password, salt, keyLen, ivLen) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74,"create-hash/md5":80}],111:[function(require,module,exports){
+},{"buffer":81,"create-hash/md5":87}],118:[function(require,module,exports){
 var hash = exports;
 
 hash.utils = require('./hash/utils');
@@ -30245,7 +31994,7 @@ hash.sha384 = hash.sha.sha384;
 hash.sha512 = hash.sha.sha512;
 hash.ripemd160 = hash.ripemd.ripemd160;
 
-},{"./hash/common":112,"./hash/hmac":113,"./hash/ripemd":114,"./hash/sha":115,"./hash/utils":116}],112:[function(require,module,exports){
+},{"./hash/common":119,"./hash/hmac":120,"./hash/ripemd":121,"./hash/sha":122,"./hash/utils":123}],119:[function(require,module,exports){
 var hash = require('../hash');
 var utils = hash.utils;
 var assert = utils.assert;
@@ -30338,7 +32087,7 @@ BlockHash.prototype._pad = function pad() {
   return res;
 };
 
-},{"../hash":111}],113:[function(require,module,exports){
+},{"../hash":118}],120:[function(require,module,exports){
 var hmac = exports;
 
 var hash = require('../hash');
@@ -30388,7 +32137,7 @@ Hmac.prototype.digest = function digest(enc) {
   return this.outer.digest(enc);
 };
 
-},{"../hash":111}],114:[function(require,module,exports){
+},{"../hash":118}],121:[function(require,module,exports){
 var hash = require('../hash');
 var utils = hash.utils;
 
@@ -30534,7 +32283,7 @@ var sh = [
   8, 5, 12, 9, 12, 5, 14, 6, 8, 13, 6, 5, 15, 13, 11, 11
 ];
 
-},{"../hash":111}],115:[function(require,module,exports){
+},{"../hash":118}],122:[function(require,module,exports){
 var hash = require('../hash');
 var utils = hash.utils;
 var assert = utils.assert;
@@ -31100,7 +32849,7 @@ function g1_512_lo(xh, xl) {
   return r;
 }
 
-},{"../hash":111}],116:[function(require,module,exports){
+},{"../hash":118}],123:[function(require,module,exports){
 var utils = exports;
 var inherits = require('inherits');
 
@@ -31359,7 +33108,7 @@ function shr64_lo(ah, al, num) {
 };
 exports.shr64_lo = shr64_lo;
 
-},{"inherits":120}],117:[function(require,module,exports){
+},{"inherits":127}],124:[function(require,module,exports){
 'use strict';
 
 var hash = require('hash.js');
@@ -31474,7 +33223,7 @@ HmacDRBG.prototype.generate = function generate(len, enc, add, addEnc) {
   return utils.encode(res, enc);
 };
 
-},{"hash.js":111,"minimalistic-assert":124,"minimalistic-crypto-utils":125}],118:[function(require,module,exports){
+},{"hash.js":118,"minimalistic-assert":131,"minimalistic-crypto-utils":132}],125:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -31560,7 +33309,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],119:[function(require,module,exports){
+},{}],126:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -31571,7 +33320,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],120:[function(require,module,exports){
+},{}],127:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -31596,7 +33345,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],121:[function(require,module,exports){
+},{}],128:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -31619,14 +33368,14 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],122:[function(require,module,exports){
+},{}],129:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],123:[function(require,module,exports){
+},{}],130:[function(require,module,exports){
 var bn = require('bn.js');
 var brorand = require('brorand');
 
@@ -31741,7 +33490,7 @@ MillerRabin.prototype.getDivisor = function getDivisor(n, k) {
   return false;
 };
 
-},{"bn.js":44,"brorand":45}],124:[function(require,module,exports){
+},{"bn.js":51,"brorand":52}],131:[function(require,module,exports){
 module.exports = assert;
 
 function assert(val, msg) {
@@ -31754,7 +33503,7 @@ assert.equal = function assertEqual(l, r, msg) {
     throw new Error(msg || ('Assertion failed: ' + l + ' != ' + r));
 };
 
-},{}],125:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 'use strict';
 
 var utils = exports;
@@ -31814,7 +33563,7 @@ utils.encode = function encode(arr, enc) {
     return arr;
 };
 
-},{}],126:[function(require,module,exports){
+},{}],133:[function(require,module,exports){
 module.exports={"2.16.840.1.101.3.4.1.1": "aes-128-ecb",
 "2.16.840.1.101.3.4.1.2": "aes-128-cbc",
 "2.16.840.1.101.3.4.1.3": "aes-128-ofb",
@@ -31828,7 +33577,7 @@ module.exports={"2.16.840.1.101.3.4.1.1": "aes-128-ecb",
 "2.16.840.1.101.3.4.1.43": "aes-256-ofb",
 "2.16.840.1.101.3.4.1.44": "aes-256-cfb"
 }
-},{}],127:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 // from https://github.com/indutny/self-signed/blob/gh-pages/lib/asn1.js
 // Fedor, you are amazing.
 'use strict'
@@ -31952,7 +33701,7 @@ exports.signature = asn1.define('signature', function () {
   )
 })
 
-},{"./certificate":128,"asn1.js":28}],128:[function(require,module,exports){
+},{"./certificate":135,"asn1.js":35}],135:[function(require,module,exports){
 // from https://github.com/Rantanen/node-dtls/blob/25a7dc861bda38cfeac93a723500eea4f0ac2e86/Certificate.js
 // thanks to @Rantanen
 
@@ -32042,7 +33791,7 @@ var X509Certificate = asn.define('X509Certificate', function () {
 
 module.exports = X509Certificate
 
-},{"asn1.js":28}],129:[function(require,module,exports){
+},{"asn1.js":35}],136:[function(require,module,exports){
 (function (Buffer){
 // adapted from https://github.com/apatil/pemstrip
 var findProc = /Proc-Type: 4,ENCRYPTED\n\r?DEK-Info: AES-((?:128)|(?:192)|(?:256))-CBC,([0-9A-H]+)\n\r?\n\r?([0-9A-z\n\r\+\/\=]+)\n\r?/m
@@ -32076,7 +33825,7 @@ module.exports = function (okey, password) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"browserify-aes":49,"buffer":74,"evp_bytestokey":110}],130:[function(require,module,exports){
+},{"browserify-aes":56,"buffer":81,"evp_bytestokey":117}],137:[function(require,module,exports){
 (function (Buffer){
 var asn1 = require('./asn1')
 var aesid = require('./aesid.json')
@@ -32186,7 +33935,7 @@ function decrypt (data, password) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./aesid.json":126,"./asn1":127,"./fixProc":129,"browserify-aes":49,"buffer":74,"pbkdf2":131}],131:[function(require,module,exports){
+},{"./aesid.json":133,"./asn1":134,"./fixProc":136,"browserify-aes":56,"buffer":81,"pbkdf2":138}],138:[function(require,module,exports){
 (function (process,Buffer){
 var createHmac = require('create-hmac')
 var checkParameters = require('./precondition')
@@ -32258,7 +34007,7 @@ exports.pbkdf2Sync = function (password, salt, iterations, keylen, digest) {
 }
 
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"./precondition":132,"_process":134,"buffer":74,"create-hmac":81}],132:[function(require,module,exports){
+},{"./precondition":139,"_process":141,"buffer":81,"create-hmac":88}],139:[function(require,module,exports){
 var MAX_ALLOC = Math.pow(2, 30) - 1 // default in iojs
 module.exports = function (iterations, keylen) {
   if (typeof iterations !== 'number') {
@@ -32278,7 +34027,7 @@ module.exports = function (iterations, keylen) {
   }
 }
 
-},{}],133:[function(require,module,exports){
+},{}],140:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -32325,7 +34074,7 @@ function nextTick(fn, arg1, arg2, arg3) {
 }
 
 }).call(this,require('_process'))
-},{"_process":134}],134:[function(require,module,exports){
+},{"_process":141}],141:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -32507,7 +34256,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],135:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
 exports.publicEncrypt = require('./publicEncrypt');
 exports.privateDecrypt = require('./privateDecrypt');
 
@@ -32518,7 +34267,7 @@ exports.privateEncrypt = function privateEncrypt(key, buf) {
 exports.publicDecrypt = function publicDecrypt(key, buf) {
   return exports.privateDecrypt(key, buf, true);
 };
-},{"./privateDecrypt":137,"./publicEncrypt":138}],136:[function(require,module,exports){
+},{"./privateDecrypt":144,"./publicEncrypt":145}],143:[function(require,module,exports){
 (function (Buffer){
 var createHash = require('create-hash');
 module.exports = function (seed, len) {
@@ -32537,7 +34286,7 @@ function i2ops(c) {
   return out;
 }
 }).call(this,require("buffer").Buffer)
-},{"buffer":74,"create-hash":78}],137:[function(require,module,exports){
+},{"buffer":81,"create-hash":85}],144:[function(require,module,exports){
 (function (Buffer){
 var parseKeys = require('parse-asn1');
 var mgf = require('./mgf');
@@ -32648,7 +34397,7 @@ function compare(a, b){
   return dif;
 }
 }).call(this,require("buffer").Buffer)
-},{"./mgf":136,"./withPublic":139,"./xor":140,"bn.js":44,"browserify-rsa":65,"buffer":74,"create-hash":78,"parse-asn1":130}],138:[function(require,module,exports){
+},{"./mgf":143,"./withPublic":146,"./xor":147,"bn.js":51,"browserify-rsa":72,"buffer":81,"create-hash":85,"parse-asn1":137}],145:[function(require,module,exports){
 (function (Buffer){
 var parseKeys = require('parse-asn1');
 var randomBytes = require('randombytes');
@@ -32746,7 +34495,7 @@ function nonZero(len, crypto) {
   return out;
 }
 }).call(this,require("buffer").Buffer)
-},{"./mgf":136,"./withPublic":139,"./xor":140,"bn.js":44,"browserify-rsa":65,"buffer":74,"create-hash":78,"parse-asn1":130,"randombytes":141}],139:[function(require,module,exports){
+},{"./mgf":143,"./withPublic":146,"./xor":147,"bn.js":51,"browserify-rsa":72,"buffer":81,"create-hash":85,"parse-asn1":137,"randombytes":148}],146:[function(require,module,exports){
 (function (Buffer){
 var bn = require('bn.js');
 function withPublic(paddedMsg, key) {
@@ -32759,7 +34508,7 @@ function withPublic(paddedMsg, key) {
 
 module.exports = withPublic;
 }).call(this,require("buffer").Buffer)
-},{"bn.js":44,"buffer":74}],140:[function(require,module,exports){
+},{"bn.js":51,"buffer":81}],147:[function(require,module,exports){
 module.exports = function xor(a, b) {
   var len = a.length;
   var i = -1;
@@ -32768,7 +34517,7 @@ module.exports = function xor(a, b) {
   }
   return a
 };
-},{}],141:[function(require,module,exports){
+},{}],148:[function(require,module,exports){
 (function (process,global,Buffer){
 'use strict'
 
@@ -32808,10 +34557,10 @@ function randomBytes (size, cb) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"_process":134,"buffer":74}],142:[function(require,module,exports){
+},{"_process":141,"buffer":81}],149:[function(require,module,exports){
 module.exports = require('./lib/_stream_duplex.js');
 
-},{"./lib/_stream_duplex.js":143}],143:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":150}],150:[function(require,module,exports){
 // a duplex stream is just a stream that is both readable and writable.
 // Since JS doesn't have multiple prototypal inheritance, this class
 // prototypally inherits from Readable, and then parasitically from
@@ -32887,7 +34636,7 @@ function forEach(xs, f) {
     f(xs[i], i);
   }
 }
-},{"./_stream_readable":145,"./_stream_writable":147,"core-util-is":76,"inherits":120,"process-nextick-args":133}],144:[function(require,module,exports){
+},{"./_stream_readable":152,"./_stream_writable":154,"core-util-is":83,"inherits":127,"process-nextick-args":140}],151:[function(require,module,exports){
 // a passthrough stream.
 // basically just the most minimal sort of Transform stream.
 // Every written chunk gets output as-is.
@@ -32914,7 +34663,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":146,"core-util-is":76,"inherits":120}],145:[function(require,module,exports){
+},{"./_stream_transform":153,"core-util-is":83,"inherits":127}],152:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -33852,7 +35601,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'))
-},{"./_stream_duplex":143,"./internal/streams/BufferList":148,"./internal/streams/stream":149,"_process":134,"buffer":74,"buffer-shims":72,"core-util-is":76,"events":109,"inherits":120,"isarray":122,"process-nextick-args":133,"string_decoder/":150,"util":46}],146:[function(require,module,exports){
+},{"./_stream_duplex":150,"./internal/streams/BufferList":155,"./internal/streams/stream":156,"_process":141,"buffer":81,"buffer-shims":79,"core-util-is":83,"events":116,"inherits":127,"isarray":129,"process-nextick-args":140,"string_decoder/":157,"util":53}],153:[function(require,module,exports){
 // a transform stream is a readable/writable stream where you do
 // something with the data.  Sometimes it's called a "filter",
 // but that's not a great name for it, since that implies a thing where
@@ -34035,7 +35784,7 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":143,"core-util-is":76,"inherits":120}],147:[function(require,module,exports){
+},{"./_stream_duplex":150,"core-util-is":83,"inherits":127}],154:[function(require,module,exports){
 (function (process){
 // A bit simpler than readable streams.
 // Implement an async ._write(chunk, encoding, cb), and it'll handle all
@@ -34582,7 +36331,7 @@ function CorkedRequest(state) {
   };
 }
 }).call(this,require('_process'))
-},{"./_stream_duplex":143,"./internal/streams/stream":149,"_process":134,"buffer":74,"buffer-shims":72,"core-util-is":76,"inherits":120,"process-nextick-args":133,"util-deprecate":166}],148:[function(require,module,exports){
+},{"./_stream_duplex":150,"./internal/streams/stream":156,"_process":141,"buffer":81,"buffer-shims":79,"core-util-is":83,"inherits":127,"process-nextick-args":140,"util-deprecate":174}],155:[function(require,module,exports){
 'use strict';
 
 var Buffer = require('buffer').Buffer;
@@ -34647,10 +36396,10 @@ BufferList.prototype.concat = function (n) {
   }
   return ret;
 };
-},{"buffer":74,"buffer-shims":72}],149:[function(require,module,exports){
+},{"buffer":81,"buffer-shims":79}],156:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":109}],150:[function(require,module,exports){
+},{"events":116}],157:[function(require,module,exports){
 'use strict';
 
 var Buffer = require('buffer').Buffer;
@@ -34924,10 +36673,10 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"buffer":74,"buffer-shims":72}],151:[function(require,module,exports){
+},{"buffer":81,"buffer-shims":79}],158:[function(require,module,exports){
 module.exports = require('./readable').PassThrough
 
-},{"./readable":152}],152:[function(require,module,exports){
+},{"./readable":159}],159:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -34936,13 +36685,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":143,"./lib/_stream_passthrough.js":144,"./lib/_stream_readable.js":145,"./lib/_stream_transform.js":146,"./lib/_stream_writable.js":147}],153:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":150,"./lib/_stream_passthrough.js":151,"./lib/_stream_readable.js":152,"./lib/_stream_transform.js":153,"./lib/_stream_writable.js":154}],160:[function(require,module,exports){
 module.exports = require('./readable').Transform
 
-},{"./readable":152}],154:[function(require,module,exports){
+},{"./readable":159}],161:[function(require,module,exports){
 module.exports = require('./lib/_stream_writable.js');
 
-},{"./lib/_stream_writable.js":147}],155:[function(require,module,exports){
+},{"./lib/_stream_writable.js":154}],162:[function(require,module,exports){
 (function (Buffer){
 /*
 CryptoJS v3.1.2
@@ -35156,7 +36905,7 @@ function ripemd160 (message) {
 module.exports = ripemd160
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74}],156:[function(require,module,exports){
+},{"buffer":81}],163:[function(require,module,exports){
 (function (Buffer){
 // prototype class for hash functions
 function Hash (blockSize, finalSize) {
@@ -35229,7 +36978,7 @@ Hash.prototype._update = function () {
 module.exports = Hash
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":74}],157:[function(require,module,exports){
+},{"buffer":81}],164:[function(require,module,exports){
 var exports = module.exports = function SHA (algorithm) {
   algorithm = algorithm.toLowerCase()
 
@@ -35246,7 +36995,7 @@ exports.sha256 = require('./sha256')
 exports.sha384 = require('./sha384')
 exports.sha512 = require('./sha512')
 
-},{"./sha":158,"./sha1":159,"./sha224":160,"./sha256":161,"./sha384":162,"./sha512":163}],158:[function(require,module,exports){
+},{"./sha":165,"./sha1":166,"./sha224":167,"./sha256":168,"./sha384":169,"./sha512":170}],165:[function(require,module,exports){
 (function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-0, as defined
@@ -35343,7 +37092,7 @@ Sha.prototype._hash = function () {
 module.exports = Sha
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":156,"buffer":74,"inherits":120}],159:[function(require,module,exports){
+},{"./hash":163,"buffer":81,"inherits":127}],166:[function(require,module,exports){
 (function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
@@ -35445,7 +37194,7 @@ Sha1.prototype._hash = function () {
 module.exports = Sha1
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":156,"buffer":74,"inherits":120}],160:[function(require,module,exports){
+},{"./hash":163,"buffer":81,"inherits":127}],167:[function(require,module,exports){
 (function (Buffer){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -35501,7 +37250,7 @@ Sha224.prototype._hash = function () {
 module.exports = Sha224
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":156,"./sha256":161,"buffer":74,"inherits":120}],161:[function(require,module,exports){
+},{"./hash":163,"./sha256":168,"buffer":81,"inherits":127}],168:[function(require,module,exports){
 (function (Buffer){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -35639,7 +37388,7 @@ Sha256.prototype._hash = function () {
 module.exports = Sha256
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":156,"buffer":74,"inherits":120}],162:[function(require,module,exports){
+},{"./hash":163,"buffer":81,"inherits":127}],169:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 var SHA512 = require('./sha512')
@@ -35699,7 +37448,7 @@ Sha384.prototype._hash = function () {
 module.exports = Sha384
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":156,"./sha512":163,"buffer":74,"inherits":120}],163:[function(require,module,exports){
+},{"./hash":163,"./sha512":170,"buffer":81,"inherits":127}],170:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 var Hash = require('./hash')
@@ -35962,7 +37711,7 @@ Sha512.prototype._hash = function () {
 module.exports = Sha512
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":156,"buffer":74,"inherits":120}],164:[function(require,module,exports){
+},{"./hash":163,"buffer":81,"inherits":127}],171:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -36091,7 +37840,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":109,"inherits":120,"readable-stream/duplex.js":142,"readable-stream/passthrough.js":151,"readable-stream/readable.js":152,"readable-stream/transform.js":153,"readable-stream/writable.js":154}],165:[function(require,module,exports){
+},{"events":116,"inherits":127,"readable-stream/duplex.js":149,"readable-stream/passthrough.js":158,"readable-stream/readable.js":159,"readable-stream/transform.js":160,"readable-stream/writable.js":161}],172:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -36314,7 +38063,84 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":74}],166:[function(require,module,exports){
+},{"buffer":81}],173:[function(require,module,exports){
+var nextTick = require('process/browser.js').nextTick;
+var apply = Function.prototype.apply;
+var slice = Array.prototype.slice;
+var immediateIds = {};
+var nextImmediateId = 0;
+
+// DOM APIs, for completeness
+
+exports.setTimeout = function() {
+  return new Timeout(apply.call(setTimeout, window, arguments), clearTimeout);
+};
+exports.setInterval = function() {
+  return new Timeout(apply.call(setInterval, window, arguments), clearInterval);
+};
+exports.clearTimeout =
+exports.clearInterval = function(timeout) { timeout.close(); };
+
+function Timeout(id, clearFn) {
+  this._id = id;
+  this._clearFn = clearFn;
+}
+Timeout.prototype.unref = Timeout.prototype.ref = function() {};
+Timeout.prototype.close = function() {
+  this._clearFn.call(window, this._id);
+};
+
+// Does not start the time, just sets up the members needed.
+exports.enroll = function(item, msecs) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = msecs;
+};
+
+exports.unenroll = function(item) {
+  clearTimeout(item._idleTimeoutId);
+  item._idleTimeout = -1;
+};
+
+exports._unrefActive = exports.active = function(item) {
+  clearTimeout(item._idleTimeoutId);
+
+  var msecs = item._idleTimeout;
+  if (msecs >= 0) {
+    item._idleTimeoutId = setTimeout(function onTimeout() {
+      if (item._onTimeout)
+        item._onTimeout();
+    }, msecs);
+  }
+};
+
+// That's not how node.js implements it but the exposed api is the same.
+exports.setImmediate = typeof setImmediate === "function" ? setImmediate : function(fn) {
+  var id = nextImmediateId++;
+  var args = arguments.length < 2 ? false : slice.call(arguments, 1);
+
+  immediateIds[id] = true;
+
+  nextTick(function onNextTick() {
+    if (immediateIds[id]) {
+      // fn.call() is faster so we optimize for the common use-case
+      // @see http://jsperf.com/call-apply-segu
+      if (args) {
+        fn.apply(null, args);
+      } else {
+        fn.call(null);
+      }
+      // Prevent ids from leaking
+      exports.clearImmediate(id);
+    }
+  });
+
+  return id;
+};
+
+exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
+  delete immediateIds[id];
+};
+},{"process/browser.js":141}],174:[function(require,module,exports){
 (function (global){
 
 /**
@@ -36385,16 +38211,16 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],167:[function(require,module,exports){
-arguments[4][120][0].apply(exports,arguments)
-},{"dup":120}],168:[function(require,module,exports){
+},{}],175:[function(require,module,exports){
+arguments[4][127][0].apply(exports,arguments)
+},{"dup":127}],176:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],169:[function(require,module,exports){
+},{}],177:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -36984,7 +38810,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":168,"_process":134,"inherits":167}],170:[function(require,module,exports){
+},{"./support/isBuffer":176,"_process":141,"inherits":175}],178:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -37124,7 +38950,7 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":119}],"thingtalk-trainer":[function(require,module,exports){
+},{"indexof":126}],"thingtalk-trainer":[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -37188,4 +39014,4 @@ module.exports = class ThingTalkTrainer {
     }
 }
 
-},{"./sempreclient":1,"./thingpediaclient":2,"q":4,"thingtalk":5}]},{},[]);
+},{"./sempreclient":1,"./thingpediaclient":2,"q":5,"thingtalk":10}]},{},[]);

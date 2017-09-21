@@ -79,3 +79,10 @@
   height: auto;
   max-height: calc(100vh - 64px);
 }
+
+.message-rdl-title { 
+  font-weight: bold;
+}
+.message-rdl-content {
+  display: block;
+}

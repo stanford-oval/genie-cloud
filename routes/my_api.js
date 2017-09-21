@@ -206,6 +206,7 @@ router.ws('/results', function(ws, req, next) {
             engine.assistant.removeOutput(delegate); // ignore errors if engine died
             delegate.$free();
         });
+        ws.on('ping', (data) => ws.pong(data));
 
         return engine.assistant.addOutput(delegate);
     }).catch((error) => {
@@ -304,6 +305,18 @@ router.ws('/conversation', function(ws, req, next) {
         console.error('Error in conversation websocket: ' + error.message);
         ws.close();
     });
+});
+
+router.post('/timings', function(req, res, next) {
+    let sequenceId = crypto.randomBytes(32).toString('hex');
+    db.withTransaction((dbClient) => {
+        return db.insertOne(dbClient, 'insert into user_test_timings(sequence,source,tag,time) values ?',
+                  [req.body.map((el) => [sequenceId, el.source, el.tag, el.time])]);
+    }).then(() => {
+        res.json({"result":"ok"});
+    }, (error) => {
+        res.json({"error":error.message});
+    }).done();
 });
 
 module.exports = router;

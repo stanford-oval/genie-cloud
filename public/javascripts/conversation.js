@@ -1,11 +1,25 @@
 $(function() {
+    var _eventlog = [];
+    function logEvent(tag) {
+        var now = new Date;
+        console.log('event: ' + tag + ' ' + now.toISOString());
+        _eventlog.push({ source: 'webalmond', tag: tag, time: now });
+    }
+    function uploadEventLog() {
+        var log = _eventlog;
+        _eventlog = [];
+        $.ajax('/me/api/timings', { method: 'POST', contentType: 'application/json', data: JSON.stringify(log), error: function(xhr, status, error) { alert(status); } });
+    }
+
     var url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host
         + '/me/api/conversation';
     console.log(url);
     var ws = new WebSocket(url);
 
+    var _inquestion = false;
     function syncCancelButton(msg) {
         var visible = msg.ask !== null;
+        _inquestion = visible;
         if (visible)
             $('#cancel').removeClass('hidden');
         else
@@ -156,6 +170,8 @@ $(function() {
 
         case 'askSpecial':
             syncCancelButton(parsed);
+            if (parsed.ask !== null)
+                logEvent('question-' + parsed.ask);
             if (parsed.ask === 'yesno')
                 yesnoMessage();
             break;
@@ -182,17 +198,37 @@ $(function() {
             .text(text));
     }
 
+    $('#input').on('focus', function() {
+        logEvent('input-focus');
+    });
+
     $('#input-form').submit(function(event) {
         var text = $('#input').val();
         $('#input').val('');
 
+        if (text === '<start>') {
+            logEvent('start');
+            return;
+        }
+        if (text === '<end>') {
+            logEvent('end');
+            uploadEventLog();
+            return;
+        }
+
         collapseButtons();
         appendUserMessage(text);
+        if (_inquestion)
+            logEvent('reply');
+        else
+            logEvent('input');
         handleCommand(text);
         event.preventDefault();
     });
     $('#cancel').click(function() {
         collapseButtons();
+        logEvent('cancel');
         handleParsedCommand(JSON.stringify({special:{id:'tt:root.special.nevermind'}}));
     });
 });
+

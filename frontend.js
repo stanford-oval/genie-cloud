@@ -64,7 +64,7 @@ Frontend.prototype._init = function _init() {
             redirect = true;
         // don't redirect unless it's one of the stanford.edu hostnames
         // (it's a health-check from the load balancer)
-        if (!req.hostname.endsWith('.stanford.edu'))
+        if (!req.hostname || !req.hostname.endsWith('.stanford.edu'))
             redirect = false;
         // don't redirect /thingpedia/api because the client code
         // doesn't cope well
@@ -74,6 +74,15 @@ Frontend.prototype._init = function _init() {
             res.redirect(301, 'https://thingpedia.stanford.edu' + req.originalUrl);
             return;
         }
+        next();
+    });
+    // security headers
+    this._app.use(function(req, res, next) {
+        res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        //res.set('Content-Security-Policy', `default-src 'self'; connect-src 'self' https://*.stanford.edu ; font-src 'self' https://maxcdn.bootstrapcdn.com https://fonts.googleapis.com ; img-src * ; script-src 'self' https://code.jquery.com https://maxcdn.bootstrapcdn.com 'unsafe-inline' ; style-src 'self' https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com 'unsafe-inline'`);
+        res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+        //res.set('X-Frame-Options', 'DENY');
+        res.set('X-Content-Type-Options', 'nosniff');
         next();
     });
 
@@ -155,6 +164,13 @@ Frontend.prototype._init = function _init() {
         res.locals.pgettext = req.pgettext;
         res.locals.ngettext = req.ngettext;
         next();
+    });
+
+    this._app.get('/sinkhole', function(req, res, next) {
+        res.send('');
+    });
+    this._app.post('/sinkhole', function(req, res, next) {
+        res.send('');
     });
 
     // apis are CORS enabled always

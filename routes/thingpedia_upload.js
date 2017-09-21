@@ -53,6 +53,7 @@ router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req,
 function schemaCompatible(s1, s2) {
     return s1.length >= s2.length &&
         s2.every(function(t, i) {
+            if (t === s1[i]) return true;
             var t1 = ThingTalk.Type.fromString(t);
             var t2 = ThingTalk.Type.fromString(s1[i]);
             return t1.equals(t2);

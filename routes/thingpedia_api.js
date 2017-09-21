@@ -204,6 +204,17 @@ router.get('/examples/click/:id', function(req, res) {
     }).done();
 });
 
+router.get('/entities/list/:type', function(req, res) {
+    return db.withClient((dbClient) => {
+        return db.selectAll(dbClient, "select distinct entity_value, entity_name from entity_lexicon where entity_id = ?", [req.params.type]);
+    }).then((rows) => {
+        res.cacheFor(86400000);
+        res.status(200).json({ result: 'ok', data: rows.map((r) => ({ id: r.entity_value, name: r.entity_name })) });
+    }).catch((e) => {
+        res.status(500).json({ error: e.message });
+    }).done();
+});
+
 router.get('/random-rule', function(req, res) {
     const locale = req.query.locale || 'en-US';
     const language = (locale || 'en').split(/[-_\@\.]/)[0];
