@@ -206,6 +206,7 @@ router.ws('/results', function(ws, req, next) {
             engine.assistant.removeOutput(delegate); // ignore errors if engine died
             delegate.$free();
         });
+        ws.on('ping', (data) => ws.pong(data));
 
         return engine.assistant.addOutput(delegate);
     }).catch((error) => {
