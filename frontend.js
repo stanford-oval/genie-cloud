@@ -211,6 +211,7 @@ Frontend.prototype._init = function _init() {
     this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
     this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
     this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
+    this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
     this._app.use('/user', require('./routes/user'));
     this._app.use('/admin', require('./routes/admin'));
     this._app.use('/omlet', require('./routes/omlet'));

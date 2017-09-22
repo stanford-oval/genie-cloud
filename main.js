@@ -47,8 +47,10 @@ function main() {
         // we bound the socket, no need for root now
         dropCaps();
 
-        _enginemanager = new EngineManager();
-        _enginemanager.start();
+        if (!process.env.THINGENGINE_DISABLE_ENGINEMANAGER) {
+            _enginemanager = new EngineManager();
+            _enginemanager.start();
+        }
     }).done();
 }
 main();
