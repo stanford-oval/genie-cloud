@@ -1,0 +1,29 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+
+block page_name
+  = _("Entity Types")
+
+block content
+  table.table
+    thead
+      tr
+        th= _("Prefix")
+        th= _("ID")
+        th= _("Description")
+        th= _("Well known?")
+    tbody
+      for e in entities
+        - var split = e.id.split(':')
+        tr
+          td= split[0]
+          td= split[1]
+          td
+            a(href='/thingpedia/entities/by-id/' + e.id)
+              = e.name
+          td
+            if e.is_well_known
+              span.glyphicon.glyphicon-ok(role='presentation')
+              span.sr-only= _("yes")

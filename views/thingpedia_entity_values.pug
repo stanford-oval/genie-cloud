@@ -1,0 +1,19 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+
+block page_name
+  = _("Entity: %s").format(entity.id)
+
+block content
+  table.table
+    thead
+      tr
+        th= _("Value")
+        th= _("Name")
+    tbody
+      for v in values
+        tr
+          td= v.entity_value
+          td= v.entity_name
