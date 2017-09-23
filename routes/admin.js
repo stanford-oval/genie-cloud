@@ -14,6 +14,7 @@ const crypto = require('crypto');
 const user = require('../util/user');
 const model = require('../model/user');
 const organization = require('../model/organization');
+const snapshot = require('../model/snapshot');
 const db = require('../util/db');
 
 const OmletOAuth = require('../omlet/oauth2');
@@ -176,6 +177,41 @@ router.get('/assistant-setup', user.redirectRole(user.Role.ADMIN), function(req,
 router.get('/assistant-setup/callback', user.requireRole(user.Role.ADMIN), function(req, res) {
     OmletOAuth.phase2(req, res).then(function() {
         res.redirect(303, '/admin');
+    }).done();
+});
+
+router.get('/snapshots', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
+    let page = req.query.page;
+    if (page === undefined)
+        page = 0;
+    page = parseInt(page);
+    if (isNaN(page) || page < 0)
+        page = 0;
+
+    db.withClient((dbClient) => {
+        return snapshot.getAll(dbClient, page * 20, 21);
+    }).then((rows) => {
+        res.render('thingpedia_snapshot_list', { page_title: req._("Thingpedia - List of Snapshots"),
+                                                 csrfToken: req.csrfToken(),
+                                                 page_num: page,
+                                                 snapshots: rows });
+    }).catch(function(e) {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.post('/snapshots/create', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
+    db.withTransaction((dbClient) => {
+        var obj = {
+            description: req.body.description || '',
+        }
+        return snapshot.create(dbClient, obj);
+    }).then(() => {
+        res.redirect(303, '/admin/snapshots');
+    }).catch(function(e) {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
     }).done();
 });
 

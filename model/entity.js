@@ -12,18 +12,18 @@ const Q = require('q');
 function create(client, entity) {
     var KEYS = ['name'];
     KEYS.forEach(function(key) {
-        if (app[key] === undefined)
-            app[key] = null;
+        if (entity[key] === undefined)
+            entity[key] = null;
     });
     var vals = KEYS.map(function(key) {
-        return app[key];
+        return entity[key];
     });
     var marks = KEYS.map(function() { return '?'; });
 
     return db.insertOne(client, 'insert into app(language,is_well_known,' + KEYS.join(',') + ') '
                         + 'values (\'en\', 0,' + marks.join(',') + ')', vals).then(function(id) {
-                            app.id = id;
-                            return app;
+                            entity.id = id;
+                            return entity;
                         });
 }
 

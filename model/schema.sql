@@ -106,7 +106,7 @@ create table device_class (
     developer_version integer(11) not null default 0,
     foreign key (owner) references organizations(id) on update cascade on delete cascade,
     constraint version check (approved_version is null or developer_version >= approved_version)
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table device_schema (
     id integer auto_increment primary key,
@@ -117,7 +117,7 @@ create table device_schema (
     developer_version integer(11) not null default 0,
     approved_version integer(11) default null,
     foreign key (owner) references organizations(id) on update cascade on delete cascade
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table device_schema_version (
     schema_id integer not null,
@@ -126,7 +126,7 @@ create table device_schema_version (
     meta mediumtext not null,
     primary key(schema_id, version),
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table device_schema_channels (
     schema_id integer not null,
@@ -139,7 +139,7 @@ create table device_schema_channels (
     doc mediumtext not null,
     primary key(schema_id, version, name),
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table device_schema_channel_canonicals (
     schema_id integer not null,
@@ -156,7 +156,7 @@ create table device_schema_channel_canonicals (
     primary key(schema_id, version, language, name),
     key canonical_btree (canonical(30)),
     fulltext key(canonical, keywords)
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table lexicon(
     language char(15) not null default 'en',
@@ -165,7 +165,7 @@ create table lexicon(
     channel_name varchar(128) not null,
     primary key(language, token, schema_id, channel_name),
     foreign key (schema_id) references device_schema(id)
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table example_utterances (
     id integer auto_increment primary key,
@@ -178,7 +178,7 @@ create table example_utterances (
     click_count integer not null default 0,
     key(schema_id),
     fulltext key(utterance)
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table example_rule_schema (
     schema_id integer not null,
@@ -186,7 +186,7 @@ create table example_rule_schema (
     primary key(schema_id, example_id),
     foreign key(schema_id) references device_schema(id) on update cascade on delete cascade,
     foreign key(example_id) references example_utterances(id) on update cascade on delete cascade
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table device_code_version (
     device_id integer not null,
@@ -194,7 +194,7 @@ create table device_code_version (
     code mediumtext not null,
     primary key(device_id, version),
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table app_tag (
     id integer auto_increment primary key,
@@ -202,14 +202,14 @@ create table app_tag (
     tag varchar(255) not null collate utf8_general_ci,
     key(tag),
     foreign key (app_id) references app(id) on update cascade on delete cascade
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table device_class_tag (
     tag varchar(128) not null,
     device_id integer not null,
     primary key(tag, device_id),
     foreign key (device_id) references device_class(id) on update cascade on delete restrict
-) collate utf8_bin;
+) collate = utf8_bin;
 
 create table device_class_kind (
     device_id integer not null,
@@ -217,7 +217,7 @@ create table device_class_kind (
     is_child boolean not null default false,
     primary key(device_id, kind),
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
-) collate utf8_bin;
+) collate = utf8_bin;
 
 CREATE TABLE `entity_names` (
   `id` varchar(64) NOT NULL,
@@ -225,7 +225,7 @@ CREATE TABLE `entity_names` (
   `name` varchar(255) NOT NULL collate utf8_general_ci,
   `is_well_known` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`,`language`)
-) collate utf8_bin ;
+) collate = utf8_bin ;
 
 CREATE TABLE `entity_lexicon` (
   `language` char(15) NOT NULL DEFAULT 'en',
@@ -237,4 +237,28 @@ CREATE TABLE `entity_lexicon` (
   PRIMARY KEY (`language`,`token`,`entity_id`,`entity_value`,`entity_canonical`),
   KEY `entity_id` (`entity_id`),
   FOREIGN KEY (`entity_id`) REFERENCES `entity_names` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) collate utf8_bin ;
+) collate = utf8_bin ;
+
+CREATE TABLE `snapshot` (
+  `snapshot_id` int(11) NOT NULL AUTO_INCREMENT,
+  `description` varchar(255) NOT NULL collate utf8_general_ci,
+  `date` datetime NOT NULL,
+  PRIMARY KEY (`snapshot_id`)
+) collate = utf8_bin ;
+
+CREATE TABLE `device_schema_snapshot` (
+  `snapshot_id` int(11) NOT NULL,
+  `schema_id` int(11) NOT NULL,
+  `kind` varchar(128) COLLATE utf8_bin NOT NULL,
+  `kind_type` enum('primary','global','app','other') COLLATE utf8_bin NOT NULL DEFAULT 'other',
+  `owner` int(11) DEFAULT '1',
+  `developer_version` int(11) NOT NULL,
+  `approved_version` int(11) DEFAULT NULL,
+  `kind_canonical` varchar(128) COLLATE utf8_bin DEFAULT NULL,
+  PRIMARY KEY (`snapshot_id`,`schema_id`),
+  UNIQUE KEY `snapshot_id` (`snapshot_id`,`kind`),
+  KEY `owner` (`owner`),
+  FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON DELETE SET NULL,
+  FOREIGN KEY (`snapshot_id`) REFERENCES `snapshot` (`snapshot_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) COLLATE=utf8_bin ;
+
