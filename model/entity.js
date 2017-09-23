@@ -39,6 +39,10 @@ module.exports = {
         return db.selectAll(client, "select * from entity_names where language = 'en' order by is_well_known asc, id asc");
     },
 
+    getSnapshot(client, snapshotId) {
+        return db.selectAll(client, "select * from entity_names_snapshot where language = 'en' and snapshot_id =? order by is_well_known asc, id asc", [snapshotId]);
+    },
+
     getValues(client, id) {
         return db.selectAll(client, "select distinct entity_value, entity_name from entity_lexicon where entity_id = ? and language = 'en'", [id]);
     }

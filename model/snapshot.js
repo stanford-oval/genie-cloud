@@ -23,8 +23,8 @@ function create(client, snapshot) {
 
     return db.insertOne(client, 'insert into snapshot(' + KEYS.join(',') + ') values (' + marks.join(',') + ')', vals).then((id) => {
         snapshot.id = id;
-        return db.query(client, 'insert into device_schema_snapshot select ?,device_schema.* from device_schema', [id]);
-        return snapshot;
+        return Q.all([db.query(client, 'insert into device_schema_snapshot select ?,device_schema.* from device_schema', [id]),
+                      db.query(client, 'insert into entity_names_snapshot select ?,entity_names.* from entity_names', [id])]).then(() => snapshot);
     });
 }
 

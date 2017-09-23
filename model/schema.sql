@@ -262,3 +262,12 @@ CREATE TABLE `device_schema_snapshot` (
   FOREIGN KEY (`snapshot_id`) REFERENCES `snapshot` (`snapshot_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) COLLATE=utf8_bin ;
 
+CREATE TABLE `entity_names_snapshot` (
+  `snapshot_id` int(11) NOT NULL,
+  `id` varchar(64) COLLATE utf8_bin NOT NULL,
+  `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
+  `name` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `is_well_known` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`snapshot_id`,`id`,`language`),
+  FOREIGN KEY (`snapshot_id`) REFERENCES `snapshot` (`snapshot_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) COLLATE=utf8_bin ;
