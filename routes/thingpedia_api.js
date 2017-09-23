@@ -206,6 +206,33 @@ router.get('/examples/click/:id', function(req, res) {
     }).done();
 });
 
+router.get('/entities', function(req, res) {
+    const snapshotId = parseInt(req.query.snapshot);
+    const etag = `"snapshot-${snapshotId}"`;
+    if (snapshotId >= 0 && req.headers['if-none-match'] === etag) {
+        res.set('ETag', etag);
+        res.status(304).send('');
+        return;
+    }
+
+    return db.withClient((dbClient) => {
+        if (snapshotId)
+            return entityModel.getSnapshot(dbClient, snapshotId);
+        else
+            return entityModel.getAll(dbClient);
+    }).then((rows) => {
+        if (rows.length > 0 && snapshotId >= 0) {
+            res.cacheFor(6, 'months');
+            res.set('ETag', etag);
+        } else {
+            res.cacheFor(86400000);
+        }
+        res.status(200).json({ result: 'ok', data: rows.map((r) => ({ type: r.id, name: r.name, is_well_known: r.is_well_known })) });
+    }).catch((e) => {
+        res.status(500).json({ error: e.message });
+    }).done();
+});
+
 router.get('/entities/list/:type', function(req, res) {
     return db.withClient((dbClient) => {
         return entityModel.getValues(dbClient, req.params.type);
