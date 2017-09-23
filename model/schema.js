@@ -182,26 +182,101 @@ function processMetaRows(rows) {
     return out;
 }
 
+function processTypeRows(rows) {
+    var out = [];
+    var current = null;
+    rows.forEach(function(row) {
+        if (current == null || current.kind !== row.kind) {
+            current = {
+                kind: row.kind,
+                kind_type: row.kind_type
+            };
+            current.triggers = {};
+            current.queries = {};
+            current.actions = {};
+            out.push(current);
+        }
+        if (row.channel_type === null)
+            return;
+        var obj = {
+            types: JSON.parse(row.types),
+            args: JSON.parse(row.argnames),
+            required: JSON.parse(row.required),
+            is_input: JSON.parse(row.is_input)
+        };
+        switch (row.channel_type) {
+        case 'action':
+            current.actions[row.name] = obj;
+            break;
+        case 'trigger':
+            current.triggers[row.name] = obj;
+            break;
+        case 'query':
+            current.queries[row.name] = obj;
+            break;
+        default:
+            throw new TypeError();
+        }
+    });
+    return out;
+}
+
 module.exports = {
-    get: function(client, id) {
+    get(client, id) {
         return db.selectOne(client, "select * from device_schema where id = ?", [id]);
     },
 
-    getAll: function(client, id) {
+    getAll(client) {
         return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
                             + "device_schema_version dsv where ds.id = dsv.schema_id "
                             + "and ds.developer_version = dsv.version order by id");
     },
 
-    getAllForList: function(client, id) {
+    getCurrentSnapshotTypes(client) {
+        return db.selectAll(client, "select name, types, argnames, required, is_input, channel_type, kind, kind_type from device_schema ds"
+                             + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
+                             + " and dsc.version = ds.developer_version",
+                             []).then(processTypeRows);
+    },
+
+    getCurrentSnapshotMeta(client, language) {
+        return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
+                            + " argnames, argcanonicals, required, is_input, questions, ds.id, kind, kind_type, owner, dsc.version, developer_version,"
+                            + " approved_version from device_schema ds"
+                            + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
+                            + " and dsc.version = ds.developer_version "
+                            + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
+                            + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ?",
+                            [language]).then(processMetaRows);
+    },
+
+    getSnapshotTypes(client, snapshotId) {
+        return db.selectAll(client, "select name, types, argnames, required, is_input, channel_type, kind, kind_type from device_schema_snapshot ds"
+                             + " left join device_schema_channels dsc on ds.schema_id = dsc.schema_id "
+                             + " and dsc.version = ds.developer_version where ds.snapshot_id = ?",
+                             [snapshotId]).then(processTypeRows);
+    },
+
+    getSnapshotMeta(client, snapshotId, language) {
+        return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
+                            + " argnames, argcanonicals, required, is_input, questions, ds.schema_id, kind, kind_type, owner, dsc.version, developer_version,"
+                            + " approved_version from device_schema_snapshot ds"
+                            + " left join device_schema_channels dsc on ds.schema_id = dsc.schema_id"
+                            + " and dsc.version = ds.developer_version "
+                            + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
+                            + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.snapshot_id = ?",
+                            [language, snapshotId]).then(processMetaRows);
+    },
+
+    getAllForList(client, id) {
         return db.selectAll(client, "select * from device_schema where kind_type <> 'global' order by kind_type desc, kind asc");
     },
 
-    getByKind: function(client, kind) {
+    getByKind(client, kind) {
         return db.selectOne(client, "select * from device_schema where kind = ?", [kind]);
     },
 
-    getTypesByKinds: function(client, kinds, org) {
+    getTypesByKinds(client, kinds, org) {
         return Q.try(function() {
             if (org === -1) {
                 return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds"
@@ -276,44 +351,7 @@ module.exports = {
                                     + " and dsc.version = ds.approved_version where ds.kind in (?)",
                                     [kinds]);
             }
-        }).then(function(rows) {
-            var out = [];
-            var current = null;
-            rows.forEach(function(row) {
-                if (current == null || current.kind !== row.kind) {
-                    current = {
-                        kind: row.kind,
-                        kind_type: row.kind_type
-                    };
-                    current.triggers = {};
-                    current.queries = {};
-                    current.actions = {};
-                    out.push(current);
-                }
-                if (row.channel_type === null)
-                    return;
-                var obj = {
-                    types: JSON.parse(row.types),
-                    args: JSON.parse(row.argnames),
-                    required: JSON.parse(row.required),
-                    is_input: JSON.parse(row.is_input)
-                };
-                switch (row.channel_type) {
-                case 'action':
-                    current.actions[row.name] = obj;
-                    break;
-                case 'trigger':
-                    current.triggers[row.name] = obj;
-                    break;
-                case 'query':
-                    current.queries[row.name] = obj;
-                    break;
-                default:
-                    throw new TypeError();
-                }
-            });
-            return out;
-        });
+        }).then(processTypeRows);
     },
 
     getTypesAndMeta: function(client, id, version) {
@@ -357,9 +395,7 @@ module.exports = {
                                     + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.kind in (?)",
                                     [language, kinds]);
             }
-        }).then(function(rows) {
-            return processMetaRows(rows);
-        });
+        }).then(processMetaRows);
     },
 
     getMetasByKindAtVersion: function(client, kind, version, language) {

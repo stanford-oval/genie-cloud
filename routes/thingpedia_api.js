@@ -15,6 +15,7 @@ const db = require('../util/db');
 const device = require('../model/device');
 const app = require('../model/app');
 const user = require('../model/user');
+const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
 const organization = require('../model/organization');
 
@@ -211,6 +212,42 @@ router.get('/entities/list/:type', function(req, res) {
     }).then((rows) => {
         res.cacheFor(86400000);
         res.status(200).json({ result: 'ok', data: rows.map((r) => ({ id: r.entity_value, name: r.entity_name })) });
+    }).catch((e) => {
+        res.status(500).json({ error: e.message });
+    }).done();
+});
+
+router.get('/snapshot/:id', function(req, res) {
+    const getMeta = req.query.meta === '1';
+    const language = (req.query.locale || 'en').split(/[-_\@\.]/)[0];
+    const snapshotId = parseInt(req.params.id);
+    const etag = `"snapshot-${snapshotId}-meta:${getMeta}-lang:${language}"`;
+    if (snapshotId >= 0 && req.headers['if-none-match'] === etag) {
+        res.set('ETag', etag);
+        res.status(304).send('');
+        return;
+    }
+
+    db.withClient((dbClient) => {
+        if (snapshotId >= 0) {
+            if (getMeta)
+                return schemaModel.getSnapshotMeta(dbClient, snapshotId);
+            else
+                return schemaModel.getSnapshotTypes(dbClient, snapshotId);
+        } else {
+            if (getMeta)
+                return schemaModel.getCurrentSnapshotMeta(dbClient);
+            else
+                return schemaModel.getCurrentSnapshotTypes(dbClient);
+        }
+    }).then((rows) => {
+        if (rows.length > 0 && snapshotId >= 0) {
+            res.cacheFor(6, 'months');
+            res.set('ETag', etag);
+        } else {
+            res.cacheFor(3600000);
+        }
+        res.status(200).json({ result: 'ok', data: rows });
     }).catch((e) => {
         res.status(500).json({ error: e.message });
     }).done();
