@@ -15,6 +15,20 @@ block content
       a(href='/admin/assistant-setup')= _("Configure it")
       | .
 
+  div.row
+    div.col-sm-2
+      form(action='/admin/kill-all', method='post')
+        input(type='hidden',name='_csrf',value=csrfToken)
+        button(type='submit').btn.btn-danger.btn-block= _("Kill all users")
+
+    div.col-sm-2
+      form(action='/admin/blow-view-cache', method='post')
+        input(type='hidden',name='_csrf',value=csrfToken)
+        button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
+
+    div.col-sm-2
+      button(type='button').btn.btn-default.btn-block#button-send-broadcast= _("Broadcast message")
+
   h2 Users
 
   div.modal.fade#modal-message-user
@@ -37,19 +51,11 @@ block content
               div.col-md-6
                 button(type='button',data-dismiss='modal').btn.btn-default.btn-block= _("Close")
 
-  div.row
-    div.col-sm-2
-      form(action='/admin/kill-all', method='post')
-        input(type='hidden',name='_csrf',value=csrfToken)
-        button(type='submit').btn.btn-danger.btn-block= _("Kill all users")
-
-    div.col-sm-2
-      form(action='/admin/blow-view-cache', method='post')
-        input(type='hidden',name='_csrf',value=csrfToken)
-        button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
-
-    div.col-sm-2
-      button(type='button').btn.btn-default.btn-block#button-send-broadcast= _("Broadcast message")
+  div.navbar.navbar-default#user-search-navbar
+    form.navbar-form.navbar-left(action='/admin/search',method='get')
+      div.form-group
+        input.form-control#user-search-box(type='text', name='q', value=search)
+        button.btn.btn-primary(type="submit")= _("Search")
 
   nav
     ul.pager
