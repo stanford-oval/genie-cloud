@@ -19,6 +19,8 @@ const rpc = require('transparent-rpc');
 
 const JsonDatagramSocket = require('./json_datagram_socket');
 
+const Config = require('../config');
+
 var _instance;
 
 class EngineManagerClient extends events.EventEmitter {
@@ -26,6 +28,9 @@ class EngineManagerClient extends events.EventEmitter {
         super();
         this.setMaxListeners(Infinity);
         this._cachedEngines = new Map;
+
+        this._expectClose = false;
+        this._reconnectTimeout = null;
 
         _instance = this;
     }
@@ -36,17 +41,21 @@ class EngineManagerClient extends events.EventEmitter {
 
     getEngine(userId) {
         if (this._cachedEngines.has(userId)) {
-            return this._cachedEngines.get(userId);
+            let cached = this._cachedEngines.get(userId);
+            return cached.engine;
         }
 
         var directSocket = new net.Socket();
-        directSocket.connect('./direct');
+        directSocket.connect(Config.THINGENGINE_DIRECT_ADDRESS);
 
         var jsonSocket = new JsonDatagramSocket(directSocket, directSocket, 'utf8');
         var rpcSocket = new rpc.Socket(jsonSocket);
 
         var deleted = false;
         rpcSocket.on('close', () => {
+            if (this._expectClose)
+                return;
+
             console.log('Socket to user ID ' + userId + ' closed');
             if (!deleted) {
                 this._cachedEngines.delete(userId);
@@ -54,9 +63,11 @@ class EngineManagerClient extends events.EventEmitter {
             }
             deleted = true;
         });
+        rpcSocket.on('error', () => {
+            // ignore the error, the socket will be closed soon and we'll deal with it
+        });
 
         var defer = Q.defer();
-        rpcSocket.on('error', (err) => defer.reject(err));
         var initError = (msg) => {
             if (msg.error)
                 defer.reject(new Error(msg.error));
@@ -84,7 +95,10 @@ class EngineManagerClient extends events.EventEmitter {
         var replyId = rpcSocket.addStub(stub);
         jsonSocket.write({ control:'init', target: userId, replyId: replyId });
 
-        this._cachedEngines.set(userId, defer.promise);
+        this._cachedEngines.set(userId, {
+            engine: defer.promise,
+            socket: rpcSocket
+        });
         return defer.promise;
     }
 
@@ -107,30 +121,52 @@ class EngineManagerClient extends events.EventEmitter {
         }).done();
     }
 
-    start() {
-        return Q.Promise((callback, errback) => {
-            console.log('starting');
-            this._controlSocket = new net.Socket();
-            this._controlSocket.connect('./control');
+    _connect() {
+        if (this._rpcControl)
+            return;
 
-            var jsonSocket = new JsonDatagramSocket(this._controlSocket, this._controlSocket, 'utf8');
-            this._rpcSocket = new rpc.Socket(jsonSocket);
+        this._controlSocket = new net.Socket();
+        this._controlSocket.connect(Config.THINGENGINE_MANAGER_ADDRESS);
 
-            var ready = (msg) => {
-                if (msg.control === 'ready') {
-                    console.log('Control channel to EngineManager ready');
-                    this._rpcControl = this._rpcSocket.getProxy(msg.rpcId);
-                    jsonSocket.removeListener('data', ready);
-                    callback();
-                }
+        let jsonSocket = new JsonDatagramSocket(this._controlSocket, this._controlSocket, 'utf8');
+        this._rpcSocket = new rpc.Socket(jsonSocket);
+
+        const ready = (msg) => {
+            if (msg.control === 'ready') {
+                console.log('Control channel to EngineManager ready');
+                this._rpcControl = this._rpcSocket.getProxy(msg.rpcId);
+                jsonSocket.removeListener('data', ready);
+                callback();
             }
-            jsonSocket.on('data', ready);
-            this._rpcSocket.on('error', errback);
+        }
+        jsonSocket.on('data', ready);
+        this._rpcSocket.on('close', () => {
+            if (this._expectClose)
+                return;
+
+            this._rpcSocket = null;
+            this._rpcControl = null;
+            console.log('Control channel to EngineManager severed');
+            console.log('Reconnecting in 10s...');
+            setTimeout(() => {
+                this._connect();
+            }, 10000);
+        });
+        this._rpcSocket.on('error', () => {
+            // ignore the error, the socket will be closed soon and we'll deal with it
         });
     }
 
+    start() {
+        this._connect();
+    }
+
     stop() {
+        this._expectClose = true;
         this._rpcSocket.end();
+
+        for (let engine in this._cachedEngines.values())
+            engine.socket.end();
     }
 
     isRunning(userId) {
@@ -140,22 +176,32 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     getProcessId(userId) {
+        if (!this._rpcControl)
+            return Q(-1);
         return this._rpcControl.getProcessId(userId);
     }
 
     startUser(userId) {
+        if (!this._rpcControl)
+            return Q.reject(new Error('EngineManager died'));
         return this._rpcControl.startUser(userId);
     }
 
     killUser(userId) {
+        if (!this._rpcControl)
+            return Q.reject(new Error('EngineManager died'));
         return this._rpcControl.killUser(userId);
     }
 
     deleteUser(userId) {
+        if (!this._rpcControl)
+            return Q.reject(new Error('EngineManager died'));
         return this._rpcControl.deleteUser(userId);
     }
 
     restartUser(userId) {
+        if (!this._rpcControl)
+            return Q.reject(new Error('EngineManager died'));
         return this._rpcControl.restartUser(userId);
     }
 }
