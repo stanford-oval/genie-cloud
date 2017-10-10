@@ -51,6 +51,15 @@ block content
     div.col-sm-2
       button(type='button').btn.btn-default.btn-block#button-send-broadcast= _("Broadcast message")
 
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/admin?page=' + (page_num-1))= _("Previous")
+      if users.length > USERS_PER_PAGE
+        li
+          a(href='/admin?page=' + (page_num+1))= _("Next")
+
   table.table#users-table
     thead
       tr
@@ -65,7 +74,7 @@ block content
         th= _("Engine?")
         th(colspan=2)= _("Actions")
     tbody
-      each user in users
+      each user in users.slice(0,USERS_PER_PAGE)
         tr
           td
             span(title=user.cloud_id)= user.id
@@ -135,4 +144,13 @@ block content
                 form(action='/admin/delete-user/' + user.id, method='post').form-delete-user
                   input(type='hidden',name='_csrf',value=csrfToken)
                   button(type='submit').btn.btn-danger.form-control= _("Delete user")
+
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/admin?page=' + (page_num-1))= _("Previous")
+      if users.length > USERS_PER_PAGE
+        li
+          a(href='/admin?page=' + (page_num+1))= _("Next")
 

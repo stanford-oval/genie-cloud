@@ -27,13 +27,24 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
+const USERS_PER_PAGE = 50;
+
 router.get('/', user.redirectRole(user.Role.ADMIN), function(req, res) {
+    var page = req.query.page;
+    if (page === undefined)
+        page = 0;
+    page = parseInt(page);
+    if (isNaN(page) || page < 0)
+        page = 0;
+
     var engineManager = EngineManager.get();
 
     db.withClient(function(dbClient) {
-        return model.getAll(dbClient);
+        return model.getAll(dbClient, page * USERS_PER_PAGE, USERS_PER_PAGE + 1);
     }).tap(function(users) {
         return Q.all(users.map((u) => {
+            if (!engineManager)
+                return;
             return engineManager.getProcessId(u.id).then((pid) => {
                 if (pid === -1) {
                     u.isRunning = false;
@@ -48,7 +59,9 @@ router.get('/', user.redirectRole(user.Role.ADMIN), function(req, res) {
         res.render('admin_user_list', { page_title: req._("Thingpedia - Administration"),
                                         csrfToken: req.csrfToken(),
                                         assistantAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
-                                        users: users });
+                                        users: users,
+                                        page_num: page,
+                                        USERS_PER_PAGE });
     }).done();
 });
 
