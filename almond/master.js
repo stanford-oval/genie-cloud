@@ -17,6 +17,8 @@ const net = require('net');
 const EngineManager = require('./enginemanager');
 const JsonDatagramSocket = require('./json_datagram_socket');
 
+const Config = require('../config');
+
 class DirectSocketServer {
     constructor(engines, path) {
         this._server = net.createServer();
@@ -39,7 +41,7 @@ class DirectSocketServer {
     }
 
     start() {
-        return Q.ninvoke(this._server, 'listen', './direct');
+        return Q.ninvoke(this._server, 'listen', Config.THINGENGINE_DIRECT_ADDRESS);
     }
 
     stop() {
@@ -54,24 +56,12 @@ class ControlSocket extends events.EventEmitter {
         this._socket = socket;
         this._jsonDatagramSocket = new JsonDatagramSocket(socket, socket, 'utf8');
         this._rpcSocket = new rpc.Socket(this._jsonDatagramSocket);
-
         this._rpcSocket.on('close', () => this.emit('close'));
+        this._rpcSocket.on('error', () => {
+            // ignore the error, the connection will be closed soon
+        });
 
-        // wrap EngineManager into its API, as a new object (or RpcSocket will complain)
-
-        var wrapped = { $rpcMethods: [] };
-        function wrap(api) {
-            wrapped[api] = function() { return engines[api].apply(engines, arguments); };
-            wrapped.$rpcMethods.push(api);
-        }
-        wrap('isRunning');
-        wrap('getProcessId');
-        wrap('startUser');
-        wrap('killUser');
-        wrap('deleteUser');
-        wrap('restartUser');
-
-        var id = this._rpcSocket.addStub(wrapped);
+        var id = this._rpcSocket.addStub(engines);
         this._jsonDatagramSocket.write({ control: 'ready', rpcId: id });
     }
 
@@ -93,7 +83,7 @@ class ControlSocketServer {
     }
 
     start() {
-        return Q.ninvoke(this._server, 'listen', './control');
+        return Q.ninvoke(this._server, 'listen', Config.THINGENGINE_MANAGER_ADDRESS);
     }
 
     stop() {

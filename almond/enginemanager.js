@@ -62,6 +62,8 @@ class EngineProcess extends events.EventEmitter {
         this._child = null;
         this._rpcSocket = null;
         this._rpcId = null;
+
+        this._hadExit = false;
     }
 
     get id() {
@@ -89,7 +91,10 @@ class EngineProcess extends events.EventEmitter {
         this.useCount--;
         return this._rpcSocket.call(this._rpcId, 'killEngine', [userId]).then(function() {
             this.emit('engine-removed', userId);
-        }.bind(this));
+        }.bind(this)).catch((e) => {
+            // assume if the call fails that the engine actually died
+            this.emit('engine-removed', userId);
+        });
     }
 
     kill() {
@@ -98,6 +103,11 @@ class EngineProcess extends events.EventEmitter {
 
         console.log('Killing process with ID ' + this._id);
         this._child.kill();
+
+        // emit exit immediately so we close the channel
+        // otherwise we could race and try to talk to the dying process
+        this._hadExit = true;
+        this.emit('exit');
     }
 
     restart(delay) {
@@ -181,7 +191,10 @@ class EngineProcess extends events.EventEmitter {
             if (this.shared || code !== 0)
                 console.error('Child with ID ' + this._id + ' exited with code ' + code);
             rpcDefer.reject(new Error('Exited with code ' + code));
-            this.emit('exit');
+            if (!this._hadExit) {
+                this._hadExit = true;
+                this.emit('exit');
+            }
         }.bind(this));
         socket.on('error', function(error) {
             console.error('Failed to communicate with ID ' + this._id + ': ' + error);
@@ -360,5 +373,6 @@ class EngineManager extends events.EventEmitter {
         });
     }
 }
+EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'deleteUser', 'restartUser'];
 
 module.exports = EngineManager;

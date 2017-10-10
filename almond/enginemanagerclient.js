@@ -136,7 +136,6 @@ class EngineManagerClient extends events.EventEmitter {
                 console.log('Control channel to EngineManager ready');
                 this._rpcControl = this._rpcSocket.getProxy(msg.rpcId);
                 jsonSocket.removeListener('data', ready);
-                callback();
             }
         }
         jsonSocket.on('data', ready);
@@ -162,6 +161,9 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     stop() {
+        if (!this._rpcSocket)
+            return;
+
         this._expectClose = true;
         this._rpcSocket.end();
 
