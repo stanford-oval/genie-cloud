@@ -39,6 +39,7 @@
     "morgan": "~1.6.1",
     "multer": "~1.1.0",
     "mysql": "^2.13.0",
+    "node-bing-api": "^3.2.2",
     "node-gettext": "^2.0.0",
     "nodemailer": "~2.1.0",
     "oauth2orize": "~1.0.1",

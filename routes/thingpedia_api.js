@@ -25,6 +25,11 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const ThingpediaClient = require('../util/thingpedia-client');
 const i18n = require('../util/i18n');
+const ImageCacheManager = require('../util/cache_manager');
+const { tokenize } = require('../util/tokenize');
+
+const Config = require('../config');
+const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
 
 var router = express.Router();
 
@@ -242,6 +247,40 @@ router.get('/entities/list/:type', function(req, res) {
     }).catch((e) => {
         res.status(500).json({ error: e.message });
     }).done();
+});
+
+router.get('/entities/icon', function(req, res) {
+    const cacheManager = ImageCacheManager.get();
+    const entityValue = req.query.entity_value;
+    const entityType = req.query.entity_type;
+    const entityDisplay = req.query.entity_display || null;
+    if (entityType === 'tt:email_address' || entityType === 'tt:phone_number') {
+        let cacheKey = 'contact:' + (entityType === 'tt:phone_number' ? 'phone' : 'email') + ':' + entityValue;
+        let cached = cacheManager.get(cacheKey);
+        if (cached)
+            res.redirect(301, '/cache/' + cached);
+        else
+            res.status(404).send('Not Found');
+    } else {
+        let cacheKey = entityType + ':' + entityValue;
+        let cached = cacheManager.get(cacheKey);
+        if (cached)
+            return res.redirect(301, '/cache/' + cached);
+
+        let searchTerm = tokenize(entityDisplay || entityValue).join(' ');
+        if (entityType === 'tt:iso_lang_code')
+            searchTerm += ' flag';
+        else
+            searchTerm += ' logo png transparent';
+
+        Q.ninvoke(Bing, 'images', searchTerm, { count: 1, offset: 0 }).then(([res, body]) => {
+            return cacheManager.cache(cacheKey, body.value[0].contentUrl);
+        }).then((filename) => {
+            res.redirect(301, '/cache/' + filename)
+        }).catch((e) => {
+            res.status(500).send(e.message);
+        })
+    }
 });
 
 router.get('/snapshot/:id', function(req, res) {
