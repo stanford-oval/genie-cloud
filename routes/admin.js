@@ -27,28 +27,61 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
+const USERS_PER_PAGE = 50;
+
+function renderUserList(users) {
+    const engineManager = EngineManager.get();
+
+    return Q.all(users.map((u) => {
+        if (!engineManager)
+            return;
+        return engineManager.getProcessId(u.id).then((pid) => {
+            if (pid === -1) {
+                u.isRunning = false;
+                u.engineId = null;
+            } else {
+                u.isRunning = true;
+                u.engineId = pid;
+            }
+        });
+    })).then(() => users);
+}
+
 router.get('/', user.redirectRole(user.Role.ADMIN), function(req, res) {
-    var engineManager = EngineManager.get();
+    var page = req.query.page;
+    if (page === undefined)
+        page = 0;
+    page = parseInt(page);
+    if (isNaN(page) || page < 0)
+        page = 0;
 
     db.withClient(function(dbClient) {
-        return model.getAll(dbClient);
-    }).tap(function(users) {
-        return Q.all(users.map((u) => {
-            return engineManager.getProcessId(u.id).then((pid) => {
-                if (pid === -1) {
-                    u.isRunning = false;
-                    u.engineId = null;
-                } else {
-                    u.isRunning = true;
-                    u.engineId = pid;
-                }
-            });
-        }));
-    }).then(function(users) {
+        return model.getAll(dbClient, page * USERS_PER_PAGE, USERS_PER_PAGE + 1);
+    }).then(renderUserList).then(function(users) {
         res.render('admin_user_list', { page_title: req._("Thingpedia - Administration"),
                                         csrfToken: req.csrfToken(),
                                         assistantAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
-                                        users: users });
+                                        users: users,
+                                        page_num: page,
+                                        search: '',
+                                        USERS_PER_PAGE });
+    }).done();
+});
+
+router.get('/search', user.redirectRole(user.Role.ADMIN), function(req, res) {
+    db.withClient(function(dbClient) {
+        if (req.query.q !== '' && !isNaN(req.query.q))
+            return Q.all([model.get(dbClient, Number(req.query.q))]);
+        else
+            return model.getSearch(dbClient, req.query.q);
+    }).then(renderUserList).then(function(users) {
+        res.render('admin_user_list', { page_title: req._("Thingpedia - Administration"),
+                                        csrfToken: req.csrfToken(),
+                                        assistantAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
+                                        users: users,
+                                        page_num: 0,
+                                        search: req.query.search,
+                                        USERS_PER_PAGE });
     }).done();
 });
 

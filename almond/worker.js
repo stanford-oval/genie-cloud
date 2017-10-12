@@ -29,15 +29,18 @@ class ParentProcessSocket extends stream.Duplex {
     }
 }
 
-var _engines = [];
+const _engines = new Map;
 var _stopped = false;
 
 function handleSignal() {
-    _engines.forEach(function(obj) {
+    for (let obj of _engines.values()) {
         console.log('Stopping engine of ' + obj.cloudId);
         if (obj.running)
             obj.engine.stop();
-    });
+
+        for (let sock of obj.sockets)
+            sock.end();
+    }
 
     _stopped = true;
     if (process.connected)
@@ -54,65 +57,62 @@ function runEngine(thingpediaClient, options) {
     if (!PlatformModule.shared)
         global.platform = platform;
 
-    return platform.start().then(function() {
-        var engine = new Engine(platform);
-        platform.createAssistant(engine);
+    var obj = { cloudId: options.cloudId, running: false, sockets: new Set };
+    var engine = new Engine(platform);
+    obj.engine = engine;
+    platform.createAssistant(engine);
+    engine.open().then(function() {
+        obj.running = true;
 
-        var obj = { userId: options.userId, cloudId: options.cloudId, engine: engine, running: false };
-        engine.open().then(function() {
-            obj.running = true;
-
-            if (_stopped)
-                return engine.close();
-            _engines.push(obj);
-            return engine.run();
-        }).then(function() {
+        if (_stopped)
             return engine.close();
-        }).catch(function(e) {
-            console.error('Engine ' + options.cloudId + ' had a fatal error: ' + e.message);
-            console.error(e.stack);
-        }).done();
-    });
+        return engine.run();
+    }).then(function() {
+        return engine.close();
+    }).catch(function(e) {
+        console.error('Engine ' + options.cloudId + ' had a fatal error: ' + e.message);
+        console.error(e.stack);
+        _engines.delete(options.userId);
+    }).done();
+
+    _engines.set(options.userId, obj);
 }
 
 function killEngine(userId) {
-    var idx = -1;
-    for (var i = 0; i < _engines.length; i++) {
-        if (_engines[i].userId === userId) {
-            idx = i;
-            break;
-        }
-    }
-
-    if (idx < 0)
+    let obj = _engines.get(userId);
+    if (!obj)
         return;
-    var obj = _engines[idx];
-    _engines.splice(idx, 1);
+    _engines.delete(userId);
     obj.engine.stop();
+    for (let sock of obj.sockets)
+        sock.end();
 }
 
 function handleDirectSocket(userId, replyId, socket) {
     console.log('Handling direct connection for ' + userId);
 
-    var rpcSocket = new rpc.Socket(new JsonDatagramSocket(socket, socket, 'utf8'));
+    const rpcSocket = new rpc.Socket(new JsonDatagramSocket(socket, socket, 'utf8'));
     rpcSocket.on('error', (e) => {
         console.log('Error on direct RPC socket: ' + e.message);
     });
 
-    for (var i = 0; i < _engines.length; i++) {
-        if (_engines[i].userId === userId) {
-            var obj = _engines[i];
-            var platform = obj.engine.platform;
-            rpcSocket.call(replyId, 'ready', [obj.engine,
-                platform.getCapability('websocket-api'),
-                platform.getCapability('webhook-api'),
-                platform.getCapability('assistant')]);
-            return;
-        }
+    let obj = _engines.get(userId);
+    if (!obj) {
+        console.log('Could not find an engine with the required user ID');
+        rpcSocket.end();
+        return;
     }
 
-    console.log('Could not find an engine with the required user ID');
-    rpcSocket.end();
+    const platform = obj.engine.platform;
+    rpcSocket.call(replyId, 'ready', [obj.engine,
+        platform.getCapability('websocket-api'),
+        platform.getCapability('webhook-api'),
+        platform.getCapability('assistant')]);
+
+    obj.sockets.add(rpcSocket);
+    rpcSocket.on('close', () => {
+        obj.sockets.delete(rpcSocket);
+    });
 }
 
 function main() {
@@ -149,7 +149,7 @@ function main() {
     PlatformModule.init(shared);
     process.send({ type: 'ready', id: rpcId });
 
-    // wait 10 seconds for a newEngine message
+    // wait 10 seconds for a runEngine message
     setTimeout(function() {}, 10000);
 }
 

@@ -36,6 +36,13 @@ module.exports = {
                             + " on u.developer_org = o.id where u.id = ?", [id]);
     },
 
+    getSearch(client, search) {
+        search = '%' + search + '%';
+        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+                            + " on u.developer_org = o.id where username like ? or human_name like ?",
+                            [search, search]);
+    },
+
     getByName: function(client, username) {
         return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
                             + " on u.developer_org = o.id where username = ?", [username]);
@@ -78,8 +85,13 @@ module.exports = {
         return db.query(client, "delete from users where id = ?", [id]);
     },
 
-    getAll: function(client) {
-        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
-                            + " on u.developer_org = o.id order by id");
+    getAll: function(client, start, end) {
+        if (start !== undefined && end !== undefined) {
+            return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+                                + " on u.developer_org = o.id order by id limit ?,?", [start,end]);
+        } else {
+            return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+                                + " on u.developer_org = o.id order by id");
+        }
     },
 }

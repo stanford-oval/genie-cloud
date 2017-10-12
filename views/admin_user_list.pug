@@ -15,6 +15,20 @@ block content
       a(href='/admin/assistant-setup')= _("Configure it")
       | .
 
+  div.row
+    div.col-sm-2
+      form(action='/admin/kill-all', method='post')
+        input(type='hidden',name='_csrf',value=csrfToken)
+        button(type='submit').btn.btn-danger.btn-block= _("Kill all users")
+
+    div.col-sm-2
+      form(action='/admin/blow-view-cache', method='post')
+        input(type='hidden',name='_csrf',value=csrfToken)
+        button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
+
+    div.col-sm-2
+      button(type='button').btn.btn-default.btn-block#button-send-broadcast= _("Broadcast message")
+
   h2 Users
 
   div.modal.fade#modal-message-user
@@ -37,19 +51,20 @@ block content
               div.col-md-6
                 button(type='button',data-dismiss='modal').btn.btn-default.btn-block= _("Close")
 
-  div.row
-    div.col-sm-2
-      form(action='/admin/kill-all', method='post')
-        input(type='hidden',name='_csrf',value=csrfToken)
-        button(type='submit').btn.btn-danger.btn-block= _("Kill all users")
+  div.navbar.navbar-default#user-search-navbar
+    form.navbar-form.navbar-left(action='/admin/search',method='get')
+      div.form-group
+        input.form-control#user-search-box(type='text', name='q', value=search)
+        button.btn.btn-primary(type="submit")= _("Search")
 
-    div.col-sm-2
-      form(action='/admin/blow-view-cache', method='post')
-        input(type='hidden',name='_csrf',value=csrfToken)
-        button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
-
-    div.col-sm-2
-      button(type='button').btn.btn-default.btn-block#button-send-broadcast= _("Broadcast message")
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/admin?page=' + (page_num-1))= _("Previous")
+      if users.length > USERS_PER_PAGE
+        li
+          a(href='/admin?page=' + (page_num+1))= _("Next")
 
   table.table#users-table
     thead
@@ -65,7 +80,7 @@ block content
         th= _("Engine?")
         th(colspan=2)= _("Actions")
     tbody
-      each user in users
+      each user in users.slice(0,USERS_PER_PAGE)
         tr
           td
             span(title=user.cloud_id)= user.id
@@ -135,4 +150,13 @@ block content
                 form(action='/admin/delete-user/' + user.id, method='post').form-delete-user
                   input(type='hidden',name='_csrf',value=csrfToken)
                   button(type='submit').btn.btn-danger.form-control= _("Delete user")
+
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/admin?page=' + (page_num-1))= _("Previous")
+      if users.length > USERS_PER_PAGE
+        li
+          a(href='/admin?page=' + (page_num+1))= _("Next")
 

@@ -19,8 +19,7 @@ const exampleModel = require('../model/example');
 const i18n = require('./i18n');
 
 function timeToSEMPRE(jsArg) {
-    var split = jsArg.split(':');
-    return { hour: parseInt(split[0]), minute: parseInt(split[1]), second: 0,
+    return { hour: jsArg.hour, minute: jsArg.minute, second: jsArg.second,
         year: -1, month: -1, day: -1 };
 }
 function dateToSEMPRE(jsArg) {
@@ -79,8 +78,9 @@ function valueToSEMPRE(value) {
     throw new TypeError('Unhandled type ' + type);
 }
 
-function assignmentsToArgs(assignments, argtypes) {
+function assignmentsToArgs(assignments, argtypes, argisinput) {
     var args = [];
+    var predicate = [];
 
     for (var name in assignments) {
         if (name === '__person')
@@ -88,26 +88,37 @@ function assignmentsToArgs(assignments, argtypes) {
         if (assignments[name] === undefined || assignments[name].isUndefined)
             continue;
         let type = argtypes[name];
-        let operator = 'is';
+        let operator;
         if (type.isArray) {
             operator = 'contains';
             type = type.elem;
+        } else if (argisinput[name]) {
+            operator = 'is';
+        } else {
+            operator = '=';
         }
         let nameVal = { id: 'tt:param.' + name };
 
         let [sempreType, sempreValue] = valueToSEMPRE(assignments[name]);
-        args.push({ name: nameVal, type: sempreType,
-                    value: sempreValue,
-                    operator: operator });
+        if (operator === 'is') {
+            args.push({ name: nameVal, type: sempreType,
+                        value: sempreValue,
+                        operator: 'is' });
+        } else {
+            predicate.push([{ name: nameVal, type: sempreType,
+                              value: sempreValue,
+                              operator: operator }]);
+        }
     }
 
-    return args;
+    return [args, predicate];
 }
 
-function exampleToExpanded(what, kind, actionName, assignments, argtypes) {
+function exampleToExpanded(what, kind, actionName, assignments, argtypes, argisinput) {
     var obj = {};
+    let [args, predicate] = assignmentsToArgs(assignments, argtypes, argisinput);
     obj[what] = { name: { id: 'tt:' + kind + '.' + actionName },
-                  args: assignmentsToArgs(assignments, argtypes) };
+                  args: args, predicate: predicate };
     if (assignments.__person)
         obj[what].person = assignments.__person.value;
     return obj;
@@ -116,7 +127,7 @@ function exampleToExpanded(what, kind, actionName, assignments, argtypes) {
 function exampleToBase(what, kind, actionName, slots) {
     var obj = {};
     obj[what] = { name: { id: 'tt:' + kind + '.' + actionName },
-                  args: [], slots: slots };
+                  args: [], predicate: [], slots: slots };
     return obj;
 }
 
@@ -137,10 +148,14 @@ module.exports = function(dbClient, kind, ast, language) {
                 '__person': false
             };
             var argnames = ['__person'];
+            var argisinput = {
+                '__person': true
+            };
             fromChannel.args.forEach((arg) => {
                 argnames.push(arg.name);
                 argtypes[arg.name] = ThingTalk.Type.fromString(arg.type);
-                argrequired[arg.name] = (arg.required || what === 'action');
+                argrequired[arg.name] = arg.required;
+                argisinput[arg.name] = arg.is_input || arg.required || false;
             });
 
             fromChannel.examples.forEach(function(ex) {
@@ -153,7 +168,7 @@ module.exports = function(dbClient, kind, ast, language) {
             try {
                 var expanded = expandExamples(gettext, fromChannel.examples, argtypes, argrequired);
                 expanded.forEach(function(ex) {
-                    var json = exampleToExpanded(what, kind, name, ex.assignments, argtypes);
+                    var json = exampleToExpanded(what, kind, name, ex.assignments, argtypes, argisinput);
                     out.push({ schema_id: schemaId, is_base: false,
                                utterance: ex.utterance, language: language,
                                target_json: JSON.stringify(json) });

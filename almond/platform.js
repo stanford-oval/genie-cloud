@@ -165,14 +165,10 @@ class Platform {
         return this._timezone;
     }
 
-    start() {
-        return Q();
-    }
-
     createAssistant(engine) {
         this._assistant = new Assistant(engine);
-	    // for compat
-	    engine.assistant = this._assistant;
+        // for compat
+        engine.assistant = this._assistant;
     }
 
     // Obtain a shared preference store

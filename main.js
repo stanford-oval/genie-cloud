@@ -29,6 +29,7 @@ var _enginemanager;
 
 function handleSignal() {
     _frontend.close().then(function() {
+        _enginemanager.stop();
         platform.exit();
     }).done();
 }
@@ -47,10 +48,8 @@ function main() {
         // we bound the socket, no need for root now
         dropCaps();
 
-        if (!process.env.THINGENGINE_DISABLE_ENGINEMANAGER) {
-            _enginemanager = new EngineManager();
-            _enginemanager.start();
-        }
+        _enginemanager = new EngineManager();
+        _enginemanager.start();
     }).done();
 }
 main();
