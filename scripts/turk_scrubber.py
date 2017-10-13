@@ -4,11 +4,11 @@ from random import random
 from difflib import SequenceMatcher
 from collections import defaultdict
 
-def scrubber(row):
+def scrubber(rule_type, row):
     """ take a row and try to clean the paraphrase, return if it is successfully 
     cleaned, along with the information extracted 
     """
-    paraphrase = Paraphrase(*row)
+    paraphrase = Paraphrase(rule_type, *row)
     if paraphrase.is_noidea():
         return False, paraphrase.dropped_info('noidea')
     paraphrase.clean()
@@ -16,6 +16,10 @@ def scrubber(row):
     if status == 'clean':
         return True, paraphrase.info()
     else:
+        print status
+        print paraphrase.ttid
+        print paraphrase.synthetic
+        print paraphrase.paraphrase
         return False, paraphrase.dropped_info(status)
 
 
@@ -27,7 +31,8 @@ def coin(prob):
     
 
 class Paraphrase:
-    def __init__(self, ttid, target_json, target_tt, synthetic, paraphrase):
+    def __init__(self, rule_type, ttid, target_json, target_tt, synthetic, paraphrase):
+        self.rule_type = rule_type
         self.ttid = ttid
         self.paraphrase = paraphrase
         self.json = json.loads(target_json)
@@ -41,15 +46,20 @@ class Paraphrase:
         """
         args = defaultdict(list)
         cmd_types = ['trigger', 'query', 'action']
-
-        if 'rule' in self.json:
-            parsed = self.json['rule']
-            self.type = 'compound'
-        else:
-            self.type = 'primitive'
-            parsed = self.json
-
         arg_types = ['String', 'URL', 'EmailAddress', 'Username', 'Hashtag']
+
+        if self.rule_type == 'command':
+            if 'rule' in self.json:
+                parsed = self.json['rule']
+                self.type = 'compound'
+            else:
+                self.type = 'primitive'
+                parsed = self.json
+        else:
+            parsed = self.json['access']
+            if 'person' in parsed:
+                args['person'].append(parsed['person'])
+
         for t in cmd_types:
             if t in parsed:
                 if 'person' in parsed[t]:
@@ -57,6 +67,11 @@ class Paraphrase:
                 for arg in parsed[t]['args']:
                     if arg['type'] in arg_types:
                         args[arg['type']].append(arg['value']['value'].lower())
+                if 'predicate' in parsed[t]:
+                    for arg_list in parsed[t]['predicate']:
+                        for arg in arg_list:
+                            if arg['type'] in arg_types:
+                                args[arg['type']].append(arg['value']['value'].lower())
         return args
 
     def _extract_quoted(self):
@@ -86,13 +101,13 @@ class Paraphrase:
         """ return a list of info for the final output
         """
         #return [self.ttid, self.json, self.paraphrase, self.set, self.type, len(self.args)]
-        return [self.paraphrase, self.tt, json.dumps(self.json)]
+        return [self.ttid, self.synthetic, self.paraphrase, self.tt, json.dumps(self.json)]
 
     def dropped_info(self, status):
         """ return a list of info for the final output
         """
         #return [self.ttid, self.json, self.paraphrase, self.set, self.type, len(self.args)]
-        return [status, self.paraphrase, self.tt, json.dumps(self.json)]
+        return [self.ttid, self.synthetic, self.paraphrase, self.tt, json.dumps(self.json), status]
 
     def clean(self):
         """ clean up paraphrase

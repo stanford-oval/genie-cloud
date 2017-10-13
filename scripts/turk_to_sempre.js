@@ -16,8 +16,9 @@ const SEMPRESyntax = ThingTalk.SEMPRESyntax;
 
 function main() {
     var inp_format = process.argv[2];
-    var fin = path.join(process.argv[3], 'data.csv');
-    var fout = path.join(process.argv[3], 'data-sempre.csv');
+    var rule_type = process.argv[3];
+    var fin = path.join(process.argv[4], 'data.csv');
+    var fout = path.join(process.argv[4], 'data-sempre.csv');
 
     var output = csv.stringify();
     var parser = csv.parse();
@@ -27,9 +28,14 @@ function main() {
     fs.createReadStream(fin)
         .pipe(parser)
         .on('data', (row) => {
-            var tt = ThingTalk.Grammar.parse(row[1]);
+            var tt;
+            if (rule_type === 'permission')
+                tt = ThingTalk.Grammar.parsePermissionRule(row[1]);
+                tt = ThingTalk.Ast.prettyprintPermissionRule(tt);
+            else
+                tt = ThingTalk.Grammar.parse(row[1]);
+                tt = ThingTalk.Ast.prettyprint(ast, true);
             var json = SEMPRESyntax.toSEMPRE(tt, false);
-
             var ex = {
                 id: row[0],
                 target_json: json,

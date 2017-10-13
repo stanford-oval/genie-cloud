@@ -34,14 +34,14 @@ def format(inp_format, path):
                         writer.writerow([ttid, target_json, sentence, paraphrase])
 
 
-def tt_to_sempre(path):
+def tt_to_sempre(inp_format, rule_type, path):
     """ run js script to get sempre json and parameter count
     """
     script = './turk_to_sempre.js'
-    execute_js(script, path)
+    execute_js(script, ' '.join([inp_format, rule_type, path]))
 
 
-def clean(path): 
+def clean(rule_type, path): 
     """ clean data 
     """
     with open(path + 'data-sempre.csv', 'r') as data, \
@@ -51,7 +51,7 @@ def clean(path):
         writer_cleaned = csv.writer(cleaned, delimiter=',', quotechar='\"')
         writer_dropped = csv.writer(dropped, delimiter=',', quotechar='\"')
         for row in reader:
-            scrubbed, row = scrubber(row)
+            scrubbed, row = scrubber(rule_type, row)
             if scrubbed:
                 writer_cleaned.writerow(row)
             else:
@@ -62,10 +62,12 @@ def main():
     # argv[1] = 'tt' or 'json'
     inp_format = sys.argv[1]
     assert (inp_format == 'tt' or inp_format == 'json'), "wrong input format: %s" % inp_format
-    path = os.path.join(sys.argv[2])
+    rule_type = sys.argv[2]
+    assert (rule_type == 'permission' or rule_type == 'command'), "wrong rule type: %s" % inp_format
+    path = os.path.join(sys.argv[3])
     format(inp_format, path)
-    tt_to_sempre(path)
-    clean(path)
+    tt_to_sempre(inp_format, rule_type, path)
+    clean(rule_type, path)
 
 
 main()
