@@ -68,7 +68,16 @@ function main() {
     const N = parseInt(process.argv[5]) || 100;
     const format = process.argv[6] || 'default';
 
-    if (format === 'turk') {
+    let genPermissions = false;
+    if (format === 'permissions' || format === 'permissions-turk')
+        genPermissions = true;
+    let wgd = false;
+    if (format === 'wgd' || format === 'wgd-turk')
+        wgd = true;
+    let turkFormat = false;
+    if (format === 'turk' || format === 'permissions-turk')
+        turkFormat = true;
+    if (turkFormat) {
         var sentences_per_hit = process.argv[7] || 3;
         var headers = [];
         var row = [];
@@ -88,28 +97,48 @@ function main() {
             let kinds = rows.map(r => r.kind);
             let schemaRetriever = new SchemaRetriever(dbClient, language);
 
-            let stream = ThingTalk.Generate.genRandomRules(kinds, schemaRetriever, N, {
-                applyHeuristics: true,
-                allowUnsynthesizable: false,
-                strictParameterPassing: true,
-                samplingPolicy: 'uniform',
-                actionArgConstantProbability: 0.7,
-                argConstantProbability: 0.3,
-                requiredArgConstantProbability: 0.9,
-                applyFiltersToInputs: false,
-                filterClauseProbability: 0.3
-            });
+            let stream;
+
+            if (!genPermissions) {
+                stream = ThingTalk.Generate.genRandomRules(kinds, schemaRetriever, N, {
+                    applyHeuristics: true,
+                    allowUnsynthesizable: false,
+                    strictParameterPassing: true,
+                    samplingPolicy: 'uniform',
+                    actionArgConstantProbability: 0.7,
+                    argConstantProbability: 0.3,
+                    requiredArgConstantProbability: 0.9,
+                    applyFiltersToInputs: false,
+                    filterClauseProbability: 0.3
+                });
+            } else {
+                stream = ThingTalk.Generate.genRandomPermissionRule(kinds, schemaRetriever, N, {
+                    applyHeuristics: true,
+                    allowUnsynthesizable: false,
+                    samplingPolicy: 'uniform',
+                    filterClauseProbability: 0.2
+                });
+            }
             stream.on('data', (r) => {
                 //console.log('Rule #' + (i+1));
                 //i++;
-                if (format === 'turk') {
-                    row = row.concat([makeId(), Ast.prettyprint(r, true).trim(), postprocess(describeProgram(gettext, r))]);
+                ThingTalk.SEMPRESyntax.toSEMPRE(r);
+                let newTuple;
+                if (genPermissions)
+                    newTuple = [makeId(), Ast.prettyprintPermissionRule(r, true).trim(), postprocess(ThingTalk.Describe.describePermissionRule(gettext, r))];
+                else if (wgd)
+                    newTuple = [makeId(), Ast.prettyprint(r, true).trim(), postprocess(describeProgram(gettext, r))];
+                else
+                    newTuple  = [makeId(), Ast.prettyprint(r, true).trim(), postprocess(ThingTalk.Describe.describeProgram(gettext, r, true))];
+
+                if (turkFormat) {
+                    row = row.concat(newTuple);
                     if (row.length === sentences_per_hit * 3) {
                         output.write(row);
                         row = []
                     }
                 } else {
-                    output.write([makeId(), Ast.prettyprint(r, true).trim(), postprocess(describeProgram(gettext, r))]);
+                    output.write(newTuple);
                 }
             });
             stream.on('error', (err) => {

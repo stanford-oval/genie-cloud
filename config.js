@@ -9,3 +9,4 @@
 module.exports.S3_CLOUDFRONT_HOST = 'https://d1ge76rambtuys.cloudfront.net';
 module.exports.THINGENGINE_MANAGER_ADDRESS = './control';
 module.exports.THINGENGINE_DIRECT_ADDRESS = './direct';
+module.exports.BING_KEY = '76e02e969871428196e80ecfb364bf65';
