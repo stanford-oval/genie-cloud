@@ -101,13 +101,13 @@ class Paraphrase:
         """ return a list of info for the final output
         """
         #return [self.ttid, self.json, self.paraphrase, self.set, self.type, len(self.args)]
-        return [self.paraphrase, self.tt, json.dumps(self.json)]
+        return [self.ttid, self.synthetic, self.paraphrase, self.tt, json.dumps(self.json)]
 
     def dropped_info(self, status):
         """ return a list of info for the final output
         """
         #return [self.ttid, self.json, self.paraphrase, self.set, self.type, len(self.args)]
-        return [status, self.paraphrase, self.tt, json.dumps(self.json)]
+        return [self.ttid, self.synthetic, self.paraphrase, self.tt, json.dumps(self.json), status]
 
     def clean(self):
         """ clean up paraphrase
