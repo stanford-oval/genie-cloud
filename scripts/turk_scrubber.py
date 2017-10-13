@@ -18,8 +18,6 @@ def scrubber(rule_type, row):
     else:
         print status
         print paraphrase.ttid
-        #print paraphrase.json
-        #print paraphrase.args
         print paraphrase.synthetic
         print paraphrase.paraphrase
         return False, paraphrase.dropped_info(status)
@@ -251,7 +249,6 @@ class Paraphrase:
             return 'links'
         if not self._check_quotes_paring():
             return 'quotes'
-        '''
         if not self._check_emails():
             return 'emails'
         if not self._is_correctly_quoted():
@@ -260,7 +257,6 @@ class Paraphrase:
             return 'tags'
         if not self._is_correctly_mentioned():
             return 'users'
-        '''
         return 'clean'
 
 
