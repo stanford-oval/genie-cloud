@@ -31,10 +31,11 @@ function main() {
             var tt;
             if (rule_type === 'permission')
                 tt = ThingTalk.Grammar.parsePermissionRule(row[1]);
+                tt = ThingTalk.Ast.prettyprintPermissionRule(tt);
             else
                 tt = ThingTalk.Grammar.parse(row[1]);
+                tt = ThingTalk.Ast.prettyprint(ast, true);
             var json = SEMPRESyntax.toSEMPRE(tt, false);
-
             var ex = {
                 id: row[0],
                 target_json: json,
