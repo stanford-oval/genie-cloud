@@ -28,16 +28,17 @@ function main() {
     fs.createReadStream(fin)
         .pipe(parser)
         .on('data', (row) => {
-            var tt;
+            var tt, json;
             if (rule_type === 'permission') {
                 tt = ThingTalk.Grammar.parsePermissionRule(row[1]);
+                json = SEMPRESyntax.toSEMPRE(tt, false);
                 tt = ThingTalk.Ast.prettyprintPermissionRule(tt);
             }
             else {
                 tt = ThingTalk.Grammar.parse(row[1]);
+                json = SEMPRESyntax.toSEMPRE(tt, false);
                 tt = ThingTalk.Ast.prettyprint(ast, true);
             }
-            var json = SEMPRESyntax.toSEMPRE(tt, false);
             var ex = {
                 id: row[0],
                 target_json: json,
