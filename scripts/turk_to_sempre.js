@@ -37,7 +37,7 @@ function main() {
             else {
                 tt = ThingTalk.Grammar.parse(row[1]);
                 json = SEMPRESyntax.toSEMPRE(tt, false);
-                tt = ThingTalk.Ast.prettyprint(ast, true);
+                tt = ThingTalk.Ast.prettyprint(tt, true);
             }
             var ex = {
                 id: row[0],
