@@ -37,7 +37,6 @@ function main() {
                 tt = ThingTalk.Grammar.parse(row[1]);
                 tt = ThingTalk.Ast.prettyprint(ast, true);
             }
-            console.log(tt)
             var json = SEMPRESyntax.toSEMPRE(tt, false);
             var ex = {
                 id: row[0],

@@ -3,6 +3,9 @@ import os, sys, csv
 from Naked.toolshed.shell import execute_js 
 from turk_scrubber import scrubber
 
+SENTENCES_PER_HIT = 3
+PARAPHRASE_PER_SENTENCE = 2
+
 def format(inp_format, path):
     """ format raw turk data to: 'id, tt/target_json, sentence, paraphrase'
     """
@@ -19,15 +22,15 @@ def format(inp_format, path):
             # skip rejected answer
             if (row[idx_rejection] != ''):
                 continue
-            for i in range(3):
+            for i in range(SENTENCES_PER_HIT):
                 ttid = row[idx_info + i*3]
                 if inp_format == 'tt':
                     tt = row[idx_info + i*3 + 1]
                 else:
                     target_json = row[idx_info + i*3 + 1]
                 sentence = row[idx_info + i*3 + 2].lower()
-                for j in range(3):
-                    paraphrase = row[idx_paraphrase + i*3 + j].replace('\n', ' ').lower()
+                for j in range(PARAPHRASE_PER_SENTENCE):
+                    paraphrase = row[idx_paraphrase + i*PARAPHRASE_PER_SENTENCE + j].replace('\n', ' ').lower()
                     if inp_format == 'tt':
                         writer.writerow([ttid, tt, sentence, paraphrase])
                     else:
