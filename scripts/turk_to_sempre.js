@@ -29,12 +29,15 @@ function main() {
         .pipe(parser)
         .on('data', (row) => {
             var tt;
-            if (rule_type === 'permission')
+            if (rule_type === 'permission') {
                 tt = ThingTalk.Grammar.parsePermissionRule(row[1]);
                 tt = ThingTalk.Ast.prettyprintPermissionRule(tt);
-            else
+            }
+            else {
                 tt = ThingTalk.Grammar.parse(row[1]);
                 tt = ThingTalk.Ast.prettyprint(ast, true);
+            }
+            console.log(tt)
             var json = SEMPRESyntax.toSEMPRE(tt, false);
             var ex = {
                 id: row[0],
