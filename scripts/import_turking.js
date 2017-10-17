@@ -21,9 +21,13 @@ const tokenizer = require('../util/tokenize');
 
 var insertBatch = [];
 
+function coin(bias) {
+    return Math.random() < bias;
+}
+
 function makeType(testTrain, primCompound, nparams) {
     //return (testTrain === 'test' ? 'test3' : 'turking3') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
-    return 'generated-cheatsheet';
+    return 'policy1-' + testTrain;
 }
 
 function insert(dbClient, utterance, testTrain, primCompound, nparams, target_json) {
@@ -51,12 +55,30 @@ function maybeInsert(dbClient, utterance, testTrain, primCompound, nparams, targ
     return insert(dbClient, utterance, testTrain, primCompound, nparams, target_json);
 }
 
+function parseAndTypecheck(isPermission, code, schemas) {
+    let parse, typecheck;
+
+    if (isPermission) {
+        parse = ThingTalk.Grammar.parsePermissionRule;
+        typecheck = ThingTalk.Generate.typeCheckPermissionRule;
+    } else {
+        parse = ThingTalk.Grammar.parse;
+        typecheck = ThingTalk.Generate.typeCheckProgram;
+    }
+
+    let prog = parse(code);
+    return typecheck(prog, schemas).then(() => prog);
+}
+
 function main() {
+    const isPermission = true;
+
     db.withTransaction((dbClient) => {
         var promises = [];
         var schemas = new SchemaRetriever(dbClient, 'en-US', true);
 
-        var parser = csv.parse({ columns: null, delimiter: '\t' });
+        //var parser = csv.parse({ columns: null, delimiter: '\t' });
+        var parser = csv.parse();
         process.stdin.pipe(parser);
         //var output = fs.createWriteStream(process.argv[2]);
         //var writer = csv.stringify({ delimiter: '\t' });
@@ -64,15 +86,20 @@ function main() {
 
         return Q.Promise((callback, errback) => {
             parser.on('data', (row) => {
-                //var id = row[0];
-                var tt = row[1];
-                //var original = row[2];
+                var id = row[0];
+                var original = row[1];
+                var utterance = row[2];
+                var tt = row[3];
                 //var useful = row[3];
                 //var utterances = row.slice(2);
-                var utterance = row[0];
-                var testTrain = row[3];
-                var primCompound = row[4];
-                var nparams = row[5];
+                //var testTrain = row[3];
+                //var primCompound = row[4];
+                //var nparams = row[5];
+                var testTrain,primCompound,nparams;
+                if (coin(0.1))
+                    testTrain = 'test';
+                else
+                    testTrain = 'train';
 
                 //if (tokenizer.tokenize(utterance).length < 3)
                 //    return;
@@ -81,7 +108,7 @@ function main() {
                     if (tt.startsWith('{'))
                         return ThingTalk.SEMPRESyntax.parseToplevel(schemas, JSON.parse(tt));
                     else
-                        return ThingTalk.Grammar.parseAndTypecheck(schemas, tt);
+                        return parseAndTypecheck(isPermission, tt, schemas);
                 }).then((prog) => {
                     let json_str;
                     if (tt.startsWith('{')) {
