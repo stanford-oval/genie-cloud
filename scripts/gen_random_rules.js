@@ -38,6 +38,9 @@ function postprocess(str) {
 function coin(bias) {
     return Math.random() < bias;
 }
+function uniform(array) {
+    return array[Math.floor(array.length * Math.random())];
+}
 
 function makeId() {
     return crypto.randomBytes(8).toString('hex');
@@ -101,6 +104,18 @@ function main() {
 
             if (!genPermissions) {
                 stream = ThingTalk.Generate.genRandomRules(kinds, schemaRetriever, N, {
+                    compositionWeights: {
+                        'trigger+query+action': 0.5,
+                        'trigger+null+action': 1,
+                        'trigger+query+null': 0.5,
+                        'trigger+null+null': 1,
+                        'null+query+action': 2.5,
+                        'null+query+null': 1,
+                        'null+null+action': 3,
+                        'trigger+null+return': 6,
+                        'null+query+return': 6,
+                        // null+null+null: 0
+                    },
                     applyHeuristics: true,
                     allowUnsynthesizable: false,
                     strictParameterPassing: true,
@@ -123,14 +138,25 @@ function main() {
                 //console.log('Rule #' + (i+1));
                 //i++;
                 ThingTalk.SEMPRESyntax.toSEMPRE(r);
-                let newTuple;
-                if (genPermissions)
-                    newTuple = [makeId(), Ast.prettyprintPermissionRule(r, true).trim(), postprocess(ThingTalk.Describe.describePermissionRule(gettext, r))];
-                else if (wgd)
-                    newTuple = [makeId(), Ast.prettyprint(r, true).trim(), postprocess(describeProgram(gettext, r))];
-                else
-                    newTuple  = [makeId(), Ast.prettyprint(r, true).trim(), postprocess(ThingTalk.Describe.describeProgram(gettext, r, true))];
+                if (r.isProgram)
+                    r.principal = new Ast.Value.Entity(uniform(['alice', 'bob', 'carol', 'dave']), 'tt:contact_name', null);
 
+                let code, description;
+                if (genPermissions) {
+                    code = Ast.prettyprintPermissionRule(r, true).trim();
+                    description = ThingTalk.Describe.describePermissionRule(gettext, r);
+                } else if (wgd) {
+                    code = Ast.prettyprint(r, true).trim();
+                    description = describeProgram(gettext, r);
+                } else {
+                    code = Ast.prettyprint(r, true).trim();
+                    description = ThingTalk.Describe.describeProgram(gettext, r, true);
+                }
+
+                if (false)
+                    description = postprocess(description);
+
+                let newTuple = [makeId(), code, description];
                 if (turkFormat) {
                     row = row.concat(newTuple);
                     if (row.length === sentences_per_hit * 3) {
