@@ -25,13 +25,8 @@ function coin(bias) {
     return Math.random() < bias;
 }
 
-function makeType(testTrain, primCompound, nparams) {
-    //return (testTrain === 'test' ? 'test3' : 'turking3') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
-    return 'policy1-' + testTrain;
-}
-
-function insert(dbClient, utterance, testTrain, primCompound, nparams, target_json) {
-    insertBatch.push(['en', makeType(testTrain, primCompound, nparams), utterance, target_json, -1]);
+function insert(dbClient, utterance, type, target_json) {
+    insertBatch.push(['en', type, utterance, target_json, -1]);
     if (insertBatch.length < 100)
         return;
 
@@ -45,14 +40,6 @@ function finishBatch(dbClient) {
         return;
     return db.insertOne(dbClient,
         "insert into example_utterances(language,type,utterance,target_json,click_count) values ?", [insertBatch]);
-}
-
-function maybeInsert(dbClient, utterance, testTrain, primCompound, nparams, target_json) {
-    if (utterance.length < 25)
-        return Q();
-
-    utterance = utterance.replace(/[,.]"/g, '"').replace(/[\n\t]+/g, ' ');
-    return insert(dbClient, utterance, testTrain, primCompound, nparams, target_json);
 }
 
 function parseAndTypecheck(isPermission, code, schemas) {
@@ -71,31 +58,25 @@ function parseAndTypecheck(isPermission, code, schemas) {
 }
 
 function main() {
-    const isPermission = true;
+    const isPermission = false;
+    const typePrefix = process.argv[2];
+    if (!typePrefix)
+        throw new Error('Must specify the type of dataset (eg turking1 or policy2 or setup2)');
 
     db.withTransaction((dbClient) => {
-        var promises = [];
-        var schemas = new SchemaRetriever(dbClient, 'en-US', true);
+        let promises = [];
+        const schemas = new SchemaRetriever(dbClient, 'en-US', true);
 
-        //var parser = csv.parse({ columns: null, delimiter: '\t' });
-        var parser = csv.parse();
+        const parser = csv.parse();
         process.stdin.pipe(parser);
-        //var output = fs.createWriteStream(process.argv[2]);
-        //var writer = csv.stringify({ delimiter: '\t' });
-        //writer.pipe(output);
 
         return Q.Promise((callback, errback) => {
             parser.on('data', (row) => {
-                var id = row[0];
-                var original = row[1];
-                var utterance = row[2];
-                var tt = row[3];
-                //var useful = row[3];
-                //var utterances = row.slice(2);
-                //var testTrain = row[3];
-                //var primCompound = row[4];
-                //var nparams = row[5];
-                var testTrain,primCompound,nparams;
+                let id = row[0];
+                let original = row[1];
+                let utterance = row[2];
+                let tt = row[3];
+                let testTrain;
                 if (coin(0.1))
                     testTrain = 'test';
                 else
@@ -117,7 +98,7 @@ function main() {
                         let json = ThingTalk.SEMPRESyntax.toSEMPRE(prog, false);
                         json_str = JSON.stringify(json);
                     }
-                    return insert(dbClient, utterance, testTrain, primCompound, nparams, json_str);
+                    return insert(dbClient, utterance, typePrefix + testTrain, json_str);
                 }).catch((e) => {
                     console.error('Failed to verify ' + tt + '   :' + e.message);
                     // die uglily to fail the transaction
