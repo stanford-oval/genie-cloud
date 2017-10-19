@@ -1,19 +1,22 @@
-import os, sys, csv 
+#!/usr/bin/python3
+
+import os, sys, csv
+import shutil
 
 from Naked.toolshed.shell import execute_js 
 from turk_scrubber import scrubber
 
 SENTENCES_PER_HIT = 3
-PARAPHRASE_PER_SENTENCE = 2
+PARAPHRASE_PER_SENTENCE = 3
 
 def format(inp_format, path):
     """ format raw turk data to: 'id, tt/target_json, sentence, paraphrase'
     """
-    with open(path + 'raw.csv', 'r') as fin, open(path + 'data.csv', 'w') as fout:
+    with open(os.path.join(path, 'raw.csv'), 'r') as fin, open(os.path.join(path, 'data.csv'), 'w') as fout:
         reader = csv.reader(fin, delimiter=',', quotechar='\"')
         writer = csv.writer(fout, delimiter=',', quotechar='\"')
 
-        headers = reader.next() 
+        headers = next(reader)
         idx_rejection = headers.index('RejectionTime')
         idx_info = headers.index('Input.id1')
         idx_paraphrase = headers.index('Answer.Paraphrase1-1')
@@ -30,7 +33,8 @@ def format(inp_format, path):
                     target_json = row[idx_info + i*3 + 1]
                 sentence = row[idx_info + i*3 + 2].lower()
                 for j in range(PARAPHRASE_PER_SENTENCE):
-                    paraphrase = row[idx_paraphrase + i*PARAPHRASE_PER_SENTENCE + j].replace('\n', ' ').lower()
+                    idx = idx_paraphrase + i*PARAPHRASE_PER_SENTENCE + j
+                    paraphrase = row[idx].replace('\n', ' ').lower()
                     if inp_format == 'tt':
                         writer.writerow([ttid, tt, sentence, paraphrase])
                     else:
@@ -44,12 +48,12 @@ def tt_to_sempre(inp_format, rule_type, path):
     execute_js(script, ' '.join([inp_format, rule_type, path]))
 
 
-def clean(rule_type, path): 
-    """ clean data 
+def clean(rule_type, path):
+    """ clean data
     """
-    with open(path + 'data-sempre.csv', 'r') as data, \
-         open(path + 'cleaned.csv', 'w') as cleaned, \
-         open(path + 'dropped.csv', 'w') as dropped:
+    with open(os.path.join(path, 'data-sempre.csv'), 'r') as data, \
+         open(os.path.join(path, 'cleaned.csv'), 'w') as cleaned, \
+         open(os.path.join(path, 'dropped.csv'), 'w') as dropped:
         reader = csv.reader(data, delimiter=',', quotechar='\"')
         writer_cleaned = csv.writer(cleaned, delimiter=',', quotechar='\"')
         writer_dropped = csv.writer(dropped, delimiter=',', quotechar='\"')
@@ -68,6 +72,10 @@ def main():
     rule_type = sys.argv[2]
     assert (rule_type == 'permission' or rule_type == 'command'), "wrong rule type: %s" % inp_format
     path = os.path.join(sys.argv[3])
+    if len(sys.argv) > 4:
+       global PARAPHRASE_PER_SENTENCE
+       PARAPHRASE_PER_SENTENCE = int(sys.argv[4])
+
     format(inp_format, path)
     tt_to_sempre(inp_format, rule_type, path)
     clean(rule_type, path)

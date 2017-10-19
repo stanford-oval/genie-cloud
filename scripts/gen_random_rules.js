@@ -27,10 +27,17 @@ const dlg = { _(x) { return x; } };
 function postprocess(str) {
     str = str.replace(/your/g, 'my').replace(/ you /g, ' I ');
 
-    //if (coin(0.1))
-    //    str = str.replace(/ instagram /i, ' ig ');
-    //if (coin(0.1))
-    //    str = str.replace(/ facebook /i, ' fb ');
+    return str;
+}
+
+function postprocessSetup(str, name) {
+    let female;
+    if (name === 'ellie' || name === 'gabbie')
+        female = true;
+    else
+        female = false;
+
+    str = str.replace(/your/g, female ? 'her' : 'his').replace(/ you /g, female ? ' she ' : ' he ');
 
     return str;
 }
@@ -74,11 +81,14 @@ function main() {
     let genPermissions = false;
     if (format === 'permissions' || format === 'permissions-turk')
         genPermissions = true;
+    let genSetup = false;
+    if (format === 'setup' || format === 'setup-turk')
+        genSetup = true;
     let wgd = false;
     if (format === 'wgd' || format === 'wgd-turk')
         wgd = true;
     let turkFormat = false;
-    if (format === 'turk' || format === 'permissions-turk')
+    if (format === 'turk' || format.endsWith('-turk'))
         turkFormat = true;
     if (turkFormat) {
         var sentences_per_hit = process.argv[7] || 3;
@@ -96,7 +106,7 @@ function main() {
 
     //var i = 0;
     db.withClient((dbClient) => {
-        return db.selectAll(dbClient, "select kind from device_schema where approved_version is not null and kind_type <> 'global'", []).then((rows) => {
+        return db.selectAll(dbClient, "select kind from device_schema where approved_version is not null and kind_type <> 'global' and kind <> 'org.thingpedia.builtin.test' and kind not like 'org.thingpedia.demo.%'", []).then((rows) => {
             let kinds = rows.map(r => r.kind);
             let schemaRetriever = new SchemaRetriever(dbClient, language);
 
@@ -109,11 +119,11 @@ function main() {
                         'trigger+null+action': 1,
                         'trigger+query+null': 0.5,
                         'trigger+null+null': 1,
-                        'null+query+action': 2.5,
-                        'null+query+null': 1,
-                        'null+null+action': 3,
-                        'trigger+null+return': 6,
-                        'null+query+return': 6,
+                        'null+query+action': 3,
+                        'null+query+null': 2,
+                        'null+null+action': 6,
+                        'trigger+null+return': 8,
+                        'null+query+return': 8,
                         // null+null+null: 0
                     },
                     applyHeuristics: true,
@@ -131,15 +141,15 @@ function main() {
                     applyHeuristics: true,
                     allowUnsynthesizable: false,
                     samplingPolicy: 'uniform',
-                    filterClauseProbability: 0.2
+                    filterClauseProbability: 0.1
                 });
             }
             stream.on('data', (r) => {
                 //console.log('Rule #' + (i+1));
                 //i++;
                 ThingTalk.SEMPRESyntax.toSEMPRE(r);
-                if (r.isProgram)
-                    r.principal = new Ast.Value.Entity(uniform(['alice', 'bob', 'carol', 'dave']), 'tt:contact_name', null);
+                if (genSetup)
+                    r.principal = new Ast.Value.Entity(uniform(['ellie', 'frank', 'gabbie', 'henry']), 'tt:contact_name', null);
 
                 let code, description;
                 if (genPermissions) {
@@ -153,8 +163,10 @@ function main() {
                     description = ThingTalk.Describe.describeProgram(gettext, r, true);
                 }
 
-                if (false)
+                if (!genSetup)
                     description = postprocess(description);
+                else
+                    description = postprocessSetup(description, r.principal.value);
 
                 let newTuple = [makeId(), code, description];
                 if (turkFormat) {

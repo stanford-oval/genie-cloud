@@ -58,10 +58,11 @@ function parseAndTypecheck(isPermission, code, schemas) {
 }
 
 function main() {
-    const isPermission = false;
+    const isPermission = process.argv[3] === 'permissions';
     const typePrefix = process.argv[2];
     if (!typePrefix)
         throw new Error('Must specify the type of dataset (eg turking1 or policy2 or setup2)');
+    const testProbability = parseFloat(process.argv[4]) || 0.1;
 
     db.withTransaction((dbClient) => {
         let promises = [];
@@ -77,10 +78,10 @@ function main() {
                 let utterance = row[2];
                 let tt = row[3];
                 let testTrain;
-                if (coin(0.1))
-                    testTrain = 'test';
+                if (coin(testProbability))
+                    testTrain = '-test';
                 else
-                    testTrain = 'train';
+                    testTrain = '-train';
 
                 //if (tokenizer.tokenize(utterance).length < 3)
                 //    return;
