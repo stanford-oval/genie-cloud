@@ -68,7 +68,7 @@ Frontend.prototype._init = function _init() {
             redirect = false;
         // don't redirect /thingpedia/api because the client code
         // doesn't cope well
-        if (req.originalUrl.startsWith('/thingpedia/api'))
+        if (req.originalUrl.startsWith('/thingpedia/api') || req.originalUrl.startsWith('/api/webhook'))
             redirect = false;
         if (redirect) {
             res.redirect(301, 'https://thingpedia.stanford.edu' + req.originalUrl);
