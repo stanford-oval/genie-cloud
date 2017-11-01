@@ -63,11 +63,12 @@ class EngineManagerClient extends events.EventEmitter {
             }
             deleted = true;
         });
-        rpcSocket.on('error', () => {
-            // ignore the error, the socket will be closed soon and we'll deal with it
-        });
 
         var defer = Q.defer();
+        rpcSocket.on('error', (err) => {
+            // if we still can, catch the error early and fail the request
+            defer.reject(err);
+        });
         var initError = (msg) => {
             if (msg.error)
                 defer.reject(new Error(msg.error));
@@ -89,8 +90,11 @@ class EngineManagerClient extends events.EventEmitter {
                     };
                 }).done((obj) => defer.resolve(obj), (error) => defer.reject(error));
             },
+            error(message) {
+                defer.reject(new Error(message));
+            },
 
-            $rpcMethods: ['ready']
+            $rpcMethods: ['ready', 'error']
         };
         var replyId = rpcSocket.addStub(stub);
         jsonSocket.write({ control:'init', target: userId, replyId: replyId });
@@ -103,7 +107,7 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     dispatchWebhook(req, res) {
-        var userId = req.params.user_id;
+        var userId = parseInt(req.params.user_id);
         var id = req.params.id;
 
         this.getEngine(userId).then((engine) => {
