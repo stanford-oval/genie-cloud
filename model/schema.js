@@ -135,6 +135,7 @@ function processMetaRows(rows) {
                 id: row.id,
                 kind: row.kind,
                 kind_type: row.kind_type,
+                kind_canonical: row.kind_canonical,
                 owner: row.owner,
                 version: row.version,
                 developer_version: row.developer_version,
@@ -241,7 +242,7 @@ module.exports = {
 
     getCurrentSnapshotMeta(client, language) {
         return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
-                            + " argnames, argcanonicals, required, is_input, questions, ds.id, kind, kind_type, owner, dsc.version, developer_version,"
+                            + " argnames, argcanonicals, required, is_input, questions, ds.id, kind, kind_canonical, kind_type, owner, dsc.version, developer_version,"
                             + " approved_version from device_schema ds"
                             + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                             + " and dsc.version = ds.developer_version "
@@ -259,7 +260,7 @@ module.exports = {
 
     getSnapshotMeta(client, snapshotId, language) {
         return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
-                            + " argnames, argcanonicals, required, is_input, questions, ds.schema_id, kind, kind_type, owner, dsc.version, developer_version,"
+                            + " argnames, argcanonicals, required, is_input, questions, ds.schema_id, kind, kind_canonical, kind_type, owner, dsc.version, developer_version,"
                             + " approved_version from device_schema_snapshot ds"
                             + " left join device_schema_channels dsc on ds.schema_id = dsc.schema_id"
                             + " and dsc.version = ds.developer_version "

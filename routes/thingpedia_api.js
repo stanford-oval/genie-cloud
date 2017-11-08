@@ -317,12 +317,12 @@ router.get('/snapshot/:id', function(req, res) {
     db.withClient((dbClient) => {
         if (snapshotId >= 0) {
             if (getMeta)
-                return schemaModel.getSnapshotMeta(dbClient, snapshotId);
+                return schemaModel.getSnapshotMeta(dbClient, snapshotId, language);
             else
                 return schemaModel.getSnapshotTypes(dbClient, snapshotId);
         } else {
             if (getMeta)
-                return schemaModel.getCurrentSnapshotMeta(dbClient);
+                return schemaModel.getCurrentSnapshotMeta(dbClient, language);
             else
                 return schemaModel.getCurrentSnapshotTypes(dbClient);
         }
