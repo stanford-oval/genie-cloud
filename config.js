@@ -8,8 +8,9 @@
 
 // The location where icons and zip files are stored
 // This can be an absolute URI ending in cloudfront.net, which enables the
-// S3 storage backend, or a relative URI
-module.exports.S3_CLOUDFRONT_HOST = 'https://d1ge76rambtuys.cloudfront.net';
+// S3 storage backend, or the exact string "/download", which enables the
+// local storage backend
+module.exports.S3_CLOUDFRONT_HOST = '/download';
 module.exports.THINGENGINE_MANAGER_ADDRESS = './control';
 module.exports.THINGENGINE_DIRECT_ADDRESS = './direct';
 module.exports.BING_KEY = '76e02e969871428196e80ecfb364bf65';
