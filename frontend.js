@@ -56,35 +56,37 @@ Frontend.prototype._init = function _init() {
 
     this._app.use(logger('dev'));
 
-    this._app.use(function(req, res, next) {
-        let redirect = false;
-        if (req.headers['x-forwarded-proto'] === 'http')
-            redirect = true;
-        if (req.hostname !== 'thingpedia.stanford.edu')
-            redirect = true;
-        // don't redirect unless it's one of the stanford.edu hostnames
-        // (it's a health-check from the load balancer)
-        if (!req.hostname || !req.hostname.endsWith('.stanford.edu'))
-            redirect = false;
-        // don't redirect /thingpedia/api because the client code
-        // doesn't cope well
-        if (req.originalUrl.startsWith('/thingpedia/api'))
-            redirect = false;
-        if (redirect) {
-            res.redirect(301, 'https://thingpedia.stanford.edu' + req.originalUrl);
-            return;
-        }
-        next();
-    });
-    // security headers
-    this._app.use(function(req, res, next) {
-        res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-        //res.set('Content-Security-Policy', `default-src 'self'; connect-src 'self' https://*.stanford.edu ; font-src 'self' https://maxcdn.bootstrapcdn.com https://fonts.googleapis.com ; img-src * ; script-src 'self' https://code.jquery.com https://maxcdn.bootstrapcdn.com 'unsafe-inline' ; style-src 'self' https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com 'unsafe-inline'`);
-        res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        //res.set('X-Frame-Options', 'DENY');
-        res.set('X-Content-Type-Options', 'nosniff');
-        next();
-    });
+    if (Config.IS_PRODUCTION_THINGPEDIA) {
+        this._app.use(function(req, res, next) {
+            let redirect = false;
+            if (req.headers['x-forwarded-proto'] === 'http')
+                redirect = true;
+            if (req.hostname !== 'thingpedia.stanford.edu')
+                redirect = true;
+            // don't redirect unless it's one of the stanford.edu hostnames
+            // (it's a health-check from the load balancer)
+            if (!req.hostname || !req.hostname.endsWith('.stanford.edu'))
+                redirect = false;
+            // don't redirect /thingpedia/api because the client code
+            // doesn't cope well
+            if (req.originalUrl.startsWith('/thingpedia/api'))
+                redirect = false;
+            if (redirect) {
+                res.redirect(301, 'https://thingpedia.stanford.edu' + req.originalUrl);
+                return;
+            }
+            next();
+        });
+        // security headers
+        this._app.use(function(req, res, next) {
+            res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+            //res.set('Content-Security-Policy', `default-src 'self'; connect-src 'self' https://*.stanford.edu ; font-src 'self' https://maxcdn.bootstrapcdn.com https://fonts.googleapis.com ; img-src * ; script-src 'self' https://code.jquery.com https://maxcdn.bootstrapcdn.com 'unsafe-inline' ; style-src 'self' https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com 'unsafe-inline'`);
+            res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+            //res.set('X-Frame-Options', 'DENY');
+            res.set('X-Content-Type-Options', 'nosniff');
+            next();
+        });
+    }
 
     this._app.use(bodyParser.json());
     this._app.use(bodyParser.urlencoded({ extended: true }));
@@ -138,6 +140,8 @@ Frontend.prototype._init = function _init() {
     });
     this._app.use(function(req, res, next) {
         res.locals.S3_CLOUDFRONT_HOST = Config.S3_CLOUDFRONT_HOST;
+        res.locals.THINGPEDIA_URL = Config.THINGPEDIA_URL;
+        res.locals.WITH_THINGPEDIA = Config.WITH_THINGPEDIA;
         next();
     });
 
@@ -173,11 +177,13 @@ Frontend.prototype._init = function _init() {
         res.send('');
     });
 
-    // apis are CORS enabled always
-    this._app.use('/thingpedia/api', function(req, res, next) {
-        res.set('Access-Control-Allow-Origin', '*');
-        next();
-    });
+    if (Config.WITH_THINGPEDIA === 'embedded') {
+        // apis are CORS enabled always
+        this._app.use('/thingpedia/api', function(req, res, next) {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
+    }
 
     // mount /api before CSRF
     // as we don't need CSRF protection for that
@@ -185,14 +191,16 @@ Frontend.prototype._init = function _init() {
     this._app.use('/me/api/oauth2', require('./routes/oauth2'));
     this._app.use('/me/api', require('./routes/my_api'));
     this._app.use('/ws', require('./routes/thingengine_ws'));
-    this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
-    this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
-    // initialize csurf after /upload too
-    // because upload uses multer, which is incompatible
-    // with csurf
-    // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
-    this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
-    this._app.use('/thingpedia/apps', require('./routes/thingpedia_app_upload'));
+    if (Config.WITH_THINGPEDIA === 'embedded') {
+        this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
+        this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
+        // initialize csurf after /upload too
+        // because upload uses multer, which is incompatible
+        // with csurf
+        // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
+        this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
+        this._app.use('/thingpedia/apps', require('./routes/thingpedia_app_upload'));
+    }
 
     this._app.use(csurf({ cookie: false }));
     this._app.use('/', require('./routes/index'));
@@ -203,15 +211,17 @@ Frontend.prototype._init = function _init() {
     this._app.use('/me/status', require('./routes/status'));
     this._app.use('/devices', require('./routes/devices_compat'));
 
-    this._app.use('/thingpedia/examples', require('./routes/thingpedia_examples'));
-    this._app.use('/thingpedia/apps', require('./routes/thingpedia_apps'));
-    this._app.use('/thingpedia/training', require('./routes/train_almond'));
-    this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
-    this._app.use('/thingpedia/schemas', require('./routes/thingpedia_schemas'));
-    this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
-    this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
-    this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
-    this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
+    if (Config.WITH_THINGPEDIA === 'embedded') {
+        this._app.use('/thingpedia/examples', require('./routes/thingpedia_examples'));
+        this._app.use('/thingpedia/apps', require('./routes/thingpedia_apps'));
+        this._app.use('/thingpedia/training', require('./routes/train_almond'));
+        this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
+        this._app.use('/thingpedia/schemas', require('./routes/thingpedia_schemas'));
+        this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
+        this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
+        this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
+        this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
+    }
     this._app.use('/user', require('./routes/user'));
     this._app.use('/admin', require('./routes/admin'));
     this._app.use('/omlet', require('./routes/omlet'));

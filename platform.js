@@ -105,7 +105,7 @@ module.exports = {
     getOrigin: function() {
         // Xor these comments for testing
         //return 'http://127.0.0.1:8080';
-        return 'https://thingengine.stanford.edu';
+        return 'https://thingpedia.stanford.edu';
     },
 
     setAuthToken: function(authToken) {

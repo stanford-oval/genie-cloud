@@ -22,6 +22,8 @@ const Assistant = require('./assistant');
 const graphics = require('./graphics');
 const i18n = require('../util/i18n');
 
+const Config = require('../config');
+
 var _unzipApi = {
     unzip(zipPath, dir) {
         var args = ['-uo', zipPath, '-d', dir];
@@ -215,8 +217,10 @@ class Platform {
             // will back with a Almond account)
             return true;
 
-        case 'graphics-api':
         case 'thingpedia-client':
+            return Config.WITH_THINGPEDIA === 'embedded';
+
+        case 'graphics-api':
         case 'webhook-api':
         case 'websocket-api':
             return true;

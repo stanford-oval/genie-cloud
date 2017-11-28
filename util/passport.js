@@ -35,7 +35,7 @@ var GOOGLE_CLIENT_SECRET = 'qeNdAMaIF_9wUy6XORABCIKE';
 var FACEBOOK_APP_SECRET = '770b8df05b487cb44261e7701a46c549';
 
 function hashPassword(salt, password) {
-    return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32)
+    return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
         .then(function(buffer) {
             return buffer.toString('hex');
         });

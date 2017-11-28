@@ -13,7 +13,7 @@ const model = require('../model/user');
 const oauth2 = require('../model/oauth2');
 
 function hashPassword(salt, password) {
-    return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32)
+    return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
         .then(function(buffer) {
             return buffer.toString('hex');
         });
