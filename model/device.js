@@ -32,8 +32,8 @@ function insertKinds(client, deviceId, extraKinds, extraChildKinds) {
 }
 
 function create(client, device, extraKinds, extraChildKinds, code) {
-    var KEYS = ['primary_kind', 'global_name', 'owner', 'name', 'description', 'fullcode', 'module_type',
-                'approved_version', 'developer_version'];
+    var KEYS = ['primary_kind', 'owner', 'name', 'description', 'fullcode', 'module_type',
+                'category', 'subcategory', 'approved_version', 'developer_version'];
     KEYS.forEach(function(key) {
         if (device[key] === undefined)
             device[key] = null;
@@ -123,17 +123,13 @@ module.exports = {
 
     getByFuzzySearch: function(client, tag) {
         var pctag = '%' + tag + '%';
-        return db.selectAll(client, "(select 0 as weight, d.* from device_class d where primary_kind = ? or"
-                                + " global_name = ?) union "
+        return db.selectAll(client, "(select 0 as weight, d.* from device_class d where primary_kind = ?) union "
                                 + " (select 1, d.* from device_class d where name like ? or description like ?)"
                                 + " union "
                                 + " (select 2, d.* from device_class d, device_class_kind dk "
                                 + " where dk.device_id = d.id and dk.kind = ?)"
-                                + " union "
-                                + " (select 3, d.* from device_class d, device_class_tag dct "
-                                + " where dct.device_id = d.id and dct.tag = ?)"
                                 + " order by weight asc, name asc limit 20",
-                                [tag, tag, pctag, pctag, tag, tag]);
+                                [tag, pctag, pctag, tag]);
     },
 
     getCodeByVersion: function(client, id, version) {
@@ -146,10 +142,45 @@ module.exports = {
     },
 
     getByAnyKind: function(client, kind) {
-        return db.selectAll(client, "select * from device_class where primary_kind = ? or "
-                            + "global_name = ? union "
+        return db.selectAll(client, "select * from device_class where primary_kind = ? union "
                             + "(select d.* from device_class d, device_class_kind dk "
-                            + "where dk.device_id = d.id and dk.kind = ? and not dk.is_child)", [kind, kind, kind]);
+                            + "where dk.device_id = d.id and dk.kind = ? and not dk.is_child)", [kind, kind]);
+    },
+
+    getByCategory: function(client, category, org) {
+        if (org !== null && org.is_admin) {
+            return db.selectAll(client, "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and category = ? "
+                + "and d.developer_version = dcv.version order by name", [category]);
+        } else if (org !== null) {
+            return db.selectAll(client, "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "((dcv.version = d.developer_version and d.owner = ?) or "
+                + " (dcv.version = d.approved_version and d.owner <> ?)) "
+                + "and category = ? order by name", [org.id, org.id, category]);
+        } else {
+            return db.selectAll(client, "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "dcv.version = d.approved_version and category = ? order by name", [category]);
+        }
+    },
+
+    getBySubcategory: function(client, category, org) {
+        if (org !== null && org.is_admin) {
+            return db.selectAll(client, "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and subcategory = ? "
+                + "and d.developer_version = dcv.version order by name", [category]);
+        } else if (org !== null) {
+            return db.selectAll(client, "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "((dcv.version = d.developer_version and d.owner = ?) or "
+                + " (dcv.version = d.approved_version and d.owner <> ?)) "
+                + "and subcategory = ? order by name", [org.id, org.id, category]);
+        } else {
+            return db.selectAll(client, "select d.*, dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "dcv.version = d.approved_version and subcategory = ? order by name", [category]);
+        }
     },
 
     getByTag: function(client, tag) {
@@ -327,21 +358,21 @@ module.exports = {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.developer_version and "
-                + "(d.global_name in (?) or d.primary_kind in (?))";
-            return db.selectAll(client, query, [names, names]);
+                + "d.primary_kind in (?)";
+            return db.selectAll(client, query, [names]);
         } else if (org !== null) {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) and "
-                + "(d.global_name in (?) or d.primary_kind in (?))";
-            return db.selectAll(client, query, [org.id, org.id, names, names]);
+                + "d.primary_kind in (?)";
+            return db.selectAll(client, query, [org.id, org.id, names]);
         } else {
             var query = "select d.*, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and "
-                + "(d.global_name in (?) or d.primary_kind in (?))";
-            return db.selectAll(client, query, [names, names]);
+                + "d.primary_kind in (?)";
+            return db.selectAll(client, query, [names]);
         }
     }
 }

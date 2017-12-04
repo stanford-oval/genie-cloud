@@ -53,6 +53,8 @@ class ThingpediaDiscoveryDatabase {
 
 var _discoveryServer = new ThingpediaDiscovery.Server(new ThingpediaDiscoveryDatabase());
 
+const CATEGORIES = new Set(['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management']);
+
 module.exports = class ThingpediaClientCloud {
     constructor(developerKey, locale) {
         this.developerKey = developerKey;
@@ -115,25 +117,8 @@ module.exports = class ThingpediaClientCloud {
         var developerKey = this.developerKey;
         var newApi = apiVersion >= 2;
 
-        if (newApi) {
-            if (kind === 'org.thingpedia.builtin.thingengine' ||
-                kind === 'org.thingpedia.builtin.sabrina' ||
-                kind === 'org.thingpedia.builtin.graphdb') {
-                // legacy devices and failed experiments that we don't want to put
-                // in thingpedia because they would just confuse everything
-
-                return Q({
-                    module_type: 'org.thingpedia.builtin',
-                    version: 0,
-                    developer: false,
-                    types: ['thingengine-system'],
-                    child_types: [],
-                    triggers: {},
-                    queries: {},
-                    actions: {}
-                });
-            }
-        }
+        if (!newApi)
+            return Q.reject(new Error('API version 1 is no longer supported'));
 
         return db.withClient(function(dbClient) {
             return Q.try(function() {
@@ -158,14 +143,6 @@ module.exports = class ThingpediaClientCloud {
                     ast.developer = true;
                 else
                     ast.developer = false;
-                if (newApi && !ast.module_type) {
-                    if (kind.startsWith('org.thingpedia.builtin.'))
-                        ast.module_type = 'org.thingpedia.builtin';
-                    else if (!dev.fullcode)
-                        ast.module_type = 'org.thingpedia.v1';
-                    else
-                        ast.module_type = 'org.thingpedia.legacy_generic';
-                }
                 return ast;
             });
         });
@@ -174,6 +151,8 @@ module.exports = class ThingpediaClientCloud {
     getSchemas(schemas, apiVersion) {
         var developerKey = this.developerKey;
         apiVersion = apiVersion || 1;
+        if (apiVersion < 2)
+            return Q.reject(new Error('API version 1 is no longer supported'));
 
         return db.withClient(function(dbClient) {
             return Q.try(function() {
@@ -185,10 +164,7 @@ module.exports = class ThingpediaClientCloud {
                 var org = null;
                 if (orgs.length > 0)
                     org = orgs[0];
-                if (apiVersion >= 2)
-                    return schema.getTypesAndNamesByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null);
-                else
-                    return schema.getTypesByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null);
+                return schema.getTypesAndNamesByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null);
             }).then(function(rows) {
                 var obj = {};
 
@@ -264,7 +240,6 @@ module.exports = class ThingpediaClientCloud {
 
     getDeviceFactories(klass) {
         var developerKey = this.developerKey;
-        var categories = ['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management'];
 
         return db.withClient((dbClient) => {
             return Q.try(() => {
@@ -279,22 +254,12 @@ module.exports = class ThingpediaClientCloud {
 
                 var devices;
                 if (klass) {
-                    if (klass === 'online')
-                        devices = device.getAllApprovedWithKindWithCode(dbClient,
-                                                                        'online-account',
-                                                                        org);
-                    else if (klass === 'data')
-                        devices = device.getAllApprovedWithKindWithCode(dbClient,
-                                                                        'data-source',
-                                                                        org);
-                    else if (categories.indexOf(klass) !== -1)
-                        devices = device.getAllApprovedWithKindWithCode(dbClient,
-                                                                        klass,
-                                                                        org);
+                    if (['online','physical','data','system'].indexOf(klass) >= 0)
+                        devices = device.getByCategory(dbClient, klass, org);
+                    else if (CATEGORIES.has(klass))
+                        devices = device.getBySubcategory(dbClient, klass, org);
                     else
-                        devices = device.getAllApprovedWithoutKindsWithCode(dbClient,
-                                                                            ['online-account','data-source'],
-                                                                            org);
+                        devices = Q.reject(new Error("Invalid class parameter"));
                 } else {
                     devices = device.getAllApprovedWithCode(dbClient, org);
                 }

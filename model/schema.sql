@@ -102,8 +102,12 @@ create table device_class (
     description text not null collate utf8_general_ci,
     fullcode boolean not null default false,
     module_type varchar(64) not null,
+    category enum('physical','online','data','system') not null default 'physical',
+    subcategory enum('service','media','social-network','communication','home','health','data-management') not null default 'service',
     approved_version integer(11) default null,
     developer_version integer(11) not null default 0,
+    key (category),
+    key (subcategory),
     foreign key (owner) references organizations(id) on update cascade on delete cascade,
     constraint version check (approved_version is null or developer_version >= approved_version)
 ) collate = utf8_bin;
@@ -111,8 +115,8 @@ create table device_class (
 create table device_schema (
     id integer auto_increment primary key,
     kind varchar(128) unique not null,
+    kind_type enum('primary','app','category','discovery','other') not null default 'other',
     kind_canonical varchar(128) not null collate utf8_general_ci,
-    kind_type enum('primary', 'global', 'other') not null default 'other',
     owner integer not null,
     developer_version integer(11) not null default 0,
     approved_version integer(11) default null,
@@ -175,6 +179,7 @@ create table example_utterances (
     type enum('thingpedia', 'ifttt', 'online', 'test', 'other') not null default 'other',
     utterance text not null collate utf8_general_ci,
     target_json text not null,
+    target_code text not null,
     click_count integer not null default 0,
     key(schema_id),
     fulltext key(utterance)
