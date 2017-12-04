@@ -106,12 +106,9 @@ $(function() {
                     }
                 }
             },
-            examples: {
-                type: 'array',
-                title: 'Example Commands',
-                items: {
-                    type: 'string',
-                }
+            poll_interval: {
+                type: 'number',
+                title: 'Polling Interval'
             },
             url: {
                 type: 'string',
@@ -124,11 +121,6 @@ $(function() {
                 title: 'Is it a webhook?',
                 required: false,
             },
-            'poll-interval': {
-                type: 'number',
-                title: 'Polling Interval',
-                required: false,
-            }
         }
     };
     var fullSchema = {
@@ -156,11 +148,6 @@ $(function() {
                 title: "User visible description",
                 required: false,
             },
-            'global-name': {
-                type: 'string',
-                title: "Global Name",
-                required: false
-            },
             params: {
                 type: 'object',
                 title: "Configuration Parameters",
@@ -176,6 +163,22 @@ $(function() {
                           'enum': ['text', 'password', 'email', 'number'],
                           headerTemplate: '{{title}}' }
                     ]
+                }
+            },
+            category: {
+                type: 'string',
+                title: "Category",
+                'enum': ['physical', 'online', 'data', 'system'],
+                options: {
+                    enum_titles: ['Physical Device', 'Online Account', 'Public Data Source', 'System Component']
+                }
+            },
+            subcategory: {
+                type: 'string',
+                title: "Device Domain",
+                'enum': ['service','media','social-network','communication','home','health','data-management'],
+                options: {
+                    enum_titles: ['Service', 'Media', 'Social Network', 'Communication', 'Home', 'Health & Fitness', 'Data Management']
                 }
             },
             types: {
@@ -230,7 +233,25 @@ $(function() {
                 type: 'object',
                 title: "Queries",
                 additionalProperties: ttSchema
-            }
+            },
+            examples: {
+                type: 'array',
+                title: 'Example Commands',
+                items: {
+                    type: 'object',
+                    title: 'Example',
+                    properties: {
+                        sentence: {
+                            type: 'string',
+                            title: 'Sentence'
+                        },
+                        program: {
+                            type: 'string',
+                            title: 'Program'
+                        }
+                    }
+                }
+            },
         }
     };
     var editor = new JSONEditor(element, {

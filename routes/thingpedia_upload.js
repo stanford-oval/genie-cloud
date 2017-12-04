@@ -23,6 +23,8 @@ var Validation = require('../util/validation');
 var generateExamples = require('../util/generate_examples');
 var ManifestToSchema = require('../util/manifest_to_schema');
 
+const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9\_]+))?})/;
+
 var router = express.Router();
 
 router.use(multer({ dest: platform.getTmpDir() }).fields([
@@ -81,6 +83,10 @@ function validateSchema(dbClient, type, ast, req) {
     });
 }
 
+const CATEGORIES = new Set(['physical','data','online','system']);
+const CATEGORY_TYPES = new Set(['data-source', 'online-account', 'thingengine-system']);
+const SUBCATEGORIES = new Set(['service','media','social-network','communication','home','health','data-management']);
+
 function validateDevice(dbClient, req) {
     var name = req.body.name;
     var description = req.body.description;
@@ -107,12 +113,21 @@ function validateDevice(dbClient, req) {
         throw new Error(req._("Invalid authentication type"));
     if (ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
         throw new Error(req._("Username and password must be declared for basic authentication"));
+    if (!CATEGORIES.has(ast.category))
+        throw new Error(req._("Invalid category %s").format(ast.category));
+    if (!SUBCATEGORIES.has(ast.subcategory))
+        throw new Error(req._("Invalid device domain %s").format(ast.subcategory));
     //if (ast.auth.type === 'oauth2' && !ast.auth.client_id && !ast.auth.client_secret)
     //    throw new Error(req._("Client ID and Client Secret must be provided for OAuth 2 authentication"));
-    if (ast.types.indexOf('online-account') >= 0 && ast.types.indexOf('data-source') >= 0)
-        throw new Error(req._("Interface cannot be both marked online-account and data-source"));
+    ast.types = ast.types.filter((t) => {
+        return !CATEGORY_TYPES.has(t) && !SUBCATEGORIES.has(t);
+    });
+    ast.child_types.forEach((t) => {
+        if (CATEGORY_TYPES.has(t) || SUBCATEGORIES.has(t))
+            throw new Error(req._("Cannot specify category %s as child type").format(t));
+    });
     if (ast['global-name'])
-        Validation.validateKind(ast['global-name'], 'global name');
+        throw new Error(req._("Global names are obsolete, remove them"));
 
     if (!/^[a-zA-Z0-9_\.]+$/.test(kind))
         throw new Error(req._("Invalid primary kind, must use alphanumeric characters, underscore and period only."));
@@ -145,6 +160,31 @@ function validateDevice(dbClient, req) {
     });
 }
 
+function cleanKind(kind) {
+    // convert security-camera to 'security camera' and googleDrive to 'google drive'
+
+    // thingengine.phone -> phone
+    if (kind.startsWith('org.thingpedia.builtin.thingengine.'))
+        kind = kind.substr('org.thingpedia.builtin.thingengine.'.length);
+    // org.thingpedia.builtin.omlet -> omlet
+    if (kind.startsWith('org.thingpedia.builtin.'))
+        kind = kind.substr('org.thingpedia.builtin.'.length);
+    // org.thingpedia.weather -> weather
+    if (kind.startsWith('org.thingpedia.'))
+        kind = kind.substr('org.thingpedia.'.length);
+    // com.xkcd -> xkcd
+    if (kind.startsWith('com.'))
+        kind = kind.substr('com.'.length);
+    if (kind.startsWith('gov.'))
+        kind = kind.substr('gov.'.length);
+    if (kind.startsWith('org.'))
+        kind = kind.substr('org.'.length);
+    if (kind.startsWith('uk.co.'))
+        kind = kind.substr('uk.co.'.length);
+
+    return kind.replace(/[_\-\.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase()
+}
+
 function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve) {
     return schema.getByKind(dbClient, kind).then(function(existing) {
         var obj = {};
@@ -160,11 +200,9 @@ function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve)
                              existing.id, existing.kind, obj,
                              types, meta);
     }).catch(function(e) {
-        console.error(e.stack);
         var obj = {
             kind: kind,
-            // convert security-camera to 'security camera' and googleDrive to 'google drive'
-            kind_canonical: kind_type === 'primary' ? '' : kind.replace(/[_\-]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase(),
+            kind_canonical: cleanKind(kind),
             kind_type: kind_type,
             owner: req.user.developer_org
         };
@@ -185,12 +223,7 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
     var types = res[0];
     var meta = res[1];
 
-    return getOrCreateSchema(dbClient, kind, 'primary', types, meta, req, approve).then(function() {
-        if (!ast['global-name'])
-            return;
-
-        return getOrCreateSchema(dbClient, ast['global-name'], 'global', types, meta, req, approve);
-    });
+    return getOrCreateSchema(dbClient, kind, 'primary', types, meta, req, approve);
 }
 
 function ensureExamples(dbClient, kind, ast) {
@@ -198,12 +231,6 @@ function ensureExamples(dbClient, kind, ast) {
 }
 
 function uploadZipFile(req, obj, ast, stream) {
-    var cleanedMetadata = {
-        auth: ast.auth,
-        types: ast.types,
-        child_types: ast.child_types,
-        'global-name': ast['global-name']
-    };
     var zipFile = new JSZip();
 
     return Q.try(function() {
@@ -242,7 +269,6 @@ function uploadZipFile(req, obj, ast, stream) {
             throw new Error(req._("Invalid package.json (missing name or main)"));
 
         parsed['thingpedia-version'] = obj.developer_version;
-        parsed['thingpedia-metadata'] = cleanedMetadata;
 
         zipFile.file('package.json', JSON.stringify(parsed));
 
@@ -301,19 +327,17 @@ function doCreateOrUpdate(id, create, req, res) {
 
                 var extraKinds = ast.types;
                 var extraChildKinds = ast.child_types;
-                var globalName = ast['global-name'];
-                if (!globalName)
-                    globalName = null;
 
                 var fullcode = ast.module_type !== 'org.thingpedia.v1' && ast.module_type !== 'org.thingpedia.builtin';
 
                 var obj = {
                     primary_kind: kind,
-                    global_name: globalName,
                     name: name,
                     description: description,
                     fullcode: fullcode,
                     module_type: ast.module_type,
+                    category: ast.category,
+                    subcategory: ast.subcategory,
                 };
                 var code = JSON.stringify(ast);
                 gAst = ast;
@@ -414,6 +438,109 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(), function(req,
     doCreateOrUpdate(undefined, true, req, res);
 });
 
+function legacyCreateExample(sentence, kind, function_name, function_type, function_obj) {
+    let inargmap = {};
+    let outargmap = {};
+    for (let arg of function_obj.args) {
+        if (arg.is_input)
+            inargmap[arg.name] = arg.type;
+        else
+            outargmap[arg.name] = arg.type;
+    }
+
+    let regexp = new RegExp(PARAM_REGEX, 'g');
+
+    let in_args = '';
+    let filter = '';
+    let arg_decl = '';
+    let any_arg = false;
+    let any_in_arg = false;
+    let any_out_arg = false;
+
+    let match = regexp.exec(sentence);
+    while (match !== null) {
+        let [_, param1, param2, option] = match;
+        let param = param1 || param2;
+
+        if (param in inargmap) {
+            let type = inargmap[param];
+            if (any_in_arg)
+                in_args += ', ';
+            if (any_arg)
+                arg_decl += ', ';
+            in_args += `${param}=p_${param}`;
+            arg_decl += `p_${param} :${type}`;
+            any_in_arg = true;
+            any_arg = true;
+        } else {
+            let type = outargmap[param];
+            if (any_out_arg)
+                filter += ' && ';
+            if (any_arg)
+                arg_decl += ', ';
+            filter += `${param} == p_${param}`;
+            arg_decl += `p_${param} :${type}`;
+            any_out_arg = true;
+            any_arg = true;
+        }
+
+        match = regexp.exec(sentence);
+    }
+
+    let result = `@${kind}.${function_name}(${in_args})`;
+    if (filter !== '')
+        result += `, ${filter}`;
+    if (function_type === 'triggers')
+        result = `let stream x = \\(${arg_decl}) -> monitor ${result}`;
+    else if (function_type === 'queries')
+        result = `let table x = \\(${arg_decl}) -> ${result}`;
+    else
+        result = `let action x = \\(${arg_decl}) -> ${result}`;
+    return { utterance: utterance, program: result };
+}
+
+function migrateManifest(code, device) {
+    let ast = JSON.parse(code);
+
+    delete ast.global_name;
+    delete ast['global-name'];
+    ast.category = device.category;
+    ast.subcategory = device.subcategory;
+
+    ast.types = (ast.types || []).filter((t) => {
+        if (CATEGORY_TYPES.has(t) || SUBCATEGORIES.has(t))
+            return false;
+        return true;
+    });
+    ast.child_types = ast.child_types || [];
+
+    if (!ast.examples) {
+        ast.examples = [];
+
+        for (let function_type of ['triggers','queries','actions']) {
+            for (let function_name in ast[function_type]) {
+                let function_obj = ast[function_type][function_name];
+
+                for (let example of (function_obj.examples || []))
+                    ast.examples.push(legacyCreateExample(example, device.primary_kind, function_name, function_type, function_obj));
+                delete function_obj.examples;
+            }
+        }
+    }
+
+    for (let function_type of ['triggers','queries']) {
+        for (let function_name in ast[function_type]) {
+            let function_obj = ast[function_type][function_name];
+
+            if (!('poll_interval' in function_obj))
+                function_obj.poll_interval = function_obj['poll-interval'] || -1;
+            delete function_obj['poll-interval'];
+        }
+    }
+
+    return JSON.stringify(ast);
+}
+
 router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
     Q.try(function() {
         return db.withClient(function(dbClient) {
@@ -423,7 +550,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                     throw new Error(req._("Not Authorized"));
 
                 return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then(function(row) {
-                    d.code = row.code;
+                    d.code = migrateManifest(row.code, d);
                     return d;
                 });
             }).then(function(d) {

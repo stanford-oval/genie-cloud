@@ -53,13 +53,6 @@ $(function() {
             canonical: {
                 type: 'string',
                 title: 'Canonical Form',
-            },
-            examples: {
-                type: 'array',
-                title: 'Example Commands',
-                items: {
-                    type: 'string',
-                }
             }
         }
     };
@@ -81,7 +74,25 @@ $(function() {
                 type: 'object',
                 title: "Queries",
                 additionalProperties: ttSchema
-            }
+            },
+            examples: {
+                type: 'array',
+                title: 'Example Commands',
+                items: {
+                    type: 'object',
+                    title: 'Example',
+                    properties: {
+                        sentence: {
+                            type: 'string',
+                            title: 'Sentence'
+                        },
+                        program: {
+                            type: 'string',
+                            title: 'Program'
+                        }
+                    }
+                }
+            },
         }
     };
     var editor = new JSONEditor(element, {
