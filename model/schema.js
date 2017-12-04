@@ -122,6 +122,7 @@ function update(client, id, kind, schema, types, meta) {
         }).then(function() {
             return insertChannels(client, id, kind, schema.kind_type, schema.developer_version, 'en', types, meta);
         }).then(function() {
+            schema.id = id;
             return schema;
         });
 }

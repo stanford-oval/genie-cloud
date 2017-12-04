@@ -82,9 +82,9 @@ $(function() {
                     type: 'object',
                     title: 'Example',
                     properties: {
-                        sentence: {
+                        utterance: {
                             type: 'string',
-                            title: 'Sentence'
+                            title: 'Utterance'
                         },
                         program: {
                             type: 'string',

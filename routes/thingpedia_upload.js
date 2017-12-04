@@ -19,6 +19,7 @@ var code_storage = require('../util/code_storage');
 var model = require('../model/device');
 var schema = require('../model/schema');
 var user = require('../util/user');
+var exampleModel = require('../model/example');
 var Validation = require('../util/validation');
 var generateExamples = require('../util/generate_examples');
 var ManifestToSchema = require('../util/manifest_to_schema');
@@ -33,7 +34,7 @@ router.use(multer({ dest: platform.getTmpDir() }).fields([
 ]));
 router.use(csurf({ cookie: false }));
 
-const DEFAULT_CODE = {"module_type": "org.thingpedia.v1",
+const DEFAULT_CODE = {"module_type": "org.thingpedia.v2",
                       "params": {},
                       "auth": {"type": "none"},
                       "types": [],
@@ -86,6 +87,8 @@ function validateSchema(dbClient, type, ast, req) {
 const CATEGORIES = new Set(['physical','data','online','system']);
 const CATEGORY_TYPES = new Set(['data-source', 'online-account', 'thingengine-system']);
 const SUBCATEGORIES = new Set(['service','media','social-network','communication','home','health','data-management']);
+const ALLOWED_MODULE_TYPES = new Set(['org.thingpedia.v2', 'org.thingpedia.v1', 'org.thingpedia.rss', 'org.thingpedia.rest_json', 'org.thingpedia.builtin', 'org.thingpedia.generic_rest.v1']);
+const JAVASCRIPT_MODULE_TYPES = new Set(['org.thingpedia.v1', 'org.thingpedia.v2', 'org.thingpedia.builtin']);
 
 function validateDevice(dbClient, req) {
     var name = req.body.name;
@@ -97,9 +100,9 @@ function validateDevice(dbClient, req) {
         throw new Error(req._("Not all required fields were presents"));
 
     var ast = JSON.parse(code);
-    if (!ast.module_type)
+    if (!ast.module_type || !ALLOWED_MODULE_TYPES.has(ast.module_type))
         throw new Error(req._("Invalid module type"));
-    var fullcode = ast.module_type !== 'org.thingpedia.v1' && ast.module_type !== 'org.thingpedia.builtin';
+    var fullcode = !JAVASCRIPT_MODULE_TYPES.has(ast.module_type);
 
     if (!ast.params)
         ast.params = {};
@@ -153,11 +156,9 @@ function validateDevice(dbClient, req) {
         }
     }
 
-    return Q.all(ast.types.map(function(type) {
+    return Q.all(ast.types.map((type) => {
         return validateSchema(dbClient, type, ast, req);
-    })).then(function() {
-        return ast;
-    });
+    })).then(() => ast);
 }
 
 function cleanKind(kind) {
@@ -185,21 +186,25 @@ function cleanKind(kind) {
     return kind.replace(/[_\-\.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase()
 }
 
-function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve) {
-    return schema.getByKind(dbClient, kind).then(function(existing) {
-        var obj = {};
+function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
+    const [types, meta] = ManifestToSchema.toSchema(ast);
+
+    return schema.getByKind(dbClient, kind).then((existing) => {
         if (existing.owner !== req.user.developer_org &&
             req.user.developer_status < user.DeveloperStatus.ADMIN)
             throw new Error(req._("Not Authorized"));
 
-        obj.developer_version = existing.developer_version + 1;
+        var obj = {
+            kind_canonical: cleanKind(kind),
+            developer_version: existing.developer_version + 1
+        };
         if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER && approve)
             obj.approved_version = obj.developer_version;
 
         return schema.update(dbClient,
                              existing.id, existing.kind, obj,
                              types, meta);
-    }).catch(function(e) {
+    }, (e) => {
         var obj = {
             kind: kind,
             kind_canonical: cleanKind(kind),
@@ -215,19 +220,28 @@ function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve)
             obj.developer_version = 0;
         }
         return schema.create(dbClient, obj, types, meta);
+    }).then((schema) => {
+        return ensureExamples(dbClient, schema.id, ast);
     });
 }
 
-function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
-    var res = ManifestToSchema.toSchema(ast);
-    var types = res[0];
-    var meta = res[1];
+function ensureExamples(dbClient, schemaId, ast) {
+    // FIXME
+    //return generateExamples(dbClient, kind, ast);
 
-    return getOrCreateSchema(dbClient, kind, 'primary', types, meta, req, approve);
-}
-
-function ensureExamples(dbClient, kind, ast) {
-    return generateExamples(dbClient, kind, ast);
+    return exampleModel.deleteBySchema(dbClient, schemaId, 'en').then(() => {
+        let examples = ast.examples.map((ex) => {
+            return ({
+                schema_id: schemaId,
+                utterance: ex.utterance,
+                target_code: ex.program,
+                target_json: '', // FIXME
+                type: 'thingpedia',
+                language: 'en'
+            });
+        });
+        return exampleModel.createMany(dbClient, examples);
+    });
 }
 
 function uploadZipFile(req, obj, ast, stream) {
@@ -313,14 +327,9 @@ function doCreateOrUpdate(id, create, req, res) {
                 return null;
             }).tap(function(ast) {
                 if (ast === null)
-                    return;
+                    return null;
 
                 return ensurePrimarySchema(dbClient, kind, ast, req, approve);
-            }).tap(function(ast) {
-                if (ast === null)
-                    return;
-
-                return ensureExamples(dbClient, kind, ast);
             }).then(function(ast) {
                 if (ast === null)
                     return null;
@@ -328,7 +337,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 var extraKinds = ast.types;
                 var extraChildKinds = ast.child_types;
 
-                var fullcode = ast.module_type !== 'org.thingpedia.v1' && ast.module_type !== 'org.thingpedia.builtin';
+                var fullcode = !JAVASCRIPT_MODULE_TYPES.has(ast.module_type);
 
                 var obj = {
                     primary_kind: kind,
@@ -383,8 +392,6 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (obj.fullcode || gAst.module_type == 'org.thingpedia.builtin')
                     return obj.primary_kind;
 
-                // do the whole zip file dance asynchronously, or the request will stall for a long time
-                // as we download the old file, modify it and reupload it
                 var stream;
                 if (req.files && req.files.zipfile && req.files.zipfile.length)
                     stream = fs.createReadStream(req.files.zipfile[0].path);
@@ -438,7 +445,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(), function(req,
     doCreateOrUpdate(undefined, true, req, res);
 });
 
-function legacyCreateExample(sentence, kind, function_name, function_type, function_obj) {
+function legacyCreateExample(utterance, kind, function_name, function_type, function_obj) {
     let inargmap = {};
     let outargmap = {};
     for (let arg of function_obj.args) {
@@ -457,7 +464,7 @@ function legacyCreateExample(sentence, kind, function_name, function_type, funct
     let any_in_arg = false;
     let any_out_arg = false;
 
-    let match = regexp.exec(sentence);
+    let match = regexp.exec(utterance);
     while (match !== null) {
         let [_, param1, param2, option] = match;
         let param = param1 || param2;
@@ -484,7 +491,7 @@ function legacyCreateExample(sentence, kind, function_name, function_type, funct
             any_arg = true;
         }
 
-        match = regexp.exec(sentence);
+        match = regexp.exec(utterance);
     }
 
     let result = `@${kind}.${function_name}(${in_args})`;

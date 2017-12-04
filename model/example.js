@@ -10,7 +10,7 @@ const db = require('../util/db');
 const Q = require('q');
 
 function createMany(client, examples) {
-    var KEYS = ['schema_id', 'is_base', 'language', 'utterance', 'target_json', 'type', 'click_count'];
+    var KEYS = ['schema_id', 'is_base', 'language', 'utterance', 'target_json', 'target_code', 'type', 'click_count'];
     var arrays = [];
     examples.forEach(function(ex) {
         if (!ex.type)

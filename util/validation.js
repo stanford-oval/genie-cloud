@@ -26,9 +26,8 @@ module.exports = {
                 throw new Error('Missing canonical form for ' + name);
             if (!where[name].confirmation)
                 throw new Error('Missing confirmation for ' + name);
-            //if (!where[name].examples || where[name].examples.length === 0)
-            //    throw new Error('Must include at least one example in ' + name);
-            if (!where[name].examples) where[name].examples = [];
+            if (where[name].examples)
+                throw new Error('Examples should be at the toplevel, not under ' + name);
             where[name].doc = where[name].doc || '';
             where[name].args = where[name].args || [];
 
@@ -56,14 +55,17 @@ module.exports = {
     },
 
     validateAllInvocations(ast) {
-        if (!ast.triggers)
-            ast.triggers = {};
         if (!ast.actions)
             ast.actions = {};
         if (!ast.queries)
             ast.queries = {};
-        this.validateInvocation(ast.triggers, 'trigger');
+        if (ast.triggers && Object.keys(ast.triggers).length > 0)
+            throw new Error("Triggers don't exist any more, delete all of them");
+
         this.validateInvocation(ast.actions, 'action');
         this.validateInvocation(ast.queries, 'query');
+
+        if (!ast.examples)
+            ast.examples = [];
     }
 }
