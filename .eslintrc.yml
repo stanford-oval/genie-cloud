@@ -1,0 +1,52 @@
+env:
+  es6: true
+  node: true
+extends: 'eslint:recommended'
+rules:
+  indent: off
+  no-console: off
+  no-fallthrough: off
+  linebreak-style:
+    - error
+    - unix
+  semi:
+    - error
+    - always
+  consistent-return: warn
+  curly:
+    - error
+    - multi-or-nest
+    - consistent
+  eqeqeq:
+    - error
+    - always
+  no-unused-vars:
+    - error
+    -
+      args: none
+  no-case-declarations: warn
+  no-eval: error
+  no-proto: error
+  no-sequences: error
+  no-throw-literal: error
+  no-unmodified-loop-condition: warn
+  no-useless-call: warn
+  no-useless-return: warn
+  no-void: error
+  prefer-promise-reject-errors: error
+  strict:
+    - error
+    - global
+  no-label-var: error
+  no-lonely-if: off
+  no-new-object: error
+  arrow-body-style:
+    - warn
+    - as-needed
+    -
+      requireReturnForObjectLiteral: true
+  arrow-parens:
+    - error
+    - always
+  prefer-arrow-callback: warn
+  prefer-numeric-literals: error
