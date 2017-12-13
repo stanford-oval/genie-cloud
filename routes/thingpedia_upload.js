@@ -237,7 +237,8 @@ function ensureExamples(dbClient, schemaId, ast) {
                 target_code: ex.program,
                 target_json: '', // FIXME
                 type: 'thingpedia',
-                language: 'en'
+                language: 'en',
+                is_base: 1
             });
         });
         return exampleModel.createMany(dbClient, examples);
@@ -498,11 +499,11 @@ function legacyCreateExample(utterance, kind, function_name, function_type, func
     if (filter !== '')
         result += `, ${filter}`;
     if (function_type === 'triggers')
-        result = `let stream x = \\(${arg_decl}) -> monitor ${result}`;
+        result = `let stream x := \\(${arg_decl}) -> monitor ${result};`;
     else if (function_type === 'queries')
-        result = `let table x = \\(${arg_decl}) -> ${result}`;
+        result = `let table x := \\(${arg_decl}) -> ${result};`;
     else
-        result = `let action x = \\(${arg_decl}) -> ${result}`;
+        result = `let action x := \\(${arg_decl}) -> ${result};`;
     return { utterance: utterance, program: result };
 }
 

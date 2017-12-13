@@ -221,7 +221,7 @@ router.get('/entities', function(req, res) {
     }
 
     return db.withClient((dbClient) => {
-        if (snapshotId)
+        if (snapshotId >= 0)
             return entityModel.getSnapshot(dbClient, snapshotId);
         else
             return entityModel.getAll(dbClient);

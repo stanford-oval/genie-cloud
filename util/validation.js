@@ -67,5 +67,11 @@ module.exports = {
 
         if (!ast.examples)
             ast.examples = [];
+
+        for (let ex of ast.examples) {
+            if (!ex.utterance || !ex.program)
+                throw new Error("Invalid example");
+            ThingTalk.Grammar.parse(ex.program);
+        }
     }
 }
