@@ -29,8 +29,8 @@ const db = require('../util/db');
     actions: []
 };*/
 
-const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
-const NON_TERM_REGEX = /\${([a-zA-Z0-9_:()]+)}/;
+const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
+const NON_TERM_REGEX = /\${([a-zA-Z0-9._:()]+)}/;
 
 function split(pattern, regexp) {
     // a split that preserves capturing parenthesis
@@ -680,54 +680,63 @@ const allOutParams = new Set;
 const _language = process.argv[3] || 'en';
 const _schemaRetriever = new SchemaRetriever(new AdminThingpediaClient(_language));
 
+function loadTemplateAsDeclaration(ex, decl) {
+    decl.name = 'ex_' + ex.id;
+    //console.log(Ast.prettyprint(program));
+
+    // ignore optional input parameters
+    // if you care about optional, write a lambda template
+    // that fills in the optionals
+
+    for (let pname in decl.value.schema.inReq) {
+        // work around a bug in the typechecker
+        if (pname in decl.value.schema.inReq &&
+            'p_' + pname in decl.value.schema.inReq)
+            continue;
+
+        let ptype = decl.value.schema.inReq[pname];
+        if (!(ptype instanceof Type))
+            throw new Error('wtf: ' + decl.value.schema);
+        allInParams.set(pname + '+' + ptype, ptype);
+        allTypes.set(String(ptype), ptype);
+    }
+    for (let pname in decl.value.schema.out) {
+        let ptype = decl.value.schema.out[pname];
+        allOutParams.add(pname + '+' + ptype);
+        allTypes.set(String(ptype), ptype);
+    }
+
+    let chunks = split(ex.utterance, PARAM_REGEX);
+    let grammarrule = [];
+
+    for (let chunk of chunks) {
+        if (chunk === '')
+            continue;
+        if (typeof chunk === 'string') {
+            grammarrule.push(chunk);
+            continue;
+        }
+
+        let [match, param1, param2, opt] = chunk;
+        if (match === '$$') {
+            grammarrule.push('$');
+            continue;
+        }
+        let param = param1 || param2;
+        grammarrule.push(new Placeholder(param, opt));
+    }
+
+    GRAMMAR['thingpedia_' + decl.type].push([grammarrule, simpleCombine(() => decl.value)]);
+}
+
 function loadTemplate(ex) {
     return ThingTalk.Grammar.parseAndTypecheck(ex.target_code, _schemaRetriever, true).then((program) => {
-        if (program.declarations.length !== 1 || program.rules.length !== 0)
+        if (program.rules.length === 1 && program.declarations.length === 0)
+            ; // ignore examples that consist of a rule (they are just dataset)
+        else if (program.declarations.length === 1 && program.declarations.length === 1)
+            loadTemplateAsDeclaration(ex, program.declarations[0]);
+        else
             console.log('Invalid template ' + ex.id + ' (wrong number of declarations)');
-
-        let decl = program.declarations[0];
-        decl.name = 'ex_' + ex.id;
-        //console.log(Ast.prettyprint(program));
-
-        // ignore optional input parameters
-        // if you care about optional, write a lambda template
-        // that fills in the optionals
-
-        for (let pname in decl.value.schema.inReq) {
-            // work around a bug in the typechecker
-            if (pname in decl.value.schema.inReq &&
-                'p_' + pname in decl.value.schema.inReq)
-                continue;
-
-            let ptype = decl.value.schema.inReq[pname];
-            if (!(ptype instanceof Type))
-                throw new Error('wtf: ' + decl.value.schema);
-            allInParams.set(pname + '+' + ptype, ptype);
-            allTypes.set(String(ptype), ptype);
-        }
-        for (let pname in decl.value.schema.out) {
-            let ptype = decl.value.schema.out[pname];
-            allOutParams.add(pname + '+' + ptype);
-            allTypes.set(String(ptype), ptype);
-        }
-
-        let chunks = split(ex.utterance, PARAM_REGEX);
-        let grammarrule = [];
-
-        for (let chunk of chunks) {
-            if (chunk === '')
-                continue;
-            if (typeof chunk === 'string') {
-                grammarrule.push(chunk);
-                continue;
-            }
-
-            let [, param1, param2, opt] = chunk;
-            let param = param1 || param2;
-            grammarrule.push(new Placeholder(param, opt));
-        }
-
-        GRAMMAR['thingpedia_' + decl.type].push([grammarrule, simpleCombine(() => decl.value)]);
     });
 }
 
@@ -1124,12 +1133,24 @@ function main() {
     loadMetadata(_language).then(() => {
         preprocessGrammar();
 
+        let i = 0;
         for (let derivation of generate()) {
             if (derivation.hasPlaceholders())
                 throw new Error('Generated incomplete derivation');
             let sentence = derivation.toString();
             let program = derivation.value;
-            output.write(sentence + '\t' + Ast.prettyprint(program, true).trim() + '\n');
+            let sequence;
+            try {
+                sequence = ThingTalk.NNSyntax.toNN(program, {});
+                //ThingTalk.NNSyntax.fromNN(sequence, {});
+            } catch(e) {
+                console.error(sequence);
+                console.error(Ast.prettyprint(program, true).trim());
+                throw e;
+            }
+
+            output.write(i + '\t' + sentence.toLowerCase() + '\t' + sequence.join(' ') + '\n');
+            i++;
         }
     }).then(() => output.end()).done();
 
