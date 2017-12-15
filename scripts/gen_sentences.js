@@ -30,7 +30,7 @@ const db = require('../util/db');
 };*/
 
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
-const NON_TERM_REGEX = /\${([a-zA-Z0-9._:()]+)}/;
+const NON_TERM_REGEX = /\${([a-zA-Z0-9._:(),]+)}/;
 
 function split(pattern, regexp) {
     // a split that preserves capturing parenthesis
@@ -55,6 +55,8 @@ function split(pattern, regexp) {
 function clean(name) {
     if (/^[vwgp]_/.test(name))
         name = name.substr(2);
+    if (name === 'from')
+        return 'author';
     return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
@@ -179,7 +181,7 @@ class Derivation {
             }
         }
         if (!found) {
-            //console.log('no placeholder');
+            //console.log('no placeholder ' + name + ', have', this.sentence);
             return null;
         }
         return new Derivation(newValue, newSentence);
@@ -517,8 +519,8 @@ const GRAMMAR = {
         .concat(Array.from(makeConstantDerivations('NUMBER', Type.Number))),
     'constant_Time': Array.from(makeConstantDerivations('TIME', Type.Number)),
     'constant_Measure(ms)': [
-        ['${constant_Number} ms', simpleCombine(addUnit('ms'))],
-        /*['${constant_Number} milliseconds', simpleCombine(addUnit('ms'))],
+        /*['${constant_Number} ms', simpleCombine(addUnit('ms'))],
+        ['${constant_Number} milliseconds', simpleCombine(addUnit('ms'))],
         ['${constant_Number} seconds', simpleCombine(addUnit('s'))],
         ['${constant_Number} s', simpleCombine(addUnit('s'))],
         ['${constant_Number} min', simpleCombine(addUnit('min'))],
@@ -689,15 +691,17 @@ function loadTemplateAsDeclaration(ex, decl) {
     // that fills in the optionals
 
     for (let pname in decl.value.schema.inReq) {
-        // work around a bug in the typechecker
-        if (pname in decl.value.schema.inReq &&
-            'p_' + pname in decl.value.schema.inReq)
-            continue;
-
         let ptype = decl.value.schema.inReq[pname];
         if (!(ptype instanceof Type))
             throw new Error('wtf: ' + decl.value.schema);
-        allInParams.set(pname + '+' + ptype, ptype);
+
+        // work around bugs in the typechecker
+        if (!pname.startsWith('p_')) {
+            decl.value.schema.inReq['p_' + pname] = ptype;
+            allInParams.set('p_' + pname + '+' + ptype, ptype);
+        } else {
+            allInParams.set(pname + '+' + ptype, ptype);
+        }
         allTypes.set(String(ptype), ptype);
     }
     for (let pname in decl.value.schema.out) {
@@ -713,7 +717,7 @@ function loadTemplateAsDeclaration(ex, decl) {
         if (chunk === '')
             continue;
         if (typeof chunk === 'string') {
-            grammarrule.push(chunk);
+            grammarrule.push(chunk.toLowerCase());
             continue;
         }
 
@@ -761,6 +765,11 @@ function loadMetadata(language) {
                 GRAMMAR['constant_' + typestr] = makeConstantDerivations('GENERIC_ENTITY_' + type.type, type);
             }
 
+            // don't access booleans or enums out arguments generically, as that rarely makes sense
+            // (and when it does, you probably want a macro and maybe and edge trigger)
+            if (type.isEnum || type.isBoolean)
+                continue;
+
             if (!GRAMMAR['out_param_' + typestr]) {
                 GRAMMAR['out_param_' + typestr] = [];
                 GRAMMAR['the_out_param_' + typestr] = [
@@ -798,6 +807,11 @@ function loadMetadata(language) {
                     return null;
                 return betaReduceTable(lhs, pname, value);
             }, { isConstant: true })]);
+            
+            // don't parameter pass booleans or enums, as that rarely makes sense
+            if (ptype.isEnum || ptype.isBoolean)
+                continue;
+            
             GRAMMAR.table_join_replace_placeholder.push(['${table}${projection_' + ptype + '}', combineReplacePlaceholder(pname, (into, projection) => {
                 let intotype = into.schema.inReq[pname];
                 if (!intotype || !Type.isAssignable(ptype, intotype))
@@ -933,6 +947,8 @@ function loadMetadata(language) {
         }
         for (let key of allOutParams) {
             let [pname,ptype] = key.split('+');
+            if (ptype.startsWith('Enum(') || ptype === 'Boolean')
+                continue;
             GRAMMAR['out_param_' + ptype].push([clean(pname), simpleCombine(() => new Ast.Value.VarRef(pname))]);
         }
     });
@@ -1104,7 +1120,6 @@ function *generate() {
                 for (let derivation of expandRule(charts, i, nonterminal, rule)) {
                     if (derivation === null)
                         continue;
-                    //if (String(derivation).startsWith('show me images from bing matching QUOTED_STRING_0'))
                     let key = `$${nonterminal} -> ${derivation}`;
                     if (everything.has(key)) {
                         // FIXME we should not generate duplicates in the first place
@@ -1149,7 +1164,7 @@ function main() {
                 throw e;
             }
 
-            output.write(i + '\t' + sentence.toLowerCase() + '\t' + sequence.join(' ') + '\n');
+            output.write(i + '\t' + sentence + '\t' + sequence.join(' ') + '\n');
             i++;
         }
     }).then(() => output.end()).done();
