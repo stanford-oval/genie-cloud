@@ -10,6 +10,8 @@
 require('thingengine-core/lib/polyfill');
 
 const fs = require('fs');
+const assert = require('assert');
+const Q = require('q');
 
 const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
@@ -512,6 +514,12 @@ function combineStreamCommand(stream, command) {
         return new Ast.Statement.Rule(stream, command.actions);
 }
 
+function builtinSayAction(pname) {
+    let selector = new Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin', null, null);
+    let param = new Ast.InputParam('message', new Ast.Value.VarRef(pname));
+    return new Ast.Invocation(selector, 'say', [param], null);
+}
+
 const GRAMMAR = {
     'constant_String': Array.from(makeConstantDerivations('QUOTED_STRING', Type.String)),
     'constant_Entity(tt:url)': Array.from(makeConstantDerivations('URL', Type.Entity('tt:url'))),
@@ -653,8 +661,8 @@ const GRAMMAR = {
 
     stream: [
         ['${thingpedia_stream}', checkIfComplete(simpleCombine(identity))],
-        ['when ${complete_table} change', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
-        ['when ${projection_Any} changes', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
+        ['when ${complete_table} change', simpleCombine((table) => new Ast.Stream.Monitor(table, null, table.schema))],
+        ['when ${projection_Any} changes', simpleCombine((proj) => new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema))],
         //['when the data in ${complete_table} changes', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
         //['if ${complete_table} change', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
         //['if ${projection_Any} changes', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
@@ -684,9 +692,7 @@ const GRAMMAR = {
     'when_do_rule': [
         // pp from when to do (optional)
         ['${stream} ${thingpedia_action}', checkConstants(simpleCombine((stream, action) => new Ast.Statement.Rule(stream, [action])))],
-
-        // pp from when+get to do (required)
-        //['${complete_when_get_stream} and then ${thingpedia_action}', checkIfIncomplete(checkConstants(simpleCombine((stream, action) => new Ast.Statement.Rule(stream, [action]))))]
+        ['${thingpedia_action} ${stream}', checkConstants(simpleCombine((action, stream) => new Ast.Statement.Rule(stream, [action])))],
     ],
 
     // pp from when to get (optional)
@@ -697,29 +703,56 @@ const GRAMMAR = {
         ['${stream} get ${projection_Any}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
         ['${stream} show me ${table}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
         ['${stream} show me ${projection_Any}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+
+        ['get ${table} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['get ${projection_Any} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['show me ${table} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['show me ${projection_Any} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
     ],
     'complete_when_get_stream': [
         ['${when_get_stream}', checkConstants(checkIfComplete(simpleCombine(identity)))]
     ],
 
-    'complete_get_command': [
+    'complete_get_do_command': [
         ['${action_replace_param_with_table}', checkIfComplete(simpleCombine(identity))],
-        ['show me ${complete_table}', simpleCombine((table) => new Ast.Statement.Command(table, [Generate.notifyAction()]))],
-        ['get ${complete_table}', simpleCombine((table) => new Ast.Statement.Command(table, [Generate.notifyAction()]))],
         ['${get_do_command}', checkConstants(checkIfComplete(simpleCombine(identity)))]
     ],
 
     'root': [
+        // when => notify
         ['notify me ${stream}', checkConstants(checkIfComplete(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()])))))],
-        ['${complete_action}', checkConstants(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action]))))],
-        ['${complete_get_command}', checkConstants(simpleCombine(makeProgram))],
+        ['send me a message ${stream}', simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()])))],
+        ['send me a reminder ${timer}', simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()])))],
+
+        // now => get => notify
+        ['show me ${complete_table}', simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()])))],
+        ['get ${complete_table}', simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()])))],
         ['what are ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
-        //['send me a message ${stream}', simpleCombine((stream) => new Ast.Statement.Rule(stream, [Generate.notifyAction()]))],
-        //['send me a reminder ${timer}', simpleCombine((stream) => new Ast.Statement.Rule(stream, [Generate.notifyAction()]))],
-        ['${complete_when_get_stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
+
+        // now => get => say(...)
+        ['get ${projection_Any}', simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])])))],
+        ['what is ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
+
+        // now => do
+        ['${complete_action}', checkConstants(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action]))))],
+        // now => get => do
+        ['${complete_get_do_command}', checkConstants(simpleCombine(makeProgram))],
+
+        // when join get => notify/say(...)
+        ['${complete_when_get_stream}', checkConstants(simpleCombine((stream) => {
+            assert(stream.isJoin);
+            if (stream.table.isProjection)
+                return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Join(stream.stream, stream.table.table, null), [builtinSayAction(stream.table.args[0])]));
+            else
+                return makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]));
+        }))],
+
+        // when => do
         ['${when_do_rule}', checkConstants(checkIfComplete(simpleCombine(makeProgram)))],
-        ['${stream} ${complete_get_command}', checkConstants(checkIfComplete(simpleCombine((stream, command) => makeProgram(combineStreamCommand(stream, command)))))]
-        //['${rule}', combineParamPassing]
+
+        // when => get => do
+        ['${stream} ${complete_get_do_command}', checkConstants(checkIfComplete(simpleCombine((stream, command) => makeProgram(combineStreamCommand(stream, command)))))],
+        ['${complete_get_do_command} ${stream}', checkConstants(checkIfComplete(simpleCombine((command, stream) => makeProgram(combineStreamCommand(stream, command)))))]
     ]
 };
 
@@ -733,6 +766,12 @@ const _schemaRetriever = new SchemaRetriever(new AdminThingpediaClient(_language
 function loadTemplateAsDeclaration(ex, decl) {
     decl.name = 'ex_' + ex.id;
     //console.log(Ast.prettyprint(program));
+
+    // ignore builtin actions:
+    // debug_log is not interesting, say is special and we handle differently, configure/discover are not
+    // composable
+    if (decl.type === 'action' && decl.value.selector.kind === 'org.thingpedia.builtin.thingengine.builtin')
+        return;
 
     // ignore optional input parameters
     // if you care about optional, write a lambda template
@@ -782,13 +821,15 @@ function loadTemplateAsDeclaration(ex, decl) {
 }
 
 function loadTemplate(ex) {
-    return ThingTalk.Grammar.parseAndTypecheck(ex.target_code, _schemaRetriever, true).then((program) => {
+    return Promise.resolve().then(() => ThingTalk.Grammar.parseAndTypecheck(ex.target_code, _schemaRetriever, true)).then((program) => {
         if (program.rules.length === 1 && program.declarations.length === 0)
             ; // ignore examples that consist of a rule (they are just dataset)
         else if (program.declarations.length === 1 && program.declarations.length === 1)
             loadTemplateAsDeclaration(ex, program.declarations[0]);
         else
             console.log('Invalid template ' + ex.id + ' (wrong number of declarations)');
+    }).catch((e) => {
+        console.error('Failed to load template ' + ex.id + ': ' + e.message);
     });
 }
 
@@ -1167,7 +1208,7 @@ function *generate() {
         charts[i] = initChart();
 
         for (let nonterminal in GRAMMAR) {
-            if (i === MAX_DEPTH && nonterminal != 'root')
+            if (i === MAX_DEPTH && nonterminal !== 'root')
                 continue;
             for (let rule of GRAMMAR[nonterminal]) {
                 for (let derivation of expandRule(charts, i, nonterminal, rule)) {
@@ -1195,6 +1236,19 @@ function *generate() {
     }
 }
 
+function asyncIterate(iterator, loop) {
+    return Q().then(function minibatch() {
+        for (let i = 0; i < 1000; i++) {
+            let { value, done } = iterator.next();
+            if (done)
+                return Q();
+            loop(value);
+        }
+
+        return Q.delay(10).then(minibatch);
+    });
+}
+
 function main() {
     const outfile = process.argv[2] || 'output.tsv';
     const output = fs.createWriteStream(outfile);
@@ -1203,24 +1257,25 @@ function main() {
         preprocessGrammar();
 
         let i = 0;
-        for (let derivation of generate()) {
+        return asyncIterate(generate(), (derivation) => {
             /*if (derivation.hasPlaceholders())
                 throw new Error('Generated incomplete derivation');*/
             let sentence = derivation.toString();
             let program = derivation.value;
             let sequence;
-            /*try {*/
+            try {
                 sequence = ThingTalk.NNSyntax.toNN(program, {});
                 //ThingTalk.NNSyntax.fromNN(sequence, {});
-            /*} catch(e) {
+            } catch(e) {
                 console.error(sequence);
+                console.error(String(program));
                 console.error(Ast.prettyprint(program, true).trim());
                 throw e;
-            }*/
+            }
 
             output.write(i + '\t' + sentence + '\t' + sequence.join(' ') + '\n');
             i++;
-        }
+        });
     }).then(() => output.end()).done();
 
     output.on('finish', () => process.exit());
