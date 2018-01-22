@@ -100,7 +100,12 @@ class Constant {
         this.symbol = symbol;
         this.number = number;
         this.type = type;
-        this.value = new Ast.Value.VarRef(`__const_${symbol.replace(':', '_')}_${number}`);
+        this.value = new Ast.Value.VarRef(`__const_${symbol.replace(/[:._]/g, (match) => {
+            if (match === '_')
+                return '__';
+            let code = match.charCodeAt(0);
+            return code < 16 ? '_0' + code.toString(16) : '_' + code.toString(16);
+        })}_${number}`);
         // HACK: VarRefs don't know their own types normally, but these ones do
         this.value.getType = () => type;
     }
@@ -431,7 +436,7 @@ function makeFilter(op) {
 function addUnit(unit) {
     return function(num) {
         if (num.isVarRef)
-            return new Ast.Value.VarRef(num.name + '_' + unit);
+            return new Ast.Value.VarRef(num.name + '__' + unit);
         else
             return new Ast.Value.Measure(num.value, unit);
     };
@@ -510,6 +515,10 @@ function combineStreamCommand(stream, command) {
 const GRAMMAR = {
     'constant_String': Array.from(makeConstantDerivations('QUOTED_STRING', Type.String)),
     'constant_Entity(tt:url)': Array.from(makeConstantDerivations('URL', Type.Entity('tt:url'))),
+    'constant_Entity(tt:username)': Array.from(makeConstantDerivations('USERNAME', Type.Entity('tt:username'))),
+    'constant_Entity(tt:hashtag)': Array.from(makeConstantDerivations('HASHTAG', Type.Entity('tt:hashtag'))),
+    'constant_Entity(tt:phone_number)': Array.from(makeConstantDerivations('PHONE_NUMBER', Type.Entity('tt:phone_number'))),
+    'constant_Entity(tt:email_address)': Array.from(makeConstantDerivations('EMAIL_ADDRESS', Type.Entity('tt:email_address'))),
     'constant_Entity(tt:picture)': [],
     'constant_Number': [
         /*['one', simpleCombine(() => Ast.Value.Number(1))],
@@ -518,6 +527,23 @@ const GRAMMAR = {
         ['0', simpleCombine(() => Ast.Value.Number(0))]*/]
         .concat(Array.from(makeConstantDerivations('NUMBER', Type.Number))),
     'constant_Time': Array.from(makeConstantDerivations('TIME', Type.Number)),
+    'constant_date_point': [
+        ['now', simpleCombine(() => Ast.Value.Date(null, '+', null))],
+        ['today', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '+', null))],
+        ['yesterday', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day')))],
+        ['tomorrow', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day')))],
+        ['the end of the day', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null))],
+        ['the end of the week', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null))],
+        ['this week', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null))],
+        ['last week', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week')))]
+    ],
+    'constant_Date': [
+        ['${constant_date_point}', simpleCombine(identity)],
+        ['${constant_Measure(ms)} from now', simpleCombine((duration) => Ast.Value.Date(null, '+', duration))],
+        ['${constant_Measure(ms)} ago', simpleCombine((duration) => Ast.Value.Date(null, '-', duration))],
+        ['${constant_Measure(ms)} after ${constant_date_point}', simpleCombine((duration, point) => Ast.Value.Date(point.value, '+', duration))],
+        ['${constant_Measure(ms)} before ${constant_date_point}', simpleCombine((duration, point) => Ast.Value.Date(point.value, '-', duration))]
+    ],
     'constant_Measure(ms)': [
         /*['${constant_Number} ms', simpleCombine(addUnit('ms'))],
         ['${constant_Number} milliseconds', simpleCombine(addUnit('ms'))],
@@ -531,19 +557,40 @@ const GRAMMAR = {
         ['${constant_Number} months', simpleCombine(addUnit('mon'))],
         ['${constant_Number} years', simpleCombine(addUnit('year'))]*/]
         .concat(Array.from(makeConstantDerivations('DURATION', Type.Measure('ms')))),
-    'constant_Boolean': [['true', simpleCombine(() => Ast.Value.Boolean(true))],
-                      ['false', simpleCombine(() => Ast.Value.Boolean(false))],
-                      ['yes', simpleCombine(() => Ast.Value.Boolean(true))],
-                      ['no', simpleCombine(() => Ast.Value.Boolean(false))]],
+    'constant_Measure(byte)': [
+        // don't mess with kibibytes, mebibytes etc.
+        ['${constant_Number} byte', simpleCombine(addUnit('byte'))],
+        ['${constant_Number} kb', simpleCombine(addUnit('kB'))],
+        ['${constant_Number} mb', simpleCombine(addUnit('MB'))],
+        ['${constant_Number} gb', simpleCombine(addUnit('GB'))]
+    ],
+    'constant_Boolean': [
+        ['true', simpleCombine(() => Ast.Value.Boolean(true))],
+        ['false', simpleCombine(() => Ast.Value.Boolean(false))],
+        ['yes', simpleCombine(() => Ast.Value.Boolean(true))],
+        ['no', simpleCombine(() => Ast.Value.Boolean(false))]
+    ],
+    'constant_Location': [
+        ['here', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))],
+        ['at home', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('home')))],
+        ['at work', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))]]
+        .concat(Array.from(makeConstantDerivations('LOCATION', Type.Location))),
 
     'constant_Any': [
         ['${constant_String}', simpleCombine(identity)],
         ['${constant_Entity(tt:url)}', simpleCombine(identity)],
         ['${constant_Entity(tt:picture)}', simpleCombine(identity)],
-        ['${constant_Boolean}', simpleCombine(identity)],
+        ['${constant_Entity(tt:username)}', simpleCombine(identity)],
+        ['${constant_Entity(tt:hashtag)}', simpleCombine(identity)],
+        ['${constant_Entity(tt:phone_number)}', simpleCombine(identity)],
+        ['${constant_Entity(tt:email_address)}', simpleCombine(identity)],
         ['${constant_Number}', simpleCombine(identity)],
-        ['${constant_Measure(ms)}', simpleCombine(identity)],
         ['${constant_Time}', simpleCombine(identity)],
+        ['${constant_Date}', simpleCombine(identity)],
+        ['${constant_Measure(ms)}', simpleCombine(identity)],
+        ['${constant_Measure(byte)}', simpleCombine(identity)],
+        ['${constant_Boolean}', simpleCombine(identity)],
+        ['${constant_Location}', simpleCombine(identity)],
     ],
     'constant_Numeric': [
         ['${constant_Number}', simpleCombine(identity)],
@@ -609,8 +656,8 @@ const GRAMMAR = {
         ['when ${complete_table} change', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
         ['when ${projection_Any} changes', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
         //['when the data in ${complete_table} changes', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
-        ['if ${complete_table} change', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
-        ['if ${projection_Any} changes', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
+        //['if ${complete_table} change', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
+        //['if ${projection_Any} changes', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
         //['if the data in ${complete_table} changes', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
         ['${timer}', simpleCombine(identity)]
     ],
@@ -637,8 +684,9 @@ const GRAMMAR = {
     'when_do_rule': [
         // pp from when to do (optional)
         ['${stream} ${thingpedia_action}', checkConstants(simpleCombine((stream, action) => new Ast.Statement.Rule(stream, [action])))],
+
         // pp from when+get to do (required)
-        ['${complete_when_get_stream} and then ${thingpedia_action}', checkIfIncomplete(checkConstants(simpleCombine((stream, action) => new Ast.Statement.Rule(stream, [action]))))]
+        //['${complete_when_get_stream} and then ${thingpedia_action}', checkIfIncomplete(checkConstants(simpleCombine((stream, action) => new Ast.Statement.Rule(stream, [action]))))]
     ],
 
     // pp from when to get (optional)
@@ -753,16 +801,19 @@ function loadMetadata(language) {
     }).then(() => {
         for (let [typestr, type] of allTypes) {
             if (!GRAMMAR['constant_' + typestr]) {
+                if (!type.isEnum && !type.isEntity && !type.isArray)
+                    throw new Error('Missing definition for type ' + type);
                 GRAMMAR['constant_' + typestr] = [];
                 GRAMMAR['constant_Any'].push(['${constant_' + typestr + '}', simpleCombine(identity)]);
                 if (type.isMeasure)
                     GRAMMAR['constant_Numeric'].push(['${constant_' + typestr + '}', simpleCombine(identity)]);
-            }
-            if (type.isEnum) {
-                for (let entry of type.entries)
-                    GRAMMAR['constant_' + typestr].push([clean(entry), simpleCombine(() => new Ast.Value.Enum(entry))]);
-            } else if (type.isEntity) {
-                GRAMMAR['constant_' + typestr] = makeConstantDerivations('GENERIC_ENTITY_' + type.type, type);
+
+                if (type.isEnum) {
+                    for (let entry of type.entries)
+                        GRAMMAR['constant_' + typestr].push([clean(entry), simpleCombine(() => new Ast.Value.Enum(entry))]);
+                } else if (type.isEntity) {
+                    GRAMMAR['constant_' + typestr] = makeConstantDerivations('GENERIC_ENTITY_' + type.type, type);
+                }
             }
 
             // don't access booleans or enums out arguments generically, as that rarely makes sense
@@ -807,7 +858,20 @@ function loadMetadata(language) {
                     return null;
                 return betaReduceTable(lhs, pname, value);
             }, { isConstant: true })]);
-            
+
+            GRAMMAR.thingpedia_stream.push(['${thingpedia_stream}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
+                let ptype = lhs.schema.inReq[pname];
+                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                    return null;
+                return betaReduceStream(lhs, pname, value);
+            }, { isConstant: true })]);
+            GRAMMAR.thingpedia_action.push(['${thingpedia_action}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
+                let ptype = lhs.schema.inReq[pname];
+                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                    return null;
+                return betaReduceAction(lhs, pname, value);
+            }, { isConstant: true })]);
+
             // don't parameter pass booleans or enums, as that rarely makes sense
             if (ptype.isEnum || ptype.isBoolean)
                 continue;
@@ -850,19 +914,6 @@ function loadMetadata(language) {
 
                 return new Ast.Table.Join(projection.table, etaReduced, [new Ast.InputParam(passign, new Ast.Value.VarRef(joinArg))], newSchema);
             }, { isConstant: false })]);
-
-            GRAMMAR.thingpedia_stream.push(['${thingpedia_stream}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
-                let ptype = lhs.schema.inReq[pname];
-                if (!ptype || !Type.isAssignable(value.getType(), ptype))
-                    return null;
-                return betaReduceStream(lhs, pname, value);
-            }, { isConstant: true })]);
-            GRAMMAR.thingpedia_action.push(['${thingpedia_action}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
-                let ptype = lhs.schema.inReq[pname];
-                if (!ptype || !Type.isAssignable(value.getType(), ptype))
-                    return null;
-                return betaReduceAction(lhs, pname, value);
-            }, { isConstant: true })]);
 
             GRAMMAR.action_replace_param_with_table.push(['${thingpedia_action}${projection_' + ptype + '}', combineReplacePlaceholder(pname, (into, projection) => {
                 let intotype = into.schema.inReq[pname];
@@ -1097,7 +1148,7 @@ function *expandRule(charts, depth, nonterminal, [expansion, combiner]) {
     }
 }
 
-const MAX_DEPTH = 10;
+const MAX_DEPTH = parseInt(process.argv[4]) || 8;
 
 function initChart() {
     let chart = {};
@@ -1116,6 +1167,8 @@ function *generate() {
         charts[i] = initChart();
 
         for (let nonterminal in GRAMMAR) {
+            if (i === MAX_DEPTH && nonterminal != 'root')
+                continue;
             for (let rule of GRAMMAR[nonterminal]) {
                 for (let derivation of expandRule(charts, i, nonterminal, rule)) {
                     if (derivation === null)
@@ -1137,6 +1190,7 @@ function *generate() {
 
         for (let root of charts[i].root)
             yield root;
+        charts[i].root = [];
         console.log();
     }
 }
@@ -1150,19 +1204,19 @@ function main() {
 
         let i = 0;
         for (let derivation of generate()) {
-            if (derivation.hasPlaceholders())
-                throw new Error('Generated incomplete derivation');
+            /*if (derivation.hasPlaceholders())
+                throw new Error('Generated incomplete derivation');*/
             let sentence = derivation.toString();
             let program = derivation.value;
             let sequence;
-            try {
+            /*try {*/
                 sequence = ThingTalk.NNSyntax.toNN(program, {});
                 //ThingTalk.NNSyntax.fromNN(sequence, {});
-            } catch(e) {
+            /*} catch(e) {
                 console.error(sequence);
                 console.error(Ast.prettyprint(program, true).trim());
                 throw e;
-            }
+            }*/
 
             output.write(i + '\t' + sentence + '\t' + sequence.join(' ') + '\n');
             i++;

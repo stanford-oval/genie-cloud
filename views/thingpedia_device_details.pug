@@ -76,7 +76,7 @@ block content
 
   div.clearfix
 
-  mixin invocation(inv, name)
+  mixin invocation(inv, name, inv_type)
     li
       code #{name}(#{inv.args.map(function(a) { return (a.is_input ? ('in ' + (a.required ? 'req ' : 'opt ')) : 'out ') + a.name + ' : ' + a.type; }).join(', ')})
       if inv.doc
@@ -90,24 +90,28 @@ block content
       br
       = _("Remote Confirmation: ")
       span.confirmation_remote= inv.confirmation_remote
+      if inv_type === 'query'
+        br
+        = _("Polling Interval: ")
+        span.poll_interval= inv.poll_interval === 0 ? _("Push-based") : (inv.poll_interval < 0 ? _("Non-deterministic") : _("%d ms").format(inv.poll_interval))
 
   if Object.keys(triggers).length > 0
     h2.device-subtitle= _("Triggers")
     ul.device-channels
       for inv, name in triggers
-        +invocation(inv, name)
+        +invocation(inv, name, 'trigger')
 
   if Object.keys(queries).length > 0
     h2.device-subtitle= _("Queries")
     ul.device-channels
       for inv, name in queries
-        +invocation(inv, name)
+        +invocation(inv, name, 'query')
 
   if Object.keys(actions).length > 0
     h2.device-subtitle= _("Actions")
     ul.device-channels
       for inv, name in actions
-        +invocation(inv, name)
+        +invocation(inv, name, 'action')
 
   h2.device-subtitle= _("Example Commands")
   if device.examples.length > 0
@@ -115,7 +119,7 @@ block content
       for e in device.examples
         li
           if authenticated && user.developer_status >= 3
-            span(title=e.target_json)= e.utterance
+            span(title=e.target_code || target_json)= e.utterance
           else
             span= e.utterance
           if authenticated
