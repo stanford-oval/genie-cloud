@@ -529,10 +529,10 @@ const GRAMMAR = {
     'constant_Entity(tt:email_address)': Array.from(makeConstantDerivations('EMAIL_ADDRESS', Type.Entity('tt:email_address'))),
     'constant_Entity(tt:picture)': [],
     'constant_Number': [
-        /*['one', simpleCombine(() => Ast.Value.Number(1))],
+        ['one', simpleCombine(() => Ast.Value.Number(1))],
         ['zero', simpleCombine(() => Ast.Value.Number(0))],
         ['1', simpleCombine(() => Ast.Value.Number(1))],
-        ['0', simpleCombine(() => Ast.Value.Number(0))]*/]
+        ['0', simpleCombine(() => Ast.Value.Number(0))]]
         .concat(Array.from(makeConstantDerivations('NUMBER', Type.Number))),
     'constant_Time': Array.from(makeConstantDerivations('TIME', Type.Number)),
     'constant_date_point': [
@@ -685,14 +685,24 @@ const GRAMMAR = {
     // this is because a sentence of the form "get X then do Y" makes sense only if X flows into Y
     'get_do_command': [
         ['get ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
+        ['after getting ${complete_table} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
+        ['${thingpedia_action} after getting ${complete_table}', checkIfIncomplete(simpleCombine((action, table) => new Ast.Statement.Command(table, [action])))],
 
         // use X to do Y would be good sometimes but it gets confusing quickly
-        //['use ${complete_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]
+        ['use ${complete_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]
     ],
     'when_do_rule': [
         // pp from when to do (optional)
         ['${stream} ${thingpedia_action}', checkConstants(simpleCombine((stream, action) => new Ast.Statement.Rule(stream, [action])))],
         ['${thingpedia_action} ${stream}', checkConstants(simpleCombine((action, stream) => new Ast.Statement.Rule(stream, [action])))],
+
+        // pp from when to do (required)
+        // this is because "monitor X and then Y" makes sense only if X flows into Y
+        ['monitor ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action])))],
+        ['monitor ${projection_Any} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((proj, action) => new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [action])))],
+
+        ['check for new ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action])))],
+        ['${thingpedia_action} after checking for new ${complete_table}', checkIfIncomplete(simpleCombine((action, table) => new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action])))],
     ],
 
     // pp from when to get (optional)
@@ -721,16 +731,18 @@ const GRAMMAR = {
     'root': [
         // when => notify
         ['notify me ${stream}', checkConstants(checkIfComplete(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()])))))],
-        ['send me a message ${stream}', simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()])))],
-        ['send me a reminder ${timer}', simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()])))],
+        ['send me a message ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
+        ['send me a reminder ${timer}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
+        ['monitor ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, null), [Generate.notifyAction()]))))],
+        ['monitor ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, null), [builtinSayAction(proj.args[0])]))))],
 
         // now => get => notify
-        ['show me ${complete_table}', simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()])))],
-        ['get ${complete_table}', simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()])))],
+        ['show me ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+        ['get ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
         ['what are ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
 
         // now => get => say(...)
-        ['get ${projection_Any}', simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])])))],
+        ['get ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
         ['what is ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
 
         // now => do
@@ -1221,7 +1233,8 @@ function *generate() {
                         continue;
                     }
                     everything.add(key);
-                    //console.log(`$${nonterminal} -> ${derivation}`);
+                    //if (nonterminal === 'complete_get_do_command' && String(derivation).startsWith('use '))
+                    //    console.log(`$${nonterminal} -> ${derivation}`);
                     charts[i][nonterminal].push(derivation);
                 }
             }
