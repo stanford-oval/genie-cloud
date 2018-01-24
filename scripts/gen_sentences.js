@@ -528,6 +528,15 @@ const GRAMMAR = {
     'constant_Entity(tt:phone_number)': Array.from(makeConstantDerivations('PHONE_NUMBER', Type.Entity('tt:phone_number'))),
     'constant_Entity(tt:email_address)': Array.from(makeConstantDerivations('EMAIL_ADDRESS', Type.Entity('tt:email_address'))),
     'constant_Entity(tt:picture)': [],
+
+    // HACK: this info should be in Thingpedia
+    'constant_Entity(com.google.drive:file_id)': [],
+    'constant_Entity(com.twitter:id)': [],
+    'constant_Entity(dogapi:image_id)': [],
+    'constant_Entity(instagram:media_id)': [],
+    'constant_Entity(omlet:feed_id)': [],
+    'constant_Entity(com.thecatapi:image_id)': [],
+
     'constant_Number': [
         ['one', simpleCombine(() => Ast.Value.Number(1))],
         ['zero', simpleCombine(() => Ast.Value.Number(0))],
