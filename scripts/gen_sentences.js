@@ -18,10 +18,25 @@ const Type = ThingTalk.Type;
 const Ast = ThingTalk.Ast;
 const Generate = ThingTalk.Generate;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
+// HACK
+const { optimizeFilter } = require('thingtalk/lib/optimize');
 
 const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
+
+class FastSchemaRetriever extends SchemaRetriever {
+    getMeta(...args) {
+        return super.getMeta(...args).then((schema) => {
+            // we don't care about these, wipe them so we can clone faster
+            // and use less RAM
+            schema.questions = [];
+            schema.canonical ='';
+            schema.confirmation = '';
+            return schema;
+        });
+    }
+}
 
 // const gettext = i18n.get('en');
 
@@ -171,10 +186,6 @@ class Derivation {
     }
 
     replacePlaceholder(name, derivation, semanticAction, { isConstant }) {
-        let newValue = semanticAction(this.value, derivation.value);
-        if (newValue === null)
-            return null;
-
         let newSentence = [];
         let found = false;
         for (let child of this.sentence) {
@@ -189,6 +200,15 @@ class Derivation {
         }
         if (!found) {
             //console.log('no placeholder ' + name + ', have', this.sentence);
+            return null;
+        }
+
+        let newValue = semanticAction(this.value, derivation.value);
+        if (newValue === null) {
+            /*if (!derivation.value.isVarRef || !derivation.value.name.startsWith('__const'))
+                return null;
+            console.log('replace ' + name + ' in ' + this + ' with ' + derivation);
+            console.log('values: ' + [this.value, derivation.value].join(' , '));*/
             return null;
         }
         return new Derivation(newValue, newSentence);
@@ -243,10 +263,11 @@ function combineReplacePlaceholder(pname, semanticAction, options) {
 
 // the maximum number of distinct constants of a certain type in a program
 const MAX_CONSTANTS = 5;
-function *makeConstantDerivations(symbol, type) {
+function *makeConstantDerivations(symbol, type, prefix = null) {
     for (let i = 0; i < MAX_CONSTANTS; i++) {
         let constant = new Constant(symbol, i, type);
-        yield [constant, () => new Derivation(constant.value, [constant], {})];
+        yield [constant, () => new Derivation(constant.value,
+            prefix === null ? [constant] : [prefix, constant], {})];
     }
 }
 
@@ -258,7 +279,6 @@ function removeInputParameter(schema, pname) {
     return clone;
 }
 
-/*
 function isUnaryTableToTableOp(table) {
     return table.isFilter ||
         table.isProjection ||
@@ -282,7 +302,55 @@ function isUnaryStreamToStreamOp(stream) {
 }
 function isUnaryTableToStreamOp(stream) {
     return stream.isMonitor;
-}*/
+}
+
+function findFunctionNameTable(table) {
+    if (table.isInvocation)
+        return [table.invocation.selector.kind + ':' + table.invocation.channel];
+
+    if (isUnaryTableToTableOp(table))
+        return findFunctionNameTable(table.table);
+
+    if (isUnaryStreamToTableOp(table))
+        return findFunctionNameStream(table.stream);
+
+    if (table.isJoin)
+        return findFunctionNameTable(table.lhs).concat(findFunctionNameTable(table.rhs));
+
+    throw new TypeError();
+}
+
+function findFunctionNameStream(stream) {
+    if (stream.isTimer || stream.isAtTimer)
+        return 'timer';
+
+    if (isUnaryStreamToStreamOp(stream))
+        return findFunctionNameStream(stream.stream);
+
+    if (isUnaryTableToStreamOp(stream))
+        return findFunctionNameTable(stream.table);
+
+    throw new TypeError();
+}
+
+// FIXME this should be in Thingpedia
+const NON_MONITORABLE_FUNCTIONS = new Set([
+    'org.thingpedia.builtin.thingengine.builtin:get_time',
+    'org.thingpedia.builtin.thingengine.builtin:get_date',
+    'org.thingpedia.builtin.thingengine.builtin:get_random_between',
+    'com.giphy:get',
+    'com.thecatapi:get',
+    'com.xkcd:random_comic',
+]);
+
+function isMonitorable(table) {
+    let functions = findFunctionNameTable(table);
+    for (let f of functions) {
+        if (NON_MONITORABLE_FUNCTIONS.has(f))
+            return false;
+    }
+    return true;
+}
 
 function betaReduceInvocation(invocation, pname, value) {
     //console.log(`betaReduceInvocation ${pname} -> ${value}`);
@@ -369,7 +437,7 @@ function betaReduceStream(stream, pname, value) {
         throw new TypeError('Nothing to beta-reduce in a timer');
     if (stream.isMonitor) {
         let reduced = betaReduceTable(stream.table, pname, value);
-        return new Ast.Stream.Monitor(reduced, removeInputParameter(stream.schema, pname));
+        return new Ast.Stream.Monitor(reduced, stream.args, removeInputParameter(stream.schema, pname));
     }
 
     throw new Error('NOT IMPLEMENTED: ' + stream);
@@ -398,6 +466,8 @@ function etaReduceInvocation(invocation, pname) {
             break;
         }
     }
+    if (!passign)
+        return [undefined, clone];
     clone.schema = unassignInputParameter(invocation.schema, pname);
 
     return [passign, clone];
@@ -496,7 +566,7 @@ function checkConstants(combiner) {
 // but only if there are no placeholders (which could
 // introduce new constants and break this check)
 // for prefixes of top-level statements
-function maybeCheckConstants(combiner) {
+/*function maybeCheckConstants(combiner) {
     return function(children) {
         let result = combiner(children);
         if (result === null)
@@ -505,7 +575,7 @@ function maybeCheckConstants(combiner) {
             return result;
         return doCheckConstants(result);
     };
-}
+}*/
 
 function combineStreamCommand(stream, command) {
     if (command.table)
@@ -518,6 +588,40 @@ function builtinSayAction(pname) {
     let selector = new Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin', null, null);
     let param = new Ast.InputParam('message', new Ast.Value.VarRef(pname));
     return new Ast.Invocation(selector, 'say', [param], null);
+}
+
+function checkFilter(table, filter) {
+    if (!table.schema.out[filter.name])
+        return false;
+
+    let ptype = table.schema.out[filter.name];
+    let vtype = ptype;
+    if (filter.operator === 'contains') {
+        if (!vtype.isArray)
+            return false;
+        vtype = ptype.elem;
+    } else if (filter.operator === 'in_array') {
+        vtype = ThingTalk.Type.Array(ptype);
+    }
+    if (!ThingTalk.Type.isAssignable(filter.value.getType(), vtype))
+        return false;
+
+    return true;
+}
+
+function addFilter(table, filter) {
+    if (table.isProjection)
+        return new Ast.Table.Projection(addFilter(table.table, filter), table.args, table.schema);
+
+    if (table.isFilter) {
+        let existing = table.filter;
+        let newFilter = optimizeFilter(Ast.BooleanExpression.And([existing, filter]));
+        return new Ast.Table.Filter(table, newFilter, table.schema);
+    }
+
+    // FIXME deal with the other table types (maybe)
+
+    return new Ast.Table.Filter(table, filter, table.schema);
 }
 
 const GRAMMAR = {
@@ -538,10 +642,10 @@ const GRAMMAR = {
     'constant_Entity(com.thecatapi:image_id)': [],
 
     'constant_Number': [
-        ['one', simpleCombine(() => Ast.Value.Number(1))],
+        /*['one', simpleCombine(() => Ast.Value.Number(1))],
         ['zero', simpleCombine(() => Ast.Value.Number(0))],
         ['1', simpleCombine(() => Ast.Value.Number(1))],
-        ['0', simpleCombine(() => Ast.Value.Number(0))]]
+        ['0', simpleCombine(() => Ast.Value.Number(0))]*/]
         .concat(Array.from(makeConstantDerivations('NUMBER', Type.Number))),
     'constant_Time': Array.from(makeConstantDerivations('TIME', Type.Number)),
     'constant_date_point': [
@@ -577,21 +681,21 @@ const GRAMMAR = {
     'constant_Measure(byte)': [
         // don't mess with kibibytes, mebibytes etc.
         ['${constant_Number} byte', simpleCombine(addUnit('byte'))],
-        ['${constant_Number} kb', simpleCombine(addUnit('kB'))],
+        ['${constant_Number} kb', simpleCombine(addUnit('KB'))],
         ['${constant_Number} mb', simpleCombine(addUnit('MB'))],
         ['${constant_Number} gb', simpleCombine(addUnit('GB'))]
     ],
     'constant_Boolean': [
-        ['true', simpleCombine(() => Ast.Value.Boolean(true))],
+        /*['true', simpleCombine(() => Ast.Value.Boolean(true))],
         ['false', simpleCombine(() => Ast.Value.Boolean(false))],
         ['yes', simpleCombine(() => Ast.Value.Boolean(true))],
-        ['no', simpleCombine(() => Ast.Value.Boolean(false))]
+        ['no', simpleCombine(() => Ast.Value.Boolean(false))]*/
     ],
     'constant_Location': [
         ['here', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))],
         ['at home', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('home')))],
         ['at work', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))]]
-        .concat(Array.from(makeConstantDerivations('LOCATION', Type.Location))),
+        .concat(Array.from(makeConstantDerivations('LOCATION', Type.Location, 'in '))),
 
     'constant_Any': [
         ['${constant_String}', simpleCombine(identity)],
@@ -624,38 +728,84 @@ const GRAMMAR = {
     ],
 
     'atom_filter': [
-        /*['the ${out_param_Any} is ${constant_Any}', simpleCombine(makeFilter('=='))],
-        ['the ${out_param_Any} is equal to ${constant_Any}', simpleCombine(makeFilter('=='))],
         ['the ${out_param_Any} is ${constant_Any}', simpleCombine(makeFilter('=='))],
         ['the ${out_param_Any} is equal to ${constant_Any}', simpleCombine(makeFilter('=='))],
+        ['the ${out_param_Any} is equal to ${constant_Any} or ${constant_Any}', simpleCombine((param, v1, v2) => {
+            // param is a Value.VarRef
+            //console.log('param: ' + param.name);
+            if (!v1.getType().equals(v2.getType()))
+                return null;
+            return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
+        })],
+        ['the ${out_param_Any} is either ${constant_Any} or ${constant_Any}', simpleCombine((param, v1, v2) => {
+            // param is a Value.VarRef
+            //console.log('param: ' + param.name);
+            if (!v1.getType().equals(v2.getType()))
+                return null;
+            return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
+        })],
         ['the ${out_param_Numeric} is greater than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
         ['the ${out_param_Numeric} is at least ${constant_Numeric}', simpleCombine(makeFilter('>='))],
         ['the ${out_param_Numeric} is less than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
-        ['the ${out_param_Numeric} is at most ${constant_Numeric}', simpleCombine(makeFilter('<='))],*/
+        ['the ${out_param_Numeric} is at most ${constant_Numeric}', simpleCombine(makeFilter('<='))],
+        ['the ${out_param_Numeric} is between ${constant_Numeric} and ${constant_Numeric}', simpleCombine((param, v1, v2) => {
+            if (!v1.getType().equals(v2.getType()))
+                return null;
+            return new Ast.BooleanExpression.And([
+                Ast.BooleanExpression.Atom(param.name, '>=', v1),
+                Ast.BooleanExpression.Atom(param.name, '<=', v2)
+            ]);
+        })],
+        ['the ${out_param_Array(Any)} contains ${constant_Any}', simpleCombine(makeFilter('contains'))],
+        ['the ${out_param_String} contains ${constant_String}', simpleCombine(makeFilter('=~'))],
+        ['the ${out_param_String} starts with ${constant_String}', simpleCombine(makeFilter('starts_with'))],
+        ['the ${out_param_String} ends with ${constant_String}', simpleCombine(makeFilter('ends_with'))],
+        ['${constant_String} is in ${out_param_String}', simpleCombine(flip(makeFilter('=~')))]
     ],
 
     'with_filter': [
-        /*['with ${out_param_Any} equal to ${constant_Any}', simpleCombine(makeFilter('=='))],
-        ['with more ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
-        ['with at least ${constant_Number} ${out_param_Number}', simpleCombine(flip(makeFilter('>=')))],
+        ['${out_param_Any} equal to ${constant_Any}', simpleCombine(makeFilter('=='))],
+        ['${out_param_Numeric} higher than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
+        ['${out_param_Numeric} lower than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
+        ['higher ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
+        ['lower ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
 
-        ['with less ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
-        ['with at most ${constant_Number} ${out_param_Numeric}', simpleCombine(flip(makeFilter('<=')))],
-        ['with no ${out_param_Boolean}', simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Boolean(false)))],
-        ['with no ${out_param_Number}', simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0)))],*/
+        //['with more ${out_param_Number} than ${constant_Number}', simpleCombine(makeFilter('>'))],
+        //['with at least ${constant_Number} ${out_param_Number}', simpleCombine(flip(makeFilter('>=')))],
+
+        //['with less ${out_param_Number} than ${constant_Number}', simpleCombine(makeFilter('<'))],
+        //['with at most ${constant_Number} ${out_param_Number}', simpleCombine(flip(makeFilter('<=')))],
+        ['no ${out_param_Number}    ', simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0)))],
     ],
 
     thingpedia_table: [],
     thingpedia_stream: [],
     thingpedia_action: [],
 
-    table: [
-        ['${thingpedia_table}', simpleCombine(identity)],
-        // TODO add filters
-    ],
     complete_table: [
-        ['${table}', checkIfComplete(simpleCombine(identity))],
-        ['${table_join_replace_placeholder}', checkIfComplete(simpleCombine(identity))]
+        ['${thingpedia_table}', checkIfComplete(simpleCombine(identity))],
+        ['${table_join_replace_placeholder}', checkIfComplete(simpleCombine(identity))],
+
+        ['${thingpedia_table} if ${atom_filter}', checkIfComplete(simpleCombine((table, filter) => {
+            if (!checkFilter(table, filter))
+                return null;
+            return addFilter(table, filter);
+        }))],
+        ['${thingpedia_table} if ${atom_filter} and ${atom_filter}', checkIfComplete(simpleCombine((table, f1, f2) => {
+            if (!checkFilter(table, f1) || !checkFilter(table, f2))
+                return null;
+            return addFilter(table, Ast.BooleanExpression.And([f1, f2]));
+        }))],
+        ['${thingpedia_table} with ${with_filter}', checkIfComplete(simpleCombine((table, filter) => {
+            if (!checkFilter(table, filter))
+                return null;
+            return addFilter(table, filter);
+        }))],
+        ['${thingpedia_table} having ${with_filter}', checkIfComplete(simpleCombine((table, filter) => {
+            if (!checkFilter(table, filter))
+                return null;
+            return addFilter(table, filter);
+        }))],
     ],
 
     timer: [
@@ -670,8 +820,16 @@ const GRAMMAR = {
 
     stream: [
         ['${thingpedia_stream}', checkIfComplete(simpleCombine(identity))],
-        ['when ${complete_table} change', simpleCombine((table) => new Ast.Stream.Monitor(table, null, table.schema))],
-        ['when ${projection_Any} changes', simpleCombine((proj) => new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema))],
+        ['when ${complete_table} change', simpleCombine((table) => {
+            if (!isMonitorable(table))
+                return null;
+            return new Ast.Stream.Monitor(table, null, table.schema);
+        })],
+        ['when ${projection_Any} changes', simpleCombine((table) => {
+            if (!isMonitorable(table))
+                return null;
+            return new Ast.Stream.Monitor(table, null, table.schema);
+        })],
         //['when the data in ${complete_table} changes', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
         //['if ${complete_table} change', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
         //['if ${projection_Any} changes', simpleCombine((table) => new Ast.Stream.Monitor(table, table.schema))],
@@ -707,11 +865,27 @@ const GRAMMAR = {
 
         // pp from when to do (required)
         // this is because "monitor X and then Y" makes sense only if X flows into Y
-        ['monitor ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action])))],
-        ['monitor ${projection_Any} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((proj, action) => new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [action])))],
+        ['monitor ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
+            if (!isMonitorable(table))
+                return null;
+            return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
+        }))],
+        ['monitor ${projection_Any} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((proj, action) => {
+            if (!isMonitorable(proj))
+                return null;
+            return new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [action]);
+        }))],
 
-        ['check for new ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action])))],
-        ['${thingpedia_action} after checking for new ${complete_table}', checkIfIncomplete(simpleCombine((action, table) => new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action])))],
+        ['check for new ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
+            if (!isMonitorable(table))
+                return null;
+            return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
+        }))],
+        ['${thingpedia_action} after checking for new ${complete_table}', checkIfIncomplete(simpleCombine((action, table) => {
+            if (!isMonitorable(table))
+                return null;
+            return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
+        }))],
     ],
 
     // pp from when to get (optional)
@@ -742,8 +916,16 @@ const GRAMMAR = {
         ['notify me ${stream}', checkConstants(checkIfComplete(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()])))))],
         ['send me a message ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
         ['send me a reminder ${timer}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
-        ['monitor ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, null), [Generate.notifyAction()]))))],
-        ['monitor ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, null), [builtinSayAction(proj.args[0])]))))],
+        ['monitor ${complete_table}', checkConstants(simpleCombine((table) => {
+            if (!isMonitorable(table))
+                return null;
+            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, null), [Generate.notifyAction()]));
+        }))],
+        ['monitor ${projection_Any}', checkConstants(simpleCombine((proj) => {
+            if (!isMonitorable(proj))
+                return null;
+            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, null), [builtinSayAction(proj.args[0])]));
+        }))],
 
         // now => get => notify
         ['show me ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
@@ -782,7 +964,7 @@ const allInParams = new Map;
 const allOutParams = new Set;
 
 const _language = process.argv[3] || 'en';
-const _schemaRetriever = new SchemaRetriever(new AdminThingpediaClient(_language));
+const _schemaRetriever = new FastSchemaRetriever(new AdminThingpediaClient(_language));
 
 function loadTemplateAsDeclaration(ex, decl) {
     decl.name = 'ex_' + ex.id;
@@ -810,6 +992,17 @@ function loadTemplateAsDeclaration(ex, decl) {
         } else {
             allInParams.set(pname + '+' + ptype, ptype);
         }
+        allTypes.set(String(ptype), ptype);
+    }
+
+    for (let pname in decl.args) {
+        let ptype = decl.args[pname];
+        if (!(pname in decl.value.schema.inReq)) {
+            // somewhat of a hack, we declare the argument for the value,
+            // because later we will muck with schema only
+            decl.value.schema.inReq[pname] = ptype;
+        }
+        allInParams.set(pname, ptype);
         allTypes.set(String(ptype), ptype);
     }
     for (let pname in decl.value.schema.out) {
@@ -913,6 +1106,7 @@ function loadMetadata(language) {
 
         for (let [key, ptype] of allInParams) {
             let [pname,] = key.split('+');
+            console.log(pname + ' := ' + ptype);
 
             GRAMMAR.thingpedia_table.push(['${thingpedia_table}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
@@ -1242,7 +1436,7 @@ function *generate() {
                         continue;
                     }
                     everything.add(key);
-                    //if (nonterminal === 'complete_get_do_command' && String(derivation).startsWith('use '))
+                    //if (nonterminal === 'complete_table' || nonterminal === 'thingpedia_table')
                     //    console.log(`$${nonterminal} -> ${derivation}`);
                     charts[i][nonterminal].push(derivation);
                 }
