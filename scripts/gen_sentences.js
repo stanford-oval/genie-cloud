@@ -12,6 +12,7 @@ require('thingengine-core/lib/polyfill');
 const fs = require('fs');
 const assert = require('assert');
 const Q = require('q');
+const seedrandom = require('seedrandom');
 
 const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
@@ -24,6 +25,11 @@ const { optimizeFilter } = require('thingtalk/lib/optimize');
 const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
+
+const rng = seedrandom('almond is awesome');
+function coin(prob) {
+    return rng() <= prob;
+}
 
 class FastSchemaRetriever extends SchemaRetriever {
     getMeta(...args) {
@@ -806,27 +812,33 @@ const GRAMMAR = {
     complete_table: [
         ['${thingpedia_table}', checkIfComplete(simpleCombine(identity))],
         ['${table_join_replace_placeholder}', checkIfComplete(simpleCombine(identity))],
+    ],
 
-        ['${thingpedia_table} if ${atom_filter}', checkIfComplete(simpleCombine((table, filter) => {
+    filtered_table: [
+        ['${complete_table}', simpleCombine(identity)],
+
+        ['${complete_table} if ${atom_filter}', checkConstants(simpleCombine((table, filter) => {
             if (!checkFilter(table, filter))
                 return null;
             return addFilter(table, filter);
-        }))],
-        ['${thingpedia_table} if ${atom_filter} and ${atom_filter}', checkConstants(checkIfComplete(simpleCombine((table, f1, f2) => {
+        }), false)],
+        ['${complete_table} if ${atom_filter} and ${atom_filter}', checkConstants(simpleCombine((table, f1, f2) => {
             if (!checkFilter(table, f1) || !checkFilter(table, f2))
                 return null;
+            if (f1.name === f2.name && f1.operator === f2.operator)
+                return null;
             return addFilter(table, Ast.BooleanExpression.And([f1, f2]));
-        })), false)],
-        ['${thingpedia_table} with ${with_filter}', checkConstants(checkIfComplete(simpleCombine((table, filter) => {
+        }), false)],
+        ['${complete_table} with ${with_filter}', checkConstants(simpleCombine((table, filter) => {
             if (!checkFilter(table, filter))
                 return null;
             return addFilter(table, filter);
-        })), false)],
-        ['${thingpedia_table} having ${with_filter}', checkConstants(checkIfComplete(simpleCombine((table, filter) => {
+        }), false)],
+        ['${complete_table} having ${with_filter}', checkConstants(simpleCombine((table, filter) => {
             if (!checkFilter(table, filter))
                 return null;
             return addFilter(table, filter);
-        })), false)],
+        }), false)],
     ],
 
     timer: [
@@ -841,7 +853,7 @@ const GRAMMAR = {
 
     stream: [
         ['${thingpedia_stream}', checkIfComplete(simpleCombine(identity))],
-        ['when ${complete_table} change', simpleCombine((table) => {
+        ['when ${filtered_table} change', simpleCombine((table) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Stream.Monitor(table, null, table.schema);
@@ -860,9 +872,6 @@ const GRAMMAR = {
 
     /*table_join: ['${table} then ${table}', simpleCombine((lhs, rhs) => new Ast.Table.Join(lhs, rhs, null))],
     stream_join: [],*/
-    complete_action: [
-        ['${thingpedia_action}', checkIfComplete(simpleCombine(identity))]
-    ],
     action_replace_param_with_table: [],
 
     // commands with the traditional "get something from foo and do the X on bar" form
@@ -872,12 +881,12 @@ const GRAMMAR = {
     // observe that there is no rule of the form "${complete_get_command} then ${complete_action}"
     // this is because a sentence of the form "get X then do Y" makes sense only if X flows into Y
     'get_do_command': [
-        ['get ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
-        ['after getting ${complete_table} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
+        ['get ${filtered_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
+        ['after getting ${filtered_table} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
         ['${thingpedia_action} after getting ${complete_table}', checkIfIncomplete(simpleCombine((action, table) => new Ast.Statement.Command(table, [action])))],
 
         // use X to do Y would be good sometimes but it gets confusing quickly
-        ['use ${complete_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]
+        ['use ${filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]
     ],
     'when_do_rule': [
         // pp from when to do (optional)
@@ -886,7 +895,7 @@ const GRAMMAR = {
 
         // pp from when to do (required)
         // this is because "monitor X and then Y" makes sense only if X flows into Y
-        ['monitor ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
+        ['monitor ${filtered_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
@@ -897,12 +906,12 @@ const GRAMMAR = {
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [action]);
         }))],
 
-        ['check for new ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
+        ['check for new ${filtered_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
         }))],
-        ['${thingpedia_action} after checking for new ${complete_table}', checkIfIncomplete(simpleCombine((action, table) => {
+        ['${thingpedia_action} after checking for new ${filtered_table}', checkIfIncomplete(simpleCombine((action, table) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
@@ -913,14 +922,14 @@ const GRAMMAR = {
     'when_get_stream': [
         // FIXME: the schema is not quite right but it's ok because the stream is complete
         // and the table is what we care about
-        ['${stream} get ${table}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['${stream} get ${thingpedia_table}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
         ['${stream} get ${projection_Any}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
-        ['${stream} show me ${table}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['${stream} show me ${thingpedia_table}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
         ['${stream} show me ${projection_Any}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
 
-        ['get ${table} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['get ${thingpedia_table} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
         ['get ${projection_Any} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
-        ['show me ${table} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['show me ${thingpedia_table} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
         ['show me ${projection_Any} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
     ],
     'complete_when_get_stream': [
@@ -937,7 +946,7 @@ const GRAMMAR = {
         ['notify me ${stream}', checkConstants(checkIfComplete(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()])))))],
         ['send me a message ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
         ['send me a reminder ${timer}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
-        ['monitor ${complete_table}', checkConstants(simpleCombine((table) => {
+        ['monitor ${filtered_table}', checkConstants(simpleCombine((table) => {
             if (!isMonitorable(table))
                 return null;
             return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, null), [Generate.notifyAction()]));
@@ -949,16 +958,16 @@ const GRAMMAR = {
         }))],
 
         // now => get => notify
-        ['show me ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
-        ['get ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
-        ['what are ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+        ['show me ${filtered_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+        ['get ${filtered_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+        ['what are ${filtered_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
 
         // now => get => say(...)
         ['get ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
         ['what is ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
 
         // now => do
-        ['${complete_action}', checkConstants(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action]))))],
+        ['${thingpedia_action}', checkConstants(checkIfComplete(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action])))))],
         // now => get => do
         ['${complete_get_do_command}', checkConstants(simpleCombine(makeProgram))],
 
@@ -1153,7 +1162,7 @@ function loadMetadata(language) {
             if (ptype.isEnum || ptype.isBoolean)
                 continue;
             
-            GRAMMAR.table_join_replace_placeholder.push(['${table}${projection_' + ptype + '}', combineReplacePlaceholder(pname, (into, projection) => {
+            GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_table}${projection_' + ptype + '}', combineReplacePlaceholder(pname, (into, projection) => {
                 let intotype = into.schema.inReq[pname];
                 if (!intotype || !Type.isAssignable(ptype, intotype))
                     return null;
@@ -1288,7 +1297,7 @@ class NonTerminal {
     }
 
     toString() {
-        return `NonTerminal(${this.symbol})`;
+        return `NT[${this.symbol}]`;
     }
 }
 
@@ -1317,10 +1326,8 @@ function preprocessGrammar() {
                 }
 
                 let [,param] = chunk;
-                if (!GRAMMAR[param]) {
-                    console.error('Invalid non-terminal ' + param);
-                    GRAMMAR[param] = [];
-                }
+                if (!GRAMMAR[param])
+                    throw new Error('Invalid non-terminal ' + param);
 
                 newexpansion.push(new NonTerminal(param));
             }
@@ -1333,6 +1340,9 @@ function preprocessGrammar() {
     }
 }
 
+const POWERS = [1, 1, 1, 1, 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64, 1/128];
+const TARGET_GEN_SIZE = 500000;
+
 function *expandRule(charts, depth, nonterminal, [expansion, combiner]) {
     const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
 
@@ -1343,6 +1353,19 @@ function *expandRule(charts, depth, nonterminal, [expansion, combiner]) {
     }
     if (depth === 0)
         return;
+
+    if (expansion.length === 1) {
+        // fast path for simple expansions
+        if (expansion[0] instanceof NonTerminal) {
+            for (let j = 0; j <= depth-1; j++) {
+                for (let candidate of charts[j][expansion[0].symbol])
+                    yield combiner([candidate]);
+            }
+        } else {
+            yield combiner(expansion);
+        }
+        return;
+    }
 
     // for each piece of the expansion, we take turn and use
     // depth-1 of that, depth' < depth-1 of anything before, and
@@ -1393,12 +1416,61 @@ function *expandRule(charts, depth, nonterminal, [expansion, combiner]) {
 
     //console.log('expand $' + nonterminal + ' -> ' + expansion.join(''));
 
+    // first compute how many things we expect to produce in the worst case
+    let worstCaseGenSize = 0;
+    for (let i = 0; i < expansion.length; i++) {
+        let fixeddepth = depth-1;
+        worstCaseGenSize += (function recursiveHelper(k) {
+            if (k === expansion.length)
+                return 1;
+            if (k === i) {
+                if (expansion[k] instanceof NonTerminal)
+                    return charts[fixeddepth][expansion[k].symbol].length * recursiveHelper(k+1);
+                else
+                    return 0;
+            }
+            if (expansion[k] instanceof NonTerminal) {
+                let sum = 0;
+                for (let j = 0; j <= (k > i ? depth-1 : depth-2); j++)
+                    sum += charts[j][expansion[k].symbol].length * recursiveHelper(k+1);
+                return sum;
+            } else {
+                return recursiveHelper(k+1);
+            }
+        })(0);
+    }
+    if (worstCaseGenSize === 0)
+        return;
+
+    console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : expect ' + worstCaseGenSize);
+
+    const targetGenSize = TARGET_GEN_SIZE * POWERS[depth];
+    let coinProbability = worstCaseGenSize <= targetGenSize ? 1 : targetGenSize/worstCaseGenSize;
+
     let choices = [];
+    let actualGenSize = 0;
+    let prunedGenSize = 0;
+    let emittedGenSize = 0;
     for (let i = 0; i < expansion.length; i++) {
         let fixeddepth = depth-1;
         yield* (function *recursiveHelper(k) {
             if (k === expansion.length) {
-                yield combiner(choices);
+                let v = combiner(choices);
+                if (v !== null) {
+                    actualGenSize ++;
+                    if (actualGenSize >= 1000 && actualGenSize / (actualGenSize + prunedGenSize) < 0.01) {
+                        // this combiner is pruning so aggressively it's messing up our sampling
+                        // disable it
+                        coinProbability = 1;
+                    }
+
+                    if (coinProbability >= 1 || coin(coinProbability)) {
+                        emittedGenSize ++;
+                        yield v;
+                    }
+                } else {
+                    prunedGenSize ++;
+                }
                 return;
             }
             if (k === i) {
@@ -1423,6 +1495,9 @@ function *expandRule(charts, depth, nonterminal, [expansion, combiner]) {
             }
         })(0);
     }
+
+    console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : actual ' + actualGenSize);
+    console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : emitted ' + emittedGenSize);
 }
 
 const MAX_DEPTH = parseInt(process.argv[4]) || 8;
