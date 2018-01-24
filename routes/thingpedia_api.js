@@ -232,7 +232,12 @@ router.get('/entities', function(req, res) {
         } else {
             res.cacheFor(86400000);
         }
-        res.status(200).json({ result: 'ok', data: rows.map((r) => ({ type: r.id, name: r.name, is_well_known: r.is_well_known })) });
+        res.status(200).json({ result: 'ok', data: rows.map((r) => ({
+            type: r.id,
+            name: r.name,
+            is_well_known: r.is_well_known,
+            has_ner_support: r.has_ner_support
+        })) });
     }).catch((e) => {
         res.status(500).json({ error: e.message });
     }).done();
