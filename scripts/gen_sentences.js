@@ -1315,11 +1315,18 @@ class NonTerminal {
     }
 }
 
+const _averagePruningFactor = new Map;
+
 function preprocessGrammar() {
     for (let category in GRAMMAR) {
         let preprocessed = [];
+        let prunefactors = [];
+        _averagePruningFactor.set(category, prunefactors);
 
+        let i = 0;
         for (let rule of GRAMMAR[category]) {
+            prunefactors[i] = 1;
+            i++;
             let [expansion, combiner] = rule;
             if (typeof expansion !== 'string') {
                 if (!Array.isArray(expansion))
@@ -1357,7 +1364,7 @@ function preprocessGrammar() {
 const POWERS = [1, 1, 1, 1, 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64, 1/128];
 const TARGET_GEN_SIZE = 500000;
 
-function *expandRule(charts, depth, nonterminal, [expansion, combiner]) {
+function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combiner]) {
     const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
 
     if (!anyNonTerm) {
@@ -1443,7 +1450,10 @@ function *expandRule(charts, depth, nonterminal, [expansion, combiner]) {
     if (worstCaseGenSize === 0)
         return;
 
-    console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : expect ' + worstCaseGenSize);
+    const estimatedPruneFactor = _averagePruningFactor.get(nonterminal)[rulenumber];
+    const estimatedGenSize = worstCaseGenSize * estimatedPruneFactor;
+
+    console.log(`expand NT[${nonterminal}] -> ${expansion.join('')} : worst case ${worstCaseGenSize}, expect ${Math.round(estimatedGenSize)}`);
     const now = Date.now();
 
     // prevent exponential behavior!
@@ -1451,13 +1461,12 @@ function *expandRule(charts, depth, nonterminal, [expansion, combiner]) {
         return;
 
     const targetGenSize = TARGET_GEN_SIZE * POWERS[depth];
-    let coinProbability = worstCaseGenSize <= targetGenSize ? 1 : targetGenSize/worstCaseGenSize;
+    let coinProbability = Math.min(1, targetGenSize/estimatedGenSize);
 
     let choices = [];
     //let depths = [];
     let actualGenSize = 0;
     let prunedGenSize = 0;
-    let emittedGenSize = 0;
     for (let i = 0; i < expansion.length; i++) {
         let fixeddepth = depth-1;
         yield* (function *recursiveHelper(k) {
@@ -1468,13 +1477,12 @@ function *expandRule(charts, depth, nonterminal, [expansion, combiner]) {
                     let v = combiner(choices);
                     if (v !== null) {
                         actualGenSize ++;
-                        if (actualGenSize >= 1000 && actualGenSize / (actualGenSize + prunedGenSize) < 0.01) {
+                        if (actualGenSize >= 1000 && actualGenSize / (actualGenSize + prunedGenSize) < 0.01 * estimatedPruneFactor) {
                             // this combiner is pruning so aggressively it's messing up our sampling
                             // disable it
                             coinProbability = 1;
                         }
 
-                        emittedGenSize ++;
                         yield v;
                     } else {
                         prunedGenSize ++;
@@ -1508,8 +1516,18 @@ function *expandRule(charts, depth, nonterminal, [expansion, combiner]) {
     }
 
     //console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : actual ' + actualGenSize);
+
+    const newEstimatedPruneFactor = actualGenSize / (actualGenSize + prunedGenSize);
+    if (isNaN(newEstimatedPruneFactor))
+        throw new TypeError('???');
+
     const elapsed = Date.now() - now;
-    console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : emitted ' + emittedGenSize + ' (took ' + ((elapsed/1000).toFixed(2)) + ' seconds)');
+    console.log(`expand NT[${nonterminal}] -> ${expansion.join('')} : emitted ${
+        actualGenSize} (took ${(elapsed/1000).toFixed(2)} seconds, coin prob ${coinProbability}, pruning factor ${
+            (newEstimatedPruneFactor * 100).toFixed(2)}%)`);
+
+    const movingAverageOfPruneFactor = (0.01 * estimatedPruneFactor + newEstimatedPruneFactor) / (1.01);
+    _averagePruningFactor.get(nonterminal)[rulenumber] = movingAverageOfPruneFactor;
 }
 
 const MAX_DEPTH = parseInt(process.argv[4]) || 8;
@@ -1533,8 +1551,9 @@ function *generate() {
         for (let nonterminal in GRAMMAR) {
             if (i === MAX_DEPTH && nonterminal !== 'root')
                 continue;
+            let j = 0;
             for (let rule of GRAMMAR[nonterminal]) {
-                for (let derivation of expandRule(charts, i, nonterminal, rule)) {
+                for (let derivation of expandRule(charts, i, nonterminal, j, rule)) {
                     if (derivation === null)
                         continue;
                     let key = `$${nonterminal} -> ${derivation}`;
@@ -1548,6 +1567,7 @@ function *generate() {
                     //    console.log(`$${nonterminal} -> ${derivation}`);
                     charts[i][nonterminal].push(derivation);
                 }
+                j++;
             }
             if (charts[i][nonterminal].length > 0)
                 console.log(`stats: size(charts[${i}][${nonterminal}]) = ${charts[i][nonterminal].length}`);
