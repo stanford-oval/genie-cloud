@@ -125,6 +125,7 @@ class Constant {
         })}_${number}`);
         // HACK: VarRefs don't know their own types normally, but these ones do
         this.value.getType = () => type;
+        this.value.constNumber = number;
     }
 
     toString() {
@@ -501,6 +502,12 @@ function makeFilter(op) {
     return function semanticAction(param, value) {
         // param is a Value.VarRef
         //console.log('param: ' + param.name);
+        let vtype = value.getType();
+        if (op === 'contains')
+            vtype = Type.Array(vtype);
+        if (!allOutParams.has(param.name + '+' + vtype))
+            return null;
+
         return new Ast.BooleanExpression.Atom(param.name, op, value);
     };
 }
@@ -533,7 +540,7 @@ function checkIfIncomplete(combiner) {
     };
 }
 
-function doCheckConstants(result) {
+function doCheckConstants(result, topLevel) {
     let constants = {};
     for (let piece of result.sentence) {
         if (!(piece instanceof Constant))
@@ -542,7 +549,7 @@ function doCheckConstants(result) {
             if (piece.number !== constants[piece.symbol] + 1)
                 return null;
         } else {
-            if (piece.number !== 0)
+            if (topLevel && piece.number !== 0)
                 return null;
         }
         constants[piece.symbol] = piece.number;
@@ -553,12 +560,12 @@ function doCheckConstants(result) {
 
 // check that there are no holes in the constants
 // (for complete top-level statements)
-function checkConstants(combiner) {
+function checkConstants(combiner, topLevel = true) {
     return function(children) {
         let result = combiner(children);
         if (result === null)
             return null;
-        return doCheckConstants(result);
+        return doCheckConstants(result, topLevel);
     };
 }
 
@@ -735,12 +742,26 @@ const GRAMMAR = {
             //console.log('param: ' + param.name);
             if (!v1.getType().equals(v2.getType()))
                 return null;
+            if (v1.equals(v2)) // should not happen but let's be sure
+                return null;
+            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
+                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
+                return null;
+            if (v1.getType().isBoolean) // "is equal to true or false" does not make sense
+                return null;
             return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
         })],
         ['the ${out_param_Any} is either ${constant_Any} or ${constant_Any}', simpleCombine((param, v1, v2) => {
             // param is a Value.VarRef
             //console.log('param: ' + param.name);
             if (!v1.getType().equals(v2.getType()))
+                return null;
+            if (v1.equals(v2)) // should not happen but let's be sure
+                return null;
+            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
+                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
+                return null;
+            if (v1.getType().isBoolean) // "is equal to true or false" does not make sense
                 return null;
             return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
         })],
@@ -760,7 +781,7 @@ const GRAMMAR = {
         ['the ${out_param_String} contains ${constant_String}', simpleCombine(makeFilter('=~'))],
         ['the ${out_param_String} starts with ${constant_String}', simpleCombine(makeFilter('starts_with'))],
         ['the ${out_param_String} ends with ${constant_String}', simpleCombine(makeFilter('ends_with'))],
-        ['${constant_String} is in ${out_param_String}', simpleCombine(flip(makeFilter('=~')))]
+        ['${constant_String} is in the ${out_param_String}', simpleCombine(flip(makeFilter('=~')))]
     ],
 
     'with_filter': [
@@ -775,7 +796,7 @@ const GRAMMAR = {
 
         //['with less ${out_param_Number} than ${constant_Number}', simpleCombine(makeFilter('<'))],
         //['with at most ${constant_Number} ${out_param_Number}', simpleCombine(flip(makeFilter('<=')))],
-        ['no ${out_param_Number}    ', simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0)))],
+        ['no ${out_param_Number}', simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0)))],
     ],
 
     thingpedia_table: [],
@@ -791,21 +812,21 @@ const GRAMMAR = {
                 return null;
             return addFilter(table, filter);
         }))],
-        ['${thingpedia_table} if ${atom_filter} and ${atom_filter}', checkIfComplete(simpleCombine((table, f1, f2) => {
+        ['${thingpedia_table} if ${atom_filter} and ${atom_filter}', checkConstants(checkIfComplete(simpleCombine((table, f1, f2) => {
             if (!checkFilter(table, f1) || !checkFilter(table, f2))
                 return null;
             return addFilter(table, Ast.BooleanExpression.And([f1, f2]));
-        }))],
-        ['${thingpedia_table} with ${with_filter}', checkIfComplete(simpleCombine((table, filter) => {
+        })), false)],
+        ['${thingpedia_table} with ${with_filter}', checkConstants(checkIfComplete(simpleCombine((table, filter) => {
             if (!checkFilter(table, filter))
                 return null;
             return addFilter(table, filter);
-        }))],
-        ['${thingpedia_table} having ${with_filter}', checkIfComplete(simpleCombine((table, filter) => {
+        })), false)],
+        ['${thingpedia_table} having ${with_filter}', checkConstants(checkIfComplete(simpleCombine((table, filter) => {
             if (!checkFilter(table, filter))
                 return null;
             return addFilter(table, filter);
-        }))],
+        })), false)],
     ],
 
     timer: [
