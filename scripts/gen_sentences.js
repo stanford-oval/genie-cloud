@@ -30,6 +30,9 @@ const rng = seedrandom('almond is awesome');
 function coin(prob) {
     return rng() <= prob;
 }
+function uniform(array) {
+    return array[Math.floor(rng() * array.length)];
+}
 
 class FastSchemaRetriever extends SchemaRetriever {
     getMeta(...args) {
@@ -53,7 +56,7 @@ class FastSchemaRetriever extends SchemaRetriever {
 };*/
 
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
-const NON_TERM_REGEX = /\${([a-zA-Z0-9._:(),]+)}/;
+const NON_TERM_REGEX = /\${(?:choice\(([^)]+)\)|([a-zA-Z0-9._:(),]+))}/;
 
 function split(pattern, regexp) {
     // a split that preserves capturing parenthesis
@@ -78,10 +81,6 @@ function split(pattern, regexp) {
 function clean(name) {
     if (/^[vwgp]_/.test(name))
         name = name.substr(2);
-    if (name === 'from')
-        return 'author';
-    if (name === 'updated')
-        return 'update time';
     return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
@@ -194,13 +193,25 @@ class Derivation {
         return new Derivation(value, sentence);
     }
 
-    replacePlaceholder(name, derivation, semanticAction, { isConstant }) {
-        let newValue = semanticAction(this.value, derivation.value);
+    replacePlaceholder(name, derivation, semanticAction, { isConstant, throwIfMissing = false }) {
+        let newValue;
+        let isDerivation;
+        if (!(derivation instanceof Derivation)) {
+            newValue = semanticAction(this.value);
+            isDerivation = false;
+        } else {
+            newValue = semanticAction(this.value, derivation.value);
+            isDerivation = true;
+        }
+
         if (newValue === null) {
             /*if (!derivation.value.isVarRef || !derivation.value.name.startsWith('__const'))
-                return null;
-            console.log('replace ' + name + ' in ' + this + ' with ' + derivation);
-            console.log('values: ' + [this.value, derivation.value].join(' , '));*/
+                return null;*/
+            /*if (throwIfMissing && this.hasPlaceholder(name)) {
+                console.log('replace ' + name + ' in ' + this + ' with ' + derivation);
+                console.log('values: ' + [this.value, derivation.value].join(' , '));
+                throw new TypeError('???');
+            }*/
             return null;
         }
         let newSentence = [];
@@ -210,12 +221,22 @@ class Derivation {
                 if (child.symbol === name) {
                     if (child.option === 'const' && !isConstant)
                         return null;
-                    newSentence.push(...derivation.sentence);
+                    if (isDerivation)
+                        newSentence.push(...derivation.sentence);
+                    else
+                        newSentence.push(derivation);
                     found = true;
                 } else if (!found) {
                     // refuse to leave a placeholder empty in the middle
                     // this prevents creating duplicates
-                    return null;
+
+                    // HACK HACK HACK: unless the hole is "p_picture_url",
+                    // because otherwise we will never fill both
+                    // p_picture_url and p_caption
+                    if (child.symbol === 'p_picture_url')
+                        newSentence.push(child);
+                    else
+                        return null;
                 } else {
                     newSentence.push(child);
                 }
@@ -224,7 +245,10 @@ class Derivation {
             }
         }
         if (!found) {
-            //console.log('no placeholder ' + name + ', have', this.sentence);
+            /*if (name === 'p_picture_url')
+                console.log('no placeholder ' + name + ', have ' + String(this.sentence));
+            if (throwIfMissing)
+                throw new TypeError('???');*/
             return null;
         }
 
@@ -553,7 +577,7 @@ function makeFilter(op, negate = false) {
 }
 
 function addUnit(unit) {
-    return function(num) {
+    return (num) => {
         if (num.isVarRef) {
             let v = new Ast.Value.VarRef(num.name + '__' + unit);
             v.getType = () => Type.Measure(unit);
@@ -565,7 +589,7 @@ function addUnit(unit) {
 }
 
 function checkIfComplete(combiner, topLevel = false) {
-    return checkConstants(function(children) {
+    return checkConstants((children) => {
         let result = combiner(children);
         if (result === null || result.hasPlaceholders())
             return null;
@@ -574,7 +598,7 @@ function checkIfComplete(combiner, topLevel = false) {
     }, topLevel);
 }
 function checkIfIncomplete(combiner) {
-    return function(children) {
+    return (children) => {
         let result = combiner(children);
         if (result === null || !result.hasPlaceholders())
             return null;
@@ -734,8 +758,8 @@ const GRAMMAR = {
         ['${constant_Measure(ms)} from now', simpleCombine((duration) => Ast.Value.Date(null, '+', duration))],
         ['${constant_Measure(ms)} ago', simpleCombine((duration) => Ast.Value.Date(null, '-', duration))],
         ['${constant_Measure(ms)} after ${constant_date_point}', simpleCombine((duration, point) => Ast.Value.Date(point.value, '+', duration))],
-        ['${constant_Measure(ms)} before ${constant_date_point}', simpleCombine((duration, point) => Ast.Value.Date(point.value, '-', duration))]
-    ],
+        ['${constant_Measure(ms)} before ${constant_date_point}', simpleCombine((duration, point) => Ast.Value.Date(point.value, '-', duration))]]
+        .concat(Array.from(makeConstantDerivations('DATE', Type.Date))),
     'constant_Measure(ms)': [
         /*['${constant_Number} ms', simpleCombine(addUnit('ms'))],
         ['${constant_Number} milliseconds', simpleCombine(addUnit('ms'))],
@@ -754,7 +778,10 @@ const GRAMMAR = {
         ['${constant_Number} byte', simpleCombine(addUnit('byte'))],
         ['${constant_Number} kb', simpleCombine(addUnit('KB'))],
         ['${constant_Number} mb', simpleCombine(addUnit('MB'))],
-        ['${constant_Number} gb', simpleCombine(addUnit('GB'))]
+        ['${constant_Number} gb', simpleCombine(addUnit('GB'))],
+        ['${constant_Number} kilobytes', simpleCombine(addUnit('KB'))],
+        ['${constant_Number} megabytes', simpleCombine(addUnit('MB'))],
+        ['${constant_Number} gigabytes', simpleCombine(addUnit('GB'))]
     ],
     'constant_Boolean': [
         /*['true', simpleCombine(() => Ast.Value.Boolean(true))],
@@ -764,6 +791,7 @@ const GRAMMAR = {
     ],
     'constant_Location': [
         ['here', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))],
+        ['where i am now', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))],
         ['home', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('home')))],
         ['work', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('work')))]]
         .concat(Array.from(makeConstantDerivations('LOCATION', Type.Location))),
@@ -799,57 +827,66 @@ const GRAMMAR = {
     ],
 
     'atom_filter': [
-        ['the ${out_param_Any} is ${constant_Any}', simpleCombine(makeFilter('=='))],
-        ['the ${out_param_Any} is equal to ${constant_Any}', simpleCombine(makeFilter('=='))],
-        ['the ${out_param_Any} is different than ${constant_Any}', simpleCombine(makeFilter('==', true))],
-        ['the ${out_param_Any} is equal to ${constant_Any} or ${constant_Any}', simpleCombine((param, v1, v2) => {
+        ['the ${out_param_Any} ${choice(is|is exactly|is equal to)} ${constant_Any}', simpleCombine(makeFilter('=='))],
+        ['the ${out_param_Any} ${choice(is not|is n\'t|is different than)} ${constant_Any}', simpleCombine(makeFilter('==', true))],
+        ['the ${out_param_Any} ${choice(is|is equal to|is one of|is either)} ${constant_Any} or ${constant_Any}', simpleCombine((param, v1, v2) => {
             // param is a Value.VarRef
             //console.log('param: ' + param.name);
             if (!v1.getType().equals(v2.getType()))
                 return null;
-            if (v1.equals(v2)) // should not happen but let's be sure
+            if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
                 return null;
             if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
                 v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
                 return null;
-            if (v1.getType().isBoolean) // "is equal to true or false" does not make sense
+            let vtype = v1.getType();
+            if (vtype.isBoolean) // "is equal to true or false" does not make sense
+                return null;
+            if (!allOutParams.has(param.name + '+' + vtype))
                 return null;
             return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
         })],
-        ['the ${out_param_Any} is either ${constant_Any} or ${constant_Any}', simpleCombine((param, v1, v2) => {
+        ['the ${out_param_Any} is ${choice(not|neither)} ${constant_Any} nor ${constant_Any}', simpleCombine((param, v1, v2) => {
             // param is a Value.VarRef
             //console.log('param: ' + param.name);
             if (!v1.getType().equals(v2.getType()))
                 return null;
-            if (v1.equals(v2)) // should not happen but let's be sure
+            if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
                 return null;
             if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
                 v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
                 return null;
-            if (v1.getType().isBoolean) // "is equal to true or false" does not make sense
+            let vtype = v1.getType();
+            if (vtype.isBoolean) // "is neither true nor false" does not make sense
                 return null;
-            return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
-        })],
-        ['the ${out_param_Any} is neither ${constant_Any} nor ${constant_Any}', simpleCombine((param, v1, v2) => {
-            // param is a Value.VarRef
-            //console.log('param: ' + param.name);
-            if (!v1.getType().equals(v2.getType()))
-                return null;
-            if (v1.equals(v2)) // should not happen but let's be sure
-                return null;
-            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
-                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
-                return null;
-            if (v1.getType().isBoolean) // "is neither true nor false" does not make sense
+            if (!allOutParams.has(param.name + '+' + vtype))
                 return null;
             return new Ast.BooleanExpression.Not(new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2])));
         })],
-        ['the ${out_param_Numeric} is greater than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
-        ['the ${out_param_Numeric} is at least ${constant_Numeric}', simpleCombine(makeFilter('>='))],
-        ['the ${out_param_Numeric} is less than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
-        ['the ${out_param_Numeric} is at most ${constant_Numeric}', simpleCombine(makeFilter('<='))],
+        ['the ${out_param_Numeric} is ${choice(greater|higher|bigger|more)} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
+        ['the ${out_param_Numeric} is ${choice(at least|not less than)} ${constant_Numeric}', simpleCombine(makeFilter('>='))],
+        ['the ${out_param_Numeric} is ${choice(smaller|lower|less)} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
+        ['the ${out_param_Numeric} is ${choice(at most|not more than)} ${constant_Numeric}', simpleCombine(makeFilter('<='))],
         ['the ${out_param_Numeric} is between ${constant_Numeric} and ${constant_Numeric}', simpleCombine((param, v1, v2) => {
             if (!v1.getType().equals(v2.getType()))
+                return null;
+            if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
+                return null;
+            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
+                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
+                return null;
+            return new Ast.BooleanExpression.And([
+                Ast.BooleanExpression.Atom(param.name, '>=', v1),
+                Ast.BooleanExpression.Atom(param.name, '<=', v2)
+            ]);
+        })],
+        ['the ${out_param_Numeric} is in the range from ${constant_Numeric} to ${constant_Numeric}', simpleCombine((param, v1, v2) => {
+            if (!v1.getType().equals(v2.getType()))
+                return null;
+            if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
+                return null;
+            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
+                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
                 return null;
             return new Ast.BooleanExpression.And([
                 Ast.BooleanExpression.Atom(param.name, '>=', v1),
@@ -859,30 +896,40 @@ const GRAMMAR = {
         ['the ${out_param_Date} is between ${constant_Date} and ${constant_Date}', simpleCombine((param, v1, v2) => {
             if (!v1.getType().equals(v2.getType()))
                 return null;
+            if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
+                return null;
+            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
+                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
+                return null;
             return new Ast.BooleanExpression.And([
                 Ast.BooleanExpression.Atom(param.name, '>=', v1),
                 Ast.BooleanExpression.Atom(param.name, '<=', v2)
             ]);
         })],
-        ['the ${out_param_Date} is after ${constant_Date}', simpleCombine(makeFilter('>'))],
-        ['the ${out_param_Date} is before ${constant_Date}', simpleCombine(makeFilter('<'))],
+        ['the ${out_param_Date} is ${choice(after|later than)} ${constant_Date}', simpleCombine(makeFilter('>'))],
+        ['the ${out_param_Date} is ${choice(before|earlier than)} ${constant_Date}', simpleCombine(makeFilter('<'))],
+
+        // there are too few arrays, so keep both
         ['the ${out_param_Array(Any)} contain ${constant_Any}', simpleCombine(makeFilter('contains'))],
         ['the ${out_param_Array(Any)} do not contain ${constant_Any}', simpleCombine(makeFilter('contains', true))],
-        ['the ${out_param_String} contains ${constant_String}', simpleCombine(makeFilter('=~'))],
-        ['the ${out_param_String} does not contain ${constant_String}', simpleCombine(makeFilter('=~', true))],
-        ['the ${out_param_String} starts with ${constant_String}', simpleCombine(makeFilter('starts_with'))],
-        ['the ${out_param_String} does not start with ${constant_String}', simpleCombine(makeFilter('starts_with', true))],
-        ['the ${out_param_String} ends with ${constant_String}', simpleCombine(makeFilter('ends_with'))],
-        ['the ${out_param_String} does not end with ${constant_String}', simpleCombine(makeFilter('ends_with', true))],
+        ['the ${out_param_Array(Any)} include ${constant_Any}', simpleCombine(makeFilter('contains'))],
+        ['the ${out_param_Array(Any)} do not include ${constant_Any}', simpleCombine(makeFilter('contains', true))],
+
+        ['the ${out_param_String} ${choice(contains|includes)} ${constant_String}', simpleCombine(makeFilter('=~'))],
+        ['the ${out_param_String} does not ${choice(contain|include)} ${constant_String}', simpleCombine(makeFilter('=~', true))],
+        ['the ${out_param_String} ${choice(starts|begins)} with ${constant_String}', simpleCombine(makeFilter('starts_with'))],
+        ['the ${out_param_String} does not ${choice(start|begin)} with ${constant_String}', simpleCombine(makeFilter('starts_with', true))],
+        ['the ${out_param_String} ${choice(ends|finishes)} with ${constant_String}', simpleCombine(makeFilter('ends_with'))],
+        ['the ${out_param_String} does not ${choice(end|finish|terminate)} with ${constant_String}', simpleCombine(makeFilter('ends_with', true))],
         ['${constant_String} is in the ${out_param_String}', simpleCombine(flip(makeFilter('=~')))]
     ],
 
     'with_filter': [
         ['${out_param_Any} equal to ${constant_Any}', simpleCombine(makeFilter('=='))],
-        ['${out_param_Numeric} higher than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
-        ['${out_param_Numeric} lower than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
-        ['higher ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
-        ['lower ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
+        ['${out_param_Numeric} ${choice(higher|larger|bigger)} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
+        ['${out_param_Numeric} ${choice(smaller|lower)} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
+        ['${choice(higher|larger|bigger)} ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
+        ['${choice(smaller|lower)} ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
         ['${out_param_Date} between ${constant_Date} and ${constant_Date}', simpleCombine((param, v1, v2) => {
             if (!v1.getType().equals(v2.getType()))
                 return null;
@@ -906,6 +953,7 @@ const GRAMMAR = {
         //['with less ${out_param_Number} than ${constant_Number}', simpleCombine(makeFilter('<'))],
         //['with at most ${constant_Number} ${out_param_Number}', simpleCombine(flip(makeFilter('<=')))],
         ['no ${out_param_Number}', simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0)))],
+        ['zero ${out_param_Number}', simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0)))],
     ],
 
     thingpedia_table: [],
@@ -938,14 +986,7 @@ const GRAMMAR = {
     with_filtered_table: [
         ['${complete_table}', simpleCombine(identity)],
 
-        ['${complete_table} with ${with_filter}', checkConstants(simpleCombine((table, filter) => {
-            if (!isSingleResult(table))
-                return null;
-            if (!checkFilter(table, filter))
-                return null;
-            return addFilter(table, filter);
-        }), false)],
-        ['${complete_table} having ${with_filter}', checkConstants(simpleCombine((table, filter) => {
+        ['${complete_table} ${choice(with|having)} ${with_filter}', checkConstants(simpleCombine((table, filter) => {
             if (!isSingleResult(table))
                 return null;
             if (!checkFilter(table, filter))
@@ -956,7 +997,13 @@ const GRAMMAR = {
 
     timer: [
         ['every ${constant_Measure(ms)}', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA))],
+        ['once in ${constant_Measure(ms)}', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA))],
+        ['once a day', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA))],
+        ['once a month', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA))],
+        ['once a week', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA))],
+        ['once an hour', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA))],
         ['every day at ${constant_Time}', simpleCombine((time) => new Ast.Stream.AtTimer(time, AT_TIMER_SCHEMA))],
+        ['daily at ${constant_Time}', simpleCombine((time) => new Ast.Stream.AtTimer(time, AT_TIMER_SCHEMA))],
     ],
 
     // this is autogenerated and depends on projection_*, which is also
@@ -996,8 +1043,8 @@ const GRAMMAR = {
     // observe that there is no rule of the form "${complete_get_command} then ${complete_action}"
     // this is because a sentence of the form "get X then do Y" makes sense only if X flows into Y
     'get_do_command': [
-        ['get ${if_filtered_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
-        ['after getting ${with_filtered_table} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
+        ['${choice(get|take|retrieve)} ${if_filtered_table} ${choice(and then|then|,)} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
+        ['after ${choice(getting|retrieving)} ${with_filtered_table} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
         ['${thingpedia_action} after getting ${with_filtered_table}', checkIfIncomplete(simpleCombine((action, table) => new Ast.Statement.Command(table, [action])))],
 
         // use X to do Y would be good sometimes but it gets confusing quickly
@@ -1010,18 +1057,18 @@ const GRAMMAR = {
 
         // pp from when to do (required)
         // this is because "monitor X and then Y" makes sense only if X flows into Y
-        ['monitor ${if_filtered_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
+        ['${choice(monitor|watch)} ${if_filtered_table} ${choice(and then|then)} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
         }))],
-        ['monitor ${projection_Any} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((proj, action) => {
+        ['${choice(monitor|watch)} ${projection_Any} ${choice(and then|then)} ${thingpedia_action}', checkIfIncomplete(simpleCombine((proj, action) => {
             if (!isMonitorable(proj))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [action]);
         }))],
 
-        ['check for new ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
+        ['check for new ${complete_table} ${choice(and then|then)} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
@@ -1035,17 +1082,13 @@ const GRAMMAR = {
 
     // pp from when to get (optional)
     'when_get_stream': [
-        // FIXME: the schema is not quite right but it's ok because the stream is complete
+        // NOTE: the schema is not quite right but it's ok because the stream is complete
         // and the table is what we care about
-        ['${stream} get ${thingpedia_table}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
-        ['${stream} get ${projection_Any}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
-        ['${stream} show me ${thingpedia_table}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
-        ['${stream} show me ${projection_Any}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['${stream} ${choice(get|show me)} ${thingpedia_table}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['${stream} ${choice(get|show me)} ${projection_Any}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
 
-        ['get ${thingpedia_table} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
-        ['get ${projection_Any} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
-        ['show me ${thingpedia_table} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
-        ['show me ${projection_Any} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['${choice(get|show me)} ${thingpedia_table} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['${choice(get|show me)} ${projection_Any} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
     ],
     'complete_when_get_stream': [
         ['${when_get_stream}', checkIfComplete(simpleCombine(identity), true)]
@@ -1058,16 +1101,17 @@ const GRAMMAR = {
 
     'root': [
         // when => notify
+        // don't merge these, the output sizes are too small
         ['notify me ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
         ['let me know ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
         ['send me a message ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
         ['send me a reminder ${timer}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
-        ['monitor ${if_filtered_table}', checkConstants(simpleCombine((table) => {
+        ['${choice(monitor|watch)} ${if_filtered_table}', checkConstants(simpleCombine((table) => {
             if (!isMonitorable(table))
                 return null;
             return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, null), [Generate.notifyAction()]));
         }))],
-        ['monitor ${projection_Any}', checkConstants(simpleCombine((proj) => {
+        ['${choice(monitor|watch)} ${projection_Any}', checkConstants(simpleCombine((proj) => {
             if (!isMonitorable(proj))
                 return null;
             return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, null), [builtinSayAction(proj.args[0])]));
@@ -1084,14 +1128,19 @@ const GRAMMAR = {
         }))],
 
         // now => get => notify
-        ['show me ${if_filtered_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
-        ['get ${if_filtered_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+        ['${choice(tell me|give me|show me|get|present)} ${if_filtered_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+        ['list ${with_filtered_table}', checkConstants(simpleCombine((table) => {
+            if (isSingleResult(table))
+                return null;
+            return makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]));
+        }))],
         ['what are ${with_filtered_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
-        ['what is ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
 
         // now => get => say(...)
-        ['get ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
+        // don't merge these two, the output sizes are too small
+        ['${choice(get|show me|give me|tell me)} ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
         ['what is ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
+        ['${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
 
         // now => do
         ['${thingpedia_action}', checkIfComplete(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action]))), true)],
@@ -1109,8 +1158,7 @@ const GRAMMAR = {
 
         // when => do
         ['${when_do_rule}', checkIfComplete(simpleCombine(makeProgram), true)],
-        ['automatically ${action_replace_param_with_stream}', checkIfComplete(simpleCombine(makeProgram), true)],
-        ['continuously ${action_replace_param_with_stream}', checkIfComplete(simpleCombine(makeProgram), true)],
+        ['${choice(automatically|continuously)} ${action_replace_param_with_stream}', checkIfComplete(simpleCombine(makeProgram), true)],
 
         // when => get => do
         ['${stream} ${complete_get_do_command}', checkIfComplete(simpleCombine((stream, command) => makeProgram(combineStreamCommand(stream, command))), true)],
@@ -1206,6 +1254,29 @@ function loadTemplate(ex) {
     });
 }
 
+const ARGUMENT_NAMES = {
+    'from': ['author'],
+    'updated': ['update time'],
+
+    // FIXME update Thingpedia for this one (coming from get_random_between)
+    'random': ['random number'],
+
+    'picture_url': ['picture', 'image', 'photo'],
+
+    'title': ['headline', 'title'],
+
+    'file_name': ['file name', 'name'],
+    'file_size': ['file size', 'size', 'disk usage', 'quota usage'],
+    // not even silei knows about mime types, so definitely no mime type here!
+    'mime_type': ['file type', 'type'],
+};
+
+// FIXME pick this up from Thingpedia
+const ID_TYPES = new Set([
+    'Entity(com.twitter:id)',
+    'Entity(com.google.drive:file_id)'
+]);
+
 function loadMetadata(language) {
     return db.withClient((dbClient) =>
         db.selectAll(dbClient, `select * from example_utterances where type = 'thingpedia' and language = ? and is_base = 1 and target_code <> ''`, [language])
@@ -1214,7 +1285,7 @@ function loadMetadata(language) {
         return Promise.all(examples.map((ex) => loadTemplate(ex)));
     }).then(() => {
         for (let [typestr, type] of allTypes) {
-            if (!GRAMMAR['constant_' + typestr]) {
+            if (!GRAMMAR['constant_' + typestr] && !ID_TYPES.has(typestr)) {
                 if (!type.isEnum && !type.isEntity && !type.isArray)
                     throw new Error('Missing definition for type ' + type);
                 GRAMMAR['constant_' + typestr] = [];
@@ -1240,7 +1311,10 @@ function loadMetadata(language) {
                 GRAMMAR['the_out_param_' + typestr] = [
                     ['the ${out_param_' + typestr + '}', simpleCombine(identity)]
                 ];
-                GRAMMAR['out_param_Any'].push(['${out_param_' + typestr + '}', simpleCombine(identity)]);
+                if (type.isArray)
+                    GRAMMAR['out_param_Array(Any)'].push(['${out_param_' + typestr + '}', simpleCombine(identity)]);
+                else
+                    GRAMMAR['out_param_Any'].push(['${out_param_' + typestr + '}', simpleCombine(identity)]);
                 if (type.isMeasure)
                     GRAMMAR['out_param_Numeric'].push(['${out_param_' + typestr + '}', simpleCombine(identity)]);
             }
@@ -1253,13 +1327,35 @@ function loadMetadata(language) {
                     newSchema.out = { [name]: table.schema.out[name] };
                     return new Ast.Table.Projection(table, [name], newSchema);
                 })],
-                /*['the ${thingpedia_table}', simpleCombine((table) => {
-                    let outParams = Object.keys(table.schema.out);
-                    if (outParams.length !== 1 || Type.isAssignable(table.schema.out[outParams[0]], type))
-                        return null;
-                    return new Ast.Table.Projection(table, [outParams[0]], table.schema);
-                })],*/
             ];
+            if (ID_TYPES.has(typestr)) {
+                GRAMMAR['single_projection_' + typestr] = [
+                    ['${complete_table}', simpleCombine((table) => {
+                        for (let pname in table.schema.out) {
+                            if (table.schema.out[pname].equals(type))
+                                return new Ast.Table.Projection(table, [pname], table.schema);
+                        }
+                        return null;
+                    })]
+                ];
+            } else if (typestr === 'Entity(tt:picture)') {
+                GRAMMAR['single_projection_' + typestr] = [
+                    ['${complete_table}', simpleCombine((table) => {
+                        if (!table.schema.out['picture_url'])
+                            return null;
+                        return new Ast.Table.Projection(table, ['picture_url'], table.schema);
+                    })]
+                ];
+            } else {
+                GRAMMAR['single_projection_' + typestr] = [
+                    ['${complete_table}', simpleCombine((table) => {
+                        let outParams = Object.keys(table.schema.out);
+                        if (outParams.length !== 1 || !type.equals(table.schema.out[outParams[0]]))
+                            return null;
+                        return new Ast.Table.Projection(table, [outParams[0]], table.schema);
+                    })]
+                ];
+            }
             GRAMMAR['stream_projection_' + typestr] = [
                 ['${the_out_param_' + typestr + '} of new ${complete_table}', simpleCombine((outParam, table) => {
                     let name = outParam.name;
@@ -1272,13 +1368,41 @@ function loadMetadata(language) {
                     newSchema.out = { [name]: stream.schema.out[name] };
                     return new Ast.Stream.Projection(stream, [name], newSchema);
                 })],
-                /*['the ${thingpedia_table}', simpleCombine((table) => {
-                    let outParams = Object.keys(table.schema.out);
-                    if (outParams.length !== 1 || Type.isAssignable(table.schema.out[outParams[0]], type))
-                        return null;
-                    return new Ast.Table.Projection(table, [outParams[0]], table.schema);
-                })],*/
             ];
+            if (ID_TYPES.has(typestr)) {
+                GRAMMAR['single_stream_projection_' + typestr] = [
+                    ['new ${complete_table}', simpleCombine((table) => {
+                        if (!isMonitorable(table))
+                            return null;
+                        for (let pname in table.schema.out) {
+                            if (table.schema.out[pname].equals(type))
+                                return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [pname], table.schema);
+                        }
+                        return null;
+                    })]
+                ];
+            } else if (typestr === 'Entity(tt:picture)') {
+                GRAMMAR['single_stream_projection_' + typestr] = [
+                    ['new ${complete_table}', simpleCombine((table) => {
+                        if (!table.schema.out['picture_url'])
+                            return null;
+                        if (!isMonitorable(table))
+                            return null;
+                        return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), ['picture_url'], table.schema);
+                    })]
+                ];
+            } else {
+                GRAMMAR['single_stream_projection_' + typestr] = [
+                    ['new ${complete_table}', simpleCombine((table) => {
+                        let outParams = Object.keys(table.schema.out);
+                        if (outParams.length !== 1 || !type.equals(table.schema.out[outParams[0]]))
+                            return null;
+                        if (!isMonitorable(table))
+                            return null;
+                        return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [outParams[0]], table.schema);
+                    })]
+                ];
+            }
             GRAMMAR['projection_Any'].push(['${projection_' + typestr +'}', simpleCombine(identity)]);
         }
 
@@ -1312,7 +1436,9 @@ function loadMetadata(language) {
             if (ptype.isEnum || ptype.isBoolean)
                 continue;
             
-            GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_table}${projection_' + ptype + '}', combineReplacePlaceholder(pname, (into, projection) => {
+            const tableJoinReplacePlaceholder = (into, projection) => {
+                if (projection === null)
+                    return null;
                 let intotype = into.schema.inReq[pname];
                 if (!intotype || !Type.isAssignable(ptype, intotype))
                     return null;
@@ -1349,20 +1475,31 @@ function loadMetadata(language) {
                 delete newSchema.inReq[passign];
 
                 return new Ast.Table.Join(projection.table, etaReduced, [new Ast.InputParam(passign, new Ast.Value.VarRef(joinArg))], newSchema);
-            }, { isConstant: false })]);
+            };
 
-            GRAMMAR.action_replace_param_with_table.push(['${thingpedia_action}${projection_' + ptype + '}', combineReplacePlaceholder(pname, (into, projection) => {
+            GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_table}${projection_' + ptype + '}', combineReplacePlaceholder(pname, tableJoinReplacePlaceholder, { isConstant: false })]);
+            GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_table}${single_projection_' + ptype + '}', combineReplacePlaceholder(pname, tableJoinReplacePlaceholder, { isConstant: false })]);
+
+            const actionReplaceParamWithTable = (into, projection) => {
+                if (projection === null)
+                    return null;
                 let intotype = into.schema.inReq[pname];
                 if (!intotype || !Type.isAssignable(ptype, intotype))
                     return null;
-                if (!projection.isProjection || projection.args.length !== 1)
+                if (!projection.isProjection || !projection.table || projection.args.length !== 1)
                     throw new TypeError('???');
                 let joinArg = projection.args[0];
                 let reduced = betaReduceAction(into, pname, Ast.Value.VarRef(joinArg));
 
                 return new Ast.Statement.Command(projection.table, [reduced]);
-            }, { isConstant: false })]);
-            GRAMMAR.action_replace_param_with_stream.push(['${thingpedia_action}${stream_projection_' + ptype + '}', combineReplacePlaceholder(pname, (into, projection) => {
+            };
+
+            GRAMMAR.action_replace_param_with_table.push(['${thingpedia_action}${projection_' + ptype + '}', combineReplacePlaceholder(pname, actionReplaceParamWithTable, { isConstant: false })]);
+            GRAMMAR.action_replace_param_with_table.push(['${thingpedia_action}${single_projection_' + ptype + '}', combineReplacePlaceholder(pname, actionReplaceParamWithTable, { isConstant: false })]);
+
+            const actionReplaceParamWithStream = (into, projection) => {
+                if (projection === null)
+                    return null;
                 let intotype = into.schema.inReq[pname];
                 if (!intotype || !Type.isAssignable(ptype, intotype))
                     return null;
@@ -1372,11 +1509,14 @@ function loadMetadata(language) {
                 let reduced = betaReduceAction(into, pname, Ast.Value.VarRef(joinArg));
 
                 return new Ast.Statement.Rule(projection.stream, [reduced]);
-            }, { isConstant: false })]);
+            };
 
-            GRAMMAR.get_do_command.push(['${get_do_command}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, (command, joinArg) => {
-                if (command.actions.length !== 1 || command.actions[0].selector.isBuiltin)
-                    throw new TypeError('???');
+            GRAMMAR.action_replace_param_with_stream.push(['${thingpedia_action}${stream_projection_' + ptype + '}', combineReplacePlaceholder(pname, actionReplaceParamWithStream, { isConstant: false })]);
+            GRAMMAR.action_replace_param_with_stream.push(['${thingpedia_action}${single_stream_projection_' + ptype + '}', combineReplacePlaceholder(pname, actionReplaceParamWithStream, { isConstant: false })]);
+
+            const getDoCommand = (command, joinArg) => {
+                //if (command.actions.length !== 1 || command.actions[0].selector.isBuiltin)
+                //    throw new TypeError('???');
                 let actiontype = command.actions[0].schema.inReq[pname];
                 if (!actiontype)
                     return null;
@@ -1386,11 +1526,27 @@ function loadMetadata(language) {
 
                 let reduced = betaReduceAction(command.actions[0], pname, joinArg);
                 return new Ast.Statement.Command(command.table, [reduced]);
-            }, { isConstant: false })]);
+            };
 
-            GRAMMAR.when_do_rule.push(['${when_do_rule}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, (rule, joinArg) => {
-                if (rule.actions.length !== 1 || rule.actions[0].selector.isBuiltin)
-                    throw new TypeError('???');
+            if (!ID_TYPES.has(String(ptype)))
+                GRAMMAR.get_do_command.push(['${get_do_command}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, getDoCommand, { isConstant: false })]);
+            if (ID_TYPES.has(String(ptype)) || pname === 'p_picture_url') {
+                if (pname === 'p_picture_url') {
+                    GRAMMAR.get_do_command.push(['${get_do_command}${choice(it|that|them)}', combineReplacePlaceholder(pname, (command) => getDoCommand(command, new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
+                } else {
+                    GRAMMAR.get_do_command.push(['${get_do_command}${choice(it|that|them)}', combineReplacePlaceholder(pname, (command) => {
+                        for (let joinArg in command.table.schema.out) {
+                            if (command.table.schema.out[joinArg].equals(ptype))
+                                return getDoCommand(command, new Ast.Value.VarRef(joinArg));
+                        }
+                        return null;
+                    }, { isConstant: false })]);
+                }
+            }
+
+            const whenDoRule = (rule, joinArg) => {
+                //if (rule.actions.length !== 1 || rule.actions[0].selector.isBuiltin)
+                //    throw new TypeError('???');
                 let actiontype = rule.actions[0].schema.inReq[pname];
                 if (!actiontype)
                     return null;
@@ -1400,9 +1556,25 @@ function loadMetadata(language) {
 
                 let reduced = betaReduceAction(rule.actions[0], pname, joinArg);
                 return new Ast.Statement.Rule(rule.stream, [reduced]);
-            }, { isConstant: false })]);
+            };
 
-            GRAMMAR.when_get_stream.push(['${when_get_stream}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, (stream, joinArg) => {
+            if (!ID_TYPES.has(String(ptype)))
+                GRAMMAR.when_do_rule.push(['${when_do_rule}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenDoRule, { isConstant: false })]);
+            if (ID_TYPES.has(String(ptype)) || pname === 'p_picture_url') {
+                if (pname === 'p_picture_url') {
+                    GRAMMAR.when_do_rule.push(['${when_do_rule}${choice(it|that|them)}', combineReplacePlaceholder(pname, (rule) => whenDoRule(rule,  new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
+                } else {
+                    GRAMMAR.when_do_rule.push(['${when_do_rule}${choice(it|that|them)}', combineReplacePlaceholder(pname, (rule) => {
+                        for (let joinArg in rule.stream.schema.out) {
+                            if (rule.stream.schema.out[joinArg].equals(ptype))
+                                return whenDoRule(rule, new Ast.Value.VarRef(joinArg));
+                        }
+                        return null;
+                    }, { isConstant: false })]);
+                }
+            }
+
+            const whenGetStream = (stream, joinArg) => {
                 if (!stream.isJoin)
                     throw new TypeError('???');
                 let commandtype = stream.table.schema.inReq[pname];
@@ -1441,13 +1613,36 @@ function loadMetadata(language) {
                 delete newSchema.inReq[passign];
 
                 return new Ast.Stream.Join(stream.stream, etaReduced, [new Ast.InputParam(passign, joinArg)], newSchema);
-            }, { isConstant: false })]);
+            };
+
+            if (!ID_TYPES.has(String(ptype)))
+                GRAMMAR.when_get_stream.push(['${when_get_stream}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenGetStream, { isConstant: false })]);
+            if (ID_TYPES.has(String(ptype)) || pname === 'p_picture_url') {
+                if (pname === 'p_picture_url') {
+                    GRAMMAR.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => whenGetStream(stream, new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
+                } else {
+                    GRAMMAR.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => {
+                        for (let joinArg in stream.stream.schema.out) {
+                            if (stream.stream.schema.out[joinArg].equals(ptype))
+                                return whenGetStream(stream, new Ast.Value.VarRef(joinArg));
+                        }
+                        return null;
+                    }, { isConstant: false })]);
+                }
+            }
         }
         for (let key of allOutParams) {
             let [pname,ptype] = key.split('+');
             if (ptype.startsWith('Enum(') || ptype === 'Boolean')
                 continue;
-            GRAMMAR['out_param_' + ptype].push([clean(pname), simpleCombine(() => new Ast.Value.VarRef(pname))]);
+
+            let expansion;
+            if (pname in ARGUMENT_NAMES)
+                expansion = ARGUMENT_NAMES[pname];
+            else
+                expansion = [clean(pname)];
+            for (let candidate of expansion)
+                GRAMMAR['out_param_' + ptype].push([candidate, simpleCombine(() => new Ast.Value.VarRef(pname))]);
         }
     });
 }
@@ -1459,6 +1654,20 @@ class NonTerminal {
 
     toString() {
         return `NT[${this.symbol}]`;
+    }
+}
+
+class Choice {
+    constructor(choices) {
+        this.choices = choices;
+    }
+
+    choose() {
+        return uniform(this.choices);
+    }
+
+    toString() {
+        return `C[${this.choices.join('|')}]`;
     }
 }
 
@@ -1489,15 +1698,24 @@ function preprocessGrammar() {
                 if (chunk === '')
                     continue;
                 if (typeof chunk === 'string') {
+                    if (chunk.indexOf('$') >= 0)
+                        throw new Error('Invalid syntax for ' + expansion);
+                    if (chunk !== chunk.toLowerCase())
+                        throw new Error('Terminals must be lower-case in ' + expansion);
                     newexpansion.push(chunk);
                     continue;
                 }
 
-                let [,param] = chunk;
-                if (!GRAMMAR[param])
-                    throw new Error('Invalid non-terminal ' + param);
+                let [,choice,param] = chunk;
+                if (choice) {
+                    let choices = choice.split('|');
+                    newexpansion.push(new Choice(choices));
+                } else {
+                    if (!GRAMMAR[param])
+                        throw new Error('Invalid non-terminal ' + param);
 
-                newexpansion.push(new NonTerminal(param));
+                    newexpansion.push(new NonTerminal(param));
+                }
             }
             preprocessed.push([newexpansion, combiner]);
 
@@ -1623,7 +1841,7 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
                 //console.log('combine: ' + choices.join(' ++ '));
                 //console.log('depths: ' + depths);
                 if (!(coinProbability < 1) || coin(coinProbability)) {
-                    let v = combiner(choices);
+                    let v = combiner(choices.map((c) => c instanceof Choice ? c.choose() : c));
                     if (v !== null) {
                         actualGenSize ++;
                         if (actualGenSize + prunedGenSize >= 1000 && actualGenSize / (actualGenSize + prunedGenSize) < 0.001 * estimatedPruneFactor) {
@@ -1679,7 +1897,9 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
     _averagePruningFactor.get(nonterminal)[rulenumber] = movingAverageOfPruneFactor;
 }
 
-const MAX_DEPTH = parseInt(process.argv[4]) || 8;
+const MAX_DEPTH = process.argv[4] !== undefined ? parseInt(process.argv[4]) : 6;
+if (isNaN(MAX_DEPTH))
+    throw new Error('invalid max depth');
 
 function initChart() {
     let chart = {};
@@ -1712,7 +1932,7 @@ function *generate() {
                         continue;
                     }*/
                     //everything.add(key);
-                    //if (nonterminal === 'thingpedia_action')
+                    //if (nonterminal === 'get_do_command')
                     //    console.log(`$${nonterminal} -> ${derivation}`);
                     charts[i][nonterminal].push(derivation);
                 }
