@@ -687,7 +687,7 @@ function addFilter(table, filter) {
         }
 
         let newFilter = optimizeFilter(Ast.BooleanExpression.And([existing, filter]));
-        return new Ast.Table.Filter(table, newFilter, table.schema);
+        return new Ast.Table.Filter(table.table, newFilter, table.schema);
     }
 
     // FIXME deal with the other table types (maybe)
