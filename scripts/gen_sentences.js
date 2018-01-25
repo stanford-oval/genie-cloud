@@ -80,6 +80,8 @@ function clean(name) {
         name = name.substr(2);
     if (name === 'from')
         return 'author';
+    if (name === 'updated')
+        return 'update time';
     return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
@@ -193,6 +195,14 @@ class Derivation {
     }
 
     replacePlaceholder(name, derivation, semanticAction, { isConstant }) {
+        let newValue = semanticAction(this.value, derivation.value);
+        if (newValue === null) {
+            /*if (!derivation.value.isVarRef || !derivation.value.name.startsWith('__const'))
+                return null;
+            console.log('replace ' + name + ' in ' + this + ' with ' + derivation);
+            console.log('values: ' + [this.value, derivation.value].join(' , '));*/
+            return null;
+        }
         let newSentence = [];
         let found = false;
         for (let child of this.sentence) {
@@ -218,14 +228,6 @@ class Derivation {
             return null;
         }
 
-        let newValue = semanticAction(this.value, derivation.value);
-        if (newValue === null) {
-            /*if (!derivation.value.isVarRef || !derivation.value.name.startsWith('__const'))
-                return null;
-            console.log('replace ' + name + ' in ' + this + ' with ' + derivation);
-            console.log('values: ' + [this.value, derivation.value].join(' , '));*/
-            return null;
-        }
         return new Derivation(newValue, newSentence);
     }
 
@@ -358,10 +360,30 @@ const NON_MONITORABLE_FUNCTIONS = new Set([
     'com.xkcd:random_comic',
 ]);
 
+const SINGLE_RESULT_FUNCTIONS = new Set([
+    'com.linkedin:get_profile',
+    'com.xkcd:get_comic',
+    'com.xkcd:random_comic',
+    'com.phdcomics:get_post',
+    'com.giphy:get',
+    'org.thingpedia.builtin.thingengine.builtin:get_date',
+    'org.thingpedia.builtin.thingengine.builtin:get_random_between',
+    'org.thingpedia.builtin.thingengine.builtin:get_time'
+]);
+
 function isMonitorable(table) {
     let functions = findFunctionNameTable(table);
     for (let f of functions) {
         if (NON_MONITORABLE_FUNCTIONS.has(f))
+            return false;
+    }
+    return true;
+}
+
+function isSingleResult(table) {
+    let functions = findFunctionNameTable(table);
+    for (let f of functions) {
+        if (SINGLE_RESULT_FUNCTIONS.has(f))
             return false;
     }
     return true;
@@ -635,7 +657,24 @@ function addFilter(table, filter) {
         return new Ast.Table.Projection(addFilter(table.table, filter), table.args, table.schema);
 
     if (table.isFilter) {
+        // if we already have a filter, don't add a new complex filter
+        if (!filter.isAtom)
+             return null;
+
         let existing = table.filter;
+        // check that we don't create a non-sensical filter, eg.
+        // p == X && p == Y, or p > X && p > Y
+        let operands = existing.isAnd ? existing.operands : [existing];
+        for (let operand of operands) {
+            if (operand.isAtom && operand.name === filter.name &&
+                (operand.operator === filter.operator ||
+                 operand.operator === '==' ||
+                 filter.operator === '==' ||
+                 operand.operator === 'in_array' ||
+                 filter.operator === 'in_array'))
+                return null;
+        }
+
         let newFilter = optimizeFilter(Ast.BooleanExpression.And([existing, filter]));
         return new Ast.Table.Filter(table, newFilter, table.schema);
     }
@@ -715,7 +754,7 @@ const GRAMMAR = {
     'constant_Location': [
         ['here', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))],
         ['at home', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('home')))],
-        ['at work', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))]]
+        ['at work', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('work')))]]
         .concat(Array.from(makeConstantDerivations('LOCATION', Type.Location, 'in '))),
 
     'constant_Any': [
@@ -791,7 +830,17 @@ const GRAMMAR = {
                 Ast.BooleanExpression.Atom(param.name, '<=', v2)
             ]);
         })],
-        ['the ${out_param_Array(Any)} contains ${constant_Any}', simpleCombine(makeFilter('contains'))],
+        ['the ${out_param_Date} is between ${constant_Date} and ${constant_Date}', simpleCombine((param, v1, v2) => {
+            if (!v1.getType().equals(v2.getType()))
+                return null;
+            return new Ast.BooleanExpression.And([
+                Ast.BooleanExpression.Atom(param.name, '>=', v1),
+                Ast.BooleanExpression.Atom(param.name, '<=', v2)
+            ]);
+        })],
+        ['the ${out_param_Date} is after ${constant_Date}', simpleCombine(makeFilter('>'))],
+        ['the ${out_param_Date} is before ${constant_Date}', simpleCombine(makeFilter('<'))],
+        ['the ${out_param_Array(Any)} contain ${constant_Any}', simpleCombine(makeFilter('contains'))],
         ['the ${out_param_String} contains ${constant_String}', simpleCombine(makeFilter('=~'))],
         ['the ${out_param_String} starts with ${constant_String}', simpleCombine(makeFilter('starts_with'))],
         ['the ${out_param_String} ends with ${constant_String}', simpleCombine(makeFilter('ends_with'))],
@@ -804,6 +853,22 @@ const GRAMMAR = {
         ['${out_param_Numeric} lower than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
         ['higher ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
         ['lower ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
+        ['${out_param_Date} between ${constant_Date} and ${constant_Date}', simpleCombine((param, v1, v2) => {
+            if (!v1.getType().equals(v2.getType()))
+                return null;
+            return new Ast.BooleanExpression.And([
+                Ast.BooleanExpression.Atom(param.name, '>=', v1),
+                Ast.BooleanExpression.Atom(param.name, '<=', v2)
+            ]);
+        })],
+        ['${out_param_Numeric} between ${constant_Numeric} and ${constant_Numeric}', simpleCombine((param, v1, v2) => {
+            if (!v1.getType().equals(v2.getType()))
+                return null;
+            return new Ast.BooleanExpression.And([
+                Ast.BooleanExpression.Atom(param.name, '>=', v1),
+                Ast.BooleanExpression.Atom(param.name, '<=', v2)
+            ]);
+        })],
 
         //['with more ${out_param_Number} than ${constant_Number}', simpleCombine(makeFilter('>'))],
         //['with at least ${constant_Number} ${out_param_Number}', simpleCombine(flip(makeFilter('>=')))],
@@ -833,7 +898,9 @@ const GRAMMAR = {
         ['${complete_table} if ${atom_filter} and ${atom_filter}', checkConstants(simpleCombine((table, f1, f2) => {
             if (!checkFilter(table, f1) || !checkFilter(table, f2))
                 return null;
-            if (f1.name === f2.name && f1.operator === f2.operator)
+            if (f1.name === f2.name && f1.operator === f2.operator ||
+                f1.operator === '==' || f2.operator === '==' ||
+                f1.operator === 'in_array' || f2.operator === 'in_array')
                 return null;
             return addFilter(table, Ast.BooleanExpression.And([f1, f2]));
         }), false)],
@@ -842,11 +909,15 @@ const GRAMMAR = {
         ['${complete_table}', simpleCombine(identity)],
 
         ['${complete_table} with ${with_filter}', checkConstants(simpleCombine((table, filter) => {
+            if (!isSingleResult(table))
+                return null;
             if (!checkFilter(table, filter))
                 return null;
             return addFilter(table, filter);
         }), false)],
         ['${complete_table} having ${with_filter}', checkConstants(simpleCombine((table, filter) => {
+            if (!isSingleResult(table))
+                return null;
             if (!checkFilter(table, filter))
                 return null;
             return addFilter(table, filter);
@@ -918,12 +989,12 @@ const GRAMMAR = {
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [action]);
         }))],
 
-        ['check for new ${with_filtered_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
+        ['check for new ${complete_table} and then ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
         }))],
-        ['${thingpedia_action} after checking for new ${with_filtered_table}', checkIfIncomplete(simpleCombine((action, table) => {
+        ['${thingpedia_action} after checking for new ${complete_table}', checkIfIncomplete(simpleCombine((action, table) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
@@ -1361,7 +1432,9 @@ function preprocessGrammar() {
     }
 }
 
-const POWERS = [1, 1, 1, 1, 1, 1/2, 1/4, 1/8, 1/16, 1/32, 1/64, 1/128];
+const POWERS = [1, 1, 1, 1, 1];
+for (let i = 5; i < 20; i++)
+    POWERS[i] = 0.8 * POWERS[i-1];
 const TARGET_GEN_SIZE = 500000;
 
 function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combiner]) {
