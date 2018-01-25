@@ -1346,6 +1346,23 @@ function loadMetadata(language) {
                         return new Ast.Table.Projection(table, ['picture_url'], table.schema);
                     })]
                 ];
+            } else if (typestr === 'String') {
+                GRAMMAR['single_projection_' + typestr] = [
+                    ['${complete_table}', simpleCombine((table) => {
+                        let outParams = Object.keys(table.schema.out);
+                        if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
+                            return new Ast.Table.Projection(table, [outParams[0]], table.schema);
+
+                        for (let pname in table.schema.out) {
+                            if (pname === 'picture_url')
+                                return null;
+                            let ptype = table.schema.out[pname];
+                            if (ID_TYPES.has(String(ptype)))
+                                return null;
+                        }
+                        return new Ast.Table.Projection(table, ['$event'], table.schema);
+                    })]
+                ];
             } else {
                 GRAMMAR['single_projection_' + typestr] = [
                     ['${complete_table}', simpleCombine((table) => {
@@ -1389,6 +1406,25 @@ function loadMetadata(language) {
                         if (!isMonitorable(table))
                             return null;
                         return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), ['picture_url'], table.schema);
+                    })]
+                ];
+            } else if (typestr === 'String') {
+                GRAMMAR['single_stream_projection_' + typestr] = [
+                    ['new ${complete_table}', simpleCombine((table) => {
+                        if (!isMonitorable(table))
+                            return null;
+                        let outParams = Object.keys(table.schema.out);
+                        if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
+                            return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), [outParams[0]], table.schema);
+
+                        for (let pname in table.schema.out) {
+                            if (pname === 'picture_url')
+                                return null;
+                            let ptype = table.schema.out[pname];
+                            if (ID_TYPES.has(String(ptype)))
+                                return null;
+                        }
+                        return new Ast.Stream.Projection(new Ast.Stream.Monitor(table, null, table.schema), ['$event'], table.schema);
                     })]
                 ];
             } else {
@@ -1445,6 +1481,8 @@ function loadMetadata(language) {
                 if (!projection.isProjection || projection.args.length !== 1)
                     throw new TypeError('???');
                 let joinArg = projection.args[0];
+                if (joinArg === '$event' && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) < 0)
+                    return null;
 
                 let [passign, etaReduced] = etaReduceTable(into, pname);
                 if (passign === undefined) {
@@ -1474,7 +1512,8 @@ function loadMetadata(language) {
                 Object.assign(newSchema.out, etaReduced.schema.out);
                 delete newSchema.inReq[passign];
 
-                return new Ast.Table.Join(projection.table, etaReduced, [new Ast.InputParam(passign, new Ast.Value.VarRef(joinArg))], newSchema);
+                let replacement = joinArg === '$event' ? new Ast.Value.Event(null) : new Ast.Value.VarRef(joinArg);
+                return new Ast.Table.Join(projection.table, etaReduced, [new Ast.InputParam(passign, replacement)], newSchema);
             };
 
             GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_table}${projection_' + ptype + '}', combineReplacePlaceholder(pname, tableJoinReplacePlaceholder, { isConstant: false })]);
@@ -1506,7 +1545,10 @@ function loadMetadata(language) {
                 if (!projection.isProjection || projection.args.length !== 1)
                     throw new TypeError('???');
                 let joinArg = projection.args[0];
-                let reduced = betaReduceAction(into, pname, Ast.Value.VarRef(joinArg));
+                if (joinArg === '$event' && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) < 0)
+                    return null;
+                let replacement = joinArg === '$event' ? new Ast.Value.Event(null) : new Ast.Value.VarRef(joinArg);
+                let reduced = betaReduceAction(into, pname, replacement);
 
                 return new Ast.Statement.Rule(projection.stream, [reduced]);
             };
@@ -1520,7 +1562,7 @@ function loadMetadata(language) {
                 let actiontype = command.actions[0].schema.inReq[pname];
                 if (!actiontype)
                     return null;
-                let commandtype = command.table.schema.out[joinArg.name];
+                let commandtype = joinArg.isEvent ? Type.String : command.table.schema.out[joinArg.name];
                 if (!commandtype || !Type.isAssignable(commandtype, actiontype))
                     return null;
 
@@ -1542,6 +1584,17 @@ function loadMetadata(language) {
                         return null;
                     }, { isConstant: false })]);
                 }
+            } else if (ptype.isString && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) >= 0) {
+                GRAMMAR.get_do_command.push(['${get_do_command}${choice(it|that|them)}', combineReplacePlaceholder(pname, (command) => {
+                    for (let pname in command.table.schema.out) {
+                            if (pname === 'picture_url')
+                                return null;
+                            let ptype = command.table.schema.out[pname];
+                            if (ID_TYPES.has(String(ptype)))
+                                return null;
+                    }
+                    return getDoCommand(command, new Ast.Value.Event(null));
+                }, { isConstant: false })]);
             }
 
             const whenDoRule = (rule, joinArg) => {
@@ -1550,8 +1603,10 @@ function loadMetadata(language) {
                 let actiontype = rule.actions[0].schema.inReq[pname];
                 if (!actiontype)
                     return null;
-                let commandtype = rule.stream.schema.out[joinArg.name];
+                let commandtype = joinArg.isEvent ? Type.String : rule.stream.schema.out[joinArg.name];
                 if (!commandtype || !Type.isAssignable(commandtype, actiontype))
+                    return null;
+                if (joinArg.isEvent && (rule.stream.isTimer || rule.stream.isAtTimer))
                     return null;
 
                 let reduced = betaReduceAction(rule.actions[0], pname, joinArg);
@@ -1572,6 +1627,17 @@ function loadMetadata(language) {
                         return null;
                     }, { isConstant: false })]);
                 }
+            } else if (ptype.isString && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) >= 0) {
+                GRAMMAR.when_do_rule.push(['${when_do_rule}${choice(it|that|them)}', combineReplacePlaceholder(pname, (rule) => {
+                    for (let pname in rule.stream.schema.out) {
+                            if (pname === 'picture_url')
+                                return null;
+                            let ptype = rule.stream.schema.out[pname];
+                            if (ID_TYPES.has(String(ptype)))
+                                return null;
+                    }
+                    return whenDoRule(rule, new Ast.Value.Event(null));
+                }, { isConstant: false })]);
             }
 
             const whenGetStream = (stream, joinArg) => {
@@ -1580,8 +1646,10 @@ function loadMetadata(language) {
                 let commandtype = stream.table.schema.inReq[pname];
                 if (!commandtype)
                     return null;
-                let streamtype = stream.stream.schema.out[joinArg.name];
+                let streamtype = joinArg.isEvent ? Type.String : stream.stream.schema.out[joinArg.name];
                 if (!streamtype || !Type.isAssignable(streamtype, commandtype))
+                    return null;
+                if (joinArg.isEvent && (stream.stream.isTimer || stream.stream.isAtTimer))
                     return null;
 
                 let [passign, etaReduced] = etaReduceTable(stream.table, pname);
@@ -1629,6 +1697,17 @@ function loadMetadata(language) {
                         return null;
                     }, { isConstant: false })]);
                 }
+            } else if (ptype.isString && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) >= 0) {
+                GRAMMAR.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => {
+                    for (let pname in stream.stream.schema.out) {
+                            if (pname === 'picture_url')
+                                return null;
+                            let ptype = stream.stream.schema.out[pname];
+                            if (ID_TYPES.has(String(ptype)))
+                                return null;
+                    }
+                    return whenGetStream(stream, new Ast.Value.Event(null));
+                }, { isConstant: false })]);
             }
         }
         for (let key of allOutParams) {
