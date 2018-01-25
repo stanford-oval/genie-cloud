@@ -534,7 +534,7 @@ function flip(f) {
     };
 }
 
-function makeFilter(op) {
+function makeFilter(op, negate = false) {
     return function semanticAction(param, value) {
         // param is a Value.VarRef
         //console.log('param: ' + param.name);
@@ -544,16 +544,23 @@ function makeFilter(op) {
         if (!allOutParams.has(param.name + '+' + vtype))
             return null;
 
-        return new Ast.BooleanExpression.Atom(param.name, op, value);
+        let f = new Ast.BooleanExpression.Atom(param.name, op, value);
+        if (negate)
+            return new Ast.BooleanExpression.Not(f);
+        else
+            return f;
     };
 }
 
 function addUnit(unit) {
     return function(num) {
-        if (num.isVarRef)
-            return new Ast.Value.VarRef(num.name + '__' + unit);
-        else
+        if (num.isVarRef) {
+            let v = new Ast.Value.VarRef(num.name + '__' + unit);
+            v.getType = () => Type.Measure(unit);
+            return v;
+        } else {
             return new Ast.Value.Measure(num.value, unit);
+        }
     };
 }
 
@@ -634,6 +641,9 @@ function builtinSayAction(pname) {
 }
 
 function checkFilter(table, filter) {
+    if (filter.isNot)
+        filter = filter.expr;
+
     if (!table.schema.out[filter.name])
         return false;
 
@@ -658,20 +668,21 @@ function addFilter(table, filter) {
 
     if (table.isFilter) {
         // if we already have a filter, don't add a new complex filter
-        if (!filter.isAtom)
+        if (!filter.isAtom && !(filter.isNot && filter.expr.isAtom))
              return null;
 
         let existing = table.filter;
+        let atom = filter.isNot ? filter.expr : filter;
         // check that we don't create a non-sensical filter, eg.
         // p == X && p == Y, or p > X && p > Y
         let operands = existing.isAnd ? existing.operands : [existing];
         for (let operand of operands) {
-            if (operand.isAtom && operand.name === filter.name &&
-                (operand.operator === filter.operator ||
+            if (operand.isAtom && operand.name === atom.name &&
+                (operand.operator === atom.operator ||
                  operand.operator === '==' ||
-                 filter.operator === '==' ||
+                 atom.operator === '==' ||
                  operand.operator === 'in_array' ||
-                 filter.operator === 'in_array'))
+                 atom.operator === 'in_array'))
                 return null;
         }
 
@@ -753,9 +764,9 @@ const GRAMMAR = {
     ],
     'constant_Location': [
         ['here', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))],
-        ['at home', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('home')))],
-        ['at work', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('work')))]]
-        .concat(Array.from(makeConstantDerivations('LOCATION', Type.Location, 'in '))),
+        ['home', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('home')))],
+        ['work', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('work')))]]
+        .concat(Array.from(makeConstantDerivations('LOCATION', Type.Location))),
 
     'constant_Any': [
         ['${constant_String}', simpleCombine(identity)],
@@ -790,6 +801,7 @@ const GRAMMAR = {
     'atom_filter': [
         ['the ${out_param_Any} is ${constant_Any}', simpleCombine(makeFilter('=='))],
         ['the ${out_param_Any} is equal to ${constant_Any}', simpleCombine(makeFilter('=='))],
+        ['the ${out_param_Any} is different than ${constant_Any}', simpleCombine(makeFilter('==', true))],
         ['the ${out_param_Any} is equal to ${constant_Any} or ${constant_Any}', simpleCombine((param, v1, v2) => {
             // param is a Value.VarRef
             //console.log('param: ' + param.name);
@@ -818,6 +830,20 @@ const GRAMMAR = {
                 return null;
             return new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2]));
         })],
+        ['the ${out_param_Any} is neither ${constant_Any} nor ${constant_Any}', simpleCombine((param, v1, v2) => {
+            // param is a Value.VarRef
+            //console.log('param: ' + param.name);
+            if (!v1.getType().equals(v2.getType()))
+                return null;
+            if (v1.equals(v2)) // should not happen but let's be sure
+                return null;
+            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
+                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
+                return null;
+            if (v1.getType().isBoolean) // "is neither true nor false" does not make sense
+                return null;
+            return new Ast.BooleanExpression.Not(new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2])));
+        })],
         ['the ${out_param_Numeric} is greater than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
         ['the ${out_param_Numeric} is at least ${constant_Numeric}', simpleCombine(makeFilter('>='))],
         ['the ${out_param_Numeric} is less than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
@@ -841,9 +867,13 @@ const GRAMMAR = {
         ['the ${out_param_Date} is after ${constant_Date}', simpleCombine(makeFilter('>'))],
         ['the ${out_param_Date} is before ${constant_Date}', simpleCombine(makeFilter('<'))],
         ['the ${out_param_Array(Any)} contain ${constant_Any}', simpleCombine(makeFilter('contains'))],
+        ['the ${out_param_Array(Any)} do not contain ${constant_Any}', simpleCombine(makeFilter('contains', true))],
         ['the ${out_param_String} contains ${constant_String}', simpleCombine(makeFilter('=~'))],
+        ['the ${out_param_String} does not contain ${constant_String}', simpleCombine(makeFilter('=~', true))],
         ['the ${out_param_String} starts with ${constant_String}', simpleCombine(makeFilter('starts_with'))],
+        ['the ${out_param_String} does not start with ${constant_String}', simpleCombine(makeFilter('starts_with', true))],
         ['the ${out_param_String} ends with ${constant_String}', simpleCombine(makeFilter('ends_with'))],
+        ['the ${out_param_String} does not end with ${constant_String}', simpleCombine(makeFilter('ends_with', true))],
         ['${constant_String} is in the ${out_param_String}', simpleCombine(flip(makeFilter('=~')))]
     ],
 
@@ -1434,8 +1464,8 @@ function preprocessGrammar() {
 
 const POWERS = [1, 1, 1, 1, 1];
 for (let i = 5; i < 20; i++)
-    POWERS[i] = 0.8 * POWERS[i-1];
-const TARGET_GEN_SIZE = 500000;
+    POWERS[i] = 0.9 * POWERS[i-1];
+const TARGET_GEN_SIZE = 300000;
 
 function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combiner]) {
     const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
@@ -1525,15 +1555,15 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
 
     const estimatedPruneFactor = _averagePruningFactor.get(nonterminal)[rulenumber];
     const estimatedGenSize = worstCaseGenSize * estimatedPruneFactor;
+    const targetGenSize = nonterminal === 'root' ? Infinity : TARGET_GEN_SIZE * POWERS[depth];
 
-    console.log(`expand NT[${nonterminal}] -> ${expansion.join('')} : worst case ${worstCaseGenSize}, expect ${Math.round(estimatedGenSize)}`);
+    console.log(`expand NT[${nonterminal}] -> ${expansion.join('')} : worst case ${worstCaseGenSize}, expect ${Math.round(estimatedGenSize)} (target ${targetGenSize})`);
     const now = Date.now();
 
     // prevent exponential behavior!
     if (worstCaseGenSize >= 100000000)
         return;
 
-    const targetGenSize = TARGET_GEN_SIZE * POWERS[depth];
     let coinProbability = Math.min(1, targetGenSize/estimatedGenSize);
 
     let choices = [];
@@ -1546,11 +1576,11 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
             if (k === expansion.length) {
                 //console.log('combine: ' + choices.join(' ++ '));
                 //console.log('depths: ' + depths);
-                if (coinProbability >= 1 || coin(coinProbability)) {
+                if (!(coinProbability < 1) || coin(coinProbability)) {
                     let v = combiner(choices);
                     if (v !== null) {
                         actualGenSize ++;
-                        if (actualGenSize >= 1000 && actualGenSize / (actualGenSize + prunedGenSize) < 0.01 * estimatedPruneFactor) {
+                        if (actualGenSize + prunedGenSize >= 1000 && actualGenSize / (actualGenSize + prunedGenSize) < 0.001 * estimatedPruneFactor) {
                             // this combiner is pruning so aggressively it's messing up our sampling
                             // disable it
                             coinProbability = 1;
@@ -1636,7 +1666,7 @@ function *generate() {
                         continue;
                     }*/
                     //everything.add(key);
-                    //if (nonterminal === 'thingpedia_table')
+                    //if (nonterminal === 'thingpedia_action')
                     //    console.log(`$${nonterminal} -> ${derivation}`);
                     charts[i][nonterminal].push(derivation);
                 }
