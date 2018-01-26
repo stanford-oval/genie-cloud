@@ -408,9 +408,9 @@ function isSingleResult(table) {
     let functions = findFunctionNameTable(table);
     for (let f of functions) {
         if (SINGLE_RESULT_FUNCTIONS.has(f))
-            return false;
+            return true;
     }
-    return true;
+    return false;
 }
 
 function betaReduceInvocation(invocation, pname, value) {
@@ -783,6 +783,15 @@ const GRAMMAR = {
         ['${constant_Number} megabytes', simpleCombine(addUnit('MB'))],
         ['${constant_Number} gigabytes', simpleCombine(addUnit('GB'))]
     ],
+    'constant_Measure(kg)': [
+        ['${constant_Number} grams', simpleCombine(addUnit('g'))],
+        ['${constant_Number} kilograms', simpleCombine(addUnit('kg'))],
+        ['${constant_Number} kg', simpleCombine(addUnit('kg'))],
+        ['${constant_Number} pounds', simpleCombine(addUnit('lb'))],
+        ['${constant_Number} lbs', simpleCombine(addUnit('lb'))],
+        ['${constant_Number} ounces', simpleCombine(addUnit('oz'))],
+        ['${constant_Number} oz', simpleCombine(addUnit('oz'))],
+    ],
     'constant_Boolean': [
         /*['true', simpleCombine(() => Ast.Value.Boolean(true))],
         ['false', simpleCombine(() => Ast.Value.Boolean(false))],
@@ -829,6 +838,31 @@ const GRAMMAR = {
     'atom_filter': [
         ['the ${out_param_Any} ${choice(is|is exactly|is equal to)} ${constant_Any}', simpleCombine(makeFilter('=='))],
         ['the ${out_param_Any} ${choice(is not|is n\'t|is different than)} ${constant_Any}', simpleCombine(makeFilter('==', true))],
+        ['the ${out_param_Numeric} is ${choice(greater|higher|bigger|more)} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
+        ['the ${out_param_Numeric} is ${choice(at least|not less than)} ${constant_Numeric}', simpleCombine(makeFilter('>='))],
+        ['the ${out_param_Numeric} is ${choice(smaller|lower|less)} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
+        ['the ${out_param_Numeric} is ${choice(at most|not more than)} ${constant_Numeric}', simpleCombine(makeFilter('<='))],
+        ['the ${out_param_Date} is ${choice(after|later than)} ${constant_Date}', simpleCombine(makeFilter('>'))],
+        ['the ${out_param_Date} is ${choice(before|earlier than)} ${constant_Date}', simpleCombine(makeFilter('<'))],
+
+        // there are too few arrays, so keep both
+        ['the ${out_param_Array(Any)} contain ${constant_Any}', simpleCombine(makeFilter('contains'))],
+        ['the ${out_param_Array(Any)} do not contain ${constant_Any}', simpleCombine(makeFilter('contains', true))],
+        ['the ${out_param_Array(Any)} include ${constant_Any}', simpleCombine(makeFilter('contains'))],
+        ['the ${out_param_Array(Any)} do not include ${constant_Any}', simpleCombine(makeFilter('contains', true))],
+
+        ['the ${out_param_String} ${choice(contains|includes)} ${constant_String}', simpleCombine(makeFilter('=~'))],
+        ['the ${out_param_String} does not ${choice(contain|include)} ${constant_String}', simpleCombine(makeFilter('=~', true))],
+        ['the ${out_param_String} ${choice(starts|begins)} with ${constant_String}', simpleCombine(makeFilter('starts_with'))],
+        ['the ${out_param_String} does not ${choice(start|begin)} with ${constant_String}', simpleCombine(makeFilter('starts_with', true))],
+        ['the ${out_param_String} ${choice(ends|finishes)} with ${constant_String}', simpleCombine(makeFilter('ends_with'))],
+        ['the ${out_param_String} does not ${choice(end|finish|terminate)} with ${constant_String}', simpleCombine(makeFilter('ends_with', true))],
+        ['${constant_String} is in the ${out_param_String}', simpleCombine(flip(makeFilter('=~')))],
+
+        ['${range_filter}', simpleCombine(identity)],
+        ['${either_filter}', simpleCombine(identity)]
+    ],
+    'either_filter': [
         ['the ${out_param_Any} ${choice(is|is equal to|is one of|is either)} ${constant_Any} or ${constant_Any}', simpleCombine((param, v1, v2) => {
             // param is a Value.VarRef
             //console.log('param: ' + param.name);
@@ -863,10 +897,8 @@ const GRAMMAR = {
                 return null;
             return new Ast.BooleanExpression.Not(new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2])));
         })],
-        ['the ${out_param_Numeric} is ${choice(greater|higher|bigger|more)} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
-        ['the ${out_param_Numeric} is ${choice(at least|not less than)} ${constant_Numeric}', simpleCombine(makeFilter('>='))],
-        ['the ${out_param_Numeric} is ${choice(smaller|lower|less)} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
-        ['the ${out_param_Numeric} is ${choice(at most|not more than)} ${constant_Numeric}', simpleCombine(makeFilter('<='))],
+    ],
+    'range_filter': [
         ['the ${out_param_Numeric} is between ${constant_Numeric} and ${constant_Numeric}', simpleCombine((param, v1, v2) => {
             if (!v1.getType().equals(v2.getType()))
                 return null;
@@ -906,22 +938,6 @@ const GRAMMAR = {
                 Ast.BooleanExpression.Atom(param.name, '<=', v2)
             ]);
         })],
-        ['the ${out_param_Date} is ${choice(after|later than)} ${constant_Date}', simpleCombine(makeFilter('>'))],
-        ['the ${out_param_Date} is ${choice(before|earlier than)} ${constant_Date}', simpleCombine(makeFilter('<'))],
-
-        // there are too few arrays, so keep both
-        ['the ${out_param_Array(Any)} contain ${constant_Any}', simpleCombine(makeFilter('contains'))],
-        ['the ${out_param_Array(Any)} do not contain ${constant_Any}', simpleCombine(makeFilter('contains', true))],
-        ['the ${out_param_Array(Any)} include ${constant_Any}', simpleCombine(makeFilter('contains'))],
-        ['the ${out_param_Array(Any)} do not include ${constant_Any}', simpleCombine(makeFilter('contains', true))],
-
-        ['the ${out_param_String} ${choice(contains|includes)} ${constant_String}', simpleCombine(makeFilter('=~'))],
-        ['the ${out_param_String} does not ${choice(contain|include)} ${constant_String}', simpleCombine(makeFilter('=~', true))],
-        ['the ${out_param_String} ${choice(starts|begins)} with ${constant_String}', simpleCombine(makeFilter('starts_with'))],
-        ['the ${out_param_String} does not ${choice(start|begin)} with ${constant_String}', simpleCombine(makeFilter('starts_with', true))],
-        ['the ${out_param_String} ${choice(ends|finishes)} with ${constant_String}', simpleCombine(makeFilter('ends_with'))],
-        ['the ${out_param_String} does not ${choice(end|finish|terminate)} with ${constant_String}', simpleCombine(makeFilter('ends_with', true))],
-        ['${constant_String} is in the ${out_param_String}', simpleCombine(flip(makeFilter('=~')))]
     ],
 
     'with_filter': [
@@ -930,6 +946,9 @@ const GRAMMAR = {
         ['${out_param_Numeric} ${choice(smaller|lower)} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
         ['${choice(higher|larger|bigger)} ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
         ['${choice(smaller|lower)} ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
+        ['${range_with_filter}', simpleCombine(identity)]
+    ],
+    'range_with_filter': [
         ['${out_param_Date} between ${constant_Date} and ${constant_Date}', simpleCombine((param, v1, v2) => {
             if (!v1.getType().equals(v2.getType()))
                 return null;
@@ -967,20 +986,22 @@ const GRAMMAR = {
 
     if_filtered_table: [
         ['${complete_table}', simpleCombine(identity)],
+        ['${one_filter_table}', simpleCombine(identity)],
+        ['${two_filter_table}', simpleCombine(identity)],
+    ],
 
+    one_filter_table: [
         ['${complete_table} if ${atom_filter}', checkConstants(simpleCombine((table, filter) => {
             if (!checkFilter(table, filter))
                 return null;
             return addFilter(table, filter);
         }), false)],
-        ['${complete_table} if ${atom_filter} and ${atom_filter}', checkConstants(simpleCombine((table, f1, f2) => {
-            if (!checkFilter(table, f1) || !checkFilter(table, f2))
+    ],
+    two_filter_table: [
+        ['${one_filter_table} and ${atom_filter}', checkConstants(simpleCombine((table, filter) => {
+            if (!checkFilter(table, filter))
                 return null;
-            if (f1.name === f2.name && f1.operator === f2.operator ||
-                f1.operator === '==' || f2.operator === '==' ||
-                f1.operator === 'in_array' || f2.operator === 'in_array')
-                return null;
-            return addFilter(table, Ast.BooleanExpression.And([f1, f2]));
+            return addFilter(table, filter);
         }), false)],
     ],
     with_filtered_table: [
@@ -1044,11 +1065,11 @@ const GRAMMAR = {
     // this is because a sentence of the form "get X then do Y" makes sense only if X flows into Y
     'get_do_command': [
         ['${choice(get|take|retrieve)} ${if_filtered_table} ${choice(and then|then|,)} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
-        ['after ${choice(getting|retrieving)} ${with_filtered_table} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
-        ['${thingpedia_action} after getting ${with_filtered_table}', checkIfIncomplete(simpleCombine((action, table) => new Ast.Statement.Command(table, [action])))],
+        ['after ${choice(you get|taking|getting|retrieving)} ${with_filtered_table} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
+        ['${thingpedia_action} after ${choice(getting|taking|you get|you retrieve)} ${with_filtered_table}', checkIfIncomplete(simpleCombine((action, table) => new Ast.Statement.Command(table, [action])))],
 
         // use X to do Y would be good sometimes but it gets confusing quickly
-        ['use ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]
+        //['${choice(get|use)} ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]
     ],
     'when_do_rule': [
         // pp from when to do (optional)
@@ -1528,6 +1549,8 @@ function loadMetadata(language) {
                 if (!projection.isProjection || !projection.table || projection.args.length !== 1)
                     throw new TypeError('???');
                 let joinArg = projection.args[0];
+                if (joinArg === '$event' && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) < 0)
+                    return null;
                 let reduced = betaReduceAction(into, pname, Ast.Value.VarRef(joinArg));
 
                 return new Ast.Statement.Command(projection.table, [reduced]);
