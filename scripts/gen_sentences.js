@@ -1304,7 +1304,11 @@ const ARGUMENT_NAMES = {
 // FIXME pick this up from Thingpedia
 const ID_TYPES = new Set([
     'Entity(com.twitter:id)',
-    'Entity(com.google.drive:file_id)'
+    'Entity(com.google.drive:file_id)',
+    'Entity(instagram:media_id)',
+    'Entity(com.thecatapi:image_id)',
+    'Entity(dogapi:image_id)',
+    'Entity(imgflip:meme_id)'
 ]);
 
 function loadMetadata(language) {
@@ -1348,16 +1352,18 @@ function loadMetadata(language) {
                 if (type.isMeasure)
                     GRAMMAR['out_param_Numeric'].push(['${out_param_' + typestr + '}', simpleCombine(identity)]);
             }
-            GRAMMAR['projection_' + typestr] = [
-                ['${the_out_param_' + typestr + '} of ${complete_table}', simpleCombine((outParam, table) => {
-                    let name = outParam.name;
-                    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
-                        return null;
-                    let newSchema = table.schema.clone();
-                    newSchema.out = { [name]: table.schema.out[name] };
-                    return new Ast.Table.Projection(table, [name], newSchema);
-                })],
-            ];
+            if (!ID_TYPES.has(typestr)) {
+                GRAMMAR['projection_' + typestr] = [
+                    ['${the_out_param_' + typestr + '} of ${complete_table}', simpleCombine((outParam, table) => {
+                        let name = outParam.name;
+                        if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
+                            return null;
+                        let newSchema = table.schema.clone();
+                        newSchema.out = { [name]: table.schema.out[name] };
+                        return new Ast.Table.Projection(table, [name], newSchema);
+                    })],
+                ];
+            }
             if (ID_TYPES.has(typestr)) {
                 GRAMMAR['single_projection_' + typestr] = [
                     ['${complete_table}', simpleCombine((table) => {
@@ -1403,19 +1409,21 @@ function loadMetadata(language) {
                     })]
                 ];
             }
-            GRAMMAR['stream_projection_' + typestr] = [
-                ['${the_out_param_' + typestr + '} of new ${complete_table}', simpleCombine((outParam, table) => {
-                    let name = outParam.name;
-                    if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
-                        return null;
-                    if (!isMonitorable(table))
-                        return null;
-                    let stream = new Ast.Stream.Monitor(table, null, table.schema);
-                    let newSchema = stream.schema.clone();
-                    newSchema.out = { [name]: stream.schema.out[name] };
-                    return new Ast.Stream.Projection(stream, [name], newSchema);
-                })],
-            ];
+            if (!ID_TYPES.has(typestr)) {
+                GRAMMAR['stream_projection_' + typestr] = [
+                    ['${the_out_param_' + typestr + '} of new ${complete_table}', simpleCombine((outParam, table) => {
+                        let name = outParam.name;
+                        if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
+                            return null;
+                        if (!isMonitorable(table))
+                            return null;
+                        let stream = new Ast.Stream.Monitor(table, null, table.schema);
+                        let newSchema = stream.schema.clone();
+                        newSchema.out = { [name]: stream.schema.out[name] };
+                        return new Ast.Stream.Projection(stream, [name], newSchema);
+                    })],
+                ];
+            }
             if (ID_TYPES.has(typestr)) {
                 GRAMMAR['single_stream_projection_' + typestr] = [
                     ['new ${complete_table}', simpleCombine((table) => {
@@ -1469,7 +1477,8 @@ function loadMetadata(language) {
                     })]
                 ];
             }
-            GRAMMAR['projection_Any'].push(['${projection_' + typestr +'}', simpleCombine(identity)]);
+            if (!ID_TYPES.has(typestr))
+                GRAMMAR['projection_Any'].push(['${projection_' + typestr +'}', simpleCombine(identity)]);
         }
 
         for (let [key, ptype] of allInParams) {
@@ -1546,7 +1555,8 @@ function loadMetadata(language) {
                 return new Ast.Table.Join(projection.table, etaReduced, [new Ast.InputParam(passign, replacement)], newSchema);
             };
 
-            GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_table}${projection_' + ptype + '}', combineReplacePlaceholder(pname, tableJoinReplacePlaceholder, { isConstant: false })]);
+            if (!ID_TYPES.has(String(ptype)))
+                GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_table}${projection_' + ptype + '}', combineReplacePlaceholder(pname, tableJoinReplacePlaceholder, { isConstant: false })]);
             GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_table}${single_projection_' + ptype + '}', combineReplacePlaceholder(pname, tableJoinReplacePlaceholder, { isConstant: false })]);
 
             const actionReplaceParamWithTable = (into, projection) => {
@@ -1565,7 +1575,8 @@ function loadMetadata(language) {
                 return new Ast.Statement.Command(projection.table, [reduced]);
             };
 
-            GRAMMAR.action_replace_param_with_table.push(['${thingpedia_action}${projection_' + ptype + '}', combineReplacePlaceholder(pname, actionReplaceParamWithTable, { isConstant: false })]);
+            if (!ID_TYPES.has(String(ptype)))
+                GRAMMAR.action_replace_param_with_table.push(['${thingpedia_action}${projection_' + ptype + '}', combineReplacePlaceholder(pname, actionReplaceParamWithTable, { isConstant: false })]);
             GRAMMAR.action_replace_param_with_table.push(['${thingpedia_action}${single_projection_' + ptype + '}', combineReplacePlaceholder(pname, actionReplaceParamWithTable, { isConstant: false })]);
 
             const actionReplaceParamWithStream = (into, projection) => {
@@ -1585,7 +1596,8 @@ function loadMetadata(language) {
                 return new Ast.Statement.Rule(projection.stream, [reduced]);
             };
 
-            GRAMMAR.action_replace_param_with_stream.push(['${thingpedia_action}${stream_projection_' + ptype + '}', combineReplacePlaceholder(pname, actionReplaceParamWithStream, { isConstant: false })]);
+            if (!ID_TYPES.has(String(ptype)))
+                GRAMMAR.action_replace_param_with_stream.push(['${thingpedia_action}${stream_projection_' + ptype + '}', combineReplacePlaceholder(pname, actionReplaceParamWithStream, { isConstant: false })]);
             GRAMMAR.action_replace_param_with_stream.push(['${thingpedia_action}${single_stream_projection_' + ptype + '}', combineReplacePlaceholder(pname, actionReplaceParamWithStream, { isConstant: false })]);
 
             const getDoCommand = (command, joinArg) => {
