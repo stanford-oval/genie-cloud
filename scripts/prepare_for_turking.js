@@ -272,7 +272,7 @@ function processOne(id, tokenizedsentence, code) {
     let num_filters = 0;
     for (let i = 0; i < code.length; i++) {
         let token = code[i];
-        if (token.startsWith('@'))
+        if (token.startsWith('@') && token !== '@org.thingpedia.builtin.thingengine.builtin.say')
             num_functions++;
         if (token.startsWith('param:')
             && i < code.length -2 &&
@@ -293,7 +293,7 @@ function processOne(id, tokenizedsentence, code) {
         1 * depth +
         2 * num_functions +
         0.05 * program_complexity +
-        0.05 * sentence_complexity +
+        0.1 * sentence_complexity +
         0.1 * num_entities +
         0.4 * num_pp +
         0.5 * num_filters;
@@ -318,7 +318,7 @@ function processOne(id, tokenizedsentence, code) {
 function main() {
     const input = byline(process.stdin);
     input.setEncoding('utf8');
-    const output = csv.stringify({ header: true });
+    const output = csv.stringify({ header: true, delimiter: '\t' });
     const file = fs.createWriteStream(process.argv[2]);
     output.pipe(file);
 

@@ -26,10 +26,11 @@ const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
 
-const rng = seedrandom('almond is awesome');
+const rng = seedrandom.alea('almond is awesome');
 function coin(prob) {
     return rng() <= prob;
 }
+coin(1);
 function uniform(array) {
     return array[Math.floor(rng() * array.length)];
 }
@@ -193,7 +194,7 @@ class Derivation {
         return new Derivation(value, sentence);
     }
 
-    replacePlaceholder(name, derivation, semanticAction, { isConstant, throwIfMissing = false }) {
+    replacePlaceholder(name, derivation, semanticAction, { isConstant, throwIfMissing = false, allowEmptyPictureURL = false }) {
         let newValue;
         let isDerivation;
         if (!(derivation instanceof Derivation)) {
@@ -233,7 +234,7 @@ class Derivation {
                     // HACK HACK HACK: unless the hole is "p_picture_url",
                     // because otherwise we will never fill both
                     // p_picture_url and p_caption
-                    if (child.symbol === 'p_picture_url')
+                    if (allowEmptyPictureURL && child.symbol === 'p_picture_url')
                         newSentence.push(child);
                     else
                         return null;
@@ -660,8 +661,12 @@ function combineStreamCommand(stream, command) {
 
 function builtinSayAction(pname) {
     let selector = new Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin', null, null);
-    let param = new Ast.InputParam('message', new Ast.Value.VarRef(pname));
-    return new Ast.Invocation(selector, 'say', [param], null);
+    if (pname) {
+        let param = new Ast.InputParam('message', new Ast.Value.VarRef(pname));
+        return new Ast.Invocation(selector, 'say', [param], null);
+    } else {
+        return new Ast.Invocation(selector, 'say', [], null);
+    }
 }
 
 function checkFilter(table, filter) {
@@ -1120,13 +1125,18 @@ const GRAMMAR = {
         ['${get_do_command}', checkIfComplete(simpleCombine(identity))]
     ],
 
+    'when_get_do_rule': [
+        ['${stream} ${complete_get_do_command}', checkIfComplete(simpleCombine((stream, command) => combineStreamCommand(stream, command)), true)],
+        ['${complete_get_do_command} ${stream}', checkIfComplete(simpleCombine((command, stream) => combineStreamCommand(stream, command)), true)]
+    ],
+
     'root': [
         // when => notify
         // don't merge these, the output sizes are too small
-        ['notify me ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
-        ['let me know ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
-        ['send me a message ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
-        ['send me a reminder ${timer}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]))))],
+        ['notify me ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? builtinSayAction() : Generate.notifyAction()]))))],
+        ['let me know ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? builtinSayAction() : Generate.notifyAction()]))))],
+        ['send me a message ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? builtinSayAction() : Generate.notifyAction()]))))],
+        ['send me a reminder ${timer}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [builtinSayAction()]))))],
         ['${choice(monitor|watch)} ${if_filtered_table}', checkConstants(simpleCombine((table) => {
             if (!isMonitorable(table))
                 return null;
@@ -1182,8 +1192,7 @@ const GRAMMAR = {
         ['${choice(automatically|continuously)} ${action_replace_param_with_stream}', checkIfComplete(simpleCombine(makeProgram), true)],
 
         // when => get => do
-        ['${stream} ${complete_get_do_command}', checkIfComplete(simpleCombine((stream, command) => makeProgram(combineStreamCommand(stream, command))), true)],
-        ['${complete_get_do_command} ${stream}', checkIfComplete(simpleCombine((command, stream) => makeProgram(combineStreamCommand(stream, command))), true)]
+        ['${when_get_do_rule}', simpleCombine(makeProgram)]
     ]
 };
 
@@ -1474,20 +1483,20 @@ function loadMetadata(language) {
                 //if (pname === 'p_low')
                 //    console.log('p_low := ' + ptype + ' / ' + value.getType());
                 return betaReduceTable(lhs, pname, value);
-            }, { isConstant: true })]);
+            }, { isConstant: true, allowEmptyPictureURL: true })]);
 
             GRAMMAR.thingpedia_stream.push(['${thingpedia_stream}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
                 if (!ptype || !Type.isAssignable(value.getType(), ptype))
                     return null;
                 return betaReduceStream(lhs, pname, value);
-            }, { isConstant: true })]);
+            }, { isConstant: true, allowEmptyPictureURL: true })]);
             GRAMMAR.thingpedia_action.push(['${thingpedia_action}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
                 if (!ptype || !Type.isAssignable(value.getType(), ptype))
                     return null;
                 return betaReduceAction(lhs, pname, value);
-            }, { isConstant: true })]);
+            }, { isConstant: true, allowEmptyPictureURL: true })]);
 
             // don't parameter pass booleans or enums, as that rarely makes sense
             if (ptype.isEnum || ptype.isBoolean)
@@ -1830,7 +1839,7 @@ function preprocessGrammar() {
 
 const POWERS = [1, 1, 1, 1, 1];
 for (let i = 5; i < 20; i++)
-    POWERS[i] = 0.9 * POWERS[i-1];
+    POWERS[i] = 0.5 * POWERS[i-1];
 const TARGET_GEN_SIZE = 300000;
 
 function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combiner]) {
