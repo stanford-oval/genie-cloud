@@ -233,7 +233,23 @@ function processOne(id, tokenizedsentence, code) {
 
     }
 
+    if (code.indexOf('@com.twitter.post on param:status = param:text') >= 0)
+        return null;
+
     code = code.split(' ');
+
+    let hasGmailInbox = false;
+    for (let i = 0; i < code.length; i++) {
+         let token = code[i];
+         if (token === '@com.gmail.inbox') {
+             hasGmailInbox = true;
+             continue;
+         }
+         if (hasGmailInbox &&
+             (token === '@com.gmail.send_email' || token === '@com.gmail.send_picture'))
+             return null;
+    }
+
     const program = ThingTalk.NNSyntax.fromNN(code, entityRetriever);
 
     let sentence = '';
@@ -327,7 +343,10 @@ function main() {
         sentence = sentence.split(' ');
 
         try {
-            output.write(processOne(id, sentence, code));
+            let result= processOne(id, sentence, code);
+            if (!result)
+                return;
+            output.write(result);
         } catch(e) {
             console.error(`Failed example ${id}\t${sentence}\t${code}`);
             throw e;

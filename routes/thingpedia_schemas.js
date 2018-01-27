@@ -20,19 +20,6 @@ const ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();
 
-function findInvocation(ex) {
-    const REGEXP = /^(?:tt:)?(\$?[a-z0-9A-Z_.-]+)\.([a-z0-9A-Z_]+)$/;
-    var parsed = JSON.parse(ex.target_json);
-    if (parsed.action)
-        return ['actions', REGEXP.exec(parsed.action.name.id)];
-    else if (parsed.trigger)
-        return ['triggers', REGEXP.exec(parsed.trigger.name.id)];
-    else if (parsed.query)
-        return ['queries', REGEXP.exec(parsed.query.name.id)];
-    else
-        return null;
-}
-
 router.get('/', function(req, res) {
     db.withClient(function(dbClient) {
         return model.getAllForList(dbClient);
@@ -154,6 +141,112 @@ function validateSchema(dbClient, req) {
     return ast;
 }
 
+function ensureExamples(dbClient, schemaId, ast) {
+    // FIXME
+    //return generateExamples(dbClient, kind, ast);
+
+    return exampleModel.deleteBySchema(dbClient, schemaId, 'en').then(() => {
+        let examples = ast.examples.map((ex) => {
+            return ({
+                schema_id: schemaId,
+                utterance: ex.utterance,
+                target_code: ex.program,
+                target_json: '', // FIXME
+                type: 'thingpedia',
+                language: 'en',
+                is_base: 1
+            });
+        });
+        return exampleModel.createMany(dbClient, examples);
+    });
+}
+
+function findInvocation(ex) {
+    const REGEXP = /^(?:tt:)?(\$?[a-z0-9A-Z_.-]+)\.([a-z0-9A-Z_]+)$/;
+    var parsed = JSON.parse(ex.target_json);
+    if (parsed.action)
+        return ['actions', REGEXP.exec(parsed.action.name.id)];
+    else if (parsed.trigger)
+        return ['triggers', REGEXP.exec(parsed.trigger.name.id)];
+    else if (parsed.query)
+       return ['queries', REGEXP.exec(parsed.query.name.id)];
+    else
+        return null;
+}
+
+const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9\_]+))?})/;
+
+function legacyCreateExample(utterance, kind, function_name, function_type, function_obj) {
+    let inargmap = {};
+    let outargmap = {};
+    for (let arg of function_obj.args) {
+        if (arg.is_input)
+            inargmap[arg.name] = arg.type;
+        else
+            outargmap[arg.name] = arg.type;
+    }
+
+    let regexp = new RegExp(PARAM_REGEX, 'g');
+
+    let in_args = '';
+    let filter = '';
+    let arg_decl = '';
+    let any_arg = false;
+    let any_in_arg = false;
+    let any_out_arg = false;
+
+    let match = regexp.exec(utterance);
+    while (match !== null) {
+        let [_, param1, param2, option] = match;
+        let param = param1 || param2;
+
+        if (param in inargmap) {
+            let type = inargmap[param];
+            if (any_in_arg)
+                in_args += ', ';
+            if (any_arg)
+                arg_decl += ', ';
+            in_args += `${param}=p_${param}`;
+            arg_decl += `p_${param} :${type}`;
+            any_in_arg = true;
+            any_arg = true;
+        } else {
+            let type = outargmap[param];
+            if (any_out_arg)
+                filter += ' && ';
+            if (any_arg)
+                arg_decl += ', ';
+            filter += `${param} == p_${param}`;
+            arg_decl += `p_${param} :${type}`;
+            any_out_arg = true;
+            any_arg = true;
+        }
+
+        match = regexp.exec(utterance);
+    }
+
+    let result = `@${kind}.${function_name}(${in_args})`;
+    if (filter !== '')
+        result += `, ${filter}`;
+    if (function_type === 'triggers')
+        result = `let stream x := \\(${arg_decl}) -> monitor ${result};`;
+    else if (function_type === 'queries')
+        result = `let table x := \\(${arg_decl}) -> ${result};`;
+    else
+        result = `let action x := \\(${arg_decl}) -> ${result};`;
+    return { utterance: utterance, program: result };
+}
+
+function migrateManifest(ast, examples, kind) {
+    ast.examples = examples.map((ex) => {
+        if (ex.target_code)
+            return { utterance: ex.utterance, program: ex.target_code };
+
+        let [function_type, [,,function_name]] = findInvocation(ex);
+        return legacyCreateExample(ex.utterance, kind, function_name, function_type, ast[function_type][function_name]);
+    });
+}
+
 function doCreateOrUpdate(id, create, req, res) {
     var code = req.body.code;
     var kind = req.body.kind;
@@ -224,7 +317,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (obj === null)
                     return null;
 
-                return generateExamples(dbClient, kind, gAst);
+                return ensureExamples(dbClient, obj.id, gAst);
             }).then(function(obj) {
                 if (obj === null)
                     return;
@@ -244,8 +337,6 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(user.DeveloperSt
     doCreateOrUpdate(undefined, true, req, res);
 });
 
-
-
 router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
     Q.try(function() {
         return db.withClient(function(dbClient) {
@@ -264,25 +355,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
             }).then(function(d) {
                 return exampleModel.getBaseBySchema(dbClient, req.params.id, 'en').then(function(examples) {
                     var ast = ManifestToSchema.toManifest(d.types, d.meta);
-
-                    examples.forEach(function(ex) {
-                        var res;
-                        try {
-                            res = findInvocation(ex);
-                        } catch(e) {
-                            console.log(e.stack);
-                            return;
-                        }
-                        if (!res || !res[1])
-                            return;
-
-                        var where = res[0];
-                        var kind = res[1][1];
-                        var name = res[1][2];
-                        if (!ast[where][name])
-                            return;
-                        ast[where][name].examples.push(ex.utterance);
-                    });
+                    migrateManifest(ast, examples, d.kind);
 
                     d.code = JSON.stringify(ast);
                     res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Edit type"),

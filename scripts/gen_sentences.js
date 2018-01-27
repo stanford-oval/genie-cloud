@@ -26,6 +26,76 @@ const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
 
+// FIXME this should be in Thingpedia
+const NON_MONITORABLE_FUNCTIONS = new Set([
+    'org.thingpedia.builtin.thingengine.builtin:get_time',
+    'org.thingpedia.builtin.thingengine.builtin:get_date',
+    'org.thingpedia.builtin.thingengine.builtin:get_random_between',
+    'com.giphy:get',
+    'com.thecatapi:get',
+    'com.xkcd:random_comic',
+    'com.dropbox:open',
+    'com.imgflip:list',
+    'com.imgflip:generate',
+    'security-camera:get_url',
+    'security-camera:get_snapshot'
+]);
+
+const SINGLE_RESULT_FUNCTIONS = new Set([
+    'com.linkedin:get_profile',
+    'com.xkcd:get_comic',
+    'com.xkcd:random_comic',
+    'com.phdcomics:get_post',
+    'com.giphy:get',
+    'com.thecatapi:get',
+    'org.thingpedia.builtin.thingengine.builtin:get_date',
+    'org.thingpedia.builtin.thingengine.builtin:get_random_between',
+    'org.thingpedia.builtin.thingengine.builtin:get_time',
+    'com.dropbox:get_space_usage',
+    'com.bodytrace.scale:get',
+    'security-camera:get_url',
+    'security-camera:get_snapshot',
+    'security-camera:current_event',
+    'thermostat:get_temperature',
+    'thermostat:get_humidity',
+    'thermostat:get_hvac_state'
+]);
+
+
+const ARGUMENT_NAMES = {
+    'from': ['author'],
+    'updated': ['update time'],
+
+    // FIXME update Thingpedia for this one (coming from get_random_between)
+    'random': ['random number'],
+
+    'picture_url': ['picture', 'image', 'photo'],
+
+    'title': ['headline', 'title'],
+
+    'file_name': ['file name', 'name'],
+    'file_size': ['file size', 'size', 'disk usage', 'quota usage'],
+    // not even silei knows about mime types, so definitely no mime type here!
+    'mime_type': ['file type', 'type'],
+};
+
+// FIXME pick this up from Thingpedia
+const ID_TYPES = new Set([
+    'Entity(com.twitter:id)',
+    'Entity(com.google.drive:file_id)',
+    'Entity(instagram:media_id)',
+    'Entity(com.thecatapi:image_id)',
+    'Entity(dogapi:image_id)',
+    'Entity(imgflip:meme_id)',
+    'Entity(com.gmail:email_id)',
+    'Entity(com.gmail:thread_id)',
+    'Entity(com.live.onedrive:file_id)'
+]);
+
+const NON_CONSTANT_TYPES = new Set([
+    'Entity(com.live.onedrive:user_id)'
+]);
+
 const rng = seedrandom.alea('almond is awesome');
 function coin(prob) {
     return rng() <= prob;
@@ -375,27 +445,6 @@ function findFunctionNameStream(stream) {
     throw new TypeError();
 }
 
-// FIXME this should be in Thingpedia
-const NON_MONITORABLE_FUNCTIONS = new Set([
-    'org.thingpedia.builtin.thingengine.builtin:get_time',
-    'org.thingpedia.builtin.thingengine.builtin:get_date',
-    'org.thingpedia.builtin.thingengine.builtin:get_random_between',
-    'com.giphy:get',
-    'com.thecatapi:get',
-    'com.xkcd:random_comic',
-]);
-
-const SINGLE_RESULT_FUNCTIONS = new Set([
-    'com.linkedin:get_profile',
-    'com.xkcd:get_comic',
-    'com.xkcd:random_comic',
-    'com.phdcomics:get_post',
-    'com.giphy:get',
-    'org.thingpedia.builtin.thingengine.builtin:get_date',
-    'org.thingpedia.builtin.thingengine.builtin:get_random_between',
-    'org.thingpedia.builtin.thingengine.builtin:get_time'
-]);
-
 function isMonitorable(table) {
     let functions = findFunctionNameTable(table);
     for (let f of functions) {
@@ -500,6 +549,10 @@ function betaReduceStream(stream, pname, value) {
     if (stream.isMonitor) {
         let reduced = betaReduceTable(stream.table, pname, value);
         return new Ast.Stream.Monitor(reduced, stream.args, removeInputParameter(stream.schema, pname));
+    }
+    if (stream.isEdgeFilter) {
+        let reduced = betaReduceStream(stream.stream, pname, value);
+        return new Ast.Stream.EdgeFilter(reduced, betaReduceFilter(stream.filter, pname, value), removeInputParameter(stream.schema, pname));
     }
 
     throw new Error('NOT IMPLEMENTED: ' + stream);
@@ -797,6 +850,13 @@ const GRAMMAR = {
         ['${constant_Number} ounces', simpleCombine(addUnit('oz'))],
         ['${constant_Number} oz', simpleCombine(addUnit('oz'))],
     ],
+    'constant_Measure(C)': [
+        ['${constant_Number} c', simpleCombine(addUnit('C'))],
+        ['${constant_Number} centigrade', simpleCombine(addUnit('C'))],
+        ['${constant_Number} f', simpleCombine(addUnit('F'))],
+        ['${constant_Number} fahrenheit', simpleCombine(addUnit('F'))],
+        ['${constant_Number} degrees', simpleCombine(addUnit('F'))],
+    ],
     'constant_Boolean': [
         /*['true', simpleCombine(() => Ast.Value.Boolean(true))],
         ['false', simpleCombine(() => Ast.Value.Boolean(false))],
@@ -1040,12 +1100,17 @@ const GRAMMAR = {
 
     stream: [
         ['${thingpedia_stream}', checkIfComplete(simpleCombine(identity))],
-        ['when ${with_filtered_table} change', simpleCombine((table) => {
+        ['${choice(when|if|in case|whenever|any time|should|anytime)} ${with_filtered_table} change', simpleCombine((table) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Stream.Monitor(table, null, table.schema);
         })],
-        ['when ${projection_Any} changes', simpleCombine((proj) => {
+        ['in case of ${choice(changes|variations|updates)} in ${with_filtered_table}', simpleCombine((table) => {
+            if (!isMonitorable(table))
+                return null;
+            return new Ast.Stream.Monitor(table, null, table.schema);
+        })],
+        ['${choice(when|if|in case|whenever|any time|anytime)} ${projection_Any} changes', simpleCombine((proj) => {
             if (!isMonitorable(proj))
                 return null;
             return new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema);
@@ -1078,28 +1143,28 @@ const GRAMMAR = {
     ],
     'when_do_rule': [
         // pp from when to do (optional)
-        ['${stream} ${thingpedia_action}', checkConstants(simpleCombine((stream, action) => new Ast.Statement.Rule(stream, [action])))],
-        ['${thingpedia_action} ${stream}', checkConstants(simpleCombine((action, stream) => new Ast.Statement.Rule(stream, [action])))],
+        ['${stream} ${thingpedia_action}${choice(| .)}', checkConstants(simpleCombine((stream, action) => new Ast.Statement.Rule(stream, [action])))],
+        ['${thingpedia_action} ${stream}${choice(| .)}', checkConstants(simpleCombine((action, stream) => new Ast.Statement.Rule(stream, [action])))],
 
         // pp from when to do (required)
         // this is because "monitor X and then Y" makes sense only if X flows into Y
-        ['${choice(monitor|watch)} ${if_filtered_table} ${choice(and then|then)} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
+        ['${choice(monitor|watch)} ${if_filtered_table} ${choice(and then|then)} ${thingpedia_action}${choice(| .)}', checkIfIncomplete(simpleCombine((table, action) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
         }))],
-        ['${choice(monitor|watch)} ${projection_Any} ${choice(and then|then)} ${thingpedia_action}', checkIfIncomplete(simpleCombine((proj, action) => {
+        ['${choice(monitor|watch)} ${projection_Any} ${choice(and then|then)} ${thingpedia_action}${choice(| .)}', checkIfIncomplete(simpleCombine((proj, action) => {
             if (!isMonitorable(proj))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [action]);
         }))],
 
-        ['check for new ${complete_table} ${choice(and then|then)} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => {
+        ['check for new ${complete_table} ${choice(and then|then)} ${thingpedia_action}${choice(| .)}', checkIfIncomplete(simpleCombine((table, action) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
         }))],
-        ['${thingpedia_action} after checking for new ${complete_table}', checkIfIncomplete(simpleCombine((action, table) => {
+        ['${thingpedia_action} after checking for new ${complete_table}${choice(| .)}', checkIfIncomplete(simpleCombine((action, table) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
@@ -1284,33 +1349,6 @@ function loadTemplate(ex) {
     });
 }
 
-const ARGUMENT_NAMES = {
-    'from': ['author'],
-    'updated': ['update time'],
-
-    // FIXME update Thingpedia for this one (coming from get_random_between)
-    'random': ['random number'],
-
-    'picture_url': ['picture', 'image', 'photo'],
-
-    'title': ['headline', 'title'],
-
-    'file_name': ['file name', 'name'],
-    'file_size': ['file size', 'size', 'disk usage', 'quota usage'],
-    // not even silei knows about mime types, so definitely no mime type here!
-    'mime_type': ['file type', 'type'],
-};
-
-// FIXME pick this up from Thingpedia
-const ID_TYPES = new Set([
-    'Entity(com.twitter:id)',
-    'Entity(com.google.drive:file_id)',
-    'Entity(instagram:media_id)',
-    'Entity(com.thecatapi:image_id)',
-    'Entity(dogapi:image_id)',
-    'Entity(imgflip:meme_id)'
-]);
-
 function loadMetadata(language) {
     return db.withClient((dbClient) =>
         db.selectAll(dbClient, `select * from example_utterances where type = 'thingpedia' and language = ? and is_base = 1 and target_code <> ''`, [language])
@@ -1319,7 +1357,7 @@ function loadMetadata(language) {
         return Promise.all(examples.map((ex) => loadTemplate(ex)));
     }).then(() => {
         for (let [typestr, type] of allTypes) {
-            if (!GRAMMAR['constant_' + typestr] && !ID_TYPES.has(typestr)) {
+            if (!GRAMMAR['constant_' + typestr]) {
                 if (!type.isEnum && !type.isEntity && !type.isArray)
                     throw new Error('Missing definition for type ' + type);
                 GRAMMAR['constant_' + typestr] = [];
@@ -1331,7 +1369,8 @@ function loadMetadata(language) {
                     for (let entry of type.entries)
                         GRAMMAR['constant_' + typestr].push([clean(entry), simpleCombine(() => new Ast.Value.Enum(entry))]);
                 } else if (type.isEntity) {
-                    GRAMMAR['constant_' + typestr] = makeConstantDerivations('GENERIC_ENTITY_' + type.type, type);
+                    if (!NON_CONSTANT_TYPES.has(typestr) && !ID_TYPES.has(typestr))
+                        GRAMMAR['constant_' + typestr] = makeConstantDerivations('GENERIC_ENTITY_' + type.type, type);
                 }
             }
 
@@ -1804,7 +1843,9 @@ function preprocessGrammar() {
 
         let i = 0;
         for (let rule of GRAMMAR[category]) {
-            prunefactors[i] = 1;
+            // initialize prune factor estimates to 0.3
+            // so we don't start pruning until we have a good estimate
+            prunefactors[i] = 0.3;
             i++;
             let [expansion, combiner] = rule;
             if (typeof expansion !== 'string') {

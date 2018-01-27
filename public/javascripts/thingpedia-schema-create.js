@@ -5,6 +5,10 @@ $(function() {
     var ttSchema = {
         type: 'object',
         required: false,
+            additionalProperties: {
+                type: 'any',
+                required: false
+            },
         properties: {
             args: {
                 type: 'array',
@@ -53,7 +57,7 @@ $(function() {
             canonical: {
                 type: 'string',
                 title: 'Canonical Form',
-            }
+            },
         }
     };
     var fullSchema = {
