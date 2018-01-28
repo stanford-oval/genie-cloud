@@ -38,7 +38,9 @@ const NON_MONITORABLE_FUNCTIONS = new Set([
     'com.imgflip:list',
     'com.imgflip:generate',
     'security-camera:get_url',
-    'security-camera:get_snapshot'
+    'security-camera:get_snapshot',
+    'com.yandex.translate.translate',
+    'com.yandex.translate.detect_language'
 ]);
 
 const SINGLE_RESULT_FUNCTIONS = new Set([
@@ -58,7 +60,9 @@ const SINGLE_RESULT_FUNCTIONS = new Set([
     'security-camera:current_event',
     'thermostat:get_temperature',
     'thermostat:get_humidity',
-    'thermostat:get_hvac_state'
+    'thermostat:get_hvac_state',
+    'com.yandex.translate.translate',
+    'com.yandex.translate.detect_language'
 ]);
 
 
@@ -1843,9 +1847,9 @@ function preprocessGrammar() {
 
         let i = 0;
         for (let rule of GRAMMAR[category]) {
-            // initialize prune factor estimates to 0.3
+            // initialize prune factor estimates to 0.2
             // so we don't start pruning until we have a good estimate
-            prunefactors[i] = 0.3;
+            prunefactors[i] = 0.2;
             i++;
             let [expansion, combiner] = rule;
             if (typeof expansion !== 'string') {
@@ -1893,7 +1897,7 @@ function preprocessGrammar() {
 const POWERS = [1, 1, 1, 1, 1];
 for (let i = 5; i < 20; i++)
     POWERS[i] = 0.5 * POWERS[i-1];
-const TARGET_GEN_SIZE = 300000;
+const TARGET_GEN_SIZE = 200000;
 
 function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combiner]) {
     const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
@@ -1955,42 +1959,58 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
 
     //console.log('expand $' + nonterminal + ' -> ' + expansion.join(''));
 
-    // first compute how many things we expect to produce in the worst case
-    let worstCaseGenSize = 0;
-    for (let i = 0; i < expansion.length; i++) {
-        let fixeddepth = depth-1;
-        worstCaseGenSize += (function recursiveHelper(k) {
-            if (k === expansion.length)
-                return 1;
-            if (k === i) {
-                if (expansion[k] instanceof NonTerminal)
-                    return charts[fixeddepth][expansion[k].symbol].length * recursiveHelper(k+1);
-                else
-                    return 0;
-            }
-            if (expansion[k] instanceof NonTerminal) {
-                let sum = 0;
-                for (let j = 0; j <= (k > i ? depth-1 : depth-2); j++)
-                    sum += charts[j][expansion[k].symbol].length * recursiveHelper(k+1);
-                return sum;
-            } else {
-                return recursiveHelper(k+1);
-            }
-        })(0);
+    // to avoid hitting exponential behavior too often, we tweak the above
+    // algorithm to not go above maxdepth for all but one non-terminal,
+    // and then cycle through which non-terminal is allowed to grow
+    function computeWorstCaseGenSize(maxdepth) {
+        let worstCaseGenSize = 0;
+        for (let i = 0; i < expansion.length; i++) {
+            let fixeddepth = depth-1;
+            worstCaseGenSize += (function recursiveHelper(k) {
+                if (k === expansion.length)
+                    return 1;
+                if (k === i) {
+                    if (expansion[k] instanceof NonTerminal)
+                        return charts[fixeddepth][expansion[k].symbol].length * recursiveHelper(k+1);
+                    else
+                        return 0;
+                }
+                if (expansion[k] instanceof NonTerminal) {
+                    let sum = 0;
+                    for (let j = 0; j <= (k > i ? maxdepth : maxdepth-1); j++)
+                        sum += charts[j][expansion[k].symbol].length * recursiveHelper(k+1);
+                    return sum;
+                } else {
+                    return recursiveHelper(k+1);
+                }
+            })(0);
+        }
+        return worstCaseGenSize;
     }
+
+
+    // first compute how many things we expect to produce in the worst case
+    let maxdepth = depth-1;
+    let worstCaseGenSize = computeWorstCaseGenSize(maxdepth);
     if (worstCaseGenSize === 0)
+        return;
+        
+    // prevent exponential behavior!
+    while (worstCaseGenSize >= 50000000 && maxdepth >= 0) {
+        console.log(`expand NT[${nonterminal}] -> ${expansion.join('')} : worst case ${worstCaseGenSize}, reducing max depth`);
+        maxdepth--;
+        worstCaseGenSize = computeWorstCaseGenSize(maxdepth);
+    }
+    if (maxdepth < 0 || worstCaseGenSize === 0)
         return;
 
     const estimatedPruneFactor = _averagePruningFactor.get(nonterminal)[rulenumber];
     const estimatedGenSize = worstCaseGenSize * estimatedPruneFactor;
-    const targetGenSize = nonterminal === 'root' ? Infinity : TARGET_GEN_SIZE * POWERS[depth];
+    //const targetGenSize = nonterminal === 'root' ? Infinity : TARGET_GEN_SIZE * POWERS[depth];
+    const targetGenSize = TARGET_GEN_SIZE * POWERS[depth];
 
     console.log(`expand NT[${nonterminal}] -> ${expansion.join('')} : worst case ${worstCaseGenSize}, expect ${Math.round(estimatedGenSize)} (target ${targetGenSize})`);
     const now = Date.now();
-
-    // prevent exponential behavior!
-    if (worstCaseGenSize >= 100000000)
-        return;
 
     let coinProbability = Math.min(1, targetGenSize/estimatedGenSize);
 
@@ -2032,7 +2052,7 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
                 return;
             }
             if (expansion[k] instanceof NonTerminal) {
-                for (let j = 0; j <= (k > i ? depth-1 : depth-2); j++) {
+                for (let j = 0; j <= (k > i ? maxdepth : maxdepth-1); j++) {
                     for (let candidate of charts[j][expansion[k].symbol]) {
                         choices[k] = candidate;
                         //depths[k] = j;
