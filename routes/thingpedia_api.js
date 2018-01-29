@@ -243,6 +243,25 @@ router.get('/entities', function(req, res) {
     }).done();
 });
 
+router.get('/entities/lookup', function(req, res) {
+    const language = (req.query.locale || 'en').split(/[-_\@\.]/)[0];
+    const token = req.query.q;
+
+    if (!token) {
+        res.status(400).json({ error: 'Missing query' });
+        return;
+    }
+    
+    db.withClient((dbClient) => {
+        return entityModel.lookup(dbClient, language, token);
+    }).then((rows) => {
+        res.cacheFor(86400000);
+        res.status(200).json({ result: 'ok', data: rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name })) });
+    }).catch((e) => {
+        res.status(500).json({ error: e.message });
+    }).done();
+});
+
 router.get('/entities/list/:type', function(req, res) {
     return db.withClient((dbClient) => {
         return entityModel.getValues(dbClient, req.params.type);
@@ -265,7 +284,8 @@ router.get('/entities/icon', function(req, res) {
         if (cached)
             res.redirect(301, '/cache/' + cached);
         else
-            res.status(404).send('Not Found');
+            res.redirect(301, '/cache/8b0db4cadaa2c66cc139bdea50da5891b0c87435.png');
+            //res.status(404).send('Not Found');
     } else {
         let cacheKey = entityType + ':' + entityValue;
         let cached = cacheManager.get(cacheKey);
@@ -302,12 +322,12 @@ router.get('/snapshot/:id', function(req, res) {
     db.withClient((dbClient) => {
         if (snapshotId >= 0) {
             if (getMeta)
-                return schemaModel.getSnapshotMeta(dbClient, snapshotId);
+                return schemaModel.getSnapshotMeta(dbClient, snapshotId, language);
             else
                 return schemaModel.getSnapshotTypes(dbClient, snapshotId);
         } else {
             if (getMeta)
-                return schemaModel.getCurrentSnapshotMeta(dbClient);
+                return schemaModel.getCurrentSnapshotMeta(dbClient, language);
             else
                 return schemaModel.getCurrentSnapshotTypes(dbClient);
         }

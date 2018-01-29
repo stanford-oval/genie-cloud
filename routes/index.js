@@ -18,7 +18,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 router.get('/', function(req, res, next) {
     return Promise.resolve(req.user ? EngineManager.get().isRunning(req.user.id) : false).then(function(isRunning) {
         res.render('index', {
-            page_title: req._("Thingpedia - knowledge for your magic assistant"),
+            page_title: req._("Thingpedia - knowledge for your virtual assistant"),
             isRunning: isRunning
         });
     });

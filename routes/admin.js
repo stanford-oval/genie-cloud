@@ -88,18 +88,22 @@ router.get('/search', user.redirectRole(user.Role.ADMIN), function(req, res) {
 router.post('/kill-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
     var engineManager = EngineManager.get();
 
-    engineManager.killUser(req.params.id);
-    res.redirect(303, '/admin');
+    engineManager.killUser(parseInt(req.params.id)).then(() => {
+        res.redirect(303, '/admin');
+    }).catch(function(e) {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
 });
 
 router.post('/start-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
     var engineManager = EngineManager.get();
 
-    engineManager.isRunning(req.params.id).then(function(isRunning) {
+    engineManager.isRunning(parseInt(req.params.id)).then(function(isRunning) {
         if (isRunning)
-            return engineManager.killUser(req.params.id);
+            return engineManager.killUser(parseInt(req.params.id));
     }).then(function() {
-        return engineManager.startUser(req.params.id);
+        return engineManager.startUser(parseInt(req.params.id));
     }).then(function() {
         res.redirect(303, '/admin');
     }).catch(function(e) {
@@ -128,7 +132,7 @@ router.post('/delete-user/:id', user.requireRole(user.Role.ADMIN), function(req,
     }
 
     db.withTransaction(function(dbClient) {
-        return EngineManager.get().deleteUser(req.params.id).then(function() {
+        return EngineManager.get().deleteUser(parseInt(req.params.id)).then(function() {
             return model.delete(dbClient, req.params.id);
         });
     }).then(function() {
