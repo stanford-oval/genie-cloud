@@ -5,12 +5,12 @@
 // Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 require('thingengine-core/lib/polyfill');
 
-const Q = require('q');
 const fs = require('fs');
-const mysql = require('mysql');
+const byline = require('byline');
 
 function main() {
     var output = fs.createWriteStream(process.argv[2]);
@@ -19,13 +19,12 @@ function main() {
     var stats = fs.createWriteStream(process.argv[3]);
     stats.setDefaultEncoding('utf8');
 
-    var dbClient = mysql.createConnection(process.env.DATABASE_URL);
-    var q = dbClient.query("select id,target_json from example_utterances where language = 'en' and target_json like '{\"rule\":%'", []);
+    var traindata = byline(fs.createReadStream(process.argv[4]));
+    traindata.setEncoding('utf8');
 
     var nodes = new Set;
-    function maybeAddNode(channel, arg) {
+    function maybeAddNode(label) {
         //var label = channel.substr('tt:'.length) + ':' + arg.substr('tt:param.'.length);
-        var label = arg.substr('tt:param.'.length);
         var id = label.replace(/[^a-z]/g, '_');
 
         if (!nodes.has(id)) {
@@ -42,31 +41,23 @@ function main() {
         else
             edges[edge] = 1;
     }
-    q.on('result', (row) => {
-        var json = JSON.parse(row.target_json).rule;
+    traindata.on('data', (row) => {
+        let [,,code] = row.split('\t');
 
-        function processInvocation(fromInvocation, toInvocation) {
-            toInvocation.args.forEach((arg) => {
-                if (arg.type !== 'VarRef')
-                    return;
+        code = code.split(' ');
+        for (let i = 0; i < code.length-2; i++) {
+            if (code[i].startsWith('param:') &&
+                code[i+1] === '=' &&
+                code[i+2].startsWith('param:')) {
 
-                var from = maybeAddNode(fromInvocation.name.id, arg.value.id);
-                var to = maybeAddNode(toInvocation.name.id, arg.name.id);
+                var from = maybeAddNode(code[i+2].substring('param:'.length));
+                var to = maybeAddNode(code[i].substring('param:'.length));
                 maybeAddEdge(from, to);
-            });
-        }
-
-        if (json.query) {
-            if (json.trigger)
-                processInvocation(json.trigger, json.query);
-            if (json.action)
-                processInvocation(json.query, json.action);
-        } else {
-            processInvocation(json.trigger, json.action);
+            }
         }
     });
 
-    q.on('end', () => {
+    traindata.on('end', () => {
         for (var edge in edges) {
             var [from, to] = edge.split('+');
             output.write(from + ' -> ' + to + ' [label="' + edges[edge] + '"]\n');
@@ -75,7 +66,6 @@ function main() {
         output.write('}\n');
         output.end();
         stats.end();
-        dbClient.end();
     });
 
     //output.on('finish', () => process.exit());

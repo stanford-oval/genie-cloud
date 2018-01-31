@@ -119,11 +119,15 @@ function loadMetadata(language) {
         return Promise.all(examples.map((ex) => loadTemplate(ex)));
     }).then(() => {
         let list = [];
-        for (let [functionName, count] of _counts)
+        let total = 0;
+        for (let [functionName, count] of _counts) {
             list.push(functionName + ' : ' + count);
+            total += count;
+        }
         list.sort();
         for (let v of list)
             console.log(v);
+        console.log('total = ' + total);
     });
 }
 
