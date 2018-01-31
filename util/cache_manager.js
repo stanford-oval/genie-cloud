@@ -2,13 +2,13 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2017 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Michael Fischer <mfischer@cs.stanford.edu>
+//         Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
-
-// Part of this code was in Brassau
-// Copyright 2017 Michael Fischer <mfischer@cs.stanford.edu>
 
 const Q = require('q');
 const Tp = require('thingpedia');

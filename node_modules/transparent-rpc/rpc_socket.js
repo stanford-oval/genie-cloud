@@ -1,6 +1,8 @@
 /* -*- mode: js; indent-tabs-mode: nil; -*- */
 //
-// Copyright (c) 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright (c) 2015 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to

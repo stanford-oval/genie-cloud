@@ -2,7 +2,9 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2017 Silei Xu <silei@cs.stanford.edu>
+// Copyright 2017 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
