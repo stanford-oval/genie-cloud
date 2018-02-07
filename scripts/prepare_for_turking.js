@@ -27,11 +27,39 @@ const NNOutputParser = require('thingtalk/lib/nn_output_parser');
 // const i18n = require('../util/i18n');
 
 const rng = seedrandom('almond is awesome');
-/*function coin(prob) {
+function coin(prob) {
     return rng() <= prob;
-}*/
+}
 function uniform(array) {
     return array[Math.floor(rng() * array.length)];
+}
+
+function uniformSubset(n, subsetOf) {
+    if (n === 0)
+        return [];
+    if (n >= subsetOf.length)
+        return subsetOf;
+
+    let taken = [];
+    function next() {
+        let idx = Math.floor(rng()*(subsetOf.length - taken.length));
+        for (let i = 0; i < subsetOf.length; i++) {
+            if (taken[i])
+                continue;
+            if (idx === 0) {
+                taken[i] = true;
+                return subsetOf[i];
+            }
+            idx--;
+        }
+    }
+
+    let res = [];
+    while (n > 0) {
+        res.push(next());
+        n--;
+    }
+    return res;
 }
 
 const VALUES = {
@@ -40,14 +68,28 @@ const VALUES = {
     NUMBER: [42, 7, 14, 11, 55],
 
     MEASURE: {
-        C: [{ value: 73, unit: 'F' }, { value: 75, unit: 'F' }, { value: 80, unit: 'F' }],
-        m: [{ value: 1000, unit: 'm' }, { value: 42, unit: 'cm' }, { value: 5, unit: 'm' }],
-        kg: [{ value: 82, unit: 'kg' }, { value: 155, unit: 'lb' }, { value: 75, unit: 'kg' }],
-        kcal: [{ value: 500, unit: 'kcal' }],
-        mps: [{ value: 5, unit: 'kmph' }, { value: 25, unit: 'mph' }],
-        ms: [{ value: 2, unit: 'h'}, { value: 30, unit: 'min' }, { value: 3, unit: 'day' }],
-        byte: [{ value: 5, unit: 'KB' }, { value: 20, unit: 'MB' }, { value: 2, unit: 'GB' }]
+        'F': [73, 75, 80],
+        'C': [20, 21, 17],
+        
+        'KB': [300],
+        'MB': [15, 40],
+        'GB': [2, 3],
+        'TB': [1.5, 2],
+        
+        'kg': [75, 81, 88],
+        'lb': [150, 180, 239],
+        
+        'm': [800, 1500],
+        'km': [23, 50],
+        
+        'kmph': [70, 120],
+        'mph': [35, 60]
     },
+    CURRENCY: [
+        ['$100', { value: 100, unit: 'usd' }],
+        ['15 dollars', { value: 15, unit: 'usd' }],
+        ['$ 3.50', { value: 3.5, unit: 'usd' }]
+    ],
     DURATION: [
         ['two hours', { value: 2, unit: 'h'}],
         ['30 minutes', { value: 30, unit: 'min' }],
@@ -83,6 +125,13 @@ const VALUES = {
         ['www.google.com', 'http://www.google.com'],
         'http://www.example.com'
     ],
+    PATH_NAME: [
+        'images/lol.png',
+        'images/me.png',
+        'documents/work.pdf',
+        'videos/cat.mp4',
+        'school/cs101/hw1.pdf'
+    ],
 
     'GENERIC_ENTITY_tt:stock_id':
         [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft'], ['Walmart', 'wmt']],
@@ -108,27 +157,39 @@ const VALUES = {
         ['Word documents', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
         ['Excel spreadsheets', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
     ],
+    'GENERIC_ENTITY_tt:country': [
+        ['United States', 'us'],
+        ['Italy', 'it'],
+        ['UK', 'uk'],
+        ['Germany', 'de']
+    ],
+    'GENERIC_ENTITY_gov.nasa:curiosity_rover_camera': [
+        ['Mast Camera', 'MAST'],
+        ['Front Hazard Avoidance Camera', 'FHAZ'],
+        ['Mars Hand Lens Imager', 'MAHLI']
+    ],
+    'GENERIC_ENTITY_imgflip:meme_id': [
+        ['Futurama Fry', '61520'],
+        ['Brace Yourselves', '61546']
+    ],
+    'GENERIC_ENTITY_com.instagram:filter': [
+        ['Inkwell', 'inkwell'],
+        ['Lo-Fi', 'lo-fi'],
+        ['Sierra', 'sierra']
+    ],
 };
 
 // params with special value
 const PARAMS_SPECIAL_STRING = {
-    'repo_name': ['android_repository'],
-    'file_name': ['log.txt'],
-    'old_name': ['log.txt'],
-    'new_name': ['backup.txt'],
-    'folder_name': ['archive'],
+    'repo_name': ['android_repository', 'twbs/bootstrap'],
+    'folder_name': ['archive', 'school'],
     'purpose': ['research project'],
-    'filter': ['lo-fi'],
     'query': ['super bowl'],
     'summary': ['celebration'],
     'category': ['sports'],
     'from_name': ['bob'],
     'blog_name': ['government secret'],
-    'camera_used': ['mastcam'],
     'description': ['christmas'],
-    'source_language': ['english'],
-    'target_language': ['chinese'],
-    'detected_language': ['english'],
     'organizer': ['stanford'],
     'user': ['bob'],
     'positions': ['ceo'],
@@ -137,7 +198,6 @@ const PARAMS_SPECIAL_STRING = {
     'template': ['wtf'],
     'text_top': ['ummm... i have a question...'],
     'text_bottom': ['wtf?'],
-    'phase': ['full moon']
 };
 
 const SPECIAL_TOKENS = {
@@ -145,6 +205,7 @@ const SPECIAL_TOKENS = {
     ',': ',',
     'n\'t': 'n\'t',
     '\'s': '\'s',
+    '?': '?',
 
     // right/left round/curly/square bracket
     '-rrb-': ')',
@@ -188,6 +249,16 @@ class SimpleSequenceLexer {
     }
 }
 
+const BLACK_LIST_FUNCTION = new Set([
+    '@com.xkcd.what_if',
+    '@heatpad.set_power',
+    '@com.github.add_email',
+    '@com.bodytrace.scale.get',
+    'enum:unclosed'
+]);
+
+class UnassignableEntity extends Error {}
+
 function processOne(id, tokenizedsentence, code) {
     const assignedEntities = {};
     const usedValues = new Set;
@@ -203,11 +274,16 @@ function processOne(id, tokenizedsentence, code) {
         if (entitytype === 'QUOTED_STRING' && !!param &&
             PARAMS_SPECIAL_STRING[param]) {
             choices = PARAMS_SPECIAL_STRING[param].map(quote);
+        } else if (entitytype === 'PATH_NAME' && (param === 'repo_name' || param === 'folder_name')) {
+            choices = [];
         } else if (entitytype === 'NUMBER' && !!unit) {
-            choices = VALUES.MEASURE[Type.Measure(unit).unit].map((value) =>
-                [value + ' ' + value.unit, value]);
+            choices = VALUES.MEASURE[unit];
+            if (!choices)
+                throw new Error('Invalid unit ' + unit);
         } else if (entitytype === 'QUOTED_STRING') {
             choices = VALUES.QUOTED_STRING.map(quote);
+        } else if (entitytype === 'NUMBER' && param === 'temperature') {
+            throw new Error('??? ' + param + ' ' + unit);
         } else {
             choices = VALUES[entitytype];
             if (!choices)
@@ -220,25 +296,31 @@ function processOne(id, tokenizedsentence, code) {
                 return c;
         });
 
-        for (let i = 0; i < 4; i++) {
-            let [display, value] = uniform(choices);
-            if (!usedValues.has(value)) {
-                assignedEntities[entity] = { display, value };
-                if (entitytype.startsWith('GENERIC_ENTITY_'))
-                    return { display, value };
-                else
-                    return value;
+        if (choices.length > 0) {
+            for (let i = 0; i < 4; i++) {
+                let [display, value] = uniform(choices);
+                if (!usedValues.has(value)) {
+                    assignedEntities[entity] = { display, value };
+                    if (entitytype.startsWith('GENERIC_ENTITY_'))
+                        return { display, value };
+                    else
+                        return value;
+                }
             }
         }
 
-        throw new Error(`Run out of values for ${entity} (unit ${unit}, param name ${param})`);
-
+        throw new UnassignableEntity(`Run out of values for ${entity} (unit ${unit}, param name ${param})`);
     }
 
     if (code.indexOf('@com.twitter.post on param:status = param:text') >= 0)
         return null;
 
     code = code.split(' ');
+    
+    for (let token of code) {
+        if (BLACK_LIST_FUNCTION.has(token))
+            return null;
+    }
 
     let hasGmailInbox = false;
     for (let i = 0; i < code.length; i++) {
@@ -251,8 +333,28 @@ function processOne(id, tokenizedsentence, code) {
              (token === '@com.gmail.send_email' || token === '@com.gmail.send_picture'))
              return null;
     }
+    
+    let hasTweetInbox = false;
+    for (let i = 0; i < code.length; i++) {
+         let token = code[i];
+         if (token === '@com.twitter.search' || token === '@com.twitter.home_timeline' || token === '@com.twitter.my_tweets') {
+             hasTweetInbox = true;
+             continue;
+         }
+         if (hasTweetInbox &&
+             (token === '@com.twitter.post' || token === '@com.twitter.post_picture'))
+             return null;
+    }
 
-    const program = ThingTalk.NNSyntax.fromNN(code, entityRetriever);
+    let program;
+    try {
+        program = ThingTalk.NNSyntax.fromNN(code, entityRetriever);
+    } catch(e) {
+        if (!(e instanceof UnassignableEntity))
+            throw e;
+        console.log('Skipped ' + id + ': ' + e.message);
+        return null;
+    }
 
     let sentence = '';
     let prevtoken = null;
@@ -284,6 +386,21 @@ function processOne(id, tokenizedsentence, code) {
             return new SimpleSequenceLexer(code);
         }
     });
+    
+    let queries = [];
+    let actions = [];
+    for (let [what, invocation] of ThingTalk.Generate.iteratePrimitives(program)) {
+        if (invocation.selector.isBuiltin)
+            continue;
+        if (invocation.selector.kind === 'org.thingpedia.builtin.thingengine.builtin' &&
+            invocation.channel === 'say')
+            continue;
+        if (what === 'table')
+            queries.push('@' + invocation.selector.kind + '.' + invocation.channel);
+        else
+            actions.push('@' + invocation.selector.kind + '.' + invocation.channel);
+    }
+    let function_signature = queries.concat(actions).join('+');
 
     let num_functions = 0;
     let num_pp = 0;
@@ -327,11 +444,44 @@ function processOne(id, tokenizedsentence, code) {
         num_entities,
         num_pp,
         num_filters,
-        score
+        score,
+        function_signature,
+        queries,
+        actions
     };
 }
 
 //const everything = [];
+
+const HIGH_VALUE_FUNCTIONS = new Set([
+    '@us.sportradar.nba',
+    '@com.twitter.home_timeline',
+    '@com.gmail.inbox',
+    '@com.dropbox.list_folder',
+    '@edu.stanford.rakeshr1.fitbit.getsteps',
+    '@com.thecatapi.get',
+    '@com.instagram.get_pictures',
+    '@com.washingtonpost.get_article',
+    '@org.thingpedia.weather.current',
+    '@com.yahoo.finance.get_stock_quote',
+    '@com.yandex.translate.translate',
+    '@security-camera.current_event',
+    '@org.thingpedia.icalendar.list_events',
+    '@com.bing.web_search',
+    '@org.thingpedia.builtin.thingengine.phone.get_gps',
+    
+    '@org.thingpedia.bluetooth.speaker.a2dp.play_music',
+    '@org.thingpedia.builtin.thingengine.phone.set_ringer',
+    '@org.thingpedia.builtin.thingengine.phone.call',
+    '@com.facebook.post',
+    '@com.twitter.post_picture',
+    '@com.gmail.send_email',
+    '@com.gmail.reply',
+    '@thermostat.set_target_temperature',
+    '@light-bulb.set_power',
+    '@com.lg.tv.webos2.play_url',
+    '@com.live.onedrive.upload_picture'
+]);
 
 function main() {
     const input = byline(process.stdin);
@@ -339,6 +489,8 @@ function main() {
     const output = csv.stringify({ header: true, delimiter: '\t' });
     const file = fs.createWriteStream(process.argv[2]);
     output.pipe(file);
+    
+    const bags = new Map;
 
     input.on('data', (line) => {
         let [id, sentence, code] = line.split('\t');
@@ -348,13 +500,58 @@ function main() {
             let result= processOne(id, sentence, code);
             if (!result)
                 return;
-            output.write(result);
+                
+            let functionsig = result.function_signature;
+            if (!bags.has(functionsig))
+                bags.set(functionsig, []);
+            bags.get(functionsig).push(result);
         } catch(e) {
             console.error(`Failed example ${id}\t${sentence}\t${code}`);
             throw e;
         }
     });
 
-    input.on('end', () => output.end());
+    input.on('end', () => {
+        for (let [sig, choices] of bags) {
+            if (choices.length === 0)
+                continue;
+            let signature = sig.split('+');
+            
+            let chosen = [];
+            if (signature.length === 1) {
+                if (choices[0].queries.length === 1) {
+                    console.log('primitive query: ' + signature[0] + ' ' + choices.length);
+                    chosen = uniformSubset(50, choices);
+                } else {
+                    console.log('primitive action: ' + signature[0] + ' ' + choices.length);
+                    chosen = uniformSubset(20, choices);
+                }
+            } else if (signature.length === 2) {
+                if (signature[0] === signature[1])
+                    continue;
+                if (signature.every((sig) => HIGH_VALUE_FUNCTIONS.has(sig))) {
+                    console.log('high value compound: ' + signature.join('+') + ' ' + choices.length);
+            
+                    chosen = uniformSubset(10, choices);
+                } else if (signature.some((sig) => HIGH_VALUE_FUNCTIONS.has(sig))) {
+                    console.log('mid value compound: ' + signature.join('+') + ' ' + choices.length);
+                    chosen = uniformSubset(1, choices);
+                } else {
+                    console.log('low value compound: ' + signature.join('+') + ' ' + choices.length);
+                    if (coin(0.05))
+                        chosen = [uniform(choices)];
+                }
+            } else if (signature.length === 3) {
+                if (coin(0.01))
+                    chosen = [uniform(choices)];
+            }
+            
+            console.log('produced for ' + signature.join('+') + ' : ' + chosen.length);
+            for (let c of chosen)
+                output.write(c);
+        }
+    
+        output.end();
+    });
 }
 main();

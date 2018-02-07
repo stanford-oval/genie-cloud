@@ -30,51 +30,66 @@ const db = require('../util/db');
 
 // FIXME this should be in Thingpedia
 const NON_MONITORABLE_FUNCTIONS = new Set([
-    'org.thingpedia.builtin.thingengine.builtin:get_time',
-    'org.thingpedia.builtin.thingengine.builtin:get_date',
-    'org.thingpedia.builtin.thingengine.builtin:get_random_between',
+    'com.dropbox:open',
     'com.giphy:get',
+    'com.imgflip:generate',
+    'com.imgflip:list',
     'com.thecatapi:get',
     'com.xkcd:random_comic',
-    'com.dropbox:open',
-    'com.imgflip:list',
-    'com.imgflip:generate',
-    'security-camera:get_url',
-    'security-camera:get_snapshot',
+    'com.yandex.translate:detect_language',
     'com.yandex.translate:translate',
-    'com.yandex.translate:detect_language'
+    'org.thingpedia.builtin.thingengine.builtin:get_date',
+    'org.thingpedia.builtin.thingengine.builtin:get_random_between',
+    'org.thingpedia.builtin.thingengine.builtin:get_time',
+    'security-camera:get_snapshot',
+    'security-camera:get_url',
+    'uk.co.thedogapi:get',
 ]);
 
 const SINGLE_RESULT_FUNCTIONS = new Set([
+    'com.bodytrace.scale:get',
+    'com.dropbox:get_space_usage',
+    'com.dropbox:open',
+    'com.giphy:get',
+    'com.imgflip:generate',
     'com.linkedin:get_profile',
+    'com.phdcomics:get_post',
+    'com.thecatapi:get',
     'com.xkcd:get_comic',
     'com.xkcd:random_comic',
-    'com.phdcomics:get_post',
-    'com.giphy:get',
-    'com.thecatapi:get',
+    'com.yahoo.finance:get_stock_div',
+    'com.yahoo.finance:get_stock_quote',
+    'com.yandex.translate:detect_language',
+    'com.yandex.translate:translate',
+    'edu.stanford.rakesh1.fitbit:getbody',
+    'edu.stanford.rakesh1.fitbit:getsteps',
+    'gov.nasa:apod',
+    'gov.nasa:asteroid',
+    'gov.nasa:rover',
     'org.thingpedia.builtin.thingengine.builtin:get_date',
     'org.thingpedia.builtin.thingengine.builtin:get_random_between',
     'org.thingpedia.builtin.thingengine.builtin:get_time',
-    'com.dropbox:get_space_usage',
-    'com.bodytrace.scale:get',
-    'security-camera:get_url',
-    'security-camera:get_snapshot',
+    'org.thingpedia.builtin.thingengine.phone:get_gps',
+    'org.thingpedia.weather:current',
+    'org.thingpedia.weather:moon',
+    'org.thingpedia.weather:sunrise',
     'security-camera:current_event',
-    'thermostat:get_temperature',
+    'security-camera:get_snapshot',
+    'security-camera:get_url',
     'thermostat:get_humidity',
     'thermostat:get_hvac_state',
-    'com.yandex.translate:translate',
-    'com.yandex.translate:detect_language',
-    'com.yahoo.finance:get_stock_quote',
-    'com.yahoo.finance:get_stock_div',
-    'gov.nasa:apod',
-    'gov.nasa:rover',
-    'gov.nasa:asteroid'
+    'thermostat:get_temperature',
+    'uk.co.thedogapi:get',
+    'us.sportradar:mlb',
+    'us.sportradar:nba',
+    'us.sportradar:ncaafb',
+    'us.sportradar:ncaambb',
+    'us.sportradar:soccer_eu',
+    'us.sportradar:soccer_us',
 ]);
 
 
 const ARGUMENT_NAMES = {
-    'from': ['author'],
     'updated': ['update time'],
 
     // FIXME update Thingpedia for this one (coming from get_random_between)
@@ -85,7 +100,7 @@ const ARGUMENT_NAMES = {
     'title': ['headline', 'title'],
 
     'file_name': ['file name', 'name'],
-    'file_size': ['file size', 'size', 'disk usage', 'quota usage'],
+    'file_size': ['file size', 'size', 'disk usage'],
     // not even silei knows about mime types, so definitely no mime type here!
     'mime_type': ['file type', 'type'],
 };
@@ -99,11 +114,15 @@ const ID_TYPES = new Set([
     'Entity(dogapi:image_id)',
     'Entity(com.gmail:email_id)',
     'Entity(com.gmail:thread_id)',
-    'Entity(com.live.onedrive:file_id)'
+    'Entity(com.live.onedrive:file_id)',
+    'Entity(gov.nasa:asteroid_id)',
+    'Entity(com.youtube:channel_id)',
+    'Entity(com.youtube:video_id)'
 ]);
 
 const NON_CONSTANT_TYPES = new Set([
-    'Entity(com.live.onedrive:user_id)'
+    'Entity(com.live.onedrive:user_id)',
+    'Entity(omlet:feed_id)'
 ]);
 
 const rng = seedrandom.alea('almond is awesome');
@@ -640,7 +659,7 @@ function makeEdgeFilterStream(op) {
     return function semanticAction(proj, value) {
         let vtype = value.getType();
 
-        let f = new Ast.BooleanExpression.Atom(param.args[0], op, value);
+        let f = new Ast.BooleanExpression.Atom(proj.args[0], op, value);
         if (!checkFilter(proj.table, f))
             return null;
         if (!isMonitorable(proj))
@@ -804,6 +823,9 @@ const GRAMMAR = {
     'constant_Entity(tt:hashtag)': Array.from(makeConstantDerivations('HASHTAG', Type.Entity('tt:hashtag'))),
     'constant_Entity(tt:phone_number)': Array.from(makeConstantDerivations('PHONE_NUMBER', Type.Entity('tt:phone_number'))),
     'constant_Entity(tt:email_address)': Array.from(makeConstantDerivations('EMAIL_ADDRESS', Type.Entity('tt:email_address'))),
+    'constant_Entity(tt:path_name)': [
+        ['${constant_String}', simpleCombine(identity)]
+    ].concat(Array.from(makeConstantDerivations('PATH_NAME', Type.Entity('tt:path_name')))),
     'constant_Entity(tt:picture)': [],
 
     // HACK: this info should be in Thingpedia
@@ -820,14 +842,15 @@ const GRAMMAR = {
         ['1', simpleCombine(() => Ast.Value.Number(1))],
         ['0', simpleCombine(() => Ast.Value.Number(0))]*/]
         .concat(Array.from(makeConstantDerivations('NUMBER', Type.Number))),
-    'constant_Time': Array.from(makeConstantDerivations('TIME', Type.Number)),
+    'constant_Currency': Array.from(makeConstantDerivations('CURRENCY', Type.Currency)),
+    'constant_Time': Array.from(makeConstantDerivations('TIME', Type.Time)),
     'constant_date_point': [
         ['now', simpleCombine(() => Ast.Value.Date(null, '+', null))],
         ['today', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '+', null))],
         ['yesterday', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day')))],
-        ['tomorrow', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day')))],
+        /*['tomorrow', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day')))],
         ['the end of the day', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null))],
-        ['the end of the week', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null))],
+        ['the end of the week', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null))],*/
         ['this week', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null))],
         ['last week', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week')))]
     ],
@@ -835,8 +858,9 @@ const GRAMMAR = {
         ['${constant_date_point}', simpleCombine(identity)],
         ['${constant_Measure(ms)} from now', simpleCombine((duration) => Ast.Value.Date(null, '+', duration))],
         ['${constant_Measure(ms)} ago', simpleCombine((duration) => Ast.Value.Date(null, '-', duration))],
-        ['${constant_Measure(ms)} after ${constant_date_point}', simpleCombine((duration, point) => Ast.Value.Date(point.value, '+', duration))],
-        ['${constant_Measure(ms)} before ${constant_date_point}', simpleCombine((duration, point) => Ast.Value.Date(point.value, '-', duration))]]
+        //['${constant_Measure(ms)} after ${constant_date_point}', simpleCombine((duration, point) => Ast.Value.Date(point.value, '+', duration))],
+        /*['${constant_Measure(ms)} before ${constant_date_point}', simpleCombine((duration, point) => Ast.Value.Date(point.value, '-', duration))]*/
+        ]
         .concat(Array.from(makeConstantDerivations('DATE', Type.Date))),
     'constant_Measure(ms)': [
         /*['${constant_Number} ms', simpleCombine(addUnit('ms'))],
@@ -853,29 +877,49 @@ const GRAMMAR = {
         .concat(Array.from(makeConstantDerivations('DURATION', Type.Measure('ms')))),
     'constant_Measure(byte)': [
         // don't mess with kibibytes, mebibytes etc.
-        ['${constant_Number} byte', simpleCombine(addUnit('byte'))],
+        //['${constant_Number} byte', simpleCombine(addUnit('byte'))],
         ['${constant_Number} kb', simpleCombine(addUnit('KB'))],
         ['${constant_Number} mb', simpleCombine(addUnit('MB'))],
         ['${constant_Number} gb', simpleCombine(addUnit('GB'))],
+        ['${constant_Number} tb', simpleCombine(addUnit('TB'))],
         ['${constant_Number} kilobytes', simpleCombine(addUnit('KB'))],
         ['${constant_Number} megabytes', simpleCombine(addUnit('MB'))],
-        ['${constant_Number} gigabytes', simpleCombine(addUnit('GB'))]
+        ['${constant_Number} gigabytes', simpleCombine(addUnit('GB'))],
+        ['${constant_Number} terabytes', simpleCombine(addUnit('TB'))]
     ],
     'constant_Measure(kg)': [
-        ['${constant_Number} grams', simpleCombine(addUnit('g'))],
+        //['${constant_Number} grams', simpleCombine(addUnit('g'))],*/
         ['${constant_Number} kilograms', simpleCombine(addUnit('kg'))],
         ['${constant_Number} kg', simpleCombine(addUnit('kg'))],
         ['${constant_Number} pounds', simpleCombine(addUnit('lb'))],
         ['${constant_Number} lbs', simpleCombine(addUnit('lb'))],
-        ['${constant_Number} ounces', simpleCombine(addUnit('oz'))],
-        ['${constant_Number} oz', simpleCombine(addUnit('oz'))],
+        /*['${constant_Number} ounces', simpleCombine(addUnit('oz'))],
+        ['${constant_Number} oz', simpleCombine(addUnit('oz'))],*/
     ],
     'constant_Measure(C)': [
-        ['${constant_Number} c', simpleCombine(addUnit('C'))],
-        ['${constant_Number} centigrade', simpleCombine(addUnit('C'))],
+        /*['${constant_Number} c', simpleCombine(addUnit('C'))],
+        ['${constant_Number} centigrade', simpleCombine(addUnit('C'))],*/
         ['${constant_Number} f', simpleCombine(addUnit('F'))],
         ['${constant_Number} fahrenheit', simpleCombine(addUnit('F'))],
         ['${constant_Number} degrees', simpleCombine(addUnit('F'))],
+    ],
+    'constant_Measure(m)': [
+        ['${constant_Number} m', simpleCombine(addUnit('m'))],
+        ['${constant_Number} meters', simpleCombine(addUnit('m'))],
+        ['${constant_Number} km', simpleCombine(addUnit('km'))],
+        ['${constant_Number} kilometers', simpleCombine(addUnit('km'))],
+        /*['${constant_Number} ft', simpleCombine(addUnit('ft'))],
+        ['${constant_Number} in', simpleCombine(addUnit('in'))],
+        ['${constant_Number} inches', simpleCombine(addUnit('in'))],
+        ['${constant_Number} cm', simpleCombine(addUnit('cm'))],*/
+    ],
+    'constant_Measure(mps)': [
+        ['${constant_Number} mph', simpleCombine(addUnit('mph'))],
+        //['${constant_Number} m/s', simpleCombine(addUnit('mps'))],
+        ['${constant_Number} kph', simpleCombine(addUnit('kmph'))],
+        ['${constant_Number} miles per hour', simpleCombine(addUnit('mph'))],
+        ['${constant_Number} kilometers per hour', simpleCombine(addUnit('kmph'))],
+        ['${constant_Number} km/h', simpleCombine(addUnit('kmph'))]
     ],
     'constant_Boolean': [
         /*['true', simpleCombine(() => Ast.Value.Boolean(true))],
@@ -898,24 +942,34 @@ const GRAMMAR = {
         ['${constant_Entity(tt:hashtag)}', simpleCombine(identity)],
         ['${constant_Entity(tt:phone_number)}', simpleCombine(identity)],
         ['${constant_Entity(tt:email_address)}', simpleCombine(identity)],
+        ['${constant_Entity(tt:path_name)}', simpleCombine(identity)],
         ['${constant_Number}', simpleCombine(identity)],
         ['${constant_Time}', simpleCombine(identity)],
-        ['${constant_Date}', simpleCombine(identity)],
+        //['${constant_Date}', simpleCombine(identity)],
         ['${constant_Measure(ms)}', simpleCombine(identity)],
         ['${constant_Measure(byte)}', simpleCombine(identity)],
+        ['${constant_Measure(mps)}', simpleCombine(identity)],
+        ['${constant_Measure(m)}', simpleCombine(identity)],
+        ['${constant_Measure(C)}', simpleCombine(identity)],
+        ['${constant_Measure(kg)}', simpleCombine(identity)],
         ['${constant_Boolean}', simpleCombine(identity)],
         ['${constant_Location}', simpleCombine(identity)],
     ],
     'constant_Numeric': [
         ['${constant_Number}', simpleCombine(identity)],
-        ['${constant_Measure(ms)}', simpleCombine(identity)]
+        ['${constant_Currency}', simpleCombine(identity)],
+        ['${constant_Measure(ms)}', simpleCombine(identity)],
+        ['${constant_Measure(byte)}', simpleCombine(identity)],
+        ['${constant_Measure(mps)}', simpleCombine(identity)],
+        ['${constant_Measure(m)}', simpleCombine(identity)],
+        ['${constant_Measure(C)}', simpleCombine(identity)],
+        ['${constant_Measure(kg)}', simpleCombine(identity)],
     ],
 
     // out params nonterminals are automatically generated
     'out_param_Any': [
     ],
     'out_param_Numeric': [
-        ['${out_param_Number}', simpleCombine(identity)],
     ],
     'out_param_Array(Any)': [
     ],
@@ -927,8 +981,8 @@ const GRAMMAR = {
         ['the ${out_param_Numeric} is ${choice(at least|not less than)} ${constant_Numeric}', simpleCombine(makeFilter('>='))],
         ['the ${out_param_Numeric} is ${choice(smaller|lower|less)} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
         ['the ${out_param_Numeric} is ${choice(at most|not more than)} ${constant_Numeric}', simpleCombine(makeFilter('<='))],
-        ['the ${out_param_Date} is ${choice(after|later than)} ${constant_Date}', simpleCombine(makeFilter('>'))],
-        ['the ${out_param_Date} is ${choice(before|earlier than)} ${constant_Date}', simpleCombine(makeFilter('<'))],
+        /*['the ${out_param_Date} is ${choice(after|later than)} ${constant_Date}', simpleCombine(makeFilter('>'))],
+        ['the ${out_param_Date} is ${choice(before|earlier than)} ${constant_Date}', simpleCombine(makeFilter('<'))],*/
 
         // there are too few arrays, so keep both
         ['the ${out_param_Array(Any)} contain ${constant_Any}', simpleCombine(makeFilter('contains'))],
@@ -938,14 +992,14 @@ const GRAMMAR = {
 
         ['the ${out_param_String} ${choice(contains|includes)} ${constant_String}', simpleCombine(makeFilter('=~'))],
         ['the ${out_param_String} does not ${choice(contain|include)} ${constant_String}', simpleCombine(makeFilter('=~', true))],
-        ['the ${out_param_String} ${choice(starts|begins)} with ${constant_String}', simpleCombine(makeFilter('starts_with'))],
+        /*['the ${out_param_String} ${choice(starts|begins)} with ${constant_String}', simpleCombine(makeFilter('starts_with'))],
         ['the ${out_param_String} does not ${choice(start|begin)} with ${constant_String}', simpleCombine(makeFilter('starts_with', true))],
         ['the ${out_param_String} ${choice(ends|finishes)} with ${constant_String}', simpleCombine(makeFilter('ends_with'))],
-        ['the ${out_param_String} does not ${choice(end|finish|terminate)} with ${constant_String}', simpleCombine(makeFilter('ends_with', true))],
+        ['the ${out_param_String} does not ${choice(end|finish|terminate)} with ${constant_String}', simpleCombine(makeFilter('ends_with', true))],*/
         ['${constant_String} is in the ${out_param_String}', simpleCombine(flip(makeFilter('=~')))],
 
-        ['${range_filter}', simpleCombine(identity)],
-        ['${either_filter}', simpleCombine(identity)]
+        /*['${range_filter}', simpleCombine(identity)],
+        ['${either_filter}', simpleCombine(identity)]*/
     ],
     'edge_filter': [
         ['the ${out_param_Any} ${choice(becomes|becomes equal to)} ${constant_Any}', simpleCombine(makeFilter('=='))],
@@ -1037,7 +1091,7 @@ const GRAMMAR = {
         ['${out_param_Numeric} ${choice(smaller|lower)} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
         ['${choice(higher|larger|bigger)} ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
         ['${choice(smaller|lower)} ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
-        ['${range_with_filter}', simpleCombine(identity)]
+        //['${range_with_filter}', simpleCombine(identity)]
     ],
     'range_with_filter': [
         ['${out_param_Date} between ${constant_Date} and ${constant_Date}', simpleCombine((param, v1, v2) => {
@@ -1078,7 +1132,7 @@ const GRAMMAR = {
     if_filtered_table: [
         ['${complete_table}', simpleCombine(identity)],
         ['${one_filter_table}', simpleCombine(identity)],
-        ['${two_filter_table}', simpleCombine(identity)],
+        //['${two_filter_table}', simpleCombine(identity)],
     ],
 
     one_filter_table: [
@@ -1099,7 +1153,7 @@ const GRAMMAR = {
         ['${complete_table}', simpleCombine(identity)],
 
         ['${complete_table} ${choice(with|having)} ${with_filter}', checkConstants(simpleCombine((table, filter) => {
-            if (!isSingleResult(table))
+            if (isSingleResult(table))
                 return null;
             if (!checkFilter(table, filter))
                 return null;
@@ -1211,7 +1265,8 @@ const GRAMMAR = {
         }))],
     ],
     'complete_when_do_rule': [
-        ['${when_do_rule}', checkIfComplete(simpleCombine(identity), true)]
+        ['${when_do_rule}', checkIfComplete(simpleCombine(identity), true)],
+        ['${choice(automatically|continuously)} ${action_replace_param_with_stream}', checkIfComplete(simpleCombine(identity), true)],
     ],
 
     // pp from when to get (optional)
@@ -1264,7 +1319,7 @@ const GRAMMAR = {
             return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, null), [builtinSayAction(proj.args[0])]));
         }))],
         ['${choice(alert me|tell me|notify me|let me know)} ${choice(if|when)} ${atom_filter} in ${complete_table}', checkConstants(simpleCombine((filter, table) => {
-            if (!isMonitorable(table) || !checkFilter(table, filter))
+            if (!isMonitorable(table) || !isSingleResult(table) || !checkFilter(table, filter))
                 return null;
             table = addFilter(table, filter);
             if (!table)
@@ -1272,13 +1327,13 @@ const GRAMMAR = {
             return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [Generate.notifyAction()]));
         }))],
         ['${choice(alert me|tell me|notify me|let me know)} ${choice(if|when)} ${edge_filter} in ${complete_table}', checkConstants(simpleCombine((filter, table) => {
-            if (!isMonitorable(table) || !checkFilter(table, filter))
+            if (!isMonitorable(table) || !isSingleResult(table) || !checkFilter(table, filter))
                 return null;
             return makeProgram(new Ast.Statement.Rule(new Ast.Stream.EdgeFilter(new Ast.Stream.Monitor(table, null, table.schema), filter, table.schema), [Generate.notifyAction()]));
         }))],
 
         // now => get => notify
-        ['${choice(tell me|give me|show me|get|present|retrieve)} ${if_filtered_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+        ['${choice(tell me|give me|show me|get|present|retrieve|pull up)} ${if_filtered_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
         ['${choice(list|enumerate)} ${with_filtered_table}', checkConstants(simpleCombine((table) => {
             if (isSingleResult(table))
                 return null;
@@ -1316,7 +1371,6 @@ const GRAMMAR = {
 
         // when => do
         ['${complete_when_do_rule}', checkConstants(simpleCombine(makeProgram))],
-        ['${choice(automatically|continuously)} ${action_replace_param_with_stream}', checkIfComplete(simpleCombine(makeProgram), true)],
 
         // when => get => do
         ['${when_get_do_rule}', simpleCombine(makeProgram)]
@@ -1375,7 +1429,7 @@ function loadTemplateAsDeclaration(ex, decl) {
         allTypes.set(String(ptype), ptype);
     }
 
-    let chunks = split(ex.utterance, PARAM_REGEX);
+    let chunks = split(ex.utterance.trim(), PARAM_REGEX);
     let grammarrule = [];
 
     for (let chunk of chunks) {
@@ -1424,8 +1478,6 @@ function loadMetadata(language) {
                     throw new Error('Missing definition for type ' + type);
                 GRAMMAR['constant_' + typestr] = [];
                 GRAMMAR['constant_Any'].push(['${constant_' + typestr + '}', simpleCombine(identity)]);
-                if (type.isMeasure)
-                    GRAMMAR['constant_Numeric'].push(['${constant_' + typestr + '}', simpleCombine(identity)]);
 
                 if (type.isEnum) {
                     for (let entry of type.entries)
@@ -1450,7 +1502,7 @@ function loadMetadata(language) {
                     GRAMMAR['out_param_Array(Any)'].push(['${out_param_' + typestr + '}', simpleCombine(identity)]);
                 else
                     GRAMMAR['out_param_Any'].push(['${out_param_' + typestr + '}', simpleCombine(identity)]);
-                if (type.isMeasure)
+                if (type.isMeasure || type.isNumber || type.isCurrency)
                     GRAMMAR['out_param_Numeric'].push(['${out_param_' + typestr + '}', simpleCombine(identity)]);
             }
             if (!ID_TYPES.has(typestr)) {
@@ -1580,7 +1632,7 @@ function loadMetadata(language) {
             }
             if (!ID_TYPES.has(typestr))
                 GRAMMAR['projection_Any'].push(['${projection_' + typestr +'}', simpleCombine(identity)]);
-            if (type.isNumber || type.isMeasure)
+            if (type.isNumber || type.isMeasure || type.isCurrency)
                 GRAMMAR['projection_Numeric'].push(['${projection_' + typestr +'}', simpleCombine(identity)]);
         }
 
@@ -1592,6 +1644,8 @@ function loadMetadata(language) {
                 let ptype = lhs.schema.inReq[pname];
                 if (!ptype || !Type.isAssignable(value.getType(), ptype))
                     return null;
+                if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
+                    return null;
                 //if (pname === 'p_low')
                 //    console.log('p_low := ' + ptype + ' / ' + value.getType());
                 return betaReduceTable(lhs, pname, value);
@@ -1601,11 +1655,15 @@ function loadMetadata(language) {
                 let ptype = lhs.schema.inReq[pname];
                 if (!ptype || !Type.isAssignable(value.getType(), ptype))
                     return null;
+                if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
+                    return null;
                 return betaReduceStream(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })]);
             GRAMMAR.thingpedia_action.push(['${thingpedia_action}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
                 if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                    return null;
+                if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;
                 return betaReduceAction(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })]);
@@ -1718,8 +1776,8 @@ function loadMetadata(language) {
                 return new Ast.Statement.Command(command.table, [reduced]);
             };
 
-            if (!ID_TYPES.has(String(ptype)))
-                GRAMMAR.get_do_command.push(['${get_do_command}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, getDoCommand, { isConstant: false })]);
+            /*if (!ID_TYPES.has(String(ptype)))
+                GRAMMAR.get_do_command.push(['${get_do_command}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, getDoCommand, { isConstant: false })]);*/
             if (ID_TYPES.has(String(ptype)) || pname === 'p_picture_url') {
                 if (pname === 'p_picture_url') {
                     GRAMMAR.get_do_command.push(['${get_do_command}${choice(it|that|them)}', combineReplacePlaceholder(pname, (command) => getDoCommand(command, new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
@@ -1761,8 +1819,8 @@ function loadMetadata(language) {
                 return new Ast.Statement.Rule(rule.stream, [reduced]);
             };
 
-            if (!ID_TYPES.has(String(ptype)))
-                GRAMMAR.when_do_rule.push(['${when_do_rule}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenDoRule, { isConstant: false })]);
+            /*if (!ID_TYPES.has(String(ptype)))
+                GRAMMAR.when_do_rule.push(['${when_do_rule}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenDoRule, { isConstant: false })]);*/
             if (ID_TYPES.has(String(ptype)) || pname === 'p_picture_url') {
                 if (pname === 'p_picture_url') {
                     GRAMMAR.when_do_rule.push(['${when_do_rule}${choice(it|that|them)}', combineReplacePlaceholder(pname, (rule) => whenDoRule(rule,  new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
@@ -1831,8 +1889,8 @@ function loadMetadata(language) {
                 return new Ast.Stream.Join(stream.stream, etaReduced, stream.in_params.concat([new Ast.InputParam(passign, joinArg)]), newSchema);
             };
 
-            if (!ID_TYPES.has(String(ptype)))
-                GRAMMAR.when_get_stream.push(['${when_get_stream}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenGetStream, { isConstant: false })]);
+            /*if (!ID_TYPES.has(String(ptype)))
+                GRAMMAR.when_get_stream.push(['${when_get_stream}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenGetStream, { isConstant: false })]);*/
             if (ID_TYPES.has(String(ptype)) || pname === 'p_picture_url') {
                 if (pname === 'p_picture_url') {
                     GRAMMAR.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => whenGetStream(stream, new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
@@ -2247,7 +2305,8 @@ function asyncIterate(iterator, loop) {
 
 function postprocess(sentence) {
     return sentence.replace(/ new my /, ' my new ')
-        .replace(/ new the /, ' the new ');
+        .replace(/ new the /, ' the new ')
+        .replace(/ new a /, ' a new ');
 }
 
 function main() {
