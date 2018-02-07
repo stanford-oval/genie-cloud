@@ -11,6 +11,8 @@
 const Q = require('q');
 const express = require('express');
 
+const ThingTalk = require('thingtalk');
+
 const db = require('../util/db');
 const device = require('../model/device');
 const user = require('../model/user');
@@ -26,13 +28,20 @@ const Config = require('../config');
 var router = express.Router();
 
 function findInvocation(parsed, id) {
-    if (parsed.action)
-        return parsed.action;
-    if (parsed.query)
-        return parsed.query;
-    if (parsed.trigger)
-        return parsed.trigger;
-    console.log(id + ' not action query or trigger');
+    if (parsed.type === 'action')
+        return parsed.value;
+    else if (parsed.type)
+        return findInvocation(parsed.value, id);
+    if (parsed.isMonitor)
+        return findInvocation(parsed.table, id);
+    if (parsed.isFilter)
+        return findInvocation(parsed.table || parsed.stream, id);
+    if (parsed.isEdgeFilter)
+        return findInvocation(parsed.stream, id);
+    if (parsed.isInvocation)
+        return parsed.invocation;
+    throw new Error(id + ' not action query or trigger, is ' + parsed);
+    return null;
 }
 
 function getMeta(invocation) {
@@ -85,12 +94,17 @@ router.get('/', function(req, res) {
             var dupes = new Set;
 
             examples.forEach((ex) => {
-                if (dupes.has(ex.target_json))
+                if (dupes.has(ex.target_code) || !ex.target_code)
                     return;
-                dupes.add(ex.target_json);
-                var parsed = JSON.parse(ex.target_json);
-                var invocation = findInvocation(parsed);
-                var [kind, channelName] = getMeta(invocation);
+                dupes.add(ex.target_code);
+                var parsed = ThingTalk.Grammar.parse(ex.target_code);
+                if (!parsed.declarations.length)
+                    return;
+                var invocation = findInvocation(parsed.declarations[0], ex.id);
+                if (!invocation)
+                    return;
+                var kind = invocation.selector.kind;
+                var channelName = invocation.channel;
 
                 if (kind in kindMap)
                     kind = kindMap[kind];
@@ -98,15 +112,12 @@ router.get('/', function(req, res) {
                     // ignore what we don't recognize
                     //console.log('Unrecognized kind ' + kind);
                 } else {
-                    var tokens = tokenize.tokenize(ex.utterance);
-
-                    var sentence = tokens.map((t) => t === '$__person' ? "@____" : (t.startsWith('$') ? '____' : t)).join(' ')
-                        .replace(/ \' /g, "'");
-                    if (parsed.trigger)
+                    var sentence = ex.utterance.replace(/\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/g, '____');
+                    if (parsed.declarations[0].type === 'stream')
                         deviceMap[kind].triggers.push(sentence);
-                    if (parsed.query)
+                    if (parsed.declarations[0].type === 'table')
                         deviceMap[kind].queries.push(sentence);
-                    if (parsed.action)
+                    if (parsed.declarations[0].type === 'action')
                         deviceMap[kind].actions.push(sentence);
                 }
             });

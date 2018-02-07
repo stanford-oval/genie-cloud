@@ -118,10 +118,7 @@ block content
     ul.device-examples
       for e in device.examples
         li
-          if authenticated && user.developer_status >= 3
-            span(title=e.target_code || target_json)= e.utterance
-          else
-            span= e.utterance
+          span(title=e.target_code || target_json)= e.utterance
           if authenticated
             | &#x20;
             a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).upvote-btn

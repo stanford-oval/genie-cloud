@@ -29,3 +29,7 @@
 #cheatsheet .action {
   color: rgb(34,139,34);
 }
+
+#cheatsheet .grid-item {
+  width: 24%;
+}
