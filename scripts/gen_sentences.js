@@ -28,7 +28,7 @@ const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
 
-const TURKING_MODE = true;
+const TURKING_MODE = false;
 
 // FIXME this should be in Thingpedia
 const NON_MONITORABLE_FUNCTIONS = new Set([
@@ -215,6 +215,20 @@ const AT_TIMER_SCHEMA = new Ast.FunctionDef('other',
     'every day at ${time}', // confirmation
     '', // confirmation_remote
     ['timestamp'], // argcanonicals
+    [''] // questions
+);
+
+const SAY_SCHEMA = new Ast.FunctionDef('other',
+    ['message'], // args
+    [Type.Any], // types
+    { message: 0 }, // index
+    { message: Type.Any }, // inReq
+    {}, // inOpt
+    {},
+    'say', // canonical
+    '', // confirmation
+    '', // confirmation_remote
+    ['message'], // argcanonicals
     [''] // questions
 );
 
@@ -758,7 +772,7 @@ function checkConstants(combiner, topLevel = true) {
 
 function combineStreamCommand(stream, command) {
     if (command.table)
-        return new Ast.Statement.Rule(new Ast.Stream.Join(stream, command.table, [], null), command.actions);
+        return new Ast.Statement.Rule(new Ast.Stream.Join(stream, command.table, [], command.table.schema), command.actions);
     else
         return new Ast.Statement.Rule(stream, command.actions);
 }
@@ -767,9 +781,9 @@ function builtinSayAction(pname) {
     let selector = new Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin', null, null);
     if (pname) {
         let param = new Ast.InputParam('message', new Ast.Value.VarRef(pname));
-        return new Ast.Invocation(selector, 'say', [param], null);
+        return new Ast.Invocation(selector, 'say', [param], SAY_SCHEMA);
     } else {
-        return new Ast.Invocation(selector, 'say', [], null);
+        return new Ast.Invocation(selector, 'say', [], SAY_SCHEMA);
     }
 }
 
@@ -1301,22 +1315,22 @@ const GRAMMAR = {
         ['${choice(monitor|watch)} ${if_filtered_table}', checkConstants(simpleCombine((table) => {
             if (!isMonitorable(table))
                 return null;
-            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, null), [Generate.notifyAction()]));
+            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [Generate.notifyAction()]));
         }))],
         ['${choice(monitor|watch)} ${projection_Any}', checkConstants(simpleCombine((proj) => {
             if (!isMonitorable(proj))
                 return null;
-            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, null), [builtinSayAction(proj.args[0])]));
+            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [builtinSayAction(proj.args[0])]));
         }))],
         ['${choice(let me know|notify me)} ${choice(of|about)} ${choice(changes|updates)} in ${if_filtered_table}', checkConstants(simpleCombine((table) => {
             if (!isMonitorable(table))
                 return null;
-            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, null), [Generate.notifyAction()]));
+            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [Generate.notifyAction()]));
         }))],
         ['${choice(let me know|notify me)} ${choice(of|about)} ${choice(changes|updates)} in ${projection_Any}', checkConstants(simpleCombine((proj) => {
             if (!isMonitorable(proj))
                 return null;
-            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, null), [builtinSayAction(proj.args[0])]));
+            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [builtinSayAction(proj.args[0])]));
         }))],
         ['${choice(alert me|tell me|notify me|let me know)} ${choice(if|when)} ${atom_filter} in ${complete_table}', checkConstants(simpleCombine((filter, table) => {
             if (!isMonitorable(table) || !isSingleResult(table) || !checkFilter(table, filter))
@@ -1638,6 +1652,8 @@ function loadMetadata(language) {
 
         for (let [key, ptype] of allInParams) {
             let [pname,] = key.split('+');
+            if (!pname.startsWith('p_'))
+                continue;
             //console.log(pname + ' := ' + ptype + ' ( ' + key + ' )');
 
             GRAMMAR.thingpedia_table.push(['${thingpedia_table}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
@@ -2295,7 +2311,7 @@ function *generate() {
 
 function asyncIterate(iterator, loop) {
     return Q().then(function minibatch() {
-        for (let i = 0; i < 1000; i++) {
+        for (let i = 0; i < 10000; i++) {
             let { value, done } = iterator.next();
             if (done)
                 return Q();
