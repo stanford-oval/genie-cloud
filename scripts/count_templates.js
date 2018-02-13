@@ -123,12 +123,12 @@ function loadMetadata(language) {
         let list = [];
         let total = 0;
         for (let [functionName, count] of _counts) {
-            list.push(functionName + ' : ' + count);
+            list.push([functionName, count]);
             total += count;
         }
-        list.sort();
-        for (let v of list)
-            console.log(v);
+        list.sort(([aname, acount], [bname, bcount]) => bcount - acount);
+        for (let [vname, vcount] of list)
+            console.log(`${vname}: ${vcount}`);
         console.log('total = ' + total);
     });
 }

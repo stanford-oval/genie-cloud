@@ -99,6 +99,7 @@ function main() {
     return Q.Promise(function(callback, errback) {
       parser.on('data', (row) => {
         //var league = row[0];
+        console.log(row);
         var id = row[0].trim();
         var name = row[1];
 
