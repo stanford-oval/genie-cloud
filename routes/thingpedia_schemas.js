@@ -152,6 +152,7 @@ function ensureExamples(dbClient, schemaId, ast) {
             return ({
                 schema_id: schemaId,
                 utterance: ex.utterance,
+                preprocessed: ex.utterance,
                 target_code: ex.program,
                 target_json: '', // FIXME
                 type: 'thingpedia',

@@ -28,7 +28,10 @@ const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
 
-const TURKING_MODE = false;
+const MAX_DEPTH = process.argv[4] !== undefined ? parseInt(process.argv[4]) : 6;
+if (isNaN(MAX_DEPTH))
+    throw new Error('invalid max depth');
+const TURKING_MODE = MAX_DEPTH <= 5;
 
 // FIXME this should be in Thingpedia
 const NON_MONITORABLE_FUNCTIONS = new Set([
@@ -63,8 +66,8 @@ const SINGLE_RESULT_FUNCTIONS = new Set([
     'com.yahoo.finance:get_stock_quote',
     'com.yandex.translate:detect_language',
     'com.yandex.translate:translate',
-    'edu.stanford.rakesh1.fitbit:getbody',
-    'edu.stanford.rakesh1.fitbit:getsteps',
+    'edu.stanford.rakeshr1.fitbit:getbody',
+    'edu.stanford.rakeshr1.fitbit:getsteps',
     'gov.nasa:apod',
     'gov.nasa:asteroid',
     'gov.nasa:rover',
@@ -220,9 +223,9 @@ const AT_TIMER_SCHEMA = new Ast.FunctionDef('other',
 
 const SAY_SCHEMA = new Ast.FunctionDef('other',
     ['message'], // args
-    [Type.Any], // types
+    [Type.String], // types
     { message: 0 }, // index
-    { message: Type.Any }, // inReq
+    { message: Type.String }, // inReq
     {}, // inOpt
     {},
     'say', // canonical
@@ -273,19 +276,25 @@ class Placeholder {
 class Derivation {
     constructor(value, sentence) {
         this.value = value;
+        if (value === undefined)
+            throw new TypeError('Invalid value');
         this.sentence = sentence;
         if (!Array.isArray(sentence) || sentence.some((x) => x instanceof Derivation))
             throw new TypeError('Invalid sentence');
 
         this._flatSentence = null;
+        this._hasPlaceholders = undefined;
     }
 
     hasPlaceholders() {
+        if (this._hasPlaceholders !== undefined)
+            return this._hasPlaceholders;
+
         for (let child of this.sentence) {
             if (child instanceof Placeholder)
-                return true;
+                return this._hasPlaceholders = true;
         }
-        return false;
+        return this._hasPlaceholders = false;
     }
 
     hasPlaceholder(what) {
@@ -376,13 +385,21 @@ class Derivation {
             if (children[0] instanceof Derivation) {
                 let clone = children[0].clone();
                 clone.value = semanticAction(children[0].value);
+                if (clone.value === null)
+                    return null;
                 return clone;
             } else if (children[0] instanceof Placeholder) {
-                return new Derivation(semanticAction(), children, {
+                let value = semanticAction();
+                if (value === null)
+                    return null;
+                return new Derivation(value, children, {
                     [children[0].symbol]: [0]
                 });
             } else { // constant or terminal
-                return new Derivation(semanticAction(), children, {});
+                let value = semanticAction();
+                if (value === null)
+                    return null;
+                return new Derivation(value, children, {});
             }
         }
 
@@ -413,9 +430,11 @@ function simpleCombine(semanticAction) {
     };
 }
 function combineReplacePlaceholder(pname, semanticAction, options) {
-    return function([c1, c2]) {
+    let f= function([c1, c2]) {
         return c1.replacePlaceholder(pname, c2, semanticAction, options);
     };
+    f.isReplacePlaceholder = true;
+    return f;
 }
 function enableIfTurking(combiner) {
     if (!TURKING_MODE)
@@ -489,7 +508,7 @@ function findFunctionNameTable(table) {
 
 function findFunctionNameStream(stream) {
     if (stream.isTimer || stream.isAtTimer)
-        return 'timer';
+        return [];
 
     if (isUnaryStreamToStreamOp(stream))
         return findFunctionNameStream(stream.stream);
@@ -497,7 +516,10 @@ function findFunctionNameStream(stream) {
     if (isUnaryTableToStreamOp(stream))
         return findFunctionNameTable(stream.table);
 
-    throw new TypeError();
+    if (stream.isJoin)
+        return findFunctionNameStream(stream.stream).concat(findFunctionNameTable(stream.table));
+
+    throw new TypeError('??? ' + stream);
 }
 
 function isMonitorable(table) {
@@ -516,6 +538,38 @@ function isSingleResult(table) {
             return true;
     }
     return false;
+}
+
+function isSelfJoinStream(stream) {
+    let functions = findFunctionNameStream(stream);
+    if (functions.length > 1) {
+        if (!Array.isArray(functions))
+            throw new TypeError('??? ' + functions);
+        functions.sort();
+        for (let i = 0; i < functions.length-1; i++) {
+            if (functions[i] === functions[i+1])
+                return true;
+        }
+    }
+    return false;
+}
+
+function isSelfJoinTable(stream) {
+    let functions = findFunctionNameTable(stream);
+    if (functions.length > 1) {
+        functions.sort();
+        for (let i = 0; i < functions.length-1; i++) {
+            if (functions[i] === functions[i+1])
+                return true;
+        }
+    }
+    return false;
+}
+
+function checkNotSelfJoinStream(stream) {
+    if (isSelfJoinStream(stream))
+        return null;
+    return stream;
 }
 
 function betaReduceInvocation(invocation, pname, value) {
@@ -683,12 +737,13 @@ function makeFilter(op, negate = false) {
 
 function makeEdgeFilterStream(op) {
     return function semanticAction(proj, value) {
-        let vtype = value.getType();
-
         let f = new Ast.BooleanExpression.Atom(proj.args[0], op, value);
         if (!checkFilter(proj.table, f))
             return null;
-        if (!isMonitorable(proj))
+        if (!isMonitorable(proj) || !isSingleResult(proj))
+            return null;
+        let outParams = Object.keys(proj.table.schema.out);
+        if (outParams.length === 1 && TURKING_MODE)
             return null;
 
         return new Ast.Stream.EdgeFilter(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), f, proj.table.schema);
@@ -771,15 +826,22 @@ function checkConstants(combiner, topLevel = true) {
 }*/
 
 function combineStreamCommand(stream, command) {
-    if (command.table)
-        return new Ast.Statement.Rule(new Ast.Stream.Join(stream, command.table, [], command.table.schema), command.actions);
-    else
+    if (command.table) {
+        stream = new Ast.Stream.Join(stream, command.table, [], command.table.schema);
+        if (isSelfJoinStream(stream))
+            return null;
         return new Ast.Statement.Rule(stream, command.actions);
+    } else {
+        return new Ast.Statement.Rule(stream, command.actions);
+    }
 }
 
 function builtinSayAction(pname) {
     let selector = new Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin', null, null);
-    if (pname) {
+    if (pname instanceof Ast.Value) {
+        let param = new Ast.InputParam('message', pname);
+        return new Ast.Invocation(selector, 'say', [param], SAY_SCHEMA);
+    } if (pname) {
         let param = new Ast.InputParam('message', new Ast.Value.VarRef(pname));
         return new Ast.Invocation(selector, 'say', [param], SAY_SCHEMA);
     } else {
@@ -803,7 +865,7 @@ function checkFilter(table, filter) {
     } else if (filter.operator === 'in_array') {
         vtype = ThingTalk.Type.Array(ptype);
     }
-    if (!ThingTalk.Type.isAssignable(filter.value.getType(), vtype))
+    if (!filter.value.getType().equals(vtype))
         return false;
 
     return true;
@@ -812,6 +874,8 @@ function checkFilter(table, filter) {
 function addFilter(table, filter) {
     if (table.isProjection)
         return new Ast.Table.Projection(addFilter(table.table, filter), table.args, table.schema);
+    if (table.isFilter && TURKING_MODE)
+        return null;
 
     if (table.isFilter) {
         // if we already have a filter, don't add a new complex filter
@@ -842,10 +906,22 @@ function addFilter(table, filter) {
     return new Ast.Table.Filter(table, filter, table.schema);
 }
 
+function tableToStream(table, projArg) {
+    if (!isMonitorable(table))
+        return null;
+    let stream;
+    if (table.isFilter && isSingleResult(table))
+        stream = new Ast.Stream.EdgeFilter(new Ast.Stream.Monitor(table.table, projArg, table.table.schema), table.filter, table.table.schema);
+    else
+        stream = new Ast.Stream.Monitor(table, projArg, table.schema);
+    return stream;
+}
+
 const GRAMMAR = {
     'constant_String': Array.from(makeConstantDerivations('QUOTED_STRING', Type.String)),
     'constant_Entity(tt:url)': Array.from(makeConstantDerivations('URL', Type.Entity('tt:url'))),
     'constant_Entity(tt:username)': Array.from(makeConstantDerivations('USERNAME', Type.Entity('tt:username'))),
+    'constant_Entity(tt:contact_name)': Array.from(makeConstantDerivations('USERNAME', Type.Entity('tt:contact_name'))),
     'constant_Entity(tt:hashtag)': Array.from(makeConstantDerivations('HASHTAG', Type.Entity('tt:hashtag'))),
     'constant_Entity(tt:phone_number)': Array.from(makeConstantDerivations('PHONE_NUMBER', Type.Entity('tt:phone_number'))),
     'constant_Entity(tt:email_address)': Array.from(makeConstantDerivations('EMAIL_ADDRESS', Type.Entity('tt:email_address'))),
@@ -874,16 +950,22 @@ const GRAMMAR = {
         ['now', simpleCombine(() => Ast.Value.Date(null, '+', null))],
         ['today', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '+', null))],
         ['yesterday', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day')))],
-        ['tomorrow', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'day'), '-', Ast.Value.Measure(1, 'day'))))],
+        ['tomorrow', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null)))],
         ['the end of the day', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'day'), '+', null)))],
         ['the end of the week',  disableIfTurking(simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'week'), '+', null)))],
         ['this week', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '+', null))],
-        ['last week', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week')))]
+        ['last week', simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'week'), '-', Ast.Value.Measure(1, 'week')))],
+        ['this month', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'mon'), '+', null)))],
+        ['this year', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('start_of', 'year'), '+', null)))],
+        ['next month', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '+', null)))],
+        ['next year', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '+', null)))],
+        ['last month', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'mon'), '-', Ast.Value.Measure(1, 'mon'))))],
+        ['last year', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(Ast.DateEdge('end_of', 'year'), '-', Ast.Value.Measure(1, 'year'))))],
     ],
     'constant_Date': [
         ['${constant_date_point}', simpleCombine(identity)],
-        ['${constant_Measure(ms)} from now', simpleCombine((duration) => Ast.Value.Date(null, '+', duration))],
-        ['${constant_Measure(ms)} ago', simpleCombine((duration) => Ast.Value.Date(null, '-', duration))],
+        ['${constant_Measure(ms)} from now', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(null, '+', duration)))],
+        ['${constant_Measure(ms)} ago', disableIfTurking(simpleCombine((duration) => Ast.Value.Date(null, '-', duration)))],
         ['${constant_Measure(ms)} after ${constant_date_point}', disableIfTurking(simpleCombine((duration, point) => Ast.Value.Date(point.value, '+', duration)))],
         ['${constant_Measure(ms)} before ${constant_date_point}',  disableIfTurking(simpleCombine((duration, point) => Ast.Value.Date(point.value, '-', duration)))]
         ]
@@ -934,6 +1016,8 @@ const GRAMMAR = {
         ['${constant_Number} meters', simpleCombine(addUnit('m'))],
         ['${constant_Number} km', simpleCombine(addUnit('km'))],
         ['${constant_Number} kilometers', simpleCombine(addUnit('km'))],
+        ['${constant_Number} mi', simpleCombine(addUnit('mi'))],
+        ['${constant_Number} miles', simpleCombine(addUnit('mi'))],
         ['${constant_Number} ft', disableIfTurking(simpleCombine(addUnit('ft')))],
         ['${constant_Number} in', disableIfTurking(simpleCombine(addUnit('in')))],
         ['${constant_Number} inches', disableIfTurking(simpleCombine(addUnit('in')))],
@@ -955,14 +1039,15 @@ const GRAMMAR = {
     ],
     'constant_Location': [
         ['here', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))],
-        ['where i am now', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location')))],
+        ['where i am now', disableIfTurking(simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('current_location'))))],
         ['home', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('home')))],
         ['work', simpleCombine(() => Ast.Value.Location(Ast.Location.Relative('work')))]]
         .concat(Array.from(makeConstantDerivations('LOCATION', Type.Location))),
 
+    // this is used for equality filtering, so disableIfTurking anything that is weird when equality compared
     'constant_Any': [
         ['${constant_String}', simpleCombine(identity)],
-        ['${constant_Entity(tt:url)}', simpleCombine(identity)],
+        ['${constant_Entity(tt:url)}', disableIfTurking(simpleCombine(identity))],
         ['${constant_Entity(tt:picture)}', simpleCombine(identity)],
         ['${constant_Entity(tt:username)}', simpleCombine(identity)],
         ['${constant_Entity(tt:hashtag)}', simpleCombine(identity)],
@@ -972,14 +1057,15 @@ const GRAMMAR = {
         ['${constant_Number}', simpleCombine(identity)],
         ['${constant_Time}', simpleCombine(identity)],
         ['${constant_Date}', disableIfTurking(simpleCombine(identity))],
-        ['${constant_Measure(ms)}', simpleCombine(identity)],
-        ['${constant_Measure(byte)}', simpleCombine(identity)],
-        ['${constant_Measure(mps)}', simpleCombine(identity)],
-        ['${constant_Measure(m)}', simpleCombine(identity)],
-        ['${constant_Measure(C)}', simpleCombine(identity)],
-        ['${constant_Measure(kg)}', simpleCombine(identity)],
+        ['${constant_Measure(ms)}', disableIfTurking(simpleCombine(identity))],
+        ['${constant_Measure(byte)}', disableIfTurking(simpleCombine(identity))],
+        ['${constant_Measure(mps)}', disableIfTurking(simpleCombine(identity))],
+        ['${constant_Measure(m)}', disableIfTurking(simpleCombine(identity))],
+        ['${constant_Measure(C)}', disableIfTurking(simpleCombine(identity))],
+        ['${constant_Measure(kg)}', disableIfTurking(simpleCombine(identity))],
         ['${constant_Boolean}', simpleCombine(identity)],
         ['${constant_Location}', simpleCombine(identity)],
+        ['${constant_Currency}', simpleCombine(identity)],
     ],
     'constant_Numeric': [
         ['${constant_Number}', simpleCombine(identity)],
@@ -999,38 +1085,46 @@ const GRAMMAR = {
     ],
     'out_param_Array(Any)': [
     ],
+    'the_out_param_Numeric': [
+        ['the ${out_param_Numeric}', simpleCombine(identity)],
+        ['its ${out_param_Numeric}', disableIfTurking(simpleCombine(identity))],
+        ['their ${out_param_Numeric}', disableIfTurking(simpleCombine(identity))]
+    ],
+    'the_out_param_Array(Any)': [
+        ['the ${out_param_Array(Any)}', simpleCombine(identity)],
+        ['its ${out_param_Array(Any)}', disableIfTurking(simpleCombine(identity))],
+        ['their ${out_param_Array(Any)}', disableIfTurking(simpleCombine(identity))]
+    ],
 
     'atom_filter': [
         ['the ${out_param_Any} ${choice(is|is exactly|is equal to)} ${constant_Any}', simpleCombine(makeFilter('=='))],
         ['the ${out_param_Any} ${choice(is not|is n\'t|is different than)} ${constant_Any}', simpleCombine(makeFilter('==', true))],
-        ['the ${out_param_Numeric} is ${choice(greater|higher|bigger|more)} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
-        ['the ${out_param_Numeric} is ${choice(at least|not less than)} ${constant_Numeric}', simpleCombine(makeFilter('>='))],
-        ['the ${out_param_Numeric} is ${choice(smaller|lower|less)} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
-        ['the ${out_param_Numeric} is ${choice(at most|not more than)} ${constant_Numeric}', simpleCombine(makeFilter('<='))],
-        ['the ${out_param_Date} is ${choice(after|later than)} ${constant_Date}', disableIfTurking(simpleCombine(makeFilter('>')))],
-        ['the ${out_param_Date} is ${choice(before|earlier than)} ${constant_Date}', disableIfTurking(simpleCombine(makeFilter('<')))],
+        ['${the_out_param_Numeric} is ${choice(greater|higher|bigger|more|at least|not less than)} ${constant_Numeric}', simpleCombine(makeFilter('>='))],
+        ['${the_out_param_Numeric} is ${choice(smaller|lower|less|at most|not more than)} ${constant_Numeric}', simpleCombine(makeFilter('<='))],
+        ['${the_out_param_Date} is ${choice(after|later than)} ${constant_Date}', disableIfTurking(simpleCombine(makeFilter('>=')))],
+        ['${the_out_param_Date} is ${choice(before|earlier than)} ${constant_Date}', disableIfTurking(simpleCombine(makeFilter('<=')))],
 
         // there are too few arrays, so keep both
-        ['the ${out_param_Array(Any)} contain ${constant_Any}', simpleCombine(makeFilter('contains'))],
-        ['the ${out_param_Array(Any)} do not contain ${constant_Any}', simpleCombine(makeFilter('contains', true))],
-        ['the ${out_param_Array(Any)} include ${constant_Any}', simpleCombine(makeFilter('contains'))],
-        ['the ${out_param_Array(Any)} do not include ${constant_Any}', simpleCombine(makeFilter('contains', true))],
+        ['${the_out_param_Array(Any)} contain ${constant_Any}', simpleCombine(makeFilter('contains'))],
+        ['${the_out_param_Array(Any)} do not contain ${constant_Any}', simpleCombine(makeFilter('contains', true))],
+        ['${the_out_param_Array(Any)} include ${constant_Any}', simpleCombine(makeFilter('contains'))],
+        ['${the_out_param_Array(Any)} do not include ${constant_Any}', simpleCombine(makeFilter('contains', true))],
 
-        ['the ${out_param_String} ${choice(contains|includes)} ${constant_String}', simpleCombine(makeFilter('=~'))],
-        ['the ${out_param_String} does not ${choice(contain|include)} ${constant_String}', simpleCombine(makeFilter('=~', true))],
-        ['the ${out_param_String} ${choice(starts|begins)} with ${constant_String}', disableIfTurking(simpleCombine(makeFilter('starts_with')))],
-        ['the ${out_param_String} does not ${choice(start|begin)} with ${constant_String}', disableIfTurking(simpleCombine(makeFilter('starts_with', true)))],
-        ['the ${out_param_String} ${choice(ends|finishes)} with ${constant_String}', disableIfTurking(simpleCombine(makeFilter('ends_with')))],
-        ['the ${out_param_String} does not ${choice(end|finish|terminate)} with ${constant_String}', disableIfTurking(simpleCombine(makeFilter('ends_with', true)))],
-        ['${constant_String} is in the ${out_param_String}', simpleCombine(flip(makeFilter('=~')))],
+        ['${the_out_param_String} ${choice(contains|includes)} ${constant_String}', simpleCombine(makeFilter('=~'))],
+        ['${the_out_param_String} does not ${choice(contain|include)} ${constant_String}', simpleCombine(makeFilter('=~', true))],
+        //['${the_out_param_String} ${choice(starts|begins)} with ${constant_String}', disableIfTurking(simpleCombine(makeFilter('starts_with')))],
+        //['${the_out_param_String} does not ${choice(start|begin)} with ${constant_String}', disableIfTurking(simpleCombine(makeFilter('starts_with', true)))],
+        //['${the_out_param_String} ${choice(ends|finishes)} with ${constant_String}', disableIfTurking(simpleCombine(makeFilter('ends_with')))],
+        //['${the_out_param_String} does not ${choice(end|finish|terminate)} with ${constant_String}', disableIfTurking(simpleCombine(makeFilter('ends_with', true)))],
+        ['${constant_String} is in ${the_out_param_String}', simpleCombine(flip(makeFilter('=~')))],
 
         ['${range_filter}', disableIfTurking(simpleCombine(identity))],
-        ['${either_filter}', disableIfTurking(simpleCombine(identity))]
+        //['${either_filter}', disableIfTurking(simpleCombine(identity))]
     ],
     'edge_filter': [
-        ['the ${out_param_Any} ${choice(becomes|becomes equal to)} ${constant_Any}', simpleCombine(makeFilter('=='))],
-        ['the ${out_param_Numeric} ${choice(is now greater than|becomes greater than|becomes higher than|goes above|increases above)} ${constant_Numeric}', simpleCombine(makeFilter('>'))],
-        ['the ${out_param_Numeric} ${choice(is now smaller than|becomes smaller than|becomes lower than|goes below|decreases below)} ${constant_Numeric}', simpleCombine(makeFilter('<'))],
+        ['the ${out_param_Any} ${choice(becomes|becomes equal to)} ${constant_Any}', disableIfTurking(simpleCombine(makeFilter('==')))],
+        ['${the_out_param_Numeric} ${choice(is now greater than|becomes greater than|becomes higher than|goes above|increases above|goes over|rises above)} ${constant_Numeric}', simpleCombine(makeFilter('>='))],
+        ['${the_out_param_Numeric} ${choice(is now smaller than|becomes smaller than|becomes lower than|goes below|decreases below|goes under)} ${constant_Numeric}', simpleCombine(makeFilter('<='))],
     ],
 
     'either_filter': [
@@ -1069,41 +1163,31 @@ const GRAMMAR = {
             return new Ast.BooleanExpression.Not(new Ast.BooleanExpression.Atom(param.name, 'in_array', Ast.Value.Array([v1, v2])));
         })],
     ],
+
+    'range': [
+        ['between ${constant_Numeric} and ${constant_Numeric}', simpleCombine((v1, v2) => {
+            if (!v1.getType().equals(v2.getType()))
+                return null;
+            if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
+                return null;
+            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
+                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
+                return null;
+            return [v1, v2];
+        })],
+        ['in the range from ${constant_Numeric} to ${constant_Numeric}', simpleCombine((v1, v2) => {
+            if (!v1.getType().equals(v2.getType()))
+                return null;
+            if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
+                return null;
+            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
+                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
+                return null;
+            return [v1, v2];
+        })]
+    ],
     'range_filter': [
-        ['the ${out_param_Numeric} is between ${constant_Numeric} and ${constant_Numeric}', simpleCombine((param, v1, v2) => {
-            if (!v1.getType().equals(v2.getType()))
-                return null;
-            if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
-                return null;
-            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
-                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
-                return null;
-            return new Ast.BooleanExpression.And([
-                Ast.BooleanExpression.Atom(param.name, '>=', v1),
-                Ast.BooleanExpression.Atom(param.name, '<=', v2)
-            ]);
-        })],
-        ['the ${out_param_Numeric} is in the range from ${constant_Numeric} to ${constant_Numeric}', simpleCombine((param, v1, v2) => {
-            if (!v1.getType().equals(v2.getType()))
-                return null;
-            if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
-                return null;
-            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
-                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
-                return null;
-            return new Ast.BooleanExpression.And([
-                Ast.BooleanExpression.Atom(param.name, '>=', v1),
-                Ast.BooleanExpression.Atom(param.name, '<=', v2)
-            ]);
-        })],
-        ['the ${out_param_Date} is between ${constant_Date} and ${constant_Date}', simpleCombine((param, v1, v2) => {
-            if (!v1.getType().equals(v2.getType()))
-                return null;
-            if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
-                return null;
-            if (v1.isVarRef && v1.constNumber !== undefined && v2.isVarRef && v2.constNumber !== undefined &&
-                v1.constNumber + 1 !== v2.constNumber) // optimization: avoid CONST_X CONST_Y with X + 1 != Y earlier (before the NN catches it)
-                return null;
+        ['${the_out_param_Numeric} is ${range}', simpleCombine((param, [v1, v2]) => {
             return new Ast.BooleanExpression.And([
                 Ast.BooleanExpression.Atom(param.name, '>=', v1),
                 Ast.BooleanExpression.Atom(param.name, '<=', v2)
@@ -1113,41 +1197,34 @@ const GRAMMAR = {
 
     'with_filter': [
         ['${out_param_Any} equal to ${constant_Any}', simpleCombine(makeFilter('=='))],
-        ['${out_param_Numeric} ${choice(higher|larger|bigger)} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
-        ['${out_param_Numeric} ${choice(smaller|lower)} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
-        ['${choice(higher|larger|bigger)} ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('>'))],
-        ['${choice(smaller|lower)} ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('<'))],
-        ['${range_with_filter}', disableIfTurking(simpleCombine(identity))]
+        ['${out_param_Numeric} ${choice(higher|larger|bigger)} than ${constant_Numeric}', simpleCombine(makeFilter('>='))],
+        ['${out_param_Numeric} ${choice(smaller|lower)} than ${constant_Numeric}', simpleCombine(makeFilter('<='))],
+        ['${choice(higher|larger|bigger)} ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('>='))],
+        ['${choice(smaller|lower)} ${out_param_Numeric} than ${constant_Numeric}', simpleCombine(makeFilter('<='))],
+        ['${range_with_filter}', disableIfTurking(simpleCombine(identity))],
+        ['no ${out_param_Number}', disableIfTurking(simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0))))],
+        ['zero ${out_param_Number}', disableIfTurking(simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0))))],
     ],
     'range_with_filter': [
-        ['${out_param_Date} between ${constant_Date} and ${constant_Date}', simpleCombine((param, v1, v2) => {
-            if (!v1.getType().equals(v2.getType()))
-                return null;
+        ['${out_param_Numeric} ${range}', simpleCombine((param, [v1, v2]) => {
             return new Ast.BooleanExpression.And([
                 Ast.BooleanExpression.Atom(param.name, '>=', v1),
                 Ast.BooleanExpression.Atom(param.name, '<=', v2)
             ]);
         })],
-        ['${out_param_Numeric} between ${constant_Numeric} and ${constant_Numeric}', simpleCombine((param, v1, v2) => {
-            if (!v1.getType().equals(v2.getType()))
-                return null;
-            return new Ast.BooleanExpression.And([
-                Ast.BooleanExpression.Atom(param.name, '>=', v1),
-                Ast.BooleanExpression.Atom(param.name, '<=', v2)
-            ]);
-        })],
-
-        ['no ${out_param_Number}', simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0)))],
-        ['zero ${out_param_Number}', simpleCombine((param) => new Ast.BooleanExpression.Atom(param.name, '==', Ast.Value.Number(0)))],
     ],
 
     thingpedia_table: [],
+    thingpedia_get_command: [],
     thingpedia_stream: [],
     thingpedia_action: [],
 
     complete_table: [
         ['${thingpedia_table}', checkIfComplete(simpleCombine(identity))],
         ['${table_join_replace_placeholder}', checkIfComplete(simpleCombine(identity))],
+    ],
+    complete_get_command: [
+        ['${thingpedia_get_command}', checkIfComplete(simpleCombine(identity))]
     ],
 
     if_filtered_table: [
@@ -1183,14 +1260,17 @@ const GRAMMAR = {
     ],
 
     timer: [
-        ['every ${constant_Measure(ms)}', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA))],
-        ['once in ${constant_Measure(ms)}', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA))],
-        ['once a day', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA))],
-        ['once a month', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA))],
-        ['once a week', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA))],
-        ['once an hour', simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA))],
+        ['every ${constant_Measure(ms)}', disableIfTurking(simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA)))],
+        ['once in ${constant_Measure(ms)}', disableIfTurking(simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), interval, TIMER_SCHEMA)))],
+        ['every day', disableIfTurking(simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA)))],
+        ['daily', disableIfTurking(simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA)))],
+        ['everyday', disableIfTurking(simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA)))],
+        ['once a day', disableIfTurking(simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'day'), TIMER_SCHEMA)))],
+        ['once a month', disableIfTurking(simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'mon'), TIMER_SCHEMA)))],
+        ['once a week', disableIfTurking(simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'week'), TIMER_SCHEMA)))],
+        ['once an hour', disableIfTurking(simpleCombine((interval) => new Ast.Stream.Timer(Ast.Value.Date.now(), new Ast.Value.Measure(1, 'h'), TIMER_SCHEMA)))],
         ['every day at ${constant_Time}', simpleCombine((time) => new Ast.Stream.AtTimer(time, AT_TIMER_SCHEMA))],
-        ['daily at ${constant_Time}', simpleCombine((time) => new Ast.Stream.AtTimer(time, AT_TIMER_SCHEMA))],
+        ['daily at ${constant_Time}', disableIfTurking(simpleCombine((time) => new Ast.Stream.AtTimer(time, AT_TIMER_SCHEMA)))],
     ],
 
     // this is autogenerated and depends on projection_*, which is also
@@ -1201,32 +1281,52 @@ const GRAMMAR = {
     table_join_replace_placeholder: [],
 
     edge_stream: [
-        ['when the ${projection_Any} ${choice(becomes|becomes equal to)} ${constant_Any}', simpleCombine(makeEdgeFilterStream('=='))],
-        ['when the ${projection_Numeric} ${choice(becomes greater than|becomes higher than|goes above|increases above)} ${constant_Numeric}', simpleCombine(makeEdgeFilterStream('>'))],
-        ['when the ${projection_Numeric} ${choice(becomes smaller than|becomes lower than|goes below|decreases below)} ${constant_Numeric}', simpleCombine(makeEdgeFilterStream('<'))],
+        ['${choice(when|if)} the ${projection_Any} ${choice(becomes|becomes equal to)} ${constant_Any}', disableIfTurking(simpleCombine(makeEdgeFilterStream('==')))],
+        ['${choice(when|if)} the ${projection_Numeric} ${choice(becomes greater than|becomes higher than|goes above|increases above)} ${constant_Numeric}', simpleCombine(makeEdgeFilterStream('>='))],
+        ['${choice(when|if)} the ${projection_Numeric} ${choice(becomes smaller than|becomes lower than|goes below|decreases below)} ${constant_Numeric}', simpleCombine(makeEdgeFilterStream('<='))],
     ],
 
     stream: [
         ['${thingpedia_stream}', checkIfComplete(simpleCombine(identity))],
-        ['${choice(when|if|in case|whenever|any time|should|anytime)} ${with_filtered_table} change', simpleCombine((table) => {
-            if (!isMonitorable(table))
+        ['${choice(when|if|in case|whenever|any time|should|anytime)} ${with_filtered_table} ${choice(change|update)}', disableIfTurking(simpleCombine((table) => {
+            return tableToStream(table, null);
+        }))],
+        ['${choice(when|if|in case|whenever|any time|should|anytime)} ${with_filtered_table} update', enableIfTurking(simpleCombine((table) => {
+            return tableToStream(table, null);
+        }))],
+        ['${choice(in case of changes|in case of variations|in case of updates|if something changes|when something changes|if there are changes|if there are updates)} in ${with_filtered_table}', disableIfTurking(simpleCombine((table) => {
+            return tableToStream(table, null);
+        }))],
+        ['${choice(when|if|in case|whenever|any time|anytime)} ${projection_Any} changes', disableIfTurking(simpleCombine((proj) => {
+            if (proj.args[0] === 'picture_url')
                 return null;
-            return new Ast.Stream.Monitor(table, null, table.schema);
-        })],
-        ['in case of ${choice(changes|variations|updates)} in ${with_filtered_table}', simpleCombine((table) => {
-            if (!isMonitorable(table))
+            let outParams = Object.keys(proj.table.schema.out);
+            let stream;
+            if (outParams.length === 1 && TURKING_MODE)
                 return null;
-            return new Ast.Stream.Monitor(table, null, table.schema);
-        })],
-        ['${choice(when|if|in case|whenever|any time|anytime)} ${projection_Any} changes', simpleCombine((proj) => {
-            if (!isMonitorable(proj))
+            if (outParams.length === 1)
+                stream = tableToStream(proj.table, null);
+            else
+                stream = tableToStream(proj.table, proj.args);
+            return stream;
+        }))],
+        ['${choice(when|if|in case|whenever|any time|should|anytime)} ${complete_table} change and ${edge_filter}', simpleCombine((table, filter) => {
+            if (!isMonitorable(table) || !checkFilter(table, filter) || !isSingleResult(table))
                 return null;
-            return new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema);
+            table = addFilter(table, filter);
+            if (!table)
+                return null;
+            return tableToStream(table, null);
         })],
-        ['${choice(when|if|in case|whenever|any time|should|anytime)} ${with_filtered_table} change and ${edge_filter}', simpleCombine((table, filter) => {
+        ['${choice(when|if|in case|whenever|any time|should|anytime)} ${complete_table} change and ${atom_filter}', simpleCombine((table, filter) => {
             if (!isMonitorable(table) || !checkFilter(table, filter))
                 return null;
-            return new Ast.Stream.EdgeFilter(new Ast.Stream.Monitor(table, null, table.schema), filter, table.schema);
+            if (TURKING_MODE && !isSingleResult(table))
+                return null;
+            table = addFilter(table, filter);
+            if (!table)
+                return null;
+            return tableToStream(table, null);
         })],
         ['${edge_stream}', simpleCombine(identity)],
         ['${timer}', simpleCombine(identity)]
@@ -1241,37 +1341,105 @@ const GRAMMAR = {
     // pp from get to do
     // observe that there is no rule of the form "${complete_get_command} then ${complete_action}"
     // this is because a sentence of the form "get X then do Y" makes sense only if X flows into Y
-    'get_do_command': [
+    'forward_get_do_command': [
         ['${choice(get|take|retrieve)} ${if_filtered_table} ${choice(and then|then|,)} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
+        ['${complete_get_command} ${choice(and then|then|,)} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
         ['after ${choice(you get|taking|getting|retrieving)} ${with_filtered_table} ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))],
-        ['${thingpedia_action} after ${choice(getting|taking|you get|you retrieve)} ${with_filtered_table}', checkIfIncomplete(simpleCombine((action, table) => new Ast.Statement.Command(table, [action])))],
 
         // use X to do Y would be good sometimes but it gets confusing quickly
-        //['${choice(get|use)} ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]
+        //['${choice(get|use)} ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(table, [action])))]  
+
+        ['${forward_get_do_command}${choice( with the same | with identical | using the same )}${out_param_Any}', disableIfTurking(([commandDerivation, middle, rightDerivation]) => {
+            let joinArg = rightDerivation.value.name;
+            if (commandDerivation.hasPlaceholder(joinArg) || commandDerivation.hasPlaceholder('p_' + joinArg))
+                return null;
+
+            return Derivation.combine([commandDerivation, middle, rightDerivation], (command, joinArg) => {
+                let actiontype = command.actions[0].schema.inReq[joinArg.name];
+                if (!actiontype)
+                    return null;
+                if (command.actions[0].in_params.some((p) => p.name === joinArg.name))
+                    return null;
+                let commandtype = command.table.schema.out[joinArg.name];
+                if (!commandtype || !Type.isAssignable(commandtype, actiontype))
+                    return null;
+
+                let clone = command.actions[0].clone();
+                clone.in_params.push(new Ast.InputParam(joinArg.name, joinArg));
+                return new Ast.Statement.Command(command.table, [clone]);
+            });
+        })],
     ],
-    'when_do_rule': [
+
+    'backward_get_do_command': [
+        ['${thingpedia_action} after ${choice(getting|taking|you get|you retrieve)} ${with_filtered_table}', checkIfIncomplete(simpleCombine((action, table) => new Ast.Statement.Command(table, [action])))],
+    ],
+    'forward_when_do_rule': [
         // pp from when to do (optional)
         ['${stream} ${thingpedia_action}${choice(| .)}', checkConstants(simpleCombine((stream, action) => new Ast.Statement.Rule(stream, [action])))],
-        ['${thingpedia_action} ${stream}${choice(| .)}', checkConstants(simpleCombine((action, stream) => new Ast.Statement.Rule(stream, [action])))],
 
         // pp from when to do (required)
         // this is because "monitor X and then Y" makes sense only if X flows into Y
-        ['${choice(monitor|watch)} ${if_filtered_table} ${choice(and then|then)} ${thingpedia_action}${choice(| .)}', checkIfIncomplete(simpleCombine((table, action) => {
+        ['${choice(monitor|watch)} ${with_filtered_table} ${choice(and then|then)} ${thingpedia_action}${choice(| .)}', checkIfIncomplete(simpleCombine((table, action) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
         }))],
-        ['${choice(monitor|watch)} ${projection_Any} ${choice(and then|then)} ${thingpedia_action}${choice(| .)}', checkIfIncomplete(simpleCombine((proj, action) => {
+        ['${choice(monitor|watch)} ${projection_Any} ${choice(and then|then)} ${thingpedia_action}${choice(| .)}', disableIfTurking(checkIfIncomplete(simpleCombine((proj, action) => {
             if (!isMonitorable(proj))
                 return null;
-            return new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [action]);
-        }))],
+            if (proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            let stream;
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
+            if (outParams.length === 1)
+                stream = tableToStream(proj.table, null);
+            else
+                stream = tableToStream(proj.table, proj.args);
+            if (!stream)
+                return null;
+            return new Ast.Statement.Rule(stream, [action]);
+        })))],
 
         ['check for new ${complete_table} ${choice(and then|then)} ${thingpedia_action}${choice(| .)}', checkIfIncomplete(simpleCombine((table, action) => {
             if (!isMonitorable(table))
                 return null;
             return new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [action]);
         }))],
+
+        ['${forward_when_do_rule}${choice( with the same | with identical | using the same )}${out_param_Any}', disableIfTurking(([ruleDerivation, middle, rightDerivation]) => {
+            let joinArg = rightDerivation.value.name;
+            if (ruleDerivation.hasPlaceholder(joinArg) || ruleDerivation.hasPlaceholder('p_' + joinArg))
+                return null;
+
+            return Derivation.combine([ruleDerivation, middle, rightDerivation], (rule, joinArg) => {
+                //if (rule.actions.length !== 1 || rule.actions[0].selector.isBuiltin)
+                //    throw new TypeError('???');
+                let actiontype = rule.actions[0].schema.inReq[joinArg.name];
+                if (!actiontype)
+                    return null;
+                if (rule.actions[0].in_params.some((p) => p.name === joinArg.name))
+                    return null;
+
+                let commandtype = rule.stream.schema.out[joinArg.name];
+                if (!commandtype || !Type.isAssignable(commandtype, actiontype))
+                    return null;
+                if (joinArg.isEvent && (rule.stream.isTimer || rule.stream.isAtTimer))
+                    return null;
+
+                let clone = rule.actions[0].clone();
+                clone.in_params.push(new Ast.InputParam(joinArg.name, joinArg));
+                return new Ast.Statement.Rule(rule.stream, [clone]);
+            });
+        })],
+    ],
+
+    'backward_when_do_rule': [
+        ['${thingpedia_action} ${stream}${choice(| .)}', checkConstants(simpleCombine((action, stream) => new Ast.Statement.Rule(stream, [action])))],
+
+        
         ['${thingpedia_action} after checking for new ${complete_table}${choice(| .)}', checkIfIncomplete(simpleCombine((action, table) => {
             if (!isMonitorable(table))
                 return null;
@@ -1279,19 +1447,39 @@ const GRAMMAR = {
         }))],
     ],
     'complete_when_do_rule': [
-        ['${when_do_rule}', checkIfComplete(simpleCombine(identity), true)],
-        ['${choice(automatically|continuously)} ${action_replace_param_with_stream}', checkIfComplete(simpleCombine(identity), true)],
+        ['${forward_when_do_rule}', checkIfComplete(simpleCombine(identity), true)],
+        ['${backward_when_do_rule}', disableIfTurking(checkIfComplete(simpleCombine(identity), true))],
+        ['${choice(auto |automatically |continuously |)}${action_replace_param_with_stream}', disableIfTurking(checkIfComplete(simpleCombine(identity), true))],
+        ['automatically ${action_replace_param_with_stream}', enableIfTurking(checkIfComplete(simpleCombine(identity), true))],
     ],
 
     // pp from when to get (optional)
     'when_get_stream': [
         // NOTE: the schema is not quite right but it's ok because the stream is complete
         // and the table is what we care about
-        ['${stream} ${choice(get|show me|give me|tell me|retrieve)} ${thingpedia_table}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
-        ['${stream} ${choice(get|show me|give me|tell me|retrieve)} ${choice(|what is )}${projection_Any}', checkConstants(simpleCombine((stream, table) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+        ['${stream} ${thingpedia_get_command}', checkConstants(simpleCombine((stream, table) => checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema))))],
+        ['${stream} ${choice(get|show me|give me|tell me|retrieve)} ${thingpedia_table}', checkConstants(simpleCombine((stream, table) => checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema))))],
+        ['${stream} ${choice(get|show me|give me|tell me|retrieve)} ${choice(|what is )}${projection_Any}', checkConstants(simpleCombine((stream, proj) => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
 
-        ['${choice(get|show me|give me|tell me|retrieve)} ${thingpedia_table} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
-        ['${choice(get|show me|give me|tell me|retrieve)} ${projection_Any} ${stream}', checkConstants(simpleCombine((table, stream) => new Ast.Stream.Join(stream, table, [], table.schema)))],
+            return checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
+        }))],
+
+        ['${thingpedia_get_command} ${stream}', checkConstants(simpleCombine((table, stream) => checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema))))],
+        ['${choice(get|show me|give me|tell me|retrieve)} ${thingpedia_table} ${stream}', checkConstants(simpleCombine((table, stream) => checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema))))],
+        ['${choice(get|show me|give me|tell me|retrieve)} ${projection_Any} ${stream}', checkConstants(simpleCombine((proj, stream) => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
+
+            return checkNotSelfJoinStream(new Ast.Stream.Join(stream, proj.table, [], proj.table.schema));
+        }))],
     ],
     'complete_when_get_stream': [
         ['${when_get_stream}', checkIfComplete(simpleCombine(identity), true)]
@@ -1299,7 +1487,8 @@ const GRAMMAR = {
 
     'complete_get_do_command': [
         ['${action_replace_param_with_table}', checkIfComplete(simpleCombine(identity))],
-        ['${get_do_command}', checkIfComplete(simpleCombine(identity))]
+        ['${forward_get_do_command}', checkIfComplete(simpleCombine(identity))],
+        ['${backward_get_do_command}', disableIfTurking(checkIfComplete(simpleCombine(identity)))]
     ],
 
     'when_get_do_rule': [
@@ -1310,67 +1499,146 @@ const GRAMMAR = {
     'root': [
         // when => notify
         ['${choice(notify me|alert me|inform me|let me know|i get notified|i get alerted)} ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? builtinSayAction() : Generate.notifyAction()]))))],
-        ['send me ${choice(a message|an alert|a notification)} ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? builtinSayAction() : Generate.notifyAction()]))))],
+        ['send me ${choice(a message|an alert|a notification|a pop up notification|a popup notification)} ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? builtinSayAction() : Generate.notifyAction()]))))],
         ['send me a reminder ${timer}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [builtinSayAction()]))))],
-        ['${choice(monitor|watch)} ${if_filtered_table}', checkConstants(simpleCombine((table) => {
+        ['send me ${choice(a message|an alert|a notification|a reminder|a popup notification)} ${timer} ${choice(saying|with the text)} ${constant_String}', checkConstants(simpleCombine((stream, constant) => makeProgram(new Ast.Statement.Rule(stream, [builtinSayAction(constant)]))))],
+        ['alert me ${stream} ${choice(saying|with the text)} ${constant_String}', disableIfTurking(checkConstants(simpleCombine((stream, constant) => makeProgram(new Ast.Statement.Rule(stream, [builtinSayAction(constant)])))))],
+        ['show ${choice(the notification|the message|a popup notification that says|a popup containing)} ${constant_String} ${stream}', disableIfTurking(checkConstants(simpleCombine((constant, stream) => makeProgram(new Ast.Statement.Rule(stream, [builtinSayAction(constant)])))))],
+        ['${choice(monitor|watch)} ${with_filtered_table}', checkConstants(simpleCombine((table) => {
             if (!isMonitorable(table))
                 return null;
             return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [Generate.notifyAction()]));
         }))],
-        ['${choice(monitor|watch)} ${projection_Any}', checkConstants(simpleCombine((proj) => {
+        ['${choice(monitor|watch)} ${projection_Any}', disableIfTurking(checkConstants(simpleCombine((proj) => {
             if (!isMonitorable(proj))
                 return null;
-            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [builtinSayAction(proj.args[0])]));
-        }))],
+            let stream = tableToStream(proj.table, proj.args);
+            if (!stream)
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
+            return makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]));
+        })))],
         ['${choice(let me know|notify me)} ${choice(of|about)} ${choice(changes|updates)} in ${if_filtered_table}', checkConstants(simpleCombine((table) => {
-            if (!isMonitorable(table))
+            let stream = tableToStream(table, null);
+            if (!stream)
                 return null;
-            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [Generate.notifyAction()]));
+            return makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]));
         }))],
-        ['${choice(let me know|notify me)} ${choice(of|about)} ${choice(changes|updates)} in ${projection_Any}', checkConstants(simpleCombine((proj) => {
+        ['${choice(monitor|watch)} ${complete_table} and ${choice(alert me|notify me|inform me|warn me)} ${choice(if|when)} ${atom_filter}', checkConstants(simpleCombine((table, filter) => {
+            if (!isSingleResult(table) || !checkFilter(table, filter))
+                return null;
+            table = addFilter(table, filter);
+            if (!table)
+                return null;
+            let stream = tableToStream(table, null);
+            if (!stream)
+                return null;
+            return makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]));
+        }))],
+
+        ['${choice(let me know|notify me)} ${choice(of|about)} ${choice(changes|updates)} in ${projection_Any}', disableIfTurking(checkConstants(simpleCombine((proj) => {
             if (!isMonitorable(proj))
                 return null;
-            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, proj.args, proj.table.schema), [builtinSayAction(proj.args[0])]));
-        }))],
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
+            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [Generate.notifyAction()]));
+        })))],
         ['${choice(alert me|tell me|notify me|let me know)} ${choice(if|when)} ${atom_filter} in ${complete_table}', checkConstants(simpleCombine((filter, table) => {
+            if (!isMonitorable(table) || !checkFilter(table, filter))
+                return null;
+            if (TURKING_MODE && !isSingleResult(table))
+                return null;
+            table = addFilter(table, filter);
+            if (!table)
+                return null;
+            let stream = tableToStream(table, null);
+            if (!stream)
+                return null;
+            return makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]));
+        }))],
+        ['${choice(alert me|tell me|notify me|let me know)} ${choice(if|when)} ${edge_filter} in ${complete_table}', checkConstants(simpleCombine((filter, table) => {
             if (!isMonitorable(table) || !isSingleResult(table) || !checkFilter(table, filter))
                 return null;
             table = addFilter(table, filter);
             if (!table)
                 return null;
-            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(table, null, table.schema), [Generate.notifyAction()]));
-        }))],
-        ['${choice(alert me|tell me|notify me|let me know)} ${choice(if|when)} ${edge_filter} in ${complete_table}', checkConstants(simpleCombine((filter, table) => {
-            if (!isMonitorable(table) || !isSingleResult(table) || !checkFilter(table, filter))
+            let stream = tableToStream(table, null);
+            if (!stream)
                 return null;
-            return makeProgram(new Ast.Statement.Rule(new Ast.Stream.EdgeFilter(new Ast.Stream.Monitor(table, null, table.schema), filter, table.schema), [Generate.notifyAction()]));
+            return makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]));
         }))],
 
         // now => get => notify
-        ['${choice(tell me|give me|show me|get|present|retrieve|pull up)} ${if_filtered_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
-        ['${choice(list|enumerate)} ${with_filtered_table}', checkConstants(simpleCombine((table) => {
+        ['${complete_get_command}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+        ['${choice(tell me|give me|show me|get|present|retrieve|pull up)} ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+        ['${choice(hey almond |please |)}${choice(list|enumerate)} ${with_filtered_table}', checkConstants(simpleCombine((table) => {
             if (isSingleResult(table))
                 return null;
             return makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]));
         }))],
-        ['${choice(search|find)} ${with_filtered_table}', checkConstants(simpleCombine((table) => {
-            if (isSingleResult(table) || !table.isFilter)
-                return null;
+        ['${choice(hey almond |)}${choice(search|find|i want|i need)} ${with_filtered_table}', checkConstants(simpleCombine((table) => {
             return makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]));
         }))],
-        ['what are ${with_filtered_table}${choice(| ?)}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+        ['${choice(hey almond |)}what are ${with_filtered_table}${choice(| ?)}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
 
         // now => get => say(...)
         // don't merge these, the output sizes are too small
-        ['${choice(get|show me|give me|tell me|say)} ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
-        ['what is ${projection_Any}${choice(| ?)}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
-        ['${choice(show me|tell me|say)} what is ${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
-        ['who is ${projection_Entity(tt:username)}${choice(| ?)}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
-        ['who is ${projection_Entity(tt:email_address)}${choice(| ?)}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
-        ['${projection_Any}', checkConstants(simpleCombine((proj) => makeProgram(new Ast.Statement.Command(proj.table, [builtinSayAction(proj.args[0])]))))],
+        ['${choice(hey almond |)}${choice(get|show me|give me|tell me|say)} ${projection_Any}', checkConstants(simpleCombine((proj) => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
+            return makeProgram(new Ast.Statement.Command(proj.table, [Generate.notifyAction()]));
+        }))],
+        ['${choice(hey almond |)}what is ${projection_Any}${choice(| ?)}', checkConstants(simpleCombine((proj) => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
+            return makeProgram(new Ast.Statement.Command(proj.table, [Generate.notifyAction()]));
+        }))],
+        ['${choice(show me|tell me|say)} what is ${projection_Any}', checkConstants(simpleCombine((proj) => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
+            return makeProgram(new Ast.Statement.Command(proj.table, [Generate.notifyAction()]));
+        }))],
+        ['who is ${projection_Entity(tt:username)}${choice(| ?)}', checkConstants(simpleCombine((proj) => {
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
+            return makeProgram(new Ast.Statement.Command(proj.table, [Generate.notifyAction()]));
+        }))],
+        ['who is ${projection_Entity(tt:email_address)}${choice(| ?)}', checkConstants(simpleCombine((proj) => {
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
+            return makeProgram(new Ast.Statement.Command(proj.table, [Generate.notifyAction()]));
+        }))],
+        ['${projection_Any}', checkConstants(simpleCombine((proj) => {
+            if (proj.args[0] === 'picture_url')
+                return null;
+            let outParams = Object.keys(proj.table.schema.out);
+            if (outParams.length === 1 && TURKING_MODE)
+                return null;
+            return makeProgram(new Ast.Statement.Command(proj.table, [Generate.notifyAction()]));
+        }))],
 
         // now => do
         ['${thingpedia_action}', checkIfComplete(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action]))), true)],
+        ['please ${thingpedia_action}', checkIfComplete(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action]))), true)],
+        ['i need you to ${thingpedia_action}', checkIfComplete(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action]))), true)],
+        ['i want to ${thingpedia_action}', checkIfComplete(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action]))), true)],
+        ['i \'d like to ${thingpedia_action}', checkIfComplete(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action]))), true)],
+        ['${choice(hey |)}${choice(sabrina|almond)} ${thingpedia_action}', checkIfComplete(simpleCombine((action) => makeProgram(new Ast.Statement.Command(null, [action]))), true)],
+
         // now => get => do
         ['${complete_get_do_command}', checkConstants(simpleCombine(makeProgram))],
 
@@ -1378,7 +1646,7 @@ const GRAMMAR = {
         ['${complete_when_get_stream}', checkConstants(simpleCombine((stream) => {
             assert(stream.isJoin);
             if (stream.table.isProjection)
-                return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Join(stream.stream, stream.table.table, stream.in_params, stream.schema), [builtinSayAction(stream.table.args[0])]));
+                return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Join(stream.stream, stream.table.table, stream.in_params, stream.schema), [Generate.notifyAction()]));
             else
                 return makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]));
         }))],
@@ -1407,6 +1675,12 @@ function loadTemplateAsDeclaration(ex, decl) {
     // composable
     if (decl.type === 'action' && decl.value.selector.kind === 'org.thingpedia.builtin.thingengine.builtin')
         return;
+
+    // HACK HACK HACK
+    if (decl.type === 'table' && ex.utterance[0] === ',') {
+        ex.utterance = ex.utterance.substring(1).trim();
+        decl.type = 'get_command';
+    }
 
     // ignore optional input parameters
     // if you care about optional, write a lambda template
@@ -1510,7 +1784,9 @@ function loadMetadata(language) {
             if (!GRAMMAR['out_param_' + typestr]) {
                 GRAMMAR['out_param_' + typestr] = [];
                 GRAMMAR['the_out_param_' + typestr] = [
-                    ['the ${out_param_' + typestr + '}', simpleCombine(identity)]
+                    ['the ${out_param_' + typestr + '}', simpleCombine(identity)],
+                    ['its ${out_param_' + typestr + '}', disableIfTurking(simpleCombine(identity))],
+                    ['their ${out_param_' + typestr + '}', disableIfTurking(simpleCombine(identity))]
                 ];
                 if (type.isArray)
                     GRAMMAR['out_param_Array(Any)'].push(['${out_param_' + typestr + '}', simpleCombine(identity)]);
@@ -1524,6 +1800,8 @@ function loadMetadata(language) {
                     ['${the_out_param_' + typestr + '} of ${complete_table}', simpleCombine((outParam, table) => {
                         let name = outParam.name;
                         if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
+                            return null;
+                        if (name === 'picture_url' && TURKING_MODE)
                             return null;
                         let newSchema = table.schema.clone();
                         newSchema.out = { [name]: table.schema.out[name] };
@@ -1666,6 +1944,16 @@ function loadMetadata(language) {
                 //    console.log('p_low := ' + ptype + ' / ' + value.getType());
                 return betaReduceTable(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })]);
+            GRAMMAR.thingpedia_get_command.push(['${thingpedia_get_command}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
+                let ptype = lhs.schema.inReq[pname];
+                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                    return null;
+                if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
+                    return null;
+                //if (pname === 'p_low')
+                //    console.log('p_low := ' + ptype + ' / ' + value.getType());
+                return betaReduceTable(lhs, pname, value);
+            }, { isConstant: true, allowEmptyPictureURL: true })])
 
             GRAMMAR.thingpedia_stream.push(['${thingpedia_stream}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
@@ -1792,13 +2080,16 @@ function loadMetadata(language) {
                 return new Ast.Statement.Command(command.table, [reduced]);
             };
 
-            if (!TURKING_MODE && !ID_TYPES.has(String(ptype)))
-                GRAMMAR.get_do_command.push(['${get_do_command}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, getDoCommand, { isConstant: false })]);
+            if (!TURKING_MODE && !ID_TYPES.has(String(ptype))) {
+                GRAMMAR.forward_get_do_command.push(['${forward_get_do_command}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, getDoCommand, { isConstant: false })]);
+                GRAMMAR.backward_get_do_command.push(['${backward_get_do_command}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, getDoCommand, { isConstant: false })]);
+            }
+
             if (ID_TYPES.has(String(ptype)) || pname === 'p_picture_url') {
                 if (pname === 'p_picture_url') {
-                    GRAMMAR.get_do_command.push(['${get_do_command}${choice(it|that|them)}', combineReplacePlaceholder(pname, (command) => getDoCommand(command, new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
+                    GRAMMAR.forward_get_do_command.push(['${forward_get_do_command}${choice(it|that|them)}', combineReplacePlaceholder(pname, (command) => getDoCommand(command, new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
                 } else {
-                    GRAMMAR.get_do_command.push(['${get_do_command}${choice(it|that|them)}', combineReplacePlaceholder(pname, (command) => {
+                    GRAMMAR.forward_get_do_command.push(['${forward_get_do_command}${choice(it|that|them)}', combineReplacePlaceholder(pname, (command) => {
                         for (let joinArg in command.table.schema.out) {
                             if (command.table.schema.out[joinArg].equals(ptype))
                                 return getDoCommand(command, new Ast.Value.VarRef(joinArg));
@@ -1806,8 +2097,8 @@ function loadMetadata(language) {
                         return null;
                     }, { isConstant: false })]);
                 }
-            } else if (ptype.isString && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) >= 0) {
-                GRAMMAR.get_do_command.push(['${get_do_command}${choice(it|that|them)}', combineReplacePlaceholder(pname, (command) => {
+            } else if (ptype.isString && ['p_body', 'p_message', 'p_caption', 'p_status', 'p_text'].indexOf(pname) >= 0) {
+                GRAMMAR.forward_get_do_command.push(['${forward_get_do_command}${choice(it|that|them)}', combineReplacePlaceholder(pname, (command) => {
                     for (let pname in command.table.schema.out) {
                             if (pname === 'picture_url')
                                 return null;
@@ -1835,13 +2126,16 @@ function loadMetadata(language) {
                 return new Ast.Statement.Rule(rule.stream, [reduced]);
             };
 
-            if (!TURKING_MODE && !ID_TYPES.has(String(ptype)))
-                GRAMMAR.when_do_rule.push(['${when_do_rule}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenDoRule, { isConstant: false })]);
+            if (!TURKING_MODE && !ID_TYPES.has(String(ptype))) {
+                GRAMMAR.forward_when_do_rule.push(['${forward_when_do_rule}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenDoRule, { isConstant: false })]);
+                GRAMMAR.backward_when_do_rule.push(['${backward_when_do_rule}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenDoRule, { isConstant: false })]);
+            }
+
             if (ID_TYPES.has(String(ptype)) || pname === 'p_picture_url') {
                 if (pname === 'p_picture_url') {
-                    GRAMMAR.when_do_rule.push(['${when_do_rule}${choice(it|that|them)}', combineReplacePlaceholder(pname, (rule) => whenDoRule(rule,  new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
+                    GRAMMAR.forward_when_do_rule.push(['${forward_when_do_rule}${choice(it|that|them)}', combineReplacePlaceholder(pname, (rule) => whenDoRule(rule,  new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
                 } else {
-                    GRAMMAR.when_do_rule.push(['${when_do_rule}${choice(it|that|them)}', combineReplacePlaceholder(pname, (rule) => {
+                    GRAMMAR.forward_when_do_rule.push(['${forward_when_do_rule}${choice(it|that|them)}', combineReplacePlaceholder(pname, (rule) => {
                         for (let joinArg in rule.stream.schema.out) {
                             if (rule.stream.schema.out[joinArg].equals(ptype))
                                 return whenDoRule(rule, new Ast.Value.VarRef(joinArg));
@@ -1849,8 +2143,8 @@ function loadMetadata(language) {
                         return null;
                     }, { isConstant: false })]);
                 }
-            } else if (ptype.isString && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) >= 0) {
-                GRAMMAR.when_do_rule.push(['${when_do_rule}${choice(it|that|them)}', combineReplacePlaceholder(pname, (rule) => {
+            } else if (ptype.isString && ['p_body', 'p_message', 'p_caption', 'p_status', 'p_text'].indexOf(pname) >= 0) {
+                GRAMMAR.forward_when_do_rule.push(['${forward_when_do_rule}${choice(it|that|them)}', combineReplacePlaceholder(pname, (rule) => {
                     for (let pname in rule.stream.schema.out) {
                             if (pname === 'picture_url')
                                 return null;
@@ -1919,7 +2213,7 @@ function loadMetadata(language) {
                         return null;
                     }, { isConstant: false })]);
                 }
-            } else if (ptype.isString && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) >= 0) {
+            } else if (ptype.isString && ['p_body', 'p_message', 'p_caption', 'p_status', 'p_text'].indexOf(pname) >= 0) {
                 GRAMMAR.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => {
                     for (let pname in stream.stream.schema.out) {
                             if (pname === 'picture_url')
@@ -1942,8 +2236,22 @@ function loadMetadata(language) {
                 expansion = ARGUMENT_NAMES[pname];
             else
                 expansion = [clean(pname)];
-            for (let candidate of expansion)
+            for (let candidate of expansion) {
                 GRAMMAR['out_param_' + ptype].push([candidate, simpleCombine(() => new Ast.Value.VarRef(pname))]);
+                if (!TURKING_MODE && !(candidate.endsWith('s') && !candidate.endsWith('address')) &&
+                    !candidate.startsWith('estimated diameter') && !candidate.endsWith(' by')) {
+                    let plural;
+                    if (candidate === 'camera used')
+                        plural = 'cameras used';
+                    else if (candidate.endsWith('y')) // industry -> industries
+                        plural = candidate.substring(0, candidate.length-1) + 'ies';
+                    else if (candidate.endsWith('s')) // address -> addresses
+                        plural = candidate + 'es';
+                    else
+                        plural = candidate + 's';
+                    GRAMMAR['out_param_' + ptype].push([plural, simpleCombine(() => new Ast.Value.VarRef(pname))]);
+                }
+            }
         }
     });
 }
@@ -2017,6 +2325,8 @@ function preprocessGrammar() {
 
         let i = 0;
         for (let rule of GRAMMAR[category]) {
+            if (!Array.isArray(rule))
+                throw new TypeError('invalid rule in ' + category);
             let [expansion, combiner] = rule;
             if (combiner === null)
                 continue;
@@ -2072,7 +2382,7 @@ function preprocessGrammar() {
 const POWERS = [1, 1, 1, 1, 1];
 for (let i = 5; i < 20; i++)
     POWERS[i] = 0.5 * POWERS[i-1];
-const TARGET_GEN_SIZE = 200000;
+const TARGET_GEN_SIZE = 100000;
 
 function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combiner]) {
     const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
@@ -2219,6 +2529,8 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
             if (k === i) {
                 if (expansion[k] instanceof NonTerminal) {
                     for (let candidate of charts[fixeddepth][expansion[k].symbol]) {
+                        if (combiner.isReplacePlaceholder && k === 0 && !candidate.hasPlaceholders())
+                            continue;
                         choices[k] = candidate;
                         //depths[k] = fixeddepth;
                         yield* recursiveHelper(k+1);
@@ -2229,6 +2541,8 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
             if (expansion[k] instanceof NonTerminal) {
                 for (let j = 0; j <= (k > i ? maxdepth : maxdepth-1); j++) {
                     for (let candidate of charts[j][expansion[k].symbol]) {
+                        if (combiner.isReplacePlaceholder && k === 0 && !candidate.hasPlaceholders())
+                            continue;
                         choices[k] = candidate;
                         //depths[k] = j;
                         yield* recursiveHelper(k+1);
@@ -2243,9 +2557,9 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
 
     //console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : actual ' + actualGenSize);
 
+    if (actualGenSize + prunedGenSize === 0)
+        return;
     const newEstimatedPruneFactor = actualGenSize / (actualGenSize + prunedGenSize);
-    if (isNaN(newEstimatedPruneFactor))
-        throw new TypeError('???');
 
     const elapsed = Date.now() - now;
     console.log(`expand NT[${nonterminal}] -> ${expansion.join('')} : emitted ${
@@ -2255,10 +2569,6 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
     const movingAverageOfPruneFactor = (0.01 * estimatedPruneFactor + newEstimatedPruneFactor) / (1.01);
     _averagePruningFactor[nonterminal][rulenumber] = movingAverageOfPruneFactor;
 }
-
-const MAX_DEPTH = process.argv[4] !== undefined ? parseInt(process.argv[4]) : 6;
-if (isNaN(MAX_DEPTH))
-    throw new Error('invalid max depth');
 
 function initChart() {
     let chart = {};

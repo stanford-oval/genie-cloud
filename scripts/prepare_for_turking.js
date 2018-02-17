@@ -81,6 +81,7 @@ const VALUES = {
         
         'm': [800, 1500],
         'km': [23, 50],
+        'mi': [30, 200],
         
         'kmph': [70, 120],
         'mph': [35, 60]
@@ -136,7 +137,7 @@ const VALUES = {
     'GENERIC_ENTITY_tt:stock_id':
         [["Google", 'goog'], ["Apple", 'aapl'], ['Microsoft', 'msft'], ['Walmart', 'wmt']],
     'GENERIC_ENTITY_tt:iso_lang_code':
-        [["Italian", 'it'], ["English", 'en'], ["Chinese", 'zh'], ['Spanish', 'es']],
+        [["Italian", 'it'], ["German", 'de'], ["Chinese", 'zh'], ['Spanish', 'es']],
     'GENERIC_ENTITY_sportradar:eu_soccer_team':
         [["Juventus", "juv"], ["Barcelona", "bar"], ["Bayern Munich", "fcb"], ["Chelsea", 'che']],
     'GENERIC_ENTITY_sportradar:mlb_team':
@@ -188,6 +189,7 @@ const PARAMS_SPECIAL_STRING = {
     'summary': ['celebration'],
     'category': ['sports'],
     'from_name': ['bob'],
+    'sender_name': ['bob', 'alice', 'charlie'],
     'blog_name': ['government secret'],
     'description': ['christmas'],
     'organizer': ['stanford'],
@@ -198,6 +200,9 @@ const PARAMS_SPECIAL_STRING = {
     'template': ['wtf'],
     'text_top': ['ummm... i have a question...'],
     'text_bottom': ['wtf?'],
+
+    // for icalendar
+    'location': ["conference room 7", "downtown", "bob's house"]
 };
 
 const SPECIAL_TOKENS = {
@@ -276,6 +281,8 @@ function processOne(id, tokenizedsentence, code) {
             choices = PARAMS_SPECIAL_STRING[param].map(quote);
         } else if (entitytype === 'PATH_NAME' && (param === 'repo_name' || param === 'folder_name')) {
             choices = [];
+        } else if (entitytype === 'GENERIC_ENTITY_tt:iso_lang_code' && param === 'source_language') {
+            choices = [["English", 'en']];
         } else if (entitytype === 'NUMBER' && !!unit) {
             choices = VALUES.MEASURE[unit];
             if (!choices)
@@ -296,11 +303,18 @@ function processOne(id, tokenizedsentence, code) {
                 return c;
         });
 
+        let index = parseInt(entity.substring(underscoreindex+1));
         if (choices.length > 0) {
             for (let i = 0; i < 4; i++) {
                 let [display, value] = uniform(choices);
+
+                if (entitytype === 'NUMBER' && assignedEntities['NUMBER_' + (index-1)] && assignedEntities['NUMBER_' + (index-1)].value >= value)
+                    continue;
+                if (entitytype === 'NUMBER' && assignedEntities['NUMBER_' + (index+1)] && assignedEntities['NUMBER_' + (index+1)].value <= value)
+                    continue;
                 if (!usedValues.has(value)) {
                     assignedEntities[entity] = { display, value };
+                    usedValues.add(value);
                     if (entitytype.startsWith('GENERIC_ENTITY_'))
                         return { display, value };
                     else
@@ -416,7 +430,7 @@ function processOne(id, tokenizedsentence, code) {
             num_pp++;
         if (token.startsWith('param:')
             && i < code.length -1
-            && code[i+1] !== '='
+            && ['==', '>=', '<=', '=~', '!=', 'contains', 'in_array', 'starts_with', 'ends_with'].indexOf(code[i+1]) >= 0
             && !code[i-2].startsWith('param:'))
             num_filters++;
     }
@@ -518,6 +532,8 @@ function main() {
             let signature = sig.split('+');
             
             let chosen = [];
+            /*let chosen = choices;*/
+            if (true) {
             if (signature.length === 1) {
                 if (choices[0].queries.length === 1) {
                     console.log('primitive query: ' + signature[0] + ' ' + choices.length);
@@ -529,23 +545,24 @@ function main() {
             } else if (signature.length === 2) {
                 if (signature[0] === signature[1])
                     continue;
-                if (signature.every((sig) => HIGH_VALUE_FUNCTIONS.has(sig))) {
-                    console.log('high value compound: ' + signature.join('+') + ' ' + choices.length);
+                /*if (signature.every((sig) => HIGH_VALUE_FUNCTIONS.has(sig))) {
+                    console.log('high value compound: ' + signature.join('+') + ' ' + choices.length);*/
             
                     chosen = uniformSubset(10, choices);
-                } else if (signature.some((sig) => HIGH_VALUE_FUNCTIONS.has(sig))) {
+                /*} else if (signature.some((sig) => HIGH_VALUE_FUNCTIONS.has(sig))) {
                     console.log('mid value compound: ' + signature.join('+') + ' ' + choices.length);
                     chosen = uniformSubset(1, choices);
                 } else {
                     console.log('low value compound: ' + signature.join('+') + ' ' + choices.length);
                     if (coin(0.05))
                         chosen = [uniform(choices)];
-                }
+                }*/
             } else if (signature.length === 3) {
-                if (coin(0.01))
+                if (coin(0.1))
                     chosen = [uniform(choices)];
             }
-            
+            }
+
             console.log('produced for ' + signature.join('+') + ' : ' + chosen.length);
             for (let c of chosen)
                 output.write(c);
