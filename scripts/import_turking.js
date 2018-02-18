@@ -12,6 +12,7 @@
 require('thingengine-core/lib/polyfill');
 
 const Q = require('q');
+const fs = require('fs');
 const csv = require('csv');
 const ThingTalk = require('thingtalk');
 const seedrandom = require('seedrandom');
@@ -72,20 +73,23 @@ function main() {
     const testProbability = parseFloat(process.argv[4]) || 0.1;
     const devProbability = testProbability;
 
-    const schemas = new ThingTalk.SchemaRetriever(new AdminThingpediaClient(_language));
+    const schemas = new ThingTalk.SchemaRetriever(new AdminThingpediaClient(_language), null, true);
     const tokenizerService = new ThingTalk.TokenizerService(_language);
+
+    const rejects = csv.stringify({ header: true, delimiter:'\t' });
+    rejects.pipe(fs.createWriteStream(typePrefix + '-rejects.tsv'));
 
     db.withTransaction((dbClient) => {
         let promises = [];
 
-        const parser = csv.parse();
+        const parser = csv.parse({ columns: true, delimiter: '\t' });
         process.stdin.pipe(parser);
 
         return Q.Promise((callback, errback) => {
             parser.on('data', (row) => {
-                console.log(row);
-                //let [,tt,utterance] = row;
-                let [,utterance,tt] = row;
+                //console.log(row);
+                let {id,thingtalk,paraphrase} = row;
+                //let [,utterance,tt] = row;
                 let testTrain;
                 if (coin(testProbability))
                     testTrain = '-test';
@@ -95,15 +99,19 @@ function main() {
                     testTrain = '-train';
 
                 promises.push(Q.try(() =>
-                    Q.all([parseAndTypecheck(isPermission, tt, schemas),
-                           tokenizerService.tokenize(utterance)])
+                    Q.all([parseAndTypecheck(isPermission, thingtalk, schemas),
+                           tokenizerService.tokenize(paraphrase)])
                 ).then(([prog, { tokens: preprocessed, entities }]) => {
                     let target_code = ThingTalk.NNSyntax.toNN(prog, entities);
-                    return insert(dbClient, typePrefix + testTrain, utterance, preprocessed, target_code);
+                    return insert(dbClient, typePrefix + testTrain, paraphrase, preprocessed, target_code);
                 }).catch((e) => {
-                    console.error('Failed to verify ' + tt + '   :' + e.message);
-                    // die uglily to fail the transaction
-                    process.exit();
+                    console.error('Failed to verify ' + id + ' ' + paraphrase + '   :' + e.message);
+                    if (e.message === 'Connection lost: The server closed the connection.')
+                        console.error(e.stack);
+                    // record this input as rejected
+                    //process.exit();
+                    row.reason = e.message;
+                    rejects.write(row);
                 }));
             });
             parser.on('error', errback);
@@ -112,6 +120,8 @@ function main() {
         .then(() => Q.all(promises))
         .then(() => finishBatch(dbClient));
         //.then(() => writer.end());
-    }).then(() => process.exit()).done();
+    }).then(() => rejects.end()).done();
+
+    rejects.on('finish', () => process.exit());
 }
 main();

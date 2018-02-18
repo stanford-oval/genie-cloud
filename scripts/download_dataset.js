@@ -24,7 +24,7 @@ function main() {
     let waiting = types.length;
     for (let type of types) {
         const output = fs.createWriteStream(path.resolve(target_dir, type + '.tsv'));
-        const query = dbClient.query('select id,preprocessed,target_code from example_utterances where type = ? and language = ?', [type, language]);
+        const query = dbClient.query(`select id,preprocessed,target_code from example_utterances where type = ? and language = ? and target_code<>'' and preprocessed<>''`, [type, language]);
 
         query.on('result', (row) => {
             output.write(row.id + '\t' + row.preprocessed + '\t' + row.target_code + '\n');

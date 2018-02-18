@@ -161,7 +161,7 @@ const VALUES = {
     'GENERIC_ENTITY_tt:country': [
         ['United States', 'us'],
         ['Italy', 'it'],
-        ['UK', 'uk'],
+        ['UK', 'gb'],
         ['Germany', 'de']
     ],
     'GENERIC_ENTITY_gov.nasa:curiosity_rover_camera': [
