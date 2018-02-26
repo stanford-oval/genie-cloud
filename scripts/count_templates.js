@@ -18,7 +18,7 @@ const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
 
-const _language = process.argv[3] || 'en';
+const _language = process.argv[2] || 'en';
 const _schemaRetriever = new SchemaRetriever(new AdminThingpediaClient(_language));
 
 const _counts = new Map;

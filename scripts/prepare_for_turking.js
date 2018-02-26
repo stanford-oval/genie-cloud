@@ -18,7 +18,6 @@ const seedrandom = require('seedrandom');
 const byline = require('byline');
 
 const ThingTalk = require('thingtalk');
-const Type = ThingTalk.Type;
 const NNOutputParser = require('thingtalk/lib/nn_output_parser');
 //const SchemaRetriever = ThingTalk.SchemaRetriever;
 
@@ -532,8 +531,6 @@ function main() {
             let signature = sig.split('+');
             
             let chosen = [];
-            /*let chosen = choices;*/
-            if (true) {
             if (signature.length === 1) {
                 if (choices[0].queries.length === 1) {
                     console.log('primitive query: ' + signature[0] + ' ' + choices.length);
@@ -545,22 +542,21 @@ function main() {
             } else if (signature.length === 2) {
                 if (signature[0] === signature[1])
                     continue;
-                /*if (signature.every((sig) => HIGH_VALUE_FUNCTIONS.has(sig))) {
-                    console.log('high value compound: ' + signature.join('+') + ' ' + choices.length);*/
+                if (signature.every((sig) => HIGH_VALUE_FUNCTIONS.has(sig))) {
+                    console.log('high value compound: ' + signature.join('+') + ' ' + choices.length);
             
                     chosen = uniformSubset(10, choices);
-                /*} else if (signature.some((sig) => HIGH_VALUE_FUNCTIONS.has(sig))) {
+                } else if (signature.some((sig) => HIGH_VALUE_FUNCTIONS.has(sig))) {
                     console.log('mid value compound: ' + signature.join('+') + ' ' + choices.length);
                     chosen = uniformSubset(1, choices);
                 } else {
                     console.log('low value compound: ' + signature.join('+') + ' ' + choices.length);
                     if (coin(0.05))
                         chosen = [uniform(choices)];
-                }*/
+                }
             } else if (signature.length === 3) {
                 if (coin(0.1))
                     chosen = [uniform(choices)];
-            }
             }
 
             console.log('produced for ' + signature.join('+') + ' : ' + chosen.length);
