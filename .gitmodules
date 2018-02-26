@@ -1,3 +1,0 @@
-[submodule "shared"]
-	path = shared
-	url = https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-shared.git
