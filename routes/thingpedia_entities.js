@@ -7,17 +7,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const express = require('express');
-const passport = require('passport');
 
 const db = require('../util/db');
-const user = require('../util/user');
 const model = require('../model/entity');
-const Validation = require('../util/validation');
-const generateExamples = require('../util/generate_examples');
-const ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();
 
@@ -27,7 +23,7 @@ router.get('/', (req, res) => {
     }).then((rows) => {
         res.render('thingpedia_entity_list', { page_title: req._("Thingpedia - Entity Types"),
                                                entities: rows });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
@@ -40,10 +36,10 @@ router.get('/by-id/:id', (req, res) => {
         res.render('thingpedia_entity_values', { page_title: req._("Thingpedia - Entity Values"),
                                                  entity: entity,
                                                  values: values });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
-})
+});
 
 module.exports = router;

@@ -7,21 +7,16 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-const Q = require('q');
 const express = require('express');
 
 const ThingTalk = require('thingtalk');
 
 const db = require('../util/db');
-const device = require('../model/device');
-const user = require('../model/user');
-const organization = require('../model/organization');
 
-const model = require('../model/schema');
 const exampleModel = require('../model/example');
 const deviceModel = require('../model/device');
-const tokenize = require('../util/tokenize');
 
 const Config = require('../config');
 
@@ -41,23 +36,13 @@ function findInvocation(parsed, id) {
     if (parsed.isInvocation)
         return parsed.invocation;
     throw new Error(id + ' not action query or trigger, is ' + parsed);
-    return null;
 }
 
-function getMeta(invocation) {
-    var match = /^(?:tt:)?(\$?[a-z0-9A-Z_.-]+)\.([a-z0-9A-Z_]+)$/.exec(invocation.name.id);
-    if (match === null)
-        throw new TypeError('Channel name not in proper format');
-    var kind = match[1];
-    var channelName = match[2];
-    return [kind, channelName];
-}
-
-router.get('/', function(req, res) {
+router.get('/', (req, res) => {
     // FIXME this is a very expensive page to generate, we should
     // cache somehow
 
-    db.withClient(function(dbClient) {
+    db.withClient((dbClient) => {
         var deviceMap = {};
 
         return deviceModel.getAll(dbClient).then((devices) => {
@@ -104,7 +89,6 @@ router.get('/', function(req, res) {
                 if (!invocation)
                     return;
                 var kind = invocation.selector.kind;
-                var channelName = invocation.channel;
 
                 if (kind in kindMap)
                     kind = kindMap[kind];

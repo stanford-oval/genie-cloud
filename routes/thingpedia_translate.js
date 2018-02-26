@@ -7,35 +7,30 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const express = require('express');
-const passport = require('passport');
-
-const Config = require('../config');
 
 const db = require('../util/db');
 const user = require('../util/user');
 const model = require('../model/schema');
 const exampleModel = require('../model/example');
-const Validation = require('../util/validation');
-const generateExamples = require('../util/generate_examples');
-const ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();
 
-router.get('/', function(req, res) {
+router.get('/', (req, res) => {
     res.render('thingpedia_translate_portal', { page_title: req._("Translate Thingpedia") });
 });
 
 function localeToLanguage(locale) {
     // only keep the language part of the locale, we don't
     // yet distinguish en_US from en_GB
-    return (locale || 'en').split(/[-_\@\.]/)[0];
+    return (locale || 'en').split(/[-_@.]/)[0];
 }
 
 function findInvocation(ex) {
-    const REGEXP = /^tt:([a-z0-9A-Z_\-]+)\.([a-z0-9A-Z_]+)$/;
+    const REGEXP = /^tt:([a-z0-9A-Z_-]+)\.([a-z0-9A-Z_]+)$/;
     var parsed = JSON.parse(ex.target_json);
     if (parsed.action)
         return ['actions', REGEXP.exec(parsed.action.name.id)];
@@ -47,7 +42,7 @@ function findInvocation(ex) {
         return null;
 }
 
-router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
+router.get('/by-id/:kind', user.redirectLogIn, (req, res) => {
     var language = req.query.language || localeToLanguage(req.user.locale);
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
@@ -56,27 +51,27 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
     }
     var fromVersion = req.query.fromVersion || null;
 
-    db.withTransaction(function(dbClient) {
+    db.withTransaction((dbClient) => {
         return Q.all([model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en'),
             fromVersion !== null ? model.getMetasByKindAtVersion(dbClient, req.params.kind, fromVersion, language)
-            : model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, language)]).spread(function(englishrows, translatedrows) {
+            : model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, language)]).spread((englishrows, translatedrows) => {
             if (englishrows.length === 0 || translatedrows.length === 0)
                 throw new Error(req._("Not Found."));
 
             var english = englishrows[0];
             var translated = translatedrows[0];
 
-            return Q.all([exampleModel.getBaseBySchema(dbClient, english.id, 'en').then(function(examples) {
+            return Q.all([exampleModel.getBaseBySchema(dbClient, english.id, 'en').then((examples) => {
                     english.examples = examples;
                     return english;
-                }), exampleModel.getBaseBySchema(dbClient, translated.id, language).then(function(examples) {
+                }), exampleModel.getBaseBySchema(dbClient, translated.id, language).then((examples) => {
                     translated.examples = examples;
                     return translated;
                 })]);
         });
-    }).spread(function(english, translated) {
+    }).spread((english, translated) => {
         function mapExamplesToChannel(ast) {
-            ast.examples.forEach(function(ex) {
+            ast.examples.forEach((ex) => {
                 var res;
                 try {
                     res = findInvocation(ex);
@@ -107,7 +102,7 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
             triggers: {},
             actions: {},
             queries: {}
-        }
+        };
         for (var what of ['triggers', 'actions', 'queries']) {
             if (!translated[what])
                 translated[what] = {};
@@ -147,9 +142,9 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
                     },
                     args: [],
                     examples: []
-                }
+                };
 
-                english[what][name].args.forEach(function(argname, i) {
+                english[what][name].args.forEach((argname, i) => {
                     out[what][name].args.push({
                         id: argname,
                         name: {
@@ -163,11 +158,11 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
                     });
                 });
 
-                english[what][name].examples.forEach(function(e, i) {
+                english[what][name].examples.forEach((e, i) => {
                     out[what][name].examples.push({
                         english: e,
                         translated: translated[what][name].examples[i]
-                    })
+                    });
                 });
             }
         }
@@ -188,6 +183,24 @@ router.get('/by-id/:kind', user.redirectLogIn, function(req, res) {
                                           message: e });
     }).done();
 });
+
+function ensureExamples(dbClient, schemaId, ast, language) {
+    return exampleModel.deleteBySchema(dbClient, schemaId, language).then(() => {
+        let examples = ast.examples.map((ex) => {
+            return ({
+                schema_id: schemaId,
+                utterance: ex.utterance,
+                preprocessed: ex.utterance,
+                target_code: ex.program,
+                target_json: '', // FIXME
+                type: 'thingpedia',
+                language: 'en',
+                is_base: 1
+            });
+        });
+        return exampleModel.createMany(dbClient, examples);
+    });
+}
 
 router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
     var language = req.body.language;
@@ -255,7 +268,7 @@ router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
                                             language,
                                             translations)
                 .then(function() {
-                    return generateExamples(dbClient, english.kind, english, language);
+                    return ensureExamples(dbClient, english.kind, english, language);
                 });
         });
     }).then(function() {

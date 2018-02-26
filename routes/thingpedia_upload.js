@@ -7,6 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const express = require('express');
@@ -23,10 +24,9 @@ var schema = require('../model/schema');
 var user = require('../util/user');
 var exampleModel = require('../model/example');
 var Validation = require('../util/validation');
-var generateExamples = require('../util/generate_examples');
 var ManifestToSchema = require('../util/manifest_to_schema');
 
-const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9\_]+))?})/;
+const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 
 var router = express.Router();
 
@@ -114,7 +114,7 @@ function validateDevice(dbClient, req) {
         ast.child_types = [];
     if (!ast.auth)
         ast.auth = {"type":"none"};
-    if (!ast.auth.type || ['none','oauth2','basic','builtin','discovery'].indexOf(ast.auth.type) == -1)
+    if (!ast.auth.type || ['none','oauth2','basic','builtin','discovery'].indexOf(ast.auth.type) < 0)
         throw new Error(req._("Invalid authentication type"));
     if (ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
         throw new Error(req._("Username and password must be declared for basic authentication"));
@@ -134,7 +134,7 @@ function validateDevice(dbClient, req) {
     if (ast['global-name'])
         throw new Error(req._("Global names are obsolete, remove them"));
 
-    if (!/^[a-zA-Z0-9_\.]+$/.test(kind))
+    if (!/^[a-zA-Z0-9_.]+$/.test(kind))
         throw new Error(req._("Invalid primary kind, must use alphanumeric characters, underscore and period only."));
 
     Validation.validateAllInvocations(ast);
@@ -144,15 +144,15 @@ function validateDevice(dbClient, req) {
             ast.name = name;
         if (!ast.description)
             ast.description = description;
-        for (var name in ast.triggers) {
+        for (let name in ast.triggers) {
             if (!ast.triggers[name].url)
                 throw new Error(req._("Missing trigger url for %s").format(name));
         }
-        for (var name in ast.actions) {
+        for (let name in ast.actions) {
             if (!ast.actions[name].url)
                 throw new Error(req._("Missing action url for %s").format(name));
         }
-        for (var name in ast.queries) {
+        for (let name in ast.queries) {
             if (!ast.queries[name].url)
                 throw new Error(req._("Missing query url for %s").format(name));
         }
@@ -185,7 +185,7 @@ function cleanKind(kind) {
     if (kind.startsWith('uk.co.'))
         kind = kind.substr('uk.co.'.length);
 
-    return kind.replace(/[_\-\.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase()
+    return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
 function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
@@ -210,7 +210,7 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
         var obj = {
             kind: kind,
             kind_canonical: cleanKind(kind),
-            kind_type: kind_type,
+            kind_type: 'primary',
             owner: req.user.developer_org
         };
         if (req.user.developer_status < user.DeveloperStatus.TRUSTED_DEVELOPER ||
@@ -251,7 +251,7 @@ function ensureExamples(dbClient, schemaId, ast) {
 function uploadZipFile(req, obj, ast, stream) {
     var zipFile = new JSZip();
 
-    return Q.try(function() {
+    return Q.try(() => {
         // unfortunately JSZip only loads from memory, so we need to load the entire file
         // at once
         // this is somewhat a problem, because the file can be up to 30-50MB in size
@@ -259,7 +259,7 @@ function uploadZipFile(req, obj, ast, stream) {
 
         var buffers = [];
         var length = 0;
-        return Q.Promise(function(callback, errback) {
+        return Q.Promise((callback, errback) => {
             stream.on('data', (buffer) => {
                 buffers.push(buffer);
                 length += buffer.length;
@@ -271,13 +271,13 @@ function uploadZipFile(req, obj, ast, stream) {
         });
     }).then((buffer) => {
         return zipFile.loadAsync(buffer, { checkCRC32: false });
-    }).then(function() {
+    }).then(() => {
         var packageJson = zipFile.file('package.json');
         if (!packageJson)
             throw new Error(req._("package.json missing from device zip file"));
 
         return packageJson.async('string');
-    }).then(function(text) {
+    }).then((text) => {
         try {
             var parsed = JSON.parse(text);
         } catch(e) {
@@ -294,7 +294,7 @@ function uploadZipFile(req, obj, ast, stream) {
                                                                       type: 'nodebuffer',
                                                                       platform: 'UNIX'}),
                                          obj.primary_kind, obj.developer_version);
-    }).catch(function(e) {
+    }).catch((e) => {
         console.error('Failed to upload zip file to S3: ' + e);
         console.error(e.stack);
         throw e;
@@ -310,11 +310,11 @@ function doCreateOrUpdate(id, create, req, res) {
 
     var gAst = undefined;
 
-    Q.try(function() {
-        return db.withTransaction(function(dbClient) {
-            return Q.try(function() {
+    Q.try(() => {
+        return db.withTransaction((dbClient) => {
+            return Q.try(() => {
                 return validateDevice(dbClient, req);
-            }).catch(function(e) {
+            }).catch((e) => {
                 console.error(e.stack);
                 res.render('thingpedia_device_create_or_edit', { page_title:
                                                                  (create ?
@@ -329,12 +329,12 @@ function doCreateOrUpdate(id, create, req, res) {
                                                                            code: code },
                                                                  create: create });
                 return null;
-            }).tap(function(ast) {
+            }).tap((ast) => {
                 if (ast === null)
                     return null;
 
                 return ensurePrimarySchema(dbClient, kind, ast, req, approve);
-            }).then(function(ast) {
+            }).then((ast) => {
                 if (ast === null)
                     return null;
 
@@ -371,7 +371,7 @@ function doCreateOrUpdate(id, create, req, res) {
                             return obj;
                         });
                 } else {
-                    return model.get(dbClient, id).then(function(old) {
+                    return model.get(dbClient, id).then((old) => {
                         if (old.owner !== req.user.developer_org &&
                             req.user.developer_status < user.DeveloperStatus.ADMIN)
                             throw new Error(req._("Not Authorized"));
@@ -389,11 +389,11 @@ function doCreateOrUpdate(id, create, req, res) {
                             });
                     });
                 }
-            }).then(function(obj) {
+            }).then((obj) => {
                 if (obj === null)
                     return null;
 
-                if (obj.fullcode || gAst.module_type == 'org.thingpedia.builtin')
+                if (obj.fullcode || gAst.module_type === 'org.thingpedia.builtin')
                     return obj.primary_kind;
 
                 var stream;
@@ -404,14 +404,14 @@ function doCreateOrUpdate(id, create, req, res) {
                 else
                     throw new Error(req._("Invalid zip file"));
                 return uploadZipFile(req, obj, gAst, stream).then(() => obj.primary_kind);
-            }).then(function(done) {
+            }).then((done) => {
                 if (!done)
                     return done;
 
                 if (req.files.icon && req.files.icon.length) {
                     // upload the icon asynchronously to avoid blocking the request
-                    setTimeout(function() {
-                        Q.try(function() {
+                    setTimeout(() => {
+                        Q.try(() => {
                             var graphicsApi = platform.getCapability('graphics-api');
                             var image = graphicsApi.createImageFromPath(req.files.icon[0].path);
                             image.resizeFit(512, 512);
@@ -470,7 +470,7 @@ function legacyCreateExample(utterance, kind, function_name, function_type, func
 
     let match = regexp.exec(utterance);
     while (match !== null) {
-        let [_, param1, param2, option] = match;
+        let [, param1, param2,] = match;
         let param = param1 || param2;
 
         if (param in inargmap) {

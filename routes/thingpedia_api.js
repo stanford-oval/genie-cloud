@@ -7,6 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const express = require('express');
@@ -14,15 +15,10 @@ const csv = require('csv');
 const crypto = require('crypto');
 
 const db = require('../util/db');
-const device = require('../model/device');
-const app = require('../model/app');
-const user = require('../model/user');
 const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
-const organization = require('../model/organization');
 
 const ThingTalk = require('thingtalk');
-const AppCompiler = ThingTalk.Compiler;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const ThingpediaClient = require('../util/thingpedia-client');

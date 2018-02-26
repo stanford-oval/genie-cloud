@@ -9,9 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const fs = require('fs');
-const Q = require('q');
-
 const ThingTalk = require('thingtalk');
 
 const KIND_REGEX = /^[A-Za-z_][A-Za-z0-9_-]*$/;
@@ -76,4 +73,4 @@ module.exports = {
             ex.program = ThingTalk.Ast.prettyprint(ThingTalk.Grammar.parse(ex.program), true).trim();
         }
     }
-}
+};

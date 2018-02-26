@@ -7,11 +7,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-const Q = require('q');
 const express = require('express');
-const jade = require('jade');
-const crypto = require('crypto');
 
 const user = require('../util/user');
 const model = require('../model/example');
@@ -19,7 +17,7 @@ const db = require('../util/db');
 
 var router = express.Router();
 
-router.post('/upvote/:id', user.requireLogIn, function(req, res) {
+router.post('/upvote/:id', user.requireLogIn, (req, res) => {
     db.withClient((dbClient) => {
         return model.upvote(dbClient, req.params.id);
     }).then(() => {
@@ -29,7 +27,7 @@ router.post('/upvote/:id', user.requireLogIn, function(req, res) {
     }).done();
 });
 
-router.post('/downvote/:id', user.requireLogIn, function(req, res) {
+router.post('/downvote/:id', user.requireLogIn, (req, res) => {
     db.withClient((dbClient) => {
         return model.downvote(dbClient, req.params.id);
     }).then(() => {
@@ -39,7 +37,7 @@ router.post('/downvote/:id', user.requireLogIn, function(req, res) {
     }).done();
 });
 
-router.post('/hide/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
+router.post('/hide/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return model.hide(dbClient, req.params.id);
     }).then(() => {
@@ -49,7 +47,7 @@ router.post('/hide/:id', user.requireLogIn, user.requireDeveloper(user.Developer
     }).done();
 });
 
-router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
+router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return model.deleteById(dbClient, req.params.id);
     }).then(() => {

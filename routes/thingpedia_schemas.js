@@ -7,17 +7,16 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const express = require('express');
-const passport = require('passport');
 
 const db = require('../util/db');
 const user = require('../util/user');
 const model = require('../model/schema');
 const exampleModel = require('../model/example');
 const Validation = require('../util/validation');
-const generateExamples = require('../util/generate_examples');
 const ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();
@@ -37,7 +36,7 @@ router.get('/', function(req, res) {
 function localeToLanguage(locale) {
     // only keep the language part of the locale, we don't
     // yet distinguish en_US from en_GB
-    return (locale || 'en').split(/[-_\@\.]/)[0];
+    return (locale || 'en').split(/[-_@.]/)[0];
 }
 
 router.get('/by-id/:kind', function(req, res) {
@@ -144,9 +143,6 @@ function validateSchema(dbClient, req) {
 }
 
 function ensureExamples(dbClient, schemaId, ast) {
-    // FIXME
-    //return generateExamples(dbClient, kind, ast);
-
     return exampleModel.deleteBySchema(dbClient, schemaId, 'en').then(() => {
         let examples = ast.examples.map((ex) => {
             return ({

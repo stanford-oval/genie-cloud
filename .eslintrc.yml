@@ -2,6 +2,8 @@ env:
   es6: true
   node: true
 extends: 'eslint:recommended'
+globals:
+  platform: false
 rules:
   indent: off
   no-console: off
@@ -40,11 +42,7 @@ rules:
   no-label-var: error
   no-lonely-if: off
   no-new-object: error
-  arrow-body-style:
-    - warn
-    - as-needed
-    -
-      requireReturnForObjectLiteral: true
+  arrow-body-style: off
   arrow-parens:
     - error
     - always
