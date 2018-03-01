@@ -31,7 +31,7 @@ const db = require('../util/db');
 const MAX_DEPTH = process.argv[4] !== undefined ? parseInt(process.argv[4]) : 6;
 if (isNaN(MAX_DEPTH))
     throw new Error('invalid max depth');
-const TURKING_MODE = MAX_DEPTH <= 5;
+const TURKING_MODE = process.argv[5] === '--turking';
 
 // FIXME this should be in Thingpedia
 const NON_MONITORABLE_FUNCTIONS = new Set([
