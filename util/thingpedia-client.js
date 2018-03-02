@@ -9,15 +9,12 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-
 const ThingpediaDiscovery = require('thingpedia-discovery');
 
 const Config = require('../config');
 
 const db = require('./db');
 const device = require('../model/device');
-const user = require('../model/user');
 const organization = require('../model/organization');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
@@ -35,21 +32,15 @@ const LEGACY_MAPS = {
 
 class ThingpediaDiscoveryDatabase {
     getByAnyKind(kind) {
-        return db.withClient(function(dbClient) {
-            return device.getByAnyKind(dbClient, kind);
-        });
+        return db.withClient((dbClient) => device.getByAnyKind(dbClient, kind));
     }
 
     getAllKinds(deviceId) {
-        return db.withClient(function(dbClient) {
-            return device.getAllKinds(dbClient, deviceId);
-        });
+        return db.withClient((dbClient) => device.getAllKinds(dbClient, deviceId));
     }
 
     getByPrimaryKind(kind) {
-        return db.withClient(function(dbClient) {
-            return device.getByPrimaryKind(dbClient, kind);
-        });
+        return db.withClient((dbClient) => device.getByPrimaryKind(dbClient, kind));
     }
 }
 
@@ -62,7 +53,7 @@ module.exports = class ThingpediaClientCloud {
         this.developerKey = developerKey;
         // only keep the language part of the locale, we don't
         // yet distinguish en_US from en_GB
-        this.language = (locale || 'en').split(/[-_\@\.]/)[0];
+        this.language = (locale || 'en').split(/[-_@.]/)[0];
     }
 
     getAppCode(appId) {
@@ -82,22 +73,22 @@ module.exports = class ThingpediaClientCloud {
             kind = LEGACY_MAPS[kind];
 
         if (version)
-            return Q(S3_HOST + kind + '-v' + version + '.zip');
+            return Promise.resolve(S3_HOST + kind + '-v' + version + '.zip');
 
         var developerKey = this.developerKey;
 
-        return db.withClient(function(dbClient) {
-            return Q.try(function() {
+        return db.withClient((dbClient) => {
+            return Promise.resolve().then(() => {
                 if (developerKey)
                     return organization.getByDeveloperKey(dbClient, developerKey);
                 else
                     return [];
-            }).then(function(orgs) {
+            }).then((orgs) => {
                 var org = null;
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return device.getByPrimaryKind(dbClient, kind).then(function(device) {
+                return device.getByPrimaryKind(dbClient, kind).then((device) => {
                     if (device.fullcode)
                         throw new Error('No Code Available');
 
@@ -120,21 +111,21 @@ module.exports = class ThingpediaClientCloud {
         var newApi = apiVersion >= 2;
 
         if (!newApi)
-            return Q.reject(new Error('API version 1 is no longer supported'));
+            return Promise.reject(new Error('API version 1 is no longer supported'));
 
-        return db.withClient(function(dbClient) {
-            return Q.try(function() {
+        return db.withClient((dbClient) => {
+            return Promise.resolve().then(() => {
                 if (developerKey)
                     return organization.getByDeveloperKey(dbClient, developerKey);
                 else
                     return [];
-            }).then(function(orgs) {
+            }).then((orgs) => {
                 var org = null;
                 if (orgs.length > 0)
                     org = orgs[0];
 
                 return device.getFullCodeByPrimaryKind(dbClient, kind, org, newApi);
-            }).then(function(devs) {
+            }).then((devs) => {
                 if (devs.length < 1)
                     throw new Error(kind + ' not Found');
 
@@ -154,23 +145,23 @@ module.exports = class ThingpediaClientCloud {
         var developerKey = this.developerKey;
         apiVersion = apiVersion || 1;
         if (apiVersion < 2)
-            return Q.reject(new Error('API version 1 is no longer supported'));
+            return Promise.reject(new Error('API version 1 is no longer supported'));
 
-        return db.withClient(function(dbClient) {
-            return Q.try(function() {
+        return db.withClient((dbClient) => {
+            return Promise.resolve().then(() => {
                 if (developerKey)
                     return organization.getByDeveloperKey(dbClient, developerKey);
                 else
                     return [];
-            }).then(function(orgs) {
+            }).then((orgs) => {
                 var org = null;
                 if (orgs.length > 0)
                     org = orgs[0];
                 return schema.getTypesAndNamesByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null);
-            }).then(function(rows) {
+            }).then((rows) => {
                 var obj = {};
 
-                rows.forEach(function(row) {
+                rows.forEach((row) => {
                     obj[row.kind] = {
                         kind_type: row.kind_type,
                         triggers: row.triggers,
@@ -188,7 +179,7 @@ module.exports = class ThingpediaClientCloud {
         var developerKey = this.developerKey;
 
         return db.withClient((dbClient) => {
-            return Q.try(() => {
+            return Promise.resolve().then(() => {
                 if (developerKey)
                     return organization.getByDeveloperKey(dbClient, developerKey);
                 else
@@ -217,7 +208,7 @@ module.exports = class ThingpediaClientCloud {
     }
 
     _deviceMakeFactory(d) {
-        var ast = JSON.parse(d.code);
+        const ast = JSON.parse(d.code);
 
         delete d.code;
         if (ast.auth.type === 'builtin') {
@@ -232,8 +223,8 @@ module.exports = class ThingpediaClientCloud {
             d.factory = ({ type: 'oauth2', kind: d.primary_kind, text: d.name });
         } else {
             d.factory = ({ type: 'form', kind: d.primary_kind, text: d.name,
-                           fields: Object.keys(ast.params).map(function(k) {
-                               var p = ast.params[k];
+                           fields: Object.keys(ast.params).map((k) => {
+                               let p = ast.params[k];
                                return ({ name: k, label: p[0], type: p[1] });
                            })
                          });
@@ -244,7 +235,7 @@ module.exports = class ThingpediaClientCloud {
         var developerKey = this.developerKey;
 
         return db.withClient((dbClient) => {
-            return Q.try(() => {
+            return Promise.resolve().then(() => {
                 if (developerKey)
                     return organization.getByDeveloperKey(dbClient, developerKey);
                 else
@@ -261,7 +252,7 @@ module.exports = class ThingpediaClientCloud {
                     else if (CATEGORIES.has(klass))
                         devices = device.getBySubcategory(dbClient, klass, org);
                     else
-                        devices = Q.reject(new Error("Invalid class parameter"));
+                        devices = Promise.reject(new Error("Invalid class parameter"));
                 } else {
                     devices = device.getAllApprovedWithCode(dbClient, org);
                 }
@@ -286,7 +277,7 @@ module.exports = class ThingpediaClientCloud {
         var result = {};
 
         return db.withClient((dbClient) => {
-            return Q.try(() => {
+            return Promise.resolve().then(() => {
                 if (developerKey)
                     return organization.getByDeveloperKey(dbClient, developerKey);
                 else
@@ -310,7 +301,7 @@ module.exports = class ThingpediaClientCloud {
                 });
 
                 var unresolved = kinds.filter((k) => !(k in result));
-                return Q.all(unresolved.map((k) => {
+                return Promise.all(unresolved.map((k) => {
                     return device.getAllWithKindOrChildKind(dbClient, k).then((devices) => {
                         result[k] = {
                             type: 'multiple',
@@ -345,7 +336,7 @@ module.exports = class ThingpediaClientCloud {
             return exampleModel.click(dbClient, exampleId);
         });
     }
-}
+};
 module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getModuleLocation', 'getDeviceCode',
                                         'getSchemas', 'getMetas',
