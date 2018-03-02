@@ -929,6 +929,9 @@ const GRAMMAR = {
         ['${constant_String}', simpleCombine(identity)]
     ].concat(Array.from(makeConstantDerivations('PATH_NAME', Type.Entity('tt:path_name')))),
     'constant_Entity(tt:picture)': [],
+    'constant_Entity(tt:function)': [],
+    'constant_Entity(tt:program)': [],
+    'constant_Entity(tt:device)': [],
 
     // HACK: this info should be in Thingpedia
     'constant_Entity(com.google.drive:file_id)': [],
@@ -1673,7 +1676,9 @@ function loadTemplateAsDeclaration(ex, decl) {
     // ignore builtin actions:
     // debug_log is not interesting, say is special and we handle differently, configure/discover are not
     // composable
-    if (decl.type === 'action' && decl.value.selector.kind === 'org.thingpedia.builtin.thingengine.builtin')
+    if (TURKING_MODE && decl.type === 'action' && decl.value.selector.kind === 'org.thingpedia.builtin.thingengine.builtin')
+        return;
+    if (decl.type === 'action' && decl.value.selector.kind === 'org.thingpedia.builtin.thingengine.builtin' && decl.value.channel === 'say')
         return;
 
     // HACK HACK HACK
@@ -1753,12 +1758,20 @@ function loadTemplate(ex) {
     });
 }
 
+function loadDevice(device) {
+    GRAMMAR['constant_Entity(tt:device)'].push([device.kind_canonical, simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null))]);
+}
+
 function loadMetadata(language) {
     return db.withClient((dbClient) =>
-        db.selectAll(dbClient, `select * from example_utterances where type = 'thingpedia' and language = ? and is_base = 1 and target_code <> ''`, [language])
-    ).then((examples) => {
+        Promise.all([db.selectAll(dbClient, `select * from example_utterances where type = 'thingpedia' and language = ? and is_base = 1 and target_code <> ''`, [language]),
+                     db.selectAll(dbClient, `select kind,kind_canonical from device_schema where approved_version is not null and kind_type in ('primary','other')`, [])])
+    ).then(([examples, devices]) => {
+        console.log('Loaded ' + devices.length + ' devices');
+        devices.forEach(loadDevice);
+
         console.log('Loaded ' + examples.length + ' templates');
-        return Promise.all(examples.map((ex) => loadTemplate(ex)));
+        return Promise.all(examples.map(loadTemplate));
     }).then(() => {
         for (let [typestr, type] of allTypes) {
             if (!GRAMMAR['constant_' + typestr]) {
