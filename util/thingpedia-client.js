@@ -319,15 +319,15 @@ module.exports = class ThingpediaClientCloud {
         return _discoveryServer.decode(body);
     }
 
-    getExamplesByKey(key, isBase) {
+    getExamplesByKey(key) {
         return db.withClient((dbClient) => {
-            return exampleModel.getByKey(dbClient, isBase, key, this.language);
+            return exampleModel.getByKey(dbClient, key, this.language);
         });
     }
 
-    getExamplesByKinds(kinds, isBase) {
+    getExamplesByKinds(kinds) {
         return db.withClient((dbClient) => {
-            return exampleModel.getByKinds(dbClient, isBase, kinds, this.language);
+            return exampleModel.getByKinds(dbClient, kinds, this.language);
         });
     }
 

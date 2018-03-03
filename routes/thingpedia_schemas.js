@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 
 const db = require('../util/db');
@@ -21,13 +20,13 @@ const ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();
 
-router.get('/', function(req, res) {
-    db.withClient(function(dbClient) {
+router.get('/', (req, res) => {
+    db.withClient((dbClient) => {
         return model.getAllForList(dbClient);
-    }).then(function(rows) {
+    }).then((rows) => {
         res.render('thingpedia_schema_list', { page_title: req._("Thingpedia - Supported Types"),
                                                schemas: rows });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
@@ -39,32 +38,37 @@ function localeToLanguage(locale) {
     return (locale || 'en').split(/[-_@.]/)[0];
 }
 
-router.get('/by-id/:kind', function(req, res) {
-    var language = req.query.language || (req.user ? localeToLanguage(req.user.locale) : 'en');
-    db.withClient(function(dbClient) {
-        return model.getMetasByKinds(dbClient, [req.params.kind], req.user ? (req.user.developer_status >= 3 ? -1 : req.user.developer_org) : null, language).then(function(rows) {
+router.get('/by-id/:kind', (req, res) => {
+    const language = req.query.language || (req.user ? localeToLanguage(req.user.locale) : 'en');
+    db.withClient((dbClient) => {
+        return model.getMetasByKinds(dbClient, [req.params.kind], req.user ? (req.user.developer_status >= 3 ? -1 : req.user.developer_org) : null, language).then((rows) => {
             if (rows.length === 0) {
                 res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: req._("Not Found.") });
                 return null;
             }
 
-            var row = rows[0];
-            return row;
-        }).tap(function(row) {
-            return exampleModel.getBaseBySchema(dbClient, row.id, language).then(function(examples) {
+            return rows[0];
+        }).then((row) => {
+            if (row === null)
+                return null;
+            return exampleModel.getBaseBySchema(dbClient, row.id, language).then((examples) => {
                 row.examples = examples;
+                return row;
             });
-        }).tap(function(row) {
+        }).then((row) => {
+            if (row === null)
+                return null;
             if (language === 'en') {
                 row.translated = true;
-                return;
+                return row;
             }
-            return model.isKindTranslated(dbClient, row.kind, language).then(function(t) {
+            return model.isKindTranslated(dbClient, row.kind, language).then((t) => {
                 row.translated = t;
+                return row;
             });
         });
-    }).then(function(row) {
+    }).then((row) => {
         if (row === null)
             return;
 
@@ -74,59 +78,58 @@ router.get('/by-id/:kind', function(req, res) {
                                           triggers: row.triggers,
                                           actions: row.actions,
                                           queries: row.queries });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
 
-router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
-    db.withTransaction(function(dbClient) {
-        return model.get(dbClient, req.params.id).then(function(schema) {
+router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+    db.withTransaction((dbClient) => {
+        return model.get(dbClient, req.params.id).then((schema) => {
             if (schema.kind_type !== 'other')
                 throw new Error(req._("This schema is associated with a device or app and should not be manipulated directly"));
-            return model.approve(dbClient, req.params.id).then(function() {
+            return model.approve(dbClient, req.params.id).then(() => {
                 res.redirect(303, '/thingpedia/schemas/by-id/' + schema.kind);
             });
         });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
 
-router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function(req, res) {
-    db.withTransaction(function(dbClient) {
-        return model.get(dbClient, req.params.id).then(function(row) {
+router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  (req, res) => {
+    db.withTransaction((dbClient) => {
+        return model.get(dbClient, req.params.id).then((row) => {
             if (row.kind_type !== 'other')
                 throw new Error(req._("This schema is associated with a device or app and should not be manipulated directly"));
             if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
                 res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: req._("Not Authorized") });
-                return;
+                return Promise.resolve();
             }
 
-            return model.delete(dbClient, req.params.id).then(function() {
+            return model.delete(dbClient, req.params.id).then(() => {
                 res.redirect(303, '/thingpedia/devices');
             });
         });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e.message });
     }).done();
 });
 
 // only allow admins to deal with global schemas for now...
-router.get('/create', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
+router.get('/create', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
     res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Create new Type"),
                                            create: true,
                                            csrfToken: req.csrfToken(),
                                            schema: { kind: '',
                                                      code: JSON.stringify({
-                                                         triggers: {},
                                                          actions: {},
                                                          queries: {}
-                                          })}})
+                                          })}});
 });
 
 function validateSchema(dbClient, req) {
@@ -173,7 +176,7 @@ function findInvocation(ex) {
         return null;
 }
 
-const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9\_]+))?})/;
+const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 
 function legacyCreateExample(utterance, kind, function_name, function_type, function_obj) {
     let inargmap = {};
@@ -253,11 +256,11 @@ function doCreateOrUpdate(id, create, req, res) {
 
     var gAst = undefined;
 
-    Q.try(function() {
-        return db.withTransaction(function(dbClient) {
-            return Q.try(function() {
+    Promise.resolve().then(() => {
+        return db.withTransaction((dbClient) => {
+            return Promise.resolve().then(() => {
                 return validateSchema(dbClient, req);
-            }).catch(function(e) {
+            }).catch((e) => {
                 console.error(e.stack);
                 res.render('thingpedia_schema_edit', { page_title:
                                                        (create ?
@@ -270,7 +273,7 @@ function doCreateOrUpdate(id, create, req, res) {
                                                                  code: code },
                                                        create: create });
                 return null;
-            }).then(function(ast) {
+            }).then((ast) => {
                 if (ast === null)
                     return null;
 
@@ -280,8 +283,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 var meta = res[1];
                 var obj = {
                     kind: kind,
-                    // convert security-camera to 'security camera' and googleDrive to 'google drive'
-                    kind_canonical: kind.replace(/[_\-]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase(),
+                    kind_canonical: Validation.cleanKind(kind),
                 };
 
                 if (create) {
@@ -297,7 +299,7 @@ function doCreateOrUpdate(id, create, req, res) {
                     }
                     return model.create(dbClient, obj, types, meta);
                 } else {
-                    return model.get(dbClient, id).then(function(old) {
+                    return model.get(dbClient, id).then((old) => {
                         if (old.owner !== req.user.developer_org &&
                             req.user.developer_status < user.DeveloperStatus.ADMIN)
                             throw new Error(req._("Not Authorized"));
@@ -312,47 +314,47 @@ function doCreateOrUpdate(id, create, req, res) {
                         return model.update(dbClient, id, obj.kind, obj, types, meta);
                     });
                 }
-            }).tap(function(obj) {
+            }).tap((obj) => {
                 if (obj === null)
                     return null;
 
                 return ensureExamples(dbClient, obj.id, gAst);
-            }).then(function(obj) {
+            }).then((obj) => {
                 if (obj === null)
                     return;
 
                 res.redirect('/thingpedia/schemas/by-id/' + obj.kind);
             });
         });
-    }).catch(function(e) {
+    }).catch((e) => {
         console.error(e.stack);
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
+    });
 }
 
 // restrict generic type creation to admins
-router.post('/create', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
+router.post('/create', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
     doCreateOrUpdate(undefined, true, req, res);
 });
 
-router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
-    Q.try(function() {
-        return db.withClient(function(dbClient) {
-            return model.get(dbClient, req.params.id).then(function(d) {
+router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res) => {
+    Promise.resolve().then(() => {
+        return db.withClient((dbClient) => {
+            return model.get(dbClient, req.params.id).then((d) => {
                 if (d.owner !== req.user.developer_org &&
                     req.user.developer < user.DeveloperStatus.ADMIN)
                     throw new Error(req._("Not Authorized"));
                 if (d.kind_type !== 'other')
                     throw new Error(req._("Only non-device and non-app specific types can be modified from this page. Upload a new interface package to modify a device type"));
 
-                return model.getTypesAndMeta(dbClient, req.params.id, d.developer_version).then(function(row) {
+                return model.getTypesAndMeta(dbClient, req.params.id, d.developer_version).then((row) => {
                     d.types = JSON.parse(row.types);
                     d.meta = JSON.parse(row.meta);
                     return d;
                 });
-            }).then(function(d) {
-                return exampleModel.getBaseBySchema(dbClient, req.params.id, 'en').then(function(examples) {
+            }).then((d) => {
+                return exampleModel.getBaseBySchema(dbClient, req.params.id, 'en').then((examples) => {
                     var ast = ManifestToSchema.toManifest(d.types, d.meta);
                     migrateManifest(ast, examples, d.kind);
 
@@ -365,13 +367,13 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                 });
             });
         });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
+    });
 });
 
-router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), function(req, res) {
+router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     doCreateOrUpdate(req.params.id, false, req, res);
 });
 

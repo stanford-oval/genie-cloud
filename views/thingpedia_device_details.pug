@@ -7,10 +7,12 @@ block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
 block page_name
-  if online
+  if device.category === 'online'
     = _("Account: %s").format(device.name)
-  else
+  else if device.category === 'physical'
     = _("Device: %s").format(device.name)
+  else
+    = _("Service: %s").format(device.name)
 
 block content
   if device.approved_version === null
@@ -95,12 +97,6 @@ block content
         = _("Polling Interval: ")
         span.poll_interval= inv.poll_interval === 0 ? _("Push-based") : (inv.poll_interval < 0 ? _("Non-deterministic") : _("%d ms").format(inv.poll_interval))
 
-  if Object.keys(triggers).length > 0
-    h2.device-subtitle= _("Triggers")
-    ul.device-channels
-      for inv, name in triggers
-        +invocation(inv, name, 'trigger')
-
   if Object.keys(queries).length > 0
     h2.device-subtitle= _("Queries")
     ul.device-channels
@@ -118,33 +114,12 @@ block content
     ul.device-examples
       for e in device.examples
         li
-          span(title=e.target_code || target_json)= e.utterance
-          if authenticated
-            | &#x20;
-            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).upvote-btn
-              span.glyphicon.glyphicon-thumbs-up(aria-hidden='true')
-              span.sr-only= _("Upvote")
-            | &#x20;
-            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).downvote-btn
-              span.glyphicon.glyphicon-thumbs-down(aria-hidden='true')
-              span.sr-only= _("Downvote")
-          if authenticated && user.developer_status >= 3 && e.type !== 'thingpedia'
-            | &#x20;
-            if e.click_count < 0
-              = _("Hidden")
-            else
-              a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).hide-example-btn
-                = _("Hide")
-            | &#x20;
-            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).delete-example-btn
-              = _("Delete")
+          span(title=e.target_code)= e.utterance
   else
     // this cannot really happen anymore, because we show commands of the child types too
     p#no-commands= _("This device has no commands of its own.")
 
   div.row#device-details-actions
-    //div.col-md-2
-      a.btn.btn-default.btn-block(href='/thingpedia/apps/by-device/' + device.id)= _("Find Apps")
     if authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
       div.col-md-2
         a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.id)= _("Update")

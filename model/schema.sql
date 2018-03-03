@@ -174,15 +174,17 @@ create table lexicon(
 create table example_utterances (
     id integer auto_increment primary key,
     schema_id integer null,
+    app_id integer null,
     is_base boolean not null default false,
     language char(15) not null default 'en',
-    type enum('thingpedia', 'ifttt', 'online', 'test', 'other') not null default 'other',
+    type char(32) not null default 'other',
     utterance text not null collate utf8_general_ci,
+    preprocessed text not null collate utf8_general_ci,
     target_json text not null,
     target_code text not null,
     click_count integer not null default 0,
     key(schema_id),
-    fulltext key(utterance)
+    fulltext key(preprocessed)
 ) collate = utf8_bin;
 
 create table example_rule_schema (

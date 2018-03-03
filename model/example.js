@@ -7,23 +7,23 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const db = require('../util/db');
-const Q = require('q');
 
 function createMany(client, examples) {
-    var KEYS = ['schema_id', 'is_base', 'language', 'utterance', 'preprocessed', 'target_json', 'target_code', 'type', 'click_count'];
-    var arrays = [];
-    examples.forEach(function(ex) {
+    const KEYS = ['schema_id', 'is_base', 'language', 'utterance', 'preprocessed', 'target_json', 'target_code', 'type', 'click_count'];
+    const arrays = [];
+    examples.forEach((ex) => {
         if (!ex.type)
             ex.type = 'thingpedia';
         if (ex.click_count === undefined)
-            ex.click_count = 5;
-        KEYS.forEach(function(key) {
+            ex.click_count = 1;
+        KEYS.forEach((key) => {
             if (ex[key] === undefined)
                 ex[key] = null;
         });
-        var vals = KEYS.map(function(key) {
+        const vals = KEYS.map((key) => {
             return ex[key];
         });
         arrays.push(vals);
@@ -33,74 +33,46 @@ function createMany(client, examples) {
                         + 'values ?', [arrays]);
 }
 
-function tokenize(string) {
-    var tokens = string.split(/(\s+|[,\.\"\'])/g);
-    return tokens.filter((t) => !(/^\s*$/).test(t)).map((t) => t.toLowerCase());
-}
-
 module.exports = {
-    getAll: function(client) {
+    getAll(client) {
+        console.error('example.getAll called, where is this from?');
         return db.selectAll(client, "select * from example_utterances");
     },
 
-    getAllWithLanguage: function(client, language) {
-        return db.selectAll(client, "select * from example_utterances where language = ?", [language]);
-    },
-
-    getBaseByLanguage: function(client, language) {
-        return db.selectAll(client, "select * from example_utterances where is_base and"
-            + " language = ? order by id",
+    getBaseByLanguage(client, language) {
+        return db.selectAll(client, "select * from example_utterances where is_base and type = 'thingpedia' and "
+            + " language = ? order by click_count desc, id asc",
             [language]);
     },
 
-    getByKey: function(client, base, key, language) {
-        var tokens = tokenize(key);
-        var ftQuery = tokens.map((t) => t.replace(/[+\-@><~*"()]/g, '')).filter((t) => !!t).map((t) => t + '*').join(' ');
-
+    getByKey(client, key, language) {
         return db.selectAll(client,
-              " select eu.*, ds.kind from example_utterances eu, device_schema ds where"
-            + "  eu.schema_id = ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and match utterance against"
-            + "  (? in boolean mode) and eu.type <> 'ifttt' and eu.click_count >= 0"
-            + " limit 50",
-            [base, language, ftQuery]);
+              ` select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where
+                 eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and match preprocessed against
+                 (?) and target_code <> ''
+               union distinct
+               (select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where
+                 eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and match kind_canonical against
+                 (?) and target_code <> '')
+               limit 50`,
+            [language, key, language, key]);
     },
 
-    getByKinds: function(client, base, kinds, language, minClickCount) {
-        if (minClickCount === undefined)
-            minClickCount = 0;
-
+    getByKinds: function(client, kinds, language) {
         return db.selectAll(client,
-              " (select eu.*, ds.kind from example_utterances eu, device_schema ds where eu.schema_id = ds.id"
-            + "  and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and ds.kind in (?) and eu.click_count >= ?)"
-            + " union"
-            + " (select eu.*, ds.kind from example_utterances eu, device_schema ds, device_class dc, device_class_kind dck"
-            + "  where eu.schema_id = ds.id and (eu.is_base = ? or eu.type <> 'thingpedia') and language = ? and"
-            + "  ds.kind = dck.kind and dc.id = dck.device_id and dc.primary_kind in (?)"
-            + "  and eu.click_count >= ?)"
-            + " union"
-            + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds where eu.id = ers.example_id"
-            + "  and ers.schema_id = ds.id and language = ? and ds.kind in (?) and eu.type not in ('ifttt', 'thingpedia')"
-            + "  and eu.click_count >= ?)"
-            + " union"
-            + " (select eu.*, ds.kind from example_utterances eu, example_rule_schema ers, device_schema ds, device_class dc, device_class_kind dck"
-            + "  where eu.id = ers.example_id and ers.schema_id = ds.id and language = ? and ds.kind = dck.kind and"
-            + "  dc.id = dck.device_id and dc.primary_kind in (?) and eu.type not in ('ifttt', 'thingpedia')"
-            + "  and eu.click_count >= ?)"
-            + " order by type desc, id asc",
-            [base, language, kinds, minClickCount,
-             base, language, kinds, minClickCount,
-             language, kinds, minClickCount,
-             language, kinds, minClickCount]);
+              "select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where eu.schema_id = ds.id"
+            + " and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and ds.kind in (?) and target_code <> ''",
+            [language, kinds]);
     },
 
     getBaseBySchema(client, schemaId, language) {
         return db.selectAll(client, "select * from example_utterances where schema_id = ?"
-            + " and is_base and language = ?", [schemaId, language]);
+            + " and is_base and type = 'thingpedia' and language = ?", [schemaId, language]);
     },
 
     getBaseBySchemaKind(client, schemaKind, language) {
         return db.selectAll(client, "select eu.* from example_utterances eu, device_schema ds where"
-            + " eu.schema_id = ds.id and ds.kind = ? and is_base and language = ?", [schemaKind, language]);
+            + " eu.schema_id = ds.id and ds.kind = ? and is_base and type = 'thingpedia' and language = ?", [schemaKind, language]);
     },
 
     createMany: createMany,
@@ -108,11 +80,6 @@ module.exports = {
     deleteBySchema(client, schemaId, language) {
         return db.query(client, "delete from example_utterances where schema_id = ? and language = ?",
             [schemaId, language]);
-    },
-
-    deleteByLanguage(client, language) {
-        return db.query(client, "delete from example_utterances where language = ?",
-            [language]);
     },
 
     update(client, id, example) {

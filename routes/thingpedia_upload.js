@@ -41,12 +41,11 @@ const DEFAULT_CODE = {"module_type": "org.thingpedia.v2",
                       "auth": {"type": "none"},
                       "types": [],
                       "child_types": [],
-                      "triggers": {},
+                      "queries": {},
                       "actions": {},
-                      "queries": {}
                     };
 
-router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
+router.get('/create', user.redirectLogIn, user.requireDeveloper(), (req, res) => {
     var code = JSON.stringify(DEFAULT_CODE, undefined, 2);
     res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - create new device"),
                                                      csrfToken: req.csrfToken(),
@@ -57,7 +56,7 @@ router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req,
 
 function schemaCompatible(s1, s2) {
     return s1.length >= s2.length &&
-        s2.every(function(t, i) {
+        s2.every((t, i) => {
             if (t === s1[i]) return true;
             var t1 = ThingTalk.Type.fromString(t);
             var t2 = ThingTalk.Type.fromString(s1[i]);
@@ -66,7 +65,7 @@ function schemaCompatible(s1, s2) {
 }
 
 function validateSchema(dbClient, type, ast, req) {
-    return schema.getTypesByKinds(dbClient, [type], req.user.developer_org).then(function(rows) {
+    return schema.getTypesByKinds(dbClient, [type], req.user.developer_org).then((rows) => {
         if (rows.length < 1)
             throw new Error(req._("Invalid device type %s").format(type));
 
@@ -163,31 +162,6 @@ function validateDevice(dbClient, req) {
     })).then(() => ast);
 }
 
-function cleanKind(kind) {
-    // convert security-camera to 'security camera' and googleDrive to 'google drive'
-
-    // thingengine.phone -> phone
-    if (kind.startsWith('org.thingpedia.builtin.thingengine.'))
-        kind = kind.substr('org.thingpedia.builtin.thingengine.'.length);
-    // org.thingpedia.builtin.omlet -> omlet
-    if (kind.startsWith('org.thingpedia.builtin.'))
-        kind = kind.substr('org.thingpedia.builtin.'.length);
-    // org.thingpedia.weather -> weather
-    if (kind.startsWith('org.thingpedia.'))
-        kind = kind.substr('org.thingpedia.'.length);
-    // com.xkcd -> xkcd
-    if (kind.startsWith('com.'))
-        kind = kind.substr('com.'.length);
-    if (kind.startsWith('gov.'))
-        kind = kind.substr('gov.'.length);
-    if (kind.startsWith('org.'))
-        kind = kind.substr('org.'.length);
-    if (kind.startsWith('uk.co.'))
-        kind = kind.substr('uk.co.'.length);
-
-    return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-}
-
 function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
     const [types, meta] = ManifestToSchema.toSchema(ast);
 
@@ -197,7 +171,6 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
             throw new Error(req._("Not Authorized"));
 
         var obj = {
-            kind_canonical: cleanKind(kind),
             developer_version: existing.developer_version + 1
         };
         if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER && approve)
@@ -209,12 +182,11 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
     }, (e) => {
         var obj = {
             kind: kind,
-            kind_canonical: cleanKind(kind),
+            kind_canonical: Validation.cleanKind(kind),
             kind_type: 'primary',
             owner: req.user.developer_org
         };
-        if (req.user.developer_status < user.DeveloperStatus.TRUSTED_DEVELOPER ||
-            !approve) {
+        if (req.user.developer_status < user.DeveloperStatus.TRUSTED_DEVELOPER || !approve) {
             obj.approved_version = null;
             obj.developer_version = 0;
         } else {
@@ -228,9 +200,6 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
 }
 
 function ensureExamples(dbClient, schemaId, ast) {
-    // FIXME
-    //return generateExamples(dbClient, kind, ast);
-
     return exampleModel.deleteBySchema(dbClient, schemaId, 'en').then(() => {
         let examples = ast.examples.map((ex) => {
             return ({
@@ -251,7 +220,7 @@ function ensureExamples(dbClient, schemaId, ast) {
 function uploadZipFile(req, obj, ast, stream) {
     var zipFile = new JSZip();
 
-    return Q.try(() => {
+    return Promise.resolve().then(() => {
         // unfortunately JSZip only loads from memory, so we need to load the entire file
         // at once
         // this is somewhat a problem, because the file can be up to 30-50MB in size
@@ -411,25 +380,25 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (req.files.icon && req.files.icon.length) {
                     // upload the icon asynchronously to avoid blocking the request
                     setTimeout(() => {
-                        Q.try(() => {
+                        Promise.resolve().then(() => {
                             var graphicsApi = platform.getCapability('graphics-api');
                             var image = graphicsApi.createImageFromPath(req.files.icon[0].path);
                             image.resizeFit(512, 512);
                             return image.stream('png');
-                        }).spread(function(stdout, stderr) {
+                        }).then(([stdout, stderr]) => {
                             return code_storage.storeIcon(stdout, done);
-                        }).catch(function(e) {
+                        }).catch((e) => {
                             console.error('Failed to upload icon to S3: ' + e);
-                        }).done();
+                        });
                     }, 0);
                 }
                 return done;
-            }).then(function(done) {
+            }).then((done) => {
                 if (done)
                     res.redirect('/thingpedia/devices/by-id/' + done);
             });
         });
-    }).finally(function() {
+    }).finally(() => {
         var toDelete = [];
         if (req.files) {
             if (req.files.zipfile && req.files.zipfile.length)
@@ -438,14 +407,14 @@ function doCreateOrUpdate(id, create, req, res) {
                 toDelete.push(Q.nfcall(fs.unlink, req.files.icon[0].path));
         }
         return Q.all(toDelete);
-    }).catch(function(e) {
+    }).catch((e) => {
         console.error(e.stack);
         res.status(400).render('error', { page_title: "Thingpedia - Error",
                                           message: e });
     }).done();
 }
 
-router.post('/create', user.requireLogIn, user.requireDeveloper(), function(req, res) {
+router.post('/create', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     doCreateOrUpdate(undefined, true, req, res);
 });
 

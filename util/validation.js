@@ -14,6 +14,31 @@ const ThingTalk = require('thingtalk');
 const KIND_REGEX = /^[A-Za-z_][A-Za-z0-9_-]*$/;
 
 module.exports = {
+    cleanKind(kind) {
+        // convert security-camera to 'security camera' and googleDrive to 'google drive'
+
+        // thingengine.phone -> phone
+        if (kind.startsWith('org.thingpedia.builtin.thingengine.'))
+            kind = kind.substr('org.thingpedia.builtin.thingengine.'.length);
+        // org.thingpedia.builtin.omlet -> omlet
+        if (kind.startsWith('org.thingpedia.builtin.'))
+            kind = kind.substr('org.thingpedia.builtin.'.length);
+        // org.thingpedia.weather -> weather
+        if (kind.startsWith('org.thingpedia.'))
+            kind = kind.substr('org.thingpedia.'.length);
+        // com.xkcd -> xkcd
+        if (kind.startsWith('com.'))
+            kind = kind.substr('com.'.length);
+        if (kind.startsWith('gov.'))
+            kind = kind.substr('gov.'.length);
+        if (kind.startsWith('org.'))
+            kind = kind.substr('org.'.length);
+        if (kind.startsWith('uk.co.'))
+            kind = kind.substr('uk.co.'.length);
+
+        return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+    },
+
     validateKind(name, what) {
         if (!KIND_REGEX.test(name))
             throw new Error('Invalid ' + what + ', must conform to ' + KIND_REGEX);
