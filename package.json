@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "accept-language": "^2.0.17",
-    "aws-sdk": "~2.2.35",
     "body-parser": "~1.13.3",
     "cacheable-middleware": "0.0.1",
     "connect-flash": "~0.1.1",
@@ -66,5 +65,8 @@
     "deep-equal": "^1.0.1",
     "jsxgettext": "^0.9.0",
     "pug-lint": "^2.4.0"
+  },
+  "optionalDependencies": {
+    "aws-sdk": "^2.2.48"
   }
 }

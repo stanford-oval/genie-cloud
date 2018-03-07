@@ -2,7 +2,9 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -21,6 +23,8 @@ const prefs = require('thingengine-core/lib/util/prefs');
 const Assistant = require('./assistant');
 const graphics = require('./graphics');
 const i18n = require('../util/i18n');
+
+const Config = require('../config');
 
 var _unzipApi = {
     unzip(zipPath, dir) {
@@ -215,8 +219,10 @@ class Platform {
             // will back with a Almond account)
             return true;
 
-        case 'graphics-api':
         case 'thingpedia-client':
+            return Config.WITH_THINGPEDIA === 'embedded';
+
+        case 'graphics-api':
         case 'webhook-api':
         case 'websocket-api':
             return true;

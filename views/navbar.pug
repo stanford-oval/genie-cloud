@@ -6,16 +6,17 @@ ul.nav.navbar-nav
       a(href="/me")= _("My Almond")
     li
       a(href='/me/conversation')= _("Web Almond")
-  li
-    a(href='/thingpedia/cheatsheet')= _("Cheatsheet")
-  li
-    a(href='/thingpedia/training')= _("Train Almond")
-  //li
-    a(href="/thingpedia/apps")= _("App Collection")
-  li
-    a(href='/thingpedia/devices')= _("Supported Devices")
-  li
-    a(href='/thingpedia/developers')= _("Developers")
+  if WITH_THINGPEDIA === 'embedded'
+    li
+      a(href='/thingpedia/cheatsheet')= _("Cheatsheet")
+    li
+      a(href='/thingpedia/training')= _("Train Almond")
+    //li
+      a(href="/thingpedia/apps")= _("App Collection")
+    li
+      a(href='/thingpedia/devices')= _("Supported Devices")
+    li
+      a(href='/thingpedia/developers')= _("Developers")
   if authenticated && user.roles & 0x1
     li
       a(href="/admin")= _("Administration")

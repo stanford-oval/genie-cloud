@@ -35,12 +35,23 @@ block content
             | &#x20;
             a(href='/me').btn.btn-default= _("Check your dashboard")
 
-      else
+      else if THINGPEDIA_URL === ''
         h1= _("Welcome to Thingpedia")
 
         h2= _("Let's build the world's best virtual assistant.")
 
         p= _("Thingpedia is a repository of apps and interfaces that support Almond, a collaborative open source effort to build an extensible, privacy-aware personal virtual assistant.")
+
+        p
+          a(href='/user/register').btn.btn-primary= _("Register now")
+          | &#x20;
+          a(href='/user/login').btn.btn-primary= _("Log in")
+      else
+        h1= _("Welcome to Almond")
+
+        h2= _("Let's build the world's best virtual assistant.")
+
+        p= _("Almond is a collaborative open source effort to build an extensible, privacy-aware personal virtual assistant.")
 
         p
           a(href='/user/register').btn.btn-primary= _("Register now")

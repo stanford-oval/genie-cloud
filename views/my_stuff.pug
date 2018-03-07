@@ -20,7 +20,7 @@ mixin device_list(devices)
         div.clearfix.visible-md
       div.col-lg-4.col-md-6
         div.panel.panel-default.installed-dev
-          a(href='/thingpedia/devices/by-id/' + dev.kind).panel-heading
+          a(href=THINGPEDIA_URL + '/thingpedia/devices/by-id/' + dev.kind).panel-heading
             h2.panel-title= dev.name
           div.panel-body
             p.device-icon-small
@@ -71,25 +71,25 @@ mixin thingpedia_apps(apps, visible)
         div.clearfix.visible-md
       div.col-lg-4.col-md-6.app-template
         div.panel.panel-default
-          a.panel-heading(href='/thingpedia/apps/install/' + app.id)
+          a.panel-heading(href=THINGPEDIA_URL + '/thingpedia/apps/install/' + app.id)
             h2.panel-title= app.name
           div.panel-body
             p #{app.description}
             p
               each tag in app.tags
-                a(href='/thingpedia/apps/by-tag/' + tag.tag) ##{tag.tag}
+                a(href=THINGPEDIA_URL + '/thingpedia/apps/by-tag/' + tag.tag) ##{tag.tag}
                 | &#x20;
             p
-              a(href='/thingpedia/apps/' + app.id)= _("Show code")
+              a(href=THINGPEDIA_URL + '/thingpedia/apps/' + app.id)= _("Show code")
           div.panel-footer
             div.row
               div.col-md-6
                 if visible
-                  form.form-inline(action="/thingpedia/apps/set-invisible/" + app.id,method="post")
+                  form.form-inline(action=THINGPEDIA_URL + "/thingpedia/apps/set-invisible/" + app.id,method="post")
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-sm.btn-success.btn-block= _("Hide from Collection")
                 else
-                  form.form-inline(action="/thingpedia/apps/set-visible/" + app.id,method="post")
+                  form.form-inline(action=THINGPEDIA_URL + "/thingpedia/apps/set-visible/" + app.id,method="post")
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-sm.btn-success.btn-block= _("Publish")
               div.col-md-6

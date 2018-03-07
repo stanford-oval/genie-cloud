@@ -52,8 +52,11 @@ function normalizePrimitive(json) {
 }
 
 function normalize(json) {
-    if (json.rule)
+    if (json.rule) {
+        if (json.rule.rule)
+            json.rule = json.rule.rule;
         return normalize(json.rule);
+    }
 
     let fncount = 0;
     if (json.trigger) {
@@ -107,7 +110,7 @@ function main() {
         let done = false;
         return (function loop() {
             return db.withTransaction((dbClient) => {
-                return db.selectAll(dbClient, "select id,target_json from example_utterances where id > ? and language = ? and type not in ('ifttt','obsolete') and is_base = 0 order by id asc limit ? for update", [minId, language, BATCH_SIZE])
+                return db.selectAll(dbClient, "select id,target_json from example_utterances where id > ? and language = ? and type not in ('ifttt','obsolete') and is_base = 0 and type like '%generated%' order by id asc limit ? for update", [minId, language, BATCH_SIZE])
                     .then((rows) => {
                         if (rows.length === 0) {
                             done = true;

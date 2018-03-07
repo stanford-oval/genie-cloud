@@ -2,7 +2,9 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -20,6 +22,7 @@ const rpc = require('transparent-rpc');
 const user = require('../model/user');
 const db = require('../util/db');
 const ThingpediaClient = require('../util/thingpedia-client');
+const Config = require('../config');
 
 class ChildProcessSocket extends stream.Duplex {
     constructor(child) {
@@ -280,7 +283,10 @@ class EngineManager extends events.EventEmitter {
             process.on('engine-removed', onRemoved);
             process.on('exit', die);
 
-            obj.thingpediaClient = new ThingpediaClient(user.developer_key, user.locale);
+            if (Config.WITH_THINGPEDIA === 'embedded')
+                obj.thingpediaClient = new ThingpediaClient(user.developer_key, user.locale);
+            else
+                obj.thingpediaClient = null;
             return process.runEngine(user, obj.thingpediaClient);
         });
     }

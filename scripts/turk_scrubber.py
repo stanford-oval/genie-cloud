@@ -16,10 +16,10 @@ def scrubber(rule_type, row):
     if status == 'clean':
         return True, paraphrase.info()
     else:
-        print status
-        print paraphrase.ttid
-        print paraphrase.synthetic
-        print paraphrase.paraphrase
+        print(status)
+        print(paraphrase.ttid)
+        print(paraphrase.synthetic)
+        print(paraphrase.paraphrase)
         return False, paraphrase.dropped_info(status)
 
 
@@ -39,8 +39,7 @@ class Paraphrase:
         self.tt = target_tt
         self.args = self._extract_args()
         self.synthetic = synthetic
-        self.set = 'train' if coin(0.7) else 'test'
-        
+
     def _extract_args(self):
         """ extract argument types and values from parsed json
         """
@@ -49,21 +48,32 @@ class Paraphrase:
         arg_types = ['String', 'URL', 'EmailAddress', 'Username', 'Hashtag']
 
         if self.rule_type == 'command':
-            if 'rule' in self.json:
-                parsed = self.json['rule']
+            top = self.json
+            if 'setup' in self.json:
+                top = self.json['setup']
+                if 'person' in top:
+                    args['__person'].append(top['person'])
+            if 'rule' in top:
+                parsed = top['rule']
                 self.type = 'compound'
             else:
                 self.type = 'primitive'
-                parsed = self.json
+                parsed = top
         else:
-            parsed = self.json['access']
-            if 'person' in parsed:
-                args['person'].append(parsed['person'])
+            top = self.json['access']
+            if 'person' in top:
+                args['__person'].append(top['person'])
+            if 'rule' in top:
+                parsed = top['rule']
+                self.type = 'compound'
+            else:
+                self.type = 'primitive'
+                parsed = top
 
         for t in cmd_types:
             if t in parsed:
                 if 'person' in parsed[t]:
-                    args['person'].append(parsed[t]['person'])
+                    args['__person'].append(parsed[t]['person'])
                 for arg in parsed[t]['args']:
                     if arg['type'] in arg_types:
                         args[arg['type']].append(arg['value']['value'].lower())
@@ -234,7 +244,7 @@ class Paraphrase:
         """ fix the person name
         """
         in_paraphrase = self._extract_usernames()
-        in_json = [str(s) for s in self.args['Username'] + self.args['person']]
+        in_json = [str(s) for s in self.args['Username'] + self.args['__person']]
         if len(in_json) == 1 and len(in_paraphrase) == 1:
             self.paraphrase = self.paraphrase.replace(in_paraphrase[0], in_json[0])
         elif len(in_json) == 1 and len(in_paraphrase) == 0 and in_json[0] in self.paraphrase:
@@ -245,6 +255,8 @@ class Paraphrase:
     def cleaned(self):
         """ check if the paraphrase is cleaned
         """
+        if not self._check_underscores():
+            return 'underscores'
         if not self._check_links():
             return 'links'
         if not self._check_quotes_paring():
@@ -259,6 +271,8 @@ class Paraphrase:
             return 'users'
         return 'clean'
 
+    def _check_underscores(self):
+        return '__' not in self.paraphrase
 
     def _is_correctly_quoted(self):
         """ check if a paraphrase has correct quoting
@@ -284,7 +298,7 @@ class Paraphrase:
         """ check if a paraphrase has correct username followed by @
         """
         in_paraphrase = self._extract_usernames()
-        in_json = self.args['Username'] + self.args['person']
+        in_json = self.args['Username'] + self.args['__person']
         if set(in_paraphrase) == set(in_json):
             return True
         else:

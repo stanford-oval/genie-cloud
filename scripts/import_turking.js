@@ -2,7 +2,9 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2016 Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2016 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
@@ -21,13 +23,12 @@ const tokenizer = require('../util/tokenize');
 
 var insertBatch = [];
 
-function makeType(testTrain, primCompound, nparams) {
-    //return (testTrain === 'test' ? 'test3' : 'turking3') + '-' + (primCompound === 'compound' ? 'compound' : 'prim') + nparams;
-    return 'generated-cheatsheet';
+function coin(bias) {
+    return Math.random() < bias;
 }
 
-function insert(dbClient, utterance, testTrain, primCompound, nparams, target_json) {
-    insertBatch.push(['en', makeType(testTrain, primCompound, nparams), utterance, target_json, -1]);
+function insert(dbClient, utterance, type, target_json) {
+    insertBatch.push(['en', type, utterance, target_json, -1]);
     if (insertBatch.length < 100)
         return;
 
@@ -43,36 +44,46 @@ function finishBatch(dbClient) {
         "insert into example_utterances(language,type,utterance,target_json,click_count) values ?", [insertBatch]);
 }
 
-function maybeInsert(dbClient, utterance, testTrain, primCompound, nparams, target_json) {
-    if (utterance.length < 25)
-        return Q();
+function parseAndTypecheck(isPermission, code, schemas) {
+    let parse, typecheck;
 
-    utterance = utterance.replace(/[,.]"/g, '"').replace(/[\n\t]+/g, ' ');
-    return insert(dbClient, utterance, testTrain, primCompound, nparams, target_json);
+    if (isPermission) {
+        parse = ThingTalk.Grammar.parsePermissionRule;
+        typecheck = ThingTalk.Generate.typeCheckPermissionRule;
+    } else {
+        parse = ThingTalk.Grammar.parse;
+        typecheck = ThingTalk.Generate.typeCheckProgram;
+    }
+
+    let prog = parse(code);
+    return typecheck(prog, schemas).then(() => prog);
 }
 
 function main() {
-    db.withTransaction((dbClient) => {
-        var promises = [];
-        var schemas = new SchemaRetriever(dbClient, 'en-US', true);
+    const isPermission = process.argv[3] === 'permissions';
+    const typePrefix = process.argv[2];
+    if (!typePrefix)
+        throw new Error('Must specify the type of dataset (eg turking1 or policy2 or setup2)');
+    const testProbability = parseFloat(process.argv[4]) || 0.1;
 
-        var parser = csv.parse({ columns: null, delimiter: '\t' });
+    db.withTransaction((dbClient) => {
+        let promises = [];
+        const schemas = new SchemaRetriever(dbClient, 'en-US', true);
+
+        const parser = csv.parse();
         process.stdin.pipe(parser);
-        //var output = fs.createWriteStream(process.argv[2]);
-        //var writer = csv.stringify({ delimiter: '\t' });
-        //writer.pipe(output);
 
         return Q.Promise((callback, errback) => {
             parser.on('data', (row) => {
-                //var id = row[0];
-                var tt = row[1];
-                //var original = row[2];
-                //var useful = row[3];
-                //var utterances = row.slice(2);
-                var utterance = row[0];
-                var testTrain = row[3];
-                var primCompound = row[4];
-                var nparams = row[5];
+                let id = row[0];
+                let original = row[1];
+                let utterance = row[2];
+                let tt = row[3];
+                let testTrain;
+                if (coin(testProbability))
+                    testTrain = '-test';
+                else
+                    testTrain = '-train';
 
                 //if (tokenizer.tokenize(utterance).length < 3)
                 //    return;
@@ -81,7 +92,7 @@ function main() {
                     if (tt.startsWith('{'))
                         return ThingTalk.SEMPRESyntax.parseToplevel(schemas, JSON.parse(tt));
                     else
-                        return ThingTalk.Grammar.parseAndTypecheck(schemas, tt);
+                        return parseAndTypecheck(isPermission, tt, schemas);
                 }).then((prog) => {
                     let json_str;
                     if (tt.startsWith('{')) {
@@ -90,7 +101,7 @@ function main() {
                         let json = ThingTalk.SEMPRESyntax.toSEMPRE(prog, false);
                         json_str = JSON.stringify(json);
                     }
-                    return insert(dbClient, utterance, testTrain, primCompound, nparams, json_str);
+                    return insert(dbClient, utterance, typePrefix + testTrain, json_str);
                 }).catch((e) => {
                     console.error('Failed to verify ' + tt + '   :' + e.message);
                     // die uglily to fail the transaction
