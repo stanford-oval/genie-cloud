@@ -48,3 +48,7 @@
   text-align: center;
   font-size: 36px;
 }
+
+#team-profile-monica + .team-profile-text {
+  margin: auto;
+}
