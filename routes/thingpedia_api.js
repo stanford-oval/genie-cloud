@@ -15,6 +15,7 @@ const csv = require('csv');
 const crypto = require('crypto');
 
 const db = require('../util/db');
+const deviceModel = require('../model/device');
 const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
 
@@ -116,6 +117,59 @@ router.get('/devices', (req, res) => {
         res.json(obj);
     }).catch((e) => {
         console.error('Failed to retrieve device factories: ' + e.message);
+        console.error(e.stack);
+        res.status(500).send('Error: ' + e.message);
+    }).done();
+});
+
+router.get('/devices/all', (req, res) => {
+    var page = req.query.page;
+    if (page === undefined)
+        page = 0;
+    page = parseInt(page);
+    if (isNaN(page) || page < 0)
+        page = 0;
+
+    db.withClient((dbClient) => {
+        return deviceModel.getAll(dbClient, page * 9, 10);
+    }).then((devices) => {
+        var kinds = new Set;
+        devices = devices.filter((d) => {
+            if (kinds.has(d.primary_kind))
+                return false;
+            kinds.add(d.primary_kind);
+            return true;
+        });
+        res.cacheFor(86400000);
+        res.json({ devices });
+    }).catch((e) => {
+        console.error('Failed to retrieve device list: ' + e.message);
+        console.error(e.stack);
+        res.status(500).send('Error: ' + e.message);
+    }).done();
+});
+
+router.get('/devices/search', (req, res) => {
+    var q = req.query.q;
+    if (!q) {
+        res.status(300).json({ error: 'missing query' });
+        return;
+    }
+
+    db.withClient((dbClient) => {
+        return deviceModel.getByFuzzySearch(dbClient, q);
+    }).then((devices) => {
+        var kinds = new Set;
+        devices = devices.filter((d) => {
+            if (kinds.has(d.primary_kind))
+                return false;
+            kinds.add(d.primary_kind);
+            return true;
+        });
+        res.cacheFor(86400000);
+        res.json({ devices });
+    }).catch((e) => {
+        console.error('Failed to retrieve device list: ' + e.message);
         console.error(e.stack);
         res.status(500).send('Error: ' + e.message);
     }).done();

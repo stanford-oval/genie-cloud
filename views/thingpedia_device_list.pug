@@ -5,58 +5,83 @@ block scripts
 
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+  link(rel='stylesheet', href='/stylesheets/almond.css')
 
 block page_name
-  - index = true;
-  = _("Supported Devices")
+  - stdlayout = false;
+  = _("Thingpedia")
 
 block content
-  h1= page_h1
+  //h1= page_h1
 
-  div.navbar.navbar-default#device-list-navbar
-    form.navbar-form.navbar-left(action='/thingpedia/devices/search',method='get')
-      div.form-group
-        input.form-control#device-search-box(type='text', name='q', placeholder=_("I want to find a device..."))
-        button.btn.btn-primary(type="submit")= _("Search")
+  section.divider#section-heading
+      h1#almond-title Thingpedia
+      h2#almond-subtitle The Open API Repository
 
-  div.row
-    each dev, i in devices.slice(0, 18)
-      if i % 6 === 0
-        div.clearfix.visible-lg.visible-md
-      else if i % 3 === 0
-        div.clearfix.visible-lg
-      else if i % 2 === 0
-        div.clearfix.visible-md
-      div.col-lg-4.col-md-6.dev-template
-        div.panel.panel-default
-          a(href='/thingpedia/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
-          div.panel-body
-            p.device-icon-small
-              img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
-            p=dev.description
-          if authenticated && (user.developer_status >= 3 || dev.owner === user.developer_org)
-            div.panel-footer
-              div.row
-                div.col-md-6
-                  a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id)= _("Update")
+  div.sections
+    section.divider
+      h3= _("What is Thingpedia?")
 
-                div.col-md-6
-                  form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
-                    input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
+    section.divider
+      h3= _("Supported Services")
 
-  nav
-    ul.pager
-      if page_num > 0
-        li
-          a(href='/thingpedia/devices?page=' + (page_num-1))= _("Previous")
-      if devices.length > 18
-        li
-          a(href='/thingpedia/devices?page=' + (page_num+1))= _("Next")
+      div.container
+        div.row
+          div.col-xs-12
+            div.navbar.navbar-default#device-list-navbar
+              form.navbar-form.navbar-left(action='/thingpedia/devices/search',method='get')
+                div.form-group
+                  input.form-control#device-search-box(type='text', name='q', placeholder=_("I want to find a device..."))
+                  button.btn.btn-primary(type="submit")= _("Search")
 
-  div.row
-    div.col-sm-6.col-md-3
-      a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload new device")
-    if authenticated && user.developer_status >= 3
-      div.col-sm-6.col-md-3
-        a(href='/thingpedia/schemas/create').btn.btn-default.btn-block= _("Create a new type")
+        div.row
+          each dev, i in devices.slice(0, 18)
+            if i % 6 === 0
+              div.clearfix.visible-lg.visible-md
+            else if i % 3 === 0
+              div.clearfix.visible-lg
+            else if i % 2 === 0
+              div.clearfix.visible-md
+            div.col-lg-4.col-md-6.dev-template
+              div.panel.panel-default
+                a(href='/thingpedia/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
+                div.panel-body
+                  p.device-icon-small
+                    img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
+                  p=dev.description
+                if authenticated && (user.developer_status >= 3 || dev.owner === user.developer_org)
+                  div.panel-footer
+                    div.row
+                      div.col-md-6
+                        a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id)= _("Update")
+
+                      div.col-md-6
+                        form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
+                          input(type='hidden',name='_csrf',value=csrfToken)
+                          button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
+
+        div.row
+          div.col-xs-12
+            nav
+              ul.pager
+                if page_num > 0
+                  li
+                    a(href='/thingpedia/devices?page=' + (page_num-1))= _("Previous")
+                if devices.length > 18
+                  li
+                    a(href='/thingpedia/devices?page=' + (page_num+1))= _("Next")
+
+    section.divider
+      h3= _("Contribute to Thingpedia")
+
+      div.container
+        div.row
+          if authenticated && user.developer_status >= 1
+              div.col-sm-6.col-md-3
+                a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload new device")
+              if user.developer_status >= 3
+                div.col-sm-6.col-md-3
+                  a(href='/thingpedia/schemas/create').btn.btn-default.btn-block= _("Create a new type")
+          else
+            div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+              a(href='/user/request-developer').btn.btn-primary.btn-block= _("Become a Thingpedia Developer")
