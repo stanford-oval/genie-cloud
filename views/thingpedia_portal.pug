@@ -1,0 +1,60 @@
+extends layout
+
+block scripts
+  script(src='/javascripts/thingpedia-portal.js')
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+
+block page_name
+  - stdlayout = false;
+  = _("Thingpedia")
+
+block content
+  section.divider#section-heading
+      h1#almond-title Thingpedia
+      h2#almond-subtitle The Open API Repository
+
+  div.sections
+    section.divider
+      h3= _("What is Thingpedia?")
+
+    section.divider
+      h3= _("Supported Services")
+
+      div.container
+        div.row
+          div.col-xs-12
+            div.navbar.navbar-default#device-list-navbar
+              form.navbar-form.navbar-left
+                div.form-group
+                  input.form-control#device-search-box(type='text', name='q', placeholder=_("I want to find a device..."))
+                  button.btn.btn-primary#device-search-button= _("Search")
+                div.form-group
+                  button.btn.btn-primary#device-reset-button= _("Reset")
+
+        div.row#devices-container
+
+        div.row
+          div.col-xs-12
+            nav
+              ul.pager
+                li#devices-page-prev
+                  a(href='/thingpedia/devices?page=' + (page_num-1))= _("Previous")
+                li#devices-page-next
+                  a(href='/thingpedia/devices?page=' + (page_num+1))= _("Next")
+
+    section.divider
+      h3= _("Contribute to Thingpedia")
+
+      div.container
+        div.row
+          if authenticated && user.developer_status >= 1
+              div.col-sm-6.col-md-3
+                a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload new device")
+              if user.developer_status >= 3
+                div.col-sm-6.col-md-3
+                  a(href='/thingpedia/schemas/create').btn.btn-default.btn-block= _("Create a new type")
+          else
+            div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+              a(href='/user/request-developer').btn.btn-primary.btn-block= _("Become a Thingpedia Developer")

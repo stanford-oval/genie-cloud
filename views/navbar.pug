@@ -8,11 +8,11 @@ ul.nav.navbar-nav
       a(href='/me/conversation')= _("Web Almond")
   if WITH_THINGPEDIA === 'embedded'
     li
+      a(href='/thingpedia')= _("Thingpedia")
+    li
       a(href='/thingpedia/cheatsheet')= _("Cheatsheet")
     //li
       a(href='/thingpedia/training')= _("Train Almond")
-    li
-      a(href='/thingpedia')= _("Thingpedia")
     li
       a(href='/thingpedia/developers')= _("Developers")
   if authenticated && user.roles & 0x1

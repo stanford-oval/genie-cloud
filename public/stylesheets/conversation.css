@@ -80,9 +80,9 @@
   max-height: 600px;
 }
 
-#conversation-single {
+#conversation.single {
   height: calc(100vh - 243px);
-  max-height: auto;
+  max-height: none;
 }
 
 #conversation .message-rdl-title {
