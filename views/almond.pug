@@ -1,0 +1,158 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/index.css')
+  link(rel='stylesheet', href='/stylesheets/almond.css')
+  link(rel='stylesheet', href='/stylesheets/conversation.css')
+
+block page_name
+  - stdlayout = false;
+  | Almond
+
+block content
+  div#page-body
+    section.divider#section-heading
+      h1#almond-title Almond
+      h2#almond-subtitle The Open Virtual Assistant
+
+      p
+        a(href='#section-try-now').scroller.btn.btn-primary= _("Try it now")
+
+    div.sections
+      section.divider
+        h3= _("Open & Crowdsourced")
+        div.container
+          div.row
+            div.col-md-6
+              p
+                |  Almond draws its power from the crowdsourced <a href='/thingpedia'>Thingpedia</a>, an open collection of Web and Internet
+                |  of Things APIs.
+                |  Anyone can contribute support for the favorite service, with few lines of code and a handful of natural language sentences.
+
+              p Thingpedia supports more than 40 different services, accounts and IoT devices.
+
+              p
+                |  Almond is free software, and is available on <a href='https://github.com/Stanford-Mobisocial-IoT-Lab'>Github</a>. You can download, distribute or modify Almond as you see fit.
+            div.col-md-6
+              img(src='/images/thingpedia-icon-cloud.png',alt=_("The logos of the services supported by Almond"))#thingpedia-icon-cloud
+      section.divider
+        h3= _("Unprecedented Expressivity")
+        div.container
+          div.row
+            div.col-md-6#multi-color-example
+              p.box
+                span.black When the
+                span.blue  Bitcoin
+                span.red  price reaches $20,000
+                span.black ,
+                span.blue  search for
+                span.black  a
+                span.purple  “Bitcoin”
+                span.blue  picture
+                span.black , and
+                span.blue  tweet
+                span.green  it
+                span.black  with
+                span.purple  caption “I am rich!”
+              p.arrow ⇓
+              p.box
+                span.black
+                  code monitor
+                span.blue  @bitcoin.get_price()
+                span.black
+                  code  on
+                span.red  price &ge; $20000
+                span.black  ⇒
+                span.blue  @bing.image_search
+                span.black (
+                span.purple "bitcoin"
+                span.black ) ⇒
+                span.blue  @twitter.post
+                span.black (
+                span.green @bing.picture
+                span.black ,
+                span.purple  "I am rich!"
+                span.black )
+            div.col-md-6
+              p Almond is the world first virtual assistant to support <i>compound commands</i> in natural language.
+              p
+                | In Almond, you can combine multiple services into a single command, with powerful filtering and passing of data from one to another.
+                | Do away with the complex UIs of IFTTT or Zapier - in Almond the power is ready for you to type.
+              p <a href='#section-try-now'>Try now</a>: “get Washington Post articles published in the last 2 hours”, ”translate tweets from @... to my language”
+      section.divider
+        h3= _("Respects Your Privacy")
+        div.container
+          div.row
+            div.col-md-6
+              p Almond is
+              p Bla
+              p Bla
+            div.col-md-6
+              span The cloud of icons
+      section.divider#section-try-now
+        h3= _("Try Almond now")
+        div.container
+          div.row
+            div.col-xs-12
+              div#conversation(data-target='/me/api/conversation?anonymous=1')
+                div#chat
+                div#input-block
+                  span(role='button').hidden#cancel
+                    span(aria-hidden='true').glyphicon.glyphicon-remove-circle
+                    span.sr-only= _("Cancel")
+                  form(action='#')#input-form
+                    label(for='#chat-input').sr-only= _("Command:")
+                    input(type='text',placeholder=_("Write your command or answer here")).form-control#input
+
+      section.divider#section-get-almond
+        h3= _("Getting Almond")
+        div.container
+          div.row
+            div.col-md-6.col-md-offset-3
+              a(href='/user/register').btn.btn-primary.btn-block= _("Create An Account for Web Almond")
+          div.row
+            div.col-md-6.col-md-offset-3
+              a(href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine').btn.btn-primary.btn-block= _("Get Almond on your Phone")
+
+      section.divider#team
+        h3= _("Our Team")
+        div.container
+          div.row
+            div.col-md-8.col-md-offset-2
+              div.team-profile-wrap
+                div#team-profile-monica
+
+                div.team-profile-text
+                  h4.profile-name Monica Lam
+                  p Monica Lam is a Professor in the Computer Science Department at Stanford University since 1988. She received a B.Sc. from University of British Columbia in 1980 and a Ph.D. in Computer Science from Carnegie Mellon University in 1987. She is the Faculty Director of the Stanford MobiSocial Computing Laboratory and a co-PI in the POMI (Programmable Open Mobile Internet) 2020 project, which is an NSF Expedition started in 2008.
+
+          div.row#team-profile-second-row
+            div.col-md-4.col-lg-3
+              div.team-profile-mid#team-profile-mid-giovanni
+              div
+                h6.team-profile-mid-text.profile-name Giovanni Campagna
+                p.team-profile-mid-text.team-profile-mid-des CS PhD, platform backend development
+
+            div.col-md-4.col-lg-3
+              div.team-profile-mid#team-profile-mid-rakesh
+              div
+                h6.team-profile-mid-text.profile-name Rakesh Ramesh
+                p.team-profile-mid-text.team-profile-mid-des EE PhD, natural language frontend
+
+            div.col-md-4.col-lg-3
+              div.team-profile-mid#team-profile-mid-silei
+              div
+                h6.team-profile-mid-text.profile-name Silei Xu
+                p.team-profile-mid-text.team-profile-mid-des CS PhD, Android platform development
+
+            div.col-md-4.col-lg-3
+              div.team-profile-mid#team-profile-mid-michael
+              div
+                h6.team-profile-mid-text.profile-name Michael Fischer
+                p.team-profile-mid-text.team-profile-mid-des CS PhD, UX design
+
+          div.row
+            div.col-sm-12
+              p.text-center
+                small Previous members of our team include Albert Chen, Zhiyang He, Jiaqi Xue,
+                  |  Aashna Garg, Jiwon Seo, Sadjad Fouladi and Reynis Vazquez. We thank them for their valuable support.

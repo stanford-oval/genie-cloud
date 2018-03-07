@@ -5,43 +5,60 @@ html
     meta(http-equiv="X-UA-Compatible",content="IE=edge")
     meta(name="viewport",content="width=device-width, initial-scale=1")
     title= page_title
-    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css',integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7",crossorigin="anonymous")
+    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css')
+    //,integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7",crossorigin="anonymous")
     link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css')
     link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic")
     link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
+    //link(rel='stylesheet', href='/stylesheets/agency.min.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
     block styles
     script(src="//code.jquery.com/jquery-1.11.2.min.js")
-    script(src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js",integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous")
+    script(src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
+    //,integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous")
     script(src='/javascripts/validator.min.js')
     script(src='/javascripts/jstz.min.js')
     script(src='/javascripts/shared.js')
     block scripts
 
   - var index = false;
-  body
-    nav.navbar.navbar-inverse.navbar-fixed-top(role="banner")
+  - var stdlayout = true;
+  body(data-icon-cdn=S3_CLOUDFRONT_HOST)
+    nav.navbar-inverse.navbar.navbar-fixed-top(role="banner")
       div.navbar-header
         button(class="navbar-toggle collapsed", data-toggle="collapse", data-target="#page-nav")
           span.sr-only Toggle navigation
           span.icon-bar
           span.icon-bar
           span.icon-bar
-        a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/') Thingpedia
-        span.navbar-icon-divider.hidden-xs.hidden-sm(aria-hidden='true')
-        a(href="https://www.stanford.edu").hidden-xs.hidden-sm
-          img.stanford(src="/images/SUSig_White_Seal_Stacked_Left.png", width='130', alt='Official Seal of Stanford University')
+        a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/') Almond
         span.navbar-brand.scroller.hidden-md.hidden-lg(aria-hidden='true')
           block page_name
 
       div.navbar-collapse.collapse(role="navigation")#page-nav
         include navbar.pug
 
-    div.container#page-body
-      if !index
-        div.row.hidden-xs.hidden-sm
-          h1.col-sm-12#page-title
-            block page_name
-      div.row
-        div.col-sm-12
-          block content
+    if stdlayout
+      div.container#page-body
+        if !index
+          div.row.hidden-xs.hidden-sm
+            h1.col-sm-12#page-title
+              block page_name
+        div.row
+          div.col-sm-12
+            block content
+    else
+      block content
+
+    footer
+      div.container
+        div.row
+          div.col-xs-12
+            p
+              small!= _("Almond and Thingpedia are part of a research project of the <a href='http://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> at Stanford University.")
+            p
+              small
+                != _("Almond is free software, distributed under the <a href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html'>GPLv2 license</a>. ")
+                a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud/issues')= _("Report a bug")
+                | &#x20;
+                a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud/ThingEngine').label.label-default Fork me on Github!

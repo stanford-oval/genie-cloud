@@ -1,17 +1,3 @@
-.navbar .stanford {
-    margin-left: -10px;
-    margin-right: 10px;
-    padding-top: 5px;
-}
-
-.navbar-icon-divider {
-    margin-left: -9px;
-    position: absolute;
-    margin-top: 11px;
-    height: 60%;
-    border-left: 2px solid white
-}
-
 #page-body {
     margin-top: 60px;
 }
@@ -108,4 +94,23 @@ pre, pre code {
     font-weight: bold;
     text-align: center;
     display: block;
+}
+
+footer {
+  margin-top: 1.5em;
+  padding-top: 1.5em;
+  background-color: #1a242f;
+  color: white;
+}
+
+/*#page-body p a:link:not(.btn), #page-body p a:visited:not(.btn) {
+  color: #2c3e50;
+  text-decoration: underline;
+}
+#page-body p a:hover:not(.btn) {
+  color: #f7c374;
+}*/
+
+body {
+  font-size: 16px;
 }

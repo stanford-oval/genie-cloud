@@ -34,9 +34,9 @@ router.get('/', function(req, res) {
     db.withClient((client) => {
         let devices;
         if (req.user && req.user.developer_status >= user.DeveloperStatus.ADMIN)
-            devices = model.getAll(client, page * 18, 19);
+            devices = model.getAll(client, page * 9, 10);
         else
-            devices = model.getAllApproved(client, page * 18, 19, req.user ? req.user.developer_org : null);
+            devices = model.getAllApproved(client, page * 9, 10, req.user ? req.user.developer_org : null);
         return devices.then((devices) => {
             res.render('thingpedia_device_list', { page_title: req._("Thingpedia - Supported Devices"),
                                                    page_h1: req._("Supported Devices"),

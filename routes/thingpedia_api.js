@@ -17,6 +17,7 @@ const db = require('../util/db');
 const device = require('../model/device');
 const app = require('../model/app');
 const user = require('../model/user');
+const deviceModel = require('../model/device');
 const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
 const organization = require('../model/organization');
@@ -125,7 +126,60 @@ router.get('/devices', function(req, res) {
     }).done();
 });
 
-router.get('/apps', function(req, res) {
+router.get('/devices/all', (req, res) => {
+    var page = req.query.page;
+    if (page === undefined)
+        page = 0;
+    page = parseInt(page);
+    if (isNaN(page) || page < 0)
+        page = 0;
+
+    db.withClient((dbClient) => {
+        return deviceModel.getAll(dbClient, page * 9, 10);
+    }).then((devices) => {
+        var kinds = new Set;
+        devices = devices.filter((d) => {
+            if (kinds.has(d.primary_kind))
+                return false;
+            kinds.add(d.primary_kind);
+            return true;
+        });
+        res.cacheFor(86400000);
+        res.json({ devices });
+    }).catch((e) => {
+        console.error('Failed to retrieve device list: ' + e.message);
+        console.error(e.stack);
+        res.status(500).send('Error: ' + e.message);
+    }).done();
+});
+
+router.get('/devices/search', (req, res) => {
+    var q = req.query.q;
+    if (!q) {
+        res.status(300).json({ error: 'missing query' });
+        return;
+    }
+
+    db.withClient((dbClient) => {
+        return deviceModel.getByFuzzySearch(dbClient, q);
+    }).then((devices) => {
+        var kinds = new Set;
+        devices = devices.filter((d) => {
+            if (kinds.has(d.primary_kind))
+                return false;
+            kinds.add(d.primary_kind);
+            return true;
+        });
+        res.cacheFor(86400000);
+        res.json({ devices });
+    }).catch((e) => {
+        console.error('Failed to retrieve device list: ' + e.message);
+        console.error(e.stack);
+        res.status(500).send('Error: ' + e.message);
+    }).done();
+});
+
+router.get('/apps', (req, res) => {
     var start = parseInt(req.query.start) || 0;
     var limit = Math.min(parseInt(req.query.limit) || 20, 20);
 
