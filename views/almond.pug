@@ -21,7 +21,8 @@ block content
             p=_("Almond lets you interact with your services and accounts in natural language, with flexibility and privacy.")
 
       p
-        a(href='#section-try-now').scroller.btn.btn-primary= _("Try it now")
+        //a(href='#section-try-now').scroller.btn.btn-primary= _("Try it now")
+        a(href='/me/conversation').scroller.btn.btn-primary= _("Try it now")
 
     div.sections
       section.divider
@@ -83,7 +84,7 @@ block content
               p
                 | In Almond, you can combine multiple services into a single command, with powerful filtering and passing of data from one to another.
                 | Do away with the complex UIs of IFTTT or Zapier - in Almond the power is ready for you to type.
-              p <a href='#section-try-now'>Try now</a>: “get Washington Post articles published in the last 2 hours”, ”translate tweets from @... to my language”
+              //p <a href='#section-try-now'>Try now</a>: “get Washington Post articles published in the last 2 hours”, ”translate tweets from @... to my language”
       section.divider
         h3= _("Respects Your Privacy (and That of Your Friends)")
         div.container
@@ -108,7 +109,7 @@ block content
               img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
               img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
 
-      section.divider#section-try-now
+      //section.divider#section-try-now
         h3= _("Try Almond now")
         div.container
           div.row
