@@ -31,9 +31,7 @@ router.get('/thingpedia', (req, res, next) => {
 });
 
 router.get('/about', (req, res, next) => {
-    res.render('about', {
-        page_title: req._("About Thingpedia")
-    });
+    res.redirect(301, '/');
 });
 
 router.get('/about/toc', (req, res, next) => {
