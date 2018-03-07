@@ -29,7 +29,8 @@ $(function() {
 
             var panelBody = $('<div>').addClass('panel-body');
             var deviceIconContainer = $('<p>').addClass('device-icon-small');
-            var deviceIcon = $('<img>').attr('src', S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png')
+            var deviceIcon = $('<img>');
+            deviceIcon.attr('src', S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png')
                 .attr("Icon for " + dev.name);
             deviceIconContainer.append(deviceIcon);
             panelBody.append(deviceIconContainer);
