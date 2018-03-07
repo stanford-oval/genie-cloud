@@ -1,46 +1,12 @@
-#section-heading {
-  background-color: #f7c374;
-  text-align: center;
-  padding-top: 5em;
-  padding-bottom: 5em;
-}
-
-#section-heading h1 {
-  font-size: 104px;
-  font-weight: bold;
-}
-
-#section-heading h2 {
-  font-size: 48px;
-  margin-bottom: 1em;
+#iframe-try-almond {
+  border: none;
+  width: 100%;
+  height: 500px;
 }
 
 #thingpedia-icon-cloud {
   display: block;
   width: 100%;
-}
-
-.sections > :nth-child(odd) {
-  background-color: white;
-}
-.sections > :nth-child(even) {
-  background-color: #f3f4f2;
-}
-.sections > .divider {
-  padding-top: 2em;
-  padding-bottom: 2em;
-}
-
-.divider h3 {
-  text-align: center;
-  font-size: 36px;
-  margin-bottom: 1.5em;
-}
-
-#iframe-try-almond {
-  border: none;
-  width: 100%;
-  height: 500px;
 }
 
 #section-get-almond a {

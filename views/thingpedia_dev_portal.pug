@@ -1,135 +1,178 @@
 extends layout
 
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia.css')
+
 block page_name
-  = _("Developer Portal")
+  - stdlayout = false;
+  = _("Almond Developer Portal")
 
 block content
-  if authenticated
-    h2= _("Status")
-    if isRunning
-      p= _("Your Almond is running. ")
-        a(href="/me/status")= _("More Details")
-        | .
+  div#page-body
+    h1.hidden-xs.hidden-sm#page-title.dev-portal-title
+      = _("Almond Developer Portal")
+
+    if authenticated
+      section.divider#section-almond-status
+        div.container
+          div.row
+            div.col-xs-12
+              if isRunning
+                div.alert.alert-default(role='alert')
+                  p= _("Your Almond is running. ")
+                    a(href="/me/status").btn.btn-primary.btn-sm= _("More Details")
+              else
+                div.alert.alert-danger(role='alert')
+                  p= _("Your Almond is dead. ")
+                    a(href="/me/status").btn.btn-primary.btn-sm= _("More Details")
+          if user.developer_org === null
+            div.row
+              div.col-xs-12.col-md-6.col-md-offset-3
+                a(href='/user/become-developer').btn.btn-primary.btn-block= _("Apply to be a Developer")
     else
-      p= _("Your Almond is dead. ")
-        a(href="/me/status")= _("More Details")
-        | .
+      section.divider#section-almond-status
+        div.container
+          div.row
+            div.col-xs-12.col-md-6.col-md-offset-3
+              a(href='/user/register').btn.btn-primary.btn-block= _("Apply to be a Developer")
 
-  h2= _("Thingpedia documentation")
+    div.sections
+      section.divider
+        h3= _("Thingpedia documentation")
 
-  ul
-    li
-      a(href='/thingpedia/developers/getting-started.md') Getting Started with Almond
-    li
-      a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
-    li
-      a(href='/thingpedia/developers/thingpedia-device-intro.md') Writing Interfaces for Thingpedia
-    li
-      a(href='/thingpedia/developers/thingtalk-reference.md') ThingTalk Reference
-    li
-      a(href='/thingpedia/developers/thingpedia-api.md') Thingpedia API Reference
-    li
-      a(href='/thingpedia/developers/my-api.md') Web Almond API Reference
+        div.container
+          div.row
+            div.col-xs-12
+              ul
+                li
+                  a(href='/thingpedia/developers/getting-started.md') Getting Started with Almond
+                li
+                  a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
+                li
+                  a(href='/thingpedia/developers/thingpedia-device-intro.md') Writing Interfaces for Thingpedia
+                li
+                  a(href='/thingpedia/developers/thingtalk-reference.md') ThingTalk Reference
+                li
+                  a(href='/thingpedia/developers/thingpedia-api.md') Thingpedia API Reference
+                li
+                  a(href='/thingpedia/developers/my-api.md') Web Almond API Reference
 
-  h2= _("Academic papers")
+      section.divider
+        h3= _("Academic papers")
 
-  ul
-    li
-      a(href='https://d1ge76rambtuys.cloudfront.net/papers/www17.pdf')
-        cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant
-      br
-      | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer and Monica S. Lam
-      br
-      | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, 2017.
+        div.container
+          div.row
+            div.col-xs-12
+              ul
+                li
+                  a(href='https://d1ge76rambtuys.cloudfront.net/papers/www17.pdf')
+                    cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant
+                  br
+                  | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer and Monica S. Lam
+                  br
+                  | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, 2017.
 
-  if authenticated && user.developer_org !== null
-    h2= _("Your Developer Organization")
+      if authenticated && user.developer_org !== null
+        section.divider
+          h3= _("Your Developer Organization")
 
-    if developer_org_name
-      p <b>#{_("Name:")}</b> #{developer_org_name}
+          div.container
+            div.row
+              div.col-xs-12
+                if developer_org_name
+                  p <b>#{_("Name:")}</b> #{developer_org_name}
 
-    p
-      b= _("Your role: ")
-      if user.developer_status == 0
-        = _("Tester")
-      else if user.developer_status == 1
-        = _("Developer")
-      else if user.developer_status == 2
-        = _("Trusted Dev")
-      else if user.developer_status == 3
-        = _("Administrator")
-    
-    p
-      b= _("Members: ")
-      = developer_org_members.map((m) => m.username).join(', ')
-        
-    h3= _("Your OAuth 2.0 Applications")
-    
-    if developer_oauth2_clients.length > 0
-      each client, i in developer_oauth2_clients
-        div.row
-          div.col-xs-12.col-md-6
-            div.panel.panel-default
-              p.panel-heading= client.name
-              div.panel-body
                 p
-                  b= _("Client ID: ")
-                  span= client.id
-                if user.developer_status > 0
-                  p
-                    b= _("Client Secret: ")
-                    span= client.secret
-    else
-      p= _("Your organization does not have any OAuth 2.0 Client IDs yet.")
+                  b= _("Your role: ")
+                  if user.developer_status == 0
+                    = _("Tester")
+                  else if user.developer_status == 1
+                    = _("Developer")
+                  else if user.developer_status == 2
+                    = _("Trusted Dev")
+                  else if user.developer_status == 3
+                    = _("Administrator")
 
-    if user.developer_status > 0
-      div.row
-        div.col-xs-12.col-md-6
-          div.panel.panel-default
-              p.panel-heading= _("Create a new OAuth 2.0 Client ID")
-              div.panel-body
-                form(action='/me/api/oauth2/clients/create', enctype='multipart/form-data', method='post', data-toggle='validator')
-                  input(type='hidden',name='_csrf',value=csrfToken)
-                  div.form-group
-                    label(for='new-oauth-name').control-label= _("Name")
-                    input(type='text',name='name').form-control#new-oauth-name
-                  
-                  div.form-group
-                    label(for='new-oauth-icon').control-label= _("Icon")
-                    input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#new-oauth-icon
-                  
-                  div.form-group
-                    button(type='submit').btn.btn-primary= _("Create")
+                p
+                  b= _("Members: ")
+                  = developer_org_members.map((m) => m.username).join(', ')
 
-    h3= _("Your Devices")
+        section.divider
+          h3= _("Your OAuth 2.0 Applications")
 
-    if developer_devices.length > 0
-      div.row
-        each dev, i in developer_devices
-          if i % 6 === 0
-            div.clearfix.visible-lg.visible-md
-          else if i % 3 === 0
-            div.clearfix.visible-lg
-          else if i % 2 === 0
-            div.clearfix.visible-md
-          div.col-lg-4.col-md-6.dev-template
-            div.panel.panel-default
-              a(href='/thingpedia/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
-              div.panel-body
-                p.device-icon-small
-                  img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
-                p=dev.description
-              div.panel-footer
+          div.container
+            if developer_oauth2_clients.length > 0
+              each client, i in developer_oauth2_clients
                 div.row
-                  div.col-md-6
-                    a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id)= _("Update")
+                  div.col-xs-12.col-md-10.col-md-offset-1
+                    div.panel.panel-default
+                      p.panel-heading= client.name
+                      div.panel-body
+                        p
+                          b= _("Client ID: ")
+                          span= client.id
+                        if user.developer_status > 0
+                          p
+                            b= _("Client Secret: ")
+                            span= client.secret
+            else
+              div.row
+                div.col-xs-12
+                  p= _("Your organization does not have any OAuth 2.0 Client IDs yet.")
 
-                  div.col-md-6
-                    form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
-                      input(type='hidden',name='_csrf',value=csrfToken)
-                      button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
-    else
-      p= _("Your organization does not own any device yet.")
-      
-   
+            if user.developer_status > 0
+              div.row
+                div.col-xs-12.col-md-10.col-md-offset-1
+                  div.panel.panel-default
+                      p.panel-heading= _("Create a new OAuth 2.0 Client ID")
+                      div.panel-body
+                        form(action='/me/api/oauth2/clients/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+                          input(type='hidden',name='_csrf',value=csrfToken)
+                          div.form-group
+                            label(for='new-oauth-name').control-label= _("Name")
+                            input(type='text',name='name').form-control#new-oauth-name
+                            span.help-block= _("This name will be shown on the authorization page")
+
+                          div.form-group
+                            label(for='new-oauth-icon').control-label= _("Icon")
+                            input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#new-oauth-icon
+
+                          div.form-group
+                            button(type='submit').btn.btn-primary= _("Create")
+
+        section.divider
+          h3= _("Your Devices")
+
+          div.container
+            if developer_devices.length > 0
+              div.row
+                each dev, i in developer_devices
+                  if i % 6 === 0
+                    div.clearfix.visible-lg.visible-md
+                  else if i % 3 === 0
+                    div.clearfix.visible-lg
+                  else if i % 2 === 0
+                    div.clearfix.visible-md
+                  div.col-lg-4.col-md-6.dev-template
+                    div.panel.panel-default
+                      a(href='/thingpedia/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
+                      div.panel-body
+                        p.device-icon-small
+                          img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
+                        p=dev.description
+                      div.panel-footer
+                        div.row
+                          div.col-md-6
+                            a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id)= _("Update")
+
+                          div.col-md-6
+                            form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
+                              input(type='hidden',name='_csrf',value=csrfToken)
+                              button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
+            else
+              div.row
+                div.col-xs-12
+                  p= _("Your organization does not own any device yet.")
+
+
 
