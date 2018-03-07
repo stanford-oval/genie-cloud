@@ -119,10 +119,12 @@ align-text@^0.1.1, align-text@^0.1.3:
 
 "almond@github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent#wip/ibase":
   version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent/tar.gz/10452bfd7d9e775bc6486900f6c7167ce7f8f8f5"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent/tar.gz/6b8aa379b5b1fa54806ad05db06e58855ce3d0ea"
   dependencies:
     adt "~0.7.2"
     q "~1.4.1"
+    thingpedia "github:Stanford-Mobisocial-IoT-Lab/thingpedia-api#wip/new-thingpedia"
+    thingtalk "github:Stanford-Mobisocial-IoT-Lab/ThingTalk#wip/new-thingtalk"
     uuid "^3.1.0"
 
 amdefine@>=0.0.4:
@@ -3875,9 +3877,19 @@ text-table@~0.2.0:
     tmp "0.0.31"
     xml2js "^0.4.17"
 
+"thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk#wip/new-thingtalk":
+  version "1.0.0"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/5fb52c68648a9be40cdc66f9a2e93803e06a9c04"
+  dependencies:
+    adt "~0.7.2"
+    byline "^5.0.0"
+    q "~1.4.1"
+    smtlib "^0.1.1"
+
 "thingtalk@github:Stanford-Mobisocial-IoT-Lab/thingtalk#wip/new-thingtalk":
   version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingtalk/tar.gz/e2915509a7973cf4edf7595a3dd2c9811ee29138"
+  uid "5fb52c68648a9be40cdc66f9a2e93803e06a9c04"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingtalk/tar.gz/5fb52c68648a9be40cdc66f9a2e93803e06a9c04"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
