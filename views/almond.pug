@@ -15,6 +15,11 @@ block content
       h1#almond-title Almond
       h2#almond-subtitle The Open Virtual Assistant
 
+      div.container
+        div.row
+          div.col-xs-12.col-md-6.col-md-offset-3
+            p=_("Almond lets you interact with your services and accounts in natural language, with flexibility and privacy.")
+
       p
         a(href='#section-try-now').scroller.btn.btn-primary= _("Try it now")
 
@@ -80,15 +85,28 @@ block content
                 | Do away with the complex UIs of IFTTT or Zapier - in Almond the power is ready for you to type.
               p <a href='#section-try-now'>Try now</a>: “get Washington Post articles published in the last 2 hours”, ”translate tweets from @... to my language”
       section.divider
-        h3= _("Respects Your Privacy")
+        h3= _("Respects Your Privacy (and That of Your Friends)")
         div.container
           div.row
             div.col-md-6
-              p Almond is
-              p Bla
-              p Bla
+              p
+                | Almond is the world first <i>Communicating Virtual Assistant</i>: through Almond you can interact not only
+                |  with your services, but also access that of your friends, family and colleagues.
+
+              p
+                | To protect your privacy, Almond allows you to set flexible access control policies, based on time of
+                | day, on your location, on the content of the request, or really on any information available to Almond.
+                | For example, your parents can monitor your security camera, <i>only if you're not home</i>, or <i>only
+                | at a certain time of the day</i>.
+
+              p
+                | Finally, to guarantee your privacy, Almond runs all its actions and computation locally. If you so choose,
+                | you can have your own installation of Almond in your phone or your laptop. If you use Web Almond, your
+                | data is encrypted and stored in a secure enclave not accessible by anybody else.
+
             div.col-md-6
-              span The cloud of icons
+              img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
+              img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
       section.divider#section-try-now
         h3= _("Try Almond now")
         div.container

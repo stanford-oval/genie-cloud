@@ -1,3 +1,10 @@
+#section-heading {
+  background-image: url(/images/almond-background.png);
+  background-size: cover;
+  background-position-x: center;
+  background-repeat: no-repeat;
+}
+
 #iframe-try-almond {
   border: none;
   width: 100%;
