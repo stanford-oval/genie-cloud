@@ -15,6 +15,9 @@ const csv = require('csv');
 const crypto = require('crypto');
 
 const db = require('../util/db');
+const device = require('../model/device');
+const app = require('../model/app');
+const user = require('../model/user');
 const deviceModel = require('../model/device');
 const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');

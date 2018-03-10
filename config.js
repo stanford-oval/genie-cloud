@@ -12,7 +12,7 @@
 // This can be an absolute URI ending in cloudfront.net, which enables the
 // S3 storage backend, or the exact string "/download", which enables the
 // local storage backend
-module.exports.S3_CLOUDFRONT_HOST = '/download';
+module.exports.S3_CLOUDFRONT_HOST = 'https://d1ge76rambtuys.cloudfront.net';
 module.exports.THINGENGINE_MANAGER_ADDRESS = './control';
 module.exports.THINGENGINE_DIRECT_ADDRESS = './direct';
 module.exports.BING_KEY = '76e02e969871428196e80ecfb364bf65';
@@ -26,4 +26,4 @@ module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu';
 // set to true if this is serving https://thingpedia.stanford.edu
 // (enables redirect from legacy domains and sets Strict-Transport-Security
 // headers)
-module.exports.IS_PRODUCTION_THINGPEDIA = false;
+module.exports.IS_PRODUCTION_THINGPEDIA = true;
