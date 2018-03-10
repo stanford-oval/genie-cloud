@@ -5,6 +5,10 @@ $(function() {
     var ttSchema = {
         type: 'object',
         required: false,
+            additionalProperties: {
+                type: 'any',
+                required: false
+            },
         properties: {
             args: {
                 type: 'array',
@@ -54,13 +58,6 @@ $(function() {
                 type: 'string',
                 title: 'Canonical Form',
             },
-            examples: {
-                type: 'array',
-                title: 'Example Commands',
-                items: {
-                    type: 'string',
-                }
-            }
         }
     };
     var fullSchema = {
@@ -81,7 +78,25 @@ $(function() {
                 type: 'object',
                 title: "Queries",
                 additionalProperties: ttSchema
-            }
+            },
+            examples: {
+                type: 'array',
+                title: 'Example Commands',
+                items: {
+                    type: 'object',
+                    title: 'Example',
+                    properties: {
+                        utterance: {
+                            type: 'string',
+                            title: 'Utterance'
+                        },
+                        program: {
+                            type: 'string',
+                            title: 'Program'
+                        }
+                    }
+                }
+            },
         }
     };
     var editor = new JSONEditor(element, {

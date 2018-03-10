@@ -12,7 +12,7 @@ const db = require('../util/db');
 const Q = require('q');
 
 function create(client, entity) {
-    var KEYS = ['name'];
+    var KEYS = ['name','has_ner_support'];
     KEYS.forEach(function(key) {
         if (entity[key] === undefined)
             entity[key] = null;
@@ -22,7 +22,7 @@ function create(client, entity) {
     });
     var marks = KEYS.map(function() { return '?'; });
 
-    return db.insertOne(client, 'insert into app(language,is_well_known,' + KEYS.join(',') + ') '
+    return db.insertOne(client, 'insert into entity_names(language,is_well_known,' + KEYS.join(',') + ') '
                         + 'values (\'en\', 0,' + marks.join(',') + ')', vals).then(function(id) {
                             entity.id = id;
                             return entity;
@@ -47,5 +47,9 @@ module.exports = {
 
     getValues(client, id) {
         return db.selectAll(client, "select distinct entity_value, entity_name from entity_lexicon where entity_id = ? and language = 'en'", [id]);
+    },
+
+    lookup(client, language, token) {
+        return db.selectAll(client, "select entity_id,entity_value,entity_canonical,entity_name from entity_lexicon where language = ? and token = ?", [language, token]);
     }
 }

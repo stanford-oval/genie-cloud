@@ -71,13 +71,13 @@ block content
   if schema.kind === 'thingengine-system'
     p= _("This type is a category marker for special pseudo-devices that are created and managed by the ThingSystem, and are invisible to the user.")
 
-  if schema.kind.startsWith('bluetooth-uuid-') || schema.kind.startsWith('upnp-')
+  if schema.kind_type === 'discovery'
     p
       = _("This type is a marker for discovery. ")
-      = _("It is used by a device to indicate a certain low-level capability, and has no triggers or actions of its own. ")
+      = _("It is used by a device to indicate a certain low-level capability, and has no actions of its own. ")
       != _("Most likely, you will find this type toghether with another more generic type, eg. <i>bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb</i>, indicating the A2DP Speaker capability, would be accompanied by <i>speaker</i>.")
 
-  if schema.kind_type === 'global'
+  if schema.kind_type === 'primary'
     p
       = _("This type belongs to a specific device, which can be configured and manipulated by recalling the type by name.")
 
@@ -129,28 +129,9 @@ block content
       for e in schema.examples
         li
           if authenticated && user.developer_status >= 3
-            span(title=e.target_json)= e.utterance
+            span(title=e.target_code || e.target_json)= e.utterance
           else
             span= e.utterance
-          if authenticated
-            | &#x20;
-            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).upvote-btn
-              span.glyphicon.glyphicon-thumbs-up(aria-hidden='true')
-              span.sr-only= _("Upvote")
-            | &#x20;
-            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).downvote-btn
-              span.glyphicon.glyphicon-thumbs-down(aria-hidden='true')
-              span.sr-only= _("Downvote")
-          if authenticated && user.developer_status >= 3 && e.type !== 'thingpedia'
-            | &#x20;
-            if e.click_count < 0
-              = _("Hidden")
-            else
-              a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).hide-example-btn
-                = _("Hide")
-            | &#x20;
-            a(href='#',data-example-id=e.id,data-csrfToken=csrfToken).delete-example-btn
-              = _("Delete")
   else
     p#no-commands= _("This type has no commands.")
 

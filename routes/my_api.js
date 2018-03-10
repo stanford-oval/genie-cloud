@@ -7,6 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const express = require('express');
@@ -34,6 +35,7 @@ const ALLOWED_ORIGINS = ['http://127.0.0.1:8080',
     'https://almond.stanford.edu', 'null'];
 
 function isOriginOk(req) {
+    return true;
     if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer'))
         return true;
     if (typeof req.headers['origin'] !== 'string')
@@ -252,16 +254,17 @@ class WebsocketAssistantDelegate {
 }
 WebsocketAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
 
-router.ws('/conversation', function(ws, req, next) {
+router.ws('/conversation', (ws, req, next) => {
     var user = req.user;
+    if (!user && req.query.anonymous === '1')
+        user = req.app.getAnonymousUser();
 
     Q.try(() => {
         return EngineManager.get().getEngine(user.id);
-    }).then(function(engine) {
+    }).then((engine) => {
         const onclosed = (userId) => {
-            if (userId === user.id) {
+            if (userId === user.id)
                 ws.close();
-            }
             EngineManager.get().removeListener('socket-closed', onclosed);
         };
         EngineManager.get().on('socket-closed', onclosed);
@@ -291,11 +294,13 @@ router.ws('/conversation', function(ws, req, next) {
                         var parsed = JSON.parse(data);
                         switch(parsed.type) {
                         case 'command':
-                            return conversation.handleCommand(parsed.text);
-                            break;
+                            conversation.handleCommand(parsed.text);
+                            return;
                         case 'parsed':
-                            return conversation.handleParsedCommand(parsed.json);
-                            break;
+                            conversation.handleParsedCommand(parsed.json);
+                            return;
+                        default:
+                            throw new Error('Invalid command type ' + parsed.type);
                         }
                     }).catch((e) => {
                         console.error(e.stack);
@@ -307,18 +312,6 @@ router.ws('/conversation', function(ws, req, next) {
         console.error('Error in conversation websocket: ' + error.message);
         ws.close();
     });
-});
-
-router.post('/timings', function(req, res, next) {
-    let sequenceId = crypto.randomBytes(32).toString('hex');
-    db.withTransaction((dbClient) => {
-        return db.insertOne(dbClient, 'insert into user_test_timings(sequence,source,tag,time) values ?',
-                  [req.body.map((el) => [sequenceId, el.source, el.tag, el.time])]);
-    }).then(() => {
-        res.json({"result":"ok"});
-    }, (error) => {
-        res.json({"error":error.message});
-    }).done();
 });
 
 module.exports = router;

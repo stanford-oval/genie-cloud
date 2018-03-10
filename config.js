@@ -19,7 +19,7 @@ module.exports.BING_KEY = '76e02e969871428196e80ecfb364bf65';
 
 // set this to 'embedded' to enable the embedded Thingpedia,
 // to 'external' to use the Thingpedia at THINGPEDIA_URL;
-module.exports.WITH_THINGPEDIA = 'external';
+module.exports.WITH_THINGPEDIA = 'embedded';
 // this is used to construct links to Thingpedia, eg from My Almond
 // it MUST be empty if the embedded Thingpedia is to be used
 module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu';

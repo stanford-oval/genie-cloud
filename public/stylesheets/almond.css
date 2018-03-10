@@ -1,0 +1,50 @@
+#section-heading {
+  background-image: url(/images/almond-background.png);
+  background-size: cover;
+  background-position-x: center;
+  background-repeat: no-repeat;
+}
+
+#iframe-try-almond {
+  border: none;
+  width: 100%;
+  height: 500px;
+}
+
+#thingpedia-icon-cloud {
+  display: block;
+  width: 100%;
+}
+
+#section-get-almond a {
+  margin-bottom: 1.5em;
+}
+
+#multi-color-example .black {
+  color: black;
+}
+#multi-color-example .blue {
+  color: blue;
+}
+#multi-color-example .red {
+  color: red;
+}
+#multi-color-example .purple {
+  color: purple;
+}
+#multi-color-example .green {
+  color: green;
+}
+#multi-color-example code {
+  color: inherit;
+  background-color: transparent;
+}
+
+#multi-color-example .box {
+  padding: 0.5em;
+  border: 2px solid black;
+}
+#multi-color-example .arrow {
+  text-align: center;
+  font-size: 36px;
+}

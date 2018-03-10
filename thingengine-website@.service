@@ -7,6 +7,7 @@ Requires=thingengine-cloud.service
 User=thingengine
 WorkingDirectory=/srv/thingengine
 EnvironmentFile=/etc/sysconfig/thingengine-cloud
+Environment=PORT=%I
 ExecStart=/usr/bin/node /opt/thingengine/main.js
 CapabilityBoundingSet=
 Restart=on-failure

@@ -1,9 +1,9 @@
-#input-form {
+#conversation #input-form {
   overflow: auto;
   display: block;
 }
 
-#cancel {
+#conversation #cancel {
   float: right;
   display: block;
   font-size: 24px;
@@ -12,17 +12,17 @@
   cursor: pointer;
 }
 
-#chat {
+#conversation #chat {
   margin-bottom: 1em;
 }
 
-.message-container {
+#conversation .message-container {
   display: block;
   overflow: auto;
   clear: both;
 }
 
-.message-container > img.icon {
+#conversation .message-container > img.icon {
   height: 48px;
   width: 48px;
   object-fit: contain;
@@ -30,13 +30,13 @@
   float: left;
 }
 
-.message-container.from-almond {
+#conversation .message-container.from-almond {
   width: 90%;
   text-align: left;
   margin-right: auto;
 }
 
-.message.from-user {
+#conversation .message.from-user {
   display: block;
   width: 90%;
   text-align: right;
@@ -48,7 +48,7 @@
   padding: 13px 24px 12px 24px;
 }
 
-.from-almond > .message {
+#conversation .from-almond > .message {
   display: block;
   overflow: auto;
   border-image-source: url(/images/bubble_almond.png);
@@ -57,32 +57,37 @@
   padding: 13px 24px 12px 24px;
 }
 
-.message {
+#conversation .message {
   display: block;
 }
 
-.message-picture {
+#conversation .message-picture {
   max-width: 80%;
 }
 
-.button-grid {
+#conversation .button-grid {
   width: 80%;
 }
 
-.button-grid .btn {
+#conversation .button-grid .btn {
   margin-bottom: 6px;
   white-space: normal;
 }
 
-#ui {
+#conversation {
   overflow: auto;
   height: auto;
-  max-height: calc(100vh - 64px);
+  max-height: 600px;
 }
 
-.message-rdl-title { 
+#conversation.single {
+  height: calc(100vh - 243px);
+  max-height: none;
+}
+
+#conversation .message-rdl-title {
   font-weight: bold;
 }
-.message-rdl-content {
+#conversation .message-rdl-content {
   display: block;
 }

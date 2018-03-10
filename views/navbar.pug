@@ -8,13 +8,11 @@ ul.nav.navbar-nav
       a(href='/me/conversation')= _("Web Almond")
   if WITH_THINGPEDIA === 'embedded'
     li
+      a(href='/thingpedia')= _("Thingpedia")
+    li
       a(href='/thingpedia/cheatsheet')= _("Cheatsheet")
-    li
-      a(href='/thingpedia/training')= _("Train Almond")
     //li
-      a(href="/thingpedia/apps")= _("App Collection")
-    li
-      a(href='/thingpedia/devices')= _("Supported Devices")
+      a(href='/thingpedia/training')= _("Train Almond")
     li
       a(href='/thingpedia/developers')= _("Developers")
   if authenticated && user.roles & 0x1
@@ -27,8 +25,6 @@ ul.nav.navbar-nav.navbar-right
       a(href="/user/profile")= _("Settings")
   li
     if authenticated
-      a.navbar-login(href='/user/logout')= _("Log Out")
+      a.navbar-login#navbar-login-button(href='/user/logout')= _("Log Out")
     else
-      a.navbar-login(href='/user/login')= _("Log In")
-  li
-    a#navbar-login-button(href='/about')= _("About")
+      a.navbar-login#navbar-login-button(href='/user/login')= _("Log In")
