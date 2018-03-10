@@ -105,12 +105,13 @@ align-text@^0.1.1, align-text@^0.1.3:
     longest "^1.0.1"
     repeat-string "^1.5.2"
 
-"almond@github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent#wip/ibase":
+"almond@github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent":
   version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent/tar.gz/6b8aa379b5b1fa54806ad05db06e58855ce3d0ea"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent/tar.gz/c0a4e063355265797ffd88a19db0ff86fc6ce7e1"
   dependencies:
     adt "~0.7.2"
-    q "~1.4.1"
+    thingpedia "github:Stanford-Mobisocial-IoT-Lab/thingpedia-api"
+    thingtalk "github:Stanford-Mobisocial-IoT-Lab/ThingTalk"
     uuid "^3.1.0"
 
 amdefine@>=0.0.4:
@@ -693,7 +694,7 @@ bindings@1.2.x, bindings@~1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.2.1.tgz#14ad6113812d2d37d72e67b4cacb4bb726505f11"
 
-bindings@~1.3.0:
+bindings@^1.2.1, bindings@~1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/bindings/-/bindings-1.3.0.tgz#b346f6ecf6a95f5a815c5839fc7cdb22502f1ed7"
 
@@ -1140,6 +1141,13 @@ csv@^1.1.0:
     csv-parse "^1.3.3"
     csv-stringify "^1.1.2"
     stream-transform "^0.2.2"
+
+cvc4@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/cvc4/-/cvc4-0.1.1.tgz#053b5536778cadb163c6341471860374e3c081de"
+  dependencies:
+    bindings "^1.2.1"
+    smtlib "^0.1.1"
 
 dashdash@^1.12.0:
   version "1.14.1"
@@ -3589,7 +3597,7 @@ sprintf-js@~1.0.2:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
 
-sqlite3@^3.1.1, sqlite3@^3.1.3:
+sqlite3@^3.1.1, sqlite3@^3.1.13, sqlite3@^3.1.3:
   version "3.1.13"
   resolved "https://registry.yarnpkg.com/sqlite3/-/sqlite3-3.1.13.tgz#d990a05627392768de6278bafd1a31fdfe907dd9"
   dependencies:
@@ -3739,9 +3747,9 @@ text-table@~0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
 
-"thingengine-core@github:Stanford-Mobisocial-IoT-Lab/thingengine-core#ibase":
+"thingengine-core@github:Stanford-Mobisocial-IoT-Lab/thingengine-core":
   version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/tar.gz/bf44f7714f608987d635d4c40c6a3a187dc08690"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/tar.gz/fb8cdc1b21627b682be17bbe264371548ae2d188"
   dependencies:
     adt "^0.7.2"
     babel-runtime "^6.26.0"
@@ -3749,9 +3757,11 @@ text-table@~0.2.0:
     ip "^1.1.5"
     matrix-js-sdk "^0.8.4"
     olm "https://matrix.org/packages/npm/olm/olm-2.2.2.tgz"
+    omlib "github:Stanford-Mobisocial-IoT-Lab/omclient"
     pouchdb-adapter-node-websql "^6.3.4"
     pouchdb-find "^6.3.4"
     q "^1.5.0"
+    sqlite3 "^3.1.13"
     tmp "0.0.31"
     uuid "^3.1.0"
     websql "^0.4.4"
@@ -3765,9 +3775,9 @@ text-table@~0.2.0:
     oauth "~0.9.14"
     q "~1.4.1"
 
-"thingpedia@github:Stanford-Mobisocial-IoT-Lab/thingpedia-api#wip/new-thingpedia":
+"thingpedia@github:Stanford-Mobisocial-IoT-Lab/thingpedia-api":
   version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-api/tar.gz/462c231b3e1504c3ea3cb1c89c797c3e9065c538"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-api/tar.gz/ffddd5ec25607f03c56038a6fb7e337c96cfa961"
   dependencies:
     ip "~1.1.0"
     oauth "~0.9.14"
@@ -3775,14 +3785,16 @@ text-table@~0.2.0:
     tmp "0.0.31"
     xml2js "^0.4.17"
 
-"thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk#wip/new-thingtalk":
+"thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
   version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/5fb52c68648a9be40cdc66f9a2e93803e06a9c04"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/36ac6d18935b0e5d607d855ebddb69da73085970"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
     q "~1.4.1"
     smtlib "^0.1.1"
+  optionalDependencies:
+    cvc4 "^0.1.1"
 
 through@^2.3.6:
   version "2.3.8"
