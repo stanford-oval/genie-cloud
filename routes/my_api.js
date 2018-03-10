@@ -294,11 +294,11 @@ router.ws('/conversation', (ws, req, next) => {
                         var parsed = JSON.parse(data);
                         switch(parsed.type) {
                         case 'command':
-                            conversation.handleCommand(parsed.text);
-                            return;
+                            return conversation.handleCommand(parsed.text);
                         case 'parsed':
-                            conversation.handleParsedCommand(parsed.json);
-                            return;
+                            return conversation.handleParsedCommand(parsed.json);
+                        case 'tt':
+                            return conversation.handleThingTalk(parsed.code);
                         default:
                             throw new Error('Invalid command type ' + parsed.type);
                         }
