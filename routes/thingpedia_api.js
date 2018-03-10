@@ -106,6 +106,10 @@ router.get('/devices/setup/:kinds', (req, res) => {
     }).done();
 });
 
+router.get('/devices/icon/:kind', (req, res) => {
+    res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/' + req.params.kind + '.png');
+});
+
 router.get('/devices', (req, res) => {
     if (req.query.class && ['online', 'physical', 'data',
             'media', 'social-network', 'home', 'communication',
