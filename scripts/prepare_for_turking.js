@@ -254,6 +254,7 @@ class SimpleSequenceLexer {
 }
 
 const BLACK_LIST_FUNCTION = new Set([
+    '@org.thingpedia.builtin.thingengine.builtin.get_commands',
     '@com.xkcd.what_if',
     '@heatpad.set_power',
     '@com.github.add_email',
@@ -466,6 +467,20 @@ function processOne(id, tokenizedsentence, code) {
 
 //const everything = [];
 
+const HIGH_VALUE_DEVICES = new Set([
+    '@com.gmail',
+    '@com.yandex',
+    '@org.thingpedia.weather',
+    '@org.thingpedia.icalendar',
+    '@org.thingpedia.builtin.thingengine.phone',
+    '@com.uber',
+    '@security-camera',
+    '@com.lg.tv',
+    '@com.bing',
+    '@com.twitter',
+    '@com.wsj'
+])
+
 const HIGH_VALUE_FUNCTIONS = new Set([
     '@us.sportradar.nba',
     '@com.twitter.home_timeline',
@@ -496,16 +511,20 @@ const HIGH_VALUE_FUNCTIONS = new Set([
     '@com.live.onedrive.upload_picture'
 ]);
 
-function main() {
-    const input = byline(process.stdin);
-    input.setEncoding('utf8');
-    const output = csv.stringify({ header: true, delimiter: '\t' });
-    const file = fs.createWriteStream(process.argv[2]);
-    output.pipe(file);
-    
-    const bags = new Map;
+function has_device(code) {
+    for (let device of HIGH_VALUE_DEVICES)
+        if (code.indexOf(device) > -1)
+            return true;
+    return false;
+}
 
-    input.on('data', (line) => {
+function remove_units(code) {
+    return code.replace(/unit:\S+/g, '');
+}
+
+function prepare_sample_by_sig(input, output) {
+    const bags = new Map;
+     input.on('data', (line) => {
         let [id, sentence, code] = line.split('\t');
         sentence = sentence.split(' ');
 
@@ -513,7 +532,6 @@ function main() {
             let result= processOne(id, sentence, code);
             if (!result)
                 return;
-                
             let functionsig = result.function_signature;
             if (!bags.has(functionsig))
                 bags.set(functionsig, []);
@@ -566,5 +584,56 @@ function main() {
     
         output.end();
     });
+}
+
+function prepare_sample_by_code(input, output) {
+    const bags = new Map;
+    input.on('data', (line) => {
+        let [id, sentence, code] = line.split('\t');
+        sentence = sentence.replace('hey almond ', '').replace('hey sabrian', '').replace('sabrina ', '').replace('almond ', '').split(' ');
+
+        try {
+            let result= processOne(id, sentence, code);
+            if (!result)
+                return;
+            if (result.function_signature.split('+').length > 1)
+                return; 
+
+            let unified = remove_units(code)
+            if (!bags.has(unified))
+                bags.set(unified, []);
+            bags.get(unified).push(result);
+        } catch(e) {
+            console.error(`Failed example ${id}\t${sentence}\t${code}`);
+            throw e;
+        }
+    });
+
+    input.on('end', () => {
+        for (let [code, choices] of bags) {
+            if (choices.length === 0)
+                continue;
+            if (has_device(code)) 
+                output.write(uniformSubset(1, choices)[0]);
+        }
+    
+        output.end();
+    });
+}
+
+function main() {
+    const input = byline(process.stdin);
+    input.setEncoding('utf8');
+    const output = csv.stringify({ header: true, delimiter: '\t' });
+    const file = fs.createWriteStream(process.argv[2]);
+    output.pipe(file);
+    
+    const by_signature = true;
+
+    if (by_signature)
+        prepare_sample_by_sig(input, output);
+    else
+        prepare_sample_by_code(input, output);
+   
 }
 main();
