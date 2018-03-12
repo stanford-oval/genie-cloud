@@ -103,6 +103,10 @@ function main() {
                            tokenizerService.tokenize(paraphrase)])
                 ).then(([prog, { tokens: preprocessed, entities }]) => {
                     let target_code = ThingTalk.NNSyntax.toNN(prog, entities);
+                    for (let name in entities) {
+                        if (name === '$used') continue;
+                        throw new Error('Unused entity ' + name);
+                    }
                     return insert(dbClient, typePrefix + testTrain, paraphrase, preprocessed, target_code);
                 }).catch((e) => {
                     console.error('Failed to verify ' + id + ' ' + paraphrase + '   :' + e.message);
