@@ -85,23 +85,16 @@ function main() {
                 else
                     testTrain = '-train';
 
-                //if (tokenizer.tokenize(utterance).length < 3)
-                //    return;
-
-                promises.push(Q.try(() => {
-                    if (tt.startsWith('{'))
-                        return ThingTalk.SEMPRESyntax.parseToplevel(schemas, JSON.parse(tt));
-                    else
-                        return parseAndTypecheck(isPermission, tt, schemas);
-                }).then((prog) => {
-                    let json_str;
-                    if (tt.startsWith('{')) {
-                        json_str = tt;
-                    } else {
-                        let json = ThingTalk.SEMPRESyntax.toSEMPRE(prog, false);
-                        json_str = JSON.stringify(json);
+                promises.push(Q.try(() =>
+                    Q.all([parseAndTypecheck(isPermission, thingtalk, schemas),
+                           tokenizerService.tokenize(paraphrase)])
+                ).then(([prog, { tokens: preprocessed, entities }]) => {
+                    let target_code = ThingTalk.NNSyntax.toNN(prog, entities);
+                    for (let name in entities) {
+                        if (name === '$used') continue;
+                        throw new Error('Unused entity ' + name);
                     }
-                    return insert(dbClient, utterance, typePrefix + testTrain, json_str);
+                    return insert(dbClient, typePrefix + testTrain, paraphrase, preprocessed, target_code);
                 }).catch((e) => {
                     console.error('Failed to verify ' + tt + '   :' + e.message);
                     // die uglily to fail the transaction
