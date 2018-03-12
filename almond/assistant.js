@@ -11,7 +11,6 @@
 
 const Q = require('q');
 const events = require('events');
-const util = require('util');
 
 const Almond = require('almond');
 const AlmondApi = require('./almond_api');
@@ -47,15 +46,15 @@ module.exports = class Assistant extends events.EventEmitter {
     }
 
     notifyAll(...data) {
-        return Q.all(Object.keys(this._conversations).map(function(id) {
+        return Q.all(Object.keys(this._conversations).map((id) => {
             return this._conversations[id].notify(...data);
-        }.bind(this)));
+        }));
     }
 
     notifyErrorAll(...data) {
-        return Q.all(Object.keys(this._conversations).map(function(id) {
+        return Q.all(Object.keys(this._conversations).map((id) => {
             return this._conversations[id].notifyError(...data);
-        }.bind(this)));
+        }));
     }
 
     getConversation(id) {
@@ -84,5 +83,5 @@ module.exports = class Assistant extends events.EventEmitter {
             this._lastConversation = null;
         delete this._conversations[feedId];
     }
-}
+};
 module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'parse', 'createApp', 'addOutput', 'removeOutput'];

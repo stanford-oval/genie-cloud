@@ -9,26 +9,21 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-const events = require('events');
-const util = require('util');
-
-const Almond = require('almond');
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Describe = ThingTalk.Describe;
+const Type = ThingTalk.Type;
+const Generate = ThingTalk.Generate;
+const { ParserClient, Intent, Formatter } = require('almond');
 
 const Config = require('../config');
 
-// FIXME move this somewhere better
-const SempreClient = require('almond/lib/sempreclient');
-const Intent = require('almond/lib/semantic').Intent;
-const Formatter = require('almond/lib/formatter');
+const FACTORING_IMPLEMENTED = false; // FIXME
 
 module.exports = class AlmondApi {
     constructor(engine) {
         this._engine = engine;
-        this._sempre = new SempreClient(undefined, engine.platform.locale);
+        this._parser = new ParserClient(undefined, engine.platform.locale);
         this._formatter = new Formatter(this._engine);
 
         this._outputs = new Set;
@@ -46,8 +41,8 @@ module.exports = class AlmondApi {
         this._outputs.delete(out);
     }
 
-    notify(appId, icon, outputType, outputValue, currentChannel) {
-        return this._formatter.formatForType(outputType, outputValue, currentChannel, 'messages').then((messages) => {
+    notify(appId, icon, outputType, outputValue) {
+        return this._formatter.formatForType(outputType, outputValue, 'messages').then((messages) => {
             this._sendWs({ result: {
                 appId: appId,
                 icon: icon ? Config.S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png' : null,
@@ -63,10 +58,12 @@ module.exports = class AlmondApi {
             appId: appId,
             icon: icon ? Config.S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png' : null,
             error: error
-        }})
+        }});
     }
 
     _findPrimaryIdentity() {
+        if (!this._engine.messaging.isAvailable)
+            return null;
         let identities = this._engine.messaging.getIdentities();
         var omletId = null;
         var email = null;
@@ -102,76 +99,76 @@ module.exports = class AlmondApi {
                 sharedPrefs.set('context-$context.location.' + loc, location.toJS());
             }
         }
+        if (!code)
+            return { error: 'Missing program' };
 
         return ThingTalk.Grammar.parseAndTypecheck(code, this._engine.schemas, true).then((program) => {
-            // step 1: list the primitives
-            let primitives = [];
-            program.rules.forEach((rule, i) => {
-                if (rule.trigger)
-                    primitives.push([`r${i}_t`, rule.trigger]);
-                rule.queries.forEach((query, j) => {
-                    primitives.push([`r${i}_q${j}`, query]);
-                })
-                rule.actions.forEach((action, j) => {
-                    if (!action.selector.isBuiltin)
-                        primitives.push([`r${i}_a${j}`, action]);
-                });
-            });
+            let i = 0;
+            return Promise.all(Array.from(Generate.iteratePrimitives(program)).map(([,prim]) => {
+                if (prim.selector.isBuiltin)
+                    return Promise.resolve();
 
-            // step 2, for each primitive...
-            return Promise.all(primitives.map(([primId, prim]) => {
-                return Promise.resolve().then(() => {
-                    if (prim.selector.principal) {
-                        if (prim.selector.principal.type == 'tt:contact_name') {
-                            let slot = slots[`principal_${primId}`];
-                            if (!slot)
-                                throw new TypeError(`missing slot principal_${primId}`);
-                            prim.selector.principal = Ast.Value.fromJSON(slot);
-                        }
-                        let messaging = this._engine.messaging;
-                        let principal = prim.selector.principal;
-                        if (principal.value.startsWith(messaging.type + '-account:'))
-                            return;
-                        return messaging.getAccountForIdentity(principal.value).then((account) => {
-                            if (account) {
-                                let accountPrincipal = messaging.type + '-account:' + account;
-                                console.log('Converted ' + principal.value + ' to ' + accountPrincipal);
-                                prim.selector.principal = Ast.Value.Entity(accountPrincipal, 'tt:contact', principal.display);
-                            }
-                            return true;
-                        });
-                    } else {
-                        if (prim.selector.id === null)
-                            prim.selector.id = devices[primId];
-                        if (typeof prim.selector.id !== 'string')
-                            throw new TypeError(`must select a device for primitive ${primId}`);
-                        /*if (!this._engine.devices.hasDevice(prim.selector.id)) {
-                            throw new TypeError(`invalid device ${prim.selector.id} for primitive ${primId}`);
-                        }*/
+                const primId = `p_${i}`;
+                i++;
+
+                if (prim.selector.principal) {
+                    let messaging = this._engine.messaging;
+                    let principal = prim.selector.principal;
+                    if (principal.isVarRef && principal.name.startsWith('__const_SLOT_')) {
+                        let slotValue = slots[principal.name.substring('__const_SLOT_'.length)];
+                        principal = prim.selector.principal = Ast.Value.fromJSON(Type.Entity('tt:contact'), slotValue);
+                    } else if (principal.isVarRef) {
+                        throw new TypeError(`invalid principal ${principal.name}`);
                     }
-                }).then(() => {
-                    let [toFill, toConcretize] = ThingTalk.Generate.computeSlots(prim);
-                    if (toFill.length > 0)
-                        throw new TypeError(`cannot have slots in this API, call /parse first`);
-                    for (let slot of toConcretize) {
-                        if (slot.value.isLocation && slot.value.value.isRelative) {
-                            let relativeTag = slot.value.value.relativeTag;
-                            if (relativeTag === 'current_location')
-                                slot.value = locations['current_location'] ? Ast.Value.fromJSON(ThingTalk.Type.Location, locations['current_location']) : null;
-                            else
-                                slot.value = this._resolveUserContext('$context.location.' + relativeTag);
-                            if (!slot.value)
-                                throw new TypeError(`missing location ${relativeTag} in primitive ${primId}`);
+                    if (principal.value.startsWith(messaging.type + '-account:'))
+                        return Promise.resolve();
+                    return messaging.getAccountForIdentity(principal.value).then((account) => {
+                        if (account) {
+                            let accountPrincipal = messaging.type + '-account:' + account;
+                            console.log('Converted ' + principal.value + ' to ' + accountPrincipal);
+                            prim.selector.principal = Ast.Value.Entity(accountPrincipal, 'tt:contact', principal.display);
                         }
-                    }
-                });
+                    });
+                } else {
+                    if (prim.selector.id === null)
+                        prim.selector.id = devices[primId];
+                    if (typeof prim.selector.id !== 'string')
+                        throw new TypeError(`must select a device for primitive ${primId}`);
+                    return Promise.resolve();
+                }
             })).then(() => {
-                let gettext = this._engine.platform.getCapability('gettext');
-                let description = Describe.describeProgram(gettext, program);
-                let name = Describe.getProgramName(gettext, program);
+                return Promise.all(Array.from(Generate.iterateSlots(program)).map(([schema, slot, prim, scope]) => {
+                    if (slot instanceof Ast.Selector)
+                        return;
+                    if (slot.value.isUndefined)
+                        throw new TypeError(`cannot have slots in this API, call /parse first`);
+
+                    const argname = slot.name;
+                    if (slot.value.isVarRef && slot.value.name.startsWith('__const_SLOT_')) {
+                        let slotValue = slots[slot.value.name.substring('__const_SLOT_'.length)];
+                        let type = schema.inReq[argname] || schema.inOpt[argname] || schema.out[argname];
+                        if (slot instanceof Ast.BooleanExpression && slot.operator === 'contains')
+                            type = type.elem;
+                        slot.value = Ast.Value.fromJSON(type, slotValue);
+                    } else if (slot.value.isLocation && slot.value.value.isRelative) {
+                        let relativeTag = slot.value.value.relativeTag;
+                        if (relativeTag === 'current_location')
+                            slot.value = locations['current_location'] ? Ast.Value.fromJSON(ThingTalk.Type.Location, locations['current_location']) : null;
+                        else
+                            slot.value = this._resolveUserContext('$context.location.' + relativeTag);
+                        if (!slot.value)
+                            throw new TypeError(`missing location ${relativeTag}`);
+                    }
+                }));
+            }).then(() => {
+                const gettext = this._engine.platform.getCapability('gettext');
+                const description = Describe.describeProgram(gettext, program);
+                const name = Describe.getProgramName(gettext, program);
 
                 let icon = null;
-                for (let [primId, prim] of primitives) {
+                for (let [, prim] of Generate.iteratePrimitives(program)) {
+                    if (prim.selector.isBuiltin)
+                        continue;
                     if (prim.selector.kind !== 'org.thingpedia.builtin.thingengine.remote' &&
                         !prim.selector.kind.startsWith('__dyn')
                         && prim.selector.id) {
@@ -181,12 +178,21 @@ module.exports = class AlmondApi {
                     }
                 }
 
-                let appMeta = slots;
-                appMeta.$icon = icon;
+                let appMeta = {
+                    $icon: icon
+                };
 
-                let [newprogram, sendprograms] = ThingTalk.Generate.factorProgram(this._engine.messaging, program);
+                let newprogram, sendprograms;
+                if (FACTORING_IMPLEMENTED) {
+                    [newprogram, sendprograms] = Generate.factorProgram(this._engine.messaging, program);
+                } else {
+                    newprogram = program;
+                    sendprograms = [];
+                }
+                if (sendprograms.length > 0 && !this._engine.messaging.isAvailable)
+                    throw new TypeError('Must configure a Matrix account before using remote programs');
 
-                let app = null;
+                let app;
                 if (newprogram !== null) {
                     let code = Ast.prettyprint(newprogram);
                     app = this._engine.apps.loadOneApp(code, appMeta, undefined, undefined,
@@ -217,16 +223,15 @@ module.exports = class AlmondApi {
 
                     function loop() {
                         if (!app)
-                            return;
+                            return Promise.resolve();
                         return app.mainOutput.next().then(({ item: next, resolve, reject }) => {
                             if (next.isDone) {
                                 resolve();
-                                return;
+                                return Promise.resolve();
                             }
 
-                            let value;
                             if (next.isNotification) {
-                                return this._formatter.formatForType(next.outputType, next.outputValue, next.currentChannel, 'messages').then((messages) => {
+                                return this._formatter.formatForType(next.outputType, next.outputValue, 'messages').then((messages) => {
                                     results.push({ raw: next.outputValue, type: next.outputType, formatted: messages });
                                     resolve();
                                     return loop.call(this);
@@ -251,10 +256,9 @@ module.exports = class AlmondApi {
                             uniqueId: app.uniqueId,
                             description: app.description,
                             code: app.code,
-                            icon: app.icon ? Config.S3_CLOUDFRONT_HOST + '/icons/' + app.icon + '.png' : null,
-                            slots: slots,
+                            icon: Config.S3_CLOUDFRONT_HOST + '/icons/' + app.icon + '.png',
                             results, errors
-                        }
+                        };
                     });
                 });
             });
@@ -268,29 +272,30 @@ module.exports = class AlmondApi {
     }
 
     _doParse(sentence) {
-        return this._sempre.sendUtterance(sentence, null, null).then((candidates) => {
-            if (candidates[0].score === 'Infinity')
-                candidates = [candidates[0]];
-            candidates = candidates.filter((c) => c.prob >= 0.1);
-            return candidates;
-        });
+        return this._parser.sendUtterance(sentence, null, null);
     }
 
-    parse(sentence, targetJson) {
+    parse(sentence, target) {
         return Promise.resolve().then(() => {
-            if (targetJson)
-                return [{ score: 'Infinity', prob: 1, answer: targetJson }];
-            else
+            if (target) {
+                return { entities: target.entities,
+                         candidates: [{ score: 'Infinity', code: target.code }] };
+            } else {
                 return this._doParse(sentence);
-        }).then((candidates) => {
-            return Promise.all(candidates.slice(0, 5).map((candidate) => {
-                return this._processCandidate(candidate).then((result) => {
-                    return result;
-                });
+            }
+        }).then((analyzed) => {
+            return Promise.all(analyzed.candidates.slice(0, 3).map((candidate) => {
+                return this._processCandidate(candidate, analyzed);
             })).then((programs) => {
                 return programs.filter((r) => r !== null);
+            }).then((programs) => {
+                return {
+                    tokens: analyzed.tokens,
+                    entities: analyzed.entities,
+                    candidates: programs
+                };
             });
-        }).then((programs) => ({ candidates: programs }));
+        });
     }
 
     _tryConfigureDevice(kind) {
@@ -338,8 +343,9 @@ module.exports = class AlmondApi {
         if (selector.id !== null) {
             if (this._engine.devices.hasDevice(selector.id)) {
                 devMap[primId] = [describeDevice(this._engine.devices.getDevice(selector.id))];
+                return Promise.resolve(true);
             } else {
-                return false;
+                return Promise.resolve(false);
             }
         }
 
@@ -366,19 +372,22 @@ module.exports = class AlmondApi {
             }
 
             devMap[primId] = devices.map((dev) => describeDevice(dev));
-            return true;
+            return Promise.resolve(true);
         }
     }
 
     _choosePrincipal(prim, primId, slots) {
         let principal = prim.selector.principal;
         if (principal.type === 'tt:contact_name') {
-            slots[`principal_${primId}`] = {
+            let slotId = slots.length;
+            let contact = prim.selector.principal.value;
+            prim.selector.principal.value = Ast.Value.VarRef('__const_SLOT_' + slotId);
+            slots.push({
                 primId: primId,
                 name: '__principal',
                 type: 'Entity(tt:contact)',
-                contact_name: prim.selector.principal.value
-            };
+                contact_name: contact
+            });
             return true;
         } else {
             let messaging = this._engine.messaging;
@@ -404,148 +413,191 @@ module.exports = class AlmondApi {
             case '$context.location.current_location':
                 return null;
             case '$context.location.home':
-            case '$context.location.work':
+            case '$context.location.work': {
                 let value = sharedPrefs.get('context-' + variable);
                 if (value !== undefined)
                     return Ast.Value.fromJSON(Type.Location, value);
                 else
                     return null;
+            }
             default:
                 throw new TypeError('Invalid variable ' + variable);
         }
     }
 
-    _processCandidate(candidate) {
-        return Intent.parseString(candidate.answer, this._engine.schemas, null, null, null).then((intent) => {
-            if (!intent.isProgram && !intent.isPrimitive) {
-                return null;
-            }
+    _processPrimitives(program, primMap, result) {
+        let primitives = Array.from(Generate.iteratePrimitives(program));
+        return Promise.all(primitives.map(([, prim]) => {
+            if (prim.selector.isBuiltin)
+                return true;
+            const primId = `p_${primMap.size}`;
+            result.primitives[primId] = prim.selector.kind + ':' + prim.channel;
+            primMap.set(prim, primId);
 
-            let program;
-            if (intent.isPrimitive)
-                program = ThingTalk.Generate.primitiveProgram(intent.primitiveType, intent.primitive);
-            else
-                program = intent.program;
-
-            // step 1: list the primitives
-            let primitives = [];
-            program.rules.forEach((rule, i) => {
-                if (rule.trigger)
-                    primitives.push([`r${i}_t`, rule.trigger]);
-                rule.queries.forEach((query, j) => {
-                    primitives.push([`r${i}_q${j}`, query]);
-                })
-                rule.actions.forEach((action, j) => {
-                    if (!action.selector.isBuiltin)
-                        primitives.push([`r${i}_a${j}`, action]);
-                });
-            });
-            let primMap = {};
-            for (let [primId, prim] of primitives)
-                primMap[primId] = prim.selector.kind + ':' + prim.channel;
-
-            // step 2, for each primitive...
-            let devices = {};
-            let slots = {};
-            let locations = {};
-            let nextSlotId = 0;
-            let gettext = this._engine.platform.getCapability('gettext');
-            let description = Describe.describeProgram(gettext, program);
-
-            return Promise.all(primitives.map(([primId, prim]) => {
-                // step 2.1 choose the principal or device
-                return Promise.resolve().then(() => {
-                    if (prim.selector.principal !== null) {
-                        return this._choosePrincipal(prim, primId, slots);
-                    } else {
-                        return this._chooseDevice(prim.selector, primId, devices);
-                    }
-                }).then((ok) => {
+            if (prim.selector.principal !== null) {
+                return this._choosePrincipal(prim, primId, result.slots);
+            } else {
+                return this._chooseDevice(prim.selector, primId, result.devices).then((ok) => {
                     if (!ok)
                         return false;
-
-                    // step 2.2 slot fill
-                    let [toFill, toConcretize] = ThingTalk.Generate.computeSlots(prim);
-                    /*for (let slot of toFill) {
-                        let slotId = nextSlotId++;
-                        let argname = slot.name;
-                        let schema = prim.schema;
-                        let type = schema.inReq[argname] || schema.inOpt[argname] || schema.out[argname];
-                        if (slot instanceof Ast.Filter && slot.operator === 'contains')
-                            type = type.elem;
-                        let question;
-                        let index = schema.index[argname];
-                        if (slot instanceof Ast.InputParam ||
-                            (slot instanceof Ast.Filter && slot.operator === '='))
-                            question = schema.questions[index];
-                        program.params.push({name: '__slot_' + slotId, type: type});
-                        slot.value = Ast.Value.VarRef('__slot_' + slotId);
-                        slots[slotId] = {
-                            primId: primId,
-                            name: slot.name,
-                            type: String(type),
-                            question: question
-                        };
-                    }*/
-
-                    for (let slot of toConcretize) {
-                        let argname = slot.name;
-                        let schema = prim.schema;
-                        let type = schema.inReq[argname] || schema.inOpt[argname] || schema.out[argname];
-                        if (slot instanceof Ast.Filter && slot.operator === 'contains')
-                            type = type.elem;
-                        if (slot.value.isEntity && slot.value.type === 'tt:contact_name') {
-                            let slotId = nextSlotId++;
-                            program.params.push({name: '__slot_' + slotId, type: type});
-                            slot.value = Ast.Value.VarRef('__slot_' + slotId);
-                            slots[slotId] = {
-                                primId: primId,
-                                name: slot.name,
-                                type: String(type),
-                                contact_name: slot.value.value
-                            };
-                        } else if (slot.value.isLocation && slot.value.value.isRelative) {
-                            let value = this._resolveUserContext('$context.location.' + slot.value.value.relativeTag);
-                            if (value !== null) {
-                                slot.value.value = value;
-                                locations[slot.value.value.relativeTag] = true;
-                            } else {
-                                locations[slot.value.value.relativeTag] = false;
-                            }
-                        }
+                    if (result.icon === null &&
+                        prim.selector.kind !== 'org.thingpedia.builtin.thingengine.remote' &&
+                        !prim.selector.kind.startsWith('__dyn')
+                        && prim.selector.id) {
+                        let device = prim.selector.device;
+                        result.icon = Config.S3_CLOUDFRONT_HOST + '/icons/' + device.kind + '.png';
                     }
-
                     return true;
                 });
-            })).then((res) => {
-                if (res === null || res.some((x) => !x))
-                    return [null, null];
+            }
+        })).then((res) => {
+            if (primMap.size === 1) {
+                let rule = program.rules[0];
+                if (rule.stream)
+                    result.commandClass = 'trigger';
+                else if (rule.table)
+                    result.commandClass = 'query';
+                else
+                    result.commandClass = 'action';
+            }
 
-                // step 2.5 extract extra info
-                let entityValues = [];
-                function extractEntityValuesInvocation(prim) {
-                    for (let in_param of prim.in_params) {
-                        if (in_param.value.isEntity)
-                            entityValues.push(in_param.value)
-                    }
-                    (function filterRecurse(expr) {
-                        if (expr.isTrue || expr.isFalse)
-                            return
-                        if (expr.isAnd || expr.isOr) {
-                            expr.operands.forEach(filterRecurse)
-                            return
-                        }
-                        if (expr.isNot) {
-                            filterRecurse(expr.expr)
-                            return
-                        }
-                        if (expr.filter.value.isEntity)
-                            entityValues.push(expr.filter.value)
-                    })(prim.filter)
-                }
-                primitives.forEach(([primId, prim]) => {
-                    extractEntityValuesInvocation(prim);
+            return res.every((x) => x);
+        });
+    }
+
+    _slotFill(program, primitives, entityValues, result) {
+        let slots = Array.from(Generate.iterateSlots(program));
+        return Promise.all((slots.map(([schema, slot, prim, scope]) => {
+            if (slot instanceof Ast.Selector)
+                return;
+            const primId = primitives.get(prim);
+
+            const argname = slot.name;
+            let type = schema.inReq[argname] || schema.inOpt[argname] || schema.out[argname];
+            if (slot instanceof Ast.BooleanExpression && slot.operator === 'contains')
+                type = type.elem;
+            const index = schema.index[argname];
+
+            if (slot.value.isUndefined && slot.value.local) {
+                const slotId = result.slots.length;
+                let question = undefined;
+                if (slot instanceof Ast.InputParam ||
+                    (slot instanceof Ast.BooleanExpression && slot.operator === '=='))
+                    question = schema.questions[index];
+                slot.value = Ast.Value.VarRef('__const_SLOT_' + slotId);
+                result.slots.push({
+                    primId: primId,
+                    name: argname,
+                    display_name: schema.argcanonicals[index] || argname,
+                    type: String(type),
+                    question: question
                 });
+            } else if (!slot.value.isConcrete()) {
+                if (slot.value.isEntity && slot.value.type === 'tt:contact_name') {
+                    const slotId = result.slots.length;
+                    const contact = slot.value.value;
+                    slot.value = Ast.Value.VarRef('__const_SLOT_' + slotId);
+                    result.slots.push({
+                        primId: primId,
+                        name: argname,
+                        display_name: schema.argcanonicals[index] || argname,
+                        type: String(type),
+                        contact_name: contact
+                    });
+
+                    entityValues.push(slot.value);
+                } else if (slot.value.isEntity) {
+                    entityValues.push(slot.value);
+                } else if (slot.value.isLocation && slot.value.value.isRelative) {
+                    let value = this._resolveUserContext('$context.location.' + slot.value.value.relativeTag);
+                    if (value !== null) {
+                        slot.value.value = value;
+                        result.locations[slot.value.value.relativeTag] = true;
+                    } else {
+                        result.locations[slot.value.value.relativeTag] = false;
+                    }
+                }
+            } else if (slot.value.isEntity) {
+                entityValues.push(slot.value);
+            }
+        })));
+    }
+
+    _resolveContacts(contacts) {
+        if (!this._engine.messaging.isAvailable) {
+            return Promise.resolve(contacts.map(([contact, display]) => ({
+                contact: contact,
+                omletAccount: null,
+                omletName: null,
+                display: display,
+                profileUrl: 'https://openclipart.org/image/2400px/svg_to_png/202776/pawn.png',
+            })));
+        }
+        const messagingType = this._engine.messaging.type + '-account:';
+        return Promise.all(contacts.map(([contact, display]) => {
+            return Promise.resolve().then(() => {
+                if (contact.startsWith(messagingType))
+                    return contact.split(':')[1];
+                else
+                    return this._engine.messaging.getAccountForIdentity(contact);
+            }).then((account) => {
+                return this._engine.messaging.getUserByAccount(account);
+            }).then((user) => {
+                return this._engine.messaging.getBlobDownloadLink(user.thumbnail).then((thumbnail) => ({
+                    contact: contact,
+                    omletAccount: user.account,
+                    omletName: user.name,
+                    display: display,
+                    profileUrl: thumbnail
+                })).catch((e) => ({
+                    contact: contact,
+                    omletAccount: user.account,
+                    omletName: user.name,
+                    display: display,
+                    profileUrl: 'https://openclipart.org/image/2400px/svg_to_png/202776/pawn.png'
+                }));
+            });
+        }));
+    }
+
+    _processCandidate(candidate, analyzed) {
+        return Intent.parse({ code: candidate.code, entities: analyzed.entities }, this._engine.schemas, null, null, null).catch((e) => {
+            console.error('Failed to analyze ' + candidate.code.join(' ') + ' : ' + e.message);
+            return null;
+        }).then((intent) => {
+            if (!intent || !intent.isProgram)
+                return null;
+
+            const program = intent.program;
+
+            const gettext = this._engine.platform.getCapability('gettext');
+            const description = Describe.describeProgram(gettext, program);
+
+            const primitives = new Map;
+
+            const result = {
+                score: candidate.score,
+                code: null,
+                description: description,
+                icon: null,
+                commandClass: 'rule',
+                primitives: {},
+                devices: {},
+                slots: [],
+                locations: {},
+                contacts: []
+            };
+            const entityValues = [];
+
+            return this._processPrimitives(program, primitives, result).then((ok) => {
+                if (!ok)
+                    return false;
+
+                return this._slotFill(program, primitives, entityValues, result);
+            }).then((ok) => {
+                if (!ok)
+                    return null;
+
                 let contacts = new Map;
                 for (let entity of entityValues) {
                     if (entity.type === 'tt:contact')
@@ -555,82 +607,13 @@ module.exports = class AlmondApi {
                     else if (entity.type === 'tt:phone_number')
                         contacts.set('phone:' + entity.value, entity.display);
                 }
-                contacts = Array.from(contacts.entries());
 
-                const messagingType = this._engine.messaging.type + '-account:'
-                return Q.all(contacts.map(([contact, display]) => {
-                    return Q.try(() => {
-                        if (contact.startsWith(messagingType))
-                            return contact.split(':')[1];
-                        else
-                            return this._engine.messaging.getAccountForIdentity(contact);
-                    }).then((account) => {
-                        return this._engine.messaging.getUserByAccount(account);
-                    }).then((user) => {
-                        return this._engine.messaging.getBlobDownloadLink(user.thumbnail).then((thumbnail) => ({
-                            contact: contact,
-                            omletAccount: user.account,
-                            omletName: user.name,
-                            display: display,
-                            profileUrl: thumbnail
-                        })).catch((e) => ({
-                            contact: contact,
-                            omletAccount: user.account,
-                            omletName: user.name,
-                            display: display,
-                            profileUrl: 'https://openclipart.org/image/2400px/svg_to_png/202776/pawn.png'
-                        }));
-                    });
-                })).then((contacts) => {
-                    return [res, contacts];
+                return this._resolveContacts(Array.from(contacts.entries()), result).then((contacts) => {
+                    result.contacts = contacts;
+                    result.code = Ast.prettyprint(program, true);
+                    return result;
                 });
-            }).then(([res, contacts]) => {
-                if (res === null)
-                    return null;
-
-                // step 3 put everything toghether
-
-                let icon = null;
-                for (let [primId, prim] of primitives) {
-                    if (prim.selector.kind !== 'org.thingpedia.builtin.thingengine.remote' &&
-                        !prim.selector.kind.startsWith('__dyn')
-                        && prim.selector.id) {
-                        let device = prim.selector.device;//this._engine.devices.getDevice(prim.selector.id);
-                        icon = device.kind;
-                        break;
-                    }
-                }
-                if (icon === null)
-                    icon = 'org.thingpedia.builtin.thingengine.builtin';
-                icon = Config.S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png';
-
-                let commandClass = 'rule';
-                if (primitives.length === 1) {
-                    let rule = program.rules[0];
-                    if (rule.trigger)
-                        commandClass = 'trigger';
-                    else if (rule.queries.length)
-                        commandClass = 'query';
-                    else
-                        commandClass = 'action';
-                }
-
-
-                let code = Ast.prettyprint(program);
-
-                return {
-                    score: candidate.score,
-                    code: code,
-                    description: description,
-                    icon: icon,
-                    commandClass: commandClass,
-                    primitives: primMap,
-                    devices: devices,
-                    slots: slots,
-                    locations: locations,
-                    contacts: contacts
-                };
             });
         });
     }
-}
+};
