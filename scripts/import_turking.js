@@ -90,13 +90,15 @@ function main() {
                 //console.log(row);
                 let {id,thingtalk,paraphrase} = row;
                 //let [,utterance,tt] = row;
-                let testTrain;
+                let testTrain = '';
+                /*
                 if (coin(testProbability))
                     testTrain = '-test';
                 else if (coin(devProbability))
                     testTrain = '-dev';
                 else
                     testTrain = '-train';
+                */
 
                 promises.push(Q.try(() =>
                     Q.all([parseAndTypecheck(isPermission, thingtalk, schemas),
