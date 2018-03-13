@@ -75,15 +75,16 @@ function main() {
 
         return Q.Promise((callback, errback) => {
             parser.on('data', (row) => {
-                let id = row[0];
-                let original = row[1];
-                let utterance = row[2];
-                let tt = row[3];
-                let testTrain;
+                //console.log(row);
+                let {id,thingtalk,paraphrase} = row;
+                //let [,utterance,tt] = row;
+                let testTrain = '';
+                /*
                 if (coin(testProbability))
                     testTrain = '-test';
                 else
                     testTrain = '-train';
+                */
 
                 promises.push(Q.try(() =>
                     Q.all([parseAndTypecheck(isPermission, thingtalk, schemas),
