@@ -31,7 +31,7 @@ function get_examples() {
             devices.forEach((d) => {
                 if (!d.approved_version)
                     return;
-                if (d.primary_kind === 'org.thingpedia.demo.coffee')
+                if (d.primary_kind === 'org.thingpedia.demo.coffee' || d.primary_kind === 'org.thingpedia.builtin.thingengine.home')
                     return;
                 deviceMap[d.primary_kind] = {
                     name: d.name,
@@ -99,19 +99,20 @@ function get_examples() {
 
 function gen_tex(devices, path) {
     let tex;
-    tex = '\\documentclass[11pt]{article}\n'
-        + '\\usepackage[paperheight=1080px,paperwidth=1920px,margin=5px]{geometry}\n'
+    tex = '\\documentclass[10pt]{article}\n'
+        + '\\usepackage[paperheight=1080px,paperwidth=1920px,margin=25px]{geometry}\n'
         + '\\usepackage{graphicx}\n'
         + '\\usepackage[default]{lato}\n'
         + '\\usepackage{multicol}\n'
         + '\\usepackage[dvipsnames]{xcolor}\n'
-        + '\\setlength\\columnsep{10px}\n'
+        + '\\setlength\\columnsep{25px}\n'
         + '\\setlength\\parindent{0px}\n'
         + '\\newcommand{\\WHEN}[0]{\\textcolor{red}{\\textsc{when: }}}\n'
-        + '\\newcommand{\\GET}[0]{\\textcolor{BurntOrange}{\\textsc{get: }}}\n'
-        + '\\newcommand{\\DO}[0]{\\textcolor{OliveGreen}{\\textsc{do: }}}\n'
+        + '\\newcommand{\\GET}[0]{\\textcolor[rgb]{1.00, 0.55, 0.00}{\\textsc{get: }}}\n'
+        + '\\newcommand{\\DO}[0]{\\textcolor[rgb]{0.05, 0.5, 0.06}{\\textsc{do: }}}\n'
         + '\\begin{document}\n'
-        + '\\begin{multicols}{9}\n';
+        + '\\pagestyle{empty}\n'
+        + '\\begin{multicols}{8}\n';
 
     devices.forEach((d) => {
         if (d.triggers.length + d.queries.length + d.actions.length === 0)
@@ -126,7 +127,7 @@ function gen_tex(devices, path) {
         d.actions.forEach((a) => {
             tex += formatExample(a, 'action') + '\n\n';
         })
-        tex += '\\bigbreak\n'
+        tex += '\\bigbreak\n\\bigbreak\n'
     })
 
     tex += '\\end{multicols}\n' + '\\end{document}\n';
@@ -140,7 +141,7 @@ function gen_tex(devices, path) {
 
 function foramtDeviceName(d) {
     let tex = `\\includegraphics[height=12px]{icons/{${d.primary_kind}}.png} `;
-    tex += '{\\textcolor{BurntOrange}{\\bf\\large ' + d.name + '}}\n\n';
+    tex += '{\\bf\\large ' + d.name + '}\n\n';
     return tex;
 }
 
@@ -157,7 +158,7 @@ function formatExample(ex, type) {
 
 
 function main() {
-    const path = process.argv[2] || './cheatsheet'
+    const path = process.argv[2] || './cheatsheet/'
     get_examples().then((devices) => {
         gen_tex(devices, path);
     }).done();
