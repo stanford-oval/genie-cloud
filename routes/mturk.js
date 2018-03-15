@@ -19,8 +19,9 @@ router.get('/', function(req, res) {
 });
 
 router.post('/submit', function(req, res) {
-    console.log(req);
-    res.render('mturk-submit', { page_title: req._("Thank you")});
+    let token = (Math.random() + 1).toString(36).substring(2, 10) + (Math.random() + 1).toString(36).substring(2, 10);
+    console.log(token)
+    res.render('mturk-submit', { page_title: req._("Thank you"), token: token });
 })
 
 module.exports = router;

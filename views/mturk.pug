@@ -69,7 +69,8 @@ block content
                 input(type='hidden',name='_csrf',value=csrfToken)
                 each s, i in sentences
                   h4= _('Sentence ') + (i+1) + ': '
-                    span(id='synthetic' + (i+1))= s
+                    span(id='synthetic' + (i+1), class='synthetic')= s
+                  p(class='hint', hidden)= _('Some hint')
                   div.container
                     div.row#paraphrase-row
                       each j in [1, 2]
