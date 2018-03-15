@@ -228,6 +228,8 @@ Frontend.prototype._init = function _init() {
     this._app.use('/admin', require('./routes/admin'));
     this._app.use('/omlet', require('./routes/omlet'));
 
+    this._app.use('/mturk', require('./routes/mturk'));
+
     this._websocketEndpoints = {};
 }
 
