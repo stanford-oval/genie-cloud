@@ -7,5 +7,9 @@ block page_name
   = _('Thank You!')
 
 block content
-  p= _("You paraphrases has been submitted. Thank you a lot for participating our study. We will mark your submission once we finish this batch")
+  div#message
+    p= _("You paraphrases has been submitted. Thank you a lot for participating our study. We will mark your submission once we finish this batch.")
+    p= _("Here is your submission code. Make sure you copy and paste it into your Mechanical Turk submission.")
+    div#token
+      pre= token
 

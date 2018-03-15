@@ -2,10 +2,27 @@
     color: red;
 }
 
+.synthetic {
+    background-color: #f3f4f2;
+}
+
 #paraphrase-row {
     padding: 1em;
 }
 
 #submit-section { 
     margin-top: 3em;
+}
+
+
+#token {
+    text-align: center;
+    margin: auto;
+    width: 20%;
+}
+
+#message {
+    text-align: center;
+    margin-top: 5em;
+    margin-bottom: 100em;
 }
