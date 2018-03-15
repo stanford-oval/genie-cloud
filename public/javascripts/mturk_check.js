@@ -37,13 +37,6 @@ $(document).ready(function() {
             });
         }
     });
-
-    $('form').submit(function() {
-        console.log('submitted')
-        console.log($('form'))
-        console.log($(this).serializeArray())
-        alert("Thank you")
-    })
 });
 
 function check(synthetic, paraphrase) {
@@ -68,23 +61,43 @@ function check(synthetic, paraphrase) {
         }),
     ).then(function() {
         console.log(entities_paraphrase, entities_synthetic)
+        let counts = {};
+        let countp = {};
         for (let es in entities_synthetic) {
             let found = false;
+            let v = value(es, entities_synthetic[es]);
             for (let ep in entities_paraphrase)
                 if (ep.substring(0, ep.length - 1) === es.substring(0, es.length - 1))
-                    if (equal(entities_paraphrase[ep], entities_synthetic[es]))
+                    if (equal(entities_paraphrase[ep], entities_synthetic[es])) {
                         found = true;
+                        if (!(v in countp))
+                            countp[v] = 0;
+                        countp[v] ++;
+                    }
             if (!found)
-                return `Cannot find ${value(entities_synthetic[es])} in your paraphrase.`
+                return `Cannot find ${v} in your paraphrase.`
         }
         for (let ep in entities_paraphrase) {
             let found = false;
+            let v = value(ep, entities_paraphrase[ep]);
             for (let es in entities_synthetic)
                 if (ep.substring(0, ep.length - 1) === es.substring(0, es.length - 1))
-                    if (equal(entities_paraphrase[ep], entities_synthetic[es]))
+                    if (equal(entities_paraphrase[ep], entities_synthetic[es])){
                         found = true;
+                        if (!(v in counts))
+                            counts[v] = 0;
+                        counts[v] ++;
+                    }
             if (!found)
-                return `Detect ${value(entities_paraphrase[ep])} in your paraphrase which not in the original sentence.`
+                return `Detect ${v} in your paraphrase which is not in the original sentence.`
+        }
+        if (Object.keys(entities_paraphrase).length !== Object.keys(entities_synthetic).length) {
+            for (let v in counts) {
+                if (counts[v] > countp[v])
+                    return `Not enough ${v} in your paraphrase`;
+                if (counts[v] < countp[v])
+                    return `Too many of ${v} in your paraphrase`;
+            }
         }
         return 'passed';
     });
@@ -103,13 +116,20 @@ function equal(entity1, entity2) {
     return false;
 }
 
-function value(entity) {
+function value(type, entity) {
+    if (type.startsWith('QUOTED_STRING'))
+        return `"${entity}"`;
+    if (type.startsWith('USERNAME'))
+        return `@${entity}`;
+    if (type.startsWith('HASHTAG'))
+        return `#${entity}`;
+    if (type.startsWith('LOCATION'))
+        return `location: "${entity.display}"`;
     if (typeof entity === "string")
-        return entity;
+        return `"${entity}`;
     if ('value' in entity)
-        return entity.value;
-    if ('display' in entity)
-        return entity.display;
+        return `"${entity.value}`;
+    return entity;
 }
 
 function allChecked(checked) {
