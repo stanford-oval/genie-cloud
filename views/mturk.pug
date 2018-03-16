@@ -42,37 +42,44 @@ block content
         div.container
           div.row
             div.col-xs-12
-              h4 Original sentence: send a direct message to @bob saying &quot;hello&quot; on twitter
               div.container
                 div.row
                   div.col-md-6
+                    p Original sentence
+                    pre send a direct message to @bob saying &quot;hello&quot; on twitter
+                div.row
+                  div.col-md-6
                     p Correct paraphrase 1: 
-                      pre direct message @bob on twitter with the message &quot;hello&quot;
+                    pre direct message @bob on twitter with the message &quot;hello&quot;
                   div.col-md-6
                     p Correct paraphrase 2: 
-                      pre say &quot;hello&quot; to @bob via direct message on twitter
+                    pre say &quot;hello&quot; to @bob via direct message on twitter
                 div.row
                   div.col-md-6
                     p Wrong paraphrase 1: (<font color='red'>missing server name 'twitter'</font>) 
-                      pre say 'hello' to @bob
+                    pre say 'hello' to @bob
                   div.col-md-6
                     p Wrong paraphrase 2: (<font color='red'>missing quotes for 'hello' and the @ sign for '@bob'</font>) 
-                      pre say hello to bob on twitter
+                    pre say hello to bob on twitter
 
       section.divider
         h3= _('Your Turn Now') 
         div.container
           div.row
             div.col-xs-12
-              - var stdlayout = true;
-              form(action='mturk/submit', method='post')#turking
-                input(type='hidden',name='_csrf',value=csrfToken)
+              form(action='/mturk/submit', method='post')#turking
+                input(type='hidden', name='_csrf', value=csrfToken)
+                input(type='hidden', name='hit', value=hit)
+                input(type='hidden', name='batch', value=batch)
                 each s, i in sentences
-                  h4= _('Sentence ') + (i+1) + ': '
+                  p= _('Sentence ') + (i+1) + ': '
                     span(id='synthetic' + (i+1), class='synthetic')= s
                   p(class='hint', hidden)= _('Some hint')
                   div.container
                     div.row#paraphrase-row
+                      input(type='hidden', name='program_id' + (i+1), value=program_id[i] )
+                      input(type='hidden', name='thingtalk' + (i+1), value=code[i])
+                      input(type='hidden', name='sentence' + (i+1), value=s)
                       each j in [1, 2]
                         div.col-md-6
                           div.form-group
