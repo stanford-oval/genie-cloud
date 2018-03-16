@@ -126,9 +126,11 @@ function value(type, entity) {
     if (type.startsWith('LOCATION'))
         return `location: "${entity.display}"`;
     if (typeof entity === "string")
-        return `"${entity}`;
+        return `"${entity}"`;
+    if ('display' in entity)
+        return `"${entity.display}"`;
     if ('value' in entity)
-        return `"${entity.value}`;
+        return `"${entity.value}"`;
     return entity;
 }
 
