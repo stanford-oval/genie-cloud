@@ -67,7 +67,6 @@ function check(synthetic, paraphrase) {
             success: function(res) {entities_paraphrase = res.entities;}
         }),
     ).then(function() {
-        console.log(entities_paraphrase, entities_synthetic)
         let counts = {};
         let countp = {};
         for (let es in entities_synthetic) {
@@ -85,6 +84,7 @@ function check(synthetic, paraphrase) {
                 return `Cannot find ${v} in your paraphrase.`
         }
         for (let ep in entities_paraphrase) {
+            console.log(entities_paraphrase[ep])
             let found = false;
             let v = value(ep, entities_paraphrase[ep]);
             for (let es in entities_synthetic)
@@ -96,7 +96,7 @@ function check(synthetic, paraphrase) {
                         counts[v] ++;
                     }
             if (!found)
-                return `Detect ${v} in your paraphrase which is not in the original sentence.`
+                return `${v} detected in your paraphrase which is not in the original sentence.`
         }
         if (Object.keys(entities_paraphrase).length !== Object.keys(entities_synthetic).length) {
             for (let v in counts) {
@@ -114,10 +114,17 @@ function equal(entity1, entity2) {
     if (typeof entity1 !== typeof entity2)
         return false;
     let type = typeof entity1;
-    if (type === 'string') 
+    if (type === 'string' || type === 'number') 
         return entity1 === entity2;
+    if ('year' in entity1)
+        return entity1.year === entity2.year && entity1.month === entity2.month && entity1.day === entity2.day 
+               && entity1.hour === entity2.hour && entity1.minute === entity2.minute && entity1.second === entity2.second;
+    if ('hour' in entity1)
+        return entity1.hour === entity2.hour && entity1.minute === entity2.minute;
     if ('latitude' in entity1 && 'longitude' in entity1) 
         return entity1.latitude === entity2.latitude && entity1.longitude === entity2.longitude;
+    if ('unit' in entity1)
+        return entity1.value === entity2.value && entity1.unit === entity2.unit;
     if ('value' in entity1)
         return entity1.value === entity2.value;
     return false;
@@ -125,15 +132,26 @@ function equal(entity1, entity2) {
 
 function value(type, entity) {
     if (type.startsWith('QUOTED_STRING'))
-        return `"${entity}"`;
+        return `'${entity}'`;
     if (type.startsWith('USERNAME'))
         return `@${entity}`;
     if (type.startsWith('HASHTAG'))
         return `#${entity}`;
     if (type.startsWith('LOCATION'))
         return `location: "${entity.display}"`;
-    if (typeof entity === "string")
+    if (type.startsWith('NUMBER'))
+        return `number ${entity}`;
+    if (type.startsWith('CURRENCY'))
+        return `"${entity.value} ${entity.unit}"`;
+    if (type.startsWith('DURATION'))
+        return `"${entity.value} ${entity.unit}"`;
+    if (type.startsWith('DATE'))
+        return `A date`;
+    if (type.startsWith('TIME'))
+        return `A time`;
+    if (typeof entity === 'string')
         return `"${entity}"`;
+    if (typeof entity === 'number')
     if ('display' in entity)
         return `"${entity.display}"`;
     if ('value' in entity)
