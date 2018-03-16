@@ -21,21 +21,22 @@ block content
               p 
                 |  We are building a virtual assistant that can help you control all your devices, social accounts, etc. 
                 |  Our virtual assistant can do a lot of things now but it still has a hard time to understand the users 
-                |  since different users may say the same thing very differently. So we need you to help us teach the assistant.
+                |  since different users may say the same command very differently. So we need you to help us teach the assistant.
               p
-                |  In the following, you will see 4 different sentences, and you will be asked to paraphrase each of them in 
-                |  different ways <span style='color:#FF0000;'>without changing the meaning of the sentence</span>, which means
+                |  In the following, you will see 4 different commands, and you will be asked to paraphrase each of them in 
+                |  different ways <span style='color:#FF0000;'>without changing the meaning of the command</span>, which means
                 ul
-                  li Do not remove the device/service names if they exist in the original sentence
-                  li Do not change the meaning of the sentence even if doesn't seem to be useful
                   li Do not drop any information unless it's obvious <b>without context</b>;
-                  li Do not add any new information that doesn't exist in the sentence;
-                  li <b>Keep quoted parts <span style='color:#FF0000;'>(including the quote marks)</span>, emails, phone numbers identical</b> 
-                  li <b>Do not drop @ signs and # signs</b>
+                  li Do not change the meaning of the command even if doesn't seem to be useful
+                  li Do not add any new information that doesn't exist in the original command;
+                  li Keep quoted parts (including the quote marks, emails, phone numbers identical</b> 
+                  li Do not drop @ signs and # signs</b>
+              p 
+                |  We will show you warning messages if we detect your paraphrases have some obvious problems which can help you resolve them.
               p 
                 |  Try your best to <font color="red"> make the 2 paraphrases as different as possible</font>.
                 |  If you really don't know how to paraphrase, leave "no idea". According to our stats, we only got 5% of "no idea"s.
-                |  So if you give us too many of them, we might reject you.             
+                |  So if you give us too many of them, we might reject your answer.             
 
       section.divider
         h3= _('Examples')
@@ -45,7 +46,7 @@ block content
               div.container
                 div.row
                   div.col-md-6
-                    p Original sentence
+                    p Original command
                     pre send a direct message to @bob saying &quot;hello&quot; on twitter
                 div.row
                   div.col-md-6
@@ -56,7 +57,7 @@ block content
                     pre say &quot;hello&quot; to @bob via direct message on twitter
                 div.row
                   div.col-md-6
-                    p Wrong paraphrase 1: (<font color='red'>missing server name 'twitter'</font>) 
+                    p Wrong paraphrase 1: (<font color='red'>unclear it uses twitter anymore</font>) 
                     pre say 'hello' to @bob
                   div.col-md-6
                     p Wrong paraphrase 2: (<font color='red'>missing quotes for 'hello' and the @ sign for '@bob'</font>) 
@@ -72,9 +73,9 @@ block content
                 input(type='hidden', name='hit', value=hit)
                 input(type='hidden', name='batch', value=batch)
                 each s, i in sentences
-                  p= _('Sentence ') + (i+1) + ': '
+                  p= _('Command ') + (i+1) + ': '
                     span(id='synthetic' + (i+1), class='synthetic')= s
-                  p(class='hint', hidden)= _('Some hint')
+                  p(class='hint', hidden, id='hint' + (i+1))= code[i]
                   div.container
                     div.row#paraphrase-row
                       input(type='hidden', name='program_id' + (i+1), value=program_id[i] )
@@ -83,7 +84,7 @@ block content
                       each j in [1, 2]
                         div.col-md-6
                           div.form-group
-                            p= _('Paraphrase') + j + ': '
+                            p= _('Paraphrase ') + j + ': '
                               span(class='warning', hidden, id='warning' + (i+1) + '-' + j)= _('Something wrong for this paraphrase')
                             input.form-control(type='text', class='paraphrase', id='paraphrase' + (i+1) + '-' + j, name='paraphrase' + (i+1) + '-' + j)
                 div.form-group#submit-section
