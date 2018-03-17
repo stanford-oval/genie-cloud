@@ -149,10 +149,19 @@ function value(type, entity) {
         return `"${entity.value} ${entity.unit}"`;
     if (type.startsWith('DURATION'))
         return `"${entity.value} ${entity.unit}"`;
-    if (type.startsWith('DATE'))
-        return `A date`;
-    if (type.startsWith('TIME'))
-        return `A time`;
+    if (type.startsWith('DATE')) {
+        let month_names = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        let year = entity.year === -1 ? '' : ` ${entity.year}`;
+        let month = entity.month === -1 ? '' : ` ${month_names[entity.month]}`;
+        let day = entity.day === -1 ? '' : ` ${entity.day}`;
+        return `date${month}${day}${year}`;
+    }
+    if (type.startsWith('TIME')) {
+        let minute = entity.minute;
+        if (entity.minute < 10)
+            minute = `0${entity.minute}`;
+        return `time ${entity.hour}:${minute}`;
+    }
     if (typeof entity === 'string')
         return `"${entity}"`;
     if (typeof entity === 'number')
