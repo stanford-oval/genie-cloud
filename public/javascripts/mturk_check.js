@@ -136,7 +136,7 @@ function equal(entity1, entity2) {
 
 function value(type, entity) {
     if (type.startsWith('QUOTED_STRING'))
-        return `'${entity}'`;
+        return `"${entity}"`;
     if (type.startsWith('USERNAME'))
         return `@${entity}`;
     if (type.startsWith('HASHTAG'))
