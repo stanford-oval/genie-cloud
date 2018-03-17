@@ -47,6 +47,8 @@ $(document).ready(function() {
 });
 
 function check(synthetic, paraphrase) {
+    if (paraphrase === 'no idea')
+        return Promise.resolve('passed');
     return $.when(
         $.ajax({
             type: 'GET',
@@ -76,9 +78,10 @@ function check(synthetic, paraphrase) {
                 if (ep.substring(0, ep.length - 1) === es.substring(0, es.length - 1))
                     if (equal(entities_paraphrase[ep], entities_synthetic[es])) {
                         found = true;
-                        if (!(v in countp))
-                            countp[v] = 0;
-                        countp[v] ++;
+                        if (!(v in counts))
+                            counts[v] = 0;
+                        counts[v] ++;
+                        break;
                     }
             if (!found)
                 return `Cannot find ${v} in your paraphrase.`
@@ -91,9 +94,10 @@ function check(synthetic, paraphrase) {
                 if (ep.substring(0, ep.length - 1) === es.substring(0, es.length - 1))
                     if (equal(entities_paraphrase[ep], entities_synthetic[es])){
                         found = true;
-                        if (!(v in counts))
-                            counts[v] = 0;
-                        counts[v] ++;
+                        if (!(v in countp))
+                            countp[v] = 0;
+                        countp[v] ++;
+                        break;
                     }
             if (!found)
                 return `${v} detected in your paraphrase which is not in the original sentence.`
@@ -103,7 +107,7 @@ function check(synthetic, paraphrase) {
                 if (counts[v] > countp[v])
                     return `Not enough ${v} in your paraphrase`;
                 if (counts[v] < countp[v])
-                    return `Too many of ${v} in your paraphrase`;
+                    return `Too many ${v} in your paraphrase`;
             }
         }
         return 'passed';
@@ -152,6 +156,7 @@ function value(type, entity) {
     if (typeof entity === 'string')
         return `"${entity}"`;
     if (typeof entity === 'number')
+        return `number ${entity}`;
     if ('display' in entity)
         return `"${entity.display}"`;
     if ('value' in entity)
