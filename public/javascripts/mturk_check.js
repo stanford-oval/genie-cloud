@@ -47,7 +47,7 @@ $(document).ready(function() {
 });
 
 function check(synthetic, paraphrase) {
-    if (paraphrase === 'no idea')
+    if (paraphrase.toLowerCase().replace(/\./g, '').trim() === 'no idea') 
         return Promise.resolve('passed');
     return $.when(
         $.ajax({
