@@ -12,7 +12,6 @@
 const Q = require('q');
 Q.longStackSupport = true;
 const events = require('events');
-const stream = require('stream');
 const rpc = require('transparent-rpc');
 const net = require('net');
 
@@ -26,16 +25,15 @@ class DirectSocketServer {
         this._server = net.createServer();
 
         this._server.on('connection', (socket) => {
-            var jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
+            const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
 
-            jsonSocket.on('data', function(msg) {
+            jsonSocket.on('data', (msg) => {
                 if (msg.control === 'init') {
                     try {
                         engines.sendSocket(msg.target, msg.replyId, socket);
                     } catch(e) {
                         jsonSocket.write({ error: e.message });
                         jsonSocket.end();
-                        return;
                     }
                 }
             });
@@ -63,7 +61,7 @@ class ControlSocket extends events.EventEmitter {
             // ignore the error, the connection will be closed soon
         });
 
-        var id = this._rpcSocket.addStub(engines);
+        const id = this._rpcSocket.addStub(engines);
         this._jsonDatagramSocket.write({ control: 'ready', rpcId: id });
     }
 
@@ -78,7 +76,7 @@ class ControlSocketServer {
 
         this._connections = new Set;
         this._server.on('connection', (socket) => {
-            var control = new ControlSocket(engines, socket);
+            const control = new ControlSocket(engines, socket);
             this._connections.add(control);
             control.on('close', () => this._connections.delete(control));
         });
@@ -96,17 +94,21 @@ class ControlSocketServer {
 }
 
 function main() {
-    var enginemanager = new EngineManager();
+    const enginemanager = new EngineManager();
 
-    var controlSocket = new ControlSocketServer(enginemanager);
-    var directSocket = new DirectSocketServer(enginemanager);
+    const controlSocket = new ControlSocketServer(enginemanager);
+    const directSocket = new DirectSocketServer(enginemanager);
 
-    Q.all([controlSocket.start(), directSocket.start()]).then(() => {
+    Promise.all([controlSocket.start(), directSocket.start()]).then(() => {
         return enginemanager.start();
-    }).done();
+    }).catch((e) => {
+        console.error('Failed to start: ' + e.message);
+        console.error(e.stack);
+        process.exit(1);
+    });
 
     function stop() {
-        return Q.all([enginemanager.stop(), directSocket.stop(), controlSocket.stop()]).catch((e) => {
+        return Promise.all([enginemanager.stop(), directSocket.stop(), controlSocket.stop()]).catch((e) => {
             console.error('Failed to stop: ' + e.message);
             console.error(e.stack);
             process.exit(1);

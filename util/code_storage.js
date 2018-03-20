@@ -53,14 +53,14 @@ if (Config.S3_CLOUDFRONT_HOST.endsWith('cloudfront.net')) {
 } else if (Config.S3_CLOUDFRONT_HOST === '/download') {
     _backend = {
         storeIcon: function(blob, name) {
-            let output = fs.createWriteStream(platform.getWritableDir() + '/icons/' + name);
+            let output = fs.createWriteStream(platform.getWritableDir() + '/icons/' + name + '.png');
             if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
-                output.write(blob);
+                output.end(blob);
             else
                 blob.pipe(output);
             return Q.Promise(function(callback, errback) {
-                stream.on('finish', callback);
-                stream.on('error', errback);
+                output.on('finish', callback);
+                output.on('error', errback);
             });
         },
         downloadZipFile: function(name, version) {
@@ -69,14 +69,14 @@ if (Config.S3_CLOUDFRONT_HOST.endsWith('cloudfront.net')) {
         },
         storeZipFile: function(blob, name, version) {
             let filename = platform.getWritableDir() + '/devices/' + name + '-v' + version + '.zip';
-            let output = fs.createWriteStream(platform.getWritableDir() + '/icons/' + name);
+            let output = fs.createWriteStream(filename);
             if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
-                output.write(blob);
+                output.end(blob);
             else
                 blob.pipe(output);
             return Q.Promise(function(callback, errback) {
-                stream.on('finish', callback);
-                stream.on('error', errback);
+                output.on('finish', callback);
+                output.on('error', errback);
             });
         },
     };

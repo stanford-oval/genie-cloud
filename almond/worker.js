@@ -11,7 +11,6 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
-const events = require('events');
 const stream = require('stream');
 const rpc = require('transparent-rpc');
 
@@ -49,7 +48,7 @@ function handleSignal() {
         process.disconnect();
 
     // give ourselves 10s to die gracefully, then just exit
-    setTimeout(function() {
+    setTimeout(() => {
         process.exit();
     }, 10000);
 }
@@ -63,19 +62,19 @@ function runEngine(thingpediaClient, options) {
     var engine = new Engine(platform);
     obj.engine = engine;
     platform.createAssistant(engine);
-    engine.open().then(function() {
+    engine.open().then(() => {
         obj.running = true;
 
         if (_stopped)
             return engine.close();
         return engine.run();
-    }).then(function() {
+    }).then(() => {
         return engine.close();
-    }).catch(function(e) {
+    }).catch((e) => {
         console.error('Engine ' + options.cloudId + ' had a fatal error: ' + e.message);
         console.error(e.stack);
         _engines.delete(options.userId);
-    }).done();
+    });
 
     _engines.set(options.userId, obj);
 }
@@ -131,7 +130,7 @@ function main() {
 
     var rpcWrapped = new ParentProcessSocket();
     var rpcSocket = new rpc.Socket(rpcWrapped);
-    process.on('message', function(message, socket) {
+    process.on('message', (message, socket) => {
         switch (message.type) {
             case 'direct':
                 handleDirectSocket(message.target, message.replyId, socket);
@@ -153,7 +152,7 @@ function main() {
     process.send({ type: 'ready', id: rpcId });
 
     // wait 10 seconds for a runEngine message
-    setTimeout(function() {}, 10000);
+    setTimeout(() => {}, 10000);
 }
 
 main();

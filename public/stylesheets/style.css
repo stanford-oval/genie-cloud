@@ -101,6 +101,7 @@ footer {
   padding-top: 1.5em;
   background-color: #1a242f;
   color: white;
+  text-align: right;
 }
 
 /*#page-body p a:link:not(.btn), #page-body p a:visited:not(.btn) {

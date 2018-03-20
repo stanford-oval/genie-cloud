@@ -37,7 +37,7 @@ module.exports = {
                     outMeta[name].questions.push(arg.question);
                     outMeta[name].required.push(!!arg.required);
                     outMeta[name].is_input.push(!!arg.is_input);
-                };
+                }
             }
         }
 
@@ -68,7 +68,7 @@ module.exports = {
                 var questions = channelMeta.questions || [];
                 var argrequired = channelMeta.required || [];
                 var argisinput = channelMeta.is_input || [];
-                schemas[name].forEach(function(schema, i) {
+                schemas[name].forEach((schema, i) => {
                     args.push({
                         type: schema,
                         name: argnames[i],
@@ -82,9 +82,8 @@ module.exports = {
                     doc: channelMeta.doc || '',
                     confirmation: channelMeta.confirmation || '',
                     confirmation_remote: channelMeta.confirmation_remote || '',
-                    canonical: channelMeta.canonical || '',
-                    examples: []
-                }
+                    canonical: channelMeta.canonical || ''
+                };
             }
         }
 

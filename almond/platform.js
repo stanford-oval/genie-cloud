@@ -30,7 +30,7 @@ var _unzipApi = {
     unzip(zipPath, dir) {
         var args = ['-uo', zipPath, '-d', dir];
         return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args, {
-            maxBuffer: 10 * 1024 * 1024 }).then(function(zipResult) {
+            maxBuffer: 10 * 1024 * 1024 }).then((zipResult) => {
             var stdout = zipResult[0];
             var stderr = zipResult[1];
             console.log('stdout', stdout);
@@ -46,12 +46,13 @@ class WebhookApi {
     }
 
     handleCallback(id, method, query, headers, payload) {
-        return Q.try(function() {
+        return Promise.resolve().then(() => {
             if (id in this._hooks)
                 return this._hooks[id](method, query, headers, payload);
             else
                 console.log('Ignored webhook callback with ID ' + id);
-        }.bind(this)).catch(function(e) {
+            return Promise.resolve();
+        }).catch((e) => {
             console.error(e.stack);
             throw e;
         });
@@ -150,7 +151,7 @@ class Platform {
         try {
             fs.mkdirSync(this._writabledir + '/cache');
         } catch(e) {
-            if (e.code != 'EEXIST')
+            if (e.code !== 'EEXIST')
                 throw e;
         }
         this._prefs = new prefs.FilePreferences(this._writabledir + '/prefs.db');
@@ -182,10 +183,6 @@ class Platform {
     // shared store such as DataVault should be used by regular apps
     getSharedPreferences() {
         return this._prefs;
-    }
-
-    getCloudId() {
-        return this._cloudId;
     }
 
     // Check if we need to load and run the given thingengine-module on

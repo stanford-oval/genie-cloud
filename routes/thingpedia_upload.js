@@ -7,6 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const express = require('express');
@@ -21,9 +22,11 @@ var code_storage = require('../util/code_storage');
 var model = require('../model/device');
 var schema = require('../model/schema');
 var user = require('../util/user');
+var exampleModel = require('../model/example');
 var Validation = require('../util/validation');
-var generateExamples = require('../util/generate_examples');
 var ManifestToSchema = require('../util/manifest_to_schema');
+
+const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 
 var router = express.Router();
 
@@ -33,17 +36,16 @@ router.use(multer({ dest: platform.getTmpDir() }).fields([
 ]));
 router.use(csurf({ cookie: false }));
 
-const DEFAULT_CODE = {"module_type": "org.thingpedia.v1",
+const DEFAULT_CODE = {"module_type": "org.thingpedia.v2",
                       "params": {},
                       "auth": {"type": "none"},
                       "types": [],
                       "child_types": [],
-                      "triggers": {},
+                      "queries": {},
                       "actions": {},
-                      "queries": {}
                     };
 
-router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
+router.get('/create', user.redirectLogIn, user.requireDeveloper(), (req, res) => {
     var code = JSON.stringify(DEFAULT_CODE, undefined, 2);
     res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - create new device"),
                                                      csrfToken: req.csrfToken(),
@@ -54,7 +56,7 @@ router.get('/create', user.redirectLogIn, user.requireDeveloper(), function(req,
 
 function schemaCompatible(s1, s2) {
     return s1.length >= s2.length &&
-        s2.every(function(t, i) {
+        s2.every((t, i) => {
             if (t === s1[i]) return true;
             var t1 = ThingTalk.Type.fromString(t);
             var t2 = ThingTalk.Type.fromString(s1[i]);
@@ -63,7 +65,7 @@ function schemaCompatible(s1, s2) {
 }
 
 function validateSchema(dbClient, type, ast, req) {
-    return schema.getTypesByKinds(dbClient, [type], req.user.developer_org).then(function(rows) {
+    return schema.getTypesByKinds(dbClient, [type], req.user.developer_org).then((rows) => {
         if (rows.length < 1)
             throw new Error(req._("Invalid device type %s").format(type));
 
@@ -83,6 +85,12 @@ function validateSchema(dbClient, type, ast, req) {
     });
 }
 
+const CATEGORIES = new Set(['physical','data','online','system']);
+const CATEGORY_TYPES = new Set(['data-source', 'online-account', 'thingengine-system']);
+const SUBCATEGORIES = new Set(['service','media','social-network','communication','home','health','data-management']);
+const ALLOWED_MODULE_TYPES = new Set(['org.thingpedia.v2', 'org.thingpedia.v1', 'org.thingpedia.rss', 'org.thingpedia.rest_json', 'org.thingpedia.builtin', 'org.thingpedia.generic_rest.v1']);
+const JAVASCRIPT_MODULE_TYPES = new Set(['org.thingpedia.v1', 'org.thingpedia.v2', 'org.thingpedia.builtin']);
+
 function validateDevice(dbClient, req) {
     var name = req.body.name;
     var description = req.body.description;
@@ -93,9 +101,9 @@ function validateDevice(dbClient, req) {
         throw new Error(req._("Not all required fields were presents"));
 
     var ast = JSON.parse(code);
-    if (!ast.module_type)
+    if (!ast.module_type || !ALLOWED_MODULE_TYPES.has(ast.module_type))
         throw new Error(req._("Invalid module type"));
-    var fullcode = ast.module_type !== 'org.thingpedia.v1' && ast.module_type !== 'org.thingpedia.builtin';
+    var fullcode = !JAVASCRIPT_MODULE_TYPES.has(ast.module_type);
 
     if (!ast.params)
         ast.params = {};
@@ -105,18 +113,27 @@ function validateDevice(dbClient, req) {
         ast.child_types = [];
     if (!ast.auth)
         ast.auth = {"type":"none"};
-    if (!ast.auth.type || ['none','oauth2','basic','builtin','discovery'].indexOf(ast.auth.type) == -1)
+    if (!ast.auth.type || ['none','oauth2','basic','builtin','discovery'].indexOf(ast.auth.type) < 0)
         throw new Error(req._("Invalid authentication type"));
     if (ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
         throw new Error(req._("Username and password must be declared for basic authentication"));
+    if (!CATEGORIES.has(ast.category))
+        throw new Error(req._("Invalid category %s").format(ast.category));
+    if (!SUBCATEGORIES.has(ast.subcategory))
+        throw new Error(req._("Invalid device domain %s").format(ast.subcategory));
     //if (ast.auth.type === 'oauth2' && !ast.auth.client_id && !ast.auth.client_secret)
     //    throw new Error(req._("Client ID and Client Secret must be provided for OAuth 2 authentication"));
-    if (ast.types.indexOf('online-account') >= 0 && ast.types.indexOf('data-source') >= 0)
-        throw new Error(req._("Interface cannot be both marked online-account and data-source"));
+    ast.types = ast.types.filter((t) => {
+        return !CATEGORY_TYPES.has(t) && !SUBCATEGORIES.has(t);
+    });
+    ast.child_types.forEach((t) => {
+        if (CATEGORY_TYPES.has(t) || SUBCATEGORIES.has(t))
+            throw new Error(req._("Cannot specify category %s as child type").format(t));
+    });
     if (ast['global-name'])
-        Validation.validateKind(ast['global-name'], 'global name');
+        throw new Error(req._("Global names are obsolete, remove them"));
 
-    if (!/^[a-zA-Z0-9_\.]+$/.test(kind))
+    if (!/^[a-zA-Z0-9_.]+$/.test(kind))
         throw new Error(req._("Invalid primary kind, must use alphanumeric characters, underscore and period only."));
 
     Validation.validateAllInvocations(ast);
@@ -126,52 +143,50 @@ function validateDevice(dbClient, req) {
             ast.name = name;
         if (!ast.description)
             ast.description = description;
-        for (var name in ast.triggers) {
+        for (let name in ast.triggers) {
             if (!ast.triggers[name].url)
                 throw new Error(req._("Missing trigger url for %s").format(name));
         }
-        for (var name in ast.actions) {
+        for (let name in ast.actions) {
             if (!ast.actions[name].url)
                 throw new Error(req._("Missing action url for %s").format(name));
         }
-        for (var name in ast.queries) {
+        for (let name in ast.queries) {
             if (!ast.queries[name].url)
                 throw new Error(req._("Missing query url for %s").format(name));
         }
     }
 
-    return Q.all(ast.types.map(function(type) {
+    return Q.all(ast.types.map((type) => {
         return validateSchema(dbClient, type, ast, req);
-    })).then(function() {
-        return ast;
-    });
+    })).then(() => ast);
 }
 
-function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve) {
-    return schema.getByKind(dbClient, kind).then(function(existing) {
-        var obj = {};
+function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
+    const [types, meta] = ManifestToSchema.toSchema(ast);
+
+    return schema.getByKind(dbClient, kind).then((existing) => {
         if (existing.owner !== req.user.developer_org &&
             req.user.developer_status < user.DeveloperStatus.ADMIN)
             throw new Error(req._("Not Authorized"));
 
-        obj.developer_version = existing.developer_version + 1;
+        var obj = {
+            developer_version: existing.developer_version + 1
+        };
         if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER && approve)
             obj.approved_version = obj.developer_version;
 
         return schema.update(dbClient,
                              existing.id, existing.kind, obj,
                              types, meta);
-    }).catch(function(e) {
-        console.error(e.stack);
+    }, (e) => {
         var obj = {
             kind: kind,
-            // convert security-camera to 'security camera' and googleDrive to 'google drive'
-            kind_canonical: kind_type === 'primary' ? '' : kind.replace(/[_\-]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase(),
-            kind_type: kind_type,
+            kind_canonical: Validation.cleanKind(kind),
+            kind_type: 'primary',
             owner: req.user.developer_org
         };
-        if (req.user.developer_status < user.DeveloperStatus.TRUSTED_DEVELOPER ||
-            !approve) {
+        if (req.user.developer_status < user.DeveloperStatus.TRUSTED_DEVELOPER || !approve) {
             obj.approved_version = null;
             obj.developer_version = 0;
         } else {
@@ -179,36 +194,33 @@ function getOrCreateSchema(dbClient, kind, kind_type, types, meta, req, approve)
             obj.developer_version = 0;
         }
         return schema.create(dbClient, obj, types, meta);
+    }).then((schema) => {
+        return ensureExamples(dbClient, schema.id, ast);
     });
 }
 
-function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
-    var res = ManifestToSchema.toSchema(ast);
-    var types = res[0];
-    var meta = res[1];
-
-    return getOrCreateSchema(dbClient, kind, 'primary', types, meta, req, approve).then(function() {
-        if (!ast['global-name'])
-            return;
-
-        return getOrCreateSchema(dbClient, ast['global-name'], 'global', types, meta, req, approve);
+function ensureExamples(dbClient, schemaId, ast) {
+    return exampleModel.deleteBySchema(dbClient, schemaId, 'en').then(() => {
+        let examples = ast.examples.map((ex) => {
+            return ({
+                schema_id: schemaId,
+                utterance: ex.utterance,
+                preprocessed: ex.utterance,
+                target_code: ex.program,
+                target_json: '', // FIXME
+                type: 'thingpedia',
+                language: 'en',
+                is_base: 1
+            });
+        });
+        return exampleModel.createMany(dbClient, examples);
     });
-}
-
-function ensureExamples(dbClient, kind, ast) {
-    return generateExamples(dbClient, kind, ast);
 }
 
 function uploadZipFile(req, obj, ast, stream) {
-    var cleanedMetadata = {
-        auth: ast.auth,
-        types: ast.types,
-        child_types: ast.child_types,
-        'global-name': ast['global-name']
-    };
     var zipFile = new JSZip();
 
-    return Q.try(function() {
+    return Promise.resolve().then(() => {
         // unfortunately JSZip only loads from memory, so we need to load the entire file
         // at once
         // this is somewhat a problem, because the file can be up to 30-50MB in size
@@ -216,7 +228,7 @@ function uploadZipFile(req, obj, ast, stream) {
 
         var buffers = [];
         var length = 0;
-        return Q.Promise(function(callback, errback) {
+        return new Promise((callback, errback) => {
             stream.on('data', (buffer) => {
                 buffers.push(buffer);
                 length += buffer.length;
@@ -228,13 +240,13 @@ function uploadZipFile(req, obj, ast, stream) {
         });
     }).then((buffer) => {
         return zipFile.loadAsync(buffer, { checkCRC32: false });
-    }).then(function() {
+    }).then(() => {
         var packageJson = zipFile.file('package.json');
         if (!packageJson)
             throw new Error(req._("package.json missing from device zip file"));
 
         return packageJson.async('string');
-    }).then(function(text) {
+    }).then((text) => {
         try {
             var parsed = JSON.parse(text);
         } catch(e) {
@@ -244,7 +256,6 @@ function uploadZipFile(req, obj, ast, stream) {
             throw new Error(req._("Invalid package.json (missing name or main)"));
 
         parsed['thingpedia-version'] = obj.developer_version;
-        parsed['thingpedia-metadata'] = cleanedMetadata;
 
         zipFile.file('package.json', JSON.stringify(parsed));
 
@@ -252,7 +263,35 @@ function uploadZipFile(req, obj, ast, stream) {
                                                                       type: 'nodebuffer',
                                                                       platform: 'UNIX'}),
                                          obj.primary_kind, obj.developer_version);
-    }).catch(function(e) {
+    }).catch((e) => {
+        console.error('Failed to upload zip file to S3: ' + e);
+        console.error(e.stack);
+        throw e;
+    });
+}
+
+function isJavaScript(file) {
+    return file.mimetype === 'application/javascript' ||
+        file.mimetype === 'text/javascript' ||
+        (file.originalname && file.originalname.endsWith('.js'));
+}
+
+function uploadJavaScript(req, obj, ast, stream) {
+    var zipFile = new JSZip();
+
+    return Promise.resolve().then(() => {
+        zipFile.file('package.json', JSON.stringify({
+            name: obj.primary_kind,
+            author: req.user.username + '@thingpedia.stanford.edu',
+            main: 'index.js',
+            'thingpedia-version': obj.developer_version
+        }));
+        zipFile.file('index.js', stream);
+        return code_storage.storeZipFile(zipFile.generateNodeStream({ compression: 'DEFLATE',
+                                                                      type: 'nodebuffer',
+                                                                      platform: 'UNIX'}),
+                                         obj.primary_kind, obj.developer_version);
+    }).catch((e) => {
         console.error('Failed to upload zip file to S3: ' + e);
         console.error(e.stack);
         throw e;
@@ -268,11 +307,11 @@ function doCreateOrUpdate(id, create, req, res) {
 
     var gAst = undefined;
 
-    Q.try(function() {
-        return db.withTransaction(function(dbClient) {
-            return Q.try(function() {
+    Q.try(() => {
+        return db.withTransaction((dbClient) => {
+            return Q.try(() => {
                 return validateDevice(dbClient, req);
-            }).catch(function(e) {
+            }).catch((e) => {
                 console.error(e.stack);
                 res.render('thingpedia_device_create_or_edit', { page_title:
                                                                  (create ?
@@ -287,35 +326,28 @@ function doCreateOrUpdate(id, create, req, res) {
                                                                            code: code },
                                                                  create: create });
                 return null;
-            }).tap(function(ast) {
+            }).tap((ast) => {
                 if (ast === null)
-                    return;
+                    return null;
 
                 return ensurePrimarySchema(dbClient, kind, ast, req, approve);
-            }).tap(function(ast) {
-                if (ast === null)
-                    return;
-
-                return ensureExamples(dbClient, kind, ast);
-            }).then(function(ast) {
+            }).then((ast) => {
                 if (ast === null)
                     return null;
 
                 var extraKinds = ast.types;
                 var extraChildKinds = ast.child_types;
-                var globalName = ast['global-name'];
-                if (!globalName)
-                    globalName = null;
 
-                var fullcode = ast.module_type !== 'org.thingpedia.v1' && ast.module_type !== 'org.thingpedia.builtin';
+                var fullcode = !JAVASCRIPT_MODULE_TYPES.has(ast.module_type);
 
                 var obj = {
                     primary_kind: kind,
-                    global_name: globalName,
                     name: name,
                     description: description,
                     fullcode: fullcode,
                     module_type: ast.module_type,
+                    category: ast.category,
+                    subcategory: ast.subcategory,
                 };
                 var code = JSON.stringify(ast);
                 gAst = ast;
@@ -336,7 +368,7 @@ function doCreateOrUpdate(id, create, req, res) {
                             return obj;
                         });
                 } else {
-                    return model.get(dbClient, id).then(function(old) {
+                    return model.get(dbClient, id).then((old) => {
                         if (old.owner !== req.user.developer_org &&
                             req.user.developer_status < user.DeveloperStatus.ADMIN)
                             throw new Error(req._("Not Authorized"));
@@ -354,16 +386,18 @@ function doCreateOrUpdate(id, create, req, res) {
                             });
                     });
                 }
-            }).then(function(obj) {
+            }).then((obj) => {
                 if (obj === null)
                     return null;
 
-                if (obj.fullcode || gAst.module_type == 'org.thingpedia.builtin')
+                if (obj.fullcode || gAst.module_type === 'org.thingpedia.builtin')
                     return obj.primary_kind;
 
-                // do the whole zip file dance asynchronously, or the request will stall for a long time
-                // as we download the old file, modify it and reupload it
-                var stream;
+                if (req.files && req.files.zipfile && req.files.zipfile.length &&
+                    isJavaScript(req.files.zipfile[0]))
+                    return uploadJavaScript(req, obj, gAst, fs.createReadStream(req.files.zipfile[0].path));
+
+                let stream;
                 if (req.files && req.files.zipfile && req.files.zipfile.length)
                     stream = fs.createReadStream(req.files.zipfile[0].path);
                 else if (obj.old_version !== null)
@@ -371,32 +405,32 @@ function doCreateOrUpdate(id, create, req, res) {
                 else
                     throw new Error(req._("Invalid zip file"));
                 return uploadZipFile(req, obj, gAst, stream).then(() => obj.primary_kind);
-            }).then(function(done) {
+            }).then((done) => {
                 if (!done)
                     return done;
 
                 if (req.files.icon && req.files.icon.length) {
                     // upload the icon asynchronously to avoid blocking the request
-                    setTimeout(function() {
-                        Q.try(function() {
+                    setTimeout(() => {
+                        Promise.resolve().then(() => {
                             var graphicsApi = platform.getCapability('graphics-api');
                             var image = graphicsApi.createImageFromPath(req.files.icon[0].path);
                             image.resizeFit(512, 512);
                             return image.stream('png');
-                        }).spread(function(stdout, stderr) {
+                        }).then(([stdout, stderr]) => {
                             return code_storage.storeIcon(stdout, done);
-                        }).catch(function(e) {
+                        }).catch((e) => {
                             console.error('Failed to upload icon to S3: ' + e);
-                        }).done();
+                        });
                     }, 0);
                 }
                 return done;
-            }).then(function(done) {
+            }).then((done) => {
                 if (done)
                     res.redirect('/thingpedia/devices/by-id/' + done);
             });
         });
-    }).finally(function() {
+    }).finally(() => {
         var toDelete = [];
         if (req.files) {
             if (req.files.zipfile && req.files.zipfile.length)
@@ -405,16 +439,119 @@ function doCreateOrUpdate(id, create, req, res) {
                 toDelete.push(Q.nfcall(fs.unlink, req.files.icon[0].path));
         }
         return Q.all(toDelete);
-    }).catch(function(e) {
+    }).catch((e) => {
         console.error(e.stack);
         res.status(400).render('error', { page_title: "Thingpedia - Error",
                                           message: e });
     }).done();
 }
 
-router.post('/create', user.requireLogIn, user.requireDeveloper(), function(req, res) {
+router.post('/create', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     doCreateOrUpdate(undefined, true, req, res);
 });
+
+function legacyCreateExample(utterance, kind, function_name, function_type, function_obj) {
+    let inargmap = {};
+    let outargmap = {};
+    for (let arg of function_obj.args) {
+        if (arg.is_input)
+            inargmap[arg.name] = arg.type;
+        else
+            outargmap[arg.name] = arg.type;
+    }
+
+    let regexp = new RegExp(PARAM_REGEX, 'g');
+
+    let in_args = '';
+    let filter = '';
+    let arg_decl = '';
+    let any_arg = false;
+    let any_in_arg = false;
+    let any_out_arg = false;
+
+    let match = regexp.exec(utterance);
+    while (match !== null) {
+        let [, param1, param2,] = match;
+        let param = param1 || param2;
+
+        if (param in inargmap) {
+            let type = inargmap[param];
+            if (any_in_arg)
+                in_args += ', ';
+            if (any_arg)
+                arg_decl += ', ';
+            in_args += `${param}=p_${param}`;
+            arg_decl += `p_${param} :${type}`;
+            any_in_arg = true;
+            any_arg = true;
+        } else {
+            let type = outargmap[param];
+            if (any_out_arg)
+                filter += ' && ';
+            if (any_arg)
+                arg_decl += ', ';
+            filter += `${param} == p_${param}`;
+            arg_decl += `p_${param} :${type}`;
+            any_out_arg = true;
+            any_arg = true;
+        }
+
+        match = regexp.exec(utterance);
+    }
+
+    let result = `@${kind}.${function_name}(${in_args})`;
+    if (filter !== '')
+        result += `, ${filter}`;
+    if (function_type === 'triggers')
+        result = `let stream x := \\(${arg_decl}) -> monitor ${result};`;
+    else if (function_type === 'queries')
+        result = `let table x := \\(${arg_decl}) -> ${result};`;
+    else
+        result = `let action x := \\(${arg_decl}) -> ${result};`;
+    return { utterance: utterance, program: result };
+}
+
+function migrateManifest(code, device) {
+    let ast = JSON.parse(code);
+
+    delete ast.global_name;
+    delete ast['global-name'];
+    ast.category = device.category;
+    ast.subcategory = device.subcategory;
+
+    ast.types = (ast.types || []).filter((t) => {
+        if (CATEGORY_TYPES.has(t) || SUBCATEGORIES.has(t))
+            return false;
+        return true;
+    });
+    ast.child_types = ast.child_types || [];
+
+    if (!ast.examples) {
+        ast.examples = [];
+
+        for (let function_type of ['triggers','queries','actions']) {
+            for (let function_name in ast[function_type]) {
+                let function_obj = ast[function_type][function_name];
+
+                for (let example of (function_obj.examples || []))
+                    ast.examples.push(legacyCreateExample(example, device.primary_kind, function_name, function_type, function_obj));
+                delete function_obj.examples;
+            }
+        }
+    }
+
+    for (let function_type of ['triggers','queries']) {
+        for (let function_name in ast[function_type]) {
+            let function_obj = ast[function_type][function_name];
+
+            if (!('poll_interval' in function_obj))
+                function_obj.poll_interval = function_obj['poll-interval'] || -1;
+            delete function_obj['poll-interval'];
+        }
+    }
+
+    return JSON.stringify(ast);
+}
 
 router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
     Q.try(function() {
@@ -425,7 +562,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                     throw new Error(req._("Not Authorized"));
 
                 return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then(function(row) {
-                    d.code = row.code;
+                    d.code = migrateManifest(row.code, d);
                     return d;
                 });
             }).then(function(d) {

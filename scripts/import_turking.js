@@ -14,34 +14,40 @@ require('thingengine-core/lib/polyfill');
 const Q = require('q');
 const fs = require('fs');
 const csv = require('csv');
-const byline = require('byline');
 const ThingTalk = require('thingtalk');
+const seedrandom = require('seedrandom');
 
 const db = require('../util/db');
-const SchemaRetriever = require('./deps/schema_retriever');
-const tokenizer = require('../util/tokenize');
+const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
 
 var insertBatch = [];
 
-function coin(bias) {
-    return Math.random() < bias;
+const rng = seedrandom.alea('almond is awesome ' + process.argv.join('\0'));
+function coin(prob) {
+    return rng() <= prob;
 }
+coin(1);
 
-function insert(dbClient, utterance, type, target_json) {
-    insertBatch.push(['en', type, utterance, target_json, -1]);
-    if (insertBatch.length < 100)
-        return;
+const _language = 'en';
 
+function doInsertBatch(dbClient) {
     var batch = insertBatch;
     insertBatch = [];
     return db.insertOne(dbClient,
-        "insert into example_utterances(language,type,utterance,target_json,click_count) values ?", [batch]);
+        "insert into example_utterances(language,type,utterance,preprocessed,target_code,target_json,click_count) values ?", [batch]);
+}
+
+function insert(dbClient, type, utterance, preprocessed, target_code) {
+    insertBatch.push([_language, type, utterance, preprocessed.join(' '), target_code.join(' '), '', -1]);
+    if (insertBatch.length < 100)
+        return Q();
+    return doInsertBatch(dbClient);
+
 }
 function finishBatch(dbClient) {
     if (insertBatch.length === 0)
-        return;
-    return db.insertOne(dbClient,
-        "insert into example_utterances(language,type,utterance,target_json,click_count) values ?", [insertBatch]);
+        return Q();
+    return doInsertBatch(dbClient);
 }
 
 function parseAndTypecheck(isPermission, code, schemas) {
@@ -65,12 +71,18 @@ function main() {
     if (!typePrefix)
         throw new Error('Must specify the type of dataset (eg turking1 or policy2 or setup2)');
     const testProbability = parseFloat(process.argv[4]) || 0.1;
+    const devProbability = testProbability;
+
+    const schemas = new ThingTalk.SchemaRetriever(new AdminThingpediaClient(_language), null, true);
+    const tokenizerService = new ThingTalk.TokenizerService(_language);
+
+    const rejects = csv.stringify({ header: true, delimiter:'\t' });
+    rejects.pipe(fs.createWriteStream(typePrefix + '-rejects.tsv'));
 
     db.withTransaction((dbClient) => {
         let promises = [];
-        const schemas = new SchemaRetriever(dbClient, 'en-US', true);
 
-        const parser = csv.parse();
+        const parser = csv.parse({ columns: true, delimiter: '\t' });
         process.stdin.pipe(parser);
 
         return Q.Promise((callback, errback) => {
@@ -82,6 +94,8 @@ function main() {
                 /*
                 if (coin(testProbability))
                     testTrain = '-test';
+                else if (coin(devProbability))
+                    testTrain = '-dev';
                 else
                     testTrain = '-train';
                 */
@@ -97,9 +111,13 @@ function main() {
                     }
                     return insert(dbClient, typePrefix + testTrain, paraphrase, preprocessed, target_code);
                 }).catch((e) => {
-                    console.error('Failed to verify ' + tt + '   :' + e.message);
-                    // die uglily to fail the transaction
-                    process.exit();
+                    console.error('Failed to verify ' + id + ' ' + paraphrase + '   :' + e.message);
+                    if (e.message === 'Connection lost: The server closed the connection.')
+                        console.error(e.stack);
+                    // record this input as rejected
+                    //process.exit();
+                    row.reason = e.message;
+                    rejects.write(row);
                 }));
             });
             parser.on('error', errback);
@@ -108,6 +126,8 @@ function main() {
         .then(() => Q.all(promises))
         .then(() => finishBatch(dbClient));
         //.then(() => writer.end());
-    }).then(() => process.exit()).done();
+    }).then(() => rejects.end()).done();
+
+    rejects.on('finish', () => process.exit());
 }
 main();

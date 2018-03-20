@@ -9,14 +9,36 @@
 // See COPYING for details
 "use strict";
 
-const fs = require('fs');
-const Q = require('q');
-
 const ThingTalk = require('thingtalk');
 
 const KIND_REGEX = /^[A-Za-z_][A-Za-z0-9_-]*$/;
 
 module.exports = {
+    cleanKind(kind) {
+        // convert security-camera to 'security camera' and googleDrive to 'google drive'
+
+        // thingengine.phone -> phone
+        if (kind.startsWith('org.thingpedia.builtin.thingengine.'))
+            kind = kind.substr('org.thingpedia.builtin.thingengine.'.length);
+        // org.thingpedia.builtin.omlet -> omlet
+        if (kind.startsWith('org.thingpedia.builtin.'))
+            kind = kind.substr('org.thingpedia.builtin.'.length);
+        // org.thingpedia.weather -> weather
+        if (kind.startsWith('org.thingpedia.'))
+            kind = kind.substr('org.thingpedia.'.length);
+        // com.xkcd -> xkcd
+        if (kind.startsWith('com.'))
+            kind = kind.substr('com.'.length);
+        if (kind.startsWith('gov.'))
+            kind = kind.substr('gov.'.length);
+        if (kind.startsWith('org.'))
+            kind = kind.substr('org.'.length);
+        if (kind.startsWith('uk.co.'))
+            kind = kind.substr('uk.co.'.length);
+
+        return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+    },
+
     validateKind(name, what) {
         if (!KIND_REGEX.test(name))
             throw new Error('Invalid ' + what + ', must conform to ' + KIND_REGEX);
@@ -28,9 +50,8 @@ module.exports = {
                 throw new Error('Missing canonical form for ' + name);
             if (!where[name].confirmation)
                 throw new Error('Missing confirmation for ' + name);
-            //if (!where[name].examples || where[name].examples.length === 0)
-            //    throw new Error('Must include at least one example in ' + name);
-            if (!where[name].examples) where[name].examples = [];
+            if (where[name].examples)
+                throw new Error('Examples should be at the toplevel, not under ' + name);
             where[name].doc = where[name].doc || '';
             where[name].args = where[name].args || [];
 
@@ -58,14 +79,23 @@ module.exports = {
     },
 
     validateAllInvocations(ast) {
-        if (!ast.triggers)
-            ast.triggers = {};
         if (!ast.actions)
             ast.actions = {};
         if (!ast.queries)
             ast.queries = {};
-        this.validateInvocation(ast.triggers, 'trigger');
+        if (ast.triggers && Object.keys(ast.triggers).length > 0)
+            throw new Error("Triggers don't exist any more, delete all of them");
+
         this.validateInvocation(ast.actions, 'action');
         this.validateInvocation(ast.queries, 'query');
+
+        if (!ast.examples)
+            ast.examples = [];
+
+        for (let ex of ast.examples) {
+            if (!ex.utterance || !ex.program)
+                throw new Error("Invalid example");
+            ex.program = ThingTalk.Ast.prettyprint(ThingTalk.Grammar.parse(ex.program), true).trim();
+        }
     }
-}
+};

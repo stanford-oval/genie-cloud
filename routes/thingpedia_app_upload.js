@@ -5,10 +5,10 @@
 // Copyright 2017 The Mobisocial Stanford Lab <mobisocial@lists.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const express = require('express');
-const fs = require('fs');
 const multer = require('multer');
 const csurf = require('csurf');
 
@@ -19,13 +19,10 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 const db = require('../util/db');
 const code_storage = require('../util/code_storage');
 const user = require('../util/user');
-const userModel = require('../model/user');
 const model = require('../model/app');
-const device = require('../model/device');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
 const ThingPediaClient = require('../util/thingpedia-client');
-const generateExamples = require('../util/generate_examples');
 const ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();
@@ -88,7 +85,25 @@ function uploadIcon(appId, req) {
     }
 }
 
-router.post('/create', user.requireLogIn, function(req, res) {
+function ensureExamples(dbClient, schemaId, ast) {
+    return exampleModel.deleteBySchema(dbClient, schemaId, 'en').then(() => {
+        let examples = ast.examples.map((ex) => {
+            return ({
+                schema_id: schemaId,
+                utterance: ex.utterance,
+                preprocessed: ex.utterance,
+                target_code: ex.program,
+                target_json: '', // FIXME
+                type: 'thingpedia',
+                language: 'en',
+                is_base: 1
+            });
+        });
+        return exampleModel.createMany(dbClient, examples);
+    });
+}
+
+router.post('/create', user.requireLogIn, (req, res) => {
     var name = req.body.name;
     var description = req.body.description;
     var code = req.body.code;
@@ -128,7 +143,7 @@ router.post('/create', user.requireLogIn, function(req, res) {
                     developer_version: 0,
                     approved_version: 0
                 }, types, meta).then((schema) => {
-                    return generateExamples(dbClient, compiler.name, fullManifest);
+                    return ensureExamples(dbClient, schema.id, fullManifest);
                 });
             });
         });

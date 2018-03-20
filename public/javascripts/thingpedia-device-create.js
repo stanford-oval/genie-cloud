@@ -106,12 +106,9 @@ $(function() {
                     }
                 }
             },
-            examples: {
-                type: 'array',
-                title: 'Example Commands',
-                items: {
-                    type: 'string',
-                }
+            poll_interval: {
+                type: 'number',
+                title: 'Polling Interval'
             },
             url: {
                 type: 'string',
@@ -124,11 +121,6 @@ $(function() {
                 title: 'Is it a webhook?',
                 required: false,
             },
-            'poll-interval': {
-                type: 'number',
-                title: 'Polling Interval',
-                required: false,
-            }
         }
     };
     var fullSchema = {
@@ -141,9 +133,9 @@ $(function() {
         properties: {
             module_type: {
                 type: 'string', title: "Package Type",
-                'enum': ['org.thingpedia.v1', 'org.thingpedia.rss', 'org.thingpedia.rest_json', 'org.thingpedia.builtin', 'org.thingpedia.generic_rest.v1'],
+                'enum': ['org.thingpedia.v2', 'org.thingpedia.v1', 'org.thingpedia.rss', 'org.thingpedia.rest_json', 'org.thingpedia.builtin', 'org.thingpedia.generic_rest.v1'],
                 options: {
-                    enum_titles: ['Custom JavaScript', 'RSS Feed', 'REST+JSON', 'Preloaded', 'Generic REST']
+                    enum_titles: ['Custom JavaScript', 'Legacy JavaScript Module (deprecated)', 'RSS Feed', 'REST+JSON', 'Preloaded', 'Generic REST']
                 }
             },
             name: {
@@ -155,11 +147,6 @@ $(function() {
                 type: 'string',
                 title: "User visible description",
                 required: false,
-            },
-            'global-name': {
-                type: 'string',
-                title: "Global Name",
-                required: false
             },
             params: {
                 type: 'object',
@@ -176,6 +163,22 @@ $(function() {
                           'enum': ['text', 'password', 'email', 'number'],
                           headerTemplate: '{{title}}' }
                     ]
+                }
+            },
+            category: {
+                type: 'string',
+                title: "Category",
+                'enum': ['physical', 'online', 'data', 'system'],
+                options: {
+                    enum_titles: ['Physical Device', 'Online Account', 'Public Data Source', 'System Component']
+                }
+            },
+            subcategory: {
+                type: 'string',
+                title: "Device Domain",
+                'enum': ['service','media','social-network','communication','home','health','data-management'],
+                options: {
+                    enum_titles: ['Service', 'Media', 'Social Network', 'Communication', 'Home', 'Health & Fitness', 'Data Management']
                 }
             },
             types: {
@@ -230,7 +233,25 @@ $(function() {
                 type: 'object',
                 title: "Queries",
                 additionalProperties: ttSchema
-            }
+            },
+            examples: {
+                type: 'array',
+                title: 'Example Commands',
+                items: {
+                    type: 'object',
+                    title: 'Example',
+                    properties: {
+                        utterance: {
+                            type: 'string',
+                            title: 'Utterance'
+                        },
+                        program: {
+                            type: 'string',
+                            title: 'Program'
+                        }
+                    }
+                }
+            },
         }
     };
     var editor = new JSONEditor(element, {

@@ -18,7 +18,7 @@ const LANGS = ['en-US', 'it', 'zh-CN'];
 const languages = {};
 
 function loadTextdomainDirectory(gt, locale, domain, modir) {
-    let split = locale.split(/[-_\.@]/);
+    let split = locale.split(/[-_.@]/);
     let mo = modir + '/' + split.join('_') + '.mo';
 
     while (!fs.existsSync(mo) && split.length) {
@@ -64,7 +64,7 @@ module.exports = {
     LANGS,
 
     get(locale) {
-        locale = locale.split(/[-_\@\.,]/);
+        locale = locale.split(/[-_@.,]/);
         let lang = languages[locale.join('-')];
         while (!lang && locale.length > 0) {
             locale.pop();
@@ -74,4 +74,4 @@ module.exports = {
             lang = languages['en-US'];
         return lang;
     }
-}
+};

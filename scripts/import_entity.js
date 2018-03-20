@@ -13,8 +13,6 @@ const Q = require('q');
 const fs = require('fs');
 const csv = require('csv');
 
-const Tp = require('thingpedia');
-
 const db = require('../util/db');
 const tokenize = require('../util/tokenize');
 
@@ -57,7 +55,7 @@ var insertBatch = [];
 function insert(dbClient, language, token, entityId, entityValue, entityCanonical, entityName) {
     insertBatch.push([language, token, entityId, entityValue, entityCanonical, entityName]);
     if (insertBatch.length < 100)
-        return;
+        return Promise.resolve();
 
     var batch = insertBatch;
     insertBatch = [];
@@ -66,7 +64,7 @@ function insert(dbClient, language, token, entityId, entityValue, entityCanonica
 }
 function finishBatch(dbClient) {
     if (insertBatch.length === 0)
-        return;
+        return Promise.resolve();
     return db.insertOne(dbClient,
         "insert ignore into entity_lexicon(language,token,entity_id,entity_value,entity_canonical,entity_name) values ?", [insertBatch]);
 }
@@ -94,11 +92,12 @@ function main() {
     'SOCCER-US': 'sportradar:us_soccer_team'
   };*/
 
-  db.withTransaction(function(dbClient) {
+  db.withTransaction((dbClient) => {
     var promises = [];
-    return Q.Promise(function(callback, errback) {
+    return Q.Promise((callback, errback) => {
       parser.on('data', (row) => {
         //var league = row[0];
+        console.log(row);
         var id = row[0].trim();
         var name = row[1];
 

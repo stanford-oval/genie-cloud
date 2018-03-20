@@ -6,11 +6,11 @@ This repository contains Thingpedia, the open, crowdsourced knowledge base for t
 virtual assistant.
 It also contains Web Almond, a cloud service to provide Almond through a web interface.
 
-The production branch of this repository is deployed at <https://thingpedia.stanford.edu>
+The production branch of this repository is deployed at <https://almond.stanford.edu>
 
 Thingpedia is part of Almond, a research project led by
 prof. Monica Lam, from Stanford University.  You can find more
-information at <https://thingppedia.stanford.edu/about>.
+information at <https://almond.stanford.edu>.
 
 ## Installation
 
@@ -23,13 +23,14 @@ The code depends on nodejs (>= 6.10), cvc4 (any version, although >= 1.5 is reco
 Optionally, it depends on libsystemd for journal integration.
 A working MySQL server is also required.
 
-This repository uses submodules for most of its internal dependencies (the Almond libraries). Use:
+This repository uses yarn for dependency tracking.
+You should install yarn from [its website](https://yarnpkg.com/en/docs/install), and then run:
 
-```git submodule update --init --recursive```
+```yarn install```
 
-Then you can install the dependencies with a standard `npm install`.
-
-**NOTE**: npm >= 5 is known NOT to work. For best results, use the npm that came with node 6.10 LTS.
+Note: due to strict version requirements between the different Almond components,
+which are hosted as git repositories and not published on the npm registry, using
+npm is not supported.
 
 ### Step 1.5: Build the sandbox
 

@@ -12,7 +12,7 @@ const db = require('../util/db');
 const Q = require('q');
 
 function create(client, entity) {
-    var KEYS = ['name'];
+    var KEYS = ['name','has_ner_support'];
     KEYS.forEach(function(key) {
         if (entity[key] === undefined)
             entity[key] = null;
@@ -22,7 +22,7 @@ function create(client, entity) {
     });
     var marks = KEYS.map(function() { return '?'; });
 
-    return db.insertOne(client, 'insert into app(language,is_well_known,' + KEYS.join(',') + ') '
+    return db.insertOne(client, 'insert into entity_names(language,is_well_known,' + KEYS.join(',') + ') '
                         + 'values (\'en\', 0,' + marks.join(',') + ')', vals).then(function(id) {
                             entity.id = id;
                             return entity;

@@ -5,23 +5,17 @@
 // Copyright 2015 The Mobisocial Stanford Lab <mobisocial@lists.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const express = require('express');
-
-const ThingTalk = require('thingtalk');
-const AppCompiler = ThingTalk.Compiler;
-const SchemaRetriever = ThingTalk.SchemaRetriever;
 
 const db = require('../util/db');
 const user = require('../util/user');
 const userModel = require('../model/user');
 const model = require('../model/app');
-const device = require('../model/device');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
-const ThingPediaClient = require('../util/thingpedia-client');
-const generateExamples = require('../util/generate_examples');
 const ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();

@@ -13,7 +13,6 @@ const Q = require('q');
 const child_process = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const net = require('net');
 const os = require('os');
 const events = require('events');
 const stream = require('stream');
@@ -92,9 +91,9 @@ class EngineProcess extends events.EventEmitter {
         if (!this.shared)
             return this.kill();
         this.useCount--;
-        return this._rpcSocket.call(this._rpcId, 'killEngine', [userId]).then(function() {
+        return this._rpcSocket.call(this._rpcId, 'killEngine', [userId]).then(() => {
             this.emit('engine-removed', userId);
-        }.bind(this)).catch((e) => {
+        }).catch((e) => {
             // assume if the call fails that the engine actually died
             this.emit('engine-removed', userId);
         });
@@ -117,13 +116,11 @@ class EngineProcess extends events.EventEmitter {
         this._child = null;
         this._rpcSocket = null;
         this._rpcId = null;
-        return this._starting = Q.delay(delay).then(function() {
-            return this.start();
-        }.bind(this));
+        return this._starting = Q.delay(delay).then(() => this.start());
     }
 
     waitReady() {
-        return Q(this._starting).then(function() { return this; }.bind(this));
+        return Q(this._starting).then(() => this);
     }
 
     send(msg, socket) {
@@ -141,21 +138,22 @@ class EngineProcess extends events.EventEmitter {
             return false;
         }
 
-        var env = {};
+        const env = {};
         for (var name in process.env) {
             if (envIsAllowed(name))
                 env[name] = process.env[name];
         }
         env.THINGENGINE_USER_ID = this._id;
 
-        var managerPath = path.dirname(module.filename);
-        var enginePath = path.resolve(managerPath, './worker');
-        var child;
+        const managerPath = path.dirname(module.filename);
+        const enginePath = path.resolve(managerPath, './worker');
+        let child;
 
         console.log('Spawning process with ID ' + this._id);
 
+        let processPath, args, stdio;
         if (this.shared) {
-            var args = process.execArgv.slice();
+            args = process.execArgv.slice();
             args.push(enginePath);
             args.push('--shared');
             child = child_process.spawn(process.execPath, args,
@@ -164,15 +162,15 @@ class EngineProcess extends events.EventEmitter {
                                           cwd: this._cwd, env: env });
         } else {
             if (process.env.THINGENGINE_DISABLE_SANDBOX === '1') {
-                var processPath = process.execPath;
-                var args = process.execArgv.slice();
+                processPath = process.execPath;
+                args = process.execArgv.slice();
                 args.push(enginePath);
-                var stdio = ['ignore', 1, 2, 'ipc'];
+                stdio = ['ignore', 1, 2, 'ipc'];
             } else {
-                var processPath = path.resolve(managerPath, '../sandbox/sandbox');
-                var args = ['-i', this._cloudId, process.execPath].concat(process.execArgv);
+                processPath = path.resolve(managerPath, '../sandbox/sandbox');
+                args = ['-i', this._cloudId, process.execPath].concat(process.execArgv);
                 args.push(enginePath);
-                var stdio = ['ignore', 'ignore', 'ignore', 'ipc'];
+                stdio = ['ignore', 'ignore', 'ignore', 'ipc'];
             }
             child = child_process.spawn(processPath, args,
                                         { stdio: stdio,
@@ -182,42 +180,41 @@ class EngineProcess extends events.EventEmitter {
 
         // wrap child into something that looks like a Stream
         // (readable + writable)
-        var socket = new ChildProcessSocket(child);
+        const socket = new ChildProcessSocket(child);
         this._rpcSocket = new rpc.Socket(socket);
 
-        var rpcDefer = Q.defer();
-        child.on('error', function(error) {
-            console.error('Child with ID ' + this._id + ' reported an error: ' + error);
-            rpcDefer.reject(new Error('Reported error ' + error));
-        }.bind(this));
-        child.on('exit', function(code, signal) {
-            if (this.shared || code !== 0)
-                console.error('Child with ID ' + this._id + ' exited with code ' + code);
-            rpcDefer.reject(new Error('Exited with code ' + code));
-            if (!this._hadExit) {
-                this._hadExit = true;
-                this.emit('exit');
-            }
-        }.bind(this));
-        socket.on('error', function(error) {
-            console.error('Failed to communicate with ID ' + this._id + ': ' + error);
-        }.bind(this));
+        return this._starting = new Promise((resolve, reject) => {
+            child.on('error', (error) => {
+                console.error('Child with ID ' + this._id + ' reported an error: ' + error);
+                reject(new Error('Reported error ' + error));
+            });
+            child.on('exit', (code, signal) => {
+                if (this.shared || code !== 0)
+                    console.error('Child with ID ' + this._id + ' exited with code ' + code);
+                reject(new Error('Exited with code ' + code));
+                if (!this._hadExit) {
+                    this._hadExit = true;
+                    this.emit('exit');
+                }
+            });
+            socket.on('error', (error) => {
+                console.error('Failed to communicate with ID ' + this._id + ': ' + error);
+            });
 
-        this._child = child;
-        child.on('message', (msg) => {
-            switch (msg.type) {
-            case 'ready':
-                this._rpcId = msg.id;
-                this._starting = null;
-                rpcDefer.resolve();
-                break;
-            case 'rpc':
-                socket.push(msg.data);
-                break;
-            }
+            this._child = child;
+            child.on('message', (msg) => {
+                switch (msg.type) {
+                case 'ready':
+                    this._rpcId = msg.id;
+                    this._starting = null;
+                    resolve();
+                    break;
+                case 'rpc':
+                    socket.push(msg.data);
+                    break;
+                }
+            });
         });
-        this._starting = rpcDefer.promise;
-        return this._starting;
     }
 }
 
@@ -309,8 +306,7 @@ class EngineManager extends events.EventEmitter {
     }
 
     start() {
-        var self = this;
-        var ncpus, nprocesses;
+        let ncpus, nprocesses;
 
         if (ENABLE_SHARED_PROCESS) {
             ncpus = os.cpus().length;
@@ -318,24 +314,24 @@ class EngineManager extends events.EventEmitter {
         } else {
             ncpus = 0; nprocesses = 0;
         }
-        var promises = new Array(nprocesses);
+        let promises = new Array(nprocesses);
         this._rrproc = new Array(nprocesses);
         this._nextProcess = 0;
         for (var i = 0; i < nprocesses; i++) {
             this._rrproc[i] = new EngineProcess('S' + i, null);
             this._rrproc[i].on('exit', function() {
-                var proc = this;
+                let proc = this;
                 proc.restart(5000).done();
             });
             promises[i] = this._rrproc[i].start();
             this._processes['S' + i] = this._rrproc[i];
         }
 
-        return Q.all(promises).then(function() {
-            return db.withClient(function(client) {
-                return user.getAll(client).then(function(rows) {
-                    return Q.all(rows.map(function(r) {
-                        return self._runUser(r).catch((e) => {
+        return Promise.all(promises).then(() => {
+            return db.withClient((client) => {
+                return user.getAll(client).then((rows) => {
+                    return Promise.all(rows.map((r) => {
+                        return this._runUser(r).catch((e) => {
                             console.error('User ' + r.id + ' failed to start: ' + e.message);
                         });
                     }));
@@ -354,19 +350,19 @@ class EngineManager extends events.EventEmitter {
     }
 
     stop() {
-        for (var userId in this._processes)
+        for (let userId in this._processes)
             this._processes[userId].kill();
     }
 
     killUser(userId) {
-        var obj = this._engines[userId];
+        let obj = this._engines[userId];
         if (!obj || obj.process === null)
             return Q();
         return Q(obj.process.killEngine(userId));
     }
 
     deleteUser(userId) {
-        var obj = this._engines[userId];
+        let obj = this._engines[userId];
         if (obj.process !== null)
             obj.process.killEngine(userId);
 

@@ -3,12 +3,15 @@ extends layout
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-cheatsheet.css')
 
+block scripts
+  script(src="https://unpkg.com/packery@2/dist/packery.pkgd.min.js")
+
 block page_name
   = _("Almond Cheatsheet")
 
 block content
-  div.row#cheatsheet
-    div.col-xs-12.col-sm-6.col-md-4.col-lg-3
+  div.grid(data-packery='{ "itemSelector": ".grid-item", "gutter": 10 }')#cheatsheet
+    div.grid-item
       h3= _("Suggested Rules")
       ul
         li Tweet the latest NASA Astronomy Picture of the Day
@@ -24,11 +27,10 @@ block content
     each d in devices
       if d.triggers.length === 0 && d.queries.length === 0 && d.actions.length === 0
         - continue;
-      div.col-xs-12.col-sm-6.col-md-4.col-lg-3
+      div.grid-item
         h3
           img(src=S3_CLOUDFRONT_HOST + '/icons/' + d.primary_kind + '.png', alt="Icon for " + d.name)
-          //a(href='/thingpedia/devices/by-id/' + d.primary_kind)= d.name
-          = d.name
+          a(href='/thingpedia/devices/by-id/' + d.primary_kind)= d.name
         ul
           for ex in d.triggers
             li
@@ -40,12 +42,7 @@ block content
           for ex in d.queries
             li
               span.query= _("GET: ")
-              if ex.startsWith('get')
-                = ex.substr('get'.length).trim()
-              else if ex.startsWith('show')
-                = ex.substr('show'.length).trim()
-              else
-                = ex
+              = ex
           for ex in d.actions
             li
               span.action= _("DO: ")

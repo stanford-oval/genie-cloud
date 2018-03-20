@@ -1,12 +1,5 @@
 *~
-platform_config.js
+*.tsv
 home/
 
-node_modules/*/
-!node_modules/almond
-!node_modules/thingengine-core
-!node_modules/thingpedia
-!node_modules/thingpedia-discovery
-!node_modules/thingtalk
-!node_modules/omlib
-!node_modules/transparent-rpc
+node_modules/

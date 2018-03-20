@@ -45,7 +45,7 @@ function readLogs(userId, startCursor) {
 
     args.push('SYSLOG_IDENTIFIER=thingengine-child-' + userId);
 
-    var child = child_process.spawn('/usr/bin/journalctl', args,
+    var child = child_process.spawn('/bin/journalctl', args,
                                     { stdio: ['ignore', 'pipe', 'ignore'] });
     return child;
 }
@@ -121,7 +121,7 @@ router.post('/recovery/wipe-cache', user.requireLogIn, user.requireDeveloper(), 
 
     var p = path.resolve('./' + req.user.cloud_id + '/cache');
     console.log('Wiping path ' + path);
-    Q.nfcall(child_process.execFile, '/usr/bin/rm', ['-rf', p]).then(function() {
+    Q.nfcall(child_process.execFile, '/bin/rm', ['-rf', p]).then(function() {
         res.redirect(303, '/me/status');
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),

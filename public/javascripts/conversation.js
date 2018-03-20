@@ -15,10 +15,11 @@ $(function() {
     var container = $('#chat');
     var currentGrid = null;
 
+    var S3_CLOUDFRONT_HOST = $('body').attr('data-icon-cdn');
     function almondMessage(icon) {
         var msg = $('<span>').addClass('message-container from-almond');
-        icon = icon || 'org.thingpedia.builtin.almond';
-        var src = 'https://d1ge76rambtuys.cloudfront.net/icons/' + icon + '.png';
+        icon = icon || 'org.thingpedia.builtin.thingengine.builtin';
+        var src = S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png';
         msg.append($('<img>').addClass('icon').attr('src', src));
         container.append(msg);
         return msg;
@@ -102,7 +103,7 @@ $(function() {
             .attr('href', '#').text("Yes");
         btn.click(function(event) {
             appendUserMessage("Yes");
-            handleParsedCommand('{"special":{"id":"tt:root.special.yes"}}');
+            handleSpecial('yes');
             event.preventDefault();
         });
         holder.append(btn);
@@ -112,7 +113,7 @@ $(function() {
             .attr('href', '#').text("No");
         btn.click(function(event) {
             appendUserMessage("No");
-            handleParsedCommand('{"special":{"id":"tt:root.special.no"}}');
+            handleSpecial('no');
             event.preventDefault();
         });
         holder.append(btn);
@@ -174,7 +175,10 @@ $(function() {
         ws.send(JSON.stringify({ type: 'parsed', json: json }));
     }
     function handleChoice(idx) {
-        handleParsedCommand(JSON.stringify({answer:{type:'Choice', value: idx}}));
+        handleParsedCommand({ code: ['bookkeeping', 'choice', String(idx)], entities: {} });
+    }
+    function handleSpecial(special) {
+        handleParsedCommand({ code: ['bookkeeping', 'special', 'special:'+special ], entities: {} });
     }
 
     function appendUserMessage(text) {
@@ -193,7 +197,7 @@ $(function() {
     });
     $('#cancel').click(function() {
         collapseButtons();
-        handleParsedCommand(JSON.stringify({special:{id:'tt:root.special.nevermind'}}));
+        handleSpecial('nevermind');
     });
 });
 

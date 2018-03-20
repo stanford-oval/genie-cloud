@@ -7,8 +7,6 @@ almond/platform.js
 almond/worker.js
 util/code_storage.js
 util/db.js
-util/expand_examples.js
-util/generate_examples.js
 util/manifest_to_schema.js
 util/passport.js
 util/secret_key.js
