@@ -228,7 +228,7 @@ function uploadZipFile(req, obj, ast, stream) {
 
         var buffers = [];
         var length = 0;
-        return Q.Promise((callback, errback) => {
+        return new Promise((callback, errback) => {
             stream.on('data', (buffer) => {
                 buffers.push(buffer);
                 length += buffer.length;
@@ -259,6 +259,34 @@ function uploadZipFile(req, obj, ast, stream) {
 
         zipFile.file('package.json', JSON.stringify(parsed));
 
+        return code_storage.storeZipFile(zipFile.generateNodeStream({ compression: 'DEFLATE',
+                                                                      type: 'nodebuffer',
+                                                                      platform: 'UNIX'}),
+                                         obj.primary_kind, obj.developer_version);
+    }).catch((e) => {
+        console.error('Failed to upload zip file to S3: ' + e);
+        console.error(e.stack);
+        throw e;
+    });
+}
+
+function isJavaScript(file) {
+    return file.mimetype === 'application/javascript' ||
+        file.mimetype === 'text/javascript' ||
+        (file.originalname && file.originalname.endsWith('.js'));
+}
+
+function uploadJavaScript(req, obj, ast, stream) {
+    var zipFile = new JSZip();
+
+    return Promise.resolve().then(() => {
+        zipFile.file('package.json', JSON.stringify({
+            name: obj.primary_kind,
+            author: req.user.username + '@thingpedia.stanford.edu',
+            main: 'index.js',
+            'thingpedia-version': obj.developer_version
+        }));
+        zipFile.file('index.js', stream);
         return code_storage.storeZipFile(zipFile.generateNodeStream({ compression: 'DEFLATE',
                                                                       type: 'nodebuffer',
                                                                       platform: 'UNIX'}),
@@ -365,7 +393,11 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (obj.fullcode || gAst.module_type === 'org.thingpedia.builtin')
                     return obj.primary_kind;
 
-                var stream;
+                if (req.files && req.files.zipfile && req.files.zipfile.length &&
+                    isJavaScript(req.files.zipfile[0]))
+                    return uploadJavaScript(req, obj, gAst, fs.createReadStream(req.files.zipfile[0].path));
+
+                let stream;
                 if (req.files && req.files.zipfile && req.files.zipfile.length)
                     stream = fs.createReadStream(req.files.zipfile[0].path);
                 else if (obj.old_version !== null)
