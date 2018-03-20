@@ -135,7 +135,7 @@ router.get('/devices/all', (req, res) => {
         page = 0;
 
     db.withClient((dbClient) => {
-        return deviceModel.getAll(dbClient, page * 9, 10);
+        return deviceModel.getAllApproved(dbClient, page * 9, 10);
     }).then((devices) => {
         var kinds = new Set;
         devices = devices.filter((d) => {
