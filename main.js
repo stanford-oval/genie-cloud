@@ -13,6 +13,7 @@ require('thingengine-core/lib/polyfill');
 
 const Q = require('q');
 Q.longStackSupport = true;
+process.on('unhandledRejection', (up) => { throw up; });
 
 const Config = require('./config');
 if (Config.WITH_THINGPEDIA !== 'embedded' && Config.WITH_THINGPEDIA !== 'external')
