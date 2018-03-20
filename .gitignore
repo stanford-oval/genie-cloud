@@ -1,4 +1,5 @@
 *~
+*.tsv
 home/
 
 node_modules/
