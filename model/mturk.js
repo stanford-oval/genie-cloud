@@ -15,24 +15,52 @@ module.exports = {
     getHIT(dbClient, batch, id) {
         return db.selectOne(dbClient, 'select * from mturk_input where batch = ? and id = ?', [batch, id]);
     },
+    getBatchDetails(dbClient, batch) {
+        return db.selectOne(dbClient, `select * from mturk_batch where id = ?`, [batch]);
+    },
 
     logSubmission(dbClient, token, batch, hit, worker) {
         const log = [token, batch, hit, worker];
         return db.insertOne(dbClient, 'insert into mturk_log(submission_id,batch,hit,worker) values (?)', [log]);
     },
 
-    insertSubmission(dbClient, token, body) {
-        let promises = [];
-        for (let i = 1; i < 5; i ++) {
-            let program_id = body[`program_id${i}`];
-            let thingtalk = body[`thingtalk${i}`];
-            let sentence = body[`sentence${i}`];
-            for (let j = 1; j < 3; j ++) {
-                let paraphrase = body[`paraphrase${i}-${j}`];
-                let row = [token, program_id, thingtalk, sentence, paraphrase];
-                promises.push(db.insertOne(dbClient, 'insert into mturk_output(submission_id,program_id,thingtalk,sentence,paraphrase) values (?)', [row]));
-            }
-        }
-        return Promise.all(promises);
+    insertSubmission(dbClient, submissions) {
+        if (submissions.length === 0)
+            return Promise.resolve();
+
+        const KEYS = ['submission_id', 'example_id', 'program_id', 'target_count', 'accept_count', 'reject_count'];
+        const arrays = [];
+        submissions.forEach((ex) => {
+            KEYS.forEach((key) => {
+                if (ex[key] === undefined)
+                    ex[key] = null;
+            });
+            const vals = KEYS.map((key) => {
+                return ex[key];
+            });
+            arrays.push(vals);
+        });
+
+        return db.insertOne(dbClient, 'insert into mturk_output(' + KEYS.join(',') + ') '
+                            + 'values ?', [arrays]);
+    },
+
+    getUnvalidated(dbClient, batch) {
+        return db.selectAll(dbClient, `select ex.* from example_utterances ex, mturk_output mout,
+            mturk_log log where log.batch = ? and mout.example_id = ex.id and
+            (mout.accept_count + mout.reject_count) < mout.target_count and
+            mout.submission_id = log.submission_id`, [batch]);
+    },
+
+    getBatches(dbClient, batch) {
+        return db.selectAll(dbClient, `select id, name, (select count(ex.id) from example_utterances
+            ex, mturk_output mout, mturk_log log where log.batch= mturk_batch.id and
+            mout.example_id = ex.id and (mout.accept_count + mout.reject_count) < mout.target_count
+            and mout.submission_id = log.submission_id) as unvalidated, (select count(ex.id)
+            from example_utterances ex, mturk_output mout, mturk_log log where
+            log.batch= mturk_batch.id and mout.example_id = ex.id and
+            (mout.accept_count + mout.reject_count) < mout.target_count
+            and mout.submission_id = log.submission_id) as validated from mturk_batch`);
     }
+
 };

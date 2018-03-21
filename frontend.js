@@ -234,7 +234,7 @@ Frontend.prototype._init = function _init() {
     this._app.use('/mturk', require('./routes/mturk'));
 
     this._websocketEndpoints = {};
-}
+};
 
 var server = null;
 

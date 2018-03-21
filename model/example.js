@@ -36,6 +36,24 @@ function createMany(client, examples) {
                         + 'values ?', [arrays]);
 }
 
+function create(client, ex) {
+    const KEYS = ['schema_id', 'is_base', 'language', 'utterance', 'preprocessed', 'target_json', 'target_code', 'type', 'click_count'];
+    if (!ex.type)
+        ex.type = 'thingpedia';
+    if (ex.click_count === undefined)
+        ex.click_count = 1;
+    KEYS.forEach((key) => {
+        if (ex[key] === undefined)
+            ex[key] = null;
+    });
+    const vals = KEYS.map((key) => {
+        return ex[key];
+    });
+
+    return db.insertOne(client, 'insert into example_utterances(' + KEYS.join(',') + ') '
+                        + 'values (?)', [vals]);
+}
+
 module.exports = {
     getAll(client) {
         console.error('example.getAll called, where is this from?');
@@ -79,6 +97,7 @@ module.exports = {
     },
 
     createMany: createMany,
+    create: create,
 
     deleteBySchema(client, schemaId, language) {
         return db.query(client, "delete from example_utterances where schema_id = ? and language = ?",

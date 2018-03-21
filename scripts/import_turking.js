@@ -18,7 +18,7 @@ const ThingTalk = require('thingtalk');
 const seedrandom = require('seedrandom');
 
 const db = require('../util/db');
-const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
+const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 
 var insertBatch = [];
 

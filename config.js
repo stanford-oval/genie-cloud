@@ -7,6 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 // The location where icons and zip files are stored
 // This can be an absolute URI ending in cloudfront.net, which enables the
@@ -27,3 +28,5 @@ module.exports.THINGPEDIA_URL = '';
 // (enables redirect from legacy domains and sets Strict-Transport-Security
 // headers)
 module.exports.IS_PRODUCTION_THINGPEDIA = false;
+
+module.exports.SEMPRE_URL = 'https://almond-nl.stanford.edu';
