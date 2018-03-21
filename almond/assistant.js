@@ -69,7 +69,8 @@ module.exports = class Assistant extends events.EventEmitter {
             this._conversations[id]._delegate = delegate;
             return Promise.resolve(this._conversations[id]);
         }
-        return this.openConversation(id, user, delegate, options);
+        let conv = this.openConversation(id, user, delegate, options);
+        return Promise.resolve(conv.start()).then(() => conv);
     }
 
     openConversation(feedId, user, delegate, options) {

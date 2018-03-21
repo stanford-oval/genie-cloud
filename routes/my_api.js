@@ -104,7 +104,7 @@ router.post('/alexa', (req, res, next) => {
 
     const user = req.user;
     const assistantUser = { name: user.human_name || user.username };
-    const text = req.body.request.type === 'LaunchRequest' ? 'hello' : req.body.request.intent.slots.Command.value;
+    const text = req.body.request.type === 'LaunchRequest' ? 'hello' : req.body.request.intent.slots.command.value;
 
     const delegate = new AlexaDelegate(res);
  
