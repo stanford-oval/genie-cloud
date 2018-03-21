@@ -64,6 +64,14 @@ module.exports = class Assistant extends events.EventEmitter {
             return this._lastConversation;
     }
 
+    getOrOpenConversation(id, user, delegate, options) {
+        if (this._conversations[id]) {
+            this._conversations[id]._delegate = delegate;
+            return Promise.resolve(this._conversations[id]);
+        }
+        return this.openConversation(id, user, delegate, options);
+    }
+
     openConversation(feedId, user, delegate, options) {
         if (this._conversations[feedId]) {
             this._conversations[feedId].$free();
@@ -84,4 +92,4 @@ module.exports = class Assistant extends events.EventEmitter {
         delete this._conversations[feedId];
     }
 };
-module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'parse', 'createApp', 'addOutput', 'removeOutput'];
+module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'getConversation', 'getOrOpenConversation', 'parse', 'createApp', 'addOutput', 'removeOutput'];
