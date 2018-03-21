@@ -44,6 +44,9 @@ block content
                     a(href='/thingpedia/snapshots') Thingpedia Snapshots
                   li
                     a(href='/thingpedia/datasets') Thingpedia Datasets
+                if user.roles & 0x1 && WITH_THINGPEDIA === 'embedded'
+                  li
+                    a(href='/mturk') MTurk Batches
 
       section.divider
         div.container

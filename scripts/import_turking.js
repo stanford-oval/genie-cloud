@@ -42,7 +42,6 @@ function insert(dbClient, type, utterance, preprocessed, target_code) {
     if (insertBatch.length < 100)
         return Q();
     return doInsertBatch(dbClient);
-
 }
 function finishBatch(dbClient) {
     if (insertBatch.length === 0)

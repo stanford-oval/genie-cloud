@@ -205,6 +205,8 @@ Frontend.prototype._init = function _init() {
         this._app.use('/thingpedia/apps', require('./routes/thingpedia_app_upload'));
     }
 
+    this._app.use('/mturk', require('./routes/mturk'));
+
     this._app.use(csurf({ cookie: false }));
     this._app.use('/', require('./routes/index'));
     this._app.use('/', require('./routes/qrcode'));
@@ -230,8 +232,6 @@ Frontend.prototype._init = function _init() {
     this._app.use('/user', require('./routes/user'));
     this._app.use('/admin', require('./routes/admin'));
     this._app.use('/omlet', require('./routes/omlet'));
-
-    this._app.use('/mturk', require('./routes/mturk'));
 
     this._websocketEndpoints = {};
 };

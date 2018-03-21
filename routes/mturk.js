@@ -9,9 +9,14 @@
 // See COPYING for details
 "use strict";
 
+const Q = require('q');
+const fs = require('fs');
+const csv = require('csv');
 const express = require('express');
 const db = require('../util/db');
 const ThingTalk = require('thingtalk');
+const multer = require('multer');
+const csurf = require('csurf');
 
 const user = require('../util/user');
 const model = require('../model/mturk');
@@ -21,8 +26,143 @@ const TokenizerService = require('../util/tokenizer_service');
 
 var router = express.Router();
 
+router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
+    { name: 'upload', maxCount: 1 }
+]), csurf({ cookie: false }), user.requireRole(user.Role.ADMIN), (req, res) => {
+    if (!req.files.upload || !req.files.upload.length) {
+        res.render('error', { page_title: req._("Thingpedia - Error"),
+            message: req._("Must upload the CSV file")
+        });
+        return;
+    }
+
+    Q(db.withTransaction((dbClient) => {
+        return model.create(dbClient, { name: req.body.name, submissions_per_hit: req.body.submissions_per_hit }).then((batch) => {
+            let minibatch = [];
+            let columns = ['batch'];
+            for (let i = 1; i < 5; i ++ ) {
+                columns.push(`id${i}`);
+                columns.push(`thingtalk${i}`);
+                columns.push(`sentence${i}`);
+            }
+            columns = columns.join(',');
+            function doInsert() {
+                let data = minibatch;
+                minibatch = [];
+                return db.insertOne(dbClient, `insert into mturk_input(${columns}) values ?`, [data]);
+            }
+
+            function finish() {
+                if (minibatch.length === 0)
+                    return Promise.resolve();
+                return doInsert();
+            }
+
+            function insertOneHIT(programs) {
+                let row = [batch.id];
+                programs.forEach((p) => {
+                    row.push(p.id);
+                    row.push(p.code);
+                    row.push(p.sentence);
+                });
+                minibatch.push(row);
+                if (minibatch.length < 100)
+                    return Promise.resolve();
+                return doInsert();
+            }
+
+            const parser = csv.parse({ columns: true, delimiter: '\t' });
+            fs.createReadStream(req.files.upload[0].path).pipe(parser);
+
+            let promises = [];
+            let programs = [];
+            return new Promise((resolve, reject) => {
+                parser.on('data', (row) => {
+                    programs.push(row);
+                    if (programs.length === 4) {
+                        promises.push(insertOneHIT(programs));
+                        programs = [];
+                    }
+                });
+                parser.on('error', reject);
+                parser.on('end', resolve);
+            }).then(() => Promise.all(promises)).then(() => finish());
+        });
+    })).finally(() => {
+        return Q.nfcall(fs.unlink, req.files.upload[0].path);
+    }).then(() => {
+        res.redirect(303, '/mturk');
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+            message: e.message });
+    }).done();
+});
+
+router.use(csurf({ cookie: false }));
+
 router.get('/', user.requireRole(user.Role.ADMIN), (req, res) => {
-    db.with;
+    db.withClient((dbClient) => {
+        return model.getBatches(dbClient);
+    }).then((batches) => {
+        res.render('mturk_batch_list', {
+            page_title: req._("Thingpedia - MTurk Batches"),
+            batches: batches,
+            csrfToken: req.csrfToken()
+        });
+    });
+});
+
+router.get('/csv/:batch', user.requireRole(user.Role.ADMIN), (req, res) => {
+    db.withClient((dbClient) => {
+        return new Promise((resolve, reject) => {
+            res.set('Content-disposition', 'attachment; filename=mturk.csv');
+            res.status(200).set('Content-Type', 'text/csv');
+            let output = csv.stringify({ header: true });
+            output.pipe(res);
+
+            let query = model.streamHITs(dbClient, req.params.batch);
+            query.on('result', (row) => {
+                output.write({url: `https://almond.stanford.edu/submit/mturk/${req.params.batch}/${row.id}` });
+            });
+            query.on('end', () => {
+                output.end();
+            });
+            query.on('error', reject);
+            output.on('error', reject);
+            res.on('finish', resolve);
+        });
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+            message: e });
+    }).done();
+});
+
+router.get('/validation/csv/:batch', user.requireRole(user.Role.ADMIN), (req, res) => {
+    db.withClient((dbClient) => {
+        return new Promise((resolve, reject) => {
+            res.set('Content-disposition', 'attachment; filename=validate.csv');
+            res.status(200).set('Content-Type', 'text/csv');
+            let output = csv.stringify({ header: true });
+            output.pipe(res);
+
+            let query = model.streamHITsToValidate(dbClient, req.params.batch);
+            query.on('result', (row) => {
+                output.write({url: `https://almond.stanford.edu/validate/mturk/${req.params.batch}/${row.id}` });
+            });
+            query.on('end', () => {
+                output.end();
+            });
+            query.on('error', reject);
+            output.on('error', reject);
+            res.on('finish', resolve);
+        });
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+            message: e });
+    }).done();
 });
 
 function validateOne(dbClient, batchId, language, schemas, utterance, thingtalk) {
@@ -88,12 +228,12 @@ router.post('/submit', (req, res) => {
         res.render('mturk-submit', { page_title: req._('Thank you'), token: submissionId });
     }).catch((e) => {
         console.error(e.stack);
-        res.render('error', { page_title: req._("Thingpedia - Error"),
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
             message: 'Submission failed. Please contact the HIT requestor for further instructions.' });
     }).done();
 });
 
-router.get(`/:batch/:hit`, (req, res) => {
+router.get(`/submit/:batch/:hit`, (req, res) => {
     const batch = req.params.batch;
     const id = req.params.hit;
 
