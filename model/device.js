@@ -7,6 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const db = require('../util/db');
 const Q = require('q');
@@ -203,6 +204,9 @@ module.exports = {
 
     approve: function(client, id) {
         return db.query(client, "update device_class set approved_version = developer_version where id = ?", [id]);
+    },
+    unapprove: function(client, id) {
+        return db.query(client, "update device_class set approved_version = null where id = ?", [id]);
     },
 
     getAll: function(client, start, end) {

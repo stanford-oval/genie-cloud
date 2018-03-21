@@ -7,6 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const db = require('../util/db');
 const Q = require('q');
@@ -459,6 +460,9 @@ module.exports = {
 
     approveByKind: function(dbClient, kind) {
         return db.query(dbClient, "update device_schema set approved_version = developer_version where kind = ?", [kind]);
+    },
+    unapproveByKind: function(dbClient, kind) {
+        return db.query(dbClient, "update device_schema set approved_version = null where kind = ?", [kind]);
     },
 
     insertChannels: insertChannels,

@@ -99,19 +99,31 @@ router.get('/by-id/:kind', (req, res) => {
     getDetails(model.getByPrimaryKind, req.params.kind, req, res);
 });
 
-router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
-    db.withTransaction(function(dbClient) {
-        return model.get(dbClient, req.params.id).then(function(device) {
-            return model.approve(dbClient, req.params.id).then(function() {
+router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+    db.withTransaction((dbClient) => {
+        return model.get(dbClient, req.params.id).then((device) => {
+            return model.approve(dbClient, req.params.id).then(() => {
                 return schema.approveByKind(dbClient, device.primary_kind);
-            }).then(function() {
-                if (device.global_name)
-                    return schema.approveByKind(dbClient, device.global_name);
             }).then(() => device);
         });
-    }).then(function(device) {
+    }).then((device) => {
         res.redirect('/thingpedia/devices/by-id/' + device.primary_kind);
-    }).catch(function(e) {
+    }).catch((e) => {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.post('/unapprove/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+    db.withTransaction((dbClient) => {
+        return model.get(dbClient, req.params.id).then((device) => {
+            return model.unapprove(dbClient, req.params.id).then(() => {
+                return schema.unapproveByKind(dbClient, device.primary_kind);
+            }).then(() => device);
+        });
+    }).then((device) => {
+        res.redirect('/thingpedia/devices/by-id/' + device.primary_kind);
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();

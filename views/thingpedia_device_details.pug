@@ -123,6 +123,11 @@ block content
     if authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
       div.col-md-2
         a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.id)= _("Update")
+      if user.developer_status >= 3 and device.approved_version !== null
+        div.col-md-2
+          form(action='/thingpedia/devices/unapprove/' + device.id, method='post').form-delete-device
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-danger.btn-block= _("Remove from collection")
       div.col-md-2
         form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
