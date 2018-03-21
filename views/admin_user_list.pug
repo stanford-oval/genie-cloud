@@ -1,7 +1,7 @@
 extends layout
 
 block page_name
-  = _("Administration")
+  = _("Almond User List")
 
 block styles
   link(rel='stylesheet', href='/stylesheets/admin.css')
@@ -10,47 +10,6 @@ block scripts
   script(src='/javascripts/admin.js')
 
 block content
-  if !assistantAvailable
-    h2.text-danger= _("Your assistant is not yet configured. ")
-      a(href='/admin/assistant-setup')= _("Configure it")
-      | .
-
-  div.row
-    div.col-sm-2
-      form(action='/admin/kill-all', method='post')
-        input(type='hidden',name='_csrf',value=csrfToken)
-        button(type='submit').btn.btn-danger.btn-block= _("Kill all users")
-
-    div.col-sm-2
-      form(action='/admin/blow-view-cache', method='post')
-        input(type='hidden',name='_csrf',value=csrfToken)
-        button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
-
-    div.col-sm-2
-      button(type='button').btn.btn-default.btn-block#button-send-broadcast= _("Broadcast message")
-
-  h2 Users
-
-  div.modal.fade#modal-message-user
-    div.modal-dialog
-      div.modal-content
-        form(method='post',data-toggle='validator')#form-message-user
-          div.modal-header
-            h4.modal-title= _("Send a message")
-          div.modal-body
-            input(type='hidden',name='_csrf',value=csrfToken)
-
-            div.form-group
-              label(for='message-body').control-label= _("Message")
-              textarea(name='body',required=true).form-control#message-body
-
-          div.modal-footer
-            div.row
-              div.col-md-6
-                button(type='submit').btn.btn-primary.btn-block= _("Send")
-              div.col-md-6
-                button(type='button',data-dismiss='modal').btn.btn-default.btn-block= _("Close")
-
   div.navbar.navbar-default#user-search-navbar
     form.navbar-form.navbar-left(action='/admin/search',method='get')
       div.form-group
@@ -119,7 +78,7 @@ block content
             if user.isRunning
               span(title=user.engineId)= _("Running")
             else
-              = _("Died")
+              = _("Dead")
           td.dropdown
             button(type='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false', id='button-actions-' + user.id).btn.btn-default
               = _("Actions")
@@ -128,26 +87,24 @@ block content
             ul.dropdown-menu(aria-labelledby='button-actions-' + user.id).actions-dropdown
               li
                 if user.isRunning
-                  form(action='/admin/kill-user/' + user.id, method='post')
+                  form(action='/admin/users/kill/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-danger.form-control= _("Kill user")
                 else
-                  form(action='/admin/start-user/' + user.id, method='post')
+                  form(action='/admin/users/start/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Start user")
               li
-                button(type='button',data-user-id=user.id,data-has-assistant=(user.omlet_id !== null ? 1 : 0)).btn.btn-success.btn-block.button-send-message= _("Send a message")
-              li
                 if user.developer_status < 3
-                  form(action='/admin/promote-user/' + user.id, method='post')
+                  form(action='/admin/users/promote/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Promote user")
                 if user.developer_status > 0
-                  form(action='/admin/demote-user/' + user.id, method='post')
+                  form(action='/admin/users/demote/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Demote user")
               li
-                form(action='/admin/delete-user/' + user.id, method='post').form-delete-user
+                form(action='/admin/users/demote/' + user.id, method='post').form-delete-user
                   input(type='hidden',name='_csrf',value=csrfToken)
                   button(type='submit').btn.btn-danger.form-control= _("Delete user")
 
