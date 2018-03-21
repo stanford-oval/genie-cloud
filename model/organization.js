@@ -7,49 +7,54 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const db = require('../util/db');
-const Q = require('q');
 
 function create(client, org) {
     var KEYS = ['name', 'developer_key'];
-    KEYS.forEach(function(key) {
+    KEYS.forEach((key) => {
         if (org[key] === undefined)
             org[key] = null;
     });
-    var vals = KEYS.map(function(key) {
-        return org[key];
-    });
-    var marks = KEYS.map(function() { return '?'; });
+    var vals = KEYS.map((key) => org[key]);
+    var marks = KEYS.map(() => '?');
 
     return db.insertOne(client, 'insert into organizations(' + KEYS.join(',') + ') '
-                        + 'values (' + marks.join(',') + ')', vals).then(function(id) {
+                        + 'values (' + marks.join(',') + ')', vals).then((id) => {
                             org.id = id;
                             return org;
                         });
 }
 
 module.exports = {
-    get: function(client, id) {
+    get(client, id) {
         return db.selectOne(client, "select * from organizations where id = ?",
                             [id]);
     },
 
-    getMembers: function(client, id) {
+    getAll(client, start, end) {
+        if (start !== undefined && end !== undefined)
+            return db.selectAll(client, "select * from organizations order by id limit ?,?", [start,end]);
+        else
+            return db.selectAll(client, "select * from organizations order by id");
+    },
+
+    getMembers(client, id) {
         return db.selectAll(client, "select username from users where developer_org = ?", [id]);
     },
 
-    getByDeveloperKey: function(client, key) {
+    getByDeveloperKey(client, key) {
         return db.selectAll(client, "select id,is_admin from organizations where developer_key = ?", [key]);
     },
 
     create: create,
 
-    update: function(client, id, org) {
+    update(client, id, org) {
         return db.query(client, "update organizations set ? where id = ?", [org, id]);
     },
 
-    'delete': function(client, id) {
+    'delete'(client, id) {
         return db.query(client, "delete from organizations where id = ?", [id]);
     }
 };

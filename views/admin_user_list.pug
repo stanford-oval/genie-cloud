@@ -20,10 +20,10 @@ block content
     ul.pager
       if page_num > 0
         li
-          a(href='/admin?page=' + (page_num-1))= _("Previous")
+          a(href='/admin/users?page=' + (page_num-1))= _("Previous")
       if users.length > USERS_PER_PAGE
         li
-          a(href='/admin?page=' + (page_num+1))= _("Next")
+          a(href='/admin/users?page=' + (page_num+1))= _("Next")
 
   table.table#users-table
     thead
@@ -59,13 +59,20 @@ block content
           td= user.timezone
           td
             if user.roles & 0x1
-              span(title=user.developer_key)= _("Site Admin")
+              span(title=user.developer_key)
+                a(href='/admin/organizations/details/' + user.developer_org)= _("Site Admin")
             else if user.developer_status >= 3
-              span(title=user.developer_key)= _("Admin")
+              span(title=user.developer_key)
+                a(href='/admin/organizations/details/' + user.developer_org)= _("Admin")
             else if user.developer_status >= 2
-              span(title=user.developer_key)= _("Trusted Dev")
+              span(title=user.developer_key)
+                a(href='/admin/organizations/details/' + user.developer_org)= _("Trusted Dev")
             else if user.developer_status >= 1
-              span(title=user.developer_key)= _("Developer")
+              span(title=user.developer_key)
+                a(href='/admin/organizations/details/' + user.developer_org)= _("Developer")
+            else if user.developer_org !== null
+              span(title=user.developer_key)
+                a(href='/admin/organizations/details/' + user.developer_org)= _("Tester")
             else
               span(title=user.developer_key)= _("User")
           td
@@ -112,8 +119,8 @@ block content
     ul.pager
       if page_num > 0
         li
-          a(href='/admin?page=' + (page_num-1))= _("Previous")
+          a(href='/admin/users?page=' + (page_num-1))= _("Previous")
       if users.length > USERS_PER_PAGE
         li
-          a(href='/admin?page=' + (page_num+1))= _("Next")
+          a(href='/admin/users?page=' + (page_num+1))= _("Next")
 

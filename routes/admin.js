@@ -17,6 +17,7 @@ const user = require('../util/user');
 const model = require('../model/user');
 const organization = require('../model/organization');
 const snapshot = require('../model/snapshot');
+const device = require('../model/device');
 const db = require('../util/db');
 
 const OmletOAuth = require('../omlet/oauth2');
@@ -252,6 +253,77 @@ router.post('/snapshots/create', user.requireLogIn, user.requireDeveloper(user.D
         return snapshot.create(dbClient, obj);
     }).then(() => {
         res.redirect(303, '/admin/snapshots');
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.get('/organizations', user.requireRole(user.Role.ADMIN), (req, res) => {
+    let page = req.query.page;
+    if (page === undefined)
+        page = 0;
+    page = parseInt(page);
+    if (isNaN(page) || page < 0)
+        page = 0;
+
+    db.withClient((dbClient) => {
+        return organization.getAll(dbClient, page * 20, 21);
+    }).then((rows) => {
+        res.render('admin_org_list', { page_title: req._("Almond - Developer Organizations"),
+                                       csrfToken: req.csrfToken(),
+                                       page_num: page,
+                                       organizations: rows });
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.get('/organizations/details/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+    db.withClient((dbClient) => {
+        return Promise.all([
+            organization.get(dbClient, req.params.id),
+            model.getByDeveloperOrg(dbClient, req.params.id),
+            device.getByOwner(dbClient, req.params.id)
+        ]);
+    }).then(([org, users, devices]) => {
+        res.render('admin_org_details', { page_title: req._("Almond - Developer Organization"),
+                                          csrfToken: req.csrfToken(),
+                                          org: org,
+                                          members: users,
+                                          devices: devices });
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), (req, res) => {
+    db.withTransaction((dbClient) => {
+        return model.getByName(dbClient, req.body.username).then(([user]) => {
+            if (!user)
+                throw new Error(req._("No such user %s").format(req.body.username));
+            if (user.developer_org !== null)
+                throw new Error(req._("%s is already a member of another developer organization.").format(req.body.username));
+
+            return model.update(dbClient, user.id, { developer_status: 1,
+                                                     developer_org: req.body.id })
+                .then(() => EngineManager.get().restartUser(user.id));
+        });
+    }).then(() => {
+        res.redirect(303, '/admin/organizations/details/' + req.body.id);
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.post('/organizations/set-name', user.requireRole(user.Role.ADMIN), (req, res) => {
+    db.withTransaction((dbClient) => {
+        return organization.update(dbClient, req.body.id, { name: req.body.name });
+    }).then(() => {
+        res.redirect(303, '/admin/organizations/details/' + req.body.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
