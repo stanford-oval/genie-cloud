@@ -110,5 +110,13 @@ module.exports = {
 
     deleteById(client, exampleId) {
         return db.query(client, "delete from example_utterances where id = ?", [exampleId]);
+    },
+
+    getTypes(client) {
+        return db.selectAll(client, "select distinct language,type,count(*) as size from example_utterances group by language,type");
+    },
+    getByType(client, language, type, start, end) {
+        return db.selectAll(client, "select * from example_utterances where not is_base and language = ? and type = ? order by id asc limit ?,?",
+            [language, type, start, end]);
     }
 };

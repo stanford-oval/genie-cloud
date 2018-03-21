@@ -1,0 +1,22 @@
+extends layout
+
+block page_name
+  = _("Datasets")
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia.css')
+
+block content
+  table.table
+    thead
+      tr
+        th= _("Language")
+        th= _("Type")
+        th= _("Size")
+    tbody
+      for set in datasets
+        tr
+          td= set.language
+          td
+            a(href='/thingpedia/datasets/' + set.language + '/' + set.type)= set.type
+          td= set.size

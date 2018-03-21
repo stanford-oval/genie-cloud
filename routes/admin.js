@@ -224,41 +224,6 @@ router.get('/omlet/setup/callback', user.requireRole(user.Role.ADMIN), (req, res
     }).done();
 });
 
-router.get('/snapshots', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
-    let page = req.query.page;
-    if (page === undefined)
-        page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
-        page = 0;
-
-    db.withClient((dbClient) => {
-        return snapshot.getAll(dbClient, page * 20, 21);
-    }).then((rows) => {
-        res.render('thingpedia_snapshot_list', { page_title: req._("Thingpedia - List of Snapshots"),
-                                                 csrfToken: req.csrfToken(),
-                                                 page_num: page,
-                                                 snapshots: rows });
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.post('/snapshots/create', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
-    db.withTransaction((dbClient) => {
-        var obj = {
-            description: req.body.description || '',
-        };
-        return snapshot.create(dbClient, obj);
-    }).then(() => {
-        res.redirect(303, '/admin/snapshots');
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
 router.get('/organizations', user.requireRole(user.Role.ADMIN), (req, res) => {
     let page = req.query.page;
     if (page === undefined)

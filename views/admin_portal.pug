@@ -12,16 +12,17 @@ block content
     h1.hidden-xs.hidden-sm#page-title.dev-portal-title
       = _("Administration")
 
-    div.container
-      div.row
-        div.col-xs-12
-          if !omletAvailable
-            div.alert.alert-warning(role='alert')
-              p= _("The Omlet bridge is not yet configured. ")
-                a(href='/admin/omlet/setup').btn.btn-sm.btn-default= _("Configure it")
-          else if !omletRunning
-            div.alert.alert-warning(role='alert')
-              p= _("The Omlet bridge is not running (it has crashed or it has been disabled).")
+    if user.roles & 0x1
+      div.container
+        div.row
+          div.col-xs-12
+            if !omletAvailable
+              div.alert.alert-warning(role='alert')
+                p= _("The Omlet bridge is not yet configured. ")
+                  a(href='/admin/omlet/setup').btn.btn-sm.btn-default= _("Configure it")
+            else if !omletRunning
+              div.alert.alert-warning(role='alert')
+                p= _("The Omlet bridge is not running (it has crashed or it has been disabled).")
 
     div.sections
       section.divider
@@ -29,12 +30,20 @@ block content
           div.row
             div.col-xs-12
               ul
-                li
-                  a(href='/admin/users') Users
-                li
-                  a(href='/admin/snapshots') Thingpedia Snapshots
-                li
-                  a(href='/admin/organizations') Developer Organizations
+                if user.roles & 0x1
+                  li
+                    a(href='/admin/users') Users
+                  li
+                    a(href='/admin/organizations') Developer Organizations
+                if WITH_THINGPEDIA === 'embedded'
+                  li
+                    a(href='/thingpedia/schemas') Thingpedia Types
+                  li
+                    a(href='/thingpedia/entities') Thingpedia Entities
+                  li
+                    a(href='/thingpedia/snapshots') Thingpedia Snapshots
+                  li
+                    a(href='/thingpedia/datasets') Thingpedia Datasets
 
       section.divider
         div.container

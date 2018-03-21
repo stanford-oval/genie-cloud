@@ -15,7 +15,7 @@ ul.nav.navbar-nav
       a(href='/thingpedia/training')= _("Train Almond")
     li
       a(href='/thingpedia/developers')= _("Developers")
-  if authenticated && user.roles & 0x1
+  if authenticated && user.developer_status >= 3
     li
       a(href="/admin")= _("Administration")
 

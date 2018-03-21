@@ -12,6 +12,7 @@ block content
       if page_num > 0
         li
           a(href='/admin/organizations?page=' + (page_num-1))= _("Previous")
+      | &nbsp;
       if organizations.length > 20
         li
           a(href='/admin/organizations?page=' + (page_num+1))= _("Next")
@@ -35,6 +36,7 @@ block content
       if page_num > 0
         li
           a(href='/admin/organizations?page=' + (page_num-1))= _("Previous")
+      | &nbsp;
       if organizations.length > 20
         li
           a(href='/admin/organizations?page=' + (page_num+1))= _("Next")
