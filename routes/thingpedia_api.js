@@ -138,15 +138,8 @@ router.get('/devices/all', (req, res) => {
         page = 0;
 
     db.withClient((dbClient) => {
-        return deviceModel.getAllApproved(dbClient, page * 9, 10);
+        return deviceModel.getAll(dbClient, page * 9, 10);
     }).then((devices) => {
-        var kinds = new Set;
-        devices = devices.filter((d) => {
-            if (kinds.has(d.primary_kind))
-                return false;
-            kinds.add(d.primary_kind);
-            return true;
-        });
         res.cacheFor(86400000);
         res.json({ devices });
     }).catch((e) => {
