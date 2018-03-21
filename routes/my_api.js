@@ -35,6 +35,8 @@ class AlexaDelegate {
         this._buffer = '';
         this._res = res;
         this._done = false;
+
+        this._askSpecial = null;
     }
 
     flush() {
@@ -49,7 +51,14 @@ class AlexaDelegate {
                outputSpeech: { 
                    type: 'PlainText',
                    text: this._buffer
-               }
+               },
+               shouldEndSession: this._askSpecial === null,
+               directives: (this._askSpecial === null ? undefined : [
+                   {
+                       type: 'Dialog.ElicitSlot',
+                       slotToElicit: 'command'
+                   }
+               ])
            }
         });
     }
@@ -79,7 +88,7 @@ class AlexaDelegate {
     }
 
     sendAskSpecial(what) {
-        // ignore
+        this._askSpecial = what;
     }
 }
 AlexaDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
