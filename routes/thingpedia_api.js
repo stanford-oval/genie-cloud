@@ -87,7 +87,7 @@ router.get('/code/devices/:kind', (req, res) => {
         res.json(code);
     }).catch((e) => {
         res.status(400).send('Error: ' + e.message);
-    }).done();
+    });
 });
 
 router.get('/devices/setup/:kinds', (req, res) => {

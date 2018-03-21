@@ -73,7 +73,7 @@ function main() {
             return db.selectAll(dbClient, 'select id from mturk_input;', []).then((rows) => {
                 return rows.forEach((row) => {
                     content += baseUrl + row.id + '\n';
-                })
+                });
             }).then(() => {
                 return output.write(content);
             });

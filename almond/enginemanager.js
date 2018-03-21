@@ -350,6 +350,10 @@ class EngineManager extends events.EventEmitter {
     }
 
     stop() {
+        this.killAllUsers();
+    }
+
+    killAllUsers() {
         for (let userId in this._processes)
             this._processes[userId].kill();
     }
@@ -375,6 +379,6 @@ class EngineManager extends events.EventEmitter {
         });
     }
 }
-EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'deleteUser', 'restartUser'];
+EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers', 'deleteUser', 'restartUser'];
 
 module.exports = EngineManager;

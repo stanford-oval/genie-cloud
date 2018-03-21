@@ -596,7 +596,7 @@ function prepare_sample_by_code(input, output) {
             let result= processOne(id, sentence, code);
             if (!result)
                 return;
-            if (result.function_signature.split('+').length > 1)
+            if (result.function_signature.split('+').length <= 1)
                 return; 
 
             let unified = remove_units(code)
@@ -628,7 +628,7 @@ function main() {
     const file = fs.createWriteStream(process.argv[2]);
     output.pipe(file);
     
-    const by_signature = true;
+    const by_signature = false;
 
     if (by_signature)
         prepare_sample_by_sig(input, output);

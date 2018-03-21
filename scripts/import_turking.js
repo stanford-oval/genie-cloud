@@ -18,7 +18,7 @@ const ThingTalk = require('thingtalk');
 const seedrandom = require('seedrandom');
 
 const db = require('../util/db');
-const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
+const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 
 var insertBatch = [];
 
@@ -42,7 +42,6 @@ function insert(dbClient, type, utterance, preprocessed, target_code) {
     if (insertBatch.length < 100)
         return Q();
     return doInsertBatch(dbClient);
-
 }
 function finishBatch(dbClient) {
     if (insertBatch.length === 0)

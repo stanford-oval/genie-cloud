@@ -1,7 +1,7 @@
 extends layout
 
 block page_name
-  = _("Snapshots")
+  = _("Thingpedia Snapshots")
 
 block content
   table.table
@@ -36,7 +36,7 @@ block content
   div.panel.panel-default
     p.panel-heading= _("Create a new snapshot")
     div.panel-body
-      form(action='/admin/snapshots/create', method='post', data-toggle='validator')
+      form(action='/thingpedia/snapshots/create', method='post', data-toggle='validator')
         input(type='hidden',name='_csrf',value=csrfToken)
         div.form-group
           label(for='new-description').control-label= _("Description")

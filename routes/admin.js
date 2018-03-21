@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 const jade = require('pug');
 const crypto = require('crypto');
@@ -18,6 +17,7 @@ const user = require('../util/user');
 const model = require('../model/user');
 const organization = require('../model/organization');
 const snapshot = require('../model/snapshot');
+const device = require('../model/device');
 const db = require('../util/db');
 
 const OmletOAuth = require('../omlet/oauth2');
@@ -35,9 +35,9 @@ const USERS_PER_PAGE = 50;
 function renderUserList(users) {
     const engineManager = EngineManager.get();
 
-    return Q.all(users.map((u) => {
+    return Promise.all(users.map((u) => {
         if (!engineManager)
-            return;
+            return Promise.resolve();
         return engineManager.getProcessId(u.id).then((pid) => {
             if (pid === -1) {
                 u.isRunning = false;
@@ -50,177 +50,14 @@ function renderUserList(users) {
     })).then(() => users);
 }
 
-router.get('/', user.redirectRole(user.Role.ADMIN), function(req, res) {
-    var page = req.query.page;
-    if (page === undefined)
-        page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
-        page = 0;
-
-    db.withClient(function(dbClient) {
-        return model.getAll(dbClient, page * USERS_PER_PAGE, USERS_PER_PAGE + 1);
-    }).then(renderUserList).then(function(users) {
-        res.render('admin_user_list', { page_title: req._("Thingpedia - Administration"),
-                                        csrfToken: req.csrfToken(),
-                                        assistantAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
-                                        users: users,
-                                        page_num: page,
-                                        search: '',
-                                        USERS_PER_PAGE });
-    }).done();
+router.get('/', user.redirectRole(user.Role.ADMIN), (req, res) => {
+    res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
+                                 csrfToken: req.csrfToken(),
+                                 omletAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
+                                 omletRunning: false });
 });
 
-router.get('/search', user.redirectRole(user.Role.ADMIN), function(req, res) {
-    db.withClient(function(dbClient) {
-        if (req.query.q !== '' && !isNaN(req.query.q))
-            return Q.all([model.get(dbClient, Number(req.query.q))]);
-        else
-            return model.getSearch(dbClient, req.query.q);
-    }).then(renderUserList).then(function(users) {
-        res.render('admin_user_list', { page_title: req._("Thingpedia - Administration"),
-                                        csrfToken: req.csrfToken(),
-                                        assistantAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
-                                        users: users,
-                                        page_num: 0,
-                                        search: req.query.search,
-                                        USERS_PER_PAGE });
-    }).done();
-});
-
-router.post('/kill-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
-    var engineManager = EngineManager.get();
-
-    engineManager.killUser(parseInt(req.params.id)).then(() => {
-        res.redirect(303, '/admin');
-    }).catch(function(e) {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.post('/start-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
-    var engineManager = EngineManager.get();
-
-    engineManager.isRunning(parseInt(req.params.id)).then(function(isRunning) {
-        if (isRunning)
-            return engineManager.killUser(parseInt(req.params.id));
-    }).then(function() {
-        return engineManager.startUser(parseInt(req.params.id));
-    }).then(function() {
-        res.redirect(303, '/admin');
-    }).catch(function(e) {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.post('/kill-all', user.requireRole(user.Role.ADMIN), function(req, res) {
-    var engineManager = EngineManager.get();
-
-    engineManager.stop();
-    res.redirect(303, '/admin');
-});
-
-router.post('/blow-view-cache', user.requireRole(user.Role.ADMIN), function(req, res) {
-    jade.cache = {};
-    res.redirect(303, '/admin');
-});
-
-router.post('/delete-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
-    if (req.user.id == req.params.id) {
-        res.render('error', { page_title: req._("Thingpedia - Error"),
-                              message: req._("You cannot delete yourself") });
-        return;
-    }
-
-    db.withTransaction(function(dbClient) {
-        return EngineManager.get().deleteUser(parseInt(req.params.id)).then(function() {
-            return model.delete(dbClient, req.params.id);
-        });
-    }).then(function() {
-        res.redirect(303, '/admin');
-    }).catch(function(e) {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.post('/promote-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
-    var needsRestart = false;
-
-    db.withTransaction(function(dbClient) {
-        return model.get(dbClient, req.params.id).then(function(user) {
-            if (user.developer_status >= 3)
-                return;
-
-            if (user.developer_status == 0) {
-                needsRestart = true;
-                return organization.create(dbClient, { name: '', developer_key: makeRandom() }).then(function(org) {
-                    return model.update(dbClient, user.id, { developer_status: 1,
-                                                             developer_org: org.id });
-                });
-            } else {
-                return model.update(dbClient, user.id, { developer_status: user.developer_status + 1 });
-            }
-        });
-    }).then(function() {
-        if (needsRestart)
-            EngineManager.get().restartUser(req.params.id);
-        res.redirect(303, '/admin');
-    }).catch(function(e) {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.post('/demote-user/:id', user.requireRole(user.Role.ADMIN), function(req, res) {
-    if (req.user.id == req.params.id) {
-        res.render('error', { page_title: req._("Thingpedia - Error"),
-                              message: req._("You cannot demote yourself") });
-        return;
-    }
-
-    var needsRestart = false;
-    db.withTransaction(function(dbClient) {
-        return model.get(dbClient, req.params.id).then(function(user) {
-            if (user.developer_status <= 0)
-                return;
-
-            if (user.developer_status == 1) {
-                needsRestart = true;
-                return model.update(dbClient, user.id, { developer_status: 0, developer_org: null });
-            } else {
-                return model.update(dbClient, user.id, { developer_status: user.developer_status - 1 });
-            }
-        });
-    }).then(function() {
-        if (needsRestart)
-            EngineManager.get().restartUser(req.params.id);
-        res.redirect(303, '/admin');
-    }).catch(function(e) {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.get('/assistant-setup', user.redirectRole(user.Role.ADMIN), function(req, res) {
-    if (platform.getSharedPreferences().get('assistant')) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: req._("Assistant is already setup") });
-        return;
-    }
-
-    OmletOAuth.phase1(req, res).done();
-});
-
-router.get('/assistant-setup/callback', user.requireRole(user.Role.ADMIN), function(req, res) {
-    OmletOAuth.phase2(req, res).then(function() {
-        res.redirect(303, '/admin');
-    }).done();
-});
-
-router.get('/snapshots', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
+router.get('/users', user.redirectRole(user.Role.ADMIN), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -229,27 +66,230 @@ router.get('/snapshots', user.redirectLogIn, user.requireDeveloper(user.Develope
         page = 0;
 
     db.withClient((dbClient) => {
-        return snapshot.getAll(dbClient, page * 20, 21);
-    }).then((rows) => {
-        res.render('thingpedia_snapshot_list', { page_title: req._("Thingpedia - List of Snapshots"),
-                                                 csrfToken: req.csrfToken(),
-                                                 page_num: page,
-                                                 snapshots: rows });
-    }).catch(function(e) {
+        return model.getAll(dbClient, page * USERS_PER_PAGE, USERS_PER_PAGE + 1);
+    }).then(renderUserList).then((users) => {
+        res.render('admin_user_list', { page_title: req._("Almond - Administration"),
+                                        csrfToken: req.csrfToken(),
+                                        users: users,
+                                        page_num: page,
+                                        search: '',
+                                        USERS_PER_PAGE });
+    }).done();
+});
+
+router.get('/users/search', user.redirectRole(user.Role.ADMIN), (req, res) => {
+    db.withClient((dbClient) => {
+        if (req.query.q !== '' && !isNaN(req.query.q))
+            return Promise.all([model.get(dbClient, Number(req.query.q))]);
+        else
+            return model.getSearch(dbClient, req.query.q);
+    }).then(renderUserList).then((users) => {
+        res.render('admin_user_list', { page_title: req._("Almond - User List"),
+                                        csrfToken: req.csrfToken(),
+                                        users: users,
+                                        page_num: 0,
+                                        search: req.query.search,
+                                        USERS_PER_PAGE });
+    }).done();
+});
+
+router.post('/users/kill/all', user.requireRole(user.Role.ADMIN), (req, res) => {
+    const engineManager = EngineManager.get();
+
+    Promise.resolve().then(() => {
+        return engineManager.killAllUsers();
+    }).then(() => {
+        res.redirect(303, '/admin/users');
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    });
+});
+
+router.post('/users/kill/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+    const engineManager = EngineManager.get();
+
+    engineManager.killUser(parseInt(req.params.id)).then(() => {
+        res.redirect(303, '/admin/users');
+    }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
 
-router.post('/snapshots/create', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), function(req, res) {
-    db.withTransaction((dbClient) => {
-        var obj = {
-            description: req.body.description || '',
-        }
-        return snapshot.create(dbClient, obj);
+router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+    const engineManager = EngineManager.get();
+
+    engineManager.isRunning(parseInt(req.params.id)).then((isRunning) => {
+        if (isRunning)
+            return engineManager.killUser(parseInt(req.params.id));
+        else
+            return Promise.resolve();
     }).then(() => {
-        res.redirect(303, '/admin/snapshots');
-    }).catch(function(e) {
+        return engineManager.startUser(parseInt(req.params.id));
+    }).then(() => {
+        res.redirect(303, '/admin/users');
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.post('/blow-view-cache', user.requireRole(user.Role.ADMIN), (req, res) => {
+    jade.cache = {};
+    res.redirect(303, '/admin');
+});
+
+router.post('/users/delete/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+    if (req.user.id === req.params.id) {
+        res.render('error', { page_title: req._("Thingpedia - Error"),
+                              message: req._("You cannot delete yourself") });
+        return;
+    }
+
+    db.withTransaction((dbClient) => {
+        return EngineManager.get().deleteUser(parseInt(req.params.id)).then(() => {
+            return model.delete(dbClient, req.params.id);
+        });
+    }).then(() => {
+        res.redirect(303, '/admin/users');
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+    let needsRestart = false;
+
+    db.withTransaction((dbClient) => {
+        return model.get(dbClient, req.params.id).then((user) => {
+            if (user.developer_status >= 3)
+                return Promise.resolve();
+
+            if (user.developer_org === null) {
+                needsRestart = true;
+                return organization.create(dbClient, { name: '', developer_key: makeRandom() }).then((org) => {
+                    return model.update(dbClient, user.id, { developer_status: 1,
+                                                             developer_org: org.id });
+                });
+            } else {
+                return model.update(dbClient, user.id, { developer_status: user.developer_status + 1 });
+            }
+        });
+    }).then(() => {
+        if (needsRestart)
+            EngineManager.get().restartUser(req.params.id);
+        res.redirect(303, '/admin/users');
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.post('/users/demote/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+    if (req.user.id === req.params.id) {
+        res.render('error', { page_title: req._("Thingpedia - Error"),
+                              message: req._("You cannot demote yourself") });
+        return;
+    }
+
+    db.withTransaction((dbClient) => {
+        return model.get(dbClient, req.params.id).then((user) => {
+            if (user.developer_status <= 0)
+                return Promise.resolve();
+            return model.update(dbClient, user.id, { developer_status: user.developer_status - 1 });
+        });
+    }).then(() => {
+        res.redirect(303, '/admin/users');
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.get('/omlet/setup', user.redirectRole(user.Role.ADMIN), (req, res) => {
+    if (platform.getSharedPreferences().get('assistant')) {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: req._("Omlet is already setup") });
+        return;
+    }
+
+    OmletOAuth.phase1(req, res).done();
+});
+
+router.get('/omlet/setup/callback', user.requireRole(user.Role.ADMIN), (req, res) => {
+    OmletOAuth.phase2(req, res).then(() => {
+        res.redirect(303, '/admin');
+    }).done();
+});
+
+router.get('/organizations', user.requireRole(user.Role.ADMIN), (req, res) => {
+    let page = req.query.page;
+    if (page === undefined)
+        page = 0;
+    page = parseInt(page);
+    if (isNaN(page) || page < 0)
+        page = 0;
+
+    db.withClient((dbClient) => {
+        return organization.getAll(dbClient, page * 20, 21);
+    }).then((rows) => {
+        res.render('admin_org_list', { page_title: req._("Almond - Developer Organizations"),
+                                       csrfToken: req.csrfToken(),
+                                       page_num: page,
+                                       organizations: rows });
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.get('/organizations/details/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+    db.withClient((dbClient) => {
+        return Promise.all([
+            organization.get(dbClient, req.params.id),
+            model.getByDeveloperOrg(dbClient, req.params.id),
+            device.getByOwner(dbClient, req.params.id)
+        ]);
+    }).then(([org, users, devices]) => {
+        res.render('admin_org_details', { page_title: req._("Almond - Developer Organization"),
+                                          csrfToken: req.csrfToken(),
+                                          org: org,
+                                          members: users,
+                                          devices: devices });
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), (req, res) => {
+    db.withTransaction((dbClient) => {
+        return model.getByName(dbClient, req.body.username).then(([user]) => {
+            if (!user)
+                throw new Error(req._("No such user %s").format(req.body.username));
+            if (user.developer_org !== null)
+                throw new Error(req._("%s is already a member of another developer organization.").format(req.body.username));
+
+            return model.update(dbClient, user.id, { developer_status: 1,
+                                                     developer_org: req.body.id })
+                .then(() => EngineManager.get().restartUser(user.id));
+        });
+    }).then(() => {
+        res.redirect(303, '/admin/organizations/details/' + req.body.id);
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.post('/organizations/set-name', user.requireRole(user.Role.ADMIN), (req, res) => {
+    db.withTransaction((dbClient) => {
+        return organization.update(dbClient, req.body.id, { name: req.body.name });
+    }).then(() => {
+        res.redirect(303, '/admin/organizations/details/' + req.body.id);
+    }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();

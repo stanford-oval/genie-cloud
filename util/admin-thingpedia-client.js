@@ -9,20 +9,29 @@
 // See COPYING for details
 "use strict";
 
-const db = require('../../util/db');
-const schema = require('../../model/schema');
+const db = require('./db');
+const schema = require('../model/schema');
 
-const BaseThingpediaClient = require('../../util/thingpedia-client');
+const BaseThingpediaClient = require('./thingpedia-client');
 
 // A ThingpediaClient that always operates as admin, reading
 // the full database
 module.exports = class AdminThingpediaClient extends BaseThingpediaClient {
-    constructor(locale) {
+    constructor(locale, dbClient) {
         super(null, locale);
+
+        this._dbClient = dbClient;
+    }
+
+    _withClient(callback) {
+        if (this._dbClient)
+            return callback(this._dbClient);
+        else
+            return db.withClient(callback);
     }
 
     getSchemas(schemas) {
-        return db.withClient((dbClient) =>
+        return this._withClient((dbClient) =>
             schema.getTypesAndNamesByKinds(dbClient, schemas, -1)
         ).then((rows) => {
             var obj = {};
@@ -41,7 +50,7 @@ module.exports = class AdminThingpediaClient extends BaseThingpediaClient {
     }
 
     getMetas(schemas) {
-        return db.withClient((dbClient) =>
+        return this._withClient((dbClient) =>
             schema.getMetasByKinds(dbClient, schemas, -1, this.language)
         ).then((rows) => {
             var obj = {};

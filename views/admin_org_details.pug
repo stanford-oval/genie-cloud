@@ -1,0 +1,100 @@
+extends layout
+
+block page_name
+  - stdlayout = false;
+  = _("Developer Organization: %s").format(org.name)
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/admin.css')
+  link(rel='stylesheet', href='/stylesheets/thingpedia.css')
+
+block content
+  div#page-body
+    h1.hidden-xs.hidden-sm#page-title.dev-portal-title
+      = _("Developer Organization: %s").format(org.name)
+
+    div.sections
+      section.divider
+        div.container
+          div.row
+            div.col-xs-12.col-md-6
+              div.panel.panel-default
+                p.panel-heading= _("Change Name")
+                div.panel-body
+                  form(action='/admin/organizations/set-name', method='post', data-toggle='validator')
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    input(type='hidden',name='id',value=org.id)
+                    div.form-group
+                      label(for='new-name').control-label= _("New name")
+                      input(type='text',name='name').form-control#new-name
+
+                    div.form-group
+                      button(type='submit').btn.btn-primary= _("Change")
+
+      section.divider
+        h3=_("Members")
+
+        div.container
+          div.row
+            div.col-xs-12
+              table.table#users-table
+                thead
+                  th #
+                  th= _("User name")
+                  th= _("Human name")
+                  th= _("Role")
+                tbody
+                  each user in members
+                    tr
+                      td
+                        span= user.id
+                      td
+                        a(href='mailto:' + user.email)= user.username
+                      td= user.human_name
+                      td
+                        if user.developer_status >= 3
+                          span= _("Admin")
+                        else if user.developer_status >= 2
+                          span= _("Trusted Dev")
+                        else if user.developer_status >= 1
+                          span= _("Developer")
+                        else
+                          span= _("Tester")
+
+          div.row
+            div.col-xs-12.col-md-6
+              div.panel.panel-default
+                p.panel-heading= _("Add member")
+                div.panel-body
+                  form(action='/admin/organizations/add-member', method='post', data-toggle='validator')
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    input(type='hidden',name='id',value=org.id)
+                    div.form-group
+                      label(for='new-member-username').control-label= _("Username")
+                      input(type='text',name='username').form-control#new-member-username
+
+                    div.form-group
+                      button(type='submit').btn.btn-primary= _("Add member")
+
+      section.divider
+        h3= _("Devices")
+        div.container
+          div.row
+            if devices.length > 0
+              each dev, i in devices
+                if i % 6 === 0
+                  div.clearfix.visible-lg.visible-md
+                else if i % 3 === 0
+                  div.clearfix.visible-lg
+                else if i % 2 === 0
+                  div.clearfix.visible-md
+                div.col-lg-4.col-md-6.dev-template
+                  div.panel.panel-default
+                    a(href='/thingpedia/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
+                    div.panel-body
+                      p.device-icon-small
+                        img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
+                      p=dev.description
+            else
+              div.col-xs-12
+                p= _("This organization does not own any device yet.")

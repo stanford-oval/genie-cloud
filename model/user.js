@@ -7,9 +7,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const db = require('../util/db');
-const Q = require('q');
 
 function create(client, user) {
     var KEYS = ['username', 'human_name', 'email', 'locale', 'timezone', 'google_id',
@@ -75,6 +75,10 @@ module.exports = {
                             + " on u.developer_org = o.id, oauth2_access_tokens oat where"
                             + " oat.user_id = u.id and oat.token = ?",
                             [accessToken]);
+    },
+
+    getByDeveloperOrg(client, developerOrg) {
+        return db.selectAll(client, "select u.* from users u where u.developer_org = ?", [developerOrg]);
     },
 
     create: create,

@@ -1,0 +1,57 @@
+extends layout
+
+block page_name
+  = _("MTurk Batches")
+
+block content
+  table.table
+    thead
+      th #
+      th= _("Name")
+      th= _("# inputs")
+      th= _("Target size")
+      th= _("# submissions")
+      th= _("# validated")
+      th= _("Status")
+      th= _("Actions")
+
+    tbody
+      for batch in batches
+        tr
+          td= batch.id
+          td= batch.name
+          td= 4* batch.hit_count
+          td= 4* batch.hit_count * batch.submissions_per_hit * 2
+          td
+            = _("%d (%.0f %%)").format(batch.submissions, 100*(batch.submissions / (4* batch.hit_count * batch.submissions_per_hit * 2)))
+          td
+            = _("%d (%.0f %%)").format(batch.validated, 100*(batch.validated/batch.submissions))
+          td
+            if batch.submissions < 4* batch.hit_count * batch.submissions_per_hit * 2
+              = _("In progress")
+            else if batch.validated < batch.submissions
+              = _("Validation")
+            else
+              = _("Complete")
+          td
+            a(href='/mturk/csv/' + batch.id)= _("Downloads CSV")
+
+  div.panel.panel-default
+    p.panel-heading= _("Create a new batch")
+    div.panel-body
+      form(action='/mturk/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+        input(type='hidden',name='_csrf',value=csrfToken)
+        div.form-group
+          label(for='new-batch-name').control-label= _("Name")
+          input(type='text',name='name').form-control#new-batch-name
+
+        div.form-group
+          label(for='new-batch-subs-per-hit').control-label= _("Submissions per HIT")
+          input(type='number',name='submissions_per_hit', value=3).form-control#new-batch-subs-per-hit
+
+        div.form-group
+          label(for='batch-upload').control-label= _("TSV File")
+          input(type='file',name='upload',accept='text/tsv')#batch-upload
+
+        div.form-group
+          button(type='submit').btn.btn-primary= _("Create")

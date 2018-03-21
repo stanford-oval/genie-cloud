@@ -113,7 +113,7 @@ class EngineManagerClient extends events.EventEmitter {
         var id = req.params.id;
 
         this.getEngine(userId).then((engine) => {
-            return engine.webhook.handleCallback(id, req.method, req.query, req.headers, req.body)
+            return engine.webhook.handleCallback(id, req.method, req.query, req.headers, req.body);
         }).then((result) => {
             if (result) {
                 if (result.contentType)
@@ -143,7 +143,7 @@ class EngineManagerClient extends events.EventEmitter {
                 this._rpcControl = this._rpcSocket.getProxy(msg.rpcId);
                 jsonSocket.removeListener('data', ready);
             }
-        }
+        };
         jsonSocket.on('data', ready);
         this._rpcSocket.on('close', () => {
             if (this._expectClose)
@@ -175,6 +175,12 @@ class EngineManagerClient extends events.EventEmitter {
 
         for (let engine in this._cachedEngines.values())
             engine.socket.end();
+    }
+
+    killAllUsers() {
+        if (!this._rpcControl)
+            return Q(false);
+        return this._rpcControl.killAllUsers();
     }
 
     isRunning(userId) {

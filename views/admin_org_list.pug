@@ -1,0 +1,42 @@
+extends layout
+
+block page_name
+  = _("Thingpedia Developer Organizations")
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/admin.css')
+
+block content
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/admin/organizations?page=' + (page_num-1))= _("Previous")
+      | &nbsp;
+      if organizations.length > 20
+        li
+          a(href='/admin/organizations?page=' + (page_num+1))= _("Next")
+
+  table.table#users-table
+    thead
+      tr
+        th #
+        th= _("Name")
+        th= _("Developer Key")
+    tbody
+      each org in organizations.slice(0, 20)
+        tr
+          td
+            a(href='/admin/organizations/details/' + org.id)= org.id
+          td= org.name
+          td= org.developer_key
+
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/admin/organizations?page=' + (page_num-1))= _("Previous")
+      | &nbsp;
+      if organizations.length > 20
+        li
+          a(href='/admin/organizations?page=' + (page_num+1))= _("Next")

@@ -1,0 +1,36 @@
+extends layout
+
+block page_name
+  = _("Dataset: %s/%s").format(language, type)
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia-dataset.css')
+
+block content
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/thingpedia/datasets/' + language + '/' + type + '?page=' + (page_num-1))= _("Previous")
+      | &nbsp;
+      if dataset.length > RESULTS_PER_PAGE
+        li
+          a(href='/thingpedia/datasets/' + language + '/' + type + '?page=' + (page_num+1))= _("Next")
+
+  ul
+    for ex in dataset.slice(0, RESULTS_PER_PAGE)
+      li
+        p.utterance= _("%d: %s").format(ex.id, ex.utterance)
+        p.preprocessed= ex.preprocessed
+        p.target
+          code= ex.target_code
+
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/thingpedia/datasets/' + language + '/' + type + '?page=' + (page_num-1))= _("Previous")
+      | &nbsp;
+      if dataset.length > RESULTS_PER_PAGE
+        li
+          a(href='/thingpedia/datasets/' + language + '/' + type + '?page=' + (page_num+1))= _("Next")

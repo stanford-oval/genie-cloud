@@ -7,6 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 /**
  * Module dependencies.
@@ -207,6 +208,8 @@ Frontend.prototype._init = function _init() {
         this._app.use('/thingpedia/apps', require('./routes/thingpedia_app_upload'));
     }
 
+    this._app.use('/mturk', require('./routes/mturk'));
+
     this._app.use(csurf({ cookie: false }));
     this._app.use('/', require('./routes/index'));
     this._app.use('/', require('./routes/qrcode'));
@@ -226,15 +229,15 @@ Frontend.prototype._init = function _init() {
         this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
         this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
         this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
+        this._app.use('/thingpedia/datasets', require('./routes/thingpedia_dataset'));
+        this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
     }
     this._app.use('/user', require('./routes/user'));
     this._app.use('/admin', require('./routes/admin'));
     this._app.use('/omlet', require('./routes/omlet'));
 
-    this._app.use('/mturk', require('./routes/mturk'));
-
     this._websocketEndpoints = {};
-}
+};
 
 var server = null;
 
