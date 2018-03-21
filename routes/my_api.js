@@ -30,6 +30,99 @@ function makeRandom(bytes) {
 
 var router = express.Router();
 
+class AlexaDelegate {
+    constructor(res) {
+        this._buffer = '';
+        this._res = res;
+        this._done = false;
+    }
+
+    flush() {
+        if (this._done)
+            return;
+        this._done = true;
+        this._res.json({
+           version: '1.0',
+           sessionAttributes: {
+           },
+           response: {
+               outputSpeech: { 
+                   type: 'PlainText',
+                   text: this._buffer
+               }
+           }
+        });
+    }
+
+    send(text, icon) {
+        this._buffer += text + '\n';
+    }
+
+    sendPicture(url, icon) {
+        // FIXME
+    }
+
+    sendRDL(rdl, icon) {
+        // FIXME
+    }
+
+    sendChoice(idx, what, title, text) {
+        // FIXME
+    }
+
+    sendButton(title, json) {
+        // FIXME
+    }
+
+    sendLink(title, url) {
+        // FIXME
+    }
+
+    sendAskSpecial(what) {
+        // ignore
+    }
+}
+AlexaDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
+
+router.post('/alexa', (req, res, next) => {
+    if (req.body && req.body.session && req.body.session.user && req.body.session.user.accessToken &&
+        !req.headers.authorization)
+        req.headers.authorization = 'Bearer ' + req.body.session.user.accessToken;
+    passport.authenticate('bearer', function(err, user, info) {
+        // ignore auth failures and ignore sessions
+        if (err) { return next(err); }
+
+        if (!user) {
+            
+            return;
+        }
+
+        req.login(user, next);
+    })(req, res, next);
+}, (req, res) => {
+    console.log('body', req.body);
+
+    const user = req.user;
+    const assistantUser = { name: user.human_name || user.username };
+    const text = req.body.request.type === 'LaunchRequest' ? 'hello' : req.body.request.intent.slots.Command.value;
+
+    const delegate = new AlexaDelegate(res);
+ 
+    Q.try(() => {
+        return EngineManager.get().getEngine(req.user.id);
+    }).then(function(engine) {
+        return engine.assistant.getOrOpenConversation('alexa:' + req.body.session.sessionId,
+            assistantUser, delegate, { showWelcome: false, debug: true });
+    }).then(function(conversation) {
+        return conversation.handleCommand(text);
+    }).then(() => {
+        return delegate.flush();
+    });
+
+});
+
+
+
 const ALLOWED_ORIGINS = ['http://127.0.0.1:8080',
     'https://thingpedia.stanford.edu', 'https://thingengine.stanford.edu',
     'https://almond.stanford.edu', 'null'];
