@@ -29,12 +29,14 @@ $(function() {
         var container = almondMessage(icon);
         container.append($('<span>').addClass('message message-text')
             .text(text));
+        container[0].scrollIntoView(false);
     }
 
     function picture(url, icon) {
         var container = almondMessage(icon);
         container.append($('<img>').addClass('message message-picture')
             .attr('src', url));
+        container[0].scrollIntoView(false);
     }
 
     function rdl(rdl, icon) {
@@ -46,6 +48,7 @@ $(function() {
         rdlMessage.append($('<span>').addClass('message-rdl-content')
             .text(rdl.displayText));
         container.append(rdlMessage);
+        container[0].scrollIntoView(false);
     }
 
     function getGrid() {
@@ -69,6 +72,7 @@ $(function() {
         });
         holder.append(btn);
         getGrid().append(holder);
+        holder[0].scrollIntoView(false);
     }
 
     function buttonMessage(title, json) {
@@ -82,6 +86,7 @@ $(function() {
         });
         holder.append(btn);
         getGrid().append(holder);
+        holder[0].scrollIntoView(false);
     }
 
     function linkMessage(title, url) {
@@ -95,6 +100,7 @@ $(function() {
             .attr('href', url).text(title);
         holder.append(btn);
         getGrid().append(holder);
+        holder[0].scrollIntoView(false);
     }
 
     function yesnoMessage() {
@@ -118,6 +124,7 @@ $(function() {
         });
         holder.append(btn);
         getGrid().append(holder);
+        holder[0].scrollIntoView(false);
     }
 
     function collapseButtons() {
@@ -167,37 +174,57 @@ $(function() {
         // reconnect here...
     };
 
+    function handleSlashR(line) {
+        line = line.trim();
+        if (line.startsWith('{'))
+            handleParsedCommand(JSON.parse(line));
+        else
+            handleParsedCommand({ code: line.split(' '), entities: {} });
+    }
+
     function handleCommand(text) {
+        collapseButtons();
+        if (text.startsWith('\\r')) {
+            handleSlashR(text.substring(3));
+            return;
+        }
+        if (text.startsWith('\\t')) {
+            handleThingTalk(text.substring(3));
+            return;
+        }
+
+        appendUserMessage(text);
         ws.send(JSON.stringify({ type: 'command', text: text }));
     }
     function handleParsedCommand(json) {
         collapseButtons();
         ws.send(JSON.stringify({ type: 'parsed', json: json }));
     }
-    function handleChoice(idx) {
-        handleParsedCommand({ code: ['bookkeeping', 'choice', String(idx)], entities: {} });
+    function handleThingTalk(tt) {
+        appendUserMessage('Code: ' + tt);
+        ws.send(JSON.stringify({ type: 'tt', code: tt }));
     }
-    function handleSpecial(special) {
-        handleParsedCommand({ code: ['bookkeeping', 'special', 'special:'+special ], entities: {} });
+    function handleChoice(idx, title) {
+        handleParsedCommand({ code: ['bookkeeping', 'choice', String(idx)], entities: {} }, title);
+    }
+    function handleSpecial(special, title) {
+        handleParsedCommand({ code: ['bookkeeping', 'special', 'special:'+special ], entities: {} }, title);
     }
 
     function appendUserMessage(text) {
         container.append($('<span>').addClass('message message-text from-user')
             .text(text));
+        container[0].scrollIntoView(false);
     }
 
     $('#input-form').submit(function(event) {
         var text = $('#input').val();
         $('#input').val('');
 
-        collapseButtons();
-        appendUserMessage(text);
         handleCommand(text);
         event.preventDefault();
     });
     $('#cancel').click(function() {
-        collapseButtons();
-        handleSpecial('nevermind');
+        handleSpecial('nevermind', "Cancel.");
     });
 });
-

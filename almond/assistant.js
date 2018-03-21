@@ -17,7 +17,7 @@ const AlmondApi = require('./almond_api');
 
 class Conversation extends Almond {
 }
-Conversation.prototype.$rpcMethods = ['start', 'handleCommand', 'handleParsedCommand'];
+Conversation.prototype.$rpcMethods = ['start', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'];
 
 module.exports = class Assistant extends events.EventEmitter {
     constructor(engine) {
