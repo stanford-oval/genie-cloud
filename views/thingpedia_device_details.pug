@@ -48,9 +48,15 @@ block content
 
   p#device-description= device.description
 
-  if device.primary_kind.startsWith('org.thingpedia.builtin.')
+  if device.primary_kind === 'org.thingpedia.builtin.thingengine.builtin'
     p
-      i= _("This is a builtin interface in every ThingEngine installation.")
+      i= _("This is a builtin device in any Almond.")
+  else if device.primary_kind === 'org.thingpedia.builtin.thingengine.remote' || device.primary_kind === 'org.thingpedia.builtin.thingengine'
+    p
+      i= _("This is an internally created, system device in any Almond.")
+  else if device.primary_kind.startsWith('org.thingpedia.builtin.thingengine.')
+    p
+      i= _("This is a builtin device in certain versions of Almond. It may not be available in the Almond you are using.")
 
   if user && user.developer_org !== null
     h2.device-subtitle#device-version= _("Class: ")
