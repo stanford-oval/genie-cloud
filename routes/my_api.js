@@ -16,13 +16,8 @@ const passport = require('passport');
 
 const Config = require('../config');
 
-const db = require('../util/db');
 const user = require('../util/user');
-const userModel = require('../model/user');
 const EngineManager = require('../almond/enginemanagerclient');
-
-const ThingTalk = require('thingtalk');
-const AppGrammar = ThingTalk.Grammar;
 
 function makeRandom(bytes) {
     return crypto.randomBytes(bytes).toString('hex');
@@ -97,17 +92,21 @@ router.post('/alexa', (req, res, next) => {
     if (req.body && req.body.session && req.body.session.user && req.body.session.user.accessToken &&
         !req.headers.authorization)
         req.headers.authorization = 'Bearer ' + req.body.session.user.accessToken;
-    passport.authenticate('bearer', function(err, user, info) {
-        // ignore auth failures and ignore sessions
-        if (err) { return next(err); }
+    if (req.headers.authorization) {
+        passport.authenticate('bearer', (err, user, info) => {
+            // ignore auth failures and ignore sessions
+            if (err) {
+                next(err);
+                return;
+            }
 
-        if (!user) {
-            
-            return;
-        }
-
-        req.login(user, next);
-    })(req, res, next);
+            if (!user) {
+                res.status(401).json({error: 'invalid access token'});
+                return;
+            }
+            req.login(user, next);
+        })(req, res, next);
+    }
 }, (req, res) => {
     console.log('body', req.body);
 
@@ -119,10 +118,10 @@ router.post('/alexa', (req, res, next) => {
  
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
-    }).then(function(engine) {
+    }).then((engine) => {
         return engine.assistant.getOrOpenConversation('alexa:' + req.body.session.sessionId,
             assistantUser, delegate, { showWelcome: false, debug: true });
-    }).then(function(conversation) {
+    }).then((conversation) => {
         return conversation.handleCommand(text);
     }).then(() => {
         return delegate.flush();
@@ -130,14 +129,20 @@ router.post('/alexa', (req, res, next) => {
 
 });
 
+router.ws('/anonymous', (ws, req) => {
+    if (req.user)
+        ws.close();
 
+    user.getAnonymousUser().then((user) => {
+        return doConversation(user, true, ws);
+    });
+});
 
 const ALLOWED_ORIGINS = ['http://127.0.0.1:8080',
     'https://thingpedia.stanford.edu', 'https://thingengine.stanford.edu',
     'https://almond.stanford.edu', 'null'];
 
 function isOriginOk(req) {
-    return true;
     if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer'))
         return true;
     if (typeof req.headers['origin'] !== 'string')
@@ -155,27 +160,29 @@ function checkOrigin(req, res, next) {
             res.set('Access-Control-Allow-Origin', req.headers['origin']);
             res.set('Vary', 'Origin');
         }
-         res.set('Access-Control-Allow-Credentials', 'true');
+        res.set('Access-Control-Allow-Credentials', 'true');
         next();
     } else {
         res.status(403).send('Forbidden Cross Origin Request');
     }
 }
 
-router.use('/', function(req, res, next) {
-    passport.authenticate('bearer', function(err, user, info) {
+router.use('/', (req, res, next) => {
+    passport.authenticate('bearer', (err, user, info) => {
         // ignore auth failures and ignore sessions
-        if (err) { return next(err); }
-        if (!user) { return next(); }
+        if (err)
+            return next(err);
+        if (!user)
+            return next();
         req.login(user, next);
     })(req, res, next);
-}, checkOrigin, user.requireLogIn);
+}, user.requireLogIn, checkOrigin);
 
-router.options('/.*', function(req, res, next) {
+router.options('/.*', (req, res, next) => {
     res.send('');
 });
 
-router.get('/parse', function(req, res, next) {
+router.get('/parse', (req, res, next) => {
     let query = req.query.q || null;
     let targetJson = req.query.target_json || null;
     if (!query && !targetJson) {
@@ -185,7 +192,7 @@ router.get('/parse', function(req, res, next) {
 
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
-    }).then(function(engine) {
+    }).then((engine) => {
         return engine.assistant.parse(query, targetJson);
     }).then((result) => {
         res.json(result);
@@ -203,10 +210,10 @@ function describeApp(app) {
         }));
 }
 
-router.post('/apps/create', function(req, res, next) {
+router.post('/apps/create', (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
-    }).then(function(engine) {
+    }).then((engine) => {
         return engine.assistant.createApp(req.body);
     }).then((result) => {
         if (result.error)
@@ -218,10 +225,10 @@ router.post('/apps/create', function(req, res, next) {
     });
 });
 
-router.get('/apps/list', function(req, res, next) {
+router.get('/apps/list', (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
-    }).then(function(engine) {
+    }).then((engine) => {
         return engine.apps.getAllApps().then((apps) => {
             return Promise.all(apps.map((a) => describeApp(a)));
         });
@@ -233,10 +240,10 @@ router.get('/apps/list', function(req, res, next) {
     });
 });
 
-router.get('/apps/get/:appId', function(req, res, next) {
+router.get('/apps/get/:appId', (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
-    }).then(function(engine) {
+    }).then((engine) => {
         return engine.apps.getApp(req.params.appId).then((app) => {
             if (!app) {
                 res.status(404);
@@ -253,7 +260,7 @@ router.get('/apps/get/:appId', function(req, res, next) {
     });
 });
 
-router.post('/apps/delete/:appId', function(req, res, next) {
+router.post('/apps/delete/:appId', (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
@@ -280,7 +287,7 @@ class WebsocketApiDelegate {
 
     send(str) {
         try {
-            return this._ws.send(str);
+            this._ws.send(str);
         } catch(e) {
             // ignore if the socket is closed
             if (e.message !== 'not opened')
@@ -290,16 +297,15 @@ class WebsocketApiDelegate {
 }
 WebsocketApiDelegate.prototype.$rpcMethods = ['send'];
 
-router.ws('/results', function(ws, req, next) {
+router.ws('/results', (ws, req, next) => {
     var user = req.user;
 
     Q.try(() => {
         return EngineManager.get().getEngine(user.id);
-    }).then(function(engine) {
+    }).then((engine) => {
         const onclosed = (userId) => {
-            if (userId === user.id) {
+            if (userId === user.id)
                 ws.close();
-            }
             EngineManager.get().removeListener('socket-closed', onclosed);
         };
         EngineManager.get().on('socket-closed', onclosed);
@@ -356,12 +362,8 @@ class WebsocketAssistantDelegate {
 }
 WebsocketAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
 
-router.ws('/conversation', (ws, req, next) => {
-    var user = req.user;
-    if (!user && req.query.anonymous === '1')
-        user = req.app.getAnonymousUser();
-
-    Q.try(() => {
+function doConversation(user, anonymous, ws) {
+    return Q.try(() => {
         return EngineManager.get().getEngine(user.id);
     }).then((engine) => {
         const onclosed = (userId) => {
@@ -371,7 +373,7 @@ router.ws('/conversation', (ws, req, next) => {
         };
         EngineManager.get().on('socket-closed', onclosed);
 
-        var assistantUser = { name: user.human_name || user.username };
+        var assistantUser = { name: user.human_name || user.username, anonymous };
         var delegate = new WebsocketAssistantDelegate(ws);
 
         var opened = false;
@@ -414,6 +416,10 @@ router.ws('/conversation', (ws, req, next) => {
         console.error('Error in conversation websocket: ' + error.message);
         ws.close();
     });
+}
+
+router.ws('/conversation', (ws, req, next) => {
+    doConversation(req.user, false, ws);
 });
 
 module.exports = router;

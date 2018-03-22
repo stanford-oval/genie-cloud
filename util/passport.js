@@ -7,12 +7,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const crypto = require('crypto');
 const db = require('./db');
 const model = require('../model/user');
-const oauth2 = require('../model/oauth2');
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -38,9 +38,7 @@ var FACEBOOK_APP_SECRET = '770b8df05b487cb44261e7701a46c549';
 
 function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
-        .then(function(buffer) {
-            return buffer.toString('hex');
-        });
+        .then((buffer) => buffer.toString('hex'));
 }
 
 function makeRandom() {
@@ -148,34 +146,32 @@ function associateFacebook(user, accessToken, refreshToken, profile, done) {
 }
 
 exports.initialize = function() {
-    passport.serializeUser(function(user, done) {
+    passport.serializeUser((user, done) => {
         done(null, user.id);
     });
 
-    passport.deserializeUser(function(id, done) {
-        db.withClient(function(client) {
-            return model.get(client, id);
-        }).nodeify(done);
+    passport.deserializeUser((id, done) => {
+        db.withClient((client) => model.get(client, id)).nodeify(done);
     });
 
-    passport.use(new BearerStrategy(function(accessToken, done) {
-        db.withClient(function(dbClient) {
-            return model.getByAccessToken(dbClient, accessToken).then(function(rows) {
+    passport.use(new BearerStrategy((accessToken, done) => {
+        db.withClient((dbClient) => {
+            return model.getByAccessToken(dbClient, accessToken).then((rows) => {
                 if (rows.length < 1)
                     return [false, null];
 
                 return [rows[0], { scope: '*' }];
             });
-        }).then(function(result) {
+        }).then((result) => {
             done(null, result[0], result[1]);
-        }, function(err) {
+        }, (err) => {
             done(err);
         }).done();
     }));
 
     function verifyCloudIdAuthToken(username, password, done) {
-        db.withClient(function(dbClient) {
-            return model.getByCloudId(dbClient, username).then(function(rows) {
+        db.withClient((dbClient) => {
+            return model.getByCloudId(dbClient, username).then((rows) => {
                 if (rows.length < 1 || rows[0].auth_token !== password)
                     return false;
 
@@ -190,23 +186,22 @@ exports.initialize = function() {
         new LocalStrategy({ usernameField: 'cloudId', passwordField: 'authToken' },
         verifyCloudIdAuthToken));
 
-    passport.use(new LocalStrategy(function(username, password, done) {
-        db.withClient(function(dbClient) {
-            return model.getByName(dbClient, username).then(function(rows) {
+    passport.use(new LocalStrategy((username, password, done) => {
+        db.withClient((dbClient) => {
+            return model.getByName(dbClient, username).then((rows) => {
                 if (rows.length < 1)
                     return [false, "An user with this username does not exist"];
 
-                return hashPassword(rows[0].salt, password)
-                    .then(function(hash) {
-                        if (hash !== rows[0].password)
-                            return [false, "Invalid username or password"];
+                return hashPassword(rows[0].salt, password).then((hash) => {
+                    if (hash !== rows[0].password)
+                        return [false, "Invalid username or password"];
 
-            	        return [rows[0], null];
-		    });
+                    return [rows[0], null];
+                });
             });
-        }).then(function(result) {
+        }).then((result) => {
             done(null, result[0], { message: result[1] });
-        }, function(err) {
+        }, (err) => {
             done(err);
         }).done();
     }));
@@ -216,7 +211,7 @@ exports.initialize = function() {
         clientSecret: GOOGLE_CLIENT_SECRET,
         callbackURL: platform.getOrigin() + '/user/oauth2/google/callback',
         passReqToCallback: true,
-    }, function(req, accessToken, refreshToken, profile, done) {
+    }, (req, accessToken, refreshToken, profile, done) => {
         if (!req.user) {
             // authenticate the user
             authenticateGoogle(accessToken, refreshToken, profile, done);
@@ -232,7 +227,7 @@ exports.initialize = function() {
         enableProof: true,
         profileFields: ['id', 'displayName', 'emails'],
         passReqToCallback: true,
-    }, function(req, accessToken, refreshToken, profile, done) {
+    }, (req, accessToken, refreshToken, profile, done) => {
         if (!req.user) {
             // authenticate the user
             authenticateFacebook(accessToken, refreshToken, profile, done);
@@ -240,4 +235,4 @@ exports.initialize = function() {
             associateFacebook(req.user, accessToken, refreshToken, profile, done);
         }
     }));
-}
+};

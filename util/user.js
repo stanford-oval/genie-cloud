@@ -7,18 +7,18 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const crypto = require('crypto');
 const db = require('./db');
 const model = require('../model/user');
-const oauth2 = require('../model/oauth2');
+
+const Config = require('../config');
 
 function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
-        .then(function(buffer) {
-            return buffer.toString('hex');
-        });
+        .then((buffer) => buffer.toString('hex'));
 }
 
 function makeRandom() {
@@ -47,8 +47,8 @@ module.exports = {
 
     FACEBOOK_SCOPES: ['email', 'public_profile', 'user_friends', 'publish_actions'].join(' '),
 
-    register: function(dbClient, req, options) {
-        return model.getByName(dbClient, options.username).then(function(rows) {
+    register(dbClient, req, options) {
+        return model.getByName(dbClient, options.username).then((rows) => {
             if (rows.length > 0)
                 throw new Error(req._("An user with this name already exists"));
 
@@ -56,25 +56,24 @@ module.exports = {
             var cloudId = makeRandom();
             var authToken = makeRandom();
             var storageKey = makeRandom();
-            return hashPassword(salt, options.password)
-                .then(function(hash) {
-                    return model.create(dbClient, {
-                        username: options.username,
-                        password: hash,
-                        email: options.email,
-                        locale: options.locale,
-                        timezone: options.timezone,
-                        salt: salt,
-                        cloud_id: cloudId,
-                        auth_token: authToken,
-                        storage_key: storageKey,
-                    });
+            return hashPassword(salt, options.password).then((hash) => {
+                return model.create(dbClient, {
+                    username: options.username,
+                    password: hash,
+                    email: options.email,
+                    locale: options.locale,
+                    timezone: options.timezone,
+                    salt: salt,
+                    cloud_id: cloudId,
+                    auth_token: authToken,
+                    storage_key: storageKey,
                 });
+            });
         });
     },
 
-    registerWithOmlet: function(dbClient, options) {
-        return model.getByName(dbClient, options.username).then(function(rows) {
+    registerWithOmlet(dbClient, options) {
+        return model.getByName(dbClient, options.username).then((rows) => {
             if (rows.length > 0)
                 throw new Error("An user with this name already exists");
 
@@ -96,29 +95,29 @@ module.exports = {
         });
     },
 
-    update: function(dbClient, user, oldpassword, password) {
-        return Q.try(function() {
+    update(dbClient, user, oldpassword, password) {
+        return Q.try(() => {
             if (user.salt && user.password) {
-                return hashPassword(user.salt, oldpassword)
-                    .then(function(providedHash) {
-                        if (user.password !== providedHash)
-                            throw new Error('Invalid old password');
-                    });
+                return hashPassword(user.salt, oldpassword).then((providedHash) => {
+                    if (user.password !== providedHash)
+                        throw new Error('Invalid old password');
+                });
+            } else {
+                return Promise.resolve();
             }
-        }).then(function() {
-            var salt = makeRandom();
-            return hashPassword(salt, password).then(function(newhash) {
+        }).then(() => {
+            const salt = makeRandom();
+            return hashPassword(salt, password).then((newhash) => {
                 return model.update(dbClient, user.id, { salt: salt,
-                                                         password: newhash })
-                    .then(function() {
-                        user.salt = salt;
-                        user.password = newhash;
-                    });
+                                                         password: newhash }).then(() => {
+                    user.salt = salt;
+                    user.password = newhash;
+                });
             });
         });
     },
 
-    requireLogIn: function(req, res, next) {
+    requireLogIn(req, res, next) {
         if (!req.user) {
             res.status(401).render('login_required',
                                    { page_title: req._("Thingpedia - Error") });
@@ -127,16 +126,16 @@ module.exports = {
         }
     },
 
-    redirectLogIn: function(req, res, next) {
+    redirectLogIn(req, res, next) {
         if (!req.user) {
             req.session.redirect_to = req.originalUrl;
             res.redirect('/user/login');
         } else {
             next();
-        };
+        }
     },
 
-    requireRole: function(role) {
+    requireRole(role) {
         return function(req, res, next) {
             if (!req.user || ((req.user.roles & role) !== role)) {
                 res.status(401).render('login_required',
@@ -144,21 +143,21 @@ module.exports = {
             } else {
                 next();
             }
-        }
+        };
     },
 
-    redirectRole: function(role) {
+    redirectRole(role) {
         return function(req, res, next) {
             if (!req.user || ((req.user.roles & role) !== role)) {
                 req.session.redirect_to = req.originalUrl;
                 res.redirect('/user/login');
             } else {
                 next();
-            };
-        }
+            }
+        };
     },
 
-    requireDeveloper: function(required) {
+    requireDeveloper(required) {
         if (required === undefined)
             required = 1; // DEVELOPER
 
@@ -172,5 +171,30 @@ module.exports = {
                 next();
             }
         };
+    },
+
+    getAnonymousUser() {
+        return db.withClient((dbClient) => {
+            return model.getByName(dbClient, 'anonymous');
+        }).then(([user]) => user);
+    },
+
+    anonymousLogin(req, res, next) {
+        if (req.user) {
+            next();
+            return;
+        }
+
+        if (!Config.ENABLE_ANONYMOUS_USER) {
+            res.status(401).render('login_required',
+                                   { page_title: req._("Thingpedia - Error") });
+            return;
+        }
+
+        this.getAnonymousUser().then((user) => {
+            if (!user)
+                throw new Error('Invalid configuration (missing anonymous user)');
+            req.login(user, next);
+        }).catch((e) => next(e));
     }
 };
