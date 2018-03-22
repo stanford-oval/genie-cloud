@@ -76,7 +76,7 @@ $(function() {
     }
 
     function buttonMessage(title, json) {
-        var holder = $('<div>').addClass('col-xs-12 col-sm-6 col-md-4');
+        var holder = $('<div>').addClass('col-xs-12 col-sm-6');
         var btn = $('<a>').addClass('message message-button btn btn-default')
             .attr('href', '#').text(title);
         btn.click(function(event) {
@@ -95,7 +95,7 @@ $(function() {
         else if (url.startsWith('/devices'))
             url = '/me' + url;
 
-        var holder = $('<div>').addClass('col-xs-12 col-sm-6 col-md-4');
+        var holder = $('<div>').addClass('col-xs-12 col-sm-6');
         var btn = $('<a>').addClass('message message-button btn btn-default')
             .attr('href', url).text(title);
         holder.append(btn);

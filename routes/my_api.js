@@ -134,7 +134,7 @@ router.ws('/anonymous', (ws, req) => {
         ws.close();
 
     user.getAnonymousUser().then((user) => {
-        return doConversation(user, ws);
+        return doConversation(user, true, ws);
     });
 });
 
@@ -362,7 +362,7 @@ class WebsocketAssistantDelegate {
 }
 WebsocketAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
 
-function doConversation(user, ws) {
+function doConversation(user, anonymous, ws) {
     return Q.try(() => {
         return EngineManager.get().getEngine(user.id);
     }).then((engine) => {
@@ -373,7 +373,7 @@ function doConversation(user, ws) {
         };
         EngineManager.get().on('socket-closed', onclosed);
 
-        var assistantUser = { name: user.human_name || user.username };
+        var assistantUser = { name: user.human_name || user.username, anonymous };
         var delegate = new WebsocketAssistantDelegate(ws);
 
         var opened = false;
@@ -419,7 +419,7 @@ function doConversation(user, ws) {
 }
 
 router.ws('/conversation', (ws, req, next) => {
-    doConversation(req.user, ws);
+    doConversation(req.user, false, ws);
 });
 
 module.exports = router;
