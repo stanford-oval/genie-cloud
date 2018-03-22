@@ -2,10 +2,6 @@
     text-align: justify;
 }
 
-.documentation pre > code {
-    color: #2C3E50;
-}
-
 /* emulate bootstrap styling of .table with no class name */
 
 .documentation table {
