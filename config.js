@@ -30,3 +30,7 @@ module.exports.THINGPEDIA_URL = '';
 module.exports.IS_PRODUCTION_THINGPEDIA = false;
 
 module.exports.SEMPRE_URL = 'https://almond-nl.stanford.edu';
+
+// set to true to let users try out Almond without logging in
+// they will operate as the user "anonymous"
+module.exports.ENABLE_ANONYMOUS_USER = true;

@@ -107,29 +107,25 @@ Frontend.prototype._init = function _init() {
     this._app.use(cacheable());
 
     // development only
-    if ('development' == this._app.get('env')) {
+    if ('development' === this._app.get('env'))
         this._app.use(errorHandler());
-    }
 
     this._app.use(passport.initialize());
     this._app.use(passport.session());
     passportUtil.initialize();
 
     var basicAuth = passport.authenticate('basic', { failWithError: true });
-    var omletAuth = passport.authenticate('local-omlet', { failureRedirect: '/user/login',
-                                                           failureFlash: false });
-    this._app.use(function(req, res, next) {
+    this._app.use((req, res, next) => {
         if (req.query.auth === 'app') {
-            basicAuth(req, res, function(err) {
+            basicAuth(req, res, (err) => {
                 if (err)
                     res.status(401);
                 // eat the error
                 next();
             });
-        } else if (req.query.auth === 'omlet') {
-            omletAuth(req, res, next);
-        } else
+        } else {
             next();
+        }
     });
     this._app.use(function(req, res, next) {
         if (req.user) {
@@ -145,6 +141,7 @@ Frontend.prototype._init = function _init() {
         res.locals.S3_CLOUDFRONT_HOST = Config.S3_CLOUDFRONT_HOST;
         res.locals.THINGPEDIA_URL = Config.THINGPEDIA_URL;
         res.locals.WITH_THINGPEDIA = Config.WITH_THINGPEDIA;
+        res.locals.ENABLE_ANONYMOUS_USER = Config.ENABLE_ANONYMOUS_USER;
         next();
     });
 
