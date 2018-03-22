@@ -42,8 +42,10 @@ function getDetails(fn, param, req, res) {
                     if (req.user && (req.user.developer_org === d.owner ||
                         req.user.developer_status >= user.DeveloperStatus.ADMIN))
                         return model.getCodeByVersion(client, d.id, d.developer_version);
-                    else
+                    else if (d.approved_version !== null)
                         return model.getCodeByVersion(client, d.id, d.approved_version);
+                    else
+                        return Promise.resolve({code:'{}'});
                 }).then((row) => {
                     d.code = row.code;
                     return d;
