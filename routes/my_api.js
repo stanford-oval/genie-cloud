@@ -51,7 +51,7 @@ class AlexaDelegate {
                directives: (this._askSpecial === null ? undefined : [
                    {
                        type: 'Dialog.ElicitSlot',
-                       slotToElicit: 'command'
+                       slotToElicit: 'getCommand'
                    }
                ])
            }
@@ -101,18 +101,85 @@ router.post('/alexa', (req, res, next) => {
             }
 
             if (!user) {
-                res.status(401).json({error: 'invalid access token'});
+                //res.status(401).json({error: 'invalid access token'});
+
+                res.json({
+                    version: '1.0',
+                    sessionAttributes: {
+                    },
+                    response: {
+                        outputSpeech: { 
+                            type: 'PlainText',
+                            text: 'You must link your Web Almond account to use Almond with Alexa'
+                        },
+                        card: {
+                            type: 'LinkAccount'
+                        },
+                        shouldEndSession: true
+                    }
+                });
                 return;
             }
             req.login(user, next);
         })(req, res, next);
-    }
+    } else {
+        res.json({
+            version: '1.0',
+            sessionAttributes: {
+            },
+            response: {
+                outputSpeech: { 
+                    type: 'PlainText',
+                    text: 'You must link your Web Almond account to use Almond with Alexa'
+                },
+                card: {
+                    type: 'LinkAccount'
+                },
+                shouldEndSession: true
+            }
+        });
+    }        
 }, (req, res) => {
     console.log('body', req.body);
 
+    if (req.body.request.type === 'SessionEndedRequest') {
+        res.json({
+            version: '1.0',
+            sessionAttributes: {
+            },
+            response: {
+                outputSpeech: { 
+                    type: 'PlainText',
+                    text: "Sorry I couldn't help you with that."
+                },
+                shouldEndSession: true
+            }
+        });
+        return;
+    }
+
+
     const user = req.user;
     const assistantUser = { name: user.human_name || user.username };
-    const text = req.body.request.type === 'LaunchRequest' ? 'hello' : req.body.request.intent.slots.command.value;
+    let text = '';
+
+    if (req.body.request.type === 'LaunchRequest') {
+        text = 'hello';
+    } else {
+        if (req.body.request.intent.slots.answer &&
+            req.body.request.intent.slots.answer.value) {
+            text = req.body.request.intent.slots.answer.value;
+        } else {
+            for (let slot in req.body.request.intent.slots) {
+                let value = req.body.request.intent.slots[slot].value;
+                if (!value)
+                    continue;
+                if (slot.endsWith('Command'))
+                    slot = slot.substring(0, slot.length-'Command'.length);
+                text += ' ' + slot + ' ' + value;
+            }
+        }
+    }
 
     const delegate = new AlexaDelegate(res);
  
