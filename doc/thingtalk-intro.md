@@ -10,8 +10,9 @@ things.
 
 ## What can I write in ThingTalk?
 
-ThingTalk is rule based, and was developed as an extension of the well-known
-[IFTTT][] service.
+ThingTalk shares similar spirit with the well-known 
+[IFTTT](https://ifttt.com/) service, but provides a more powerful and flexible way to express
+more complicated tasks.
 
 Each app is composed of a list of rules, each containing a trigger, an optional list
 of conditions, and an action. The trigger determines when the action is executed,

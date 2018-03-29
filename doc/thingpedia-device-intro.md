@@ -118,7 +118,7 @@ TODO: remove Thing Types and Chile Thing Types.
 global name ??
 
 ### Authentication and configuration parameters
-The combination of `Configuration Parameters` and `Auth Type` determines the UI 
+The combination of `Configuration Parameters` and `Authentication` determines the UI 
 to configure the device. 
 Refer to [complete guide for authentication and discovery](/thingpedia/developers/thingpedia-device-intro-auth-n-discovery.md) for more details. 
 
