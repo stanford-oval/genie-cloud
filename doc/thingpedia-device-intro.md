@@ -1,5 +1,7 @@
 # Writing Interfaces for Thingpedia
 
+---
+
 ## Getting Started
 
 ### The basics: Devices, Channels, and Events
@@ -16,26 +18,20 @@ such as account ID or IP/MAC address, and contains any authentication
 information.
 
 From each device instance, when needed the system will obtain
-_channels_. A channel is an abstraction over a trigger (a standing query),
-a query (instantenous) or an action, which is represented as an open connection
+_channels_. A channel is an abstraction over
+a query or an action, which is represented as an open connection
 to the device.
 
 A channel produces and handles _events_. These are just JS arrays of values
-that are processed by the ThingTalk rules. A trigger channel will
-produce new events to be handled by the rules, based on the data
-obtained by the device. An action channel will consume an event
+that are processed by the ThingTalk rules. 
+An action channel will consume an event
 produced by a rule and turn into in an external action. A query channel
 will consume a partially filled event representing a pattern to
 match, and will produce a list of events matching that pattern.
-
-Channels can be opened and closed. For triggers, an open channel
-is one that generates events, and a closed channel does not.
-For actions, you can assume that invocations will only happen on
-open channels, so you can release any resource during close.
-
+A query can also be _monitored_ to create a trigger (a standing query), 
+which will produce new events based on new data obtained from the query channel.
 You should never need to open or instantiate channels yourself.
-Instead, you would set up your _channel class_ so that the system
-will create and open the channels at the right time.
+Instead, the system will create and open the channels at the right time.
 
 ### Become a developer
 
@@ -45,28 +41,183 @@ developer account from
 Once you are approved by the Thingpedia administrators
 (you can check your status
 from [your profile page](https://thingpedia.stanford.edu/user/profile)),
-you will be able to upload your own devices or accounts to Thingpedia and
+you will be able to upload your own devices or services to Thingpedia and
 enable users to use it through Almond.
 
 ### Looking for examples?
-
-Go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
+You can download the source code of any existing "supported interfaces" from
+[Thingpedia](https://thingpedia.stanford.edu/thingpedia/devices).
+In addition, you can go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
 to see the device packages we developed, and observe these concepts
-in action. In addition, you can download the source code of any existing
-"supported interfaces" in
-[Developer Portal](https://thingpedia.stanford.edu/thingpedia/devices).
+in action. 
+Note that some of the packages are no longer supported by the current system 
+since Thingpedia and ThingTalk have been improving. 
+We recommend to look at the following devices as examples: 
++ [Giphy](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.giphy),
+a very simple device which returns GIFs
++ [LinkedIn](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.linkedin),
+an interface for LinkedIn which shows how authentication works. 
++ [LG TV](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.lg.tv.webos2),
+a more complicated example which involves a physical device.
+
+---
+
+## Writing Device Metadata
+All devices published on Thingpedia must include some metadata, called _Thing Manifest_.
+Thing Manifest is written in JSON.
+A JSON editor is provided to help you write it, which can be found at the
+[create page](https://almond.stanford.edu/thingpedia/upload/create), or by
+clicking the _Upload new device_ button at the bottom of [Thingpedia page](https://almond.stanford.edu/thingpedia).
+
+For each object field in the JSON, the following buttons are provided by the editor:
+- Collapse/expand button: allows you to collapse or expand the current field; for optional field, a delete button will also be provided. 
+- JSON button: allows you to edit the raw JSON
+- Properties button: allows you to select/add new properties for the current field. 
+
+### Thing ID, Thing Name, and Thing Description
+Before you start editing the manifest, you will need to fill some basic information about your 
+device at the create page including `Thing ID`, `Thing Name`, and `Thing Description`.
+`Thing ID` is a string that uniquely identifies the device class. 
+A common way is to use reverse domain name notation. 
+E.g., for LinkedIn in Thingpedia, its ID is `com.linkedin`.
+`Thing Name` and `Thing Description` on the other hand will be used in the Thingpedia catalog,
+so that user can know what your device does at a glance.
+
+You are also encouraged to upload a PNG file as the icon for your device. 
+The ZIP file with JS code will be introduced later.
+
+### Package type
+The first thing you need to specify in manifest is the type of package, which will change what 
+other fields are needed. 
+Currently, the system support the following package types:
+- Custom JavaScript
+- RSS Feed
+- Preloaded ??
+- Generic REST ??
+- REST + JSON ??
+
+Most of the devices will be using `Custom JavaScript` type. 
+For services retrieving data from RSS feed, `RSS Feed` types could be used to simplify the process.
+Similarly, if a service only uses simple HTTP request methods, `Preloaded` can be used. 
+For more details, please refer to [devices with zero code](/thingpedia/developers/thingpedia-device-with-zero-code.md). 
+
+### Category, device domain, and device types
+Field `Category` determines how a device will be configured and how it will appear in the UI. 
+Valid categories include
+- `Physical Device`: IoTs such as light bulb, thermostat, television.  
+- `Online accounts`: services that require authentication including all social networks, email clients, etc.
+- `Public Data Source`: public services like news feed, weather.
+- `System Component`: only for internal use. 
+
+Besides category, each device also needs to choose one of the following seven domains:
+`media`, `social-network`, `home`, `communication`, `health`, `service`, and `data-management`.
+These types are used for categorizing devices. A device without these types will not be
+shown in the device list when users use `help` in Almond.  
+
+TODO: remove Thing Types and Chile Thing Types.   
+global name ??
+
+### Authentication and configuration parameters
+The combination of `Configuration Parameters` and `Auth Type` determines the UI 
+to configure the device. 
+Refer to [complete guide for authentication and discovery](/thingpedia/developers/thingpedia-device-intro-auth-n-discovery.md) for more details. 
+
+### Channels
+To add a channel, click property button of `Queries` or `Actions` field, type in the name of the channel, and click `add` button.
+Do not use `Triggers` field, which has been depreciated: now every trigger is defined as a monitor on a corresponding query. 
+
+#### Arguments
+To take full advantage of the functionality we provided in ThingTalk (filtering, chaining, etc.),  
+every argument needed for ___both input and output___ should be listed here. 
+Each of the argument includes the following attributes.  
+- `name`: the name of the argument, which we suggest to name with lower case 
+  letters with underscores between each word.  
+- `type`: the type of the argument including: String, Number, Boolean, 
+Entity(entity_type), Enum(value1,value2,...),
+  PhoneNumber, EmailAddress, Location, Measure(unit), Date, Time, Picture. 
+  For measurement, use units defined in [ThingTalk reference](/thingpedia/developers/thingtalk-reference.md)
+- `required`, `question`: these annotations are
+  related to slot filling; if your argument is required, the user will be asked
+  `question` to fill the slot. Arguments for actions are always required, so
+  the `required` property is ignored.
+
+#### Natural language annotation 
+
+- Doc String: ???
+
+- Canonical Form:
+The canonical form of the channel name, used by the semantic parser;
+it's a good idea to omit stop words for this, and to use a longer expression
+such as `set target temperature on thermostat`.
+
+- Local/Remote Confirmation String:
+A string used to construct the final confirmation question
+before a rule is created or an action is invoked; use the imperative form,
+and refer to required arguments with `$argname`. 
+Remote confirmation is optional for confirmation of remote command, where the owner of the device
+can be referred by `$__person`.
+E.g., a channel for posting on twitter could have local confirmation 
+"_tweet $status_" and remote confirmation "_tweet $status on $\_\_person's twitter_".
+
+#### Formatted output
+This field specifies how the results will be presented to the user.
+It contains a list of objects which will be shown to the users in order.  
+Valid types of output include
+- `text`: any text result, where parameters can be referred by syntax `${argname}`; if a parameter is of type `Measure`, the unit can be specified by `${argname:unit}`.
+- `picture_url`: takes an url and shows users the corresponding picture.
+- `rdl`: returns a clickable link.
+- `code`: if you need more control over the output, such as different output based on results, you can choose this type and write Javascript code in the `Message` box. 
+
+#### Polling interval
+Queries may be monitored.
+For example, the command to query the current weather can monitored, so that whenever the weather changes,
+users will be notified. 
+Polling interval field takes an integer in milliseconds to specify how often the query will be fired 
+to check if any change happened.
+If push notification is supported, leaves `0`.
+If the query returns non-deterministic results (e.g., returning a random number), set polling interval to `-1`,
+which means the system will not allow it to be monitored.
+
+
+### Example Commands
+The example commands provide both documentation for the user 
+(they will be provided by `help <global-name>`) and training data for the system.
+The accuracy of the parser heavily relies on the quality and quantity of examples.
+Thus, developers are recommended to write as many example commands as possible to cover
+all possible usage of your device.
+The same with confirmation, argument can be referred with `$argname`.
+
+Each example command requires a natural language utterance and its corresponding ThingTalk Program.
+Please refer to [ThingTalk for Example Commands](/thingpedia/developers/thingpedia-device-intro-example-commands.md) for details. 
+
+
+### Submission
+The device will not automatically become available to users after submission, 
+it is only available to you for testing. 
+So feel free to click the `submit` button at the bottom of the page to save your manifest.  
+
+
+---
 
 ## Writing Device Package
 
 ### The layout of a Device package
-
 The Thingpedia API assumes a precise layout for a device package, which
 must be a zip file containing exactly the JS files and the package.json,
 as well as any dependency you need. You should not assume any nodejs
 module beyond the 'thingpedia' module illustrated here - if you need any,
-bundle them in your zip file. The JS version you should target is ES5,
+bundle them in your zip file. 
+
+If there is no dependency needed and all your code is in one file, you can 
+also upload the file directly, and we will generate the package.json and zip file for you. 
+
+The JS version you should target is ES5,
 but you can assume runtime services for ES6 (provided by babel-polyfill, preloaded),
 and you are encouraged to use babel to compile from ES6 to ES5.
+Our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
+also provides an easy way to compile and generate the zip file.
+Simply clone the repository and put your ES6 code into a folder and run `make`. 
+
 
 For the package.json file, don't wrory about the additional attributes
 _thingpedia-metadata_ and _thinepedia-version_ which appear in examples we
@@ -78,68 +229,68 @@ should be a _device class_. You would instantiate the device class
 from the API and set it directly to `module.exports`, as in
 
 ```javascript
-    const Tp = require('thingpedia');
+const Tp = require('thingpedia');
 
-    module.exports = new Tp.DeviceClass({
-        Name: "MyDeviceClass",
+module.exports = class MyDeviceClass extends Tp.BaseDevice {
+    constructor(engine, state) {
+         super(engine, state);
+         // constructor
+    }
 
-        _init: function(engine, state) {
-             this.parent(engine, state);
-             // constructor
-        }
-
-        // other methods of device class
-    });
+    // other methods of device class
+};
 ```
 
-Then, for each trigger or action you want to expose, you would
-have a separate JS file for each, named after the trigger or action,
-exposing the channel class as `module.exports`. So for example, if
-you want to expose action `frobnicate()`, you would put the following
-in a file named `frobnicate.js` at the toplevel of your device package:
+Then, for each query or action you want to expose, you would
+add functions to your device class with prefix `get_` or `do_` respectively.
+So for example, if
+you want to expose query `get_profile` and action `get_share` for LinkedIn device, 
+you would modify your `device.js` as follows:
 
 ```javascript
-    const Tp = require('thingpedia');
+const Tp = require('thingpedia');
 
-    module.exports = new Tp.ChannelClass({
-        Name: "FrobnicateChannel",
+module.exports = class LinkedinDevice extends Tp.BaseDevice {
+    constructor(engine, state) {
+        super(engine, state);
 
-        _init: function(engine, device) {
-            this.parent();
-            // constructor
-        }
+        this.uniqueId = 'com.linkedin-' + this.userId;
+        this.name = "LinkedIn Account of %s".format(this.userName);
+        this.description = "This is your LinkedIn account";
+    }
 
-        // other methods of channel class
-    });
+    get_get_profile() {
+        // get user profile
+    }
+
+    do_share() {
+        // share on LinkedIn
+    }
+
+    // other methods 
+};
 ```
-
-Note: the `Name` you specify in the device and channel class is just
-a debugging hint (your object will stringify to `[object YourName]`),
-it has no real significance.
 
 ### A closer look to the Device class
 
 #### The BaseDevice API
 
-When you create a device class with `new Tp.DeviceClass`, you're actually
-declaring a subclass of [`Tp.BaseDevice`](https://github.com/Stanford-IoT-Lab/thingpedia-api/blob/master/lib/base_device.js),
+When you create a device class, you declare
+a subclass of [`Tp.BaseDevice`](https://github.com/Stanford-IoT-Lab/thingpedia-api/blob/master/lib/base_device.js),
 the base class of all device classes.
 
-By convention, members starting with a capital letter here are static, and
-members stating with lower case are instance methods and variables.
 `Tp.BaseDevice` has you the following API:
-
-- `this.kind`: The name of your nodejs package, and the unique identifier of
-your device class that will use to publish your device to Thingpedia.
-- `this.state`: An arbitrary serializable JS object with data you will need to
-talk to the device - including IP address, OAuth tokens, variable portions
-of API urls, etc.  
+- `this.name`: A string that will be shown in the list of devices a user owns in 
+[My Almond](https://almond.stanford.edu/me/) page. A common way is to concatenate the kind and the user name
+from the service. E.g., `this.name = "LinkedIn Account of %s".format(this.userName);`.
 - `this.uniqueId`: A string that uniquely identifies the device instance in the
 context of a given ThingSystem; you are supposed to compute it based on the
 state and set it at the end of your constructor.
 A common way to compute an unique ID is to concatenate the kind, a dash, and
-then some device specific ID, as in `org.thingpedia.demos.thingtv-AA-BB-CC-DD-EE-FF` if `AA:BB:CC:DD:EE:FF`
-is the MAC address of the ThingTV.
+then some device specific ID, as in LinkedIn, it would be `"com.linkedin-" + this.userId`.
+- `this.state`: An arbitrary serializable JS object with data you will need to
+talk to the device - including IP address, OAuth tokens, variable portions
+of API urls, etc.  
 - `this.engine`: Gives you access to the full Engine API, which will be
 introduced below.
 - `this.stateChanged()`: If you change `this.state`, you must at some point call `this.stateChanged`
@@ -161,10 +312,10 @@ You must return an instance of
 [`ObjectSet`](https://github.com/Stanford-IoT-Lab/thingpedia-api/blob/master/lib/object_set.js),
 containing the devices related to yours. You are responsible for calling `objectAdded`
 and `objectRemoved` if related devices can appear and disappear dynamically.
-- `UseOAuth2`: if your device can be instantiated with an OAuth-like flow (user clicks on a button,
+- `runOAuth2`: if your device can be instantiated with an OAuth-like flow (user clicks on a button,
 is redirected to a login page), this should be set to the handler; despite the name, this is
 called also for OAuth 1
-- `UseDiscovery`, `this.updateFromDiscovery`: discovery operations, described later
+- `loadFromDiscovery`: discovery operations, described later
 
 #### The Engine API
 
@@ -206,133 +357,6 @@ password), `oauth2` (OAuth 1.0 and 2.0 style authentication), and `discovery`
 (authentication by discovery and local interactive paring). Here's a
 [complete guide for authentication and discovery](/thingpedia/developers/thingpedia-device-intro-auth-n-discovery.md).  
 
-### Channel classes
-
-Great, so now you filled up your device class, and the user can add the device from
-the UI. Time to make some triggers, actions and queries.
-
-As mentioned, triggers, actions and queries need channel classes, of the form:
-
-```javascript
-    const Tp = require('thingpedia');
-
-    module.exports = new Tp.ChannelClass({
-        Name: 'MyChannel',
-        RequiredCapabilities: [],
-
-        _init: function(engine, device, params) {
-        },
-
-        _doOpen: function() {
-            // open the channel
-        },
-
-        _doClose: function() {
-            // close the channel
-        }
-    });
-```
-
-`_doOpen` and `_doClose` should return a promise (or, strictly speaking, a thenable)
-that is ready when your channel is. If you return undefined (or don't override them), it is assumed you completed
-your initialization and deinitialization synchronously.
-
-`RequiredCapabilities` is an array of platform capabilities that your channel requires
-to work. If the platform does not have the capabilities you need, then your channel will
-not be instantiated (and the engine will try to figure out a different way to run it,
-for example through a proxy), so you don't have to check for them.
-
-#### Triggers
-
-Triggers should call `this.emitEvent([a,b,c])` whenever they want to generate an event.
-For example:
-
-```javascript
-    const Tp = require('thingpedia');
-
-    module.exports = new Tp.ChannelClass({
-        Name: 'MyTrigger',
-
-        _init: function(engine, device, params) {
-            this.parent();
-            this.timeout = null;
-        },
-
-        _doOpen: function() {
-             this.timeout = setTimeout(function() { this.emitEvent(['bla']); }.bind(this), 5000);
-        },
-
-        _doClose: function() {
-             clearTimeout(this.timeout);
-             this.timeout = 1000;
-        }
-    });
-```
-
-When the values generated by the triggers are measurements, you must make use of
-the base units defined in the [ThingTalk reference](/doc/thingtalk-reference.md).
-
-#### Actions
-
-Actions on the other hand should override `sendEvent(event)` in the
-channel class, as in:
-
-```javascript
-    const Tp = require('thingpedia');
-
-    module.exports = new Tp.ChannelClass({
-        Name: 'MyAction',
-
-        _init: function(engine, device, params) {
-            this.parent();
-        },
-
-        sendEvent: function(event) {
-            // do something
-        },
-    });
-```
-
-#### Queries
-
-Queries should override `invokeQuery(filters)` in the channel class, and
-return an promise to a list of events, as in:
-
-```javascript
-    const Tp = require('thingpedia');
-
-    module.exports = new Tp.ChannelClass({
-        Name: 'MyAction',
-
-        _init: function(engine, device, params) {
-            this.parent();
-        },
-
-        invokeQuery: function(filters) {
-            return makeServiceCall(filters).then(function(results) {
-                return results.map(function(result) {
-                    return [result.foo, result.bar];
-                });
-            });
-        },
-    });
-```
-
-#### Partially applied triggers
-
-It is possible that web services will support server side filtering of
-event streams, which can reduce the number of wake ups required on
-ThingSystem if the rule is also going to filter out the data.
-
-To address some of those cases, rules that invoke a trigger with a
-constant value will see those values propagated to the params argument
-to the constructor. Parameters that are unspecified in a rule will
-be set to `undefined` or `null` (you should check for both).
-
-If you make any use of that `params` argument, you should set
-`this.filterString` in your constructor to a stringified version of
-the parameters that you care about. This is needed to properly deduplicate
-your channel across rules with different filter values.
 
 #### Stateful Channels
 
@@ -340,84 +364,14 @@ Often times, you will want to preserve state between different invocations
 of your channel. Keeping it in memory is not enough though, because the
 ThingSystem might be restarted at any time and the state would be lost.
 
-Instead, you can require the `channel-state` capability (with `RequiredCapabilities: ['channel-state']`). If you do, the signature of your constructor becomes
-
-```javascript
-    _init: function(engine, state, device, params)
-```
-
-The `state` object is persisted to disk, and has APIs:
-
+Instead, you can require the `channel-state` capability (with `RequiredCapabilities: ['channel-state']`). The `state` object is persisted to disk, and has APIs:
 - `state.get(key)`: return a state value
 - `state.set(key, value)`: modify a state value
 
-### Writing Triggers
-
-So far we've looked at the most generic of all triggers, suitable for any kind
-of service API. But most triggers will make use of periodic polling, and for
-those simpler code is possible.
-
-#### Polling Trigger
-
-```javascript
-    const Tp = require('thingpedia');
-
-    module.exports = new Tp.ChannelClass({
-        Name: 'MyPollingTrigger',
-        Extends: Tp.PollingTrigger
-
-        _init: function(engine, device, params) {
-            this.parent();
-            this.interval = 3600000; // in milliseconds
-        },
-
-        _onTick: function() {
-            // do something
-        },
-    });
-```
-
-If you use `Tp.PollingTrigger` and you set the interval in the constructor
-(or alternatively in the class definition, if it's a constant), then you
-only need to override `_onTick`, which will be called periodically.
-
-#### HTTP Polling Trigger
-
-An even more common case is that of a periodic HTTP poll. In that case, you can
-use `Tp.HttpPollingTrigger`:
-
-```javascript
-    const Tp = require('thingpedia');
-
-    module.exports = new Tp.ChannelClass({
-        Name: 'MyPollingTrigger',
-        Extends: Tp.HttpPollingTrigger
-
-        _init: function(engine, device, params) {
-            this.parent();
-            this.interval = 3600000;
-            this.url = 'https://api.example.com/1.0/poll';
-            this.auth = 'Bearer ' + device.accessToken;
-        },
-
-        _onResponse: function(data) {
-            // do something
-        },
-    });
-```
-
-The `_onResponse` method of your channel class will be called with the
-buffered HTTP response body, if the status is 200. 301 and 302
-statuses are followed transparently, other statuses will log an error
-and not call your method.
-
-Use `this.auth` to set the content of the `Authorization` header (or
-set it to `null` if you don't want one).
-
 #### HTTP Helpers
 
-The HTTP polling trigger makes use of the more general `Tp.Helpers.Http`.
-These are wrappers for nodejs [http API](https://nodejs.org/api/http.html)
+Our system provide a generic interface `Tp.Helpers.Http` for basic HTTP request.
+These are wrappers for [nodejs http API](https://nodejs.org/api/http.html)
 with a Promise interface.
 
 The available APIs are:
@@ -434,199 +388,64 @@ of a [readable stream](https://nodejs.org/api/stream.html)
 - `Http.postStream(url, data, options)`: Perform a streaming HTTP POST; `data` should
 be a readable stream and will be piped.
 
-#### Formatting data
-
-While actions only consume data, triggers and queries produce data that
-might be of direct interest to the user (instead of being piped to an action or
-another query).
-
-If that's the case of your channel, you should implement the `formatEvent(event, filters)`
-method on your channel class.
-
-The return value can be a single, user visible string, which will be sent as a
-single Almond message, or it can be an array of messages.
-
-Each message can be a string, a Picture or an RDL. Pictures are represented as
-objects of the form `{type: "picture", url: "..."}`. RDL (Rich Deep Link) are links
-with title and description, and they are represented as
-
+### An Example
 ```javascript
-    {
-      type: "rdl",
-      callback: "omlet url",
-      webCallback: "browser url",
-      displayTitle: "...",
-      displayText: "..."
+"use strict";
+
+const Tp = require('thingpedia');
+
+const PROFILE_URL = 'https://api.linkedin.com/v1/people/~:(id,formatted-name,headline,industry,specialties,positions,picture-url)?format=json';
+const SHARE_URL = 'https://api.linkedin.com/v1/people/~/shares?format=json';
+
+module.exports = class LinkedinDevice extends Tp.BaseDevice {
+    constructor(engine, state) {
+        super(engine, state);
+
+        this.uniqueId = 'com.linkedin-' + this.userId;
+        this.name = "LinkedIn Account of %s".format(this.userName);
+        this.description = "This is your LinkedIn account";
     }
+
+    get userId() {
+        return this.state.userId;
+    }
+
+    get userName() {
+        return this.state.userName;
+    }
+
+    get_get_profile() {
+        return Tp.Helpers.Http.get(PROFILE_URL, {
+            useOAuth2: this,
+            accept: 'application/json' }).then((response) => {
+            const parsed = JSON.parse(response);
+
+            return [{ formatted_name: parsed.formattedName,
+                      headline: parsed.headline || '',
+                      industry: parsed.industry || '',
+                      specialties: parsed.specialties || '',
+                      positions: ('values' in parsed) ? parsed.positions.values.map((p) => p.summary) : [],
+                      profile_picture: parsed.pictureUrl || '' }];
+        });
+    }
+
+    do_share({ status }) {
+        return Tp.Helpers.Http.post(SHARE_URL, JSON.stringify({
+            comment: status,
+            visibility: {
+                code: 'anyone'
+            }
+        }), {
+            useOAuth2: this,
+            dataContentType: 'application/json',
+            accept: 'application/json'
+        });
+    }
+};
 ```
 
 
-## Device Metadata
-
-In addition to a device package, each device specification published on
-Thingpedia must include some metadata, called a _device manifest_, which will parsed
-by Thingpedia to generate the web UI, and by Almond to talk to the user.
-
-The manifest contains:
-
-- The list of types the device claims to conform to
-- The triggers and actions, their arguments, the documentation for each and the natural
-  language metadata
-- The authentication method, and any parameter that needs to be configured manually by
-  the user (such as IP address or username)
-
-The manifest is written in JSON, and looks like this
-
-```javascript
-    {
-      "params": {
-        "p1": ["P1 Label", "text"],
-        "p2": ["P2 Label", "password"]
-      },
-      "types": ["t1", "t2"],
-      "child_types": ["t3", "t4"]
-      "auth": {
-        "type": "none"
-      },
-      "triggers": {
-        "trigger1": {
-            "args": [{
-        	"name": "a_string",
-        	"type": "String",
-        	"required": false,
-        	"question": "What astring are you interested in?",
-        	}, {
-        	"name": "a_number",
-        	"type": "Number",
-        	"required": true,
-        	"question": "What's the value of the first number?",
-        	}, {
-        	"name": "another_number",
-        	"type": "Number",
-        	"required": false,
-        	"question": ""
-        	}],
-            "doc": "produces a string and two numbers",
-            "canonical": "trigger first",
-            "confirmation": "something happens",
-            "examples": [
-            	"monitor if something happens with $a_number",
-            	"notify me if something happens with $a_number and astring is $a_string"
-            ]
-        }
-      },
-      "actions": {
-        "action1": {
-            "args": [{
-        	"name": "a_feed",
-        	"type": "Feed",
-        	"question": "Who do you want to send the message to?",
-        	}, {
-        	"name": "a_message",
-        	"type": "String",
-        	"question": "What do you want to say in the message?",
-        	}],
-            "doc": "sends a message",
-            "canonical": "send message",
-            "confirmation": "send message to $a_feed saying $a_message",
-            "examples": [
-            	"message $a_feed saying $a_message"
-            ]
-        }
-      }
-    }
-```
-
-### Global name
-
-The global name is the user visible name of the interface in the natural
-language. Eg, if your name is "foo", the user will say "configure foo" or
-"send message on foo". It's a good idea to give the device the global
-name, but as the label suggests it needs to be global (so it should be
-a brand name, eg "hue" or "twitter"). If you don't specify a global name,
-the user will only interact with the device through one of the exposed
-types.
-
-### Types
-
-The `types` array lists all the types that this device claims to conform
-to, eg. `thermostat` or `speaker`. If you list your device as having a
-certain type, you inherit the natural language annotations of that type.
-The most important type is `online-account`, which will flag the device
-as an account, and will change where it appears in the UI.
-Of a similar spirit is the kind `data-source`, which will flag the device as a
-public web service with no authentication, and will hide it from the Android UI
-or from the 'list devices' Almond command.
-Other important types are cloud-only and phone-only, which will prevent your
-code from being instantiated outside of the right ThingSystem installation.
-Use them if you need platform specific APIs.
-Apart from previously mentioned types, each device _must_ has at least one
-type from the following seven types: `media`, `social-network`, `home`,
-`communication`, `health`, `service`, and `data-management`. These types
-are used for categorizing devices. A device without these types will not be
-shown in the device list when users use `help` in Almond.  
-
-`child_types` is similar, but marks your device as a collection device,
-and informs the system of the types that your child devices will expose.
-If the user says "configure thermostat" and your device lists `thermostat`
-as a child type, he will be offered to configure your device among the
-many possibilities.
-
-### Authorization
-
-The combination of `params` and `auth.type` determines the UI to configure
-the device. Valid types for `auth.type` are:
-
-- `"none"`, in which case the UI will show a form if there is any parameter,
-or a button otherwise
-- `"oauth2"`, in which case the UI will always show a button
-- `"basic"`, in which case the UI will always show a form; `username` and `password`
-  parameters are required
-
-### Channels
-
-If you give your device a global name, worth noting are the natural language
-annotations that you need to provide for each trigger, action or query:
-
-#### Arguments
-A list of arguments of the channel. To take full adventage of the 
-functionality we provided in ThingTalk (filtering, chaining, etc.),  
-everything needed for ___both input and output___ should be listed here. 
-Each of the argument includes the following attributes.  
-- `name`: the name of the argument, which we suggest to name with lower case 
-  letters with underscores between each word.  
-- `type`: the type of the argument inluding: String, Number, Boolean, Enum,
-  PhoneNumber, EmailAddress, Location, Measure, Date, Time, Picture. 
-- `required`, `question`: these annotations are
-  related to slot filling; if your argument is required, the user will be asked
-  `question` to fill the slot. Arguments for actions are always required, so
-  the `required` property is ignored.
-
-#### canonical
-The canonical form of the channel name, used by the semantic parser;
-it's a good idea to omit stop words for this, and to use a longer expression
-such as `set target temperature on thermostat`.
-
-#### confirmation
-A string used to construct the final confirmation question
-before a rule is created or an action is invoked; use the imperative form,
-and refer to required arguments with `$argname`. For triggers, the full formula of the confirmation
-is "Ok so you want me to notify if `<trigger confirmation>`". For queries,
-you should use the command form, eg "get something" or "list something".
-
-#### examples
-A list of examples using your channel; this provides both documentation
-for the user (they will be provided by `help <global-name>`)
-and training data for the system; only one randomly chosed example will be be shown
-in help if there are multiple paraphrases for the same functionality, but
-every example will help Almond to understand users command better,    
-so you should strive to provide as many examples and as many paraphrases
-as possible; the same with confirmation, argument can be referred
-with `$argname`.
-
-If you don't give your device a global name, the natural language annotations
-are ignored, and you will inherit those of the generic type.
-
+--- 
 
 ## Publishing and Testing on Thingpedia
 
