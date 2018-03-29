@@ -288,6 +288,7 @@ context of a given ThingSystem; you are supposed to compute it based on the
 state and set it at the end of your constructor.
 A common way to compute an unique ID is to concatenate the kind, a dash, and
 then some device specific ID, as in LinkedIn, it would be `"com.linkedin-" + this.userId`.
+- `this.description`: A string that describe the purpose of the device, which will be shown in My Almond page. 
 - `this.state`: An arbitrary serializable JS object with data you will need to
 talk to the device - including IP address, OAuth tokens, variable portions
 of API urls, etc.  
