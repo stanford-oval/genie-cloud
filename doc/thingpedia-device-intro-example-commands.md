@@ -31,12 +31,13 @@ let action x := \(p_status :String) -> @com.twitter.post(status=p_status);
 ## Stand-alone Examples
 All the examples introduced above can be combined and compose more complicated sentences 
 by concatenating the natural language utterances with some conjunctions and verbs.
-However, in some cases, you might want a very specific utterance for your command 
-it won't be natural to use as part of some other sentences. In this case, just write the full program.
+However, in some cases, you might want a very specific utterance for your command,
+or even an example for compound command, which won't be natural to use as part of some other sentences. 
+In this case, one can write the full program.
 
-For example, if we want a stand-alone command "_what's the weather?_", 
-to avoid being concatenating this complete sentence with other things, we can write the following ThingTalk program
-instead of the lambda expression above:
+For example, if we want a stand-alone command "automatically retweet anyone i follow", 
+to avoid being composed, we can write the following ThingTalk program
+instead of the lambda expression:
 ```JSON
-now => org.thingpedia.weather.current() => notify();
+monitor (@com.twitter.home_timeline()) => @com.twitter.retweet(tweet_id=tweet_id);
 ```
