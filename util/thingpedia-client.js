@@ -103,15 +103,8 @@ module.exports = class ThingpediaClientCloud {
         });
     }
 
-    getDeviceCode(kind, apiVersion) {
-        if (kind in LEGACY_MAPS)
-            kind = LEGACY_MAPS[kind];
-
+    getDeviceCode(kind) {
         var developerKey = this.developerKey;
-        var newApi = apiVersion >= 2;
-
-        if (!newApi)
-            return Promise.reject(new Error('API version 1 is no longer supported'));
 
         return db.withClient((dbClient) => {
             return Promise.resolve().then(() => {
@@ -124,7 +117,7 @@ module.exports = class ThingpediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return device.getFullCodeByPrimaryKind(dbClient, kind, org, newApi);
+                return device.getFullCodeByPrimaryKind(dbClient, kind, org);
             }).then((devs) => {
                 if (devs.length < 1)
                     throw new Error(kind + ' not Found');
@@ -141,11 +134,8 @@ module.exports = class ThingpediaClientCloud {
         });
     }
 
-    getSchemas(schemas, apiVersion) {
+    getSchemas(schemas) {
         var developerKey = this.developerKey;
-        apiVersion = apiVersion || 1;
-        if (apiVersion < 2)
-            return Promise.reject(new Error('API version 1 is no longer supported'));
 
         return db.withClient((dbClient) => {
             return Promise.resolve().then(() => {
