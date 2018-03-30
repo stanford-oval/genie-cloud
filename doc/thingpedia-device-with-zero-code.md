@@ -6,8 +6,8 @@ To help hooking up these simple devices, we provide package types for some very 
 ## RSS Feed
 TODO: an example of RSS Feed
 
-## Preloaded
-If a device simply provides an interface for HTTP requests, `Preloaded` package type will probably save you lots of time. 
+## Generic REST
+If a device simply provides an interface for HTTP requests, `Generic REST` package type will probably save you lots of time. 
 
 In the following, let's go through an simple example: [Quotes](https://almond.stanford.edu/thingpedia/devices/by-id/com.forismatic.quotes).
 _Quotes_ uses the API provided by [forismatic.com](https://forismatic.com/en/api/), which requires no authentication or developer key.
@@ -23,7 +23,7 @@ It returns a random quote in JSON format as follows:
 ``` 
 
 To hook this service up with Almond, go to [device create page](https://almond.stanford.edu/thingpedia/upload/create) 
-and pick `Preloaded` as the package type.
+and pick `Generic REST` as the package type.
 Add a query, pick a name you like. 
 Then, click on `Properties` button of the query and tick the box for `API Endpoint URL`. 
 The corresponding field will show up and simply fill in the URL of the API of your service, 
