@@ -44,7 +44,7 @@ router.get('/schema/:schemas', (req, res) => {
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
-    client.getSchemas(schemas, req.query.version).then((obj) => {
+    client.getSchemas(schemas).then((obj) => {
         if (obj.developer)
             res.cacheFor(3600000);
         else
@@ -79,7 +79,7 @@ router.get('/schema-metadata/:schemas', (req, res) => {
 router.get('/code/devices/:kind', (req, res) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
-    client.getDeviceCode(req.params.kind, req.query.version).then((code) => {
+    client.getDeviceCode(req.params.kind).then((code) => {
         if (code.developer)
             res.cacheFor(3600000);
         else
