@@ -4,7 +4,7 @@
 ThingTalk can compose multiple primitive commands to create a complicated compound command. 
 To leverage the full power of ThingTalk, we recommend to write composable example commands as follows.
 
-Instead of writing full programs, write parts using lambda syntax introduced in [ThingTalk introduction](/thingpedia/developers/thingtalk-intro.md).
+Instead of writing full programs, write parts using lambda syntax introduced in [ThingTalk introduction](/doc/thingtalk-intro.md).
 Use twitter as an example. The query to get tweets in my timeline can be declared using the following syntax. 
 ```JSON
 let table x := @com.twitter.home_timeline();
