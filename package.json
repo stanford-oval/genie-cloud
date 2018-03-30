@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "accept-language": "^2.0.17",
+    "actions-on-google": "^1.10.0",
     "almond": "github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent",
     "body-parser": "~1.13.3",
     "cacheable-middleware": "0.0.1",

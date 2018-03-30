@@ -13,11 +13,13 @@ const Q = require('q');
 const express = require('express');
 const crypto = require('crypto');
 const passport = require('passport');
+const { ActionsSdkApp } = require('actions-on-google');
 
 const Config = require('../config');
 
 const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
+
 
 function makeRandom(bytes) {
     return crypto.randomBytes(bytes).toString('hex');
@@ -51,7 +53,7 @@ class AlexaDelegate {
                directives: (this._askSpecial === null ? undefined : [
                    {
                        type: 'Dialog.ElicitSlot',
-                       slotToElicit: 'getCommand'
+                       slotToElicit: 'command'
                    }
                ])
            }
@@ -87,6 +89,24 @@ class AlexaDelegate {
     }
 }
 AlexaDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
+
+router.post('/google-assistant', (request, response) => {
+   const app = new ActionsSdkApp({request, response });
+
+   function mainIntent (app) {
+       app.ask('Say something');
+   }
+
+   function rawInput (app) {
+       app.tell('you said: ' + app.getRawInput());
+   }
+
+   const actionMap = new Map();
+   actionMap.set(app.StandardIntents.MAIN, mainIntent);
+   actionMap.set(app.StandardIntents.TEXT, rawInput);
+
+   app.handleRequest(actionMap);
+});
 
 router.post('/alexa', (req, res, next) => {
     if (req.body && req.body.session && req.body.session.user && req.body.session.user.accessToken &&
@@ -166,19 +186,7 @@ router.post('/alexa', (req, res, next) => {
     if (req.body.request.type === 'LaunchRequest') {
         text = 'hello';
     } else {
-        if (req.body.request.intent.slots.answer &&
-            req.body.request.intent.slots.answer.value) {
-            text = req.body.request.intent.slots.answer.value;
-        } else {
-            for (let slot in req.body.request.intent.slots) {
-                let value = req.body.request.intent.slots[slot].value;
-                if (!value)
-                    continue;
-                if (slot.endsWith('Command'))
-                    slot = slot.substring(0, slot.length-'Command'.length);
-                text += ' ' + slot + ' ' + value;
-            }
-        }
+        text = req.body.request.intent.slots.command.value;
     }
 
     const delegate = new AlexaDelegate(res);
