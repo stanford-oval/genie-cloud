@@ -23,7 +23,7 @@ function httpRequest(url) {
         };
         req.onload = function() {
             callback(req.response);
-        }
+        };
         req.send();
     });
 }
@@ -94,4 +94,4 @@ module.exports = class ThingpediaClientBrowser {
             to += '&developer_key=' + this.developerKey;
         return this._simpleRequest(to, true);
     }
-}
+};

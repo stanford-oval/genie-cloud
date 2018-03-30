@@ -38,6 +38,46 @@ function shuffle(array) {
     }
 }
 
+function blackList(code, sentence) {
+    let code_blacklist = [
+        'makeDate() +',
+        'makeDate() -',
+        'start_of(day) -', 'start_of(day) +',
+        'start_of(week) -', 'start_of(week) +',
+        'start_of(mon) -', 'start_of(mon) +',
+        'start_of(year) -', 'start_of(year) +',
+        'end_of(day)', 
+        'end_of(week)',
+        'end_of(mon)',
+        'end_of(year)',
+        'sportradar',
+        'imgflip',
+    ];
+    let nl_blacklist = [
+        'reach where i am now',
+        'what is the date of what day is it',
+        'the random number of a random number'
+    ];
+    for (let snippet of code_blacklist) {
+        if (code.indexOf(snippet) > -1)
+            return true;
+    }
+    for (let snippet of nl_blacklist) {
+        if (sentence.indexOf(snippet) > -1)
+            return true;
+    }
+    return false;
+}
+
+function whiteList(code, sentence) {
+    let white_list = ['sportradar', 'imgflip'];
+    for (let snippet of white_list) {
+        if (code.indexOf(snippet) > -1)
+            return true;
+    }
+    return false;
+}
+
 function main() {
     const batch = process.argv[2];
     const parser = csv.parse({ columns: true, delimiter: '\t' });
@@ -57,23 +97,24 @@ function main() {
             let programs = [];
             return Q.all(data.map((row) => {
                 let {id,code,sentence} = row;
-                programs.push({ id: parseInt(id), code: code, sentence: sentence });
-                if (programs.length === 4) {
-                    let tmp = programs;
-                    programs = [];
-                    return insert(dbClient, batch, tmp);
-                } 
+                if (!blackList(code, sentence)) {
+                    programs.push({ id: parseInt(id), code: code, sentence: sentence });
+                    if (programs.length === 4) {
+                        let tmp = programs;
+                        programs = [];
+                        return insert(dbClient, batch, tmp);
+                    } 
+                }
             }));
         });
     }).then(() => {
         return db.withClient((dbClient) => {
             const output = fs.createWriteStream(process.argv[3]);
-            const baseUrl = `https://almond.stanford.edu/mturk/${batch}/` 
             let content = 'url\n';
-            return db.selectAll(dbClient, 'select id from mturk_input;', []).then((rows) => {
+            return db.selectAll(dbClient, 'select id,batch from mturk_input;', []).then((rows) => {
                 return rows.forEach((row) => {
-                    content += baseUrl + row.id + '\n';
-                });
+                    content += `https://almond.stanford.edu/mturk/${row.batch}/${row.id}\n`;
+                })
             }).then(() => {
                 return output.write(content);
             });
