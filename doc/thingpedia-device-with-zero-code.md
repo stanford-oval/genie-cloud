@@ -3,9 +3,6 @@ Amazon Alexa has over 15,000 skills.
 However, the majority of them are very simple and similar
 To help hooking up these simple devices, we provide package types for some very typical devices which requires zero coding. 
 
-## RSS Feed
-TODO: an example of RSS Feed
-
 ## Generic REST
 If a device simply provides an interface for HTTP requests, `Generic REST` package type will probably save you lots of time. 
 
@@ -40,3 +37,18 @@ So fill `quoteText` for argument `text` and `quoteAuthor` for `author`.
 
 Fill in the rest empty boxes as usual and write some example commands for the device, and that's it! 
 Pick an icon you like, and submit the device, you are good to go!
+
+## RSS Feed
+We also provide a simple interface to hook up RSS feed style services.
+Pick `RSS Feed` as the package type and similar to `Generic REST`, put the RSS feed URL into the field
+`API Endpoint URL`.
+Five arguments are supported:
+- `title` 
+- `link` (the link to the original page, in type `URL`)
+- `updated` (the updated time of the feed, in type `Date`)
+- `description`
+- `picture_url`
+Note that some RSS feed may only contains `title` and `link`. 
+Check the RSS feed format carefully and DO NOT use an argument if it is not in the feed of your service. 
+
+Then as usual, fill in the rest, add example commands, and submit. No code needed! 

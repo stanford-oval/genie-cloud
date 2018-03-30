@@ -92,13 +92,11 @@ other fields are needed.
 Currently, the system support the following package types:
 - Custom JavaScript
 - RSS Feed
-- Preloaded ??
-- Generic REST ??
-- REST + JSON ??
+- Generic REST
 
 Most of the devices will be using `Custom JavaScript` type. 
 For services retrieving data from RSS feed, `RSS Feed` types could be used to simplify the process.
-Similarly, if a service only uses simple HTTP request methods, `Preloaded` can be used. 
+Similarly, if a service only uses simple HTTP request methods, `Generic REST` can be used. 
 For more details, please refer to [devices with zero code](/thingpedia/developers/thingpedia-device-with-zero-code.md). 
 
 ### Category, device domain, and device types
@@ -115,7 +113,6 @@ These types are used for categorizing devices. A device without these types will
 shown in the device list when users use `help` in Almond.  
 
 TODO: remove Thing Types and Chile Thing Types.   
-global name ??
 
 ### Authentication and configuration parameters
 The combination of `Configuration Parameters` and `Authentication` determines the UI 

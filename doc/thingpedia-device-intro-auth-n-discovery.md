@@ -42,7 +42,7 @@ service console if the service has redirect URI validation.
 In pseudo code, the first call looks like:
 
 ```javascript
-runOAuth2: function(engine, req) {
+runOAuth2(engine, req) {
     if (req === null) {
         return prepareForOAuth2().then(function() {
             return ['https://api.example.com/1.0/authorize?redirect_uri=' +
@@ -63,7 +63,7 @@ During the second call, you can use the authentication code produced by the call
 to obtain the real access token, and then save it to the database. In pseudo-code:
 
 ```javascript
-runOAuth2: function(engine, req) {
+runOAuth2(engine, req) {
     if (req === null) {
         // handle the first phase of OAuth
     } else {
