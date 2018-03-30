@@ -462,23 +462,8 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
 
 Once you are ready to let other people try your device interface, after thorough
 local testing, you can publish it on Thingpedia.
-
-To do so, you must first
-[request a developer account](https://thingpedia.stanford.edu/user/request-developer).
-Once the request is approved by the Thingpedia administrators (you can check the status
-from [your profile page](https://thingpedia.stanford.edu/user/profile)), you will be
-able to upload a new device by clicking on
-[Propose it for inclusion](https://thingpedia.stanford.edu/thingpedia/upload/create?class=physical)
-in the red banner in the Thingpedia page.
-
-In the creation page you will be required to upload a zip file containing your
-device package. The package.json must be at the toplevel of the zip file, not in a
-subdirectory. You should always tick "This device requires additional JS code"
-or your package will be ignored!
-
-Each device package must contain all its dependencies, except for the `thingpedia`
-module which is always provided. This also includes any promise library you might want
-to use for channel classes.
+You can submit your device by click the `Submit` button at the bottom of the 
+[creation page](https://almond.stanford.edu/thingpedia/upload/create). 
 
 Once submitted, the device is not automatically available to all users. Instead,
 it is only available to you with your _developer key_, which you can retrieve
@@ -488,6 +473,9 @@ You should be able to test your device right away using the [Web Almond](/me/con
 While if you want to test on Android Almond (which runs ThingSystem on your own
 Android device with better privacy and discovery capability), you need one
 more step: go to settings and enable cloud sync.
+Currently, the Android Almond still requires some update before it can be used under
+the latest version of ThingTalk and Thingpedia, so Web Almond is recommended.  
 
 The device will become available after being reviewed and approved by a
 Thingpedia administrator.
+
