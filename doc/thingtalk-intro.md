@@ -20,7 +20,7 @@ The stream determines both the data to operate on and the time at which the acti
 ## The Basics
 
 Let's start with the basics: like every programming language, we start from Hello World.
-This tutorial assumes that you already have configured Almond. If not, see the [Getting Started Tutorial](/getting-started.md)
+This tutorial assumes that you already have configured Almond. If not, see the [Getting Started Tutorial](/doc/getting-started.md)
 first.
 
 This is the code for the Hello World app:
