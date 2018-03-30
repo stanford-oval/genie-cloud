@@ -2,10 +2,10 @@
 
 ## What is ThingTalk?
 
-ThingTalk is the programming language that ThingEngine (and by extension Almond) uses. It's a _declarative
+ThingTalk is the programming language that Almond uses. It's a _declarative
 domain-specific language_, which means it's a language that we specifically developed
 for the Internet of Things (hence the name) and it does not use common constructs
-like for, if or lambdas, hopefully providing a higher level abstraction for connecting
+like for, if or for statements, providing a higher level abstraction for connecting
 things.
 
 ## What can I write in ThingTalk?
@@ -14,9 +14,8 @@ ThingTalk shares similar spirit with the well-known
 [IFTTT](https://ifttt.com/) service, but provides a more powerful and flexible way to express
 more complicated tasks.
 
-Each app is composed of a list of rules, each containing a trigger, an optional list
-of conditions, and an action. The trigger determines when the action is executed,
-and the conditions further limit it.
+A ThingTalk program is composed of a list of _rules_. A rule combines a _stream_ with an action.
+The stream determines both the data to operate on and the time at which the action is executed.
 
 ## The Basics
 
@@ -26,192 +25,183 @@ first.
 
 This is the code for the Hello World app:
 
-    HelloWorld() {
-        true => @$notify("Hello, world!");
+    now => @org.thingpedia.builtin.thingengine.builtin.say(message="Hello, world!");
+
+To test this, you can go to [Web Almond](/me/conversation) and type `\t` followed by a space followed by the ThingTalk code.
+The special `\t` prefix tells the system that your input is code and not a natural language sentence.
+
+Here we can see we define our program with one rule with it.
+The rule has two parts: the part before the `=>` is the stream, the part after is the action.
+
+Here the trigger is just `now`, which invokes the action exactly once (when the program is started), with no data.
+For the action, we choose `say` from the [Miscellaneous Interfaces](/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine.builtin),
+which just displays the message back. Parameters in ThingTalk are passed by keyword, using
+the names indicated in the device specification.
+
+## Operating on Data
+
+The `now` stream contains no data and fires only once, so it is not particularly
+interesting. To access more complex streams, we have three options:
+
+ - combine `now` with a source of data: `now => <table>`
+ - monitor a source of data (table)
+ - monitor a source of data and then combine it with a second source
+
+A source of data is specified in the form of a (virtual) _table_, representing a
+remotely-accessible database. The simplest form of table invokes a single query,
+chosen from a device specification:
+
+    now => @com.twitter.my_tweets() => notify
+
+In this case, we choose the `my_tweets` query from [Twitter](/thingpedia/devices/by-id/com.twitter),
+pass no parameters, and combine it with the `now` stream. The result is a source
+of data that contains the list of recent tweets from the user.
+
+In this example, the program uses the `notify` action, which presents the data
+to the user (in the form of speech, text, or a widget, depending on the form factor
+of Almond). Alternatively, one can specify an action with side effects:
+
+    now => @com.twitter.my_tweets() => @com.twitter.retweet(tweet_id=tweet_id)
+
+The action is executed for each row returned by the stream or table.
+In this case, we use the `tweet_id` output parameter from the source of data, and bind
+it to the input parameter with the same name of `@com.twitter.retweet`. The result
+is that all recent tweets by the user are retweeted.
+
+## Continuous Execution
+
+In addition to `now`, ThingTalk supports _monitor streams_, which continuously monitor
+a table for changes in data, and execute the actions on new rows.
+In code, this would look like:
+
+    monitor @com.twitter.my_tweets() => notify;
+
+This produces a notification to the user every time the user tweets.
+
+Streams can also be combined with tables to form a _join stream_, which reads from
+two sources of data at the same time:
+
+    (monitor @com.twitter.my_tweets()) join @com.bing.web_search() on (query=text) => notify;
+    
+In this case, each new tweet from the user is combined with the `web_search` table
+from [Bing](/thingpedia/devices/by-id/com.bing), using `query = text` as the join
+condition. In practice, this rule means that every time the user tweets, Almond
+will search the text of the tweet on Bing and show the result to the user.
+
+The order of `monitor` and `join` can also be reversed:
+
+    monitor (@com.twitter.my_tweets() join @com.bing.web_search() on (query=text)) => notify;
+
+In that case, Almond will monitor the join of the two tables, that is, it will continuously
+query Bing based on the user's tweets and notify if the search results change (that is,
+if there is a new row that was not present previously).
+
+## Filtering
+
+What if the user does not want to return all tweets, but only those with a specific
+hashtag? This can be accomplished using a filter:
+
+    now => @com.twitter.my_tweets(), contains(hashtags, "almond"^^tt:hashtag) => notify;
+
+The filter is specified with a comma following the table that it filters, followed
+by a boolean predicate that uses the output parameters of that table. Multiple filters
+can be combined with `&&` (and) and `||` (or).
+For the full list of predicates supported by ThingTalk, see the [ThingTalk reference](/doc/thingtalk-reference.md).
+
+In this example, we filter on the `hashtags` parameter, which is of type `Array(Entity(tt:hashtag))`,
+so we use the `contains` predicate. The value, which must be of type `Entity(tt:hashtag)`,
+is specified using the `^^` syntax to separate the actual value from its type.
+
+Filters can be applied to both tables and streams, i.e. the following are equivalent:
+
+    (monitor @com.twitter.my_tweets()), contains(hashtags, "almond"^^tt:hashtag) => notify;
+    monitor (@com.twitter.my_tweets(), contains(hashtags, "almond"^^tt:hashtag)) => notify;
+
+If parenthesis are omitted, the `monitor` keyword has precedence.
+
+## Timers
+
+In addition to operating on changes on data, rules can be fired at specific times using
+timer streams, using the syntax:
+
+    timer(base=makeDate(), interval=1h) => @org.thingpedia.builtin.thingengine.builtin.say(message="Hourly reminder!");
+
+This syntax creates a timer that starts now (`makeDate()` with no parameter is the current
+time) and fires every hour.
+
+Timers, like monitor streams, can be combined with other data sources:
+
+    timer(base=makeDate(), interval=1h) join @com.twitter.my_tweets() => notify;
+
+For the precise syntax of timers, see the [ThingTalk reference](/doc/thingtalk-reference.md).
+
+## Edge Stream
+
+Monitor streams are a special case of _edge streams_: streams that are constructed from
+another stream, and filter it based on immediate history. Two types of edge streams
+exist: _edge on new_ streams, and _edge filter_ streams.
+
+An edge on new stream filters the stream to contain only data that was not previously
+present in the stream. This is very similar to a monitor stream, and in fact monitor
+is syntactic sugar for edge stream with a particular timer. I.e.
+
+    monitor @com.twitter.my_tweets() => notify
+
+Is (semantically) equivalent to
+
+    edge (timer(base=makeDate(), interval=...) join @com.twitter.my_tweets()) on new => notify
+
+Where the interval is automatically chosen based on the polling interval specified in
+Thingpedia.
+
+Edge streams can be useful when combined with timers:
+
+    edge (timer(base=makeDate(), interval=1h) join @com.twitter.my_tweets()) on new => notify;
+    
+This program will look at the user's tweets at most every hour (rather than instantly, which is
+the default for `@com.twitter.my_tweets`), and furthermore will only notify on new tweets.
+
+Moreover, edge filters allow to specify richer conditions than "the value differs".
+With an edge filter (whose syntax is `edge `_stream_` on `_filter_), the rule is only evaluated
+if the filter was previously false and is now true.
+
+Consider the two examples:
+
+    edge (monitor @thermostat.get_temperature()) on value >= 70F => notify;
+    monitor @thermostat.get_temperature(), value >= 70F => notify;
+
+In the first case, the user receives only one notification, as the thermostat crosses from below
+70 Farhenheit to above. In the second case, once the temperature is above 70, any fluctuation
+will result in a new notification, which is potentially unwanted. For this reason, it is more
+common to use edge filters rather than regular filters with numeric values.
+
+## Lambdas
+
+So far, we only introduced full programs, composed of a stream (possibly `now`) or table and an action
+(possibly `notify`). These programs are complete and not composable.
+
+We can instead split each part of a program into a composable part using lambda syntax:
+
+    let table my_tweets := \() -> @com.twitter.my_tweets();
+    let table my_tweets_with_hashtag := \(hashtag : Entity(tt:hashtag)) -> @com.twitter.my_tweets(), contains(hashtags, hashtag);
+    let stream when_i_tweet := \() -> monitor @com.twitter.my_tweets();
+
+Lambdas are declared with `let`, followed by the type of the declaration (`table`, `stream` or `action`),
+followed by a name, the list of parameters, and their body.
+
+If the lambda has no parameters, the `\() ->` syntax can be omitted, so the following are equivalent:
+
+    let table my_tweets := \() -> @com.twitter.my_tweets();
+    let table my_tweets := @com.twitter.my_tweets();
+
+Lambdas can be used in a program to make it more readable:
+
+    {
+    let stream when_i_tweet := \() -> monitor @com.twitter.my_tweets();
+    when_i_tweet() => notify;
     }
 
-Go ahead and copy paste it in the [New App](/thingpedia/apps/create) form,
-then enable the resulting app from [your Almond](/apps).
+Here we wrap the program in `{}` because it uses more than one statement.
 
-Here we can see we define our app to have codename `HelloWorld`, and we include one rule in it, composed of everything
-in the block up to the semicolon.
-
-The rule has two parts: the part before the `=>` is called a trigger, and defines
-when the code runs, the part after is called an action, and defines what to do.
-Here the trigger is just `true`, which means it's always triggering.
-For the action, we learn from the [ThingTalk reference](/doc/thingtalk-reference.md)
-that `@$notify` produces a notification of something happening, and as
-arguments wants what we're notifying about. So we pass it `"Hello, world!"` and
-we're done.
-
-## Actual conditions
-
-A condition that is always true is not a particularly interesting condition.
-Furthermore, because we're not using any trigger or any state, the condition will
-never change (if it's true it stays true, if it's false it stays false), so the
-rule will only be evaluated once!
-
-Instead, we want the left hand side of the rule to contain a real trigger, for
-example:
-
-    TwitterExample() {
-        @twitter.source(text, _, _, "sabrinaapp", _, _)
-        => @$notify(text);
-    }
-
-What's going on here? We learn from
-[the interface definition](/thingpedia/devices/by-id/com.twitter)
-that `@twitter` is the name of a Twitter Account (which is mapped
-to `com.twitter` when we add it), and `source` is a trigger with 6
-arguments: `text`, `hashtags`, `urls`, `from`, `inReplyTo` and
-`yours`.
-
-We don't care about some of these, so we put `_` in their place.
-We do care about the text of the tweet, so we _bind_ it to the variable `text`.
-This is similar to Datalog or other logic programming languages, and effectively means that the
-every time the trigger happen, the `text` variable in the scope of the rule will contain the
-first value produced by the trigger.
-Furthermore, in place of `from` we put a constant `"sabrinaapp"`, which
-means we only want tweets from that account (the official Almond account on
-Twitter).
-
-So this is notifying us of all tweets from `"sabrinaapp"` as we receive
-them! Cool, huh?
-
-## Smarter Matching
-
-In the previous example we could directly match the author of the tweet
-because `from` is a single value so we could compare it to a constant. The same
-trick does not work if we want to look for keywords in the text, or if we
-want to look for a hashtag. Instead, this is how you would do it:
-
-    TwitterHashtagExample() {
-        @twitter.source(text, hashtags, _, _, _, _), $contains(hashtags, "sabrina")
-          => @$notify(text);
-    }
-
-The part after the comma is a condition, that further limits the execution of the rule. You
-can have as many conditions as you want, and they all have to be true when the trigger happen,
-or the rule will be ignored until the next occurrence of the trigger (in this case, the next
-tweet).
-
-The condition can be composed of any of the functions and the operators from the
-[ThingTalk reference](/doc/thingtalk-reference.md). Operator precedence and meaning matches
-JavaScript and is what you would expect from other languages.
-For example, we can use regular expressions to match on keywords in the text that
-are not hashtags:
-
-    HelloTwitterWorld() {
-        @twitter.source(text, _, _, from, _, _), $regex(text, "hello", "i")
-          => @twitter.sink("@" + from + " world");
-    }
-
-This second condition uses `$regex(text, regexp, flags)`, a condition which is true when `text`
-matches the regular expression `regexp` (in [JavaScript syntax][JSRegExp]).
-
-In this case the rule matches when the tweet contains "hello" as a substring -
-including "hello", "hello Almond" but also "othello". If you want to match just "hello" as a
-word, you could instead use `"\\\\sshello\\\\s"` or `"\\\\bhello\\\\b"` (note the double escaping of
-backlashes, which are special characters in strings).
-
-Look at JavaScript to find out what regular expressions are supported, as the well as what `flags` is for (in our case,
-it just tells the runtime to do case-insensitive matching, so that "Hello" and "hello" both
-work).
-
-The result is an automatic Twitter replier that posts world to whoever says hello on Twitter.
-
-## Parametric apps
-
-So far we only matched on fixed values - fixed Twitter users, fixed hashtags. What about
-letting the user choose what he cares about?
-
-We can achieve that with parametrization:
-
-    TwitterParamExample(HashTag : String) {
-        @twitter.source(text, hashtags, _, _, _, _), $contains(hashtags, HashTag)
-          => @$notify(text);
-    }
-
-Now when you enable this app you will notice a form field asking you for a HashTag.
-
-
-## Maintaining state
-
-All examples we've seen so far are stateless: you see one tweet, you do something on it,
-and the potentially something happens. But how do we keep state from one invocation of
-the rule to another?
-
-We can achieve that with local variables:
-
-    WeightExample() {
-        var MyWeight : Measure(kg);
-        @(type="scale").source(_, w), !MyWeight(_) => MyWeight(w);
-        @(type="scale").source(_, w2), MyWeight(w1) =>
-          @$notify("Your weight increased by " + $toString(w2 - w1) + " kgs");
-    }
-
-The syntax is `var VarName : Type`, and you can see the list of allowed types in
-the [ThingTalk reference](/doc/thingtalk-reference.md).
-
-Variables can be bound in conditions to read their value: `VarName(v)` reads as
-"let `v` be the value of `VarName`", as if `VarName` was a trigger. The syntax
-`!VarName(_)` is used to check if a variable has no value.
-
-Variables declared with `var` are only visible to the app. You can use `out`
-for variables that are useful to the user and should be presented in the result
-page, and you can use `extern` for variables that are shared between multiple apps.
-`extern` variables are also `out` implicitly.
-
-## Naming things
-
-We used `@twitter` for Twitter, but `@(type="scale")` for a scale. Why is that?
-
-Well, some things have _global names_, for example `@omlet`, `@twitter`, `@facebook`,
-while other things can only be referred to by attributes. The attribute `type`,
-which is required, can be any of the types of the device as listed on Thingpedia.
-
-So for example:
-
-- `@(type="scale")` matches all scales
-- `@(type="scale", place="bathroom")` matches all scales in the bathroom
-- `@(type="com.bodytrace.scale")` matches only scales manufactured by BodyTrace
-(a subset of `@(type="scale")`).
-
-Types imply what actions and triggers are available, so by using more specific
-types you might get access to new actions or triggers, at the cost of generality.
-
-## Data Structures
-
-We first saw a variable of type `Measure(kg)`. From [the reference](/doc/thingtalk-reference.md)
-we learn variables can also have type `Array` or `Map`, which lets us store arbitrary
-amounts of data in our app.
-
-For the most parts, a variable of data structure type is treated like any other variable:
-
-    var V1 : Array(String);
-    @some.input(v), V1(array) => V1($append(array, v));
-
-One should observe though the difference between these two similar rules:
-
-    V1(array), V2(v) => V1($append(array, v));
-    V2(v) => V1($append(V1, v));
-
-In the first case, the rule is triggered by changes in `V1` and `V2` equally.
-Because every execution of the rule appends a value to `V1` (thus changing it),
-this leads to an infinite loop. The second rule is triggered only by `V2` and
-does not have this problem.
-
-You can iterate data structures with a special form of `$contains()`:
-
-    var V1 : Array(String);
-    V1(array), $contains(array, elem) => @$logger("Array contains " + elem);
-
-As usual, `elem` binds to every possible value that makes the condition true,
-so every element of the array in order.
-
-`$contains()` in this form must be a the top of a condition, so expressions like
-`V1(array), $contains(array, e1) || $contains(array, e2)` are not valid.
-
-
-[IFTTT]: http://ifttt.com
-[JSRegExp]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp
+Lambdas are also used to provide composable examples for Thingpedia Devices,
+as detailed [in their guide](/doc/thingpedia-device-intro-example-commands.md).
