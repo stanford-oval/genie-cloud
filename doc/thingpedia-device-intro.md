@@ -66,7 +66,7 @@ a more complicated example which involves a physical device.
 All devices published on Thingpedia must include some metadata, called _Thing Manifest_.
 Thing Manifest is written in JSON.
 A JSON editor is provided to help you write it, which can be found at the
-[create page](https://almond.stanford.edu/thingpedia/upload/create), or by
+[creation page](https://almond.stanford.edu/thingpedia/upload/create), or by
 clicking the _Upload new device_ button at the bottom of [Thingpedia page](https://almond.stanford.edu/thingpedia).
 
 For each object field in the JSON, the following buttons are provided by the editor:
@@ -76,7 +76,7 @@ For each object field in the JSON, the following buttons are provided by the edi
 
 ### Thing ID, Thing Name, and Thing Description
 Before you start editing the manifest, you will need to fill some basic information about your 
-device at the create page including `Thing ID`, `Thing Name`, and `Thing Description`.
+device at the creation page including `Thing ID`, `Thing Name`, and `Thing Description`.
 `Thing ID` is a string that uniquely identifies the device class. 
 A common way is to use reverse domain name notation. 
 E.g., for LinkedIn in Thingpedia, its ID is `com.linkedin`.
@@ -99,6 +99,15 @@ For services retrieving data from RSS feed, `RSS Feed` types could be used to si
 Similarly, if a service only uses simple HTTP request methods, `Generic REST` can be used. 
 For more details, please refer to [devices with zero code](/thingpedia/developers/thingpedia-device-with-zero-code.md). 
 
+### User visible name and description
+All the devices configured by a user will be shown in the user's [My Almond](https://almond.stanford.edu/me).
+A name and a short description are required for each device. 
+Typically this information is provided in the JS code which will introduce later.
+But if you choose `RSS Feed` and `Generic REST` as your package type which requires no code, you need to specify 
+them in the manifest.
+To do so, click the `Properties` button at the top level of the JSON editor and tick the boxes for 
+`User visible name` and `User visible description`, and fill them in. 
+
 ### Category, device domain, and device types
 Field `Category` determines how a device will be configured and how it will appear in the UI. 
 Valid categories include
@@ -112,7 +121,11 @@ Besides category, each device also needs to choose one of the following seven do
 These types are used for categorizing devices. A device without these types will not be
 shown in the device list when users use `help` in Almond.  
 
-TODO: remove Thing Types and Chile Thing Types.   
+The `types` array lists all the types that this device claims to conform to, e.g., `thermostat` or `speaker`.
+If you list your device having a certain type, you inherit the natural language annotations of that type. 
+`child_types` is similar, but marks your device as a collection device, and informs the system of the types that 
+your child devices will expose. If the user says "_configure thermostat_" and your device lists `thermostat` as 
+a child type, he will be offered to configure your device among other possibilities.   
 
 ### Authentication and configuration parameters
 The combination of `Configuration Parameters` and `Authentication` determines the UI 
@@ -140,7 +153,7 @@ Entity(entity_type), Enum(value1,value2,...),
 
 #### Natural language annotation 
 
-- Doc String: ???
+- Doc String: this is only used for documentation for developers. 
 
 - Canonical Form:
 The canonical form of the channel name, used by the semantic parser;

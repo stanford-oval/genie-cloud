@@ -19,7 +19,7 @@ It returns a random quote in JSON format as follows:
 }
 ``` 
 
-To hook this service up with Almond, go to [device create page](https://almond.stanford.edu/thingpedia/upload/create) 
+To hook this service up with Almond, go to [device creation page](https://almond.stanford.edu/thingpedia/upload/create) 
 and pick `Generic REST` as the package type.
 Add a query, pick a name you like. 
 Then, click on `Properties` button of the query and tick the box for `API Endpoint URL`. 
