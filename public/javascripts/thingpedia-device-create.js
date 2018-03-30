@@ -135,7 +135,7 @@ $(function() {
                 type: 'string', title: "Package Type",
                 'enum': ['org.thingpedia.v2', 'org.thingpedia.v1', 'org.thingpedia.rss', 'org.thingpedia.rest_json', 'org.thingpedia.builtin', 'org.thingpedia.generic_rest.v1'],
                 options: {
-                    enum_titles: ['Custom JavaScript', 'Legacy JavaScript Module (deprecated)', 'RSS Feed', 'REST+JSON', 'Preloaded', 'Generic REST']
+                    enum_titles: ['Custom JavaScript', 'Legacy JavaScript Module (deprecated)', 'RSS Feed', 'Preloaded', 'Generic REST']
                 }
             },
             name: {
