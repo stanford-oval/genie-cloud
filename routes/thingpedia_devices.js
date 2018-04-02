@@ -19,6 +19,7 @@ const model = require('../model/device');
 const user = require('../util/user');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
+const TrainingServer = require('../util/training_server');
 
 var router = express.Router();
 
@@ -42,26 +43,29 @@ function getDetails(fn, param, req, res) {
                     if (req.user && (req.user.developer_org === d.owner ||
                         req.user.developer_status >= user.DeveloperStatus.ADMIN))
                         return model.getCodeByVersion(client, d.id, d.developer_version);
-                    else
+                    else if (d.approved_version !== null)
                         return model.getCodeByVersion(client, d.id, d.approved_version);
+                    else
+                        return Promise.resolve({code:'{}'});
                 }).then((row) => {
                     d.code = row.code;
                     return d;
                 });
             }).then((d) => {
-                if (language === 'en') {
-                    d.translated = true;
-                    return d;
-                }
-                return schema.isKindTranslated(client, d.primary_kind, language).then((t) => {
-                    d.translated = t;
-                    return d;
-                });
-            }).then((d) => {
-                return exampleModel.getByKinds(client, [d.primary_kind], language).then((examples) => {
+                return Promise.all([Promise.resolve().then(() => {
+                    if (language === 'en') {
+                        d.translated = true;
+                        return;
+                    }
+                    return schema.isKindTranslated(client, d.primary_kind, language).then((t) => {
+                        d.translated = t;
+                        return;
+                     });
+                }), exampleModel.getByKinds(client, [d.primary_kind], language).then((examples) => {
                     d.examples = examples;
-                    return d;
-                });
+                }), TrainingServer.get().check(language, d.primary_kind).then((job) => {
+                    d.current_job = job;
+                })]).then(() => d);
             });
         }).then((d) => {
             var online = false;

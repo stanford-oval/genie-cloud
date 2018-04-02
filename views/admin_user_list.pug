@@ -11,7 +11,7 @@ block scripts
 
 block content
   div.navbar.navbar-default#user-search-navbar
-    form.navbar-form.navbar-left(action='/admin/search',method='get')
+    form.navbar-form.navbar-left(action='/admin/users/search',method='get')
       div.form-group
         input.form-control#user-search-box(type='text', name='q', value=search)
         button.btn.btn-primary(type="submit")= _("Search")

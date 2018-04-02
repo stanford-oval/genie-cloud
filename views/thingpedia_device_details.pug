@@ -43,6 +43,33 @@ block content
           = _("The translation for this device in your language is incomplete. ")
         a(href='/thingpedia/translate/by-id/' + device.primary_kind).btn.btn-default= _("Contribute translation")
 
+  if device.current_job
+    div.alert.alert-info(role='alert')
+      p
+        if user && user.developer_org === device.owner
+           = _("The natural language model for this device is being updated. If you recently update the metadata for this device, you should wait until the model is ready before testing.")
+        else
+           = _("The natural language model for this device is being updated. You should wait until the model is ready before using it.")
+      p
+        if device.current_job.status === 'queued'
+           = _("Status: queued")
+        else if device.current_job.status === 'download_dataset'
+           = _("Status: phase 1/7: downloading dataset")
+        else if device.current_job.status === 'gen_synthetic'
+           = _("Status: phase 2/7: generating synthetic set")
+        else if device.current_job.status === 'apply_ppdb'
+           = _("Status: phase 3/7: augmenting training set")
+        else if device.current_job.status === 'prepare'
+           = _("Status: phase 4/7: preparing Thingpedia metadata and word embeddings")
+        else if device.current_job.status === 'combine_dataset'
+           = _("Status: phase 5/7: combining datasets")
+        else if device.current_job.status === 'training'
+           = _("Status: phase 6/7: training machine learning model")
+        else if device.current_job.status === 'uploading'
+           = _("Status: phase 7/7: uploading trained model")
+        else
+           = _("Status: running")
+
   aside#device-icon-large
     img(src=S3_CLOUDFRONT_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
 

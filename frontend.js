@@ -64,7 +64,7 @@ Frontend.prototype._init = function _init() {
             let redirect = false;
             if (req.headers['x-forwarded-proto'] === 'http')
                 redirect = true;
-            if (req.hostname !== 'thingpedia.stanford.edu')
+            if (req.hostname !== 'almond.stanford.edu')
                 redirect = true;
             // don't redirect unless it's one of the stanford.edu hostnames
             // (it's a health-check from the load balancer)
@@ -75,7 +75,10 @@ Frontend.prototype._init = function _init() {
             if (req.originalUrl.startsWith('/thingpedia/api') || req.originalUrl.startsWith('/api/webhook'))
                 redirect = false;
             if (redirect) {
-                res.redirect(301, 'https://thingpedia.stanford.edu' + req.originalUrl);
+                if (req.hostname === 'thingpedia.stanford.edu' && req.originalUrl === '/')
+                    res.redirect(301, 'https://almond.stanford.edu/thingpedia');
+                else 
+                    res.redirect(301, 'https://almond.stanford.edu' + req.originalUrl);
                 return;
             }
             next();

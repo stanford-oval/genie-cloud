@@ -13,11 +13,13 @@ const Q = require('q');
 const express = require('express');
 const crypto = require('crypto');
 const passport = require('passport');
+const { ActionsSdkApp } = require('actions-on-google');
 
 const Config = require('../config');
 
 const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
+
 
 function makeRandom(bytes) {
     return crypto.randomBytes(bytes).toString('hex');
@@ -88,6 +90,24 @@ class AlexaDelegate {
 }
 AlexaDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
 
+router.post('/google-assistant', (request, response) => {
+   const app = new ActionsSdkApp({request, response });
+
+   function mainIntent (app) {
+       app.ask('Say something');
+   }
+
+   function rawInput (app) {
+       app.tell('you said: ' + app.getRawInput());
+   }
+
+   const actionMap = new Map();
+   actionMap.set(app.StandardIntents.MAIN, mainIntent);
+   actionMap.set(app.StandardIntents.TEXT, rawInput);
+
+   app.handleRequest(actionMap);
+});
+
 router.post('/alexa', (req, res, next) => {
     if (req.body && req.body.session && req.body.session.user && req.body.session.user.accessToken &&
         !req.headers.authorization)
@@ -101,18 +121,73 @@ router.post('/alexa', (req, res, next) => {
             }
 
             if (!user) {
-                res.status(401).json({error: 'invalid access token'});
+                //res.status(401).json({error: 'invalid access token'});
+
+                res.json({
+                    version: '1.0',
+                    sessionAttributes: {
+                    },
+                    response: {
+                        outputSpeech: { 
+                            type: 'PlainText',
+                            text: 'You must link your Web Almond account to use Almond with Alexa'
+                        },
+                        card: {
+                            type: 'LinkAccount'
+                        },
+                        shouldEndSession: true
+                    }
+                });
                 return;
             }
             req.login(user, next);
         })(req, res, next);
-    }
+    } else {
+        res.json({
+            version: '1.0',
+            sessionAttributes: {
+            },
+            response: {
+                outputSpeech: { 
+                    type: 'PlainText',
+                    text: 'You must link your Web Almond account to use Almond with Alexa'
+                },
+                card: {
+                    type: 'LinkAccount'
+                },
+                shouldEndSession: true
+            }
+        });
+    }        
 }, (req, res) => {
     console.log('body', req.body);
 
+    if (req.body.request.type === 'SessionEndedRequest') {
+        res.json({
+            version: '1.0',
+            sessionAttributes: {
+            },
+            response: {
+                outputSpeech: { 
+                    type: 'PlainText',
+                    text: "Sorry I couldn't help you with that."
+                },
+                shouldEndSession: true
+            }
+        });
+        return;
+    }
+
+
     const user = req.user;
     const assistantUser = { name: user.human_name || user.username };
-    const text = req.body.request.type === 'LaunchRequest' ? 'hello' : req.body.request.intent.slots.command.value;
+    let text = '';
+
+    if (req.body.request.type === 'LaunchRequest') {
+        text = 'hello';
+    } else {
+        text = req.body.request.intent.slots.command.value;
+    }
 
     const delegate = new AlexaDelegate(res);
  

@@ -16,6 +16,7 @@ const multer = require('multer');
 const csurf = require('csurf');
 const JSZip = require('jszip');
 const ThingTalk = require('thingtalk');
+const Tp = require('thingpedia');
 
 var db = require('../util/db');
 var code_storage = require('../util/code_storage');
@@ -25,6 +26,8 @@ var user = require('../util/user');
 var exampleModel = require('../model/example');
 var Validation = require('../util/validation');
 var ManifestToSchema = require('../util/manifest_to_schema');
+var TrainingServer = require('../util/training_server');
+var Config = require('../config');
 
 const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 
@@ -424,6 +427,9 @@ function doCreateOrUpdate(id, create, req, res) {
                         });
                     }, 0);
                 }
+
+                // trigger the training server if configured
+                TrainingServer.get().queue('en', done);
                 return done;
             }).then((done) => {
                 if (done)

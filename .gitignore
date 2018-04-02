@@ -2,4 +2,11 @@
 *.tsv
 home/
 
+/platform_config.js
+/secret_config.js
+/public/cache
+/public/brassau
+
 node_modules/
+
+yarn-error.log
