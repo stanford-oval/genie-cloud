@@ -97,7 +97,7 @@ Currently, the system support the following package types:
 Most of the devices will be using `Custom JavaScript` type. 
 For services retrieving data from RSS feed, `RSS Feed` types could be used to simplify the process.
 Similarly, if a service only uses simple HTTP request methods, `Generic REST` can be used. 
-For more details, please refer to [devices with zero code](/thingpedia/developers/thingpedia-device-with-zero-code.md). 
+For more details, please refer to [devices with zero code](/doc/thingpedia-device-with-zero-code.md). 
 
 ### User visible name and description
 All the devices configured by a user will be shown in the user's [My Almond](https://almond.stanford.edu/me).
@@ -130,7 +130,7 @@ a child type, he will be offered to configure your device among other possibilit
 ### Authentication and configuration parameters
 The combination of `Configuration Parameters` and `Authentication` determines the UI 
 to configure the device. 
-Refer to [complete guide for authentication and discovery](/thingpedia/developers/thingpedia-device-intro-auth-n-discovery.md) for more details. 
+Refer to [complete guide for authentication and discovery](/doc/thingpedia-device-intro-auth-n-discovery.md) for more details. 
 
 ### Channels
 To add a channel, click property button of `Queries` or `Actions` field, type in the name of the channel, and click `add` button.
@@ -145,7 +145,7 @@ Each of the argument includes the following attributes.
 - `type`: the type of the argument including: String, Number, Boolean, 
 Entity(entity_type), Enum(value1,value2,...),
   PhoneNumber, EmailAddress, Location, Measure(unit), Date, Time, Picture. 
-  For measurement, use units defined in [ThingTalk reference](/thingpedia/developers/thingtalk-reference.md)
+  For measurement, use units defined in [ThingTalk reference](/doc/thingtalk-reference.md)
 - `required`, `question`: these annotations are
   related to slot filling; if your argument is required, the user will be asked
   `question` to fill the slot. Arguments for actions are always required, so
@@ -198,7 +198,7 @@ all possible usage of your device.
 The same with confirmation, argument can be referred with `$argname`.
 
 Each example command requires a natural language utterance and its corresponding ThingTalk Program.
-Please refer to [ThingTalk for Example Commands](/thingpedia/developers/thingpedia-device-intro-example-commands.md) for details. 
+Please refer to [ThingTalk for Example Commands](/doc/thingpedia-device-intro-example-commands.md) for details. 
 
 
 ### Submission
@@ -366,7 +366,7 @@ Most devices will require some kind of authentication, three ways to do
 authentication are supported, including `basic` (traditional username and
 password), `oauth2` (OAuth 1.0 and 2.0 style authentication), and `discovery`
 (authentication by discovery and local interactive paring). Here's a
-[complete guide for authentication and discovery](/thingpedia/developers/thingpedia-device-intro-auth-n-discovery.md).  
+[complete guide for authentication and discovery](/doc/thingpedia-device-intro-auth-n-discovery.md).  
 
 
 #### Stateful Channels
@@ -462,23 +462,8 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
 
 Once you are ready to let other people try your device interface, after thorough
 local testing, you can publish it on Thingpedia.
-
-To do so, you must first
-[request a developer account](https://thingpedia.stanford.edu/user/request-developer).
-Once the request is approved by the Thingpedia administrators (you can check the status
-from [your profile page](https://thingpedia.stanford.edu/user/profile)), you will be
-able to upload a new device by clicking on
-[Propose it for inclusion](https://thingpedia.stanford.edu/thingpedia/upload/create?class=physical)
-in the red banner in the Thingpedia page.
-
-In the creation page you will be required to upload a zip file containing your
-device package. The package.json must be at the toplevel of the zip file, not in a
-subdirectory. You should always tick "This device requires additional JS code"
-or your package will be ignored!
-
-Each device package must contain all its dependencies, except for the `thingpedia`
-module which is always provided. This also includes any promise library you might want
-to use for channel classes.
+You can submit your device by click the `Submit` button at the bottom of the 
+[creation page](https://almond.stanford.edu/thingpedia/upload/create). 
 
 Once submitted, the device is not automatically available to all users. Instead,
 it is only available to you with your _developer key_, which you can retrieve
@@ -488,6 +473,9 @@ You should be able to test your device right away using the [Web Almond](/me/con
 While if you want to test on Android Almond (which runs ThingSystem on your own
 Android device with better privacy and discovery capability), you need one
 more step: go to settings and enable cloud sync.
+Currently, the Android Almond still requires some update before it can be used under
+the latest version of ThingTalk and Thingpedia, so Web Almond is recommended.  
 
 The device will become available after being reviewed and approved by a
 Thingpedia administrator.
+

@@ -20,7 +20,7 @@ The stream determines both the data to operate on and the time at which the acti
 ## The Basics
 
 Let's start with the basics: like every programming language, we start from Hello World.
-This tutorial assumes that you already have configured Almond. If not, see the [Getting Started Tutorial](/getting-started.md)
+This tutorial assumes that you already have configured Almond. If not, see the [Getting Started Tutorial](/doc/getting-started.md)
 first.
 
 This is the code for the Hello World app:
@@ -162,7 +162,7 @@ This program will look at the user's tweets at most every hour (rather than inst
 the default for `@com.twitter.my_tweets`), and furthermore will only notify on new tweets.
 
 Moreover, edge filters allow to specify richer conditions than "the value differs".
-With an edge filter (whose syntax is `edge `_stream_` on `_filter_), the rule is only evaluated
+With an edge filter (whose syntax is `edge` _stream_ `on` _filter_), the rule is only evaluated
 if the filter was previously false and is now true.
 
 Consider the two examples:

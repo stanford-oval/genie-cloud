@@ -5,203 +5,125 @@
 * `Any`: the base, or unspecified, type; use it when the other types
   are not appropriate
 
-* `Boolean`: `true` or `false` - but also `on` or `off`
+* `Boolean`: `true` or `false`
 
 * `String`: any string; strings do not have to be valid UTF-16, but
    they are stored as UCS-2 and cannot have embedded NUL characters
 
-* `Picture`: a URI to a picture; this
+* `Entity(...)`: an identifier to an object; the type is parametrized with
+the actual entity type. An entity has a value, and an optional `display`
+property that represents the user visible name of the object. In JavaScript,
+entities can be represented as simple strings, or using the `Thingpedia.Value.Entity` class.
+
+  The following entity types have special meaning to the semantic parser:
+  
+  - `Entity(tt:picture)`: a picture (identified by its URL)
+  - `Entity(tt:hashtag)`: a hashtag (a word preceded by the \# sign)
+  - `Entity(tt:username)`: a username (a word preceded by an \@ sign)
+  - `Entity(tt:path_name)`: a path or file name
+  - `Entity(tt:url)`: a URL (not necessarily pointing to a picture)
+  - `Entity(tt:phone_number)`: a phone number
+  - `Entity(tt:email_address)`: an email address
+  - `Entity(tt:device)`: a Thingpedia device type (e.g. `com.twitter`)
+  - `Entity(tt:function)`: a Thingpedia function identifier, composed of device type + `:` + function name (e.g. `com.twitter:post`)
+  
+  The full list of entity types is available at (/thingpedia/entities). Custom Entity types can be defined, using a prefix other than `tt:`.
 
 * `Number`: [IEEE754](http://en.wikipedia/wiki/IEEE754) double
   precision floating point
 
 * `Measure(...)`: same as `Number`, but parametrized by one of the
   unit types; literals of `Measure` type have automatic conversion to
-  and from the most common unit types, and the type system enforces that
-  arithmetic uses commensurable units (i.e., you cannot write `1kg + 1m`,
-  but you can write `1kg + 1lb`)
+  and from the most common unit types, and be written as a sum of multiple
+  terms (e.g. `6ft + 3in`)
+  
+* `Currency`: a `Number` with a unit. This differs from `Measure` because
+the unit is not normalized, and is accessible at runtime. In JavaScript this type
+is represented using the `Thingpedia.Value.Currency` type.
 
-* `Date`: a specific point in time (date and time), like a [JavaScript Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date)
+* `Date`: a specific point in time (date and time); in JavaScript this is represented with the [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) class
 
-* `Location`: a specific point on the Earth surface, as a pair of latitude and longitude
+* `Time`: a time of day without date; in JavaScript this is an object of class `Thingpedia.Value.Time` (with `.hour`, `.minute` and `.second` property)
+
+* `Location`: a specific point on the Earth surface, as a pair of latitude and longitude, and optional name. In JavaScript this is an object of class `Thingpedia.Value.Location`
 
 * `Array(elem)`: an ordered sequence of values of the same type; arrays are compared by
   value (i.e., two arrays are equal if the have the same size and are
   pair wise equal)
 
-* `Map(key, value)`: a [dictionary](https://en.wikipedia.org/wiki/Associative_array)
-  where keys have type `key` and values have type `value`; like arrays,
-  maps are compared by value
-
 * `(t1, t2, t3, ...)`: a `Tuple` type, contains a finite number of
   heterogenous values; use `(v,)` (note the comma) to construct a tuple with
   one element, but `(t)` to denote the tuple type with arity 1
 
-* `User`: the type of members of the feed; an expression of the form `m in F` introduces
-  a variable _m_ of type `User`; users have a single object property, name, which you
-  access as `m.name`.
-
-* `Feed`: the type of `F`, the feed identifier in a shared ThingTalk app; feeds
-  have a single object property `length`; the number of people in the feed
-
-## Builtin operators
-
-* `+`: arithmetic addition if applied to `Measure(...)` or `Number`,
-string concatenation if applied to `String`
-
-* `-`: arithmetic subtraction, applies to `Measure(...)` and `Number`
-
-* `*`: arithmetic multiplication; note that you cannot multiply two
-value of type `Measure(...)` (because that would change the unit), but
-you can multiply a `Measure(...)` times a `Number`
-
-* `/`: arithmetic division; the ratio of two values of type
-`Measure(...)` (which must be of the same unit) is a `Number`
+## Filter operators
 
 * `!`, `&&`, `||`: logical connectives NOT, AND and OR
 
-* `>`, `<`, `>=`, `<=`: comparison operators; if applied to `String`s,
+* `>=`, `<=`: comparison operators; if applied to `String`s,
 values are compared lexicographically
 
-* `=`, `!=`: equality, inequality; note that the equality operator is
+* `==`, `!=`: equality, inequality; note that the equality operator is
 special when used at the top level of a condition (see below for
-Builtin predicates)
+Builtin predicates); equality for strings is __case sensitive__.
 
-* `=~`: "like", returns true if the right hand side occurs as a
+* `=~`: "substring", returns true if the right hand side occurs as a
   substring of the left hand side; both arguments must be `String`s.
+  Substring is __case insensitive__.
 
-## Builtin Functions
+* `~=`: "reversed substring", returns true if the left hand side is a substring
+  of the right hand side
+  
+* `contains(array, elem)`: array containment; returns true if at least
+  one element of the array compares equal (according to `==`) to the passed
+  element
 
-* `$emptyMap() : Map(Any, Any)`: returns a new empty map of the right type
+* `in_array(elem, array)`: reversed array containment
 
-* `$append(array : Array(a), elem : a) : Array(a)`: returns a new
-  array formed by appending `elem` to `array`
+* `starts_with(string, prefix)`, `ends_with(string, suffix)`, `prefix_of(prefix, string)`, `suffix_of(suffix, string)`: returns true if `prefix` is a case-insensitive prefix (resp. suffix) of `string`
 
-* `$remove(array : Array(a), elem : a) : Array(a)`: returns a new
-  array formed by removing all elements equal to `elem` from `array`
+## Literal value syntax
 
-* `$remove(map : Map(k, v), key : k) : Map(k, v)`: returns a new map
-  with all keys equal to `elem` removed
+* `$undefined`: the value is unspecified and must be slot filled
 
-* `$lookup(map : Map(k, v), key : k) : v`: returns the value
-  corresponding to key `key` in the map, or an empty value if not
-  found
+* `$event`: the description of the last result
 
-* `$insert(map : Map(k, v), key : k, value : v) : Map(k, v)`: returns
-  a new map obtained by replacing all occurrences of key `key` with
-  value `value`, and inserting the `(key, value)` pair if missing
+* `$event.type`: the type (function identifier) of the last result
 
-* `$contains(array : Array(a), elem : a) : Boolean`: returns true if
-  `array` contains `elem`, false otherwise
+* `$event.program_id`: the current program id
 
-* `$contains(map : Map(k, v), key : k) : Boolean`: returns true if
-  `map` contains an element with key `key`
+* `makeDate()`: current time (of type `Date`)
 
-* `$at(array : Array(a), index : Number) : Array(a)`: returns the `index`-th
-  element of `array` (0-based indexing)
+* `makeDate(yyyy, mm, dd, HH, MM, SS)`: the specified time; `HH`, `MM` and `SS` can be omitted
 
-* `$count(array : Array(a)) : Number`, `$count(map : Map(k, v)) :
-  Number`: returns the number of values in the collection
+* `makeDate(unix_timestamp)`: unix timestamp in milliseconds since the epoch
 
-* `$regex(text : String, pattern : String, flags : String) : Boolean`:
-  returns true if `text` matches the regular expression `pattern`. See
-  the
-  [JavaScript documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp)
-  for details on the syntax.
+* `date [+-] offset`: relative date; offset is a literal of `Measure(ms)` type; e.g. `makeDate() - 1h` = "1 hour ago"
 
-* `$toString(x : Any) : String`: convert any value to a `String`; this should
-  be used only to display to the user and is not a stable representation
+* `start_of(hour|day|week|month|year)`, `end_of(hour|day|week|month|year)`: relative date; e.g. `start_of(day)` = "today" (at midnight)
 
-* `$valueOf(v : String) : Number`: convert a string to a `Number`
+* `true`/`false`: boolean
 
-* `$distance(l1 : Location, l2 : Location) : Measure(m)`: returns the distance of the two
-  locations, which are assumed to be on the Earth surface
+* number followed by unit: `Measure` literal; space is not allowed between the number and the unit
 
-* `$latitude(l : Location) : Number`: extracts the latitude of `l`, in degrees,
-  positive north of the Equator
+* `makeCurrency(num, code)`: `Currency` literal; `code` is the 3 letter currency code, lowercase; e.g. `makeCurrency(25, usd)`
 
-* `$longitude(l : Location) : Number`: extracts the longitude of `l`, in degrees,
-  positive east of the Greenwich meridian
+* `makeTime(hour, minute, second)`: `Time` literal; `second` can be omitted and defaults to 0
 
-* `$makeLocation(lat : Number, lon : Number) : Location`: constructs a new
-  location given latitude and longitude
+* `makeLocation(lat, lon, display)`: `Location` literal; `display` can be omitted
 
-* `$now() : Date`: returns the current time
+* `$context.location.home`, `$context.location.work`, `$context.location.current_location`: predefined locations
 
-* `$julianday(date : Date) : Number`: converts `date` to a
-  [Julian day](https://en.wikipedia.org/wiki/Julian_Day); in practice,
-  it corresponds to a monotonically increasing number that identifies
-  the current day, useful to compute week numbers or group by day
+* `"..."`: `String` literal
 
-* `$dayOfWeek(date : Date) : Number`: returns a numeric value between 0 and 6
-  for the day of week of `date`, where 0 is Sunday
+* `"..."^^type`, `"..."^^type("display")`: `Entity` literal
 
-* `$dayOfMonth(date : Date) : Number`: returns the day of month, between 1 and 31
-
-* `$month(date : Date) : Number`: returns the month, between 1 and 12
-
-* `$year(date : Date) : Number`: returns the 4 digit year of `date`
-
-* `$makeDate(year : Number, month : Number, day : Number)`: constructs a new date
-  value
-
-* `$floor(x : Number) : Number`: returns the highest integer less than or equal to  `x`, i.e. rounds `x` towards negative infinity.
-
-* `$ceil(x : Number) : Number`: returns the lower integer greater than or equal to  `x`, i.e. rounds `x` towards positive infinity.
-
-* `$random() : Number`: returns a uniform random number between 0 and 1
-
-* `$choice(v : Array(a)) : a`: returns a uniformly random element from the given array
-
-* `$sum(array : Array(Number)) : Number`, `$sum(array : Measure(...)) : Measure(...)`: compute the sum of an array of values
-
-* `$avg(array : Array(Number)) : Number`, `$avg(array : Measure(...)) : Measure(...)`: compute the arithmetic average of an array of values
-
-* `$argMin(array : Array(Number)) : Number`: returns the index of the smallest element in `array`
-
-* `$argMin(map : Map(k, v)) : k`, returns the key corresponding to the smallest value in `map`
-
-* `$argMax(array : Array(Number)) : Number`: returns the index of the largest element in `array`
-
-* `$argMin(map : Map(k, v)) : k`, returns the key corresponding to the largest value in `map`
-
-* `$concat(array : Array(Any), joiner : String?) : String`:
-  concatenates all elements of `array`, which are converted to a
-  `String` (as by `$toString`), separating each element with `joiner`; if the second
-  argument is omitted it defaults to `","`
-
-## Builtin Predicates
-
-Builtin predicates are special cases of builtin functions that return true when
-used at the toplevel of a condition (i.e, at the level of a keyword or trigger,
-with no logic combinators between them), which allow for slightly better behavior.
-
-* `$contains(array : Array(a), elem : a)`, `$contains(map : Map(k, v),
-  key : k)`: when used as a builtin predicate, the second argument can
-  be unrestricted (i.e., be a new name that it's introduced in scope
-  by the predicate), in which the semantics are of iterating the
-  collection
-
-* `$regex(text : String, pattern : String, flags : String, ... :
-  String)`: when used as a builtin predicate, `$regex` admits
-  additional arguments after the first 3, which can be unrestricted
-  and are assigned (or compared to) the values of the capturing groups
-  in `pattern`; for example `$regex("hello world", "[a-z]+ ([a-z])+",
-  " ", v)` will set `v` to `"world"`
+* `[...]`: `Array` literal
 
 ## Builtin Triggers
 
-* `@$timer(time : Measure(ms))`: a trigger that fires every `time` milliseconds; `time` must be a constant or an app parameter (not a variable)
+* `timer(base : Date, interval : Measure(ms))`: interval timer
 
-* `@$at(time : String)`: a trigger that fires at a precise point of the day; `time` must be a string of the form `"HH:MM"` in 24h format and must be a constant or an an app parameter
-
-## Builtin Actions
-
-* `@$notify(... : Any)`: an action that notifies the user through Almond
-
-* `@$return(... : Any)`: similar to `@$notify`, but also terminates the app
-
-* `@$logger(message : Message)`: post a message to the system log
+* `attimer(time : Time)`: daily timer, fires at the given time
 
 ## Units of Measure
 
