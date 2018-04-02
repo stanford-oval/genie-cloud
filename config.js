@@ -34,3 +34,11 @@ module.exports.SEMPRE_URL = 'https://almond-nl.stanford.edu';
 // set to true to let users try out Almond without logging in
 // they will operate as the user "anonymous"
 module.exports.ENABLE_ANONYMOUS_USER = true;
+
+module.exports.TRAINING_URL = null;
+module.exports.TRAINING_ACCESS_TOKEN = null;
+
+// load more configuration that should not go in git (eg secret keys)
+try {
+    Object.assign(module.exports, require('./secret_config.js'));
+} catch(e) {}
