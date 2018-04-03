@@ -1,0 +1,18 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/docs.css')
+  link(rel="stylesheet"
+      href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow-night-eighties.min.css")
+
+block scripts
+  script(src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js")
+  script(src="/javascripts/thingpedia-portal.js")
+
+block page_name
+  - index = true;
+  = _("Documentation")
+
+block content
+  div.documentation
+    include:markdown-it ../doc/thingpedia-helpers.md
