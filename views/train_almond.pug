@@ -7,18 +7,12 @@ block styles
   link(rel='stylesheet', href='/stylesheets/train-almond.css')
 
 block scripts
-  script(src='/javascripts/train-almond-kinds.js')
   script(src='/javascripts/trainer-bundle.js')
-  script(src='/javascripts/train-almond.js')
 
 block content
   p#first-blurb
     = _("Thanks for being part of the Almond virtual assistant project. ")
     = _("In here you can help us train it to understand better and more complex sentences.")
-
-  p.hidden
-    span#language= locale
-    span#developer-key= user.developer_key
 
   div#sentence-to-code-block
     p
@@ -27,11 +21,6 @@ block content
     p
       = _("You don't have to worry, nothing will happen as a result of playing with Almond here, and if you don't understand what Almond is responding for a particular sentence (or all Almond's offers are wrong), just type a new sentence to continue.")
 
-    div#suggestions
-      small
-        p= _("A few suggestions to start:")
-        ul#suggestions-placeholder
-        button.btn.btn-default.btn-sm(type="button")#more-suggestions= _("More suggestions")
     div
       div.checkbox
         label

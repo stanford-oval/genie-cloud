@@ -23,7 +23,8 @@ html
 
   - var index = false;
   - var stdlayout = true;
-  body(data-icon-cdn=S3_CLOUDFRONT_HOST)
+  body(data-icon-cdn=S3_CLOUDFRONT_HOST, data-developer-key=authenticated ? user.developer_key : false,
+       data-locale=locale)
     nav.navbar-inverse.navbar.navbar-fixed-top(role="banner")
       div.navbar-header
         button(class="navbar-toggle collapsed", data-toggle="collapse", data-target="#page-nav")
