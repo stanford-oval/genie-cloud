@@ -91,7 +91,4 @@ $(function() {
         loadAll();
         event.preventDefault();
     });
-    $('pre code').each(function(i, block) {
-        hljs.highlightBlock(block);
-    });
 });

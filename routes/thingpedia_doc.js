@@ -7,10 +7,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const Q = require('q');
 const express = require('express');
-var router = express.Router();
 const fs = require('fs');
 const path = require('path');
 
@@ -27,13 +27,12 @@ function render(req, res, what) {
     res.render('doc_' + what, { page_title: req._("Thingpedia - Documentation") });
 }
 
-router.get('/', function(req, res) {
-    Q.try(function() {
-        if (req.user) {
+router.get('/', (req, res) => {
+    Promise.resolve().then(() => {
+        if (req.user)
             return EngineManager.get().isRunning(req.user.id);
-        } else {
+        else
             return false;
-        }
     }).then((isRunning) => {
         if (req.user && req.user.developer_org !== null) {
             return db.withClient((dbClient) => {
@@ -55,13 +54,13 @@ router.get('/', function(req, res) {
                                               developer_devices: developer_devices,
                                               developer_oauth2_clients: developer_oauth2_clients
         });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
+    });
 });
 
-router.get('/:what', function(req, res) {
+router.get('/:what', (req, res) => {
     if (!/^[a-z0-9\-.]+$/.test(req.params.what) ||
         !req.params.what.endsWith('.md')) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
@@ -70,7 +69,8 @@ router.get('/:what', function(req, res) {
     }
 
     var what = req.params.what.substr(0, req.params.what.length - 3);
-    if (fs.existsSync(path.resolve(path.dirname(module.filename),
+    if (what !== 'base' &&
+        fs.existsSync(path.resolve(path.dirname(module.filename),
                                    '../views/doc_' + what + '.pug'))) {
         render(req, res, what);
     } else {

@@ -7,6 +7,8 @@ home/
 /public/cache
 /public/brassau
 
+views/doc_*.pug
+
 node_modules/
 
 yarn-error.log

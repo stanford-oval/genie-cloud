@@ -13,7 +13,8 @@
     "update-pot": "xgettext -f po/POTFILES -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}; xargs -a po/POTFILES.jade jsxgettext -k _,gettext,ngettext,pgettext -L jade -o po/${npm_package_name}.pot -j",
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
-    "update-bundle": "browserify -r ./browser/trainer.js:thingtalk-trainer -o public/javascripts/trainer-bundle.js"
+    "update-bundle": "browserify -r ./browser/trainer.js:thingtalk-trainer -o public/javascripts/trainer-bundle.js",
+    "update-docs": "for f in doc/*.md ; do sed \"s|@@DOC@@|$f|\" views/doc_base.pug > views/doc_$(basename \"$f\" .md ).pug ; done"
   },
   "dependencies": {
     "accept-language": "^2.0.17",
@@ -33,9 +34,12 @@
     "express-xml-bodyparser": "^0.3.0",
     "gettext-parser": "^1.3.0",
     "gm": "~1.21.1",
+    "highlight.js": "^9.12.0",
     "jstransformer-markdown-it": "^2.0.0",
     "jszip": "^3.0.0",
     "leveldown": "^1.4.6",
+    "markdown-it-anchor": "^4.0.0",
+    "markdown-it-highlightjs": "^3.0.0",
     "marked": "~0.3.5",
     "morgan": "~1.6.1",
     "multer": "~1.1.0",
