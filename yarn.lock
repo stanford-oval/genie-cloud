@@ -3936,8 +3936,8 @@ text-table@~0.2.0:
     node-ssdp "^2.7.2"
 
 "thingpedia@github:Stanford-Mobisocial-IoT-Lab/thingpedia-api":
-  version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-api/tar.gz/6be607a6dbf57488d3a074d711f6fc63d629a3b1"
+  version "2.1.0"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-api/tar.gz/015aa91f8268b4b7fb66946f9a35cfffe83549f3"
   dependencies:
     ip "~1.1.0"
     oauth "~0.9.14"
