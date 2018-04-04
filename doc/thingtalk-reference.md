@@ -29,7 +29,7 @@ entities can be represented as simple strings, or using the `Thingpedia.Value.En
   
   The full list of entity types is available at (/thingpedia/entities). Custom Entity types can be defined, using a prefix other than `tt:`.
 
-* `Number`: [IEEE754](http://en.wikipedia/wiki/IEEE754) double
+* `Number`: [IEEE754](http://en.wikipedia.org/wiki/IEEE_754) double
   precision floating point
 
 * `Measure(...)`: same as `Number`, but parametrized by one of the
