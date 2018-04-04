@@ -35,8 +35,21 @@ module.exports.SEMPRE_URL = 'https://almond-nl.stanford.edu';
 // they will operate as the user "anonymous"
 module.exports.ENABLE_ANONYMOUS_USER = false;
 
+// the following should be set in secret_config.js (which is not checked
+// into git) or not set at all
+
+// URL and access token for a server that supports autotraining when
+// devices are updated in Thingpedia
 module.exports.TRAINING_URL = null;
 module.exports.TRAINING_ACCESS_TOKEN = null;
+
+// OAuth Client secrets to support Login With Google / Login With Facebook
+module.exports.GOOGLE_CLIENT_SECRET = null;
+module.exports.FACEBOOK_APP_SECRET = null;
+
+// Mailgun user/password to handle the "Request Developer Access" form
+module.exports.MAILGUN_USER = null;
+module.exports.MAILGUN_PASSWORD = null;
 
 // load more configuration that should not go in git (eg secret keys)
 try {

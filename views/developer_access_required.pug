@@ -27,7 +27,7 @@ block content
 
           div.form-group
             label(for='email').control-label= _("E-mail")
-            input(type='email',name='email',required=true).form-control#email
+            input(type='email',name='email',required=true,value=user.email).form-control#email
 
           div.form-group
             label(for='reason').control-label= _("Reason to use Thingpedia (may leave blank)")
