@@ -151,9 +151,8 @@ every argument needed for ___both input and output___ should be listed here.
 Each of the argument includes the following attributes.  
 - `name`: the name of the argument, which we suggest to name with lower case 
   letters with underscores between each word.
-- `type`: the type of the argument including: String, Number, Boolean, 
-Entity(entity_type), Enum(value1,value2,...),
-  PhoneNumber, EmailAddress, Location, Measure(unit), Date, Time, Picture. 
+- `type`: the type of the argument including: String, Number, Boolean, Date, Time, Location,
+Entity(...), Enum(...), Measure(...), etc.
   For the full list, see the [ThingTalk reference](/doc/thingtalk-reference.md)
 - `is_input`: tick the check box if the argument is an input argument, leave it
   unticked if is an output. Arguments for actions are always input, and an error
