@@ -24,6 +24,13 @@ block content
               div.alert.alert-warning(role='alert')
                 p= _("The Omlet bridge is not running (it has crashed or it has been disabled).")
 
+    if currentTrainingJob
+      div.container
+        div.row
+          div.col-xs-12
+            div.alert.alert-info(role='alert')
+              p= _("Current Training Job: %s. Started at %s for %s").format(currentTrainingJob.status, (new Date(currentTrainingJob.startTime)).toLocaleString(), currentTrainingJob.forDevices.join(', '))
+
     div.sections
       section.divider
         div.container
