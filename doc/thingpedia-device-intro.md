@@ -86,7 +86,7 @@ Currently, the system support the following package types:
 Most of the devices will be using `Custom JavaScript` type. 
 For services retrieving data from RSS feed, `RSS Feed` types could be used to simplify the process.
 Similarly, if a service only uses simple HTTP request methods, `Generic REST` can be used. 
-For more details, please refer to [devices with zero code](/doc/thingpedia-device-with-zero-code.md). 
+For more details, please refer to [device with zero code](/doc/thingpedia-device-with-zero-code.md). 
 
 ### User visible name and description
 All the devices configured by a user will be shown in the user's [My Almond](https://almond.stanford.edu/me).

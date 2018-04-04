@@ -1,7 +1,6 @@
 # Device with Zero Line of Code
-Amazon Alexa has over 15,000 skills. 
-However, the majority of them are very simple and similar
-To help hooking up these simple devices, we provide package types for some very typical devices which requires zero coding. 
+Thingpeidia provides a simple way to hook up some typical devices with zero coding.
+Currently, we support `Generic Rest` APIs that use no authentication or just standard OAuth 2.0, and `RSS Feed`.
 
 ## Generic REST
 If a device simply provides an interface for HTTP requests, `Generic REST` package type will probably save you lots of time. 
@@ -48,6 +47,7 @@ Five arguments are supported:
 - `updated` (the updated time of the feed, in type `Date`)
 - `description`
 - `picture_url`
+
 Note that some RSS feed may only contains `title` and `link`. 
 Check the RSS feed format carefully and DO NOT use an argument if it is not in the feed of your service. 
 
