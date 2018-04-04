@@ -104,7 +104,7 @@ module.exports = {
         return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
     },
 
-    validateInvocation(where, what) {
+    validateInvocation(where, what, entities) {
         for (var name in where) {
             if (!where[name].canonical)
                 throw new Error('Missing canonical form for ' + name);
@@ -121,7 +121,10 @@ module.exports = {
                 if (!arg.type)
                     throw new Error("Missing type for argument " + name + '.' + arg.name);
                 try {
-                    arg.type = (ThingTalk.Type.fromString(arg.type)).toString();
+                    let type = ThingTalk.Type.fromString(arg.type);
+                    if (type.isEntity)
+                        entities.add(type.type);
+                    arg.type = type.toString();
                 } catch(e) {
                     throw new Error('Invalid type ' + arg.type + ' for argument ' + name + '.' + arg.name);
                 }
@@ -250,13 +253,14 @@ module.exports = {
         if (ast.triggers && Object.keys(ast.triggers).length > 0)
             throw new Error("Triggers don't exist any more, delete all of them");
 
-        this.validateInvocation(ast.actions, 'action');
-        this.validateInvocation(ast.queries, 'query');
+        let entities = new Set;
+        this.validateInvocation(ast.actions, 'action', entities);
+        this.validateInvocation(ast.queries, 'query', entities);
 
         if (!ast.examples)
             ast.examples = [];
 
         let schemaRetriever = new SingleDeviceSchemaRetriever(kind, ast);
-        return Promise.all(ast.examples.map(this._validateExample.bind(this, schemaRetriever)));
+        return Promise.all(ast.examples.map(this._validateExample.bind(this, schemaRetriever))).then(() => entities);
     }
 };

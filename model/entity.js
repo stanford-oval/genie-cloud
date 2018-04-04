@@ -51,5 +51,22 @@ module.exports = {
 
     lookup(client, language, token) {
         return db.selectAll(client, "select entity_id,entity_value,entity_canonical,entity_name from entity_lexicon where language = ? and token = ?", [language, token]);
+    },
+
+    checkAllExist(client, ids) {
+        if (ids.length === 0)
+            return Q();
+        return db.selectAll(client, "select id from entity_names where language='en' and id in (?)", [ids]).then((rows) => {
+            if (rows.length === ids.length)
+                return;
+            let existing = new Set(rows.map((r) => r.id));
+            let missing = [];
+            for (let id of ids) {
+                if (!existing.has(id))
+                    missing.push(id);
+            }
+            if (missing.length > 0)
+                throw new Error('Invalid entity types: ' + missing.join(', '));
+        });
     }
 }
