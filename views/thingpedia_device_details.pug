@@ -154,24 +154,20 @@ block content
 
   div.row#device-details-actions
     if authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
-      div.col-md-2
+      div.col-md-3
         a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.id)= _("Update")
-      if user.developer_status >= 3 && device.approved_version !== null
-        div.col-md-2
+      if user.developer_status >= 2 && device.approved_version !== null
+        div.col-md-3
           form(action='/thingpedia/devices/unapprove/' + device.id, method='post').form-delete-device
             input(type='hidden',name='_csrf',value=csrfToken)
             button(type='submit').btn.btn-danger.btn-block= _("Remove from collection")
-      div.col-md-2
+      div.col-md-3
         form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
-      div.col-md-2
-        a.btn.btn-default.btn-block(href='/thingpedia/api/random-rule/by-kind/' + device.primary_kind + '?developer_key=' + user.developer_key)
-          = _("Generate sentences")
-      div.col-md-2
-        a.btn.btn-default.btn-block(href='https://d1ge76rambtuys.cloudfront.net/templates/turk-template.html')= _("MTurk Template")
-    div.col-md-2
-      a.btn.btn-default.btn-block(href=S3_CLOUDFRONT_HOST + '/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip')= _("Download code")
+    if device.module_type === 'org.thingpedia.v1' || device.module_type === 'org.thingpedia.v2'
+      div.col-md-3
+        a.btn.btn-default.btn-block(href=S3_CLOUDFRONT_HOST + '/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip')= _("Download code")
     if authenticated && user.locale !== 'en-US'
         div.col-md-2
           a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind)= _("Translate")
