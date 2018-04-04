@@ -1,12 +1,12 @@
-# Writing Interfaces for Thingpedia
+# Writing Thingpedia Entries
 
 ---
 
 ## Getting Started
 
-### The basics: Devices, Channels, and Events
+### The basics: Devices and Functions
 
-At the highest level, a Thingpedia interface is just a nodejs
+At the highest level, a Thingpedia entries is just a nodejs
 package, whose main entry point is a _device class_.
 
 From a device class, the system will obtain _device instances_,
@@ -51,24 +51,24 @@ a more complicated example which involves a physical device.
 ---
 
 ## Writing Device Metadata
-All devices published on Thingpedia must include some metadata, called _Thing Manifest_.
-Thing Manifest is written in JSON.
+All devices published on Thingpedia must include some metadata, called _Device Manifest_.
+The Device Manifest is written in JSON.
 A JSON editor is provided to help you write it, which can be found at the
 [creation page](https://almond.stanford.edu/thingpedia/upload/create), or by
-clicking the _Upload new device_ button at the bottom of [Thingpedia page](https://almond.stanford.edu/thingpedia).
+clicking the _Upload a new device_ button at the bottom of [Thingpedia page](https://almond.stanford.edu/thingpedia).
 
 For each object field in the JSON, the following buttons are provided by the editor:
 - Collapse/expand button: allows you to collapse or expand the current field; for optional field, a delete button will also be provided. 
 - JSON button: allows you to edit the raw JSON
 - Properties button: allows you to select/add new properties for the current field. 
 
-### Thing ID, Thing Name, and Thing Description
+### Device ID, Device Name, and Device Description
 Before you start editing the manifest, you will need to fill some basic information about your 
-device at the creation page including `Thing ID`, `Thing Name`, and `Thing Description`.
-`Thing ID` is a string that uniquely identifies the device class. 
+device at the creation page including `Device ID`, `Device Name`, and `Device Description`.
+`Device ID` is a string that uniquely identifies the device class. 
 A common way is to use reverse domain name notation. 
 E.g., for LinkedIn in Thingpedia, its ID is `com.linkedin`.
-`Thing Name` and `Thing Description` on the other hand will be used in the Thingpedia catalog,
+`Device Name` and `Device Description` on the other hand will be used in the Thingpedia catalog,
 so that user can know what your device does at a glance.
 
 You are also encouraged to upload a PNG file as the icon for your device. 
@@ -122,7 +122,6 @@ Refer to [complete guide for authentication and discovery](/doc/thingpedia-devic
 
 ### Functions
 To add a function, click property button of `Queries` or `Actions` field, type in the name of the function, and click `add` button.
-Do not use `Triggers` field, which is deprecated and exists only to ease the transition of old devices.
 
 #### Queries and Actions
 
