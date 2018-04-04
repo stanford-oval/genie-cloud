@@ -26,15 +26,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 var GOOGLE_CLIENT_ID = '739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com';
 var FACEBOOK_APP_ID = '979879085397010';
 
-// The OAuth 2.0 client secret has nothing to do with security
-// and everything to do with billing
-// (ie, if you steal someone's client secret you can't steal his
-// users but you can steal his API quota)
-// We don't care about billing, so here is my client secret, right here
-// in a public git repository
-// Bite me
-var GOOGLE_CLIENT_SECRET = 'qeNdAMaIF_9wUy6XORABCIKE';
-var FACEBOOK_APP_SECRET = '770b8df05b487cb44261e7701a46c549';
+const { GOOGLE_CLIENT_SECRET, FACEBOOK_APP_SECRET } = require('../config');
 
 function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
@@ -60,9 +52,18 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
                                             human_name: profile.displayName,
                                             cloud_id: makeRandom(),
                                             auth_token: makeRandom(),
-                                            storage_key: makeRandom() });
+                                            storage_key: makeRandom() }).then((user) => {
+                user.newly_created = true;
+                return user;
+            });
         });
     }).then(function(user) {
+        if (!user.newly_created)
+            return user;
+
+        // NOTE: we must start the user here because if we do it earlier we're
+        // still inside the transaction, and the master process (which uses a different
+        // database connection) will not see the new user in the database
         return EngineManager.get().startUser(user.id).then(function() {
             // asynchronously inject google-account device
             EngineManager.get().getEngine(user.id).then(function(engine) {
@@ -71,8 +72,6 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
                                                       accessToken: accessToken,
                                                       refreshToken: refreshToken }, true);
             }).done();
-
-            user.newly_created = true;
             return user;
         });
     }).nodeify(done);
