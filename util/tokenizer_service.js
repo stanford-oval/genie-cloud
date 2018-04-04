@@ -16,7 +16,6 @@ const Config = require('../config');
 module.exports = {
     tokenize(language, sentence) {
         let url = Config.SEMPRE_URL + '/' + language + '/tokenize?q=' + encodeURIComponent(sentence);
-        console.log(url);
         return Tp.Helpers.Http.get(url).then((result) => JSON.parse(result));
     }
 };

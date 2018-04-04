@@ -203,19 +203,20 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
 
 function ensureExamples(dbClient, schemaId, ast) {
     return exampleModel.deleteBySchema(dbClient, schemaId, 'en').then(() => {
-        let examples = ast.examples.map((ex) => {
+        return Validation.tokenizeAllExamples('en', ast.examples);
+    }).then((examples) => {
+        return exampleModel.createMany(dbClient, examples.map((ex) => {
             return ({
                 schema_id: schemaId,
                 utterance: ex.utterance,
-                preprocessed: ex.utterance,
+                preprocessed: ex.preprocessed,
                 target_code: ex.program,
                 target_json: '', // FIXME
                 type: 'thingpedia',
                 language: 'en',
                 is_base: 1
             });
-        });
-        return exampleModel.createMany(dbClient, examples);
+        }));
     });
 }
 
