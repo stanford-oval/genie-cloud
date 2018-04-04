@@ -120,17 +120,11 @@ $(function() {
                 title: 'API Endpoint URL',
                 required: false,
             },
-            webhook: {
-                type: 'boolean',
-                format: 'checkbox',
-                title: 'Is it a webhook?',
-                required: false,
-            },
         }
     };
     var fullSchema = {
         type: 'object',
-        title: "Thing Manifest",
+        title: "Device Manifest",
         additionalProperties: {
             type: 'string',
             required: false,
@@ -189,13 +183,13 @@ $(function() {
             types: {
                 type: 'array',
                 format: 'table',
-                title: "Thing Types",
+                title: "Device Types",
                 items: { type: 'string' }
             },
             child_types: {
                 type: 'array',
                 format: 'table',
-                title: "Child Thing Types",
+                title: "Child Device Types",
                 items: { type: 'string' }
             },
             auth: {
@@ -224,19 +218,14 @@ $(function() {
                     required: false,
                 }
             },
-            triggers: {
+            queries: {
                 type: 'object',
-                title: "Triggers",
+                title: "Queries",
                 additionalProperties: ttSchema
             },
             actions: {
                 type: 'object',
                 title: "Actions",
-                additionalProperties: ttSchema
-            },
-            queries: {
-                type: 'object',
-                title: "Queries",
                 additionalProperties: ttSchema
             },
             examples: {

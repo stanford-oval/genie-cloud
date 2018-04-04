@@ -1,6 +1,6 @@
-# APIs available to Thingpedia interfaces
+# Thingpedia Device API Reference
 
-This documents details the APIs available to Thingpedia interfaces (JS packages uploaded to Thingpedia).
+This documents details the APIs available to Thingpedia devices (JS packages uploaded to Thingpedia).
 Most APIs are part of the [thingpedia](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-api) JS package,
 with the exception of the [Engine class](#class-engine) and the [Platform class](#class-platform), which
 are part of [thingengine-core](https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core).
