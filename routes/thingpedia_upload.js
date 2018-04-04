@@ -106,7 +106,7 @@ function validateDevice(dbClient, req) {
     var ast = JSON.parse(code);
     if (!ast.module_type || !ALLOWED_MODULE_TYPES.has(ast.module_type))
         throw new Error(req._("Invalid module type"));
-    var fullcode = !JAVASCRIPT_MODULE_TYPES.has(ast.module_type);
+    const fullcode = !JAVASCRIPT_MODULE_TYPES.has(ast.module_type);
 
     if (!ast.params)
         ast.params = {};
@@ -136,33 +136,32 @@ function validateDevice(dbClient, req) {
     if (ast['global-name'])
         throw new Error(req._("Global names are obsolete, remove them"));
 
-    if (!/^[a-zA-Z0-9_.]+$/.test(kind))
-        throw new Error(req._("Invalid primary kind, must use alphanumeric characters, underscore and period only."));
-
-    Validation.validateAllInvocations(ast);
-
-    if (fullcode) {
-        if (!ast.name)
-            ast.name = name;
-        if (!ast.description)
-            ast.description = description;
-        for (let name in ast.triggers) {
-            if (!ast.triggers[name].url)
-                throw new Error(req._("Missing trigger url for %s").format(name));
+    return Promise.resolve().then(() => {
+        return Validation.validateAllInvocations(kind, ast);
+    }).then(() => {
+        if (fullcode) {
+            if (!ast.name)
+                ast.name = name;
+            if (!ast.description)
+                ast.description = description;
+            for (let name in ast.triggers) {
+                if (!ast.triggers[name].url)
+                    throw new Error(req._("Missing trigger url for %s").format(name));
+            }
+            for (let name in ast.actions) {
+                if (!ast.actions[name].url)
+                    throw new Error(req._("Missing action url for %s").format(name));
+            }
+            for (let name in ast.queries) {
+                if (!ast.queries[name].url)
+                    throw new Error(req._("Missing query url for %s").format(name));
+            }
         }
-        for (let name in ast.actions) {
-            if (!ast.actions[name].url)
-                throw new Error(req._("Missing action url for %s").format(name));
-        }
-        for (let name in ast.queries) {
-            if (!ast.queries[name].url)
-                throw new Error(req._("Missing query url for %s").format(name));
-        }
-    }
 
-    return Q.all(ast.types.map((type) => {
-        return validateSchema(dbClient, type, ast, req);
-    })).then(() => ast);
+        return Promise.all(ast.types.map((type) => {
+            return validateSchema(dbClient, type, ast, req);
+        }));
+    }).then(() => ast);
 }
 
 function ensurePrimarySchema(dbClient, kind, ast, req, approve) {

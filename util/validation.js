@@ -11,7 +11,70 @@
 
 const ThingTalk = require('thingtalk');
 
-const KIND_REGEX = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+const KIND_REGEX = /^[A-Za-z_][A-Za-z0-9_.-]*$/;
+
+const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
+
+// A SchemaRetriever that only returns results for the single device it is configured at,
+// and fails for everything else
+class SingleDeviceSchemaRetriever {
+    constructor(kind, ast) {
+        this._kind = kind;
+        this._ast = ast;
+    }
+
+    _where(where) {
+        switch (where) {
+            case 'query': return 'queries';
+            case 'action': return 'actions';
+            case 'trigger': return 'triggers';
+            default: return where;
+        }
+    }
+
+    getSchemaAndNames(kind, what, name) {
+        if (kind !== this._kind)
+            return Promise.reject(new Error('Cannot use other devices in example commands'));
+
+        const where = this._where(what);
+        if (!(name in this._ast[where]))
+            throw new Error("Schema " + kind + " has no " + what + " " + name);
+
+        let ret = {
+            args: [],
+            types: [],
+            is_input: [],
+            required: []
+        };
+        for (let arg of this._ast[where][name].args) {
+            ret.args.push(arg.name);
+            ret.types.push(ThingTalk.Type.fromString(arg.type));
+            ret.is_input.push(arg.is_input);
+            ret.required.push(arg.required);
+        }
+        return Promise.resolve(ret);
+    }
+}
+
+function split(pattern, regexp) {
+    // a split that preserves capturing parenthesis
+
+    let clone = new RegExp(regexp, 'g');
+    let match = clone.exec(pattern);
+
+    let chunks = [];
+    let i = 0;
+    while (match !== null) {
+       if (match.index > i)
+            chunks.push(pattern.substring(i, match.index));
+        chunks.push(match);
+        i = clone.lastIndex;
+        match = clone.exec(pattern);
+    }
+    if (i < pattern.length)
+        chunks.push(pattern.substring(i, pattern.length));
+    return chunks;
+}
 
 module.exports = {
     cleanKind(kind) {
@@ -39,11 +102,6 @@ module.exports = {
         return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
     },
 
-    validateKind(name, what) {
-        if (!KIND_REGEX.test(name))
-            throw new Error('Invalid ' + what + ', must conform to ' + KIND_REGEX);
-    },
-
     validateInvocation(where, what) {
         for (var name in where) {
             if (!where[name].canonical)
@@ -61,7 +119,7 @@ module.exports = {
                 if (!arg.type)
                     throw new Error("Missing type for argument " + name + '.' + arg.name);
                 try {
-                    ThingTalk.Type.fromString(arg.type);
+                    arg.type = (ThingTalk.Type.fromString(arg.type)).toString();
                 } catch(e) {
                     throw new Error('Invalid type ' + arg.type + ' for argument ' + name + '.' + arg.name);
                 }
@@ -78,7 +136,59 @@ module.exports = {
         }
     },
 
-    validateAllInvocations(ast) {
+    _validateUtterance(args, utterance) {
+        let chunks = split(utterance.trim(), PARAM_REGEX);
+
+        for (let chunk of chunks) {
+            if (chunk === '')
+                continue;
+            if (typeof chunk === 'string')
+                continue;
+
+            let [match, param1, param2, opt] = chunk;
+            if (match === '$$')
+                continue;
+            let param = param1 || param2;
+            if (!(param in args))
+                throw new Error(`Invalid placeholder ${param}`);
+            if (opt && opt !== 'const')
+                throw new Error(`Invalid placeholder option ${opt} for ${param}`);
+        }
+    },
+
+    _validateExample(schemaRetriever, ex, i) {
+        return Promise.resolve().then(() => {
+            if (!ex.utterance || !ex.program)
+                throw new Error("Invalid example");
+            return ThingTalk.Grammar.parseAndTypecheck(ex.program, schemaRetriever, false);
+        }).then((prog) => {
+            if (prog.declarations.length + prog.rules.length !== 1)
+                throw new Error('Cannot use multiple rules in an example command');
+            let ruleprog, args;
+            if (prog.rules.length === 1) {
+                ruleprog = prog;
+                args = {};
+            } else {
+                ruleprog = ThingTalk.Generate.declarationProgram(prog.declarations[0]);
+                args = prog.declarations[0].args;
+            }
+
+            // try and convert to NN
+            ThingTalk.NNSyntax.toNN(ruleprog, {});
+            // validate placeholders in the utterance
+            this._validateUtterance(args, ex.utterance);
+
+            // rewrite the program using canonical syntax
+            ex.program = ThingTalk.Ast.prettyprint(prog, true).trim();
+        }).catch((e) => {
+            throw new Error(`Error in Example ${i+1}: ${e.message}`);
+        });
+    },
+
+    validateAllInvocations(kind, ast) {
+        if (!KIND_REGEX.test(kind))
+            throw new Error("Invalid ID, must use alphanumeric characters, underscore and period only.");
+
         if (!ast.actions)
             ast.actions = {};
         if (!ast.queries)
@@ -92,10 +202,7 @@ module.exports = {
         if (!ast.examples)
             ast.examples = [];
 
-        for (let ex of ast.examples) {
-            if (!ex.utterance || !ex.program)
-                throw new Error("Invalid example");
-            ex.program = ThingTalk.Ast.prettyprint(ThingTalk.Grammar.parse(ex.program), true).trim();
-        }
+        let schemaRetriever = new SingleDeviceSchemaRetriever(kind, ast);
+        return Promise.all(ast.examples.map(this._validateExample.bind(this, schemaRetriever)));
     }
 };
