@@ -107,6 +107,8 @@ router.get('/devices/setup/:kinds', (req, res) => {
 });
 
 router.get('/devices/icon/:kind', (req, res) => {
+    // cache for forever, this redirect will never expire
+    res.cacheFor(6, 'months');
     res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/' + req.params.kind + '.png');
 });
 
