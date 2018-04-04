@@ -240,13 +240,10 @@ all possible usage of your device.
 Each example command requires a natural language utterance and its corresponding ThingTalk Program.
 Please refer to [ThingTalk for Example Commands](/doc/thingpedia-device-intro-example-commands.md) for details. 
 
-### Submission
-The device will not automatically become available to users after submission, 
-it is only available to you for testing. 
-So feel free to click the `submit` button at the bottom of the page to save your manifest.
-
-After submission, the natural language model is automatically trained in the background.
-You should see the progress of the training in the device details page.
+### Save
+Currently, our website does not allow submission without actual code if you choose `Custom Javascript` as package type. 
+To save your manifest, you will need to click the `JSON` button at the top level of the JSON editor, copy your JSON code, and save it locally. 
+And to recover next time, simply replace the replace the JSON with the one you saved.
 
 
 ---

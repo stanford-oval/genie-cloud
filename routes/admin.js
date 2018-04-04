@@ -19,6 +19,7 @@ const organization = require('../model/organization');
 const snapshot = require('../model/snapshot');
 const device = require('../model/device');
 const db = require('../util/db');
+const TrainingServer = require('../util/training_server');
 
 const OmletOAuth = require('../omlet/oauth2');
 
@@ -51,10 +52,20 @@ function renderUserList(users) {
 }
 
 router.get('/', user.redirectRole(user.Role.ADMIN), (req, res) => {
-    res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
-                                 csrfToken: req.csrfToken(),
-                                 omletAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
-                                 omletRunning: false });
+    TrainingServer.get().getCurrentJob().then((current_job) => {
+        res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
+                                     csrfToken: req.csrfToken(),
+                                     omletAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
+                                     omletRunning: false,
+                                     currentTrainingJob: current_job });
+    }).catch((e) => {
+        console.error('Failed to check current training job: ' + e.message);
+        res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
+                                     csrfToken: req.csrfToken(),
+                                     omletAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
+                                     omletRunning: false,
+                                     currentTrainingJob: null });
+    });
 });
 
 router.get('/users', user.redirectRole(user.Role.ADMIN), (req, res) => {
