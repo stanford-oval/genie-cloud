@@ -20,6 +20,7 @@ const user = require('../util/user');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
 const TrainingServer = require('../util/training_server');
+const SendMail = require('../util/sendmail');
 
 var router = express.Router();
 
@@ -150,6 +151,32 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e.message });
     }).done();
+});
+
+router.post('/request-approval', user.requireLogIn, user.requireDeveloper(), (req, res) => {
+    var mailOptions = {
+        from: 'Thingpedia <noreply@thingpedia.stanford.edu>',
+        to: 'gcampagn@cs.stanford.edu',
+        subject: `Review Request for ${req.body.kind}`,
+        replyTo: {
+            name: req.user.human_name,
+            address: req.user.email
+        },
+        text:
+`${req.user.human_name} (${req.user.username}) requests a review of ${req.body.kind}.
+Link: https://almond.stanford.edu/thingpedia/devices/by-id/${req.body.kind}
+
+Comments:
+${(req.body.comments || '').trim()}
+`
+    };
+
+    SendMail.send(mailOptions).then(function() {
+        res.redirect(301, '/thingpedia/devices/by-id/' + req.body.kind);
+    }).catch(function(e) {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    });
 });
 
 module.exports = router;
