@@ -11,6 +11,8 @@
 
 const ThingTalk = require('thingtalk');
 
+const TokenizerService = require('./tokenizer_service');
+
 const KIND_REGEX = /^[A-Za-z_][A-Za-z0-9_.-]*$/;
 
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
@@ -137,6 +139,9 @@ module.exports = {
     },
 
     _validateUtterance(args, utterance) {
+        if (/_{4}/.test(utterance))
+            throw new Error('Do not use blanks (4 underscores or more) in utterance, use placeholders');
+
         let chunks = split(utterance.trim(), PARAM_REGEX);
 
         for (let chunk of chunks) {
@@ -183,6 +188,55 @@ module.exports = {
         }).catch((e) => {
             throw new Error(`Error in Example ${i+1}: ${e.message}`);
         });
+    },
+
+    tokenizeAllExamples(language, examples) {
+        return Promise.all(examples.map((ex, i) => {
+            let replaced = '';
+            let params = [];
+
+            for (let chunk of split(ex.utterance, PARAM_REGEX)) {
+                if (chunk === '')
+                    continue;
+                if (typeof chunk === 'string') {
+                    replaced += chunk;
+                    continue;
+                }
+
+                let [match, param1, param2, opt] = chunk;
+                if (match === '$$') {
+                    replaced += '$';
+                    continue;
+                }
+                let param = param1 || param2;
+                replaced += '____ ';
+                params.push([param, opt]);
+            }
+
+            return TokenizerService.tokenize(language, replaced).then(({tokens, entities}) => {
+                if (Object.keys(entities).length > 0)
+                    throw new Error(`Error in Example ${i+1}: Cannot have entities in the utterance`);
+                
+                let preprocessed = '';
+                let first = true;
+                for (let token of tokens) {
+                    if (token === '____') {
+                        let [param, opt] = params.shift();
+                        if (opt)
+                            token = '${' + param + ':' + opt + '}';
+                        else
+                            token = '${' + param + '}';
+                    } else if (token === '$') {
+                        token = '$$';
+                    }
+                    if (!first)
+                        preprocessed += ' ';
+                    preprocessed += token;
+                    first = false;
+                }
+                return { program: ex.program, utterance: ex.utterance, preprocessed };
+            });
+        }));
     },
 
     validateAllInvocations(kind, ast) {
