@@ -138,11 +138,9 @@ function validateSchema(dbClient, req) {
 
     if (!code || !kind)
         throw new Error(req._("Not all required fields were presents"));
-    Validation.validateKind(kind, 'type name');
 
     var ast = JSON.parse(code);
-    Validation.validateAllInvocations(ast);
-    return ast;
+    return Validation.validateAllInvocations(kind, ast).then(() => ast);
 }
 
 function ensureExamples(dbClient, schemaId, ast) {
