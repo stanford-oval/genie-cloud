@@ -24,6 +24,7 @@ var model = require('../model/device');
 var schema = require('../model/schema');
 var user = require('../util/user');
 var exampleModel = require('../model/example');
+var entityModel = require('../model/entity');
 var Validation = require('../util/validation');
 var ManifestToSchema = require('../util/manifest_to_schema');
 var TrainingServer = require('../util/training_server');
@@ -138,6 +139,8 @@ function validateDevice(dbClient, req) {
 
     return Promise.resolve().then(() => {
         return Validation.validateAllInvocations(kind, ast);
+    }).then((entities) => {
+        return entityModel.checkAllExist(dbClient, Array.from(entities));
     }).then(() => {
         if (fullcode) {
             if (!ast.name)

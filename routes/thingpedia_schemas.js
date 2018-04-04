@@ -15,6 +15,7 @@ const db = require('../util/db');
 const user = require('../util/user');
 const model = require('../model/schema');
 const exampleModel = require('../model/example');
+const entityModel = require('../model/entity');
 const Validation = require('../util/validation');
 const ManifestToSchema = require('../util/manifest_to_schema');
 
@@ -140,7 +141,9 @@ function validateSchema(dbClient, req) {
         throw new Error(req._("Not all required fields were presents"));
 
     var ast = JSON.parse(code);
-    return Validation.validateAllInvocations(kind, ast).then(() => ast);
+    return Validation.validateAllInvocations(kind, ast).then((entities) => {
+        return entityModel.checkAllExist(dbClient, Array.from(entities));
+    }).then(() => ast);
 }
 
 function ensureExamples(dbClient, schemaId, ast) {
