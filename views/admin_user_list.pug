@@ -111,7 +111,7 @@ block content
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Demote user")
               li
-                form(action='/admin/users/demote/' + user.id, method='post').form-delete-user
+                form(action='/admin/users/delete/' + user.id, method='post').form-delete-user
                   input(type='hidden',name='_csrf',value=csrfToken)
                   button(type='submit').btn.btn-danger.form-control= _("Delete user")
 
