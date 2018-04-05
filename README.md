@@ -32,7 +32,7 @@ Note: due to strict version requirements between the different Almond components
 which are hosted as git repositories and not published on the npm registry, using
 npm is not supported.
 
-### Step 1.5: Build the sandbox
+### Step 1.5 (optional): Build the sandbox
 
 If you plan to deploy this as a web facing service, and you plan to allow developer users, you
 will want to set up the sandbox. Use:
@@ -55,11 +55,13 @@ See the documentation of node-mysql for options. If you use Amazon RDS, you shou
 The SQL script will create a default root user, with password `rootroot`.
 The database is initially empty, and must be populated with the builtin Thingpedia entries.
 
-### Step 3: Configuration
+### Step 2.5 (optional): Configuration 
 
-Thingpedia assumes you use a CDN to deliver code zip files, icons and other large user generated
+Thingpedia expects you use a CDN to deliver code zip files, icons and other large user generated
 content. Set the URL of your CDN in `config.js`. You can also set the URL of a subfolder of your
 Thingpedia web server if you don't wish to use a CDN.
+
+If you do not set up a CDN, zip files and icons will be stored in the public/download folder of your code checkout.
 
 Additionally, modify `platform.js` and `almond/platform.js`, replacing `https://thingengine.stanford.edu`
 with the host on which you will run your Thingpedia. This must be the same host that you will
