@@ -27,13 +27,13 @@ module.exports.THINGPEDIA_URL = '';
 // set to true if this is serving https://thingpedia.stanford.edu
 // (enables redirect from legacy domains and sets Strict-Transport-Security
 // headers)
-module.exports.IS_PRODUCTION_THINGPEDIA = true;
+module.exports.IS_PRODUCTION_THINGPEDIA = false;
 
 module.exports.SEMPRE_URL = 'https://almond-nl.stanford.edu';
 
 // set to true to let users try out Almond without logging in
 // they will operate as the user "anonymous"
-module.exports.ENABLE_ANONYMOUS_USER = true;
+module.exports.ENABLE_ANONYMOUS_USER = false;
 
 module.exports.TRAINING_URL = null;
 module.exports.TRAINING_ACCESS_TOKEN = null;
