@@ -156,7 +156,7 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function
 router.post('/request-approval', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     var mailOptions = {
         from: 'Thingpedia <noreply@thingpedia.stanford.edu>',
-        to: 'gcampagn@cs.stanford.edu',
+        to: 'thingpedia-support@lists.stanford.edu',
         subject: `Review Request for ${req.body.kind}`,
         replyTo: {
             name: req.user.human_name,
