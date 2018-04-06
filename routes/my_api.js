@@ -47,10 +47,10 @@ class AlexaDelegate {
            response: {
                outputSpeech: { 
                    type: 'PlainText',
-                   text: this._buffer
+                   text: this._buffer + (this._askSpecial === null ? '. Now what do you want me to do?' : '')
                },
-               shouldEndSession: this._askSpecial === null,
-               directives: (this._askSpecial === null ? undefined : [
+               shouldEndSession: false,// this._askSpecial === null,
+               directives: ([
                    {
                        type: 'Dialog.ElicitSlot',
                        slotToElicit: 'command'
@@ -178,15 +178,74 @@ router.post('/alexa', (req, res, next) => {
         return;
     }
 
+    if (req.body.request.type === 'LaunchRequest') {
+        res.json({
+            version: '1.0',
+            sessionAttributes: {
+            },
+            response: {
+                outputSpeech: { 
+                    type: 'PlainText',
+                    text: "Hi, I am Almond. Say \"alexa ask almond to start\""
+                },
+                shouldEndSession: false,
+                /*directives: ([
+                    {
+                        type: 'Dialog.ElicitSlot',
+                        slotToElicit: 'command'
+                    }
+                ])*/
+            }
+       });
+       return;
+    }
+
+    if (req.body.request.intent.name === 'AMAZON.StopIntent') {
+        res.json({
+            version: '1.0',
+            sessionAttributes: {
+            },
+            response: {
+                outputSpeech: { 
+                    type: 'PlainText',
+                    text: "Thank you for using Almond, and good bye."
+                },
+                shouldEndSession: true
+            }
+        });
+        return;
+    }
 
     const user = req.user;
     const assistantUser = { name: user.human_name || user.username };
     let text = '';
 
+
     if (req.body.request.type === 'LaunchRequest') {
         text = 'hello';
     } else {
-        text = req.body.request.intent.slots.command.value;
+        text = req.body.request.intent.slots.command ? req.body.request.intent.slots.command.value : '';
+    }
+    if (!text) {
+        res.json({
+            version: '1.0',
+            sessionAttributes: {
+            },
+            response: {
+                outputSpeech: { 
+                    type: 'PlainText',
+                    text: "Hi, I am Almond. How can I help you?"
+                },
+                shouldEndSession: false,
+                directives: ([
+                    {
+                        type: 'Dialog.ElicitSlot',
+                        slotToElicit: 'command'
+                    }
+                ])
+            }
+       });
+       return;
     }
 
     const delegate = new AlexaDelegate(res);
@@ -390,7 +449,7 @@ router.ws('/results', (ws, req, next) => {
             ws.close();
         });
         ws.on('close', () => {
-            engine.assistant.removeOutput(delegate); // ignore errors if engine died
+            engine.assistant.removeOutput(delegate).catch(() => {}); // ignore errors if engine died
             delegate.$free();
         });
         ws.on('ping', (data) => ws.pong(data));
@@ -458,8 +517,9 @@ function doConversation(user, anonymous, ws) {
         });
         ws.on('close', () => {
             if (opened)
-                engine.assistant.closeConversation(id); // ignore errors if engine died
+                engine.assistant.closeConversation(id).catch(() => {}); // ignore errors if engine died
             delegate.$free();
+
             opened = false;
         });
 
