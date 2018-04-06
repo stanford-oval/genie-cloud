@@ -19,7 +19,7 @@ properties, which are set to the values provided by the user through a form
 - `oauth2`: OAuth 1.0 and 2.0 style authentication; the user clicks and is redirected to a login
 page, then the login page redirects back to ThingEngine giving you the authorization code
 - `discovery`: authentication by discovery and local interactive pairing
-- `builtin`: ???
+- `builtin`: for internal use only
 
 ### `oauth2` authentication the slow way
 
