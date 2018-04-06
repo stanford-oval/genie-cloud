@@ -14,7 +14,7 @@ require('thingengine-core/lib/polyfill');
 const ThingTalk = require('thingtalk');
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 
-const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
+const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
 
