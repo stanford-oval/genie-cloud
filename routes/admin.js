@@ -285,9 +285,8 @@ router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), (req
 
             return model.update(dbClient, user.id, { developer_status: 1,
                                                      developer_org: req.body.id })
-                .then(() => EngineManager.get().restartUser(user.id));
         });
-    }).then(() => {
+    }).then(() => EngineManager.get().restartUser(user.id)).then(() => {
         res.redirect(303, '/admin/organizations/details/' + req.body.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
