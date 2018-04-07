@@ -110,6 +110,10 @@ block content
                   form(action='/admin/users/demote/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Demote user")
+                if user.developer_org
+                  form(action='/admin/users/revoke-developer/' + user.id, method='post')
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    button(type='submit').btn.btn-success.form-control= _("Revoke developer key")
               li
                 form(action='/admin/users/delete/' + user.id, method='post').form-delete-user
                   input(type='hidden',name='_csrf',value=csrfToken)
