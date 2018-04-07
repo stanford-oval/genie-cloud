@@ -1,3 +1,4 @@
+"use strict";
 $(function() {
     function handleDeviceFactory(json, kind) {
         var placeholder = $('#device-placeholder');
@@ -37,18 +38,25 @@ $(function() {
         var self = $('<div>');
         self.addClass('online-account-choice col-md-4');
 
-        if (json.type === 'none') {
-            var btn = $('<button>').attr('type', 'submit').attr('name', 'kind').attr('value', kind);
-        } else {
-            var btn = $('<a>');
-        }
+        var btn;
+        if (json.type === 'none')
+            btn = $('<button>').attr('type', 'submit').attr('name', 'kind').attr('value', kind);
+        else
+            btn = $('<a>');
         btn.addClass('btn btn-default btn-block');
         btn.text(name);
         self.append(btn);
 
         switch(json.type) {
         case 'form':
-            var form = $('<div>');
+            var form = $('<form>');
+            form.attr('action', "/me/devices/create");
+            form.attr('method', "post");
+            var csrf = $('<input>');
+            csrf.attr('type', 'hidden');
+            csrf.attr('name', '_csrf');
+            csrf.val($('[data-csrf-token]').attr('data-csrf-token'));
+            form.append(csrf);
             form.addClass('online-account-expander collapse');
             form.attr('id', 'online-account-' + kind);
             form.attr('aria-expanded', 'false');
