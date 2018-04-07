@@ -14,6 +14,7 @@ const ThingTalk = require('thingtalk');
 const TokenizerService = require('./tokenizer_service');
 
 const KIND_REGEX = /^[A-Za-z_][A-Za-z0-9_.-]*$/;
+const ARGNAME_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 
@@ -118,6 +119,8 @@ module.exports = {
             for (var arg of where[name].args) {
                 if (!arg.name)
                     throw new Error('Missing argument name in ' + name);
+                if (!ARGNAME_REGEX.test(arg.name))
+                    throw new Error('Invalid argument name ' + arg.name + ' (must contain only letters, numbers and underscore, and cannot start with a number)');
                 if (!arg.type)
                     throw new Error("Missing type for argument " + name + '.' + arg.name);
                 try {

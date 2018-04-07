@@ -190,8 +190,9 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) 
         });
     }).then(() => {
         if (needsRestart)
-            EngineManager.get().restartUser(req.params.id);
-        res.redirect(303, '/admin/users');
+            return EngineManager.get().restartUser(req.params.id);
+    }).then(() => {
+        res.redirect(303, '/admin/users/search?q=' + req.params.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
@@ -212,7 +213,26 @@ router.post('/users/demote/:id', user.requireRole(user.Role.ADMIN), (req, res) =
             return model.update(dbClient, user.id, { developer_status: user.developer_status - 1 });
         });
     }).then(() => {
-        res.redirect(303, '/admin/users');
+        res.redirect(303, '/admin/users/search?q=' + req.params.id);
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+    if (req.user.id === req.params.id) {
+        res.render('error', { page_title: req._("Thingpedia - Error"),
+                              message: req._("You cannot revoke your own dev credentials yourself") });
+        return;
+    }
+
+    db.withTransaction((dbClient) => {
+        return model.get(dbClient, req.params.id).then((user) => {
+            return model.update(dbClient, user.id, { developer_status: 0, developer_org: null });
+        });
+    }).then(() => EngineManager.get().restartUser(req.params.id)).then(() => {
+        res.redirect(303, '/admin/users/search?q=' + req.params.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
@@ -286,7 +306,7 @@ router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), (req
             return model.update(dbClient, user.id, { developer_status: 1,
                                                      developer_org: req.body.id })
         });
-    }).then(() => EngineManager.get().restartUser(user.id)).then(() => {
+    }).then(() => EngineManager.get().restartUser(req.params.id)).then(() => {
         res.redirect(303, '/admin/organizations/details/' + req.body.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
