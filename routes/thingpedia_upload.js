@@ -596,4 +596,41 @@ router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), function(
     doCreateOrUpdate(req.params.id, false, req, res);
 });
 
+router.get('/example/:id', function(req, res) {
+    Q.try(function() {
+        // quotes, giphy, linkedin, tv
+        if (['350', '229', '9', '280'].indexOf(req.params.id) === -1)
+            throw new Error(req._("Example not found."));
+
+        return db.withClient(function(dbClient) {
+            return model.get(dbClient, req.params.id).then(function(d) {
+                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then(function(row) {
+                    d.code = migrateManifest(row.code, d);
+                    let ast = JSON.parse(d.code);
+                    if ('client_id' in ast.auth)
+                        ast.auth.client_id = '*** your-own-client-id ***';
+                    if ('client_secret' in ast.auth)
+                        ast.auth.client_secret = '*** your-own-client-secret ***';
+                    d.code = JSON.stringify(ast);
+                    return d;
+                });
+            }).then(function(d) {
+                console.log(d)
+                res.render('thingpedia_device_example', { page_title: req._("Thingpedia - example"),
+                                                          csrfToken: req.csrfToken(),
+                                                          id: req.params.id,
+                                                          device: { name: d.name,
+                                                                    primary_kind: d.primary_kind,
+                                                                    description: d.description,
+                                                                    code: d.code,
+                                                                    fullcode: d.fullcode },
+                                                        });
+            });
+        });
+    }).catch(function(e) {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+})
+
 module.exports = router;
