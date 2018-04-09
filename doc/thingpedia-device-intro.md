@@ -41,12 +41,12 @@ in action.
 Note that some of the packages are no longer supported by the current system 
 since Thingpedia and ThingTalk have been improving. 
 We recommend to look at the following devices as examples: 
-+ Quotes [manifest](https://almond.stanford.edu/thingpedia/upload/example/350)
-+ Giphy [manifest](https://almond.stanford.edu/thingpedia/upload/example/229) [code](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.giphy),
++ Quotes [[manifest]](https://almond.stanford.edu/thingpedia/upload/example/350)
++ Giphy [[manifest]](https://almond.stanford.edu/thingpedia/upload/example/229) [[code]](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.giphy),
 a very simple device which returns GIFs
-+ LinkedIn [manifest](https://almond.stanford.edu/thingpedia/upload/example/9) [code](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.linkedin),
++ LinkedIn [[manifest]](https://almond.stanford.edu/thingpedia/upload/example/9) [[code]](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.linkedin),
 an interface for LinkedIn which shows how authentication works. 
-+ LG TV [manifest](https://almond.stanford.edu/thingpedia/upload/example/280) [code](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.lg.tv.webos2),
++ LG TV [[manifest]](https://almond.stanford.edu/thingpedia/upload/example/280) [[code]](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.lg.tv.webos2),
 a more complicated example which involves a physical device.
 
 ---
