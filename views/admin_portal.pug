@@ -67,3 +67,8 @@ block content
               form(action='/admin/blow-view-cache', method='post')
                 input(type='hidden',name='_csrf',value=csrfToken)
                 button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
+
+            div.col-md-3
+              form(action='/admin/start-training', method='post')
+                input(type='hidden',name='_csrf',value=csrfToken)
+                button(type='submit').btn.btn-default.btn-block= _("Start a new training job")

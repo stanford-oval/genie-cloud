@@ -38,11 +38,14 @@ class TrainingServer {
         if (!Config.TRAINING_URL)
             return;
 
-        this._cache.delete(language + '/' + device);
+        if (device)
+            this._cache.delete(language + '/' + device);
+        else
+            this._cache.clear();
         let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
         Tp.Helpers.Http.post(Config.TRAINING_URL + '/jobs/create', JSON.stringify({
             language: language,
-            forDevices: [device]
+            forDevices: device ? [device] : []
         }), { auth: auth, dataContentType: 'application/json' }).then((response) => {
             let parsed = JSON.parse(response);
             console.log('Successfully started training job ' + parsed.id);

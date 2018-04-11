@@ -151,6 +151,11 @@ router.post('/blow-view-cache', user.requireRole(user.Role.ADMIN), (req, res) =>
     res.redirect(303, '/admin');
 });
 
+router.post('/start-training', user.requireRole(user.Role.ADMIN), (req, res) => {
+    TrainingServer.get().queue(req.query.language || 'en', null);
+    res.redirect(303, '/admin');
+});
+
 router.post('/users/delete/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
     if (req.user.id === req.params.id) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
