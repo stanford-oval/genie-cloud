@@ -46,10 +46,13 @@ block content
             span.help-block= _("You know what to do.")
           else if user.developer_status >= 2
             p.form-control-static= _("Trusted Developer")
-            span.help-block= _("All code you submit will go live to all Almonds with no review. Be careful!")
+            span.help-block= _("All code you submit can live to all Almonds with no review. Be careful!")
           else if user.developer_status >= 1
             p.form-control-static= _("Developer")
-            span.help-block= _("You can submit new thing interfaces, but they have to be reviewed by an administrator before users can see them.")
+            span.help-block= _("You can submit new entries, but they have to be reviewed by an administrator before users can see them.")
+          else if user.developer_org !== null
+            p.form-control-static= _("Tester")
+            span.help-block= _("You can test the code submitted by other members of your organization, but you cannot modify it or upload new entries.")
           else
             p.form-control-static!= _("User (<a href='/user/request-developer'>apply to be a developer</a>)")
 
@@ -107,7 +110,7 @@ block content
         div.form-group
           button(type='submit').btn.btn-primary= _("Change password")
 
-      if !user.google_id || !user.facebook_id
+      //-if !user.google_id || !user.facebook_id
         p
           if !user.google_id
             a.btn.btn-default(href='/devices/oauth2/com.google')= _("Configure login with Google")
@@ -160,4 +163,14 @@ block content
 
         p#config-phone-mobile-browser(aria-hidden='true')
           a(href=phone.qrcodeTarget).btn.btn-primary= _("Configure")
+
+  div.panel.panel-default
+    div.panel-heading
+      h2.panel-title= _("Laptop")
+
+    div.panel-body
+      if desktop.isConfigured
+        p= _("You are running a Almond in your laptop.")
+      else
+        p= _("You did not link the Almond in your laptop to your account. You should do so from the Settings page in the native Almond app.")
 

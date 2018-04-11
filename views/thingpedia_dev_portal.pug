@@ -37,6 +37,31 @@ block content
               a(href='/user/register').btn.btn-primary.btn-block= _("Apply to be a Developer")
 
     div.sections
+      if authenticated && user.developer_org !== null
+        section.divider
+          h3= _("Your Developer Organization")
+
+          div.container
+            div.row
+              div.col-xs-12
+                if developer_org_name
+                  p <b>#{_("Name:")}</b> #{developer_org_name}
+
+                p
+                  b= _("Your role: ")
+                  if user.developer_status == 0
+                    = _("Tester")
+                  else if user.developer_status == 1
+                    = _("Developer")
+                  else if user.developer_status == 2
+                    = _("Trusted Dev")
+                  else if user.developer_status == 3
+                    = _("Administrator")
+
+                p
+                  b= _("Members: ")
+                  = developer_org_members.map((m) => m.username).join(', ')
+
       section.divider
         h3= _("Thingpedia documentation")
 
@@ -78,28 +103,39 @@ block content
 
       if authenticated && user.developer_org !== null
         section.divider
-          h3= _("Your Developer Organization")
+          h3= _("Your Devices")
 
           div.container
-            div.row
-              div.col-xs-12
-                if developer_org_name
-                  p <b>#{_("Name:")}</b> #{developer_org_name}
+            if developer_devices.length > 0
+              div.row
+                each dev, i in developer_devices
+                  if i % 6 === 0
+                    div.clearfix.visible-lg.visible-md
+                  else if i % 3 === 0
+                    div.clearfix.visible-lg
+                  else if i % 2 === 0
+                    div.clearfix.visible-md
+                  div.col-lg-4.col-md-6.dev-template
+                    div.panel.panel-default
+                      a(href='/thingpedia/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
+                      div.panel-body
+                        p.device-icon-small
+                          img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
+                        p=dev.description
+                      div.panel-footer
+                        div.row
+                          div.col-md-6
+                            a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id)= _("Update")
 
-                p
-                  b= _("Your role: ")
-                  if user.developer_status == 0
-                    = _("Tester")
-                  else if user.developer_status == 1
-                    = _("Developer")
-                  else if user.developer_status == 2
-                    = _("Trusted Dev")
-                  else if user.developer_status == 3
-                    = _("Administrator")
+                          div.col-md-6
+                            form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
+                              input(type='hidden',name='_csrf',value=csrfToken)
+                              button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
+            else
+              div.row
+                div.col-xs-12
+                  p= _("Your organization does not own any device yet.")
 
-                p
-                  b= _("Members: ")
-                  = developer_org_members.map((m) => m.username).join(', ')
 
         section.divider
           h3= _("Your OAuth 2.0 Applications")
@@ -143,40 +179,3 @@ block content
 
                           div.form-group
                             button(type='submit').btn.btn-primary= _("Create")
-
-        section.divider
-          h3= _("Your Devices")
-
-          div.container
-            if developer_devices.length > 0
-              div.row
-                each dev, i in developer_devices
-                  if i % 6 === 0
-                    div.clearfix.visible-lg.visible-md
-                  else if i % 3 === 0
-                    div.clearfix.visible-lg
-                  else if i % 2 === 0
-                    div.clearfix.visible-md
-                  div.col-lg-4.col-md-6.dev-template
-                    div.panel.panel-default
-                      a(href='/thingpedia/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
-                      div.panel-body
-                        p.device-icon-small
-                          img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
-                        p=dev.description
-                      div.panel-footer
-                        div.row
-                          div.col-md-6
-                            a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id)= _("Update")
-
-                          div.col-md-6
-                            form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
-                              input(type='hidden',name='_csrf',value=csrfToken)
-                              button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
-            else
-              div.row
-                div.col-xs-12
-                  p= _("Your organization does not own any device yet.")
-
-
-

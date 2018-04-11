@@ -172,10 +172,11 @@ router.get('/logout', function(req, res, next) {
 
 function getProfile(req, res, pwError, profileError) {
     return EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.devices.getDevice('thingengine-own-phone');
-    }).then(function(phone) {
-        return phone ? phone.state : undefined;
-    }).then(function(phoneState) {
+        return Promise.all([engine.devices.getDevice('thingengine-own-phone'),
+                            engine.devices.getDevice('thingengine-own-desktop')]);
+    }).then(function([phone, desktop]) {
+        return Promise.all([phone ? phone.state : undefined, desktop ? desktop.state : undefined]);
+    }).then(function([phoneState, desktopState]) {
         var phone;
         if (phoneState) {
             phone = {
@@ -188,12 +189,22 @@ function getProfile(req, res, pwError, profileError) {
                     + req.user.auth_token
             }
         }
+        var desktop;
+        if (desktopState) {
+            desktop = {
+                isConfigured: true,
+            };
+        } else {
+            desktop = {
+                isConfigured: false,
+            }
+        }
 
         res.render('user_profile', { page_title: req._("Thingpedia - User Profile"),
                                      csrfToken: req.csrfToken(),
                                      pw_error: pwError,
                                      profile_error: profileError,
-                                     phone: phone });
+                                     phone: phone, desktop: desktop });
     }).catch(function(e) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
