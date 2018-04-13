@@ -259,9 +259,6 @@ bundle them in your zip file.
 
 If there is no dependency needed and all your code is in one file, you can 
 also upload the file directly, and we will generate the package.json and zip file for you. 
-Our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
-also provides an easy way to generate the zip file.
-Simply clone the repository and put your code into a folder and run `make`. 
 
 For the package.json file, don't worry about the additional attribute
 _thingpedia-version_ which appear in examples we provided. The attribute
@@ -405,8 +402,7 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
 
 ## Publishing and Testing on Thingpedia
 
-Once you are ready to let other people try your device interface, after thorough
-local testing, you can publish it on Thingpedia.
+Once you are ready to let other people try your device interface, you can publish it on Thingpedia.
 You can submit your device by click the `Submit` button at the bottom of the 
 [creation page](https://almond.stanford.edu/thingpedia/upload/create). 
 
@@ -419,6 +415,18 @@ While if you want to test on Android Almond, you need one
 more step: go to settings and enable cloud sync.
 Currently, the Android Almond still requires some update before it can be used under
 the latest version of ThingTalk and Thingpedia, so Web Almond is recommended.
+
+When you upload your device the first time, you cannot use the natural language at all until it is fully trained.
+When you edit it later, your device will be usable but the language might not reflect your latest changes.
+The training of natural language takes up to 1 hour. You can see the status of the training at the top of the details page for your entry. 
+The training is complete when the blue banner disappears. 
+Before the training is ready, you can test by typing ThingTalk directly; this is accomplished using the `\t` prefix in Web Almond. For example, to test the command 
+`@org.weather.current`, you can write: `\t now => @org.weather.current() => notify;`
+
+Each Web Almond has a cached copy of the code you uploaded to Thingpedia. 
+After you make changes to your Thingpedia device, to test your latest changes, update the cache at the [page](https://almond.stanford.edu/me/status).
+In the same page you can find the logs for your Web Almond, which will make your life much easier to debug. 
+You can use `console.log` and `console.error` from your code to print in these logs.
 
 The device will become available after being reviewed and approved by a
 Thingpedia administrator.
