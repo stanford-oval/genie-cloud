@@ -24,7 +24,7 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 // HACK
 const { optimizeFilter } = require('thingtalk/lib/optimize');
 
-const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
+const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
 
@@ -46,6 +46,7 @@ const NON_MONITORABLE_FUNCTIONS = new Set([
     'org.thingpedia.builtin.thingengine.builtin:get_date',
     'org.thingpedia.builtin.thingengine.builtin:get_random_between',
     'org.thingpedia.builtin.thingengine.builtin:get_time',
+    'org.thingpedia.builtin.thingengine.gnome:get_screenshot',
     'security-camera:get_snapshot',
     'security-camera:get_url',
     'uk.co.thedogapi:get',
@@ -1682,8 +1683,8 @@ function loadTemplateAsDeclaration(ex, decl) {
         return;
 
     // HACK HACK HACK
-    if (decl.type === 'table' && ex.utterance[0] === ',') {
-        ex.utterance = ex.utterance.substring(1).trim();
+    if (decl.type === 'table' && ex.preprocessed[0] === ',') {
+        ex.preprocessed = ex.preprocessed.substring(1).trim();
         decl.type = 'get_command';
     }
 
@@ -1722,7 +1723,7 @@ function loadTemplateAsDeclaration(ex, decl) {
         allTypes.set(String(ptype), ptype);
     }
 
-    let chunks = split(ex.utterance.trim(), PARAM_REGEX);
+    let chunks = split(ex.preprocessed.trim(), PARAM_REGEX);
     let grammarrule = [];
 
     for (let chunk of chunks) {
@@ -1762,13 +1763,24 @@ function loadDevice(device) {
     GRAMMAR['constant_Entity(tt:device)'].push([device.kind_canonical, simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null))]);
 }
 
+function loadIdType(idType) {
+    let type = `Entity(${idType.id})`;
+    if (ID_TYPES.has(type))
+        return;
+    NON_CONSTANT_TYPES.add(type);
+}
+
 function loadMetadata(language) {
-    return db.withClient((dbClient) =>
-        Promise.all([db.selectAll(dbClient, `select * from example_utterances where type = 'thingpedia' and language = ? and is_base = 1 and target_code <> ''`, [language]),
-                     db.selectAll(dbClient, `select kind,kind_canonical from device_schema where approved_version is not null and kind_type in ('primary','other')`, [])])
-    ).then(([examples, devices]) => {
+    return db.withClient((dbClient) => {
+        return Promise.all([
+            db.selectAll(dbClient, `select * from example_utterances where type = 'thingpedia' and language = ? and is_base = 1 and target_code <> ''`, [language]),
+            db.selectAll(dbClient, `select kind,kind_canonical from device_schema where kind_type in ('primary','other')`, []),
+            db.selectAll(dbClient, `select id from entity_names where language='en' and not is_well_known and not has_ner_support`, []),
+        ]);
+    }).then(([examples, devices, idTypes]) => {
         console.log('Loaded ' + devices.length + ' devices');
         devices.forEach(loadDevice);
+        idTypes.forEach(loadIdType);
 
         console.log('Loaded ' + examples.length + ' templates');
         return Promise.all(examples.map(loadTemplate));
