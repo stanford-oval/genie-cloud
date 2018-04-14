@@ -196,6 +196,8 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) 
     }).then(() => {
         if (needsRestart)
             return EngineManager.get().restartUser(req.params.id);
+        else
+            return Promise.resolve();
     }).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
     }).catch((e) => {
@@ -309,9 +311,9 @@ router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), (req
                 throw new Error(req._("%s is already a member of another developer organization.").format(req.body.username));
 
             return model.update(dbClient, user.id, { developer_status: 1,
-                                                     developer_org: req.body.id })
+                                                     developer_org: req.body.id });
         });
-    }).then(() => EngineManager.get().restartUser(req.params.id)).then(() => {
+    }).then(() => EngineManager.get().restartUser(req.body.id)).then(() => {
         res.redirect(303, '/admin/organizations/details/' + req.body.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),

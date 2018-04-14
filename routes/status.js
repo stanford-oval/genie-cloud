@@ -7,16 +7,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-const Q = require('q');
 const express = require('express');
 const child_process = require('child_process');
-const path = require('path');
-const sqlite3 = require('sqlite3');
 
 const user = require('../util/user');
-const model = require('../model/user');
-const db = require('../util/db');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -33,11 +29,10 @@ function readLogs(userId, startCursor) {
     }
 
     var unit;
-    if ('THINGENGINE_UNIT_NAME' in process.env) {
+    if ('THINGENGINE_UNIT_NAME' in process.env)
         unit = process.env.THINGENGINE_UNIT_NAME;
-    } else {
+    else
         unit = 'thingengine-cloud';
-    }
     if (unit) {
         args.push('-u');
         args.push(unit);
@@ -51,19 +46,19 @@ function readLogs(userId, startCursor) {
 }
 
 function getCachedModules(userId) {
-    return EngineManager.get().getEngine(userId).then(function(engine) {
+    return EngineManager.get().getEngine(userId).then((engine) => {
         return engine.devices.factory;
-    }).then(function(devFactory) {
+    }).then((devFactory) => {
         return devFactory.getCachedModules();
-    }).catch(function(e) {
+    }).catch((e) => {
         console.log('Failed to retrieve cached modules: ' + e.message);
         return [];
     });
 }
 
-router.get('/', user.redirectLogIn, function(req, res) {
-    getCachedModules(req.user.id).then(function(modules) {
-        return EngineManager.get().isRunning(req.user.id).then(function(isRunning) {
+router.get('/', user.redirectLogIn, (req, res) => {
+    getCachedModules(req.user.id).then((modules) => {
+        return EngineManager.get().isRunning(req.user.id).then((isRunning) => {
             res.render('status', { page_title: req._("Thingpedia - Status"),
                                    csrfToken: req.csrfToken(),
                                    modules: modules,
@@ -72,125 +67,52 @@ router.get('/', user.redirectLogIn, function(req, res) {
     }).done();
 });
 
-router.get('/logs', user.requireLogIn, user.requireDeveloper(), function(req, res) {
+router.get('/logs', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     var child = readLogs(req.user.id, req.query.startCursor);
     var stdout = child.stdout;
     res.set('Content-Type', 'text/event-stream');
     stdout.pipe(res, { end: false });
-    res.on('close', function() {
+    res.on('close', () => {
         child.kill('SIGINT');
         stdout.destroy();
     });
-    res.on('error', function() {
+    res.on('error', () => {
         child.kill('SIGINT');
         stdout.destroy();
     });
 });
 
-router.post('/kill', user.requireLogIn, function(req, res) {
+router.post('/kill', user.requireLogIn, (req, res) => {
     var engineManager = EngineManager.get();
 
     engineManager.killUser(req.user.id);
     res.redirect(303, '/me/status');
 });
 
-router.post('/start', user.requireLogIn, function(req, res) {
+router.post('/start', user.requireLogIn, (req, res) => {
     var engineManager = EngineManager.get();
 
-    engineManager.isRunning(req.user.id).then(function(isRunning) {
+    engineManager.isRunning(req.user.id).then((isRunning) => {
         if (isRunning)
             return engineManager.killUser(req.user.id);
-    }).then(function() {
+        else
+            return Promise.resolve();
+    }).then(() => {
         return engineManager.startUser(req.user.id);
-    }).then(function() {
+    }).then(() => {
         res.redirect(303, '/me/status');
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
 
-router.post('/recovery/wipe-cache', user.requireLogIn, user.requireDeveloper(), function(req, res) {
-    var engineManager = EngineManager.get();
-
-    if (engineManager.isRunning(req.user.id)) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: req._("Your engine is running, kill it before attempting recovery") });
-        return;
-    }
-
-    var p = path.resolve('./' + req.user.cloud_id + '/cache');
-    console.log('Wiping path ' + path);
-    Q.nfcall(child_process.execFile, '/bin/rm', ['-rf', p]).then(function() {
-        res.redirect(303, '/me/status');
-    }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.post('/recovery/remove-all-apps', user.requireLogIn, user.requireDeveloper(), function(req, res) {
-    var engineManager = EngineManager.get();
-
-    if (engineManager.isRunning(req.user.id)) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: req._("Your engine is running, kill it before attempting recovery") });
-        return;
-    }
-
-    var p = path.resolve('./' + req.user.cloud_id + '/sqlite.db');
-
-    var db = new sqlite3.Database(p, sqlite3.OPEN_READWRITE, function(err) {
-        if (err) {
-            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                              message: err });
-        } else {
-            Q.ninvoke(db, 'run', 'delete from app').then(function() {
-                return Q.ninvoke(db, 'close');
-            }).then(function() {
-                res.redirect(303, '/me/status');
-            }).catch(function(e) {
-                res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                                  message: e });
-            }).done();
-        }
-    });
-});
-
-router.post('/recovery/remove-all-devices', user.requireLogIn, user.requireDeveloper(), function(req, res) {
-    var engineManager = EngineManager.get();
-
-    if (engineManager.isRunning(req.user.id)) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: req._("Your engine is running, kill it before attempting recovery") });
-        return;
-    }
-
-    var p = path.resolve('./' + req.user.cloud_id + '/sqlite.db');
-
-    var db = new sqlite3.Database(p, sqlite3.OPEN_READWRITE, function(err) {
-        if (err) {
-            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                              message: err });
-        } else {
-            Q.ninvoke(db, 'run', 'delete from device').then(function() {
-                return Q.ninvoke(db, 'close');
-            }).then(function() {
-                res.redirect(303, '/me/status');
-            }).catch(function(e) {
-                res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                                  message: e });
-            }).done();
-        }
-    });
-});
-
-router.post('/update-module/:kind', user.requireLogIn, function(req, res) {
-    return EngineManager.get().getEngine(req.user.id).then(function(engine) {
+router.post('/update-module/:kind', user.requireLogIn, (req, res) => {
+    return EngineManager.get().getEngine(req.user.id).then((engine) => {
         return engine.devices.updateDevicesOfKind(req.params.kind);
-    }).then(function() {
-        res.redirect('/me/status');
-    }).catch(function(e) {
+    }).then(() => {
+        res.redirect(303, '/me/status');
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
