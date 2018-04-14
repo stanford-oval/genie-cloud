@@ -15,15 +15,68 @@ Three ways to do authentication are supported:
 the resulting configuration UI will be a single button (unless you need other data,
 in which case it will be a form); in this case you have nothing to do
 - `basic`: traditional username and password; your state must contain `username` and `password`
-properties, which are set to the values provided by the user through a form
+properties, which are set to the values provided by the user through a form. An example can be found 
+[here](https://almond.stanford.edu/thingpedia/upload/example/3).
 - `oauth2`: OAuth 1.0 and 2.0 style authentication; the user clicks and is redirected to a login
 page, then the login page redirects back to ThingEngine giving you the authorization code
 - `discovery`: authentication by discovery and local interactive pairing
 - `builtin`: for internal use only
 
+### `oauth2` authentication helpers
+
+As mentioned before, despite the name, `oauth2` is the authentication type of
+all OAuth style schemes. But if you use exactly OAuth 2.0 as specified in
+[RFC 6749](https://tools.ietf.org/html/rfc6749), which some services do, you
+can use a shorter helper:
+
+```javascript
+static get runOAuth2() {
+    return Tp.Helpers.OAuth2({
+        kind: "com.example",
+        client_id: "your_oauth2_client_id",
+        client_secret: "your_oauth2_client_secret_obfuscated_as_rot13",
+        authorize: "https://api.example.com/1.0/authorize",
+        scope: ['example_user_profile', 'example_basic_info']
+        get_access_token: "https://api.example.com/1.0/token",
+        callback: function(accessToken, refreshToken) { /* add device here */ }
+    });
+}
+```
+
+Here is an example from LinkedIn device in Thingpedia:
+```javascript
+static get runOAuth2() {
+    return Tp.Helpers.OAuth2({
+        authorize: 'https://www.linkedin.com/uas/oauth2/authorization',
+        get_access_token: 'https://www.linkedin.com/uas/oauth2/accessToken',
+        set_state: true,
+
+        callback(engine, accessToken, refreshToken) {
+            const auth = 'Bearer ' + accessToken;
+            return Tp.Helpers.Http.get('https://api.linkedin.com/v1/people/~:(id,formatted-name)?format=json',
+                                       { auth: auth,
+                                         accept: 'application/json' }).then((response) => {
+                const parsed = JSON.parse(response);
+                return engine.devices.loadOneDevice({ kind: 'com.linkedin',
+                                                      accessToken: accessToken,
+                                                      refreshToken: refreshToken,
+                                                      userId: parsed.id,
+                                                      userName: parsed.formattedName
+                                                    }, true);
+            });
+        }
+    });
+}
+```
+
+NOTE: the JS code will be publicly available, so do not put sensitive information in the code. 
+To add client id and client secret, add the corresponding properties in the `Authentication` field 
+in the manifest. An example can be found [here](https://almond.stanford.edu/thingpedia/upload/example/9). 
+
 ### `oauth2` authentication the slow way
 
-If your device uses OAuth-style authentication, you must implement `runOAuth2` in your
+If your device uses OAuth-style authentication that is different from RFC 6749, 
+you must implement `runOAuth2` in your
 device class.
 
 This method will be called twice: the first time, the `req` argument (the second argument
@@ -80,56 +133,7 @@ runOAuth2(engine, req) {
 }
 ```
 
-### `oauth2` authentication helpers
 
-As mentioned before, despite the name `oauth2` is the authentication type of
-all OAuth style schemes. But if you use exactly OAuth 2.0 as specified in
-[RFC 6749](https://tools.ietf.org/html/rfc6749), which some services do, you
-can use a shorter helper:
-
-```javascript
-static get runOAuth2() {
-    return Tp.Helpers.OAuth2({
-        kind: "com.example",
-        client_id: "your_oauth2_client_id",
-        client_secret: "your_oauth2_client_secret_obfuscated_as_rot13",
-        authorize: "https://api.example.com/1.0/authorize",
-        scope: ['example_user_profile', 'example_basic_info']
-        get_access_token: "https://api.example.com/1.0/token",
-        callback: function(accessToken, refreshToken) { /* add device here */ }
-    });
-}
-```
-
-Here is an example from LinkedIn device in Thingpedia:
-```javascript
-static get runOAuth2() {
-    return Tp.Helpers.OAuth2({
-        authorize: 'https://www.linkedin.com/uas/oauth2/authorization',
-        get_access_token: 'https://www.linkedin.com/uas/oauth2/accessToken',
-        set_state: true,
-
-        callback(engine, accessToken, refreshToken) {
-            const auth = 'Bearer ' + accessToken;
-            return Tp.Helpers.Http.get('https://api.linkedin.com/v1/people/~:(id,formatted-name)?format=json',
-                                       { auth: auth,
-                                         accept: 'application/json' }).then((response) => {
-                const parsed = JSON.parse(response);
-                return engine.devices.loadOneDevice({ kind: 'com.linkedin',
-                                                      accessToken: accessToken,
-                                                      refreshToken: refreshToken,
-                                                      userId: parsed.id,
-                                                      userName: parsed.formattedName
-                                                    }, true);
-            });
-        }
-    });
-}
-```
-
-NOTE: the JS code will be publicly available, so do not put sensitive information in the code. 
-To add client id and client secret, add the corresponding properties in the `Authentication` field 
-in the manifest.
 
 
 

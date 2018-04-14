@@ -620,8 +620,8 @@ router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), function(
 
 router.get('/example/:id', function(req, res) {
     Q.try(function() {
-        // quotes, giphy, linkedin, tv
-        if (['350', '229', '9', '280'].indexOf(req.params.id) === -1)
+        // quotes, giphy, linkedin, tv, bodytrace
+        if (['350', '229', '9', '280', '3'].indexOf(req.params.id) === -1)
             throw new Error(req._("Example not found."));
 
         return db.withClient(function(dbClient) {
