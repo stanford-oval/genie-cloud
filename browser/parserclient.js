@@ -40,9 +40,9 @@ module.exports = class ParserClient {
         });
     }
 
-    sendUtterance(utterance) {
+    sendUtterance(utterance, limit = -1) {
         let url = this._baseUrl + '/query';
-        return Promise.resolve($.ajax(url, { data: { q: utterance } })).then((parsed) => {
+        return Promise.resolve($.ajax(url, { data: { q: utterance, limit: limit } })).then((parsed) => {
             if (parsed.error)
                 throw new Error('Error received from Almond-NNParser server: ' + parsed.error);
 

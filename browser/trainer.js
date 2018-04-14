@@ -215,7 +215,7 @@ class ThingTalkTrainer {
     }
 
     _handle(text) {
-        return this.parser.sendUtterance(text, null, []).then((parsed) => {
+        return this.parser.sendUtterance(text).then((parsed) => {
             this._raw = text;
             this._entities = parsed.entities;
             return Promise.all(parsed.candidates.map((candidate) => {
