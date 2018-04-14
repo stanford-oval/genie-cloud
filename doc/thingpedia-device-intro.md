@@ -257,6 +257,11 @@ as well as any dependency you need. You should not assume any nodejs
 module beyond the 'thingpedia' module illustrated here - if you need any,
 bundle them in your zip file. 
 
+If you are using a Mac, please use command line to compress the folder: 
+`zip -r xx.zip your-folder-name`. 
+Compressing from the right-click menu in Mac will create a new folder which 
+makes the system fail to find the files in the root directory.
+
 If there is no dependency needed and all your code is in one file, you can 
 also upload the file directly, and we will generate the package.json and zip file for you. 
 
