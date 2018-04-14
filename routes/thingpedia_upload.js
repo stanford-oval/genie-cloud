@@ -29,6 +29,7 @@ var Validation = require('../util/validation');
 var ManifestToSchema = require('../util/manifest_to_schema');
 var TrainingServer = require('../util/training_server');
 var Config = require('../config');
+var tokenizer = require('../util/tokenize');
 
 const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 
@@ -167,7 +168,7 @@ function validateDevice(dbClient, req) {
     }).then(() => ast);
 }
 
-function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
+function ensurePrimarySchema(dbClient, name, kind, ast, req, approve) {
     const [types, meta] = ManifestToSchema.toSchema(ast);
 
     return schema.getByKind(dbClient, kind).then((existing) => {
@@ -176,6 +177,7 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
             throw new Error(req._("Not Authorized"));
 
         var obj = {
+            kind_canonical: tokenizer.tokenize(name).join(' '),
             developer_version: existing.developer_version + 1
         };
         if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER && approve)
@@ -187,7 +189,7 @@ function ensurePrimarySchema(dbClient, kind, ast, req, approve) {
     }, (e) => {
         var obj = {
             kind: kind,
-            kind_canonical: Validation.cleanKind(kind),
+            kind_canonical: tokenizer.tokenize(name).join(' '),
             kind_type: 'primary',
             owner: req.user.developer_org
         };
@@ -336,7 +338,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (ast === null)
                     return null;
 
-                return ensurePrimarySchema(dbClient, kind, ast, req, approve);
+                return ensurePrimarySchema(dbClient, name, kind, ast, req, approve);
             }).then((ast) => {
                 if (ast === null)
                     return null;
@@ -615,7 +617,6 @@ router.get('/example/:id', function(req, res) {
                     return d;
                 });
             }).then(function(d) {
-                console.log(d)
                 res.render('thingpedia_device_example', { page_title: req._("Thingpedia - example"),
                                                           csrfToken: req.csrfToken(),
                                                           id: req.params.id,
