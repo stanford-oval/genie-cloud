@@ -25,23 +25,6 @@ block content
       input(type='hidden',name='_csrf',value=csrfToken)
       button(type='submit').btn.btn-danger= _("Start")
 
-  if !isRunning && user.developer_key
-    h2= _("Recovery options")
-
-    div.row
-      div.col-md-3
-        form(action='/me/status/recovery/wipe-cache', method='post')
-          input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-danger.btn-block= _("Remove cached modules")
-      div.col-md-3
-        form(action='/me/status/recovery/remove-all-apps', method='post')
-          input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-danger.btn-block= _("Remove all apps")
-      div.col-md-3
-        form(action='/me/status/recovery/remove-all-devices', method='post')
-          input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-danger.btn-block= _("Remove all devices and accounts")
-
   h2= _("Cached Modules")
 
   table.table#cached-module-table

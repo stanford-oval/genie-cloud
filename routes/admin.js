@@ -196,6 +196,8 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) 
     }).then(() => {
         if (needsRestart)
             return EngineManager.get().restartUser(req.params.id);
+        else
+            return Promise.resolve();
     }).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
     }).catch((e) => {
