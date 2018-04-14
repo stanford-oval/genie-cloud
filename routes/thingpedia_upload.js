@@ -620,7 +620,7 @@ router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), (req, res
 router.get('/example/:id', (req, res, next) => {
     Promise.resolve().then(() => {
         // quotes, giphy, linkedin, tv
-        if (['350', '229', '9', '280'].indexOf(req.params.id) === -1) {
+        if (['350', '229', '9', '280', '3'].indexOf(req.params.id) === -1) {
             res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: req._("Example not found.") });
             return Promise.resolve();
