@@ -55,6 +55,21 @@ Frontend.prototype._init = function _init() {
     this._app.set('views', path.join(__dirname, 'views'));
     this._app.set('view engine', 'pug');
     this._app.enable('trust proxy');
+
+    // work around a crash in expressWs if a WebSocket route fails with an error
+    // code and express-session tries to save the session
+    this._app.use((req, res, next) => {
+        if (req.ws) {
+            const originalWriteHead = res.writeHead;
+            res.writeHead = function(statusCode) {
+                originalWriteHead.apply(this, arguments);
+                http.ServerResponse.prototype.writeHead.apply(this, arguments);
+            };
+        }
+
+        next();
+    });
+
     this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
 
     this._app.use(logger('dev'));

@@ -274,7 +274,9 @@ router.ws('/anonymous', (ws, req) => {
 
 const ALLOWED_ORIGINS = ['http://127.0.0.1:8080',
     'https://thingpedia.stanford.edu', 'https://thingengine.stanford.edu',
-    'https://almond.stanford.edu', 'null'];
+    'https://almond.stanford.edu',
+    'http://crowdie.stanford.edu:8080',
+    'null'];
 
 function isOriginOk(req) {
     if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer'))
