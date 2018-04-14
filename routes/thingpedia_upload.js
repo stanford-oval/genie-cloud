@@ -16,7 +16,6 @@ const multer = require('multer');
 const csurf = require('csurf');
 const JSZip = require('jszip');
 const ThingTalk = require('thingtalk');
-const Tp = require('thingpedia');
 
 var db = require('../util/db');
 var code_storage = require('../util/code_storage');
@@ -28,8 +27,9 @@ var entityModel = require('../model/entity');
 var Validation = require('../util/validation');
 var ManifestToSchema = require('../util/manifest_to_schema');
 var TrainingServer = require('../util/training_server');
-var Config = require('../config');
 var tokenizer = require('../util/tokenize');
+
+const EngineManager = require('../almond/enginemanagerclient');
 
 const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 
@@ -306,6 +306,18 @@ function uploadJavaScript(req, obj, ast, stream) {
     });
 }
 
+function tryUpdateDevice(primaryKind, userId) {
+    // do the update asynchronously - if the update fails, the user will
+    // have another chance from the status page
+    EngineManager.get().getEngine(userId).then((engine) => {
+        return engine.devices.updateDevicesOfKind(primaryKind);
+    }).catch((e) => {
+        console.error(`Failed to auto-update device ${primaryKind} for user ${userId}: ${e.message}`);
+    });
+
+    return Promise.resolve();
+}
+
 function doCreateOrUpdate(id, create, req, res) {
     var name = req.body.name;
     var description = req.body.description;
@@ -436,10 +448,18 @@ function doCreateOrUpdate(id, create, req, res) {
                 // trigger the training server if configured
                 TrainingServer.get().queue('en', done);
                 return done;
-            }).then((done) => {
-                if (done)
-                    res.redirect('/thingpedia/devices/by-id/' + done);
             });
+        }).then((done) => { // end of DB transaction
+            if (!done)
+                return done;
+
+            // trigger updating the device on the user
+            return tryUpdateDevice(done, req.user.id).then(() => done);
+        }).then((done) => {
+            if (!done)
+                return;
+
+            res.redirect('/thingpedia/devices/by-id/' + done);
         });
     }).finally(() => {
         var toDelete = [];
