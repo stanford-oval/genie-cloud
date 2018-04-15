@@ -14,7 +14,6 @@ create table users (
     locale char(15) not null default 'en-US',
     timezone varchar(64) not null default 'America/Los_Angeles',
     google_id varchar(255) unique default null,
-    facebook_id varchar(255) unique default null,
     omlet_id varchar(255) unique default null,
     password char(64) default null,
     salt char(64) default null,
@@ -27,7 +26,7 @@ create table users (
     force_separate_process boolean not null default false,
     constraint password_salt check ((password is not null and salt is not null) or
                                     (password is null and salt is null)),
-    constraint auth_method check (password is not null or google_id is not null or facebook_id is not null),
+    constraint auth_method check (password is not null or google_id is not null),
     foreign key (developer_org) references organizations(id) on update cascade on delete restrict
 ) collate = utf8_bin ;
 

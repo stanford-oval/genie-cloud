@@ -43,9 +43,8 @@ module.exports.ENABLE_ANONYMOUS_USER = false;
 module.exports.TRAINING_URL = null;
 module.exports.TRAINING_ACCESS_TOKEN = null;
 
-// OAuth Client secrets to support Login With Google / Login With Facebook
+// OAuth Client secret to support Login With Google
 module.exports.GOOGLE_CLIENT_SECRET = null;
-module.exports.FACEBOOK_APP_SECRET = null;
 
 // Mailgun user/password to handle the "Request Developer Access" form
 module.exports.MAILGUN_USER = null;

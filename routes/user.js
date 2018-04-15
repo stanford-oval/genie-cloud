@@ -46,29 +46,6 @@ router.get('/oauth2/google/callback', passport.authenticate('google'),
                }
            });
 
-router.get('/oauth2/facebook', passport.authenticate('facebook', {
-    scope: user.FACEBOOK_SCOPES,
-}));
-router.get('/oauth2/facebook/callback', passport.authenticate('facebook'),
-           function(req, res, next) {
-               if (req.user.newly_created) {
-                   req.user.newly_created = false;
-                   res.locals.authenticated = true;
-                   res.locals.user = user;
-                   res.render('register_success', {
-                       page_title: req._("Thingpedia - Registration Successful"),
-                       username: req.user.username,
-                       cloudId: req.user.cloud_id,
-                       authToken: req.user.auth_token });
-               } else {
-                   // Redirection back to the original page
-                   var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
-                   delete req.session.redirect_to;
-                   res.redirect(303, redirect_to);
-               }
-           });
-
-
 router.get('/login', function(req, res, next) {
     req.logout();
     res.render('login', {

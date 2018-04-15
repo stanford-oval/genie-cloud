@@ -110,14 +110,9 @@ block content
         div.form-group
           button(type='submit').btn.btn-primary= _("Change password")
 
-      //-if !user.google_id || !user.facebook_id
+      //-if !user.google_id
         p
-          if !user.google_id
-            a.btn.btn-default(href='/devices/oauth2/com.google')= _("Configure login with Google")
-          if !user.google_id && !user.facebook_id
-            |  
-          if !user.facebook_id
-            a.btn.btn-default(href='/devices/oauth2/com.facebook')= _("Configure login with Facebook")
+          a.btn.btn-default(href='/devices/oauth2/com.google')= _("Configure login with Google")
 
       p
         a.btn.btn-danger(data-toggle='modal', data-target='#delete-account-dialog')= _("Delete account")

@@ -96,16 +96,6 @@ router.post('/delete', user.requireLogIn, function(req, res, next) {
     successRedirect: '/me'
 }));*/
 
-// special case facebook because we have login with facebook
-/*router.get('/oauth2/com.facebook', user.redirectLogIn, function(req, res, next) {
-    req.session.redirect_to = '/me';
-    next();
-}, passport.authorize('facebook', {
-    scope: user.FACEBOOK_SCOPES,
-    failureRedirect: '/me',
-    successRedirect: '/me'
-}));*/
-
 router.get('/oauth2/:kind', user.redirectLogIn, function(req, res, next) {
     var kind = req.params.kind;
 

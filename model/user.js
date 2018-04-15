@@ -13,7 +13,7 @@ const db = require('../util/db');
 
 function create(client, user) {
     const KEYS = ['username', 'human_name', 'email', 'locale', 'timezone', 'google_id',
-                  'facebook_id', 'omlet_id', 'password', 'salt',
+                  'omlet_id', 'password', 'salt',
                   'cloud_id', 'auth_token', 'storage_key',
                   'developer_org'];
     KEYS.forEach((key) => {
@@ -51,11 +51,6 @@ module.exports = {
     getByGoogleAccount(client, googleId) {
         return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
                             + " on u.developer_org = o.id where google_id = ?", [googleId]);
-    },
-
-    getByFacebookAccount(client, facebookId) {
-        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
-                            + " on u.developer_org = o.id where facebook_id = ?", [facebookId]);
     },
 
     getByOmletAccount(client, omletId) {

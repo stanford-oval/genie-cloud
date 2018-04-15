@@ -38,7 +38,6 @@ module.exports = {
     },
 
     GOOGLE_SCOPES: ['openid','profile','email'].join(' '),
-    FACEBOOK_SCOPES: ['email', 'public_profile', 'user_friends', 'publish_actions'].join(' '),
 
     register(dbClient, req, options) {
         return model.getByName(dbClient, options.username).then((rows) => {

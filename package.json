@@ -50,7 +50,6 @@
     "oauth2orize": "~1.0.1",
     "omlib": "github:Stanford-Mobisocial-IoT-Lab/omclient",
     "passport": "~0.3.0",
-    "passport-facebook": "~2.0.0",
     "passport-google-oauth": "~0.2.0",
     "passport-http": "~0.3.0",
     "passport-http-bearer": "~1.0.1",
