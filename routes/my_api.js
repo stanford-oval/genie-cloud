@@ -13,7 +13,6 @@ const Q = require('q');
 const express = require('express');
 const crypto = require('crypto');
 const passport = require('passport');
-const { ActionsSdkApp } = require('actions-on-google');
 
 const Config = require('../config');
 
@@ -26,33 +25,6 @@ function makeRandom(bytes) {
 }
 
 var router = express.Router();
-
-router.post('/google-assistant', (request, response) => {
-   const app = new ActionsSdkApp({request, response });
-
-   function mainIntent (app) {
-       app.ask('Say something');
-   }
-
-   function rawInput (app) {
-       app.tell('you said: ' + app.getRawInput());
-   }
-
-   const actionMap = new Map();
-   actionMap.set(app.StandardIntents.MAIN, mainIntent);
-   actionMap.set(app.StandardIntents.TEXT, rawInput);
-
-   app.handleRequest(actionMap);
-});
-
-router.ws('/anonymous', (ws, req) => {
-    if (req.user)
-        ws.close();
-
-    user.getAnonymousUser().then((user) => {
-        return doConversation(user, true, ws);
-    });
-});
 
 const ALLOWED_ORIGINS = ['http://127.0.0.1:8080',
     'https://thingpedia.stanford.edu', 'https://thingengine.stanford.edu',
@@ -72,7 +44,7 @@ function isOriginOk(req) {
     return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
 }
 
-function checkOrigin(req, res, next) {
+router.use((req, res, next) => {
     if (isOriginOk(req)) {
         if (req.headers['origin']) {
             res.set('Access-Control-Allow-Origin', req.headers['origin']);
@@ -83,9 +55,20 @@ function checkOrigin(req, res, next) {
     } else {
         res.status(403).send('Forbidden Cross Origin Request');
     }
-}
+});
 
-router.use('/', (req, res, next) => {
+router.ws('/anonymous', (ws, req) => {
+    if (req.user) {
+        ws.close();
+        return;
+    }
+
+    user.getAnonymousUser().then((user) => {
+        return doConversation(user, true, ws);
+    });
+});
+
+router.use((req, res, next) => {
     passport.authenticate('bearer', (err, user, info) => {
         // ignore auth failures and ignore sessions
         if (err) {
@@ -98,7 +81,7 @@ router.use('/', (req, res, next) => {
         }
         req.login(user, next);
     })(req, res, next);
-}, user.requireLogIn, checkOrigin);
+}, user.requireLogIn);
 
 router.options('/.*', (req, res, next) => {
     res.send('');
