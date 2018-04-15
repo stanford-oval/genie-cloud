@@ -217,7 +217,6 @@ Frontend.prototype._init = function _init() {
         // with csurf
         // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
         this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
-        this._app.use('/thingpedia/apps', require('./routes/thingpedia_app_upload'));
     }
 
     this._app.use('/mturk', require('./routes/mturk'));
@@ -236,7 +235,6 @@ Frontend.prototype._init = function _init() {
 
     if (Config.WITH_THINGPEDIA === 'embedded') {
         this._app.use('/thingpedia/examples', require('./routes/thingpedia_examples'));
-        this._app.use('/thingpedia/apps', require('./routes/thingpedia_apps'));
         this._app.use('/thingpedia/training', require('./routes/train_almond'));
         this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
         this._app.use('/thingpedia/schemas', require('./routes/thingpedia_schemas'));

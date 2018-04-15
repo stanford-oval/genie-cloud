@@ -26,8 +26,6 @@ routes/qrcode.js
 routes/status.js
 routes/thingengine_ws.js
 routes/thingpedia_api.js
-routes/thingpedia_apps.js
-routes/thingpedia_app_upload.js
 routes/thingpedia_cheatsheet.js
 routes/thingpedia_devices.js
 routes/thingpedia_doc.js

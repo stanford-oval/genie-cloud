@@ -11,22 +11,13 @@
 
 const Q = require('q');
 const express = require('express');
-const csv = require('csv');
-const crypto = require('crypto');
 
 const db = require('../util/db');
-const device = require('../model/device');
-const app = require('../model/app');
-const user = require('../model/user');
 const deviceModel = require('../model/device');
 const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
 
-const ThingTalk = require('thingtalk');
-const SchemaRetriever = ThingTalk.SchemaRetriever;
-
 const ThingpediaClient = require('../util/thingpedia-client');
-const i18n = require('../util/i18n');
 const ImageCacheManager = require('../util/cache_manager');
 const { tokenize } = require('../util/tokenize');
 
@@ -178,28 +169,13 @@ router.get('/devices/search', (req, res) => {
 });
 
 router.get('/apps', (req, res) => {
-    var start = parseInt(req.query.start) || 0;
-    var limit = Math.min(parseInt(req.query.limit) || 20, 20);
-
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getApps(start, limit).then((obj) => {
-        res.cacheFor(86400000);
-        res.json(obj);
-    }).catch((e) => {
-        console.error('Failed to retrieve device factories: ' + e.message);
-        console.error(e.stack);
-        res.status(500).send('Error: ' + e.message);
-    }).done();
+    // deprecated endpoint
+    res.json([]);
 });
 
 router.get('/code/apps/:app_id', (req, res) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getAppCode(req.params.app_id).then((obj) => {
-        res.cacheFor(86400000);
-        res.status(200).json(obj);
-    }).catch((e) => {
-        res.status(400).send('Error: ' + e.message);
-    }).done();
+    // deprecated endpoint, respond with 410 Gone
+    res.status(410).send('This end point no longer exists');
 });
 router.post('/discovery', (req, res) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
