@@ -70,7 +70,7 @@ function schemaCompatible(s1, s2) {
 }
 
 function validateSchema(dbClient, type, ast, req) {
-    return schema.getTypesByKinds(dbClient, [type], req.user.developer_org).then((rows) => {
+    return schema.getTypesAndNamesByKinds(dbClient, [type], req.user.developer_org).then((rows) => {
         if (rows.length < 1)
             throw new Error(req._("Invalid device type %s").format(type));
 
@@ -79,7 +79,7 @@ function validateSchema(dbClient, type, ast, req) {
                 if (!(name in where))
                     throw new Error(req._("Type %s requires %s %s").format(type, what, name));
                 var types = where[name].args.map((a) => a.type);
-                if (!schemaCompatible(types, against[name]))
+                if (!schemaCompatible(types, against.types[name]))
                     throw new Error(req._("Schema for %s is not compatible with type %s").format(name, type));
             }
         }

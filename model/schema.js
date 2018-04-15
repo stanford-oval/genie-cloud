@@ -122,6 +122,8 @@ function processMetaRows(rows) {
         var obj = {
             schema: types,
             args: JSON.parse(row.argnames),
+            required: JSON.parse(row.required) || [],
+            is_input: JSON.parse(row.is_input) || [],
             confirmation: row.confirmation || row.doc,
             confirmation_remote: row.confirmation_remote || row.confirmation || row.doc,
             formatted: JSON.parse(row.formatted) || [],
@@ -129,8 +131,6 @@ function processMetaRows(rows) {
             canonical: row.canonical || '',
             argcanonicals: JSON.parse(row.argcanonicals) || [],
             questions: JSON.parse(row.questions) || [],
-            required: JSON.parse(row.required) || [],
-            is_input: JSON.parse(row.is_input) || []
         };
         if (obj.args.length < types.length) {
             for (var i = obj.args.length; i < types.length; i++)
@@ -239,61 +239,6 @@ module.exports = {
 
     getByKind(client, kind) {
         return db.selectOne(client, "select * from device_schema where kind = ?", [kind]);
-    },
-
-    getTypesByKinds(client, kinds, org) {
-        return Q.try(() => {
-            if (org === -1) {
-                return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds"
-                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
-                                    + " and dsc.version = ds.developer_version where ds.kind in (?)",
-                                    [kinds]);
-            } else if (org !== null) {
-                return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds"
-                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
-                                    + " and ((dsc.version = ds.developer_version and ds.owner = ?) or "
-                                    + " (dsc.version = ds.approved_version and ds.owner <> ?)) where ds.kind"
-                                    + " in (?) ",
-                                    [org, org, kinds]);
-            } else {
-                return db.selectAll(client, "select name, types, channel_type, kind, kind_type from device_schema ds"
-                                    + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
-                                    + " and dsc.version = ds.approved_version where ds.kind in (?)",
-                                    [kinds]);
-            }
-        }).then((rows) => {
-            var out = [];
-            var current = null;
-            rows.forEach((row) => {
-                if (current === null || current.kind !== row.kind) {
-                    current = {
-                        kind: row.kind,
-                        kind_type: row.kind_type
-                    };
-                    current.triggers = {};
-                    current.queries = {};
-                    current.actions = {};
-                    out.push(current);
-                }
-                if (row.channel_type === null)
-                    return;
-                var types = JSON.parse(row.types);
-                switch (row.channel_type) {
-                case 'action':
-                    current.actions[row.name] = types;
-                    break;
-                case 'trigger':
-                    current.triggers[row.name] = types;
-                    break;
-                case 'query':
-                    current.queries[row.name] = types;
-                    break;
-                default:
-                    throw new TypeError();
-                }
-            });
-            return out;
-        });
     },
 
     getTypesAndNamesByKinds(client, kinds, org) {
