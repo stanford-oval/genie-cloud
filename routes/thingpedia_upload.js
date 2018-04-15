@@ -169,7 +169,7 @@ function validateDevice(dbClient, req) {
 }
 
 function ensurePrimarySchema(dbClient, name, kind, ast, req, approve) {
-    const [types, meta] = ManifestToSchema.toSchema(ast);
+    const metas = ManifestToSchema.toSchema(ast);
 
     return schema.getByKind(dbClient, kind).then((existing) => {
         if (existing.owner !== req.user.developer_org &&
@@ -183,9 +183,7 @@ function ensurePrimarySchema(dbClient, name, kind, ast, req, approve) {
         if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER && approve)
             obj.approved_version = obj.developer_version;
 
-        return schema.update(dbClient,
-                             existing.id, existing.kind, obj,
-                             types, meta);
+        return schema.update(dbClient, existing.id, existing.kind, obj, metas);
     }, (e) => {
         var obj = {
             kind: kind,
@@ -200,7 +198,7 @@ function ensurePrimarySchema(dbClient, name, kind, ast, req, approve) {
             obj.approved_version = 0;
             obj.developer_version = 0;
         }
-        return schema.create(dbClient, obj, types, meta);
+        return schema.create(dbClient, obj, metas);
     }).then((schema) => {
         return ensureExamples(dbClient, schema.id, ast);
     });

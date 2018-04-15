@@ -280,10 +280,8 @@ function doCreateOrUpdate(id, create, req, res) {
                     return null;
 
                 gAst = ast;
-                var res = ManifestToSchema.toSchema(ast);
-                var types = res[0];
-                var meta = res[1];
-                var obj = {
+                const metas = ManifestToSchema.toSchema(ast);
+                const obj = {
                     kind: kind,
                     kind_canonical: Validation.cleanKind(kind),
                 };
@@ -299,7 +297,7 @@ function doCreateOrUpdate(id, create, req, res) {
                         obj.approved_version = 0;
                         obj.developer_version = 0;
                     }
-                    return model.create(dbClient, obj, types, meta);
+                    return model.create(dbClient, obj, metas);
                 } else {
                     return model.get(dbClient, id).then((old) => {
                         if (old.owner !== req.user.developer_org &&
@@ -313,7 +311,7 @@ function doCreateOrUpdate(id, create, req, res) {
                             approve)
                             obj.approved_version = obj.developer_version;
 
-                        return model.update(dbClient, id, obj.kind, obj, types, meta);
+                        return model.update(dbClient, id, obj.kind, obj, metas);
                     });
                 }
             }).tap((obj) => {
@@ -357,34 +355,7 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res
                 ]);
             });
         }).then(([d, [meta], examples]) => {
-            let ast = {
-            };
-            for (let what of ['triggers', 'queries', 'actions']) {
-                ast[what] = {};
-                for (let name in meta[what]) {
-                    let argnames = meta[what][name].args;
-                    let questions = meta[what][name].questions || [];
-                    let argrequired = meta[what][name].required || [];
-                    var argisinput = meta[what][name].is_input || [];
-                    let args = [];
-                    meta[what][name].schema.forEach((type, i) => {
-                        args.push({
-                            type: type,
-                            name: argnames[i],
-                            question: questions[i] || '',
-                            required: argrequired[i] || false,
-                            is_input: argisinput[i] || false,
-                        });
-                    });
-                    ast[what][name] = {
-                        args: args,
-                        doc: meta[what][name].doc || '',
-                        confirmation: meta[what][name].confirmation || '',
-                        confirmation_remote: meta[what][name].confirmation_remote || '',
-                        canonical: meta[what][name].canonical || ''
-                    };
-                }
-            }
+            const ast = ManifestToSchema.toManifest(meta);
             migrateManifest(ast, examples, d.kind);
 
             d.code = JSON.stringify(ast);

@@ -110,15 +110,6 @@ create table device_schema (
     foreign key (owner) references organizations(id) on update cascade on delete cascade
 ) collate = utf8_bin;
 
-create table device_schema_version (
-    schema_id integer not null,
-    version integer not null,
-    types mediumtext not null,
-    meta mediumtext not null,
-    primary key(schema_id, version),
-    foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
-) collate = utf8_bin;
-
 create table device_schema_channels (
     schema_id integer not null,
     version integer not null,
@@ -127,6 +118,7 @@ create table device_schema_channels (
     types mediumtext not null,
     argnames mediumtext not null,
     required mediumtext not null,
+    is_input mediumtext not null,
     doc mediumtext not null,
     primary key(schema_id, version, name),
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
@@ -140,13 +132,9 @@ create table device_schema_channel_canonicals (
     canonical text not null collate utf8_general_ci,
     confirmation varchar(255) collate utf8_general_ci default null,
     confirmation_remote varchar(255) collate utf8_general_ci default null,
-    formatted mediumtext collate utf8_general_ci default null,
     argcanonicals mediumtext not null collate utf8_general_ci,
     questions mediumtext not null collate utf8_general_ci,
-    keywords mediumtext not null collate utf8_general_ci,
     primary key(schema_id, version, language, name),
-    key canonical_btree (canonical(30)),
-    fulltext key(canonical, keywords)
 ) collate = utf8_bin;
 
 create table lexicon(
