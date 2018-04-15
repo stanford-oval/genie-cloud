@@ -238,7 +238,7 @@ module.exports = class ThingpediaClientCloud {
                     devices.forEach((d) => {
                         try {
                             this._deviceMakeFactory(d);
-                        } catch(e) {}
+                        } catch(e) { /**/ }
                     });
                     devices = devices.filter((d) => {
                         return !!d.factory;
@@ -274,7 +274,7 @@ module.exports = class ThingpediaClientCloud {
                                 result[d.global_name] = d.factory;
                             result[d.primary_kind] = d.factory;
                         }
-                    } catch(e) {}
+                    } catch(e) { /**/ }
                 });
 
                 var unresolved = kinds.filter((k) => !(k in result));

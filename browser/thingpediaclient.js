@@ -9,23 +9,10 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-
 const THINGPEDIA_URL = '/thingpedia';
 
 function httpRequest(url) {
-    var req = new XMLHttpRequest();
-    req.open('GET', url);
-    req.responseType = 'json';
-    return Q.Promise(function(callback, errback) {
-        req.onerror = function() {
-            errback(new Error('Failed to contact SEMPRE server'));
-        };
-        req.onload = function() {
-            callback(req.response);
-        };
-        req.send();
-    });
+    return Promise.resolve($.ajax(url));
 }
 
 module.exports = class ThingpediaClientBrowser {

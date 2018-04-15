@@ -201,7 +201,7 @@ function legacyCreateExample(utterance, kind, function_name, function_type, func
 
     let match = regexp.exec(utterance);
     while (match !== null) {
-        let [_, param1, param2, option] = match;
+        let [, param1, param2, /*option*/] = match;
         let param = param1 || param2;
 
         if (param in inargmap) {
@@ -314,11 +314,11 @@ function doCreateOrUpdate(id, create, req, res) {
                         return model.update(dbClient, id, obj.kind, obj, metas);
                     });
                 }
-            }).tap((obj) => {
+            }).then((obj) => {
                 if (obj === null)
                     return null;
 
-                return ensureExamples(dbClient, obj.id, gAst);
+                return ensureExamples(dbClient, obj.id, gAst).then(() => obj);
             }).then((obj) => {
                 if (obj === null)
                     return;

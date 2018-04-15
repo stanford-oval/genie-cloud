@@ -10,13 +10,8 @@
 "use strict";
 
 const Q = require('q');
-const child_process = require('child_process');
-const path = require('path');
-const fs = require('fs');
 const net = require('net');
-const os = require('os');
 const events = require('events');
-const stream = require('stream');
 const rpc = require('transparent-rpc');
 
 const JsonDatagramSocket = require('./json_datagram_socket');
@@ -81,7 +76,7 @@ class EngineManagerClient extends events.EventEmitter {
             ready(engine, websocket, webhook, assistant) {
                 jsonSocket.removeListener('data', initError);
 
-                Q.all([engine.apps, engine.devices, engine.messaging]).spread((apps, devices, messaging) => {
+                Promise.all([engine.apps, engine.devices, engine.messaging]).then(([apps, devices, messaging]) => {
                     return {
                         apps: apps,
                         devices: devices,

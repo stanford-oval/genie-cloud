@@ -221,11 +221,10 @@ router.post('/alexa', (req, res, next) => {
     let text = '';
 
 
-    if (req.body.request.type === 'LaunchRequest') {
+    if (req.body.request.type === 'LaunchRequest')
         text = 'hello';
-    } else {
+    else
         text = req.body.request.intent.slots.command ? req.body.request.intent.slots.command.value : '';
-    }
     if (!text) {
         res.json({
             version: '1.0',
@@ -306,10 +305,14 @@ function checkOrigin(req, res, next) {
 router.use('/', (req, res, next) => {
     passport.authenticate('bearer', (err, user, info) => {
         // ignore auth failures and ignore sessions
-        if (err)
-            return next(err);
-        if (!user)
-            return next();
+        if (err) {
+            next(err);
+            return;
+        }
+        if (!user) {
+            next();
+            return;
+        }
         req.login(user, next);
     })(req, res, next);
 }, user.requireLogIn, checkOrigin);
@@ -526,9 +529,9 @@ function doConversation(user, anonymous, ws) {
         });
 
         return engine.assistant.openConversation(id, assistantUser, delegate, { showWelcome: true })
-            .tap((conversation) => {
+            .then((conversation) => {
                 opened = true;
-                return conversation.start();
+                return Promise.resolve(conversation.start()).then(() => conversation);
             }).then((conversation) => {
                 ws.on('message', (data) => {
                     Q.try(() => {

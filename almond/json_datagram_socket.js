@@ -40,21 +40,21 @@ module.exports = class JsonDatagramSocket extends events.EventEmitter {
         // NOTE: this is for reading ONLY
         // Always specify the encoding when writing
         reader.setEncoding(encoding);
-        reader.on('data', function(data) {
+        reader.on('data', (data) => {
             if (reader !== this._reader) // robustness
                 return;
 
             this._partialMessage += data;
             this._tryReadMessage();
-        }.bind(this));
+        });
 
         reader.on('error', (err) => this.emit('error', err));
-        reader.on('end', function() {
+        reader.on('end', () => {
             this.emit('end');
-        }.bind(this));
-        reader.on('close', function(hadError) {
+        });
+        reader.on('close', (hadError) => {
             this.emit('close', hadError);
-        }.bind(this));
+        });
     }
 
     end(callback) {
@@ -107,5 +107,4 @@ module.exports = class JsonDatagramSocket extends events.EventEmitter {
         this._writer.write(JSON.stringify(msg), this._encoding);
         this._writer.write('\n', this._encoding, callback);
     }
-}
-
+};

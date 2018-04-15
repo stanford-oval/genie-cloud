@@ -40,25 +40,25 @@ function downloadImage(url) {
             tmpfile.file({ dir: CACHE_DIR, keep: true }, (err, tmppath, fd, cleanup) => {
                 console.log('tmppath', tmppath);
                 if (err) {
-                    stream.resume();
+                    res.resume();
                     reject(err);
-                    return
+                    return;
                 }
 
                 let filestream = fs.createWriteStream(tmppath, { fd: fd });
                 filestream.on('error', (err) => {
                     cleanup();
                     reject(err);
-                })
+                });
 
                 let hash = crypto.createHash('sha1');
                 res.on('data', (buffer) => {
                     hash.update(buffer);
                     filestream.write(buffer);
-                })
+                });
                 res.on('end', () => {
                     filestream.end();
-                })
+                });
                 filestream.on('finish', () => {
                     let filename = hash.digest().toString('hex') + (extension || '');
 
@@ -69,11 +69,11 @@ function downloadImage(url) {
                             reject(err);
                         }
                         resolve(filename);
-                    })
-                })
-            })
-        })
-    })
+                    });
+                });
+            });
+        });
+    });
 }
 
 module.exports = class ImageCacheManager {
@@ -115,7 +115,7 @@ module.exports = class ImageCacheManager {
             delete this._store[key];
             this._scheduleWrite();
             throw err;
-        })
+        });
     }
 
     flush() {
@@ -129,9 +129,9 @@ module.exports = class ImageCacheManager {
         if (this._writeScheduled)
             return;
 
-        setTimeout(function() {
+        setTimeout(() => {
             this._writeScheduled = false;
             this.flush().done();
-        }.bind(this), this._writeTimeout);
+        }, this._writeTimeout);
     }
-}
+};

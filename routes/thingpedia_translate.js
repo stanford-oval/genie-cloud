@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 
 const db = require('../util/db');
@@ -29,84 +28,52 @@ function localeToLanguage(locale) {
     return (locale || 'en').split(/[-_@.]/)[0];
 }
 
-function findInvocation(ex) {
-    const REGEXP = /^tt:([a-z0-9A-Z_-]+)\.([a-z0-9A-Z_]+)$/;
-    var parsed = JSON.parse(ex.target_json);
-    if (parsed.action)
-        return ['actions', REGEXP.exec(parsed.action.name.id)];
-    else if (parsed.trigger)
-        return ['triggers', REGEXP.exec(parsed.trigger.name.id)];
-    else if (parsed.query)
-        return ['queries', REGEXP.exec(parsed.query.name.id)];
-    else
-        return null;
-}
-
 router.get('/by-id/:kind', user.redirectLogIn, (req, res) => {
-    var language = req.query.language || localeToLanguage(req.user.locale);
+    const language = req.query.language || localeToLanguage(req.user.locale);
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Translations for English cannot be contributed.") });
         return;
     }
-    var fromVersion = req.query.fromVersion || null;
+    const fromVersion = req.query.fromVersion || null;
 
     db.withTransaction((dbClient) => {
-        return Q.all([model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en'),
-            fromVersion !== null ? model.getMetasByKindAtVersion(dbClient, req.params.kind, fromVersion, language)
-            : model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, language)]).spread((englishrows, translatedrows) => {
+        return Promise.all([
+            model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en'),
+            fromVersion !== null ?
+                model.getMetasByKindAtVersion(dbClient, req.params.kind, fromVersion, language)
+              : model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, language)
+        ]).then(([englishrows, translatedrows]) => {
             if (englishrows.length === 0 || translatedrows.length === 0)
                 throw new Error(req._("Not Found."));
 
             var english = englishrows[0];
             var translated = translatedrows[0];
 
-            return Q.all([exampleModel.getBaseBySchema(dbClient, english.id, 'en').then((examples) => {
+            return Promise.all([
+                exampleModel.getBaseBySchema(dbClient, english.id, 'en').then((examples) => {
                     english.examples = examples;
                     return english;
-                }), exampleModel.getBaseBySchema(dbClient, translated.id, language).then((examples) => {
+                }),
+                exampleModel.getBaseBySchema(dbClient, translated.id, language).then((examples) => {
                     translated.examples = examples;
                     return translated;
-                })]);
+                })
+            ]);
         });
-    }).spread((english, translated) => {
-        function mapExamplesToChannel(ast) {
-            ast.examples.forEach((ex) => {
-                var res;
-                try {
-                    res = findInvocation(ex);
-                } catch(e) {
-                    console.log(e.stack);
-                    return;
-                }
-                if (!res || !res[1])
-                    return;
-
-                var where = res[0];
-                var kind = res[1][1];
-                var name = res[1][2];
-                if (!ast[where][name])
-                    return;
-                if (!ast[where][name].examples)
-                    ast[where][name].examples = [];
-                ast[where][name].examples.push(ex.utterance);
-            });
-        }
-        mapExamplesToChannel(english);
-        mapExamplesToChannel(translated);
-
+    }).then(([english, translated]) => {
         // we need to translate canonicals, confirmations, slot-filling questions,
         // argument names (in canonical form) and
 
-        var out = {
+        const out = {
             triggers: {},
             actions: {},
             queries: {}
         };
-        for (var what of ['triggers', 'actions', 'queries']) {
+        for (let what of ['triggers', 'actions', 'queries']) {
             if (!translated[what])
                 translated[what] = {};
-            for (var name in english[what]) {
+            for (let name in english[what]) {
                 if (!translated[what][name]) {
                     translated[what][name] = {
                         canonical: '',
@@ -141,7 +108,6 @@ router.get('/by-id/:kind', user.redirectLogIn, (req, res) => {
                         translated: translated[what][name].confirmation_remote
                     },
                     args: [],
-                    examples: []
                 };
 
                 english[what][name].args.forEach((argname, i) => {
@@ -157,15 +123,11 @@ router.get('/by-id/:kind', user.redirectLogIn, (req, res) => {
                         }
                     });
                 });
-
-                english[what][name].examples.forEach((e, i) => {
-                    out[what][name].examples.push({
-                        english: e,
-                        translated: translated[what][name].examples[i]
-                    });
-                });
             }
         }
+        out.examples = english.examples.map((e, i) => {
+            return { english: e, translated: translated.examples[i] };
+        });
 
         res.render('thingpedia_translate_schema', {
             page_title: req._("Thingpedia - Translate Type"),
@@ -177,7 +139,7 @@ router.get('/by-id/:kind', user.redirectLogIn, (req, res) => {
             queries: out.queries,
             csrfToken: req.csrfToken(),
         });
-    }).catch(function(e) {
+    }).catch((e) => {
         console.error(e.stack);
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
@@ -202,7 +164,7 @@ function ensureExamples(dbClient, schemaId, ast, language) {
     });
 }
 
-router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
+router.post('/by-id/:kind', user.requireLogIn, (req, res) => {
     var language = req.body.language;
     if (!language) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
@@ -215,29 +177,29 @@ router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
         return;
     }
 
-    db.withTransaction(function(dbClient) {
-        return model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en').then(function(englishrows) {
+    db.withTransaction((dbClient) => {
+        return model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en').then((englishrows) => {
             if (englishrows.length === 0)
                 throw new Error(req._("Not Found."));
 
-            var english = englishrows[0];
-            var translations = {};
+            const english = englishrows[0];
+            const translations = {};
 
-            for (var what of ['triggers', 'actions', 'queries']) {
-                for (var name in english[what]) {
-                    var canonical = req.body[what + '_canonical_' + name] || english[what][name].canonical;
-                    var confirmation = req.body[what + '_confirmation_' + name] || english[what][name].confirmation;
-                    var confirmation_remote = req.body[what + '_confirmation_remote_' + name] || english[what].confirmation_remote;
+            for (let what of ['triggers', 'actions', 'queries']) {
+                for (let name in english[what]) {
+                    const canonical = req.body[what + '_canonical_' + name] || english[what][name].canonical;
+                    const confirmation = req.body[what + '_confirmation_' + name] || english[what][name].confirmation;
+                    const confirmation_remote = req.body[what + '_confirmation_remote_' + name] || english[what].confirmation_remote;
 
-                    var questions = [];
-                    english[what][name].questions.forEach(function(q, i) {
+                    const questions = [];
+                    english[what][name].questions.forEach((q, i) => {
                         if (!q)
                             questions[i] = '';
                         else
                             questions[i] = req.body[what + '_question_' + english[what][name].args[i] + '_' + name] || q;
                     });
-                    var argcanonicals = [];
-                    english[what][name].args.forEach(function(argname, i) {
+                    const argcanonicals = [];
+                    english[what][name].args.forEach((argname, i) => {
                         argcanonicals[i] = req.body[what + '_argname_' + argname + '_' + name] ||
                             english[what][name].argcanonicals[i] || argname;
                     });
@@ -255,10 +217,6 @@ router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
                     english[what][name].args = english[what][name].args.map((arg, i) => {
                         return { name: arg, type: english[what][name].schema[i], argcanonical: argcanonicals[i], required: english[what][name].required[i], question: questions[i] };
                     });
-
-                    var examples = req.body[what + '_examples_' + name] || [];
-                    examples = examples.filter((ex) => !!ex);
-                    english[what][name].examples = examples;
                 }
             }
 
@@ -266,14 +224,13 @@ router.post('/by-id/:kind', user.requireLogIn, function(req, res) {
                                             english.id,
                                             english.developer_version,
                                             language,
-                                            translations)
-                .then(function() {
-                    return ensureExamples(dbClient, english.kind, english, language);
-                });
+                                            translations).then(() => {
+                return ensureExamples(dbClient, english.kind, english, language);
+            });
         });
-    }).then(function() {
+    }).then(() => {
         res.redirect(303, '/thingpedia/schemas/by-id/' + req.params.kind);
-    }).catch(function(e) {
+    }).catch((e) => {
         console.error(e.stack);
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });

@@ -327,7 +327,7 @@ function doCreateOrUpdate(id, create, req, res) {
 
     Q.try(() => {
         return db.withTransaction((dbClient) => {
-            return Q.try(() => {
+            return Promise.resolve().then(() => {
                 return validateDevice(dbClient, req);
             }).catch((e) => {
                 console.error(e.stack);
@@ -344,11 +344,11 @@ function doCreateOrUpdate(id, create, req, res) {
                                                                            code: code },
                                                                  create: create });
                 return null;
-            }).tap((ast) => {
+            }).then((ast) => {
                 if (ast === null)
                     return null;
 
-                return ensurePrimarySchema(dbClient, name, kind, ast, req, approve);
+                return ensurePrimarySchema(dbClient, name, kind, ast, req, approve).then(() => ast);
             }).then((ast) => {
                 if (ast === null)
                     return null;
@@ -467,7 +467,7 @@ function doCreateOrUpdate(id, create, req, res) {
             if (req.files.icon && req.files.icon.length)
                 toDelete.push(Q.nfcall(fs.unlink, req.files.icon[0].path));
         }
-        return Q.all(toDelete);
+        return Promise.all(toDelete);
     }).catch((e) => {
         console.error(e.stack);
         res.status(400).render('error', { page_title: "Thingpedia - Error",
@@ -582,19 +582,19 @@ function migrateManifest(code, device) {
     return JSON.stringify(ast);
 }
 
-router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
-    Q.try(function() {
-        return db.withClient(function(dbClient) {
-            return model.get(dbClient, req.params.id).then(function(d) {
+router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
+    Promise.resolve().then(() => {
+        return db.withClient((dbClient) => {
+            return model.get(dbClient, req.params.id).then((d) => {
                 if (d.owner !== req.user.developer_org &&
                     req.user.developer < user.DeveloperStatus.ADMIN)
                     throw new Error(req._("Not Authorized"));
 
-                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then(function(row) {
+                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then((row) => {
                     d.code = migrateManifest(row.code, d);
                     return d;
                 });
-            }).then(function(d) {
+            }).then((d) => {
                 res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - edit device"),
                                                                  csrfToken: req.csrfToken(),
                                                                  id: req.params.id,
@@ -606,25 +606,28 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                                                                  create: false });
             });
         });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), function(req, res) {
+router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     doCreateOrUpdate(req.params.id, false, req, res);
 });
 
-router.get('/example/:id', function(req, res) {
-    Q.try(function() {
+router.get('/example/:id', (req, res, next) => {
+    Promise.resolve().then(() => {
         // quotes, giphy, linkedin, tv
-        if (['350', '229', '9', '280'].indexOf(req.params.id) === -1)
-            throw new Error(req._("Example not found."));
+        if (['350', '229', '9', '280'].indexOf(req.params.id) === -1) {
+            res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
+                                              message: req._("Example not found.") });
+            return Promise.resolve();
+        }
 
-        return db.withClient(function(dbClient) {
-            return model.get(dbClient, req.params.id).then(function(d) {
-                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then(function(row) {
+        return db.withClient((dbClient) => {
+            return model.get(dbClient, req.params.id).then((d) => {
+                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then((row) => {
                     d.code = migrateManifest(row.code, d);
                     let ast = JSON.parse(d.code);
                     if ('client_id' in ast.auth)
@@ -634,7 +637,7 @@ router.get('/example/:id', function(req, res) {
                     d.code = JSON.stringify(ast);
                     return d;
                 });
-            }).then(function(d) {
+            }).then((d) => {
                 res.render('thingpedia_device_example', { page_title: req._("Thingpedia - example"),
                                                           csrfToken: req.csrfToken(),
                                                           id: req.params.id,
@@ -646,10 +649,10 @@ router.get('/example/:id', function(req, res) {
                                                         });
             });
         });
-    }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
-})
+    }).catch(next);
+});
 
 module.exports = router;

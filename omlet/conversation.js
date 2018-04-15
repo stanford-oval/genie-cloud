@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-
 const events = require('events');
 
 const User = require('../util/user');
@@ -37,11 +35,11 @@ module.exports = class Conversation extends events.EventEmitter {
 
     _registerWithOmlet(engines, msg, account) {
         if (typeof msg['username'] !== 'string' ||
-            msg['username'].length == 0 ||
+            msg['username'].length === 0 ||
             msg['username'].length > 255)
             throw new Error("You must specify a valid username");
         if (typeof msg['email'] !== 'string' ||
-            msg['email'].length == 0 ||
+            msg['email'].length === 0 ||
             msg['email'].indexOf('@') < 0 ||
             msg['email'].length > 255)
             throw new Error("You must specify a valid email");
@@ -132,11 +130,11 @@ module.exports = class Conversation extends events.EventEmitter {
         }
 
         if (this._registering && parsed.op === 'complete-registration') {
-            Q.try(() => {
+            Promise.resolve().then(() => {
                 return this._registerWithOmlet(parsed, this.account);
             }).catch((e) => {
                 this.send("Sorry that did not work: " + e.message);
-            }).done();
+            });
         }
 
         if (parsed.op !== undefined) {
@@ -147,36 +145,35 @@ module.exports = class Conversation extends events.EventEmitter {
         // this is probably a pre-parsed message in SEMPRE format, used by Almond
         // to do buttons and stuff
         // pass it down to the remote if we have one, otherwise ignore it
-        Q.try(() => {
+        Promise.resolve().then(() => {
             return this._tryGetRemote();
         }).then(() => {
-            if (this._remote) {
+            if (this._remote)
                 return this._remote.handleParsedCommand(text);
-            }
-        }).catch(function(e) {
+            return Promise.resolve();
+        }).catch((e) => {
             console.log('Failed to handle assistant command: ' + e.message);
-        }).done();
+        });
     }
 
     _onTextMessage(text) {
-        Q.try(() => {
+        Promise.resolve().then(() => {
             return this._tryGetRemote();
-        }).then(function() {
-            if (this._remote) {
+        }).then(() => {
+            if (this._remote)
                 return this._remote.handleCommand(text);
-            } else {
+            else
                 return this._handleNoEngine();
-            }
-        }.bind(this)).catch(function(e) {
+        }).catch((e) => {
             console.log('Failed to handle assistant command: ' + e.message);
-        }).done();
+        });
     }
 
     _tryGetRemote() {
         if (this._remote !== null)
-            return Q(this._remote);
+            return Promise.resolve(this._remote);
         if (this._almondUser === null)
-            return Q(null);
+            return Promise.resolve(null);
 
         return this._engines.getEngine(this._almondUser.id).then((engine) => {
             this._engine = engine;
@@ -214,7 +211,7 @@ module.exports = class Conversation extends events.EventEmitter {
                     return;
                 }
 
-                Q.try(() => {
+                Promise.resolve().then(() => {
                     return this._tryGetRemote();
                 }).then(() => {
                     if (this._remote) {
@@ -226,9 +223,9 @@ module.exports = class Conversation extends events.EventEmitter {
                     } else {
                         return this._handleNoEngine();
                     }
-                }).catch(function(e) {
+                }).catch((e) => {
                     console.log('Failed to handle assistant picture: ' + e.message);
-                }).done();
+                });
             });
         }, 2000);
     }
@@ -261,7 +258,7 @@ module.exports = class Conversation extends events.EventEmitter {
     }
 
     start(newFeed) {
-        return Q.try(() => {
+        return Promise.resolve().then(() => {
             this.feed.on('incoming-message', this._newMessageListener);
             return this.feed.open();
         }).then(() => {
@@ -269,6 +266,8 @@ module.exports = class Conversation extends events.EventEmitter {
                 return this._tryGetRemote();
             else if (newFeed)
                 return this._startRegistration();
+            else
+                return Promise.resolve();
         });
     }
 
@@ -280,7 +279,7 @@ module.exports = class Conversation extends events.EventEmitter {
     destroy() {
         return this._messaging.leaveFeed(this.feed.feedId);
     }
-}
+};
 module.exports.prototype.$rpcMethods = ['send', 'sendPicture', 'sendRDL',
                                         'sendChoice', 'sendButton', 'sendLink',
                                         'sendAskSpecial'];

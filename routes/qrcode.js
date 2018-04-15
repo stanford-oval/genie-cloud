@@ -7,13 +7,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-const Q = require('q');
 const express = require('express');
 
-var router = express.Router();
+const router = express.Router();
 
-router.get('/qrcode-cloud/:cloud_id/:auth_token', function(req, res, next) {
+router.get('/qrcode-cloud/:cloud_id/:auth_token', (req, res, next) => {
     res.render('qrcode', { for_: 'cloud',
                            link: req.originalUrl,
                            authToken: req.params.auth_token,

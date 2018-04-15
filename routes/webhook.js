@@ -7,19 +7,19 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const express = require('express');
-const passport = require('passport');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
-router.post('/:user_id/:id', function(req, res) {
+router.post('/:user_id/:id', (req, res) => {
     EngineManager.get().dispatchWebhook(req, res);
 });
 
-router.get('/:user_id/:id', function(req, res) {
+router.get('/:user_id/:id', (req, res) => {
     EngineManager.get().dispatchWebhook(req, res);
 });
 

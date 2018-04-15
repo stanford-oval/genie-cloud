@@ -120,7 +120,7 @@ class EngineProcess extends events.EventEmitter {
     }
 
     waitReady() {
-        return Q(this._starting).then(() => this);
+        return Promise.resolve(this._starting).then(() => this);
     }
 
     send(msg, socket) {
@@ -229,18 +229,18 @@ class EngineManager extends events.EventEmitter {
 
     _findProcessForUser(user) {
         if (ENABLE_SHARED_PROCESS && user.developer_key === null && !user.force_separate_process) {
-            var process = this._rrproc[this._nextProcess];
+            const child = this._rrproc[this._nextProcess];
             this._nextProcess++;
             this._nextProcess = this._nextProcess % this._rrproc.length;
-            return process.waitReady();
+            return child.waitReady();
         } else {
-            var process = new EngineProcess(user.id, user.cloud_id);
-            this._processes[user.id] = process;
-            process.on('exit', function() {
-                if (this._processes[user.id] === process)
+            const child = new EngineProcess(user.id, user.cloud_id);
+            this._processes[user.id] = child;
+            child.on('exit', () => {
+                if (this._processes[user.id] === child)
                     delete this._processes[user.id];
-            }.bind(this));
-            return process.start().then(function() { return process; });
+            });
+            return child.start().then(() => child);
         }
     }
 
@@ -248,7 +248,7 @@ class EngineManager extends events.EventEmitter {
         var engines = this._engines;
         var obj = { cloudId: user.cloud_id, process: null, engine: null };
         engines[user.id] = obj;
-        var die = (function(manual) {
+        var die = (manual) => {
             if (engines[user.id] !== obj)
                 return;
             obj.process.removeListener('die', die);
@@ -260,31 +260,31 @@ class EngineManager extends events.EventEmitter {
             if (!manual && obj.process.shared) {
                 // if the process died, some user might have been killed as a side effect
                 // set timeout to restart the user 10 s in the future
-                setTimeout(function() {
+                setTimeout(() => {
                     this.restartUser(user.id);
-                }.bind(this), 10000);
+                }, 10000);
             }
-        }).bind(this);
-        var onRemoved = function(deadUserId) {
+        };
+        var onRemoved = (deadUserId) => {
             if (user.id !== deadUserId)
                 return;
 
             die(true);
-        }
+        };
 
-        return this._findProcessForUser(user).then((process) => {
+        return this._findProcessForUser(user).then((child) => {
             console.log('Running engine for user ' + user.id);
 
-            obj.process = process;
+            obj.process = child;
 
-            process.on('engine-removed', onRemoved);
-            process.on('exit', die);
+            child.on('engine-removed', onRemoved);
+            child.on('exit', die);
 
             if (Config.WITH_THINGPEDIA === 'embedded')
                 obj.thingpediaClient = new ThingpediaClient(user.developer_key, user.locale);
             else
                 obj.thingpediaClient = null;
-            return process.runEngine(user, obj.thingpediaClient);
+            return child.runEngine(user, obj.thingpediaClient);
         });
     }
 
@@ -321,7 +321,7 @@ class EngineManager extends events.EventEmitter {
             this._rrproc[i] = new EngineProcess('S' + i, null);
             this._rrproc[i].on('exit', function() {
                 let proc = this;
-                proc.restart(5000).done();
+                proc.restart(5000);
             });
             promises[i] = this._rrproc[i].start();
             this._processes['S' + i] = this._rrproc[i];
@@ -361,8 +361,8 @@ class EngineManager extends events.EventEmitter {
     killUser(userId) {
         let obj = this._engines[userId];
         if (!obj || obj.process === null)
-            return Q();
-        return Q(obj.process.killEngine(userId));
+            return Promise.resolve();
+        return Promise.resolve(obj.process.killEngine(userId));
     }
 
     deleteUser(userId) {

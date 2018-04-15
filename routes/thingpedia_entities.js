@@ -55,7 +55,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(), (req, res) =>
         if (!req.body.entity_name)
             throw new Error('Invalid entity name');
 
-        let [, prefix, suffix] = match;
+        let [, prefix, /*suffix*/] = match;
 
         return Promise.resolve().then(() => {
             if (req.user.developer_status < user.DeveloperStatus.ADMIN) {
@@ -65,7 +65,9 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(), (req, res) =>
                     console.log('err', e.message);
                     throw new Error('The prefix of the entity ID must correspond to the ID of a Thingpedia device owned by your organization');
                 });
-            } else return Promise.resolve();
+            } else {
+                return Promise.resolve();
+            }
         }).then(() => {
             return model.create(dbClient, {
                 name: req.body.entity_name,

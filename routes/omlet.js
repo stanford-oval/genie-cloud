@@ -7,19 +7,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-const Q = require('q');
 const express = require('express');
-const jade = require('jade');
-const crypto = require('crypto');
+const router = express.Router();
 
-const user = require('../util/user');
-const model = require('../model/user');
-const db = require('../util/db');
-
-var router = express.Router();
-
-router.get('/register', function(req, res) {
+router.get('/register', (req, res) => {
     if (req.user) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
                               error: req._("You are already registered for Thingpedia") });

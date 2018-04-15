@@ -10,7 +10,6 @@
 "use strict";
 
 const Q = require('q');
-const Url = require('url');
 
 const Messaging = require('./messaging');
 const OmletFactory = require('./omlet');
@@ -61,18 +60,18 @@ module.exports = class AssistantDispatcher {
     }
 
     _makeConversationForAccount(feed, user, almondUser, newFeed) {
-        return this._conversations[feed.feedId] = Q.delay(500).then(function() {
+        return this._conversations[feed.feedId] = Q.delay(500).then(() => {
             var conv = new Conversation(feed, user, this._messaging, this._engines, almondUser);
             if (!almondUser) {
                 conv.on('registered', () => {
                     this._addConversationToUser(conv, conv.userId);
                 });
             }
-            return conv.start(newFeed).then(function() {
+            return conv.start(newFeed).then(() => {
                 this._addConversationToUser(conv, conv.userId);
                 return conv;
-            }.bind(this));
-        }.bind(this)).catch(function(e) {
+            });
+        }).catch((e) => {
             console.error('Failed to start conversation on feed ' + feed.feedId);
             console.error(e.stack);
         });
@@ -82,16 +81,17 @@ module.exports = class AssistantDispatcher {
         if (this._conversations[feedId]) {
             var conv = this._conversations[feedId];
             delete this._conversations[feedId];
-            return Q(conv).then(function(conv) {
+            return Promise.resolve(conv).then((conv) => {
                 this._removeConversationFromUser(conv, conv.userId);
                 return conv.stop();
             });
         }
+        return Promise.resolve();
     }
 
     _makeConversation(feedId, newFeed) {
         var feed = this._messaging.getFeed(feedId);
-        return feed.open().then(function() {
+        return feed.open().then(() => {
             var members = feed.getMembers();
             if (members.length < 2) {
                 console.log('Ignored feed ' + feedId);
@@ -103,7 +103,7 @@ module.exports = class AssistantDispatcher {
                 return this._rejectConversation(feedId);
             }
             if (this._conversations[feedId])
-                return;
+                return Promise.resolve();
 
             var user = members[1];
             console.log('Found conversation with account ' + user.account);
@@ -111,18 +111,17 @@ module.exports = class AssistantDispatcher {
             return db.withClient((dbClient) => {
                 return userModel.getByOmletAccount(dbClient, user.account);
             }).then((rows) => {
-                if (rows.length > 0) {
+                if (rows.length > 0)
                     return rows[0];
-                } else {
+                else
                     return null;
-                }
             }).then((almondUser) => {
                 if (almondUser)
                     return this._makeConversationForAccount(feed, user, almondUser, false);
                 else
                     return this._makeConversationForAccount(feed, user, null, newFeed);
             });
-        }.bind(this)).finally(function() {
+        }).finally(() => {
             return feed.close();
         });
     }
@@ -141,10 +140,10 @@ module.exports = class AssistantDispatcher {
         var conv = this._conversations[feedId];
         delete this._conversations[feedId];
         if (conv) {
-            Q(conv).then(function(conv) {
+            Promise.resolve(conv).then((conv) => {
                 this._removeConversationFromUser(conv, conv.userId);
                 return conv.stop();
-            }.bind(this)).done();
+            }).done();
         }
     }
 
@@ -156,22 +155,22 @@ module.exports = class AssistantDispatcher {
         this._client = OmletFactory();
         this._client.connect();
         this._messaging = new Messaging(this._client);
-        return this._messaging.start().then(function() {
+        return this._messaging.start().then(() => {
             return this._messaging.getFeedList();
-        }.bind(this)).then(function(feeds) {
+        }).then((feeds) => {
             this._messaging.on('feed-added', this._feedAddedListener);
             this._messaging.on('feed-changed', this._feedChangedListener);
             this._messaging.on('feed-removed', this._feedRemovedListener);
-            return Q.all(feeds.map(function(f) {
+            return Promise.all(feeds.map((f) => {
                 this._initialFeeds[f] = true;
                 return this._makeConversation(f, false);
-            }, this));
-        }.bind(this));
+            }));
+        });
     }
 
     stop() {
         if (!this._client)
-            return Q();
+            return Promise.resolve();
         this._client.disable();
 
         this._messaging.removeListener('feed-added', this._feedAddedListener);
@@ -180,23 +179,22 @@ module.exports = class AssistantDispatcher {
 
         var promises = [];
         for (var feedId in this._conversations)
-            promises.push(Q(this._conversations[feedId]).then(function(conv) { return conv.stop(); }));
+            promises.push(Promise.resolve(this._conversations[feedId]).then((conv) => conv.stop()));
         this._conversations = {};
 
-        return Q.all(promises);
+        return Promise.all(promises);
     }
 
     getOrCreateFeedForUser(omletId) {
-        return this._messaging.addAccountToContacts(omletId)
-            .then(function() {
-                // this will trigger feed-added which will go through to _makeConversation
-                return this._messaging.getFeedWithContact(omletId);
-            }.bind(this));
+        return this._messaging.addAccountToContacts(omletId).then(() => {
+            // this will trigger feed-added which will go through to _makeConversation
+            return this._messaging.getFeedWithContact(omletId);
+        });
     }
 
     removeEngine(userId) {
         var conversations = this._conversationsByUserId[userId] || [];
-        conversations.forEach(function(conv) {
+        conversations.forEach((conv) => {
             conv.removeEngine();
         });
     }
@@ -204,4 +202,4 @@ module.exports = class AssistantDispatcher {
     static get() {
         return instance_;
     }
-}
+};

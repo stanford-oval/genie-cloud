@@ -9,11 +9,8 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const fs = require('fs');
 const Omlib = require('omlib');
-
-const Messaging = require('./messaging');
 
 const API_KEY = '00109b1ea59d9f46d571834870f0168b5ed20005871d8752ff';
 const API_SECRET = 'bccb852856c462e748193d6211c730199d62adcf0ba963416fcc715a2db4d76f';

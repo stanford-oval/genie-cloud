@@ -7,13 +7,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-const Q = require('q');
 const express = require('express');
-const crypto = require('crypto');
-const passport = require('passport');
-
-const Config = require('../config');
 
 const db = require('../util/db');
 const userModel = require('../model/user');
@@ -54,19 +50,18 @@ class WebsocketDelegate {
 }
 WebsocketDelegate.prototype.$rpcMethods = ['ping', 'pong', 'terminate', 'send'];
 
-router.ws('/:cloud_id', function(ws, req) {
+router.ws('/:cloud_id', (ws, req) => {
     db.withClient((dbClient) => {
         return userModel.getByCloudId(dbClient, req.params.cloud_id);
     }).then((rows) => {
         if (rows.length === 0)
             throw new Error('Invalid user');
 
-        return Q.all([rows[0].id, EngineManager.get().getEngine(rows[0].id)]);
-    }).then(function([id, engine]) {
+        return Promise.all([rows[0].id, EngineManager.get().getEngine(rows[0].id)]);
+    }).then(([id, engine]) => {
         const onclosed = (userId) => {
-            if (userId === id) {
+            if (userId === id)
                 ws.close();
-            }
             EngineManager.get().removeListener('socket-closed', onclosed);
         };
         EngineManager.get().on('socket-closed', onclosed);

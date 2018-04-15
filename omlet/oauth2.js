@@ -18,17 +18,17 @@ module.exports = {
     phase1(req, res) {
         var client = OmletFactory();
 
-        return Q.try(function() {
+        return Q.try(() => {
             client.connect();
 
             return Q.ninvoke(client._ldClient.auth, 'getAuthPage',
                              platform.getOrigin() + '/admin/assistant-setup/callback',
                              ['PublicProfile', 'OmletChat']);
-        }).then(function(resp) {
+        }).then((resp) => {
             var parsed = Url.parse(resp.Link, true);
             req.session['omlet-query-key'] = parsed.query.k;
             res.redirect(resp.Link);
-        }).finally(function() {
+        }).finally(() => {
             return client.disable();
         });
     },
@@ -39,13 +39,17 @@ module.exports = {
         var code = req.query.code;
         var key = req.session['omlet-query-key'];
 
-        return Q.Promise(function(callback, errback) {
+        return new Promise((callback, errback) => {
             client.connect();
 
             client._ldClient.onSignedUp = callback;
             client._ldClient.auth.confirmAuth(code, key);
-        }).finally(function() {
+        }).then((res) => {
             client.disable();
+            return res;
+        }, (e) => {
+            client.disable();
+            throw e;
         });
     }
-}
+};

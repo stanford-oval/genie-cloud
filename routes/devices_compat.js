@@ -7,10 +7,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-const Q = require('q');
 const express = require('express');
-const passport = require('passport');
 
 const db = require('../util/db');
 const model = require('../model/user');
@@ -20,9 +19,9 @@ const EngineManager = require('../almond/enginemanagerclient');
 var router = express.Router();
 
 // special case omlet to store the omlet ID
-router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, function(req, res, next) {
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        return engine.devices.factory.then(function(devFactory) {
+router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, (req, res, next) => {
+    EngineManager.get().getEngine(req.user.id).then((engine) => {
+        return engine.devices.factory.then((devFactory) => {
             var saneReq = {
                 httpVersion: req.httpVersion,
                 url: req.url,
@@ -34,33 +33,33 @@ router.get('/oauth2/callback/org.thingpedia.builtin.omlet', user.redirectLogIn, 
                 session: req.session,
             };
             return devFactory.runOAuth2('org.thingpedia.builtin.omlet', saneReq);
-        }).then(function() {
+        }).then(() => {
             return engine.messaging.account;
         });
-    }).then(function(omletId) {
-        return db.withTransaction(function(dbClient) {
+    }).then((omletId) => {
+        return db.withTransaction((dbClient) => {
             return model.update(dbClient, req.user.id, { omlet_id: omletId });
         });
-    }).then(function() {
+    }).then(() => {
         if (req.session['device-redirect-to']) {
             res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];
         } else {
             res.redirect(303, '/me');
         }
-    }).catch(function(e) {
+    }).catch((e) => {
         console.log(e.stack);
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
 
-router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next) {
-    var kind = req.params.kind;
+router.get('/oauth2/callback/:kind', user.redirectLogIn, (req, res, next) => {
+    const kind = req.params.kind;
 
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
+    EngineManager.get().getEngine(req.user.id).then((engine) => {
         return engine.devices.factory;
-    }).then(function(devFactory) {
+    }).then((devFactory) => {
         var saneReq = {
             httpVersion: req.httpVersion,
             url: req.url,
@@ -72,14 +71,14 @@ router.get('/oauth2/callback/:kind', user.redirectLogIn, function(req, res, next
             session: req.session,
         };
         return devFactory.runOAuth2(kind, saneReq);
-    }).then(function() {
+    }).then(() => {
         if (req.session['device-redirect-to']) {
             res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];
         } else {
             res.redirect(303, '/me');
         }
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();

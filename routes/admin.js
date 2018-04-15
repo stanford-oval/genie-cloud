@@ -16,7 +16,6 @@ const crypto = require('crypto');
 const user = require('../util/user');
 const model = require('../model/user');
 const organization = require('../model/organization');
-const snapshot = require('../model/snapshot');
 const device = require('../model/device');
 const db = require('../util/db');
 const TrainingServer = require('../util/training_server');

@@ -7,6 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const fs = require('fs');
 const Q = require('q');
@@ -22,29 +23,29 @@ if (Config.S3_CLOUDFRONT_HOST.endsWith('cloudfront.net')) {
                         logger: process.stdout });
 
     _backend = {
-        storeIcon: function(blob, name) {
+        storeIcon(blob, name) {
             var s3 = new AWS.S3();
             var upload = s3.upload({ Bucket: 'thingpedia2',
                                      Key: 'icons/' + name + '.png',
                                      Body: blob,
                                      ContentType: 'image/png' });
-            return Q.ninvoke(upload, 'send').then(function() {
+            return Q.ninvoke(upload, 'send').then(() => {
                 console.log('Successfully uploading png file to S3 for ' + name);
             });
         },
-        downloadZipFile: function(name, version) {
+        downloadZipFile(name, version) {
             var s3 = new AWS.S3();
             var download = s3.getObject({ Bucket: 'thingpedia2',
                                           Key: 'devices/' + name + '-v' + version + '.zip' });
             return download.createReadStream();
         },
-        storeZipFile: function(blob, name, version) {
+        storeZipFile(blob, name, version) {
             var s3 = new AWS.S3();
             var upload = s3.upload({ Bucket: 'thingpedia2',
                                      Key: 'devices/' + name + '-v' + version + '.zip',
                                      Body: blob,
                                      ContentType: 'application/zip' });
-            return Q.ninvoke(upload, 'send').then(function() {
+            return Q.ninvoke(upload, 'send').then(() => {
                 console.log('Successfully uploaded zip file to S3 for ' +
                             name + ' v' + version);
             });
@@ -52,29 +53,29 @@ if (Config.S3_CLOUDFRONT_HOST.endsWith('cloudfront.net')) {
     };
 } else if (Config.S3_CLOUDFRONT_HOST === '/download') {
     _backend = {
-        storeIcon: function(blob, name) {
+        storeIcon(blob, name) {
             let output = fs.createWriteStream(platform.getWritableDir() + '/icons/' + name + '.png');
             if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
                 output.end(blob);
             else
                 blob.pipe(output);
-            return Q.Promise(function(callback, errback) {
+            return new Promise((callback, errback) => {
                 output.on('finish', callback);
                 output.on('error', errback);
             });
         },
-        downloadZipFile: function(name, version) {
+        downloadZipFile(name, version) {
             let filename = platform.getWritableDir() + '/devices/' + name + '-v' + version + '.zip';
             return fs.createReadStream(filename);
         },
-        storeZipFile: function(blob, name, version) {
+        storeZipFile(blob, name, version) {
             let filename = platform.getWritableDir() + '/devices/' + name + '-v' + version + '.zip';
             let output = fs.createWriteStream(filename);
             if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
                 output.end(blob);
             else
                 blob.pipe(output);
-            return Q.Promise(function(callback, errback) {
+            return new Promise((callback, errback) => {
                 output.on('finish', callback);
                 output.on('error', errback);
             });
