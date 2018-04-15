@@ -249,6 +249,14 @@ Frontend.prototype._init = function _init() {
     this._app.use('/admin', require('./routes/admin'));
     this._app.use('/omlet', require('./routes/omlet'));
 
+    this._app.use((req, res) => {
+        // if we get here, we have a 404 response
+        res.status(404).render('error', {
+            page_title: req._("Almond - Page Not Found"),
+            message: req._("The requested page does not exist")
+        });
+    });
+
     this._websocketEndpoints = {};
 };
 
