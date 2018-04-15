@@ -264,7 +264,7 @@ module.exports = class ThingpediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return device.getApprovedByGlobalNamesWithCode(dbClient, kinds, org);
+                return device.getApprovedByKindsWithCode(dbClient, kinds, org);
             }).then((devices) => {
                 devices.forEach((d) => {
                     try {

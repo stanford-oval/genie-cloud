@@ -7,27 +7,20 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const db = require('../util/db');
-const Q = require('q');
 
 function create(client, snapshot) {
-    var KEYS = ['description','date'];
-    KEYS.forEach(function(key) {
-        if (snapshot[key] === undefined)
-            snapshot[key] = null;
-    });
-    snapshot['date'] = new Date;
-    var vals = KEYS.map(function(key) {
-        return snapshot[key];
-    });
-    var marks = KEYS.map(function() { return '?'; });
+    snapshot.date = new Date;
 
-    return db.insertOne(client, 'insert into snapshot(' + KEYS.join(',') + ') values (' + marks.join(',') + ')', vals).then((id) => {
+    return db.insertOne(client, 'insert into snapshot set ?', [snapshot]).then((id) => {
         snapshot.id = id;
-        return Q.all([db.query(client, 'insert into device_schema_snapshot select ?,device_schema.* from device_schema', [id]),
-                      db.query(client, 'insert into entity_names_snapshot select ?,entity_names.* from entity_names', [id])]).then(() => snapshot);
-    });
+        return Promise.all([
+            db.query(client, 'insert into device_schema_snapshot select ?,device_schema.* from device_schema', [id]),
+            db.query(client, 'insert into entity_names_snapshot select ?,entity_names.* from entity_names', [id])
+        ]);
+    }).then(() => snapshot);
 }
 
 module.exports = {
@@ -41,4 +34,4 @@ module.exports = {
             return db.selectAll(client, "select * from snapshot order by snapshot_id asc");
         }
     },
-}
+};
