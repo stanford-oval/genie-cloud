@@ -26,6 +26,8 @@ const model = require('../model/oauth2');
 const user = require('../util/user');
 const db = require('../util/db');
 const code_storage = require('../util/code_storage');
+const graphics = require('../almond/graphics');
+const platform = require('../util/platform');
 
 var router = express.Router();
 
@@ -151,8 +153,7 @@ function uploadIcon(clientId, req) {
     if (req.files.icon && req.files.icon.length) {
         // upload the icon asynchronously to avoid blocking the request
         Promise.resolve().then(() => {
-            const graphicsApi = platform.getCapability('graphics-api');
-            const image = graphicsApi.createImageFromPath(req.files.icon[0].path);
+            const image = graphics.createImageFromPath(req.files.icon[0].path);
             image.resizeFit(512, 512);
             return image.stream('png');
         }).then(([stdout, stderr]) => {

@@ -16,6 +16,8 @@ const fs = require('fs');
 const tmpfile = require('tmp');
 const crypto = require('crypto');
 
+const platform = require('./platform');
+
 let _instance;
 let CACHE_DIR;
 

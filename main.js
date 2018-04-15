@@ -23,6 +23,8 @@ if (Config.WITH_THINGPEDIA !== 'embedded' && Config.WITH_THINGPEDIA !== 'externa
 const Frontend = require('./frontend');
 const EngineManager = require('./almond/enginemanagerclient');
 
+const platform = require('./util/platform');
+
 function dropCaps() {
     if (process.getuid() === 0) {
         process.initgroups('thingengine', 'thingengine');
@@ -37,12 +39,11 @@ var _enginemanager;
 function handleSignal() {
     _frontend.close().then(() => {
         _enginemanager.stop();
-        platform.exit();
-    }).done();
+        process.exit();
+    });
 }
 
 function main() {
-    global.platform = require('./platform');
     platform.init();
 
     _frontend = new Frontend();
@@ -57,6 +58,6 @@ function main() {
 
         _enginemanager = new EngineManager();
         _enginemanager.start();
-    }).done();
+    });
 }
 main();

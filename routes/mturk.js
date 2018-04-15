@@ -19,6 +19,7 @@ const multer = require('multer');
 const csurf = require('csurf');
 
 const user = require('../util/user');
+const platform = require('../util/platform');
 const model = require('../model/mturk');
 const example = require('../model/example');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');

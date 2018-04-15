@@ -17,17 +17,19 @@ const csurf = require('csurf');
 const JSZip = require('jszip');
 const ThingTalk = require('thingtalk');
 
-var db = require('../util/db');
-var code_storage = require('../util/code_storage');
-var model = require('../model/device');
-var schema = require('../model/schema');
-var user = require('../util/user');
-var exampleModel = require('../model/example');
-var entityModel = require('../model/entity');
-var Validation = require('../util/validation');
-var ManifestToSchema = require('../util/manifest_to_schema');
-var TrainingServer = require('../util/training_server');
-var tokenizer = require('../util/tokenize');
+const db = require('../util/db');
+const code_storage = require('../util/code_storage');
+const model = require('../model/device');
+const schema = require('../model/schema');
+const user = require('../util/user');
+const exampleModel = require('../model/example');
+const entityModel = require('../model/entity');
+const Validation = require('../util/validation');
+const ManifestToSchema = require('../util/manifest_to_schema');
+const TrainingServer = require('../util/training_server');
+const tokenizer = require('../util/tokenize');
+const graphics = require('../almond/graphics');
+const platform = require('../util/platform');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -431,8 +433,7 @@ function doCreateOrUpdate(id, create, req, res) {
                     // upload the icon asynchronously to avoid blocking the request
                     setTimeout(() => {
                         Promise.resolve().then(() => {
-                            var graphicsApi = platform.getCapability('graphics-api');
-                            var image = graphicsApi.createImageFromPath(req.files.icon[0].path);
+                            var image = graphics.createImageFromPath(req.files.icon[0].path);
                             image.resizeFit(512, 512);
                             return image.stream('png');
                         }).then(([stdout, stderr]) => {

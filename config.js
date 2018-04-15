@@ -29,6 +29,11 @@ module.exports.THINGPEDIA_URL = '';
 // headers)
 module.exports.IS_PRODUCTION_THINGPEDIA = false;
 
+// the base URL used for OAuth redirects, to support Login With Google
+// the full OAuth redirect URI for Google is
+// OAUTH_REDIRECT_ORIGIN + /user/oauth2/google/callback
+module.exports.OAUTH_REDIRECT_ORIGIN = 'https://thingengine.stanford.edu';
+
 module.exports.SEMPRE_URL = 'https://almond-nl.stanford.edu';
 
 // set to true to let users try out Almond without logging in

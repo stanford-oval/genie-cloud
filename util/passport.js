@@ -24,7 +24,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 var GOOGLE_CLIENT_ID = '739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com';
 
-const { GOOGLE_CLIENT_SECRET } = require('../config');
+const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_SECRET } = require('../config');
 
 function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
@@ -150,7 +150,7 @@ exports.initialize = function() {
     passport.use(new GoogleOAuthStrategy({
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: platform.getOrigin() + '/user/oauth2/google/callback',
+        callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/google/callback',
         passReqToCallback: true,
     }, (req, accessToken, refreshToken, profile, done) => {
         if (!req.user) {

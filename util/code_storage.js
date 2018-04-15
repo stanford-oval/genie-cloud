@@ -13,6 +13,7 @@ const fs = require('fs');
 const Q = require('q');
 
 const Config = require('../config');
+const platform = require('./platform');
 
 let _backend;
 
