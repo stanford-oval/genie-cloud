@@ -127,10 +127,6 @@ exports.initialize = function() {
 
     passport.use(new BasicStrategy(verifyCloudIdAuthToken));
 
-    passport.use('local-omlet',
-        new LocalStrategy({ usernameField: 'cloudId', passwordField: 'authToken' },
-        verifyCloudIdAuthToken));
-
     passport.use(new LocalStrategy((username, password, done) => {
         db.withClient((dbClient) => {
             return model.getByName(dbClient, username).then((rows) => {

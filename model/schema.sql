@@ -14,7 +14,6 @@ create table users (
     locale char(15) not null default 'en-US',
     timezone varchar(64) not null default 'America/Los_Angeles',
     google_id varchar(255) unique default null,
-    omlet_id varchar(255) unique default null,
     password char(64) default null,
     salt char(64) default null,
     cloud_id char(64) unique not null,

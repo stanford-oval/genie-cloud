@@ -247,7 +247,6 @@ Frontend.prototype._init = function _init() {
     }
     this._app.use('/user', require('./routes/user'));
     this._app.use('/admin', require('./routes/admin'));
-    this._app.use('/omlet', require('./routes/omlet'));
 
     this._app.use((req, res) => {
         // if we get here, we have a 404 response

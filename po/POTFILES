@@ -21,7 +21,6 @@ routes/index.js
 routes/my_api.js
 routes/my_stuff.js
 routes/oauth2.js
-routes/omlet.js
 routes/qrcode.js
 routes/status.js
 routes/thingengine_ws.js

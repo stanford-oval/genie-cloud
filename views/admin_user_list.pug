@@ -35,7 +35,6 @@ block content
         th= _("Locale")
         th= _("Timezone")
         th= _("Roles")
-        th= _("Omlet?")
         th= _("Engine?")
         th(colspan=2)= _("Actions")
     tbody
@@ -75,12 +74,6 @@ block content
                 a(href='/admin/organizations/details/' + user.developer_org)= _("Tester")
             else
               span(title=user.developer_key)= _("User")
-          td
-            if user.omlet_id !== null
-              span.sr-only= user.omlet_id
-              span(aria-hidden='yes', title=user.omlet_id)= _("Yes")
-            else
-              = _("No")
           td
             if user.isRunning
               span(title=user.engineId)= _("Running")

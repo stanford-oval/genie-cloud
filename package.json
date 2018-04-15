@@ -15,7 +15,7 @@
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
     "update-bundle": "browserify -o public/javascripts/trainer-bundle.js browser/trainer.js",
     "update-docs": "for f in doc/*.md ; do sed \"s|@@DOC@@|$f|\" views/doc_base.pug > views/doc_$(basename \"$f\" .md ).pug ; done",
-    "lint": "eslint almond/ browser/ model/ omlet/ routes/ util/"
+    "lint": "eslint almond/ browser/ model/ routes/ util/"
   },
   "dependencies": {
     "accept-language": "^2.0.17",
@@ -49,7 +49,6 @@
     "node-gettext": "^2.0.0",
     "nodemailer": "~4.6.2",
     "oauth2orize": "~1.0.1",
-    "omlib": "github:Stanford-Mobisocial-IoT-Lab/omclient",
     "passport": "~0.3.0",
     "passport-google-oauth": "~0.2.0",
     "passport-http": "~0.3.0",

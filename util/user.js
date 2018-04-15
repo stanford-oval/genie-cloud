@@ -64,29 +64,6 @@ module.exports = {
         });
     },
 
-    registerWithOmlet(dbClient, options) {
-        return model.getByName(dbClient, options.username).then((rows) => {
-            if (rows.length > 0)
-                throw new Error("An user with this name already exists");
-
-            var cloudId = makeRandom();
-            var authToken = makeRandom();
-            var storageKey = makeRandom();
-            return model.create(dbClient, {
-                username: options.username,
-                password: options['password-hash'],
-                email: options.email,
-                locale: options.locale,
-                timezone: options.timezone,
-                salt: options.salt,
-                cloud_id: cloudId,
-                auth_token: authToken,
-                omlet_id: options.account,
-                storage_key: storageKey,
-            });
-        });
-    },
-
     update(dbClient, user, oldpassword, password) {
         return Q.try(() => {
             if (user.salt && user.password) {
