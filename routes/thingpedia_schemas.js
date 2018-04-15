@@ -350,24 +350,49 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res
                 if (d.kind_type !== 'other')
                     throw new Error(req._("Only non-device and non-app specific types can be modified from this page. Upload a new interface package to modify a device type"));
 
-                return model.getTypesAndMeta(dbClient, req.params.id, d.developer_version).then((row) => {
-                    d.types = JSON.parse(row.types);
-                    d.meta = JSON.parse(row.meta);
-                    return d;
-                });
-            }).then((d) => {
-                return exampleModel.getBaseBySchema(dbClient, req.params.id, 'en').then((examples) => {
-                    var ast = ManifestToSchema.toManifest(d.types, d.meta);
-                    migrateManifest(ast, examples, d.kind);
-
-                    d.code = JSON.stringify(ast);
-                    res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Edit type"),
-                                                           csrfToken: req.csrfToken(),
-                                                           id: req.params.id,
-                                                           schema: d,
-                                                           create: false });
-                });
+                return Promise.all([
+                    d,
+                    model.getMetasByKindAtVersion(dbClient, d.kind, d.developer_version, 'en'),
+                    exampleModel.getBaseBySchema(dbClient, req.params.id, 'en')
+                ]);
             });
+        }).then(([d, [meta], examples]) => {
+            let ast = {
+            };
+            for (let what of ['triggers', 'queries', 'actions']) {
+                ast[what] = {};
+                for (let name in meta[what]) {
+                    let argnames = meta[what][name].args;
+                    let questions = meta[what][name].questions || [];
+                    let argrequired = meta[what][name].required || [];
+                    var argisinput = meta[what][name].is_input || [];
+                    let args = [];
+                    meta[what][name].schema.forEach((type, i) => {
+                        args.push({
+                            type: type,
+                            name: argnames[i],
+                            question: questions[i] || '',
+                            required: argrequired[i] || false,
+                            is_input: argisinput[i] || false,
+                        });
+                    });
+                    ast[what][name] = {
+                        args: args,
+                        doc: meta[what][name].doc || '',
+                        confirmation: meta[what][name].confirmation || '',
+                        confirmation_remote: meta[what][name].confirmation_remote || '',
+                        canonical: meta[what][name].canonical || ''
+                    };
+                }
+            }
+            migrateManifest(ast, examples, d.kind);
+
+            d.code = JSON.stringify(ast);
+            res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Edit type"),
+                                                   csrfToken: req.csrfToken(),
+                                                   id: req.params.id,
+                                                   schema: d,
+                                                   create: false });
         });
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),

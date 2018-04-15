@@ -231,12 +231,6 @@ module.exports = {
         return db.selectOne(client, "select * from device_schema where id = ?", [id]);
     },
 
-    getAll(client) {
-        return db.selectAll(client, "select types, meta, ds.* from device_schema ds, "
-                            + "device_schema_version dsv where ds.id = dsv.schema_id "
-                            + "and ds.developer_version = dsv.version order by id");
-    },
-
     getCurrentSnapshotTypes(client) {
         return db.selectAll(client, "select name, types, argnames, required, is_input, channel_type, kind, kind_type from device_schema ds"
                              + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
@@ -357,16 +351,6 @@ module.exports = {
                                     [kinds]);
             }
         }).then(processTypeRows);
-    },
-
-    getTypesAndMeta: function(client, id, version) {
-        return db.selectOne(client, "select types, meta from device_schema_version "
-            + "where schema_id = ? and version = ?", [id, version]);
-    },
-
-    getTypesAndMetaByKind: function(client, kind) {
-        return db.selectOne(client, "select types, meta from device_schema ds, device_schema_version dsv "
-            + "where dsv.schema_id = ds.id and ds.kind = ? and dsv.version = ds.developer_version", [kind]);
     },
 
     getMetasByKinds: function(client, kinds, org, language) {
