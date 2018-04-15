@@ -18,8 +18,6 @@ const model = require('../model/user');
 const db = require('../util/db');
 const SendMail = require('../util/sendmail');
 
-var TITLE = "Thingpedia";
-
 const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
@@ -27,26 +25,25 @@ var router = express.Router();
 router.get('/oauth2/google', passport.authenticate('google', {
     scope: user.GOOGLE_SCOPES,
 }));
-router.get('/oauth2/google/callback', passport.authenticate('google'),
-           function(req, res, next) {
-               if (req.user.newly_created) {
-                   req.user.newly_created = false;
-                   res.locals.authenticated = true;
-                   res.locals.user = user;
-                   res.render('register_success', {
-                       page_title: req._("Thingpedia - Registration Successful"),
-                       username: req.user.username,
-                       cloudId: req.user.cloud_id,
-                       authToken: req.user.auth_token });
-               } else {
-                   // Redirection back to the original page
-                   var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
-                   delete req.session.redirect_to;
-                   res.redirect(303, redirect_to);
-               }
-           });
+router.get('/oauth2/google/callback', passport.authenticate('google'), (req, res, next) => {
+   if (req.user.newly_created) {
+       req.user.newly_created = false;
+       res.locals.authenticated = true;
+       res.locals.user = user;
+       res.render('register_success', {
+           page_title: req._("Thingpedia - Registration Successful"),
+           username: req.user.username,
+           cloudId: req.user.cloud_id,
+           authToken: req.user.auth_token });
+   } else {
+       // Redirection back to the original page
+       var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+       delete req.session.redirect_to;
+       res.redirect(303, redirect_to);
+   }
+});
 
-router.get('/login', function(req, res, next) {
+router.get('/login', (req, res, next) => {
     req.logout();
     res.render('login', {
         csrfToken: req.csrfToken(),
@@ -57,16 +54,15 @@ router.get('/login', function(req, res, next) {
 
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/user/login',
-                                                       failureFlash: true }),
-            function(req, res, next) {
-                // Redirection back to the original page
-                var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
-                delete req.session.redirect_to;
-                res.redirect(303, redirect_to);
-            });
+                                                       failureFlash: true }), (req, res, next) => {
+    // Redirection back to the original page
+    var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+    delete req.session.redirect_to;
+    res.redirect(303, redirect_to);
+});
 
 
-router.get('/register', function(req, res, next) {
+router.get('/register', (req, res, next) => {
     res.render('register', {
         csrfToken: req.csrfToken(),
         page_title: req._("Thingpedia - Register")
@@ -74,16 +70,16 @@ router.get('/register', function(req, res, next) {
 });
 
 
-router.post('/register', function(req, res, next) {
+router.post('/register', (req, res, next) => {
     var options = {};
     try {
         if (typeof req.body['username'] !== 'string' ||
-            req.body['username'].length == 0 ||
+            req.body['username'].length === 0 ||
             req.body['username'].length > 255)
             throw new Error(req._("You must specify a valid username"));
         options.username = req.body['username'];
         if (typeof req.body['email'] !== 'string' ||
-            req.body['email'].length == 0 ||
+            req.body['email'].length === 0 ||
             req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
             throw new Error(req._("You must specify a valid email"));
@@ -117,14 +113,14 @@ router.post('/register', function(req, res, next) {
         return;
     }
 
-    return Q.try(() => {
-        return db.withTransaction(function(dbClient) {
+    Promise.resolve().then(() => {
+        return db.withTransaction((dbClient) => {
             return user.register(dbClient, req, options).then((user) => {
                 return Q.ninvoke(req, 'login', user).then(() => user);
             });
-        }).then(function(user) {
+        }).then((user) => {
             return EngineManager.get().startUser(user.id).then(() => user);
-        }).then(function(user) {
+        }).then((user) => {
             res.locals.authenticated = true;
             res.locals.user = user;
             res.render('register_success', {
@@ -133,27 +129,27 @@ router.post('/register', function(req, res, next) {
                 cloudId: user.cloud_id,
                 authToken: user.auth_token });
         });
-    }).catch(function(error) {
+    }).catch((error) => {
         res.render('register', {
             csrfToken: req.csrfToken(),
             page_title: req._("Thingpedia - Register"),
             error: error });
-    }).done();
+    });
 });
 
 
-router.get('/logout', function(req, res, next) {
+router.get('/logout', (req, res, next) => {
     req.logout();
     res.redirect(303, '/');
 });
 
 function getProfile(req, res, pwError, profileError) {
-    return EngineManager.get().getEngine(req.user.id).then(function(engine) {
+    return EngineManager.get().getEngine(req.user.id).then((engine) => {
         return Promise.all([engine.devices.getDevice('thingengine-own-phone'),
                             engine.devices.getDevice('thingengine-own-desktop')]);
-    }).then(function([phone, desktop]) {
+    }).then(([phone, desktop]) => {
         return Promise.all([phone ? phone.state : undefined, desktop ? desktop.state : undefined]);
-    }).then(function([phoneState, desktopState]) {
+    }).then(([phoneState, desktopState]) => {
         var phone;
         if (phoneState) {
             phone = {
@@ -164,7 +160,7 @@ function getProfile(req, res, pwError, profileError) {
                 isConfigured: false,
                 qrcodeTarget: 'https://thingengine.stanford.edu/qrcode-cloud/' + req.user.cloud_id + '/'
                     + req.user.auth_token
-            }
+            };
         }
         var desktop;
         if (desktopState) {
@@ -174,7 +170,7 @@ function getProfile(req, res, pwError, profileError) {
         } else {
             desktop = {
                 isConfigured: false,
-            }
+            };
         }
 
         res.render('user_profile', { page_title: req._("Thingpedia - User Profile"),
@@ -182,39 +178,39 @@ function getProfile(req, res, pwError, profileError) {
                                      pw_error: pwError,
                                      profile_error: profileError,
                                      phone: phone, desktop: desktop });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     });
 }
 
-router.get('/profile', user.redirectLogIn, function(req, res, next) {
+router.get('/profile', user.redirectLogIn, (req, res, next) => {
     getProfile(req, res, undefined, undefined).done();
 });
 
-router.post('/profile', user.requireLogIn, function(req, res, next) {
-    return db.withTransaction(function(dbClient) {
+router.post('/profile', user.requireLogIn, (req, res, next) => {
+    return db.withTransaction((dbClient) => {
         if (typeof req.body.username !== 'string' ||
-            req.body.username.length == 0 ||
+            req.body.username.length === 0 ||
             req.body.username.length > 255)
             req.body.username = req.user.username;
 
         return model.update(dbClient, req.user.id,
                             { username: req.body.username,
                               human_name: req.body.human_name });
-    }).then(function() {
+    }).then(() => {
         req.user.username = req.body.username;
         req.user.human_name = req.body.human_name;
-    }).then(function() {
+    }).then(() => {
         return getProfile(req, res, undefined, undefined);
-    }).catch(function(error) {
+    }).catch((error) => {
         return getProfile(req, res, undefined, error);
     }).done();
 });
 
-router.post('/change-password', user.requireLogIn, function(req, res, next) {
-    var username, password, oldpassword;
-    Q.try(function() {
+router.post('/change-password', user.requireLogIn, (req, res, next) => {
+    var password, oldpassword;
+    Promise.resolve().then(() => {
         if (typeof req.body['password'] !== 'string' ||
             req.body['password'].length < 8 ||
             req.body['password'].length > 255)
@@ -230,55 +226,28 @@ router.post('/change-password', user.requireLogIn, function(req, res, next) {
             oldpassword = req.body['old_password'];
         }
 
-        return db.withTransaction(function(dbClient) {
+        return db.withTransaction((dbClient) => {
             return user.update(dbClient, req.user, oldpassword, password);
-        }).then(function() {
+        }).then(() => {
             res.redirect(303, '/user/profile');
         });
-    }).catch(function(e) {
+    }).catch((e) => {
         return getProfile(req, res, e, undefined);
     }).done();
 });
 
-router.post('/delete', user.requireLogIn, function(req, res, next) {
-    db.withTransaction(function(dbClient) {
-        return EngineManager.get().deleteUser(req.user.id).then(function() {
+router.post('/delete', user.requireLogIn, (req, res, next) => {
+    db.withTransaction((dbClient) => {
+        return EngineManager.get().deleteUser(req.user.id).then(() => {
             return model.delete(dbClient, req.user.id);
         });
-    }).then(function() {
+    }).then(() => {
         req.logout();
         res.redirect(303, '/');
     }).done();
 });
 
-function rot13(x) {
-    return Array.prototype.map.call(x, function(ch) {
-        var code = ch.charCodeAt(0);
-        if (code >= 0x41 && code <= 0x5a)
-            code = (((code - 0x41) + 13) % 26) + 0x41;
-        else if (code >= 0x61 && code <= 0x7a)
-            code = (((code - 0x61) + 13) % 26) + 0x61;
-
-        return String.fromCharCode(code);
-    }).join('');
-}
-
-var transporter = null;
-function ensureTransporter() {
-    // create reusable transporter object using SMTP transport
-    if (transporter)
-        return transporter;
-    transporter = nodemailer.createTransport({
-        service: 'Mailgun',
-        auth: {
-            user: MAILGUN_USER,
-            pass: MAILGUN_PASSWORD
-        }
-    });
-    return transporter;
-}
-
-router.get('/request-developer', user.redirectLogIn, function(req, res, next) {
+router.get('/request-developer', user.redirectLogIn, (req, res, next) => {
     if (req.user.developer_status >= user.DeveloperStatus.DEVELOPER) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You are already an enrolled developer.") });
@@ -291,14 +260,14 @@ router.get('/request-developer', user.redirectLogIn, function(req, res, next) {
                  csrfToken: req.csrfToken() });
 });
 
-router.post('/request-developer', user.requireLogIn, function(req, res, next) {
+router.post('/request-developer', user.requireLogIn, (req, res, next) => {
     if (req.user.developer_status >= user.DeveloperStatus.DEVELOPER) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You are already an enrolled developer.") });
         return;
     }
 
-    var mailOptions = {
+    const mailOptions = {
         from: 'Thingpedia <noreply@thingpedia.stanford.edu>',
         to: 'thingpedia-support@lists.stanford.edu',
         subject: 'New Developer Access Requested',
@@ -319,9 +288,9 @@ ${(req.body.comments || '').trim()}
 `
     };
 
-    SendMail.send(mailOptions).then(function() {
+    SendMail.send(mailOptions).then(() => {
         res.render('developer_access_ok', { page_title: req._("Thingpedia - developer access required") });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     });
