@@ -7,13 +7,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-// Server platform
+// Cloud platform
 
-const Q = require('q');
 const fs = require('fs');
 const os = require('os');
-const child_process = require('child_process');
 
 // FIXME we should not punch through the abstraction
 const prefs = require('thingengine-core/lib/util/prefs');
