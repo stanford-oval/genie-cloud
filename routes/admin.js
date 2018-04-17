@@ -329,9 +329,9 @@ router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), (req
                 throw new Error(req._("%s is already a member of another developer organization.").format(req.body.username));
 
             return model.update(dbClient, user.id, { developer_status: 1,
-                                                     developer_org: req.body.id });
+                                                     developer_org: req.body.id }).then(() => user.id);
         });
-    }).then(() => EngineManager.get().restartUser(req.body.id)).then(() => {
+    }).then((userId) => EngineManager.get().restartUser(userId)).then(() => {
         res.redirect(303, '/admin/organizations/details/' + req.body.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
