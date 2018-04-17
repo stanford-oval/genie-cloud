@@ -1,0 +1,53 @@
+extends layout
+
+block page_name
+  = _("Unreviewed Devices")
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/admin.css')
+
+block scripts
+  script(src='/javascripts/admin.js')
+
+block content
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/admin/review-queue?page=' + (page_num-1))= _("Previous")
+      if devices.length > DEVICES_PER_PAGE
+        li
+          a(href='/admin/review-queue?page=' + (page_num+1))= _("Next")
+
+  table.table#devices-table
+    thead
+      tr
+        th= _("ID")
+        th= _("Name")
+        th= _("Approved version")
+        th= _("Approval time")
+        th= _("Dev version")
+        th= _("Last modified")
+    tbody
+      each dev in devices.slice(0,DEVICES_PER_PAGE)
+        tr
+          td
+            a(href='/thingpedia/devices/by-id/' + dev.primary_kind)= dev.primary_kind
+          td= dev.name
+          td
+            if dev.approved_version !== null
+              a(href=`/thingpedia/devices/by-id/${dev.primary_kind}?version=${dev.approved_version}`)= dev.approved_version
+          td= dev.approval_time ? (new Date(dev.approval_time)).toLocaleString() : _("Never")
+          td
+            a(href=`/thingpedia/devices/by-id/${dev.primary_kind}?version=${dev.developer_version}`)= dev.developer_version
+          td= (new Date(dev.last_modified)).toLocaleString()
+
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/admin/review-queue?page=' + (page_num-1))= _("Previous")
+      if devices.length > DEVICES_PER_PAGE
+        li
+          a(href='/admin/review-queue?page=' + (page_num+1))= _("Next")
+
