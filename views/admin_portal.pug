@@ -29,7 +29,7 @@ block content
         div.row
           div.col-xs-12
             div.alert.alert-info(role='alert')
-              p= _("Current Training Job: %s. Started at %s for %s").format(currentTrainingJob.status, (new Date(currentTrainingJob.startTime)).toLocaleString(), currentTrainingJob.forDevices.join(', '))
+              p= _("Current Training Job: %s. Started at %s for %s").format(currentTrainingJob.status, (new Date(currentTrainingJob.startTime)).toLocaleString(user.locale, { timeZone: user.timezone }), currentTrainingJob.forDevices.join(', '))
 
     div.sections
       section.divider
