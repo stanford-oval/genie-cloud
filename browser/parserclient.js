@@ -27,7 +27,11 @@ module.exports = class ParserClient {
         return Promise.resolve($.ajax(this._baseUrl + '/learn', {
             method: 'POST',
             data: { q: utterance, target: code, store }
-        }));
+        })).catch((e) => {
+            // errors are useless because the browser blocks the response on error (due to
+            // missing Access-Control-Allow-Origin)
+            throw new Error('Failed to store the new sentence. You might need to wait until the natural language is fully trained.');
+        });
     }
 
     tokenize(utterance) {
