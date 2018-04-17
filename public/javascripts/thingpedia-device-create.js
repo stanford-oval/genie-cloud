@@ -120,6 +120,11 @@ $(function() {
                 title: 'API Endpoint URL',
                 required: false,
             },
+            json_key: {
+                type: 'string',
+                title: 'Result JSON Property Name',
+                required: false,
+            },
         }
     };
     var fullSchema = {
