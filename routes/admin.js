@@ -296,7 +296,28 @@ router.get('/organizations', user.requireRole(user.Role.ADMIN), (req, res) => {
         res.render('admin_org_list', { page_title: req._("Almond - Developer Organizations"),
                                        csrfToken: req.csrfToken(),
                                        page_num: page,
-                                       organizations: rows });
+                                       organizations: rows,
+                                       search: '' });
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).done();
+});
+
+router.get('/organizations/search', user.requireRole(user.Role.ADMIN), (req, res) => {
+    if (!req.query.q) {
+        res.redirect(303, '/admin/organizations');
+        return;
+    }
+
+    db.withClient((dbClient) => {
+        return organization.getByFuzzySearch(dbClient, req.query.q);
+    }).then((rows) => {
+        res.render('admin_org_list', { page_title: req._("Almond - Developer Organizations"),
+                                       csrfToken: req.csrfToken(),
+                                       page_num: -1,
+                                       organizations: rows,
+                                       search: req.query.q });
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });

@@ -7,15 +7,22 @@ block styles
   link(rel='stylesheet', href='/stylesheets/admin.css')
 
 block content
-  nav
-    ul.pager
-      if page_num > 0
-        li
-          a(href='/admin/organizations?page=' + (page_num-1))= _("Previous")
-      | &nbsp;
-      if organizations.length > 20
-        li
-          a(href='/admin/organizations?page=' + (page_num+1))= _("Next")
+  if page_num >= 0
+    nav
+      ul.pager
+        if page_num > 0
+          li
+            a(href='/admin/organizations?page=' + (page_num-1))= _("Previous")
+        | &nbsp;
+        if organizations.length > 20
+          li
+            a(href='/admin/organizations?page=' + (page_num+1))= _("Next")
+
+  div.navbar.navbar-default#user-search-navbar
+    form.navbar-form.navbar-left(action='/admin/organizations/search',method='get')
+      div.form-group
+        input.form-control#user-search-box(type='text', name='q', value=search)
+        button.btn.btn-primary(type="submit")= _("Search")
 
   table.table#users-table
     thead
@@ -31,12 +38,13 @@ block content
           td= org.name
           td= org.developer_key
 
-  nav
-    ul.pager
-      if page_num > 0
-        li
-          a(href='/admin/organizations?page=' + (page_num-1))= _("Previous")
-      | &nbsp;
-      if organizations.length > 20
-        li
-          a(href='/admin/organizations?page=' + (page_num+1))= _("Next")
+  if page_num >= 0
+    nav
+      ul.pager
+        if page_num > 0
+          li
+            a(href='/admin/organizations?page=' + (page_num-1))= _("Previous")
+        | &nbsp;
+        if organizations.length > 20
+          li
+            a(href='/admin/organizations?page=' + (page_num+1))= _("Next")
