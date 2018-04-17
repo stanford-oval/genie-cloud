@@ -39,8 +39,8 @@ module.exports = {
     getSearch(client, search) {
         search = '%' + search + '%';
         return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
-                            + " on u.developer_org = o.id where username like ? or human_name like ?",
-                            [search, search]);
+                            + " on u.developer_org = o.id where username like ? or human_name like ? or email like ?",
+                            [search, search, search]);
     },
 
     getByName(client, username) {
