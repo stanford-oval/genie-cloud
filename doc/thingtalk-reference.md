@@ -10,6 +10,10 @@
 * `String`: any string; strings do not have to be valid UTF-16, but
    they are stored as UCS-2 and cannot have embedded NUL characters
 
+* `Enum(e1, e2, ...)`: enumerated type, having values `e1`, `e2`, etc.
+   (e.g. `Enum(on,off)` represents the possibility of being `on` or `off`).
+   In JS this is represented as a String, the enum value.
+
 * `Entity(...)`: an identifier to an object; the type is parametrized with
 the actual entity type. An entity has a value, and an optional `display`
 property that represents the user visible name of the object. In JavaScript,
@@ -90,6 +94,8 @@ Builtin predicates); equality for strings is __case sensitive__.
 * `$event.type`: the type (function identifier) of the last result
 
 * `$event.program_id`: the current program id
+
+* `enum(x)`: the enumerated value x (e.g. `enum(on)` or `enum(off)`)
 
 * `makeDate()`: current time (of type `Date`)
 
