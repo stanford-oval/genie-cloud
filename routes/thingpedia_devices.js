@@ -41,16 +41,24 @@ function getDetails(fn, param, req, res) {
         return db.withClient((client) => {
             return fn(client, param).then((d) => {
                 return Promise.resolve().then(() => {
-                    if (req.user && (req.user.developer_org === d.owner ||
-                        req.user.developer_status >= user.DeveloperStatus.ADMIN))
+                    if ('version' in req.query && req.user && req.user.developer_status >= user.DeveloperStatus.ADMIN)
+                        return model.getCodeByVersion(client, d.id, parseInt(req.query.version));
+                    else if (req.user && (req.user.developer_org === d.owner ||
+                             req.user.developer_status >= user.DeveloperStatus.ADMIN))
                         return model.getCodeByVersion(client, d.id, d.developer_version);
                     else if (d.approved_version !== null)
                         return model.getCodeByVersion(client, d.id, d.approved_version);
                     else
                         return Promise.resolve({code:'{}'});
                 }).then((row) => {
+                    d.version = row.version;
                     d.code = row.code;
                     return d;
+                }).catch((e) => {
+                    if ('version' in req.query)
+                        throw new Error(req._("Failed to find the code for the given version (it might have been GC'ed)."));
+                    else
+                        throw e;
                 });
             }).then((d) => {
                 return Promise.all([Promise.resolve().then(() => {

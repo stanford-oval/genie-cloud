@@ -32,6 +32,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 var router = express.Router();
 
 const USERS_PER_PAGE = 50;
+const DEVICES_PER_PAGE = 50;
 
 function renderUserList(users) {
     const engineManager = EngineManager.get();
@@ -243,6 +244,25 @@ router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (r
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
+    }).done();
+});
+
+router.get('/review-queue', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+    let page = req.query.page;
+    if (page === undefined)
+        page = 0;
+    page = parseInt(page);
+    if (isNaN(page) || page < 0)
+        page = 0;
+
+    db.withClient((dbClient) => {
+        return device.getReviewQueue(dbClient, page * DEVICES_PER_PAGE, DEVICES_PER_PAGE + 1);
+    }).then((devices) => {
+        res.render('admin_review_queue', { page_title: req._("Almond - Administration"),
+                                           csrfToken: req.csrfToken(),
+                                           devices: devices,
+                                           page_num: page,
+                                           DEVICES_PER_PAGE });
     }).done();
 });
 

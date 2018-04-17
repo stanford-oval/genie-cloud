@@ -118,7 +118,7 @@ module.exports = {
     },
 
     getCodeByVersion: function(client, id, version) {
-        return db.selectOne(client, "select code from device_code_version where device_id = ? and version = ?",
+        return db.selectOne(client, "select code,version from device_code_version where device_id = ? and version = ?",
             [id, version]);
     },
 
@@ -197,6 +197,23 @@ module.exports = {
                                 [start, end]);
         } else {
             return db.selectAll(client, "select * from device_class order by name");
+        }
+    },
+
+    getReviewQueue: function(client, start, end) {
+        if (start !== undefined && end !== undefined) {
+            return db.selectAll(client, `select d.*, org.name as owner_name, app_dcv.mtime as approval_time, dev_dcv.mtime as last_modified from
+                                         (device_class d, organizations org, device_code_version dev_dcv) left join device_code_version app_dcv
+                                         on d.id = app_dcv.device_id and d.approved_version = app_dcv.version where org.id = d.owner
+                                         and (d.approved_version is null or d.approved_version != d.developer_version) and
+                                         dev_dcv.version = d.developer_version and dev_dcv.device_id = d.id order by last_modified desc limit ?,?`,
+                                [start, end]);
+        } else {
+            return db.selectAll(client, `select d.*, org.name as owner_name, app_dcv.mtime as approval_time, dev_dcv.mtime as last_modified from
+                                         (device_class d, organizations org, device_code_version dev_dcv) left join device_code_version app_dcv
+                                         on d.id = app_dcv.device_id and d.approved_version = app_dcv.version where org.id = d.owner
+                                         and (d.approved_version is null or d.approved_version != d.developer_version) and
+                                         dev_dcv.version = d.developer_version and dev_dcv.device_id = d.id order by last_modified desc`);
         }
     },
 

@@ -108,12 +108,20 @@ block content
   if user && user.developer_org !== null
     h2.device-subtitle#device-version= _("Class: ")
       code= '@' + device.primary_kind
-      if device.approved_version === null
-        = _(", version none (approved), %d (developer)").format(device.developer_version)
-      else if device.approved_version !== device.developer_version
-        = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
+      if device.version !== device.approved_version && device.version !== device.developer_version
+        if device.approved_version === null
+          = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
+        else if device.approved_version !== device.developer_version
+          = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
+        else
+          = _(", version %d; this version: %d").format(device.approved_version, device.version)
       else
-        = _(", version %d").format(device.approved_version)
+        if device.approved_version === null
+          = _(", version none (approved), %d (developer)").format(device.developer_version)
+        else if device.approved_version !== device.developer_version
+          = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
+        else
+          = _(", version %d").format(device.approved_version)
 
   if device.types.length > 0
     h2.device-subtitle= _("Extends: ")
