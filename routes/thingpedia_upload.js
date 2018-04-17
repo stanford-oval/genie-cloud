@@ -415,7 +415,7 @@ function doCreateOrUpdate(id, create, req, res) {
 
                 if (req.files && req.files.zipfile && req.files.zipfile.length &&
                     isJavaScript(req.files.zipfile[0]))
-                    return uploadJavaScript(req, obj, gAst, fs.createReadStream(req.files.zipfile[0].path));
+                    return uploadJavaScript(req, obj, gAst, fs.createReadStream(req.files.zipfile[0].path)).then(() => obj.primary_kind);
 
                 let stream;
                 if (req.files && req.files.zipfile && req.files.zipfile.length)
@@ -455,6 +455,7 @@ function doCreateOrUpdate(id, create, req, res) {
             // trigger updating the device on the user
             return tryUpdateDevice(done, req.user.id).then(() => done);
         }).then((done) => {
+            console.log('done', done);
             if (!done)
                 return;
 
