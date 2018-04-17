@@ -18,6 +18,11 @@ const ARGNAME_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 
+const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
+'__proto__', 'constructor', '__defineGetter__', '__defineSetter__', '__lookupGetter__',
+'__lookupSetter__', 'eval', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
+'toLocaleString', 'toSource', 'toString', 'unwatch', 'watch', 'valueOf']);
+
 // A SchemaRetriever that only returns results for the single device it is configured at,
 // and fails for everything else
 class SingleDeviceSchemaRetriever {
@@ -107,6 +112,9 @@ module.exports = {
 
     validateInvocation(where, what, entities) {
         for (var name in where) {
+            if (FORBIDDEN_NAMES.has(name))
+                throw new Error(`${name} is not allowed as a function name`);
+
             if (!where[name].canonical)
                 throw new Error('Missing canonical form for ' + name);
             if (!where[name].confirmation)
@@ -121,6 +129,8 @@ module.exports = {
                     throw new Error('Missing argument name in ' + name);
                 if (!ARGNAME_REGEX.test(arg.name))
                     throw new Error('Invalid argument name ' + arg.name + ' (must contain only letters, numbers and underscore, and cannot start with a number)');
+                if (FORBIDDEN_NAMES.has(arg.name))
+                    throw new Error(`${arg.name} is not allowed as argument name in ${name}`);
                 if (!arg.type)
                     throw new Error("Missing type for argument " + name + '.' + arg.name);
                 try {
@@ -248,6 +258,8 @@ module.exports = {
     validateAllInvocations(kind, ast) {
         if (!KIND_REGEX.test(kind))
             throw new Error("Invalid ID, must use alphanumeric characters, underscore and period only.");
+        if (FORBIDDEN_NAMES.has(kind))
+            throw new Error(`${kind} is not allowed as a device ID`);
 
         if (!ast.actions)
             ast.actions = {};
