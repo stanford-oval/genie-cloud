@@ -32,8 +32,8 @@ block content
           input(type='text',name='username',value=user.username).form-control#username
 
         div.form-group
-          label.control-label= _("E-Mail")
-          p.form-control-static= user.email
+          label.control-label(for='email')= _("E-Mail")
+          input(type='text',name='email',value=user.email).form-control#email
 
         div.form-group
           label.control-label(for='human-name')= _("Real name")
