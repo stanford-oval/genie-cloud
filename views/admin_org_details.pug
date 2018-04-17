@@ -11,7 +11,10 @@ block styles
 block content
   div#page-body
     h1.hidden-xs.hidden-sm#page-title.dev-portal-title
-      = _("Developer Organization: %s").format(org.name)
+      if org.comment
+        = _("Developer Organization: %s (%s)").format(org.name, org.comment)
+      else
+        = _("Developer Organization: %s").format(org.name)
 
     div.sections
       section.divider
@@ -19,14 +22,19 @@ block content
           div.row
             div.col-xs-12.col-md-6
               div.panel.panel-default
-                p.panel-heading= _("Change Name")
+                p.panel-heading= _("Change")
                 div.panel-body
                   form(action='/admin/organizations/set-name', method='post', data-toggle='validator')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     input(type='hidden',name='id',value=org.id)
                     div.form-group
                       label(for='new-name').control-label= _("New name")
-                      input(type='text',name='name').form-control#new-name
+                      input(type='text',name='name',value=org.name).form-control#new-name
+                      span.help-block= _("This name will be visible to the organization members in their developer page.")
+                    div.form-group
+                      label(for='new-comment').control-label= _("New comment")
+                      input(type='text',name='comment',value=org.comment).form-control#new-comment
+                      span.help-block= _("Text entered here is only visible to the administrators on this page.")
 
                     div.form-group
                       button(type='submit').btn.btn-primary= _("Change")
