@@ -36,6 +36,7 @@ create table users (
 create table organizations (
     id integer auto_increment primary key,
     name varchar(255) not null collate utf8_general_ci,
+    comment text not null collate utf8_general_ci,
     developer_key char(64) unique not null,
     is_admin boolean not null default false
 ) collate = utf8_bin ;
@@ -199,6 +200,7 @@ create table device_code_version (
     device_id integer not null,
     version integer not null,
     code mediumtext not null,
+    mtime datetime not null default current_timestamp,
     primary key(device_id, version),
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
 ) collate = utf8_bin;

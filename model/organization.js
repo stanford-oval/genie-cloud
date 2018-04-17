@@ -12,7 +12,7 @@
 const db = require('../util/db');
 
 function create(client, org) {
-    var KEYS = ['name', 'developer_key'];
+    var KEYS = ['name', 'comment', 'developer_key'];
     KEYS.forEach((key) => {
         if (org[key] === undefined)
             org[key] = null;
