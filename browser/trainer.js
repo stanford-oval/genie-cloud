@@ -26,10 +26,10 @@ class ThingTalkTrainer {
     constructor(sempreUrl) {
         this.parser = new ParserClient(sempreUrl, 'en-US');
 
-        this._locale = $('body[data-locale]').attr('locale');
-        this._developerKey = $('body[data-developer-key]').attr('developer-key') || null;
+        this._locale = $('body[data-locale]').attr('data-locale');
+        this._developerKey = $('body[data-developer-key]').attr('data-developer-key') || null;
 
-        this.thingpedia = new ThingpediaClient($('#developer-key').text(), this._locale);
+        this.thingpedia = new ThingpediaClient(this._developerKey, this._locale);
         this._schemaRetriever = new SchemaRetriever(this.thingpedia);
 
         this._raw = null;
