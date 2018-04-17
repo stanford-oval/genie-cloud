@@ -22,8 +22,8 @@ block content
   table.table#devices-table
     thead
       tr
-        th= _("ID")
         th= _("Name")
+        th= _("Owner")
         th= _("Approved version")
         th= _("Approval time")
         th= _("Dev version")
@@ -32,8 +32,9 @@ block content
       each dev in devices.slice(0,DEVICES_PER_PAGE)
         tr
           td
-            a(href='/thingpedia/devices/by-id/' + dev.primary_kind)= dev.primary_kind
-          td= dev.name
+            a(href='/thingpedia/devices/by-id/' + dev.primary_kind)= dev.name
+          td
+            a(href=`/admin/organizations/details/${dev.owner}`)= dev.owner_name
           td
             if dev.approved_version !== null
               a(href=`/thingpedia/devices/by-id/${dev.primary_kind}?version=${dev.approved_version}`)= dev.approved_version
