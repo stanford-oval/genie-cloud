@@ -161,6 +161,7 @@ const SPECIAL_INTENT_MAP = {
     hello: Intent.Hello,
     cool: Intent.Cool,
     thankyou: Intent.ThankYou,
+    thank_you: Intent.ThankYou,
     sorry: Intent.Sorry,
     wakeup: Intent.WakeUp,
 };
