@@ -221,18 +221,25 @@ router.post('/profile', user.requireLogIn, function(req, res, next) {
             req.body.username.length == 0 ||
             req.body.username.length > 255)
             req.body.username = req.user.username;
+        if (typeof req.body['email'] !== 'string' ||
+            req.body['email'].length == 0 ||
+            req.body['email'].indexOf('@') < 0 ||
+            req.body['email'].length > 255)
+            req.body.email = req.user.email;
 
         return model.update(dbClient, req.user.id,
                             { username: req.body.username,
+                              email: req.body.email,
                               human_name: req.body.human_name });
     }).then(function() {
         req.user.username = req.body.username;
+        req.user.email = req.body.email;
         req.user.human_name = req.body.human_name;
     }).then(function() {
         return getProfile(req, res, undefined, undefined);
     }).catch(function(error) {
         return getProfile(req, res, undefined, error);
-    }).done();
+    }).catch(next);
 });
 
 router.post('/change-password', user.requireLogIn, function(req, res, next) {
