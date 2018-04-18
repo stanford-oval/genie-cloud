@@ -31,8 +31,8 @@ const platform = require('../util/platform');
 
 var router = express.Router();
 
-function makeRandom() {
-    return crypto.randomBytes(32).toString('hex');
+function makeRandom(size = 32) {
+    return crypto.randomBytes(size).toString('hex');
 }
 
 // These strategies are used to authenticate oauth2 clients, not
@@ -176,7 +176,7 @@ router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
         if (!req.files.icon || !req.files.icon.length)
             throw new Error(req._("Must upload an icon"));
 
-        var clientId = makeRandom();
+        var clientId = makeRandom(8);
         var clientSecret = makeRandom();
         return model.createClient(dbClient, {
             id: clientId,

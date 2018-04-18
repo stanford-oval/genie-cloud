@@ -31,8 +31,8 @@ function hashPassword(salt, password) {
         .then((buffer) => buffer.toString('hex'));
 }
 
-function makeRandom() {
-    return crypto.randomBytes(32).toString('hex');
+function makeRandom(size = 32) {
+    return crypto.randomBytes(size).toString('hex');
 }
 
 function authenticateGoogle(accessToken, refreshToken, profile, done) {
@@ -48,7 +48,7 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
                                             timezone: 'America/Los_Angeles',
                                             google_id: profile.id,
                                             human_name: profile.displayName,
-                                            cloud_id: makeRandom(),
+                                            cloud_id: makeRandom(8),
                                             auth_token: makeRandom(),
                                             storage_key: makeRandom() }).then((user) => {
                 user.newly_created = true;
