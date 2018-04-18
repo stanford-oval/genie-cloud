@@ -136,7 +136,6 @@ WebSocketApi.prototype.$rpcMethods = ['newConnection'];
 
 class Platform {
     constructor(thingpediaClient, options) {
-        this._userId = options.userId;
         this._cloudId = options.cloudId;
         this._authToken = options.authToken;
         this._developerKey = options.developerKey;
@@ -156,7 +155,7 @@ class Platform {
         }
         this._prefs = new prefs.FilePreferences(this._writabledir + '/prefs.db');
 
-        this._webhookApi = new WebhookApi(this._userId);
+        this._webhookApi = new WebhookApi(this._cloudId);
         this._websocketApi = new WebSocketApi();
 
         this._assistant = null;
