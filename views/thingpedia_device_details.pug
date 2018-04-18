@@ -105,23 +105,28 @@ block content
     p
       i= _("This is a builtin device in certain versions of Almond. It may not be available in the Almond you are using.")
 
-  if user && user.developer_org !== null
-    h2.device-subtitle#device-version= _("Class: ")
-      code= '@' + device.primary_kind
-      if device.version !== device.approved_version && device.version !== device.developer_version
-        if device.approved_version === null
-          = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
-        else if device.approved_version !== device.developer_version
-          = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
-        else
-          = _(", version %d; this version: %d").format(device.approved_version, device.version)
+  h2.device-subtitle#device-version= _("Class: ")
+    code= '@' + device.primary_kind
+    if device.version !== device.approved_version && device.version !== device.developer_version
+      if device.approved_version === null
+        = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
+      else if device.approved_version !== device.developer_version
+        = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
       else
-        if device.approved_version === null
-          = _(", version none (approved), %d (developer)").format(device.developer_version)
-        else if device.approved_version !== device.developer_version
-          = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
-        else
-          = _(", version %d").format(device.approved_version)
+        = _(", version %d; this version: %d").format(device.approved_version, device.version)
+    else
+      if device.approved_version === null
+        = _(", version none (approved), %d (developer)").format(device.developer_version)
+      else if device.approved_version !== device.developer_version
+        = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
+      else
+        = _(", version %d").format(device.approved_version)
+
+  h2.device-subtitle= _("Uploaded By: ")
+    if user && user.roles & 0x1
+      a(href='/admin/organizations/' + device.owner)=device.owner_name
+    else
+      = device.owner_name
 
   if device.types.length > 0
     h2.device-subtitle= _("Extends: ")
