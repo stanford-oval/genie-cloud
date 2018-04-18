@@ -21,8 +21,8 @@ function hashPassword(salt, password) {
         .then((buffer) => buffer.toString('hex'));
 }
 
-function makeRandom() {
-    return crypto.randomBytes(32).toString('hex');
+function makeRandom(size = 32) {
+    return crypto.randomBytes(size).toString('hex');
 }
 
 module.exports = {
@@ -46,7 +46,7 @@ module.exports = {
                 throw new Error(req._("An user with this name already exists"));
 
             var salt = makeRandom();
-            var cloudId = makeRandom();
+            var cloudId = makeRandom(8);
             var authToken = makeRandom();
             var storageKey = makeRandom();
             return hashPassword(salt, options.password).then((hash) => {
@@ -70,7 +70,7 @@ module.exports = {
             if (rows.length > 0)
                 throw new Error("An user with this name already exists");
 
-            var cloudId = makeRandom();
+            var cloudId = makeRandom(8);
             var authToken = makeRandom();
             var storageKey = makeRandom();
             return model.create(dbClient, {

@@ -23,10 +23,6 @@ const EngineManager = require('../almond/enginemanagerclient');
 const ThingTalk = require('thingtalk');
 const AppGrammar = ThingTalk.Grammar;
 
-function makeRandom(bytes) {
-    return crypto.randomBytes(bytes).toString('hex');
-}
-
 var router = express.Router();
 
 function getAllApps(req, engine) {

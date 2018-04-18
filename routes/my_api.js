@@ -513,7 +513,7 @@ function doConversation(user, anonymous, ws) {
         var delegate = new WebsocketAssistantDelegate(ws);
 
         var opened = false;
-        const id = 'web-' + makeRandom(16);
+        const id = 'web-' + makeRandom(4);
         ws.on('error', (err) => {
             ws.close();
         });
