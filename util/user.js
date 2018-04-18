@@ -64,6 +64,10 @@ module.exports = {
         });
     },
 
+    recordLogin(dbClient, userId) {
+        return model.recordLogin(dbClient, userId);
+    },
+
     update(dbClient, user, oldpassword, password) {
         return Q.try(() => {
             if (user.salt && user.password) {

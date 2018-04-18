@@ -87,4 +87,8 @@ module.exports = {
                                 + " on u.developer_org = o.id order by id");
         }
     },
+
+    recordLogin(client, userId) {
+        return db.query(client, "update users set lastlog_time = current_timestamp where id = ?", [userId]);
+    }
 };
