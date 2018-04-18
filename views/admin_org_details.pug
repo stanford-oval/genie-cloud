@@ -82,6 +82,12 @@ block content
                       input(type='text',name='username').form-control#new-member-username
 
                     div.form-group
+                      div.checkbox
+                        label
+                          input(type='checkbox',name='as_developer',checked=true)
+                          = _("Add as a developer")
+
+                    div.form-group
                       button(type='submit').btn.btn-primary= _("Add member")
 
       section.divider

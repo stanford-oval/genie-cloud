@@ -351,7 +351,7 @@ router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), (req
             if (user.developer_org !== null)
                 throw new Error(req._("%s is already a member of another developer organization.").format(req.body.username));
 
-            return model.update(dbClient, user.id, { developer_status: 1,
+            return model.update(dbClient, user.id, { developer_status: req.body.as_developer ? 1 : 0,
                                                      developer_org: req.body.id }).then(() => user.id);
         });
     }).then((userId) => EngineManager.get().restartUser(userId)).then(() => {
