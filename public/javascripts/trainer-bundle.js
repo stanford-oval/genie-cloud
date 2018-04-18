@@ -6115,6 +6115,8 @@ function describePrimitive(_, obj, scope) {
         let value = inParam.value.isUndefined ? describePlaceholder(_, ptype) : describeArg(_, inParam.value, scope);
         if (confirm.indexOf('$' + argname) >= 0) {
             confirm = confirm.replace('$' + argname, value);
+        } else if (confirm.indexOf('${' + argname + '}') >= 0) {
+            confirm = confirm.replace('${' + argname + '}', value);
         } else {
             if (argname.startsWith('__'))
                 continue;
