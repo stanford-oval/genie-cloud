@@ -124,7 +124,7 @@ block content
 
   h2.device-subtitle= _("Uploaded By: ")
     if user && user.roles & 0x1
-      a(href='/admin/organizations/' + device.owner)=device.owner_name
+      a(href='/admin/organizations/details/' + device.owner)=device.owner_name
     else
       = device.owner_name
 
