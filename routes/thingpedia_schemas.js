@@ -316,11 +316,11 @@ function doCreateOrUpdate(id, create, req, res) {
                         return model.update(dbClient, id, obj.kind, obj, types, meta);
                     });
                 }
-            }).tap((obj) => {
+            }).then((obj) => {
                 if (obj === null)
                     return null;
 
-                return ensureExamples(dbClient, obj.id, gAst);
+                return ensureExamples(dbClient, obj.id, gAst).then(() => obj);
             }).then((obj) => {
                 if (obj === null)
                     return;
