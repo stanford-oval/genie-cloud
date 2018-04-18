@@ -11,16 +11,30 @@
 const express = require('express');
 const passport = require('passport');
 
+const user = require('../model/user');
+const db = require('../util/db');
 const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
-router.post('/:user_id/:id', function(req, res) {
-    EngineManager.get().dispatchWebhook(req, res);
+router.post('/:user_id/:id', function(req, res, next) {
+    db.withClient((dbClient) => {
+       return user.getIdByCloudId(dbClient, req.params.user_id);
+    }).then((user) => {
+       return EngineManager.get().dispatchWebhook(user.id, req, res);
+    }, (e) => {
+       res.status(400).json({error:'Invalid user'});
+    }).catch(next);
 });
 
-router.get('/:user_id/:id', function(req, res) {
-    EngineManager.get().dispatchWebhook(req, res);
+router.get('/:user_id/:id', function(req, res, next) {
+    db.withClient((dbClient) => {
+       return user.getIdByCloudId(dbClient, req.params.user_id);
+    }).then((user) => {
+       return EngineManager.get().dispatchWebhook(user.id, req, res);
+    }, (e) => {
+       res.status(400).json({error:'Invalid user'});
+    }).catch(next);
 });
 
 module.exports = router;

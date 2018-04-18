@@ -108,11 +108,10 @@ class EngineManagerClient extends events.EventEmitter {
         return defer.promise;
     }
 
-    dispatchWebhook(req, res) {
-        var userId = parseInt(req.params.user_id);
-        var id = req.params.id;
+    dispatchWebhook(userId, req, res) {
+        const id = req.params.id;
 
-        this.getEngine(userId).then((engine) => {
+        return this.getEngine(userId).then((engine) => {
             return engine.webhook.handleCallback(id, req.method, req.query, req.headers, req.body);
         }).then((result) => {
             if (result) {
@@ -124,7 +123,7 @@ class EngineManagerClient extends events.EventEmitter {
             }
         }).catch((err) => {
             res.status(400).json({ error: err.message });
-        }).done();
+        });
     }
 
     _connect() {

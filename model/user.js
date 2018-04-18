@@ -70,6 +70,10 @@ module.exports = {
                             + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);
     },
 
+    getIdByCloudId: function(client, cloudId) {
+        return db.selectOne(client, "select id from users u where cloud_id = ?", [cloudId]);
+    },
+
     getByAccessToken: function(client, accessToken) {
         return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
                             + " on u.developer_org = o.id, oauth2_access_tokens oat where"
