@@ -59,7 +59,7 @@ function update(client, id, device, extraKinds, extraChildKinds, code) {
 
 module.exports = {
     get(client, id) {
-        return db.selectOne(client, "select * from device_class where id = ?", [id]);
+        return db.selectOne(client, "select d.*, o.name as owner_name from device_class d left join organizations o on o.id = d.owner where d.id = ?", [id]);
     },
 
     getByOwner(client, owner) {
@@ -101,7 +101,7 @@ module.exports = {
     },
 
     getByPrimaryKind(client, kind) {
-        return db.selectOne(client, "select * from device_class where primary_kind = ?", [kind]);
+        return db.selectOne(client, "select d.*, o.name as owner_name from device_class d left join organizations o on o.id = d.owner where primary_kind = ?", [kind]);
     },
 
     getByAnyKind(client, kind) {
