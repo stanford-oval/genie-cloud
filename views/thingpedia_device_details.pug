@@ -146,7 +146,26 @@ block content
 
   mixin invocation(inv, name, inv_type)
     li
-      code #{name}(#{inv.args.map(function(a) { return (a.is_input ? ('in ' + (a.required ? 'req ' : 'opt ')) : 'out ') + a.name + ' : ' + a.type; }).join(', ')})
+      code #{name}(
+        for a, i in inv.args
+          if a.is_input
+            = 'in '
+            if a.required
+              = 'req '
+            else
+              = 'opt '
+          else
+              = 'out '
+          |  #{a.name} : 
+          if a.type.startsWith('Entity(')
+            a(href=`/thingpedia/entities/by-id/${a.type.substring('Entity('.length, a.type.length-1)}`)= a.type
+          else if a.type.startsWith('Array(Entity(')
+            | Array(#[a(href=`/thingpedia/entities/by-id/${a.type.substring('Array(Entity('.length, a.type.length-2)}`)= a.type.substring('Array('.length, a.type.length-1)])
+          else
+            = a.type
+          if i !== inv.args.length-1
+            = ', '
+        = ')'
       if inv.doc
         | : #{inv.doc}
       br
