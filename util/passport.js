@@ -41,7 +41,7 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
     db.withTransaction(function(dbClient) {
         return model.getByGoogleAccount(dbClient, profile.id).then(function(rows) {
             if (rows.length > 0)
-                return rows[0];
+                return model.recordLogin(dbClient, rows[0].id).then(() => rows[0]);
 
             var username = profile.username || profile.emails[0].value;
             return model.create(dbClient, { username: username,
@@ -98,7 +98,7 @@ function authenticateFacebook(accessToken, refreshToken, profile, done) {
     db.withTransaction(function(dbClient) {
         return model.getByFacebookAccount(dbClient, profile.id).then(function(rows) {
             if (rows.length > 0)
-                return rows[0];
+                return model.recordLogin(dbClient, rows[0].id).then(() => rows[0]);
 
             var username = profile.username || profile.emails[0].value;
             return model.create(dbClient, { username: username,
@@ -159,7 +159,9 @@ exports.initialize = function() {
                 if (rows.length < 1)
                     return [false, null];
 
-                return [rows[0], { scope: '*' }];
+                return model.recordLogin(dbClient, rows[0].id).then(() => {
+                    return [rows[0], { scope: '*' }];
+                });
             });
         }).then((result) => {
             done(null, result[0], result[1]);
@@ -174,7 +176,7 @@ exports.initialize = function() {
                 if (rows.length < 1 || rows[0].auth_token !== password)
                     return false;
 
-                return rows[0];
+                return model.recordLogin(dbClient, rows[0].id).then(() => rows[0]);
             });
         }).nodeify(done);
     }
@@ -195,7 +197,9 @@ exports.initialize = function() {
                     if (hash !== rows[0].password)
                         return [false, "Invalid username or password"];
 
-                    return [rows[0], null];
+                    return model.recordLogin(dbClient, rows[0].id).then(() => {
+                        return [rows[0], null];
+                    });
                 });
             });
         }).then((result) => {
