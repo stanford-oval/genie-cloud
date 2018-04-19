@@ -175,6 +175,7 @@ module.exports = class Frontend {
             req.pgettext = lang.pgettext.bind(lang);
             req.ngettext = lang.ngettext.bind(lang);
 
+            res.locals.locale = locale;
             res.locals.gettext = req.gettext;
             res.locals._ = req._;
             res.locals.pgettext = req.pgettext;
