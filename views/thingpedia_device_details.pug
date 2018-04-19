@@ -72,23 +72,28 @@ block content
            = _("The natural language model for this device is being updated. You should wait until the model is ready before using it.")
       p
         if device.current_job.status === 'queued'
-           = _("Status: queued")
+           = _("Status: queued.")
         else if device.current_job.status === 'download_dataset'
-           = _("Status: phase 1/7: downloading dataset")
+           = _("Status: phase 1/7: downloading dataset.")
         else if device.current_job.status === 'gen_synthetic'
-           = _("Status: phase 2/7: generating synthetic set")
+           = _("Status: phase 2/7: generating synthetic set.")
         else if device.current_job.status === 'apply_ppdb'
-           = _("Status: phase 3/7: augmenting training set")
+           = _("Status: phase 3/7: augmenting training set.")
         else if device.current_job.status === 'prepare'
-           = _("Status: phase 4/7: preparing Thingpedia metadata and word embeddings")
+           = _("Status: phase 4/7: preparing Thingpedia metadata and word embeddings.")
         else if device.current_job.status === 'combine_dataset'
-           = _("Status: phase 5/7: combining datasets")
+           = _("Status: phase 5/7: combining datasets.")
         else if device.current_job.status === 'training'
-           = _("Status: phase 6/7: training machine learning model")
+           = _("Status: phase 6/7: training machine learning model (%.0f%%).").format(device.current_job.progress*100)
         else if device.current_job.status === 'uploading'
-           = _("Status: phase 7/7: uploading trained model")
+           = _("Status: phase 7/7: uploading trained model.")
         else
-           = _("Status: running")
+           = _("Status: running.")
+        |
+        |
+        if device.current_job.eta
+          = _("ETA: %s").format((new Date(device.current_job.eta)).toLocaleString(locale, { timeZone: user ? user.timezone : undefined, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', 'minute': 'numeric' }))
+      
 
   aside#device-icon-large
     img(src=S3_CLOUDFRONT_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
