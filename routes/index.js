@@ -12,6 +12,8 @@
 const express = require('express');
 const router = express.Router();
 
+const db = require('../util/db');
+
 const EngineManager = require('../almond/enginemanagerclient');
 
 router.get('/', (req, res, next) => {
@@ -26,8 +28,15 @@ router.get('/', (req, res, next) => {
 });
 
 router.get('/thingpedia', (req, res, next) => {
-    res.render('thingpedia_portal', { page_title: req._("Thingpedia - The Open API Collection"),
-                                      csrfToken: req.csrfToken() });
+    db.withClient((dbClient) => {
+        return Promise.all([
+            db.selectOne(dbClient, `select count(*) as device_count from device_class where approved_version is not null`),
+            db.selectOne(dbClient, `select count(*) as function_count from device_schema, device_schema_channels where schema_id = id and version = approved_version`),
+        ]);
+    }).then(([{device_count},{function_count}]) => {
+        res.render('thingpedia_portal', { page_title: req._("Thingpedia - The Open API Collection"),
+                                          csrfToken: req.csrfToken(), device_count, function_count });
+    }).catch(next);
 });
 
 router.get('/about', (req, res, next) => {
