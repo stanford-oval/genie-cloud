@@ -38,6 +38,16 @@ module.exports = function reconstructCanonical(schemaRetriever, code, entities) 
             return "help";
         if (intent.isMake)
             return "make a command";
+        if (intent.isHello)
+            return "hello";
+        if (intent.isCool)
+            return "this is cool";
+        if (intent.isThankYou)
+            return "thank you";
+        if (intent.isSorry)
+            return "i'm sorry";
+        if (intent.isWakeUp)
+            return "almond, wake up!";
         if (intent.isAnswer)
             return Describe.describeArg(fakeGettext, intent.value);
 
