@@ -126,7 +126,6 @@ function processMetaRows(rows) {
             is_input: JSON.parse(row.is_input) || [],
             confirmation: row.confirmation || row.doc,
             confirmation_remote: row.confirmation_remote || row.confirmation || row.doc,
-            formatted: JSON.parse(row.formatted) || [],
             doc: row.doc,
             canonical: row.canonical || '',
             argcanonicals: JSON.parse(row.argcanonicals) || [],
@@ -205,7 +204,7 @@ module.exports = {
     },
 
     getCurrentSnapshotMeta(client, language) {
-        return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
+        return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, doc, types,"
                             + " argnames, argcanonicals, required, is_input, questions, ds.id, kind, kind_canonical, kind_type, owner, dsc.version, developer_version,"
                             + " approved_version from device_schema ds"
                             + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
