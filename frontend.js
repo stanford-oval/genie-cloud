@@ -207,11 +207,13 @@ module.exports = class Frontend {
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
             this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
-            // initialize csurf after /upload too
+
+            // initialize csurf after /upload and /entities too
             // because upload uses multer, which is incompatible
             // with csurf
             // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
             this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
+            this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
         }
 
         this._app.use('/mturk', require('./routes/mturk'));
@@ -236,7 +238,6 @@ module.exports = class Frontend {
             this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
             this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
-            this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
             this._app.use('/thingpedia/datasets', require('./routes/thingpedia_dataset'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
         }

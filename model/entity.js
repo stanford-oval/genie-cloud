@@ -35,7 +35,9 @@ module.exports = {
     },
 
     lookup(client, language, token) {
-        return db.selectAll(client, "select entity_id,entity_value,entity_canonical,entity_name from entity_lexicon where language = ? and token = ?", [language, token]);
+        return db.selectAll(client, `select distinct entity_id,entity_value,entity_canonical,entity_name
+                                     from entity_lexicon where language = ? and match entity_canonical
+                                     against (? in natural language mode)`, [language, token]);
     },
 
     checkAllExist(client, ids) {

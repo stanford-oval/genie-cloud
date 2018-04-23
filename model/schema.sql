@@ -202,12 +202,11 @@ CREATE TABLE `entity_names` (
 
 CREATE TABLE `entity_lexicon` (
   `language` char(15) NOT NULL DEFAULT 'en',
-  `token` varchar(128) CHARACTER SET utf8 NOT NULL,
   `entity_id` varchar(64) NOT NULL,
   `entity_value` varchar(64) NOT NULL,
   `entity_canonical` varchar(128) CHARACTER SET utf8 NOT NULL,
   `entity_name` varchar(128) CHARACTER SET utf8 NOT NULL,
-  PRIMARY KEY (`language`,`token`,`entity_id`,`entity_value`,`entity_canonical`),
+  PRIMARY KEY (`language`,`entity_id`,`entity_value`,`entity_canonical`),
   KEY `entity_id` (`entity_id`),
   FOREIGN KEY (`entity_id`) REFERENCES `entity_names` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) collate = utf8_bin ;

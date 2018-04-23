@@ -13,7 +13,7 @@ block content
         div.panel.panel-default
             p.panel-heading= _("Create a new Entity Type")
             div.panel-body
-              form(action='/thingpedia/entities/create', method='post', data-toggle='validator')
+              form(action='/thingpedia/entities/create', enctype='multipart/form-data', method='post', data-toggle='validator')
                 input(type='hidden',name='_csrf',value=csrfToken)
 
                 div.form-group
@@ -27,6 +27,20 @@ block content
                   label(for='new-entity-name').control-label= _("Description")
                   input(type='text',name='entity_name').form-control#new-entity-name
                   span.help-block= _("This description will be shown on the documentation")
+                div.form-group
+                  div.checkbox
+                    label(for='new-entity-no-ner-support').control-label
+                      input(type='checkbox',name='no_ner_support',value='1',checked=true)#new-entity-no-ner-support
+                      = _(" This entity is an opaque identifier that cannot be used from natural language.")
+                div.form-group
+                  label(for='new-entity-upload').control-label= _("List of values")
+                  input(type='file',name='upload',accept='text/csv')#new-entity-upload
+                  span.help-block
+                    | Upload a CSV file with all the values for this entity, one per line.
+                    |  The file should be formatted as <code><i>value</i>,<i>name</i></code>,
+                    |  where <i>value</i> is the API identifier and <i>name</i> is the name that will be available in natural language.
+                    |  If an entity can have multiple names (e.g. the stock ticker symbol "goog" can be recalled as Google or Alphabet),
+                    |  use multiple lines with different names and same value.
 
                 div.form-group
                   button(type='submit').btn.btn-primary= _("Create")

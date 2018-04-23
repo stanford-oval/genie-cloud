@@ -143,6 +143,8 @@ router.get('/authorize', user.redirectLogIn, server.authorization((clientID, red
    });
 });
 
+// no need for csurf here, oauth2orize has a uniquely-generated transaction ID that cannot
+// be spoofed with CSRF
 router.post('/authorize', user.requireLogIn, server.decision());
 
 router.post('/token',

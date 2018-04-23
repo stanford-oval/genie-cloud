@@ -46,7 +46,7 @@ function selectAll(client, string, args) {
 }
 
 function selectOne(client, string, args) {
-    return selectAll(client, string, args).then(([rows]) => {
+    return selectAll(client, string, args).then((rows) => {
         if (rows.length !== 1)
             throw new Error("Wrong number of rows returned, expected 1, got " + rows.length);
 
