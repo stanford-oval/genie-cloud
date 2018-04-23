@@ -25,18 +25,25 @@ $(function() {
         return msg;
     }
 
+    function maybeScroll(countainer) {
+        if (!$('#input:focus').length)
+            return;
+
+        container[0].scrollIntoView(false);
+    }
+
     function textMessage(text, icon) {
         var container = almondMessage(icon);
         container.append($('<span>').addClass('message message-text')
             .text(text));
-        container[0].scrollIntoView(false);
+        maybeScroll(container);
     }
 
     function picture(url, icon) {
         var container = almondMessage(icon);
         container.append($('<img>').addClass('message message-picture')
             .attr('src', url));
-        container[0].scrollIntoView(false);
+        maybeScroll(container);
     }
 
     function rdl(rdl, icon) {
@@ -48,7 +55,7 @@ $(function() {
         rdlMessage.append($('<span>').addClass('message-rdl-content')
             .text(rdl.displayText));
         container.append(rdlMessage);
-        container[0].scrollIntoView(false);
+        maybeScroll(container);
     }
 
     function getGrid() {
@@ -72,7 +79,7 @@ $(function() {
         });
         holder.append(btn);
         getGrid().append(holder);
-        holder[0].scrollIntoView(false);
+        maybeScroll(holder);
     }
 
     function buttonMessage(title, json) {
@@ -86,7 +93,7 @@ $(function() {
         });
         holder.append(btn);
         getGrid().append(holder);
-        holder[0].scrollIntoView(false);
+        maybeScroll(holder);
     }
 
     function linkMessage(title, url) {
@@ -100,7 +107,7 @@ $(function() {
             .attr('href', url).text(title);
         holder.append(btn);
         getGrid().append(holder);
-        holder[0].scrollIntoView(false);
+        maybeScroll(holder);
     }
 
     function yesnoMessage() {
@@ -124,7 +131,7 @@ $(function() {
         });
         holder.append(btn);
         getGrid().append(holder);
-        holder[0].scrollIntoView(false);
+        maybeScroll(holder);
     }
 
     function collapseButtons() {
