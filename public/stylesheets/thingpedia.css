@@ -7,3 +7,7 @@
 .dev-portal-title {
   margin-top: 2em;
 }
+
+#results-container {
+    display: none;
+}

@@ -50,6 +50,10 @@ router.get('/thingpedia', (req, res, next) => {
     }).catch(next);
 });
 
+router.get('/thingpedia/training', (req, res, next) => {
+    res.redirect(301, '/thingpedia/developers#sentence-to-code-block');
+});
+
 router.get('/about', (req, res, next) => {
     res.redirect(301, '/');
 });
