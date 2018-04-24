@@ -129,21 +129,6 @@ block content
                 li
                   a(href='/thingpedia/developers/my-api.md') Web Almond API Reference
 
-      section.divider
-        h3= _("Academic papers")
-
-        div.container
-          div.row
-            div.col-xs-12
-              ul
-                li
-                  a(href='https://d1ge76rambtuys.cloudfront.net/papers/www17.pdf')
-                    cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant
-                  br
-                  | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer and Monica S. Lam
-                  br
-                  | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, 2017.
-
       if authenticated && user.developer_org !== null
         section.divider
           h3= _("Your Devices")

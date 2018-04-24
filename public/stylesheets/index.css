@@ -217,3 +217,7 @@
   margin: auto;
   padding-bottom: 1em;
 }
+
+#publication-list > li {
+  margin-bottom: 1em;
+}
