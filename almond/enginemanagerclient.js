@@ -13,6 +13,7 @@ const Q = require('q');
 const net = require('net');
 const events = require('events');
 const rpc = require('transparent-rpc');
+const sockaddr = require('sockaddr');
 
 const JsonDatagramSocket = require('./json_datagram_socket');
 
@@ -43,7 +44,7 @@ class EngineManagerClient extends events.EventEmitter {
         }
 
         var directSocket = new net.Socket();
-        directSocket.connect(Config.THINGENGINE_DIRECT_ADDRESS);
+        directSocket.connect(sockaddr(Config.THINGENGINE_DIRECT_ADDRESS));
 
         var jsonSocket = new JsonDatagramSocket(directSocket, directSocket, 'utf8');
         var rpcSocket = new rpc.Socket(jsonSocket);
@@ -126,7 +127,7 @@ class EngineManagerClient extends events.EventEmitter {
             return;
 
         this._controlSocket = new net.Socket();
-        this._controlSocket.connect(Config.THINGENGINE_MANAGER_ADDRESS);
+        this._controlSocket.connect(sockaddr(Config.THINGENGINE_MANAGER_ADDRESS));
 
         let jsonSocket = new JsonDatagramSocket(this._controlSocket, this._controlSocket, 'utf8');
         this._rpcSocket = new rpc.Socket(jsonSocket);
