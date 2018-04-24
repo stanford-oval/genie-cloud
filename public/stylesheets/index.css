@@ -72,42 +72,6 @@
     text-align: center;
 }
 
-.about-title {
-    text-align: center;
-}
-
-.about-title-line {
-    border-top: 2px solid rgb(200, 200, 200);
-    margin:auto;
-    width:30%;
-    margin-bottom: 30px;
-}
-
-.about-section p , .about-section li {
-    text-align: justify;
-    font-size: 16px;
-}
-
-
-.team-title {
-    font-weight: bold;
-    padding-top: 30px;
-    color:rgb(102, 102, 102);
-    width:50%;
-    margin:auto;
-    text-align: center;
-}
-
-#team-profile {
-    margin-left: 12.5%;
-    width:75%;
-}
-
-#team-profile #row-mid {
-    padding-top:20px;
-    margin:auto;
-}
-
 .team-profile-mid {
     margin: auto;
     width: 100px;
@@ -116,13 +80,8 @@
     background-size:cover;
 }
 
-#team-profile-monica {
+#team-profile-mid-monica {
     background-image:url(../images/monica-lam.jpg);
-    background-size:cover;
-    margin: auto;
-    width:180px;
-    height:180px;
-    border-radius: 50%;
 }
 
 #team-profile-mid-giovanni {
@@ -149,30 +108,9 @@
     font-weight: bold;
 }
 
-#team-profile-second-row {
-    margin-top: 30px;
-}
-
-.team-profile-mid-text {
-    text-align: center;
-}
-
 .team-profile-text {
-    padding-top: 0px;
-    padding-left: 40px;
-    vertical-align: top;
-    height:100%;
-    width:450px;
-}
-
-.team-profile-mid-des {
+    text-align: center;
     font-size: 12px;
-}
-
-.iot-modal-footer {
-    margin:auto;
-    padding-top: 0px;
-    padding-bottom: 20px;
 }
 
 #almond-title {
@@ -211,11 +149,6 @@
 #multi-color-example .arrow {
   text-align: center;
   font-size: 36px;
-}
-
-#team-profile-monica + .team-profile-text {
-  margin: auto;
-  padding-bottom: 1em;
 }
 
 #publication-list > li {
