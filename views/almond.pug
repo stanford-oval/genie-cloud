@@ -2,8 +2,6 @@ extends layout
 
 block styles
   link(rel='stylesheet', href='/stylesheets/index.css')
-  link(rel='stylesheet', href='/stylesheets/almond.css')
-  link(rel='stylesheet', href='/stylesheets/conversation.css')
 
 block scripts
   if ENABLE_ANONYMOUS_USER
@@ -26,10 +24,7 @@ block content
               p=_("Almond lets you interact with your services and accounts in natural language, with flexibility and privacy.")
 
         p
-          if ENABLE_ANONYMOUS_USER
-            a(href='#section-try-now').scroller.btn.btn-primary= _("Try it now")
-          else
-            a(href='/me/conversation').btn.btn-primary= _("Try it now")
+          a(href='/get-almond').scroller.btn.btn-primary= _("Get Almond")
       else
         a(href='/me').btn.btn-primary= _("My Almond")
         | &nbsp;
@@ -119,32 +114,6 @@ block content
             div.col-md-6
               img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
               img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
-
-      if !authenticated && ENABLE_ANONYMOUS_USER
-        section.divider#section-try-now
-          h3= _("Try Almond now")
-          div.container
-            div.row
-              div.col-xs-12
-                div#conversation(data-target='/me/api/anonymous')
-                  div#chat
-                  div#input-block
-                    span(role='button').hidden#cancel
-                      span(aria-hidden='true').glyphicon.glyphicon-remove-circle
-                      span.sr-only= _("Cancel")
-                    form(action='#')#input-form
-                      label(for='#chat-input').sr-only= _("Command:")
-                      input(type='text',placeholder=_("Write your command or answer here")).form-control#input
-
-      section.divider#section-get-almond
-        h3= _("Getting Almond")
-        div.container
-          div.row
-            div.col-md-6.col-md-offset-3
-              a(href='/user/register').btn.btn-primary.btn-block= _("Create An Account for Web Almond")
-          div.row
-            div.col-md-6.col-md-offset-3
-              a(href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine').btn.btn-primary.btn-block= _("Get Almond on your Phone")
 
       section.divider#team
         h3= _("Our Team")

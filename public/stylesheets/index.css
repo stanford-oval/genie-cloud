@@ -174,3 +174,46 @@
     padding-top: 0px;
     padding-bottom: 20px;
 }
+
+#almond-title {
+  color:#dea844;
+}
+
+#thingpedia-icon-cloud {
+  display: block;
+  width: 100%;
+}
+
+#multi-color-example .black {
+  color: black;
+}
+#multi-color-example .blue {
+  color: blue;
+}
+#multi-color-example .red {
+  color: red;
+}
+#multi-color-example .purple {
+  color: purple;
+}
+#multi-color-example .green {
+  color: green;
+}
+#multi-color-example code {
+  color: inherit;
+  background-color: transparent;
+}
+
+#multi-color-example .box {
+  padding: 0.5em;
+  border: 2px solid black;
+}
+#multi-color-example .arrow {
+  text-align: center;
+  font-size: 36px;
+}
+
+#team-profile-monica + .team-profile-text {
+  margin: auto;
+  padding-bottom: 1em;
+}

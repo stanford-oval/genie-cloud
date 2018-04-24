@@ -38,7 +38,7 @@ module.exports.SEMPRE_URL = 'https://almond-nl.stanford.edu';
 
 // set to true to let users try out Almond without logging in
 // they will operate as the user "anonymous"
-module.exports.ENABLE_ANONYMOUS_USER = false;
+module.exports.ENABLE_ANONYMOUS_USER = true;
 
 // the following should be set in secret_config.js (which is not checked
 // into git) or not set at all

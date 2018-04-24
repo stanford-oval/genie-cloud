@@ -1,6 +1,8 @@
 ul.nav.navbar-nav
   li.hidden-md.hidden-lg
     a(href="/")= _("Home")
+  li
+    a(href='/get-almond')= _("Get Almond")
   if authenticated
     li
       a(href="/me")= _("My Almond")
