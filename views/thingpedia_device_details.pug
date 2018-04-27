@@ -126,6 +126,8 @@ block content
         = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
       else
         = _(", version %d").format(device.approved_version)
+    small
+      a(href='/thingpedia/schemas/by-id/' + device.primary_kind)= _("metadata details")
 
   h2.device-subtitle= _("Uploaded By: ")
     if user && user.roles & 0x1
@@ -153,6 +155,9 @@ block content
     li
       code #{name}(
         for a, i in inv.args
+          if i !== 0
+            br
+            span.indent= ' '.repeat(name.length+2)
           if a.is_input
             = 'in '
             if a.required
@@ -171,21 +176,26 @@ block content
           if i !== inv.args.length-1
             = ', '
         = ')'
-      if inv.doc
-        | : #{inv.doc}
       br
-      = _("Canonical: ")
-      span.canonical= inv.canonical
-      br
-      = _("Local Confirmation: ")
-      span.confirmation= inv.confirmation
-      br
-      = _("Remote Confirmation: ")
-      span.confirmation_remote= inv.confirmation_remote
-      if inv_type === 'query'
+      | #{inv.doc}
+      //-br
+      //-= _("Canonical: ")
+      //-span.canonical= inv.canonical
+      //-br
+      //-= _("Local Confirmation: ")
+      //-span.confirmation= inv.confirmation
+      //-br
+      //-= _("Remote Confirmation: ")
+      //-span.confirmation_remote= inv.confirmation_remote
+      //-if inv_type === 'query'
         br
         = _("Polling Interval: ")
         span.poll_interval= inv.poll_interval === 0 ? _("Push-based") : (inv.poll_interval < 0 ? _("Non-deterministic") : _("%d ms").format(inv.poll_interval))
+        br
+        if inv.is_list
+          = _("This function returns a list of results.")
+        else
+          = _("This function returns a single result.")
 
   if Object.keys(queries).length > 0
     h2.device-subtitle= _("Queries")
