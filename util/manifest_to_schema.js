@@ -22,6 +22,8 @@ module.exports = {
                     confirmation: (ast[name].confirmation || ast[name].label),
                     confirmation_remote: (ast[name].confirmation_remote || ast[name].confirmation),
                     canonical: ast[name].canonical,
+                    is_list: !!ast[name].is_list,
+                    is_monitorable: ('poll_interval' in ast[name] ? ast[name].poll_interval >= 0 : !!ast[name].is_monitorable), 
                     schema: [],
                     args: [],
                     argcanonicals: [],
@@ -73,7 +75,9 @@ module.exports = {
                     doc: meta[what][name].doc || '',
                     confirmation: meta[what][name].confirmation || '',
                     confirmation_remote: meta[what][name].confirmation_remote || '',
-                    canonical: meta[what][name].canonical || ''
+                    canonical: meta[what][name].canonical || '',
+                    is_list: meta[what][name].is_list,
+                    is_monitorable: meta[what][name].is_monitorable
                 };
             }
         }
