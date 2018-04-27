@@ -86,7 +86,7 @@ class EngineManagerClient extends events.EventEmitter {
                         webhook: webhook,
                         assistant: assistant
                     };
-                }).done((obj) => defer.resolve(obj), (error) => defer.reject(error));
+                }).then((obj) => defer.resolve(obj), (error) => defer.reject(error));
             },
             error(message) {
                 defer.reject(new Error(message));
