@@ -13,19 +13,10 @@ const db = require('../util/db');
 
 module.exports = {
     create(dbClient, batch) {
-        var KEYS = ['name', 'submissions_per_hit'];
-        KEYS.forEach((key) => {
-            if (batch[key] === undefined)
-                batch[key] = null;
+        return db.insertOne(dbClient, 'insert into mturk_batch set ?', [batch]).then((id) => {
+            batch.id = id;
+            return batch;
         });
-        var vals = KEYS.map((key) => batch[key]);
-        var marks = KEYS.map(() => '?');
-
-        return db.insertOne(dbClient, 'insert into mturk_batch(' + KEYS.join(',') + ') '
-                            + 'values (' + marks.join(',') + ')', vals).then((id) => {
-                                batch.id = id;
-                                return batch;
-                            });
     },
 
     getHIT(dbClient, batch, id) {
@@ -51,9 +42,7 @@ module.exports = {
                 if (ex[key] === undefined)
                     ex[key] = null;
             });
-            const vals = KEYS.map((key) => {
-                return ex[key];
-            });
+            const vals = KEYS.map((key) => ex[key]);
             arrays.push(vals);
         });
 
@@ -82,5 +71,4 @@ module.exports = {
     streamHITs(dbClient, batch) {
         return dbClient.query(`select id from mturk_input where batch = ?`, batch);
     }
-
 };

@@ -29,6 +29,11 @@ module.exports.THINGPEDIA_URL = '';
 // headers)
 module.exports.IS_PRODUCTION_THINGPEDIA = true;
 
+// the base URL used for OAuth redirects, to support Login With Google
+// the full OAuth redirect URI for Google is
+// OAUTH_REDIRECT_ORIGIN + /user/oauth2/google/callback
+module.exports.OAUTH_REDIRECT_ORIGIN = 'https://thingengine.stanford.edu';
+
 module.exports.SEMPRE_URL = 'https://almond-nl.stanford.edu';
 
 // set to true to let users try out Almond without logging in
@@ -43,9 +48,8 @@ module.exports.ENABLE_ANONYMOUS_USER = true;
 module.exports.TRAINING_URL = null;
 module.exports.TRAINING_ACCESS_TOKEN = null;
 
-// OAuth Client secrets to support Login With Google / Login With Facebook
+// OAuth Client secret to support Login With Google
 module.exports.GOOGLE_CLIENT_SECRET = null;
-module.exports.FACEBOOK_APP_SECRET = null;
 
 // Mailgun user/password to handle the "Request Developer Access" form
 module.exports.MAILGUN_USER = null;

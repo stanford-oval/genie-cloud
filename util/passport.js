@@ -17,16 +17,14 @@ const model = require('../model/user');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const GoogleOAuthStrategy = require('passport-google-oauth').OAuth2Strategy;
-const FacebookStrategy = require('passport-facebook').Strategy;
 const BearerStrategy = require('passport-http-bearer').Strategy;
 const BasicStrategy = require('passport-http').BasicStrategy;
 
 const EngineManager = require('../almond/enginemanagerclient');
 
 var GOOGLE_CLIENT_ID = '739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com';
-var FACEBOOK_APP_ID = '979879085397010';
 
-const { GOOGLE_CLIENT_SECRET, FACEBOOK_APP_SECRET } = require('../config');
+const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_SECRET } = require('../config');
 
 function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
@@ -38,8 +36,8 @@ function makeRandom(size = 32) {
 }
 
 function authenticateGoogle(accessToken, refreshToken, profile, done) {
-    db.withTransaction(function(dbClient) {
-        return model.getByGoogleAccount(dbClient, profile.id).then(function(rows) {
+    db.withTransaction((dbClient) => {
+        return model.getByGoogleAccount(dbClient, profile.id).then((rows) => {
             if (rows.length > 0)
                 return model.recordLogin(dbClient, rows[0].id).then(() => rows[0]);
 
@@ -57,16 +55,16 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
                 return user;
             });
         });
-    }).then(function(user) {
+    }).then((user) => {
         if (!user.newly_created)
             return user;
 
         // NOTE: we must start the user here because if we do it earlier we're
         // still inside the transaction, and the master process (which uses a different
         // database connection) will not see the new user in the database
-        return EngineManager.get().startUser(user.id).then(function() {
+        return EngineManager.get().startUser(user.id).then(() => {
             // asynchronously inject google-account device
-            EngineManager.get().getEngine(user.id).then(function(engine) {
+            EngineManager.get().getEngine(user.id).then((engine) => {
                 return engine.devices.loadOneDevice({ kind: 'com.google',
                                                       profileId: profile.id,
                                                       accessToken: accessToken,
@@ -78,69 +76,17 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
 }
 
 function associateGoogle(user, accessToken, refreshToken, profile, done) {
-    db.withTransaction(function(dbClient) {
-        return model.update(dbClient, user.id, { google_id: profile.id })
-            .then(function() {
-                // asynchronously inject google-account device
-                EngineManager.get().getEngine(user.id).then(function(engine) {
-                    return engine.devices.loadOneDevice({ kind: 'com.google',
-                                                          profileId: profile.id,
-                                                          accessToken: accessToken,
-                                                          refreshToken: refreshToken }, true);
-                }).done();
-
-                return user;
-            });
-    }).nodeify(done);
-}
-
-function authenticateFacebook(accessToken, refreshToken, profile, done) {
-    db.withTransaction(function(dbClient) {
-        return model.getByFacebookAccount(dbClient, profile.id).then(function(rows) {
-            if (rows.length > 0)
-                return model.recordLogin(dbClient, rows[0].id).then(() => rows[0]);
-
-            var username = profile.username || profile.emails[0].value;
-            return model.create(dbClient, { username: username,
-                                            email: profile.emails[0].value,
-                                            locale: 'en-US',
-                                            timezone: 'America/Los_Angeles',
-                                            facebook_id: profile.id,
-                                            human_name: profile.displayName,
-                                            cloud_id: makeRandom(8),
-                                            auth_token: makeRandom(),
-                                            storage_key: makeRandom() });
+    db.withTransaction((dbClient) => {
+        return model.update(dbClient, user.id, { google_id: profile.id }).then(() => {
+            // asynchronously inject google-account device
+            EngineManager.get().getEngine(user.id).then((engine) => {
+                return engine.devices.loadOneDevice({ kind: 'com.google',
+                                                      profileId: profile.id,
+                                                      accessToken: accessToken,
+                                                      refreshToken: refreshToken }, true);
+            }).done();
+            return user;
         });
-    }).then(function(user) {
-        return EngineManager.get().startUser(user.id).then(function() {
-             // asynchronously inject facebook device
-             EngineManager.get().getEngine(user.id).then(function(engine) {
-                 return engine.devices.loadOneDevice({ kind: 'com.facebook',
-                                                       profileId: profile.id,
-                                                       accessToken: accessToken,
-                                                       refreshToken: refreshToken }, true);
-             }).done();
-
-             user.newly_created = true;
-             return user;
-        });
-    }).nodeify(done);
-}
-
-function associateFacebook(user, accessToken, refreshToken, profile, done) {
-    db.withTransaction(function(dbClient) {
-        return model.update(dbClient, user.id, { facebook_id: profile.id })
-            .then(function() {
-                // asynchronously inject facebook device
-                EngineManager.get().getEngine(user.id).then(function(engine) {
-                    return engine.devices.loadOneDevice({ kind: 'com.facebook',
-                                                          profileId: profile.id,
-                                                          accessToken: accessToken,
-                                                          refreshToken: refreshToken }, true);
-                }).done();
-
-                return user;
-            });
     }).nodeify(done);
 }
 
@@ -183,10 +129,6 @@ exports.initialize = function() {
 
     passport.use(new BasicStrategy(verifyCloudIdAuthToken));
 
-    passport.use('local-omlet',
-        new LocalStrategy({ usernameField: 'cloudId', passwordField: 'authToken' },
-        verifyCloudIdAuthToken));
-
     passport.use(new LocalStrategy((username, password, done) => {
         db.withClient((dbClient) => {
             return model.getByName(dbClient, username).then((rows) => {
@@ -212,7 +154,7 @@ exports.initialize = function() {
     passport.use(new GoogleOAuthStrategy({
         clientID: GOOGLE_CLIENT_ID,
         clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: platform.getOrigin() + '/user/oauth2/google/callback',
+        callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/google/callback',
         passReqToCallback: true,
     }, (req, accessToken, refreshToken, profile, done) => {
         if (!req.user) {
@@ -220,22 +162,6 @@ exports.initialize = function() {
             authenticateGoogle(accessToken, refreshToken, profile, done);
         } else {
             associateGoogle(req.user, accessToken, refreshToken, profile, done);
-        }
-    }));
-
-    passport.use(new FacebookStrategy({
-        clientID: FACEBOOK_APP_ID,
-        clientSecret: FACEBOOK_APP_SECRET,
-        callbackURL: platform.getOrigin() + '/user/oauth2/facebook/callback',
-        enableProof: true,
-        profileFields: ['id', 'displayName', 'emails'],
-        passReqToCallback: true,
-    }, (req, accessToken, refreshToken, profile, done) => {
-        if (!req.user) {
-            // authenticate the user
-            authenticateFacebook(accessToken, refreshToken, profile, done);
-        } else {
-            associateFacebook(req.user, accessToken, refreshToken, profile, done);
         }
     }));
 };

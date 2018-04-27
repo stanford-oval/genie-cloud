@@ -16,12 +16,9 @@ const crypto = require('crypto');
 const user = require('../util/user');
 const model = require('../model/user');
 const organization = require('../model/organization');
-const snapshot = require('../model/snapshot');
 const device = require('../model/device');
 const db = require('../util/db');
 const TrainingServer = require('../util/training_server');
-
-const OmletOAuth = require('../omlet/oauth2');
 
 function makeRandom() {
     return crypto.randomBytes(32).toString('hex');
@@ -56,15 +53,11 @@ router.get('/', user.redirectRole(user.Role.ADMIN), (req, res) => {
     TrainingServer.get().getCurrentJob().then((current_job) => {
         res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
                                      csrfToken: req.csrfToken(),
-                                     omletAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
-                                     omletRunning: false,
                                      currentTrainingJob: current_job });
     }).catch((e) => {
         console.error('Failed to check current training job: ' + e.message);
         res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
                                      csrfToken: req.csrfToken(),
-                                     omletAvailable: platform.getSharedPreferences().get('assistant') !== undefined,
-                                     omletRunning: false,
                                      currentTrainingJob: null });
     });
 });
@@ -263,22 +256,6 @@ router.get('/review-queue', user.redirectLogIn, user.requireDeveloper(user.Devel
                                            devices: devices,
                                            page_num: page,
                                            DEVICES_PER_PAGE });
-    }).done();
-});
-
-router.get('/omlet/setup', user.redirectRole(user.Role.ADMIN), (req, res) => {
-    if (platform.getSharedPreferences().get('assistant')) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: req._("Omlet is already setup") });
-        return;
-    }
-
-    OmletOAuth.phase1(req, res).done();
-});
-
-router.get('/omlet/setup/callback', user.requireRole(user.Role.ADMIN), (req, res) => {
-    OmletOAuth.phase2(req, res).then(() => {
-        res.redirect(303, '/admin');
     }).done();
 });
 

@@ -76,6 +76,6 @@ class TrainingServer {
 	this._cache.set(jobId, promise);
         return promise;
     }
-};
+}
 _instance =  new TrainingServer();
 module.exports = TrainingServer;

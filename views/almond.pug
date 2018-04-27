@@ -2,8 +2,6 @@ extends layout
 
 block styles
   link(rel='stylesheet', href='/stylesheets/index.css')
-  link(rel='stylesheet', href='/stylesheets/almond.css')
-  link(rel='stylesheet', href='/stylesheets/conversation.css')
 
 block scripts
   if ENABLE_ANONYMOUS_USER
@@ -26,10 +24,7 @@ block content
               p=_("Almond lets you interact with your services and accounts in natural language, with flexibility and privacy.")
 
         p
-          if ENABLE_ANONYMOUS_USER
-            a(href='#section-try-now').scroller.btn.btn-primary= _("Try it now")
-          else
-            a(href='/me/conversation').btn.btn-primary= _("Try it now")
+          a(href='/get-almond').scroller.btn.btn-primary= _("Get Almond")
       else
         a(href='/me').btn.btn-primary= _("My Almond")
         | &nbsp;
@@ -120,68 +115,87 @@ block content
               img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
               img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
 
-      if !authenticated && ENABLE_ANONYMOUS_USER
-        section.divider#section-try-now
-          h3= _("Try Almond now")
-          div.container
-            div.row
-              div.col-xs-12
-                div#conversation(data-target='/me/api/anonymous')
-                  div#chat
-                  div#input-block
-                    span(role='button').hidden#cancel
-                      span(aria-hidden='true').glyphicon.glyphicon-remove-circle
-                      span.sr-only= _("Cancel")
-                    form(action='#')#input-form
-                      label(for='#chat-input').sr-only= _("Command:")
-                      input(type='text',placeholder=_("Write your command or answer here")).form-control#input
+      section.divider#publications
+        h3= _("Publications & Talks")
 
-      section.divider#section-get-almond
-        h3= _("Getting Almond")
         div.container
           div.row
-            div.col-md-6.col-md-offset-3
-              a(href='/user/register').btn.btn-primary.btn-block= _("Create An Account for Web Almond")
-          div.row
-            div.col-md-6.col-md-offset-3
-              a(href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine').btn.btn-primary.btn-block= _("Get Almond on your Phone")
+            div.col-xs-12
+              ul#publication-list
+                li
+                  a(href='https://d1ge76rambtuys.cloudfront.net/papers/www17.pdf')
+                    cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant
+                  br
+                  | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer, and Monica S. Lam
+                  br
+                  | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, Perth, Australia, April 2017.
+
+                li
+                  a(href='http://mobisocial.stanford.edu/papers/mobilesoft16.pdf')
+                    cite A Distributed Open Social Platform for Mobile Devices
+                  br
+                  | Monica S. Lam, Giovanni Campagna, Jiwon Seo, and Michael Fischer
+                  br
+                  | In <i>IEEE/ACM International Conference on Mobile Software Engineering and Systems</i>, Austin, Texas, May 2016. (Keynote)
 
       section.divider#team
         h3= _("Our Team")
         div.container
           div.row
-            div.col-md-8.col-md-offset-2
-              div.team-profile-wrap
-                div#team-profile-monica
+            div.col-sm-12.col-lg-3
+              div
+                div.team-profile-mid#team-profile-mid-monica
+                div
+                  h4.profile-name
+                    a(href='https://suif.stanford.edu/~lam/') Monica Lam
+                  p Monica Lam is a Professor in the Computer Science Department at Stanford University since 1988. She received a B.Sc. from University of British Columbia in 1980 and a Ph.D. in Computer S cience from Carnegie Mellon University in 1987. She is the Faculty Director of the Stanford MobiSocial Computing Laboratory and a co-PI in the POMI (Programmable Open Mobile Internet) 2020 project, which is an NSF Expedition started in 2008.
 
-                div.team-profile-text
-                  h4.profile-name Monica Lam
-                  p Monica Lam is a Professor in the Computer Science Department at Stanford University since 1988. She received a B.Sc. from University of British Columbia in 1980 and a Ph.D. in Computer Science from Carnegie Mellon University in 1987. She is the Faculty Director of the Stanford MobiSocial Computing Laboratory and a co-PI in the POMI (Programmable Open Mobile Internet) 2020 project, which is an NSF Expedition started in 2008.
-
-          div.row#team-profile-second-row
-            div.col-md-4.col-lg-3
+            div.col-sm-6.col-lg-3
               div.team-profile-mid#team-profile-mid-giovanni
               div
-                h6.team-profile-mid-text.profile-name Giovanni Campagna
-                p.team-profile-mid-text.team-profile-mid-des CS PhD, platform backend development
+                h6.profile-name
+                  a(href='https://web.stanford.edu/~gcampagn/') Giovanni Campagna
+                p Computer Science PhD student
+                p Platform backend, natural language, Thingpedia and ThingTalk design
 
-            div.col-md-4.col-lg-3
-              div.team-profile-mid#team-profile-mid-rakesh
-              div
-                h6.team-profile-mid-text.profile-name Rakesh Ramesh
-                p.team-profile-mid-text.team-profile-mid-des EE PhD, natural language frontend
-
-            div.col-md-4.col-lg-3
-              div.team-profile-mid#team-profile-mid-silei
-              div
-                h6.team-profile-mid-text.profile-name Silei Xu
-                p.team-profile-mid-text.team-profile-mid-des CS PhD, Android platform development
-
-            div.col-md-4.col-lg-3
+            div.col-sm-6.col-lg-3
               div.team-profile-mid#team-profile-mid-michael
               div
-                h6.team-profile-mid-text.profile-name Michael Fischer
-                p.team-profile-mid-text.team-profile-mid-des CS PhD, UX design
+                h6.profile-name Michael Fischer
+                p Computer Science PhD student
+                p UX design, HCI and graphics
+                br
+
+            div.col-sm-6.col-lg-3
+              div.team-profile-mid#team-profile-mid-mehrad
+              div
+                h6.profile-name Mehrad Moradshahi
+                p Electrical Engineering PhD student
+                p Natural language understanding
+                br
+
+            div.col-sm-6.col-lg-3
+              div.team-profile-mid#team-profile-mid-rakesh
+              div
+                h6.profile-name
+                  a(href='https://people.stanford.edu/rakeshr1/') Rakesh Ramesh
+                p Electrical Engineering PhD student
+                p Natural language understanding
+
+            div.col-sm-6.col-lg-3
+              div.team-profile-mid#team-profile-mid-silei
+              div
+                h6.profile-name
+                  a(href='https://cs.stanford.edu/people/silei/') Silei Xu
+                p Computer Science PhD student
+                p Systems, Thingpedia design, distributed system
+
+            div.col-sm-6.col-lg-3
+              div.team-profile-mid#team-profile-mid-richard
+              div
+                h6.profile-name Richard Yang
+                p Computer Science MS student
+                p HCI and graphics
 
           div.row
             div.col-sm-12

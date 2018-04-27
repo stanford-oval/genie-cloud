@@ -16,7 +16,7 @@ const user = require('../util/user');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
-var router = express.Router();
+const router = express.Router();
 
 function readLogs(userId, startCursor) {
     var args = ['-f', '-o', 'json-sse'];

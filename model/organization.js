@@ -11,22 +11,6 @@
 
 const db = require('../util/db');
 
-function create(client, org) {
-    var KEYS = ['name', 'comment', 'developer_key'];
-    KEYS.forEach((key) => {
-        if (org[key] === undefined)
-            org[key] = null;
-    });
-    var vals = KEYS.map((key) => org[key]);
-    var marks = KEYS.map(() => '?');
-
-    return db.insertOne(client, 'insert into organizations(' + KEYS.join(',') + ') '
-                        + 'values (' + marks.join(',') + ')', vals).then((id) => {
-                            org.id = id;
-                            return org;
-                        });
-}
-
 module.exports = {
     get(client, id) {
         return db.selectOne(client, "select * from organizations where id = ?",
@@ -56,13 +40,16 @@ module.exports = {
         return db.selectAll(client, "select id,is_admin from organizations where developer_key = ?", [key]);
     },
 
-    create: create,
-
+    create(client, org) {
+        return db.insertOne(client, 'insert into organizations set ?', [org]).then((id) => {
+            org.id = id;
+            return org;
+        });
+    },
     update(client, id, org) {
         return db.query(client, "update organizations set ? where id = ?", [org, id]);
     },
-
-    'delete'(client, id) {
+    delete(client, id) {
         return db.query(client, "delete from organizations where id = ?", [id]);
     }
 };

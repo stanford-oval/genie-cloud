@@ -14,11 +14,11 @@
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
     "update-bundle": "browserify -o public/javascripts/trainer-bundle.js browser/trainer.js",
-    "update-docs": "for f in doc/*.md ; do sed \"s|@@DOC@@|$f|\" views/doc_base.pug > views/doc_$(basename \"$f\" .md ).pug ; done"
+    "update-docs": "for f in doc/*.md ; do sed \"s|@@DOC@@|$f|\" views/doc_base.pug > views/doc_$(basename \"$f\" .md ).pug ; done",
+    "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js"
   },
   "dependencies": {
     "accept-language": "^2.0.17",
-    "actions-on-google": "^1.10.0",
     "almond": "github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent",
     "body-parser": "~1.13.3",
     "cacheable-middleware": "0.0.1",
@@ -48,9 +48,7 @@
     "node-gettext": "^2.0.0",
     "nodemailer": "~4.6.2",
     "oauth2orize": "~1.0.1",
-    "omlib": "github:Stanford-Mobisocial-IoT-Lab/omclient",
     "passport": "~0.3.0",
-    "passport-facebook": "~2.0.0",
     "passport-google-oauth": "~0.2.0",
     "passport-http": "~0.3.0",
     "passport-http-bearer": "~1.0.1",
@@ -60,6 +58,7 @@
     "q": "~1.4.1",
     "seedrandom": "^2.4.3",
     "serve-favicon": "~2.3.0",
+    "sockaddr": "^1.0.0",
     "thingengine-core": "github:Stanford-Mobisocial-IoT-Lab/thingengine-core",
     "thingpedia": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-api",
     "thingpedia-discovery": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-discovery",

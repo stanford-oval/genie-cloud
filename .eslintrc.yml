@@ -2,8 +2,6 @@ env:
   es6: true
   node: true
 extends: 'eslint:recommended'
-globals:
-  platform: false
 rules:
   indent: off
   no-console: off

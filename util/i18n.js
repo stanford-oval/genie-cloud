@@ -39,7 +39,7 @@ function load() {
     for (let l of LANGS) {
         let gt = new Gettext();
         if (l !== 'en-US') {
-            let modir = path.resolve(path.dirname(module.filename), '../po');
+            let modir = path.resolve(path.dirname(module.filename), '../po');//'
             loadTextdomainDirectory(gt, l, 'thingengine-platform-cloud', modir);
             modir = path.resolve(path.dirname(module.filename), '../node_modules/thingtalk/po');
             loadTextdomainDirectory(gt, l, 'thingtalk', modir);

@@ -12,18 +12,6 @@ block content
     h1.hidden-xs.hidden-sm#page-title.dev-portal-title
       = _("Administration")
 
-    if user.roles & 0x1
-      div.container
-        div.row
-          div.col-xs-12
-            if !omletAvailable
-              div.alert.alert-warning(role='alert')
-                p= _("The Omlet bridge is not yet configured. ")
-                  a(href='/admin/omlet/setup').btn.btn-sm.btn-default= _("Configure it")
-            else if !omletRunning
-              div.alert.alert-warning(role='alert')
-                p= _("The Omlet bridge is not running (it has crashed or it has been disabled).")
-
     if currentTrainingJob
       div.container
         div.row
@@ -63,15 +51,16 @@ block content
       section.divider
         div.container
           div.row
-            div.col-md-2
-              form(action='/admin/users/kill/all', method='post')
-                input(type='hidden',name='_csrf',value=csrfToken)
-                button(type='submit').btn.btn-danger.btn-block= _("Kill all users")
+            if user.roles & 0x1
+              div.col-md-2
+                form(action='/admin/users/kill/all', method='post')
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-danger.btn-block= _("Kill all users")
 
-            div.col-md-2
-              form(action='/admin/blow-view-cache', method='post')
-                input(type='hidden',name='_csrf',value=csrfToken)
-                button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
+              div.col-md-2
+                form(action='/admin/blow-view-cache', method='post')
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
 
             div.col-md-3
               form(action='/admin/start-training', method='post')

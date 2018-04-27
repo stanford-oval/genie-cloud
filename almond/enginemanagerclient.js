@@ -10,14 +10,10 @@
 "use strict";
 
 const Q = require('q');
-const child_process = require('child_process');
-const path = require('path');
-const fs = require('fs');
 const net = require('net');
-const os = require('os');
 const events = require('events');
-const stream = require('stream');
 const rpc = require('transparent-rpc');
+const sockaddr = require('sockaddr');
 
 const JsonDatagramSocket = require('./json_datagram_socket');
 
@@ -48,7 +44,7 @@ class EngineManagerClient extends events.EventEmitter {
         }
 
         var directSocket = new net.Socket();
-        directSocket.connect(Config.THINGENGINE_DIRECT_ADDRESS);
+        directSocket.connect(sockaddr(Config.THINGENGINE_DIRECT_ADDRESS));
 
         var jsonSocket = new JsonDatagramSocket(directSocket, directSocket, 'utf8');
         var rpcSocket = new rpc.Socket(jsonSocket);
@@ -81,7 +77,7 @@ class EngineManagerClient extends events.EventEmitter {
             ready(engine, websocket, webhook, assistant) {
                 jsonSocket.removeListener('data', initError);
 
-                Q.all([engine.apps, engine.devices, engine.messaging]).spread((apps, devices, messaging) => {
+                Promise.all([engine.apps, engine.devices, engine.messaging]).then(([apps, devices, messaging]) => {
                     return {
                         apps: apps,
                         devices: devices,
@@ -131,7 +127,7 @@ class EngineManagerClient extends events.EventEmitter {
             return;
 
         this._controlSocket = new net.Socket();
-        this._controlSocket.connect(Config.THINGENGINE_MANAGER_ADDRESS);
+        this._controlSocket.connect(sockaddr(Config.THINGENGINE_MANAGER_ADDRESS));
 
         let jsonSocket = new JsonDatagramSocket(this._controlSocket, this._controlSocket, 'utf8');
         this._rpcSocket = new rpc.Socket(jsonSocket);

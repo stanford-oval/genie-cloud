@@ -14,6 +14,7 @@ Q.longStackSupport = true;
 const events = require('events');
 const rpc = require('transparent-rpc');
 const net = require('net');
+const sockaddr = require('sockaddr');
 
 const EngineManager = require('./enginemanager');
 const JsonDatagramSocket = require('./json_datagram_socket');
@@ -41,7 +42,7 @@ class DirectSocketServer {
     }
 
     start() {
-        return Q.ninvoke(this._server, 'listen', Config.THINGENGINE_DIRECT_ADDRESS);
+        return Q.ninvoke(this._server, 'listen', sockaddr(Config.THINGENGINE_DIRECT_ADDRESS));
     }
 
     stop() {
@@ -83,7 +84,7 @@ class ControlSocketServer {
     }
 
     start() {
-        return Q.ninvoke(this._server, 'listen', Config.THINGENGINE_MANAGER_ADDRESS);
+        return Q.ninvoke(this._server, 'listen', sockaddr(Config.THINGENGINE_MANAGER_ADDRESS));
     }
 
     stop() {

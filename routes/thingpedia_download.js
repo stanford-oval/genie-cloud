@@ -7,15 +7,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-const Q = require('q');
 const express = require('express');
-
 const ThingpediaClient = require('../util/thingpedia-client');
 
 var router = express.Router();
 
-router.get('/devices/:device', function(req, res) {
+router.get('/devices/:device', (req, res) => {
     var device = req.params.device;
     if (!device || device.length < 5) {
         res.status(400).send('Bad Request');
@@ -28,10 +27,10 @@ router.get('/devices/:device', function(req, res) {
     }
 
     var client = new ThingpediaClient(req.query.developer_key);
-    client.getModuleLocation(kind, req.query.version).then(function(location) {
+    client.getModuleLocation(kind, req.query.version).then((location) => {
         res.cacheFor(86400000);
         res.redirect(301, location);
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).send('Error: ' + e.message);
     }).done();
 });

@@ -234,4 +234,10 @@ $(function() {
     $('#cancel').click(function() {
         handleSpecial('nevermind', "Cancel.");
     });
+
+    $('#try-almond-btn').click(function(event) {
+        $(this).hide();
+        $('#conversation').collapse('show');
+        event.preventDefault();
+    });
 });

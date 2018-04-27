@@ -7,53 +7,45 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
-const Q = require('q');
 const express = require('express');
-const crypto = require('crypto');
-const passport = require('passport');
 
 const Config = require('../config');
 
-const db = require('../util/db');
 const user = require('../util/user');
-const userModel = require('../model/user');
 const EngineManager = require('../almond/enginemanagerclient');
-
-const ThingTalk = require('thingtalk');
-const AppGrammar = ThingTalk.Grammar;
 
 var router = express.Router();
 
 function getAllApps(req, engine) {
-    return engine.apps.getAllApps().then(function(apps) {
-        return Q.all(apps.map(function(a) {
-            return Q.all([a.uniqueId, a.description, a.error])
-                .spread(function(uniqueId, description, error) {
-                    var app = { uniqueId: uniqueId, description: description || req._("Some app"),
-                                error: error };
-                    return app;
-                });
+    return engine.apps.getAllApps().then((apps) => {
+        return Promise.all(apps.map((a) => {
+            return Promise.all([a.uniqueId, a.description, a.error]).then(([uniqueId, description, error]) => {
+                const app = { uniqueId: uniqueId, description: description || req._("Some app"),
+                              error: error };
+                return app;
+            });
         }));
-    })
+    });
 }
 
 function getAllDevices(req, engine) {
-    return engine.devices.getAllDevices().then(function(devices) {
-        return Q.all(devices.map(function(d) {
-            return Q.all([d.uniqueId, d.name, d.description, d.kind, d.ownerTier,
-                          d.checkAvailable(),
-                          d.isTransient,
-                          d.hasKind('online-account'),
-                          d.hasKind('data-source'),
-                          d.hasKind('thingengine-system')])
-                .spread(function(uniqueId, name, description, kind,
-                                 ownerTier,
-                                 available,
-                                 isTransient,
-                                 isOnlineAccount,
-                                 isDataSource,
-                                 isThingEngine) {
+    return engine.devices.getAllDevices().then((devices) => {
+        return Promise.all(devices.map((d) => {
+            return Promise.all([d.uniqueId, d.name, d.description, d.kind, d.ownerTier,
+                                d.checkAvailable(),
+                                d.isTransient,
+                                d.hasKind('online-account'),
+                                d.hasKind('data-source'),
+                                d.hasKind('thingengine-system')])
+                .then(([uniqueId, name, description, kind,
+                        ownerTier,
+                        available,
+                        isTransient,
+                        isOnlineAccount,
+                        isDataSource,
+                        isThingEngine]) => {
                     return { uniqueId: uniqueId, name: name || req._("Unknown device"),
                              description: description || req._("Description not available"),
                              kind: kind,
@@ -66,14 +58,12 @@ function getAllDevices(req, engine) {
                              isThingEngine: isThingEngine };
                 });
         }));
-    }).then(function(devinfo) {
-        return devinfo.filter(function(d) {
-            return !d.isThingEngine;
-        });
+    }).then((devinfo) => {
+        return devinfo.filter((d) => !d.isThingEngine);
     });
 }
 
-router.get('/', user.redirectLogIn, function(req, res) {
+router.get('/', user.redirectLogIn, (req, res) => {
     EngineManager.get().isRunning(req.user.id).then((isRunning) => {
         if (!isRunning)
             return null;
@@ -81,10 +71,10 @@ router.get('/', user.redirectLogIn, function(req, res) {
             return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
         if (engine)
-            return Q.all([true, getAllApps(req, engine), getAllDevices(req, engine)]);
+            return Promise.all([true, getAllApps(req, engine), getAllDevices(req, engine)]);
         else
             return [false, [],[]];
-    }).spread(function(isRunning, appinfo, devinfo) {
+    }).then(([isRunning, appinfo, devinfo]) => {
         devinfo.sort((d1, d2) => {
             if (d1.name < d2.name)
                 return -1;
@@ -102,35 +92,35 @@ router.get('/', user.redirectLogIn, function(req, res) {
                                  devices: devinfo,
                                  S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST
                                 });
-    }).catch(function(e) {
+    }).catch((e) => {
         console.log(e.stack);
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
 
-router.post('/apps/delete', user.requireLogIn, function(req, res, next) {
-    EngineManager.get().getEngine(req.user.id).then(function(engine) {
-        var id = req.body.id;
-        return Q.all([engine, engine.apps.getApp(id)]);
-    }).spread(function(engine, app) {
+router.post('/apps/delete', user.requireLogIn, (req, res, next) => {
+    EngineManager.get().getEngine(req.user.id).then((engine) => {
+        const id = req.body.id;
+        return Promise.all([engine, engine.apps.getApp(id)]);
+    }).then(([engine, app]) => {
         if (app === undefined) {
             res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: req._("Not found.") });
-            return;
+            return Promise.resolve();
         }
 
         return engine.apps.removeApp(app);
-    }).then(function() {
+    }).then(() => {
         req.flash('app-message', "Application successfully deleted");
         res.redirect(303, '/me');
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
 
-router.get('/conversation', user.redirectLogIn, function(req, res, next) {
+router.get('/conversation', user.redirectLogIn, (req, res, next) => {
     res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond") });
 });
 

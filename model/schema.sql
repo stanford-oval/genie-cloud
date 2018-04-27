@@ -1,7 +1,5 @@
 drop table if exists device_class_kind cascade;
-drop table if exists app_tag cascade;
 drop table if exists device_class cascade;
-drop table if exists app cascade;
 drop table if exists oauth2_access_tokens cascade;
 drop table if exists oauth2_auth_codes cascade;
 drop table if exists users cascade;
@@ -16,8 +14,6 @@ create table users (
     locale char(15) not null default 'en-US',
     timezone varchar(64) not null default 'America/Los_Angeles',
     google_id varchar(255) unique default null,
-    facebook_id varchar(255) unique default null,
-    omlet_id varchar(255) unique default null,
     password char(64) default null,
     salt char(64) default null,
     cloud_id char(64) unique not null,
@@ -31,7 +27,7 @@ create table users (
     lastlog_time datetime not null default CURRENT_TIMESTAMP,
     constraint password_salt check ((password is not null and salt is not null) or
                                     (password is null and salt is null)),
-    constraint auth_method check (password is not null or google_id is not null or facebook_id is not null),
+    constraint auth_method check (password is not null or google_id is not null),
     foreign key (developer_org) references organizations(id) on update cascade on delete restrict
 ) collate = utf8_bin ;
 
@@ -85,17 +81,6 @@ create table oauth2_auth_codes (
     foreign key (client_id) references oauth2_clients(id) on update cascade on delete cascade
 ) collate = utf8_bin;
 
-create table app (
-    id integer auto_increment primary key,
-    owner integer,
-    app_id varchar(255) unique not null,
-    name varchar(255) not null collate utf8_general_ci,
-    description text not null collate utf8_general_ci,
-    code mediumtext not null,
-    visible boolean not null default false,
-    foreign key (owner) references users(id) on update cascade on delete set null
-) collate = utf8_bin;
-
 create table device_class (
     id integer auto_increment primary key,
     primary_kind varchar(128) unique not null,
@@ -126,15 +111,6 @@ create table device_schema (
     foreign key (owner) references organizations(id) on update cascade on delete cascade
 ) collate = utf8_bin;
 
-create table device_schema_version (
-    schema_id integer not null,
-    version integer not null,
-    types mediumtext not null,
-    meta mediumtext not null,
-    primary key(schema_id, version),
-    foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
-) collate = utf8_bin;
-
 create table device_schema_channels (
     schema_id integer not null,
     version integer not null,
@@ -143,6 +119,7 @@ create table device_schema_channels (
     types mediumtext not null,
     argnames mediumtext not null,
     required mediumtext not null,
+    is_input mediumtext not null,
     doc mediumtext not null,
     primary key(schema_id, version, name),
     foreign key (schema_id) references device_schema(id) on update cascade on delete cascade
@@ -156,13 +133,9 @@ create table device_schema_channel_canonicals (
     canonical text not null collate utf8_general_ci,
     confirmation varchar(255) collate utf8_general_ci default null,
     confirmation_remote varchar(255) collate utf8_general_ci default null,
-    formatted mediumtext collate utf8_general_ci default null,
     argcanonicals mediumtext not null collate utf8_general_ci,
     questions mediumtext not null collate utf8_general_ci,
-    keywords mediumtext not null collate utf8_general_ci,
     primary key(schema_id, version, language, name),
-    key canonical_btree (canonical(30)),
-    fulltext key(canonical, keywords)
 ) collate = utf8_bin;
 
 create table lexicon(
@@ -177,7 +150,6 @@ create table lexicon(
 create table example_utterances (
     id integer auto_increment primary key,
     schema_id integer null,
-    app_id integer null,
     is_base boolean not null default false,
     language char(15) not null default 'en',
     type char(32) not null default 'other',
@@ -207,14 +179,6 @@ create table device_code_version (
     foreign key (device_id) references device_class(id) on update cascade on delete cascade
 ) collate = utf8_bin;
 
-create table app_tag (
-    id integer auto_increment primary key,
-    app_id integer not null,
-    tag varchar(255) not null collate utf8_general_ci,
-    key(tag),
-    foreign key (app_id) references app(id) on update cascade on delete cascade
-) collate = utf8_bin;
-
 create table device_class_tag (
     tag varchar(128) not null,
     device_id integer not null,
@@ -240,12 +204,11 @@ CREATE TABLE `entity_names` (
 
 CREATE TABLE `entity_lexicon` (
   `language` char(15) NOT NULL DEFAULT 'en',
-  `token` varchar(128) CHARACTER SET utf8 NOT NULL,
   `entity_id` varchar(64) NOT NULL,
   `entity_value` varchar(64) NOT NULL,
   `entity_canonical` varchar(128) CHARACTER SET utf8 NOT NULL,
   `entity_name` varchar(128) CHARACTER SET utf8 NOT NULL,
-  PRIMARY KEY (`language`,`token`,`entity_id`,`entity_value`,`entity_canonical`),
+  PRIMARY KEY (`language`,`entity_id`,`entity_value`,`entity_canonical`),
   KEY `entity_id` (`entity_id`),
   FOREIGN KEY (`entity_id`) REFERENCES `entity_names` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) collate = utf8_bin ;

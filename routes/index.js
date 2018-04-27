@@ -27,6 +27,17 @@ router.get('/', (req, res, next) => {
     });
 });
 
+router.get('/get-almond', (req, res, next) => {
+    if (req.user) {
+        res.redirect('/me/conversation');
+        return;
+    }
+
+    res.render('try_almond', {
+        page_title: req._("Getting Almond"),
+    });
+});
+
 router.get('/thingpedia', (req, res, next) => {
     db.withClient((dbClient) => {
         return Promise.all([
@@ -37,6 +48,10 @@ router.get('/thingpedia', (req, res, next) => {
         res.render('thingpedia_portal', { page_title: req._("Thingpedia - The Open API Collection"),
                                           csrfToken: req.csrfToken(), device_count, function_count });
     }).catch(next);
+});
+
+router.get('/thingpedia/training', (req, res, next) => {
+    res.redirect(301, '/thingpedia/developers#sentence-to-code-block');
 });
 
 router.get('/about', (req, res, next) => {

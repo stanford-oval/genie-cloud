@@ -7,9 +7,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
+"use strict";
 
 const express = require('express');
-const passport = require('passport');
 
 const user = require('../model/user');
 const db = require('../util/db');
@@ -17,7 +17,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
-router.post('/:user_id/:id', function(req, res, next) {
+router.post('/:user_id/:id', (req, res, next) => {
     db.withClient((dbClient) => {
        return user.getIdByCloudId(dbClient, req.params.user_id);
     }).then((user) => {
@@ -27,7 +27,7 @@ router.post('/:user_id/:id', function(req, res, next) {
     }).catch(next);
 });
 
-router.get('/:user_id/:id', function(req, res, next) {
+router.get('/:user_id/:id', (req, res, next) => {
     db.withClient((dbClient) => {
        return user.getIdByCloudId(dbClient, req.params.user_id);
     }).then((user) => {

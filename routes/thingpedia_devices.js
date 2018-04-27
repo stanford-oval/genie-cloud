@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 
 const Config = require('../config');
@@ -64,11 +63,10 @@ function getDetails(fn, param, req, res) {
                 return Promise.all([Promise.resolve().then(() => {
                     if (language === 'en') {
                         d.translated = true;
-                        return;
+                        return Promise.resolve();
                     }
                     return schema.isKindTranslated(client, d.primary_kind, language).then((t) => {
                         d.translated = t;
-                        return;
                      });
                 }), exampleModel.getByKinds(client, [d.primary_kind], language).then((examples) => {
                     d.examples = examples;
@@ -142,20 +140,20 @@ router.post('/unapprove/:id', user.requireLogIn, user.requireDeveloper(user.Deve
     }).done();
 });
 
-router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  function(req, res) {
-    db.withTransaction(function(dbClient) {
-        return model.get(dbClient, req.params.id).then(function(row) {
+router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  (req, res) => {
+    db.withTransaction((dbClient) => {
+        return model.get(dbClient, req.params.id).then((row) => {
             if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
                 res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: req._("Not Authorized") });
-                return;
+                return Promise.resolve();
             }
 
-            return model.delete(dbClient, req.params.id).then(function() {
+            return model.delete(dbClient, req.params.id).then(() => {
                 res.redirect(303, '/thingpedia/devices');
             });
         });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e.message });
     }).done();
@@ -179,9 +177,9 @@ ${(req.body.comments || '').trim()}
 `
     };
 
-    SendMail.send(mailOptions).then(function() {
+    SendMail.send(mailOptions).then(() => {
         res.redirect(301, '/thingpedia/devices/by-id/' + req.body.kind);
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     });

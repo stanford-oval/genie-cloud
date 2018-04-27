@@ -12,85 +12,71 @@
 module.exports = {
     toSchema(ast) {
         var triggers = {};
-        var triggerMeta = {};
         var actions = {};
-        var actionMeta = {};
         var queries = {};
-        var queryMeta = {};
 
-        function handleOne(ast, out, outMeta) {
+        function handleOne(ast, out) {
             for (var name in ast) {
-                out[name] = [];
-                outMeta[name] = {
+                out[name] = {
                     doc: ast[name].doc,
                     confirmation: (ast[name].confirmation || ast[name].label),
                     confirmation_remote: (ast[name].confirmation_remote || ast[name].confirmation),
                     canonical: ast[name].canonical,
+                    schema: [],
                     args: [],
+                    argcanonicals: [],
                     questions: [],
                     required: [],
                     is_input: []
                 };
                 for (var arg of ast[name].args) {
-                    out[name].push(arg.type);
-                    outMeta[name].args.push(arg.name);
-                    outMeta[name].questions.push(arg.question);
-                    outMeta[name].required.push(!!arg.required);
-                    outMeta[name].is_input.push(!!arg.is_input);
+                    out[name].schema.push(arg.type);
+                    out[name].args.push(arg.name);
+                    // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
+                    out[name].argcanonicals.push(arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
+                    out[name].questions.push(arg.question);
+                    out[name].required.push(!!arg.required);
+                    out[name].is_input.push(!!arg.is_input);
                 }
             }
         }
 
-        handleOne(ast.triggers, triggers, triggerMeta);
-        handleOne(ast.actions, actions, actionMeta);
-        handleOne(ast.queries, queries, queryMeta);
+        handleOne(ast.triggers, triggers);
+        handleOne(ast.actions, actions);
+        handleOne(ast.queries, queries);
 
-        var types = [triggers, actions, queries];
-        var meta = [triggerMeta, actionMeta, queryMeta];
-        return [types, meta];
+        return { triggers, actions, queries };
     },
 
-    toManifest(types, meta) {
-        var ast = {
-            triggers: {},
-            actions: {},
-            queries: {}
+    toManifest(meta) {
+        let ast = {
         };
-
-        function handleOne(idx, out) {
-            var schemas = types[idx];
-            var metas = meta[idx] || {};
-
-            for (var name in schemas) {
-                var channelMeta = metas[name] || {};
-                var args = [];
-                var argnames = channelMeta.args || (schemas[name].map((_, i) => ('arg' + (i+1))));
-                var questions = channelMeta.questions || [];
-                var argrequired = channelMeta.required || [];
-                var argisinput = channelMeta.is_input || [];
-                schemas[name].forEach((schema, i) => {
+        for (let what of ['triggers', 'queries', 'actions']) {
+            ast[what] = {};
+            for (let name in meta[what]) {
+                let argnames = meta[what][name].args;
+                let questions = meta[what][name].questions || [];
+                let argrequired = meta[what][name].required || [];
+                var argisinput = meta[what][name].is_input || [];
+                let args = [];
+                meta[what][name].schema.forEach((type, i) => {
                     args.push({
-                        type: schema,
+                        type: type,
                         name: argnames[i],
                         question: questions[i] || '',
                         required: argrequired[i] || false,
                         is_input: argisinput[i] || false,
                     });
                 });
-                out[name] = {
+                ast[what][name] = {
                     args: args,
-                    doc: channelMeta.doc || '',
-                    confirmation: channelMeta.confirmation || '',
-                    confirmation_remote: channelMeta.confirmation_remote || '',
-                    canonical: channelMeta.canonical || ''
+                    doc: meta[what][name].doc || '',
+                    confirmation: meta[what][name].confirmation || '',
+                    confirmation_remote: meta[what][name].confirmation_remote || '',
+                    canonical: meta[what][name].canonical || ''
                 };
             }
         }
-
-        handleOne(0, ast.triggers);
-        handleOne(1, ast.actions);
-        handleOne(2, ast.queries);
-
         return ast;
     }
-}
+};

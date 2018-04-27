@@ -17,17 +17,19 @@ const csurf = require('csurf');
 const JSZip = require('jszip');
 const ThingTalk = require('thingtalk');
 
-var db = require('../util/db');
-var code_storage = require('../util/code_storage');
-var model = require('../model/device');
-var schema = require('../model/schema');
-var user = require('../util/user');
-var exampleModel = require('../model/example');
-var entityModel = require('../model/entity');
-var Validation = require('../util/validation');
-var ManifestToSchema = require('../util/manifest_to_schema');
-var TrainingServer = require('../util/training_server');
-var tokenizer = require('../util/tokenize');
+const db = require('../util/db');
+const code_storage = require('../util/code_storage');
+const model = require('../model/device');
+const schema = require('../model/schema');
+const user = require('../util/user');
+const exampleModel = require('../model/example');
+const entityModel = require('../model/entity');
+const Validation = require('../util/validation');
+const ManifestToSchema = require('../util/manifest_to_schema');
+const TrainingServer = require('../util/training_server');
+const tokenizer = require('../util/tokenize');
+const graphics = require('../almond/graphics');
+const platform = require('../util/platform');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -70,7 +72,7 @@ function schemaCompatible(s1, s2) {
 }
 
 function validateSchema(dbClient, type, ast, req) {
-    return schema.getTypesByKinds(dbClient, [type], req.user.developer_org).then((rows) => {
+    return schema.getTypesAndNamesByKinds(dbClient, [type], req.user.developer_org).then((rows) => {
         if (rows.length < 1)
             throw new Error(req._("Invalid device type %s").format(type));
 
@@ -79,7 +81,7 @@ function validateSchema(dbClient, type, ast, req) {
                 if (!(name in where))
                     throw new Error(req._("Type %s requires %s %s").format(type, what, name));
                 var types = where[name].args.map((a) => a.type);
-                if (!schemaCompatible(types, against[name]))
+                if (!schemaCompatible(types, against.types[name]))
                     throw new Error(req._("Schema for %s is not compatible with type %s").format(name, type));
             }
         }
@@ -169,7 +171,7 @@ function validateDevice(dbClient, req) {
 }
 
 function ensurePrimarySchema(dbClient, name, kind, ast, req, approve) {
-    const [types, meta] = ManifestToSchema.toSchema(ast);
+    const metas = ManifestToSchema.toSchema(ast);
 
     return schema.getByKind(dbClient, kind).then((existing) => {
         if (existing.owner !== req.user.developer_org &&
@@ -183,9 +185,7 @@ function ensurePrimarySchema(dbClient, name, kind, ast, req, approve) {
         if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER && approve)
             obj.approved_version = obj.developer_version;
 
-        return schema.update(dbClient,
-                             existing.id, existing.kind, obj,
-                             types, meta);
+        return schema.update(dbClient, existing.id, existing.kind, obj, metas);
     }, (e) => {
         var obj = {
             kind: kind,
@@ -200,7 +200,7 @@ function ensurePrimarySchema(dbClient, name, kind, ast, req, approve) {
             obj.approved_version = 0;
             obj.developer_version = 0;
         }
-        return schema.create(dbClient, obj, types, meta);
+        return schema.create(dbClient, obj, metas);
     }).then((schema) => {
         return ensureExamples(dbClient, schema.id, ast);
     });
@@ -329,7 +329,7 @@ function doCreateOrUpdate(id, create, req, res) {
 
     Q.try(() => {
         return db.withTransaction((dbClient) => {
-            return Q.try(() => {
+            return Promise.resolve().then(() => {
                 return validateDevice(dbClient, req);
             }).catch((e) => {
                 console.error(e.stack);
@@ -346,11 +346,11 @@ function doCreateOrUpdate(id, create, req, res) {
                                                                            code: code },
                                                                  create: create });
                 return null;
-            }).tap((ast) => {
+            }).then((ast) => {
                 if (ast === null)
                     return null;
 
-                return ensurePrimarySchema(dbClient, name, kind, ast, req, approve);
+                return ensurePrimarySchema(dbClient, name, kind, ast, req, approve).then(() => ast);
             }).then((ast) => {
                 if (ast === null)
                     return null;
@@ -433,8 +433,7 @@ function doCreateOrUpdate(id, create, req, res) {
                     // upload the icon asynchronously to avoid blocking the request
                     setTimeout(() => {
                         Promise.resolve().then(() => {
-                            var graphicsApi = platform.getCapability('graphics-api');
-                            var image = graphicsApi.createImageFromPath(req.files.icon[0].path);
+                            var image = graphics.createImageFromPath(req.files.icon[0].path);
                             image.resizeFit(512, 512);
                             return image.stream('png');
                         }).then(([stdout, stderr]) => {
@@ -470,7 +469,7 @@ function doCreateOrUpdate(id, create, req, res) {
             if (req.files.icon && req.files.icon.length)
                 toDelete.push(Q.nfcall(fs.unlink, req.files.icon[0].path));
         }
-        return Q.all(toDelete);
+        return Promise.all(toDelete);
     }).catch((e) => {
         console.error(e.stack);
         res.status(400).render('error', { page_title: "Thingpedia - Error",
@@ -585,19 +584,19 @@ function migrateManifest(code, device) {
     return JSON.stringify(ast);
 }
 
-router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(req, res) {
-    Q.try(function() {
-        return db.withClient(function(dbClient) {
-            return model.get(dbClient, req.params.id).then(function(d) {
+router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
+    Promise.resolve().then(() => {
+        return db.withClient((dbClient) => {
+            return model.get(dbClient, req.params.id).then((d) => {
                 if (d.owner !== req.user.developer_org &&
                     req.user.developer < user.DeveloperStatus.ADMIN)
                     throw new Error(req._("Not Authorized"));
 
-                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then(function(row) {
+                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then((row) => {
                     d.code = migrateManifest(row.code, d);
                     return d;
                 });
-            }).then(function(d) {
+            }).then((d) => {
                 res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - edit device"),
                                                                  csrfToken: req.csrfToken(),
                                                                  id: req.params.id,
@@ -609,25 +608,28 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), function(
                                                                  create: false });
             });
         });
-    }).catch(function(e) {
+    }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), function(req, res) {
+router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     doCreateOrUpdate(req.params.id, false, req, res);
 });
 
-router.get('/example/:id', function(req, res) {
-    Q.try(function() {
+router.get('/example/:id', (req, res, next) => {
+    Promise.resolve().then(() => {
         // quotes, giphy, linkedin, tv, bodytrace
-        if (['350', '229', '9', '280', '3'].indexOf(req.params.id) === -1)
-            throw new Error(req._("Example not found."));
+        if (['350', '229', '9', '280', '3'].indexOf(req.params.id) === -1) {
+            res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
+                                              message: req._("Example not found.") });
+            return Promise.resolve();
+        }
 
-        return db.withClient(function(dbClient) {
-            return model.get(dbClient, req.params.id).then(function(d) {
-                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then(function(row) {
+        return db.withClient((dbClient) => {
+            return model.get(dbClient, req.params.id).then((d) => {
+                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then((row) => {
                     d.code = migrateManifest(row.code, d);
                     let ast = JSON.parse(d.code);
                     if ('client_id' in ast.auth)
@@ -637,7 +639,7 @@ router.get('/example/:id', function(req, res) {
                     d.code = JSON.stringify(ast);
                     return d;
                 });
-            }).then(function(d) {
+            }).then((d) => {
                 res.render('thingpedia_device_example', { page_title: req._("Thingpedia - example"),
                                                           csrfToken: req.csrfToken(),
                                                           id: req.params.id,
@@ -649,10 +651,10 @@ router.get('/example/:id', function(req, res) {
                                                         });
             });
         });
-    }).catch(function(e) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+    }).catch((e) => {
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
-})
+    }).catch(next);
+});
 
 module.exports = router;

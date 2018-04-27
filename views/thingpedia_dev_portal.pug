@@ -2,6 +2,10 @@ extends layout
 
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href='/stylesheets/train-almond.css')
+
+block scripts
+  script(src='/javascripts/trainer-bundle.js')
 
 block page_name
   - stdlayout = false;
@@ -37,6 +41,45 @@ block content
               a(href='/user/register').btn.btn-primary.btn-block= _("Apply to be a Developer")
 
     div.sections
+      section.divider#sentence-to-code-block
+        h3= _("Train Almond")
+        div.container
+          div.row
+            div.col-xs-12
+              p
+                = _("If Almond is misbehaving or misinterpreting your input, you can correct it here.")
+                |
+                |
+                != _("Type a sentence and then press <kbd>Enter</kbd>. Then click on the corresponding interpretation, or use the ThingTalk options to write the corresponding code manually.")
+
+              div
+                div.checkbox
+                  label
+                    input(type='checkbox')#edit-thingtalk
+                    = _("Edit ThingTalk before learning.")
+                form#sentence-to-code-form
+                  div.form-group
+                    label.sr-only(for="utterance")= _("Input:")
+                    input.form-control(type="text", placeholder="What do you want Almond to do?")#utterance
+                div#thingtalk-editor.hidden
+                  div.form-group#thingtalk-group
+                    label(for='thingtalk')= _("Code:")
+                    input.form-control(type="text")#thingtalk
+                    span.help-block#thingtalk-error
+                  div.form-group
+                    button(type='button').btn.btn-primary#sentence-to-code-done= _("Learn")
+              div#results-container
+                p#sabrina-thinks= _("Almond's choice: ")
+                  span#prediction
+                p= _("Your choice:")
+                ul#results
+
+              div#counter-box
+                = _("You have trained Almond with ")
+                span#counter
+                = _(" sentences. Thank you!")
+
+
       if authenticated && user.developer_org !== null
         section.divider
           h3= _("Your Developer Organization")
@@ -85,21 +128,6 @@ block content
                   a(href='/thingpedia/developers/thingpedia-api.md') Thingpedia API Reference
                 li
                   a(href='/thingpedia/developers/my-api.md') Web Almond API Reference
-
-      section.divider
-        h3= _("Academic papers")
-
-        div.container
-          div.row
-            div.col-xs-12
-              ul
-                li
-                  a(href='https://d1ge76rambtuys.cloudfront.net/papers/www17.pdf')
-                    cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant
-                  br
-                  | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer and Monica S. Lam
-                  br
-                  | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, 2017.
 
       if authenticated && user.developer_org !== null
         section.divider

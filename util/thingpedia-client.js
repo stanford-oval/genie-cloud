@@ -18,7 +18,6 @@ const device = require('../model/device');
 const organization = require('../model/organization');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
-const app = require('../model/app');
 
 const S3_HOST = Config.S3_CLOUDFRONT_HOST + '/devices/';
 
@@ -54,18 +53,6 @@ module.exports = class ThingpediaClientCloud {
         // only keep the language part of the locale, we don't
         // yet distinguish en_US from en_GB
         this.language = (locale || 'en').split(/[-_@.]/)[0];
-    }
-
-    getAppCode(appId) {
-        return db.withClient((dbClient) => {
-            return app.getByAppId(dbClient, appId);
-        });
-    }
-
-    getApps(start, limit) {
-        return db.withClient((dbClient) => {
-            return app.getAllQuick(dbClient, start, limit);
-        });
     }
 
     getModuleLocation(kind, version) {
@@ -251,7 +238,7 @@ module.exports = class ThingpediaClientCloud {
                     devices.forEach((d) => {
                         try {
                             this._deviceMakeFactory(d);
-                        } catch(e) {}
+                        } catch(e) { /**/ }
                     });
                     devices = devices.filter((d) => {
                         return !!d.factory;
@@ -277,7 +264,7 @@ module.exports = class ThingpediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
-                return device.getApprovedByGlobalNamesWithCode(dbClient, kinds, org);
+                return device.getApprovedByKindsWithCode(dbClient, kinds, org);
             }).then((devices) => {
                 devices.forEach((d) => {
                     try {
@@ -287,7 +274,7 @@ module.exports = class ThingpediaClientCloud {
                                 result[d.global_name] = d.factory;
                             result[d.primary_kind] = d.factory;
                         }
-                    } catch(e) {}
+                    } catch(e) { /**/ }
                 });
 
                 var unresolved = kinds.filter((k) => !(k in result));

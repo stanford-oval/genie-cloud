@@ -38,7 +38,6 @@ module.exports = {
     },
 
     GOOGLE_SCOPES: ['openid','profile','email'].join(' '),
-    FACEBOOK_SCOPES: ['email', 'public_profile', 'user_friends', 'publish_actions'].join(' '),
 
     register(dbClient, req, options) {
         return model.getByName(dbClient, options.username).then((rows) => {
@@ -61,29 +60,6 @@ module.exports = {
                     auth_token: authToken,
                     storage_key: storageKey,
                 });
-            });
-        });
-    },
-
-    registerWithOmlet(dbClient, options) {
-        return model.getByName(dbClient, options.username).then((rows) => {
-            if (rows.length > 0)
-                throw new Error("An user with this name already exists");
-
-            var cloudId = makeRandom(8);
-            var authToken = makeRandom();
-            var storageKey = makeRandom();
-            return model.create(dbClient, {
-                username: options.username,
-                password: options['password-hash'],
-                email: options.email,
-                locale: options.locale,
-                timezone: options.timezone,
-                salt: options.salt,
-                cloud_id: cloudId,
-                auth_token: authToken,
-                omlet_id: options.account,
-                storage_key: storageKey,
             });
         });
     },

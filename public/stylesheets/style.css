@@ -150,3 +150,7 @@ body {
   font-size: 36px;
   margin-bottom: 1.5em;
 }
+
+.panel > .panel-heading {
+  margin-top: 0px;
+}

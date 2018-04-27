@@ -60,41 +60,6 @@ mixin device_list(devices)
                     else
                       button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Forget")
 
-mixin thingpedia_apps(apps, visible)
-  div.row
-    each app, i in apps
-      if i % 6 === 0
-        div.clearfix.visible-lg.visible-md
-      else if i % 3 === 0
-        div.clearfix.visible-lg
-      else if i % 2 === 0
-        div.clearfix.visible-md
-      div.col-lg-4.col-md-6.app-template
-        div.panel.panel-default
-          a.panel-heading(href=THINGPEDIA_URL + '/thingpedia/apps/install/' + app.id)
-            h2.panel-title= app.name
-          div.panel-body
-            p #{app.description}
-            p
-              each tag in app.tags
-                a(href=THINGPEDIA_URL + '/thingpedia/apps/by-tag/' + tag.tag) ##{tag.tag}
-                | &#x20;
-            p
-              a(href=THINGPEDIA_URL + '/thingpedia/apps/' + app.id)= _("Show code")
-          div.panel-footer
-            div.row
-              div.col-md-6
-                if visible
-                  form.form-inline(action=THINGPEDIA_URL + "/thingpedia/apps/set-invisible/" + app.id,method="post")
-                    input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-sm.btn-success.btn-block= _("Hide from Collection")
-                else
-                  form.form-inline(action=THINGPEDIA_URL + "/thingpedia/apps/set-visible/" + app.id,method="post")
-                    input(type='hidden',name='_csrf',value=csrfToken)
-                    button(type='submit').btn.btn-sm.btn-success.btn-block= _("Publish")
-              div.col-md-6
-                button(data-app-id=app.id).btn.btn-sm.btn-danger.btn-block.button-delete-thingpedia-app= _("Delete")
-
 block content
   for message in messages
     div.alert.alert-success.alert-dismissible.fade.in(role='alert')
