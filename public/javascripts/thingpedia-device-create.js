@@ -115,6 +115,11 @@ $(function() {
                 type: 'number',
                 title: 'Polling Interval'
             },
+            is_list: {
+                type: 'boolean',
+                format: 'checkbox',
+                title: 'This function returns multiple results'
+            },
             url: {
                 type: 'string',
                 title: 'API Endpoint URL',

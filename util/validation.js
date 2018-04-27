@@ -124,6 +124,23 @@ module.exports = {
             where[name].doc = where[name].doc || '';
             where[name].args = where[name].args || [];
 
+            if (what === 'action') {
+                where[name].is_list = false;
+                if ('poll_interval' in where[name])
+                    where[name].poll_interval = -1;
+                else
+                    where[name].is_monitorable = false;
+            } else {
+                where[name].is_list = !!where[name].is_list;
+                if ('poll_interval' in where[name]) {
+                    if (typeof where[name].poll_interval !== 'number' || where[name].poll_interval !== Math.floor(where[name].poll_interval)
+                        || where[name].poll_interval <= -2)
+                        throw new Error('Invalid polling interval for ' + name + ' (must be a positive integer to poll, 0 for push or -1 to disable monitoring)');
+                } else {
+                    where[name].is_monitorable = !!where[name].is_monitorable;
+                }
+            }
+
             for (var arg of where[name].args) {
                 if (!arg.name)
                     throw new Error('Missing argument name in ' + name);

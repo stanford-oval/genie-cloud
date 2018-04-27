@@ -21,16 +21,16 @@ const ManifestToSchema = require('../util/manifest_to_schema');
 
 var router = express.Router();
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
     db.withClient((dbClient) => {
         return model.getAllForList(dbClient);
     }).then((rows) => {
         res.render('thingpedia_schema_list', { page_title: req._("Thingpedia - Supported Types"),
                                                schemas: rows });
     }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
+    }).catch(next);
 });
 
 function localeToLanguage(locale) {
@@ -80,6 +80,7 @@ router.get('/by-id/:kind', (req, res) => {
                                           actions: row.actions,
                                           queries: row.queries });
     }).catch((e) => {
+        console.error(e.stack);
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();

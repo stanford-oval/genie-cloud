@@ -58,6 +58,16 @@ $(function() {
                 type: 'string',
                 title: 'Canonical Form',
             },
+            is_monitorable: {
+                type: 'boolean',
+                format: 'checkbox',
+                title: 'This function can be monitored'
+            },
+            is_list: {
+                type: 'boolean',
+                format: 'checkbox',
+                title: 'This function returns multiple results'
+            },
         }
     };
     var fullSchema = {
