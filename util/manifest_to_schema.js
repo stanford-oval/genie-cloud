@@ -19,8 +19,8 @@ module.exports = {
             for (var name in ast) {
                 out[name] = {
                     doc: ast[name].doc,
-                    confirmation: (ast[name].confirmation || ast[name].label),
-                    confirmation_remote: (ast[name].confirmation_remote || ast[name].confirmation),
+                    confirmation: ast[name].confirmation,
+                    confirmation_remote: ast[name].confirmation_remote,
                     canonical: ast[name].canonical,
                     is_list: !!ast[name].is_list,
                     is_monitorable: ('poll_interval' in ast[name] ? ast[name].poll_interval >= 0 : !!ast[name].is_monitorable), 

@@ -90,11 +90,33 @@ block content
       else
         = _("Version: %d").format(schema.approved_version)
 
-  mixin invocation(inv, name)
+  mixin invocation(inv, name, inv_type)
     li
-      code #{name}(#{inv.args.map(function(p, i) { return (inv.is_input[i] ? ('in ' + (inv.required[i] ? 'req ' : 'opt ')) : 'out ') + p + ' : ' + inv.schema[i]; }).join(', ')})
-      if inv.doc
-        | : #{inv.doc}
+      code #{name}(
+        for a, i in inv.args
+          if i !== 0
+            br
+            span.indent= ' '.repeat(name.length+2)
+          if inv.is_input[i]
+            = 'in '
+            if inv.required[i]
+              = 'req '
+            else
+              = 'opt '
+          else
+              = 'out '
+          |  #{a.name} : 
+          if inv.schema[i].startsWith('Entity(')
+            a(href=`/thingpedia/entities/by-id/${inv.schema[i].substring('Entity('.length, inv.schema[i].length-1)}`)= inv.schema[i]
+          else if inv.schema[i].startsWith('Array(Entity(')
+            | Array(#[a(href=`/thingpedia/entities/by-id/${inv.schema[i].substring('Array(Entity('.length, inv.schema[i].length-2)}`)= inv.schema[i].substring('Array('.length, inv.schema[i].length-1)])
+          else
+            = inv.schema[i]
+          if i !== inv.args.length-1
+            = ', '
+        = ')'
+      br
+      | #{inv.doc}
       br
       = _("Canonical: ")
       span.canonical= inv.canonical
@@ -104,24 +126,36 @@ block content
       br
       = _("Remote Confirmation: ")
       span.confirmation_remote= inv.confirmation_remote
+      if inv_type === 'query'
+        br
+        if inv.is_monitorable
+          = _("This function can be monitored.")
+        else
+          = _("This function cannot be monitored.")
+        br
+        if inv.is_list
+          = _("This function returns a list of results.")
+        else
+          = _("This function returns a single result.")
+
 
   if Object.keys(triggers).length > 0
     h2.device-subtitle= _("Triggers")
     ul.device-channels
       for t, name in triggers
-        +invocation(t, name)
+        +invocation(t, name, 'trigger')
 
   if Object.keys(queries).length > 0
     h2.device-subtitle= _("Queries")
     ul.device-channels
       for q, name in queries
-        +invocation(q, name)
+        +invocation(q, name, 'query')
 
   if Object.keys(actions).length > 0
     h2.device-subtitle= _("Actions")
     ul.device-channels
       for a, name in actions
-        +invocation(a, name)
+        +invocation(a, name, 'action')
 
   h2.device-subtitle= _("Example Commands")
   if schema.examples.length > 0

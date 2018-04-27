@@ -80,3 +80,14 @@
 #no-commands {
     font-style: italic;
 }
+
+.device-channels .indent {
+    white-space: pre;
+}
+.device-channels {
+    padding: 0;
+}
+.device-channels >li {
+    display: block;
+    margin-bottom: 2em;
+}
