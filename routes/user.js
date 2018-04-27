@@ -195,7 +195,7 @@ router.post('/profile', user.requireLogIn, (req, res, next) => {
             req.body.username.length > 255)
             req.body.username = req.user.username;
         if (typeof req.body['email'] !== 'string' ||
-            req.body['email'].length == 0 ||
+            req.body['email'].length === 0 ||
             req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
             req.body.email = req.user.email;

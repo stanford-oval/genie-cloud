@@ -51,13 +51,13 @@ var router = express.Router();
     159 bancorp
     471 corporation
 */
-const IGNORED_WORDS = new Set(["in", "is", "of", "or", "not", "at", "as", "by", "my", "i", "from", "for", "an",
+/*const IGNORED_WORDS = new Set(["in", "is", "of", "or", "not", "at", "as", "by", "my", "i", "from", "for", "an",
     "on", "a", "to", "with", "and", "when", "notify", "monitor", "it",
     "me", "the", "if", "abc", "def", "ghi", "jkl", "mno", "pqr", "stu", "vwz",
 
     "bancshares", "index", "technology", "ishares", "trust", "energy", "incorporated", "capital",
     "limited", "systems", "fund", "first", "pharmaceuticals", "technologies", "company", "holdings",
-    "international", "ltd", "group", "financial", "corp", "bancorp", "corporation"]);
+    "international", "ltd", "group", "financial", "corp", "bancorp", "corporation"]);*/
 
 router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'upload', maxCount: 1 }
