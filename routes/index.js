@@ -28,11 +28,6 @@ router.get('/', (req, res, next) => {
 });
 
 router.get('/get-almond', (req, res, next) => {
-    if (req.user) {
-        res.redirect('/me/conversation');
-        return;
-    }
-
     res.render('try_almond', {
         page_title: req._("Getting Almond"),
     });
