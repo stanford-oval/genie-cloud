@@ -121,7 +121,6 @@ function processMetaRows(rows) {
         if (row.channel_type === null)
             return;
         var types = JSON.parse(row.types);
-        console.log('row', row);
         var obj = {
             schema: types,
             args: JSON.parse(row.argnames),
