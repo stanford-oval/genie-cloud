@@ -18,15 +18,15 @@
   padding-left: 10.5px;
 }
 
-#cheatsheet .trigger {
+.trigger {
   color: red;
 }
 
-#cheatsheet .query {
+.query {
   color: rgb(220,136,8);
 }
 
-#cheatsheet .action {
+.action {
   color: rgb(34,139,34);
 }
 

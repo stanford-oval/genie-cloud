@@ -5,6 +5,7 @@ block scripts
 
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+  link(rel='stylesheet', href='/stylesheets/thingpedia-cheatsheet.css')
 
 block page_name
   if device.category === 'online'
@@ -153,6 +154,58 @@ block content
 
   div.clearfix
 
+  -
+    function* split(pattern, regexp) {
+      // a split that preserves capturing parenthesis
+
+      let clone = new RegExp(regexp, 'g');
+      let match = clone.exec(pattern);
+
+      let i = 0;
+      while (match !== null) {
+        if (match.index > i)
+            yield pattern.substring(i, match.index);
+        yield match;
+        i = clone.lastIndex;
+        match = clone.exec(pattern);
+      }
+      if (i < pattern.length)
+        yield pattern.substring(i, pattern.length);
+    }
+    function clean(name) {
+      if (/^[vwgp]_/.test(name))
+        name = name.substr(2);
+      return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+    }
+    var PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
+
+  h2.device-subtitle= _("Commands")
+  if device.examples.length > 0
+    ul.device-examples
+      for e in device.examples
+        li
+          span(title=e.target_code)
+            if e.target_code.startsWith('let stream ')
+              span.trigger= _("WHEN: ")
+            else if e.target_code.startsWith('let table ')
+              span.query= _("GET: ")
+            else if e.target_code.startsWith('let action ')
+              span.action= _("DO: ")
+            - for (var chunk of split(e.utterance, PARAM_REGEX))
+              if typeof chunk === 'string'
+                 = chunk
+              else
+                 - var [match, param1, param2, opt] = chunk;
+                 if match === '$$'
+                   | $
+                 else
+                   | ____ #[small= '(' + clean(param1||param2) + ')']
+  else
+    // this cannot really happen anymore, because we show commands of the child types too
+    p#no-commands= _("This device has no commands of its own.")
+
+  div.clearfix
+
   mixin invocation(inv, name, inv_type)
     li
       code #{name}(
@@ -210,16 +263,6 @@ block content
     ul.device-channels
       for inv, name in actions
         +invocation(inv, name, 'action')
-
-  h2.device-subtitle= _("Example Commands")
-  if device.examples.length > 0
-    ul.device-examples
-      for e in device.examples
-        li
-          span(title=e.target_code)= e.utterance
-  else
-    // this cannot really happen anymore, because we show commands of the child types too
-    p#no-commands= _("This device has no commands of its own.")
 
   div.row#device-details-actions
     if authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
