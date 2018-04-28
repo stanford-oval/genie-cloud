@@ -126,6 +126,8 @@ block content
         = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
       else
         = _(", version %d").format(device.approved_version)
+    |
+    |
     small
       a(href='/thingpedia/schemas/by-id/' + device.primary_kind)= _("metadata details")
 
