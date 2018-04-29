@@ -1707,11 +1707,11 @@ const GRAMMAR = {
         ['${when_get_do_rule}', simpleCombine(makeProgram)],
 
         // setup commands
-        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((executor, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ executor })), true)],
-        ['${choice(tell|command|order|request|inform)} ${constant_Entity(tt:username)} that ${choice(he needs|she needs|I need him|I need her)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((executor, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ executor })), true)],
-        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to get ${complete_table} and send it to me', checkConstants(combineRemoteProgram((executor, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ executor })), true)],
-        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to send me ${complete_table}', checkConstants(combineRemoteProgram((executor, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ executor })), true)],
-        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to ${choice(let me know|inform me|notify me|alert me)} ${stream}', checkConstants(combineRemoteProgram((executor, stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction('return')])).set({ executor })), true)],
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((principal, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ principal })), true)],
+        ['${choice(tell|command|order|request|inform)} ${constant_Entity(tt:username)} that ${choice(he needs|she needs|I need him|I need her)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((principal, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ principal })), true)],
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to get ${complete_table} and send it to me', checkConstants(combineRemoteProgram((principal, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ principal })), true)],
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to send me ${complete_table}', checkConstants(combineRemoteProgram((principal, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ principal })), true)],
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to ${choice(let me know|inform me|notify me|alert me)} ${stream}', checkConstants(combineRemoteProgram((principal, stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction('return')])).set({ principal })), true)],
     ]
 };
 
