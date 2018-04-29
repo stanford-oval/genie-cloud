@@ -115,7 +115,7 @@ router.post('/users/kill/:id', user.requireRole(user.Role.ADMIN), (req, res) => 
     const engineManager = EngineManager.get();
 
     engineManager.killUser(parseInt(req.params.id)).then(() => {
-        res.redirect(303, '/admin/users');
+        res.redirect(303, '/admin/users/search?q=' + req.params.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
@@ -133,7 +133,7 @@ router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res) =>
     }).then(() => {
         return engineManager.startUser(parseInt(req.params.id));
     }).then(() => {
-        res.redirect(303, '/admin/users');
+        res.redirect(303, '/admin/users/search?q=' + req.params.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
