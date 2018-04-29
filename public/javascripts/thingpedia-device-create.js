@@ -209,7 +209,7 @@ $(function() {
                     type: {
                         type: 'string',
                         title: "Auth Type",
-                        'enum': ['none', 'oauth2', 'basic', 'builtin', 'discovery']
+                        'enum': ['none', 'oauth2', 'basic', 'builtin', 'discovery', 'interactive']
                     },
                     client_id: {
                         type: 'string',
