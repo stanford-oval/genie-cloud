@@ -84,6 +84,19 @@ function getDetails(fn, param, req, res) {
             d.types = ast.types || [];
             d.child_types = ast.child_types || [];
 
+            let trigger_ex = [], query_ex = [], action_ex = [], other_ex = [];
+            for (let ex of d.examples) {
+                if (ex.target_code.startsWith('let stream '))
+                    trigger_ex.push(ex);
+                else if (ex.target_code.startsWith('let table '))
+                    query_ex.push(ex);
+                else if (ex.target_code.startsWith('let action '))
+                    action_ex.push(ex);
+                else
+                    other_ex.push(ex);
+            }
+            d.examples = [].concat(trigger_ex, query_ex, action_ex, other_ex);
+
             actions = ast.actions || {};
             queries = ast.queries || {};
 
