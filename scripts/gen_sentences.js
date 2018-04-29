@@ -24,7 +24,7 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 // HACK
 const { optimizeFilter } = require('thingtalk/lib/optimize');
 
-const AdminThingpediaClient = require('./deps/admin-thingpedia-client');
+const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
 
@@ -46,6 +46,7 @@ const NON_MONITORABLE_FUNCTIONS = new Set([
     'org.thingpedia.builtin.thingengine.builtin:get_date',
     'org.thingpedia.builtin.thingengine.builtin:get_random_between',
     'org.thingpedia.builtin.thingengine.builtin:get_time',
+    'org.thingpedia.builtin.thingengine.gnome:get_screenshot',
     'security-camera:get_snapshot',
     'security-camera:get_url',
     'uk.co.thedogapi:get',
@@ -200,6 +201,8 @@ const TIMER_SCHEMA = new Ast.FunctionDef('other',
     {}, // inReq
     {}, // inOpt
     { __timestamp: Type.Measure('ms') }, // out
+    false, // is_list
+    true, // is_monitorable
     'every fixed interval', // canonical
     'every ${interval}', // confirmation
     '', // confirmation_remote
@@ -214,6 +217,8 @@ const AT_TIMER_SCHEMA = new Ast.FunctionDef('other',
     {}, // inReq
     {}, // inOpt
     { __timestamp: Type.Measure('ms') }, // out
+    false, // is_list
+    true, // is_monitorable
     'every day', // canonical
     'every day at ${time}', // confirmation
     '', // confirmation_remote
@@ -227,7 +232,9 @@ const SAY_SCHEMA = new Ast.FunctionDef('other',
     { message: 0 }, // index
     { message: Type.String }, // inReq
     {}, // inOpt
-    {},
+    {}, // out
+    false, // is_list
+    false, // is_monitorable
     'say', // canonical
     '', // confirmation
     '', // confirmation_remote
@@ -429,6 +436,45 @@ function simpleCombine(semanticAction) {
         return Derivation.combine(children, semanticAction);
     };
 }
+
+function replaceMeMy(derivation) {
+    let clone = derivation.clone();
+    for (let i = 0; i < clone.sentence.length; i++) {
+        if (typeof clone.sentence[i] !== 'string')
+            continue;
+        clone.sentence[i] = clone.sentence[i].replace(/\b(me|my|i|mine)\b/, (what) => {
+            switch(what) {
+            case 'me':
+                return 'them';
+            case 'my':
+                return 'their';
+            case 'mine':
+                return 'theirs';
+            case 'i':
+                return 'they';
+            default:
+                return what;
+            }
+        });
+    }
+    return clone;
+}
+
+function combineRemoteProgram(semanticAction) {
+    return function(children) {
+        let children2 = [];
+        for (let child of children) {
+            if (typeof child === 'string' || child instanceof Constant || child instanceof Placeholder) { // terminal
+                children2.push(child);
+            } else {
+                children2.push(replaceMeMy(child));
+            }
+        }
+
+        return Derivation.combine(children2, semanticAction);
+    };
+}
+
 function combineReplacePlaceholder(pname, semanticAction, options) {
     let f= function([c1, c2]) {
         return c1.replacePlaceholder(pname, c2, semanticAction, options);
@@ -1658,7 +1704,14 @@ const GRAMMAR = {
         ['${complete_when_do_rule}', checkConstants(simpleCombine(makeProgram))],
 
         // when => get => do
-        ['${when_get_do_rule}', simpleCombine(makeProgram)]
+        ['${when_get_do_rule}', simpleCombine(makeProgram)],
+
+        // setup commands
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((principal, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ principal })), true)],
+        ['${choice(tell|command|order|request|inform)} ${constant_Entity(tt:username)} that ${choice(he needs|she needs|I need him|I need her)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((principal, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ principal })), true)],
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to get ${complete_table} and send it to me', checkConstants(combineRemoteProgram((principal, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ principal })), true)],
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to send me ${complete_table}', checkConstants(combineRemoteProgram((principal, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ principal })), true)],
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to ${choice(let me know|inform me|notify me|alert me)} ${stream}', checkConstants(combineRemoteProgram((principal, stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction('return')])).set({ principal })), true)],
     ]
 };
 
@@ -1682,8 +1735,8 @@ function loadTemplateAsDeclaration(ex, decl) {
         return;
 
     // HACK HACK HACK
-    if (decl.type === 'table' && ex.utterance[0] === ',') {
-        ex.utterance = ex.utterance.substring(1).trim();
+    if (decl.type === 'table' && ex.preprocessed[0] === ',') {
+        ex.preprocessed = ex.preprocessed.substring(1).trim();
         decl.type = 'get_command';
     }
 
@@ -1691,7 +1744,7 @@ function loadTemplateAsDeclaration(ex, decl) {
     // if you care about optional, write a lambda template
     // that fills in the optionals
 
-    for (let pname in decl.value.schema.inReq) {
+    /*for (let pname in decl.value.schema.inReq) {
         let ptype = decl.value.schema.inReq[pname];
         if (!(ptype instanceof Type))
             throw new Error('wtf: ' + decl.value.schema);
@@ -1704,10 +1757,12 @@ function loadTemplateAsDeclaration(ex, decl) {
             allInParams.set(pname + '+' + ptype, ptype);
         }
         allTypes.set(String(ptype), ptype);
-    }
+    }*/
 
     for (let pname in decl.args) {
         let ptype = decl.args[pname];
+
+        //console.log('pname', pname);
         if (!(pname in decl.value.schema.inReq)) {
             // somewhat of a hack, we declare the argument for the value,
             // because later we will muck with schema only
@@ -1722,7 +1777,7 @@ function loadTemplateAsDeclaration(ex, decl) {
         allTypes.set(String(ptype), ptype);
     }
 
-    let chunks = split(ex.utterance.trim(), PARAM_REGEX);
+    let chunks = split(ex.preprocessed.trim(), PARAM_REGEX);
     let grammarrule = [];
 
     for (let chunk of chunks) {
@@ -1760,18 +1815,51 @@ function loadTemplate(ex) {
 
 function loadDevice(device) {
     GRAMMAR['constant_Entity(tt:device)'].push([device.kind_canonical, simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null))]);
+
+    return _schemaRetriever.getFullMeta(device.kind).then((meta) => {
+        for (let name in meta.queries) {
+            if (!meta.queries[name].is_list) {
+                console.log(`Marked @${device.kind}.${name} as single result`);
+                SINGLE_RESULT_FUNCTIONS.add(device.kind + ':' + name);
+            }
+            if (!meta.queries[name].is_monitorable) {
+                console.log(`Marked @${device.kind}.${name} as non-monitorable`);
+                NON_MONITORABLE_FUNCTIONS.add(device.kind + ':' + name);
+            }
+        }
+    });
+}
+
+function loadIdType(idType) {
+    let type = `Entity(${idType.id})`;
+    if (ID_TYPES.has(type))
+        return;
+
+    if (idType.id.endsWith(':id')) {
+        console.log('Loaded type ' + type + ' as id type');
+        ID_TYPES.add(type);
+    } else {
+        console.log('Loaded type ' + type + ' as non-constant type');
+        NON_CONSTANT_TYPES.add(type);
+    }
 }
 
 function loadMetadata(language) {
-    return db.withClient((dbClient) =>
-        Promise.all([db.selectAll(dbClient, `select * from example_utterances where type = 'thingpedia' and language = ? and is_base = 1 and target_code <> ''`, [language]),
-                     db.selectAll(dbClient, `select kind,kind_canonical from device_schema where approved_version is not null and kind_type in ('primary','other')`, [])])
-    ).then(([examples, devices]) => {
+    return db.withClient((dbClient) => {
+        return Promise.all([
+            db.selectAll(dbClient, `select * from example_utterances where type = 'thingpedia' and language = ? and is_base = 1 and target_code <> ''`, [language]),
+            db.selectAll(dbClient, `select kind,kind_canonical from device_schema where kind_type in ('primary','other')`, []),
+            db.selectAll(dbClient, `select id from entity_names where language='en' and not is_well_known and not has_ner_support`, []),
+        ]);
+    }).then(([examples, devices, idTypes]) => {
         console.log('Loaded ' + devices.length + ' devices');
-        devices.forEach(loadDevice);
-
         console.log('Loaded ' + examples.length + ' templates');
-        return Promise.all(examples.map(loadTemplate));
+
+        idTypes.forEach(loadIdType);
+        return Promise.all([
+            Promise.all(devices.map(loadDevice)),
+            Promise.all(examples.map(loadTemplate))
+        ]);
     }).then(() => {
         for (let [typestr, type] of allTypes) {
             if (!GRAMMAR['constant_' + typestr]) {
@@ -1943,8 +2031,8 @@ function loadMetadata(language) {
 
         for (let [key, ptype] of allInParams) {
             let [pname,] = key.split('+');
-            if (!pname.startsWith('p_'))
-                continue;
+            //if (!pname.startsWith('p_'))
+            //    continue;
             //console.log(pname + ' := ' + ptype + ' ( ' + key + ' )');
 
             GRAMMAR.thingpedia_table.push(['${thingpedia_table}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
@@ -1955,6 +2043,8 @@ function loadMetadata(language) {
                     return null;
                 //if (pname === 'p_low')
                 //    console.log('p_low := ' + ptype + ' / ' + value.getType());
+                if (value.isDate && value.value === null && value.offset === null)
+                    return null;
                 return betaReduceTable(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })]);
             GRAMMAR.thingpedia_get_command.push(['${thingpedia_get_command}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
@@ -1965,6 +2055,8 @@ function loadMetadata(language) {
                     return null;
                 //if (pname === 'p_low')
                 //    console.log('p_low := ' + ptype + ' / ' + value.getType());
+                if (value.isDate && value.value === null && value.offset === null)
+                    return null;
                 return betaReduceTable(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })])
 
@@ -1974,6 +2066,8 @@ function loadMetadata(language) {
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;
+                if (value.isDate && value.value === null && value.offset === null)
+                    return null;
                 return betaReduceStream(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })]);
             GRAMMAR.thingpedia_action.push(['${thingpedia_action}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
@@ -1981,6 +2075,8 @@ function loadMetadata(language) {
                 if (!ptype || !Type.isAssignable(value.getType(), ptype))
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
+                    return null;
+                if (value.isDate && value.value === null && value.offset === null)
                     return null;
                 return betaReduceAction(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })]);
@@ -2016,6 +2112,8 @@ function loadMetadata(language) {
                     {}, // inReq,
                     {}, // inOpt
                     {}, // out
+                    projection.schema.is_list || etaReduced.schema.is_list, // is_list
+                    projection.schema.is_monitorable && etaReduced.schema.is_monitorable, // is_monitorable
                     '', // canonical
                     '', // confirmation
                     '', // confirmation_remote
@@ -2648,7 +2746,7 @@ function asyncIterate(iterator, loop) {
 function postprocess(sentence) {
     return sentence.replace(/ new my /, ' my new ')
         .replace(/ new the /, ' the new ')
-        .replace(/ new a /, ' a new ');
+        .replace(/ new a /, ' a new ').trim();
 }
 
 function main() {
