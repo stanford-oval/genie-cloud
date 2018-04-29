@@ -201,6 +201,8 @@ const TIMER_SCHEMA = new Ast.FunctionDef('other',
     {}, // inReq
     {}, // inOpt
     { __timestamp: Type.Measure('ms') }, // out
+    false, // is_list
+    true, // is_monitorable
     'every fixed interval', // canonical
     'every ${interval}', // confirmation
     '', // confirmation_remote
@@ -215,6 +217,8 @@ const AT_TIMER_SCHEMA = new Ast.FunctionDef('other',
     {}, // inReq
     {}, // inOpt
     { __timestamp: Type.Measure('ms') }, // out
+    false, // is_list
+    true, // is_monitorable
     'every day', // canonical
     'every day at ${time}', // confirmation
     '', // confirmation_remote
@@ -228,7 +232,9 @@ const SAY_SCHEMA = new Ast.FunctionDef('other',
     { message: 0 }, // index
     { message: Type.String }, // inReq
     {}, // inOpt
-    {},
+    {}, // out
+    false, // is_list
+    false, // is_monitorable
     'say', // canonical
     '', // confirmation
     '', // confirmation_remote
@@ -1710,7 +1716,7 @@ function loadTemplateAsDeclaration(ex, decl) {
     for (let pname in decl.args) {
         let ptype = decl.args[pname];
 
-        console.log('pname', pname);
+        //console.log('pname', pname);
         if (!(pname in decl.value.schema.inReq)) {
             // somewhat of a hack, we declare the argument for the value,
             // because later we will muck with schema only
@@ -1763,6 +1769,19 @@ function loadTemplate(ex) {
 
 function loadDevice(device) {
     GRAMMAR['constant_Entity(tt:device)'].push([device.kind_canonical, simpleCombine(() => new Ast.Value.Entity(device.kind, 'tt:device', null))]);
+
+    return _schemaRetriever.getFullMeta(device.kind).then((meta) => {
+        for (let name in meta.queries) {
+            if (!meta.queries[name].is_list) {
+                console.log(`Marked @${device.kind}.${name} as single result`);
+                SINGLE_RESULT_FUNCTIONS.add(device.kind + ':' + name);
+            }
+            if (!meta.queries[name].is_monitorable) {
+                console.log(`Marked @${device.kind}.${name} as non-monitorable`);
+                NON_MONITORABLE_FUNCTIONS.add(device.kind + ':' + name);
+            }
+        }
+    });
 }
 
 function loadIdType(idType) {
@@ -1788,11 +1807,13 @@ function loadMetadata(language) {
         ]);
     }).then(([examples, devices, idTypes]) => {
         console.log('Loaded ' + devices.length + ' devices');
-        devices.forEach(loadDevice);
-        idTypes.forEach(loadIdType);
-
         console.log('Loaded ' + examples.length + ' templates');
-        return Promise.all(examples.map(loadTemplate));
+
+        idTypes.forEach(loadIdType);
+        return Promise.all([
+            Promise.all(devices.map(loadDevice)),
+            Promise.all(examples.map(loadTemplate))
+        ]);
     }).then(() => {
         for (let [typestr, type] of allTypes) {
             if (!GRAMMAR['constant_' + typestr]) {
@@ -2045,6 +2066,8 @@ function loadMetadata(language) {
                     {}, // inReq,
                     {}, // inOpt
                     {}, // out
+                    projection.schema.is_list || etaReduced.schema.is_list, // is_list
+                    projection.schema.is_monitorable && etaReduced.schema.is_monitorable, // is_monitorable
                     '', // canonical
                     '', // confirmation
                     '', // confirmation_remote
