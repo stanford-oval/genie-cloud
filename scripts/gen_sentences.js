@@ -436,6 +436,45 @@ function simpleCombine(semanticAction) {
         return Derivation.combine(children, semanticAction);
     };
 }
+
+function replaceMeMy(derivation) {
+    let clone = derivation.clone();
+    for (let i = 0; i < clone.sentence.length; i++) {
+        if (typeof clone.sentence[i] !== 'string')
+            continue;
+        clone.sentence[i] = clone.sentence[i].replace(/\b(me|my|i|mine)\b/, (what) => {
+            switch(what) {
+            case 'me':
+                return 'them';
+            case 'my':
+                return 'their';
+            case 'mine':
+                return 'theirs';
+            case 'i':
+                return 'they';
+            default:
+                return what;
+            }
+        });
+    }
+    return clone;
+}
+
+function combineRemoteProgram(semanticAction) {
+    return function(children) {
+        let children2 = [];
+        for (let child of children) {
+            if (typeof child === 'string' || child instanceof Constant || child instanceof Placeholder) { // terminal
+                children2.push(child);
+            } else {
+                children2.push(replaceMeMy(child));
+            }
+        }
+
+        return Derivation.combine(children2, semanticAction);
+    };
+}
+
 function combineReplacePlaceholder(pname, semanticAction, options) {
     let f= function([c1, c2]) {
         return c1.replacePlaceholder(pname, c2, semanticAction, options);
@@ -1665,7 +1704,14 @@ const GRAMMAR = {
         ['${complete_when_do_rule}', checkConstants(simpleCombine(makeProgram))],
 
         // when => get => do
-        ['${when_get_do_rule}', simpleCombine(makeProgram)]
+        ['${when_get_do_rule}', simpleCombine(makeProgram)],
+
+        // setup commands
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((executor, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ executor })), true)],
+        ['${choice(tell|command|order|request|inform)} ${constant_Entity(tt:username)} that ${choice(he needs|she needs|I need him|I need her)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((executor, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ executor })), true)],
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to get ${complete_table} and send it to me', checkConstants(combineRemoteProgram((executor, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ executor })), true)],
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to send me ${complete_table}', checkConstants(combineRemoteProgram((executor, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ executor })), true)],
+        ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to ${choice(let me know|inform me|notify me|alert me)} ${stream}', checkConstants(combineRemoteProgram((executor, stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction('return')])).set({ executor })), true)],
     ]
 };
 
