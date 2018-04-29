@@ -1692,7 +1692,7 @@ function loadTemplateAsDeclaration(ex, decl) {
     // if you care about optional, write a lambda template
     // that fills in the optionals
 
-    for (let pname in decl.value.schema.inReq) {
+    /*for (let pname in decl.value.schema.inReq) {
         let ptype = decl.value.schema.inReq[pname];
         if (!(ptype instanceof Type))
             throw new Error('wtf: ' + decl.value.schema);
@@ -1705,10 +1705,12 @@ function loadTemplateAsDeclaration(ex, decl) {
             allInParams.set(pname + '+' + ptype, ptype);
         }
         allTypes.set(String(ptype), ptype);
-    }
+    }*/
 
     for (let pname in decl.args) {
         let ptype = decl.args[pname];
+
+        console.log('pname', pname);
         if (!(pname in decl.value.schema.inReq)) {
             // somewhat of a hack, we declare the argument for the value,
             // because later we will muck with schema only
@@ -1767,7 +1769,14 @@ function loadIdType(idType) {
     let type = `Entity(${idType.id})`;
     if (ID_TYPES.has(type))
         return;
-    NON_CONSTANT_TYPES.add(type);
+
+    if (idType.id.endsWith(':id')) {
+        console.log('Loaded type ' + type + ' as id type');
+        ID_TYPES.add(type);
+    } else {
+        console.log('Loaded type ' + type + ' as non-constant type');
+        NON_CONSTANT_TYPES.add(type);
+    }
 }
 
 function loadMetadata(language) {
@@ -1955,8 +1964,8 @@ function loadMetadata(language) {
 
         for (let [key, ptype] of allInParams) {
             let [pname,] = key.split('+');
-            if (!pname.startsWith('p_'))
-                continue;
+            //if (!pname.startsWith('p_'))
+            //    continue;
             //console.log(pname + ' := ' + ptype + ' ( ' + key + ' )');
 
             GRAMMAR.thingpedia_table.push(['${thingpedia_table}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
@@ -1967,6 +1976,8 @@ function loadMetadata(language) {
                     return null;
                 //if (pname === 'p_low')
                 //    console.log('p_low := ' + ptype + ' / ' + value.getType());
+                if (value.isDate && value.value === null && value.offset === null)
+                    return null;
                 return betaReduceTable(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })]);
             GRAMMAR.thingpedia_get_command.push(['${thingpedia_get_command}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
@@ -1977,6 +1988,8 @@ function loadMetadata(language) {
                     return null;
                 //if (pname === 'p_low')
                 //    console.log('p_low := ' + ptype + ' / ' + value.getType());
+                if (value.isDate && value.value === null && value.offset === null)
+                    return null;
                 return betaReduceTable(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })])
 
@@ -1986,6 +1999,8 @@ function loadMetadata(language) {
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;
+                if (value.isDate && value.value === null && value.offset === null)
+                    return null;
                 return betaReduceStream(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })]);
             GRAMMAR.thingpedia_action.push(['${thingpedia_action}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
@@ -1993,6 +2008,8 @@ function loadMetadata(language) {
                 if (!ptype || !Type.isAssignable(value.getType(), ptype))
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
+                    return null;
+                if (value.isDate && value.value === null && value.offset === null)
                     return null;
                 return betaReduceAction(lhs, pname, value);
             }, { isConstant: true, allowEmptyPictureURL: true })]);
@@ -2660,7 +2677,7 @@ function asyncIterate(iterator, loop) {
 function postprocess(sentence) {
     return sentence.replace(/ new my /, ' my new ')
         .replace(/ new the /, ' the new ')
-        .replace(/ new a /, ' a new ');
+        .replace(/ new a /, ' a new ').trim();
 }
 
 function main() {
