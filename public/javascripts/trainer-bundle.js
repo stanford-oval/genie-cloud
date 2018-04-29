@@ -134,10 +134,6 @@ const Intent = adt.data({
     Program: {
         program: adt.only(Ast.Program)
     },
-    Primitive: {
-        primitiveType: adt.only('trigger', 'query', 'action'),
-        primitive: adt.only(Ast.RulePart)
-    },
     Predicate: {
         predicate: adt.only(Ast.BooleanExpression)
     },
@@ -221,6 +217,11 @@ function parseBookeeping(code, entities, command, previousCommand, previousCandi
 }
 
 Intent.parse = function parse(json, schemaRetriever, command, previousCommand, previousCandidates) {
+    if ('permissionRule' in json)
+        return this.parsePermissionRule(json.permissionRule, schemaRetriever);
+    if ('program' in json)
+        return this.parseProgram(json.program, schemaRetriever);
+
     let { code, entities } = json;
     for (let name in entities) {
         if (name.startsWith('SLOT_')) {
@@ -236,12 +237,19 @@ Intent.parse = function parse(json, schemaRetriever, command, previousCommand, p
 
     return Promise.resolve().then(() => {
         let program = ThingTalk.NNSyntax.fromNN(code, entities);
-        return ThingTalk.Generate.typeCheckProgram(program, schemaRetriever, true).then(() => program);
-    }).then((program) => {
-        if (program.principal !== null)
-            return new Intent.Setup(program);
+        if (program instanceof Ast.Program)
+            return ThingTalk.Generate.typeCheckProgram(program, schemaRetriever, true).then(() => program);
         else
-            return new Intent.Program(program);
+            return ThingTalk.Generate.typeCheckPermissionRule(program, schemaRetriever, true).then(() => program);
+    }).then((program) => {
+        if (program instanceof Ast.Program) {
+            if (program.principal !== null)
+                return new Intent.Setup(program);
+            else
+                return new Intent.Program(program);
+        } else {
+            return new Intent.PermissionRule(program);
+        }
     });
 };
 
@@ -252,6 +260,12 @@ Intent.parseProgram = function parseProgram(thingtalk, schemaRetriever) {
         else
             return new Intent.Program(prog);
     });
+};
+
+Intent.parsePermissionRule = function parsePermissionRule(thingtalk, schemaRetriever) {
+    let permissionRule = ThingTalk.Grammar.parsePermissionRule(thingtalk);
+
+    return ThingTalk.Generate.typeCheckPermissionRule(permissionRule, schemaRetriever, true).then(() => new Intent.PermissionRule(permissionRule));
 };
 
 module.exports.Intent = Intent;
@@ -449,14 +463,11 @@ module.exports = function reconstructCanonical(schemaRetriever, code, entities) 
         if (intent.isSetup) {
             let progDesc = Describe.describeProgram(fakeGettext, intent.rule);
             return ("ask %s to %s").format(Describe.describeArg(fakeGettext, intent.person), progDesc);
+        } else if (intent.isPermissionRule) {
+            return ThingTalk.Describe.describePermissionRule(fakeGettext, intent.rule);
+        } else {
+            return Describe.describeProgram(fakeGettext, intent.program);
         }
-
-        let program;
-        if (intent.isPrimitive)
-            program = ThingTalk.Generate.primitiveProgram(intent.primitiveType, intent.primitive);
-        else
-            program = intent.program;
-        return Describe.describeProgram(fakeGettext, program);
     });
 };
 

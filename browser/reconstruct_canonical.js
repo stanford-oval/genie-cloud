@@ -54,13 +54,10 @@ module.exports = function reconstructCanonical(schemaRetriever, code, entities) 
         if (intent.isSetup) {
             let progDesc = Describe.describeProgram(fakeGettext, intent.rule);
             return ("ask %s to %s").format(Describe.describeArg(fakeGettext, intent.person), progDesc);
+        } else if (intent.isPermissionRule) {
+            return ThingTalk.Describe.describePermissionRule(fakeGettext, intent.rule);
+        } else {
+            return Describe.describeProgram(fakeGettext, intent.program);
         }
-
-        let program;
-        if (intent.isPrimitive)
-            program = ThingTalk.Generate.primitiveProgram(intent.primitiveType, intent.primitive);
-        else
-            program = intent.program;
-        return Describe.describeProgram(fakeGettext, program);
     });
 };
