@@ -51,11 +51,8 @@ module.exports = function reconstructCanonical(schemaRetriever, code, entities) 
         if (intent.isAnswer)
             return Describe.describeArg(fakeGettext, intent.value);
 
-        if (intent.isSetup) {
-            let progDesc = Describe.describeProgram(fakeGettext, intent.rule);
-            return ("ask %s to %s").format(Describe.describeArg(fakeGettext, intent.person), progDesc);
-        } else if (intent.isPermissionRule) {
-            return ThingTalk.Describe.describePermissionRule(fakeGettext, intent.rule);
+        if (intent.isPermissionRule) {
+            return Describe.describePermissionRule(fakeGettext, intent.rule);
         } else {
             return Describe.describeProgram(fakeGettext, intent.program);
         }
