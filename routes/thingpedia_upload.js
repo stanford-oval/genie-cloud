@@ -105,7 +105,7 @@ function validateDevice(dbClient, req) {
     var kind = req.body.primary_kind;
 
     if (!name || !description || !code || !kind)
-        throw new Error(req._("Not all required fields were presents"));
+        throw new Error(req._("Not all required fields were present"));
 
     var ast = JSON.parse(code);
     if (!ast.module_type || !ALLOWED_MODULE_TYPES.has(ast.module_type))
@@ -120,7 +120,7 @@ function validateDevice(dbClient, req) {
         ast.child_types = [];
     if (!ast.auth)
         ast.auth = {"type":"none"};
-    if (!ast.auth.type || ['none','oauth2','basic','builtin','discovery'].indexOf(ast.auth.type) < 0)
+    if (!ast.auth.type || ['none','oauth2','basic','builtin','discovery','interactive'].indexOf(ast.auth.type) < 0)
         throw new Error(req._("Invalid authentication type"));
     if (ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
         throw new Error(req._("Username and password must be declared for basic authentication"));

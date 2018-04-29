@@ -191,15 +191,17 @@ module.exports = class ThingpediaClientCloud {
         if (ast.auth.type === 'builtin') {
             d.factory = null;
         } else if (ast.auth.type === 'discovery') {
-            d.factory = ({ type: 'discovery', kind: d.primary_kind, text: d.name,
+            d.factory = ({ type: 'discovery', category: d.category, kind: d.primary_kind, text: d.name,
                            discoveryType: ast.auth.discoveryType });
+        } else if (ast.auth.type === 'interactive') {
+            d.factory = ({ type: 'interactive', category: d.category, kind: d.primary_kind, text: d.name });
         } else if (ast.auth.type === 'none' &&
                    Object.keys(ast.params).length === 0) {
-            d.factory = ({ type: 'none', kind: d.primary_kind, text: d.name });
+            d.factory = ({ type: 'none', category: d.category, kind: d.primary_kind, text: d.name });
         } else if (ast.auth.type === 'oauth2') {
-            d.factory = ({ type: 'oauth2', kind: d.primary_kind, text: d.name });
+            d.factory = ({ type: 'oauth2', category: d.category, kind: d.primary_kind, text: d.name });
         } else {
-            d.factory = ({ type: 'form', kind: d.primary_kind, text: d.name,
+            d.factory = ({ type: 'form', category: d.category, kind: d.primary_kind, text: d.name,
                            fields: Object.keys(ast.params).map((k) => {
                                let p = ast.params[k];
                                return ({ name: k, label: p[0], type: p[1] });
@@ -264,15 +266,20 @@ module.exports = class ThingpediaClientCloud {
                 if (orgs.length > 0)
                     org = orgs[0];
 
+                for (let i = 0; i < kinds.length; i++) {
+                     if (kinds[i] === 'messaging')
+                         kinds[i] = Config.MESSAGING_DEVICE;
+                }
+
                 return device.getApprovedByKindsWithCode(dbClient, kinds, org);
             }).then((devices) => {
                 devices.forEach((d) => {
                     try {
                         this._deviceMakeFactory(d);
                         if (d.factory) {
-                            if (d.global_name)
-                                result[d.global_name] = d.factory;
                             result[d.primary_kind] = d.factory;
+                            if (d.primary_kind === Config.MESSAGING_DEVICE)
+                                result['messaging'] = d.factory;
                         }
                     } catch(e) { /**/ }
                 });

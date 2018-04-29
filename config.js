@@ -55,6 +55,10 @@ module.exports.GOOGLE_CLIENT_SECRET = null;
 module.exports.MAILGUN_USER = null;
 module.exports.MAILGUN_PASSWORD = null;
 
+// The device to use as the primary "messaging" device (for communicating
+// assistants
+module.exports.MESSAGING_DEVICE = 'org.thingpedia.builtin.matrix';
+
 // load more configuration that should not go in git (eg secret keys)
 try {
     Object.assign(module.exports, require('./secret_config.js'));
