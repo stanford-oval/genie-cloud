@@ -41,6 +41,30 @@ block content
               a(href='/user/register').btn.btn-primary.btn-block= _("Apply to be a Developer")
 
     div.sections
+      section.divider
+        h3= _("Thingpedia documentation")
+
+        div.container
+          div.row
+            div.col-xs-12
+              ul
+                li
+                  a(href='/thingpedia/developers/getting-started.md') Getting Started with Almond
+                li
+                  a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
+                li
+                  a(href='/thingpedia/developers/thingpedia-device-intro.md') Writing Thingpedia Entries
+                li
+                  a(href='/thingpedia/developers/thingtalk-reference.md') ThingTalk Reference
+                li
+                  a(href='/thingpedia/entities') ThingTalk Entity Type List
+                li
+                  a(href='/thingpedia/developers/thingpedia-helpers.md') Thingpedia Device API Reference
+                li
+                  a(href='/thingpedia/developers/thingpedia-api.md') Thingpedia API Reference
+                li
+                  a(href='/thingpedia/developers/my-api.md') Web Almond API Reference
+
       section.divider#sentence-to-code-block
         h3= _("Train Almond")
         div.container
@@ -104,30 +128,6 @@ block content
                 p
                   b= _("Members: ")
                   = developer_org_members.map((m) => m.username).join(', ')
-
-      section.divider
-        h3= _("Thingpedia documentation")
-
-        div.container
-          div.row
-            div.col-xs-12
-              ul
-                li
-                  a(href='/thingpedia/developers/getting-started.md') Getting Started with Almond
-                li
-                  a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
-                li
-                  a(href='/thingpedia/developers/thingpedia-device-intro.md') Writing Thingpedia Entries
-                li
-                  a(href='/thingpedia/developers/thingtalk-reference.md') ThingTalk Reference
-                li
-                  a(href='/thingpedia/entities') ThingTalk Entity Type List
-                li
-                  a(href='/thingpedia/developers/thingpedia-helpers.md') Thingpedia Device API Reference
-                li
-                  a(href='/thingpedia/developers/thingpedia-api.md') Thingpedia API Reference
-                li
-                  a(href='/thingpedia/developers/my-api.md') Web Almond API Reference
 
       if authenticated && user.developer_org !== null
         section.divider
