@@ -4,14 +4,17 @@ block styles
   link(rel='stylesheet', href='/stylesheets/index.css')
 
 block scripts
-  if ENABLE_ANONYMOUS_USER
-    script(src='/javascripts/conversation.js')
+  script(src='/javascripts/shared.js')
+  script(src='/javascripts/index.js')
 
 block page_name
   - stdlayout = false;
   | Almond
 
 block content
+  if authenticated
+    div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+
   div#page-body
     section.divider#section-heading
       h1#almond-title Almond
