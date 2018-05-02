@@ -77,11 +77,11 @@ module.exports = class Frontend {
                     redirect = true;
                 // don't redirect unless it's one of the stanford.edu hostnames
                 // (it's a health-check from the load balancer)
-                if (!req.hostname || !req.hostname.endsWith('.stanford.edu'))
+                if (!req.hostname || (!req.hostname.endsWith('.stanford.edu') && req.hostname !== 'www.thingpedia.org'))
                     redirect = false;
                 // don't redirect /thingpedia/api because the client code
                 // doesn't cope well
-                if (!req.hostname || (!req.hostname.endsWith('.stanford.edu') && req.hostname !== 'www.thingpedia.org'))
+                if (req.originalUrl.startsWith('/thingpedia/api') || req.originalUrl.startsWith('/api/webhook') || req.originalUrl.startsWith('/ws'))
                     redirect = false;
                 if (redirect) {
                     if (req.hostname === 'thingpedia.stanford.edu' && req.originalUrl === '/')
