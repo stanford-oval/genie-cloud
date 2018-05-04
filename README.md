@@ -29,6 +29,22 @@ Note: due to strict version requirements between the different Almond components
 which are hosted as git repositories and not published on the npm registry, using
 npm is not supported.
 
+#### Setting up database encryption
+
+If you want to encrypt your user's data at rest, you should configure your Web Almond to link against
+[sqlcipher](https://www.zetetic.net/sqlcipher) instead of sqlite. To do so, place this in `.yarnrc` in your home directory or in the root
+directory of `thingengine-platform-cloud`:
+
+```
+build_from_source true
+sqlite "/opt/sqlcipher"
+sqlite_libname sqlcipher
+```
+
+Replace `/opt/sqlcipher` with the actual installation directory of sqlcipher.
+
+Database encryption uses a randomly generated key that is different from each user.
+
 ### Step 2: Configuration
 
 Web Almond can operate in two modes: using the embedded Thingpedia, or referring to a publicly
