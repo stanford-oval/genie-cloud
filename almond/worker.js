@@ -18,6 +18,8 @@ const Engine = require('thingengine-core');
 const PlatformModule = require('./platform');
 const JsonDatagramSocket = require('./json_datagram_socket');
 
+const Config = require('../config');
+
 class ParentProcessSocket extends stream.Duplex {
     constructor() {
         super({ objectMode: true });
@@ -59,7 +61,7 @@ function runEngine(thingpediaClient, options) {
         global.platform = platform;
 
     var obj = { cloudId: options.cloudId, running: false, sockets: new Set };
-    var engine = new Engine(platform);
+    var engine = new Engine(platform, { thingpediaUrl: Config.THINGPEDIA_URL });
     obj.engine = engine;
     platform.createAssistant(engine);
     engine.open().then(() => {
