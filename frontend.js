@@ -114,6 +114,11 @@ module.exports = class Frontend {
                                 store: this._sessionStore,
                                 secret: secretKey.getSecretKey(this._app) }));
         this._app.use(connect_flash());
+
+        this._app.use('/brassau/backgrounds', (req, res, next) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
         this._app.use(express.static(path.join(__dirname, 'public'),
                                      { maxAge: 86400000 }));
         this._app.use(cacheable());
