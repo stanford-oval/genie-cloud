@@ -187,12 +187,18 @@ class ThingTalkTrainer {
 
     _toProgram(code) {
         let program = ThingTalk.NNSyntax.fromNN(code, this._entities);
-        return ThingTalk.Generate.typeCheckProgram(program, this._schemaRetriever, true).then(() => program);
+        if (program instanceof ThingTalk.Ast.PermissionRule)
+            return ThingTalk.Generate.typeCheckPermissionRule(program, this._schemaRetriever, true).then(() => program);
+        else
+            return ThingTalk.Generate.typeCheckProgram(program, this._schemaRetriever, true).then(() => program);
     }
 
     _toThingTalk(code) {
         return this._toProgram(code).then((program) => {
-            return ThingTalk.Ast.prettyprint(program, true);
+            if (program instanceof ThingTalk.Ast.PermissionRule)
+                return ThingTalk.Ast.prettyprintPermissionRule(program, true);
+            else
+                return ThingTalk.Ast.prettyprint(program, true);
         });
     }
 
@@ -208,6 +214,15 @@ class ThingTalkTrainer {
 
     _learnThingTalk(text) {
         const raw = this._raw;
+        if (/^\s*(source|true)\b/.test(text)) {
+            const program = ThingTalk.Grammar.parsePermissionRule(text);
+            return ThingTalk.Generate.typeCheckPermissionRule(program, this._schemaRetriever).then(() => {
+                const code = this._toNN(program);
+                return this.parser.onlineLearn(raw, code, 'online');
+            });
+        }
+
+
         return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((program) => {
             const code = this._toNN(program);
             return this.parser.onlineLearn(raw, code, 'online');
