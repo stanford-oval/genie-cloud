@@ -305,10 +305,6 @@ class Platform {
         return this._sqliteKey;
     }
 
-    getGraphDB() {
-        return this._writabledir + '/rdf.db';
-    }
-
     // Get the Thingpedia developer key, if one is configured
     getDeveloperKey() {
         return this._developerKey;
@@ -366,9 +362,7 @@ module.exports = {
     // for compat with existing code that does platform.getOrigin()
     getOrigin() {
         // Xor these comments for testing
-        //return 'http://127.0.0.1:8080';
-        return 'https://thingengine.stanford.edu';
-        //return 'http://parmesan.stanford.edu:8080';
+        return Config.OAUTH_REDIRECT_ORIGIN;
     },
 
     // Check if this platform has the required capability
