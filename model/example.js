@@ -72,9 +72,12 @@ module.exports = {
 
     getByKinds: function(client, kinds, language) {
         return db.selectAll(client,
-              "select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where eu.schema_id = ds.id"
-            + " and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and ds.kind in (?) and target_code <> ''",
-            [language, kinds]);
+              `(select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where eu.schema_id = ds.id
+               and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and ds.kind in (?) and target_code <> '')
+            union distinct (select eu.*,ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds, device_class dc, device_class_kind dck
+            where eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id and dc.primary_kind in (?) and language = ?
+            and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1)`,
+            [language, kinds, kinds, language]);
     },
 
     getBaseBySchema(client, schemaId, language) {
@@ -83,8 +86,9 @@ module.exports = {
     },
 
     getBaseBySchemaKind(client, schemaKind, language) {
-        return db.selectAll(client, "select eu.* from example_utterances eu, device_schema ds where"
-            + " eu.schema_id = ds.id and ds.kind = ? and is_base and type = 'thingpedia' and language = ?", [schemaKind, language]);
+        return db.selectAll(client, `(select eu.* from example_utterances eu, device_schema ds where
+            eu.schema_id = ds.id and ds.kind = ? and is_base and type = 'thingpedia' and language = ?)`
+            , [schemaKind, language]);
     },
 
     createMany,
