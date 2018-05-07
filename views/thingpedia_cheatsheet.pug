@@ -17,12 +17,56 @@ block content
         li Tweet the latest NASA Astronomy Picture of the Day
         li Auto reply to my emails
         li Set my phone to vibrate every day at 9 am
-        li Turn on my TV if there is a person in the room
-        li Translate Washington Post headlines to "Chinese"
+        li Turn off my TV if there is no person in the room
+        li Translate Washington Post headlines to Chinese
         li Post my new Instagram pictures on Twitter
         li Get a snapshot from my security camera every hour
         li Play some video from YouTube on my TV
         li Send me a daily cat picture
+
+    -
+      function* split(pattern, regexp) {
+        // a split that preserves capturing parenthesis
+
+        let clone = new RegExp(regexp, 'g');
+        let match = clone.exec(pattern);
+
+        let i = 0;
+        while (match !== null) {
+          if (match.index > i)
+              yield pattern.substring(i, match.index);
+          yield match;
+          i = clone.lastIndex;
+          match = clone.exec(pattern);
+        }
+        if (i < pattern.length)
+          yield pattern.substring(i, pattern.length);
+      }
+      function clean(name) {
+        if (/^[vwgp]_/.test(name))
+          name = name.substr(2);
+        return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+      }
+      var PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
+
+    mixin do_command(e)
+      span(title=e.target_code)
+        if e.target_code.startsWith('let stream ')
+          span.trigger= _("WHEN: ")
+        else if e.target_code.startsWith('let table ')
+          span.query= _("GET: ")
+        else if e.target_code.startsWith('let action ')
+          span.action= _("DO: ")
+        - if (e.utterance.startsWith(',')) { e.utterance = e.utterance.substring(1).trim(); }
+        - for (var chunk of split(e.utterance, PARAM_REGEX))
+          if typeof chunk === 'string'
+            = chunk
+          else
+            - var [match, param1, param2, opt] = chunk;
+            if match === '$$'
+              | $
+            else
+              | ____ #[small= '(' + clean(param1||param2) + ')']
 
     each d in devices
       if d.triggers.length === 0 && d.queries.length === 0 && d.actions.length === 0
@@ -34,19 +78,13 @@ block content
         ul
           for ex in d.triggers
             li
-              span.trigger=_("WHEN: ")
-              if ex.startsWith('when')
-                = ex.substr('when'.length).trim()
-              else
-                = ex
+              +do_command(ex)
           for ex in d.queries
             li
-              span.query= _("GET: ")
-              if ex.startsWith(', ')
-                = ex.substr(2).trim()
-              else
-                = ex
+              +do_command(ex)
           for ex in d.actions
             li
-              span.action= _("DO: ")
-              = ex
+              +do_command(ex)
+          for ex in d.other
+            li
+              +do_command(ex)
