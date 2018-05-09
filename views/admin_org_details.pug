@@ -91,24 +91,25 @@ block content
                       button(type='submit').btn.btn-primary= _("Add member")
 
       section.divider
-        h3= _("Devices")
-        div.container
-          div.row
-            if devices.length > 0
-              each dev, i in devices
-                if i % 6 === 0
-                  div.clearfix.visible-lg.visible-md
-                else if i % 3 === 0
-                  div.clearfix.visible-lg
-                else if i % 2 === 0
-                  div.clearfix.visible-md
-                div.col-lg-4.col-md-6.dev-template
-                  div.panel.panel-default
-                    a(href='/thingpedia/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
-                    div.panel-body
-                      p.device-icon-small
-                        img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
-                      p=dev.description
-            else
-              div.col-xs-12
-                p= _("This organization does not own any device yet.")
+        if WITH_THINGPEDIA === 'embedded'
+          h3= _("Devices")
+          div.container
+            div.row
+              if devices.length > 0
+                each dev, i in devices
+                  if i % 6 === 0
+                    div.clearfix.visible-lg.visible-md
+                  else if i % 3 === 0
+                    div.clearfix.visible-lg
+                  else if i % 2 === 0
+                    div.clearfix.visible-md
+                  div.col-lg-4.col-md-6.dev-template
+                    div.panel.panel-default
+                      a(href=THINGPEDIA_URL + '/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
+                      div.panel-body
+                        p.device-icon-small
+                          img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.kind + '.png', alt="Icon for " + dev.name)
+                        p=dev.description
+              else
+                div.col-xs-12
+                  p= _("This organization does not own any device yet.")

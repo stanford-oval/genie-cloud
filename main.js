@@ -19,6 +19,8 @@ process.on('unhandledRejection', (up) => { throw up; });
 const Config = require('./config');
 if (Config.WITH_THINGPEDIA !== 'embedded' && Config.WITH_THINGPEDIA !== 'external')
     throw new Error('Invalid configuration, WITH_THINGPEDIA must be either embeded or external');
+if (Config.WITH_THINGPEDIA === 'embedded') // ignore whatever setting is there
+    Config.THINGPEDIA_URL = '/thingpedia';
 
 const Frontend = require('./frontend');
 const EngineManager = require('./almond/enginemanagerclient');
