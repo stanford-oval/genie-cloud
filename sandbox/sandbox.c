@@ -11,7 +11,7 @@
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.   See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
@@ -63,7 +63,7 @@
 #define __debug__(x)
 #endif
 
-#define N_ELEMENTS(arr)		(sizeof (arr) / sizeof ((arr)[0]))
+#define N_ELEMENTS(arr)    (sizeof (arr) / sizeof ((arr)[0]))
 
 #define TRUE 1
 #define FALSE 0
@@ -226,8 +226,8 @@ strconcat (const char *s1,
 
 static char *
 strconcat3 (const char *s1,
-	    const char *s2,
-	    const char *s3)
+            const char *s2,
+            const char *s3)
 {
   size_t len = 0;
   char *res;
@@ -256,13 +256,14 @@ strdup_printf (const char *format,
                ...)
 {
   char *buffer = NULL;
+  int ok;
   va_list args;
 
   va_start (args, format);
-  vasprintf (&buffer, format, args);
+  ok = vasprintf (&buffer, format, args);
   va_end (args);
 
-  if (buffer == NULL)
+  if (ok < 0 || buffer == NULL)
     die_oom ();
 
   return buffer;
@@ -490,15 +491,15 @@ unescape_string (const char *escaped, ssize_t len)
   while (escaped < end)
     {
       if (*escaped == '\\')
-	{
-	  *unescaped++ =
-	    ((escaped[1] - '0')  << 6) |
-	    ((escaped[2] - '0')  << 3) |
-	    ((escaped[3] - '0')  << 0);
-	  escaped += 4;
-	}
+        {
+          *unescaped++ =
+            ((escaped[1] - '0')  << 6) |
+            ((escaped[2] - '0')  << 3) |
+            ((escaped[3] - '0')  << 0);
+          escaped += 4;
+        }
       else
-	*unescaped++ = *escaped++;
+  *unescaped++ = *escaped++;
     }
   *unescaped = 0;
   return res;
@@ -545,7 +546,7 @@ get_mountinfo (const char *mountpoint)
       unescaped = unescape_string (line_mountpoint, line_mountpoint_end - line_mountpoint);
       if (strcmp (mountpoint, unescaped) == 0)
         {
-	  free (unescaped);
+          free (unescaped);
           res = line_start;
           line[-1] = 0;
           break;
@@ -728,9 +729,9 @@ write_to_file (int fd, const char *content, ssize_t len)
     {
       res = write (fd, content, len);
       if (res < 0 && errno == EINTR)
-	continue;
+        continue;
       if (res <= 0)
-	return FALSE;
+        return FALSE;
       len -= res;
       content += res;
     }
@@ -784,11 +785,11 @@ create_files (const create_table_t *create, int n_create)
         continue;
 
       if (option && !*option)
-	continue;
+        continue;
 
       name = strdup_printf (create[i].name, uid);
       if (create[i].data)
-	data = strdup_printf (create[i].data, uid);
+        data = strdup_printf (create[i].data, uid);
 
       last_failed = FALSE;
 
@@ -852,9 +853,9 @@ create_files (const create_table_t *create, int n_create)
         case FILE_TYPE_SYSTEM_SYMLINK:
           /* Only create symlink if target exists */
           if (data != NULL && str_has_prefix (data, "usr/"))
-	    {
-	      struct stat buf;
-	      char *in_usr = strconcat ("/usr/", data + strlen("usr/"));
+            {
+              struct stat buf;
+              char *in_usr = strconcat ("/usr/", data + strlen("usr/"));
               int res;
 
               res = lstat (in_usr, &buf);
@@ -866,10 +867,10 @@ create_files (const create_table_t *create, int n_create)
           else
             data = NULL;
 
-	  if (data == NULL)
-	    break;
+          if (data == NULL)
+            break;
 
-	  /* else Fall through */
+        /* else Fall through */
 
         case FILE_TYPE_SYMLINK:
           if (symlink (data, name) != 0)
@@ -882,7 +883,7 @@ create_files (const create_table_t *create, int n_create)
                                  0 |
                                  ((create[i].type == FILE_TYPE_BIND_RO) ? BIND_READONLY : 0) |
                                  ((flags & FILE_FLAGS_DEVICES) ? BIND_DEVICES : 0)
-				 )))
+         )))
             {
               if (res > 1 || (flags & FILE_FLAGS_NON_FATAL) == 0)
                 die_with_error ("mounting bindmount %s", name);
@@ -925,14 +926,14 @@ create_files (const create_table_t *create, int n_create)
           if (!create_file (name, mode, NULL))
             die_with_error ("creating file %s", name);
 
-	  in_root = strconcat ("/", name);
+          in_root = strconcat ("/", name);
           if ((res = bind_mount (in_root, name,
                                  BIND_DEVICES)))
             {
               if (res > 1 || (flags & FILE_FLAGS_NON_FATAL) == 0)
                 die_with_error ("binding device %s", name);
             }
-	  free (in_root);
+          free (in_root);
 
           break;
 
@@ -1105,25 +1106,25 @@ monitor_child (int event_fd, int pid1_pid)
       fds[0].revents = fds[1].revents = 0;
       res = poll (fds, 2, -1);
       if (res == -1 && errno != EINTR)
-	die_with_error ("poll");
+        die_with_error ("poll");
 
       s = read (event_fd, &val, 8);
       if (s == -1 && errno != EINTR && errno != EAGAIN)
-	die_with_error ("read eventfd");
+        die_with_error ("read eventfd");
       else if (s == 8)
-	exit ((int)val - 1);
+        exit ((int)val - 1);
 
       s = read (signal_fd, &fdsi, sizeof (struct signalfd_siginfo));
       if (s == -1 && errno != EINTR && errno != EAGAIN)
-	die_with_error ("read signalfd");
+        die_with_error ("read signalfd");
       else if (s == sizeof(struct signalfd_siginfo))
-	{
-	  if (fdsi.ssi_signo != SIGCHLD && fdsi.ssi_signo != SIGTERM)
-	      die ("Read unexpected signal\n");
-          if (fdsi.ssi_signo == SIGTERM)
-            kill (pid1_pid, SIGTERM);
-	  exit (1);
-	}
+        {
+          if (fdsi.ssi_signo != SIGCHLD && fdsi.ssi_signo != SIGTERM)
+              die ("Read unexpected signal\n");
+                if (fdsi.ssi_signo == SIGTERM)
+                  kill (pid1_pid, SIGTERM);
+          exit (1);
+        }
     }
 }
 
@@ -1146,22 +1147,26 @@ do_init (int event_fd, pid_t initial_pid)
 
       child = wait (&status);
       if (child == initial_pid)
-	{
-	  uint64_t val;
+        {
+          uint64_t val;
+          ssize_t ok;
 
-	  if (WIFEXITED (status))
-	    initial_exit_status = WEXITSTATUS(status);
+          if (WIFEXITED (status))
+            initial_exit_status = WEXITSTATUS(status);
 
-	  val = initial_exit_status + 1;
-	  write (event_fd, &val, 8);
-	}
+          val = initial_exit_status + 1;
+
+          // can never fail
+          ok = write (event_fd, &val, 8);
+          assert(ok == 8);
+        }
 
       if (child == -1 && errno != EINTR)
-	{
-	  if (errno != ECHILD)
-	    die_with_error ("init wait()");
-	  break;
-	}
+        {
+          if (errno != ECHILD)
+            die_with_error ("init wait()");
+          break;
+        }
     }
 
   return initial_exit_status;
@@ -1327,7 +1332,7 @@ main (int argc,
   block_sigchild_sigterm (); /* Block before we clone to avoid races */
 
   pid = raw_clone (SIGCHLD | CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWIPC,
-		   NULL);
+       NULL);
   if (pid == -1)
     die_with_error ("Creating new namespace failed");
 
@@ -1352,7 +1357,7 @@ main (int argc,
     die_with_error ("Failed to mount tmpfs");
 
   if (chdir (newroot) != 0)
-      die_with_error ("chdir");
+      die_with_error ("chdir newroot");
 
   create_files (create, N_ELEMENTS (create));
 
@@ -1366,7 +1371,8 @@ main (int argc,
   if (pivot_root (newroot, ".oldroot"))
     die_with_error ("pivot_root");
 
-  chdir ("/");
+  if (chdir ("/") != 0)
+      die_with_error ("chdir /");
 
   /* The old root better be rprivate or we will send unmount events to the parent namespace */
   if (mount (".oldroot", ".oldroot", NULL, MS_REC|MS_PRIVATE, NULL) != 0)
@@ -1380,7 +1386,8 @@ main (int argc,
   /* Now we have everything we need CAP_SYS_ADMIN for, so drop it */
   drop_caps ();
 
-  chdir ("/app");
+  if (chdir ("/app") != 0)
+      die_with_error ("chdir /app");
   xsetenv ("PWD", "/app", 1);
   free (old_cwd);
 
@@ -1395,7 +1402,7 @@ main (int argc,
       __debug__(("launch executable %s\n", args[0]));
 
       if (sync_fd != -1)
-	close (sync_fd);
+        close (sync_fd);
 
       unblock_sigchild_sigterm ();
 
