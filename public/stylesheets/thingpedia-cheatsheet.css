@@ -31,5 +31,18 @@
 }
 
 #cheatsheet .grid-item {
+  width: 100%;
+}
+
+@media (min-width: 992px) {
+#cheatsheet .grid-item {
+  width: 32%;
+}
+}
+
+@media (min-width: 1200px) {
+#cheatsheet .grid-item {
   width: 24%;
 }
+}
+
