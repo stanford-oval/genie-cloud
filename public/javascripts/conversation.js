@@ -19,7 +19,12 @@ $(function() {
     function almondMessage(icon) {
         var msg = $('<span>').addClass('message-container from-almond');
         icon = icon || 'org.thingpedia.builtin.thingengine.builtin';
-        var src = S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png';
+        var thingpediaUrl = ThingEngine.getThingpedia();
+        var src;
+        if (thingpediaUrl !== '/thingpedia')
+            src = thingpediaUrl + '/api/devices/icon/' + icon;
+        else
+            src = S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png';
         msg.append($('<img>').addClass('icon').attr('src', src));
         container.append(msg);
         return msg;
