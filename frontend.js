@@ -218,6 +218,7 @@ module.exports = class Frontend {
         }
 
         this._app.use('/mturk', require('./routes/mturk'));
+        this._app.use('/friendhub', require('./routes/friendhub'));
 
         this._app.use(csurf({ cookie: false }));
         this._app.use('/', require('./routes/index'));

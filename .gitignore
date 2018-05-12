@@ -6,6 +6,7 @@ home/
 /secret_config.js
 /public/cache
 /public/brassau
+/public/friendhub
 
 views/doc_*.pug
 
