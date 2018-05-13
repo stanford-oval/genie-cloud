@@ -52,7 +52,9 @@ class SingleDeviceSchemaRetriever {
             args: [],
             types: [],
             is_input: [],
-            required: []
+            required: [],
+            is_list: this._ast[where][name].is_list,
+            is_monitorable: 'poll_interval' in this._ast[where][name] ? this._ast[where][name].poll_interval >= 0 : this._ast[where][name].is_monitorable
         };
         for (let arg of this._ast[where][name].args) {
             ret.args.push(arg.name);

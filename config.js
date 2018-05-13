@@ -20,21 +20,27 @@ module.exports.BING_KEY = '76e02e969871428196e80ecfb364bf65';
 
 // set this to 'embedded' to enable the embedded Thingpedia,
 // to 'external' to use the Thingpedia at THINGPEDIA_URL;
-module.exports.WITH_THINGPEDIA = 'embedded';
+module.exports.WITH_THINGPEDIA = 'external';
 // this is used to construct links to Thingpedia, eg from My Almond
-// it MUST be empty if the embedded Thingpedia is to be used
-module.exports.THINGPEDIA_URL = '';
+// it MUST be set to '/thingpedia' to use the embedded Thingpedia
+module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 // set to true if this is serving https://thingpedia.stanford.edu
 // (enables redirect from legacy domains and sets Strict-Transport-Security
 // headers)
 module.exports.IS_PRODUCTION_THINGPEDIA = true;
 
-// the base URL used for OAuth redirects, to support Login With Google
+// the base URL used for OAuth redirects
+//
+// this is used by Login With Google
 // the full OAuth redirect URI for Google is
 // OAUTH_REDIRECT_ORIGIN + /user/oauth2/google/callback
+//
+// it is also used by the OAuth configuration mechanism for accounts/devices
+// Web Almond
 module.exports.OAUTH_REDIRECT_ORIGIN = 'https://thingengine.stanford.edu';
 
-module.exports.SEMPRE_URL = 'https://almond-nl.stanford.edu';
+// the URL of a almond-nnparser-compatible Natural Language parsing server
+module.exports.NL_SERVER_URL = 'https://almond-nl.stanford.edu';
 
 // set to true to let users try out Almond without logging in
 // they will operate as the user "anonymous"

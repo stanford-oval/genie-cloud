@@ -4,14 +4,17 @@ block styles
   link(rel='stylesheet', href='/stylesheets/index.css')
 
 block scripts
-  if ENABLE_ANONYMOUS_USER
-    script(src='/javascripts/conversation.js')
+  script(src='/javascripts/shared.js')
+  script(src='/javascripts/index.js')
 
 block page_name
   - stdlayout = false;
   | Almond
 
 block content
+  if authenticated
+    div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+
   div#page-body
     section.divider#section-heading
       h1#almond-title Almond
@@ -169,7 +172,8 @@ block content
             div.col-sm-6.col-lg-3
               div.team-profile-mid#team-profile-mid-mehrad
               div
-                h6.profile-name Mehrad Moradshahi
+                h6.profile-name
+                  a(href='https://www.linkedin.com/in/mehradmoradshahi/') Mehrad Moradshahi
                 p Electrical Engineering PhD student
                 p Natural language understanding
                 br

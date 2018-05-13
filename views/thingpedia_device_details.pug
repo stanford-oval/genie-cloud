@@ -191,6 +191,7 @@ block content
               span.query= _("GET: ")
             else if e.target_code.startsWith('let action ')
               span.action= _("DO: ")
+            - if (e.utterance.startsWith(',')) { e.utterance = e.utterance.substring(1).trim(); }
             - for (var chunk of split(e.utterance, PARAM_REGEX))
               if typeof chunk === 'string'
                  = chunk

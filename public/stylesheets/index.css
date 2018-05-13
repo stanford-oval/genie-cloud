@@ -104,6 +104,15 @@
     background-image:url(../images/silei.jpg);
 }
 
+#team-profile-mid-richard {
+    background-image:url(../images/richard-yang.jpg);
+    /*background-size:contain;*/
+}
+
+#team-profile-mid-mehrad {
+    background-image:url(../images/mehrad.png);
+}
+
 #team .profile-name {
     font-weight: bold;
 }

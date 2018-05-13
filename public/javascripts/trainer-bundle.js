@@ -320,7 +320,7 @@ module.exports = class ParserClient {
 
     sendUtterance(utterance, limit = -1) {
         let url = this._baseUrl + '/query';
-        return Promise.resolve($.ajax(url, { data: { q: utterance, limit: limit } })).then((parsed) => {
+        return Promise.resolve($.ajax(url, { data: { q: utterance, limit: limit, store:'yes' } })).then((parsed) => {
             if (parsed.error)
                 throw new Error('Error received from Almond-NNParser server: ' + parsed.error);
 
@@ -744,12 +744,18 @@ class ThingTalkTrainer {
 
     _toProgram(code) {
         let program = ThingTalk.NNSyntax.fromNN(code, this._entities);
-        return ThingTalk.Generate.typeCheckProgram(program, this._schemaRetriever, true).then(() => program);
+        if (program instanceof ThingTalk.Ast.PermissionRule)
+            return ThingTalk.Generate.typeCheckPermissionRule(program, this._schemaRetriever, true).then(() => program);
+       	else
+            return ThingTalk.Generate.typeCheckProgram(program, this._schemaRetriever, true).then(() => program);
     }
 
     _toThingTalk(code) {
         return this._toProgram(code).then((program) => {
-            return ThingTalk.Ast.prettyprint(program, true);
+       	    if (program	instanceof ThingTalk.Ast.PermissionRule)
+                return ThingTalk.Ast.prettyprintPermissionRule(program, true);
+       	    else
+                return ThingTalk.Ast.prettyprint(program, true);
         });
     }
 
@@ -765,6 +771,15 @@ class ThingTalkTrainer {
 
     _learnThingTalk(text) {
         const raw = this._raw;
+       	if (/^\s*(source|true)\b/.test(text)) {
+            const program = ThingTalk.Grammar.parsePermissionRule(text);
+            return ThingTalk.Generate.typeCheckPermissionRule(program, this._schemaRetriever).then(() => {
+                const code = this._toNN(program);
+                return this.parser.onlineLearn(raw, code, 'online');
+            });
+       	}
+
+
         return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((program) => {
             const code = this._toNN(program);
             return this.parser.onlineLearn(raw, code, 'online');
@@ -29529,9 +29544,9 @@ function typeCheckInputArgs(ast, scope, classes, isDeclaration = false) {
         let inParamType = schema.inReq[inParam.name] || schema.inOpt[inParam.name];
         if (!inParamType)
             throw new TypeError('Invalid input parameter ' + inParam.name);
-        if (inParam.value.isEntity && inParam.value.type === 'tt:username' &&
+        /*if (inParam.value.isEntity && inParam.value.type === 'tt:username' &&
             inParamType.isEntity && (inParamType.type === 'tt:phone_number' || inParamType.type === 'tt:email_address'))
-            inParam.value.type = 'tt:contact_name';
+            inParam.value.type = 'tt:contact_name';*/
         if (!Type.isAssignable(typeForValue(inParam.value, scope), inParamType, {}, true))
             throw new TypeError('Invalid type for parameter '+ inParam.name);
         if (presentParams.has(inParam.name))

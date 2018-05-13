@@ -15,6 +15,8 @@ const events = require('events');
 const Almond = require('almond');
 const AlmondApi = require('./almond_api');
 
+const Config = require('../config');
+
 class Conversation extends Almond {
 }
 Conversation.prototype.$rpcMethods = ['start', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'];
@@ -69,6 +71,8 @@ module.exports = class Assistant extends events.EventEmitter {
             this._conversations[id]._delegate = delegate;
             return Promise.resolve(this._conversations[id]);
         }
+        options = options || {};
+        options.sempreUrl = Config.NL_SERVER_URL;
         let conv = this.openConversation(id, user, delegate, options);
         return Promise.resolve(conv.start()).then(() => conv);
     }
@@ -78,6 +82,8 @@ module.exports = class Assistant extends events.EventEmitter {
             this._conversations[feedId].$free();
             delete this._conversations[feedId];
         }
+        options = options || {};
+        options.sempreUrl = Config.NL_SERVER_URL;
         var conv = new Conversation(this._engine, feedId, user, delegate, options);
         conv.on('active', () => this._lastConversation = conv);
         this._lastConversation = conv;

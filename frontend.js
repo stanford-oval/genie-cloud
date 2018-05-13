@@ -77,11 +77,11 @@ module.exports = class Frontend {
                     redirect = true;
                 // don't redirect unless it's one of the stanford.edu hostnames
                 // (it's a health-check from the load balancer)
-                if (!req.hostname || !req.hostname.endsWith('.stanford.edu'))
+                if (!req.hostname || (!req.hostname.endsWith('.stanford.edu') && req.hostname !== 'www.thingpedia.org'))
                     redirect = false;
                 // don't redirect /thingpedia/api because the client code
                 // doesn't cope well
-                if (!req.hostname || (!req.hostname.endsWith('.stanford.edu') && req.hostname !== 'www.thingpedia.org'))
+                if (req.originalUrl.startsWith('/thingpedia/api') || req.originalUrl.startsWith('/api/webhook') || req.originalUrl.startsWith('/ws'))
                     redirect = false;
                 if (redirect) {
                     if (req.hostname === 'thingpedia.stanford.edu' && req.originalUrl === '/')
@@ -114,6 +114,11 @@ module.exports = class Frontend {
                                 store: this._sessionStore,
                                 secret: secretKey.getSecretKey(this._app) }));
         this._app.use(connect_flash());
+
+        this._app.use('/brassau/backgrounds', (req, res, next) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
         this._app.use(express.static(path.join(__dirname, 'public'),
                                      { maxAge: 86400000 }));
         this._app.use(cacheable());

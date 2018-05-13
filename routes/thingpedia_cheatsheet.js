@@ -22,22 +22,6 @@ const Config = require('../config');
 
 var router = express.Router();
 
-function findInvocation(parsed, id) {
-    if (parsed.type === 'action')
-        return parsed.value;
-    else if (parsed.type)
-        return findInvocation(parsed.value, id);
-    if (parsed.isMonitor)
-        return findInvocation(parsed.table, id);
-    if (parsed.isFilter)
-        return findInvocation(parsed.table || parsed.stream, id);
-    if (parsed.isEdgeFilter)
-        return findInvocation(parsed.stream, id);
-    if (parsed.isInvocation)
-        return parsed.invocation;
-    throw new Error(id + ' not action query or trigger, is ' + parsed);
-}
-
 router.get('/', (req, res) => {
     // FIXME this is a very expensive page to generate, we should
     // cache somehow
@@ -55,7 +39,8 @@ router.get('/', (req, res) => {
                     id: d.id,
                     triggers: [],
                     queries: [],
-                    actions: []
+                    actions: [],
+                    other: []
                 };
             });
         }).then(() => {
@@ -83,12 +68,16 @@ router.get('/', (req, res) => {
                     return;
                 dupes.add(ex.target_code);
                 var parsed = ThingTalk.Grammar.parse(ex.target_code);
-                if (!parsed.declarations.length)
+
+                let invocations = [];
+                for (let [primType,prim] of ThingTalk.Generate.iteratePrimitives(parsed)) {
+                    if (prim.selector.isBuiltin)
+                        continue;
+                    invocations.push(prim);
+                }
+                if (!invocations.length)
                     return;
-                var invocation = findInvocation(parsed.declarations[0], ex.id);
-                if (!invocation)
-                    return;
-                var kind = invocation.selector.kind;
+                var kind = invocations[0].selector.kind;
 
                 if (kind in kindMap)
                     kind = kindMap[kind];
@@ -96,13 +85,14 @@ router.get('/', (req, res) => {
                     // ignore what we don't recognize
                     //console.log('Unrecognized kind ' + kind);
                 } else {
-                    var sentence = ex.utterance.replace(/\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/g, '____');
-                    if (parsed.declarations[0].type === 'stream')
-                        deviceMap[kind].triggers.push(sentence);
-                    if (parsed.declarations[0].type === 'table')
-                        deviceMap[kind].queries.push(sentence);
-                    if (parsed.declarations[0].type === 'action')
-                        deviceMap[kind].actions.push(sentence);
+                    if (ex.target_code.startsWith('let stream '))
+                        deviceMap[kind].triggers.push(ex);
+                    else if (ex.target_code.startsWith('let table '))
+                        deviceMap[kind].queries.push(ex);
+                    else if (ex.target_code.startsWith('let action '))
+                        deviceMap[kind].actions.push(ex);
+                    else
+                        deviceMap[kind].other.push(ex);
                 }
             });
 

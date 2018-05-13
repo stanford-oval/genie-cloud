@@ -105,7 +105,7 @@ block content
               = 'opt '
           else
               = 'out '
-          |  #{a.name} : 
+          |  #{a} : 
           if inv.schema[i].startsWith('Entity(')
             a(href=`/thingpedia/entities/by-id/${inv.schema[i].substring('Entity('.length, inv.schema[i].length-1)}`)= inv.schema[i]
           else if inv.schema[i].startsWith('Array(Entity(')

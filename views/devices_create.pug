@@ -1,10 +1,6 @@
 extends layout
 
 block scripts
-  if ownTier
-    script(src='/javascripts/' + ownTier + '-devices-create.js')
-  else
-    script(src='/javascripts/shared-devices-create.js')
   script(src='/javascripts/devices-create.js')
 
 block page_name
