@@ -30,6 +30,7 @@ const TrainingServer = require('../util/training_server');
 const tokenizer = require('../util/tokenize');
 const graphics = require('../almond/graphics');
 const platform = require('../util/platform');
+const colorScheme = require('../util/color_scheme');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -438,7 +439,9 @@ function doCreateOrUpdate(id, create, req, res) {
                             return image.stream('png');
                         }).then(([stdout, stderr]) => {
                             return code_storage.storeIcon(stdout, done);
-                        }).catch((e) => {
+                        }).then(() => {
+                            return colorScheme(dbClient, kind);
+                        }).catch ((e) => {
                             console.error('Failed to upload icon to S3: ' + e);
                         });
                     }, 0);
@@ -458,7 +461,6 @@ function doCreateOrUpdate(id, create, req, res) {
             console.log('done', done);
             if (!done)
                 return;
-
             res.redirect('/thingpedia/devices/by-id/' + done);
         });
     }).finally(() => {
