@@ -23,16 +23,16 @@ const colorThief = new ColorThief();
 
 const XML_DIR = './public/friendhub/backgrounds/';
 const TARGET_JSON = './public/friendhub/backgrounds/backgrounds.json';
-const palette_size = 4
+const palette_size = 4;
 
 let router = express.Router();
 
 let storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './public/friendhub/backgrounds')
+        cb(null, './public/friendhub/backgrounds');
     },
     filename: function (req, file, cb) {
-        cb(null, file.originalname)
+        cb(null, file.originalname);
     },
 });
 
@@ -66,7 +66,7 @@ function uploadBackground(req, res) {
         }
 
         return Q.nfcall(fs.writeFile, TARGET_JSON, JSON.stringify(data, undefined, 2));
-    })
+    });
 }
 
 function avgColor(ctx, x, y, w, h) {
@@ -98,7 +98,7 @@ function loadImage(imageFilename) {
 }
 
 function processOneFile(filename) {
-    var path = XML_DIR + filename;
+    const path = XML_DIR + filename;
     console.log('Loading xml ' + path);
 
     return Q.nfcall(fs.readFile, path).then((data) => {
