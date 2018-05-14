@@ -10,6 +10,7 @@
 
 "use strict";
 
+const path = require('path');
 const https = require('https');
 const Url = require('url');
 const Q = require('q');
@@ -18,7 +19,7 @@ const colorExtractor = require('img-color-extractor');
 const db = require('../util/db');
 const deviceModel = require('../model/device');
 
-const TARGET_JSON = './public/friendhub/backgrounds/color_schemes.json';
+const TARGET_JSON = path.resolve(path.dirname(module.filename), '../public/friendhub/backgrounds/color_schemes.json');
 
 const defaultsOptions = {
     background: '#FFFFFF',

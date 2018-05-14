@@ -17,6 +17,7 @@ const Q = require('q');
 const Canvas = require('canvas');
 const xml2js = require('xml2js');
 const fs = require('fs');
+const path = require('path');
 const ColorThief = require('color-thief');
 
 const colorThief = new ColorThief();
@@ -29,7 +30,7 @@ let router = express.Router();
 
 let storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './public/friendhub/backgrounds');
+        cb(null, path.resolve(path.dirname(module.filename)) || './public/friendhub/backgrounds');
     },
     filename: function (req, file, cb) {
         cb(null, file.originalname);
