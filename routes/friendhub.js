@@ -43,6 +43,18 @@ router.get('/', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     res.render('friendhub', { page_title: req._("Friend Hub") });
 });
 
+router.get('/search', (req, res) => {
+    let tag = req.query.tag || null;
+    Q.try(() => {
+        return tag ? db.withClient((dbClient) => background.getByTag(dbClient, tag)) : {};
+    }).then((result) => {
+        res.json(result);
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).json({error:e.message});
+    });
+});
+
 function uploadBackground(req, res) {
     if (!(req.files.background && req.files.xml))
         return Q();
