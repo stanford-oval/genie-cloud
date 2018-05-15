@@ -91,10 +91,10 @@ module.exports = {
         });
     },
 
-    getByTag(client, tag) {
+    getByTags(client, tags) {
         return db.selectAll(client, "select bg.*, rect.* from background bg " +
             "left join background_rectangle rect on bg.id = rect.background_id " +
             "left join background_tag tag on bg.id = tag.background_id " +
-            "where tag.tag = ?", [tag]).then(processRectangleRows);
+            "where tag.tag in (?)", [tags]).then(processRectangleRows);
     }
 };

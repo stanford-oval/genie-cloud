@@ -44,9 +44,9 @@ router.get('/', user.requireLogIn, user.requireDeveloper(), (req, res) => {
 });
 
 router.get('/search', (req, res) => {
-    let tag = req.query.tag || null;
+    let tags = req.query.tags.split(/[ ,]+/) || null;
     Q.try(() => {
-        return tag ? db.withClient((dbClient) => background.getByTag(dbClient, tag)) : {};
+        return tags ? db.withClient((dbClient) => background.getByTags(dbClient, tags)) : {};
     }).then((result) => {
         res.json(result);
     }).catch((e) => {
