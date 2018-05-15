@@ -34,6 +34,17 @@ if (Config.S3_CLOUDFRONT_HOST.endsWith('cloudfront.net')) {
                 console.log('Successfully uploading png file to S3 for ' + name);
             });
         },
+        storeBackground(blob, name) {
+            var s3 = new AWS.S3();
+            var upload = s3.upload({ Bucket: 'thingpedia2',
+                                     Key: 'backgrounds/' + name + '.png',
+                                     Body: blob,
+                                     ContentType: 'image/png' });
+
+            return Q.ninvoke(upload, 'send').then(() => {
+                console.log('Successfully uploading png file to S3 for ' + name);
+            });
+        },
         downloadZipFile(name, version) {
             var s3 = new AWS.S3();
             var download = s3.getObject({ Bucket: 'thingpedia2',
@@ -56,6 +67,17 @@ if (Config.S3_CLOUDFRONT_HOST.endsWith('cloudfront.net')) {
     _backend = {
         storeIcon(blob, name) {
             let output = fs.createWriteStream(platform.getWritableDir() + '/icons/' + name + '.png');
+            if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
+                output.end(blob);
+            else
+                blob.pipe(output);
+            return new Promise((callback, errback) => {
+                output.on('finish', callback);
+                output.on('error', errback);
+            });
+        },
+        storeBackground(blob, name) {
+            let output = fs.createWriteStream(platform.getWritableDir() + '/backgrounds/' + name + '.png');
             if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
                 output.end(blob);
             else

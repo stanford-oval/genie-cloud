@@ -9,38 +9,33 @@
 // See COPYING for details
 "use strict";
 
-const express = require('express');
-const user = require('../util/user');
-const multer = require('multer');
-
 const Q = require('q');
+const fs = require('fs');
+const express = require('express');
+const multer = require('multer');
 const Canvas = require('canvas');
 const xml2js = require('xml2js');
-const fs = require('fs');
-const path = require('path');
 const ColorThief = require('color-thief');
+
+const user = require('../util/user');
+const db = require('../util/db');
+const platform = require('../util/platform');
+const code_storage = require('../util/code_storage');
+const graphics = require('../almond/graphics');
+const background = require('../model/background');
 
 const colorThief = new ColorThief();
 
-const XML_DIR = './public/friendhub/backgrounds/';
-const TARGET_JSON = './public/friendhub/backgrounds/backgrounds.json';
 const palette_size = 4;
 
 let router = express.Router();
 
-let storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.resolve(path.dirname(module.filename)) || './public/friendhub/backgrounds');
-    },
-    filename: function (req, file, cb) {
-        cb(null, file.originalname);
-    },
-});
+router.use(multer({ dest: platform.getTmpDir() }).fields([
+    { name: 'background', maxCount: 1 },
+    { name: 'xml', maxCount: 1 }
+]));
 
-let upload = multer({ storage: storage, limits: {fileSize: 1000000, files: 2}});
-let uploadByFields = upload.fields([{name: 'background', maxCount: 1}, {name: 'xml', maxCount: 1}]);
-
-router.post('/upload', user.requireLogIn, user.requireDeveloper(), uploadByFields, (req, res) => {
+router.post('/upload', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     uploadBackground(req, res);
 });
 
@@ -49,25 +44,45 @@ router.get('/', user.requireLogIn, user.requireDeveloper(), (req, res) => {
 });
 
 function uploadBackground(req, res) {
-    uploadByFields(req, res, (err) => {
-        if (err)
-            return res.end('Error uploading files');
-        return res.end('Files uploaded');
-    });
-    return Q.nfcall(fs.readdir, XML_DIR).then((files) => {
-        files = files.filter((f) => f.endsWith('.xml'));
-        files.sort();
-
-        return Q.all(files.map(processOneFile));
-    }).then((files) => {
-        const data = {};
-        for (let file of files) {
-            data[file.filename] = file;
-            delete file.filename;
+    if (!(req.files.background && req.files.xml))
+        return Q();
+    if (!(req.files.background.length === 1 && req.files.xml.length === 1))
+        return Q();
+    let originalname = req.files.background[0].originalname;
+    let filename = req.files.background[0].filename;
+    originalname = originalname.substring(0, originalname.length - '.png'.length);
+    return Q(Promise.resolve().then(() => {
+        setTimeout(() => {
+            Promise.resolve().then(() => {
+                let image = graphics.createImageFromPath(req.files.background[0].path);
+                image.resizeFit(1920, 1080);
+                return image.stream('png');
+            }).then(([stdout, stderr]) => {
+                return code_storage.storeBackground(stdout, filename);
+            }).catch ((e) => {
+                console.error('Failed to upload background to S3: ' + e);
+            });
+        }, 0);
+    }).then(() => {
+        return processOneFile(req.files.xml[0].path, req.files.background[0].path, originalname).then((output) => {
+            return db.withTransaction((dbClient) => {
+                return background.add(dbClient, output, req.user.developer_org, filename);
+            });
+        });
+    }).then(() => {
+        res.redirect(303, '/friendhub');
+    })).finally(() => {
+        let toDelete = [];
+        if (req.files) {
+            toDelete.push(Q.nfcall(fs.unlink, req.files.background[0].path));
+            toDelete.push(Q.nfcall(fs.unlink, req.files.xml[0].path));
         }
-
-        return Q.nfcall(fs.writeFile, TARGET_JSON, JSON.stringify(data, undefined, 2));
-    });
+        return Promise.all(toDelete);
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(400).render('error', { page_title: "Thingpedia - Error",
+            message: e });
+    }).done();
 }
 
 function avgColor(ctx, x, y, w, h) {
@@ -98,8 +113,7 @@ function loadImage(imageFilename) {
     return ctx;
 }
 
-function processOneFile(filename) {
-    const path = XML_DIR + filename;
+function processOneFile(path, imageFilepath, filename) {
     console.log('Loading xml ' + path);
 
     return Q.nfcall(fs.readFile, path).then((data) => {
@@ -107,9 +121,7 @@ function processOneFile(filename) {
     }).then((parsedXml) => {
         if (!parsedXml)
             console.error('Something weird with ' + filename);
-        let imageFilename = parsedXml.annotation.path[0].split(/[\\/]/g);
-        imageFilename = imageFilename[imageFilename.length-1];
-        let imageFilepath = XML_DIR + imageFilename;
+        let imageFilename = filename;
         console.log('Loading image ' + imageFilepath);
 
         const width = parseInt(parsedXml.annotation.size[0].width[0]);
