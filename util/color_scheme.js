@@ -78,7 +78,7 @@ function processOneDevice(kind, into) {
         return makeColorScheme(stream);
     }).then(([colors_dominant, colors_palette_default, colors_palette_light]) => {
         console.log('processed ' + kind);
-        into = {
+        into[kind] = {
             colors_dominant, colors_palette_default, colors_palette_light
         };
     }).catch((e) => {
@@ -89,10 +89,7 @@ function processOneDevice(kind, into) {
 
 function updateColorScheme(dbClient, kind) {
     return Q.nfcall(fs.readFile, TARGET_JSON).then((data) => JSON.parse(data)).then((parsed) => {
-         let into = {};
-         processOneDevice(kind, into).then(() => {
-             parsed[kind] = into;
-         }).then(() => {
+         processOneDevice(kind, parsed).then(() => {
              return Q.nfcall(fs.writeFile, TARGET_JSON, JSON.stringify(parsed, undefined, 2));
          });
     });
