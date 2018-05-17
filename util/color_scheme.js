@@ -16,8 +16,6 @@ const Url = require('url');
 const Q = require('q');
 const fs = require('fs');
 const colorExtractor = require('img-color-extractor');
-const db = require('../util/db');
-const deviceModel = require('../model/device');
 
 const TARGET_JSON = path.resolve(path.dirname(module.filename), '../public/friendhub/backgrounds/color_schemes.json');
 
@@ -80,7 +78,7 @@ function processOneDevice(kind, into) {
         return makeColorScheme(stream);
     }).then(([colors_dominant, colors_palette_default, colors_palette_light]) => {
         console.log('processed ' + kind);
-        into[kind] = {
+        into = {
             colors_dominant, colors_palette_default, colors_palette_light
         };
     }).catch((e) => {
@@ -99,9 +97,5 @@ function updateColorScheme(dbClient, kind) {
          });
     });
 }
-
-db.withClient((dbClient) => {
-    return updateColorScheme(dbClient, 'com.pubgtracker');
-}).done();
 
 module.exports = updateColorScheme;
