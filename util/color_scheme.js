@@ -55,26 +55,8 @@ function makeColorScheme(stream) {
     });
 }
 
-function httpRequest(url) {
-    let options = Url.parse(url);
-    return new Q.Promise((callback, errback) => {
-        let httpcallback = (res) => {
-            res.on('error', errback);
-            if (res.statusCode !== 200) {
-                let e = new Error('Unexpected HTTP error ' + res.statusCode);
-                e.code = res.statusCode;
-                res.resume();
-                errback(e);
-                return;
-            }
-            callback(res);
-        };
-        https.get(options, httpcallback);
-    });
-}
-
-function processOneDevice(kind, into) {
-    return httpRequest('https://d1ge76rambtuys.cloudfront.net/icons/' + kind + '.png').then((stream) => {
+function processOneDevice(path, kind, into) {
+    return Promise.resolve(fs.createReadStream(path)).then((stream) => {
         return makeColorScheme(stream);
     }).then(([colors_dominant, colors_palette_default, colors_palette_light]) => {
         console.log('processed ' + kind);
@@ -87,9 +69,9 @@ function processOneDevice(kind, into) {
     });
 }
 
-function updateColorScheme(dbClient, kind) {
+function updateColorScheme(path, kind) {
     return Q.nfcall(fs.readFile, TARGET_JSON).then((data) => JSON.parse(data)).then((parsed) => {
-         processOneDevice(kind, parsed).then(() => {
+         return processOneDevice(path, kind, parsed).then(() => {
              return Q.nfcall(fs.writeFile, TARGET_JSON, JSON.stringify(parsed, undefined, 2));
          });
     });

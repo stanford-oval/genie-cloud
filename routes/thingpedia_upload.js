@@ -440,7 +440,7 @@ function doCreateOrUpdate(id, create, req, res) {
                         }).then(([stdout, stderr]) => {
                             return code_storage.storeIcon(stdout, done);
                         }).then(() => {
-                            return colorScheme(dbClient, kind);
+                            return colorScheme(req.files.icon[0].path, kind);
                         }).catch ((e) => {
                             console.error('Failed to upload icon to S3: ' + e);
                         });
