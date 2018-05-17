@@ -433,7 +433,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (req.files.icon && req.files.icon.length) {
                     // upload the icon asynchronously to avoid blocking the request
                     setTimeout(() => {
-                        Promise.resolve().then(() => {
+                        Q(() => {
                             var image = graphics.createImageFromPath(req.files.icon[0].path);
                             image.resizeFit(512, 512);
                             return image.stream('png');
@@ -443,6 +443,8 @@ function doCreateOrUpdate(id, create, req, res) {
                             return colorScheme(req.files.icon[0].path, kind);
                         }).catch ((e) => {
                             console.error('Failed to upload icon to S3: ' + e);
+                        }).finally(() => {
+                            return Q.nfcall(fs.unlink, req.files.icon[0].path);
                         });
                     }, 0);
                 }
@@ -468,8 +470,6 @@ function doCreateOrUpdate(id, create, req, res) {
         if (req.files) {
             if (req.files.zipfile && req.files.zipfile.length)
                 toDelete.push(Q.nfcall(fs.unlink, req.files.zipfile[0].path));
-            if (req.files.icon && req.files.icon.length)
-                toDelete.push(Q.nfcall(fs.unlink, req.files.icon[0].path));
         }
         return Promise.all(toDelete);
     }).catch((e) => {
