@@ -433,16 +433,19 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (req.files.icon && req.files.icon.length) {
                     // upload the icon asynchronously to avoid blocking the request
                     setTimeout(() => {
-                        Q(() => {
+                        Q.try(() => {
                             var image = graphics.createImageFromPath(req.files.icon[0].path);
                             image.resizeFit(512, 512);
                             return image.stream('png');
                         }).then(([stdout, stderr]) => {
+                            console.error('here');
                             return code_storage.storeIcon(stdout, done);
                         }).then(() => {
+                            console.error('there');
                             return colorScheme(req.files.icon[0].path, kind);
                         }).catch ((e) => {
                             console.error('Failed to upload icon to S3: ' + e);
+                            console.error(e.stack);
                         }).finally(() => {
                             return Q.nfcall(fs.unlink, req.files.icon[0].path);
                         });
