@@ -56,7 +56,7 @@ function processRectangleRows(rows) {
             'font-family': row.font_family,
             'font-size': row.font_size,
             'font-color': row.font_color,
-            'text_align': row.text_align,
+            'text-align': row.text_align,
             color: JSON.parse(row.color),
             'top-color': JSON.parse(row.top_color),
             'bottom-color': JSON.parse(row.bottom_color),
@@ -72,7 +72,7 @@ function processRectangleRows(rows) {
                 function_name: row.function_name,
                 hash: row.hash,
                 'corner-colors': JSON.parse(row.corner_colors),
-                'color_palette': JSON.parse(row.color_palette),
+                'color-palette': JSON.parse(row.color_palette),
                 rectangles: [rect]
             };
         }
