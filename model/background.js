@@ -46,10 +46,7 @@ function processRectangleRows(rows) {
     let out = {};
     rows.forEach((row) => {
         let rect = {
-            top: row.coord_top,
-            bottom: row.coord_bottom,
-            left: row.coord_left,
-            right: row.coord_right,
+            coordinates: [[row.coord_left, row.coord_top], [row.coord_right, row.coord_bottom]],
             label: row.label,
             index: row.order_index,
             cover: row.cover,
