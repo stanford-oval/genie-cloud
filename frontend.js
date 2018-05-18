@@ -119,6 +119,14 @@ module.exports = class Frontend {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });
+        this._app.use('/friendhub/backgrounds', (req, res, next) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
+        this._app.use('/friendhub/search', (req, res, next) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
         this._app.use(express.static(path.join(__dirname, 'public'),
                                      { maxAge: 86400000 }));
         this._app.use(cacheable());
