@@ -89,7 +89,7 @@ module.exports = {
     },
 
     getByTags(client, tags) {
-        return db.selectAll(client, "select bg.*, rect.* from background bg " +
+        return db.selectAll(client, "select distinct bg.*, rect.* from background bg " +
             "left join background_rectangle rect on bg.id = rect.background_id " +
             "left join background_tag tag on bg.id = tag.background_id " +
             "where tag.tag in (?)", [tags]).then(processRectangleRows);
