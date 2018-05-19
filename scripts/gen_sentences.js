@@ -241,6 +241,36 @@ const SAY_SCHEMA = new Ast.FunctionDef('other',
     ['message'], // argcanonicals
     [''] // questions
 );
+const LOCATION_SCHEMA = new Ast.FunctionDef('primary',
+    ['location'], // args
+    [Type.Location], // types
+    { location: 0 }, // index
+    { location: Type.Location }, // inReq
+    {}, // inOpt
+    {}, // out
+    false, // is_list
+    true, // is_monitorable
+    'get gps', // canonical
+    '', // confirmation
+    '', // confirmation_remote
+    ['location'], // argcanonicals
+    [''] // questions
+);
+const GET_TIME_SCHEMA = new Ast.FunctionDef('primary',
+    ['time'], // args
+    [Type.Date], // types
+    { time: 0 }, // index
+    { time: Type.Date }, // inReq
+    {}, // inOpt
+    {}, // out
+    false, // is_list
+    false, // is_monitorable
+    'get time', // canonical
+    '', // confirmation
+    '', // confirmation_remote
+    ['time'], // argcanonicals
+    [''] // questions
+);
 
 // A numbered constant, eg. QUOTED_STRING_0 or NUMBER_1 or HASHTAG_3
 // During generation, this constant is put in the program as a VarRef
@@ -898,6 +928,8 @@ function builtinSayAction(pname) {
 function checkFilter(table, filter) {
     if (filter.isNot)
         filter = filter.expr;
+    if (filter.isExternal)
+        return true;
 
     if (!table.schema.out[filter.name])
         return false;
@@ -961,6 +993,90 @@ function tableToStream(table, projArg) {
     else
         stream = new Ast.Stream.Monitor(table, projArg, table.schema);
     return stream;
+}
+
+function makeLocationGetPredicate(loc, negate = false) {
+    let filter = Ast.BooleanExpression.Atom('location', '==', loc);
+    if (negate)
+        filter = Ast.BooleanExpression.Not(filter);
+
+    return new Ast.BooleanExpression.External(Ast.Selector.Device('org.thingpedia.builtin.thingengine.phone',null,null),'get_gps', [], filter, LOCATION_SCHEMA);
+}
+
+function makeTimeGetPredicate(low, high) {
+    let operands = [];
+    
+    if (low)
+        operands.push(Ast.BooleanExpression.Atom('time', '>=', low));
+    if (high)
+        operands.push(Ast.BooleanExpression.Atom('time', '<=', high));
+    const filter = Ast.BooleanExpression.And(operands);
+    return new Ast.BooleanExpression.External(Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter, GET_TIME_SCHEMA);
+}
+
+function hasGetPredicate(filter) {
+    if (filter.isAnd || filter.isOr) {
+        for (let op of filter.operands) {
+            if (hasGetPredicate(op))
+                return true;
+        }
+        return false;
+    }
+    if (filter.isNot)
+        return hasGetPredicate(filter.expr);
+    return filter.isExternal;
+}
+
+function makeGetPredicate(op, negate = false) {
+    return function(proj, value) {
+        if (!proj.table.isInvocation)
+            return null;
+        let arg = proj.args[0];
+        let filter = Ast.BooleanExpression.Atom(arg, op, value);
+        if (negate)
+            filter = Ast.BooleanExpression.Not(filter);
+        const selector = proj.table.invocation.selector;
+        const channel = proj.table.invocation.channel;
+        const schema = proj.table.invocation.schema;
+        if (!schema.out[arg].equals(value.getType()))
+            return null;
+        return new Ast.BooleanExpression.External(selector, channel, proj.table.invocation.in_params, filter, proj.table.invocation.schema);
+    }
+}
+
+function inParamsToFilters(in_params) {
+    const operands = [];
+    for (let param of in_params)
+        operands.push(Ast.BooleanExpression.Atom(param.name, '==', param.value));
+    return Ast.BooleanExpression.And(operands);
+}
+
+function makePolicy(principal, table, action) {
+    const policyAction = action ? 
+        new Ast.PermissionFunction.Specified(action.selector.kind, action.channel, inParamsToFilters(action.in_params), action.schema) :
+        Ast.PermissionFunction.Builtin;
+        
+    let queryfilter = Ast.BooleanExpression.True;
+    let policyQuery = Ast.PermissionFunction.Builtin;
+    if (table) {
+        /*if (!table.schema.remote_confirmation || table.schema.remote_confirmation.indexOf('$__person') < 0)
+            return null;*/
+        
+        if (table.isFilter && table.table.isInvocation) {
+            queryfilter = Ast.BooleanExpression.And([inParamsToFilters(table.table.invocation.in_params), table.filter]);
+            policyQuery = new Ast.PermissionFunction.Specified(table.table.invocation.selector.kind, table.table.invocation.channel, queryfilter, table.schema);
+        } else if (table.isInvocation) {
+            queryfilter = inParamsToFilters(table.invocation.in_params);
+            policyQuery = new Ast.PermissionFunction.Specified(table.invocation.selector.kind, table.invocation.channel, queryfilter, table.schema);
+        } else {
+            return null;
+        }
+    }
+    
+    const sourcepredicate = principal ?
+        Ast.BooleanExpression.Atom('source', '==', principal) : Ast.BooleanExpression.True;
+    
+    return new Ast.PermissionRule(sourcepredicate, policyQuery, policyAction);
 }
 
 const GRAMMAR = {
@@ -1146,6 +1262,16 @@ const GRAMMAR = {
     ],
 
     'atom_filter': [
+        ['before ${constant_Time}', simpleCombine((t1) => makeTimeGetPredicate(null, t1))],
+        ['after ${constant_Time}', simpleCombine((t2) => makeTimeGetPredicate(t2, null))],
+        ['between ${constant_Time} and ${constant_Time}', simpleCombine((t1, t2) => makeTimeGetPredicate(t1, t2))],
+        ['my location is ${constant_Location}', simpleCombine((loc) => makeLocationGetPredicate(loc))],
+        ['my location is not ${constant_Location}', simpleCombine((loc) => makeLocationGetPredicate(loc, true))],
+        ['i am at ${constant_Location}', simpleCombine((loc) => makeLocationGetPredicate(loc))],
+        ['i am not at ${constant_Location}', simpleCombine((loc) => makeLocationGetPredicate(loc, true))],
+        ['the ${projection_Any} ${choice(is|is exactly|is equal to)} ${constant_Any}', simpleCombine(makeGetPredicate('=='))],
+        ['the ${projection_Any} ${choice(is not|is n\'t|is different than)} ${constant_Any}', simpleCombine(makeGetPredicate('==', true))],
+
         ['the ${out_param_Any} ${choice(is|is exactly|is equal to)} ${constant_Any}', simpleCombine(makeFilter('=='))],
         ['the ${out_param_Any} ${choice(is not|is n\'t|is different than)} ${constant_Any}', simpleCombine(makeFilter('==', true))],
         ['${the_out_param_Numeric} is ${choice(greater|higher|bigger|more|at least|not less than)} ${constant_Numeric}', simpleCombine(makeFilter('>='))],
@@ -1576,6 +1702,8 @@ const GRAMMAR = {
             return makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]));
         }))],
         ['${choice(monitor|watch)} ${complete_table} and ${choice(alert me|notify me|inform me|warn me)} ${choice(if|when)} ${atom_filter}', checkConstants(simpleCombine((table, filter) => {
+            if (hasGetPredicate(filter))
+                return null;
             if (!isSingleResult(table) || !checkFilter(table, filter))
                 return null;
             table = addFilter(table, filter);
@@ -1596,6 +1724,8 @@ const GRAMMAR = {
             return makeProgram(new Ast.Statement.Rule(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), [Generate.notifyAction()]));
         })))],
         ['${choice(alert me|tell me|notify me|let me know)} ${choice(if|when)} ${atom_filter} in ${complete_table}', checkConstants(simpleCombine((filter, table) => {
+            if (hasGetPredicate(filter))
+                return null;
             if (!isMonitorable(table) || !checkFilter(table, filter))
                 return null;
             if (TURKING_MODE && !isSingleResult(table))
@@ -1609,6 +1739,8 @@ const GRAMMAR = {
             return makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction()]));
         }))],
         ['${choice(alert me|tell me|notify me|let me know)} ${choice(if|when)} ${edge_filter} in ${complete_table}', checkConstants(simpleCombine((filter, table) => {
+            if (hasGetPredicate(filter))
+                return null;
             if (!isMonitorable(table) || !isSingleResult(table) || !checkFilter(table, filter))
                 return null;
             table = addFilter(table, filter);
@@ -1708,10 +1840,37 @@ const GRAMMAR = {
 
         // setup commands
         ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((principal, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ principal })), true)],
-        ['${choice(tell|command|order|request|inform)} ${constant_Entity(tt:username)} that ${choice(he needs|she needs|I need him|I need her)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((principal, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ principal })), true)],
+        ['${choice(tell|command|order|request|inform)} ${constant_Entity(tt:username)} that ${choice(he needs|she needs|i need him|i need her)} to ${thingpedia_action}', checkIfComplete(combineRemoteProgram((principal, action) => makeProgram(new Ast.Statement.Command(null, [action])).set({ principal })), true)],
         ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to get ${complete_table} and send it to me', checkConstants(combineRemoteProgram((principal, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ principal })), true)],
+        ['${choice(request|ask)} ${constant_Entity(tt:username)} to get ${complete_table}', checkConstants(combineRemoteProgram((principal, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ principal })), true)],
+        ['${choice(show me|get)} ${complete_table} from ${constant_Entity(tt:username)}', checkConstants(combineRemoteProgram((table, principal) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ principal })), true)],
+        ['${choice(show me|get|what is)} ${constant_Entity(tt:username)} \'s ${complete_table}', checkConstants(combineRemoteProgram((principal, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ principal })), true)],
         ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to send me ${complete_table}', checkConstants(combineRemoteProgram((principal, table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction('return')])).set({ principal })), true)],
         ['${choice(tell|command|order|request|ask)} ${constant_Entity(tt:username)} to ${choice(let me know|inform me|notify me|alert me)} ${stream}', checkConstants(combineRemoteProgram((principal, stream) => makeProgram(new Ast.Statement.Rule(stream, [Generate.notifyAction('return')])).set({ principal })), true)],
+        
+        // policies
+        ['${choice(anyone|anybody|everyone|everybody)} ${choice(can|is allowed to|is permitted to|has permission to|has my permission to)} ${thingpedia_action}', checkIfComplete(simpleCombine((action) => makePolicy(null, null, action)), true)],
+        ['${choice(anyone|anybody|everyone|everybody)} ${choice(can|is allowed to|is permitted to|has permission to|has my permission to)} ${thingpedia_action} if ${atom_filter}', checkIfComplete(simpleCombine((action, filter) => {
+            if (!filter.isExternal)
+                return null;
+            let policy = makePolicy(null, null, action);
+            if (!policy)
+                return null;
+            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            return policy;
+        }), true)],
+        ['${choice(anyone|anybody|everyone|everybody)} ${choice(can|is allowed to|is permitted to|has permission to|has my permission to)} ${choice(get|see|access|monitor|read)} ${if_filtered_table}', checkIfComplete(simpleCombine((table) => makePolicy(null, table, null)), true)],
+        ['${constant_Entity(tt:username)} ${choice(can|is allowed to|is permitted to|has permission to|has my permission to)} ${thingpedia_action}', checkIfComplete(simpleCombine((source, action) => makePolicy(source, null, action)), true)],
+        ['${constant_Entity(tt:username)} ${choice(can|is allowed to|is permitted to|has permission to|has my permission to)} ${thingpedia_action} if ${atom_filter}', checkIfComplete(simpleCombine((source, action, filter) => {
+            if (!filter.isExternal)
+                return null;
+            let policy = makePolicy(source, null, action);
+            if (!policy)
+                return null;
+            policy.action.filter = Ast.BooleanExpression.And([policy.action.filter, filter]);
+            return policy;
+        }), true)],
+        ['${constant_Entity(tt:username)} ${choice(can|is allowed to|is permitted to|has permission to|has my permission to)} ${choice(get|see|access|monitor|read)} ${if_filtered_table}', checkIfComplete(simpleCombine((source, table) => makePolicy(source, table, null)), true)],
     ]
 };
 
@@ -1732,6 +1891,8 @@ function loadTemplateAsDeclaration(ex, decl) {
     if (TURKING_MODE && decl.type === 'action' && decl.value.selector.kind === 'org.thingpedia.builtin.thingengine.builtin')
         return;
     if (decl.type === 'action' && decl.value.selector.kind === 'org.thingpedia.builtin.thingengine.builtin' && decl.value.channel === 'say')
+        return;
+    if (decl.type === 'stream' && (decl.value.isTimer || decl.value.isAtTimer))
         return;
 
     // HACK HACK HACK
@@ -2713,8 +2874,8 @@ function *generate() {
                         continue;
                     }*/
                     //everything.add(key);
-                    //if (nonterminal === 'get_do_command')
-                    //    console.log(`$${nonterminal} -> ${derivation}`);
+                    if (nonterminal === 'atom_filter' && derivation.value.isExternal)
+                        console.log(`$${nonterminal} -> ${derivation}`);
                     charts[i][nonterminal].push(derivation);
                 }
                 j++;
@@ -2744,9 +2905,9 @@ function asyncIterate(iterator, loop) {
 }
 
 function postprocess(sentence) {
-    return sentence.replace(/ new my /, ' my new ')
-        .replace(/ new the /, ' the new ')
-        .replace(/ new a /, ' a new ').trim();
+    return sentence.replace(/ new (my|the|a) /, (_, what) => ` ${what} new `)
+        .replace(/ 's (my|their|his|her) /, ` 's `)
+        .trim();
 }
 
 function main() {
