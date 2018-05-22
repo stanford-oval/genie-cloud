@@ -88,6 +88,10 @@ module.exports = {
         });
     },
 
+    delete(client, bg_id) {
+        return db.query(client, "delete from background where id = ?", [bg_id]);
+    },
+
     getByTags(client, tags) {
         return db.selectAll(client, "select distinct bg.*, rect.* from background bg " +
             "left join background_rectangle rect on bg.id = rect.background_id " +

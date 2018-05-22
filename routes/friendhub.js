@@ -55,6 +55,22 @@ router.get('/search', (req, res) => {
     });
 });
 
+router.get('/delete', user.requireLogIn, user.requireDeveloper(), (req, res) => {
+    let id = req.query.id;
+    Q.try(() => {
+        return db.withTransaction((dbClient) => deleteBackground(dbClient, id));
+    }).then(() => {
+        res.json({result: 'succeeded'});
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).json({error: e.message});
+    });
+});
+
+function deleteBackground(client, bg_id) {
+    return background.delete(client, bg_id);
+}
+
 function uploadBackground(req, res) {
     if (!(req.files.background && req.files.xml))
         return Q();
