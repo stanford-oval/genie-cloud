@@ -119,6 +119,14 @@ module.exports = class Frontend {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });
+        this._app.use('/friendhub/backgrounds', (req, res, next) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
+        this._app.use('/friendhub/search', (req, res, next) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
         this._app.use(express.static(path.join(__dirname, 'public'),
                                      { maxAge: 86400000 }));
         this._app.use(cacheable());
@@ -223,6 +231,7 @@ module.exports = class Frontend {
         }
 
         this._app.use('/mturk', require('./routes/mturk'));
+        this._app.use('/friendhub', require('./routes/friendhub'));
 
         this._app.use(csurf({ cookie: false }));
         this._app.use('/', require('./routes/index'));

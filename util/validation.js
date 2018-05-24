@@ -179,6 +179,7 @@ module.exports = {
 
         let chunks = split(utterance.trim(), PARAM_REGEX);
 
+        let placeholders = new Set;
         for (let chunk of chunks) {
             if (chunk === '')
                 continue;
@@ -193,6 +194,12 @@ module.exports = {
                 throw new Error(`Invalid placeholder ${param}`);
             if (opt && opt !== 'const')
                 throw new Error(`Invalid placeholder option ${opt} for ${param}`);
+            placeholders.add(param);
+        }
+
+        for (let arg in args) {
+            if (!placeholders.has(arg))
+                throw new Error(`Missing placeholder for argument ${arg}`);
         }
     },
 

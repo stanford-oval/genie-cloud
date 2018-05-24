@@ -1,0 +1,19 @@
+extends layout
+
+block page_name
+  = _("FriendHub")
+
+block content
+  div.row
+    div.col-xs-12
+      form(action='/friendhub/upload', enctype='multipart/form-data', method='post', data-toggle="validator")
+        div.form-group
+          label(for='background').control-label= _("Background picture")
+          input(type='file', name='background', required=true)#background
+
+        div.form-group
+          label(for='xml').control-label= _("Metadata")
+          input(type='file', name='xml', required=true)#xml
+
+        div.form-group
+          button(type='submit').btn.btn-primary= _("Upload")

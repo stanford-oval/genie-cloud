@@ -218,7 +218,6 @@ CREATE TABLE `device_schema_channels` (
   `is_list` tinyint(1) NOT NULL DEFAULT '1',
   `is_monitorable` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`schema_id`,`version`,`name`),
-  CONSTRAINT `device_schema_channels_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -559,6 +558,49 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB AUTO_INCREMENT=631 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+create table background (
+    id integer primary key auto_increment,
+    owner integer not null,
+    schema_id integer null,
+    function_name varchar(128) null,
+    hash char(32) not null,
+    corner_colors mediumtext not null,
+    color_palette mediumtext not null,
+    foreign key (owner) references organizations(id) on update cascade on delete restrict,
+    foreign key (schema_id) references device_schema(id) on update cascade on delete set null,
+    key (schema_id, function_name)
+) collate=utf8_bin;
+
+create table background_tag (
+    background_id integer not null,
+    tag varchar(255) not null,
+    required boolean not null default false,
+    primary key(background_id, tag),
+    foreign key(background_id) references background(id) on update cascade on delete cascade
+) collate=utf8_bin;
+
+create table background_rectangle (
+    id integer not null primary key auto_increment,
+    background_id integer not null,
+    coord_top float not null,
+    coord_bottom float not null,
+    coord_left float not null,
+    coord_right float not null,
+    label varchar(255) not null,
+    order_index integer not null,
+    cover boolean not null default false,
+    font_family varchar(255) null,
+    font_size integer null,
+    font_color varchar(255) null,
+    text_align enum('left','right','center','justify') null,
+    color varchar(255) not null,
+    top_color varchar(255) not null,
+    bottom_color varchar(255) not null,
+    left_color varchar(255) not null,
+    right_color varchar(255) not null,
+    foreign key(background_id) references background(id) on update cascade on delete cascade
+) collate=utf8_bin;
 
 
 insert into organizations values (
