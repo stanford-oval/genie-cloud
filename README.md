@@ -16,7 +16,8 @@ information at <https://almond.stanford.edu>.
 
 ### Step 1: Acquiring dependencies
 
-The code depends on nodejs (>= 6.10), cvc4 (any version, although >= 1.5 is recommended).
+The code depends on nodejs (>= 8.0), cvc4 (any version, although >= 1.5 is recommended),
+gm (provided by GraphicsMagic), cairo.
 Optionally, it depends on libsystemd for journal integration.
 A working MySQL server is also required.
 

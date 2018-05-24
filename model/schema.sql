@@ -217,7 +217,7 @@ CREATE TABLE `device_schema_channels` (
   `doc` mediumtext COLLATE utf8_bin NOT NULL,
   `is_list` tinyint(1) NOT NULL DEFAULT '1',
   `is_monitorable` tinyint(1) NOT NULL DEFAULT '1',
-  PRIMARY KEY (`schema_id`,`version`,`name`),
+  PRIMARY KEY (`schema_id`,`version`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -246,6 +246,23 @@ CREATE TABLE `device_schema_snapshot` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `entity_names`
+--
+
+DROP TABLE IF EXISTS `entity_names`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `entity_names` (
+  `id` varchar(64) COLLATE utf8_bin NOT NULL,
+  `language` char(15) COLLATE utf8_bin NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `is_well_known` tinyint(1) NOT NULL DEFAULT '0',
+  `has_ner_support` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`,`language`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `entity_lexicon`
 --
 
@@ -262,23 +279,6 @@ CREATE TABLE `entity_lexicon` (
   KEY `entity_id` (`entity_id`),
   FULLTEXT KEY `entity_canonical` (`entity_canonical`),
   CONSTRAINT `entity_lexicon_ibfk_1` FOREIGN KEY (`entity_id`) REFERENCES `entity_names` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `entity_names`
---
-
-DROP TABLE IF EXISTS `entity_names`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `entity_names` (
-  `id` varchar(64) COLLATE utf8_bin NOT NULL,
-  `language` char(15) COLLATE utf8_bin NOT NULL,
-  `name` varchar(255) CHARACTER SET utf8 NOT NULL,
-  `is_well_known` tinyint(1) NOT NULL DEFAULT '0',
-  `has_ner_support` tinyint(1) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`,`language`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -559,6 +559,7 @@ CREATE TABLE `users` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
+drop table if exists background;
 create table background (
     id integer primary key auto_increment,
     owner integer not null,
@@ -572,6 +573,7 @@ create table background (
     key (schema_id, function_name)
 ) collate=utf8_bin;
 
+drop table if exists background_tag;
 create table background_tag (
     background_id integer not null,
     tag varchar(255) not null,
@@ -580,6 +582,7 @@ create table background_tag (
     foreign key(background_id) references background(id) on update cascade on delete cascade
 ) collate=utf8_bin;
 
+drop table if exists background_rectangle;
 create table background_rectangle (
     id integer not null primary key auto_increment,
     background_id integer not null,
@@ -603,28 +606,36 @@ create table background_rectangle (
 ) collate=utf8_bin;
 
 
-insert into organizations values (
-    0, 'Site Administration', '0243de281cf4892575bef0477c177387fac1883ce4e7dd558eaf0e10777bd194'
-);
+insert into organizations set
+    id = 0,
+    name = 'Site Administration',
+    comment = '',
+    developer_key = '0243de281cf4892575bef0477c177387fac1883ce4e7dd558eaf0e10777bd194'
+;
 
-insert into users values (
-    0, 'root', 'Administrator', 'root@localhost', 'en-US', 'America/Los_Angeles',
-    null, -- google_id
-    null, -- facebook_id
-    null, -- omlet_id
-    'a266940f93a5928c96b50c173c26cad2054c8077e1caa63584dfcfaa4881d2f1', -- password
-    '00832c5af6048c2fc9713722ef0c896202e2f1b30a746394900fb0e8132d958d', -- salt
-    '5f9ea96b5ce8c0b1ab675fd1cd614af7e707332ec461cb96fea7a4414202ee02', -- cloud_id
-    '6311efb5e042580a3ccd95c6104af72865195fb94045104d6784533b39f77fd6', -- auth_token
-    '6fdf9e57fa9ab621e6a93d5a99cb1c7d4b12f58a5f3481dd2082cc23ff700b71', -- storage_key
-    1, -- roles (site admin)
-    null, -- assistant feed id
-    3, -- developer status (admin)
-    0, -- developer org
-    0, -- force separate process
-    current_timestamp, -- registration time
-    current_timestamp -- lastlog time
-    );
+insert into users set
+    id = 0,
+    username = 'root',
+    human_name = 'Administrator',
+    email = 'root@localhost',
+    locale = 'en-US',
+    timezone = 'America/Los_Angeles',
+    google_id = null,
+    facebook_id = null,
+    omlet_id = null,
+    `password` = 'a266940f93a5928c96b50c173c26cad2054c8077e1caa63584dfcfaa4881d2f1',
+    salt = '00832c5af6048c2fc9713722ef0c896202e2f1b30a746394900fb0e8132d958d',
+    cloud_id = '5f9ea96b5ce8c0b1',
+    auth_token = '6311efb5e042580a3ccd95c6104af72865195fb94045104d6784533b39f77fd6',
+    storage_key = '6fdf9e57fa9ab621e6a93d5a99cb1c7d4b12f58a5f3481dd2082cc23ff700b71',
+    roles = 1,
+    assistant_feed_id = null,
+    developer_status = 3,
+    developer_org = 0,
+    force_separate_process = false,
+    registration_time = current_timestamp,
+    lastlog_time = current_timestamp
+;
 
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
