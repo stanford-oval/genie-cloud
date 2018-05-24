@@ -26,10 +26,37 @@ class WebsocketDelegate {
     setRemote(remote) {
         this._remote = remote;
 
-        this._ws.on('message', (data) => remote.onMessage(data));
-        this._ws.on('ping', () => remote.onPing());
-        this._ws.on('pong', () => remote.onPong());
-        this._ws.on('close', () => remote.onClose());
+        this._ws.on('message', (data) => {
+            try {
+                remote.onMessage(data);
+            } catch(e) {
+                console.error('Failed to relay websocket message: ' + e.message);
+                this._ws.close();
+            }
+        });
+        this._ws.on('ping', (data) => {
+            try {
+                remote.onPing(data);
+            } catch(e) {
+                // ignore
+                this._ws.close();
+            }
+        });
+        this._ws.on('pong', (data) => {
+            try {
+                remote.onPong(data);
+            } catch(e) {
+                // ignore
+                this._ws.close();
+            }
+        });
+        this._ws.on('close', (data) => {
+            try {
+                remote.onClode(data);
+            } catch(e) {
+                // ignore
+            }
+        });
     }
 
     ping() {
