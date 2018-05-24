@@ -218,7 +218,6 @@ CREATE TABLE `device_schema_channels` (
   `is_list` tinyint(1) NOT NULL DEFAULT '1',
   `is_monitorable` tinyint(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`schema_id`,`version`,`name`),
-  CONSTRAINT `device_schema_channels_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
