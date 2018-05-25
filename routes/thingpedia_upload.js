@@ -96,8 +96,9 @@ function validateSchema(dbClient, type, ast, req) {
 const CATEGORIES = new Set(['physical','data','online','system']);
 const CATEGORY_TYPES = new Set(['data-source', 'online-account', 'thingengine-system']);
 const SUBCATEGORIES = new Set(['service','media','social-network','communication','home','health','data-management']);
-const ALLOWED_MODULE_TYPES = new Set(['org.thingpedia.v2', 'org.thingpedia.v1', 'org.thingpedia.rss', 'org.thingpedia.rest_json', 'org.thingpedia.builtin', 'org.thingpedia.generic_rest.v1']);
+const ALLOWED_MODULE_TYPES = new Set(['org.thingpedia.v2', 'org.thingpedia.v1', 'org.thingpedia.rss', 'org.thingpedia.rest_json', 'org.thingpedia.builtin', 'org.thingpedia.generic_rest.v1', 'org.thingpedia.embedded']);
 const JAVASCRIPT_MODULE_TYPES = new Set(['org.thingpedia.v1', 'org.thingpedia.v2', 'org.thingpedia.builtin']);
+const AUTH_TYPES = new Set(['none','oauth2','basic','builtin','discovery','interactive']);
 
 function validateDevice(dbClient, req) {
     var name = req.body.name;
@@ -121,7 +122,11 @@ function validateDevice(dbClient, req) {
         ast.child_types = [];
     if (!ast.auth)
         ast.auth = {"type":"none"};
-    if (!ast.auth.type || ['none','oauth2','basic','builtin','discovery','interactive'].indexOf(ast.auth.type) < 0)
+    if (ast.module_type === 'org.thingpedia.embedded') {
+        ast.auth.type = 'builtin';
+        ast.params = {};
+    }
+    if (!ast.auth.type || !AUTH_TYPES.has(ast.auth.type))
         throw new Error(req._("Invalid authentication type"));
     if (ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
         throw new Error(req._("Username and password must be declared for basic authentication"));

@@ -1,3 +1,4 @@
+"use strict";
 $(function() {
     var json = JSON.parse($('#device-code').text());
     var element = document.getElementById('json-manifest-placeholder');
@@ -142,9 +143,9 @@ $(function() {
         properties: {
             module_type: {
                 type: 'string', title: "Package Type",
-                'enum': ['org.thingpedia.v2', 'org.thingpedia.v1', 'org.thingpedia.rss', 'org.thingpedia.builtin', 'org.thingpedia.generic_rest.v1'],
+                'enum': ['org.thingpedia.v2', 'org.thingpedia.v1', 'org.thingpedia.rss', 'org.thingpedia.builtin', 'org.thingpedia.generic_rest.v1', 'org.thingpedia.embedded'],
                 options: {
-                    enum_titles: ['Custom JavaScript', 'Legacy JavaScript Module (deprecated)', 'RSS Feed', 'Preloaded', 'Generic REST']
+                    enum_titles: ['Custom JavaScript', 'Legacy JavaScript Module (deprecated)', 'RSS Feed', 'Preloaded', 'Generic REST', 'Embedded in a different package']
                 }
             },
             name: {
@@ -209,7 +210,10 @@ $(function() {
                     type: {
                         type: 'string',
                         title: "Auth Type",
-                        'enum': ['none', 'oauth2', 'basic', 'builtin', 'discovery', 'interactive']
+                        'enum': ['none', 'oauth2', 'basic', 'discovery', 'interactive', 'builtin'],
+                        options: {
+                            enum_titles: ['None', 'OAuth 1/2', 'Basic (username & password)', 'Local discovery', 'Interactive (in the Almond agent)', 'Disabled (must be configured out of band)']
+                        }
                     },
                     client_id: {
                         type: 'string',
@@ -220,6 +224,17 @@ $(function() {
                         type: 'string',
                         title: "OAuth 2 Client Secret",
                         required: false,
+                    },
+                    discoveryType: {
+                        type: 'string',
+                        title: "Discovery protocol",
+                        enum: ['upnp', 'bluetooth'],
+                        required: false
+                    },
+                    api_key: {
+                        type: 'string',
+                        title: "API Key",
+                        required: false
                     }
                 },
 
