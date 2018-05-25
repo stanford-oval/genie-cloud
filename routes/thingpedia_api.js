@@ -97,6 +97,22 @@ router.get('/devices/setup/:kinds', (req, res) => {
     }).done();
 });
 
+router.get('/v2/devices/setup/:kinds', (req, res) => {
+    var kinds = req.params.kinds.split(',');
+    if (kinds.length === 0) {
+        res.json({});
+        return;
+    }
+
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    client.getDeviceSetup2(kinds).then((result) => {
+        res.cacheFor(86400000);
+        res.status(200).json(result);
+    }).catch((e) => {
+        res.status(500).json({ error: e.message });
+    }).done();
+});
+
 router.get('/devices/icon/:kind', (req, res) => {
     // cache for forever, this redirect will never expire
     res.cacheFor(6, 'months');

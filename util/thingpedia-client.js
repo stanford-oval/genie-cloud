@@ -251,9 +251,8 @@ module.exports = class ThingpediaClientCloud {
         });
     }
 
-    getDeviceSetup(kinds) {
+    getDeviceSetup2(kinds) {
         var developerKey = this.developerKey;
-        var result = {};
 
         return db.withClient((dbClient) => {
             return Promise.resolve().then(() => {
@@ -271,18 +270,32 @@ module.exports = class ThingpediaClientCloud {
                          kinds[i] = Config.MESSAGING_DEVICE;
                 }
 
-                return device.getApprovedByKindsWithCode(dbClient, kinds, org);
+                return device.getDevicesForSetup(dbClient, kinds, org);
             }).then((devices) => {
+                var result = {};
                 devices.forEach((d) => {
                     try {
                         this._deviceMakeFactory(d);
                         if (d.factory) {
-                            result[d.primary_kind] = d.factory;
-                            if (d.primary_kind === Config.MESSAGING_DEVICE)
+                            if (d.for_kind in result) {
+                                if (result[d.for_kind].type !== 'multiple') {
+                                     let first_choice = result[d.for_kind];
+                                     result[d.for_kind] = { type: 'multiple', choices: [first_choice] };
+                                }
+                                result[d.for_kind].choices.push(d.factory);
+                            } else {
+                                result[d.for_kind] = d.factory;
+                            }
+                            if (d.for_kind === Config.MESSAGING_DEVICE)
                                 result['messaging'] = d.factory;
                         }
                     } catch(e) { /**/ }
                 });
+
+                for (let kind of kinds) {
+                    if (!(kind in result))
+                        result[kind] = { type: 'multiple', choices: [] };
+                }
 
                 var unresolved = kinds.filter((k) => !(k in result));
                 return Promise.all(unresolved.map((k) => {
@@ -292,9 +305,17 @@ module.exports = class ThingpediaClientCloud {
                             choices: devices.map((d) => d.name)
                         };
                     });
-                }));
+                })).then(() => result);
             });
-        }).then(() => {
+        });
+    }
+
+    getDeviceSetup(kinds) {
+        return this.getDeviceSetup2(kinds).then((result) => {
+            for (let name in result) {
+                if (result[name].type === 'multiple')
+                    result[name].choices = result[name].choices.map((c) => c.text);
+            }
             return result;
         });
     }
@@ -324,7 +345,7 @@ module.exports = class ThingpediaClientCloud {
 module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getModuleLocation', 'getDeviceCode',
                                         'getSchemas', 'getMetas',
-                                        'getDeviceSetup', 'getDeviceFactories',
+                                        'getDeviceSetup', 'getDeviceSetup2', 'getDeviceFactories',
                                         'getKindByDiscovery',
                                         'getExamplesByKinds', 'getExamplesByKey',
                                         'clickExample'];

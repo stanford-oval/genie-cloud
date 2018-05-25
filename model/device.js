@@ -278,5 +278,54 @@ module.exports = {
                 + "d.primary_kind in (?)";
             return db.selectAll(client, query, [names]);
         }
+    },
+
+    getDevicesForSetup(client, names, org) {
+        if (org !== null && org.is_admin) {
+            const query = "(select d.*, d.primary_kind as for_kind,dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "dcv.version = d.developer_version and "
+                + "d.primary_kind in (?)) union all (select d.*, dck.kind as for_kind,dcv.code from device_class d, "
+                + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
+                + "dcv.version = d.developer_version and "
+                + "dck.kind in (?)) union all (select d.*, dck2.kind as for_kind,dcv.code from device_class d, "
+                + "device_class d2, device_class_kind dck2, "
+                + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
+                + "dcv.version = d.developer_version and "
+                + "dck.kind = d2.primary_kind and dck2.device_id = d2.id and "
+                + "dck2.kind in (?))";
+            return db.selectAll(client, query, [names, names, names]);
+        } else if (org !== null) {
+            const query = "(select d.*, d.primary_kind as for_kind,dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "((dcv.version = d.developer_version and d.owner = ?) or "
+                + " (dcv.version = d.approved_version and d.owner <> ?)) and "
+                + "d.primary_kind in (?)) union all (select d.*, dck.kind as for_kind,dcv.code from device_class d, "
+                + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
+                + "((dcv.version = d.developer_version and d.owner = ?) or "
+                + " (dcv.version = d.approved_version and d.owner <> ?)) and "
+                + "dck.kind in (?)) union all (select d.*, dck2.kind as for_kind,dcv.code from device_class d, "
+                + "device_class d2, device_class_kind dck2, "
+                + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
+                + "((dcv.version = d.developer_version and d.owner = ?) or "
+                + " (dcv.version = d.approved_version and d.owner <> ?)) and "
+                + "dck.kind = d2.primary_kind and dck2.device_id = d2.id and "
+                + "dck2.kind in (?))";
+            return db.selectAll(client, query, [org.id, org.id, names, org.id, org.id, names, org.id, org.id, names]);
+        } else {
+            const query = "(select d.*, d.primary_kind as for_kind,dcv.code from device_class d, "
+                + "device_code_version dcv where d.id = dcv.device_id and "
+                + "dcv.version = d.approved_version and "
+                + "d.primary_kind in (?)) union all (select d.*, dck.kind as for_kind,dcv.code from device_class d, "
+                + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
+                + "dcv.version = d.approved_version and "
+                + "dck.kind in (?)) union all (select d.*, dck2.kind as for_kind,dcv.code from device_class d, "
+                + "device_class d2, device_class_kind dck2, "
+                + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
+                + "dcv.version = d.approved_version and "
+                + "dck.kind = d2.primary_kind and dck2.device_id = d2.id and "
+                + "dck2.kind in (?))";
+            return db.selectAll(client, query, [names, names, names]);
+        }
     }
 };
