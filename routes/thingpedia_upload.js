@@ -72,24 +72,28 @@ function schemaCompatible(s1, s2) {
         });
 }
 
-function validateSchema(dbClient, type, ast, req) {
-    return schema.getTypesAndNamesByKinds(dbClient, [type], req.user.developer_org).then((rows) => {
-        if (rows.length < 1)
-            throw new Error(req._("Invalid device type %s").format(type));
+function validateSchema(dbClient, types, ast, req) {
+    if (types.length === 0)
+        return Promise.resolve();
 
-        function validate(where, what, against) {
+    return schema.getTypesAndNamesByKinds(dbClient, types, req.user.developer_org).then((rows) => {
+        if (rows.length < types.length)
+            throw new Error(req._("Invalid device types %s").format(types));
+
+        function validate(where, what, against, type) {
             for (var name in against) {
                 if (!(name in where))
                     throw new Error(req._("Type %s requires %s %s").format(type, what, name));
                 var types = where[name].args.map((a) => a.type);
-                if (!schemaCompatible(types, against.types[name]))
+                if (!schemaCompatible(types, against[name].types))
                     throw new Error(req._("Schema for %s is not compatible with type %s").format(name, type));
             }
         }
 
-        validate(ast.triggers, 'trigger', rows[0].triggers);
-        validate(ast.actions, 'action', rows[0].actions);
-        validate(ast.queries, 'query', rows[0].queries);
+        for (let row of rows) {
+            validate(ast.actions, 'action', row.actions, row.kind);
+            validate(ast.queries, 'query', row.queries, row.kind);
+        }
     });
 }
 
@@ -151,7 +155,7 @@ function validateDevice(dbClient, req) {
     }).then((entities) => {
         return entityModel.checkAllExist(dbClient, Array.from(entities));
     }).then(() => {
-        if (fullcode) {
+        if (fullcode && ast.module_type !== 'org.thingpedia.embedded') {
             if (!ast.name)
                 ast.name = name;
             if (!ast.description)
@@ -170,9 +174,7 @@ function validateDevice(dbClient, req) {
             }
         }
 
-        return Promise.all(ast.types.map((type) => {
-            return validateSchema(dbClient, type, ast, req);
-        }));
+        return validateSchema(dbClient, ast.types, ast, req);
     }).then(() => ast);
 }
 
