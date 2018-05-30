@@ -297,15 +297,7 @@ module.exports = class ThingpediaClientCloud {
                         result[kind] = { type: 'multiple', choices: [] };
                 }
 
-                var unresolved = kinds.filter((k) => !(k in result));
-                return Promise.all(unresolved.map((k) => {
-                    return device.getAllWithKindOrChildKind(dbClient, k).then((devices) => {
-                        result[k] = {
-                            type: 'multiple',
-                            choices: devices.map((d) => d.name)
-                        };
-                    });
-                })).then(() => result);
+                return result;
             });
         });
     }
