@@ -119,8 +119,8 @@ router.get('/devices/icon/:kind', (req, res) => {
     res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/' + req.params.kind + '.png');
 });
 
-router.get('/devices', (req, res) => {
-    if (req.query.class && ['online', 'physical', 'data',
+router.get('/devices', (req, res, next) => {
+    if (req.query.class && ['online', 'physical', 'data', 'system',
             'media', 'social-network', 'home', 'communication',
             'health', 'service', 'data-management'].indexOf(req.query.class) < 0) {
         res.status(404).json("Invalid device class");
@@ -135,27 +135,42 @@ router.get('/devices', (req, res) => {
         console.error('Failed to retrieve device factories: ' + e.message);
         console.error(e.stack);
         res.status(500).send('Error: ' + e.message);
-    }).done();
+    }).catch(next);
 });
 
-router.get('/devices/all', (req, res) => {
-    var page = req.query.page;
+router.get('/devices/all', (req, res, next) => {
+    let page = req.query.page;
     if (page === undefined)
         page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
+    else
+        page = parseInt(page);
+    if (!isFinite(page) || page < 0)
         page = 0;
+    let page_size = req.query.page_size;
+    if (page_size === undefined)
+        page_size = 10;
+    else
+        page_size = parseInt(page_size);
+    if (!isFinite(page_size) || page_size < 0)
+        page_size = 10;
+    if (page_size > 10)
+        page_size = 10;
+    if (req.query.class && ['online', 'physical', 'data', 'system',
+            'media', 'social-network', 'home', 'communication',
+            'health', 'service', 'data-management'].indexOf(req.query.class) < 0) {
+        res.status(404).json("Invalid device class");
+        return;
+    }
 
-    db.withClient((dbClient) => {
-        return deviceModel.getAll(dbClient, page * 9, 10);
-    }).then((devices) => {
+    var client = new ThingpediaClient(req.query.developer_key || (req.user ? req.user.developer_key : null), req.query.locale);
+    client.getDeviceList(req.query.class || null, page, page_size).then((obj) => {
         res.cacheFor(86400000);
-        res.json({ devices });
+        res.json(obj);
     }).catch((e) => {
         console.error('Failed to retrieve device list: ' + e.message);
         console.error(e.stack);
         res.status(500).send('Error: ' + e.message);
-    }).done();
+    }).catch(next);
 });
 
 router.get('/devices/search', (req, res) => {

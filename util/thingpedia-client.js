@@ -210,6 +210,39 @@ module.exports = class ThingpediaClientCloud {
         }
     }
 
+    getDeviceList(klass, page, page_size) {
+        var developerKey = this.developerKey;
+
+        return db.withClient((dbClient) => {
+            return Promise.resolve().then(() => {
+                if (developerKey)
+                    return organization.getByDeveloperKey(dbClient, developerKey);
+                else
+                    return [];
+            }).then((orgs) => {
+                var org = null;
+                if (orgs.length > 0)
+                    org = orgs[0];
+
+                var devices;
+                if (klass) {
+                    if (['online','physical','data','system'].indexOf(klass) >= 0)
+                        devices = device.getByCategory(dbClient, klass, org, page*page_size, page_size+1);
+                    else if (CATEGORIES.has(klass))
+                        devices = device.getBySubcategory(dbClient, klass, org, page*page_size, page_size+1);
+                    else
+                        devices = Promise.reject(new Error("Invalid class parameter"));
+                } else {
+                    devices = device.getAllApproved(dbClient, org, page*page_size, page_size+1);
+                }
+
+                return devices;
+            });
+        }).then((devices) => {
+            return ({ devices });
+        });
+    }
+
     getDeviceFactories(klass) {
         var developerKey = this.developerKey;
 
@@ -227,15 +260,14 @@ module.exports = class ThingpediaClientCloud {
                 var devices;
                 if (klass) {
                     if (['online','physical','data','system'].indexOf(klass) >= 0)
-                        devices = device.getByCategory(dbClient, klass, org);
+                        devices = device.getByCategoryWithCode(dbClient, klass, org);
                     else if (CATEGORIES.has(klass))
-                        devices = device.getBySubcategory(dbClient, klass, org);
+                        devices = device.getBySubcategoryWithCode(dbClient, klass, org);
                     else
                         devices = Promise.reject(new Error("Invalid class parameter"));
                 } else {
                     devices = device.getAllApprovedWithCode(dbClient, org);
                 }
-
                 return devices.then((devices) => {
                     devices.forEach((d) => {
                         try {
@@ -337,7 +369,9 @@ module.exports = class ThingpediaClientCloud {
 module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getModuleLocation', 'getDeviceCode',
                                         'getSchemas', 'getMetas',
-                                        'getDeviceSetup', 'getDeviceSetup2', 'getDeviceFactories',
+                                        'getDeviceSetup', 'getDeviceSetup2',
+                                        'getDeviceFactories',
+                                        'getDeviceList',
                                         'getKindByDiscovery',
                                         'getExamplesByKinds', 'getExamplesByKey',
                                         'clickExample'];
