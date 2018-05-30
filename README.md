@@ -17,7 +17,9 @@ information at <https://almond.stanford.edu>.
 ### Step 1: Acquiring dependencies
 
 The code depends on nodejs (>= 8.0), cvc4 (any version, although >= 1.5 is recommended),
-gm (provided by GraphicsMagic), cairo.
+gm (provided by GraphicsMagic), cairo (libcairo2-dev on Ubuntu, cairo-devel on Fedora) and
+Pango (libpango1.0-dev on Ubuntu, pango-devel on Fedora), giflib (libgif-dev on Ubuntu, giflib-devel
+on Fedora).
 Optionally, it depends on libsystemd for journal integration.
 A working MySQL server is also required.
 
