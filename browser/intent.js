@@ -21,6 +21,7 @@ const ValueCategory = adt.data({
     Number: null,
     Measure: { unit: adt.only(String) },
     RawString: null,
+    Password: null,
     Date: null,
     Time: null,
     Unknown: null,
@@ -92,6 +93,8 @@ ValueCategory.toAskSpecial = function toAskSpecial(expected) {
         what = 'time';
     else if (expected === ValueCategory.RawString)
         what = 'raw_string';
+    else if (expected === ValueCategory.Password)
+        what = 'password';
     else if (expected === ValueCategory.MultipleChoice)
         what = 'choice';
     else if (expected === ValueCategory.Command)
@@ -112,6 +115,7 @@ const Intent = adt.data({
     Empty: null,
     Debug: null,
     Maybe: null,
+    Unsupported: null,
     Example: { utterance: adt.only(String), targetCode: adt.only(String) },
     CommandList: { device: adt.only(String, null), category: adt.only(String) },
 
@@ -189,7 +193,7 @@ function parseSpecial(special, command, previousCommand, previousCandidates) {
     return intent;
 }
 
-function parseBookeeping(code, entities, command, previousCommand, previousCandidates) {
+function parseBookeeping(code, schemaRetriever, entities, command, previousCommand, previousCandidates) {
     switch (code[1]) {
     case 'special':
         return parseSpecial(code[2], command, previousCommand, previousCandidates);
@@ -216,8 +220,6 @@ function parseBookeeping(code, entities, command, previousCommand, previousCandi
 }
 
 Intent.parse = function parse(json, schemaRetriever, command, previousCommand, previousCandidates) {
-    if ('permissionRule' in json)
-        return this.parsePermissionRule(json.permissionRule, schemaRetriever);
     if ('program' in json)
         return this.parseProgram(json.program, schemaRetriever);
 
@@ -232,16 +234,13 @@ Intent.parse = function parse(json, schemaRetriever, command, previousCommand, p
     }
 
     if (code[0] === 'bookkeeping')
-        return Promise.resolve(parseBookeeping(code, entities, command, previousCommand, previousCandidates));
+        return Promise.resolve(parseBookeeping(code, schemaRetriever, entities, command, previousCommand, previousCandidates));
 
     return Promise.resolve().then(() => {
         let program = ThingTalk.NNSyntax.fromNN(code, entities);
-        if (program instanceof Ast.Program)
-            return ThingTalk.Generate.typeCheckProgram(program, schemaRetriever, true).then(() => program);
-        else
-            return ThingTalk.Generate.typeCheckPermissionRule(program, schemaRetriever, true).then(() => program);
+        return program.typecheck(schemaRetriever, true);
     }).then((program) => {
-        if (program instanceof Ast.Program) {
+        if (program.isProgram) {
             if (program.principal !== null)
                 return new Intent.Setup(program);
             else
@@ -254,17 +253,15 @@ Intent.parse = function parse(json, schemaRetriever, command, previousCommand, p
 
 Intent.parseProgram = function parseProgram(thingtalk, schemaRetriever) {
     return ThingTalk.Grammar.parseAndTypecheck(thingtalk, schemaRetriever, true).then((prog) => {
-        if (prog.principal !== null)
-            return new Intent.Setup(prog);
-        else
-            return new Intent.Program(prog);
+        if (prog.isProgram) {
+            if (prog.principal !== null)
+                return new Intent.Setup(prog);
+            else
+                return new Intent.Program(prog);
+        } else {
+            return new Intent.PermissionRule(prog);
+        }
     });
-};
-
-Intent.parsePermissionRule = function parsePermissionRule(thingtalk, schemaRetriever) {
-    let permissionRule = ThingTalk.Grammar.parsePermissionRule(thingtalk);
-
-    return ThingTalk.Generate.typeCheckPermissionRule(permissionRule, schemaRetriever, true).then(() => new Intent.PermissionRule(permissionRule));
 };
 
 module.exports.Intent = Intent;
