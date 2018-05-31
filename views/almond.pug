@@ -33,176 +33,177 @@ block content
         | &nbsp;
         a(href='/me/conversation').btn.btn-primary= _("Web Almond")
 
-    div.sections
-      section.divider
-        h3= _("Open & Crowdsourced")
-        div.container
-          div.row
-            div.col-md-6
-              p
-                |  Almond draws its power from the crowdsourced <a href='/thingpedia'>Thingpedia</a>, an open collection of Web and Internet
-                |  of Things APIs.
-                |  Anyone can contribute support for the favorite service, with few lines of code and a handful of natural language sentences.
+    if IS_ALMOND_WEBSITE
+      div.sections
+        section.divider
+          h3= _("Open & Crowdsourced")
+          div.container
+            div.row
+              div.col-md-6
+                p
+                  |  Almond draws its power from the crowdsourced <a href='/thingpedia'>Thingpedia</a>, an open collection of Web and Internet
+                  |  of Things APIs.
+                  |  Anyone can contribute support for the favorite service, with few lines of code and a handful of natural language sentences.
 
-              p Thingpedia supports more than 40 different services, accounts and IoT devices.
+                p Thingpedia supports more than 40 different services, accounts and IoT devices.
 
-              p
-                |  Almond is free software, and is available on <a href='https://github.com/Stanford-Mobisocial-IoT-Lab'>Github</a>. You can download, distribute or modify Almond as you see fit.
-            div.col-md-6
-              img(src='/images/thingpedia-icon-cloud.png',alt=_("The logos of the services supported by Almond"))#thingpedia-icon-cloud
-      section.divider
-        h3= _("Unprecedented Expressivity")
-        div.container
-          div.row
-            div.col-md-6#multi-color-example
-              p.box
-                span.black When the
-                span.blue  Bitcoin
-                span.red  price reaches $20,000
-                span.black ,
-                span.blue  search for
-                span.black  a
-                span.purple  “Bitcoin”
-                span.blue  picture
-                span.black , and
-                span.blue  tweet
-                span.green  it
-                span.black  with
-                span.purple  caption “I am rich!”
-              p.arrow ⇓
-              p.box
-                span.black
-                  code monitor
-                span.blue  @bitcoin.get_price()
-                span.black
-                  code  on
-                span.red  price &ge; $20000
-                span.black  ⇒
-                span.blue  @bing.image_search
-                span.black (
-                span.purple "bitcoin"
-                span.black ) ⇒
-                span.blue  @twitter.post
-                span.black (
-                span.green @bing.picture
-                span.black ,
-                span.purple  "I am rich!"
-                span.black )
-            div.col-md-6
-              p Almond is the world first virtual assistant to support <i>compound commands</i> in natural language.
-              p
-                | In Almond, you can combine multiple services into a single command, with powerful filtering and passing of data from one to another.
-                | Do away with the complex UIs of IFTTT or Zapier - in Almond the power is ready for you to type.
-              //p <a href='#section-try-now'>Try now</a>: “get Washington Post articles published in the last 2 hours”, ”translate tweets from @... to my language”
-      section.divider
-        h3= _("Respects Your Privacy (and That of Your Friends)")
-        div.container
-          div.row
-            div.col-md-6
-              p
-                | Almond is the world first <i>Communicating Virtual Assistant</i>: through Almond you can interact not only
-                |  with your services, but also access that of your friends, family and colleagues.
+                p
+                  |  Almond is free software, and is available on <a href='https://github.com/Stanford-Mobisocial-IoT-Lab'>Github</a>. You can download, distribute or modify Almond as you see fit.
+              div.col-md-6
+                img(src='/images/thingpedia-icon-cloud.png',alt=_("The logos of the services supported by Almond"))#thingpedia-icon-cloud
+        section.divider
+          h3= _("Unprecedented Expressivity")
+          div.container
+            div.row
+              div.col-md-6#multi-color-example
+                p.box
+                  span.black When the
+                  span.blue  Bitcoin
+                  span.red  price reaches $20,000
+                  span.black ,
+                  span.blue  search for
+                  span.black  a
+                  span.purple  “Bitcoin”
+                  span.blue  picture
+                  span.black , and
+                  span.blue  tweet
+                  span.green  it
+                  span.black  with
+                  span.purple  caption “I am rich!”
+                p.arrow ⇓
+                p.box
+                  span.black
+                    code monitor
+                  span.blue  @bitcoin.get_price()
+                  span.black
+                    code  on
+                  span.red  price &ge; $20000
+                  span.black  ⇒
+                  span.blue  @bing.image_search
+                  span.black (
+                  span.purple "bitcoin"
+                  span.black ) ⇒
+                  span.blue  @twitter.post
+                  span.black (
+                  span.green @bing.picture
+                  span.black ,
+                  span.purple  "I am rich!"
+                  span.black )
+              div.col-md-6
+                p Almond is the world first virtual assistant to support <i>compound commands</i> in natural language.
+                p
+                  | In Almond, you can combine multiple services into a single command, with powerful filtering and passing of data from one to another.
+                  | Do away with the complex UIs of IFTTT or Zapier - in Almond the power is ready for you to type.
+                //p <a href='#section-try-now'>Try now</a>: “get Washington Post articles published in the last 2 hours”, ”translate tweets from @... to my language”
+        section.divider
+          h3= _("Respects Your Privacy (and That of Your Friends)")
+          div.container
+            div.row
+              div.col-md-6
+                p
+                  | Almond is the world first <i>Communicating Virtual Assistant</i>: through Almond you can interact not only
+                  |  with your services, but also access that of your friends, family and colleagues.
 
-              p
-                | To protect your privacy, Almond allows you to set flexible access control policies, based on time of
-                | day, on your location, on the content of the request, or really on any information available to Almond.
-                | For example, your parents can monitor your security camera, <i>only if you're not home</i>, or <i>only
-                | at a certain time of the day</i>.
+                p
+                  | To protect your privacy, Almond allows you to set flexible access control policies, based on time of
+                  | day, on your location, on the content of the request, or really on any information available to Almond.
+                  | For example, your parents can monitor your security camera, <i>only if you're not home</i>, or <i>only
+                  | at a certain time of the day</i>.
 
-              p
-                | Finally, to guarantee your privacy, Almond runs all its actions and computation locally. If you so choose,
-                | you can have your own installation of Almond in your phone or your laptop. If you use Web Almond, your
-                | data is encrypted and stored in a secure enclave not accessible by anybody else.
+                p
+                  | Finally, to guarantee your privacy, Almond runs all its actions and computation locally. If you so choose,
+                  | you can have your own installation of Almond in your phone or your laptop. If you use Web Almond, your
+                  | data is encrypted and stored in a secure enclave not accessible by anybody else.
 
-            div.col-md-6
-              img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
-              img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
+              div.col-md-6
+                img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
+                img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
 
-      section.divider#publications
-        h3= _("Publications & Talks")
+        section.divider#publications
+          h3= _("Publications & Talks")
 
-        div.container
-          div.row
-            div.col-xs-12
-              ul#publication-list
-                li
-                  a(href='https://d1ge76rambtuys.cloudfront.net/papers/www17.pdf')
-                    cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant
-                  br
-                  | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer, and Monica S. Lam
-                  br
-                  | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, Perth, Australia, April 2017.
+          div.container
+            div.row
+              div.col-xs-12
+                ul#publication-list
+                  li
+                    a(href='https://d1ge76rambtuys.cloudfront.net/papers/www17.pdf')
+                      cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant
+                    br
+                    | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer, and Monica S. Lam
+                    br
+                    | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, Perth, Australia, April 2017.
 
-                li
-                  a(href='http://mobisocial.stanford.edu/papers/mobilesoft16.pdf')
-                    cite A Distributed Open Social Platform for Mobile Devices
-                  br
-                  | Monica S. Lam, Giovanni Campagna, Jiwon Seo, and Michael Fischer
-                  br
-                  | In <i>IEEE/ACM International Conference on Mobile Software Engineering and Systems</i>, Austin, Texas, May 2016. (Keynote)
+                  li
+                    a(href='http://mobisocial.stanford.edu/papers/mobilesoft16.pdf')
+                      cite A Distributed Open Social Platform for Mobile Devices
+                    br
+                    | Monica S. Lam, Giovanni Campagna, Jiwon Seo, and Michael Fischer
+                    br
+                    | In <i>IEEE/ACM International Conference on Mobile Software Engineering and Systems</i>, Austin, Texas, May 2016. (Keynote)
 
-      section.divider#team
-        h3= _("Our Team")
-        div.container
-          div.row
-            div.col-sm-12.col-lg-3
-              div
-                div.team-profile-mid#team-profile-mid-monica
+        section.divider#team
+          h3= _("Our Team")
+          div.container
+            div.row
+              div.col-sm-12.col-lg-3
                 div
-                  h4.profile-name
-                    a(href='https://suif.stanford.edu/~lam/') Monica Lam
-                  p Monica Lam is a Professor in the Computer Science Department at Stanford University since 1988. She received a B.Sc. from University of British Columbia in 1980 and a Ph.D. in Computer S cience from Carnegie Mellon University in 1987. She is the Faculty Director of the Stanford MobiSocial Computing Laboratory and a co-PI in the POMI (Programmable Open Mobile Internet) 2020 project, which is an NSF Expedition started in 2008.
+                  div.team-profile-mid#team-profile-mid-monica
+                  div
+                    h4.profile-name
+                      a(href='https://suif.stanford.edu/~lam/') Monica Lam
+                    p Monica Lam is a Professor in the Computer Science Department at Stanford University since 1988. She received a B.Sc. from University of British Columbia in 1980 and a Ph.D. in Computer S cience from Carnegie Mellon University in 1987. She is the Faculty Director of the Stanford MobiSocial Computing Laboratory and a co-PI in the POMI (Programmable Open Mobile Internet) 2020 project, which is an NSF Expedition started in 2008.
 
-            div.col-sm-6.col-lg-3
-              div.team-profile-mid#team-profile-mid-giovanni
-              div
-                h6.profile-name
-                  a(href='https://web.stanford.edu/~gcampagn/') Giovanni Campagna
-                p Computer Science PhD student
-                p Platform backend, natural language, Thingpedia and ThingTalk design
+              div.col-sm-6.col-lg-3
+                div.team-profile-mid#team-profile-mid-giovanni
+                div
+                  h6.profile-name
+                    a(href='https://web.stanford.edu/~gcampagn/') Giovanni Campagna
+                  p Computer Science PhD student
+                  p Platform backend, natural language, Thingpedia and ThingTalk design
 
-            div.col-sm-6.col-lg-3
-              div.team-profile-mid#team-profile-mid-michael
-              div
-                h6.profile-name Michael Fischer
-                p Computer Science PhD student
-                p UX design, HCI and graphics
-                br
+              div.col-sm-6.col-lg-3
+                div.team-profile-mid#team-profile-mid-michael
+                div
+                  h6.profile-name Michael Fischer
+                  p Computer Science PhD student
+                  p UX design, HCI and graphics
+                  br
 
-            div.col-sm-6.col-lg-3
-              div.team-profile-mid#team-profile-mid-mehrad
-              div
-                h6.profile-name
-                  a(href='https://www.linkedin.com/in/mehradmoradshahi/') Mehrad Moradshahi
-                p Electrical Engineering PhD student
-                p Natural language understanding
-                br
+              div.col-sm-6.col-lg-3
+                div.team-profile-mid#team-profile-mid-mehrad
+                div
+                  h6.profile-name
+                    a(href='https://www.linkedin.com/in/mehradmoradshahi/') Mehrad Moradshahi
+                  p Electrical Engineering PhD student
+                  p Natural language understanding
+                  br
 
-            div.col-sm-6.col-lg-3
-              div.team-profile-mid#team-profile-mid-rakesh
-              div
-                h6.profile-name
-                  a(href='https://people.stanford.edu/rakeshr1/') Rakesh Ramesh
-                p Electrical Engineering PhD student
-                p Natural language understanding
+              div.col-sm-6.col-lg-3
+                div.team-profile-mid#team-profile-mid-rakesh
+                div
+                  h6.profile-name
+                    a(href='https://people.stanford.edu/rakeshr1/') Rakesh Ramesh
+                  p Electrical Engineering PhD student
+                  p Natural language understanding
 
-            div.col-sm-6.col-lg-3
-              div.team-profile-mid#team-profile-mid-silei
-              div
-                h6.profile-name
-                  a(href='https://cs.stanford.edu/people/silei/') Silei Xu
-                p Computer Science PhD student
-                p Systems, Thingpedia design, distributed system
+              div.col-sm-6.col-lg-3
+                div.team-profile-mid#team-profile-mid-silei
+                div
+                  h6.profile-name
+                    a(href='https://cs.stanford.edu/people/silei/') Silei Xu
+                  p Computer Science PhD student
+                  p Systems, Thingpedia design, distributed system
 
-            div.col-sm-6.col-lg-3
-              div.team-profile-mid#team-profile-mid-richard
-              div
-                h6.profile-name Richard Yang
-                p Computer Science MS student
-                p HCI and graphics
+              div.col-sm-6.col-lg-3
+                div.team-profile-mid#team-profile-mid-richard
+                div
+                  h6.profile-name Richard Yang
+                  p Computer Science MS student
+                  p HCI and graphics
 
-          div.row
-            div.col-sm-12
-              p.text-center
-                small Previous members of our team include Albert Chen, Zhiyang He, Jiaqi Xue,
-                  |  Aashna Garg, Jiwon Seo, Sadjad Fouladi and Reynis Vazquez. We thank them for their valuable support.
+            div.row
+              div.col-sm-12
+                p.text-center
+                  small Previous members of our team include Albert Chen, Zhiyang He, Jiaqi Xue,
+                    |  Aashna Garg, Jiwon Seo, Sadjad Fouladi and Reynis Vazquez. We thank them for their valuable support.

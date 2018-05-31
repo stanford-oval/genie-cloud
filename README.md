@@ -63,9 +63,15 @@ the same.
 inside the individual user sandboxes). Use environment variables if you need true secret tokens,
 and store them in a root-only (0600) file.
 
-In `config.js`, you must also set the redirect URI origin (scheme-host-port) for your OAuth redirects.
-This is to support Login With Google, and to support configuring OAuth-based accounts in Web Almond.
-This must be the same origin that you will configure for OAuth redirect URLs.
+In `config.js`, you will also want to change the `SERVER_ORIGIN` field to point to the correct
+location (scheme-host-port) of the server.
+If `ENABLE_REDIRECT` is true, any request with a hostname or scheme that is not that of `SERVER_ORIGIN` will
+be redirected to the correct origin. This is support seamless migration between domains, and
+transparent upgrade to HTTPS.
+
+If needed, you can also change `OAUTH_REDIRECT_ORIGIN` to set the origin for your OAuth redirects.
+The latter is used to support Login With Google, and to configure OAuth-based accounts in Web Almond,
+so it must be the same origin that you will configure for OAuth redirect URLs.
 
 If you use the embedded Thingpedia, it is expected you use a CDN to deliver code zip files, icons and other large user generated
 content. Set the URL of your CDN in `config.js`. You can also set the URL of a subfolder of your

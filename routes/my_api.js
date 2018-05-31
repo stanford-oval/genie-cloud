@@ -26,20 +26,12 @@ function makeRandom(bytes) {
 
 var router = express.Router();
 
-const ALLOWED_ORIGINS = ['http://127.0.0.1:8080',
-    'https://thingpedia.stanford.edu', 'https://thingengine.stanford.edu',
-    'https://almond.stanford.edu',
-    'http://crowdie.stanford.edu:8080',
-    'null'];
+const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS, 'null'];
 
 function isOriginOk(req) {
     if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer'))
         return true;
     if (typeof req.headers['origin'] !== 'string')
-        return true;
-    if (req.headers['origin'].startsWith('http://127.0.0.1'))
-        return true;
-    if (req.headers['origin'].startsWith('http://localhost'))
         return true;
     return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
 }

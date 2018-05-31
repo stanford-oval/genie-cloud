@@ -24,10 +24,19 @@ module.exports.WITH_THINGPEDIA = 'external';
 // this is used to construct links to Thingpedia, eg from My Almond
 // it MUST be set to '/thingpedia' to use the embedded Thingpedia
 module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
-// set to true if this is serving https://thingpedia.stanford.edu
-// (enables redirect from legacy domains and sets Strict-Transport-Security
-// headers)
-module.exports.IS_PRODUCTION_THINGPEDIA = false;
+
+// the origin (scheme, hostname, port) where the server is reachable
+// this is used for redirects, and to enable special behavior for the main
+// Almond website
+module.exports.SERVER_ORIGIN = 'http://127.0.0.1:8080';
+
+// enable redirection to SERVER_ORIGIN for requests with different hostname
+// or scheme
+module.exports.ENABLE_REDIRECT = true;
+
+// additional origins that should be allowed to make Cookie-authenticated
+// API requests
+module.exports.EXTRA_ORIGINS = [];
 
 // the base URL used for OAuth redirects
 //
@@ -36,8 +45,11 @@ module.exports.IS_PRODUCTION_THINGPEDIA = false;
 // OAUTH_REDIRECT_ORIGIN + /user/oauth2/google/callback
 //
 // it is also used by the OAuth configuration mechanism for accounts/devices
-// Web Almond
-module.exports.OAUTH_REDIRECT_ORIGIN = 'http://127.0.0.1:8080';
+// in Web Almond
+// by default, it is the same as SERVER_ORIGIN, but you can change it
+// if you put a different value in the developer console / redirect URI
+// fields of the various services
+module.exports.OAUTH_REDIRECT_ORIGIN = module.exports.SERVER_ORIGIN;
 
 // the URL of a almond-nnparser-compatible Natural Language parsing server
 module.exports.NL_SERVER_URL = 'https://almond-nl.stanford.edu';
