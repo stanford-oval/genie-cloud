@@ -193,10 +193,10 @@ module.exports = {
         } else if (org !== null) {
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, "select * from device_class where (approved_version is not null or owner = ?) and category = ? order by name limit ?,?",
-                                    [org, category, start, end]);
+                                    [org.id, category, start, end]);
             } else {
                 return db.selectAll(client, "select * from device_class where (approved_version is not null or owner = ?) and category = ? order by name",
-                                    [org, category]);
+                                    [org.id, category]);
             }
         } else {
             if (start !== undefined && end !== undefined) {
@@ -219,10 +219,10 @@ module.exports = {
         } else if (org !== null) {
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, "select * from device_class where (approved_version is not null or owner = ?) and subcategory = ? order by name limit ?,?",
-                                    [org, category, start, end]);
+                                    [org.id, category, start, end]);
             } else {
                 return db.selectAll(client, "select * from device_class where (approved_version is not null or owner = ?) and subcategory = ? order by name",
-                                    [org, category]);
+                                    [org.id, category]);
             }
         } else {
             if (start !== undefined && end !== undefined) {
@@ -245,9 +245,9 @@ module.exports = {
         } else if (org !== null) {
             if (start !== undefined && end !== undefined) {
                 return db.selectAll(client, "select * from device_class where (approved_version is not null or owner = ?) order by name limit ?,?",
-                                    [org, start, end]);
+                                    [org.id, start, end]);
             } else {
-                return db.selectAll(client, "select * from device_class where (approved_version is not null or owner = ?) order by name", [org]);
+                return db.selectAll(client, "select * from device_class where (approved_version is not null or owner = ?) order by name", [org.id]);
             }
         } else {
             if (start !== undefined && end !== undefined) {

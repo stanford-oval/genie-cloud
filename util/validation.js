@@ -119,6 +119,8 @@ module.exports = {
 
             if (!where[name].canonical)
                 throw new Error('Missing canonical form for ' + name);
+            if (where[name].canonical.indexOf('$') >= 0)
+                throw new Error('Detected placeholder in canonical form ' + name + ': this is incorrect, the canonical form must not contain parameters'); 
             if (!where[name].confirmation)
                 throw new Error('Missing confirmation for ' + name);
             if (where[name].examples)
