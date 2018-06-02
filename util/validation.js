@@ -218,7 +218,7 @@ module.exports = {
                 ruleprog = prog;
                 args = {};
             } else {
-                ruleprog = ThingTalk.Generate.declarationProgram(prog.declarations[0]);
+                ruleprog = prog.declarations[0].toProgram();
                 args = prog.declarations[0].args;
             }
 
@@ -228,7 +228,7 @@ module.exports = {
             this._validateUtterance(args, ex.utterance);
 
             // rewrite the program using canonical syntax
-            ex.program = ThingTalk.Ast.prettyprint(prog, true).trim();
+            ex.program = prog.prettyprint(true).trim();
         }).catch((e) => {
             throw new Error(`Error in Example ${i+1}: ${e.message}`);
         });

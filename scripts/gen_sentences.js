@@ -1883,7 +1883,7 @@ const _schemaRetriever = new FastSchemaRetriever(new AdminThingpediaClient(_lang
 
 function loadTemplateAsDeclaration(ex, decl) {
     decl.name = 'ex_' + ex.id;
-    //console.log(Ast.prettyprint(program));
+    //console.log(program.prettyprint(true));
 
     // ignore builtin actions:
     // debug_log is not interesting, say is special and we handle differently, configure/discover are not
@@ -2930,7 +2930,7 @@ function main() {
             } catch(e) {
                 console.error(sentence);
                 console.error(String(program));
-                console.error(Ast.prettyprint(program, true).trim());
+                console.error(program.prettyprint(program).trim());
                 throw e;
             }
 

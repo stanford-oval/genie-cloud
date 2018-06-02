@@ -70,7 +70,7 @@ router.get('/', (req, res) => {
                 var parsed = ThingTalk.Grammar.parse(ex.target_code);
 
                 let invocations = [];
-                for (let [primType,prim] of ThingTalk.Generate.iteratePrimitives(parsed)) {
+                for (let [,prim] of parsed.iteratePrimitives()) {
                     if (prim.selector.isBuiltin)
                         continue;
                     invocations.push(prim);

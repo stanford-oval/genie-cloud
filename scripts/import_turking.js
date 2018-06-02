@@ -50,18 +50,7 @@ function finishBatch(dbClient) {
 }
 
 function parseAndTypecheck(isPermission, code, schemas) {
-    let parse, typecheck;
-
-    if (isPermission) {
-        parse = ThingTalk.Grammar.parsePermissionRule;
-        typecheck = ThingTalk.Generate.typeCheckPermissionRule;
-    } else {
-        parse = ThingTalk.Grammar.parse;
-        typecheck = ThingTalk.Generate.typeCheckProgram;
-    }
-
-    let prog = parse(code);
-    return typecheck(prog, schemas).then(() => prog);
+    return ThingTalk.Grammar.parseAndTypecheck(code, schemas);
 }
 
 function main() {

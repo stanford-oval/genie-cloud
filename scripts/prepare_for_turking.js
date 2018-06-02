@@ -403,7 +403,7 @@ function processOne(id, tokenizedsentence, code) {
     
     let queries = [];
     let actions = [];
-    for (let [what, invocation] of ThingTalk.Generate.iteratePrimitives(program)) {
+    for (let [what, invocation] of program.iteratePrimitives()) {
         if (invocation.selector.isBuiltin)
             continue;
         if (invocation.selector.kind === 'org.thingpedia.builtin.thingengine.builtin' &&
@@ -450,7 +450,7 @@ function processOne(id, tokenizedsentence, code) {
     return {
         id,
         sentence,
-        code: ThingTalk.Ast.prettyprint(program, true),
+        code: program.prettyprint(true),
         depth: depth,
         sentence_complexity,
         program_complexity,
