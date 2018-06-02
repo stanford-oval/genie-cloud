@@ -749,7 +749,7 @@ class ThingTalkTrainer {
     _toNN(program) {
         let clone = {};
         Object.assign(clone, this._entities);
-        return ThingTalk.NNSyntax.toNN(program, clone);
+        return ThingTalk.NNSyntax.toNN(program, this._tokens, clone);
     }
 
     _learnNN(targetCode) {
@@ -767,6 +767,7 @@ class ThingTalkTrainer {
     _handle(text) {
         return this.parser.sendUtterance(text).then((parsed) => {
             this._raw = text;
+            this._tokens = parsed.tokens;
             this._entities = parsed.entities;
             return Promise.all(parsed.candidates.map((candidate) => {
                 return reconstructCanonical(this._schemaRetriever, candidate.code, this._entities).then((canonical) => {
@@ -4146,24 +4147,28 @@ EventEmitter.prototype.removeAllListeners =
       return this;
     };
 
-EventEmitter.prototype.listeners = function listeners(type) {
-  var evlistener;
-  var ret;
-  var events = this._events;
+function _listeners(target, type, unwrap) {
+  var events = target._events;
 
   if (!events)
-    ret = [];
-  else {
-    evlistener = events[type];
-    if (!evlistener)
-      ret = [];
-    else if (typeof evlistener === 'function')
-      ret = [evlistener.listener || evlistener];
-    else
-      ret = unwrapListeners(evlistener);
-  }
+    return [];
 
-  return ret;
+  var evlistener = events[type];
+  if (!evlistener)
+    return [];
+
+  if (typeof evlistener === 'function')
+    return unwrap ? [evlistener.listener || evlistener] : [evlistener];
+
+  return unwrap ? unwrapListeners(evlistener) : arrayClone(evlistener, evlistener.length);
+}
+
+EventEmitter.prototype.listeners = function listeners(type) {
+  return _listeners(this, type, true);
+};
+
+EventEmitter.prototype.rawListeners = function rawListeners(type) {
+  return _listeners(this, type, false);
 };
 
 EventEmitter.listenerCount = function(emitter, type) {
@@ -4458,15 +4463,16 @@ module.exports = class ConsumerQueue {
         let waiter = this._waiter;
         this._waiter = null;
         this._cancel = null;
-        if (waiter)
+        if (waiter) {
             waiter(data);
-        else if (this._tail === null)
+        } else if (this._tail === null) {
             this._head = this._tail = { data: data, next: null };
-        else
+        } else {
             this._tail.next = { data: data, next: null };
+            this._tail = this._tail.next;
+        }
     }
 };
-
 },{}],16:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
@@ -6326,7 +6332,7 @@ function done(stream, er, data) {
   return stream.push(null);
 }
 },{"./_stream_duplex":23,"core-util-is":16,"inherits":18}],27:[function(require,module,exports){
-(function (process,global){
+(function (process,global,setImmediate){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -7014,8 +7020,8 @@ Writable.prototype._destroy = function (err, cb) {
   this.end();
   cb(err);
 };
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":23,"./internal/streams/destroy":29,"./internal/streams/stream":30,"_process":21,"core-util-is":16,"inherits":18,"process-nextick-args":31,"safe-buffer":37,"util-deprecate":70}],28:[function(require,module,exports){
+}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
+},{"./_stream_duplex":23,"./internal/streams/destroy":29,"./internal/streams/stream":30,"_process":21,"core-util-is":16,"inherits":18,"process-nextick-args":31,"safe-buffer":37,"timers":69,"util-deprecate":70}],28:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -8198,7 +8204,7 @@ const Value = adt.data({
         second: adt.only(Number)
     },
     Entity: {
-        value: adt.only(String),
+        value: adt.only(String, null),
         type: adt.only(String),
         display: adt.only(String, null)
     },
@@ -8263,9 +8269,9 @@ Value.fromJSON = function fromJSON(type, v) {
 Value.prototype.isConcrete = function isConcrete() {
     if (this.isLocation && this.value.isRelative)
         return false;
-    /*if (this.isEntity && this.type === 'tt:contact_name')
-        return false;*/
     if (this.isEntity && !this.display)
+        return false;
+    if (this.isEntity && this.value === null)
         return false;
     return true;
 };
@@ -12814,155 +12820,163 @@ module.exports = (function() {
         },
         peg$c253 = "^^",
         peg$c254 = { type: "literal", value: "^^", description: "\"^^\"" },
-        peg$c255 = function(v, prefix, entity, display) {
-            return Ast.Value.Entity(v, prefix + ':' + entity, display !== null ? display[2] : null);
+        peg$c255 = function(prefix, entity) {
+            return prefix + ':' + entity;
         },
-        peg$c256 = function(values) {
+        peg$c256 = function(v, type, display) {
+            return Ast.Value.Entity(v, type, display !== null ? display[2] : null);
+        },
+        peg$c257 = "null",
+        peg$c258 = { type: "literal", value: "null", description: "\"null\"" },
+        peg$c259 = function(type, display) {
+            return Ast.Value.Entity(null, type, display);
+        },
+        peg$c260 = function(values) {
             return Ast.Value.Array(values || []);
         },
-        peg$c257 = "Measure",
-        peg$c258 = { type: "literal", value: "Measure", description: "\"Measure\"" },
-        peg$c259 = function(unit) { return Type.Measure(unit); },
-        peg$c260 = "Array",
-        peg$c261 = { type: "literal", value: "Array", description: "\"Array\"" },
-        peg$c262 = function(type) { return Type.Array(type); },
-        peg$c263 = "Enum",
-        peg$c264 = { type: "literal", value: "Enum", description: "\"Enum\"" },
-        peg$c265 = function(first, rest) { return Type.Enum([first].concat(take(rest, 2))); },
-        peg$c266 = "Entity",
-        peg$c267 = { type: "literal", value: "Entity", description: "\"Entity\"" },
-        peg$c268 = function(prefix, type) { return Type.Entity(prefix + ':' + type); },
-        peg$c269 = "Any",
-        peg$c270 = { type: "literal", value: "Any", description: "\"Any\"" },
-        peg$c271 = function() { return Type.Any; },
-        peg$c272 = "Boolean",
-        peg$c273 = { type: "literal", value: "Boolean", description: "\"Boolean\"" },
-        peg$c274 = function() { return Type.Boolean; },
-        peg$c275 = "String",
-        peg$c276 = { type: "literal", value: "String", description: "\"String\"" },
-        peg$c277 = function() { return Type.String; },
-        peg$c278 = "Number",
-        peg$c279 = { type: "literal", value: "Number", description: "\"Number\"" },
-        peg$c280 = function() { return Type.Number; },
-        peg$c281 = "Currency",
-        peg$c282 = { type: "literal", value: "Currency", description: "\"Currency\"" },
-        peg$c283 = function() { return Type.Currency; },
-        peg$c284 = "Location",
-        peg$c285 = { type: "literal", value: "Location", description: "\"Location\"" },
-        peg$c286 = function() { return Type.Location; },
-        peg$c287 = "Date",
-        peg$c288 = { type: "literal", value: "Date", description: "\"Date\"" },
-        peg$c289 = function() { return Type.Date; },
-        peg$c290 = "Time",
-        peg$c291 = { type: "literal", value: "Time", description: "\"Time\"" },
-        peg$c292 = function() { return Type.Time; },
-        peg$c293 = function(first, rest) { return Type.Tuple([first].concat(take(rest, 2))); },
-        peg$c294 = "EmailAddress",
-        peg$c295 = { type: "literal", value: "EmailAddress", description: "\"EmailAddress\"" },
-        peg$c296 = function() { return Type.Entity('tt:email_address'); },
-        peg$c297 = "PhoneNumber",
-        peg$c298 = { type: "literal", value: "PhoneNumber", description: "\"PhoneNumber\"" },
-        peg$c299 = function() { return Type.Entity('tt:phone_number'); },
-        peg$c300 = "Picture",
-        peg$c301 = { type: "literal", value: "Picture", description: "\"Picture\"" },
-        peg$c302 = function() { return Type.Entity('tt:picture'); },
-        peg$c303 = "Resource",
-        peg$c304 = { type: "literal", value: "Resource", description: "\"Resource\"" },
-        peg$c305 = function() { return Type.Entity('tt:rdf_resource'); },
-        peg$c306 = "URL",
-        peg$c307 = { type: "literal", value: "URL", description: "\"URL\"" },
-        peg$c308 = function() { return Type.Entity('tt:url'); },
-        peg$c309 = "Username",
-        peg$c310 = { type: "literal", value: "Username", description: "\"Username\"" },
-        peg$c311 = function() { return Type.Entity('tt:username'); },
-        peg$c312 = "Hashtag",
-        peg$c313 = { type: "literal", value: "Hashtag", description: "\"Hashtag\"" },
-        peg$c314 = function() { return Type.Entity('tt:hashtag'); },
-        peg$c315 = "Table",
-        peg$c316 = { type: "literal", value: "Table", description: "\"Table\"" },
-        peg$c317 = function() { return Type.Table; },
-        peg$c318 = "Stream",
-        peg$c319 = { type: "literal", value: "Stream", description: "\"Stream\"" },
-        peg$c320 = function() { return Type.Stream; },
-        peg$c321 = function(invalid) { throw new TypeError("Invalid type " + invalid); },
-        peg$c322 = { type: "other", description: "comparison operator" },
-        peg$c323 = ">=",
-        peg$c324 = { type: "literal", value: ">=", description: "\">=\"" },
-        peg$c325 = "<=",
-        peg$c326 = { type: "literal", value: "<=", description: "\"<=\"" },
-        peg$c327 = "=~",
-        peg$c328 = { type: "literal", value: "=~", description: "\"=~\"" },
-        peg$c329 = "~=",
-        peg$c330 = { type: "literal", value: "~=", description: "\"~=\"" },
-        peg$c331 = "==",
-        peg$c332 = { type: "literal", value: "==", description: "\"==\"" },
-        peg$c333 = "true",
-        peg$c334 = { type: "literal", value: "true", description: "\"true\"" },
-        peg$c335 = function() { return true; },
-        peg$c336 = "false",
-        peg$c337 = { type: "literal", value: "false", description: "\"false\"" },
-        peg$c338 = function() { return false; },
-        peg$c339 = /^[^\\"]/,
-        peg$c340 = { type: "class", value: "[^\\\\\\\"]", description: "[^\\\\\\\"]" },
-        peg$c341 = "\\\"",
-        peg$c342 = { type: "literal", value: "\\\"", description: "\"\\\\\\\"\"" },
-        peg$c343 = function() { return '"'; },
-        peg$c344 = "\\n",
-        peg$c345 = { type: "literal", value: "\\n", description: "\"\\\\n\"" },
-        peg$c346 = function() { return '\n'; },
-        peg$c347 = "\\'",
-        peg$c348 = { type: "literal", value: "\\'", description: "\"\\\\'\"" },
-        peg$c349 = function() { return '\''; },
-        peg$c350 = "\\\\",
-        peg$c351 = { type: "literal", value: "\\\\", description: "\"\\\\\\\\\"" },
-        peg$c352 = function() { return '\\'; },
-        peg$c353 = /^[^\\']/,
-        peg$c354 = { type: "class", value: "[^\\\\\\']", description: "[^\\\\\\']" },
-        peg$c355 = { type: "other", description: "string" },
-        peg$c356 = "\"",
-        peg$c357 = { type: "literal", value: "\"", description: "\"\\\"\"" },
-        peg$c358 = function(chars) { return chars.join(''); },
-        peg$c359 = "'",
-        peg$c360 = { type: "literal", value: "'", description: "\"'\"" },
-        peg$c361 = { type: "other", description: "digit" },
-        peg$c362 = /^[0-9]/,
-        peg$c363 = { type: "class", value: "[0-9]", description: "[0-9]" },
-        peg$c364 = { type: "other", description: "number" },
-        peg$c365 = "e",
-        peg$c366 = { type: "literal", value: "e", description: "\"e\"" },
-        peg$c367 = function(num) { return parseFloat(num); },
-        peg$c368 = /^[A-Za-z_]/,
-        peg$c369 = { type: "class", value: "[A-Za-z_]", description: "[A-Za-z_]" },
-        peg$c370 = /^[A-Za-z0-9_]/,
-        peg$c371 = { type: "class", value: "[A-Za-z0-9_]", description: "[A-Za-z0-9_]" },
-        peg$c372 = { type: "other", description: "identifier" },
-        peg$c373 = function(v) {
+        peg$c261 = "Measure",
+        peg$c262 = { type: "literal", value: "Measure", description: "\"Measure\"" },
+        peg$c263 = function(unit) { return Type.Measure(unit); },
+        peg$c264 = "Array",
+        peg$c265 = { type: "literal", value: "Array", description: "\"Array\"" },
+        peg$c266 = function(type) { return Type.Array(type); },
+        peg$c267 = "Enum",
+        peg$c268 = { type: "literal", value: "Enum", description: "\"Enum\"" },
+        peg$c269 = function(first, rest) { return Type.Enum([first].concat(take(rest, 2))); },
+        peg$c270 = "Entity",
+        peg$c271 = { type: "literal", value: "Entity", description: "\"Entity\"" },
+        peg$c272 = function(prefix, type) { return Type.Entity(prefix + ':' + type); },
+        peg$c273 = "Any",
+        peg$c274 = { type: "literal", value: "Any", description: "\"Any\"" },
+        peg$c275 = function() { return Type.Any; },
+        peg$c276 = "Boolean",
+        peg$c277 = { type: "literal", value: "Boolean", description: "\"Boolean\"" },
+        peg$c278 = function() { return Type.Boolean; },
+        peg$c279 = "String",
+        peg$c280 = { type: "literal", value: "String", description: "\"String\"" },
+        peg$c281 = function() { return Type.String; },
+        peg$c282 = "Number",
+        peg$c283 = { type: "literal", value: "Number", description: "\"Number\"" },
+        peg$c284 = function() { return Type.Number; },
+        peg$c285 = "Currency",
+        peg$c286 = { type: "literal", value: "Currency", description: "\"Currency\"" },
+        peg$c287 = function() { return Type.Currency; },
+        peg$c288 = "Location",
+        peg$c289 = { type: "literal", value: "Location", description: "\"Location\"" },
+        peg$c290 = function() { return Type.Location; },
+        peg$c291 = "Date",
+        peg$c292 = { type: "literal", value: "Date", description: "\"Date\"" },
+        peg$c293 = function() { return Type.Date; },
+        peg$c294 = "Time",
+        peg$c295 = { type: "literal", value: "Time", description: "\"Time\"" },
+        peg$c296 = function() { return Type.Time; },
+        peg$c297 = function(first, rest) { return Type.Tuple([first].concat(take(rest, 2))); },
+        peg$c298 = "EmailAddress",
+        peg$c299 = { type: "literal", value: "EmailAddress", description: "\"EmailAddress\"" },
+        peg$c300 = function() { return Type.Entity('tt:email_address'); },
+        peg$c301 = "PhoneNumber",
+        peg$c302 = { type: "literal", value: "PhoneNumber", description: "\"PhoneNumber\"" },
+        peg$c303 = function() { return Type.Entity('tt:phone_number'); },
+        peg$c304 = "Picture",
+        peg$c305 = { type: "literal", value: "Picture", description: "\"Picture\"" },
+        peg$c306 = function() { return Type.Entity('tt:picture'); },
+        peg$c307 = "Resource",
+        peg$c308 = { type: "literal", value: "Resource", description: "\"Resource\"" },
+        peg$c309 = function() { return Type.Entity('tt:rdf_resource'); },
+        peg$c310 = "URL",
+        peg$c311 = { type: "literal", value: "URL", description: "\"URL\"" },
+        peg$c312 = function() { return Type.Entity('tt:url'); },
+        peg$c313 = "Username",
+        peg$c314 = { type: "literal", value: "Username", description: "\"Username\"" },
+        peg$c315 = function() { return Type.Entity('tt:username'); },
+        peg$c316 = "Hashtag",
+        peg$c317 = { type: "literal", value: "Hashtag", description: "\"Hashtag\"" },
+        peg$c318 = function() { return Type.Entity('tt:hashtag'); },
+        peg$c319 = "Table",
+        peg$c320 = { type: "literal", value: "Table", description: "\"Table\"" },
+        peg$c321 = function() { return Type.Table; },
+        peg$c322 = "Stream",
+        peg$c323 = { type: "literal", value: "Stream", description: "\"Stream\"" },
+        peg$c324 = function() { return Type.Stream; },
+        peg$c325 = function(invalid) { throw new TypeError("Invalid type " + invalid); },
+        peg$c326 = { type: "other", description: "comparison operator" },
+        peg$c327 = ">=",
+        peg$c328 = { type: "literal", value: ">=", description: "\">=\"" },
+        peg$c329 = "<=",
+        peg$c330 = { type: "literal", value: "<=", description: "\"<=\"" },
+        peg$c331 = "=~",
+        peg$c332 = { type: "literal", value: "=~", description: "\"=~\"" },
+        peg$c333 = "~=",
+        peg$c334 = { type: "literal", value: "~=", description: "\"~=\"" },
+        peg$c335 = "==",
+        peg$c336 = { type: "literal", value: "==", description: "\"==\"" },
+        peg$c337 = "true",
+        peg$c338 = { type: "literal", value: "true", description: "\"true\"" },
+        peg$c339 = function() { return true; },
+        peg$c340 = "false",
+        peg$c341 = { type: "literal", value: "false", description: "\"false\"" },
+        peg$c342 = function() { return false; },
+        peg$c343 = /^[^\\"]/,
+        peg$c344 = { type: "class", value: "[^\\\\\\\"]", description: "[^\\\\\\\"]" },
+        peg$c345 = "\\\"",
+        peg$c346 = { type: "literal", value: "\\\"", description: "\"\\\\\\\"\"" },
+        peg$c347 = function() { return '"'; },
+        peg$c348 = "\\n",
+        peg$c349 = { type: "literal", value: "\\n", description: "\"\\\\n\"" },
+        peg$c350 = function() { return '\n'; },
+        peg$c351 = "\\'",
+        peg$c352 = { type: "literal", value: "\\'", description: "\"\\\\'\"" },
+        peg$c353 = function() { return '\''; },
+        peg$c354 = "\\\\",
+        peg$c355 = { type: "literal", value: "\\\\", description: "\"\\\\\\\\\"" },
+        peg$c356 = function() { return '\\'; },
+        peg$c357 = /^[^\\']/,
+        peg$c358 = { type: "class", value: "[^\\\\\\']", description: "[^\\\\\\']" },
+        peg$c359 = { type: "other", description: "string" },
+        peg$c360 = "\"",
+        peg$c361 = { type: "literal", value: "\"", description: "\"\\\"\"" },
+        peg$c362 = function(chars) { return chars.join(''); },
+        peg$c363 = "'",
+        peg$c364 = { type: "literal", value: "'", description: "\"'\"" },
+        peg$c365 = { type: "other", description: "digit" },
+        peg$c366 = /^[0-9]/,
+        peg$c367 = { type: "class", value: "[0-9]", description: "[0-9]" },
+        peg$c368 = { type: "other", description: "number" },
+        peg$c369 = "e",
+        peg$c370 = { type: "literal", value: "e", description: "\"e\"" },
+        peg$c371 = function(num) { return parseFloat(num); },
+        peg$c372 = /^[A-Za-z_]/,
+        peg$c373 = { type: "class", value: "[A-Za-z_]", description: "[A-Za-z_]" },
+        peg$c374 = /^[A-Za-z0-9_]/,
+        peg$c375 = { type: "class", value: "[A-Za-z0-9_]", description: "[A-Za-z0-9_]" },
+        peg$c376 = { type: "other", description: "identifier" },
+        peg$c377 = function(v) {
           // for debugging the prettyprinter
           if (v === 'undefined')
             throw new Error('Invalid undefined');
           return v;
         },
-        peg$c374 = /^[A-Za-z0-9_\-]/,
-        peg$c375 = { type: "class", value: "[A-Za-z0-9_-]", description: "[A-Za-z0-9_-]" },
-        peg$c376 = { type: "other", description: "classidentifier" },
-        peg$c377 = { type: "other", description: "whitespace" },
-        peg$c378 = /^[ \r\n\t\x0B]/,
-        peg$c379 = { type: "class", value: "[ \\r\\n\\t\\v]", description: "[ \\r\\n\\t\\v]" },
-        peg$c380 = { type: "other", description: "comment" },
-        peg$c381 = "/*",
-        peg$c382 = { type: "literal", value: "/*", description: "\"/*\"" },
-        peg$c383 = /^[^*]/,
-        peg$c384 = { type: "class", value: "[^*]", description: "[^*]" },
-        peg$c385 = /^[^\/]/,
-        peg$c386 = { type: "class", value: "[^/]", description: "[^/]" },
-        peg$c387 = "*/",
-        peg$c388 = { type: "literal", value: "*/", description: "\"*/\"" },
-        peg$c389 = "//",
-        peg$c390 = { type: "literal", value: "//", description: "\"//\"" },
-        peg$c391 = /^[^\n]/,
-        peg$c392 = { type: "class", value: "[^\\n]", description: "[^\\n]" },
-        peg$c393 = "\n",
-        peg$c394 = { type: "literal", value: "\n", description: "\"\\n\"" },
+        peg$c378 = /^[A-Za-z0-9_\-]/,
+        peg$c379 = { type: "class", value: "[A-Za-z0-9_-]", description: "[A-Za-z0-9_-]" },
+        peg$c380 = { type: "other", description: "classidentifier" },
+        peg$c381 = { type: "other", description: "whitespace" },
+        peg$c382 = /^[ \r\n\t\x0B]/,
+        peg$c383 = { type: "class", value: "[ \\r\\n\\t\\v]", description: "[ \\r\\n\\t\\v]" },
+        peg$c384 = { type: "other", description: "comment" },
+        peg$c385 = "/*",
+        peg$c386 = { type: "literal", value: "/*", description: "\"/*\"" },
+        peg$c387 = /^[^*]/,
+        peg$c388 = { type: "class", value: "[^*]", description: "[^*]" },
+        peg$c389 = /^[^\/]/,
+        peg$c390 = { type: "class", value: "[^/]", description: "[^/]" },
+        peg$c391 = "*/",
+        peg$c392 = { type: "literal", value: "*/", description: "\"*/\"" },
+        peg$c393 = "//",
+        peg$c394 = { type: "literal", value: "//", description: "\"//\"" },
+        peg$c395 = /^[^\n]/,
+        peg$c396 = { type: "class", value: "[^\\n]", description: "[^\\n]" },
+        peg$c397 = "\n",
+        peg$c398 = { type: "literal", value: "\n", description: "\"\\n\"" },
 
         peg$currPos          = 0,
         peg$savedPos         = 0,
@@ -21650,108 +21664,208 @@ module.exports = (function() {
       return s0;
     }
 
-    function peg$parseentity_value() {
-      var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12, s13, s14, s15, s16, s17;
+    function peg$parseentity_type() {
+      var s0, s1, s2, s3, s4, s5, s6, s7;
+
+      s0 = peg$currPos;
+      if (input.substr(peg$currPos, 2) === peg$c253) {
+        s1 = peg$c253;
+        peg$currPos += 2;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c254); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parse_();
+        if (s2 !== peg$FAILED) {
+          s3 = peg$parsequalified_class_name();
+          if (s3 !== peg$FAILED) {
+            s4 = peg$parse_();
+            if (s4 !== peg$FAILED) {
+              if (input.charCodeAt(peg$currPos) === 58) {
+                s5 = peg$c6;
+                peg$currPos++;
+              } else {
+                s5 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c7); }
+              }
+              if (s5 !== peg$FAILED) {
+                s6 = peg$parse_();
+                if (s6 !== peg$FAILED) {
+                  s7 = peg$parseident();
+                  if (s7 !== peg$FAILED) {
+                    peg$savedPos = s0;
+                    s1 = peg$c255(s3, s7);
+                    s0 = s1;
+                  } else {
+                    peg$currPos = s0;
+                    s0 = peg$FAILED;
+                  }
+                } else {
+                  peg$currPos = s0;
+                  s0 = peg$FAILED;
+                }
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+
+      return s0;
+    }
+
+    function peg$parseentity_value1() {
+      var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11;
 
       s0 = peg$currPos;
       s1 = peg$parseliteral_string();
       if (s1 !== peg$FAILED) {
         s2 = peg$parse_();
         if (s2 !== peg$FAILED) {
-          if (input.substr(peg$currPos, 2) === peg$c253) {
-            s3 = peg$c253;
-            peg$currPos += 2;
-          } else {
-            s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c254); }
-          }
+          s3 = peg$parseentity_type();
           if (s3 !== peg$FAILED) {
             s4 = peg$parse_();
             if (s4 !== peg$FAILED) {
-              s5 = peg$parsequalified_class_name();
+              s5 = peg$currPos;
+              if (input.charCodeAt(peg$currPos) === 40) {
+                s6 = peg$c35;
+                peg$currPos++;
+              } else {
+                s6 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c36); }
+              }
+              if (s6 !== peg$FAILED) {
+                s7 = peg$parse_();
+                if (s7 !== peg$FAILED) {
+                  s8 = peg$parseliteral_string();
+                  if (s8 !== peg$FAILED) {
+                    s9 = peg$parse_();
+                    if (s9 !== peg$FAILED) {
+                      if (input.charCodeAt(peg$currPos) === 41) {
+                        s10 = peg$c37;
+                        peg$currPos++;
+                      } else {
+                        s10 = peg$FAILED;
+                        if (peg$silentFails === 0) { peg$fail(peg$c38); }
+                      }
+                      if (s10 !== peg$FAILED) {
+                        s11 = peg$parse_();
+                        if (s11 !== peg$FAILED) {
+                          s6 = [s6, s7, s8, s9, s10, s11];
+                          s5 = s6;
+                        } else {
+                          peg$currPos = s5;
+                          s5 = peg$FAILED;
+                        }
+                      } else {
+                        peg$currPos = s5;
+                        s5 = peg$FAILED;
+                      }
+                    } else {
+                      peg$currPos = s5;
+                      s5 = peg$FAILED;
+                    }
+                  } else {
+                    peg$currPos = s5;
+                    s5 = peg$FAILED;
+                  }
+                } else {
+                  peg$currPos = s5;
+                  s5 = peg$FAILED;
+                }
+              } else {
+                peg$currPos = s5;
+                s5 = peg$FAILED;
+              }
+              if (s5 === peg$FAILED) {
+                s5 = null;
+              }
+              if (s5 !== peg$FAILED) {
+                peg$savedPos = s0;
+                s1 = peg$c256(s1, s3, s5);
+                s0 = s1;
+              } else {
+                peg$currPos = s0;
+                s0 = peg$FAILED;
+              }
+            } else {
+              peg$currPos = s0;
+              s0 = peg$FAILED;
+            }
+          } else {
+            peg$currPos = s0;
+            s0 = peg$FAILED;
+          }
+        } else {
+          peg$currPos = s0;
+          s0 = peg$FAILED;
+        }
+      } else {
+        peg$currPos = s0;
+        s0 = peg$FAILED;
+      }
+
+      return s0;
+    }
+
+    function peg$parseentity_value2() {
+      var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9;
+
+      s0 = peg$currPos;
+      if (input.substr(peg$currPos, 4) === peg$c257) {
+        s1 = peg$c257;
+        peg$currPos += 4;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$c258); }
+      }
+      if (s1 !== peg$FAILED) {
+        s2 = peg$parse_();
+        if (s2 !== peg$FAILED) {
+          s3 = peg$parseentity_type();
+          if (s3 !== peg$FAILED) {
+            s4 = peg$parse_();
+            if (s4 !== peg$FAILED) {
+              if (input.charCodeAt(peg$currPos) === 40) {
+                s5 = peg$c35;
+                peg$currPos++;
+              } else {
+                s5 = peg$FAILED;
+                if (peg$silentFails === 0) { peg$fail(peg$c36); }
+              }
               if (s5 !== peg$FAILED) {
                 s6 = peg$parse_();
                 if (s6 !== peg$FAILED) {
-                  if (input.charCodeAt(peg$currPos) === 58) {
-                    s7 = peg$c6;
-                    peg$currPos++;
-                  } else {
-                    s7 = peg$FAILED;
-                    if (peg$silentFails === 0) { peg$fail(peg$c7); }
-                  }
+                  s7 = peg$parseliteral_string();
                   if (s7 !== peg$FAILED) {
                     s8 = peg$parse_();
                     if (s8 !== peg$FAILED) {
-                      s9 = peg$parseident();
+                      if (input.charCodeAt(peg$currPos) === 41) {
+                        s9 = peg$c37;
+                        peg$currPos++;
+                      } else {
+                        s9 = peg$FAILED;
+                        if (peg$silentFails === 0) { peg$fail(peg$c38); }
+                      }
                       if (s9 !== peg$FAILED) {
-                        s10 = peg$parse_();
-                        if (s10 !== peg$FAILED) {
-                          s11 = peg$currPos;
-                          if (input.charCodeAt(peg$currPos) === 40) {
-                            s12 = peg$c35;
-                            peg$currPos++;
-                          } else {
-                            s12 = peg$FAILED;
-                            if (peg$silentFails === 0) { peg$fail(peg$c36); }
-                          }
-                          if (s12 !== peg$FAILED) {
-                            s13 = peg$parse_();
-                            if (s13 !== peg$FAILED) {
-                              s14 = peg$parseliteral_string();
-                              if (s14 !== peg$FAILED) {
-                                s15 = peg$parse_();
-                                if (s15 !== peg$FAILED) {
-                                  if (input.charCodeAt(peg$currPos) === 41) {
-                                    s16 = peg$c37;
-                                    peg$currPos++;
-                                  } else {
-                                    s16 = peg$FAILED;
-                                    if (peg$silentFails === 0) { peg$fail(peg$c38); }
-                                  }
-                                  if (s16 !== peg$FAILED) {
-                                    s17 = peg$parse_();
-                                    if (s17 !== peg$FAILED) {
-                                      s12 = [s12, s13, s14, s15, s16, s17];
-                                      s11 = s12;
-                                    } else {
-                                      peg$currPos = s11;
-                                      s11 = peg$FAILED;
-                                    }
-                                  } else {
-                                    peg$currPos = s11;
-                                    s11 = peg$FAILED;
-                                  }
-                                } else {
-                                  peg$currPos = s11;
-                                  s11 = peg$FAILED;
-                                }
-                              } else {
-                                peg$currPos = s11;
-                                s11 = peg$FAILED;
-                              }
-                            } else {
-                              peg$currPos = s11;
-                              s11 = peg$FAILED;
-                            }
-                          } else {
-                            peg$currPos = s11;
-                            s11 = peg$FAILED;
-                          }
-                          if (s11 === peg$FAILED) {
-                            s11 = null;
-                          }
-                          if (s11 !== peg$FAILED) {
-                            peg$savedPos = s0;
-                            s1 = peg$c255(s1, s5, s9, s11);
-                            s0 = s1;
-                          } else {
-                            peg$currPos = s0;
-                            s0 = peg$FAILED;
-                          }
-                        } else {
-                          peg$currPos = s0;
-                          s0 = peg$FAILED;
-                        }
+                        peg$savedPos = s0;
+                        s1 = peg$c259(s3, s7);
+                        s0 = s1;
                       } else {
                         peg$currPos = s0;
                         s0 = peg$FAILED;
@@ -21792,6 +21906,17 @@ module.exports = (function() {
       return s0;
     }
 
+    function peg$parseentity_value() {
+      var s0;
+
+      s0 = peg$parseentity_value1();
+      if (s0 === peg$FAILED) {
+        s0 = peg$parseentity_value2();
+      }
+
+      return s0;
+    }
+
     function peg$parsearray_value() {
       var s0, s1, s2, s3, s4, s5;
 
@@ -21822,7 +21947,7 @@ module.exports = (function() {
               }
               if (s5 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s1 = peg$c256(s3);
+                s1 = peg$c260(s3);
                 s0 = s1;
               } else {
                 peg$currPos = s0;
@@ -21950,12 +22075,12 @@ module.exports = (function() {
       var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11, s12;
 
       s0 = peg$currPos;
-      if (input.substr(peg$currPos, 7) === peg$c257) {
-        s1 = peg$c257;
+      if (input.substr(peg$currPos, 7) === peg$c261) {
+        s1 = peg$c261;
         peg$currPos += 7;
       } else {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c258); }
+        if (peg$silentFails === 0) { peg$fail(peg$c262); }
       }
       if (s1 !== peg$FAILED) {
         s2 = peg$parse_();
@@ -21986,7 +22111,7 @@ module.exports = (function() {
                   }
                   if (s7 !== peg$FAILED) {
                     peg$savedPos = s0;
-                    s1 = peg$c259(s5);
+                    s1 = peg$c263(s5);
                     s0 = s1;
                   } else {
                     peg$currPos = s0;
@@ -22018,12 +22143,12 @@ module.exports = (function() {
       }
       if (s0 === peg$FAILED) {
         s0 = peg$currPos;
-        if (input.substr(peg$currPos, 5) === peg$c260) {
-          s1 = peg$c260;
+        if (input.substr(peg$currPos, 5) === peg$c264) {
+          s1 = peg$c264;
           peg$currPos += 5;
         } else {
           s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c261); }
+          if (peg$silentFails === 0) { peg$fail(peg$c265); }
         }
         if (s1 !== peg$FAILED) {
           s2 = peg$parse_();
@@ -22051,7 +22176,7 @@ module.exports = (function() {
                     }
                     if (s7 !== peg$FAILED) {
                       peg$savedPos = s0;
-                      s1 = peg$c262(s5);
+                      s1 = peg$c266(s5);
                       s0 = s1;
                     } else {
                       peg$currPos = s0;
@@ -22083,12 +22208,12 @@ module.exports = (function() {
         }
         if (s0 === peg$FAILED) {
           s0 = peg$currPos;
-          if (input.substr(peg$currPos, 4) === peg$c263) {
-            s1 = peg$c263;
+          if (input.substr(peg$currPos, 4) === peg$c267) {
+            s1 = peg$c267;
             peg$currPos += 4;
           } else {
             s1 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c264); }
+            if (peg$silentFails === 0) { peg$fail(peg$c268); }
           }
           if (s1 !== peg$FAILED) {
             s2 = peg$parse_();
@@ -22189,7 +22314,7 @@ module.exports = (function() {
                           }
                           if (s9 !== peg$FAILED) {
                             peg$savedPos = s0;
-                            s1 = peg$c265(s5, s7);
+                            s1 = peg$c269(s5, s7);
                             s0 = s1;
                           } else {
                             peg$currPos = s0;
@@ -22229,12 +22354,12 @@ module.exports = (function() {
           }
           if (s0 === peg$FAILED) {
             s0 = peg$currPos;
-            if (input.substr(peg$currPos, 6) === peg$c266) {
-              s1 = peg$c266;
+            if (input.substr(peg$currPos, 6) === peg$c270) {
+              s1 = peg$c270;
               peg$currPos += 6;
             } else {
               s1 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c267); }
+              if (peg$silentFails === 0) { peg$fail(peg$c271); }
             }
             if (s1 !== peg$FAILED) {
               s2 = peg$parse_();
@@ -22276,7 +22401,7 @@ module.exports = (function() {
                                 }
                                 if (s11 !== peg$FAILED) {
                                   peg$savedPos = s0;
-                                  s1 = peg$c268(s5, s9);
+                                  s1 = peg$c272(s5, s9);
                                   s0 = s1;
                                 } else {
                                   peg$currPos = s0;
@@ -22324,114 +22449,114 @@ module.exports = (function() {
             }
             if (s0 === peg$FAILED) {
               s0 = peg$currPos;
-              if (input.substr(peg$currPos, 3) === peg$c269) {
-                s1 = peg$c269;
+              if (input.substr(peg$currPos, 3) === peg$c273) {
+                s1 = peg$c273;
                 peg$currPos += 3;
               } else {
                 s1 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c270); }
+                if (peg$silentFails === 0) { peg$fail(peg$c274); }
               }
               if (s1 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s1 = peg$c271();
+                s1 = peg$c275();
               }
               s0 = s1;
               if (s0 === peg$FAILED) {
                 s0 = peg$currPos;
-                if (input.substr(peg$currPos, 7) === peg$c272) {
-                  s1 = peg$c272;
+                if (input.substr(peg$currPos, 7) === peg$c276) {
+                  s1 = peg$c276;
                   peg$currPos += 7;
                 } else {
                   s1 = peg$FAILED;
-                  if (peg$silentFails === 0) { peg$fail(peg$c273); }
+                  if (peg$silentFails === 0) { peg$fail(peg$c277); }
                 }
                 if (s1 !== peg$FAILED) {
                   peg$savedPos = s0;
-                  s1 = peg$c274();
+                  s1 = peg$c278();
                 }
                 s0 = s1;
                 if (s0 === peg$FAILED) {
                   s0 = peg$currPos;
-                  if (input.substr(peg$currPos, 6) === peg$c275) {
-                    s1 = peg$c275;
+                  if (input.substr(peg$currPos, 6) === peg$c279) {
+                    s1 = peg$c279;
                     peg$currPos += 6;
                   } else {
                     s1 = peg$FAILED;
-                    if (peg$silentFails === 0) { peg$fail(peg$c276); }
+                    if (peg$silentFails === 0) { peg$fail(peg$c280); }
                   }
                   if (s1 !== peg$FAILED) {
                     peg$savedPos = s0;
-                    s1 = peg$c277();
+                    s1 = peg$c281();
                   }
                   s0 = s1;
                   if (s0 === peg$FAILED) {
                     s0 = peg$currPos;
-                    if (input.substr(peg$currPos, 6) === peg$c278) {
-                      s1 = peg$c278;
+                    if (input.substr(peg$currPos, 6) === peg$c282) {
+                      s1 = peg$c282;
                       peg$currPos += 6;
                     } else {
                       s1 = peg$FAILED;
-                      if (peg$silentFails === 0) { peg$fail(peg$c279); }
+                      if (peg$silentFails === 0) { peg$fail(peg$c283); }
                     }
                     if (s1 !== peg$FAILED) {
                       peg$savedPos = s0;
-                      s1 = peg$c280();
+                      s1 = peg$c284();
                     }
                     s0 = s1;
                     if (s0 === peg$FAILED) {
                       s0 = peg$currPos;
-                      if (input.substr(peg$currPos, 8) === peg$c281) {
-                        s1 = peg$c281;
+                      if (input.substr(peg$currPos, 8) === peg$c285) {
+                        s1 = peg$c285;
                         peg$currPos += 8;
                       } else {
                         s1 = peg$FAILED;
-                        if (peg$silentFails === 0) { peg$fail(peg$c282); }
+                        if (peg$silentFails === 0) { peg$fail(peg$c286); }
                       }
                       if (s1 !== peg$FAILED) {
                         peg$savedPos = s0;
-                        s1 = peg$c283();
+                        s1 = peg$c287();
                       }
                       s0 = s1;
                       if (s0 === peg$FAILED) {
                         s0 = peg$currPos;
-                        if (input.substr(peg$currPos, 8) === peg$c284) {
-                          s1 = peg$c284;
+                        if (input.substr(peg$currPos, 8) === peg$c288) {
+                          s1 = peg$c288;
                           peg$currPos += 8;
                         } else {
                           s1 = peg$FAILED;
-                          if (peg$silentFails === 0) { peg$fail(peg$c285); }
+                          if (peg$silentFails === 0) { peg$fail(peg$c289); }
                         }
                         if (s1 !== peg$FAILED) {
                           peg$savedPos = s0;
-                          s1 = peg$c286();
+                          s1 = peg$c290();
                         }
                         s0 = s1;
                         if (s0 === peg$FAILED) {
                           s0 = peg$currPos;
-                          if (input.substr(peg$currPos, 4) === peg$c287) {
-                            s1 = peg$c287;
+                          if (input.substr(peg$currPos, 4) === peg$c291) {
+                            s1 = peg$c291;
                             peg$currPos += 4;
                           } else {
                             s1 = peg$FAILED;
-                            if (peg$silentFails === 0) { peg$fail(peg$c288); }
+                            if (peg$silentFails === 0) { peg$fail(peg$c292); }
                           }
                           if (s1 !== peg$FAILED) {
                             peg$savedPos = s0;
-                            s1 = peg$c289();
+                            s1 = peg$c293();
                           }
                           s0 = s1;
                           if (s0 === peg$FAILED) {
                             s0 = peg$currPos;
-                            if (input.substr(peg$currPos, 4) === peg$c290) {
-                              s1 = peg$c290;
+                            if (input.substr(peg$currPos, 4) === peg$c294) {
+                              s1 = peg$c294;
                               peg$currPos += 4;
                             } else {
                               s1 = peg$FAILED;
-                              if (peg$silentFails === 0) { peg$fail(peg$c291); }
+                              if (peg$silentFails === 0) { peg$fail(peg$c295); }
                             }
                             if (s1 !== peg$FAILED) {
                               peg$savedPos = s0;
-                              s1 = peg$c292();
+                              s1 = peg$c296();
                             }
                             s0 = s1;
                             if (s0 === peg$FAILED) {
@@ -22528,7 +22653,7 @@ module.exports = (function() {
                                       }
                                       if (s5 !== peg$FAILED) {
                                         peg$savedPos = s0;
-                                        s1 = peg$c293(s2, s4);
+                                        s1 = peg$c297(s2, s4);
                                         s0 = s1;
                                       } else {
                                         peg$currPos = s0;
@@ -22552,128 +22677,128 @@ module.exports = (function() {
                               }
                               if (s0 === peg$FAILED) {
                                 s0 = peg$currPos;
-                                if (input.substr(peg$currPos, 12) === peg$c294) {
-                                  s1 = peg$c294;
+                                if (input.substr(peg$currPos, 12) === peg$c298) {
+                                  s1 = peg$c298;
                                   peg$currPos += 12;
                                 } else {
                                   s1 = peg$FAILED;
-                                  if (peg$silentFails === 0) { peg$fail(peg$c295); }
+                                  if (peg$silentFails === 0) { peg$fail(peg$c299); }
                                 }
                                 if (s1 !== peg$FAILED) {
                                   peg$savedPos = s0;
-                                  s1 = peg$c296();
+                                  s1 = peg$c300();
                                 }
                                 s0 = s1;
                                 if (s0 === peg$FAILED) {
                                   s0 = peg$currPos;
-                                  if (input.substr(peg$currPos, 11) === peg$c297) {
-                                    s1 = peg$c297;
+                                  if (input.substr(peg$currPos, 11) === peg$c301) {
+                                    s1 = peg$c301;
                                     peg$currPos += 11;
                                   } else {
                                     s1 = peg$FAILED;
-                                    if (peg$silentFails === 0) { peg$fail(peg$c298); }
+                                    if (peg$silentFails === 0) { peg$fail(peg$c302); }
                                   }
                                   if (s1 !== peg$FAILED) {
                                     peg$savedPos = s0;
-                                    s1 = peg$c299();
+                                    s1 = peg$c303();
                                   }
                                   s0 = s1;
                                   if (s0 === peg$FAILED) {
                                     s0 = peg$currPos;
-                                    if (input.substr(peg$currPos, 7) === peg$c300) {
-                                      s1 = peg$c300;
+                                    if (input.substr(peg$currPos, 7) === peg$c304) {
+                                      s1 = peg$c304;
                                       peg$currPos += 7;
                                     } else {
                                       s1 = peg$FAILED;
-                                      if (peg$silentFails === 0) { peg$fail(peg$c301); }
+                                      if (peg$silentFails === 0) { peg$fail(peg$c305); }
                                     }
                                     if (s1 !== peg$FAILED) {
                                       peg$savedPos = s0;
-                                      s1 = peg$c302();
+                                      s1 = peg$c306();
                                     }
                                     s0 = s1;
                                     if (s0 === peg$FAILED) {
                                       s0 = peg$currPos;
-                                      if (input.substr(peg$currPos, 8) === peg$c303) {
-                                        s1 = peg$c303;
+                                      if (input.substr(peg$currPos, 8) === peg$c307) {
+                                        s1 = peg$c307;
                                         peg$currPos += 8;
                                       } else {
                                         s1 = peg$FAILED;
-                                        if (peg$silentFails === 0) { peg$fail(peg$c304); }
+                                        if (peg$silentFails === 0) { peg$fail(peg$c308); }
                                       }
                                       if (s1 !== peg$FAILED) {
                                         peg$savedPos = s0;
-                                        s1 = peg$c305();
+                                        s1 = peg$c309();
                                       }
                                       s0 = s1;
                                       if (s0 === peg$FAILED) {
                                         s0 = peg$currPos;
-                                        if (input.substr(peg$currPos, 3) === peg$c306) {
-                                          s1 = peg$c306;
+                                        if (input.substr(peg$currPos, 3) === peg$c310) {
+                                          s1 = peg$c310;
                                           peg$currPos += 3;
                                         } else {
                                           s1 = peg$FAILED;
-                                          if (peg$silentFails === 0) { peg$fail(peg$c307); }
+                                          if (peg$silentFails === 0) { peg$fail(peg$c311); }
                                         }
                                         if (s1 !== peg$FAILED) {
                                           peg$savedPos = s0;
-                                          s1 = peg$c308();
+                                          s1 = peg$c312();
                                         }
                                         s0 = s1;
                                         if (s0 === peg$FAILED) {
                                           s0 = peg$currPos;
-                                          if (input.substr(peg$currPos, 8) === peg$c309) {
-                                            s1 = peg$c309;
+                                          if (input.substr(peg$currPos, 8) === peg$c313) {
+                                            s1 = peg$c313;
                                             peg$currPos += 8;
                                           } else {
                                             s1 = peg$FAILED;
-                                            if (peg$silentFails === 0) { peg$fail(peg$c310); }
+                                            if (peg$silentFails === 0) { peg$fail(peg$c314); }
                                           }
                                           if (s1 !== peg$FAILED) {
                                             peg$savedPos = s0;
-                                            s1 = peg$c311();
+                                            s1 = peg$c315();
                                           }
                                           s0 = s1;
                                           if (s0 === peg$FAILED) {
                                             s0 = peg$currPos;
-                                            if (input.substr(peg$currPos, 7) === peg$c312) {
-                                              s1 = peg$c312;
+                                            if (input.substr(peg$currPos, 7) === peg$c316) {
+                                              s1 = peg$c316;
                                               peg$currPos += 7;
                                             } else {
                                               s1 = peg$FAILED;
-                                              if (peg$silentFails === 0) { peg$fail(peg$c313); }
+                                              if (peg$silentFails === 0) { peg$fail(peg$c317); }
                                             }
                                             if (s1 !== peg$FAILED) {
                                               peg$savedPos = s0;
-                                              s1 = peg$c314();
+                                              s1 = peg$c318();
                                             }
                                             s0 = s1;
                                             if (s0 === peg$FAILED) {
                                               s0 = peg$currPos;
-                                              if (input.substr(peg$currPos, 5) === peg$c315) {
-                                                s1 = peg$c315;
+                                              if (input.substr(peg$currPos, 5) === peg$c319) {
+                                                s1 = peg$c319;
                                                 peg$currPos += 5;
                                               } else {
                                                 s1 = peg$FAILED;
-                                                if (peg$silentFails === 0) { peg$fail(peg$c316); }
+                                                if (peg$silentFails === 0) { peg$fail(peg$c320); }
                                               }
                                               if (s1 !== peg$FAILED) {
                                                 peg$savedPos = s0;
-                                                s1 = peg$c317();
+                                                s1 = peg$c321();
                                               }
                                               s0 = s1;
                                               if (s0 === peg$FAILED) {
                                                 s0 = peg$currPos;
-                                                if (input.substr(peg$currPos, 6) === peg$c318) {
-                                                  s1 = peg$c318;
+                                                if (input.substr(peg$currPos, 6) === peg$c322) {
+                                                  s1 = peg$c322;
                                                   peg$currPos += 6;
                                                 } else {
                                                   s1 = peg$FAILED;
-                                                  if (peg$silentFails === 0) { peg$fail(peg$c319); }
+                                                  if (peg$silentFails === 0) { peg$fail(peg$c323); }
                                                 }
                                                 if (s1 !== peg$FAILED) {
                                                   peg$savedPos = s0;
-                                                  s1 = peg$c320();
+                                                  s1 = peg$c324();
                                                 }
                                                 s0 = s1;
                                                 if (s0 === peg$FAILED) {
@@ -22681,7 +22806,7 @@ module.exports = (function() {
                                                   s1 = peg$parseident();
                                                   if (s1 !== peg$FAILED) {
                                                     peg$savedPos = s0;
-                                                    s1 = peg$c321(s1);
+                                                    s1 = peg$c325(s1);
                                                   }
                                                   s0 = s1;
                                                 }
@@ -22714,44 +22839,44 @@ module.exports = (function() {
       var s0, s1;
 
       peg$silentFails++;
-      if (input.substr(peg$currPos, 2) === peg$c323) {
-        s0 = peg$c323;
+      if (input.substr(peg$currPos, 2) === peg$c327) {
+        s0 = peg$c327;
         peg$currPos += 2;
       } else {
         s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c324); }
+        if (peg$silentFails === 0) { peg$fail(peg$c328); }
       }
       if (s0 === peg$FAILED) {
-        if (input.substr(peg$currPos, 2) === peg$c325) {
-          s0 = peg$c325;
+        if (input.substr(peg$currPos, 2) === peg$c329) {
+          s0 = peg$c329;
           peg$currPos += 2;
         } else {
           s0 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c326); }
+          if (peg$silentFails === 0) { peg$fail(peg$c330); }
         }
         if (s0 === peg$FAILED) {
-          if (input.substr(peg$currPos, 2) === peg$c327) {
-            s0 = peg$c327;
+          if (input.substr(peg$currPos, 2) === peg$c331) {
+            s0 = peg$c331;
             peg$currPos += 2;
           } else {
             s0 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c328); }
+            if (peg$silentFails === 0) { peg$fail(peg$c332); }
           }
           if (s0 === peg$FAILED) {
-            if (input.substr(peg$currPos, 2) === peg$c329) {
-              s0 = peg$c329;
+            if (input.substr(peg$currPos, 2) === peg$c333) {
+              s0 = peg$c333;
               peg$currPos += 2;
             } else {
               s0 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c330); }
+              if (peg$silentFails === 0) { peg$fail(peg$c334); }
             }
             if (s0 === peg$FAILED) {
-              if (input.substr(peg$currPos, 2) === peg$c331) {
-                s0 = peg$c331;
+              if (input.substr(peg$currPos, 2) === peg$c335) {
+                s0 = peg$c335;
                 peg$currPos += 2;
               } else {
                 s0 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c332); }
+                if (peg$silentFails === 0) { peg$fail(peg$c336); }
               }
             }
           }
@@ -22760,7 +22885,7 @@ module.exports = (function() {
       peg$silentFails--;
       if (s0 === peg$FAILED) {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c322); }
+        if (peg$silentFails === 0) { peg$fail(peg$c326); }
       }
 
       return s0;
@@ -22770,12 +22895,12 @@ module.exports = (function() {
       var s0, s1, s2, s3;
 
       s0 = peg$currPos;
-      if (input.substr(peg$currPos, 4) === peg$c333) {
-        s1 = peg$c333;
+      if (input.substr(peg$currPos, 4) === peg$c337) {
+        s1 = peg$c337;
         peg$currPos += 4;
       } else {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c334); }
+        if (peg$silentFails === 0) { peg$fail(peg$c338); }
       }
       if (s1 !== peg$FAILED) {
         s2 = peg$currPos;
@@ -22790,7 +22915,7 @@ module.exports = (function() {
         }
         if (s2 !== peg$FAILED) {
           peg$savedPos = s0;
-          s1 = peg$c335();
+          s1 = peg$c339();
           s0 = s1;
         } else {
           peg$currPos = s0;
@@ -22802,12 +22927,12 @@ module.exports = (function() {
       }
       if (s0 === peg$FAILED) {
         s0 = peg$currPos;
-        if (input.substr(peg$currPos, 5) === peg$c336) {
-          s1 = peg$c336;
+        if (input.substr(peg$currPos, 5) === peg$c340) {
+          s1 = peg$c340;
           peg$currPos += 5;
         } else {
           s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c337); }
+          if (peg$silentFails === 0) { peg$fail(peg$c341); }
         }
         if (s1 !== peg$FAILED) {
           s2 = peg$currPos;
@@ -22822,7 +22947,7 @@ module.exports = (function() {
           }
           if (s2 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$c338();
+            s1 = peg$c342();
             s0 = s1;
           } else {
             peg$currPos = s0;
@@ -22943,67 +23068,67 @@ module.exports = (function() {
     function peg$parsedqstrchar() {
       var s0, s1;
 
-      if (peg$c339.test(input.charAt(peg$currPos))) {
+      if (peg$c343.test(input.charAt(peg$currPos))) {
         s0 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
         s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c340); }
+        if (peg$silentFails === 0) { peg$fail(peg$c344); }
       }
       if (s0 === peg$FAILED) {
         s0 = peg$currPos;
-        if (input.substr(peg$currPos, 2) === peg$c341) {
-          s1 = peg$c341;
+        if (input.substr(peg$currPos, 2) === peg$c345) {
+          s1 = peg$c345;
           peg$currPos += 2;
         } else {
           s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c342); }
+          if (peg$silentFails === 0) { peg$fail(peg$c346); }
         }
         if (s1 !== peg$FAILED) {
           peg$savedPos = s0;
-          s1 = peg$c343();
+          s1 = peg$c347();
         }
         s0 = s1;
         if (s0 === peg$FAILED) {
           s0 = peg$currPos;
-          if (input.substr(peg$currPos, 2) === peg$c344) {
-            s1 = peg$c344;
+          if (input.substr(peg$currPos, 2) === peg$c348) {
+            s1 = peg$c348;
             peg$currPos += 2;
           } else {
             s1 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c345); }
+            if (peg$silentFails === 0) { peg$fail(peg$c349); }
           }
           if (s1 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$c346();
+            s1 = peg$c350();
           }
           s0 = s1;
           if (s0 === peg$FAILED) {
             s0 = peg$currPos;
-            if (input.substr(peg$currPos, 2) === peg$c347) {
-              s1 = peg$c347;
+            if (input.substr(peg$currPos, 2) === peg$c351) {
+              s1 = peg$c351;
               peg$currPos += 2;
             } else {
               s1 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c348); }
+              if (peg$silentFails === 0) { peg$fail(peg$c352); }
             }
             if (s1 !== peg$FAILED) {
               peg$savedPos = s0;
-              s1 = peg$c349();
+              s1 = peg$c353();
             }
             s0 = s1;
             if (s0 === peg$FAILED) {
               s0 = peg$currPos;
-              if (input.substr(peg$currPos, 2) === peg$c350) {
-                s1 = peg$c350;
+              if (input.substr(peg$currPos, 2) === peg$c354) {
+                s1 = peg$c354;
                 peg$currPos += 2;
               } else {
                 s1 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c351); }
+                if (peg$silentFails === 0) { peg$fail(peg$c355); }
               }
               if (s1 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s1 = peg$c352();
+                s1 = peg$c356();
               }
               s0 = s1;
             }
@@ -23017,67 +23142,67 @@ module.exports = (function() {
     function peg$parsesqstrchar() {
       var s0, s1;
 
-      if (peg$c353.test(input.charAt(peg$currPos))) {
+      if (peg$c357.test(input.charAt(peg$currPos))) {
         s0 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
         s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c354); }
+        if (peg$silentFails === 0) { peg$fail(peg$c358); }
       }
       if (s0 === peg$FAILED) {
         s0 = peg$currPos;
-        if (input.substr(peg$currPos, 2) === peg$c341) {
-          s1 = peg$c341;
+        if (input.substr(peg$currPos, 2) === peg$c345) {
+          s1 = peg$c345;
           peg$currPos += 2;
         } else {
           s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c342); }
+          if (peg$silentFails === 0) { peg$fail(peg$c346); }
         }
         if (s1 !== peg$FAILED) {
           peg$savedPos = s0;
-          s1 = peg$c343();
+          s1 = peg$c347();
         }
         s0 = s1;
         if (s0 === peg$FAILED) {
           s0 = peg$currPos;
-          if (input.substr(peg$currPos, 2) === peg$c344) {
-            s1 = peg$c344;
+          if (input.substr(peg$currPos, 2) === peg$c348) {
+            s1 = peg$c348;
             peg$currPos += 2;
           } else {
             s1 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c345); }
+            if (peg$silentFails === 0) { peg$fail(peg$c349); }
           }
           if (s1 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$c346();
+            s1 = peg$c350();
           }
           s0 = s1;
           if (s0 === peg$FAILED) {
             s0 = peg$currPos;
-            if (input.substr(peg$currPos, 2) === peg$c347) {
-              s1 = peg$c347;
+            if (input.substr(peg$currPos, 2) === peg$c351) {
+              s1 = peg$c351;
               peg$currPos += 2;
             } else {
               s1 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c348); }
+              if (peg$silentFails === 0) { peg$fail(peg$c352); }
             }
             if (s1 !== peg$FAILED) {
               peg$savedPos = s0;
-              s1 = peg$c349();
+              s1 = peg$c353();
             }
             s0 = s1;
             if (s0 === peg$FAILED) {
               s0 = peg$currPos;
-              if (input.substr(peg$currPos, 2) === peg$c350) {
-                s1 = peg$c350;
+              if (input.substr(peg$currPos, 2) === peg$c354) {
+                s1 = peg$c354;
                 peg$currPos += 2;
               } else {
                 s1 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c351); }
+                if (peg$silentFails === 0) { peg$fail(peg$c355); }
               }
               if (s1 !== peg$FAILED) {
                 peg$savedPos = s0;
-                s1 = peg$c352();
+                s1 = peg$c356();
               }
               s0 = s1;
             }
@@ -23094,11 +23219,11 @@ module.exports = (function() {
       peg$silentFails++;
       s0 = peg$currPos;
       if (input.charCodeAt(peg$currPos) === 34) {
-        s1 = peg$c356;
+        s1 = peg$c360;
         peg$currPos++;
       } else {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c357); }
+        if (peg$silentFails === 0) { peg$fail(peg$c361); }
       }
       if (s1 !== peg$FAILED) {
         s2 = [];
@@ -23109,15 +23234,15 @@ module.exports = (function() {
         }
         if (s2 !== peg$FAILED) {
           if (input.charCodeAt(peg$currPos) === 34) {
-            s3 = peg$c356;
+            s3 = peg$c360;
             peg$currPos++;
           } else {
             s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c357); }
+            if (peg$silentFails === 0) { peg$fail(peg$c361); }
           }
           if (s3 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$c358(s2);
+            s1 = peg$c362(s2);
             s0 = s1;
           } else {
             peg$currPos = s0;
@@ -23134,11 +23259,11 @@ module.exports = (function() {
       if (s0 === peg$FAILED) {
         s0 = peg$currPos;
         if (input.charCodeAt(peg$currPos) === 39) {
-          s1 = peg$c359;
+          s1 = peg$c363;
           peg$currPos++;
         } else {
           s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c360); }
+          if (peg$silentFails === 0) { peg$fail(peg$c364); }
         }
         if (s1 !== peg$FAILED) {
           s2 = [];
@@ -23149,15 +23274,15 @@ module.exports = (function() {
           }
           if (s2 !== peg$FAILED) {
             if (input.charCodeAt(peg$currPos) === 39) {
-              s3 = peg$c359;
+              s3 = peg$c363;
               peg$currPos++;
             } else {
               s3 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c360); }
+              if (peg$silentFails === 0) { peg$fail(peg$c364); }
             }
             if (s3 !== peg$FAILED) {
               peg$savedPos = s0;
-              s1 = peg$c358(s2);
+              s1 = peg$c362(s2);
               s0 = s1;
             } else {
               peg$currPos = s0;
@@ -23175,7 +23300,7 @@ module.exports = (function() {
       peg$silentFails--;
       if (s0 === peg$FAILED) {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c355); }
+        if (peg$silentFails === 0) { peg$fail(peg$c359); }
       }
 
       return s0;
@@ -23185,17 +23310,17 @@ module.exports = (function() {
       var s0, s1;
 
       peg$silentFails++;
-      if (peg$c362.test(input.charAt(peg$currPos))) {
+      if (peg$c366.test(input.charAt(peg$currPos))) {
         s0 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
         s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c363); }
+        if (peg$silentFails === 0) { peg$fail(peg$c367); }
       }
       peg$silentFails--;
       if (s0 === peg$FAILED) {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c361); }
+        if (peg$silentFails === 0) { peg$fail(peg$c365); }
       }
 
       return s0;
@@ -23247,11 +23372,11 @@ module.exports = (function() {
             if (s6 !== peg$FAILED) {
               s7 = peg$currPos;
               if (input.charCodeAt(peg$currPos) === 101) {
-                s8 = peg$c365;
+                s8 = peg$c369;
                 peg$currPos++;
               } else {
                 s8 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c366); }
+                if (peg$silentFails === 0) { peg$fail(peg$c370); }
               }
               if (s8 !== peg$FAILED) {
                 s9 = [];
@@ -23308,7 +23433,7 @@ module.exports = (function() {
       }
       if (s1 !== peg$FAILED) {
         peg$savedPos = s0;
-        s1 = peg$c367(s1);
+        s1 = peg$c371(s1);
       }
       s0 = s1;
       if (s0 === peg$FAILED) {
@@ -23347,11 +23472,11 @@ module.exports = (function() {
             if (s5 !== peg$FAILED) {
               s6 = peg$currPos;
               if (input.charCodeAt(peg$currPos) === 101) {
-                s7 = peg$c365;
+                s7 = peg$c369;
                 peg$currPos++;
               } else {
                 s7 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c366); }
+                if (peg$silentFails === 0) { peg$fail(peg$c370); }
               }
               if (s7 !== peg$FAILED) {
                 s8 = [];
@@ -23404,7 +23529,7 @@ module.exports = (function() {
         }
         if (s1 !== peg$FAILED) {
           peg$savedPos = s0;
-          s1 = peg$c367(s1);
+          s1 = peg$c371(s1);
         }
         s0 = s1;
         if (s0 === peg$FAILED) {
@@ -23435,11 +23560,11 @@ module.exports = (function() {
             if (s4 !== peg$FAILED) {
               s5 = peg$currPos;
               if (input.charCodeAt(peg$currPos) === 101) {
-                s6 = peg$c365;
+                s6 = peg$c369;
                 peg$currPos++;
               } else {
                 s6 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c366); }
+                if (peg$silentFails === 0) { peg$fail(peg$c370); }
               }
               if (s6 !== peg$FAILED) {
                 s7 = [];
@@ -23488,7 +23613,7 @@ module.exports = (function() {
           }
           if (s1 !== peg$FAILED) {
             peg$savedPos = s0;
-            s1 = peg$c367(s1);
+            s1 = peg$c371(s1);
           }
           s0 = s1;
         }
@@ -23496,7 +23621,7 @@ module.exports = (function() {
       peg$silentFails--;
       if (s0 === peg$FAILED) {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c364); }
+        if (peg$silentFails === 0) { peg$fail(peg$c368); }
       }
 
       return s0;
@@ -23505,12 +23630,12 @@ module.exports = (function() {
     function peg$parseidentstart() {
       var s0;
 
-      if (peg$c368.test(input.charAt(peg$currPos))) {
+      if (peg$c372.test(input.charAt(peg$currPos))) {
         s0 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
         s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c369); }
+        if (peg$silentFails === 0) { peg$fail(peg$c373); }
       }
 
       return s0;
@@ -23519,12 +23644,12 @@ module.exports = (function() {
     function peg$parseidentchar() {
       var s0;
 
-      if (peg$c370.test(input.charAt(peg$currPos))) {
+      if (peg$c374.test(input.charAt(peg$currPos))) {
         s0 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
         s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c371); }
+        if (peg$silentFails === 0) { peg$fail(peg$c375); }
       }
 
       return s0;
@@ -23574,7 +23699,7 @@ module.exports = (function() {
         }
         if (s2 !== peg$FAILED) {
           peg$savedPos = s0;
-          s1 = peg$c373(s2);
+          s1 = peg$c377(s2);
           s0 = s1;
         } else {
           peg$currPos = s0;
@@ -23587,7 +23712,7 @@ module.exports = (function() {
       peg$silentFails--;
       if (s0 === peg$FAILED) {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c372); }
+        if (peg$silentFails === 0) { peg$fail(peg$c376); }
       }
 
       return s0;
@@ -23596,12 +23721,12 @@ module.exports = (function() {
     function peg$parseclassidentchar() {
       var s0;
 
-      if (peg$c374.test(input.charAt(peg$currPos))) {
+      if (peg$c378.test(input.charAt(peg$currPos))) {
         s0 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
         s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c375); }
+        if (peg$silentFails === 0) { peg$fail(peg$c379); }
       }
 
       return s0;
@@ -23640,7 +23765,7 @@ module.exports = (function() {
       peg$silentFails--;
       if (s0 === peg$FAILED) {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c376); }
+        if (peg$silentFails === 0) { peg$fail(peg$c380); }
       }
 
       return s0;
@@ -23704,17 +23829,17 @@ module.exports = (function() {
       var s0, s1;
 
       peg$silentFails++;
-      if (peg$c378.test(input.charAt(peg$currPos))) {
+      if (peg$c382.test(input.charAt(peg$currPos))) {
         s0 = input.charAt(peg$currPos);
         peg$currPos++;
       } else {
         s0 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c379); }
+        if (peg$silentFails === 0) { peg$fail(peg$c383); }
       }
       peg$silentFails--;
       if (s0 === peg$FAILED) {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c377); }
+        if (peg$silentFails === 0) { peg$fail(peg$c381); }
       }
 
       return s0;
@@ -23725,21 +23850,21 @@ module.exports = (function() {
 
       peg$silentFails++;
       s0 = peg$currPos;
-      if (input.substr(peg$currPos, 2) === peg$c381) {
-        s1 = peg$c381;
+      if (input.substr(peg$currPos, 2) === peg$c385) {
+        s1 = peg$c385;
         peg$currPos += 2;
       } else {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c382); }
+        if (peg$silentFails === 0) { peg$fail(peg$c386); }
       }
       if (s1 !== peg$FAILED) {
         s2 = [];
-        if (peg$c383.test(input.charAt(peg$currPos))) {
+        if (peg$c387.test(input.charAt(peg$currPos))) {
           s3 = input.charAt(peg$currPos);
           peg$currPos++;
         } else {
           s3 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c384); }
+          if (peg$silentFails === 0) { peg$fail(peg$c388); }
         }
         if (s3 === peg$FAILED) {
           s3 = peg$currPos;
@@ -23751,12 +23876,12 @@ module.exports = (function() {
             if (peg$silentFails === 0) { peg$fail(peg$c18); }
           }
           if (s4 !== peg$FAILED) {
-            if (peg$c385.test(input.charAt(peg$currPos))) {
+            if (peg$c389.test(input.charAt(peg$currPos))) {
               s5 = input.charAt(peg$currPos);
               peg$currPos++;
             } else {
               s5 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c386); }
+              if (peg$silentFails === 0) { peg$fail(peg$c390); }
             }
             if (s5 !== peg$FAILED) {
               s4 = [s4, s5];
@@ -23772,12 +23897,12 @@ module.exports = (function() {
         }
         while (s3 !== peg$FAILED) {
           s2.push(s3);
-          if (peg$c383.test(input.charAt(peg$currPos))) {
+          if (peg$c387.test(input.charAt(peg$currPos))) {
             s3 = input.charAt(peg$currPos);
             peg$currPos++;
           } else {
             s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c384); }
+            if (peg$silentFails === 0) { peg$fail(peg$c388); }
           }
           if (s3 === peg$FAILED) {
             s3 = peg$currPos;
@@ -23789,12 +23914,12 @@ module.exports = (function() {
               if (peg$silentFails === 0) { peg$fail(peg$c18); }
             }
             if (s4 !== peg$FAILED) {
-              if (peg$c385.test(input.charAt(peg$currPos))) {
+              if (peg$c389.test(input.charAt(peg$currPos))) {
                 s5 = input.charAt(peg$currPos);
                 peg$currPos++;
               } else {
                 s5 = peg$FAILED;
-                if (peg$silentFails === 0) { peg$fail(peg$c386); }
+                if (peg$silentFails === 0) { peg$fail(peg$c390); }
               }
               if (s5 !== peg$FAILED) {
                 s4 = [s4, s5];
@@ -23810,12 +23935,12 @@ module.exports = (function() {
           }
         }
         if (s2 !== peg$FAILED) {
-          if (input.substr(peg$currPos, 2) === peg$c387) {
-            s3 = peg$c387;
+          if (input.substr(peg$currPos, 2) === peg$c391) {
+            s3 = peg$c391;
             peg$currPos += 2;
           } else {
             s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c388); }
+            if (peg$silentFails === 0) { peg$fail(peg$c392); }
           }
           if (s3 !== peg$FAILED) {
             s1 = [s1, s2, s3];
@@ -23834,39 +23959,39 @@ module.exports = (function() {
       }
       if (s0 === peg$FAILED) {
         s0 = peg$currPos;
-        if (input.substr(peg$currPos, 2) === peg$c389) {
-          s1 = peg$c389;
+        if (input.substr(peg$currPos, 2) === peg$c393) {
+          s1 = peg$c393;
           peg$currPos += 2;
         } else {
           s1 = peg$FAILED;
-          if (peg$silentFails === 0) { peg$fail(peg$c390); }
+          if (peg$silentFails === 0) { peg$fail(peg$c394); }
         }
         if (s1 !== peg$FAILED) {
           s2 = [];
-          if (peg$c391.test(input.charAt(peg$currPos))) {
+          if (peg$c395.test(input.charAt(peg$currPos))) {
             s3 = input.charAt(peg$currPos);
             peg$currPos++;
           } else {
             s3 = peg$FAILED;
-            if (peg$silentFails === 0) { peg$fail(peg$c392); }
+            if (peg$silentFails === 0) { peg$fail(peg$c396); }
           }
           while (s3 !== peg$FAILED) {
             s2.push(s3);
-            if (peg$c391.test(input.charAt(peg$currPos))) {
+            if (peg$c395.test(input.charAt(peg$currPos))) {
               s3 = input.charAt(peg$currPos);
               peg$currPos++;
             } else {
               s3 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c392); }
+              if (peg$silentFails === 0) { peg$fail(peg$c396); }
             }
           }
           if (s2 !== peg$FAILED) {
             if (input.charCodeAt(peg$currPos) === 10) {
-              s3 = peg$c393;
+              s3 = peg$c397;
               peg$currPos++;
             } else {
               s3 = peg$FAILED;
-              if (peg$silentFails === 0) { peg$fail(peg$c394); }
+              if (peg$silentFails === 0) { peg$fail(peg$c398); }
             }
             if (s3 !== peg$FAILED) {
               s1 = [s1, s2, s3];
@@ -23887,7 +24012,7 @@ module.exports = (function() {
       peg$silentFails--;
       if (s0 === peg$FAILED) {
         s1 = peg$FAILED;
-        if (peg$silentFails === 0) { peg$fail(peg$c380); }
+        if (peg$silentFails === 0) { peg$fail(peg$c384); }
       }
 
       return s0;
@@ -24658,7 +24783,7 @@ module.exports = {
                        [['policy', '$policy'], (_, policy) => policy]],
 
     '$program':       [[['$rule',], (rule) => new Ast.Program([], [], [rule], null)],
-                       [['executor', '=', '$constant_Entity(tt:username)', ':', '$rule'], (_1, _2, user, _3, rule) => new Ast.Program([], [], [rule], new Ast.Value.Entity(user.value, 'tt:username', null))]],
+                       [['executor', '=', '$constant', ':', '$rule'], (_1, _2, user, _3, rule) => new Ast.Program([], [], [rule], new Ast.Value.Entity(user.value, 'tt:username', null))]],
 
     '$policy':        [[['true', ':', '$policy_body'], (_1, _2, policy) => policy],
                        [['$filter', ':', '$policy_body'], (user, _, policy) => policy.set({ principal: user })]],
@@ -24825,7 +24950,12 @@ module.exports = {
                           [['false'], () => new Ast.Value.Boolean(false)]],
 
     '$constant_String': [[['""'], (str) => new Ast.Value.String('')],
-                         [['QUOTED_STRING'], (str) => new Ast.Value.String(str.value)]],
+                         [['QUOTED_STRING'], (str) => new Ast.Value.String(str.value)],
+                         [['"', '$word_list', '"'], (_1, str, _2) => new Ast.Value.String(str)],
+                         ],
+
+    '$word_list': [[['WORD'], (word) => word.value],
+                   [['$word_list', 'WORD'], (list, word) => list + word.value]],
 
     // play fast and loose with units here, because I don't want to write
     // everything by hand
@@ -24869,7 +24999,14 @@ module.exports = {
     // to the parameter anyway)
     '$constant_Enum': [[['ENUM'], (venum) => new Ast.Value.Enum(venum.value)]],
 
-    '$constant_Entity(unknown)': [[['GENERIC_ENTITY'], (entity) => new Ast.Value.Entity(entity.value.value, entity.value.type, entity.value.display)]],
+    '$constant_Entity(unknown)': [[['GENERIC_ENTITY'], (entity) => new Ast.Value.Entity(entity.value.value, entity.value.type, entity.value.display)],
+                                  [['"', '$word_list', '"', 'ENTITY_TYPE'], (_1, str, _2, type) => {
+                                    if (type.value === 'tt:hashtag' || type.value === 'tt:username')
+                                        return new Ast.Value.Entity(str, type.value, null);
+                                    else
+                                        return new Ast.Value.Entity(null, type.value, str);
+                                    }]
+                                  ],
 
     '$constant_Entity(tt:username)': [[['USERNAME'], (entity) => new Ast.Value.Entity(entity.value, 'tt:username', null)]],
 
@@ -24889,12 +25026,11 @@ module.exports = {
 
     '$constant_Entity(tt:picture)': [[['PICTURE'], (entity) => new Ast.Value.Entity(entity.value, 'tt:picture', null)]],
 };
-
-const TERMINAL_IDS = {"0":7,"1":8,"\"\"":0,"(":1,")":2,"*":3,"+":4,",":5,"-":6,":":9,"<":10,"<<EOF>>":11,"<=":12,"=":13,"==":14,"=>":15,"=~":16,">":17,">=":18,"CLASS_STAR":19,"CURRENCY":20,"DATE":21,"DEVICE":22,"DURATION":23,"EMAIL_ADDRESS":24,"ENUM":25,"FUNCTION":26,"GENERIC_ENTITY":27,"HASHTAG":28,"LOCATION":29,"NUMBER":30,"PARAM_NAME":31,"PATH_NAME":32,"PHONE_NUMBER":33,"PICTURE":34,"QUOTED_STRING":35,"SLOT":36,"TIME":37,"UNIT":38,"URL":39,"USERNAME":40,"[":41,"]":42,"aggregate":43,"and":44,"answer":45,"argmax":46,"argmin":47,"attimer":48,"avg":49,"base":50,"contains":51,"count":52,"edge":53,"end_of":54,"ends_with":55,"event":56,"executor":57,"false":58,"filter":59,"history":60,"in_array":61,"interval":62,"join":63,"location:current_location":64,"location:home":65,"location:work":66,"max":67,"min":68,"monitor":69,"new":70,"not":71,"notify":72,"now":73,"of":74,"on":75,"or":76,"policy":77,"prefix_of":78,"return":79,"sequence":80,"start_of":81,"starts_with":82,"suffix_of":83,"sum":84,"time":85,"timer":86,"timeseries":87,"true":88,"window":89,"{":90,"}":91,"~=":92};
-const RULE_NON_TERMINALS = [29,29,29,29,37,37,34,34,35,35,35,36,36,36,36,38,38,38,38,41,41,41,41,41,41,41,41,41,41,41,41,41,41,42,42,39,39,39,39,39,39,39,39,40,40,1,1,1,3,3,33,33,4,31,32,32,28,28,30,30,30,2,2,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,27,27,7,7,25,25,22,22,23,23,24,24,24,8,21,21,21,21,9,9,9,9,9,9,26,20,19,18,13,17,15,11,14,10,12,16,0];
-const ARITY = [1,2,2,2,1,5,3,3,3,3,3,1,1,1,3,3,5,3,3,1,5,7,7,7,7,6,10,10,1,8,8,8,8,7,3,8,4,4,7,9,6,6,1,7,3,1,1,1,1,2,3,3,3,1,1,3,1,3,1,2,3,2,4,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,3,1,1,1,1,2,3,1,1,1,1,1,1,1,1,1,1,1,2,2,1,3,3,1,1,1,1,1,1,1,1,1,1,1,1,2];
-const GOTO = [{"29":2,"37":9,"38":1,"39":7,"40":14},{},{},{"5":18,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27},{"2":71,"3":74,"28":69,"30":70},{"2":71,"3":74,"28":77,"30":70,"34":76},{},{},{},{},{},{},{},{},{},{"39":88,"40":14},{"33":89},{},{},{},{},{"24":91},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{"5":98,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"27":97},{},{},{},{"2":101,"3":74},{"43":103},{"4":117},{},{},{},{},{"18":121},{"1":122,"3":125},{"1":130,"3":128,"41":127,"42":131},{},{},{"3":140,"41":139,"42":131},{"39":141,"40":14},{"33":142},{},{},{},{},{},{},{"22":148,"23":147,"24":150},{"22":148,"23":151,"24":150},{},{},{},{},{"2":71,"3":74,"30":154},{"2":155,"3":74},{},{"6":156,"31":157},{},{"5":159,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":160},{"5":161,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":162},{"5":163,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":164},{"5":165,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":166},{"5":167,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":168},{"5":169,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":170},{"5":171,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":172},{"5":173,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":174},{"5":175,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":176},{"5":177,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":178},{"5":179,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":180},{"5":181,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":182},{"2":71,"3":74,"28":183,"30":70},{},{},{"35":185,"36":187},{"35":191,"36":187},{},{},{},{},{"4":117},{},{},{"4":117},{"3":140,"41":202,"42":131},{},{},{"24":204},{"9":205},{"24":206},{"9":207},{"9":208},{"26":209},{},{},{"4":117},{},{},{"3":140,"41":212,"42":131},{},{"31":214},{},{},{"24":91},{},{},{},{},{"5":216,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{"5":218,"6":45,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27},{},{},{},{},{},{},{},{"38":222,"39":7,"40":14},{"31":223},{"31":224},{"31":225},{"31":226},{},{"31":228},{"31":229},{"1":230,"3":125},{},{},{"33":232},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{"36":242},{"36":244},{"2":71,"3":74,"28":245,"30":70},{},{},{},{},{},{},{"24":251},{"24":252},{},{},{},{"24":255},{"22":148,"23":256,"24":150},{"24":257},{"22":148,"23":258,"24":150},{},{},{"2":71,"3":74,"28":261,"30":70},{},{"3":140,"41":263,"42":131},{},{},{},{},{},{},{},{},{"3":140,"41":268,"42":131},{},{},{"2":71,"3":74,"28":271,"30":70},{},{},{},{},{},{},{"31":279},{},{},{},{"3":140,"41":281,"42":131},{"3":140,"41":282,"42":131},{"3":140,"41":283,"42":131},{"3":140,"41":284,"42":131},{},{"24":286},{"24":287},{},{"3":140,"41":288,"42":131},{},{},{},{},{"22":148,"23":293,"24":150},{"31":295,"32":294},{},{},{},{},{},{},{},{},{},{},{"39":303,"40":14},{"39":304,"40":14},{"3":140,"41":305,"42":131},{"3":140,"41":306,"42":131},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{"31":315},{"3":140,"41":316,"42":131},{"3":140,"41":317,"42":131},{},{},{},{},{},{},{},{},{}];
-const PARSER_ACTION = [{"1":[1,15],"45":[1,3],"48":[1,11],"53":[1,13],"57":[1,6],"59":[1,4],"69":[1,12],"73":[1,8],"77":[1,5],"86":[1,10]},{"11":[2,4],"75":[1,16]},{"11":[0]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"26":[1,75],"31":[1,73],"71":[1,72]},{"26":[1,75],"31":[1,73],"71":[1,72],"88":[1,78]},{"13":[1,79]},{"15":[1,80]},{"15":[1,81]},{"11":[2,0]},{"50":[1,82]},{"85":[1,83]},{"1":[1,84]},{"1":[1,85]},{"2":[2,42],"15":[2,42],"75":[1,86]},{"1":[1,15],"48":[1,11],"53":[1,13],"69":[1,87],"86":[1,10]},{"31":[1,90]},{"2":[2,144],"5":[2,144],"9":[2,144],"11":[2,144],"15":[2,144],"31":[2,144],"42":[2,144],"44":[2,144],"75":[2,144],"76":[2,144],"90":[2,144],"91":[2,144]},{"11":[2,1]},{"2":[2,90],"5":[2,90],"9":[2,90],"11":[2,90],"15":[2,90],"31":[2,90],"42":[2,90],"44":[2,90],"75":[2,90],"76":[2,90],"90":[2,90],"91":[2,90]},{"2":[2,91],"5":[2,91],"9":[2,91],"11":[2,91],"15":[2,91],"31":[2,91],"42":[2,91],"44":[2,91],"75":[2,91],"76":[2,91],"90":[2,91],"91":[2,91]},{"2":[2,92],"5":[2,92],"7":[1,63],"8":[1,62],"9":[2,92],"11":[2,92],"15":[2,92],"30":[1,61],"31":[2,92],"42":[2,92],"44":[2,92],"75":[2,92],"76":[2,92],"90":[2,92],"91":[2,92]},{"2":[2,93],"5":[2,93],"9":[2,93],"11":[2,93],"15":[2,93],"31":[2,93],"42":[2,93],"44":[2,93],"75":[2,93],"76":[2,93],"90":[2,93],"91":[2,93]},{"2":[2,94],"5":[2,94],"9":[2,94],"11":[2,94],"15":[2,94],"31":[2,94],"38":[1,92],"42":[2,94],"44":[2,94],"75":[2,94],"76":[2,94],"90":[2,94],"91":[2,94]},{"2":[2,95],"5":[2,95],"9":[2,95],"11":[2,95],"15":[2,95],"31":[2,95],"42":[2,95],"44":[2,95],"75":[2,95],"76":[2,95],"90":[2,95],"91":[2,95]},{"2":[2,96],"5":[2,96],"9":[2,96],"11":[2,96],"15":[2,96],"31":[2,96],"42":[2,96],"44":[2,96],"75":[2,96],"76":[2,96],"90":[2,96],"91":[2,96]},{"2":[2,97],"4":[1,93],"5":[2,97],"6":[1,94],"9":[2,97],"11":[2,97],"15":[2,97],"31":[2,97],"42":[2,97],"44":[2,97],"75":[2,97],"76":[2,97],"90":[2,97],"91":[2,97]},{"2":[2,98],"5":[2,98],"9":[2,98],"11":[2,98],"15":[2,98],"31":[2,98],"42":[2,98],"44":[2,98],"75":[2,98],"76":[2,98],"90":[2,98],"91":[2,98]},{"2":[2,99],"5":[2,99],"9":[2,99],"11":[2,99],"15":[2,99],"31":[2,99],"42":[2,99],"44":[2,99],"75":[2,99],"76":[2,99],"90":[2,99],"91":[2,99]},{"2":[2,100],"5":[2,100],"9":[2,100],"11":[2,100],"15":[2,100],"31":[2,100],"42":[2,100],"44":[2,100],"75":[2,100],"76":[2,100],"90":[2,100],"91":[2,100]},{"2":[2,101],"5":[2,101],"9":[2,101],"11":[2,101],"15":[2,101],"31":[2,101],"42":[2,101],"44":[2,101],"75":[2,101],"76":[2,101],"90":[2,101],"91":[2,101]},{"2":[2,102],"5":[2,102],"9":[2,102],"11":[2,102],"15":[2,102],"31":[2,102],"42":[2,102],"44":[2,102],"75":[2,102],"76":[2,102],"90":[2,102],"91":[2,102]},{"2":[2,103],"5":[2,103],"9":[2,103],"11":[2,103],"15":[2,103],"31":[2,103],"42":[2,103],"44":[2,103],"75":[2,103],"76":[2,103],"90":[2,103],"91":[2,103]},{"2":[2,104],"5":[2,104],"9":[2,104],"11":[2,104],"15":[2,104],"31":[2,104],"42":[2,104],"44":[2,104],"75":[2,104],"76":[2,104],"90":[2,104],"91":[2,104]},{"2":[2,105],"5":[2,105],"9":[2,105],"11":[2,105],"15":[2,105],"31":[2,105],"42":[2,105],"44":[2,105],"75":[2,105],"76":[2,105],"90":[2,105],"91":[2,105]},{"2":[2,106],"5":[2,106],"9":[2,106],"11":[2,106],"15":[2,106],"31":[2,106],"42":[2,106],"44":[2,106],"75":[2,106],"76":[2,106],"90":[2,106],"91":[2,106]},{"2":[2,107],"5":[2,107],"9":[2,107],"11":[2,107],"15":[2,107],"31":[2,107],"42":[2,107],"44":[2,107],"75":[2,107],"76":[2,107],"90":[2,107],"91":[2,107]},{"2":[2,108],"5":[2,108],"9":[2,108],"11":[2,108],"15":[2,108],"31":[2,108],"42":[2,108],"44":[2,108],"75":[2,108],"76":[2,108],"90":[2,108],"91":[2,108]},{"2":[2,109],"5":[2,109],"9":[2,109],"11":[2,109],"15":[2,109],"31":[2,109],"42":[2,109],"44":[2,109],"75":[2,109],"76":[2,109],"90":[2,109],"91":[2,109]},{"2":[2,110],"5":[2,110],"9":[2,110],"11":[2,110],"15":[2,110],"31":[2,110],"42":[2,110],"44":[2,110],"75":[2,110],"76":[2,110],"90":[2,110],"91":[2,110]},{"2":[2,137],"5":[2,137],"9":[2,137],"11":[2,137],"15":[2,137],"31":[2,137],"42":[2,137],"44":[2,137],"75":[2,137],"76":[2,137],"90":[2,137],"91":[2,137]},{"2":[2,147],"5":[2,147],"9":[2,147],"11":[2,147],"15":[2,147],"31":[2,147],"42":[2,147],"44":[2,147],"75":[2,147],"76":[2,147],"90":[2,147],"91":[2,147]},{"2":[2,146],"5":[2,146],"9":[2,146],"11":[2,146],"15":[2,146],"31":[2,146],"42":[2,146],"44":[2,146],"75":[2,146],"76":[2,146],"90":[2,146],"91":[2,146]},{"2":[2,145],"5":[2,145],"9":[2,145],"11":[2,145],"15":[2,145],"31":[2,145],"42":[2,145],"44":[2,145],"75":[2,145],"76":[2,145],"90":[2,145],"91":[2,145]},{"2":[2,141],"5":[2,141],"9":[2,141],"11":[2,141],"15":[2,141],"31":[2,141],"42":[2,141],"44":[2,141],"75":[2,141],"76":[2,141],"90":[2,141],"91":[2,141]},{"2":[2,89],"5":[2,89],"9":[2,89],"11":[2,89],"15":[2,89],"31":[2,89],"42":[2,89],"44":[2,89],"75":[2,89],"76":[2,89],"90":[2,89],"91":[2,89]},{"2":[2,143],"5":[2,143],"9":[2,143],"11":[2,143],"15":[2,143],"31":[2,143],"42":[2,143],"44":[2,143],"75":[2,143],"76":[2,143],"90":[2,143],"91":[2,143]},{"2":[2,142],"5":[2,142],"9":[2,142],"11":[2,142],"15":[2,142],"31":[2,142],"42":[2,142],"44":[2,142],"75":[2,142],"76":[2,142],"90":[2,142],"91":[2,142]},{"2":[2,140],"5":[2,140],"9":[2,140],"11":[2,140],"15":[2,140],"31":[2,140],"42":[2,140],"44":[2,140],"75":[2,140],"76":[2,140],"90":[2,140],"91":[2,140]},{"2":[2,139],"5":[2,139],"9":[2,139],"11":[2,139],"15":[2,139],"31":[2,139],"42":[2,139],"44":[2,139],"75":[2,139],"76":[2,139],"90":[2,139],"91":[2,139]},{"2":[2,138],"5":[2,138],"9":[2,138],"11":[2,138],"15":[2,138],"31":[2,138],"42":[2,138],"44":[2,138],"75":[2,138],"76":[2,138],"90":[2,138],"91":[2,138]},{"2":[2,136],"5":[2,136],"9":[2,136],"11":[2,136],"15":[2,136],"31":[2,136],"42":[2,136],"44":[2,136],"75":[2,136],"76":[2,136],"90":[2,136],"91":[2,136]},{"2":[2,130],"4":[2,130],"5":[2,130],"6":[2,130],"9":[2,130],"11":[2,130],"15":[2,130],"31":[2,130],"42":[2,130],"44":[2,130],"75":[2,130],"76":[2,130],"90":[2,130],"91":[2,130]},{"38":[1,95]},{"38":[1,96]},{"2":[2,133],"4":[2,133],"5":[2,133],"6":[2,133],"9":[2,133],"11":[2,133],"15":[2,133],"31":[2,133],"42":[2,133],"44":[2,133],"75":[2,133],"76":[2,133],"90":[2,133],"91":[2,133]},{"2":[2,126],"5":[2,126],"9":[2,126],"11":[2,126],"15":[2,126],"31":[2,126],"42":[2,126],"44":[2,126],"75":[2,126],"76":[2,126],"90":[2,126],"91":[2,126]},{"2":[2,127],"5":[2,127],"9":[2,127],"11":[2,127],"15":[2,127],"31":[2,127],"42":[2,127],"44":[2,127],"75":[2,127],"76":[2,127],"90":[2,127],"91":[2,127]},{"2":[2,128],"5":[2,128],"9":[2,128],"11":[2,128],"15":[2,128],"31":[2,128],"42":[2,128],"44":[2,128],"75":[2,128],"76":[2,128],"90":[2,128],"91":[2,128]},{"2":[2,129],"5":[2,129],"9":[2,129],"11":[2,129],"15":[2,129],"31":[2,129],"42":[2,129],"44":[2,129],"75":[2,129],"76":[2,129],"90":[2,129],"91":[2,129]},{"2":[2,125],"5":[2,125],"9":[2,125],"11":[2,125],"15":[2,125],"31":[2,125],"42":[2,125],"44":[2,125],"75":[2,125],"76":[2,125],"90":[2,125],"91":[2,125]},{"2":[2,122],"5":[2,122],"9":[2,122],"11":[2,122],"15":[2,122],"31":[2,122],"38":[2,122],"42":[2,122],"44":[2,122],"74":[2,122],"75":[2,122],"76":[2,122],"90":[2,122],"91":[2,122]},{"2":[2,123],"5":[2,123],"9":[2,123],"11":[2,123],"15":[2,123],"31":[2,123],"38":[2,123],"42":[2,123],"44":[2,123],"74":[2,123],"75":[2,123],"76":[2,123],"90":[2,123],"91":[2,123]},{"2":[2,124],"5":[2,124],"9":[2,124],"11":[2,124],"15":[2,124],"31":[2,124],"38":[2,124],"42":[2,124],"44":[2,124],"74":[2,124],"75":[2,124],"76":[2,124],"90":[2,124],"91":[2,124]},{"2":[2,116],"5":[2,116],"9":[2,116],"11":[2,116],"15":[2,116],"31":[2,116],"42":[2,116],"44":[2,116],"75":[2,116],"76":[2,116],"90":[2,116],"91":[2,116]},{"2":[2,117],"5":[2,117],"9":[2,117],"11":[2,117],"15":[2,117],"31":[2,117],"42":[2,117],"44":[2,117],"75":[2,117],"76":[2,117],"90":[2,117],"91":[2,117]},{"2":[2,114],"5":[2,114],"9":[2,114],"11":[2,114],"15":[2,114],"31":[2,114],"42":[2,114],"44":[2,114],"75":[2,114],"76":[2,114],"90":[2,114],"91":[2,114]},{"2":[2,115],"5":[2,115],"9":[2,115],"11":[2,115],"15":[2,115],"31":[2,115],"42":[2,115],"44":[2,115],"75":[2,115],"76":[2,115],"90":[2,115],"91":[2,115]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"11":[2,2],"44":[1,99]},{"2":[2,56],"9":[2,56],"11":[2,56],"15":[2,56],"44":[2,56],"76":[1,100],"91":[2,56]},{"2":[2,58],"9":[2,58],"11":[2,58],"15":[2,58],"44":[2,58],"76":[2,58],"91":[2,58]},{"26":[1,75],"31":[1,73]},{"10":[1,107],"12":[1,105],"14":[1,115],"16":[1,108],"17":[1,106],"18":[1,104],"51":[1,114],"55":[1,111],"61":[1,102],"78":[1,112],"82":[1,110],"83":[1,113],"92":[1,109]},{"31":[1,118],"90":[1,116]},{"2":[2,48],"11":[2,48],"15":[2,48],"31":[2,48],"75":[2,48],"90":[2,48]},{"11":[2,3]},{"9":[1,119],"44":[1,99]},{"9":[1,120]},{"40":[1,49]},{"26":[1,75],"72":[1,123],"79":[1,124]},{"1":[1,129],"26":[1,75],"43":[1,126],"60":[1,135],"72":[1,123],"79":[1,124],"80":[1,134],"87":[1,133],"89":[1,132]},{"13":[1,136]},{"13":[1,137]},{"1":[1,129],"26":[1,75],"43":[1,138],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"1":[1,15],"48":[1,11],"53":[1,13],"69":[1,87],"86":[1,10]},{"31":[1,90]},{"1":[1,143]},{"2":[1,144]},{"11":[2,18],"75":[2,18]},{"13":[1,145]},{"38":[1,146]},{"2":[2,118],"4":[2,118],"5":[2,118],"6":[2,118],"7":[2,118],"8":[2,118],"9":[2,118],"11":[2,118],"15":[2,118],"30":[2,118],"31":[2,118],"42":[2,118],"44":[2,118],"74":[2,118],"75":[2,118],"76":[2,118],"90":[2,118],"91":[2,118]},{"7":[1,63],"8":[1,62],"23":[1,149],"30":[1,61]},{"7":[1,63],"8":[1,62],"23":[1,149],"30":[1,61]},{"2":[2,131],"4":[2,131],"5":[2,131],"6":[2,131],"9":[2,131],"11":[2,131],"15":[2,131],"31":[2,131],"42":[2,131],"44":[2,131],"75":[2,131],"76":[2,131],"90":[2,131],"91":[2,131]},{"2":[2,132],"4":[2,132],"5":[2,132],"6":[2,132],"9":[2,132],"11":[2,132],"15":[2,132],"31":[2,132],"42":[2,132],"44":[2,132],"75":[2,132],"76":[2,132],"90":[2,132],"91":[2,132]},{"5":[1,153],"42":[1,152]},{"5":[2,112],"42":[2,112]},{"26":[1,75],"31":[1,73],"71":[1,72]},{"26":[1,75],"31":[1,73]},{"2":[2,59],"9":[2,59],"11":[2,59],"15":[2,59],"44":[2,59],"76":[2,59],"91":[2,59]},{"31":[1,158],"41":[1,68]},{"2":[2,61],"9":[2,61],"11":[2,61],"15":[2,61],"44":[2,61],"76":[2,61],"91":[2,61]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"31":[1,158],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"26":[1,75],"31":[1,73],"71":[1,72]},{"2":[2,49],"11":[2,49],"15":[2,49],"31":[2,49],"75":[2,49],"90":[2,49]},{"13":[1,184]},{"3":[1,188],"19":[1,189],"26":[1,190],"73":[1,186]},{"3":[1,188],"19":[1,189],"26":[1,190],"73":[1,186]},{"9":[1,192]},{"11":[2,15],"75":[2,15]},{"11":[2,45],"75":[2,45]},{"11":[2,46],"75":[2,46]},{"11":[2,47],"31":[1,118],"75":[2,47]},{"46":[1,199],"47":[1,198],"49":[1,196],"52":[1,197],"67":[1,195],"68":[1,194],"84":[1,193]},{"15":[1,200]},{"2":[2,19],"11":[2,47],"15":[2,19],"31":[1,118],"75":[2,47]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"11":[2,17],"75":[2,17]},{"2":[2,28],"15":[2,28],"75":[1,203]},{"7":[1,63],"8":[1,62],"30":[1,61]},{"21":[1,55],"54":[1,54],"73":[1,52],"81":[1,53]},{"7":[1,63],"8":[1,62],"30":[1,61]},{"21":[1,55],"54":[1,54],"73":[1,52],"81":[1,53]},{"21":[1,55],"54":[1,54],"73":[1,52],"81":[1,53]},{"37":[1,51]},{"46":[1,199],"47":[1,198],"49":[1,196],"52":[1,197],"67":[1,195],"68":[1,194],"84":[1,193]},{"2":[1,210]},{"2":[2,19],"15":[2,19],"31":[1,118]},{"2":[1,211]},{"2":[2,44],"15":[2,44],"75":[2,44]},{"1":[1,129],"26":[1,75],"43":[1,138],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"63":[1,213]},{"31":[1,158],"56":[1,215]},{"2":[2,119],"4":[2,119],"5":[2,119],"6":[2,119],"7":[2,119],"8":[2,119],"9":[2,119],"11":[2,119],"15":[2,119],"30":[2,119],"31":[2,119],"42":[2,119],"44":[2,119],"74":[2,119],"75":[2,119],"76":[2,119],"90":[2,119],"91":[2,119]},{"2":[2,134],"4":[2,134],"5":[2,134],"6":[2,134],"9":[2,134],"11":[2,134],"15":[2,134],"31":[2,134],"42":[2,134],"44":[2,134],"75":[2,134],"76":[2,134],"90":[2,134],"91":[2,134]},{"2":[2,120],"4":[2,120],"5":[2,120],"6":[2,120],"7":[1,63],"8":[1,62],"9":[2,120],"11":[2,120],"15":[2,120],"30":[1,61],"31":[2,120],"42":[2,120],"44":[2,120],"74":[2,120],"75":[2,120],"76":[2,120],"90":[2,120],"91":[2,120]},{"2":[2,121],"4":[2,121],"5":[2,121],"6":[2,121],"9":[2,121],"11":[2,121],"15":[2,121],"31":[2,121],"42":[2,121],"44":[2,121],"74":[2,121],"75":[2,121],"76":[2,121],"90":[2,121],"91":[2,121]},{"38":[1,92]},{"2":[2,135],"4":[2,135],"5":[2,135],"6":[2,135],"9":[2,135],"11":[2,135],"15":[2,135],"31":[2,135],"42":[2,135],"44":[2,135],"75":[2,135],"76":[2,135],"90":[2,135],"91":[2,135]},{"2":[2,111],"5":[2,111],"9":[2,111],"11":[2,111],"15":[2,111],"31":[2,111],"42":[2,111],"44":[2,111],"75":[2,111],"76":[2,111],"90":[2,111],"91":[2,111]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"2":[2,57],"9":[2,57],"11":[2,57],"15":[2,57],"44":[2,57],"76":[1,100],"91":[2,57]},{"2":[2,60],"9":[2,60],"11":[2,60],"15":[2,60],"44":[2,60],"76":[2,60],"91":[2,60]},{"2":[2,75],"9":[2,75],"11":[2,75],"15":[2,75],"44":[2,75],"76":[2,75],"91":[2,75]},{"2":[2,88],"9":[2,88],"11":[2,88],"15":[2,88],"44":[2,88],"76":[2,88],"91":[2,88]},{"2":[2,53],"5":[2,53],"7":[2,53],"8":[2,53],"9":[2,53],"11":[2,53],"15":[2,53],"30":[2,53],"42":[2,53],"44":[2,53],"74":[2,53],"75":[2,53],"76":[2,53],"91":[2,53]},{"2":[2,64],"9":[2,64],"11":[2,64],"15":[2,64],"44":[2,64],"76":[2,64],"91":[2,64]},{"2":[2,77],"9":[2,77],"11":[2,77],"15":[2,77],"44":[2,77],"76":[2,77],"91":[2,77]},{"2":[2,65],"9":[2,65],"11":[2,65],"15":[2,65],"44":[2,65],"76":[2,65],"91":[2,65]},{"2":[2,78],"9":[2,78],"11":[2,78],"15":[2,78],"44":[2,78],"76":[2,78],"91":[2,78]},{"2":[2,66],"9":[2,66],"11":[2,66],"15":[2,66],"44":[2,66],"76":[2,66],"91":[2,66]},{"2":[2,79],"9":[2,79],"11":[2,79],"15":[2,79],"44":[2,79],"76":[2,79],"91":[2,79]},{"2":[2,67],"9":[2,67],"11":[2,67],"15":[2,67],"44":[2,67],"76":[2,67],"91":[2,67]},{"2":[2,80],"9":[2,80],"11":[2,80],"15":[2,80],"44":[2,80],"76":[2,80],"91":[2,80]},{"2":[2,68],"9":[2,68],"11":[2,68],"15":[2,68],"44":[2,68],"76":[2,68],"91":[2,68]},{"2":[2,81],"9":[2,81],"11":[2,81],"15":[2,81],"44":[2,81],"76":[2,81],"91":[2,81]},{"2":[2,69],"9":[2,69],"11":[2,69],"15":[2,69],"44":[2,69],"76":[2,69],"91":[2,69]},{"2":[2,82],"9":[2,82],"11":[2,82],"15":[2,82],"44":[2,82],"76":[2,82],"91":[2,82]},{"2":[2,70],"9":[2,70],"11":[2,70],"15":[2,70],"44":[2,70],"76":[2,70],"91":[2,70]},{"2":[2,83],"9":[2,83],"11":[2,83],"15":[2,83],"44":[2,83],"76":[2,83],"91":[2,83]},{"2":[2,71],"9":[2,71],"11":[2,71],"15":[2,71],"44":[2,71],"76":[2,71],"91":[2,71]},{"2":[2,84],"9":[2,84],"11":[2,84],"15":[2,84],"44":[2,84],"76":[2,84],"91":[2,84]},{"2":[2,72],"9":[2,72],"11":[2,72],"15":[2,72],"44":[2,72],"76":[2,72],"91":[2,72]},{"2":[2,85],"9":[2,85],"11":[2,85],"15":[2,85],"44":[2,85],"76":[2,85],"91":[2,85]},{"2":[2,73],"9":[2,73],"11":[2,73],"15":[2,73],"44":[2,73],"76":[2,73],"91":[2,73]},{"2":[2,86],"9":[2,86],"11":[2,86],"15":[2,86],"44":[2,86],"76":[2,86],"91":[2,86]},{"2":[2,74],"9":[2,74],"11":[2,74],"15":[2,74],"44":[2,74],"76":[2,74],"91":[2,74]},{"2":[2,87],"9":[2,87],"11":[2,87],"15":[2,87],"44":[2,87],"76":[2,87],"91":[2,87]},{"2":[2,63],"9":[2,63],"11":[2,63],"15":[2,63],"44":[2,63],"76":[2,63],"91":[2,63]},{"2":[2,76],"9":[2,76],"11":[2,76],"15":[2,76],"44":[2,76],"76":[2,76],"91":[2,76]},{"44":[1,99],"91":[1,217]},{"0":[1,64],"7":[1,63],"8":[1,62],"20":[1,60],"21":[1,55],"22":[1,43],"23":[1,22],"24":[1,46],"25":[1,40],"26":[1,42],"27":[1,50],"28":[1,48],"29":[1,59],"30":[1,61],"32":[1,17],"33":[1,47],"34":[1,41],"35":[1,65],"36":[1,39],"37":[1,51],"39":[1,44],"40":[1,49],"41":[1,68],"54":[1,54],"58":[1,67],"64":[1,56],"65":[1,57],"66":[1,58],"73":[1,52],"81":[1,53],"88":[1,66]},{"11":[2,7]},{"15":[1,219]},{"15":[1,220]},{"11":[2,11],"15":[2,11]},{"11":[2,12],"15":[2,12]},{"11":[2,13],"15":[2,13],"59":[1,221]},{"11":[2,6]},{"1":[1,15],"48":[1,11],"53":[1,13],"69":[1,12],"73":[1,8],"86":[1,10]},{"31":[1,158]},{"31":[1,158]},{"31":[1,158]},{"31":[1,158]},{"74":[1,227]},{"31":[1,158]},{"31":[1,158]},{"26":[1,75],"72":[1,123],"79":[1,124]},{"46":[1,199],"47":[1,198],"49":[1,196],"52":[1,197],"67":[1,195],"68":[1,194],"84":[1,193]},{"2":[1,231]},{"31":[1,90]},{"5":[1,233]},{"4":[1,93],"5":[1,234],"6":[1,94]},{"5":[1,235]},{"4":[1,93],"5":[1,236],"6":[1,94]},{"4":[1,93],"5":[1,237],"6":[1,94]},{"2":[2,36],"15":[2,36]},{"2":[2,37],"15":[2,37],"75":[1,238]},{"75":[1,239]},{"2":[1,240]},{"1":[1,241]},{"2":[2,50],"11":[2,50],"15":[2,50],"75":[2,50]},{"2":[2,51],"11":[2,51],"15":[2,51],"75":[2,51]},{"5":[2,113],"42":[2,113]},{"2":[2,62],"9":[2,62],"11":[2,62],"15":[2,62],"44":[2,62],"76":[2,62],"91":[2,62]},{"2":[2,52],"11":[2,52],"15":[2,52],"31":[2,52],"75":[2,52],"90":[2,52]},{"3":[1,188],"19":[1,189],"26":[1,190]},{"3":[1,188],"19":[1,189],"26":[1,190],"72":[1,243]},{"26":[1,75],"31":[1,73],"71":[1,72]},{"11":[2,5],"75":[1,16]},{"74":[1,246]},{"74":[1,247]},{"74":[1,248]},{"74":[1,249]},{"1":[1,250]},{"7":[1,63],"8":[1,62],"30":[1,61]},{"7":[1,63],"8":[1,62],"30":[1,61]},{"11":[2,16],"75":[2,16]},{"59":[1,253],"63":[1,254]},{"2":[2,34],"15":[2,34],"75":[2,34]},{"7":[1,63],"8":[1,62],"30":[1,61]},{"7":[1,63],"8":[1,62],"23":[1,149],"30":[1,61]},{"7":[1,63],"8":[1,62],"30":[1,61]},{"7":[1,63],"8":[1,62],"23":[1,149],"30":[1,61]},{"62":[1,259]},{"70":[1,260]},{"26":[1,75],"31":[1,73],"71":[1,72],"88":[1,262]},{"2":[2,37],"15":[2,37],"75":[1,238]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"11":[2,8]},{"11":[2,9]},{"11":[2,10]},{"11":[2,14],"15":[2,14],"44":[1,99]},{"1":[1,264]},{"1":[1,265]},{"1":[1,266]},{"1":[1,267]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"5":[1,269]},{"5":[1,270]},{"26":[1,75],"31":[1,73],"71":[1,72]},{"1":[1,272]},{"74":[1,273]},{"74":[1,274]},{"74":[1,275]},{"74":[1,276]},{"13":[1,277]},{"31":[1,158],"41":[1,278]},{"2":[2,40],"15":[2,40],"44":[1,99]},{"2":[2,41],"15":[2,41]},{"2":[1,280]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"2":[1,285]},{"7":[1,63],"8":[1,62],"30":[1,61]},{"7":[1,63],"8":[1,62],"30":[1,61]},{"2":[2,20],"15":[2,20],"44":[1,99]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"1":[1,289]},{"1":[1,290]},{"1":[1,291]},{"1":[1,292]},{"7":[1,63],"8":[1,62],"23":[1,149],"30":[1,61]},{"31":[1,158]},{"2":[2,38],"15":[2,38]},{"2":[2,43],"15":[2,43],"75":[2,43]},{"2":[1,296]},{"2":[1,297]},{"2":[1,298]},{"2":[1,299]},{"2":[2,25],"15":[2,25]},{"74":[1,300]},{"74":[1,301]},{"2":[1,302]},{"1":[1,15],"48":[1,11],"53":[1,13],"69":[1,87],"86":[1,10]},{"1":[1,15],"48":[1,11],"53":[1,13],"69":[1,87],"86":[1,10]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"2":[2,35],"15":[2,35]},{"5":[1,308],"42":[1,307]},{"5":[2,54],"42":[2,54]},{"2":[2,23],"15":[2,23]},{"2":[2,21],"15":[2,21]},{"2":[2,22],"15":[2,22]},{"2":[2,24],"15":[2,24]},{"1":[1,309]},{"1":[1,310]},{"2":[2,33],"15":[2,33],"75":[2,33]},{"2":[1,311]},{"2":[1,312]},{"2":[1,313]},{"2":[1,314]},{"2":[2,39],"15":[2,39]},{"31":[1,158]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"1":[1,129],"26":[1,75],"43":[1,201],"60":[1,135],"80":[1,134],"87":[1,133],"89":[1,132]},{"2":[2,29],"15":[2,29]},{"2":[2,30],"15":[2,30]},{"2":[2,31],"15":[2,31]},{"2":[2,32],"15":[2,32]},{"5":[2,55],"42":[2,55]},{"2":[1,318]},{"2":[1,319]},{"2":[2,26],"15":[2,26]},{"2":[2,27],"15":[2,27]}];
+const TERMINAL_IDS = {"0":8,"1":9,"\"":0,"\"\"":1,"(":2,")":3,"*":4,"+":5,",":6,"-":7,":":10,"<":11,"<<EOF>>":12,"<=":13,"=":14,"==":15,"=>":16,"=~":17,">":18,">=":19,"CLASS_STAR":20,"CURRENCY":21,"DATE":22,"DEVICE":23,"DURATION":24,"EMAIL_ADDRESS":25,"ENTITY_TYPE":26,"ENUM":27,"FUNCTION":28,"GENERIC_ENTITY":29,"HASHTAG":30,"LOCATION":31,"NUMBER":32,"PARAM_NAME":33,"PATH_NAME":34,"PHONE_NUMBER":35,"PICTURE":36,"QUOTED_STRING":37,"SLOT":38,"TIME":39,"UNIT":40,"URL":41,"USERNAME":42,"WORD":43,"[":44,"]":45,"aggregate":46,"and":47,"answer":48,"argmax":49,"argmin":50,"attimer":51,"avg":52,"base":53,"contains":54,"count":55,"edge":56,"end_of":57,"ends_with":58,"event":59,"executor":60,"false":61,"filter":62,"history":63,"in_array":64,"interval":65,"join":66,"location:current_location":67,"location:home":68,"location:work":69,"max":70,"min":71,"monitor":72,"new":73,"not":74,"notify":75,"now":76,"of":77,"on":78,"or":79,"policy":80,"prefix_of":81,"return":82,"sequence":83,"start_of":84,"starts_with":85,"suffix_of":86,"sum":87,"time":88,"timer":89,"timeseries":90,"true":91,"window":92,"{":93,"}":94,"~=":95};
+const RULE_NON_TERMINALS = [29,29,29,29,37,37,34,34,35,35,35,36,36,36,36,38,38,38,38,41,41,41,41,41,41,41,41,41,41,41,41,41,41,42,42,39,39,39,39,39,39,39,39,40,40,1,1,1,3,3,33,33,4,31,32,32,28,28,30,30,30,2,2,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,43,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,27,27,7,7,25,25,25,44,44,22,22,23,23,24,24,24,8,21,21,21,21,9,9,9,9,9,9,26,20,19,19,18,13,17,15,11,14,10,12,16,0];
+const ARITY = [1,2,2,2,1,5,3,3,3,3,3,1,1,1,3,3,5,3,3,1,5,7,7,7,7,6,10,10,1,8,8,8,8,7,3,8,4,4,7,9,6,6,1,7,3,1,1,1,1,2,3,3,3,1,1,3,1,3,1,2,3,2,4,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,3,1,3,1,1,1,1,3,1,2,2,3,1,1,1,1,1,1,1,1,1,1,1,2,2,1,3,3,1,1,1,4,1,1,1,1,1,1,1,1,1,2];
+const GOTO = [{"29":2,"37":9,"38":1,"39":7,"40":14},{},{},{"5":18,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27},{"2":72,"3":75,"28":70,"30":71},{"2":72,"3":75,"28":78,"30":71,"34":77},{},{},{},{},{},{},{},{},{},{"39":89,"40":14},{"33":90},{},{},{},{},{"24":92},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{"44":96},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{"5":101,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"27":100},{},{},{},{"2":104,"3":75},{"43":106},{"4":120},{},{},{},{},{"5":124,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27},{"1":125,"3":128},{"1":133,"3":131,"41":130,"42":134},{},{},{"3":143,"41":142,"42":134},{"39":144,"40":14},{"33":145},{},{},{},{},{},{},{"22":151,"23":150,"24":153},{"22":151,"23":154,"24":153},{},{},{},{},{},{},{"2":72,"3":75,"30":159},{"2":160,"3":75},{},{"6":161,"31":162},{},{"5":164,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":165},{"5":166,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":167},{"5":168,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":169},{"5":170,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":171},{"5":172,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":173},{"5":174,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":175},{"5":176,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":177},{"5":178,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":179},{"5":180,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":181},{"5":182,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":183},{"5":184,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":185},{"5":186,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27,"31":187},{"2":72,"3":75,"28":188,"30":71},{},{},{"35":190,"36":192},{"35":196,"36":192},{},{},{},{},{"4":120},{},{},{"4":120},{"3":143,"41":207,"42":134},{},{},{"24":209},{"9":210},{"24":211},{"9":212},{"9":213},{"26":214},{},{},{"4":120},{},{},{"3":143,"41":217,"42":134},{},{"31":219},{},{},{"24":92},{},{},{},{},{},{},{"5":222,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{"5":224,"6":46,"7":19,"8":24,"9":26,"10":35,"11":32,"12":36,"13":30,"14":33,"15":31,"16":37,"17":34,"18":29,"19":28,"20":38,"21":25,"22":21,"24":23,"25":20,"26":27},{},{},{},{},{},{},{},{"38":228,"39":7,"40":14},{"31":229},{"31":230},{"31":231},{"31":232},{},{"31":234},{"31":235},{"1":236,"3":128},{},{},{"33":238},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{"36":248},{"36":250},{"2":72,"3":75,"28":251,"30":71},{},{},{},{},{},{},{"24":257},{"24":258},{},{},{},{"24":261},{"22":151,"23":262,"24":153},{"24":263},{"22":151,"23":264,"24":153},{},{},{"2":72,"3":75,"28":267,"30":71},{},{"3":143,"41":269,"42":134},{},{},{},{},{},{},{},{},{"3":143,"41":274,"42":134},{},{},{"2":72,"3":75,"28":277,"30":71},{},{},{},{},{},{},{"31":285},{},{},{},{"3":143,"41":287,"42":134},{"3":143,"41":288,"42":134},{"3":143,"41":289,"42":134},{"3":143,"41":290,"42":134},{},{"24":292},{"24":293},{},{"3":143,"41":294,"42":134},{},{},{},{},{"22":151,"23":299,"24":153},{"31":301,"32":300},{},{},{},{},{},{},{},{},{},{},{"39":309,"40":14},{"39":310,"40":14},{"3":143,"41":311,"42":134},{"3":143,"41":312,"42":134},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{"31":321},{"3":143,"41":322,"42":134},{"3":143,"41":323,"42":134},{},{},{},{},{},{},{},{},{}];
+const PARSER_ACTION = [{"2":[1,15],"48":[1,3],"51":[1,11],"56":[1,13],"60":[1,6],"62":[1,4],"72":[1,12],"76":[1,8],"80":[1,5],"89":[1,10]},{"12":[2,4],"78":[1,16]},{"12":[0]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"28":[1,76],"33":[1,74],"74":[1,73]},{"28":[1,76],"33":[1,74],"74":[1,73],"91":[1,79]},{"14":[1,80]},{"16":[1,81]},{"16":[1,82]},{"12":[2,0]},{"53":[1,83]},{"88":[1,84]},{"2":[1,85]},{"2":[1,86]},{"3":[2,42],"16":[2,42],"78":[1,87]},{"2":[1,15],"51":[1,11],"56":[1,13],"72":[1,88],"89":[1,10]},{"33":[1,91]},{"3":[2,147],"6":[2,147],"10":[2,147],"12":[2,147],"16":[2,147],"33":[2,147],"45":[2,147],"47":[2,147],"78":[2,147],"79":[2,147],"93":[2,147],"94":[2,147]},{"12":[2,1]},{"3":[2,90],"6":[2,90],"10":[2,90],"12":[2,90],"16":[2,90],"33":[2,90],"45":[2,90],"47":[2,90],"78":[2,90],"79":[2,90],"93":[2,90],"94":[2,90]},{"3":[2,91],"6":[2,91],"10":[2,91],"12":[2,91],"16":[2,91],"33":[2,91],"45":[2,91],"47":[2,91],"78":[2,91],"79":[2,91],"93":[2,91],"94":[2,91]},{"3":[2,92],"6":[2,92],"8":[1,64],"9":[1,63],"10":[2,92],"12":[2,92],"16":[2,92],"32":[1,62],"33":[2,92],"45":[2,92],"47":[2,92],"78":[2,92],"79":[2,92],"93":[2,92],"94":[2,92]},{"3":[2,93],"6":[2,93],"10":[2,93],"12":[2,93],"16":[2,93],"33":[2,93],"45":[2,93],"47":[2,93],"78":[2,93],"79":[2,93],"93":[2,93],"94":[2,93]},{"3":[2,94],"6":[2,94],"10":[2,94],"12":[2,94],"16":[2,94],"33":[2,94],"40":[1,93],"45":[2,94],"47":[2,94],"78":[2,94],"79":[2,94],"93":[2,94],"94":[2,94]},{"3":[2,95],"6":[2,95],"10":[2,95],"12":[2,95],"16":[2,95],"33":[2,95],"45":[2,95],"47":[2,95],"78":[2,95],"79":[2,95],"93":[2,95],"94":[2,95]},{"3":[2,96],"6":[2,96],"10":[2,96],"12":[2,96],"16":[2,96],"33":[2,96],"45":[2,96],"47":[2,96],"78":[2,96],"79":[2,96],"93":[2,96],"94":[2,96]},{"3":[2,97],"5":[1,94],"6":[2,97],"7":[1,95],"10":[2,97],"12":[2,97],"16":[2,97],"33":[2,97],"45":[2,97],"47":[2,97],"78":[2,97],"79":[2,97],"93":[2,97],"94":[2,97]},{"3":[2,98],"6":[2,98],"10":[2,98],"12":[2,98],"16":[2,98],"33":[2,98],"45":[2,98],"47":[2,98],"78":[2,98],"79":[2,98],"93":[2,98],"94":[2,98]},{"3":[2,99],"6":[2,99],"10":[2,99],"12":[2,99],"16":[2,99],"33":[2,99],"45":[2,99],"47":[2,99],"78":[2,99],"79":[2,99],"93":[2,99],"94":[2,99]},{"3":[2,100],"6":[2,100],"10":[2,100],"12":[2,100],"16":[2,100],"33":[2,100],"45":[2,100],"47":[2,100],"78":[2,100],"79":[2,100],"93":[2,100],"94":[2,100]},{"3":[2,101],"6":[2,101],"10":[2,101],"12":[2,101],"16":[2,101],"33":[2,101],"45":[2,101],"47":[2,101],"78":[2,101],"79":[2,101],"93":[2,101],"94":[2,101]},{"3":[2,102],"6":[2,102],"10":[2,102],"12":[2,102],"16":[2,102],"33":[2,102],"45":[2,102],"47":[2,102],"78":[2,102],"79":[2,102],"93":[2,102],"94":[2,102]},{"3":[2,103],"6":[2,103],"10":[2,103],"12":[2,103],"16":[2,103],"33":[2,103],"45":[2,103],"47":[2,103],"78":[2,103],"79":[2,103],"93":[2,103],"94":[2,103]},{"3":[2,104],"6":[2,104],"10":[2,104],"12":[2,104],"16":[2,104],"33":[2,104],"45":[2,104],"47":[2,104],"78":[2,104],"79":[2,104],"93":[2,104],"94":[2,104]},{"3":[2,105],"6":[2,105],"10":[2,105],"12":[2,105],"16":[2,105],"33":[2,105],"45":[2,105],"47":[2,105],"78":[2,105],"79":[2,105],"93":[2,105],"94":[2,105]},{"3":[2,106],"6":[2,106],"10":[2,106],"12":[2,106],"16":[2,106],"33":[2,106],"45":[2,106],"47":[2,106],"78":[2,106],"79":[2,106],"93":[2,106],"94":[2,106]},{"3":[2,107],"6":[2,107],"10":[2,107],"12":[2,107],"16":[2,107],"33":[2,107],"45":[2,107],"47":[2,107],"78":[2,107],"79":[2,107],"93":[2,107],"94":[2,107]},{"3":[2,108],"6":[2,108],"10":[2,108],"12":[2,108],"16":[2,108],"33":[2,108],"45":[2,108],"47":[2,108],"78":[2,108],"79":[2,108],"93":[2,108],"94":[2,108]},{"3":[2,109],"6":[2,109],"10":[2,109],"12":[2,109],"16":[2,109],"33":[2,109],"45":[2,109],"47":[2,109],"78":[2,109],"79":[2,109],"93":[2,109],"94":[2,109]},{"3":[2,110],"6":[2,110],"10":[2,110],"12":[2,110],"16":[2,110],"33":[2,110],"45":[2,110],"47":[2,110],"78":[2,110],"79":[2,110],"93":[2,110],"94":[2,110]},{"3":[2,140],"6":[2,140],"10":[2,140],"12":[2,140],"16":[2,140],"33":[2,140],"45":[2,140],"47":[2,140],"78":[2,140],"79":[2,140],"93":[2,140],"94":[2,140]},{"3":[2,151],"6":[2,151],"10":[2,151],"12":[2,151],"16":[2,151],"33":[2,151],"45":[2,151],"47":[2,151],"78":[2,151],"79":[2,151],"93":[2,151],"94":[2,151]},{"3":[2,150],"6":[2,150],"10":[2,150],"12":[2,150],"16":[2,150],"33":[2,150],"45":[2,150],"47":[2,150],"78":[2,150],"79":[2,150],"93":[2,150],"94":[2,150]},{"3":[2,149],"6":[2,149],"10":[2,149],"12":[2,149],"16":[2,149],"33":[2,149],"45":[2,149],"47":[2,149],"78":[2,149],"79":[2,149],"93":[2,149],"94":[2,149]},{"3":[2,145],"6":[2,145],"10":[2,145],"12":[2,145],"16":[2,145],"33":[2,145],"45":[2,145],"47":[2,145],"78":[2,145],"79":[2,145],"93":[2,145],"94":[2,145]},{"3":[2,148],"6":[2,148],"10":[2,148],"12":[2,148],"16":[2,148],"33":[2,148],"45":[2,148],"47":[2,148],"78":[2,148],"79":[2,148],"93":[2,148],"94":[2,148]},{"3":[2,89],"6":[2,89],"10":[2,89],"12":[2,89],"16":[2,89],"33":[2,89],"45":[2,89],"47":[2,89],"78":[2,89],"79":[2,89],"93":[2,89],"94":[2,89]},{"3":[2,146],"6":[2,146],"10":[2,146],"12":[2,146],"16":[2,146],"33":[2,146],"45":[2,146],"47":[2,146],"78":[2,146],"79":[2,146],"93":[2,146],"94":[2,146]},{"3":[2,144],"6":[2,144],"10":[2,144],"12":[2,144],"16":[2,144],"33":[2,144],"45":[2,144],"47":[2,144],"78":[2,144],"79":[2,144],"93":[2,144],"94":[2,144]},{"3":[2,143],"6":[2,143],"10":[2,143],"12":[2,143],"16":[2,143],"33":[2,143],"45":[2,143],"47":[2,143],"78":[2,143],"79":[2,143],"93":[2,143],"94":[2,143]},{"3":[2,141],"6":[2,141],"10":[2,141],"12":[2,141],"16":[2,141],"33":[2,141],"45":[2,141],"47":[2,141],"78":[2,141],"79":[2,141],"93":[2,141],"94":[2,141]},{"43":[1,97]},{"3":[2,139],"6":[2,139],"10":[2,139],"12":[2,139],"16":[2,139],"33":[2,139],"45":[2,139],"47":[2,139],"78":[2,139],"79":[2,139],"93":[2,139],"94":[2,139]},{"3":[2,133],"5":[2,133],"6":[2,133],"7":[2,133],"10":[2,133],"12":[2,133],"16":[2,133],"33":[2,133],"45":[2,133],"47":[2,133],"78":[2,133],"79":[2,133],"93":[2,133],"94":[2,133]},{"40":[1,98]},{"40":[1,99]},{"3":[2,136],"5":[2,136],"6":[2,136],"7":[2,136],"10":[2,136],"12":[2,136],"16":[2,136],"33":[2,136],"45":[2,136],"47":[2,136],"78":[2,136],"79":[2,136],"93":[2,136],"94":[2,136]},{"3":[2,129],"6":[2,129],"10":[2,129],"12":[2,129],"16":[2,129],"33":[2,129],"45":[2,129],"47":[2,129],"78":[2,129],"79":[2,129],"93":[2,129],"94":[2,129]},{"3":[2,130],"6":[2,130],"10":[2,130],"12":[2,130],"16":[2,130],"33":[2,130],"45":[2,130],"47":[2,130],"78":[2,130],"79":[2,130],"93":[2,130],"94":[2,130]},{"3":[2,131],"6":[2,131],"10":[2,131],"12":[2,131],"16":[2,131],"33":[2,131],"45":[2,131],"47":[2,131],"78":[2,131],"79":[2,131],"93":[2,131],"94":[2,131]},{"3":[2,132],"6":[2,132],"10":[2,132],"12":[2,132],"16":[2,132],"33":[2,132],"45":[2,132],"47":[2,132],"78":[2,132],"79":[2,132],"93":[2,132],"94":[2,132]},{"3":[2,128],"6":[2,128],"10":[2,128],"12":[2,128],"16":[2,128],"33":[2,128],"45":[2,128],"47":[2,128],"78":[2,128],"79":[2,128],"93":[2,128],"94":[2,128]},{"3":[2,125],"6":[2,125],"10":[2,125],"12":[2,125],"16":[2,125],"33":[2,125],"40":[2,125],"45":[2,125],"47":[2,125],"77":[2,125],"78":[2,125],"79":[2,125],"93":[2,125],"94":[2,125]},{"3":[2,126],"6":[2,126],"10":[2,126],"12":[2,126],"16":[2,126],"33":[2,126],"40":[2,126],"45":[2,126],"47":[2,126],"77":[2,126],"78":[2,126],"79":[2,126],"93":[2,126],"94":[2,126]},{"3":[2,127],"6":[2,127],"10":[2,127],"12":[2,127],"16":[2,127],"33":[2,127],"40":[2,127],"45":[2,127],"47":[2,127],"77":[2,127],"78":[2,127],"79":[2,127],"93":[2,127],"94":[2,127]},{"3":[2,116],"6":[2,116],"10":[2,116],"12":[2,116],"16":[2,116],"33":[2,116],"45":[2,116],"47":[2,116],"78":[2,116],"79":[2,116],"93":[2,116],"94":[2,116]},{"3":[2,117],"6":[2,117],"10":[2,117],"12":[2,117],"16":[2,117],"33":[2,117],"45":[2,117],"47":[2,117],"78":[2,117],"79":[2,117],"93":[2,117],"94":[2,117]},{"3":[2,114],"6":[2,114],"10":[2,114],"12":[2,114],"16":[2,114],"33":[2,114],"45":[2,114],"47":[2,114],"78":[2,114],"79":[2,114],"93":[2,114],"94":[2,114]},{"3":[2,115],"6":[2,115],"10":[2,115],"12":[2,115],"16":[2,115],"33":[2,115],"45":[2,115],"47":[2,115],"78":[2,115],"79":[2,115],"93":[2,115],"94":[2,115]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"12":[2,2],"47":[1,102]},{"3":[2,56],"10":[2,56],"12":[2,56],"16":[2,56],"47":[2,56],"79":[1,103],"94":[2,56]},{"3":[2,58],"10":[2,58],"12":[2,58],"16":[2,58],"47":[2,58],"79":[2,58],"94":[2,58]},{"28":[1,76],"33":[1,74]},{"11":[1,110],"13":[1,108],"15":[1,118],"17":[1,111],"18":[1,109],"19":[1,107],"54":[1,117],"58":[1,114],"64":[1,105],"81":[1,115],"85":[1,113],"86":[1,116],"95":[1,112]},{"33":[1,121],"93":[1,119]},{"3":[2,48],"12":[2,48],"16":[2,48],"33":[2,48],"78":[2,48],"93":[2,48]},{"12":[2,3]},{"10":[1,122],"47":[1,102]},{"10":[1,123]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"28":[1,76],"75":[1,126],"82":[1,127]},{"2":[1,132],"28":[1,76],"46":[1,129],"63":[1,138],"75":[1,126],"82":[1,127],"83":[1,137],"90":[1,136],"92":[1,135]},{"14":[1,139]},{"14":[1,140]},{"2":[1,132],"28":[1,76],"46":[1,141],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"2":[1,15],"51":[1,11],"56":[1,13],"72":[1,88],"89":[1,10]},{"33":[1,91]},{"2":[1,146]},{"3":[1,147]},{"12":[2,18],"78":[2,18]},{"14":[1,148]},{"40":[1,149]},{"3":[2,121],"5":[2,121],"6":[2,121],"7":[2,121],"8":[2,121],"9":[2,121],"10":[2,121],"12":[2,121],"16":[2,121],"32":[2,121],"33":[2,121],"45":[2,121],"47":[2,121],"77":[2,121],"78":[2,121],"79":[2,121],"93":[2,121],"94":[2,121]},{"8":[1,64],"9":[1,63],"24":[1,152],"32":[1,62]},{"8":[1,64],"9":[1,63],"24":[1,152],"32":[1,62]},{"0":[1,155],"43":[1,156]},{"0":[2,119],"43":[2,119]},{"3":[2,134],"5":[2,134],"6":[2,134],"7":[2,134],"10":[2,134],"12":[2,134],"16":[2,134],"33":[2,134],"45":[2,134],"47":[2,134],"78":[2,134],"79":[2,134],"93":[2,134],"94":[2,134]},{"3":[2,135],"5":[2,135],"6":[2,135],"7":[2,135],"10":[2,135],"12":[2,135],"16":[2,135],"33":[2,135],"45":[2,135],"47":[2,135],"78":[2,135],"79":[2,135],"93":[2,135],"94":[2,135]},{"6":[1,158],"45":[1,157]},{"6":[2,112],"45":[2,112]},{"28":[1,76],"33":[1,74],"74":[1,73]},{"28":[1,76],"33":[1,74]},{"3":[2,59],"10":[2,59],"12":[2,59],"16":[2,59],"47":[2,59],"79":[2,59],"94":[2,59]},{"33":[1,163],"44":[1,69]},{"3":[2,61],"10":[2,61],"12":[2,61],"16":[2,61],"47":[2,61],"79":[2,61],"94":[2,61]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"33":[1,163],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"28":[1,76],"33":[1,74],"74":[1,73]},{"3":[2,49],"12":[2,49],"16":[2,49],"33":[2,49],"78":[2,49],"93":[2,49]},{"14":[1,189]},{"4":[1,193],"20":[1,194],"28":[1,195],"76":[1,191]},{"4":[1,193],"20":[1,194],"28":[1,195],"76":[1,191]},{"10":[1,197]},{"12":[2,15],"78":[2,15]},{"12":[2,45],"78":[2,45]},{"12":[2,46],"78":[2,46]},{"12":[2,47],"33":[1,121],"78":[2,47]},{"49":[1,204],"50":[1,203],"52":[1,201],"55":[1,202],"70":[1,200],"71":[1,199],"87":[1,198]},{"16":[1,205]},{"3":[2,19],"12":[2,47],"16":[2,19],"33":[1,121],"78":[2,47]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"12":[2,17],"78":[2,17]},{"3":[2,28],"16":[2,28],"78":[1,208]},{"8":[1,64],"9":[1,63],"32":[1,62]},{"22":[1,56],"57":[1,55],"76":[1,53],"84":[1,54]},{"8":[1,64],"9":[1,63],"32":[1,62]},{"22":[1,56],"57":[1,55],"76":[1,53],"84":[1,54]},{"22":[1,56],"57":[1,55],"76":[1,53],"84":[1,54]},{"39":[1,52]},{"49":[1,204],"50":[1,203],"52":[1,201],"55":[1,202],"70":[1,200],"71":[1,199],"87":[1,198]},{"3":[1,215]},{"3":[2,19],"16":[2,19],"33":[1,121]},{"3":[1,216]},{"3":[2,44],"16":[2,44],"78":[2,44]},{"2":[1,132],"28":[1,76],"46":[1,141],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"66":[1,218]},{"33":[1,163],"59":[1,220]},{"3":[2,122],"5":[2,122],"6":[2,122],"7":[2,122],"8":[2,122],"9":[2,122],"10":[2,122],"12":[2,122],"16":[2,122],"32":[2,122],"33":[2,122],"45":[2,122],"47":[2,122],"77":[2,122],"78":[2,122],"79":[2,122],"93":[2,122],"94":[2,122]},{"3":[2,137],"5":[2,137],"6":[2,137],"7":[2,137],"10":[2,137],"12":[2,137],"16":[2,137],"33":[2,137],"45":[2,137],"47":[2,137],"78":[2,137],"79":[2,137],"93":[2,137],"94":[2,137]},{"3":[2,123],"5":[2,123],"6":[2,123],"7":[2,123],"8":[1,64],"9":[1,63],"10":[2,123],"12":[2,123],"16":[2,123],"32":[1,62],"33":[2,123],"45":[2,123],"47":[2,123],"77":[2,123],"78":[2,123],"79":[2,123],"93":[2,123],"94":[2,123]},{"3":[2,124],"5":[2,124],"6":[2,124],"7":[2,124],"10":[2,124],"12":[2,124],"16":[2,124],"33":[2,124],"45":[2,124],"47":[2,124],"77":[2,124],"78":[2,124],"79":[2,124],"93":[2,124],"94":[2,124]},{"40":[1,93]},{"3":[2,138],"5":[2,138],"6":[2,138],"7":[2,138],"10":[2,138],"12":[2,138],"16":[2,138],"33":[2,138],"45":[2,138],"47":[2,138],"78":[2,138],"79":[2,138],"93":[2,138],"94":[2,138]},{"3":[2,118],"6":[2,118],"10":[2,118],"12":[2,118],"16":[2,118],"26":[1,221],"33":[2,118],"45":[2,118],"47":[2,118],"78":[2,118],"79":[2,118],"93":[2,118],"94":[2,118]},{"0":[2,120],"43":[2,120]},{"3":[2,111],"6":[2,111],"10":[2,111],"12":[2,111],"16":[2,111],"33":[2,111],"45":[2,111],"47":[2,111],"78":[2,111],"79":[2,111],"93":[2,111],"94":[2,111]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"3":[2,57],"10":[2,57],"12":[2,57],"16":[2,57],"47":[2,57],"79":[1,103],"94":[2,57]},{"3":[2,60],"10":[2,60],"12":[2,60],"16":[2,60],"47":[2,60],"79":[2,60],"94":[2,60]},{"3":[2,75],"10":[2,75],"12":[2,75],"16":[2,75],"47":[2,75],"79":[2,75],"94":[2,75]},{"3":[2,88],"10":[2,88],"12":[2,88],"16":[2,88],"47":[2,88],"79":[2,88],"94":[2,88]},{"3":[2,53],"6":[2,53],"8":[2,53],"9":[2,53],"10":[2,53],"12":[2,53],"16":[2,53],"32":[2,53],"45":[2,53],"47":[2,53],"77":[2,53],"78":[2,53],"79":[2,53],"94":[2,53]},{"3":[2,64],"10":[2,64],"12":[2,64],"16":[2,64],"47":[2,64],"79":[2,64],"94":[2,64]},{"3":[2,77],"10":[2,77],"12":[2,77],"16":[2,77],"47":[2,77],"79":[2,77],"94":[2,77]},{"3":[2,65],"10":[2,65],"12":[2,65],"16":[2,65],"47":[2,65],"79":[2,65],"94":[2,65]},{"3":[2,78],"10":[2,78],"12":[2,78],"16":[2,78],"47":[2,78],"79":[2,78],"94":[2,78]},{"3":[2,66],"10":[2,66],"12":[2,66],"16":[2,66],"47":[2,66],"79":[2,66],"94":[2,66]},{"3":[2,79],"10":[2,79],"12":[2,79],"16":[2,79],"47":[2,79],"79":[2,79],"94":[2,79]},{"3":[2,67],"10":[2,67],"12":[2,67],"16":[2,67],"47":[2,67],"79":[2,67],"94":[2,67]},{"3":[2,80],"10":[2,80],"12":[2,80],"16":[2,80],"47":[2,80],"79":[2,80],"94":[2,80]},{"3":[2,68],"10":[2,68],"12":[2,68],"16":[2,68],"47":[2,68],"79":[2,68],"94":[2,68]},{"3":[2,81],"10":[2,81],"12":[2,81],"16":[2,81],"47":[2,81],"79":[2,81],"94":[2,81]},{"3":[2,69],"10":[2,69],"12":[2,69],"16":[2,69],"47":[2,69],"79":[2,69],"94":[2,69]},{"3":[2,82],"10":[2,82],"12":[2,82],"16":[2,82],"47":[2,82],"79":[2,82],"94":[2,82]},{"3":[2,70],"10":[2,70],"12":[2,70],"16":[2,70],"47":[2,70],"79":[2,70],"94":[2,70]},{"3":[2,83],"10":[2,83],"12":[2,83],"16":[2,83],"47":[2,83],"79":[2,83],"94":[2,83]},{"3":[2,71],"10":[2,71],"12":[2,71],"16":[2,71],"47":[2,71],"79":[2,71],"94":[2,71]},{"3":[2,84],"10":[2,84],"12":[2,84],"16":[2,84],"47":[2,84],"79":[2,84],"94":[2,84]},{"3":[2,72],"10":[2,72],"12":[2,72],"16":[2,72],"47":[2,72],"79":[2,72],"94":[2,72]},{"3":[2,85],"10":[2,85],"12":[2,85],"16":[2,85],"47":[2,85],"79":[2,85],"94":[2,85]},{"3":[2,73],"10":[2,73],"12":[2,73],"16":[2,73],"47":[2,73],"79":[2,73],"94":[2,73]},{"3":[2,86],"10":[2,86],"12":[2,86],"16":[2,86],"47":[2,86],"79":[2,86],"94":[2,86]},{"3":[2,74],"10":[2,74],"12":[2,74],"16":[2,74],"47":[2,74],"79":[2,74],"94":[2,74]},{"3":[2,87],"10":[2,87],"12":[2,87],"16":[2,87],"47":[2,87],"79":[2,87],"94":[2,87]},{"3":[2,63],"10":[2,63],"12":[2,63],"16":[2,63],"47":[2,63],"79":[2,63],"94":[2,63]},{"3":[2,76],"10":[2,76],"12":[2,76],"16":[2,76],"47":[2,76],"79":[2,76],"94":[2,76]},{"47":[1,102],"94":[1,223]},{"0":[1,51],"1":[1,65],"8":[1,64],"9":[1,63],"21":[1,61],"22":[1,56],"23":[1,43],"24":[1,22],"25":[1,17],"27":[1,40],"28":[1,42],"29":[1,50],"30":[1,48],"31":[1,60],"32":[1,62],"34":[1,45],"35":[1,47],"36":[1,41],"37":[1,66],"38":[1,39],"39":[1,52],"41":[1,44],"42":[1,49],"44":[1,69],"57":[1,55],"61":[1,68],"67":[1,57],"68":[1,58],"69":[1,59],"76":[1,53],"84":[1,54],"91":[1,67]},{"12":[2,7]},{"16":[1,225]},{"16":[1,226]},{"12":[2,11],"16":[2,11]},{"12":[2,12],"16":[2,12]},{"12":[2,13],"16":[2,13],"62":[1,227]},{"12":[2,6]},{"2":[1,15],"51":[1,11],"56":[1,13],"72":[1,12],"76":[1,8],"89":[1,10]},{"33":[1,163]},{"33":[1,163]},{"33":[1,163]},{"33":[1,163]},{"77":[1,233]},{"33":[1,163]},{"33":[1,163]},{"28":[1,76],"75":[1,126],"82":[1,127]},{"49":[1,204],"50":[1,203],"52":[1,201],"55":[1,202],"70":[1,200],"71":[1,199],"87":[1,198]},{"3":[1,237]},{"33":[1,91]},{"6":[1,239]},{"5":[1,94],"6":[1,240],"7":[1,95]},{"6":[1,241]},{"5":[1,94],"6":[1,242],"7":[1,95]},{"5":[1,94],"6":[1,243],"7":[1,95]},{"3":[2,36],"16":[2,36]},{"3":[2,37],"16":[2,37],"78":[1,244]},{"78":[1,245]},{"3":[1,246]},{"2":[1,247]},{"3":[2,50],"12":[2,50],"16":[2,50],"78":[2,50]},{"3":[2,51],"12":[2,51],"16":[2,51],"78":[2,51]},{"3":[2,142],"6":[2,142],"10":[2,142],"12":[2,142],"16":[2,142],"33":[2,142],"45":[2,142],"47":[2,142],"78":[2,142],"79":[2,142],"93":[2,142],"94":[2,142]},{"6":[2,113],"45":[2,113]},{"3":[2,62],"10":[2,62],"12":[2,62],"16":[2,62],"47":[2,62],"79":[2,62],"94":[2,62]},{"3":[2,52],"12":[2,52],"16":[2,52],"33":[2,52],"78":[2,52],"93":[2,52]},{"4":[1,193],"20":[1,194],"28":[1,195]},{"4":[1,193],"20":[1,194],"28":[1,195],"75":[1,249]},{"28":[1,76],"33":[1,74],"74":[1,73]},{"12":[2,5],"78":[1,16]},{"77":[1,252]},{"77":[1,253]},{"77":[1,254]},{"77":[1,255]},{"2":[1,256]},{"8":[1,64],"9":[1,63],"32":[1,62]},{"8":[1,64],"9":[1,63],"32":[1,62]},{"12":[2,16],"78":[2,16]},{"62":[1,259],"66":[1,260]},{"3":[2,34],"16":[2,34],"78":[2,34]},{"8":[1,64],"9":[1,63],"32":[1,62]},{"8":[1,64],"9":[1,63],"24":[1,152],"32":[1,62]},{"8":[1,64],"9":[1,63],"32":[1,62]},{"8":[1,64],"9":[1,63],"24":[1,152],"32":[1,62]},{"65":[1,265]},{"73":[1,266]},{"28":[1,76],"33":[1,74],"74":[1,73],"91":[1,268]},{"3":[2,37],"16":[2,37],"78":[1,244]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"12":[2,8]},{"12":[2,9]},{"12":[2,10]},{"12":[2,14],"16":[2,14],"47":[1,102]},{"2":[1,270]},{"2":[1,271]},{"2":[1,272]},{"2":[1,273]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"6":[1,275]},{"6":[1,276]},{"28":[1,76],"33":[1,74],"74":[1,73]},{"2":[1,278]},{"77":[1,279]},{"77":[1,280]},{"77":[1,281]},{"77":[1,282]},{"14":[1,283]},{"33":[1,163],"44":[1,284]},{"3":[2,40],"16":[2,40],"47":[1,102]},{"3":[2,41],"16":[2,41]},{"3":[1,286]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"3":[1,291]},{"8":[1,64],"9":[1,63],"32":[1,62]},{"8":[1,64],"9":[1,63],"32":[1,62]},{"3":[2,20],"16":[2,20],"47":[1,102]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"2":[1,295]},{"2":[1,296]},{"2":[1,297]},{"2":[1,298]},{"8":[1,64],"9":[1,63],"24":[1,152],"32":[1,62]},{"33":[1,163]},{"3":[2,38],"16":[2,38]},{"3":[2,43],"16":[2,43],"78":[2,43]},{"3":[1,302]},{"3":[1,303]},{"3":[1,304]},{"3":[1,305]},{"3":[2,25],"16":[2,25]},{"77":[1,306]},{"77":[1,307]},{"3":[1,308]},{"2":[1,15],"51":[1,11],"56":[1,13],"72":[1,88],"89":[1,10]},{"2":[1,15],"51":[1,11],"56":[1,13],"72":[1,88],"89":[1,10]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"3":[2,35],"16":[2,35]},{"6":[1,314],"45":[1,313]},{"6":[2,54],"45":[2,54]},{"3":[2,23],"16":[2,23]},{"3":[2,21],"16":[2,21]},{"3":[2,22],"16":[2,22]},{"3":[2,24],"16":[2,24]},{"2":[1,315]},{"2":[1,316]},{"3":[2,33],"16":[2,33],"78":[2,33]},{"3":[1,317]},{"3":[1,318]},{"3":[1,319]},{"3":[1,320]},{"3":[2,39],"16":[2,39]},{"33":[1,163]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"2":[1,132],"28":[1,76],"46":[1,206],"63":[1,138],"83":[1,137],"90":[1,136],"92":[1,135]},{"3":[2,29],"16":[2,29]},{"3":[2,30],"16":[2,30]},{"3":[2,31],"16":[2,31]},{"3":[2,32],"16":[2,32]},{"6":[2,55],"45":[2,55]},{"3":[1,324]},{"3":[1,325]},{"3":[2,26],"16":[2,26]},{"3":[2,27],"16":[2,27]}];
 const SEMANTIC_ACTION = [
 ((x) => x),
 ((_, constant) => constant),
@@ -25029,6 +25165,9 @@ const SEMANTIC_ACTION = [
 (() => new Ast.Value.Boolean(false)),
 ((str) => new Ast.Value.String('')),
 ((str) => new Ast.Value.String(str.value)),
+((_1, str, _2) => new Ast.Value.String(str)),
+((word) => word.value),
+((list, word) => list + word.value),
 ((num, unit) => new Ast.Value.Measure(num.value, unit.value)),
 ((v1, num, unit) => {
                               if (v1.isCompoundMeasure) {
@@ -25057,6 +25196,12 @@ const SEMANTIC_ACTION = [
 ((time) => new Ast.Value.Time(time.value.hour, time.value.minute, time.value.second||0)),
 ((venum) => new Ast.Value.Enum(venum.value)),
 ((entity) => new Ast.Value.Entity(entity.value.value, entity.value.type, entity.value.display)),
+((_1, str, _2, type) => {
+                                    if (type.value === 'tt:hashtag' || type.value === 'tt:username')
+                                        return new Ast.Value.Entity(str, type.value, null);
+                                    else
+                                        return new Ast.Value.Entity(null, type.value, str);
+                                    }),
 ((entity) => new Ast.Value.Entity(entity.value, 'tt:username', null)),
 ((entity) => new Ast.Value.Entity(entity.value, 'tt:hashtag', null)),
 ((entity) => new Ast.Value.Entity(entity.value, 'tt:url', null)),
@@ -25123,6 +25268,7 @@ class SequenceLexer {
         this._i = 0;
         this._lastfunction = null;
         this._lastparam = null;
+        this._instring = false;
     }
 
     next() {
@@ -25130,7 +25276,11 @@ class SequenceLexer {
             return { done: true };
 
         let next = this._sequence[this._i++];
-        if (/^[A-Z]/.test(next)) {
+        if (next === '"') {
+            this._instring = !this._instring;
+        } else if (this._instring) {
+            next = new TokenWrapper('WORD', next);
+        } else if (/^[A-Z]/.test(next)) {
             // check if we have a unit next, to pass to the entity retriever
             let unit = null;
             // note that this._i has already been increased
@@ -25170,6 +25320,8 @@ class SequenceLexer {
             next = new TokenWrapper('UNIT', next.substring('unit:'.length));
         } else if (next.startsWith('device:')) {
             next = new TokenWrapper('DEVICE', next.substring('device:'.length));
+        } else if (next.startsWith('^^')) {
+            next = new TokenWrapper('ENTITY_TYPE', next.substring('^^'.length));
         }
         return { done: false, value: next };
     }
@@ -25267,186 +25419,6 @@ function constantToNN(constant) {
     return List.singleton(unescape(constant.substring('__const_'.length)));
 }
 
-function findEntity(entityType, value, entities, { ignoreNotFound = false, ignoreMultiple = true } = {}) {
-    let candidates = [];
-
-    for (let what in entities) {
-        if (what === '$used')
-            continue;
-        if (!what.startsWith(entityType + '_'))
-            continue;
-
-        if (entities[what] === value)
-            candidates.push(what);
-        if (entityType.startsWith('GENERIC_ENTITY_') && entities[what].value === value)
-            candidates.push(what);
-
-        switch (entityType) {
-        case 'DURATION':
-            if (entities[what].value === value.value &&
-                entities[what].unit === value.unit)
-                candidates.push(what);
-            break;
-        case 'CURRENCY':
-            if (entities[what].value === value.value &&
-                entities[what].unit === value.code)
-                candidates.push(what);
-            break;
-        case 'TIME':
-            if (entities[what].hour === value.hour &&
-                entities[what].minute === value.minute &&
-                (entities[what].second || 0) === value.second)
-                candidates.push(what);
-            break;
-        case 'DATE':
-            if (!(entities[what] instanceof Date))
-                entities[what] = parseDate(entities[what]);
-            if (+entities[what] === +value)
-                candidates.push(what);
-            break;
-        case 'LOCATION':
-            if (Math.abs(entities[what].latitude - value.lat) < 0.01 &&
-                Math.abs(entities[what].longitude - value.lon) < 0.01)
-                candidates.push(what);
-            break;
-        }
-    }
-
-    if (!ignoreMultiple && candidates.length > 1)
-        throw new Error('Ambiguous entity ' + value + ' of type ' + entityType);
-
-    if (ignoreNotFound && candidates.length === 0)
-        return null;
-    if (!ignoreMultiple)
-        return candidates[0];
-
-    if (candidates.length === 0) {
-        // uh oh we don't have the entity we want
-        // see if we have an used pile, and try there for an unambiguous one
-
-        let reuse = findEntity(entityType, value, entities.$used || {}, { ignoreMultiple: false, ignoreNotFound: true });
-        if (reuse !== null)
-            return reuse;
-        else if (entityType === 'GENERIC_ENTITY_tt:country' && value === 'uk')
-            return findEntity(entityType, 'gb', entities);
-        else
-            throw new Error('Cannot find entity ' + value + ' of type ' + entityType + ', have ' + util.inspect(entities));
-    } else {
-        if (!entities.$used)
-            Object.defineProperty(entities, '$used', { value: {}, writable: true, enumerable: false });
-
-        // move the first entity (in sentence order) from this pile to the
-        candidates.sort();
-        let result = candidates.shift();
-        entities.$used[result] = entities[result];
-        delete entities[result];
-        return result;
-    }
-}
-
-function valueToNN(value, entities, schema) {
-    if (value.isArray) {
-        let list = valueToNN(value.value[0], entities);
-        for (let i = 1; i < value.value.length; i++)
-            list = List.concat(list, ',', valueToNN(value.value[i], entities));
-        return List.concat('[', list, ']');
-    } else if (value.isVarRef) {
-        if (value.name === null || value.name === 'null')
-            throw new TypeError('???');
-        if (value.name.startsWith('__const'))
-            return constantToNN(value.name);
-        else
-            return `param:${value.name}:${schema.out[value.name]}`;
-    } else if (value.isUndefined) {
-        throw new UnsynthesizableError('undefined value');
-    } else if (value.isBoolean) {
-        return value.value ? 'true' : 'false';
-    } else if (value.isMeasure) {
-        if (value.value === 0)
-            return List.concat('0', 'unit:' + value.unit);
-        if (value.value === 1)
-            return List.concat('1', 'unit:' + value.unit);
-        if (value.getType().unit === 'ms') {
-            let duration = findEntity('DURATION', value, entities, { ignoreNotFound: true });
-            if (duration !== null)
-                return List.concat(duration);
-        }
-        return List.concat(findEntity('NUMBER', value.value, entities), 'unit:' + value.unit);
-    } else if (value.isString) {
-        if (value.value === '')
-            return '""';
-        return findEntity('QUOTED_STRING', value.value, entities);
-    } else if (value.isCompoundMeasure) {
-        let list = valueToNN(value.value[0], entities);
-        for (let i = 1; i < value.value.length; i++)
-            list = List.Concat(list, valueToNN(value.value[i], entities));
-        return list;
-    } else if (value.isNumber) {
-        if (value.value === 0)
-            return '0';
-        if (value.value === 1)
-            return '1';
-        return findEntity('NUMBER', value.value, entities);
-    } else if (value.isCurrency) {
-        return findEntity('CURRENCY', value, entities);
-    } else if (value.isLocation) {
-        if (value.value.isRelative)
-            return 'location:' + value.value.relativeTag;
-        else
-            return findEntity('LOCATION', value.value, entities);
-    } else if (value.isDate) {
-        let base;
-        if (value.value === null)
-            base = 'now';
-        else if (value.value instanceof Ast.DateEdge)
-            base = List.concat(value.value.edge, 'unit:' + value.value.unit);
-        else
-            base = findEntity('DATE', value.value, entities);
-        let offset;
-        if (value.offset === null)
-            offset = List.Nil;
-        else
-            offset = List.Cons(value.operator, valueToNN(value.offset, entities));
-        return List.concat(base, offset);
-    } else if (value.isTime) {
-        return findEntity('TIME', value, entities);
-    } else if (value.isEntity) {
-        switch (value.type) {
-        case 'tt:function':
-        case 'tt:picture':
-            throw new UnsynthesizableError('Constant of entity type ' + value.type);
-        case 'tt:device':
-            return 'device:' + value.value;
-        case 'tt:username':
-        case 'tt:contact_name':
-            return findEntity('USERNAME', value.value, entities);
-        case 'tt:hashtag':
-            return findEntity('HASHTAG', value.value, entities);
-        case 'tt:url':
-            return findEntity('URL', value.value, entities);
-        case 'tt:phone_number':
-            return findEntity('PHONE_NUMBER', value.value, entities);
-        case 'tt:email_address':
-            return findEntity('EMAIL_ADDRESS', value.value, entities);
-        case 'tt:path_name':
-            return findEntity('PATH_NAME', value.value, entities);
-        default:
-            return findEntity('GENERIC_ENTITY_' + value.type, value.value, entities);
-        }
-    } else if (value.isEnum) {
-        return 'enum:' + value.value;
-    } else if (value.isEvent) {
-        if (value.name === null)
-            return 'event';
-        else if (value.name === 'null')
-            throw new TypeError('???');
-        else
-            throw new UnsynthesizableError('$event.* other than $event');
-    } else {
-        throw new TypeError('Unexpected value ' + value);
-    }
-}
-
 function filterToCNF(filter) {
     filter = (function pushDownNegations(expr) {
         if (expr.isNot) {
@@ -25507,343 +25479,564 @@ function filterToCNF(filter) {
     return Ast.BooleanExpression.And(clauses);
 }
 
-function cnfFilterToNN(filter, entities, schema) {
-    let result = List.Nil;
+class ToNNConverter {
+    constructor(sentence, entities) {
+        if (typeof sentence === 'string')
+            sentence = sentence.split(' ');
+        this.sentence = sentence;
+        this.entities = entities;
+    }
 
-    let andclauses = [];
-    for (let and of filter.operands) {
-        let andclause = List.Nil;
-        for (let or of and.operands) {
-            let negate = or.isNot;
-            if (negate)
-                or = or.expr;
-            let orclause;
-            if (or.isAtom) {
-                orclause = List.concat(`param:${or.name}:${schema.out[or.name] || schema.inReq[or.name] || schema.inOpt[or.name]}`, or.operator, valueToNN(or.value, entities, schema));
-            } else {
-                orclause = List.concat(`@${or.selector.kind}.${or.channel}`);
-                if (or.selector.principal !== null)
-                    orclause = List.concat(orclause, 'of', valueToNN(or.selector.principal, entities));
-                for (let inParam of or.in_params) {
-                    let ptype = or.schema.inReq[inParam.name] || or.schema.inOpt[inParam.name];
-                    orclause = List.concat(orclause, `param:${inParam.name}:${ptype}`, '=', valueToNN(inParam.value, entities));
+    findEntityFromSentence(entityType, value, display) {
+        let entityString = entityType.startsWith('GENERIC_ENTITY_') ? display : value;
+        if (entityType === 'QUOTED_STRING' || entityType === 'HASHTAG' || entityType === 'USERNAME' ||
+            (entityType.startsWith('GENERIC_ENTITY_') && value === null && display)) {
+
+            let entityTokens = entityString.split(' ');
+            for (let i = 0; i <= this.sentence.length-entityTokens.length; i++) {
+                let found = true;
+                for (let j = 0; j < entityTokens.length; j++) {
+                    if (entityTokens[j] !== this.sentence[i+j]) {
+                        found = false;
+                        break;
+                    }
                 }
-                orclause = List.concat(orclause, '{');
-                let subfilter = filterToCNF(or.filter);
-                if (subfilter.isFalse)
-                    throw new UnsynthesizableError('Always false filters');
-                if (subfilter.isTrue)
-                    orclause = List.concat(orclause, 'true', '}', ')');
-                else
-                    orclause = List.concat(orclause, cnfFilterToNN(subfilter, entities, or.schema), '}');
+                if (found) {
+                    if (entityType === 'QUOTED_STRING')
+                        return List.concat('"', entityString, '"');
+                    else if (entityType === 'HASHTAG')
+                        return List.concat('"', entityString, '"', '^^tt:hashtag');
+                    else if (entityType === 'USERNAME')
+                        return List.concat('"', entityString, '"', '^^tt:username');
+                    else
+                        return List.concat('"', entityString, '"', '^^' + entityType.substring('GENERIC_ENTITY_'.length));
+                }
             }
-            if (negate)
-                orclause = List.Cons('not', orclause);
-            if (andclause === List.Nil)
-                andclause = orclause;
-            else
-                andclause = List.concat(andclause, 'or', orclause);
         }
-        andclauses.push(andclause);
+        throw new Error('Cannot find entity ' + entityString + ' of type ' + entityType + ', have ' + util.inspect(this.entities));
     }
-    andclauses.sort((a, b) => {
-        let afirst = a.getFirst();
-        let bfirst = b.getFirst();
-        if (afirst < bfirst)
-            return -1;
-        else if (afirst > bfirst)
-            return 1;
-        return 0;
-    });
 
-    for (let andclause of andclauses) {
-        if (result === List.Nil)
-            result = andclause;
-        else
-            result = List.concat(result, 'and', andclause);
-    }
-    return result;
-}
+    findEntity(entityType, value, display, entities, { ignoreNotFound = false, ignoreMultiple = true } = {}) {
+        let candidates = [];
 
-function streamToNN(stream, entities) {
-    if (stream.isVarRef) {
-        throw new UnsynthesizableError('Stream macros');
-    } else if (stream.isTimer) {
-        return List.concat('timer',
-            'base', '=', valueToNN(stream.base, entities), ',',
-            'interval', '=', valueToNN(stream.interval, entities));
-    } else if (stream.isAtTimer) {
-        return List.concat('attimer', 'time', '=', valueToNN(stream.time, entities));
-    } else if (stream.isMonitor) {
-        const monitor = List.concat('monitor', '(', tableToNN(stream.table, entities), ')');
-
-        if (stream.args === null) {
-            return monitor;
-        } else if (stream.args.length > 1) {
-            let list = `param:${stream.args[0]}:${stream.schema.out[stream.args[0]]}`;
-            for (let i = 1; i < stream.args.length; i++)
-                list = List.concat(list, ',', `param:${stream.args[i]}:${stream.schema.out[stream.args[i]]}`);
-            return List.concat(monitor, 'on', 'new', '[', list, ']');
-        } else {
-            return List.concat(monitor, 'on', 'new', `param:${stream.args[0]}:${stream.schema.out[stream.args[0]]}`);
-        }
-    } else if (stream.isEdgeNew) {
-        throw new UnsynthesizableError('EdgeNew expressions');
-    } else if (stream.isEdgeFilter) {
-        let optimized = filterToCNF(stream.filter);
-        if (optimized.isFalse)
-            throw new UnsynthesizableError('Always false filters');
-        if (optimized.isTrue)
-            return List.concat('edge', '(', streamToNN(stream.stream, entities), ')', 'on', 'true');
-        else
-            return List.concat('edge', '(', streamToNN(stream.stream, entities), ')', 'on', cnfFilterToNN(optimized, entities, stream.schema));
-    } else if (stream.isFilter) {
-        throw new UnsynthesizableError('Stream filters');
-        /*let optimized = filterToCNF(stream.filter);
-        if (optimized.isFalse)
-            throw new UnsynthesizableError('Always false filters');
-        if (optimized.isTrue)
-            return streamToNN(stream.stream, entities);
-        return List.concat('(', streamToNN(stream.stream, entities), ')',
-            'filter', cnfFilterToNN(optimized, entities));*/
-    } else if (stream.isProjection) {
-        throw new UnsynthesizableError('Projection expressions');
-    } else if (stream.isCompute) {
-        throw new UnsynthesizableError('Compute expressions');
-    } else if (stream.isAlias) {
-        throw new UnsynthesizableError('Alias expressions');
-    } else if (stream.isJoin) {
-        let param_passing = List.Nil;
-        stream.in_params.sort((p1, p2) => {
-            if (p1.name < p2.name)
-                return -1;
-            if (p1.name > p2.name)
-                return 1;
-            return 0;
-        });
-
-        for (let inParam of stream.in_params) {
-            let ptype = stream.table.schema.inReq[inParam.name] || stream.table.schema.inOpt[inParam.name];
-            param_passing = List.concat(param_passing, 'on', `param:${inParam.name}:${ptype}`,
-                '=', valueToNN(inParam.value, entities, stream.stream.schema));
-        }
-        return List.concat('(', streamToNN(stream.stream, entities), ')',
-            'join', '(', tableToNN(stream.table, entities), ')', param_passing);
-    } else {
-        throw new TypeError();
-    }
-}
-
-function tableToNN(table, entities) {
-    if (table.isVarRef) {
-        throw new UnsynthesizableError('Table macros');
-    } else if (table.isInvocation) {
-        let principal = null;
-        if (table.invocation.selector.principal !== null)
-            principal = valueToNN(table.invocation.selector.principal, entities, null);
-
-        let params = List.Nil;
-        table.invocation.in_params.sort((p1, p2) => {
-            if (p1.name < p2.name)
-                return -1;
-            if (p1.name > p2.name)
-                return 1;
-            return 0;
-        });
-        for (let inParam of table.invocation.in_params) {
-            if (inParam.value.isUndefined && inParam.value.local)
+        for (let what in entities) {
+            if (what === '$used')
+                continue;
+            if (!what.startsWith(entityType + '_'))
                 continue;
 
-            let ptype = table.invocation.schema.inReq[inParam.name] || table.invocation.schema.inOpt[inParam.name];
-            // explicitly pass null to valueToNN because there should be no parameter passing at this level
-            params = List.concat(params, `param:${inParam.name}:${ptype}`, '=', valueToNN(inParam.value, entities, null));
+            if (entities[what] === value)
+                candidates.push(what);
+            if (entityType.startsWith('GENERIC_ENTITY_') && entities[what].value === value)
+                candidates.push(what);
+
+            switch (entityType) {
+            case 'DURATION':
+                if (entities[what].value === value.value &&
+                    entities[what].unit === value.unit)
+                    candidates.push(what);
+                break;
+            case 'CURRENCY':
+                if (entities[what].value === value.value &&
+                    entities[what].unit === value.code)
+                    candidates.push(what);
+                break;
+            case 'TIME':
+                if (entities[what].hour === value.hour &&
+                    entities[what].minute === value.minute &&
+                    (entities[what].second || 0) === value.second)
+                    candidates.push(what);
+                break;
+            case 'DATE':
+                if (!(entities[what] instanceof Date))
+                    entities[what] = parseDate(entities[what]);
+                if (+entities[what] === +value)
+                    candidates.push(what);
+                break;
+            case 'LOCATION':
+                if (Math.abs(entities[what].latitude - value.lat) < 0.01 &&
+                    Math.abs(entities[what].longitude - value.lon) < 0.01)
+                    candidates.push(what);
+                break;
+            }
         }
 
-        let fn = `@${table.invocation.selector.kind}.${table.invocation.channel}`;
-        if (principal)
-            return List.concat(fn, 'of', principal, params);
-        else
-            return List.concat(fn, params);
-    } else if (table.isFilter) {
-        let optimized = filterToCNF(table.filter);
-        if (optimized.isFalse)
-            throw new UnsynthesizableError('Always false filters');
-        if (optimized.isTrue)
-            return tableToNN(table.table, entities);
-        return List.concat('(', tableToNN(table.table, entities), ')',
-            'filter', cnfFilterToNN(optimized, entities, table.schema));
-    } else if (table.isProjection) {
-        throw new UnsynthesizableError('Projection expressions');
-    } else if (table.isCompute) {
-        throw new UnsynthesizableError('Compute expressions');
-    } else if (table.isAlias) {
-        throw new UnsynthesizableError('Alias expressions');
-    } else if (table.isAggregation) {
-        if (table.alias)
-            throw new UnsynthesizableError('Aggregation alias');
-        if (table.field === '*' && table.operator === 'count') {
-            return List.concat('aggregate', 'count', 'of', '(',
-                tableToNN(table.table, entities), ')');
+        if (!ignoreMultiple && candidates.length > 1)
+            throw new Error('Ambiguous entity ' + value + ' of type ' + entityType);
+
+        if (ignoreNotFound && candidates.length === 0)
+            return null;
+        if (!ignoreMultiple)
+            return candidates[0];
+
+        if (candidates.length === 0) {
+            // uh oh we don't have the entity we want
+            // see if we have an used pile, and try there for an unambiguous one
+
+            let reuse = this.findEntity(entityType, value, display, entities.$used || {}, { ignoreMultiple: false, ignoreNotFound: true });
+            if (reuse !== null)
+                return reuse;
+            else if (entityType === 'GENERIC_ENTITY_tt:country' && value === 'uk')
+                return this.findEntity(entityType, 'gb', display, entities);
+            else
+                return this.findEntityFromSentence(entityType, value, display);
         } else {
-            return List.concat('aggregate', table.operator, 'param:' + table.field,
-                'of', '(', tableToNN(table.table, entities), ')');
+            if (!entities.$used)
+                Object.defineProperty(entities, '$used', { value: {}, writable: true, enumerable: false });
+
+            // move the first entity (in sentence order) from this pile to the
+            candidates.sort();
+            let result = candidates.shift();
+            entities.$used[result] = entities[result];
+            delete entities[result];
+            return result;
         }
-    } else if (table.isArgMinMax) {
-        return List.concat('aggregate', table.operator, 'param:' + table.field,
-            valueToNN(table.base, entities), ',', valueToNN(table.limit, entities),
-            'of', '(', tableToNN(table.table, entities), ')');
-    } else if (table.isJoin) {
+    }
+
+    valueToNN(value, schema) {
+        if (value.isArray) {
+            let list = this.valueToNN(value.value[0]);
+            for (let i = 1; i < value.value.length; i++)
+                list = List.concat(list, ',', this.valueToNN(value.value[i]));
+            return List.concat('[', list, ']');
+        } else if (value.isVarRef) {
+            if (value.name === null || value.name === 'null')
+                throw new TypeError('???');
+            if (value.name.startsWith('__const'))
+                return constantToNN(value.name);
+            else
+                return `param:${value.name}:${schema.out[value.name]}`;
+        } else if (value.isUndefined) {
+            throw new UnsynthesizableError('undefined value');
+        } else if (value.isBoolean) {
+            return value.value ? 'true' : 'false';
+        } else if (value.isMeasure) {
+            if (value.value === 0)
+                return List.concat('0', 'unit:' + value.unit);
+            if (value.value === 1)
+                return List.concat('1', 'unit:' + value.unit);
+            if (value.getType().unit === 'ms') {
+                let duration = this.findEntity('DURATION', value, null, this.entities, { ignoreNotFound: true });
+                if (duration !== null)
+                    return List.concat(duration);
+            }
+            return List.concat(this.findEntity('NUMBER', value.value, null, this.entities), 'unit:' + value.unit);
+        } else if (value.isString) {
+            if (value.value === '')
+                return '""';
+            return this.findEntity('QUOTED_STRING', value.value, null, this.entities);
+        } else if (value.isCompoundMeasure) {
+            let list = this.valueToNN(value.value[0]);
+            for (let i = 1; i < value.value.length; i++)
+                list = List.Concat(list, this.valueToNN(value.value[i]));
+            return list;
+        } else if (value.isNumber) {
+            if (value.value === 0)
+                return '0';
+            if (value.value === 1)
+                return '1';
+            return this.findEntity('NUMBER', value.value, null, this.entities);
+        } else if (value.isCurrency) {
+            return this.findEntity('CURRENCY', value, null, this.entities);
+        } else if (value.isLocation) {
+            if (value.value.isRelative)
+                return 'location:' + value.value.relativeTag;
+            else
+                return this.findEntity('LOCATION', value.value, null, this.entities);
+        } else if (value.isDate) {
+            let base;
+            if (value.value === null)
+                base = 'now';
+            else if (value.value instanceof Ast.DateEdge)
+                base = List.concat(value.value.edge, 'unit:' + value.value.unit);
+            else
+                base = this.findEntity('DATE', value.value, null, this.entities);
+            let offset;
+            if (value.offset === null)
+                offset = List.Nil;
+            else
+                offset = List.Cons(value.operator, this.valueToNN(value.offset));
+            return List.concat(base, offset);
+        } else if (value.isTime) {
+            return this.findEntity('TIME', value, null, this.entities);
+        } else if (value.isEntity) {
+            switch (value.type) {
+            case 'tt:function':
+            case 'tt:picture':
+                throw new UnsynthesizableError('Constant of entity type ' + value.type);
+            case 'tt:device':
+                return 'device:' + value.value;
+            case 'tt:username':
+            case 'tt:contact_name':
+                return this.findEntity('USERNAME', value.value, null, this.entities);
+            case 'tt:hashtag':
+                return this.findEntity('HASHTAG', value.value, null, this.entities);
+            case 'tt:url':
+                return this.findEntity('URL', value.value, null, this.entities);
+            case 'tt:phone_number':
+                return this.findEntity('PHONE_NUMBER', value.value, null, this.entities);
+            case 'tt:email_address':
+                return this.findEntity('EMAIL_ADDRESS', value.value, null, this.entities);
+            case 'tt:path_name':
+                return this.findEntity('PATH_NAME', value.value, null, this.entities);
+            default:
+                return this.findEntity('GENERIC_ENTITY_' + value.type, value.value, value.display, this.entities);
+            }
+        } else if (value.isEnum) {
+            return 'enum:' + value.value;
+        } else if (value.isEvent) {
+            if (value.name === null)
+                return 'event';
+            else if (value.name === 'null')
+                throw new TypeError('???');
+            else
+                throw new UnsynthesizableError('$event.* other than $event');
+        } else {
+            throw new TypeError('Unexpected value ' + value);
+        }
+    }
+
+    cnfFilterToNN(filter, schema) {
+        let result = List.Nil;
+
+        let andclauses = [];
+        for (let and of filter.operands) {
+            let andclause = List.Nil;
+            for (let or of and.operands) {
+                let negate = or.isNot;
+                if (negate)
+                    or = or.expr;
+                let orclause;
+                if (or.isAtom) {
+                    orclause = List.concat(`param:${or.name}:${schema.out[or.name] || schema.inReq[or.name] || schema.inOpt[or.name]}`, or.operator, this.valueToNN(or.value, schema));
+                } else {
+                    orclause = List.concat(`@${or.selector.kind}.${or.channel}`);
+                    for (let inParam of or.in_params) {
+                        let ptype = or.schema.inReq[inParam.name] || or.schema.inOpt[inParam.name];
+                        orclause = List.concat(orclause, `param:${inParam.name}:${ptype}`, '=', this.valueToNN(inParam.value));
+                    }
+                    orclause = List.concat(orclause, '{');
+                    let subfilter = filterToCNF(or.filter);
+                    if (subfilter.isFalse)
+                        throw new UnsynthesizableError('Always false filters');
+                    if (subfilter.isTrue)
+                        orclause = List.concat(orclause, 'true', '}', ')');
+                    else
+                        orclause = List.concat(orclause, this.cnfFilterToNN(subfilter, or.schema), '}');
+                }
+                if (negate)
+                    orclause = List.Cons('not', orclause);
+                if (andclause === List.Nil)
+                    andclause = orclause;
+                else
+                    andclause = List.concat(andclause, 'or', orclause);
+            }
+            andclauses.push(andclause);
+        }
+        andclauses.sort((a, b) => {
+            let afirst = a.getFirst();
+            let bfirst = b.getFirst();
+            if (afirst < bfirst)
+                return -1;
+            else if (afirst > bfirst)
+                return 1;
+            return 0;
+        });
+
+        for (let andclause of andclauses) {
+            if (result === List.Nil)
+                result = andclause;
+            else
+                result = List.concat(result, 'and', andclause);
+        }
+        return result;
+    }
+
+    streamToNN(stream) {
+        if (stream.isVarRef) {
+            throw new UnsynthesizableError('Stream macros');
+        } else if (stream.isTimer) {
+            return List.concat('timer',
+                'base', '=', this.valueToNN(stream.base), ',',
+                'interval', '=', this.valueToNN(stream.interval));
+        } else if (stream.isAtTimer) {
+            return List.concat('attimer', 'time', '=', this.valueToNN(stream.time));
+        } else if (stream.isMonitor) {
+            const monitor = List.concat('monitor', '(', this.tableToNN(stream.table), ')');
+
+            if (stream.args === null) {
+                return monitor;
+            } else if (stream.args.length > 1) {
+                let list = `param:${stream.args[0]}:${stream.schema.out[stream.args[0]]}`;
+                for (let i = 1; i < stream.args.length; i++)
+                    list = List.concat(list, ',', `param:${stream.args[i]}:${stream.schema.out[stream.args[i]]}`);
+                return List.concat(monitor, 'on', 'new', '[', list, ']');
+            } else {
+                return List.concat(monitor, 'on', 'new', `param:${stream.args[0]}:${stream.schema.out[stream.args[0]]}`);
+            }
+        } else if (stream.isEdgeNew) {
+            throw new UnsynthesizableError('EdgeNew expressions');
+        } else if (stream.isEdgeFilter) {
+            let optimized = filterToCNF(stream.filter);
+            if (optimized.isFalse)
+                throw new UnsynthesizableError('Always false filters');
+            if (optimized.isTrue)
+                return List.concat('edge', '(', this.streamToNN(stream.stream), ')', 'on', 'true');
+            else
+                return List.concat('edge', '(', this.streamToNN(stream.stream), ')', 'on', this.cnfFilterToNN(optimized, stream.schema));
+        } else if (stream.isFilter) {
+            throw new UnsynthesizableError('Stream filters');
+            /*let optimized = filterToCNF(stream.filter);
+            if (optimized.isFalse)
+                throw new UnsynthesizableError('Always false filters');
+            if (optimized.isTrue)
+                return streamToNN(stream.stream, entities);
+            return List.concat('(', streamToNN(stream.stream, entities), ')',
+                'filter', cnfFilterToNN(optimized, entities));*/
+        } else if (stream.isProjection) {
+            throw new UnsynthesizableError('Projection expressions');
+        } else if (stream.isCompute) {
+            throw new UnsynthesizableError('Compute expressions');
+        } else if (stream.isAlias) {
+            throw new UnsynthesizableError('Alias expressions');
+        } else if (stream.isJoin) {
+            let param_passing = List.Nil;
+            stream.in_params.sort((p1, p2) => {
+                if (p1.name < p2.name)
+                    return -1;
+                if (p1.name > p2.name)
+                    return 1;
+                return 0;
+            });
+
+            for (let inParam of stream.in_params) {
+                let ptype = stream.table.schema.inReq[inParam.name] || stream.table.schema.inOpt[inParam.name];
+                param_passing = List.concat(param_passing, 'on', `param:${inParam.name}:${ptype}`,
+                    '=', this.valueToNN(inParam.value, stream.stream.schema));
+            }
+            return List.concat('(', this.streamToNN(stream.stream), ')',
+                'join', '(', this.tableToNN(stream.table), ')', param_passing);
+        } else {
+            throw new TypeError();
+        }
+    }
+
+    tableToNN(table) {
+        if (table.isVarRef) {
+            throw new UnsynthesizableError('Table macros');
+        } else if (table.isInvocation) {
+            let principal = null;
+            if (table.invocation.selector.principal !== null)
+                principal = this.valueToNN(table.invocation.selector.principal, null);
+
+            let params = List.Nil;
+            table.invocation.in_params.sort((p1, p2) => {
+                if (p1.name < p2.name)
+                    return -1;
+                if (p1.name > p2.name)
+                    return 1;
+                return 0;
+            });
+            for (let inParam of table.invocation.in_params) {
+                if (inParam.value.isUndefined && inParam.value.local)
+                    continue;
+
+                let ptype = table.invocation.schema.inReq[inParam.name] || table.invocation.schema.inOpt[inParam.name];
+                // explicitly pass null to valueToNN because there should be no parameter passing at this level
+                params = List.concat(params, `param:${inParam.name}:${ptype}`, '=', this.valueToNN(inParam.value, null));
+            }
+
+            let fn = `@${table.invocation.selector.kind}.${table.invocation.channel}`;
+            if (principal)
+                return List.concat(fn, 'of', principal, params);
+            else
+                return List.concat(fn, params);
+        } else if (table.isFilter) {
+            let optimized = filterToCNF(table.filter);
+            if (optimized.isFalse)
+                throw new UnsynthesizableError('Always false filters');
+            if (optimized.isTrue)
+                return this.tableToNN(table.table);
+            return List.concat('(', this.tableToNN(table.table), ')',
+                'filter', this.cnfFilterToNN(optimized, table.schema));
+        } else if (table.isProjection) {
+            throw new UnsynthesizableError('Projection expressions');
+        } else if (table.isCompute) {
+            throw new UnsynthesizableError('Compute expressions');
+        } else if (table.isAlias) {
+            throw new UnsynthesizableError('Alias expressions');
+        } else if (table.isAggregation) {
+            if (table.alias)
+                throw new UnsynthesizableError('Aggregation alias');
+            if (table.field === '*' && table.operator === 'count') {
+                return List.concat('aggregate', 'count', 'of', '(',
+                    this.tableToNN(table.table), ')');
+            } else {
+                return List.concat('aggregate', table.operator, 'param:' + table.field,
+                    'of', '(', this.tableToNN(table.table), ')');
+            }
+        } else if (table.isArgMinMax) {
+            return List.concat('aggregate', table.operator, 'param:' + table.field,
+                this.valueToNN(table.base), ',', this.valueToNN(table.limit),
+                'of', '(', this.tableToNN(table.table), ')');
+        } else if (table.isJoin) {
+            let param_passing = List.Nil;
+            table.in_params.sort((p1, p2) => {
+                if (p1.name < p2.name)
+                    return -1;
+                if (p1.name > p2.name)
+                    return 1;
+                return 0;
+            });
+            for (let inParam of table.in_params) {
+                let ptype = table.rhs.schema.inReq[inParam.name] || table.rhs.schema.inOpt[inParam.name];
+
+                param_passing = List.concat(param_passing, 'on', `param:${inParam.name}:${ptype}`,
+                    '=', this.valueToNN(inParam.value, table.lhs.schema));
+            }
+            return List.concat('(', this.tableToNN(table.lhs), ')',
+                'join', '(', this.tableToNN(table.rhs), ')', param_passing);
+        } else if (table.isWindow) {
+            return List.concat('window', this.valueToNN(table.base), ',',
+                this.valueToNN(table.delta), 'of',
+                '(', this.streamToNN(table.stream), ')');
+        } else if (table.isTimeSeries) {
+            return List.concat('timeseries', this.valueToNN(table.base), ',',
+                this.valueToNN(table.delta), 'of',
+                '(', this.streamToNN(table.stream), ')');
+        } else if (table.isHistory) {
+            return List.concat('history', this.valueToNN(table.base), ',',
+                this.valueToNN(table.delta), 'of',
+                '(', this.streamToNN(table.stream), ')');
+        } else if (table.isSequence) {
+            return List.concat('sequence', this.valueToNN(table.base), ',',
+                this.valueToNN(table.delta), 'of',
+                '(', this.streamToNN(table.stream), ')');
+        } else {
+            throw new TypeError();
+        }
+    }
+
+    actionToNN(action, outschema) {
+        if (action.selector.isBuiltin)
+            return action.channel;
+
+        let principal = null;
+        if (action.selector.principal !== null)
+            principal = this.valueToNN(action.selector.principal, null);
+
+        let const_param = List.Nil;
         let param_passing = List.Nil;
-        table.in_params.sort((p1, p2) => {
+
+        action.in_params.sort((p1, p2) => {
             if (p1.name < p2.name)
                 return -1;
             if (p1.name > p2.name)
                 return 1;
             return 0;
         });
-        for (let inParam of table.in_params) {
-            let ptype = table.rhs.schema.inReq[inParam.name] || table.rhs.schema.inOpt[inParam.name];
+        for (let inParam of action.in_params) {
+            if (inParam.value.isUndefined && inParam.value.local)
+                continue;
+            let ptype = action.schema.inReq[inParam.name] || action.schema.inOpt[inParam.name];
 
-            param_passing = List.concat(param_passing, 'on', `param:${inParam.name}:${ptype}`,
-                '=', valueToNN(inParam.value, entities, table.lhs.schema));
+            if ((inParam.value.isVarRef && !inParam.value.name.startsWith('__const')) || inParam.value.isEvent) {
+                param_passing = List.concat(param_passing, 'on', `param:${inParam.name}:${ptype}`, '=',
+                    this.valueToNN(inParam.value, outschema));
+            } else {
+                const_param = List.concat(const_param, `param:${inParam.name}:${ptype}`, '=', this.valueToNN(inParam.value));
+            }
         }
-        return List.concat('(', tableToNN(table.lhs, entities), ')',
-            'join', '(', tableToNN(table.rhs, entities), ')', param_passing);
-    } else if (table.isWindow) {
-        return List.concat('window', valueToNN(table.base, entities), ',',
-            valueToNN(table.delta, entities), 'of',
-            '(', streamToNN(table.stream), ')');
-    } else if (table.isTimeSeries) {
-        return List.concat('timeseries', valueToNN(table.base, entities), ',',
-            valueToNN(table.delta, entities), 'of',
-            '(', streamToNN(table.stream), ')');
-    } else if (table.isHistory) {
-        return List.concat('history', valueToNN(table.base, entities), ',',
-            valueToNN(table.delta, entities), 'of',
-            '(', streamToNN(table.stream), ')');
-    } else if (table.isSequence) {
-        return List.concat('sequence', valueToNN(table.base, entities), ',',
-            valueToNN(table.delta, entities), 'of',
-            '(', streamToNN(table.stream), ')');
-    } else {
-        throw new TypeError();
+
+        const fn = `@${action.selector.kind}.${action.channel}`;
+        if (principal)
+            return List.concat(fn, 'of', principal, const_param, param_passing);
+        else
+            return List.concat(fn, const_param, param_passing);
+    }
+
+    ruleToNN(rule) {
+        if (rule.actions.length !== 1)
+            throw new UnsynthesizableError('Rules with more than one action');
+        return List.concat(this.streamToNN(rule.stream), '=>',
+            this.actionToNN(rule.actions[0], rule.stream.schema));
+    }
+    commandToNN(command) {
+        if (command.actions.length !== 1)
+            throw new UnsynthesizableError('Rules with more than one action');
+        if (command.table === null)
+            return List.concat('now', '=>', this.actionToNN(command.actions[0], null));
+        return List.concat('now', '=>', this.tableToNN(command.table),
+            '=>', this.actionToNN(command.actions[0], command.table.schema));
+    }
+
+    permissionFunctionToNN(fn, ifbuiltin) {
+        if (fn.isBuiltin)
+            return ifbuiltin;
+        if (fn.isStar)
+            return '*';
+        if (fn.isClassStar)
+            return `@${fn.kind}.*`;
+
+        let filter = filterToCNF(fn.filter);
+        if (filter.isFalse)
+            throw new UnsynthesizableError('Always false filters');
+        if (filter.isTrue)
+            return List.concat(`@${fn.kind}.${fn.channel}`);
+        else
+            return List.concat(`@${fn.kind}.${fn.channel}`, 'filter', this.cnfFilterToNN(filter, fn.schema));
+    }
+
+    permissionRuleToNN(rule) {
+        let principal;
+        let filter = filterToCNF(rule.principal);
+        if (filter.isFalse)
+            throw new UnsynthesizableError('Always false filters');
+        if (filter.isTrue)
+            principal = 'true';
+        else
+            principal = this.cnfFilterToNN(filter, { out: { source: Type.Entity('tt:contact') }, inReq: {}, inOpt: {} });
+        let first = this.permissionFunctionToNN(rule.query, 'now');
+        let second = this.permissionFunctionToNN(rule.action, 'notify');
+
+        const sequence = List.concat('policy', principal, ':', first, '=>', second);
+        return sequence.flatten([]);
+    }
+
+    programToNN(program) {
+        if (program.classes.length !== 0 ||
+            program.declarations.length !== 0 ||
+            program.rules.length !== 1)
+            throw new UnsynthesizableError('Programs with declarations or multiple rules');
+
+        let principal = null;
+        if (program.principal)
+            principal = this.valueToNN(program.principal);
+        let sequence;
+        if (program.rules[0].isRule)
+            sequence = this.ruleToNN(program.rules[0]);
+        else
+            sequence = this.commandToNN(program.rules[0]);
+        if (program.principal)
+            sequence = List.concat('executor', '=', principal, ':', sequence);
+
+        // do something
+        return sequence.flatten([]);
+    }
+
+    toNN(program) {
+        if (program instanceof Ast.Program)
+            return this.programToNN(program);
+        else if (program instanceof Ast.PermissionRule)
+            return this.permissionRuleToNN(program);
+        else
+            throw new TypeError();
     }
 }
 
-function actionToNN(action, entities, outschema) {
-    if (action.selector.isBuiltin)
-        return action.channel;
-
-    let principal = null;
-    if (action.selector.principal !== null)
-        principal = valueToNN(action.selector.principal, entities, null);
-
-    let const_param = List.Nil;
-    let param_passing = List.Nil;
-
-    action.in_params.sort((p1, p2) => {
-        if (p1.name < p2.name)
-            return -1;
-        if (p1.name > p2.name)
-            return 1;
-        return 0;
-    });
-    for (let inParam of action.in_params) {
-        if (inParam.value.isUndefined && inParam.value.local)
-            continue;
-        let ptype = action.schema.inReq[inParam.name] || action.schema.inOpt[inParam.name];
-
-        if ((inParam.value.isVarRef && !inParam.value.name.startsWith('__const')) || inParam.value.isEvent) {
-            param_passing = List.concat(param_passing, 'on', `param:${inParam.name}:${ptype}`, '=',
-                valueToNN(inParam.value, entities, outschema));
-        } else {
-            const_param = List.concat(const_param, `param:${inParam.name}:${ptype}`, '=', valueToNN(inParam.value, entities));
-        }
-    }
-
-    const fn = `@${action.selector.kind}.${action.channel}`;
-    if (principal)
-        return List.concat(fn, 'of', principal, const_param, param_passing);
-    else
-        return List.concat(fn, const_param, param_passing);
-}
-
-function ruleToNN(rule, entities) {
-    if (rule.actions.length !== 1)
-        throw new UnsynthesizableError('Rules with more than one action');
-    return List.concat(streamToNN(rule.stream, entities), '=>',
-        actionToNN(rule.actions[0], entities, rule.stream.schema));
-}
-function commandToNN(command, entities) {
-    if (command.actions.length !== 1)
-        throw new UnsynthesizableError('Rules with more than one action');
-    if (command.table === null)
-        return List.concat('now', '=>', actionToNN(command.actions[0], entities, null));
-    return List.concat('now', '=>', tableToNN(command.table, entities),
-        '=>', actionToNN(command.actions[0], entities, command.table.schema));
-}
-
-function toNN(program, entities) {
-    if (program instanceof Ast.Program)
-        return programToNN(program, entities);
-    else if (program instanceof Ast.PermissionRule)
-        return permissionRuleToNN(program, entities);
-    else
-        throw new TypeError();
-}
-
-function permissionFunctionToNN(fn, ifbuiltin, entities) {
-    if (fn.isBuiltin)
-        return ifbuiltin;
-    if (fn.isStar)
-        return '*';
-    if (fn.isClassStar)
-        return `@${fn.kind}.*`;
-
-    let filter = filterToCNF(fn.filter);
-    if (filter.isFalse)
-        throw new UnsynthesizableError('Always false filters');
-    if (filter.isTrue)
-        return List.concat(`@${fn.kind}.${fn.channel}`);
-    else
-        return List.concat(`@${fn.kind}.${fn.channel}`, 'filter', cnfFilterToNN(filter, entities, fn.schema));
-}
-
-function permissionRuleToNN(rule, entities) {
-    let principal;
-    let filter = filterToCNF(rule.principal);
-    if (filter.isFalse)
-        throw new UnsynthesizableError('Always false filters');
-    if (filter.isTrue)
-        principal = 'true';
-    else
-        principal = cnfFilterToNN(filter, entities, { out: { source: Type.Entity('tt:contact') }, inReq: {}, inOpt: {} });
-    let first = permissionFunctionToNN(rule.query, 'now', entities);
-    let second = permissionFunctionToNN(rule.action, 'notify', entities);
-
-    const sequence = List.concat('policy', principal, ':', first, '=>', second);
-    return sequence.flatten([]);
-}
-
-function programToNN(program, entities) {
-    if (program.classes.length !== 0 ||
-        program.declarations.length !== 0 ||
-        program.rules.length !== 1)
-        throw new UnsynthesizableError('Programs with declarations or multiple rules');
-
-    let principal = null;
-    if (program.principal)
-        principal = valueToNN(program.principal, entities);
-    let sequence;
-    if (program.rules[0].isRule)
-        sequence = ruleToNN(program.rules[0], entities);
-    else
-        sequence = commandToNN(program.rules[0], entities);
-    if (program.principal)
-        sequence = List.concat('executor', '=', principal, ':', sequence);
-
-    // do something
-    return sequence.flatten([]);
+function toNN(program, sentence, entities) {
+    let converter = new ToNNConverter(sentence, entities);
+    return converter.toNN(program);
 }
 
 module.exports = {
@@ -27388,7 +27581,7 @@ function prettyprintValue(ast) {
     else if (ast.isTime)
         return `makeTime(${ast.hour}, ${ast.minute})`;
     else if (ast.isEntity)
-        return stringEscape(ast.value) + '^^' + ast.type + (ast.display ? '(' + stringEscape(ast.display) + ')' : '');
+        return (ast.value !== null ? stringEscape(ast.value) : 'null') + '^^' + ast.type + (ast.display ? '(' + stringEscape(ast.display) + ')' : '');
     else if (ast.isEvent)
         return '$event' + (ast.name ? '.' + ast.name : '');
     else
@@ -29330,6 +29523,7 @@ module.exports = {
 };
 
 },{"./ast":44}],69:[function(require,module,exports){
+(function (setImmediate,clearImmediate){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
 var slice = Array.prototype.slice;
@@ -29406,7 +29600,8 @@ exports.setImmediate = typeof setImmediate === "function" ? setImmediate : funct
 exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate : function(id) {
   delete immediateIds[id];
 };
-},{"process/browser.js":21}],70:[function(require,module,exports){
+}).call(this,require("timers").setImmediate,require("timers").clearImmediate)
+},{"process/browser.js":21,"timers":69}],70:[function(require,module,exports){
 (function (global){
 
 /**
