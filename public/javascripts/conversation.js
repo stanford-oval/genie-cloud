@@ -143,6 +143,13 @@ $(function() {
         $('.message-button, .message-choice, .message-yesno').remove();
     }
 
+    function syncKeyboardType(ask) {
+        if (ask === 'password')
+            $('#input').attr('type', 'password');
+        else
+            $('#input').attr('type', 'text');
+    }
+
     ws.onmessage = function(event) {
         var parsed = JSON.parse(event.data);
         console.log('received ' + event.data);
@@ -175,6 +182,7 @@ $(function() {
             break;
 
         case 'askSpecial':
+            syncKeyboardType(parsed.ask);
             syncCancelButton(parsed);
             if (parsed.ask === 'yesno')
                 yesnoMessage();
@@ -203,9 +211,12 @@ $(function() {
         if (text.startsWith('\\t')) {
             handleThingTalk(text.substring(3));
             return;
-        }
+           }
 
-        appendUserMessage(text);
+        if ($('#input').attr('type') === 'password')
+            appendUserMessage("••••••••");
+        else
+            appendUserMessage(text);
         ws.send(JSON.stringify({ type: 'command', text: text }));
     }
     function handleParsedCommand(json) {
