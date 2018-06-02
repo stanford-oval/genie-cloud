@@ -23,6 +23,9 @@
     "update-docs": "for f in doc/*.md ; do sed \"s|@@DOC@@|$f|\" views/doc_base.pug > views/doc_$(basename \"$f\" .md ).pug ; done",
     "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js"
   },
+  "resolutions": {
+    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk#master"
+  },
   "dependencies": {
     "accept-language": "^2.0.17",
     "almond-dialog-agent": "^1.0.1",
@@ -73,7 +76,7 @@
     "thingengine-core": "^1.0.0",
     "thingpedia": "^2.2.1",
     "thingpedia-discovery": "^1.0.0",
-    "thingtalk": "^1.0.0",
+    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk#master",
     "tmp": "0.0.33",
     "transparent-rpc": "^0.0.1",
     "url": "~0.10.3",
