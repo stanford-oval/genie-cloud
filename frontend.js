@@ -90,9 +90,9 @@ module.exports = class Frontend {
                     redirect = false;
                 if (redirect) {
                     if (req.hostname === 'thingpedia.stanford.edu' && req.originalUrl === '/')
-                        res.redirect(301, SERVER_NAME + '/thingpedia');
+                        res.redirect(301, SERVER_ORIGIN + '/thingpedia');
                     else
-                        res.redirect(301, SERVER_NAME + req.originalUrl);
+                        res.redirect(301, SERVER_ORIGIN + req.originalUrl);
                     return;
                 }
                 next();
