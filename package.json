@@ -1,12 +1,18 @@
 {
-  "name": "thingengine-platform-cloud",
+  "name": "almond-cloud",
   "version": "1.0.0",
-  "description": "Cloud Platform for ThingEngine",
-  "author": "Stanford IoT lab",
+  "description": "Cloud Almond",
+  "author": "Stanford University Mobile and Social Computing Lab",
+  "license": "GPL-3.0+",
+  "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cloud",
   "contributors": [
     {
       "name": "Giovanni Campagna",
       "email": "gcampagn@cs.stanford.edu"
+    },
+    {
+      "name": "Silei Xu",
+      "email": "silei@cs.stanford.edu"
     }
   ],
   "scripts": {
