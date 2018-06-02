@@ -2198,7 +2198,7 @@ function loadMetadata(language) {
 
             GRAMMAR.thingpedia_table.push(['${thingpedia_table}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
-                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                if (!ptype || !ptype.equals(value.getType()))
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;
@@ -2210,7 +2210,7 @@ function loadMetadata(language) {
             }, { isConstant: true, allowEmptyPictureURL: true })]);
             GRAMMAR.thingpedia_get_command.push(['${thingpedia_get_command}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
-                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                if (!ptype || !ptype.equals(value.getType()))
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;
@@ -2223,7 +2223,7 @@ function loadMetadata(language) {
 
             GRAMMAR.thingpedia_stream.push(['${thingpedia_stream}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
-                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                if (!ptype || !ptype.equals(value.getType()))
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;
@@ -2233,7 +2233,7 @@ function loadMetadata(language) {
             }, { isConstant: true, allowEmptyPictureURL: true })]);
             GRAMMAR.thingpedia_action.push(['${thingpedia_action}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
-                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                if (!ptype || !ptype.equals(value.getType()))
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;
