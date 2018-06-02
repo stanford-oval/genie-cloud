@@ -65,9 +65,15 @@ the same.
 inside the individual user sandboxes). Use environment variables if you need true secret tokens,
 and store them in a root-only (0600) file.
 
-In `config.js`, you must also set the redirect URI origin (scheme-host-port) for your OAuth redirects.
-This is to support Login With Google, and to support configuring OAuth-based accounts in Web Almond.
-This must be the same origin that you will configure for OAuth redirect URLs.
+In `config.js`, you will also want to change the `SERVER_ORIGIN` field to point to the correct
+location (scheme-host-port) of the server.
+If `ENABLE_REDIRECT` is true, any request with a hostname or scheme that is not that of `SERVER_ORIGIN` will
+be redirected to the correct origin. This is support seamless migration between domains, and
+transparent upgrade to HTTPS.
+
+If needed, you can also change `OAUTH_REDIRECT_ORIGIN` to set the origin for your OAuth redirects.
+The latter is used to support Login With Google, and to configure OAuth-based accounts in Web Almond,
+so it must be the same origin that you will configure for OAuth redirect URLs.
 
 If you use the embedded Thingpedia, it is expected you use a CDN to deliver code zip files, icons and other large user generated
 content. Set the URL of your CDN in `config.js`. You can also set the URL of a subfolder of your
@@ -99,7 +105,7 @@ Set up your database by executing the SQL in `model/schema.sql`. Then set `DATAB
 See the documentation of node-mysql for options. If you use Amazon RDS, you should say so with `ssl=Amazon%20RDS`.
 It is recommended you set `timezone=Z` in the options (telling the database to store dates and times in UTC timezone).
 
-The SQL script will create a default root user, with password `rootroot`.
+The SQL script will create a default `root` user, with password `rootroot`.
 The database is initially empty.
 
 If you are using the embedded Thingpedia, you must populate it with the builtin Thingpedia entries
@@ -107,6 +113,14 @@ If you are using the embedded Thingpedia, you must populate it with the builtin 
  [org.thingpedia.builtin.thingengine.remote](https://almond.stanford.edu/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine.remote),
  [org.thingpedia.builtin.test](https://almond.stanford.edu/thingpedia/devices/by-id/org.thingpedia.builtin.test))
  before you can run Web Almond.
+
+The database initialization will also create a default `anonymous` user, with the same password as the root user. This enables users to try
+Web Almond without creating an account for themselves. Note that the default anonymous user is missing
+all service accounts, including those like YouTube that are advertised as suggestions to users.
+
+You must set up those accounts before enabling the anonymous user in `config.js`. To do so, log in
+to the anonymous user as if it was regular user, and add the accounts to My Almond.
+It goes without saying, you should change the password for both the `root` and `anonymous` users, and you should use real, strong passwords.
 
 ### Step 4: Web Almond
 

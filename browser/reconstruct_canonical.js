@@ -51,10 +51,9 @@ module.exports = function reconstructCanonical(schemaRetriever, code, entities) 
         if (intent.isAnswer)
             return Describe.describeArg(fakeGettext, intent.value);
 
-        if (intent.isPermissionRule) {
+        if (intent.isPermissionRule)
             return Describe.describePermissionRule(fakeGettext, intent.rule);
-        } else {
+        else
             return Describe.describeProgram(fakeGettext, intent.program);
-        }
     });
 };

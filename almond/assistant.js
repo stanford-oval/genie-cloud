@@ -12,7 +12,7 @@
 const Q = require('q');
 const events = require('events');
 
-const Almond = require('almond');
+const Almond = require('almond-dialog-agent');
 const AlmondApi = require('./almond_api');
 
 const Config = require('../config');

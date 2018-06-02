@@ -15,6 +15,7 @@
 
 const express = require('express');
 const http = require('http');
+const url = require('url');
 const path = require('path');
 const logger = require('morgan');
 const favicon = require('serve-favicon');
@@ -68,36 +69,42 @@ module.exports = class Frontend {
 
         this._app.use(logger('dev'));
 
-        if (Config.IS_PRODUCTION_THINGPEDIA) {
+
+        const IS_ALMOND_WEBSITE = Config.SERVER_ORIGIN === 'https://almond.stanford.edu';
+
+        const SERVER_NAME = url.parse(Config.SERVER_ORIGIN).hostname;
+        if (Config.ENABLE_REDIRECT) {
             this._app.use((req, res, next) => {
                 let redirect = false;
                 if (req.headers['x-forwarded-proto'] === 'http')
                     redirect = true;
-                if (req.hostname !== 'almond.stanford.edu')
-                    redirect = true;
-                // don't redirect unless it's one of the stanford.edu hostnames
+                // don't redirect if there is no hostname
                 // (it's a health-check from the load balancer)
-                if (!req.hostname || (!req.hostname.endsWith('.stanford.edu') && req.hostname !== 'www.thingpedia.org'))
+                if (req.hostname && req.hostname !== SERVER_NAME)
+                    redirect = true;
+                if (IS_ALMOND_WEBSITE && (!req.hostname || (!req.hostname.endsWith('.stanford.edu') && req.hostname !== 'www.thingpedia.org')))
                     redirect = false;
-                // don't redirect /thingpedia/api because the client code
+                // don't redirect certain API endpoints because the client code
                 // doesn't cope well
                 if (req.originalUrl.startsWith('/thingpedia/api') || req.originalUrl.startsWith('/api/webhook') || req.originalUrl.startsWith('/ws'))
                     redirect = false;
                 if (redirect) {
                     if (req.hostname === 'thingpedia.stanford.edu' && req.originalUrl === '/')
-                        res.redirect(301, 'https://almond.stanford.edu/thingpedia');
+                        res.redirect(301, SERVER_NAME + '/thingpedia');
                     else
-                        res.redirect(301, 'https://almond.stanford.edu' + req.originalUrl);
+                        res.redirect(301, SERVER_NAME + req.originalUrl);
                     return;
                 }
                 next();
             });
+        }
+        if (IS_ALMOND_WEBSITE) {
             // security headers
             this._app.use((req, res, next) => {
                 res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
                 //res.set('Content-Security-Policy', `default-src 'self'; connect-src 'self' https://*.stanford.edu ; font-src 'self' https://maxcdn.bootstrapcdn.com https://fonts.googleapis.com ; img-src * ; script-src 'self' https://code.jquery.com https://maxcdn.bootstrapcdn.com 'unsafe-inline' ; style-src 'self' https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com 'unsafe-inline'`);
                 res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-                //res.set('X-Frame-Options', 'DENY');
+                res.set('X-Frame-Options', 'DENY');
                 res.set('X-Content-Type-Options', 'nosniff');
                 next();
             });
@@ -167,6 +174,7 @@ module.exports = class Frontend {
             res.locals.THINGPEDIA_URL = Config.THINGPEDIA_URL;
             res.locals.WITH_THINGPEDIA = Config.WITH_THINGPEDIA;
             res.locals.ENABLE_ANONYMOUS_USER = Config.ENABLE_ANONYMOUS_USER;
+            res.locals.IS_ALMOND_WEBSITE = IS_ALMOND_WEBSITE;
             next();
         });
 
