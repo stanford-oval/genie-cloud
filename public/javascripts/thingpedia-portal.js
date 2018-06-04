@@ -62,7 +62,7 @@ $(function() {
     }
 
     function loadAll() {
-        $.get('/thingpedia/api/devices/all?page=' + page + '&developer_key=' + developerKey, renderDevices);
+        $.get('/thingpedia/api/devices/all', { page: page, developer_key: developerKey }, renderDevices);
     }
 
     loadAll();
@@ -70,7 +70,7 @@ $(function() {
     $('#device-search-button').click(function(event) {
         page = 0;
         insearch = true;
-        $.get('/thingpedia/api/devices/search?q=' + encodeURIComponent($('#device-search-box').val() + '&developer_key=' + developerKey), renderDevices);
+        $.get('/thingpedia/api/devices/search', { q: $('#device-search-box').val(), developer_key: developerKey }, renderDevices);
         event.preventDefault();
     });
     $('#device-reset-button').click(function(event) {
