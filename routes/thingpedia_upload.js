@@ -338,9 +338,10 @@ function doCreateOrUpdate(id, create, req, res) {
     Q.try(() => {
         return db.withTransaction((dbClient) => {
             return Promise.resolve().then(() => {
+                if (create && (!req.files.icon || !req.files.icon.length))
+                    throw new Error(req._("An icon must be specified for new devices"));
                 return validateDevice(dbClient, req);
             }).catch((e) => {
-                console.error(e.stack);
                 res.render('thingpedia_device_create_or_edit', { page_title:
                                                                  (create ?
                                                                   req._("Thingpedia - create new device") :
