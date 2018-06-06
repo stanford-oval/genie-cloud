@@ -3,6 +3,7 @@ extends layout
 block styles
   link(rel='stylesheet', href='/stylesheets/codemirror.css')
   link(rel='stylesheet', href='/stylesheets/lint.css')
+  link(rel='stylesheet', href='/stylesheets/jsoneditor.css', type="text/css")
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
 block scripts
@@ -57,7 +58,7 @@ block content
             input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#device-icon
 
           div.form-group
-            label(for='device-zipfile').control-label= _("Upload ZIP file with JS code")
+            label(for='device-zipfile').control-label= _("Upload a single JS file or a ZIP file with JS code")
             input(type='file',name='zipfile')#device-zipfile
 
           div.form-group.hidden
@@ -69,7 +70,21 @@ block content
               |  In any case, you should use the manifest to document how your device is used, that
               |  is, what triggers and what actions are there!
 
-          div#json-manifest-placeholder
+          div.row
+            div.col-md-9
+              div#json-manifest-placeholder
+            div.col-md-3
+              div.row
+                button(type='button')#package-type Switch Package Type
+              br
+              div.row
+                button(type='button')#add-query Add a Query
+              br
+              div.row
+                button(type='button')#add-action Add an Action
+              br
+              div.row
+                button(type='button')#add-example Add an Example Command
 
           if user.developer_status >= 2
             div.checkbox

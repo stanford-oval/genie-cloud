@@ -1,11 +1,11 @@
 "use strict";
 $(function() {
-    var json = JSON.parse($('#device-code').text());
-    var element = document.getElementById('json-manifest-placeholder');
+    let json = JSON.parse($('#device-code').text());
+    let element = document.getElementById('json-manifest-placeholder');
 
-    var ttSchema = {
+    let ttSchema = {
         type: 'object',
-        required: false,
+        required: ['args', 'doc', 'confirmation', 'confirmation_remote', 'canonical', 'formatted', 'poll_interval', 'is_list'],
         properties: {
             args: {
                 type: 'array',
@@ -13,6 +13,7 @@ $(function() {
                 items: {
                     type: 'object',
                     title: 'Argument',
+                    required: ['name', 'type', 'question', 'is_input', 'required'],
                     properties: {
                         name: {
                             type: 'string',
@@ -28,17 +29,14 @@ $(function() {
                         },
                         is_input: {
                             type: 'boolean',
-                            format: 'checkbox',
                             title: 'Argument is input'
                         },
                         required: {
                             type: 'boolean',
-                            format: 'checkbox',
                             title: 'Argument is required'
                         },
                         json_key: {
                             type: 'string',
-                            required: false,
                             title: 'JSON Property Name'
                         }
                     }
@@ -66,48 +64,40 @@ $(function() {
                 items: {
                     title: "Item",
                     type: 'object',
+                    required: ['type'],
                     properties: {
                         type: {
                             type: 'string',
                             enum: ['text', 'picture', 'rdl', 'code'],
-                            title: "Output Type",
-                            required: true,
+                            title: "Output Type"
                         },
                         text: {
                             type: 'string',
-                            title: "Message",
-                            required: false,
+                            title: "Message"
                         },
                         url: {
                             type: 'string',
-                            title: "Picture URL",
-                            required: false,
+                            title: "Picture URL"
                         },
                         callback: {
                             type: 'string',
-                            title: "Deep-Link URL",
-                            required: false,
+                            title: "Deep-Link URL"
                         },
                         webCallback: {
                             type: 'string',
-                            title: "Link URL",
-                            required: false,
+                            title: "Link URL"
                         },
                         displayTitle: {
                             type: 'string',
-                            title: "Link Title",
-                            required: false,
+                            title: "Link Title"
                         },
                         displayText: {
                             type: 'string',
-                            title: "Link Text",
-                            required: false,
+                            title: "Link Text"
                         },
                         code: {
                             type: 'string',
-                            title: "Formatting Function",
-                            format: 'textarea',
-                            required: false,
+                            title: "Formatting Function"
                         }
                     }
                 }
@@ -118,27 +108,24 @@ $(function() {
             },
             is_list: {
                 type: 'boolean',
-                format: 'checkbox',
                 title: 'This function returns multiple results'
             },
             url: {
                 type: 'string',
-                title: 'API Endpoint URL',
-                required: false,
+                title: 'API Endpoint URL'
             },
             json_key: {
                 type: 'string',
-                title: 'Result JSON Property Name',
-                required: false,
+                title: 'Result JSON Property Name'
             },
         }
     };
-    var fullSchema = {
+    let fullSchema = {
         type: 'object',
         title: "Device Manifest",
+        required: ['module_type', 'params', 'category', 'subcategory', 'types', 'child_types', 'auth', 'queries', 'actions', 'examples'],
         additionalProperties: {
             type: 'string',
-            required: false,
         },
         properties: {
             module_type: {
@@ -150,20 +137,17 @@ $(function() {
             },
             name: {
                 type: 'string',
-                title: "User visible name",
-                required: false,
+                title: "User visible name"
             },
             description: {
                 type: 'string',
-                title: "User visible description",
-                required: false,
+                title: "User visible description"
             },
             params: {
                 type: 'object',
                 title: "Configuration Parameters",
                 additionalProperties: {
                     type: 'array',
-                    required: false,
                     minItems: 2,
                     maxItems: 2,
                     items: [
@@ -193,19 +177,18 @@ $(function() {
             },
             types: {
                 type: 'array',
-                format: 'table',
                 title: "Device Types",
                 items: { type: 'string' }
             },
             child_types: {
                 type: 'array',
-                format: 'table',
                 title: "Child Device Types",
                 items: { type: 'string' }
             },
             auth: {
                 type: 'object',
                 title: "Authentication",
+                required: ['type'],
                 properties: {
                     type: {
                         type: 'string',
@@ -217,30 +200,24 @@ $(function() {
                     },
                     client_id: {
                         type: 'string',
-                        title: "OAuth 2 Client ID",
-                        required: false,
+                        title: "OAuth 2 Client ID"
                     },
                     client_secret: {
                         type: 'string',
-                        title: "OAuth 2 Client Secret",
-                        required: false,
+                        title: "OAuth 2 Client Secret"
                     },
                     discoveryType: {
                         type: 'string',
                         title: "Discovery protocol",
-                        enum: ['upnp', 'bluetooth'],
-                        required: false
+                        enum: ['upnp', 'bluetooth']
                     },
                     api_key: {
                         type: 'string',
-                        title: "API Key",
-                        required: false
+                        title: "API Key"
                     }
                 },
-
                 additionalProperties: {
-                    type: 'string',
-                    required: false,
+                    type: 'string'
                 }
             },
             queries: {
@@ -273,19 +250,19 @@ $(function() {
             },
         }
     };
-    var editor = new JSONEditor(element, {
-        theme: 'bootstrap3',
-        iconlib: 'bootstrap3',
-        required_by_default: true,
-        display_required_only: true,
-        disable_array_reorder: true,
-        disable_array_delete_last_row: true,
-        disable_array_delete_all_rows: true,
+
+    let options = {
+        mode: 'tree',
+        modes: ['code', 'tree'], // allowed modes
         schema: fullSchema,
-        startval: json
-    });
+        onError: function (err) {
+            alert(err.toString());
+        }
+    };
+    let editor = new JSONEditor(element, options);
+    editor.set(json);
 
     $('#thing-form').submit(function() {
-        $('#device-code').val(JSON.stringify(editor.getValue()));
+        $('#device-code').val(JSON.stringify(editor.get()));
     });
 });
