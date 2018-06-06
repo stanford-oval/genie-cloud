@@ -17,9 +17,13 @@
     "update-docs": "for f in doc/*.md ; do sed \"s|@@DOC@@|$f|\" views/doc_base.pug > views/doc_$(basename \"$f\" .md ).pug ; done",
     "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js"
   },
+  "resolutions": {
+    "thingengine-core": "github:Stanford-Mobisocial-IoT-Lab/thingengine-core#production",
+    "almond-dialog-agent": "github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent#production"
+  },
   "dependencies": {
     "accept-language": "^2.0.17",
-    "almond-dialog-agent": "^1.0.1",
+    "almond-dialog-agent": "github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent#production",
     "body-parser": "~1.13.3",
     "cacheable-middleware": "0.0.1",
     "canvas": "^1.6.10",
@@ -64,7 +68,7 @@
     "seedrandom": "^2.4.3",
     "serve-favicon": "~2.3.0",
     "sockaddr": "^1.0.0",
-    "thingengine-core": "^1.0.0",
+    "thingengine-core": "github:Stanford-Mobisocial-IoT-Lab/thingengine-core#production",
     "thingpedia": "^2.2.1",
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "^1.0.0",
