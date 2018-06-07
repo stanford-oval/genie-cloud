@@ -13870,8 +13870,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    else if (isEmpty) {
 	      var title = Node._findTitle(this.schema, this.getName());
 	      domValue.title = title ? title : '';
-	      console.log('***************');
-	      console.log(title)
 	    }
 	    else {
 	      domValue.title = '';
