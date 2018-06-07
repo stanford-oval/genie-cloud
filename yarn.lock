@@ -4007,7 +4007,7 @@ text-table@~0.2.0:
 
 "thingengine-core@github:Stanford-Mobisocial-IoT-Lab/thingengine-core#production":
   version "1.0.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/tar.gz/3d8a9d57f86d82806be1010efcb1faa088db97e1"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/tar.gz/bde4649f07bfdb87beef6576b893e37f46725c51"
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.1"
