@@ -36,9 +36,8 @@ router.get('/schema/:schemas', (req, res) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
     client.getSchemas(schemas).then((obj) => {
-        if (obj.developer)
-            res.cacheFor(3600000);
-        else
+        // don't cache if the use is a developer
+        if (!req.query.developer_key)
             res.cacheFor(86400000);
         res.json(obj);
     }).catch((e) => {
@@ -57,9 +56,8 @@ router.get('/schema-metadata/:schemas', (req, res) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
     client.getMetas(schemas).then((obj) => {
-        if (obj.developer)
-            res.cacheFor(3600000);
-        else
+        // don't cache if the use is a developer
+        if (!req.query.developer_key)
             res.cacheFor(86400000);
         res.json(obj);
     }).catch((e) => {
