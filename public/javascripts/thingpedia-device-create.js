@@ -286,6 +286,8 @@ $(function() {
             "formatted": [],
             "poll_interval": -1
         };
+        if (json.module_type === 'org.thingpedia.generic_rest.v1')
+            json.queries['your-new-query'].url = '';
         editor.set(json);
         editor.expandChild(['queries', 'your-new-query']);
     });
@@ -308,6 +310,8 @@ $(function() {
             "canonical": "",
             "formatted": []
         };
+        if (json.module_type === 'org.thingpedia.generic_rest.v1')
+            json.actions['your-new-action'].url = '';
         editor.set(json);
         editor.expandChild(['actions', 'your-new-action']);
     });
