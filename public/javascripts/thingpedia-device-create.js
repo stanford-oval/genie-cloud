@@ -3,9 +3,11 @@ $(function() {
     let json = JSON.parse($('#device-code').text());
     let element = document.getElementById('json-manifest-placeholder');
 
+    json.examples = [];
+
     let ttSchema = {
         type: 'object',
-        required: ['args', 'doc', 'confirmation', 'confirmation_remote', 'canonical', 'formatted', 'poll_interval', 'is_list'],
+        required: ['args', 'doc', 'confirmation', 'confirmation_remote', 'canonical', 'formatted'],
         properties: {
             args: {
                 type: 'array',
@@ -120,6 +122,9 @@ $(function() {
             },
         }
     };
+    let querySchema = JSON.parse(JSON.stringify(ttSchema));
+    querySchema.required.push('poll_interval');
+    let actionSchema = ttSchema;
     let fullSchema = {
         type: 'object',
         title: "Device Manifest",
@@ -223,12 +228,12 @@ $(function() {
             queries: {
                 type: 'object',
                 title: "Queries",
-                additionalProperties: ttSchema
+                additionalProperties: querySchema
             },
             actions: {
                 type: 'object',
                 title: "Actions",
-                additionalProperties: ttSchema
+                additionalProperties: actionSchema
             },
             examples: {
                 type: 'array',
@@ -261,6 +266,61 @@ $(function() {
     };
     let editor = new JSONEditor(element, options);
     editor.set(json);
+
+    $('#add-query').click(function () {
+        let json = editor.get();
+        json.queries['your-new-query'] = {
+            "args": [
+                {
+                    "name": "argument-name",
+                    "type": "argument-type",
+                    "question": "your-slot-filling-question",
+                    "is_input": false,
+                    "required": false
+                }
+            ],
+            "doc": "",
+            "confirmation": "",
+            "confirmation_remote": "",
+            "canonical": "",
+            "formatted": [],
+            "poll_interval": -1
+        };
+        editor.set(json);
+        editor.expandChild(['queries', 'your-new-query']);
+    });
+
+    $('#add-action').click(function () {
+        let json = editor.get();
+        json.actions['your-new-action'] = {
+            "args": [
+                {
+                    "name": "argument-name",
+                    "type": "argument-type",
+                    "question": "your-slot-filling-question",
+                    "is_input": false,
+                    "required": false
+                }
+            ],
+            "doc": "",
+            "confirmation": "",
+            "confirmation_remote": "",
+            "canonical": "",
+            "formatted": []
+        };
+        editor.set(json);
+        editor.expandChild(['actions', 'your-new-action']);
+    });
+
+    $('#add-example').click(function () {
+        let json = editor.get();
+        json.examples.push({
+            "utterance": "",
+            "program": ""
+        });
+        editor.set(json);
+        editor.expandChild(['examples']);
+    });
 
     $('#thing-form').submit(function() {
         $('#device-code').val(JSON.stringify(editor.get()));
