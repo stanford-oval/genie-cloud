@@ -91,3 +91,7 @@
 #conversation .message-rdl-content {
   display: block;
 }
+
+#input-form-group {
+  margin-bottom: 0;
+}
