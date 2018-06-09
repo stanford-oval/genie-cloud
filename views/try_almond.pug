@@ -33,8 +33,11 @@ block content
                   span(aria-hidden='true').glyphicon.glyphicon-remove-circle
                   span.sr-only= _("Cancel")
                 form(action='#')#input-form
-                  label(for='#chat-input').sr-only= _("Command:")
-                  input(type='text',placeholder=_("Write your command or answer here")).form-control#input
+                  div.form-group.has-feedback#input-form-group
+                    label(for='#chat-input').sr-only= _("Command:")
+                    input(type='text',placeholder=_("Write your command or answer here")).form-control#input
+                    span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden(title=_("Lost connection to the server."))
+                    span.help-block.hidden= _("Lost connection to the server.")
 
   div.row
     div.col-md-6

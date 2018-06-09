@@ -2,7 +2,40 @@
 $(function() {
     var url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host
         + $('#conversation').attr('data-target');
-    var ws = new WebSocket(url);
+
+    var ws;
+    (function() {
+        var wasOpen = false;
+        var reconnectTimeout = 100;
+
+        function connect() {
+            ws = new WebSocket(url);
+            ws.onopen = function() {
+                wasOpen = true;
+                reconnectTimeout = 100;
+                $('#input-form-group').removeClass('has-warning');
+                $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
+            };
+            ws.onmessage = onWebsocketMessage;
+
+            ws.onclose = function() {
+                console.error('Web socket closed');
+                $('#input-form-group').addClass('has-warning');
+                $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').removeClass('hidden');
+
+                // reconnect immediately if the connection succeeded, otherwise
+                // try again in a little bit
+                if (wasOpen) {
+                    setTimeout(connect, 100);
+                } else {
+                    reconnectTimeout = 1.5 * reconnectTimeout;
+                    setTimeout(connect, reconnectTimeout);
+                }
+            };
+        }
+
+        connect();
+    })();
 
     function syncCancelButton(msg) {
         var visible = msg.ask !== null;
@@ -150,7 +183,7 @@ $(function() {
             $('#input').attr('type', 'text');
     }
 
-    ws.onmessage = function(event) {
+    function onWebsocketMessage(event) {
         var parsed = JSON.parse(event.data);
         console.log('received ' + event.data);
         switch (parsed.type) {
@@ -188,11 +221,7 @@ $(function() {
                 yesnoMessage();
             break;
         }
-    };
-    ws.onclose = function() {
-        console.error('Web socket closed');
-        // reconnect here...
-    };
+    }
 
     function handleSlashR(line) {
         line = line.trim();
