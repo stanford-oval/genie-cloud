@@ -9,5 +9,6 @@ before_install:
 - sudo apt-get update -q -y
 install:
 - sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev
+- yarn
 script:
 - yarn lint
