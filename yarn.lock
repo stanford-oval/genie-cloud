@@ -4042,7 +4042,6 @@ thingpedia@^2.2.0, thingpedia@^2.2.1:
 
 thingtalk@^1.0.0, "thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk#master":
   version "1.1.1"
-  uid "605cfbb52d925df37a5a00948f0bb06cba279a46"
   resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/605cfbb52d925df37a5a00948f0bb06cba279a46"
   dependencies:
     adt "~0.7.2"

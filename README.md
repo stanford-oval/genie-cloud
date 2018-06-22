@@ -84,15 +84,21 @@ If you do not set up a CDN, zip files and icons will be stored in the public/dow
 In `config.js`, you can also change the URL of the natural language service to use. This
 is necessary if you use an embedded Thingpedia (as the default one refers to the public Thingpedia).
 
-### Step 2.5 (optional): Build the sandbox
+### Step 2.5 (optional): Enable the sandbox
 
 If you plan to deploy this as a web facing service, and you plan to allow developer users, you
-will want to set up the sandbox. Use:
+will want to set up the sandbox.
 
-```make -C sandbox localstatedir=/var/lib/thingengine```
+To do so, you must create an empty directory called `/run/thingengine`;
+this directory will be the root file system for sandboxed processes.
 
-Replace `/var/lib/thingengine` with the directory under which the user sandboxes will be placed.
-This directory must be readable and writable to the user running the Web Almond processes.
+Inside the sandbox, the code will have access to `/usr`, `/etc` and `/opt`. Make sure
+that the installation of Web Almond is in one of these directory, and make sure that these
+directories do not contain any private data.
+
+In particular, you must make sure that the current working directory for Web Almond
+processes is not under `/usr`, `/etc` or `/opt`. Common choices include `/srv/thingengine`
+and `/var/lib/thingengine`.
 
 If you skip this step, set `THINGENGINE_DISABLE_SANDBOX=1` in your environment.
 
