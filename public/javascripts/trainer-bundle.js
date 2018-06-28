@@ -475,7 +475,7 @@ module.exports = function reconstructCanonical(schemaRetriever, code, entities) 
 // See COPYING for details
 "use strict";
 
-const THINGPEDIA_URL = '/thingpedia';
+const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 
 function httpRequest(url) {
     return Promise.resolve($.ajax(url));
@@ -575,8 +575,8 @@ const ThingpediaClient = require('./thingpediaclient');
 const reconstructCanonical = require('./reconstruct_canonical');
 
 class ThingTalkTrainer {
-    constructor(sempreUrl) {
-        this.parser = new ParserClient(sempreUrl, 'en-US');
+    constructor() {
+        this.parser = new ParserClient('http://crowdie.stanford.edu:8400', 'en-US');
 
         this._locale = $('body[data-locale]').attr('data-locale');
         this._developerKey = $('body[data-developer-key]').attr('data-developer-key') || null;
@@ -785,6 +785,7 @@ class ThingTalkTrainer {
 $(() => {
     new ThingTalkTrainer();
 });
+
 },{"./parserclient":2,"./polyfill":3,"./reconstruct_canonical":4,"./thingpediaclient":5,"thingtalk":43}],7:[function(require,module,exports){
 // adt.js 
 // ------
@@ -24955,7 +24956,7 @@ module.exports = {
                          ],
 
     '$word_list': [[['WORD'], (word) => word.value],
-                   [['$word_list', 'WORD'], (list, word) => list + word.value]],
+                   [['$word_list', 'WORD'], (list, word) => list + ' ' + word.value]],
 
     // play fast and loose with units here, because I don't want to write
     // everything by hand
@@ -25167,7 +25168,7 @@ const SEMANTIC_ACTION = [
 ((str) => new Ast.Value.String(str.value)),
 ((_1, str, _2) => new Ast.Value.String(str)),
 ((word) => word.value),
-((list, word) => list + word.value),
+((list, word) => list + ' ' + word.value),
 ((num, unit) => new Ast.Value.Measure(num.value, unit.value)),
 ((v1, num, unit) => {
                               if (v1.isCompoundMeasure) {
@@ -26035,6 +26036,12 @@ class ToNNConverter {
 }
 
 function toNN(program, sentence, entities) {
+    // for backward compatibility with the old API
+    if (!entities) {
+        entities = sentence;
+        sentence = '';
+    }
+
     let converter = new ToNNConverter(sentence, entities);
     return converter.toNN(program);
 }

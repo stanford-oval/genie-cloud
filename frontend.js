@@ -259,14 +259,13 @@ module.exports = class Frontend {
             this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
             this._app.use('/thingpedia/schemas', require('./routes/thingpedia_schemas'));
             this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
-            this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
             this._app.use('/thingpedia/datasets', require('./routes/thingpedia_dataset'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
         }
 
         this._app.use('/publications', require('./routes/publications'));
-
+        this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
         this._app.use('/user', require('./routes/user'));
         this._app.use('/admin', require('./routes/admin'));
 

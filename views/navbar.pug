@@ -13,8 +13,8 @@ ul.nav.navbar-nav
       a(href='/thingpedia')= _("Thingpedia")
     li
       a(href='/thingpedia/cheatsheet')= _("Cheatsheet")
-    li
-      a(href='/thingpedia/developers')= _("Developers")
+  li
+    a(href='/thingpedia/developers')= _("Developers")
   if authenticated && user.developer_status >= 3
     li
       a(href="/admin")= _("Administration")
