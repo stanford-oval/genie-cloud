@@ -159,9 +159,9 @@ router.post('/', (req, res, next) => {
             response: {
                 outputSpeech: {
                     type: 'PlainText',
-                    text: "Hi, I am Almond. Say \"alexa ask almond to start\""
+                    text: "Hi, I am Almond. Try \"ask almond to play a song\"."
                 },
-                shouldEndSession: false,
+                shouldEndSession: true,
                 /*directives: ([
                     {
                         type: 'Dialog.ElicitSlot',
@@ -203,7 +203,7 @@ router.post('/', (req, res, next) => {
 	text = 'pause';
     } else {
         text = req.body.request.intent.slots.command ? req.body.request.intent.slots.command.value :
-               (req.body.request.intent.slots.spotify_command ? req.body.request.intent.slots.spotify_command.value : '');
+            (req.body.request.intent.slots.spotify_command ? req.body.request.intent.slots.spotify_command.value : '');
         if (req.body.request.dialogState === 'STARTED') {
             if (req.body.request.intent.name === 'play')
                 text = 'play ' + text;
@@ -215,8 +215,17 @@ router.post('/', (req, res, next) => {
                 text = 'seek ' + text;
             if (req.body.request.intent.name === 'save')
                 text = 'save ' + text;
+            if (req.body.request.intent.name === 'what')
+                text = 'what ' + text;
+            if (req.body.request.intent.name === 'whats')
+                text = 'what is ' + text;
+            if (req.body.request.intent.name === 'how')
+                text = 'how ' + text;
+            if (req.body.request.intent.name === 'get')
+                text = 'get ' + text;
         }
     }
+
     console.log(text);
     if (!text) {
         res.json({
