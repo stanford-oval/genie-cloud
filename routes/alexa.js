@@ -18,9 +18,10 @@ const EngineManager = require('../almond/enginemanagerclient');
 var router = express.Router();
 
 class AlexaDelegate {
-    constructor(res) {
+    constructor(res, slot) {
         this._buffer = '';
         this._res = res;
+        this._slot = slot;
         this._done = false;
 
         this._askSpecial = null;
@@ -37,15 +38,15 @@ class AlexaDelegate {
            response: {
                outputSpeech: {
                    type: 'PlainText',
-                   text: this._buffer + (this._askSpecial === null ? '. Now what do you want me to do?' : '')
+                   text: this._buffer // + (this._askSpecial === null ? '. Now what do you want me to do?' : '')
                },
-               shouldEndSession: false,// this._askSpecial === null,
-               directives: ([
+               shouldEndSession: this._askSpecial === null,
+               directives: (this._askSpecial ? [
                    {
                        type: 'Dialog.ElicitSlot',
-                       slotToElicit: 'command'
+                       slotToElicit: this._slot
                    }
-               ])
+               ] : [])
            }
         });
     }
@@ -192,11 +193,32 @@ router.post('/', (req, res, next) => {
     const assistantUser = { name: user.human_name || user.username };
     let text = '';
 
-
-    if (req.body.request.type === 'LaunchRequest')
+    if (req.body.request.type === 'LaunchRequest') {
         text = 'hello';
-    else
-        text = req.body.request.intent.slots.command ? req.body.request.intent.slots.command.value : '';
+    } else if (req.body.request.intent.name === 'resume') {
+	text = 'resume';
+    } else if (req.body.request.intent.name === 'skip') {
+	text = 'skip the current song';
+    } else if (req.body.request.intent.name === 'pause') {
+	text = 'pause';
+    } else {
+        text = req.body.request.intent.slots.command ? req.body.request.intent.slots.command.value :
+               (req.body.request.intent.slots.spotify_command ? req.body.request.intent.slots.spotify_command.value : '');
+    	if (req.body.request.dialogState === 'STARTED') {
+            if (req.body.request.intent.name === 'play')
+                text = 'play ' + text
+            if (req.body.request.intent.name === 'add')
+                text = 'add ' + text
+            if (req.body.request.intent.name === 'make')
+                text = 'create ' + text
+            if (req.body.request.intent.name === 'seek')
+                text = 'seek ' + text
+            if (req.body.request.intent.name === 'save')
+                text = 'save ' + text
+    	}
+    }
+    console.log('*************');
+    console.log(text);
     if (!text) {
         res.json({
             version: '1.0',
@@ -219,7 +241,9 @@ router.post('/', (req, res, next) => {
        return;
     }
 
-    const delegate = new AlexaDelegate(res);
+    let slots = req.body.request.intent.slots;
+    let slot = slots? (slots.spotify_command ? 'spotify_command' : 'command') : text;
+    const delegate = new AlexaDelegate(res, slot);
 
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
