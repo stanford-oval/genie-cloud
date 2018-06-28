@@ -1521,6 +1521,12 @@ detective@^5.0.2:
     defined "^1.0.0"
     minimist "^1.1.1"
 
+dialogflow-fulfillment@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/dialogflow-fulfillment/-/dialogflow-fulfillment-0.4.1.tgz#bc5402152c94297924554d27b21024c4bbeb5369"
+  dependencies:
+    debug "^3.1.0"
+
 dicer@0.2.5:
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/dicer/-/dicer-0.2.5.tgz#5996c086bb33218c812c090bddc09cd12facb70f"
