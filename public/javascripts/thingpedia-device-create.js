@@ -1,6 +1,9 @@
 "use strict";
 $(function() {
-    let json = JSON.parse($('#device-code').text());
+    let json = {};
+    json.category = null;
+    json.subcategory = null;
+    json = Object.assign(json, JSON.parse($('#device-code').text()));
     let element = document.getElementById('json-manifest-placeholder');
 
     json.examples = [];
