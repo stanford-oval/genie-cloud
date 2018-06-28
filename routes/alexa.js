@@ -204,20 +204,19 @@ router.post('/', (req, res, next) => {
     } else {
         text = req.body.request.intent.slots.command ? req.body.request.intent.slots.command.value :
                (req.body.request.intent.slots.spotify_command ? req.body.request.intent.slots.spotify_command.value : '');
-    	if (req.body.request.dialogState === 'STARTED') {
+        if (req.body.request.dialogState === 'STARTED') {
             if (req.body.request.intent.name === 'play')
-                text = 'play ' + text
+                text = 'play ' + text;
             if (req.body.request.intent.name === 'add')
-                text = 'add ' + text
+                text = 'add ' + text;
             if (req.body.request.intent.name === 'make')
-                text = 'create ' + text
+                text = 'create ' + text;
             if (req.body.request.intent.name === 'seek')
-                text = 'seek ' + text
+                text = 'seek ' + text;
             if (req.body.request.intent.name === 'save')
-                text = 'save ' + text
-    	}
+                text = 'save ' + text;
+        }
     }
-    console.log('*************');
     console.log(text);
     if (!text) {
         res.json({
