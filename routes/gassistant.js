@@ -14,7 +14,7 @@ const express = require('express');
 const passport = require('passport');
 
 const EngineManager = require('../almond/enginemanagerclient');
-const {WebhookClient} = require('dialogflow-fulfilment');
+const {WebhookClient} = require('dialogflow-fulfillment');
 
 var router = express.Router();
 

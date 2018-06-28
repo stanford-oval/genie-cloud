@@ -224,6 +224,7 @@ module.exports = class Frontend {
         this._app.use('/api/webhook', require('./routes/webhook'));
         this._app.use('/me/api/oauth2', require('./routes/oauth2'));
         this._app.use('/me/api/alexa', require('./routes/alexa'));
+        this._app.use('/me/api/gassistant', require('./routes/gassistant'));
         this._app.use('/me/api', require('./routes/my_api'));
         this._app.use('/ws', require('./routes/thingengine_ws'));
         if (Config.WITH_THINGPEDIA === 'embedded') {
