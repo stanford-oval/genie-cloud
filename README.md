@@ -19,7 +19,7 @@ information at <https://almond.stanford.edu>.
 The code depends on nodejs (>= 8.0), cvc4 (any version, although >= 1.5 is recommended),
 gm (provided by GraphicsMagic), cairo (libcairo2-dev on Ubuntu, cairo-devel on Fedora) and
 Pango (libpango1.0-dev on Ubuntu, pango-devel on Fedora), giflib (libgif-dev on Ubuntu, giflib-devel
-on Fedora).
+on Fedora). On Ubuntu it also depends on libcap-dev.
 Optionally, it depends on libsystemd for journal integration.
 A working MySQL server is also required.
 
