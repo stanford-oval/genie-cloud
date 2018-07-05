@@ -6,7 +6,7 @@ DEPS := $(shell pkg-config --cflags --libs libsystemd)
 CPPFLAGS := -D_FORTIFY_SOURCE=2
 
 sandbox: sandbox.c
-	$(CC) -o $@  $(CFLAGS) $(CPPFLAGS) $(DEPS) $<
+	$(CC) -o $@  $(CFLAGS) $(CPPFLAGS) $< $(DEPS)
 	sudo chown root:root $@
 	sudo chmod u+s $@
 
