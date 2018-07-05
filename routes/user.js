@@ -185,7 +185,7 @@ function getProfile(req, res, pwError, profileError) {
 }
 
 router.get('/profile', user.redirectLogIn, (req, res, next) => {
-    getProfile(req, res, undefined, undefined).done();
+    getProfile(req, res, undefined, undefined).catch(next);
 });
 
 router.post('/profile', user.requireLogIn, (req, res, next) => {
@@ -240,7 +240,7 @@ router.post('/change-password', user.requireLogIn, (req, res, next) => {
         });
     }).catch((e) => {
         return getProfile(req, res, e, undefined);
-    }).done();
+    }).catch(next);
 });
 
 router.post('/delete', user.requireLogIn, (req, res, next) => {
@@ -251,7 +251,7 @@ router.post('/delete', user.requireLogIn, (req, res, next) => {
     }).then(() => {
         req.logout();
         res.redirect(303, '/');
-    }).done();
+    }).catch(next);
 });
 
 router.get('/request-developer', user.redirectLogIn, (req, res, next) => {
