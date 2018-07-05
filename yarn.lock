@@ -1798,13 +1798,13 @@ depd@1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/depd/-/depd-1.1.1.tgz#5783b4e1c459f06fa5ca27f991f3d06e7a310359"
 
-depd@1.1.2, depd@~1.1.1, depd@~1.1.2:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/depd/-/depd-1.1.2.tgz#9bcd52e14c097763e749b274c4346ed2e560b5a9"
-
 depd@~1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/depd/-/depd-1.0.1.tgz#80aec64c9d6d97e65cc2a9caa93c0aa6abf73aaa"
+
+depd@~1.1.1, depd@~1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/depd/-/depd-1.1.2.tgz#9bcd52e14c097763e749b274c4346ed2e560b5a9"
 
 deps-sort@^2.0.0:
   version "2.0.0"
@@ -2129,15 +2129,14 @@ expand-template@^1.0.2:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/expand-template/-/expand-template-1.1.1.tgz#981f188c0c3a87d2e28f559bc541426ff94f21dd"
 
-express-mysql-session@^1.2.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/express-mysql-session/-/express-mysql-session-1.3.0.tgz#0eb4455ca75f98df2ce8d13410e0363c997c2786"
+express-mysql-session@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/express-mysql-session/-/express-mysql-session-2.0.0.tgz#70d9e2d48ea12db68e3aa135a1e02ee2b2dac8a4"
   dependencies:
     debug "3.1.0"
-    depd "1.1.2"
     express-session "1.15.6"
     mysql "2.15.*"
-    underscore "1.8.3"
+    underscore "1.9.1"
 
 express-session@1.15.6, express-session@^1.14.0:
   version "1.15.6"
@@ -5439,11 +5438,7 @@ umd@^3.0.0:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/umd/-/umd-3.0.3.tgz#aa9fe653c42b9097678489c01000acb69f0b26cf"
 
-underscore@1.8.3:
-  version "1.8.3"
-  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.8.3.tgz#4f3fb53b106e6097fcf9cb4109f2a5e9bdfa5022"
-
-underscore@^1.6.0:
+underscore@1.9.1, underscore@^1.6.0:
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.9.1.tgz#06dce34a0e68a7babc29b365b8e74b8925203961"
 

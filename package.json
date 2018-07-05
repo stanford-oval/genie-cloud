@@ -44,7 +44,7 @@
     "dialogflow-fulfillment": "^0.4.1",
     "errorhandler": "~1.4.2",
     "express": "^4.15.2",
-    "express-mysql-session": "^1.2.0",
+    "express-mysql-session": "^2.0.0",
     "express-session": "^1.14.0",
     "express-ws": "^3.0.0",
     "express-xml-bodyparser": "^0.3.0",
