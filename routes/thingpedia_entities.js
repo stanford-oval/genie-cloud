@@ -117,14 +117,17 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
                     "insert ignore into entity_lexicon(language,entity_id,entity_value,entity_canonical,entity_name) values ?", [insertBatch]);
             }
 
-            const parser = csv.parse({ columns: true, delimiter: '\t' });
+            const parser = csv.parse({ delimiter: ',' });
             fs.createReadStream(req.files.upload[0].path).pipe(parser);
 
             const promises = [];
             return new Promise((resolve, reject) => {
                 parser.on('data', (row) => {
-                    const value = row.value.trim();
-                    const name = row.name;
+                    if (row.length !== 2) 
+                        return;
+                    
+                    const value = row[0].trim();
+                    const name = row[1];
 
                     const tokens = tokenizer.tokenize(name);
                     const canonical = tokens.join(' ');
