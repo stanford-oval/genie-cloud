@@ -92,7 +92,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
                 has_ner_support: !req.body.no_ner_support
             });
         }).then((entity) => {
-            if (!entity.has_ner_support)
+            if (req.body.no_ner_support)
                 return Q();
 
             if (!req.files.upload || !req.files.upload.length)
@@ -110,7 +110,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
                 return db.insertOne(dbClient,
                     "insert ignore into entity_lexicon(language,entity_id,entity_value,entity_canonical,entity_name) values ?", [batch]);
             }
-            function finish(dbClient) {
+            function finish() {
                 if (insertBatch.length === 0)
                     return Promise.resolve();
                 return db.insertOne(dbClient,
@@ -123,12 +123,12 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
             const promises = [];
             return new Promise((resolve, reject) => {
                 parser.on('data', (row) => {
-                    const value = row[0].trim();
-                    const name = row[1];
+                    const value = row.value.trim();
+                    const name = row.name;
 
                     const tokens = tokenizer.tokenize(name);
                     const canonical = tokens.join(' ');
-                    promises.push(insert(dbClient, language, entity.id, value, canonical, name));
+                    promises.push(insert(req.body.entity_id, value, canonical, name));
                 });
                 parser.on('error', reject);
                 parser.on('end', resolve);
@@ -141,6 +141,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     }).then(() => {
         res.redirect(303, '/thingpedia/entities');
     }).catch((e) => {
+        console.log(e.stack);
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
