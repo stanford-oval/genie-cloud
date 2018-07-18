@@ -1,11 +1,11 @@
 # Device with Zero Line of Code
-Thingpeidia provides a simple way to hook up some typical devices with zero coding.
+Thingpedia provides a simple way to hook up some typical devices with zero coding.
 Currently, we support `Generic Rest` APIs that use no authentication or just standard OAuth 2.0, and `RSS Feed`.
 
 ## Generic REST
 If a device simply provides an interface for HTTP requests, `Generic REST` package type will probably save you lots of time. 
 
-In the following, let's go through an simple example: [Quotes](https://almond.stanford.edu/thingpedia/devices/by-id/com.forismatic.quotes).
+In the following, let's go through a simple example: [Quotes](https://almond.stanford.edu/thingpedia/devices/by-id/com.forismatic.quotes).
 _Quotes_ uses the API provided by [forismatic.com](https://forismatic.com/en/api/), which requires no authentication or developer key.
 It returns a random quote in JSON format as follows:
 ```json
@@ -20,8 +20,7 @@ It returns a random quote in JSON format as follows:
 
 To hook this service up with Almond, go to [device creation page](https://almond.stanford.edu/thingpedia/upload/create) 
 and pick `Generic REST` as the package type.
-Add a query, pick a name you like. 
-Then, click on `Properties` button of the query and tick the box for `API Endpoint URL`. 
+Add a query. Then click on `Properties` button of the query and tick the box for `API Endpoint URL`. 
 The corresponding field will show up and simply fill in the URL of the API of your service, 
 in this case: 
 ```json
