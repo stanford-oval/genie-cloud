@@ -167,3 +167,103 @@
 #publication-list > li {
   margin-bottom: 1em;
 }
+
+.timeline ul li {
+    list-style-type: none;
+    position: relative;
+    width: 6px;
+    margin: 0 auto;
+    padding-top: 50px;
+    background: lightgray;
+}
+
+.timeline ul li::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 30px;
+    border: 4px solid #dea844;
+    border-radius: 50%;
+    background: white;
+}
+
+.timeline ul li div {
+    position: relative;
+    bottom: 0;
+    width: 550px;
+    padding: 15px;
+    background: #2c3e50;
+    color: white;
+}
+
+.timeline ul li div a {
+    color: #dea844;
+}
+
+.timeline ul li div::before {
+    content: '';
+    position: absolute;
+    bottom: 7px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+}
+.timeline ul li:nth-child(odd) div {
+    left: 45px;
+}
+
+.timeline ul li:nth-child(odd) div::before {
+    left: -15px;
+    border-width: 8px 16px 8px 0;
+    border-color: transparent #2c3e50 transparent transparent;
+}
+.timeline ul li:nth-child(even) div {
+    left: -589px;
+}
+
+.timeline ul li:nth-child(even) div::before {
+    right: -15px;
+    border-width: 8px 0 8px 16px;
+    border-color: transparent transparent transparent #2c3e50;
+}
+
+@media screen and (max-width: 1300px) {
+    .timeline ul li div {
+        width: 400px;
+    }
+    .timeline ul li:nth-child(even) div {
+        left: -439px; /*250+45-6*/
+    }
+}
+
+@media screen and (max-width: 1000px) {
+    .timeline ul li div {
+        width: 300px;
+    }
+    .timeline ul li:nth-child(even) div {
+        left: -339px; /*250+45-6*/
+    }
+}
+
+@media screen and (max-width: 750px) {
+    .timeline ul li {
+        margin-left: 20px;
+    }
+
+    .timeline ul li div {
+        width: calc(100vw - 150px);
+    }
+
+    .timeline ul li:nth-child(even) div {
+        left: 45px;
+    }
+
+    .timeline ul li:nth-child(even) div::before {
+        left: -15px;
+        border-width: 8px 16px 8px 0;
+        border-color: transparent #2c3e50 transparent transparent;
+    }
+}
