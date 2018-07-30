@@ -2,9 +2,12 @@ extends layout
 
 block scripts
   script(src='/javascripts/thingpedia-portal.js')
+  script(src='https://code.jquery.com/jquery-1.11.1.min.js')
+  script(src='https://code.jquery.com/ui/1.11.1/jquery-ui.min.js')
 
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+  link(rel='stylesheet', href='https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css')
 
 block page_name
   - stdlayout = false;
@@ -37,6 +40,37 @@ block content
                 |  stores the natural language interface that represent how
                 |  humans refer to and interact with the device, and the
                 |  executable specification corresponding to the device API.
+
+    section.divider
+      h3= _("Popular Rules")
+
+      div.container
+        div.row#rules-container
+          ul#rules
+
+        div#rule-edit
+          div.row#rule-edit-utterance
+          div.row#rule-edit-code
+          div.row
+            button.btn.btn-primary upvote
+            button.btn.btn-primary downvote
+            button.btn.btn-primary adopt
+
+        div#rule-new
+          div.row
+            form(action='/thingpedia/rules/new', method='post')
+              div.form-group
+                input(type='hidden', name='_csrf', value=csrfToken)
+                label(for='rule-new-utterance') Rule
+                input.form-control#rule-new-utterance
+                label(for='rule-new-thingtalk') ThingTalk
+                input.form-control#rule-new-thingtalk
+                button(type='submit').btn.btn-primary#rule-new-submit= _("Submit")
+              div#rule-new-result
+
+        div.row
+          div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+            button.btn.btn-primary.btn-block#rule-new-button= _("Add Your Own")
 
     section.divider
       h3= _("Supported Devices")

@@ -91,3 +91,12 @@
     display: block;
     margin-bottom: 2em;
 }
+
+#rules-container {
+    overflow-y: auto;
+    max-height: 400px;
+}
+
+#rules-container > ul > li {
+    cursor: pointer;
+}

@@ -18,6 +18,7 @@ const device = require('../model/device');
 const organization = require('../model/organization');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
+const rules = require('../model/rules');
 
 const S3_HOST = Config.S3_CLOUDFRONT_HOST + '/devices/';
 
@@ -365,6 +366,18 @@ module.exports = class ThingpediaClientCloud {
             return exampleModel.click(dbClient, exampleId);
         });
     }
+
+    getRules() {
+        return db.withClient((dbClient) => {
+            return rules.getAll(dbClient);
+        });
+    }
+
+    getRuleById(ruleId) {
+        return db.withClient((dbClient) => {
+            return rules.getOne(dbClient, ruleId);
+        });
+    }
 };
 module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getModuleLocation', 'getDeviceCode',
@@ -374,4 +387,5 @@ module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getDeviceList',
                                         'getKindByDiscovery',
                                         'getExamplesByKinds', 'getExamplesByKey',
-                                        'clickExample'];
+                                        'clickExample',
+                                        'getRules', 'getRuleById'];
