@@ -49,22 +49,28 @@ block content
           ul#rules
 
         div#rule-edit
-          div.row#rule-edit-utterance
-          div.row#rule-edit-code
-          div.row
-            button.btn.btn-primary upvote
-            button.btn.btn-primary downvote
-            button.btn.btn-primary adopt
+          form(action='/me/conversation', method='post')
+            input(type='hidden', name='_csrf', value=csrfToken)
+            div.form-group
+              label(for='rule-edit-utterance') Rule
+              input(name='utterance').form-control#rule-edit-utterance
+            div.form-group
+              label(for='rule-edit-utterance') Thingtalk
+              input(name='thingtalk').form-control#rule-edit-code
+            div.form-group
+              button.btn.btn-primary#rule-edit-adopt= _("Adopt")
 
         div#rule-new
           div.row
             form(action='/thingpedia/api/rules/new', method='post')
+              input(type='hidden', name='_csrf', value=csrfToken)
               div.form-group
-                input(type='hidden', name='_csrf', value=csrfToken)
                 label(for='rule-new-utterance') Rule
                 input(name='utterance').form-control#rule-new-utterance
+              div.form-group
                 label(for='rule-new-thingtalk') ThingTalk
                 input(name='thingtalk').form-control#rule-new-thingtalk
+              div.form-group
                 button.btn.btn-primary#rule-new-submit= _("Submit")
               div#rule-new-result
 

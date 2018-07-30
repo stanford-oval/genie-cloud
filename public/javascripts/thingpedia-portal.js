@@ -86,8 +86,8 @@ $(function() {
         open: function() {
             var ruleId = $(this).data('rule');
             $.get('/thingpedia/api/rules/' + ruleId).then((rule) => {
-                $('#rule-edit-utterance').html(rule.utterance);
-                $('#rule-edit-code').html(rule.target_json || rule.target_code);
+                $('#rule-edit-utterance').val(rule.utterance);
+                $('#rule-edit-code').val(rule.target_code || rule.target_json );
             });
         },
     });
