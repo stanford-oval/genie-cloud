@@ -13,10 +13,10 @@ const db = require('../util/db');
 
 module.exports = {
     getAll(client) {
-        return db.selectAll(client, "select * from example_utterances limit 3");
+        return db.selectAll(client, "select * from example_utterances where language = 'en' limit 6");
     },
 
     getOne(client, ruleId) {
-        return db.selectOne(client, "select * from example_utterances where id = ? ", [ruleId]);
+        return db.selectOne(client, "select * from example_utterances where id = ?", [ruleId]);
     }
 };

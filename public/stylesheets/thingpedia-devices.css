@@ -2,6 +2,10 @@
   color:#dea844;
 }
 
+#rule-new-button {
+    margin-top: 30px;
+}
+
 #device-search-box {
     margin-right: 15px;
 }
