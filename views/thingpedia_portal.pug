@@ -58,14 +58,14 @@ block content
 
         div#rule-new
           div.row
-            form(action='/thingpedia/rules/new', method='post')
+            form(action='/thingpedia/api/rules/new', method='post')
               div.form-group
                 input(type='hidden', name='_csrf', value=csrfToken)
                 label(for='rule-new-utterance') Rule
-                input.form-control#rule-new-utterance
+                input(name='utterance').form-control#rule-new-utterance
                 label(for='rule-new-thingtalk') ThingTalk
-                input.form-control#rule-new-thingtalk
-                button(type='submit').btn.btn-primary#rule-new-submit= _("Submit")
+                input(name='thingtalk').form-control#rule-new-thingtalk
+                button.btn.btn-primary#rule-new-submit= _("Submit")
               div#rule-new-result
 
         div.row

@@ -298,14 +298,15 @@ router.get('/rules/:id', (req, res) => {
 router.post('/rules/new', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     var schemaRetriever = new SchemaRetriever(client);
+    console.log('*************');
+    console.log(req.body)
     Promise.resolve().then(() => {
         ThingTalk.Grammar.parseAndTypecheck(req.body.thingtalk, schemaRetriever);
     }).catch((e) => {
         console.log(e);
-        res.render('thingpedia_portal', {
-            errors: req.flash('error'),
-            page_title: req._("Thingpedia")
-        });
+        req.flash("messages", { "error" : "Invalid username or password" });
+        res.locals.messages = req.flash();
+        res.redirect('/thingpedia');
     });
 });
 
