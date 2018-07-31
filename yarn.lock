@@ -1844,9 +1844,9 @@ detective@^5.0.2:
     defined "^1.0.0"
     minimist "^1.1.1"
 
-dialogflow-fulfillment@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/dialogflow-fulfillment/-/dialogflow-fulfillment-0.4.1.tgz#bc5402152c94297924554d27b21024c4bbeb5369"
+dialogflow-fulfillment@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/dialogflow-fulfillment/-/dialogflow-fulfillment-0.5.0.tgz#0b812767234afaa357db6b037d6217cc9d37c43c"
   dependencies:
     debug "^3.1.0"
 
