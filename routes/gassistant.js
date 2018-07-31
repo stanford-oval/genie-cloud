@@ -110,10 +110,13 @@ router.post('/', (req, res, next) => {
         }).then(() => {
             console.log('Delegate buffer: ' + delegate._buffer);
             console.log('Delegate askSpecial: ' + delegate._askSpecial);
-            if (delegate._buffer)
+            if (delegate._buffer) {
                 agent.add(delegate._buffer);
-            else
-                agent.add("Consider it done.");
+            } else {
+                let conv = agent.conv();
+                conv.close("Consider it done.");
+                agent.add(conv);
+            }
         });
     }
 
