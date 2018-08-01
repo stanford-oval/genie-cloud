@@ -1,0 +1,70 @@
+extends layout
+block styles
+  link(rel='stylesheet', href='/stylesheets/index.css')
+  link(rel='stylesheet', href='/stylesheets/app.css')
+
+block page_name
+  - stdlayout = false;
+  = _("Almond")
+
+block content
+  div#page-body
+    section.divider#section-heading
+      h1#almond-title Almond
+      h2#almond-subtitle The Open Virtual Assistant
+
+    div.sections
+      section.divider
+        h3= _("Popular Commands")
+        div.container#commandpedia
+          div.navbar.navbar-default#command-list-navbar
+            form.navbar-form.navbar-left(action='', method='get')
+              div.form-group
+                input.form-control#command-search-box(type='text', name='q', placeholder="I want to find a app...")
+                button.btn.btn-primary(type="submit")= _("Search")
+          div.row
+            each command, i in commands
+              if i % 6 === 0
+                div.clearfix.visible-lg.visible-md
+              else if i % 3 === 0
+                div.clearfix.visible-lg
+              else if i % 2 === 0
+                div.clearfix.visible-md
+              div.col-lg-4.col-md-6.command-template
+                div.panel.panel-default
+                  div.panel-heading
+                    h2.panel-title= command.deviceNames.join(' + ')
+                  div.panel-body
+                    p.device-icon-small
+                      img(src=S3_CLOUDFRONT_HOST + '/icons/' + command.devices[0] + '.png', alt="Icon")
+                    p(title=command.target_code)= command.utterance
+                    div.row
+                      p
+                        span By&#x20;
+                          if command.owner
+                            span= command.owner
+                          else
+                            span= _("anonymous user")
+                  div.panel-footer
+                    div.row
+                      div.col-md-6.col-md-offset-3
+                        form.form-inline(action='', method="post")
+                          input(type='hidden', name='_csrf', value=csrfToken)
+                          button(type='submit').btn.btn-sm.btn-success.btn-block= _("Adopt")
+          br
+          div.row
+            div.col-sm-6.col-md-4.col-md-offset-2
+              a(href='').btn.btn-primary.btn-block= _("Add Your Own")
+            div.col-sm-6.col-md-4
+              a(href='').btn.btn-default.btn-block= _("Suggest New")
+
+      section.divider
+        h3= _("More Commands We Support")
+        div.container
+
+      section.divider
+        h3= _("Still Don't See What You Want? ")
+        div.container
+          div.row
+            div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
+              a(href='').btn.btn-primary.btn-block= _("Add New Device")

@@ -248,6 +248,7 @@ module.exports = class Frontend {
             res.redirect(301, req.originalUrl.replace('/doc', '/thingpedia/developers'));
         });
 
+        this._app.use('/app', require('./routes/app'));
         this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));

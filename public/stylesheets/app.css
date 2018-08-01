@@ -1,0 +1,11 @@
+.command-template {
+  text-align: center;
+}
+
+#command-search-box {
+  margin-right: 15px;
+}
+
+#command-list-navbar {
+  margin-bottom: 30px;
+}

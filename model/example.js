@@ -51,6 +51,10 @@ module.exports = {
         return db.selectAll(client, "select * from example_utterances");
     },
 
+    getCommands(client) {
+        return db.selectAll(client, "select * from example_utterances where type = 'commandpedia'");
+    },
+
     getBaseByLanguage(client, language) {
         return db.selectAll(client, "select * from example_utterances where is_base and type = 'thingpedia' and "
             + " language = ? order by click_count desc, id asc",
