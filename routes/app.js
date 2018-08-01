@@ -38,7 +38,7 @@ router.get('/', function(req, res) {
                 });
             });
             return Promise.all([].concat.apply([], promises)).then(() => {
-                return res.render('app', { page_title: req._('Almond'), commands: commands });
+                return res.render('app', { page_title: req._('Almond'), csrfToken: req.csrfToken(), commands: commands });
             });
         });
     }).done();

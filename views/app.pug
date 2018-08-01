@@ -20,7 +20,7 @@ block content
           div.navbar.navbar-default#command-list-navbar
             form.navbar-form.navbar-left(action='', method='get')
               div.form-group
-                input.form-control#command-search-box(type='text', name='q', placeholder="I want to find a app...")
+                input.form-control#command-search-box(type='text', name='q', placeholder="I want to find a command...")
                 button.btn.btn-primary(type="submit")= _("Search")
           div.row
             each command, i in commands
@@ -36,7 +36,7 @@ block content
                     h2.panel-title= command.deviceNames.join(' + ')
                   div.panel-body
                     p.device-icon-small
-                      img(src=S3_CLOUDFRONT_HOST + '/icons/' + command.devices[0] + '.png', alt="Icon")
+                      img(src=S3_CLOUDFRONT_HOST + '/icons/' + command.devices[0] + '.png', alt='Icon')
                     p(title=command.target_code)= command.utterance
                     div.row
                       p
@@ -48,8 +48,9 @@ block content
                   div.panel-footer
                     div.row
                       div.col-md-6.col-md-offset-3
-                        form.form-inline(action='', method="post")
+                        form.form-inline(action='/me/conversation', method='post')
                           input(type='hidden', name='_csrf', value=csrfToken)
+                          input(type='hidden', name='command', value=command.utterance)
                           button(type='submit').btn.btn-sm.btn-success.btn-block= _("Adopt")
           br
           div.row
@@ -61,6 +62,9 @@ block content
       section.divider
         h3= _("More Commands We Support")
         div.container
+          div.row
+            h5.text-center
+              a(href='/thingpedia/cheatsheet')= _("More")
 
       section.divider
         h3= _("Still Don't See What You Want? ")

@@ -124,4 +124,8 @@ router.get('/conversation', user.redirectLogIn, (req, res, next) => {
     res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond") });
 });
 
+router.post('/conversation', user.redirectLogIn, (req, res) => {
+    res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond"), command: req.body.command });
+});
+
 module.exports = router;
