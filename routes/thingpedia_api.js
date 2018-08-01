@@ -12,9 +12,6 @@
 const Q = require('q');
 const express = require('express');
 
-const ThingTalk = require('thingtalk');
-const SchemaRetriever = ThingTalk.SchemaRetriever;
-
 const db = require('../util/db');
 const deviceModel = require('../model/device');
 const schemaModel = require('../model/schema');
@@ -273,41 +270,6 @@ router.get('/examples/click/:id', (req, res) => {
     }, (e) => {
         res.status(500).json({ error: e.message });
     }).done();
-});
-
-router.get('/rules', (req, res) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getRules().then((result) => {
-        res.cacheFor(300000);
-        res.status(200).json(result);
-    }).catch((e) => {
-        res.status(500).json({ error: e.message });
-    });
-});
-
-router.get('/rules/:id', (req, res) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getRuleById(req.params.id).then((result) => {
-        res.cacheFor(300000);
-        res.status(200).json(result);
-    }).catch((e) => {
-        res.status(500).json({ error: e.message });
-    });
-});
-
-router.post('/rules/new', (req, res, next) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var schemaRetriever = new SchemaRetriever(client);
-    console.log('*************');
-    console.log(req.body)
-    Promise.resolve().then(() => {
-        ThingTalk.Grammar.parseAndTypecheck(req.body.thingtalk, schemaRetriever);
-    }).catch((e) => {
-        console.log(e);
-        req.flash("messages", { "error" : "Invalid username or password" });
-        res.locals.messages = req.flash();
-        res.redirect('/thingpedia');
-    });
 });
 
 router.get('/entities', (req, res) => {

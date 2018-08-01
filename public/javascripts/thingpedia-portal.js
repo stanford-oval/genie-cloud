@@ -60,45 +60,11 @@ $(function() {
         }
     }
 
-    function renderRules(result) {
-        var rules = result;
-        var container = $('#rules-container');
-        container.empty();
-        var list = $('<ul>');
-        container.append(list);
-        for (var i = 0; i < rules.length; i++) {
-            var rule = rules[i];
-            var html = rule.utterance;
-            list.append($('<li onclick="$(\'#rule-edit\').data(\'rule\',\'' + rule.id + '\').dialog(\'open\')">').addClass('rule').html(html));
-        }
-    }
-
     function loadAll() {
         $.get('/thingpedia/api/devices/all?page=' + page, renderDevices);
-        $.get('/thingpedia/api/rules', renderRules);
     }
 
     loadAll();
-
-    $('#rule-edit').dialog({
-        autoOpen: false,
-        width: "60%",
-        open: function() {
-            var ruleId = $(this).data('rule');
-            $.get('/thingpedia/api/rules/' + ruleId).then((rule) => {
-                $('#rule-edit-utterance').val(rule.utterance);
-                $('#rule-edit-code').val(rule.target_code || rule.target_json );
-            });
-        },
-    });
-
-    $('#rule-new').dialog({
-        autoOpen: false,
-        width: "60%"
-    });
-    $('#rule-new-button').click(function(event) {
-        $('#rule-new').dialog("open");
-    });
 
     $('#device-search-button').click(function(event) {
         page = 0;
