@@ -2,6 +2,10 @@ extends layout
 block styles
   link(rel='stylesheet', href='/stylesheets/index.css')
   link(rel='stylesheet', href='/stylesheets/app.css')
+  link(rel='stylesheet', href='https://use.fontawesome.com/releases/v5.2.0/css/all.css')
+
+block scripts
+  script(src='/javascripts/app.js')
 
 block page_name
   - stdlayout = false;
@@ -45,6 +49,11 @@ block content
                             span= command.owner
                           else
                             span= _("anonymous user")
+                    div.row
+                      a(title='liked by ' + command.click_count + ' users')
+                        i.far.fa-heart(id=command.id, _csrf=csrfToken)
+                      span= (' ')
+                      span(id='count' + command.id)= command.click_count
                   div.panel-footer
                     div.row
                       div.col-md-6.col-md-offset-3

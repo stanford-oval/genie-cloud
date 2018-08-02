@@ -52,7 +52,7 @@ module.exports = {
     },
 
     getCommands(client) {
-        return db.selectAll(client, "select * from example_utterances where type = 'commandpedia'");
+        return db.selectAll(client, "select * from example_utterances where type = 'commandpedia' order by click_count desc");
     },
 
     getBaseByLanguage(client, language) {

@@ -52,4 +52,16 @@ router.get('/commands/suggest', function(req, res) {
     return res.render('app_new_command', { page_title: req._('Suggest New Command'), op: 'suggest', csrfToken: req.csrfToken() });
 });
 
+router.post('/upvote/:id', function(req, res) {
+    db.withTransaction((client) => {
+        return commandModel.upvote(client, req.params.id);
+    });
+});
+
+router.post('/downvote/:id', function(req, res) {
+    db.withTransaction((client) => {
+        return commandModel.downvote(client, req.params.id);
+    });
+});
+
 module.exports = router;
