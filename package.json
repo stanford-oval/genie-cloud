@@ -19,7 +19,7 @@
     "update-pot": "xgettext -f po/POTFILES -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}; xargs -a po/POTFILES.jade jsxgettext -k _,gettext,ngettext,pgettext -L jade -o po/${npm_package_name}.pot -j",
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
-    "update-bundle": "browserify -o public/javascripts/trainer-bundle.js browser/trainer.js",
+    "update-bundle": "browserify -o public/javascripts/trainer-bundle.js browser/trainer.js; browserify -o public/javascripts/new-command-bundle.js browser/new_command.js",
     "update-docs": "for f in doc/*.md ; do sed \"s|@@DOC@@|$f|\" views/doc_base.pug > views/doc_$(basename \"$f\" .md ).pug ; done",
     "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js"
   },

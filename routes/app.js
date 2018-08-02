@@ -44,4 +44,12 @@ router.get('/', function(req, res) {
     }).done();
 });
 
+router.get('/commands/add', function(req, res) {
+    return res.render('app_new_command', { page_title: req._('Create New Command'), op: 'add', csrfToken: req.csrfToken() });
+});
+
+router.get('/commands/suggest', function(req, res) {
+    return res.render('app_new_command', { page_title: req._('Suggest New Command'), op: 'suggest', csrfToken: req.csrfToken() });
+});
+
 module.exports = router;

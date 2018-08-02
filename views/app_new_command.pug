@@ -1,0 +1,41 @@
+extends layout
+block styles
+  link(rel='stylesheet', href='/stylesheets/app.css')
+block scripts
+  script(src='/javascripts/new-command-bundle.js')
+
+block page_name
+  - var page_h1;
+  - if(op === 'add')
+    - page_h1 = _("Add New Command ");
+  - else if(op === 'suggest')
+    - page_h1 = _("Suggest New Command");
+  - else
+    - throw new TypeError('Invalid op');
+  | #{page_h1}
+
+block content
+  form#form-new-command
+    input(type='hidden', name='_csrf', value=csrfToken)
+
+    div.form-group
+      label(for='input-command-utterance').control-label= _("Command")
+      textarea.form-control#input-command-utterance(name="description", required=true, placeholder=_("What does the command accomplish?"))
+    div#results-container.hidden
+      p= _("Do you mean:")
+      ul#results
+    div.form-group#thingtalk-group
+      label(for='input-command-thingtalk').control-label= _("ThingTalk Code")
+      textarea.form-control#input-command-thingtalk(name="code", required=true, placeholder=_("Code Here..."), readonly=op==='suggest')
+      span.help-block#thingtalk-error
+    div.form-group
+      label(for='input-command-confirmation').control-label= _("Confirmation")
+      textarea.form-control#input-command-confirmation(name="code", readonly=true)
+    br
+    div.row
+      div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
+        if op === 'add'
+          button(type='submit').form-control.btn.btn-primary.btn-block= _("Add")
+        else
+          button(type='submit').form-control.btn.btn-primary.btn-block= _("Suggest")
+    br
