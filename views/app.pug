@@ -69,15 +69,28 @@ block content
               a(href='/app/commands/suggest').btn.btn-default.btn-block= _("Suggest New")
 
       section.divider
-        h3= _("More Commands We Support")
+        h3= _("More Commands Almond Support")
         div.container
           div.row
-            h5.text-center
-              a(href='/thingpedia/cheatsheet')= _("More")
+            div.row
+              div.col-md-6.col-md-offset-1
+                p
+                  |  Almond draws its power from the crowdsourced <a href='/thingpedia'>Thingpedia</a>, an open collection of Web and Internet
+                  |  of Things APIs.
+                  |  Anyone can contribute support for the favorite service, with few lines of code and a handful of natural language sentences.
+
+                p Thingpedia supports more than 60 different services, accounts and IoT devices.
+                br
+                h5.text-center
+                  b
+                    a(href='/thingpedia/cheatsheet')= _("Click here to see all commands Almond supports")
+              div.col-md-4
+                img(src='/images/thingpedia-icon-cloud.png', alt=_("The logos of the services supported by Almond"))#thingpedia-icon-cloud
+
 
       section.divider
         h3= _("Still Don't See What You Want? ")
         div.container
           div.row
             div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
-              a(href='').btn.btn-primary.btn-block= _("Add New Device")
+              a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Create a New Device")
