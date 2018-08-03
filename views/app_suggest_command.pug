@@ -1,0 +1,19 @@
+extends layout
+block styles
+  link(rel='stylesheet', href='/stylesheets/app.css')
+
+block page_name
+  | Suggest New Commands
+
+block content
+  form(action='', method='post')#form-new-command
+    input(type='hidden', name='_csrf', value=csrfToken)
+
+    div.form-group
+      label(for='input-command-utterance').control-label= _("Command")
+      textarea.form-control#input-command-utterance(name="description", required=true, placeholder=_("What does the command accomplish?"))
+    br
+    div.row
+      div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
+        button(type='submit').form-control.btn.btn-primary.btn-block= _("Suggest")
+    br

@@ -45,11 +45,11 @@ router.get('/', function(req, res) {
 });
 
 router.get('/commands/add', function(req, res) {
-    return res.render('app_new_command', { page_title: req._('Create New Command'), op: 'add', csrfToken: req.csrfToken() });
+    return res.render('app_new_command', { page_title: req._('Create New Command'), csrfToken: req.csrfToken() });
 });
 
 router.get('/commands/suggest', function(req, res) {
-    return res.render('app_new_command', { page_title: req._('Suggest New Command'), op: 'suggest', csrfToken: req.csrfToken() });
+    return res.render('app_suggest_command', { page_title: req._('Suggest New Command'), csrfToken: req.csrfToken() });
 });
 
 router.post('/upvote/:id', function(req, res) {

@@ -5,14 +5,7 @@ block scripts
   script(src='/javascripts/new-command-bundle.js')
 
 block page_name
-  - var page_h1;
-  - if(op === 'add')
-    - page_h1 = _("Add New Command ");
-  - else if(op === 'suggest')
-    - page_h1 = _("Suggest New Command");
-  - else
-    - throw new TypeError('Invalid op');
-  | #{page_h1}
+  | Add a New Command
 
 block content
   form#form-new-command
@@ -26,7 +19,7 @@ block content
       ul#results
     div.form-group#thingtalk-group
       label(for='input-command-thingtalk').control-label= _("ThingTalk Code")
-      textarea.form-control#input-command-thingtalk(name="code", required=true, placeholder=_("Code Here..."), readonly=op==='suggest')
+      textarea.form-control#input-command-thingtalk(name="code", required=true, placeholder=_("Code Here..."))
       span.help-block#thingtalk-error
     div.form-group
       label(for='input-command-confirmation').control-label= _("What the command does:")
@@ -34,8 +27,5 @@ block content
     br
     div.row
       div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
-        if op === 'add'
-          button(type='submit').form-control.btn.btn-primary.btn-block= _("Add")
-        else
-          button(type='submit').form-control.btn.btn-primary.btn-block= _("Suggest")
+        button(type='submit').form-control.btn.btn-primary.btn-block= _("Add")
     br
