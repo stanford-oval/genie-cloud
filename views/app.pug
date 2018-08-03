@@ -57,7 +57,7 @@ block content
                   div.panel-footer
                     div.row
                       div.col-md-6.col-md-offset-3
-                        form.form-inline(action='/me/conversation', method='post')
+                        form.form-inline(action='/me', method='post')
                           input(type='hidden', name='_csrf', value=csrfToken)
                           input(type='hidden', name='command', value=command.utterance)
                           button(type='submit').btn.btn-sm.btn-success.btn-block= _("Adopt")
