@@ -63,11 +63,19 @@ $(function() {
         return msg;
     }
 
-    function maybeScroll(countainer) {
+    function maybeScroll(container) {
         if (!$('#input:focus').length)
             return;
 
         container[0].scrollIntoView(false);
+        window.scrollTo(0,document.body.scrollHeight);
+        scrollChat();
+        setTimeout(scrollChat, 1000);
+    }
+
+    function scrollChat() {
+        let chat = document.getElementById('conversation');
+        chat.scrollTop = chat.scrollHeight;
     }
 
     function textMessage(text, icon) {
