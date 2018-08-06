@@ -36,45 +36,96 @@ block content
     if IS_ALMOND_WEBSITE
       div.sections
         section.divider
-          h3= _("Meet the Most Expressive Virtual Assistant")
-
-        section.divider
-          h3= _("Work in Progress")
+          h3= _("Research Agenda")
           div.container
             div.row
               div.col-sm-6.col-lg-6
-                div.project-icon#project-spotify
+                div.project-icon#agenda-thingpedia
                 div.project-details
-                  h4 Spotify
+                  h4 Thingpedia
                   p
-                    | A dedicated virtual assistant for Spotify with our latest annotation-free natural language model.
-                    | Coming soon on both <b>Google Assistant</b> and <b>Alexa</b>.
+                    | A non-proprietary repository of digital interfaces and their linguistic representation open to all
+                    | virtual assistant platforms.  Unlike existing skill repositories, Thingpedia captures the full API
+                    | signatures to support composition.  Plenty of research is still necessary to learn how to organize
+                    | the information, standardize across devices with similar functions, and reduce quirkiness of specific
+                    | interfaces to increase synthesizability from natural language.
+                    | Besides launching campaigns to crowdsource the data, we plan to use data programming techniques
+                    | to automate the acquisition of entries in Thingpedia.
+                    | Thingpedia will be extended to include also compound commands consumers find useful as well as
+                    | templates of personal data released under GDPR.
               div.col-sm-6.col-lg-6
-                div.project-icon#project-multi-user
+                div.project-icon#agenda-thingtalk
                 div.project-details
-                  h4 Multi-user Virtual Assistant
+                  h4 ThingTalk
                   p
-                    | One virtual assistant for multiple users via speaker recognition.
-                    | Different users can share their skills with fine-grain access control.
+                    | A formal, synthesizable, virtual assistant programming language.  ThingTalk currently supports
+                    | composition of skills, event monitoring, access control, and distributed execution.
+                    | We plan to extend ThingTalk so (1) users can create custom tasks involving data-dependent decisions;
+                    | (2) users can query their data easily, hiding the complexity of retrieving data from different cloud services;
+                    | and (3) users can access and compute with data from their network of friends of friends.
             div.row
               div.col-sm-6.col-lg-6
-                div.project-icon#project-thingpedia
+                div.project-icon#agenda-luinet
                 div.project-details
-                  h4 Thingpeida Interface Update
+                  h4 LUInet
                   p
-                    | Better documentation and better interface for creating a new device on Thingpedia.
-                    | A platform will also be build to share, suggest new ideas.
-                    br
-                    | (Coming out by the end of the year)
+                    | Linguistic User Interface Neural Network, a neural network that understands natural language to code.
+                    | We hope to collect real-life data through our own apps and our partners products.
+                    | We also plan to refine the methodology to create new language discourses.
+                    | Companies can use this to let workers customize an assistant for their workflow using corporate
+                    | confidential APIs. Other research topics include automatically generating precise,
+                    | yet natural, sentences to confirm the  commands, as well as the automatic generation of dialogs
+                    | to help users discover the virtual assistant’s capabilities and to refine their commands.
               div.col-sm-6.col-lg-6
-                div.project-icon#project-memory
+                div.project-icon#agenda-guinet
                 div.project-details
-                  h4 Virtual Assistant with Memory
+                  h4 GUInet
                   p
-                    | A virtual assistant that remembers everything you have done.
-                    | It allows you to query your own history and based on which, give you the best personalized services.
-                    br
-                    | (Coming out by the end of the year)
+                    | Graphical User Interface Neural Network, a neural network that translates natural language commands
+                    | into graphical interfaces.  We plan to improve our existing models and apply the idea to many more
+                    | applications.  We also plan to understand how we can combine LUI andGUI together to make the most
+                    | out of both types of interfaces.
+            div.row
+              div.col-sm-6.col-lg-6
+                div.project-icon#agenda-dtp
+                div.project-details
+                  h4 Distributed ThingTalk Protocol
+                  p
+                    | Distributed  ThingTalk  Protocol,  that  supports  sharing  with  privacy  via  cooperatingvirtual assistants.  We only have a rudimentary design to date;  we hope that this lab can bringthe  major  corporate  players  together  to  define,  evolve,  and  adopt  a  common  virtual  assistantcommunication protocol.
+
+        section.divider
+          h3= _("Projects in Progress")
+          div.container
+            div.row
+              div.col-sm-6.col-lg-6
+                div.project-icon#project-server
+                div.project-details
+                  h4 Platform-agnostic Skill Server
+                  p
+                    | Today, to reach Alexa and Google Assistant users, companies need to stand up a skill server to
+                    | interface between the assistants and their own services.  We see an opportunity to create a
+                    | platform-agnostic service that provides vendors with LUI technology that connects to different
+                    | platforms.  Such a service lowers the programming complexity for the vendors, while making their
+                    | skills readily available to other platforms, if desired.
+              div.col-sm-6.col-lg-6
+                div.project-icon#project-compound
+                div.project-details
+                  h4 Privacy-preserving Compound Command Service
+                  p
+                    | We plan to offer users an alternative to IFTTT, a web service that millions have used to automate
+                    | their IoTs.  Unlike IFTTT, our service provides a natural-language interface and allows users to
+                    | keep their credentials.
+            div.row
+              div.col-sm-6.col-lg-6
+                div.project-icon#project-email
+                div.project-details
+                  h4 Natural-language Queries for Email Archives
+                  p
+                    | We plan to add a natural-language interface to ePADD, an email browsing tool developed by
+                    | Stanford Library based on our research prototype Muse.
+                    | It is used by 35 libraries including the New York Public Library, Museum of ModernArt,
+                    | and libraries at Brown, Caltech, Harvard, MIT, UC Berkeley, UCLA.
+                    | We plan to compare the effectiveness of LUIs with GUIs, with the help of actual users in these libraries.
 
 
 

@@ -178,22 +178,49 @@
 }
 .project-details {
     float: left;
-    width: 60%;
+    width: 70%;
     margin: 1em;
 }
-#project-spotify {
-    background-image:url(../images/icon-spotify.png);
+#project-server {
+    background-image: url(../images/icon-cloud.png);
+    background-color: white;
+    background-size: 90px 90px;
+    background-repeat: no-repeat;
+    background-position: center;
 }
-#project-multi-user {
-    background-image:url(../images/icon-multi-user.png);
+#project-compound {
+    background-image: url(../images/icon-compound.png);
 }
-#project-thingpedia {
-    background-image:url(../images/icon-thingpedia.png);
-}
-#project-memory {
-    background-image:url(../images/icon-memory.png);
+#project-email {
+    background-image: url(../images/icon-email.png);
+    background-color: white;
+    background-size: 80px 80px;
+    background-repeat: no-repeat;
+    background-position: center;
 }
 
+#agenda-thingpedia {
+    background-image: url(../images/icon-thingpedia.png);
+    background-size: 80px 80px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#agenda-thingtalk {
+  background-image: url(../images/icon-tt.png);
+}
+
+#agenda-luinet {
+  background-image: url(../images/icon-nn.png);
+}
+
+#agenda-guinet {
+  background-image: url(../images/icon-nn.png);
+}
+
+#agenda-dtp {
+  background-image: url(../images/icon-tt.png);
+}
 
 .timeline ul li {
     list-style-type: none;
