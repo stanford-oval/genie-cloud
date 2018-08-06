@@ -18,8 +18,8 @@ $(function() {
             let panel = $('<div>').addClass('panel panel-default');
             commandContainer.append(panel);
 
-            let heading = $('<p>').addClass('panel-heading').text(command.deviceNames.join(' + '));
-            panel.append(heading);
+            //let heading = $('<p>').addClass('panel-heading').text(command.deviceNames.join(' + '));
+            //panel.append(heading);
 
             let body = $('<div>').addClass('panel-body');
             let main = $('<div>').addClass('row').addClass('panel-body-main');
