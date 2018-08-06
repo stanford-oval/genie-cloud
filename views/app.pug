@@ -69,23 +69,17 @@ block content
               a(href='/app/commands/suggest').btn.btn-default.btn-block= _("Suggest New")
 
       section.divider
-        h3= _("More Commands Almond Support")
+        h3= _("More Devices and Services Almond Supports")
         div.container
           div.row
-            div.row
-              div.col-md-6.col-md-offset-1
-                p
-                  |  Almond draws its power from the crowdsourced <a href='/thingpedia'>Thingpedia</a>, an open collection of Web and Internet
-                  |  of Things APIs.
-                  |  Anyone can contribute support for the favorite service, with few lines of code and a handful of natural language sentences.
+            div.col-md-12.device-icon-list
+              for device in ['com.spotify', 'com.facebook', 'com.twitter', 'com.gmail', 'org.thingpedia.icalendar', 'com.slack', 'com.nest', 'org.arxiv', 'org.thingpedia.weather', 'org.thingpedia.rss', 'com.steampowered', 'com.washingtonpost', 'com.wolframalpha', 'com.wunderlist', 'com.yandex.translate', 'com.dropbox']
+                a(href='/thingpedia/devices/by-id/' + device)
+                  img(src=S3_CLOUDFRONT_HOST + '/icons/' + device + '.png', alt='Icon')
+          div.row
+            h4.text-center
+              a(href='/thingpedia/cheatsheet')= _("And More")
 
-                p Thingpedia supports more than 60 different services, accounts and IoT devices.
-                br
-                h5.text-center
-                  b
-                    a(href='/thingpedia/cheatsheet')= _("Click here to see all commands Almond supports")
-              div.col-md-4
-                img(src='/images/thingpedia-icon-cloud.png', alt=_("The logos of the services supported by Almond"))#thingpedia-icon-cloud
 
 
       section.divider

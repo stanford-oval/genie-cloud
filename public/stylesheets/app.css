@@ -13,3 +13,14 @@
 .none-of-above {
   color: #2c3e50;
 }
+
+.device-icon-list {
+  margin-bottom: 20px;
+}
+
+.device-icon-list > a > img {
+  width: 60px;
+  height: 60px;
+  margin-left: 5px;
+  margin-right: 5px;
+}
