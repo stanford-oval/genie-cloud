@@ -114,7 +114,12 @@ router.get('/v2/devices/setup/:kinds', (req, res) => {
 router.get('/devices/icon/:kind', (req, res) => {
     // cache for forever, this redirect will never expire
     res.cacheFor(6, 'months');
-    res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/' + req.params.kind + '.png');
+
+    if (req.query.style && /^[0-9]+$/.test(req.query.style)
+        && req.query.style >= 1 && req.query.style <= 8)
+       res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/style-' + req.query.style + '/' + req.params.kind + '.png');
+    else
+       res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/' + req.params.kind + '.png');
 });
 
 router.get('/devices', (req, res, next) => {
