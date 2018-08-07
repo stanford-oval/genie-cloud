@@ -36,6 +36,106 @@ block content
     if IS_ALMOND_WEBSITE
       div.sections
         section.divider
+          h3= _("Our Mission")
+          div.container
+            div.row
+              p
+                | The mission of the Almond is to research open virtual assistant technology through a
+                | collaborative effort between academia and industry, in concert with the creation of a
+                | distributed virtual assistant infrastructure to safeguard privacy.
+              p
+                | Virtual assistants are revolutionizing the digital interface by giving us a uniform, personalized,
+                | linguistic user interface(LUI) to our diverse digital data, IoT, and web assets.
+                | In the future, they can perform custom, complex digital tasks, interface with humans,
+                | provide emotional support, and advise on personal fitness, finance, education, career, and so on.
+              p
+                | The research of understanding how the digital world operates and how to interface with it is a tremendous undertaking.
+                | Besides the technical challenges,  it also requires crowdsourcing hugeknowledge bases such as the
+                | catalog of all the digital interfaces, natural language utterances, and behavioral data.
+                | This lab serves as a neutral party to bring together companies with academia, to create open,
+                | non-proprietary, production-quality resources to facilitate basic research and technology transfer.
+              p
+                | Virtual assistants can reverse today’s Big Brother trend where companies owning massive volumes of
+                | private data can exert overwhelming influences on a large population.
+                | Virtual assistants can be programmed in natural language, reducing their reliance on third-party developers.
+                | What we need is to establish a commercially viable infrastructure of distributed virtual assistants
+                | early to give consumers a healthy choice of vendors, including the option to keep data on their devices.
+
+        section.divider
+          h3= _("Compound, Event-Driven Commands.")
+          div.container
+            div.row
+              div.col-md-6#multi-color-example
+                p.box
+                  span.black When the
+                  span.blue  Bitcoin
+                  span.red  price reaches $20,000
+                  span.black ,
+                  span.blue  search for
+                  span.black  a
+                  span.purple  “Bitcoin”
+                  span.blue  picture
+                  span.black , and
+                  span.blue  tweet
+                  span.green  it
+                  span.black  with
+                  span.purple  caption “I am rich!”
+                p.arrow ⇓
+                p.box
+                  span.black
+                    code monitor
+                  span.blue  @bitcoin.get_price()
+                  span.black
+                    code  on
+                  span.red  price &ge; $20000
+                  span.black  ⇒
+                  span.blue  @bing.image_search
+                  span.black (
+                  span.purple "bitcoin"
+                  span.black ) ⇒
+                  span.blue  @twitter.post
+                  span.black (
+                  span.green @bing.picture
+                  span.black ,
+                  span.purple  "I am rich!"
+                  span.black )
+              div.col-md-6
+                p
+                  | Virtual assistants become much more powerful and useful if users can compose primitive functions
+                  | together to create compound commands that run automatically.
+                  | For example, "Put all the most frequently played songs each week into a new playlist",
+                  | combines the retrieval of songs played with the creation of a playlist.
+                  | Similarly, "Send me email whenever my car is not plugged in at home"
+                  | combines querying the state of a car and sending email.
+                  | To handle the large number of possible combinations, we have created a virtual assistant programming
+                  | language, called ThingTalk, that can combine skills from <a href='/thingpedia'>Thingpedia</a>,, an open-world repository.
+                //p <a href='#section-try-now'>Try now</a>: “get Washington Post articles published in the last 2 hours”, ”translate tweets from @... to my language”
+
+        section.divider
+          h3= _("General, Fine-Grain Sharing with Privacy")
+          div.container
+            div.row
+              div.col-md-6
+                p
+                  | Sharing is broken today;  this is why the convenience of sharing via Facebook has driven billions
+                  | to give up ownership to their data.  Virtual assistants can transform how we share everything digital.
+                  | In our design, the virtual assistant handles all the sharing:
+                  | it accepts requests, gets approval from the owner, executes the requests, and returns only the requested results.
+                  | For generality and fine granularity, the request can be anyThingTalk program.
+                  | For privacy, the owner can specify what ThingTalk programs each person can execute, in natural language.
+                  | For example, a dad can tell his voice-activated virtual assistant that "Bobby can buy household goods that are under $20".
+                  | The assistant, upon recognizing Bobby’s voice, can enforce the constraint.
+                  | We extended ThingTalk to include specification of access control.
+                p
+                  | With this design, the owner is not constrained by the sharing options offered by the original service providers;
+                  | in fact, the requesters do not even need to join the same services.
+                  | With GDPR, individuals can get access to all their personal information in the cloud and share them at will.
+
+              div.col-md-6
+                img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
+                img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
+
+        section.divider
           h3= _("Research Agenda")
           div.container
             div.row
@@ -91,7 +191,9 @@ block content
                 div.project-details
                   h4 Distributed ThingTalk Protocol
                   p
-                    | Distributed  ThingTalk  Protocol,  that  supports  sharing  with  privacy  via  cooperatingvirtual assistants.  We only have a rudimentary design to date;  we hope that this lab can bringthe  major  corporate  players  together  to  define,  evolve,  and  adopt  a  common  virtual  assistantcommunication protocol.
+                    | Distributed  ThingTalk  Protocol,  that  supports  sharing  with  privacy  via  cooperating virtual assistants.
+                    | We only have a rudimentary design to date;  we hope that this lab can bring the  major corporate players
+                    | together to define, evolve, and adopt a common virtual assistant communication protocol.
 
         section.divider
           h3= _("Projects in Progress")
@@ -130,7 +232,7 @@ block content
 
 
         section.divider
-          h3= _("Almond Timeline")
+          h3= _("Publication Timeline")
           section.timeline
             ul
               li
@@ -169,112 +271,6 @@ block content
                   | Monica S. Lam, Giovanni Campagna, Jiwon Seo, and Michael Fischer
                   //br
                   //| In <i>IEEE/ACM International Conference on Mobile Software Engineering and Systems</i>, Austin, Texas, May 2016. (Keynote)
-        section.divider
-          h3= _("Open & Crowdsourced")
-          div.container
-            div.row
-              div.col-md-6
-                p
-                  |  Almond draws its power from the crowdsourced <a href='/thingpedia'>Thingpedia</a>, an open collection of Web and Internet
-                  |  of Things APIs.
-                  |  Anyone can contribute support for the favorite service, with few lines of code and a handful of natural language sentences.
-
-                p Thingpedia supports more than 40 different services, accounts and IoT devices.
-
-                p
-                  |  Almond is free software, and is available on <a href='https://github.com/Stanford-Mobisocial-IoT-Lab'>Github</a>. You can download, distribute or modify Almond as you see fit.
-              div.col-md-6
-                img(src='/images/thingpedia-icon-cloud.png',alt=_("The logos of the services supported by Almond"))#thingpedia-icon-cloud
-        section.divider
-          h3= _("Unprecedented Expressivity")
-          div.container
-            div.row
-              div.col-md-6#multi-color-example
-                p.box
-                  span.black When the
-                  span.blue  Bitcoin
-                  span.red  price reaches $20,000
-                  span.black ,
-                  span.blue  search for
-                  span.black  a
-                  span.purple  “Bitcoin”
-                  span.blue  picture
-                  span.black , and
-                  span.blue  tweet
-                  span.green  it
-                  span.black  with
-                  span.purple  caption “I am rich!”
-                p.arrow ⇓
-                p.box
-                  span.black
-                    code monitor
-                  span.blue  @bitcoin.get_price()
-                  span.black
-                    code  on
-                  span.red  price &ge; $20000
-                  span.black  ⇒
-                  span.blue  @bing.image_search
-                  span.black (
-                  span.purple "bitcoin"
-                  span.black ) ⇒
-                  span.blue  @twitter.post
-                  span.black (
-                  span.green @bing.picture
-                  span.black ,
-                  span.purple  "I am rich!"
-                  span.black )
-              div.col-md-6
-                p Almond is the world first virtual assistant to support <i>compound commands</i> in natural language.
-                p
-                  | In Almond, you can combine multiple services into a single command, with powerful filtering and passing of data from one to another.
-                  | Do away with the complex UIs of IFTTT or Zapier - in Almond the power is ready for you to type.
-                //p <a href='#section-try-now'>Try now</a>: “get Washington Post articles published in the last 2 hours”, ”translate tweets from @... to my language”
-        section.divider
-          h3= _("Respects Your Privacy (and That of Your Friends)")
-          div.container
-            div.row
-              div.col-md-6
-                p
-                  | Almond is the world first <i>Communicating Virtual Assistant</i>: through Almond you can interact not only
-                  |  with your services, but also access that of your friends, family and colleagues.
-
-                p
-                  | To protect your privacy, Almond allows you to set flexible access control policies, based on time of
-                  | day, on your location, on the content of the request, or really on any information available to Almond.
-                  | For example, your parents can monitor your security camera, <i>only if you're not home</i>, or <i>only
-                  | at a certain time of the day</i>.
-
-                p
-                  | Finally, to guarantee your privacy, Almond runs all its actions and computation locally. If you so choose,
-                  | you can have your own installation of Almond in your phone or your laptop. If you use Web Almond, your
-                  | data is encrypted and stored in a secure enclave not accessible by anybody else.
-
-              div.col-md-6
-                img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
-                img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
-
-        section.divider#publications
-          h3= _("Publications & Talks")
-
-          div.container
-            div.row
-              div.col-xs-12
-                ul#publication-list
-                  li
-                    a(href='https://d1ge76rambtuys.cloudfront.net/papers/www17.pdf')
-                      cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant
-                    br
-                    | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer, and Monica S. Lam
-                    br
-                    | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, Perth, Australia, April 2017.
-
-                  li
-                    a(href='http://mobisocial.stanford.edu/papers/mobilesoft16.pdf')
-                      cite A Distributed Open Social Platform for Mobile Devices
-                    br
-                    | Monica S. Lam, Giovanni Campagna, Jiwon Seo, and Michael Fischer
-                    br
-                    | In <i>IEEE/ACM International Conference on Mobile Software Engineering and Systems</i>, Austin, Texas, May 2016. (Keynote)
 
         section.divider#team
           h3= _("Our Team")
