@@ -86,7 +86,7 @@ module.exports = class Frontend {
                     redirect = false;
                 // don't redirect certain API endpoints because the client code
                 // doesn't cope well
-                if (req.originalUrl.startsWith('/thingpedia/api') || req.originalUrl.startsWith('/api/webhook') || req.originalUrl.startsWith('/ws'))
+                if (req.originalUrl.startsWith('/thingpedia/api') || req.originalUrl.startsWith('/api/webhook') || req.originalUrl.startsWith('/ws') || req.originalUrl.startsWith('/cache'))
                     redirect = false;
                 if (redirect) {
                     if (req.hostname === 'thingpedia.stanford.edu' && req.originalUrl === '/')
@@ -131,6 +131,10 @@ module.exports = class Frontend {
             next();
         });
         this._app.use('/friendhub/search', (req, res, next) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
+        this._app.use('/cache', (req, res, next) => {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });
