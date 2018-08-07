@@ -68,7 +68,9 @@ router.get('/delete', user.requireLogIn, user.requireDeveloper(), (req, res) => 
 });
 
 function deleteBackground(client, bg_id) {
-    return background.delete(client, bg_id);
+    if (bg_id)
+        return background.delete(client, bg_id);
+    return Q();
 }
 
 function uploadBackground(req, res) {
