@@ -108,8 +108,7 @@ block content
                   | Similarly, "Send me email whenever my car is not plugged in at home"
                   | combines querying the state of a car and sending email.
                   | To handle the large number of possible combinations, we have created a virtual assistant programming
-                  | language, called ThingTalk, that can combine skills from <a href='/thingpedia'>Thingpedia</a>,, an open-world repository.
-                //p <a href='#section-try-now'>Try now</a>: “get Washington Post articles published in the last 2 hours”, ”translate tweets from @... to my language”
+                  | language, called ThingTalk, that can combine skills from <a href='/thingpedia'>Thingpedia</a>, an open-world repository.
 
         section.divider
           h3= _("General, Fine-Grain Sharing with Privacy")
@@ -135,6 +134,50 @@ block content
                 img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
                 img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
 
+        section.divider
+          h3= _("Natural-language Programming Methodology")
+          div.container
+            div.row
+              p
+                | We model the natural language under-standing task in a LUI as a natural-language programming problem.
+                | The family of acceptable utterances is defined as sentences matching the semantics of a target formal
+                | programming language and its library of functions.  We have developed a methodology, inspired by Sempre,
+                | to tune and refine the target grammar and library representation to derive effective semantic parsers.
+                | After significant tuning of ThingTalk and Thingpedia, we show that state-of-the-art sequence-to-sequence
+                | and transformer models perform well on 25,000 manually paraphrased compound commands,which will be released as an open dataset.
+
+        section.divider
+          h3= _("Graphical Virtual Assistants")
+          div.container
+            div.row
+              p
+                | Limitations of textual display of results prompted us to extend natural-language programming to
+                | generate graphical user interfaces (GUI) automatically, which is one or the most time-consuming tasks
+                | in software development. GUIs are important for displaying graphical or lists of results, letting
+                | users monitoring multiple queries, rerunning complex commands,and adjusting settings with different
+                | modality.  We use machine learning to leverage existing GUIs and the artistic designs in masterpieces
+                | to generate not just functional, but aesthetically pleasing, apps.
+            div.row
+              img(src='/images/style-transfer.png',alt=("Apply style transfer to virtual assistant GUI."),width="100%")
+
+        section.divider
+          h3= _("Inter-Virtual Assistant Communication")
+          div.container
+            div.row
+              div.col-md-6
+                p
+                  | Today, the email SMTP protocol, despite its insecurity, is good at letting users share data stored
+                  | in different servers including their own.
+                  | We see adding secure communication to open virtual assistants as a great opportunity to create a
+                  | higher-level, more secure, privacy-honoring sharing capability.
+                  | Thus, we propose DTP, DistributedThingTalk Protocol, to let assistants securely distribute ThingTalk
+                  | programs and return results. Using DTP, virtual assistants let users access each others’ data and
+                  | resources easily in a similar fashion as their own.
+                  | For example, instead of saying "Show me my security camera",
+                  | Ann’s father can simply say "Show me Ann's security camera", his virtual assistant can automatically
+                  | execute the command on Ann’s virtual assistant using DTP, provided Ann has given permission.
+              div.col-md-6
+                img(src='/images/dtp-arch-diagram.png',alt=("Apply style transfer to virtual assistant GUI."),width="100%")
         section.divider
           h3= _("Research Agenda")
           div.container
