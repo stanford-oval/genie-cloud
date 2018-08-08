@@ -1,10 +1,14 @@
 $(function() {
     const S3_CLOUDFRONT_HOST = $('body').attr('data-icon-cdn');
-    const csrfToken = $('#commandpedia').attr('csrfToken');
+    const csrfToken = $('#commandpedia').attr('csrf');
     const commands = JSON.parse($('#commandpedia').attr('content'));
+
+    let page = 0;
+    let insearch = false;
 
     function renderCommands(commands) {
         let container = $('#command-container');
+        container.empty();
         for (let i = 0; i < Math.min(commands.length, 9); i++) {
             let command = commands[i];
             if (i % 6 === 0)
@@ -58,6 +62,24 @@ $(function() {
 
             container.append(commandContainer);
         }
+
+        if (insearch) {
+            $('#command-reset-button').show();
+            $('#commands-page-prev').hide();
+            $('#commands-page-next').hide();
+        } else {
+            $('#command-reset-button').hide();
+
+            if (page > 0)
+                $('#commands-page-prev').show();
+            else
+                $('#commands-page-prev').hide();
+
+            if (commands.length > 9)
+                $('#commands-page-next').show();
+            else
+                $('#commands-page-next').hide();
+        }
     }
 
     renderCommands(commands);
@@ -77,6 +99,20 @@ $(function() {
             $.post('/app/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
             count.text(current - 1);
         }
+        event.preventDefault();
+    });
+
+    $('#commands-page-prev').click(function(event) {
+        page = page - 1;
+        if (!(page >= 0))
+            page = 0;
+        renderCommands(commands.slice(page * 9));
+        event.preventDefault();
+    });
+    $('#commands-page-next').click(function(event) {
+        page = page + 1;
+        renderCommands(commands.slice(page * 9));
+        event.preventDefault();
     });
 
 });
