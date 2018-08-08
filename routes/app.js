@@ -11,37 +11,11 @@ const express = require('express');
 
 const db = require('../util/db');
 const commandModel = require('../model/example');
-const deviceModel = require('../model/device');
 
 let router = express.Router();
 
 router.get('/', function(req, res) {
-    db.withTransaction((client) => {
-        return commandModel.getCommands(client).then((commands) => {
-            let promises = commands.map((command) => {
-                // get device kinds from target_code
-                let functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
-                let devices = functions.map((f) => {
-                    let device_name = f.split('.');
-                    device_name.splice(-1, 1);
-                    return device_name.join('.').substr(1);
-                });
-                // deduplicate
-                command.devices = devices.filter((device, pos) => devices.indexOf(device) === pos);
-
-                // get device names
-                command.deviceNames = [];
-                return command.devices.map((device) => {
-                    return deviceModel.getByAnyKind(client, device).then((devices) => {
-                        command.deviceNames.push(devices[0].name);
-                    });
-                });
-            });
-            return Promise.all([].concat.apply([], promises)).then(() => {
-                return res.render('app', { page_title: req._('Almond'), csrfToken: req.csrfToken(), commands: commands });
-            });
-        });
-    }).done();
+    return res.render('app', { page_title: req._('Almond'), csrfToken: req.csrfToken() });
 });
 
 router.get('/commands/add', function(req, res) {

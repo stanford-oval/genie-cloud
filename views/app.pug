@@ -20,12 +20,12 @@ block content
     div.sections
       section.divider
         h3= _("Popular Commands")
-        div.container#commandpedia(content=commands, csrf=csrfToken)
+        div.container#commandpedia(csrf=csrfToken)
           div.navbar.navbar-default#command-list-navbar
             form.navbar-form.navbar-left(action='', method='get')
               div.form-group
                 input.form-control#command-search-box(type='text', name='q', placeholder="I want to find a command...")
-                button.btn.btn-primary(type="submit")= _("Search")
+                button.btn.btn-primary#command-search-button(type="submit")= _("Search")
               div.form-group
                 button.btn.btn-primary#command-reset-button= _("Reset")
           div.row#command-container

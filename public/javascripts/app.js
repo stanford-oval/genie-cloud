@@ -1,7 +1,6 @@
 $(function() {
     const S3_CLOUDFRONT_HOST = $('body').attr('data-icon-cdn');
     const csrfToken = $('#commandpedia').attr('csrf');
-    const commands = JSON.parse($('#commandpedia').attr('content'));
 
     let page = 0;
     let insearch = false;
@@ -82,7 +81,11 @@ $(function() {
         }
     }
 
-    renderCommands(commands);
+    function loadAll() {
+        $.get('/thingpedia/api/commands/all?page=' + page, renderCommands);
+    }
+
+    loadAll();
 
     $('.fa-heart').click(function(event) {
         let icon = $('#' + this.id);
@@ -106,12 +109,24 @@ $(function() {
         page = page - 1;
         if (!(page >= 0))
             page = 0;
-        renderCommands(commands.slice(page * 9));
+        loadAll();
         event.preventDefault();
     });
     $('#commands-page-next').click(function(event) {
         page = page + 1;
-        renderCommands(commands.slice(page * 9));
+        loadAll();
+        event.preventDefault();
+    });
+    $('#command-search-button').click(function(event) {
+        page = 0;
+        insearch = true;
+        $.get('/thingpedia/api/commands/search?q=' + encodeURIComponent($('#command-search-box').val()), renderCommands);
+        event.preventDefault();
+    });
+    $('#command-reset-button').click(function(event) {
+        page = 0;
+        insearch = false;
+        loadAll();
         event.preventDefault();
     });
 
