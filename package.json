@@ -73,7 +73,7 @@
     "thingengine-core": "^1.0.0",
     "thingpedia": "^2.2.1",
     "thingpedia-discovery": "^1.0.0",
-    "thingtalk": "^1.0.0",
+    "thingtalk": "~1.1.0",
     "tmp": "0.0.33",
     "transparent-rpc": "^0.0.1",
     "url": "~0.10.3",
