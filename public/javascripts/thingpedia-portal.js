@@ -62,7 +62,7 @@ $(function() {
     }
 
     function loadAll() {
-        $.get('/thingpedia/api/devices/all', { page: page, developer_key: developerKey }, renderDevices);
+        $.get('/thingpedia/api/devices/all', { page: page, page_size: 9, developer_key: developerKey }, renderDevices);
     }
 
     loadAll();
