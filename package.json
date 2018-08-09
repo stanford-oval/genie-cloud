@@ -21,10 +21,9 @@
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
     "update-bundle": "browserify -o public/javascripts/trainer-bundle.js browser/trainer.js; browserify -o public/javascripts/new-command-bundle.js browser/new_command.js",
     "update-docs": "for f in doc/*.md ; do sed \"s|@@DOC@@|$f|\" views/doc_base.pug > views/doc_$(basename \"$f\" .md ).pug ; done",
-    "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js"
-  },
-  "resolutions": {
-    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk#master"
+    "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js",
+    "prepublish": "which yarn >/dev/null 2>&1 && ( yarn compile-mo && yarn update-docs ) || ( npm run compile-mo && npm run update-docs )",
+    "install": "make -C sandbox all"
   },
   "dependencies": {
     "accept-language": "^2.0.17",

@@ -1,6 +1,7 @@
 "use strict";
 $(function() {
     var S3_CLOUDFRONT_HOST = $('body').attr('data-icon-cdn');
+    var developerKey = $('body').attr('data-developer-key') || '';
     var page = 0;
     var insearch = false;
 
@@ -61,7 +62,7 @@ $(function() {
     }
 
     function loadAll() {
-        $.get('/thingpedia/api/devices/all?page=' + page, renderDevices);
+        $.get('/thingpedia/api/devices/all', { page: page, developer_key: developerKey }, renderDevices);
     }
 
     loadAll();
@@ -69,7 +70,7 @@ $(function() {
     $('#device-search-button').click(function(event) {
         page = 0;
         insearch = true;
-        $.get('/thingpedia/api/devices/search?q=' + encodeURIComponent($('#device-search-box').val()), renderDevices);
+        $.get('/thingpedia/api/devices/search', { q: $('#device-search-box').val(), developer_key: developerKey }, renderDevices);
         event.preventDefault();
     });
     $('#device-reset-button').click(function(event) {

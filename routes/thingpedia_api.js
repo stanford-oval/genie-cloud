@@ -162,7 +162,7 @@ router.get('/devices/all', (req, res, next) => {
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key || (req.user ? req.user.developer_key : null), req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     client.getDeviceList(req.query.class || null, page, page_size).then((obj) => {
         res.cacheFor(86400000);
         res.json(obj);

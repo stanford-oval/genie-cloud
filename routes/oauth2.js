@@ -162,13 +162,13 @@ function uploadIcon(clientId, req) {
             return code_storage.storeIcon(stdout, 'oauth:' + clientId);
         }).catch((e) => {
             console.error('Failed to upload icon to S3: ' + e);
-        }).done();
+        });
     }
 }
 
 router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'icon', maxCount: 1 }
-]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(), (req, res) => {
+]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
     db.withTransaction((dbClient) => {
         var name = req.body.name;
         if (!name)
@@ -190,7 +190,7 @@ router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
         console.error(e.stack);
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
+    }).catch(next);
 });
 
 module.exports = router;
