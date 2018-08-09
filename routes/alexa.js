@@ -196,34 +196,16 @@ router.post('/', (req, res, next) => {
     if (req.body.request.type === 'LaunchRequest') {
         text = 'hello';
     } else if (req.body.request.intent.name === 'resume') {
-	text = 'resume';
+        text = 'resume';
     } else if (req.body.request.intent.name === 'skip') {
-	text = 'skip the current song';
+        text = 'skip the current song';
     } else if (req.body.request.intent.name === 'pause') {
-	text = 'pause';
+        text = 'pause';
     } else {
         text = req.body.request.intent.slots.command ? req.body.request.intent.slots.command.value :
             (req.body.request.intent.slots.spotify_command ? req.body.request.intent.slots.spotify_command.value : '');
-        if (req.body.request.dialogState === 'STARTED') {
-            if (req.body.request.intent.name === 'play')
-                text = 'play ' + text;
-            if (req.body.request.intent.name === 'add')
-                text = 'add ' + text;
-            if (req.body.request.intent.name === 'make')
-                text = 'create ' + text;
-            if (req.body.request.intent.name === 'seek')
-                text = 'seek ' + text;
-            if (req.body.request.intent.name === 'save')
-                text = 'save ' + text;
-            if (req.body.request.intent.name === 'what')
-                text = 'what ' + text;
-            if (req.body.request.intent.name === 'whats')
-                text = 'what is ' + text;
-            if (req.body.request.intent.name === 'how')
-                text = 'how ' + text;
-            if (req.body.request.intent.name === 'get')
-                text = 'get ' + text;
-        }
+        if (req.body.request.dialogState === 'STARTED')
+            text = req.body.request.intent.name + ' ' + text;
     }
 
     console.log(text);
