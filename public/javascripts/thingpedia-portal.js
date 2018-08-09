@@ -61,7 +61,7 @@ $(function() {
     }
 
     function loadAll() {
-        $.get('/thingpedia/api/devices/all?page=' + page, renderDevices);
+        $.get('/thingpedia/api/devices/all?page_size=9&page=' + page, renderDevices);
     }
 
     loadAll();
