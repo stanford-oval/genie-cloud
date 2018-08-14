@@ -346,7 +346,10 @@ router.get('/entities/lookup/:type', (req, res) => {
             data: rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name }))
         });
     }).catch((e) => {
-        res.status(500).json({ error: e.message });
+        if (e.message === `Wrong number of rows returned, expected 1, got 0`)
+            res.status(404).json({ error: "Invalid entity type" });
+        else
+            res.status(500).json({ error: e.message });
     }).done();
 });
 
