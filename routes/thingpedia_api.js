@@ -333,10 +333,15 @@ router.get('/entities/lookup/:type', (req, res) => {
     }
     
     db.withClient((dbClient) => {
-        return entityModel.lookupWithType(dbClient, language, req.params.type, token);
-    }).then((rows) => {
+        return Promise.all([entityModel.lookupWithType(dbClient, language, req.params.type, token),
+                            entityModel.get(dbClient, req.params.type, language)]);
+    }).then(([rows, meta]) => {
         res.cacheFor(86400000);
-        res.status(200).json({ result: 'ok', data: rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name })) });
+        res.status(200).json({
+            result: 'ok',
+            meta: { name: meta.name, has_ner_support: meta.has_ner_support, is_well_known: meta.is_well_known },
+            data: rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name }))
+        });
     }).catch((e) => {
         res.status(500).json({ error: e.message });
     }).done();

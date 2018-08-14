@@ -17,9 +17,9 @@ module.exports = {
         return db.insertOne(client, `insert into entity_names set language = 'en', ?`, [entity]);
     },
 
-    get(client, id) {
-        return db.selectOne(client, "select * from entity_names where id = ? and language = 'en'",
-                            [id]);
+    get(client, id, language = 'en') {
+        return db.selectOne(client, "select * from entity_names where id = ? and language = ?",
+                            [id, language]);
     },
 
     getAll(client) {
