@@ -326,6 +326,26 @@ router.get('/entities/lookup', (req, res) => {
     }).done();
 });
 
+router.get('/entities/lookup/:type', (req, res) => {
+    const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
+    const token = req.query.q;
+
+    if (!token) {
+        res.status(400).json({ error: 'Missing query' });
+        return;
+    }
+    
+    db.withClient((dbClient) => {
+        return entityModel.lookupWithType(dbClient, language, req.params.type, token);
+    }).then((rows) => {
+        res.cacheFor(86400000);
+        res.status(200).json({ result: 'ok', data: rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name })) });
+    }).catch((e) => {
+        res.status(500).json({ error: e.message });
+    }).done();
+});
+
+
 router.get('/entities/list/:type', (req, res) => {
     return db.withClient((dbClient) => {
         return entityModel.getValues(dbClient, req.params.type);
