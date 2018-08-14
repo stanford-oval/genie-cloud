@@ -197,7 +197,7 @@ class ThingTalkTrainer {
     _toNN(program) {
         let clone = {};
         Object.assign(clone, this._entities);
-        return ThingTalk.NNSyntax.toNN(program, clone);
+        return ThingTalk.NNSyntax.toNN(program, this._tokens, clone);
     }
 
     _learnNN(targetCode) {
@@ -215,6 +215,7 @@ class ThingTalkTrainer {
     _handle(text) {
         return this.parser.sendUtterance(text).then((parsed) => {
             this._raw = text;
+            this._tokens = parsed.tokens;
             this._entities = parsed.entities;
             return Promise.all(parsed.candidates.map((candidate) => {
                 return reconstructCanonical(this._schemaRetriever, candidate.code, this._entities).then((canonical) => {
