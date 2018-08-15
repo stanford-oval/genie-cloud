@@ -6,8 +6,6 @@ ul.nav.navbar-nav
   if authenticated
     li
       a(href="/me")= _("My Almond")
-    li
-      a(href='/me/conversation')= _("Web Almond")
   if WITH_THINGPEDIA === 'embedded'
     li
       a(href='/thingpedia')= _("Thingpedia")
