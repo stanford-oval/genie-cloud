@@ -56,7 +56,7 @@ router.get('/login', (req, res, next) => {
 router.post('/login', passport.authenticate('local', { failureRedirect: '/user/login',
                                                        failureFlash: true }), (req, res, next) => {
     // Redirection back to the original page
-    var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+    var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/app';
     delete req.session.redirect_to;
     res.redirect(303, redirect_to);
 });
@@ -140,7 +140,7 @@ router.post('/register', (req, res, next) => {
 
 router.get('/logout', (req, res, next) => {
     req.logout();
-    res.redirect(303, '/');
+    res.redirect(303, '/app');
 });
 
 function getProfile(req, res, pwError, profileError) {

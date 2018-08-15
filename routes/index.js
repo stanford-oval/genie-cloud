@@ -23,7 +23,8 @@ router.get('/', (req, res, next) => {
     }).then((isRunning) => {
         res.render('almond', {
             page_title: req._("Almond - The Open Virtual Assistant"),
-            isRunning: isRunning
+            isRunning: isRunning,
+            research_page: true
         });
     });
 });
@@ -43,7 +44,8 @@ if (Config.WITH_THINGPEDIA === 'embedded') {
             ]);
         }).then(([{device_count},{function_count}]) => {
             res.render('thingpedia_portal', { page_title: req._("Thingpedia - The Open API Collection"),
-                                              csrfToken: req.csrfToken(), device_count, function_count });
+                                              csrfToken: req.csrfToken(), device_count, function_count,
+                                              research_page: req.get('Referrer') === Config.SERVER_ORIGIN + '/' });
         }).catch(next);
     });
 
