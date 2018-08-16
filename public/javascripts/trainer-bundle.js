@@ -289,14 +289,14 @@ module.exports = class ParserClient {
         console.log('Using Almond-NNParser at ' + this._baseUrl);
     }
 
-    onlineLearn(utterance, code, store = 'automatic') {
+    onlineLearn(utterance, code, store = 'automatic', user = null) {
         if (Array.isArray(code))
             code = code.join(' ');
         if (typeof code !== 'string')
             throw new TypeError('Invalid code parameter to onlineLearn');
         return Promise.resolve($.ajax(this._baseUrl + '/learn', {
             method: 'POST',
-            data: { q: utterance, target: code, store }
+            data: { q: utterance, target: code, store, owner: user }
         })).catch((e) => {
             // errors are useless because the browser blocks the response on error (due to
             // missing Access-Control-Allow-Origin)

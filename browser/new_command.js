@@ -28,6 +28,7 @@ class ThingTalkTrainer {
 
         this._locale = $('body[data-locale]').attr('data-locale');
         this._developerKey = $('body[data-developer-key]').attr('data-developer-key') || null;
+        this._user = $('body[data-user-id]').attr('data-user-id') || null;
 
         this.thingpedia = new ThingpediaClient(this._developerKey, this._locale);
         this._schemaRetriever = new SchemaRetriever(this.thingpedia);
@@ -166,8 +167,6 @@ class ThingTalkTrainer {
     }
 
     _toProgram(code) {
-        console.log('toProgram ###: ');
-        console.log(this._entities);
         let program = ThingTalk.NNSyntax.fromNN(code, this._entities);
         return program.typecheck(this._schemaRetriever, true);
     }
@@ -177,8 +176,6 @@ class ThingTalkTrainer {
     }
 
     _toNN(program) {
-        console.log('toNN ###: ');
-        console.log(this._entities);
         let clone = {};
         Object.assign(clone, this._entities);
         return ThingTalk.NNSyntax.toNN(program, this._tokens, clone);
@@ -194,9 +191,10 @@ class ThingTalkTrainer {
 
     _learnThingTalk(text) {
         const raw = this._raw;
+        const user = this._user;
         return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((program) => {
             const code = this._toNN(program);
-            return this.parser.onlineLearn(raw, code, 'commandpedia');
+            return this.parser.onlineLearn(raw, code, 'commandpedia', user);
         });
     }
 

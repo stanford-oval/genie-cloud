@@ -39,7 +39,7 @@ $(function() {
             let utterance = $('<p>').addClass('command-utterance').attr('title', command.target_code).text(command.utterance);
             info.append(utterance);
             let user = $('<div>').addClass('device-owner').html(
-                '<span>By ' + (command.owner ? command.owner : 'anonymous user') + '</span>&#x20&#x20&#x20' +
+                '<span>By ' + (command.owner ? command.ownerName : 'anonymous user') + '</span>&#x20&#x20&#x20' +
                 '<a><i class="far fa-heart" id="' + command.id +'" _csrf="' + csrfToken + '"></i></a>&#x20' +
                 '<span id="count' + command.id + '">' + command.click_count + '</span>'
             );
