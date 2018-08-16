@@ -38,11 +38,15 @@ $(function() {
             main.append(info);
             let utterance = $('<p>').addClass('command-utterance').attr('title', command.target_code).text(command.utterance);
             info.append(utterance);
-            let user = $('<div>').addClass('device-owner').html(
-                '<span>By ' + (command.owner ? command.ownerName : 'anonymous user') + '</span>&#x20&#x20&#x20' +
-                '<a><i class="far fa-heart" id="' + command.id +'" _csrf="' + csrfToken + '"></i></a>&#x20' +
-                '<span id="count' + command.id + '">' + command.click_count + '</span>'
-            );
+
+            let user = $('<div>').addClass('device-owner');
+            user.append($('<span>').text(`By ${command.owner ? command.ownerName : 'anonymous user'}`));
+            let like = $('<a>');
+            let heart = $('<i>').addClass('far').addClass('fa-heart').attr('id', command.id).attr('_csrf', csrfToken);
+            like.append(heart);
+            user.append(like);
+            let count = $('<span>').attr('id', 'count' + command.id).text(command.click_count);
+            user.append(count);
             info.append(user);
             body.append(main);
             panel.append(body);
@@ -79,6 +83,24 @@ $(function() {
             else
                 $('#commands-page-next').hide();
         }
+
+        $('.fa-heart').click(function(event) {
+            let icon = $('#' + this.id);
+
+            let count = $('#count' + this.id);
+            let current = Number(count.text());
+
+            if (icon.hasClass('far')) {
+                icon.removeClass('far').addClass('fas');
+                $.post('/app/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
+                count.text(current + 1);
+            } else {
+                icon.removeClass('fas').addClass('far');
+                $.post('/app/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
+                count.text(current - 1);
+            }
+            event.preventDefault();
+        });
     }
 
     function loadAll() {
@@ -86,24 +108,6 @@ $(function() {
     }
 
     loadAll();
-
-    $('.fa-heart').click(function(event) {
-        let icon = $('#' + this.id);
-
-        let count = $('#count' + this.id);
-        let current = Number(count.text());
-
-        if (icon.hasClass('far')) {
-            icon.removeClass('far').addClass('fas');
-            $.post('/app/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
-            count.text(current + 1);
-        } else {
-            icon.removeClass('fas').addClass('far');
-            $.post('/app/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
-            count.text(current - 1);
-        }
-        event.preventDefault();
-    });
 
     $('#commands-page-prev').click(function(event) {
         page = page - 1;
