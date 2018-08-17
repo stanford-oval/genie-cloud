@@ -12,8 +12,11 @@ block content
     div.form-group
       label(for='input-command-utterance').control-label= _("Command")
       textarea.form-control#input-command-utterance(name="description", required=true, placeholder=_("What does the command accomplish?"))
+    if submitted
+      div.row#suggest-done
+        div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
+          p.text-center= _("Thank you for your suggestion!")
     br
     div.row
       div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
         button(type='submit').form-control.btn.btn-primary.btn-block= _("Suggest")
-    br

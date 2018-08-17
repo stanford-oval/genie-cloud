@@ -1,30 +1,33 @@
 ul.nav.navbar-nav
-  li.hidden-md.hidden-lg
-    a(href="/")= _("Home")
-  li
-    a(href='/get-almond')= _("Get Almond")
-  if authenticated
+  if research_page
+    li
+      a(href='/app')= _("App")
+    if WITH_THINGPEDIA === 'embedded'
+      li
+        a(href='/thingpedia')= _("Thingpedia")
+  else
     li
       a(href="/me")= _("My Almond")
     li
-      a(href='/me/conversation')= _("Web Almond")
-  if WITH_THINGPEDIA === 'embedded'
-    li
-      a(href='/thingpedia')= _("Thingpedia")
-    li
-      a(href='/thingpedia/cheatsheet')= _("Cheatsheet")
-  li
-    a(href='/thingpedia/developers')= _("Developers")
-  if authenticated && user.developer_status >= 3
-    li
-      a(href="/admin")= _("Administration")
+      a(href='/thingpedia/developers')= _("Developers")
+    if authenticated
+      if user.developer_status >= 1
+        li
+          a(href="/me/status")= _("Status & Logs")
+        if WITH_THINGPEDIA === 'embedded'
+          li
+            a(href='/thingpedia')= _("Thingpedia")
+      if user.developer_status >= 3
+        li
+          a(href="/admin")= _("Administration")
 
 ul.nav.navbar-nav.navbar-right
-  if authenticated
-    li
-      a(href="/user/profile")= _("Settings")
-  li
+  if !research_page
     if authenticated
-      a.navbar-login#navbar-login-button(href='/user/logout')= _("Log Out")
-    else
-      a.navbar-login#navbar-login-button(href='/user/login')= _("Log In")
+      li
+        a(href="/user/profile")= _("Settings")
+    li
+      if authenticated
+        a.navbar-login#navbar-login-button(href='/user/logout')= _("Log Out")
+      else
+        a.navbar-login#navbar-login-button(href='/user/login')= _("Log In")

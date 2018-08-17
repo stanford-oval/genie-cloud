@@ -24,7 +24,7 @@ html
   - var index = false;
   - var stdlayout = true;
   body(data-icon-cdn=S3_CLOUDFRONT_HOST, data-developer-key=authenticated ? user.developer_key : false,
-       data-locale=locale, data-thingpedia-url=THINGPEDIA_URL)
+       data-locale=locale, data-thingpedia-url=THINGPEDIA_URL, data-user-id=user.id)
     nav.navbar-inverse.navbar.navbar-fixed-top(role="banner")
       div.navbar-header
         button(class="navbar-toggle collapsed", data-toggle="collapse", data-target="#page-nav")
@@ -32,7 +32,10 @@ html
           span.icon-bar
           span.icon-bar
           span.icon-bar
-        a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/') Almond
+        if research_page
+          a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/') Almond
+        else
+          a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/app') Almond
         span.navbar-brand.scroller.hidden-md.hidden-lg(aria-hidden='true')
           block page_name
 

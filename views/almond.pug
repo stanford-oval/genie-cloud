@@ -20,122 +20,46 @@ block content
       h1#almond-title Almond
       h2#almond-subtitle The Open Virtual Assistant
 
-      if !authenticated
-        div.container
-          div.row
-            div.col-xs-12.col-md-6.col-md-offset-3
-              p=_("Almond lets you interact with your services and accounts in natural language, with flexibility and privacy.")
-
-        p
-          a(href='/get-almond').scroller.btn.btn-primary= _("Get Almond")
-      else
-        a(href='/me').btn.btn-primary= _("My Almond")
-        | &nbsp;
-        a(href='/me/conversation').btn.btn-primary= _("Web Almond")
+      div.container
+        div.row
+          div.col-xs-12.col-md-6.col-md-offset-3
+            p=_("Almond lets you interact with your services and accounts in natural language, with flexibility and privacy.")
+        div.row#subscribe
+          div.col-xs-12.col-md-6.col-md-offset-3
+            input(type='email', placeholder='Your Email').form-control#subscribe-email
+            button.btn.btn-primary(csrf=csrfToken)#subscribe-submit= _("Subscribe for updates")
+            p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
 
     if IS_ALMOND_WEBSITE
       div.sections
         section.divider
-          h3= _("Meet the Most Expressive Virtual Assistant")
-
-        section.divider
-          h3= _("Work in Progress")
+          h3= _("Our Mission")
           div.container
             div.row
-              div.col-sm-6.col-lg-6
-                div.project-icon#project-spotify
-                div.project-details
-                  h4 Spotify
-                  p
-                    | A dedicated virtual assistant for Spotify with our latest annotation-free natural language model.
-                    | Coming soon on both <b>Google Assistant</b> and <b>Alexa</b>.
-              div.col-sm-6.col-lg-6
-                div.project-icon#project-multi-user
-                div.project-details
-                  h4 Multi-user Virtual Assistant
-                  p
-                    | One virtual assistant for multiple users via speaker recognition.
-                    | Different users can share their skills with fine-grain access control.
-            div.row
-              div.col-sm-6.col-lg-6
-                div.project-icon#project-thingpedia
-                div.project-details
-                  h4 Thingpeida Interface Update
-                  p
-                    | Better documentation and better interface for creating a new device on Thingpedia.
-                    | A platform will also be build to share, suggest new ideas.
-                    br
-                    | (Coming out by the end of the year)
-              div.col-sm-6.col-lg-6
-                div.project-icon#project-memory
-                div.project-details
-                  h4 Virtual Assistant with Memory
-                  p
-                    | A virtual assistant that remembers everything you have done.
-                    | It allows you to query your own history and based on which, give you the best personalized services.
-                    br
-                    | (Coming out by the end of the year)
-
-
+              p
+                | The mission of the Almond is to research open virtual assistant technology through a
+                | collaborative effort between academia and industry, in concert with the creation of a
+                | distributed virtual assistant infrastructure to safeguard privacy.
+              p
+                | Virtual assistants are revolutionizing the digital interface by giving us a uniform, personalized,
+                | linguistic user interface(LUI) to our diverse digital data, IoT, and web assets.
+                | In the future, they can perform custom, complex digital tasks, interface with humans,
+                | provide emotional support, and advise on personal fitness, finance, education, career, and so on.
+              p
+                | The research of understanding how the digital world operates and how to interface with it is a tremendous undertaking.
+                | Besides the technical challenges,  it also requires crowdsourcing hugeknowledge bases such as the
+                | catalog of all the digital interfaces, natural language utterances, and behavioral data.
+                | This lab serves as a neutral party to bring together companies with academia, to create open,
+                | non-proprietary, production-quality resources to facilitate basic research and technology transfer.
+              p
+                | Virtual assistants can reverse today’s Big Brother trend where companies owning massive volumes of
+                | private data can exert overwhelming influences on a large population.
+                | Virtual assistants can be programmed in natural language, reducing their reliance on third-party developers.
+                | What we need is to establish a commercially viable infrastructure of distributed virtual assistants
+                | early to give consumers a healthy choice of vendors, including the option to keep data on their devices.
 
         section.divider
-          h3= _("Almond Timeline")
-          section.timeline
-            ul
-              li
-                div <time>October 2018</time>
-                  br
-                  a(href='/publications/ubicomp18')
-                    cite Controlling Fine-Grain Sharing in Natural Language with a Virtual Assistant (UbiComp 2018)
-                  br
-                  | Giovanni Campagna, Silei Xu, Rakesh Ramesh, Michael Fischer, and Monica S. Lam
-                  //br
-                  //| In <i>Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies (IMWUT)</i>, 2018.
-              li
-                div <time>September 2018</time>
-                  br
-                  a(href='/publications/mobilehci18')
-                    cite Brassau: Automatically Generating Graphical User Interfaces for Virtual Assistant (MobileHCI 2018)
-                  br
-                  | Michael Fischer, Giovanni Campagna, Silei Xu, and Monica S. Lam
-                  //br
-                  //| In <i>20th International Conference on Human-Computer Interaction with Mobile Devices and Services. (MobileHCI)</i>, 2018.
-              li
-                div <time>April 2017</time>
-                  br
-                  a(href='/publications/www17')
-                    cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant (WWW 2017)
-                  br
-                  | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer, and Monica S. Lam
-                  //br
-                  //| In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, Perth, Australia, April 2017.
-              li
-                div <time>May 2016</time>
-                  br
-                  a(href='/publications/mobilesoft16')
-                    cite A Distributed Open Social Platform for Mobile Devices (MobileSoft 2016)
-                  br
-                  | Monica S. Lam, Giovanni Campagna, Jiwon Seo, and Michael Fischer
-                  //br
-                  //| In <i>IEEE/ACM International Conference on Mobile Software Engineering and Systems</i>, Austin, Texas, May 2016. (Keynote)
-        section.divider
-          h3= _("Open & Crowdsourced")
-          div.container
-            div.row
-              div.col-md-6
-                p
-                  |  Almond draws its power from the crowdsourced <a href='/thingpedia'>Thingpedia</a>, an open collection of Web and Internet
-                  |  of Things APIs.
-                  |  Anyone can contribute support for the favorite service, with few lines of code and a handful of natural language sentences.
-
-                p Thingpedia supports more than 40 different services, accounts and IoT devices.
-
-                p
-                  |  Almond is free software, and is available on <a href='https://github.com/Stanford-Mobisocial-IoT-Lab'>Github</a>. You can download, distribute or modify Almond as you see fit.
-              div.col-md-6
-                img(src='/images/thingpedia-icon-cloud.png',alt=_("The logos of the services supported by Almond"))#thingpedia-icon-cloud
-        section.divider
-          h3= _("Unprecedented Expressivity")
+          h3= _("Compound, Event-Driven Commands.")
           div.container
             div.row
               div.col-md-6#multi-color-example
@@ -173,57 +97,211 @@ block content
                   span.purple  "I am rich!"
                   span.black )
               div.col-md-6
-                p Almond is the world first virtual assistant to support <i>compound commands</i> in natural language.
                 p
-                  | In Almond, you can combine multiple services into a single command, with powerful filtering and passing of data from one to another.
-                  | Do away with the complex UIs of IFTTT or Zapier - in Almond the power is ready for you to type.
-                //p <a href='#section-try-now'>Try now</a>: “get Washington Post articles published in the last 2 hours”, ”translate tweets from @... to my language”
+                  | Virtual assistants become much more powerful and useful if users can compose primitive functions
+                  | together to create compound commands that run automatically.
+                  | For example, "Put all the most frequently played songs each week into a new playlist",
+                  | combines the retrieval of songs played with the creation of a playlist.
+                  | Similarly, "Send me email whenever my car is not plugged in at home"
+                  | combines querying the state of a car and sending email.
+                  | To handle the large number of possible combinations, we have created a virtual assistant programming
+                  | language, called ThingTalk, that can combine skills from <a href='/thingpedia'>Thingpedia</a>, an open-world repository.
+
         section.divider
-          h3= _("Respects Your Privacy (and That of Your Friends)")
+          h3= _("General, Fine-Grain Sharing with Privacy")
           div.container
             div.row
               div.col-md-6
                 p
-                  | Almond is the world first <i>Communicating Virtual Assistant</i>: through Almond you can interact not only
-                  |  with your services, but also access that of your friends, family and colleagues.
-
+                  | Sharing is broken today;  this is why the convenience of sharing via Facebook has driven billions
+                  | to give up ownership to their data.  Virtual assistants can transform how we share everything digital.
+                  | In our design, the virtual assistant handles all the sharing:
+                  | it accepts requests, gets approval from the owner, executes the requests, and returns only the requested results.
+                  | For generality and fine granularity, the request can be anyThingTalk program.
+                  | For privacy, the owner can specify what ThingTalk programs each person can execute, in natural language.
+                  | For example, a dad can tell his voice-activated virtual assistant that "Bobby can buy household goods that are under $20".
+                  | The assistant, upon recognizing Bobby’s voice, can enforce the constraint.
+                  | We extended ThingTalk to include specification of access control.
                 p
-                  | To protect your privacy, Almond allows you to set flexible access control policies, based on time of
-                  | day, on your location, on the content of the request, or really on any information available to Almond.
-                  | For example, your parents can monitor your security camera, <i>only if you're not home</i>, or <i>only
-                  | at a certain time of the day</i>.
-
-                p
-                  | Finally, to guarantee your privacy, Almond runs all its actions and computation locally. If you so choose,
-                  | you can have your own installation of Almond in your phone or your laptop. If you use Web Almond, your
-                  | data is encrypted and stored in a secure enclave not accessible by anybody else.
+                  | With this design, the owner is not constrained by the sharing options offered by the original service providers;
+                  | in fact, the requesters do not even need to join the same services.
+                  | With GDPR, individuals can get access to all their personal information in the cloud and share them at will.
 
               div.col-md-6
                 img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
                 img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
 
-        section.divider#publications
-          h3= _("Publications & Talks")
-
+        section.divider
+          h3= _("Natural-language Programming Methodology")
           div.container
             div.row
-              div.col-xs-12
-                ul#publication-list
-                  li
-                    a(href='https://d1ge76rambtuys.cloudfront.net/papers/www17.pdf')
-                      cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant
-                    br
-                    | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer, and Monica S. Lam
-                    br
-                    | In <i>Proceedings of the 26th International World Wide Web Conference (WWW-2017)</i>, Perth, Australia, April 2017.
+              p
+                | We model the natural language under-standing task in a LUI as a natural-language programming problem.
+                | The family of acceptable utterances is defined as sentences matching the semantics of a target formal
+                | programming language and its library of functions.  We have developed a methodology, inspired by Sempre,
+                | to tune and refine the target grammar and library representation to derive effective semantic parsers.
+                | After significant tuning of ThingTalk and Thingpedia, we show that state-of-the-art sequence-to-sequence
+                | and transformer models perform well on 25,000 manually paraphrased compound commands,which will be released as an open dataset.
 
-                  li
-                    a(href='http://mobisocial.stanford.edu/papers/mobilesoft16.pdf')
-                      cite A Distributed Open Social Platform for Mobile Devices
-                    br
-                    | Monica S. Lam, Giovanni Campagna, Jiwon Seo, and Michael Fischer
-                    br
-                    | In <i>IEEE/ACM International Conference on Mobile Software Engineering and Systems</i>, Austin, Texas, May 2016. (Keynote)
+        section.divider
+          h3= _("Graphical Virtual Assistants")
+          div.container
+            div.row
+              p
+                | Limitations of textual display of results prompted us to extend natural-language programming to
+                | generate graphical user interfaces (GUI) automatically, which is one or the most time-consuming tasks
+                | in software development. GUIs are important for displaying graphical or lists of results, letting
+                | users monitoring multiple queries, rerunning complex commands,and adjusting settings with different
+                | modality.  We use machine learning to leverage existing GUIs and the artistic designs in masterpieces
+                | to generate not just functional, but aesthetically pleasing, apps.
+            div.row
+              img(src='/images/style-transfer.png',alt=("Apply style transfer to virtual assistant GUI."),width="100%")
+
+        section.divider
+          h3= _("Inter-Virtual Assistant Communication")
+          div.container
+            div.row
+              div.col-md-6
+                p
+                  | Today, the email SMTP protocol, despite its insecurity, is good at letting users share data stored
+                  | in different servers including their own.
+                  | We see adding secure communication to open virtual assistants as a great opportunity to create a
+                  | higher-level, more secure, privacy-honoring sharing capability.
+                  | Thus, we propose DTP, DistributedThingTalk Protocol, to let assistants securely distribute ThingTalk
+                  | programs and return results. Using DTP, virtual assistants let users access each others’ data and
+                  | resources easily in a similar fashion as their own.
+                  | For example, instead of saying "Show me my security camera",
+                  | Ann’s father can simply say "Show me Ann's security camera", his virtual assistant can automatically
+                  | execute the command on Ann’s virtual assistant using DTP, provided Ann has given permission.
+              div.col-md-6
+                img(src='/images/dtp-arch-diagram.png',alt=("Apply style transfer to virtual assistant GUI."),width="100%")
+        section.divider
+          h3= _("Research Agenda")
+          div.container
+            div.row
+              div.col-sm-6.col-lg-6
+                div.project-icon#agenda-thingpedia
+                div.project-details
+                  h4 Thingpedia
+                  p
+                    | A non-proprietary repository of digital interfaces and their linguistic representation open to all
+                    | virtual assistant platforms.  Unlike existing skill repositories, Thingpedia captures the full API
+                    | signatures to support composition.  Plenty of research is still necessary to learn how to organize
+                    | the information, standardize across devices with similar functions, and reduce quirkiness of specific
+                    | interfaces to increase synthesizability from natural language.
+                    | Besides launching campaigns to crowdsource the data, we plan to use data programming techniques
+                    | to automate the acquisition of entries in Thingpedia.
+                    | Thingpedia will be extended to include also compound commands consumers find useful as well as
+                    | templates of personal data released under GDPR.
+              div.col-sm-6.col-lg-6
+                div.project-icon#agenda-thingtalk
+                div.project-details
+                  h4 ThingTalk
+                  p
+                    | A formal, synthesizable, virtual assistant programming language.  ThingTalk currently supports
+                    | composition of skills, event monitoring, access control, and distributed execution.
+                    | We plan to extend ThingTalk so (1) users can create custom tasks involving data-dependent decisions;
+                    | (2) users can query their data easily, hiding the complexity of retrieving data from different cloud services;
+                    | and (3) users can access and compute with data from their network of friends of friends.
+            div.row
+              div.col-sm-6.col-lg-6
+                div.project-icon#agenda-luinet
+                div.project-details
+                  h4 LUInet
+                  p
+                    | Linguistic User Interface Neural Network, a neural network that understands natural language to code.
+                    | We hope to collect real-life data through our own apps and our partners products.
+                    | We also plan to refine the methodology to create new language discourses.
+                    | Companies can use this to let workers customize an assistant for their workflow using corporate
+                    | confidential APIs. Other research topics include automatically generating precise,
+                    | yet natural, sentences to confirm the  commands, as well as the automatic generation of dialogs
+                    | to help users discover the virtual assistant’s capabilities and to refine their commands.
+              div.col-sm-6.col-lg-6
+                div.project-icon#agenda-guinet
+                div.project-details
+                  h4 GUInet
+                  p
+                    | Graphical User Interface Neural Network, a neural network that translates natural language commands
+                    | into graphical interfaces.  We plan to improve our existing models and apply the idea to many more
+                    | applications.  We also plan to understand how we can combine LUI andGUI together to make the most
+                    | out of both types of interfaces.
+            div.row
+              div.col-sm-6.col-lg-6
+                div.project-icon#agenda-dtp
+                div.project-details
+                  h4 Distributed ThingTalk Protocol
+                  p
+                    | Distributed  ThingTalk  Protocol,  that  supports  sharing  with  privacy  via  cooperating virtual assistants.
+                    | We only have a rudimentary design to date;  we hope that this lab can bring the  major corporate players
+                    | together to define, evolve, and adopt a common virtual assistant communication protocol.
+
+        section.divider
+          h3= _("Projects in Progress")
+          div.container
+            div.row
+              div.col-sm-6.col-lg-6
+                div.project-icon#project-server
+                div.project-details
+                  h4 Platform-agnostic Skill Server
+                  p
+                    | Today, to reach Alexa and Google Assistant users, companies need to stand up a skill server to
+                    | interface between the assistants and their own services.  We see an opportunity to create a
+                    | platform-agnostic service that provides vendors with LUI technology that connects to different
+                    | platforms.  Such a service lowers the programming complexity for the vendors, while making their
+                    | skills readily available to other platforms, if desired.
+              div.col-sm-6.col-lg-6
+                div.project-icon#project-compound
+                div.project-details
+                  h4 Privacy-preserving Compound Command Service
+                  p
+                    | We plan to offer users an alternative to IFTTT, a web service that millions have used to automate
+                    | their IoTs.  Unlike IFTTT, our service provides a natural-language interface and allows users to
+                    | keep their credentials.
+            div.row
+              div.col-sm-6.col-lg-6
+                div.project-icon#project-email
+                div.project-details
+                  h4 Natural-language Queries for Email Archives
+                  p
+                    | We plan to add a natural-language interface to ePADD, an email browsing tool developed by
+                    | Stanford Library based on our research prototype Muse.
+                    | It is used by 35 libraries including the New York Public Library, Museum of ModernArt,
+                    | and libraries at Brown, Caltech, Harvard, MIT, UC Berkeley, UCLA.
+                    | We plan to compare the effectiveness of LUIs with GUIs, with the help of actual users in these libraries.
+
+
+
+        section.divider
+          h3= _("Publication Timeline")
+          section.timeline
+            ul
+              li
+                div <time>October 2018</time>
+                  br
+                  a(href='https://mobisocial.stanford.edu/papers/ubicomp18.pdf')
+                    cite Controlling Fine-Grain Sharing in Natural Language with a Virtual Assistant
+                  br
+                  | Giovanni Campagna, Silei Xu, Rakesh Ramesh, Michael Fischer, and Monica S. Lam
+                  br
+                  | In <i>Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies (IMWUT)</i>, 2018.
+              li
+                div <time>September 2018</time>
+                  br
+                  a(href='http://mobisocial.stanford.edu/papers/mobilehci18.pdf')
+                    cite Brassau: Automatically Generating Graphical User Interfaces for Virtual Assistant
+                  br
+                  | Michael Fischer, Giovanni Campagna, Silei Xu, and Monica S. Lam
+                  br
+                  | In <i>20th International Conference on Human-Computer Interaction with Mobile Devices and Services. (MobileHCI)</i>, 2018.
+              li
+                div <time>April 2017</time>
+                  br
+                  a(href='https://d1ge76rambtuys.cloudfront.net/papers/www17.pdf')
+                    cite Almond: The Architecture of an Open, Crowdsourced, Privacy-Preserving, Programmable Virtual Assistant
+                  br
+                  | Giovanni Campagna, Rakesh Ramesh, Silei Xu, Michael Fischer, and Monica S. Lam
+                  br
+                  | In <i>Proceedings of the 26th International World Wide Web Conference (WWW)</i>, Perth, Australia, April 2017.
 
         section.divider#team
           h3= _("Our Team")

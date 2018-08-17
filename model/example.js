@@ -51,8 +51,15 @@ module.exports = {
         return db.selectAll(client, "select * from example_utterances");
     },
 
-    getCommands(client) {
+    getCommands(client, start, end) {
+        if (start !== undefined && end !== undefined)
+            return db.selectAll(client, "select * from example_utterances where type = 'commandpedia' order by click_count desc limit ?,?", [start, end + 1]);
         return db.selectAll(client, "select * from example_utterances where type = 'commandpedia' order by click_count desc");
+    },
+
+    getCommandsByFuzzySearch(client, query) {
+        return db.selectAll(client, "select * from example_utterances where type = 'commandpedia' and ( " +
+            " utterance like ? or target_code like ?) order by click_count desc ", [`%${query}%`, `%${query}%`]);
     },
 
     getBaseByLanguage(client, language) {
@@ -136,5 +143,9 @@ module.exports = {
     getByType(client, language, type, start, end) {
         return db.selectAll(client, "select * from example_utterances where not is_base and language = ? and type = ? order by id desc limit ?,?",
             [language, type, start, end]);
+    },
+
+    suggest(client, command) {
+        return db.query(client, "insert into command_suggestions (command) values (?)", command);
     }
 };

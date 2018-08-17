@@ -94,5 +94,9 @@ module.exports = {
 
     recordLogin(client, userId) {
         return db.query(client, "update users set lastlog_time = current_timestamp where id = ?", [userId]);
+    },
+
+    subscribe(client, email) {
+        return db.query(client, "insert into subscribe (email) values (?)", email);
     }
 };

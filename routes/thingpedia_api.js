@@ -16,6 +16,8 @@ const db = require('../util/db');
 const deviceModel = require('../model/device');
 const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
+const commandModel = require('../model/example');
+const userModel = require('../model/user');
 
 const ThingpediaClient = require('../util/thingpedia-client');
 const ImageCacheManager = require('../util/cache_manager');
@@ -198,6 +200,91 @@ router.get('/devices/search', (req, res) => {
         res.status(500).send('Error: ' + e.message);
     }).done();
 });
+
+function getCommandDetails(client, commands) {
+    let promisesAll = commands.map((command) => {
+        // get device kinds from target_code
+        let functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
+        let devices = functions.map((f) => {
+            let device_name = f.split('.');
+            device_name.splice(-1, 1);
+            return device_name.join('.').substr(1);
+        });
+        // deduplicate
+        command.devices = devices.filter((device, pos) => devices.indexOf(device) === pos);
+
+        // get device names
+        command.deviceNames = [];
+        let promises = command.devices.map((device) => {
+            return deviceModel.getByAnyKind(client, device).then((devices) => {
+                command.deviceNames.push(devices[0].name);
+            });
+        });
+
+        if (command.owner) {
+            promises.push(userModel.get(client, command.owner).then((response) => {
+                command.ownerName = response.username;
+            }));
+        }
+
+        return promises;
+    });
+    return Promise.all([].concat.apply([], promisesAll));
+}
+
+router.get('/commands/all', (req, res) => {
+    let page = req.query.page;
+    if (page === undefined)
+        page = 0;
+    else
+        page = parseInt(page);
+    if (!isFinite(page) || page < 0)
+        page = 0;
+    let page_size = req.query.page_size;
+    if (page_size === undefined)
+        page_size = 9;
+    else
+        page_size = parseInt(page_size);
+    if (!isFinite(page_size) || page_size < 0)
+        page_size = 9;
+    if (page_size > 9)
+        page_size = 9;
+
+    db.withTransaction((client) => {
+        return commandModel.getCommands(client, page * page_size, page_size).then((commands) => {
+            return getCommandDetails(client, commands).then(() => {
+                res.cacheFor(86400000);
+                res.json(commands);
+            });
+        });
+    }).catch((e) => {
+        console.error('Failed to retrieve command list: ' + e.message);
+        console.error(e.stack);
+        res.status(500).send('Error: ' + e.message);
+    }).done();
+});
+
+router.get('/commands/search', (req, res) => {
+    let q = req.query.q;
+    if (!q) {
+        res.status(300).json({ error: 'missing query' });
+        return;
+    }
+
+    db.withTransaction((client) => {
+        return commandModel.getCommandsByFuzzySearch(client, q).then((commands) => {
+            return getCommandDetails(client, commands).then(() => {
+                res.cacheFor(86400000);
+                res.json(commands);
+            });
+        });
+    }).catch((e) => {
+        console.error('Failed to retrieve command list: ' + e.message);
+        console.error(e.stack);
+        res.status(500).send('Error: ' + e.message);
+    }).done();
+});
+
 
 router.get('/apps', (req, res) => {
     // deprecated endpoint

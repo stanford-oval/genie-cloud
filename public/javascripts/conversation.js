@@ -95,7 +95,7 @@ $(function() {
     function rdl(rdl, icon) {
         var container = almondMessage(icon);
         var rdlMessage = $('<a>').addClass('message message-rdl')
-            .attr('href', rdl.webCallback);
+            .attr('href', rdl.webCallback).attr("target", "_blank");
         rdlMessage.append($('<span>').addClass('message-rdl-title')
             .text(rdl.displayTitle));
         rdlMessage.append($('<span>').addClass('message-rdl-content')
@@ -150,7 +150,7 @@ $(function() {
 
         var holder = $('<div>').addClass('col-xs-12 col-sm-6');
         var btn = $('<a>').addClass('message message-button btn btn-default')
-            .attr('href', url).text(title);
+            .attr('href', url).attr("target", "_blank").text(title);
         holder.append(btn);
         getGrid().append(holder);
         maybeScroll(holder);
