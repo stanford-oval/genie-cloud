@@ -26,6 +26,15 @@ router.get('/commands/suggest', function(req, res) {
     return res.render('app_suggest_command', { page_title: req._('Suggest New Command'), csrfToken: req.csrfToken() });
 });
 
+router.post('/commands/suggest', function(req, res) {
+    let command = req.body['description'];
+    db.withTransaction((dbClient) => {
+        return commandModel.suggest(dbClient, command);
+    }).then(() => {
+        return res.render('app_suggest_command', { page_title: req._('Suggest New Command'), csrfToken: req.csrfToken(), submitted: true });
+    });
+});
+
 router.post('/upvote/:id', function(req, res) {
     db.withTransaction((client) => {
         return commandModel.upvote(client, req.params.id);

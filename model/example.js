@@ -143,5 +143,9 @@ module.exports = {
     getByType(client, language, type, start, end) {
         return db.selectAll(client, "select * from example_utterances where not is_base and language = ? and type = ? order by id desc limit ?,?",
             [language, type, start, end]);
+    },
+
+    suggest(client, command) {
+        return db.query(client, "insert into command_suggestions (command) values (?)", command);
     }
 };
