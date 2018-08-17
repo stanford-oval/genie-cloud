@@ -24,6 +24,7 @@ router.get('/', (req, res, next) => {
         res.render('almond', {
             page_title: req._("Almond - The Open Virtual Assistant"),
             isRunning: isRunning,
+            csrfToken: req.csrfToken(),
             research_page: true
         });
     });

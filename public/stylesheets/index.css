@@ -322,3 +322,17 @@
         border-color: transparent #2c3e50 transparent transparent;
     }
 }
+
+#subscribe {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#subscribe-email {
+    margin: auto;
+    width: 40%;
+}
+
+#subscribe-done {
+    padding: 10px;
+}

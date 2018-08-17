@@ -143,6 +143,14 @@ router.get('/logout', (req, res, next) => {
     res.redirect(303, '/app');
 });
 
+router.post('/subscribe', (req, res) => {
+    let email = req.body['email'];
+    return db.withTransaction((dbClient) => {
+        return model.subscribe(dbClient, email);
+    });
+
+});
+
 function getProfile(req, res, pwError, profileError) {
     return EngineManager.get().getEngine(req.user.id).then((engine) => {
         return Promise.all([engine.devices.getDevice('thingengine-own-phone'),
