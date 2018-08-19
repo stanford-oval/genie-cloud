@@ -352,7 +352,7 @@ module.exports = class ThingpediaClientCloud {
     }
 
     getKindByDiscovery(body) {
-        return _discoveryServer.decode(body);
+        return Promise.resolve().then(() => _discoveryServer.decode(body));
     }
 
     getExamplesByKey(key) {
