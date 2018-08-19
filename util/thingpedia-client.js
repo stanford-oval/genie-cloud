@@ -85,6 +85,13 @@ module.exports = class ThingpediaClientCloud {
                         return (S3_HOST + device.primary_kind + '-v' + device.approved_version + '.zip');
                     else
                         throw new Error('Not Authorized');
+                }, (e) => {
+                    if (e.message === 'Wrong number of rows returned, expected 1, got 0') {
+                        // = no such device, but we hide this fact and return a generic Not Authorized
+                        throw new Error('Not Authorized');
+                    } else {
+                        throw e;
+                    }
                 });
             });
         });
