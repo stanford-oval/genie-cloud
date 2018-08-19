@@ -12161,7 +12161,8 @@ module.exports = class Formatter {
             });
             return formatted.join('\n');
         } else {
-            return formatted;
+            // flatten formatted (returning array in function causes nested array)
+            return [].concat.apply([], formatted);
         }
     }
 
@@ -26364,8 +26365,10 @@ function isGroupMember(principal, group, groupmap) {
 // Reduces a program and a set of Allowed rules into one call to the SMT, and invokes
 // the SMT solver
 class SmtReduction {
-    constructor(SolverClass) {
+    constructor(SolverClass, { allowUndefined = false, debug = false }) {
         this._solver = new SolverClass();
+        this._allowUndefined = allowUndefined;
+        this._debug = debug;
 
         this._declarations = [];
         this._declarations.push(smt.DeclareSort('ResultId'));
@@ -26394,6 +26397,14 @@ class SmtReduction {
 
         this._externalfnidx = 0;
         this._uf = new Map;
+
+        this._nextSkolemBool = 0;
+    }
+
+    _getSkolemBool() {
+        let bool = 'sk_' + this._nextSkolemBool++;
+        this._constants.set(bool, 'Bool');
+        return bool;
     }
 
     _add(stmt) {
@@ -26675,8 +26686,14 @@ class SmtReduction {
                 throw new TypeError('Invalid filter left-hand-side ' + filter.name);
             if (filter.operator === 'contains')
                 ptype = ptype.elem;
-            if (filter.value.isUndefined)
-                throw new TypeError('Invalid filter right hand side (should be slot filled)');
+            if (filter.value.isUndefined) {
+                if (this._allowUndefined)
+                    // return an unrestricted value, to signify that the predicate could be true
+                    // or false
+                    return this._getSkolemBool();
+                else
+                    throw new TypeError('Invalid filter right hand side (should be slot filled)');
+            }
             if (filter.value.isVarRef) {
                 if (!scope[filter.value.name] || !scopeType[filter.value.name])
                     throw new TypeError('Invalid filter right-hand-side ' + filter.value.name);
@@ -26982,7 +26999,8 @@ class SmtReduction {
         if (enableAssignments)
             this._solver.enableAssignments();
         this._addEverything();
-        //this._solver.dump();
+        if (this._debug)
+            this._solver.dump();
         return this._solver.checkSat().then(([sat, assignment, constants, unsatCore]) => {
             //console.log('CVC4 result: ', sat);
             this._assignment = assignment;
@@ -27005,7 +27023,7 @@ class SmtReduction {
     }
 
     clone() {
-        let self = new SmtReduction(this._solver.constructor);
+        let self = new SmtReduction(this._solver.constructor, { allowUndefined: this._allowUndefined });
         self._declarations = this._declarations;
         self._constants = this._constants;
         self._classes = this._classes;
@@ -27101,9 +27119,10 @@ function isRemoteSend(fn) {
 }
 
 class RuleTransformer {
-    constructor(SolverClass, principal, program, rule, permissiondb, groupmap) {
+    constructor(SolverClass, principal, program, rule, permissiondb, groupmap, options) {
         this._SolverClass = SolverClass;
         this._groupmap = groupmap;
+        this._options = options;
 
         this._principal = principal;
         this._program = program;
@@ -27217,7 +27236,7 @@ class RuleTransformer {
             return Promise.resolve(true);
         }
 
-        let reduction = new SmtReduction(this._SolverClass);
+        let reduction = new SmtReduction(this._SolverClass, this._options);
         this._addAllGroups(reduction);
         this._addProgram(reduction);
         reduction.addAssert(reduction.addPermission(permission));
@@ -27246,7 +27265,7 @@ class RuleTransformer {
             return Promise.resolve(false);
         }
 
-        let reduction = new SmtReduction(this._SolverClass);
+        let reduction = new SmtReduction(this._SolverClass, this._options);
         this._addAllGroups(reduction);
         this._addProgram(reduction);
         reduction.addPermission(permission);
@@ -27393,48 +27412,70 @@ class RuleTransformer {
         });
     }
 
-    transform() {
+    async check() {
         if (this._relevantPermissions.length === 0)
-            return Promise.resolve(null);
-        return Promise.resolve().then(() => {
-            let satReduction = new SmtReduction(this._SolverClass);
-            this._addAllGroups(satReduction);
-            this._addProgram(satReduction);
-            return satReduction.checkSatisfiable();
-        }).then((isSatisfiable) => {
-            if (!isSatisfiable) {
-                //console.log('Rule not satifisiable');
-                //console.log(Ast.prettyprint(this._program, true));
-                return null;
-            }
+            return false;
 
-            this._firstReduction = new SmtReduction(this._SolverClass);
+        let satReduction = new SmtReduction(this._SolverClass, this._options);
+        this._addAllGroups(satReduction);
+        this._addProgram(satReduction);
+        if (!await satReduction.checkSatisfiable())
+            return false;
+
+        let anyPermissionReduction = new SmtReduction(this._SolverClass, this._options);
+        this._addAllGroups(anyPermissionReduction);
+        this._addProgram(anyPermissionReduction);
+        let ors = [];
+        for (let permission of this._relevantPermissions)
+            ors.push(anyPermissionReduction.addPermission(permission));
+        anyPermissionReduction.addAssert(smt.Or(...ors));
+        return anyPermissionReduction.checkSatisfiable();
+    }
+
+    async transform() {
+        if (this._relevantPermissions.length === 0)
+            return null;
+
+
+        let satReduction = new SmtReduction(this._SolverClass, this._options);
+        this._addAllGroups(satReduction);
+        this._addProgram(satReduction);
+        if (!await satReduction.checkSatisfiable()) {
+            //console.log('Rule not satifisiable');
+            //console.log(Ast.prettyprint(this._program, true));
+            return null;
+        }
+
+        {
+            // first check if the permission is directly satisfied
+
+            this._firstReduction = new SmtReduction(this._SolverClass, this._options);
             this._addAllGroups(this._firstReduction);
             this._addProgram(this._firstReduction);
             let ors = [];
             for (let permission of this._relevantPermissions)
                 ors.push(this._firstReduction.addPermission(permission));
             this._firstReduction.addAssert(smt.Not(smt.Or(...ors)));
-            return this._firstReduction.checkSatisfiable(true).then((isSatisfiable) => {
-                if (!isSatisfiable)
-                    return this._rule.clone();
+            if (!await this._firstReduction.checkSatisfiable(true))
+                return this._rule.clone();
+        }
 
-                this._secondReduction = new SmtReduction(this._SolverClass);
-                this._addAllGroups(this._secondReduction);
-                this._addProgram(this._secondReduction);
-                let ors = [];
-                for (let permission of this._relevantPermissions)
-                    ors.push(this._secondReduction.addPermission(permission));
-                this._secondReduction.addAssert(smt.Or(...ors));
-                return this._secondReduction.checkSatisfiable(true).then((isSatisfiable) => {
-                    if (!isSatisfiable)
-                        return null;
+        {
+            // now check if the permission can be satisfied at all
 
-                    this._newrule = this._rule.clone();
-                    return this._adjust();
-                });
-            });
-        });
+            this._secondReduction = new SmtReduction(this._SolverClass, this._options);
+            this._addAllGroups(this._secondReduction);
+            this._addProgram(this._secondReduction);
+            let ors = [];
+            for (let permission of this._relevantPermissions)
+                ors.push(this._secondReduction.addPermission(permission));
+            this._secondReduction.addAssert(smt.Or(...ors));
+            if (!await this._secondReduction.checkSatisfiable(true))
+                return null;
+        }
+
+        this._newrule = this._rule.clone();
+        return this._adjust();
     }
 }
 
@@ -27480,21 +27521,43 @@ module.exports = class PermissionChecker {
         });
     }
 
-    check(principal, program) {
-        return this._setProgram(principal, program).then(() => {
-            let newrules = [];
-            return promiseDoAll(program.rules, (rule) => {
-                let transformer = new RuleTransformer(this._SolverClass, principal, program, rule, this._permissiondb, this._groupmap);
-                return transformer.transform().then((newrule) => {
-                    if (newrule !== null)
-                        newrules.push(newrule);
-                });
-            }).then(() => {
-                if (newrules.length === 0)
-                    return null;
-                return (new Ast.Program(program.classes, program.declarations, newrules, null)).optimize();
+    async _doCheck(principal, program) {
+        let all = true;
+        await promiseDoAll(program.rules, (rule) => {
+            let transformer = new RuleTransformer(this._SolverClass,
+                principal, program, rule, this._permissiondb, this._groupmap,
+                { allowUndefined: true, debug: false });
+            return transformer.check().then((ok) => {
+                if (!ok)
+                    all = false;
             });
         });
+        return all;
+    }
+
+    async _doTransform(principal, program) {
+        let newrules = [];
+        await promiseDoAll(program.rules, (rule) => {
+            let transformer = new RuleTransformer(this._SolverClass,
+                principal, program, rule, this._permissiondb, this._groupmap,
+                { allowUndefined: false, debug: false });
+            return transformer.transform().then((newrule) => {
+                if (newrule !== null)
+                    newrules.push(newrule);
+            });
+        });
+        if (newrules.length === 0)
+            return null;
+        return (new Ast.Program(program.classes, program.declarations, newrules, null)).optimize();
+    }
+
+    async check(principal, program, options = { transform: true }) {
+        await this._setProgram(principal, program);
+
+        if (options.transform)
+            return this._doTransform(principal, program);
+        else
+            return this._doCheck(principal, program);
     }
 
     allowed(permissionRule) {
