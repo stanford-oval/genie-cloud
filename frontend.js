@@ -86,7 +86,11 @@ module.exports = class Frontend {
                     redirect = false;
                 // don't redirect certain API endpoints because the client code
                 // doesn't cope well
-                if (req.originalUrl.startsWith('/thingpedia/api') || req.originalUrl.startsWith('/api/webhook') || req.originalUrl.startsWith('/ws') || req.originalUrl.startsWith('/cache'))
+                if (req.originalUrl.startsWith('/thingpedia/api') ||
+                    req.originalUrl.startsWith('/thingpedia/download') ||
+                    req.originalUrl.startsWith('/api/webhook') ||
+                    req.originalUrl.startsWith('/ws') ||
+                    req.originalUrl.startsWith('/cache'))
                     redirect = false;
                 if (redirect) {
                     if (req.hostname === 'thingpedia.stanford.edu' && req.originalUrl === '/')
