@@ -81,11 +81,11 @@ module.exports = {
 
     getByKey(client, key, language) {
         return db.selectAll(client,
-              ` select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where
+              ` select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds where
                  eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and match preprocessed against
                  (?) and target_code <> ''
                union distinct
-               (select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where
+               (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds where
                  eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and match kind_canonical against
                  (?) and target_code <> '')
                limit 50`,
@@ -94,9 +94,9 @@ module.exports = {
 
     getByKinds: function(client, kinds, language) {
         return db.selectAll(client,
-              `(select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where eu.schema_id = ds.id
+              `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds where eu.schema_id = ds.id
                and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and ds.kind in (?) and target_code <> '')
-            union distinct (select eu.*,ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds, device_class dc, device_class_kind dck
+            union distinct (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds, device_class dc, device_class_kind dck
             where eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id and not dck.is_child and dc.primary_kind in (?) and language = ?
             and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1)`,
             [language, kinds, kinds, language]);
