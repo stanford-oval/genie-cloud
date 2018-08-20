@@ -16,8 +16,17 @@ block content
     section.divider#section-heading
       h1#almond-title Almond
       h2#almond-subtitle The Open Virtual Assistant
-      p
-        a(href='/get-almond').scroller.btn.btn-primary= _("Get Almond")
+
+      div.container
+        div.row#subscribe
+          div.col-xs-12.col-md-6.col-md-offset-3
+            a(href='/get-almond').scroller.btn.btn-primary= _("Get Almond")
+          div.col-xs-12.col-md-6.col-md-offset-3
+            input(type='email', placeholder='Your Email').form-control#subscribe-email
+            button.btn.btn-primary(csrf=csrfToken)#subscribe-start= _("Subscribe for updates")
+            button.btn.btn-primary(csrf=csrfToken)#subscribe-submit= _("Subscribe")
+            p#subscribe-hint(hidden=true)= _("Please enter a valid email address.")
+            p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
 
     div.sections
       section.divider
