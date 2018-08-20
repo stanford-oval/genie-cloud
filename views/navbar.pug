@@ -1,4 +1,6 @@
 ul.nav.navbar-nav
+  li.hidden-md.hidden-lg.hidden-sm
+    a(href="/")= _("Home")
   li
     a(href='/about')= _("About Us")
   li
@@ -12,12 +14,9 @@ ul.nav.navbar-nav
     if user.developer_status >= 1
       li
         a(href="/me/status")= _("Status & Logs")
-      if WITH_THINGPEDIA === 'embedded'
-        li
-          a(href='/thingpedia')= _("Thingpedia")
     if user.developer_status >= 3
       li
-        a(href="/admin")= _("Administration")
+        a(href="/admin")= _("Admin")
 
 ul.nav.navbar-nav.navbar-right
   if authenticated
