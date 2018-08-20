@@ -243,13 +243,13 @@ module.exports = class Frontend {
         this._app.use('/friendhub', require('./routes/friendhub'));
 
         this._app.use(csurf({ cookie: false }));
-        this._app.use('/', require('./routes/index'));
-        this._app.use('/', require('./routes/qrcode'));
+        this._app.use('/', require('./routes/app'));
         this._app.use('/doc', (req, res) => {
             res.redirect(301, req.originalUrl.replace('/doc', '/thingpedia/developers'));
         });
 
-        this._app.use('/app', require('./routes/app'));
+        this._app.use('/about', require('./routes/index'));
+        this._app.use('/about', require('./routes/qrcode'));
         this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));
