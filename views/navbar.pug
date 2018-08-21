@@ -11,7 +11,7 @@ ul.nav.navbar-nav
   li
     a(href='/thingpedia/developers')= _("Developers")
   if authenticated
-    if user.developer_status >= 1
+    if user.developer_org !== null
       li
         a(href="/me/status")= _("Status & Logs")
     if user.developer_status >= 3

@@ -248,12 +248,12 @@ module.exports = class Frontend {
 
         this._app.use(csurf({ cookie: false }));
         this._app.use('/', require('./routes/app'));
+        this._app.use('/', require('./routes/qrcode'));
         this._app.use('/doc', (req, res) => {
             res.redirect(301, req.originalUrl.replace('/doc', '/thingpedia/developers'));
         });
 
-        this._app.use('/research', require('./routes/index'));
-        this._app.use('/research', require('./routes/qrcode'));
+        this._app.use('/research', require('./routes/research'));
         this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));
@@ -267,10 +267,10 @@ module.exports = class Frontend {
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
             this._app.use('/thingpedia/datasets', require('./routes/thingpedia_dataset'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
+            this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
         }
 
         this._app.use('/publications', require('./routes/publications'));
-        this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
         this._app.use('/user', require('./routes/user'));
         this._app.use('/admin', require('./routes/admin'));
 

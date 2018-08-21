@@ -1,3 +1,4 @@
+"use strict";
 $(function() {
     const S3_CLOUDFRONT_HOST = $('body').attr('data-icon-cdn');
     const csrfToken = $('#commandpedia').attr('csrf');
@@ -5,7 +6,8 @@ $(function() {
     let page = 0;
     let insearch = false;
 
-    function renderCommands(commands) {
+    function renderCommands(result) {
+        let commands = result.data;
         let container = $('#command-container');
         container.empty();
         for (let i = 0; i < Math.min(commands.length, 9); i++) {
@@ -40,7 +42,7 @@ $(function() {
             info.append(utterance);
 
             let user = $('<div>').addClass('device-owner');
-            user.append($('<span>').text(`By ${command.owner ? command.ownerName : 'anonymous user'}`));
+            user.append($('<span>').text(`By ${command.owner ? command.owner_name : 'anonymous user'}`));
             let like = $('<a>');
             let heart = $('<i>').addClass('far').addClass('fa-heart').attr('id', command.id).attr('_csrf', csrfToken);
             like.append(heart);
@@ -92,11 +94,11 @@ $(function() {
 
             if (icon.hasClass('far')) {
                 icon.removeClass('far').addClass('fas');
-                $.post('/app/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
+                $.post('/thingpedia/examples/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
                 count.text(current + 1);
             } else {
                 icon.removeClass('fas').addClass('far');
-                $.post('/app/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
+                $.post('/thingpedia/examples/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
                 count.text(current - 1);
             }
             event.preventDefault();

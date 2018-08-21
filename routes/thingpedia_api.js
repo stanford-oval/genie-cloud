@@ -221,18 +221,13 @@ function getCommandDetails(client, commands) {
             });
         });
 
-        if (command.owner) {
-            promises.push(userModel.get(client, command.owner).then((response) => {
-                command.ownerName = response.username;
-            }));
-        }
-
         return promises;
     });
     return Promise.all([].concat.apply([], promisesAll));
 }
 
 router.get('/commands/all', (req, res) => {
+    const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -251,10 +246,10 @@ router.get('/commands/all', (req, res) => {
         page_size = 9;
 
     db.withTransaction((client) => {
-        return commandModel.getCommands(client, page * page_size, page_size).then((commands) => {
+        return commandModel.getCommands(client, language, page * page_size, page_size).then((commands) => {
             return getCommandDetails(client, commands).then(() => {
-                res.cacheFor(86400000);
-                res.json(commands);
+                res.cacheFor(3600 * 1000);
+                res.json({ data: commands });
             });
         });
     }).catch((e) => {
@@ -265,6 +260,7 @@ router.get('/commands/all', (req, res) => {
 });
 
 router.get('/commands/search', (req, res) => {
+    const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     let q = req.query.q;
     if (!q) {
         res.status(300).json({ error: 'missing query' });
@@ -272,10 +268,10 @@ router.get('/commands/search', (req, res) => {
     }
 
     db.withTransaction((client) => {
-        return commandModel.getCommandsByFuzzySearch(client, q).then((commands) => {
+        return commandModel.getCommandsByFuzzySearch(client, language, q).then((commands) => {
             return getCommandDetails(client, commands).then(() => {
-                res.cacheFor(86400000);
-                res.json(commands);
+                res.cacheFor(3600 * 1000);
+                res.json({ data: commands });
             });
         });
     }).catch((e) => {

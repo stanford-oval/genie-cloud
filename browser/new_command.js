@@ -177,7 +177,7 @@ class ThingTalkTrainer {
                     $('#thingtalk-group').removeClass('has-error');
                     $('#thingtalk-error').text('');
                     this._updateConfirmation();
-                    window.location.href = '/app';
+                    window.location.href = '/';
                 }).catch((e) => {
                     $('#thingtalk-group').addClass('has-error');
                     $('#thingtalk-error').text(this._formatError(e));
