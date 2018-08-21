@@ -1,5 +1,12 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
 #page-body {
     margin-top: 60px;
+    min-height: 80%;
+    height: auto !important;
 }
 
 #page-title {
@@ -102,6 +109,7 @@ footer {
   background-color: #1a242f;
   color: white;
   text-align: right;
+  min-height: 120px;
 }
 
 /*#page-body p a:link:not(.btn), #page-body p a:visited:not(.btn) {

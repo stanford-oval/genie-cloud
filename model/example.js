@@ -51,6 +51,28 @@ module.exports = {
         return db.selectAll(client, "select * from example_utterances");
     },
 
+    getCommands(client, language, start, end) {
+        if (start !== undefined && end !== undefined) {
+            return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
+            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
+            from example_utterances eu left join users u on u.id = eu.owner where
+            type = 'commandpedia' and language = ? order by click_count desc limit ?,?`, [language, start, end + 1]);
+        } else {
+            return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
+            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
+            from example_utterances eu left join users u on u.id = eu.owner where
+            type = 'commandpedia' and language = ? order by click_count desc`, [language]);
+        }
+    },
+
+    getCommandsByFuzzySearch(client, language, query) {
+        return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
+            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
+            from example_utterances eu left join users u on u.id = eu.owner where
+            type = 'commandpedia' and language = ? and ( utterance like ? or target_code like ?)
+            order by click_count desc`, [language, `%${query}%`, `%${query}%`]);
+    },
+
     getBaseByLanguage(client, language) {
         return db.selectAll(client, "select * from example_utterances where is_base and type = 'thingpedia' and "
             + " language = ? order by click_count desc, id asc",
@@ -132,5 +154,9 @@ module.exports = {
     getByType(client, language, type, start, end) {
         return db.selectAll(client, "select * from example_utterances where not is_base and language = ? and type = ? order by id desc limit ?,?",
             [language, type, start, end]);
+    },
+
+    suggest(client, command) {
+        return db.query(client, "insert into command_suggestions (command) values (?)", command);
     }
 };

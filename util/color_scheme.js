@@ -11,8 +11,6 @@
 "use strict";
 
 const path = require('path');
-const https = require('https');
-const Url = require('url');
 const Q = require('q');
 const fs = require('fs');
 const colorExtractor = require('img-color-extractor');

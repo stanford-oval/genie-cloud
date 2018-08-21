@@ -1,30 +1,38 @@
+/* eslint-disable prefer-arrow-callback */
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingEngine
+// This file is part of ThingPedia
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
-//
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Copyright 2015 The Mobisocial Stanford Lab <mobisocial@lists.stanford.edu>
 //
 // See COPYING for details
 "use strict";
-
 const express = require('express');
-const router = express.Router();
 
 const db = require('../util/db');
-const EngineManager = require('../almond/enginemanagerclient');
-
+const commandModel = require('../model/example');
 const Config = require('../config');
 
-router.get('/', (req, res, next) => {
-    return Promise.resolve().then(() => {
-        return req.user ? EngineManager.get().isRunning(req.user.id) : false;
-    }).then((isRunning) => {
-        res.render('almond', {
-            page_title: req._("Almond - The Open Virtual Assistant"),
-            isRunning: isRunning
-        });
+let router = express.Router();
+
+router.get('/', function(req, res) {
+    return res.render('app', { page_title: req._('Almond'), csrfToken: req.csrfToken() });
+});
+
+router.get('/commands/add', function(req, res) {
+    return res.render('app_new_command', { page_title: req._('Create New Command'), csrfToken: req.csrfToken() });
+});
+
+router.get('/commands/suggest', function(req, res) {
+    return res.render('app_suggest_command', { page_title: req._('Suggest New Command'), csrfToken: req.csrfToken() });
+});
+
+router.post('/commands/suggest', function(req, res) {
+    let command = req.body['description'];
+    db.withTransaction((dbClient) => {
+        return commandModel.suggest(dbClient, command);
+    }).then(() => {
+        return res.render('app_suggest_command', { page_title: req._('Suggest New Command'), csrfToken: req.csrfToken(), submitted: true });
     });
 });
 
@@ -43,7 +51,7 @@ if (Config.WITH_THINGPEDIA === 'embedded') {
             ]);
         }).then(([{device_count},{function_count}]) => {
             res.render('thingpedia_portal', { page_title: req._("Thingpedia - The Open API Collection"),
-                                              csrfToken: req.csrfToken(), device_count, function_count });
+                csrfToken: req.csrfToken(), device_count, function_count });
         }).catch(next);
     });
 
@@ -51,10 +59,6 @@ if (Config.WITH_THINGPEDIA === 'embedded') {
         res.redirect(301, '/thingpedia/developers#sentence-to-code-block');
     });
 }
-
-router.get('/about', (req, res, next) => {
-    res.redirect(301, '/');
-});
 
 router.get('/about/toc', (req, res, next) => {
     res.redirect(301, '/about/tos');

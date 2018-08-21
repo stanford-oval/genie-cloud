@@ -2,7 +2,40 @@
 $(function() {
     var url = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host
         + $('#conversation').attr('data-target');
-    var ws = new WebSocket(url);
+
+    var ws;
+    (function() {
+        var wasOpen = false;
+        var reconnectTimeout = 100;
+
+        function connect() {
+            ws = new WebSocket(url);
+            ws.onopen = function() {
+                wasOpen = true;
+                reconnectTimeout = 100;
+                $('#input-form-group').removeClass('has-warning');
+                $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
+            };
+            ws.onmessage = onWebsocketMessage;
+
+            ws.onclose = function() {
+                console.error('Web socket closed');
+                $('#input-form-group').addClass('has-warning');
+                $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').removeClass('hidden');
+
+                // reconnect immediately if the connection succeeded, otherwise
+                // try again in a little bit
+                if (wasOpen) {
+                    setTimeout(connect, 100);
+                } else {
+                    reconnectTimeout = 1.5 * reconnectTimeout;
+                    setTimeout(connect, reconnectTimeout);
+                }
+            };
+        }
+
+        connect();
+    })();
 
     function syncCancelButton(msg) {
         var visible = msg.ask !== null;
@@ -30,11 +63,19 @@ $(function() {
         return msg;
     }
 
-    function maybeScroll(countainer) {
+    function maybeScroll(container) {
         if (!$('#input:focus').length)
             return;
 
         container[0].scrollIntoView(false);
+        window.scrollTo(0,document.body.scrollHeight);
+        scrollChat();
+        setTimeout(scrollChat, 1000);
+    }
+
+    function scrollChat() {
+        let chat = document.getElementById('conversation');
+        chat.scrollTop = chat.scrollHeight;
     }
 
     function textMessage(text, icon) {
@@ -54,7 +95,7 @@ $(function() {
     function rdl(rdl, icon) {
         var container = almondMessage(icon);
         var rdlMessage = $('<a>').addClass('message message-rdl')
-            .attr('href', rdl.webCallback);
+            .attr('href', rdl.webCallback).attr("target", "_blank");
         rdlMessage.append($('<span>').addClass('message-rdl-title')
             .text(rdl.displayTitle));
         rdlMessage.append($('<span>').addClass('message-rdl-content')
@@ -109,7 +150,7 @@ $(function() {
 
         var holder = $('<div>').addClass('col-xs-12 col-sm-6');
         var btn = $('<a>').addClass('message message-button btn btn-default')
-            .attr('href', url).text(title);
+            .attr('href', url).attr("target", "_blank").text(title);
         holder.append(btn);
         getGrid().append(holder);
         maybeScroll(holder);
@@ -150,7 +191,7 @@ $(function() {
             $('#input').attr('type', 'text');
     }
 
-    ws.onmessage = function(event) {
+    function onWebsocketMessage(event) {
         var parsed = JSON.parse(event.data);
         console.log('received ' + event.data);
         switch (parsed.type) {
@@ -188,11 +229,7 @@ $(function() {
                 yesnoMessage();
             break;
         }
-    };
-    ws.onclose = function() {
-        console.error('Web socket closed');
-        // reconnect here...
-    };
+    }
 
     function handleSlashR(line) {
         line = line.trim();

@@ -201,7 +201,17 @@ const PARAMS_SPECIAL_STRING = {
     'text_bottom': ['wtf?'],
 
     // for icalendar
-    'location': ["conference room 7", "downtown", "bob's house"]
+    'location': ["conference room 7", "downtown", "bob's house"],
+
+    // for spotify
+    'song': ['hey jude', 'california girls'],
+    'album': ['yellow submarine', 'thriller'],
+    'playlist': ['my favorite', 'classics'],
+    'artist': ['beetles', 'taylor swift'],
+    'toPlay': ['hey jude', 'california girls'],
+    'toAdd': ['hey jude', 'california girls'],
+    'key': ['a major'],
+
 };
 
 const SPECIAL_TOKENS = {
@@ -278,7 +288,18 @@ function processOne(id, tokenizedsentence, code) {
         let choices;
         if (entitytype === 'QUOTED_STRING' && !!param &&
             PARAMS_SPECIAL_STRING[param]) {
-            choices = PARAMS_SPECIAL_STRING[param].map(quote);
+            if (param === 'toPlay' && functionname === '@com.spotify.play_album')
+                choices = PARAMS_SPECIAL_STRING['album'].map(quote);
+            else if (param === 'toPlay' && functionname === '@com.spotify.play_artist')
+                choices = PARAMS_SPECIAL_STRING['artist'].map(quote);
+            else if (param === 'toPlay' && functionname === '@com.spotify.play_my_playlist')
+                choices = PARAMS_SPECIAL_STRING['playlist'].map(quote);
+            else if (param === 'toPlay' && functionname === '@com.spotify.play_playlist')
+                choices = PARAMS_SPECIAL_STRING['playlist'].map(quote);
+            else if (param === 'toAdd' && functionname === '@com.spotify.add_ablum_to_playlist')
+                choices = PARAMS_SPECIAL_STRING['album'].map(quote);
+            else
+                choices = PARAMS_SPECIAL_STRING[param].map(quote);
         } else if (entitytype === 'PATH_NAME' && (param === 'repo_name' || param === 'folder_name')) {
             choices = [];
         } else if (entitytype === 'GENERIC_ENTITY_tt:iso_lang_code' && param === 'source_language') {
@@ -478,7 +499,8 @@ const HIGH_VALUE_DEVICES = new Set([
     '@com.lg.tv',
     '@com.bing',
     '@com.twitter',
-    '@com.wsj'
+    '@com.wsj',
+    '@com.spotify'
 ])
 
 const HIGH_VALUE_FUNCTIONS = new Set([
@@ -586,7 +608,7 @@ function prepare_sample_by_sig(input, output) {
     });
 }
 
-function prepare_sample_by_code(input, output) {
+function prepare_sample_by_code(input, output, compound_only) {
     const bags = new Map;
     input.on('data', (line) => {
         let [id, sentence, code] = line.split('\t');
@@ -596,10 +618,9 @@ function prepare_sample_by_code(input, output) {
             let result= processOne(id, sentence, code);
             if (!result)
                 return;
-            if (result.function_signature.split('+').length <= 1)
-                return; 
-
-            let unified = remove_units(code)
+            if (compound_only && result.function_signature.split('+').length <= 1)
+                return;
+            let unified = remove_units(code);
             if (!bags.has(unified))
                 bags.set(unified, []);
             bags.get(unified).push(result);
@@ -629,11 +650,12 @@ function main() {
     output.pipe(file);
     
     const by_signature = false;
+    const compound_only = false;
 
     if (by_signature)
         prepare_sample_by_sig(input, output);
     else
-        prepare_sample_by_code(input, output);
+        prepare_sample_by_code(input, output, compound_only);
    
 }
 main();

@@ -1,0 +1,82 @@
+extends layout
+block styles
+  link(rel='stylesheet', href='/stylesheets/index.css')
+  link(rel='stylesheet', href='/stylesheets/app.css')
+  link(rel='stylesheet', href='https://use.fontawesome.com/releases/v5.2.0/css/all.css')
+
+block scripts
+  script(src='/javascripts/app.js')
+
+block page_name
+  - stdlayout = false;
+  = _("Almond")
+
+block content
+  div#page-body
+    section.divider#section-heading
+      h1#almond-title Almond
+      h2#almond-subtitle The Open Virtual Assistant
+
+      div.container
+        div.row
+          div.col-xs-12.col-md-6.col-md-offset-3
+            p=_("Almond lets you interact with your services and accounts in natural language, with flexibility and privacy.")
+
+        div.row#subscribe
+          div.col-xs-12.col-md-6.col-md-offset-3
+            a(href='/get-almond').scroller.btn.btn-primary= _("Get Almond")
+          div.col-xs-12.col-md-6.col-md-offset-3
+            input(type='email', placeholder='Your Email').form-control#subscribe-email
+            button.btn.btn-primary(csrf=csrfToken)#subscribe-start= _("Interested and would like to contribute? Sign up to stay tuned!")
+            button.btn.btn-primary(csrf=csrfToken)#subscribe-submit= _("Subscribe")
+            p#subscribe-hint(hidden=true)= _("Please enter a valid email address.")
+            p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
+
+    div.sections
+      section.divider
+        h3= _("Popular Commands")
+        div.container#commandpedia(csrf=csrfToken)
+          div.navbar.navbar-default#command-list-navbar
+            form.navbar-form.navbar-left(action='', method='get')
+              div.form-group
+                input.form-control#command-search-box(type='text', name='q', placeholder="I want to find a command...")
+                button.btn.btn-primary#command-search-button(type="submit")= _("Search")
+              div.form-group
+                button.btn.btn-primary#command-reset-button= _("Reset")
+          div.row#command-container
+          div.row
+            div.col-xs-12
+              nav
+                ul.pager
+                  li#commands-page-prev
+                    a(href='#')= _("Previous")
+                  | &nbsp;
+                  li#commands-page-next
+                    a(href='#')= _("Next")
+          br
+          div.row
+            div.col-sm-6.col-md-4.col-md-offset-2
+              a(href='/commands/add').btn.btn-primary.btn-block= _("Add a New Command")
+            div.col-sm-6.col-md-4
+              a(href='/commands/suggest').btn.btn-default.btn-block= _("Suggest a New Command")
+
+      section.divider
+        h3= _("More Devices and Services Almond Supports")
+        div.container
+          div.row
+            div.col-md-12.device-icon-list
+              for device in ['com.spotify', 'com.facebook', 'com.twitter', 'com.gmail', 'org.thingpedia.icalendar', 'com.slack', 'com.nest', 'org.arxiv', 'org.thingpedia.weather', 'org.thingpedia.rss', 'com.steampowered', 'com.washingtonpost', 'com.wolframalpha', 'com.wunderlist', 'com.yandex.translate', 'com.dropbox']
+                a(href='/thingpedia/devices/by-id/' + device)
+                  img(src=S3_CLOUDFRONT_HOST + '/icons/' + device + '.png', alt='Icon')
+          div.row
+            h4.text-center
+              a(href='/thingpedia/cheatsheet')= _("And More")
+
+
+
+      section.divider
+        h3= _("Still Don't See What You Want? ")
+        div.container
+          div.row
+            div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
+              a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Create a New Device")

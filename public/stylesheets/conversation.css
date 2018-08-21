@@ -77,7 +77,11 @@
 #conversation {
   overflow: auto;
   height: auto;
-  max-height: 600px;
+  max-height: 500px;
+  margin: auto;
+  max-width: 800px;
+  background: #f3f4f2;
+  padding: 40px;
 }
 
 #conversation.single {
@@ -90,4 +94,8 @@
 }
 #conversation .message-rdl-content {
   display: block;
+}
+
+#input-form-group {
+  margin-bottom: 0;
 }

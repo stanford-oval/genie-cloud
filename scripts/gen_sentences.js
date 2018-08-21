@@ -654,19 +654,20 @@ function betaReduceInvocation(invocation, pname, value) {
     for (let inParam of clone.in_params) {
         if (inParam.value.isVarRef && inParam.value.name === pname) {
             inParam.value = value;
-            return clone;
+            assert(clone.schema.inReq[inParam.name] || clone.schema.inOpt[inParam.name]);
+            return [clone, inParam.name];
         }
     }
     //clone.in_params.push(new Ast.InputParam(pname, value));
-    return invocation;
+    return [invocation, null];
 }
 
 function betaReduceAction(action, pname, value) {
-    // FIXME this is not strictly correct, we should leave the parameter
-    // in the schema even if assigned, otherwise typechecking will be
-    // very confused
-    let clone = betaReduceInvocation(action, pname, value);
-    clone.schema = removeInputParameter(action.schema, pname);
+    let [clone, replaced] = betaReduceInvocation(action, pname, value);
+    if (!clone || !replaced)
+        return null;
+    if (replaced !== pname)
+        clone.schema = removeInputParameter(action.schema, pname);
     return clone;
 }
 
@@ -693,26 +694,10 @@ function betaReduceFilter(filter, pname, value) {
     })(filter);
 }
 
-/*
-function filterUsesVariable(filter, pname) {
-    return (function recursiveHelper(expr) {
-        if (expr.isTrue || expr.isFalse)
-            return false;
-        if (expr.isAnd || expr.isOr)
-            return expr.operands.some(recursiveHelper);
-        if (expr.isNot)
-            return recursiveHelper(expr.expr);
-        if (expr.isExternal)
-            return false;
-
-        return (expr.value.isVarRef && expr.value.name === pname);
-    })(filter);
-}*/
-
 function betaReduceTable(table, pname, value) {
     if (table.isInvocation) {
-        let reduced = betaReduceInvocation(table.invocation, pname, value);
-        return new Ast.Table.Invocation(reduced, removeInputParameter(table.schema, pname));
+        let [reduced, replaced] = betaReduceInvocation(table.invocation, pname, value);
+        return new Ast.Table.Invocation(reduced, replaced && replaced !== pname ? removeInputParameter(table.schema, pname) : table.schema);
     } else if (table.isFilter) {
         let reduced = betaReduceTable(table.table, pname, value);
         return new Ast.Table.Filter(reduced, betaReduceFilter(table.filter, pname, value), removeInputParameter(table.schema, pname));
@@ -2198,7 +2183,7 @@ function loadMetadata(language) {
 
             GRAMMAR.thingpedia_table.push(['${thingpedia_table}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
-                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                if (!ptype || !ptype.equals(value.getType()))
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;
@@ -2210,7 +2195,7 @@ function loadMetadata(language) {
             }, { isConstant: true, allowEmptyPictureURL: true })]);
             GRAMMAR.thingpedia_get_command.push(['${thingpedia_get_command}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
-                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                if (!ptype || !ptype.equals(value.getType()))
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;
@@ -2223,7 +2208,7 @@ function loadMetadata(language) {
 
             GRAMMAR.thingpedia_stream.push(['${thingpedia_stream}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
-                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                if (!ptype || !ptype.equals(value.getType()))
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;
@@ -2233,7 +2218,7 @@ function loadMetadata(language) {
             }, { isConstant: true, allowEmptyPictureURL: true })]);
             GRAMMAR.thingpedia_action.push(['${thingpedia_action}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
-                if (!ptype || !Type.isAssignable(value.getType(), ptype))
+                if (!ptype || !ptype.equals(value.getType()))
                     return null;
                 if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
                     return null;

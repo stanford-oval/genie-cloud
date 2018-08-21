@@ -17,5 +17,8 @@ block content
         span(aria-hidden='true').glyphicon.glyphicon-remove-circle
         span.sr-only= _("Cancel")
       form(action='#')#input-form
-        label(for='#chat-input').sr-only= _("Command:")
-        input(type='text',placeholder=_("Write your command or answer here")).form-control#input
+        div.form-group.has-feedback#input-form-group
+          label(for='#chat-input').sr-only= _("Command:")
+          input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
+          span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
+          span.help-block.hidden= _("Lost connection to the server.")

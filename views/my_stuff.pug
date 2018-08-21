@@ -2,66 +2,74 @@ extends layout
 
 block scripts
   script(src='/javascripts/apps.js')
+  script(src='/javascripts/conversation.js')
 
 block page_name
   = _("My Almond")
 
 block styles
   link(rel='stylesheet', href='/stylesheets/my_stuff.css')
+  link(rel='stylesheet', href='/stylesheets/conversation.css')
 
 mixin device_list(devices)
-  div.row
-    each dev, i in devices
-      if i % 6 === 0
-        div.clearfix.visible-lg.visible-md
-      else if i % 3 === 0
-        div.clearfix.visible-lg
-      else if i % 2 === 0
-        div.clearfix.visible-md
-      div.col-lg-4.col-md-6
-        div.panel.panel-default.installed-dev
-          a(href=THINGPEDIA_URL + '/devices/by-id/' + dev.kind).panel-heading
-            h2.panel-title= dev.name
-          div.panel-body
-            p.device-icon-small
-              if WITH_THINGPEDIA === 'embedded'
-                img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.kind + '.png', alt="Icon for " + dev.name)
-              else
-                img(src=THINGPEDIA_URL + '/api/devices/icon/' + dev.kind, alt="Icon for " + dev.name)
-            p= dev.description
-
-            if dev.isPhysical
-              if dev.ownerTier !== 'cloud' && dev.ownerTier !== 'global'
-                p= _("This device is owned by your %s.").format(dev.ownerTier)
-
-              if dev.available == 0
-                p= _("The device is not available. It might be powered off or disconnected.")
-              else if dev.available == 1
-                p= _("The device is available and working.")
-              else if dev.available == 2
-                if dev.ownerTier === 'server'
-                  p= _("The device is not available because your server is disconnected.")
-                    = _(" Make sure that it is powered on and correctly configured.")
-                else if dev.ownerTier === 'phone'
-                  p= _("The device is not available because your phone is disconnected.")
-                    = _(" Make sure that it is powered on and connected to the network.")
+  div.device-list
+    div.row
+      each dev, i in devices
+        if i % 6 === 0
+          div.clearfix.visible-lg.visible-md
+        else if i % 3 === 0
+          div.clearfix.visible-lg
+        else if i % 2 === 0
+          div.clearfix.visible-md
+        div.col-lg-4.col-md-6
+          div.panel.panel-default.installed-dev
+            a(href=THINGPEDIA_URL + '/devices/by-id/' + dev.kind).panel-heading
+              h2.panel-title= dev.name
+            div.panel-body
+              p.device-icon-small
+                if WITH_THINGPEDIA === 'embedded'
+                  img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.kind + '.png', alt="Icon for " + dev.name)
                 else
-                  p= _("The device is not available because Cloud Almond cannot be reached.")
-                    = _(" There might be a temporary service outage.")
-              else
-                p= _("It was not possible to verify if the device is available.")
-                  = _("Please check it is powered on and correctly configured.")
-          div.panel-footer
-            div.row
-              if !dev.isTransient
-                div.col-md-6
-                  form.form-inline(action="/me/devices/delete",method="post").form-delete
-                    input(type='hidden',name='id',value=dev.uniqueId)
-                    input(type='hidden',name='_csrf',value=csrfToken)
-                    if datasource
-                      button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Disable")
-                    else
-                      button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Forget")
+                  img(src=THINGPEDIA_URL + '/api/devices/icon/' + dev.kind, alt="Icon for " + dev.name)
+              p= dev.description
+
+              if dev.isPhysical
+                if dev.ownerTier !== 'cloud' && dev.ownerTier !== 'global'
+                  p= _("This device is owned by your %s.").format(dev.ownerTier)
+
+                if dev.available == 0
+                  p= _("The device is not available. It might be powered off or disconnected.")
+                else if dev.available == 1
+                  p= _("The device is available and working.")
+                else if dev.available == 2
+                  if dev.ownerTier === 'server'
+                    p= _("The device is not available because your server is disconnected.")
+                      = _(" Make sure that it is powered on and correctly configured.")
+                  else if dev.ownerTier === 'phone'
+                    p= _("The device is not available because your phone is disconnected.")
+                      = _(" Make sure that it is powered on and connected to the network.")
+                  else
+                    p= _("The device is not available because Cloud Almond cannot be reached.")
+                      = _(" There might be a temporary service outage.")
+                else
+                  p= _("It was not possible to verify if the device is available.")
+                    = _("Please check it is powered on and correctly configured.")
+            div.panel-footer
+              div.row
+                if !dev.isTransient
+                  div.col-md-6
+                    form.form-inline(action="/me/devices/delete",method="post").form-delete
+                      input(type='hidden',name='id',value=dev.uniqueId)
+                      input(type='hidden',name='_csrf',value=csrfToken)
+                      if datasource
+                        button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Disable")
+                      else
+                        button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Forget")
+    div.row
+      div.col-sm-6.col-md-3
+        a(href='/me/devices/create?class=physical').btn.btn-primary.btn-block= _("Configure new device")
+      div.col-sm-6.col-md-3
+        a(href='/me/devices/create?class=online').btn.btn-primary.btn-block= _("Add new account")
 
 block content
   for message in messages
@@ -75,25 +83,35 @@ block content
       p= _("Your Almond is dead. ")
         a.btn.btn-default.btn-sm(href="/me/status")= _("More Details")
 
-  h2= _("Enabled Rules")
 
-  for app in apps
-    div.row
-      div.col-lg-6.col-xs-12.app-template
-        form.form-inline(action="/me/apps/delete",method="post").form-delete.form-delete-app
-          input(type='hidden',name='id',value=app.uniqueId)
-          input(type='hidden',name='_csrf',value=csrfToken)
-          button(type='submit').btn.btn-sm.btn-danger= _("Stop")
-        p= app.description
-        if app.error
-          p= _("This rule had an error: %s").format(app.error)
+  button.collapsible= _("Active Commands")
+  div.command-list
+    for app in apps
+      div.row
+        div.col-lg-6.col-xs-12.app-template
+          form.form-inline(action="/me/apps/delete",method="post").form-delete.form-delete-app
+            input(type='hidden',name='id',value=app.uniqueId)
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-sm.btn-danger= _("Stop")
+          p= app.description
+          if app.error
+            p= _("This rule had an error: %s").format(app.error)
 
-  h2= _("Devices and Accounts")
-
+  button.collapsible= _("Devices and Accounts")
   +device_list(devices)
 
-  div.row
-    div.col-sm-6.col-md-3
-      a(href='/me/devices/create?class=physical').btn.btn-primary.btn-block= _("Configure new device")
-    div.col-sm-6.col-md-3
-      a(href='/me/devices/create?class=online').btn.btn-primary.btn-block= _("Add new account")
+  br
+  br
+  div#conversation.single(data-target='/me/api/conversation')
+    div#chat
+    div#input-block
+      span(role='button').hidden#cancel
+        span(aria-hidden='true').glyphicon.glyphicon-remove-circle
+        span.sr-only= _("Cancel")
+      form(action='#')#input-form
+        div.form-group.has-feedback#input-form-group
+          label(for='#chat-input').sr-only= _("Command:")
+          input(type='text', placeholder=_("Write your command or answer here"), value=command ? command : '').form-control#input
+          span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden
+          span.help-block.hidden= _("Lost connection to the server.")
+

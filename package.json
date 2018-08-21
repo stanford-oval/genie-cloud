@@ -1,25 +1,34 @@
 {
-  "name": "thingengine-platform-cloud",
+  "name": "almond-cloud",
   "version": "1.0.0",
-  "description": "Cloud Platform for ThingEngine",
-  "author": "Stanford IoT lab",
+  "description": "Cloud Almond",
+  "author": "Stanford University Mobile and Social Computing Lab",
+  "license": "GPL-3.0+",
+  "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cloud",
   "contributors": [
     {
       "name": "Giovanni Campagna",
       "email": "gcampagn@cs.stanford.edu"
+    },
+    {
+      "name": "Silei Xu",
+      "email": "silei@cs.stanford.edu"
     }
   ],
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}; xargs -a po/POTFILES.jade jsxgettext -k _,gettext,ngettext,pgettext -L jade -o po/${npm_package_name}.pot -j",
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
-    "update-bundle": "browserify -o public/javascripts/trainer-bundle.js browser/trainer.js",
+    "update-bundle": "browserify -o public/javascripts/trainer-bundle.js browser/trainer.js; browserify -o public/javascripts/new-command-bundle.js browser/new_command.js",
     "update-docs": "for f in doc/*.md ; do sed \"s|@@DOC@@|$f|\" views/doc_base.pug > views/doc_$(basename \"$f\" .md ).pug ; done",
-    "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js"
+    "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js",
+    "prepublish": "which yarn >/dev/null 2>&1 && ( yarn compile-mo && yarn update-docs ) || ( npm run compile-mo && npm run update-docs )",
+    "install": "make -C sandbox all"
   },
   "resolutions": {},
   "dependencies": {
     "accept-language": "^2.0.17",
+    "actions-on-google": "^2.2.0",
     "almond-dialog-agent": "^1.0.3",
     "body-parser": "~1.13.3",
     "cacheable-middleware": "0.0.1",
@@ -31,9 +40,11 @@
     "csurf": "~1.8.3",
     "csv": "^1.1.0",
     "cvc4": "^0.1.1",
+    "dialogflow": "^0.5.0",
+    "dialogflow-fulfillment": "^0.5.0",
     "errorhandler": "~1.4.2",
     "express": "^4.15.2",
-    "express-mysql-session": "^1.2.0",
+    "express-mysql-session": "^2.0.0",
     "express-session": "^1.14.0",
     "express-ws": "^3.0.0",
     "express-xml-bodyparser": "^0.3.0",

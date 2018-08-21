@@ -26,20 +26,8 @@ function addRectangle(client, bg_id, rect) {
     ]);
 }
 
-function getRectangles(client, bg_id) {
-    return db.selectAll(client, "select * from background_rectangle where background_id = ?" [bg_id]);
-}
-
 function addTag(client, bg_id, tag) {
     return db.insertOne(client, "insert into background_tag values (?, ?, false)", [bg_id, tag]);
-}
-
-function getTags(client, bg_id) {
-    return db.selectAll(client, "select tag from background_tag where background_id = ?", [bg_id]);
-}
-
-function getBackground(client, bg_id) {
-    return db.selectOne(client, "select * from background where id = ? ", [bg_id]);
 }
 
 function processRectangleRows(rows) {

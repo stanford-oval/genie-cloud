@@ -63,8 +63,8 @@ function getAllDevices(req, engine) {
     });
 }
 
-router.get('/', user.redirectLogIn, (req, res) => {
-    EngineManager.get().isRunning(req.user.id).then((isRunning) => {
+function getInfo(req) {
+    return EngineManager.get().isRunning(req.user.id).then((isRunning) => {
         if (!isRunning)
             return null;
         else
@@ -83,7 +83,12 @@ router.get('/', user.redirectLogIn, (req, res) => {
             else
                 return 0;
         });
+        return [isRunning, appinfo, devinfo];
+    });
+}
 
+router.get('/', user.redirectLogIn, (req, res) => {
+    getInfo(req).then(([isRunning, appinfo, devinfo]) => {
         res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
                                  messages: req.flash('app-message'),
                                  csrfToken: req.csrfToken(),
@@ -96,6 +101,24 @@ router.get('/', user.redirectLogIn, (req, res) => {
         console.log(e.stack);
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
+    }).done();
+});
+
+router.post('/', user.redirectLogIn, (req, res) => {
+    getInfo(req).then(([isRunning, appinfo, devinfo]) => {
+        res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
+            messages: req.flash('app-message'),
+            csrfToken: req.csrfToken(),
+            isRunning: isRunning,
+            apps: appinfo,
+            devices: devinfo,
+            S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
+            command: req.body.command
+        });
+    }).catch((e) => {
+        console.log(e.stack);
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+            message: e });
     }).done();
 });
 
@@ -122,6 +145,10 @@ router.post('/apps/delete', user.requireLogIn, (req, res, next) => {
 
 router.get('/conversation', user.redirectLogIn, (req, res, next) => {
     res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond") });
+});
+
+router.post('/conversation', user.redirectLogIn, (req, res) => {
+    res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond"), command: req.body.command });
 });
 
 module.exports = router;
