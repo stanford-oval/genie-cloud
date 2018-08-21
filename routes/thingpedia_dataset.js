@@ -50,7 +50,8 @@ router.get('/:language/:type', user.redirectLogIn, user.requireDeveloper(user.De
             type: req.params.type,
             dataset: rows,
             page_num: page,
-            RESULTS_PER_PAGE
+            csrfToken: req.csrfToken(),
+            RESULTS_PER_PAGE,
         });
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),

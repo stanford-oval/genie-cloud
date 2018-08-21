@@ -24,7 +24,11 @@ block content
         p.preprocessed= ex.preprocessed
         p.target
           code= ex.target_code
-
+        p
+          form(action='/thingpedia/examples/delete/' + ex.id, method='post')
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-small.btn-danger= _("Delete")
+          
   nav
     ul.pager
       if page_num > 0
