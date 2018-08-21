@@ -27,7 +27,7 @@ block content
             a(href='/get-almond').scroller.btn.btn-primary= _("Get Almond")
           div.col-xs-12.col-md-6.col-md-offset-3
             input(type='email', placeholder='Your Email').form-control#subscribe-email
-            button.btn.btn-primary(csrf=csrfToken)#subscribe-start= _("Subscribe for updates")
+            button.btn.btn-primary(csrf=csrfToken)#subscribe-start= _("Interested and would like to contribute? Sign up to stay tuned!")
             button.btn.btn-primary(csrf=csrfToken)#subscribe-submit= _("Subscribe")
             p#subscribe-hint(hidden=true)= _("Please enter a valid email address.")
             p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
@@ -56,7 +56,7 @@ block content
           br
           div.row
             div.col-sm-6.col-md-4.col-md-offset-2
-              a(href='/commands/add').btn.btn-primary.btn-block= _("Add Your Own")
+              a(href='/commands/add').btn.btn-primary.btn-block= _("Add a New Command")
             div.col-sm-6.col-md-4
               a(href='/commands/suggest').btn.btn-default.btn-block= _("Suggest a New Command")
 
