@@ -25,7 +25,7 @@ function readLogs(userId, startCursor) {
         args.push(startCursor);
     } else {
         args.push('-n');
-        args.push('100');
+        args.push('1000');
     }
 
     var unit;
