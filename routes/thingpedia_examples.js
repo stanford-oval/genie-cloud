@@ -17,7 +17,7 @@ const db = require('../util/db');
 
 var router = express.Router();
 
-router.post('/upvote/:id', user.requireLogIn, (req, res) => {
+router.post('/upvote/:id', (req, res) => {
     db.withClient((dbClient) => {
         return model.upvote(dbClient, req.params.id);
     }).then(() => {
@@ -27,7 +27,7 @@ router.post('/upvote/:id', user.requireLogIn, (req, res) => {
     }).done();
 });
 
-router.post('/downvote/:id', user.requireLogIn, (req, res) => {
+router.post('/downvote/:id', (req, res) => {
     db.withClient((dbClient) => {
         return model.downvote(dbClient, req.params.id);
     }).then(() => {

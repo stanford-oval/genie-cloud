@@ -51,8 +51,26 @@ module.exports = {
         return db.selectAll(client, "select * from example_utterances");
     },
 
-    getCommands(client) {
-        return db.selectAll(client, "select * from example_utterances where type = 'commandpedia' order by click_count desc");
+    getCommands(client, language, start, end) {
+        if (start !== undefined && end !== undefined) {
+            return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
+            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
+            from example_utterances eu left join users u on u.id = eu.owner where
+            type = 'commandpedia' and language = ? order by click_count desc limit ?,?`, [language, start, end + 1]);
+        } else {
+            return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
+            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
+            from example_utterances eu left join users u on u.id = eu.owner where
+            type = 'commandpedia' and language = ? order by click_count desc`, [language]);
+        }
+    },
+
+    getCommandsByFuzzySearch(client, language, query) {
+        return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
+            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
+            from example_utterances eu left join users u on u.id = eu.owner where
+            type = 'commandpedia' and language = ? and ( utterance like ? or target_code like ?)
+            order by click_count desc`, [language, `%${query}%`, `%${query}%`]);
     },
 
     getBaseByLanguage(client, language) {
@@ -63,11 +81,11 @@ module.exports = {
 
     getByKey(client, key, language) {
         return db.selectAll(client,
-              ` select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where
+              ` select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds where
                  eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and match preprocessed against
                  (?) and target_code <> ''
                union distinct
-               (select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where
+               (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds where
                  eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and match kind_canonical against
                  (?) and target_code <> '')
                limit 50`,
@@ -76,9 +94,9 @@ module.exports = {
 
     getByKinds: function(client, kinds, language) {
         return db.selectAll(client,
-              `(select eu.*, ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds where eu.schema_id = ds.id
+              `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds where eu.schema_id = ds.id
                and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and ds.kind in (?) and target_code <> '')
-            union distinct (select eu.*,ds.kind, ds.kind_canonical from example_utterances eu, device_schema ds, device_class dc, device_class_kind dck
+            union distinct (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds, device_class dc, device_class_kind dck
             where eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id and not dck.is_child and dc.primary_kind in (?) and language = ?
             and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1)`,
             [language, kinds, kinds, language]);
@@ -136,5 +154,9 @@ module.exports = {
     getByType(client, language, type, start, end) {
         return db.selectAll(client, "select * from example_utterances where not is_base and language = ? and type = ? order by id desc limit ?,?",
             [language, type, start, end]);
+    },
+
+    suggest(client, command) {
+        return db.query(client, "insert into command_suggestions (command) values (?)", command);
     }
 };
