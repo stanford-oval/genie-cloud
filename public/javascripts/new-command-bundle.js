@@ -483,8 +483,8 @@ class ThingTalkTrainer {
         const raw = this._raw;
         const user = this._user;
         return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((program) => {
-            const code = this._toNN(program);
-            return this.parser.onlineLearn(raw, code, 'commandpedia', user);
+            this._code = this._toNN(program);
+            return this.parser.onlineLearn(raw, this._code, 'commandpedia', user);
         });
     }
 
