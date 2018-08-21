@@ -42,7 +42,7 @@ $(function() {
             info.append(utterance);
 
             let user = $('<div>').addClass('device-owner');
-            user.append($('<span>').text(`By ${command.owner ? command.owner_name : 'anonymous user'}`));
+            user.append($('<span>').text(`By ${command.owner_name || 'anonymous user'}`));
             let like = $('<a>');
             let heart = $('<i>').addClass('far').addClass('fa-heart').attr('id', command.id).attr('_csrf', csrfToken);
             like.append(heart);

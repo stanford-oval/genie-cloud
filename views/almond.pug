@@ -4,7 +4,6 @@ block styles
   link(rel='stylesheet', href='/stylesheets/index.css')
 
 block scripts
-  script(src='/javascripts/shared.js')
   script(src='/javascripts/index.js')
 
 block page_name
@@ -34,27 +33,28 @@ block content
           h3= _("Our Mission")
           div.container
             div.row
-              p
-                | The mission of the Almond is to research open virtual assistant technology through a
-                | collaborative effort between academia and industry, in concert with the creation of a
-                | distributed virtual assistant infrastructure to safeguard privacy.
-              p
-                | Virtual assistants are revolutionizing the digital interface by giving us a uniform, personalized,
-                | linguistic user interface(LUI) to our diverse digital data, IoT, and web assets.
-                | In the future, they can perform custom, complex digital tasks, interface with humans,
-                | provide emotional support, and advise on personal fitness, finance, education, career, and so on.
-              p
-                | The research of understanding how the digital world operates and how to interface with it is a tremendous undertaking.
-                | Besides the technical challenges,  it also requires crowdsourcing hugeknowledge bases such as the
-                | catalog of all the digital interfaces, natural language utterances, and behavioral data.
-                | This lab serves as a neutral party to bring together companies with academia, to create open,
-                | non-proprietary, production-quality resources to facilitate basic research and technology transfer.
-              p
-                | Virtual assistants can reverse today’s Big Brother trend where companies owning massive volumes of
-                | private data can exert overwhelming influences on a large population.
-                | Virtual assistants can be programmed in natural language, reducing their reliance on third-party developers.
-                | What we need is to establish a commercially viable infrastructure of distributed virtual assistants
-                | early to give consumers a healthy choice of vendors, including the option to keep data on their devices.
+              div.col-xs-12
+                p
+                  | The mission of the Almond is to research open virtual assistant technology through a
+                  | collaborative effort between academia and industry, in concert with the creation of a
+                  | distributed virtual assistant infrastructure to safeguard privacy.
+                p
+                  | Virtual assistants are revolutionizing the digital interface by giving us a uniform, personalized,
+                  | linguistic user interface(LUI) to our diverse digital data, IoT, and web assets.
+                  | In the future, they can perform custom, complex digital tasks, interface with humans,
+                  | provide emotional support, and advise on personal fitness, finance, education, career, and so on.
+                p
+                  | The research of understanding how the digital world operates and how to interface with it is a tremendous undertaking.
+                  | Besides the technical challenges,  it also requires crowdsourcing hugeknowledge bases such as the
+                  | catalog of all the digital interfaces, natural language utterances, and behavioral data.
+                  | This lab serves as a neutral party to bring together companies with academia, to create open,
+                  | non-proprietary, production-quality resources to facilitate basic research and technology transfer.
+                p
+                  | Virtual assistants can reverse today’s Big Brother trend where companies owning massive volumes of
+                  | private data can exert overwhelming influences on a large population.
+                  | Virtual assistants can be programmed in natural language, reducing their reliance on third-party developers.
+                  | What we need is to establish a commercially viable infrastructure of distributed virtual assistants
+                  | early to give consumers a healthy choice of vendors, including the option to keep data on their devices.
 
         section.divider
           h3= _("Compound, Event-Driven Commands.")
@@ -133,27 +133,30 @@ block content
           h3= _("Natural-language Programming Methodology")
           div.container
             div.row
-              p
-                | We model the natural language under-standing task in a LUI as a natural-language programming problem.
-                | The family of acceptable utterances is defined as sentences matching the semantics of a target formal
-                | programming language and its library of functions.  We have developed a methodology, inspired by Sempre,
-                | to tune and refine the target grammar and library representation to derive effective semantic parsers.
-                | After significant tuning of ThingTalk and Thingpedia, we show that state-of-the-art sequence-to-sequence
-                | and transformer models perform well on 25,000 manually paraphrased compound commands,which will be released as an open dataset.
+              div.col-xs-12
+                p
+                  | We model the natural language under-standing task in a LUI as a natural-language programming problem.
+                  | The family of acceptable utterances is defined as sentences matching the semantics of a target formal
+                  | programming language and its library of functions.  We have developed a methodology, inspired by Sempre,
+                  | to tune and refine the target grammar and library representation to derive effective semantic parsers.
+                  | After significant tuning of ThingTalk and Thingpedia, we show that state-of-the-art sequence-to-sequence
+                  | and transformer models perform well on 25,000 manually paraphrased compound commands,which will be released as an open dataset.
 
         section.divider
           h3= _("Graphical Virtual Assistants")
           div.container
             div.row
-              p
-                | Limitations of textual display of results prompted us to extend natural-language programming to
-                | generate graphical user interfaces (GUI) automatically, which is one or the most time-consuming tasks
-                | in software development. GUIs are important for displaying graphical or lists of results, letting
-                | users monitoring multiple queries, rerunning complex commands,and adjusting settings with different
-                | modality.  We use machine learning to leverage existing GUIs and the artistic designs in masterpieces
-                | to generate not just functional, but aesthetically pleasing, apps.
+              div.col-xs-12
+                p
+                  | Limitations of textual display of results prompted us to extend natural-language programming to
+                  | generate graphical user interfaces (GUI) automatically, which is one or the most time-consuming tasks
+                  | in software development. GUIs are important for displaying graphical or lists of results, letting
+                  | users monitoring multiple queries, rerunning complex commands,and adjusting settings with different
+                  | modality.  We use machine learning to leverage existing GUIs and the artistic designs in masterpieces
+                  | to generate not just functional, but aesthetically pleasing, apps.
             div.row
-              img(src='/images/style-transfer.png',alt=("Apply style transfer to virtual assistant GUI."),width="100%")
+              div.col-xs-12
+                img(src='/images/style-transfer.png',alt=("Apply style transfer to virtual assistant GUI."),width="100%")
 
         section.divider
           h3= _("Inter-Virtual Assistant Communication")
@@ -177,7 +180,7 @@ block content
           h3= _("Research Agenda")
           div.container
             div.row
-              div.col-sm-6.col-lg-6
+              div.col-md-6.col-lg-6
                 div.project-icon#agenda-thingpedia
                 div.project-details
                   h4 Thingpedia
@@ -191,7 +194,7 @@ block content
                     | to automate the acquisition of entries in Thingpedia.
                     | Thingpedia will be extended to include also compound commands consumers find useful as well as
                     | templates of personal data released under GDPR.
-              div.col-sm-6.col-lg-6
+              div.col-md-6.col-lg-6
                 div.project-icon#agenda-thingtalk
                 div.project-details
                   h4 ThingTalk
@@ -202,7 +205,7 @@ block content
                     | (2) users can query their data easily, hiding the complexity of retrieving data from different cloud services;
                     | and (3) users can access and compute with data from their network of friends of friends.
             div.row
-              div.col-sm-6.col-lg-6
+              div.col-md-6.col-lg-6
                 div.project-icon#agenda-luinet
                 div.project-details
                   h4 LUInet
@@ -214,7 +217,7 @@ block content
                     | confidential APIs. Other research topics include automatically generating precise,
                     | yet natural, sentences to confirm the  commands, as well as the automatic generation of dialogs
                     | to help users discover the virtual assistant’s capabilities and to refine their commands.
-              div.col-sm-6.col-lg-6
+              div.col-md-6.col-lg-6
                 div.project-icon#agenda-guinet
                 div.project-details
                   h4 GUInet
@@ -224,7 +227,7 @@ block content
                     | applications.  We also plan to understand how we can combine LUI andGUI together to make the most
                     | out of both types of interfaces.
             div.row
-              div.col-sm-6.col-lg-6
+              div.col-md-6.col-lg-6
                 div.project-icon#agenda-dtp
                 div.project-details
                   h4 Distributed ThingTalk Protocol
@@ -237,7 +240,7 @@ block content
           h3= _("Projects in Progress")
           div.container
             div.row
-              div.col-sm-6.col-lg-6
+              div.col-md-6.col-lg-6
                 div.project-icon#project-server
                 div.project-details
                   h4 Platform-agnostic Skill Server
@@ -247,7 +250,7 @@ block content
                     | platform-agnostic service that provides vendors with LUI technology that connects to different
                     | platforms.  Such a service lowers the programming complexity for the vendors, while making their
                     | skills readily available to other platforms, if desired.
-              div.col-sm-6.col-lg-6
+              div.col-md-6.col-lg-6
                 div.project-icon#project-compound
                 div.project-details
                   h4 Privacy-preserving Compound Command Service
@@ -256,7 +259,7 @@ block content
                     | their IoTs.  Unlike IFTTT, our service provides a natural-language interface and allows users to
                     | keep their credentials.
             div.row
-              div.col-sm-6.col-lg-6
+              div.col-md-6.col-lg-6
                 div.project-icon#project-email
                 div.project-details
                   h4 Natural-language Queries for Email Archives

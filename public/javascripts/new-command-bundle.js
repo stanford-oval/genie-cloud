@@ -447,7 +447,7 @@ class ThingTalkTrainer {
                     $('#thingtalk-group').removeClass('has-error');
                     $('#thingtalk-error').text('');
                     this._updateConfirmation();
-                    window.location.href = '/app';
+                    window.location.href = '/';
                 }).catch((e) => {
                     $('#thingtalk-group').addClass('has-error');
                     $('#thingtalk-error').text(this._formatError(e));
@@ -509,6 +509,7 @@ class ThingTalkTrainer {
 $(() => {
     new ThingTalkTrainer();
 });
+
 },{"./parserclient":3,"./polyfill":4,"./reconstruct_canonical":5,"./thingpediaclient":6,"thingtalk":46}],3:[function(require,module,exports){
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
@@ -717,7 +718,7 @@ module.exports = function reconstructCanonical(schemaRetriever, code, entities) 
 // See COPYING for details
 "use strict";
 
-const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+const THINGPEDIA_URL = '/thingpedia';
 
 function httpRequest(url) {
     return Promise.resolve($.ajax(url));

@@ -54,12 +54,12 @@ module.exports = {
     getCommands(client, language, start, end) {
         if (start !== undefined && end !== undefined) {
             return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
-            eu.preprocessed,eu.target_code,eu.click_count,u.name as owner_name
+            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
             from example_utterances eu left join users u on u.id = eu.owner where
             type = 'commandpedia' and language = ? order by click_count desc limit ?,?`, [language, start, end + 1]);
         } else {
             return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
-            eu.preprocessed,eu.target_code,eu.click_count,u.name as owner_name
+            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
             from example_utterances eu left join users u on u.id = eu.owner where
             type = 'commandpedia' and language = ? order by click_count desc`, [language]);
         }
@@ -67,7 +67,7 @@ module.exports = {
 
     getCommandsByFuzzySearch(client, language, query) {
         return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
-            eu.preprocessed,eu.target_code,eu.click_count,u.name as owner_name
+            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
             from example_utterances eu left join users u on u.id = eu.owner where
             type = 'commandpedia' and language = ? and ( utterance like ? or target_code like ?)
             order by click_count desc`, [language, `%${query}%`, `%${query}%`]);

@@ -143,12 +143,15 @@ router.get('/logout', (req, res, next) => {
     res.redirect(303, '/');
 });
 
-router.post('/subscribe', (req, res) => {
+router.post('/subscribe', (req, res, next) => {
     let email = req.body['email'];
-    return db.withTransaction((dbClient) => {
+    db.withTransaction((dbClient) => {
         return model.subscribe(dbClient, email);
-    });
-
+    }).then(() => {
+        res.json({ result: 'ok' });
+    }).catch((e) => {
+        res.status(400).json({ error: e });
+    }).catch(next);
 });
 
 function getProfile(req, res, pwError, profileError) {
