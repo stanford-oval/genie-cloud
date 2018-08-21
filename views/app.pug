@@ -25,6 +25,8 @@ block content
         div.row#subscribe
           div.col-xs-12.col-md-6.col-md-offset-3
             a(href='/get-almond').scroller.btn.btn-primary= _("Get Almond")
+            |  
+            a(href='/research').scroller.btn.btn-primary= _("Learn More")
           div.col-xs-12.col-md-6.col-md-offset-3
             input(type='email', placeholder='Your Email').form-control#subscribe-email
             button.btn.btn-primary(csrf=csrfToken)#subscribe-start= _("Interested and would like to contribute? Sign up to stay tuned!")

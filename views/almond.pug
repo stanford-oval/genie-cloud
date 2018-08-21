@@ -15,18 +15,6 @@ block content
     div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
 
   div#page-body
-    section.divider#section-heading
-      h1#almond-title Almond
-
-      div.container
-        div.row#subscribe
-          div.col-xs-12.col-md-6.col-md-offset-3
-            input(type='email', placeholder='Your Email').form-control#subscribe-email
-            button.btn.btn-primary(csrf=csrfToken)#subscribe-start= _("Subscribe for updates")
-            button.btn.btn-primary(csrf=csrfToken)#subscribe-submit= _("Subscribe")
-            p#subscribe-hint(hidden=true)= _("Please enter a valid email address.")
-            p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
-
     if IS_ALMOND_WEBSITE
       div.sections
         section.divider
@@ -35,17 +23,17 @@ block content
             div.row
               div.col-xs-12
                 p
-                  | The mission of the Almond is to research open virtual assistant technology through a
+                  | The mission of the Almond project is to research open virtual assistant technology through a
                   | collaborative effort between academia and industry, in concert with the creation of a
                   | distributed virtual assistant infrastructure to safeguard privacy.
                 p
                   | Virtual assistants are revolutionizing the digital interface by giving us a uniform, personalized,
-                  | linguistic user interface(LUI) to our diverse digital data, IoT, and web assets.
+                  | linguistic user interface (LUI) to our diverse digital data, IoT, and web assets.
                   | In the future, they can perform custom, complex digital tasks, interface with humans,
                   | provide emotional support, and advise on personal fitness, finance, education, career, and so on.
                 p
                   | The research of understanding how the digital world operates and how to interface with it is a tremendous undertaking.
-                  | Besides the technical challenges,  it also requires crowdsourcing hugeknowledge bases such as the
+                  | Besides the technical challenges,  it also requires crowdsourcing huge knowledge bases such as the
                   | catalog of all the digital interfaces, natural language utterances, and behavioral data.
                   | This lab serves as a neutral party to bring together companies with academia, to create open,
                   | non-proprietary, production-quality resources to facilitate basic research and technology transfer.
@@ -115,7 +103,7 @@ block content
                   | to give up ownership to their data.  Virtual assistants can transform how we share everything digital.
                   | In our design, the virtual assistant handles all the sharing:
                   | it accepts requests, gets approval from the owner, executes the requests, and returns only the requested results.
-                  | For generality and fine granularity, the request can be anyThingTalk program.
+                  | For generality and fine granularity, the request can be any ThingTalk program.
                   | For privacy, the owner can specify what ThingTalk programs each person can execute, in natural language.
                   | For example, a dad can tell his voice-activated virtual assistant that "Bobby can buy household goods that are under $20".
                   | The assistant, upon recognizing Bobby’s voice, can enforce the constraint.
@@ -168,7 +156,7 @@ block content
                   | in different servers including their own.
                   | We see adding secure communication to open virtual assistants as a great opportunity to create a
                   | higher-level, more secure, privacy-honoring sharing capability.
-                  | Thus, we propose DTP, DistributedThingTalk Protocol, to let assistants securely distribute ThingTalk
+                  | Thus, we propose DTP, Distributed ThingTalk Protocol, to let assistants securely distribute ThingTalk
                   | programs and return results. Using DTP, virtual assistants let users access each others’ data and
                   | resources easily in a similar fashion as their own.
                   | For example, instead of saying "Show me my security camera",
