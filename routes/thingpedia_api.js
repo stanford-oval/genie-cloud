@@ -164,7 +164,7 @@ router.get('/devices/all', (req, res, next) => {
         return;
     }
 
-    var client = new ThingpediaClient(req.query.developer_key || (req.user ? req.user.developer_key : null), req.query.locale);
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     client.getDeviceList(req.query.class || null, page, page_size).then((obj) => {
         res.cacheFor(86400000);
         res.json(obj);
@@ -409,6 +409,34 @@ router.get('/entities/lookup', (req, res) => {
         res.status(500).json({ error: e.message });
     }).done();
 });
+
+router.get('/entities/lookup/:type', (req, res) => {
+    const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
+    const token = req.query.q;
+
+    if (!token) {
+        res.status(400).json({ error: 'Missing query' });
+        return;
+    }
+    
+    db.withClient((dbClient) => {
+        return Promise.all([entityModel.lookupWithType(dbClient, language, req.params.type, token),
+                            entityModel.get(dbClient, req.params.type, language)]);
+    }).then(([rows, meta]) => {
+        res.cacheFor(86400000);
+        res.status(200).json({
+            result: 'ok',
+            meta: { name: meta.name, has_ner_support: meta.has_ner_support, is_well_known: meta.is_well_known },
+            data: rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name }))
+        });
+    }).catch((e) => {
+        if (e.message === `Wrong number of rows returned, expected 1, got 0`)
+            res.status(404).json({ error: "Invalid entity type" });
+        else
+            res.status(500).json({ error: e.message });
+    }).done();
+});
+
 
 router.get('/entities/list/:type', (req, res) => {
     return db.withClient((dbClient) => {

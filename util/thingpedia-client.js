@@ -18,6 +18,7 @@ const device = require('../model/device');
 const organization = require('../model/organization');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
+const entityModel = require('../model/entity');
 
 const S3_HOST = Config.S3_CLOUDFRONT_HOST + '/devices/';
 
@@ -85,6 +86,13 @@ module.exports = class ThingpediaClientCloud {
                         return (S3_HOST + device.primary_kind + '-v' + device.approved_version + '.zip');
                     else
                         throw new Error('Not Authorized');
+                }, (e) => {
+                    if (e.message === 'Wrong number of rows returned, expected 1, got 0') {
+                        // = no such device, but we hide this fact and return a generic Not Authorized
+                        throw new Error('Not Authorized');
+                    } else {
+                        throw e;
+                    }
                 });
             });
         });
@@ -365,6 +373,17 @@ module.exports = class ThingpediaClientCloud {
             return exampleModel.click(dbClient, exampleId);
         });
     }
+
+    lookupEntity(entityType, searchTerm) {
+        return db.withClient((dbClient) => {
+            return Promise.all([entityModel.lookupWithType(dbClient, this.language, entityType, searchTerm),
+                                entityModel.get(dbClient, entityType, this.language)]);
+        }).then(([rows, meta]) => {
+            const data = rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name }));
+            data.meta = { name: meta.name, has_ner_support: meta.has_ner_support, is_well_known: meta.is_well_known };
+            return data;
+        });
+    }
 };
 module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getModuleLocation', 'getDeviceCode',
@@ -374,4 +393,4 @@ module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getDeviceList',
                                         'getKindByDiscovery',
                                         'getExamplesByKinds', 'getExamplesByKey',
-                                        'clickExample'];
+                                        'clickExample', 'lookupEntity'];
