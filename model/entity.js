@@ -17,9 +17,9 @@ module.exports = {
         return db.insertOne(client, `insert into entity_names set language = 'en', ?`, [entity]);
     },
 
-    get(client, id) {
-        return db.selectOne(client, "select * from entity_names where id = ? and language = 'en'",
-                            [id]);
+    get(client, id, language = 'en') {
+        return db.selectOne(client, "select * from entity_names where id = ? and language = ?",
+                            [id, language]);
     },
 
     getAll(client) {
@@ -37,7 +37,18 @@ module.exports = {
     lookup(client, language, token) {
         return db.selectAll(client, `select distinct entity_id,entity_value,entity_canonical,entity_name
                                      from entity_lexicon where language = ? and match entity_canonical
-                                     against (? in natural language mode)`, [language, token]);
+                                     against (? in natural language mode)
+                                     union distinct select entity_id,entity_value,entity_canonical,entity_name
+                                     from entity_lexicon where language = ? and entity_value = ?`, [language, token, language, token]);
+    },
+
+    lookupWithType(client, language, type, token) {
+        return db.selectAll(client, `select distinct entity_id,entity_value,entity_canonical,entity_name
+                                     from entity_lexicon where language = ? and entity_id = ? and match entity_canonical
+                                     against (? in natural language mode)
+                                     union distinct select entity_id,entity_value,entity_canonical,entity_name
+                                     from entity_lexicon where language = ? and entity_id = ? and
+                                     entity_value = ?`, [language, type, token, language, type, token]);
     },
 
     checkAllExist(client, ids) {

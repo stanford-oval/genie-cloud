@@ -32,8 +32,10 @@ function addTag(client, bg_id, tag) {
 
 function processRectangleRows(rows) {
     let out = {};
+    let saved_rectangles = {};
     rows.forEach((row) => {
         let rect = {
+            id: row.id,
             coordinates: [[row.coord_left, row.coord_top], [row.coord_right, row.coord_bottom]],
             label: row.label,
             index: row.order_index,
@@ -48,9 +50,18 @@ function processRectangleRows(rows) {
             'left-color': JSON.parse(row.left_color),
             'right-color': JSON.parse(row.right_color),
         };
+        let tag = row.tag;
+        if (!(row.background_id in saved_rectangles))
+            saved_rectangles[row.background_id] = [];
         if (row.background_id in out) {
-            out[row.background_id].rectangles.push(rect);
+            if (saved_rectangles[row.background_id].indexOf(rect.id) === -1) {
+                saved_rectangles[row.background_id].push(rect.id);
+                out[row.background_id].rectangles.push(rect);
+            }
+            if (out[row.background_id].tags.indexOf(tag) === -1)
+                out[row.background_id].tags.push(tag);
         } else {
+            saved_rectangles[row.background_id].push(rect.id);
             out[row.background_id] = {
                 owner: row.owner,
                 schema_id: row.schema_id,
@@ -58,7 +69,8 @@ function processRectangleRows(rows) {
                 hash: row.hash,
                 'corner-colors': JSON.parse(row.corner_colors),
                 'color-palette': JSON.parse(row.color_palette),
-                rectangles: [rect]
+                rectangles: [rect],
+                tags: [tag]
             };
         }
     });
@@ -81,9 +93,11 @@ module.exports = {
     },
 
     getByTags(client, tags) {
-        return db.selectAll(client, "select distinct bg.*, rect.* from background bg " +
-            "left join background_rectangle rect on bg.id = rect.background_id " +
-            "left join background_tag tag on bg.id = tag.background_id " +
-            "where tag.tag in (?)", [tags]).then(processRectangleRows);
+        return db.selectAll(client, "select distinct bg.*, rect.*, tag.* from background bg " +
+            "join background_rectangle rect on bg.id = rect.background_id " +
+            "join background_tag tag on bg.id = tag.background_id " +
+            "where bg.id in (" +
+            "select background_id from background_tag where tag in (?)" +
+            ")", [tags]).then((processRectangleRows));
     }
 };
