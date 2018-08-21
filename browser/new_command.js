@@ -33,12 +33,21 @@ class ThingTalkTrainer {
         this.thingpedia = new ThingpediaClient(this._developerKey, this._locale);
         this._schemaRetriever = new SchemaRetriever(this.thingpedia);
 
+        this._predicted = false;
+        this._confirmed = false;
         this._raw = null;
         this._code = null;
         this._entities = null;
 
-        $('#input-command-utterance').blur(this._predict.bind(this));
-        $('#input-command-thingtalk').blur(this._codeDone.bind(this));
+        $('#input-command-utterance').change(() => {
+            this._predicted = false;
+            $('#submit').html('Add');
+        });
+        $('#input-command-thingtalk').change((event) => {
+            this._confirmed = false;
+            this._codeDone(event);
+            $('#submit').html('Add');
+        });
         $('#form-new-command').submit(this._submit.bind(this));
     }
 
@@ -56,6 +65,9 @@ class ThingTalkTrainer {
             $('#input-command-thingtalk').val(tt);
             $('#results-container').addClass('hidden');
             $('#input-command-confirmation').val(a.attr('utterance'));
+            $('#thingtalk-group').show();
+            this._predicted = true;
+            this._confirmed = true;
         }).catch((e) => {
             alert(e.message+'\n'+e.stack);
         });
@@ -65,6 +77,7 @@ class ThingTalkTrainer {
     _rejectAll(event) {
         event.preventDefault();
         $('#results-container').addClass('hidden');
+        $('#thingtalk-group').show();
     }
 
     _predict(event) {
@@ -152,17 +165,24 @@ class ThingTalkTrainer {
     _submit(event) {
         event.preventDefault();
 
-        let thingtalk = $('#input-command-thingtalk').val();
-        if (thingtalk.length > 0) {
-            this._learnThingTalk(thingtalk).then(() => {
-                $('#thingtalk-group').removeClass('has-error');
-                $('#thingtalk-error').text('');
-                this._updateConfirmation();
-                window.location.href = '/app';
-            }).catch((e) => {
-                $('#thingtalk-group').addClass('has-error');
-                $('#thingtalk-error').text(this._formatError(e));
-            });
+        if (!this._predicted) {
+            this._predict(event);
+        } else if (!this._confirmed) {
+            $('#confirmation-group').show();
+            $('#submit').html('Confirm');
+        } else {
+            let thingtalk = $('#input-command-thingtalk').val();
+            if (thingtalk.length > 0) {
+                this._learnThingTalk(thingtalk).then(() => {
+                    $('#thingtalk-group').removeClass('has-error');
+                    $('#thingtalk-error').text('');
+                    this._updateConfirmation();
+                    window.location.href = '/app';
+                }).catch((e) => {
+                    $('#thingtalk-group').addClass('has-error');
+                    $('#thingtalk-error').text(this._formatError(e));
+                });
+            }
         }
     }
 
