@@ -1,23 +1,22 @@
 ul.nav.navbar-nav
-  li.hidden-md.hidden-lg
+  li.hidden-md.hidden-lg.hidden-sm
     a(href="/")= _("Home")
   li
-    a(href='/get-almond')= _("Get Almond")
-  if authenticated
-    li
-      a(href="/me")= _("My Almond")
-    li
-      a(href='/me/conversation')= _("Web Almond")
+    a(href='/research')= _("Research")
+  li
+    a(href="/me")= _("My Almond")
   if WITH_THINGPEDIA === 'embedded'
     li
       a(href='/thingpedia')= _("Thingpedia")
-    li
-      a(href='/thingpedia/cheatsheet')= _("Cheatsheet")
-    li
-      a(href='/thingpedia/developers')= _("Developers")
-  if authenticated && user.developer_status >= 3
-    li
-      a(href="/admin")= _("Administration")
+  li
+    a(href='/thingpedia/developers')= _("Developers")
+  if authenticated
+    if user.developer_org !== null
+      li
+        a(href="/me/status")= _("Status & Logs")
+    if user.developer_status >= 3
+      li
+        a(href="/admin")= _("Admin")
 
 ul.nav.navbar-nav.navbar-right
   if authenticated

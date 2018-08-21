@@ -228,6 +228,7 @@ module.exports = class Frontend {
         this._app.use('/api/webhook', require('./routes/webhook'));
         this._app.use('/me/api/oauth2', require('./routes/oauth2'));
         this._app.use('/me/api/alexa', require('./routes/alexa'));
+        this._app.use('/me/api/gassistant', require('./routes/gassistant'));
         this._app.use('/me/api', require('./routes/my_api'));
         this._app.use('/ws', require('./routes/thingengine_ws'));
         if (Config.WITH_THINGPEDIA === 'embedded') {
@@ -246,13 +247,13 @@ module.exports = class Frontend {
         this._app.use('/friendhub', require('./routes/friendhub'));
 
         this._app.use(csurf({ cookie: false }));
-        this._app.use('/', require('./routes/index'));
+        this._app.use('/', require('./routes/app'));
         this._app.use('/', require('./routes/qrcode'));
         this._app.use('/doc', (req, res) => {
             res.redirect(301, req.originalUrl.replace('/doc', '/thingpedia/developers'));
         });
 
-        this._app.use('/app', require('./routes/app'));
+        this._app.use('/research', require('./routes/research'));
         this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));
@@ -263,14 +264,13 @@ module.exports = class Frontend {
             this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
             this._app.use('/thingpedia/schemas', require('./routes/thingpedia_schemas'));
             this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
-            this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
             this._app.use('/thingpedia/datasets', require('./routes/thingpedia_dataset'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
+            this._app.use('/thingpedia/developers', require('./routes/thingpedia_doc'));
         }
 
         this._app.use('/publications', require('./routes/publications'));
-
         this._app.use('/user', require('./routes/user'));
         this._app.use('/admin', require('./routes/admin'));
 

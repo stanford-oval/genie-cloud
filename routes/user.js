@@ -143,6 +143,17 @@ router.get('/logout', (req, res, next) => {
     res.redirect(303, '/');
 });
 
+router.post('/subscribe', (req, res, next) => {
+    let email = req.body['email'];
+    db.withTransaction((dbClient) => {
+        return model.subscribe(dbClient, email);
+    }).then(() => {
+        res.json({ result: 'ok' });
+    }).catch((e) => {
+        res.status(400).json({ error: e });
+    }).catch(next);
+});
+
 function getProfile(req, res, pwError, profileError) {
     return EngineManager.get().getEngine(req.user.id).then((engine) => {
         return Promise.all([engine.devices.getDevice('thingengine-own-phone'),

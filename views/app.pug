@@ -17,75 +17,61 @@ block content
       h1#almond-title Almond
       h2#almond-subtitle The Open Virtual Assistant
 
+      div.container
+        div.row
+          div.col-xs-12.col-md-6.col-md-offset-3
+            p=_("Almond lets you interact with your services and accounts in natural language, with flexibility and privacy.")
+
+        div.row#subscribe
+          div.col-xs-12.col-md-6.col-md-offset-3
+            a(href='/get-almond').scroller.btn.btn-primary= _("Get Almond")
+          div.col-xs-12.col-md-6.col-md-offset-3
+            input(type='email', placeholder='Your Email').form-control#subscribe-email
+            button.btn.btn-primary(csrf=csrfToken)#subscribe-start= _("Interested and would like to contribute? Sign up to stay tuned!")
+            button.btn.btn-primary(csrf=csrfToken)#subscribe-submit= _("Subscribe")
+            p#subscribe-hint(hidden=true)= _("Please enter a valid email address.")
+            p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
+
     div.sections
       section.divider
         h3= _("Popular Commands")
-        div.container#commandpedia
+        div.container#commandpedia(csrf=csrfToken)
           div.navbar.navbar-default#command-list-navbar
             form.navbar-form.navbar-left(action='', method='get')
               div.form-group
                 input.form-control#command-search-box(type='text', name='q', placeholder="I want to find a command...")
-                button.btn.btn-primary(type="submit")= _("Search")
+                button.btn.btn-primary#command-search-button(type="submit")= _("Search")
+              div.form-group
+                button.btn.btn-primary#command-reset-button= _("Reset")
+          div.row#command-container
           div.row
-            each command, i in commands
-              if i % 6 === 0
-                div.clearfix.visible-lg.visible-md
-              else if i % 3 === 0
-                div.clearfix.visible-lg
-              else if i % 2 === 0
-                div.clearfix.visible-md
-              div.col-lg-4.col-md-6.command-template
-                div.panel.panel-default
-                  div.panel-heading
-                    h2.panel-title= command.deviceNames.join(' + ')
-                  div.panel-body
-                    p.device-icon-small
-                      img(src=S3_CLOUDFRONT_HOST + '/icons/' + command.devices[0] + '.png', alt='Icon')
-                    p(title=command.target_code)= command.utterance
-                    div.row
-                      p
-                        span By&#x20;
-                          if command.owner
-                            span= command.owner
-                          else
-                            span= _("anonymous user")
-                    div.row
-                      a(title='liked by ' + command.click_count + ' users')
-                        i.far.fa-heart(id=command.id, _csrf=csrfToken)
-                      span= (' ')
-                      span(id='count' + command.id)= command.click_count
-                  div.panel-footer
-                    div.row
-                      div.col-md-6.col-md-offset-3
-                        form.form-inline(action='/me', method='post')
-                          input(type='hidden', name='_csrf', value=csrfToken)
-                          input(type='hidden', name='command', value=command.utterance)
-                          button(type='submit').btn.btn-sm.btn-success.btn-block= _("Adopt")
+            div.col-xs-12
+              nav
+                ul.pager
+                  li#commands-page-prev
+                    a(href='#')= _("Previous")
+                  | &nbsp;
+                  li#commands-page-next
+                    a(href='#')= _("Next")
           br
           div.row
             div.col-sm-6.col-md-4.col-md-offset-2
-              a(href='/app/commands/add').btn.btn-primary.btn-block= _("Add Your Own")
+              a(href='/commands/add').btn.btn-primary.btn-block= _("Add a New Command")
             div.col-sm-6.col-md-4
-              a(href='/app/commands/suggest').btn.btn-default.btn-block= _("Suggest New")
+              a(href='/commands/suggest').btn.btn-default.btn-block= _("Suggest a New Command")
 
       section.divider
-        h3= _("More Commands Almond Support")
+        h3= _("More Devices and Services Almond Supports")
         div.container
           div.row
-            div.row
-              div.col-md-6.col-md-offset-1
-                p
-                  |  Almond draws its power from the crowdsourced <a href='/thingpedia'>Thingpedia</a>, an open collection of Web and Internet
-                  |  of Things APIs.
-                  |  Anyone can contribute support for the favorite service, with few lines of code and a handful of natural language sentences.
+            div.col-md-12.device-icon-list
+              for device in ['com.spotify', 'com.facebook', 'com.twitter', 'com.gmail', 'org.thingpedia.icalendar', 'com.slack', 'com.nest', 'org.arxiv', 'org.thingpedia.weather', 'org.thingpedia.rss', 'com.steampowered', 'com.washingtonpost', 'com.wolframalpha', 'com.wunderlist', 'com.yandex.translate', 'com.dropbox']
+                a(href='/thingpedia/devices/by-id/' + device)
+                  img(src=S3_CLOUDFRONT_HOST + '/icons/' + device + '.png', alt='Icon')
+          div.row
+            h4.text-center
+              a(href='/thingpedia/cheatsheet')= _("And More")
 
-                p Thingpedia supports more than 60 different services, accounts and IoT devices.
-                br
-                h5.text-center
-                  b
-                    a(href='/thingpedia/cheatsheet')= _("Click here to see all commands Almond supports")
-              div.col-md-4
-                img(src='/images/thingpedia-icon-cloud.png', alt=_("The logos of the services supported by Almond"))#thingpedia-icon-cloud
 
 
       section.divider
