@@ -23,8 +23,8 @@ const ThingpediaClient = require('./thingpediaclient');
 const reconstructCanonical = require('./reconstruct_canonical');
 
 class ThingTalkTrainer {
-    constructor() {
-        this.parser = new ParserClient('http://crowdie.stanford.edu:8400', 'en-US');
+    constructor(sempreUrl) {
+        this.parser = new ParserClient(sempreUrl, 'en-US');
 
         this._locale = $('body[data-locale]').attr('data-locale');
         this._developerKey = $('body[data-developer-key]').attr('data-developer-key') || null;

@@ -36,18 +36,6 @@ router.post('/commands/suggest', function(req, res) {
     });
 });
 
-router.post('/upvote/:id', function(req, res) {
-    db.withTransaction((client) => {
-        return commandModel.upvote(client, req.params.id);
-    });
-});
-
-router.post('/downvote/:id', function(req, res) {
-    db.withTransaction((client) => {
-        return commandModel.downvote(client, req.params.id);
-    });
-});
-
 router.get('/get-almond', (req, res, next) => {
     res.render('try_almond', {
         page_title: req._("Getting Almond"),

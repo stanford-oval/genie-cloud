@@ -9,7 +9,7 @@
 // See COPYING for details
 "use strict";
 
-const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+const THINGPEDIA_URL = '/thingpedia';
 
 function httpRequest(url) {
     return Promise.resolve($.ajax(url));

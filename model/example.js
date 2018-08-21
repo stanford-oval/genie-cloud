@@ -51,15 +51,26 @@ module.exports = {
         return db.selectAll(client, "select * from example_utterances");
     },
 
-    getCommands(client, start, end) {
-        if (start !== undefined && end !== undefined)
-            return db.selectAll(client, "select * from example_utterances where type = 'commandpedia' order by click_count desc limit ?,?", [start, end + 1]);
-        return db.selectAll(client, "select * from example_utterances where type = 'commandpedia' order by click_count desc");
+    getCommands(client, language, start, end) {
+        if (start !== undefined && end !== undefined) {
+            return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
+            eu.preprocessed,eu.target_code,eu.click_count,u.name as owner_name
+            from example_utterances eu left join users u on u.id = eu.owner where
+            type = 'commandpedia' and language = ? order by click_count desc limit ?,?`, [language, start, end + 1]);
+        } else {
+            return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
+            eu.preprocessed,eu.target_code,eu.click_count,u.name as owner_name
+            from example_utterances eu left join users u on u.id = eu.owner where
+            type = 'commandpedia' and language = ? order by click_count desc`, [language]);
+        }
     },
 
-    getCommandsByFuzzySearch(client, query) {
-        return db.selectAll(client, "select * from example_utterances where type = 'commandpedia' and ( " +
-            " utterance like ? or target_code like ?) order by click_count desc ", [`%${query}%`, `%${query}%`]);
+    getCommandsByFuzzySearch(client, language, query) {
+        return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
+            eu.preprocessed,eu.target_code,eu.click_count,u.name as owner_name
+            from example_utterances eu left join users u on u.id = eu.owner where
+            type = 'commandpedia' and language = ? and ( utterance like ? or target_code like ?)
+            order by click_count desc`, [language, `%${query}%`, `%${query}%`]);
     },
 
     getBaseByLanguage(client, language) {
