@@ -10,6 +10,7 @@
 "use strict";
 
 const Q = require('q');
+const Tp = require('thingpedia');
 const express = require('express');
 const passport = require('passport');
 
@@ -147,6 +148,10 @@ router.post('/subscribe', (req, res, next) => {
     let email = req.body['email'];
     db.withTransaction((dbClient) => {
         return model.subscribe(dbClient, email);
+    }).then(() => {
+        return Tp.Helpers.Http.post('https://mailman.stanford.edu/mailman/subscribe/thingpedia-support',
+                                    `email=${encodeURIComponent(email)}&digest=0&email-button=Subscribe`,
+                                    { dataContentType: 'application/x-www-form-urlencoded' });
     }).then(() => {
         res.json({ result: 'ok' });
     }).catch((e) => {
