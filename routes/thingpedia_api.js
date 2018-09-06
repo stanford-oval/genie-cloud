@@ -29,6 +29,7 @@ const everything = express.Router();
 
 const v1 = express.Router();
 const v2 = express.Router();
+const v3 = express.Router();
 
 function errorWrap(req, res, next, promise) {
     Promise.resolve().then(() => promise).catch((e) => {
@@ -66,6 +67,17 @@ v1.get('/schema/:schemas', (req, res, next) => {
     }));
 });
 
+v3.get('/schema/:schemas', (req, res, next) => {
+    var schemas = req.params.schemas.split(',');
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    errorWrap(req, res, next, client.getSchemas(schemas).then((obj) => {
+        // don't cache if the user is a developer
+        if (!req.query.developer_key)
+            res.cacheFor(86400000);
+        res.json({ result: 'ok', data: obj });
+    }));
+});
+
 v1.get('/schema-metadata/:schemas', (req, res, next) => {
     var schemas = req.params.schemas.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
@@ -77,6 +89,17 @@ v1.get('/schema-metadata/:schemas', (req, res, next) => {
     }));
 });
 
+v3.get('/schema-metadata/:schemas', (req, res, next) => {
+    var schemas = req.params.schemas.split(',');
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    errorWrap(req, res, next, client.getMetas(schemas).then((obj) => {
+        // don't cache if the user is a developer
+        if (!req.query.developer_key)
+            res.cacheFor(86400000);
+        res.json({ result: 'ok', data: obj });
+    }));
+});
+
 v1.get('/code/devices/:kind', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     errorWrap(req, res, next, client.getDeviceCode(req.params.kind).then((code) => {
@@ -85,6 +108,17 @@ v1.get('/code/devices/:kind', (req, res, next) => {
         else
             res.cacheFor(86400000);
         res.json(code);
+    }));
+});
+
+v3.get('/code/devices/:kind', (req, res, next) => {
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    errorWrap(req, res, next, client.getDeviceCode(req.params.kind).then((code) => {
+        if (code.developer)
+            res.cacheFor(3600000);
+        else
+            res.cacheFor(86400000);
+        res.json({ result: 'ok', data: code });
     }));
 });
 
@@ -112,6 +146,15 @@ v2.get('/devices/setup/:kinds', (req, res, next) => {
     }).catch(next);
 });
 
+v3.get('/devices/setup/:kinds', (req, res, next) => {
+    var kinds = req.params.kinds.split(',');
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    client.getDeviceSetup(kinds).then((result) => {
+        res.cacheFor(86400000);
+        res.status(200).json({ result: 'ok', data: result });
+    }).catch(next);
+});
+
 v1.get('/devices/icon/:kind', (req, res) => {
     // cache for forever, this redirect will never expire
     res.cacheFor(6, 'months');
@@ -123,14 +166,21 @@ v1.get('/devices/icon/:kind', (req, res) => {
        res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/' + req.params.kind + '.png');
 });
 
-v1.get('/devices', (req, res, next) => {
-    if (req.query.class && ['online', 'physical', 'data', 'system',
-            'media', 'social-network', 'home', 'communication',
-            'health', 'service', 'data-management'].indexOf(req.query.class) < 0) {
+function isValidDeviceClass(req, res) {
+    if (req.query.class &&
+        ['online', 'physical', 'data', 'system',
+         'media', 'social-network', 'home', 'communication',
+         'health', 'service', 'data-management'].indexOf(req.query.class) < 0) {
         res.status(400).json({ error: "Invalid device class", code: 'EINVAL' });
-        return;
+        return false;
+    } else {
+        return true;
     }
+}
 
+v1.get('/devices', (req, res, next) => {
+    if (!isValidDeviceClass(req, res))
+        return;
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     client.getDeviceFactories(req.query.class).then((obj) => {
         res.cacheFor(86400000);
@@ -138,7 +188,17 @@ v1.get('/devices', (req, res, next) => {
     }).catch(next);
 });
 
-v1.get('/devices/all', (req, res, next) => {
+v3.get('/devices', (req, res, next) => {
+    if (!isValidDeviceClass(req, res))
+        return;
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    client.getDeviceFactories(req.query.class).then((obj) => {
+        res.cacheFor(86400000);
+        res.json({ result: 'ok', data: obj });
+    }).catch(next);
+});
+
+function validatePageAndSize(req, defaultValue) {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -148,24 +208,36 @@ v1.get('/devices/all', (req, res, next) => {
         page = 0;
     let page_size = req.query.page_size;
     if (page_size === undefined)
-        page_size = 10;
+        page_size = defaultValue;
     else
         page_size = parseInt(page_size);
     if (!isFinite(page_size) || page_size < 0)
-        page_size = 10;
-    if (page_size > 10)
-        page_size = 10;
-    if (req.query.class && ['online', 'physical', 'data', 'system',
-            'media', 'social-network', 'home', 'communication',
-            'health', 'service', 'data-management'].indexOf(req.query.class) < 0) {
-        res.status(400).json({ error: "Invalid device class", code: 'EINVAL' });
+        page_size = defaultValue;
+    if (page_size > defaultValue)
+        page_size = defaultValue;
+    return [page, page_size];
+}
+
+v1.get('/devices/all', (req, res, next) => {
+    const [page, page_size] = validatePageAndSize(req, 10);
+    if (!isValidDeviceClass(req, res))
         return;
-    }
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     client.getDeviceList(req.query.class || null, page, page_size).then((obj) => {
         res.cacheFor(86400000);
         res.json(obj);
+    }).catch(next);
+});
+v3.get('/devices/all', (req, res, next) => {
+    const [page, page_size] = validatePageAndSize(req, 10);
+    if (!isValidDeviceClass(req, res))
+        return;
+
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    client.getDeviceList(req.query.class || null, page, page_size).then((obj) => {
+        res.cacheFor(86400000);
+        res.json({ result: 'ok', data: obj });
     }).catch(next);
 });
 
@@ -188,6 +260,28 @@ v1.get('/devices/search', (req, res, next) => {
         });
         res.cacheFor(86400000);
         res.json({ devices });
+    }).catch(next);
+});
+
+v3.get('/devices/search', (req, res, next) => {
+    var q = req.query.q;
+    if (!q) {
+        res.status(400).json({ error: 'missing query' });
+        return;
+    }
+
+    db.withClient((dbClient) => {
+        return deviceModel.getByFuzzySearch(dbClient, q);
+    }).then((devices) => {
+        var kinds = new Set;
+        devices = devices.filter((d) => {
+            if (kinds.has(d.primary_kind))
+                return false;
+            kinds.add(d.primary_kind);
+            return true;
+        });
+        res.cacheFor(86400000);
+        res.json({ result: 'ok', data: devices });
     }).catch(next);
 });
 
@@ -218,22 +312,7 @@ function getCommandDetails(client, commands) {
 
 v1.get('/commands/all', (req, res, next) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
-    let page = req.query.page;
-    if (page === undefined)
-        page = 0;
-    else
-        page = parseInt(page);
-    if (!isFinite(page) || page < 0)
-        page = 0;
-    let page_size = req.query.page_size;
-    if (page_size === undefined)
-        page_size = 9;
-    else
-        page_size = parseInt(page_size);
-    if (!isFinite(page_size) || page_size < 0)
-        page_size = 9;
-    if (page_size > 9)
-        page_size = 9;
+    const [page, page_size] = validatePageAndSize(req, 9);
 
     db.withTransaction((client) => {
         return commandModel.getCommands(client, language, page * page_size, page_size).then((commands) => {
@@ -257,7 +336,7 @@ v1.get('/commands/search', (req, res, next) => {
         return commandModel.getCommandsByFuzzySearch(client, language, q).then((commands) => {
             return getCommandDetails(client, commands).then(() => {
                 res.cacheFor(3600 * 1000);
-                res.json({ data: commands });
+                res.json({ result: 'ok', data: commands });
             });
         });
     }).catch(next);
@@ -290,6 +369,20 @@ v1.post('/discovery', (req, res, next) => {
     }));
 });
 
+v3.post('/discovery', (req, res, next) => {
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+
+    errorWrap(req, res, next, client.getKindByDiscovery(req.body).then((result) => {
+        if (result === null) {
+            res.status(404).json({ error: 'Not Found' });
+            return;
+        }
+
+        res.cacheFor(86400000);
+        res.status(200).json({ result: 'ok', data: { kind: result.primary_kind } });
+    }));
+});
+
 v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
@@ -298,6 +391,17 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
     client.getExamplesByKinds(kinds, isBase).then((result) => {
         res.cacheFor(300000);
         res.status(200).json(result);
+    }).catch(next);
+});
+
+v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
+    var kinds = req.params.kinds.split(',');
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var isBase = req.query.base !== '0';
+
+    client.getExamplesByKinds(kinds, isBase).then((result) => {
+        res.cacheFor(300000);
+        res.status(200).json({ result: 'ok', data: result });
     }).catch(next);
 });
 
@@ -313,6 +417,21 @@ v1.get('/examples', (req, res, next) => {
     client.getExamplesByKey(req.query.key, isBase).then((result) => {
         res.cacheFor(300000);
         res.status(200).json(result);
+    }).catch(next);
+});
+
+v3.get('/examples', (req, res, next) => {
+    if (!req.query.key) {
+        res.status(400).json({ error: "missing query" });
+        return;
+    }
+
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    var isBase = req.query.base !== '0';
+
+    client.getExamplesByKey(req.query.key, isBase).then((result) => {
+        res.cacheFor(300000);
+        res.status(200).json({ result: 'ok', data: result });
     }).catch(next);
 });
 
@@ -475,8 +594,12 @@ v1.get('/snapshot/:id', (req, res, next) => {
 // all endpoints that have not been overridden in v2 use the v1 version
 v2.use('/', v1);
 
+// all endpoints that have not been overridden in v3 use the v2 version
+v3.use('/', v2);
+
 everything.use('/v1', v1);
 everything.use('/v2', v2);
+everything.use('/v3', v3);
 
 // for compatibility with the existing code, v1 is also exposed unversioned
 everything.use('/', v1);
