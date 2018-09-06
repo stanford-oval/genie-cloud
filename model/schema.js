@@ -122,7 +122,7 @@ function processMetaRows(rows) {
             return;
         var types = JSON.parse(row.types);
         var obj = {
-            schema: types,
+            types: types,
             args: JSON.parse(row.argnames),
             required: JSON.parse(row.required) || [],
             is_input: JSON.parse(row.is_input) || [],

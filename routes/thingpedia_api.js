@@ -85,6 +85,17 @@ v1.get('/schema-metadata/:schemas', (req, res, next) => {
         // don't cache if the user is a developer
         if (!req.query.developer_key)
             res.cacheFor(86400000);
+
+        // return v1-compatible result (using the "schema" to indicate types
+        // rather than "types")
+        for (let kind in obj) {
+            for (let what of ['triggers', 'queries', 'actions']) {
+                for (let name in obj[kind][what]) {
+                    obj[kind][what][name].schema = obj[kind][what][name].types;
+                    delete obj[kind][what][name].types;
+                }
+            }
+        }
         res.json(obj);
     }));
 });

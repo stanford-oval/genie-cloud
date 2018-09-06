@@ -106,12 +106,12 @@ block content
           else
               = 'out '
           |  #{a} : 
-          if inv.schema[i].startsWith('Entity(')
-            a(href=`/thingpedia/entities/by-id/${inv.schema[i].substring('Entity('.length, inv.schema[i].length-1)}`)= inv.schema[i]
-          else if inv.schema[i].startsWith('Array(Entity(')
-            | Array(#[a(href=`/thingpedia/entities/by-id/${inv.schema[i].substring('Array(Entity('.length, inv.schema[i].length-2)}`)= inv.schema[i].substring('Array('.length, inv.schema[i].length-1)])
+          if inv.types[i].startsWith('Entity(')
+            a(href=`/thingpedia/entities/by-id/${inv.types[i].substring('Entity('.length, inv.types[i].length-1)}`)= inv.types[i]
+          else if inv.types[i].startsWith('Array(Entity(')
+            | Array(#[a(href=`/thingpedia/entities/by-id/${inv.types[i].substring('Array(Entity('.length, inv.types[i].length-2)}`)= inv.types[i].substring('Array('.length, inv.types[i].length-1)])
           else
-            = inv.schema[i]
+            = inv.types[i]
           if i !== inv.args.length-1
             = ', '
         = ')'
