@@ -35,7 +35,7 @@ module.exports = {
     },
 
     getValues(client, id) {
-        return db.selectAll(client, "select distinct entity_value, entity_name from entity_lexicon where entity_id = ? and language = 'en'", [id]);
+        return db.selectAll(client, "select distinct entity_value, entity_name, entity_canonical from entity_lexicon where entity_id = ? and language = 'en'", [id]);
     },
 
     lookup(client, language, token) {

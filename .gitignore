@@ -13,6 +13,8 @@ home/
 /public/download/backgrounds
 /public/download/icons
 
+doc/doc-list.json
+doc/thingpedia-api
 views/doc_*.pug
 
 node_modules/

@@ -1,0 +1,10 @@
+{
+"name": "Thingpedia",
+"version": "0.3.0",
+"description": "Public API to access the Thingpedia database",
+"url": "https://thingpedia.stanford.edu/thingpedia/api",
+"sampleUrl": "https://thingpedia.stanford.edu/thingpedia/api",
+"template": {
+  "forceLanguage": "en"
+}
+}
