@@ -25,9 +25,25 @@ const { tokenize } = require('../util/tokenize');
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
 
-var router = express.Router();
+const everything = express.Router();
 
-router.get('/schema/:schemas', (req, res) => {
+const v1 = express.Router();
+const v2 = express.Router();
+
+// NOTES on versioning
+//
+// The whole API is exposed under /thingpedia/api/vX
+//
+// Any time an endpoint is changed incompatibly, make a
+// copy of the endpoint and mount it under the newer vN
+//
+// To add a new endpoint, add it to the new vN only
+// To remove an endpoint, add it to the vN with
+// `next('router')` as the handler: this will cause the
+// vN router to be skipped, failing back to the handler
+// for / at the top (which returns 404)
+
+v1.get('/schema/:schemas', (req, res) => {
     var schemas = req.params.schemas.split(',');
     if (schemas.length === 0) {
         res.json({});
@@ -47,7 +63,7 @@ router.get('/schema/:schemas', (req, res) => {
     }).done();
 });
 
-router.get('/schema-metadata/:schemas', (req, res) => {
+v1.get('/schema-metadata/:schemas', (req, res) => {
     var schemas = req.params.schemas.split(',');
     if (schemas.length === 0) {
         res.json({});
@@ -66,7 +82,7 @@ router.get('/schema-metadata/:schemas', (req, res) => {
     }).done();
 });
 
-router.get('/code/devices/:kind', (req, res) => {
+v1.get('/code/devices/:kind', (req, res) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
     client.getDeviceCode(req.params.kind).then((code) => {
@@ -80,7 +96,7 @@ router.get('/code/devices/:kind', (req, res) => {
     });
 });
 
-router.get('/devices/setup/:kinds', (req, res) => {
+v1.get('/devices/setup/:kinds', (req, res) => {
     var kinds = req.params.kinds.split(',');
     if (kinds.length === 0) {
         res.json({});
@@ -88,7 +104,13 @@ router.get('/devices/setup/:kinds', (req, res) => {
     }
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceSetup(kinds).then((result) => {
+    client.getDeviceSetup2(kinds).then((result) => {
+        for (let name in result) {
+            if (result[name].type === 'multiple')
+                result[name].choices = result[name].choices.map((c) => c.text);
+        }
+        return result;
+    }).then((result) => {
         res.cacheFor(86400000);
         res.status(200).json(result);
     }).catch((e) => {
@@ -96,7 +118,7 @@ router.get('/devices/setup/:kinds', (req, res) => {
     }).done();
 });
 
-router.get('/v2/devices/setup/:kinds', (req, res) => {
+v1.get('/devices/setup/:kinds', (req, res) => {
     var kinds = req.params.kinds.split(',');
     if (kinds.length === 0) {
         res.json({});
@@ -112,7 +134,7 @@ router.get('/v2/devices/setup/:kinds', (req, res) => {
     }).done();
 });
 
-router.get('/devices/icon/:kind', (req, res) => {
+v1.get('/devices/icon/:kind', (req, res) => {
     // cache for forever, this redirect will never expire
     res.cacheFor(6, 'months');
 
@@ -123,7 +145,7 @@ router.get('/devices/icon/:kind', (req, res) => {
        res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/' + req.params.kind + '.png');
 });
 
-router.get('/devices', (req, res, next) => {
+v1.get('/devices', (req, res, next) => {
     if (req.query.class && ['online', 'physical', 'data', 'system',
             'media', 'social-network', 'home', 'communication',
             'health', 'service', 'data-management'].indexOf(req.query.class) < 0) {
@@ -142,7 +164,7 @@ router.get('/devices', (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/devices/all', (req, res, next) => {
+v1.get('/devices/all', (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -177,7 +199,7 @@ router.get('/devices/all', (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/devices/search', (req, res) => {
+v1.get('/devices/search', (req, res) => {
     var q = req.query.q;
     if (!q) {
         res.status(300).json({ error: 'missing query' });
@@ -228,7 +250,7 @@ function getCommandDetails(client, commands) {
     return Promise.all([].concat.apply([], promisesAll));
 }
 
-router.get('/commands/all', (req, res) => {
+v1.get('/commands/all', (req, res) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     let page = req.query.page;
     if (page === undefined)
@@ -261,7 +283,7 @@ router.get('/commands/all', (req, res) => {
     }).done();
 });
 
-router.get('/commands/search', (req, res) => {
+v1.get('/commands/search', (req, res) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     let q = req.query.q;
     if (!q) {
@@ -284,16 +306,19 @@ router.get('/commands/search', (req, res) => {
 });
 
 
-router.get('/apps', (req, res) => {
+v1.get('/apps', (req, res) => {
     // deprecated endpoint
     res.json([]);
 });
+v2.get('/apps', (req, res, next) => next('router'));
 
-router.get('/code/apps/:app_id', (req, res) => {
+v1.get('/code/apps/:app_id', (req, res) => {
     // deprecated endpoint, respond with 410 Gone
     res.status(410).send('This end point no longer exists');
 });
-router.post('/discovery', (req, res) => {
+v2.get('/code/apps/:app_id', (req, res, next) => next('router'));
+
+v1.post('/discovery', (req, res) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
     client.getKindByDiscovery(req.body).then((result) => {
@@ -311,7 +336,7 @@ router.post('/discovery', (req, res) => {
     });
 });
 
-router.get('/examples/by-kinds/:kinds', (req, res) => {
+v1.get('/examples/by-kinds/:kinds', (req, res) => {
     var kinds = req.params.kinds.split(',');
     if (kinds.length === 0) {
         res.json([]);
@@ -329,7 +354,7 @@ router.get('/examples/by-kinds/:kinds', (req, res) => {
     });
 });
 
-router.get('/examples', (req, res) => {
+v1.get('/examples', (req, res) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
     var isBase = req.query.base !== '0';
@@ -346,7 +371,7 @@ router.get('/examples', (req, res) => {
     }
 });
 
-router.get('/examples/click/:id', (req, res) => {
+v1.get('/examples/click/:id', (req, res) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
     client.clickExample(req.params.id).then(() => {
@@ -357,7 +382,7 @@ router.get('/examples/click/:id', (req, res) => {
     }).done();
 });
 
-router.get('/entities', (req, res) => {
+v1.get('/entities', (req, res) => {
     const snapshotId = parseInt(req.query.snapshot);
     const etag = `"snapshot-${snapshotId}"`;
     if (snapshotId >= 0 && req.headers['if-none-match'] === etag) {
@@ -389,7 +414,7 @@ router.get('/entities', (req, res) => {
     }).done();
 });
 
-router.get('/entities/lookup', (req, res) => {
+v1.get('/entities/lookup', (req, res) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const token = req.query.q;
 
@@ -408,7 +433,7 @@ router.get('/entities/lookup', (req, res) => {
     }).done();
 });
 
-router.get('/entities/lookup/:type', (req, res) => {
+v1.get('/entities/lookup/:type', (req, res) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const token = req.query.q;
 
@@ -435,8 +460,7 @@ router.get('/entities/lookup/:type', (req, res) => {
     }).done();
 });
 
-
-router.get('/entities/list/:type', (req, res) => {
+v1.get('/entities/list/:type', (req, res) => {
     return db.withClient((dbClient) => {
         return entityModel.getValues(dbClient, req.params.type);
     }).then((rows) => {
@@ -447,7 +471,7 @@ router.get('/entities/list/:type', (req, res) => {
     }).done();
 });
 
-router.get('/entities/icon', (req, res) => {
+v1.get('/entities/icon', (req, res) => {
     const cacheManager = ImageCacheManager.get();
     const entityValue = req.query.entity_value;
     const entityType = req.query.entity_type;
@@ -484,7 +508,7 @@ router.get('/entities/icon', (req, res) => {
     }
 });
 
-router.get('/snapshot/:id', (req, res) => {
+v1.get('/snapshot/:id', (req, res) => {
     const getMeta = req.query.meta === '1';
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const snapshotId = parseInt(req.params.id);
@@ -520,4 +544,18 @@ router.get('/snapshot/:id', (req, res) => {
     }).done();
 });
 
-module.exports = router;
+// all endpoints that have not been overridden in v2 use the v1 version
+v2.use('/', v1);
+
+everything.use('/v1', v1);
+everything.use('/v2', v2);
+
+// for compatibility with the existing code, v1 is also exposed unversioned
+everything.use('/', v1);
+
+// if nothing handled the route, return a 404
+everything.use('/', (req, res) => {
+    res.status(404).json({ error: 'Invalid endpoint' });
+});
+
+module.exports = everything;
