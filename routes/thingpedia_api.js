@@ -122,7 +122,10 @@ v1.get('/code/devices/:kind', (req, res, next) => {
     }));
 });
 
-v3.get('/code/devices/:kind', (req, res, next) => {
+// in v3, /code/devices was moved to /devices/code, for
+// consistency with the other /devices end points
+v3.get('/code/devices/:kind', (req, res, next) => next('router'));
+v3.get('/devices/code/:kind', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     errorWrap(req, res, next, client.getDeviceCode(req.params.kind).then((code) => {
         if (code.developer)
@@ -199,7 +202,11 @@ v1.get('/devices', (req, res, next) => {
     }).catch(next);
 });
 
-v3.get('/devices', (req, res, next) => {
+// the /devices endpoint was removed in v3
+// to avoid confusion between /devices/setup and /devices/all
+
+v3.get('/devices', (req, res, next) => next('router'));
+v3.get('/devices/setup', (req, res, next) => {
     if (!isValidDeviceClass(req, res))
         return;
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
@@ -380,7 +387,9 @@ v1.post('/discovery', (req, res, next) => {
     }));
 });
 
-v3.post('/discovery', (req, res, next) => {
+// the /discovery endpoint was moved to /devices/discovery in v3
+v3.post('/discovery', (req, res, next) => next('router'));
+v3.post('/devices/discovery', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
     errorWrap(req, res, next, client.getKindByDiscovery(req.body).then((result) => {
@@ -431,8 +440,11 @@ v1.get('/examples', (req, res, next) => {
     }).catch(next);
 });
 
-v3.get('/examples', (req, res, next) => {
-    if (!req.query.key) {
+// the /examples?key=.. endpoint was moved to /examples/search?q=... in v3
+// for consistency with /commands and /devices
+v3.get('/examples', (req, res, next) => next('router'));
+v3.get('/examples/search', (req, res, next) => {
+    if (!req.query.q) {
         res.status(400).json({ error: "missing query" });
         return;
     }
@@ -455,7 +467,19 @@ v1.get('/examples/click/:id', (req, res, next) => {
     }).catch(next);
 });
 
-v1.get('/entities', (req, res, next) => {
+// clicks were turned into a POST in v3
+// (because the API is obviously not idempotent)
+v3.get('/examples/click/:id', (req, res, next) => next('router'));
+v3.post('/examples/click/:id', (req, res, next) => {
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+
+    client.clickExample(req.params.id).then(() => {
+        res.cacheFor(300000);
+        res.status(200).json({ result: 'ok' });
+    }).catch(next);
+});
+
+function getAllEntities(req, res, next) {
     const snapshotId = parseInt(req.query.snapshot);
     const etag = `"snapshot-${snapshotId}"`;
     if (snapshotId >= 0 && req.headers['if-none-match'] === etag) {
@@ -483,7 +507,14 @@ v1.get('/entities', (req, res, next) => {
             has_ner_support: r.has_ner_support
         })) });
     }).catch(next);
-});
+}
+
+v1.get('/entities', getAllEntities);
+
+// in v3, /entities was moved to /entities/all, for consistency
+// with /devices and /commands
+v3.get('/entities', (req, res, next) => next('router'));
+v3.get('/entities/all', getAllEntities);
 
 v1.get('/entities/lookup', (req, res, next) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
