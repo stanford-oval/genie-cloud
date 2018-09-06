@@ -291,7 +291,7 @@ module.exports = class ThingpediaClientCloud {
         });
     }
 
-    getDeviceSetup2(kinds) {
+    getDeviceSetup(kinds) {
         var developerKey = this.developerKey;
 
         return db.withClient((dbClient) => {
@@ -342,14 +342,9 @@ module.exports = class ThingpediaClientCloud {
         });
     }
 
-    getDeviceSetup(kinds) {
-        return this.getDeviceSetup2(kinds).then((result) => {
-            for (let name in result) {
-                if (result[name].type === 'multiple')
-                    result[name].choices = result[name].choices.map((c) => c.text);
-            }
-            return result;
-        });
+    // FIXME: remove this when almond-dialog-agent is fixed to use getDeviceSetup
+    getDeviceSetup2(kinds) {
+        return this.getDeviceSetup(kinds);
     }
 
     getKindByDiscovery(body) {

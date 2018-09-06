@@ -104,7 +104,7 @@ v1.get('/devices/setup/:kinds', (req, res) => {
     }
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceSetup2(kinds).then((result) => {
+    client.getDeviceSetup(kinds).then((result) => {
         for (let name in result) {
             if (result[name].type === 'multiple')
                 result[name].choices = result[name].choices.map((c) => c.text);
@@ -126,7 +126,7 @@ v1.get('/devices/setup/:kinds', (req, res) => {
     }
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceSetup2(kinds).then((result) => {
+    client.getDeviceSetup(kinds).then((result) => {
         res.cacheFor(86400000);
         res.status(200).json(result);
     }).catch((e) => {
