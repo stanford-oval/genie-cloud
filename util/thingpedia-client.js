@@ -87,7 +87,7 @@ module.exports = class ThingpediaClientCloud {
                     else
                         throw new Error('Not Authorized');
                 }, (e) => {
-                    if (e.message === 'Wrong number of rows returned, expected 1, got 0') {
+                    if (e.code === 'ENOENT') {
                         // = no such device, but we hide this fact and return a generic Not Authorized
                         throw new Error('Not Authorized');
                     } else {
@@ -114,8 +114,11 @@ module.exports = class ThingpediaClientCloud {
 
                 return device.getFullCodeByPrimaryKind(dbClient, kind, org);
             }).then((devs) => {
-                if (devs.length < 1)
-                    throw new Error(kind + ' not Found');
+                if (devs.length < 1) {
+                    const err = new Error('Not Found');
+                    err.code = 'ENOENT';
+                    throw err;
+                }
 
                 var dev = devs[0];
                 var ast = JSON.parse(dev.code);
@@ -130,6 +133,8 @@ module.exports = class ThingpediaClientCloud {
     }
 
     getSchemas(schemas) {
+        if (schemas.length === 0)
+            return Promise.resolve({});
         var developerKey = this.developerKey;
 
         return db.withClient((dbClient) => {
@@ -161,6 +166,9 @@ module.exports = class ThingpediaClientCloud {
     }
 
     getMetas(schemas) {
+        if (schemas.length === 0)
+            return Promise.resolve({});
+
         var developerKey = this.developerKey;
 
         return db.withClient((dbClient) => {
@@ -292,6 +300,8 @@ module.exports = class ThingpediaClientCloud {
     }
 
     getDeviceSetup(kinds) {
+        if (kinds.length === 0)
+            return Promise.resolve({});
         var developerKey = this.developerKey;
 
         return db.withClient((dbClient) => {
@@ -358,6 +368,8 @@ module.exports = class ThingpediaClientCloud {
     }
 
     getExamplesByKinds(kinds) {
+        if (kinds.length === 0)
+            return Promise.resolve([]);
         return db.withClient((dbClient) => {
             return exampleModel.getByKinds(dbClient, kinds, this.language);
         });

@@ -30,6 +30,18 @@ const everything = express.Router();
 const v1 = express.Router();
 const v2 = express.Router();
 
+function errorWrap(req, res, next, promise) {
+    Promise.resolve().then(() => promise).catch((e) => {
+        if (typeof e.code === 'number')
+            res.status(e.code);
+        else if (e.code === 'ENOENT')
+            res.status(404);
+        else
+            res.status(400);
+        res.json({ error: e.message, code: e.code });
+    }).catch(next);
+}
+
 // NOTES on versioning
 //
 // The whole API is exposed under /thingpedia/api/vX
@@ -43,66 +55,41 @@ const v2 = express.Router();
 // vN router to be skipped, failing back to the handler
 // for / at the top (which returns 404)
 
-v1.get('/schema/:schemas', (req, res) => {
+v1.get('/schema/:schemas', (req, res, next) => {
     var schemas = req.params.schemas.split(',');
-    if (schemas.length === 0) {
-        res.json({});
-        return;
-    }
-
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-
-    client.getSchemas(schemas).then((obj) => {
-        // don't cache if the use is a developer
+    errorWrap(req, res, next, client.getSchemas(schemas).then((obj) => {
+        // don't cache if the user is a developer
         if (!req.query.developer_key)
             res.cacheFor(86400000);
         res.json(obj);
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(400).send('Error: ' + e.message);
-    }).done();
+    }));
 });
 
-v1.get('/schema-metadata/:schemas', (req, res) => {
+v1.get('/schema-metadata/:schemas', (req, res, next) => {
     var schemas = req.params.schemas.split(',');
-    if (schemas.length === 0) {
-        res.json({});
-        return;
-    }
-
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-
-    client.getMetas(schemas).then((obj) => {
-        // don't cache if the use is a developer
+    errorWrap(req, res, next, client.getMetas(schemas).then((obj) => {
+        // don't cache if the user is a developer
         if (!req.query.developer_key)
             res.cacheFor(86400000);
         res.json(obj);
-    }).catch((e) => {
-        res.status(400).send('Error: ' + e.message);
-    }).done();
+    }));
 });
 
-v1.get('/code/devices/:kind', (req, res) => {
+v1.get('/code/devices/:kind', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-
-    client.getDeviceCode(req.params.kind).then((code) => {
+    errorWrap(req, res, next, client.getDeviceCode(req.params.kind).then((code) => {
         if (code.developer)
             res.cacheFor(3600000);
         else
             res.cacheFor(86400000);
         res.json(code);
-    }).catch((e) => {
-        res.status(400).send('Error: ' + e.message);
-    });
+    }));
 });
 
-v1.get('/devices/setup/:kinds', (req, res) => {
+v1.get('/devices/setup/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
-    if (kinds.length === 0) {
-        res.json({});
-        return;
-    }
-
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     client.getDeviceSetup(kinds).then((result) => {
         for (let name in result) {
@@ -113,25 +100,16 @@ v1.get('/devices/setup/:kinds', (req, res) => {
     }).then((result) => {
         res.cacheFor(86400000);
         res.status(200).json(result);
-    }).catch((e) => {
-        res.status(500).json({ error: e.message });
-    }).done();
+    }).catch(next);
 });
 
-v1.get('/devices/setup/:kinds', (req, res) => {
+v2.get('/devices/setup/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
-    if (kinds.length === 0) {
-        res.json({});
-        return;
-    }
-
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     client.getDeviceSetup(kinds).then((result) => {
         res.cacheFor(86400000);
         res.status(200).json(result);
-    }).catch((e) => {
-        res.status(500).json({ error: e.message });
-    }).done();
+    }).catch(next);
 });
 
 v1.get('/devices/icon/:kind', (req, res) => {
@@ -149,7 +127,7 @@ v1.get('/devices', (req, res, next) => {
     if (req.query.class && ['online', 'physical', 'data', 'system',
             'media', 'social-network', 'home', 'communication',
             'health', 'service', 'data-management'].indexOf(req.query.class) < 0) {
-        res.status(404).json("Invalid device class");
+        res.status(400).json({ error: "Invalid device class", code: 'EINVAL' });
         return;
     }
 
@@ -157,10 +135,6 @@ v1.get('/devices', (req, res, next) => {
     client.getDeviceFactories(req.query.class).then((obj) => {
         res.cacheFor(86400000);
         res.json(obj);
-    }).catch((e) => {
-        console.error('Failed to retrieve device factories: ' + e.message);
-        console.error(e.stack);
-        res.status(500).send('Error: ' + e.message);
     }).catch(next);
 });
 
@@ -184,7 +158,7 @@ v1.get('/devices/all', (req, res, next) => {
     if (req.query.class && ['online', 'physical', 'data', 'system',
             'media', 'social-network', 'home', 'communication',
             'health', 'service', 'data-management'].indexOf(req.query.class) < 0) {
-        res.status(404).json("Invalid device class");
+        res.status(400).json({ error: "Invalid device class", code: 'EINVAL' });
         return;
     }
 
@@ -192,17 +166,13 @@ v1.get('/devices/all', (req, res, next) => {
     client.getDeviceList(req.query.class || null, page, page_size).then((obj) => {
         res.cacheFor(86400000);
         res.json(obj);
-    }).catch((e) => {
-        console.error('Failed to retrieve device list: ' + e.message);
-        console.error(e.stack);
-        res.status(500).send('Error: ' + e.message);
     }).catch(next);
 });
 
-v1.get('/devices/search', (req, res) => {
+v1.get('/devices/search', (req, res, next) => {
     var q = req.query.q;
     if (!q) {
-        res.status(300).json({ error: 'missing query' });
+        res.status(400).json({ error: 'missing query' });
         return;
     }
 
@@ -218,11 +188,7 @@ v1.get('/devices/search', (req, res) => {
         });
         res.cacheFor(86400000);
         res.json({ devices });
-    }).catch((e) => {
-        console.error('Failed to retrieve device list: ' + e.message);
-        console.error(e.stack);
-        res.status(500).send('Error: ' + e.message);
-    }).done();
+    }).catch(next);
 });
 
 function getCommandDetails(client, commands) {
@@ -250,7 +216,7 @@ function getCommandDetails(client, commands) {
     return Promise.all([].concat.apply([], promisesAll));
 }
 
-v1.get('/commands/all', (req, res) => {
+v1.get('/commands/all', (req, res, next) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     let page = req.query.page;
     if (page === undefined)
@@ -276,18 +242,14 @@ v1.get('/commands/all', (req, res) => {
                 res.json({ data: commands });
             });
         });
-    }).catch((e) => {
-        console.error('Failed to retrieve command list: ' + e.message);
-        console.error(e.stack);
-        res.status(500).send('Error: ' + e.message);
-    }).done();
+    }).catch(next);
 });
 
-v1.get('/commands/search', (req, res) => {
+v1.get('/commands/search', (req, res, next) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     let q = req.query.q;
     if (!q) {
-        res.status(300).json({ error: 'missing query' });
+        res.status(400).json({ error: 'missing query' });
         return;
     }
 
@@ -298,11 +260,7 @@ v1.get('/commands/search', (req, res) => {
                 res.json({ data: commands });
             });
         });
-    }).catch((e) => {
-        console.error('Failed to retrieve command list: ' + e.message);
-        console.error(e.stack);
-        res.status(500).send('Error: ' + e.message);
-    }).done();
+    }).catch(next);
 });
 
 
@@ -318,71 +276,56 @@ v1.get('/code/apps/:app_id', (req, res) => {
 });
 v2.get('/code/apps/:app_id', (req, res, next) => next('router'));
 
-v1.post('/discovery', (req, res) => {
+v1.post('/discovery', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
-    client.getKindByDiscovery(req.body).then((result) => {
+    errorWrap(req, res, next, client.getKindByDiscovery(req.body).then((result) => {
         if (result === null) {
-            res.status(404).send('Not Found');
+            res.status(404).json({ error: 'Not Found' });
             return;
         }
 
         res.cacheFor(86400000);
         res.status(200).send(result.primary_kind);
-    }).catch((e) => {
-        console.log('Failed to complete discovery request: ' + e.message);
-        console.log(e.stack);
-        res.status(400).send('Error: ' + e.message);
-    });
+    }));
 });
 
-v1.get('/examples/by-kinds/:kinds', (req, res) => {
+v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
-    if (kinds.length === 0) {
-        res.json([]);
-        return;
-    }
-
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     var isBase = req.query.base !== '0';
 
     client.getExamplesByKinds(kinds, isBase).then((result) => {
         res.cacheFor(300000);
         res.status(200).json(result);
-    }).catch((e) => {
-        res.status(500).json({ error: e.message });
-    });
+    }).catch(next);
 });
 
-v1.get('/examples', (req, res) => {
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+v1.get('/examples', (req, res, next) => {
+    if (!req.query.key) {
+        res.status(400).json({ error: "missing query" });
+        return;
+    }
 
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     var isBase = req.query.base !== '0';
 
-    if (req.query.key) {
-        client.getExamplesByKey(req.query.key, isBase).then((result) => {
-            res.cacheFor(300000);
-            res.status(200).json(result);
-        }).catch((e) => {
-            res.status(500).json({ error: e.message });
-        });
-    } else {
-        res.status(400).json({ error: "Bad Request" });
-    }
+    client.getExamplesByKey(req.query.key, isBase).then((result) => {
+        res.cacheFor(300000);
+        res.status(200).json(result);
+    }).catch(next);
 });
 
-v1.get('/examples/click/:id', (req, res) => {
+v1.get('/examples/click/:id', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
     client.clickExample(req.params.id).then(() => {
         res.cacheFor(300000);
         res.status(200).json({ result: 'ok' });
-    }, (e) => {
-        res.status(500).json({ error: e.message });
-    }).done();
+    }).catch(next);
 });
 
-v1.get('/entities', (req, res) => {
+v1.get('/entities', (req, res, next) => {
     const snapshotId = parseInt(req.query.snapshot);
     const etag = `"snapshot-${snapshotId}"`;
     if (snapshotId >= 0 && req.headers['if-none-match'] === etag) {
@@ -409,17 +352,15 @@ v1.get('/entities', (req, res) => {
             is_well_known: r.is_well_known,
             has_ner_support: r.has_ner_support
         })) });
-    }).catch((e) => {
-        res.status(500).json({ error: e.message });
-    }).done();
+    }).catch(next);
 });
 
-v1.get('/entities/lookup', (req, res) => {
+v1.get('/entities/lookup', (req, res, next) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const token = req.query.q;
 
     if (!token) {
-        res.status(400).json({ error: 'Missing query' });
+        res.status(400).json({ error: 'missing query' });
         return;
     }
     
@@ -428,21 +369,19 @@ v1.get('/entities/lookup', (req, res) => {
     }).then((rows) => {
         res.cacheFor(86400000);
         res.status(200).json({ result: 'ok', data: rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name })) });
-    }).catch((e) => {
-        res.status(500).json({ error: e.message });
-    }).done();
+    }).catch(next);
 });
 
-v1.get('/entities/lookup/:type', (req, res) => {
+v1.get('/entities/lookup/:type', (req, res, next) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const token = req.query.q;
 
     if (!token) {
-        res.status(400).json({ error: 'Missing query' });
+        res.status(400).json({ error: 'missing query' });
         return;
     }
     
-    db.withClient((dbClient) => {
+    errorWrap(req, res, next, db.withClient((dbClient) => {
         return Promise.all([entityModel.lookupWithType(dbClient, language, req.params.type, token),
                             entityModel.get(dbClient, req.params.type, language)]);
     }).then(([rows, meta]) => {
@@ -452,26 +391,19 @@ v1.get('/entities/lookup/:type', (req, res) => {
             meta: { name: meta.name, has_ner_support: meta.has_ner_support, is_well_known: meta.is_well_known },
             data: rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name }))
         });
-    }).catch((e) => {
-        if (e.message === `Wrong number of rows returned, expected 1, got 0`)
-            res.status(404).json({ error: "Invalid entity type" });
-        else
-            res.status(500).json({ error: e.message });
-    }).done();
+    }));
 });
 
-v1.get('/entities/list/:type', (req, res) => {
-    return db.withClient((dbClient) => {
+v1.get('/entities/list/:type', (req, res, next) => {
+    db.withClient((dbClient) => {
         return entityModel.getValues(dbClient, req.params.type);
     }).then((rows) => {
         res.cacheFor(86400000);
         res.status(200).json({ result: 'ok', data: rows.map((r) => ({ id: r.entity_value, name: r.entity_name })) });
-    }).catch((e) => {
-        res.status(500).json({ error: e.message });
-    }).done();
+    }).catch(next);
 });
 
-v1.get('/entities/icon', (req, res) => {
+v1.get('/entities/icon', (req, res, next) => {
     const cacheManager = ImageCacheManager.get();
     const entityValue = req.query.entity_value;
     const entityType = req.query.entity_type;
@@ -502,13 +434,11 @@ v1.get('/entities/icon', (req, res) => {
             return cacheManager.cache(cacheKey, body.value[0].contentUrl);
         }).then((filename) => {
             res.redirect(301, '/cache/' + filename);
-        }).catch((e) => {
-            res.status(500).send(e.message);
-        });
+        }).catch(next);
     }
 });
 
-v1.get('/snapshot/:id', (req, res) => {
+v1.get('/snapshot/:id', (req, res, next) => {
     const getMeta = req.query.meta === '1';
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const snapshotId = parseInt(req.params.id);
@@ -539,9 +469,7 @@ v1.get('/snapshot/:id', (req, res) => {
             res.cacheFor(3600000);
         }
         res.status(200).json({ result: 'ok', data: rows });
-    }).catch((e) => {
-        res.status(500).json({ error: e.message });
-    }).done();
+    }).catch(next);
 });
 
 // all endpoints that have not been overridden in v2 use the v1 version
@@ -556,6 +484,12 @@ everything.use('/', v1);
 // if nothing handled the route, return a 404
 everything.use('/', (req, res) => {
     res.status(404).json({ error: 'Invalid endpoint' });
+});
+
+// if something failed, return a 500 in json form
+everything.use('/', (err, req, res, next) => {
+    console.error(err);
+    res.status(500).json({ error: err.message, code: err.code });
 });
 
 module.exports = everything;
