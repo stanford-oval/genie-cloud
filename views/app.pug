@@ -6,12 +6,16 @@ block styles
 
 block scripts
   script(src='/javascripts/app.js')
+  script(src='/javascripts/index.js')
 
 block page_name
   - stdlayout = false;
   = _("Almond")
 
 block content
+  if authenticated
+    div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+
   div#page-body
     section.divider#section-heading
       h1#almond-title Almond
