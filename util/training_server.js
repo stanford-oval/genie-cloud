@@ -31,6 +31,11 @@ class TrainingServer {
         return Tp.Helpers.Http.get(Config.TRAINING_URL + '/jobs/current', { auth }).then((response) => {
             let parsed = JSON.parse(response);
             return parsed;
+        }).catch((e) => {
+            // if the server is down return nothing
+            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
+                return null;
+            throw e;
         });
     }
 
@@ -66,6 +71,9 @@ class TrainingServer {
             let parsed = JSON.parse(response);
             return parsed;
         }).catch((e) => {
+            // if the server is down return nothing
+            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
+                return null;
             if (e.code === 404)
                 return null;
             throw e;
