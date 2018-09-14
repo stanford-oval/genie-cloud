@@ -1,4 +1,6 @@
-# Guide for Authentication and Discovery
+# Guide to Authentication and Discovery
+
+[[toc]]
 
 ## Handling Authentication
 

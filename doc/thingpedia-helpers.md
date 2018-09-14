@@ -5,6 +5,8 @@ Most APIs are part of the [thingpedia](https://github.com/Stanford-Mobisocial-Io
 with the exception of the [Engine class](#class-engine) and the [Platform class](#class-platform), which
 are part of [thingengine-core](https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core).
 
+[[toc]]
+
 ## Top-level package
 
 The `thingpedia` package contains:

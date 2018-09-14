@@ -2,6 +2,20 @@
     text-align: justify;
 }
 
+.documentation > h1 {
+  padding-bottom: 0.1em;
+  border-bottom: 1px solid gray;
+  margin-bottom: 0.7em;
+}
+.table-of-contents {
+  float: left;
+  background-color: #f9f9f9;
+  padding: 15px 20px 10px 0;
+}
+.table-of-contents + * {
+  clear: both;
+}
+
 /* emulate bootstrap styling of .table with no class name */
 
 .documentation table {
@@ -21,4 +35,74 @@
 
 .documentation table th {
     vertical-align: bottom;
+}
+
+/* sidebar */
+
+nav#doc-sidebar {
+  display: block;
+  margin-top: 80px;
+  background-color: whitesmoke;
+  color: black;
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+@media screen and (min-width: 1000px) {
+  nav#doc-sidebar {
+    position: fixed;
+    margin-top: 30px;
+  }
+  nav#doc-sidebar > ul > li > ul > li > a {
+    padding-right: 40px;
+  }
+}
+
+nav#doc-sidebar > ul {
+  padding: 0px;
+}
+nav#doc-sidebar > ul > li {
+  display: block;
+  padding-top: 10px;
+  font-weight: bold;
+  padding-bottom: 10px;
+  color: #1f2c39;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+nav#doc-sidebar > ul > li.current {
+  background-color: #1f2c39;
+  color: white;
+}
+nav#doc-sidebar > ul > li.current > ul li > a {
+  color: #dea844;
+}
+nav#doc-sidebar > ul > li > ul {
+  font-weight: normal;
+  color: black;
+  padding: 0px;
+  margin-left: -20px;
+  margin-right: -20px;
+}
+nav#doc-sidebar > ul > li > ul li {
+  display: block;
+}
+nav#doc-sidebar > ul > li > ul li > a {
+  display: block;
+  padding-left: 40px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+nav#doc-sidebar > ul > li > ul li > a:hover {
+  background-color: lightgray;
+  text-decoration: none;
+}
+nav#doc-sidebar > ul > li.current > ul li > a:hover {
+  background-color: lightgray;
+  color: #c67432;
+}
+nav#doc-sidebar > ul > li > ul li.current > a {
+  color: white;
+  background-color: transparent;
+  font-weight: bold;
 }

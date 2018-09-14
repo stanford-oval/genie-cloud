@@ -16,6 +16,7 @@ home/
 doc/doc-list.json
 doc/thingpedia-api
 views/doc_*.pug
+!views/doc_base.pug
 
 node_modules/
 

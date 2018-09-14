@@ -1,5 +1,7 @@
 # ThingTalk by examples
 
+[[toc]]
+
 ## What is ThingTalk?
 
 ThingTalk is the programming language that Almond uses. It's a _declarative

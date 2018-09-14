@@ -1,11 +1,10 @@
-# Web Almond API Reference
+# Web Almond API
 
-Web Almond is an easy and convenient web interface for the
-Almond assistant https://thingpedia.stanford.edu. To access Web Almond natively,
-the user must be logged into Thingpedia before making requests.
-
+Web Almond is the convenient web interface for the Almond assistant provided on this website.
 Web Almond can also be used from third-party applications using the following
 set of APIs.
+
+[[toc]]
 
 ## Authentication
 
@@ -17,10 +16,10 @@ The Web Almond login page can be retrieved using the following endpoint:
 GET /user/login
 ```
 
-### OAuth2 Flow
+### OAuth Flow
 
 Web Almond uses the OAuth 2.0 Authorization Flow as specified in [RFC 6749](https://tools.ietf.org/html/rfc6749#section-4.1).
-The OAuth2 grant flow has the following 2 steps:
+The OAuth grant flow has the following 2 steps:
 
  1. Call the authorization endpoint from the client. This will show a confirmation
     page to the user asking to grant access to Web Almond. After the user confirms the authorization, the browser will be redirected to the URI you specified,

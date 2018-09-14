@@ -1,5 +1,7 @@
 # ThingTalk Reference Manual
 
+[[toc]]
+
 ## Types
 
 * `Any`: the base, or unspecified, type; use it when the other types

@@ -4,6 +4,8 @@ Welcome to Almond!
 
 This short introduction will teach you the basics of using your Almond.
 
+[[toc]]
+
 ## What is Almond?
 
 Almond is the magic virtual assistant that you access through your phone. She can

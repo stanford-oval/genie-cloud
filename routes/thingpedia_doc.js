@@ -57,7 +57,10 @@ router.get('/', (req, res) => {
 
 for (let doc of require('../doc/doc-list.json')) {
     router.get('/' + doc + '.md', (req, res, next) => {
-        res.render('doc_' + doc, { page_title: req._("Thingpedia - Documentation") });
+        res.render('doc_' + doc, {
+            page_title: req._("Thingpedia - Documentation"),
+            currentPage: doc
+        });
     });
 }
 

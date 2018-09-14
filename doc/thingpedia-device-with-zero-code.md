@@ -1,6 +1,9 @@
-# Device with Zero Line of Code
-Thingpedia provides a simple way to hook up some typical devices with zero coding.
-Currently, we support `Generic Rest` APIs that use no authentication or just standard OAuth 2.0, and `RSS Feed`.
+# Declarative Thingpedia Entries
+
+Thingpedia provides a way to connect to some devices that use common protocols with no additional JavaScript code.
+Currently, we support Generic [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) APIs that use no authentication or just standard OAuth 2.0, and RSS feeds (in Atom or RSS 1.0 format).
+
+[[toc]]
 
 ## Generic REST
 If a device simply provides an interface for HTTP requests, `Generic REST` package type will probably save you lots of time. 

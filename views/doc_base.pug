@@ -6,11 +6,15 @@ block styles
       href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow-night-eighties.min.css")
 
 block page_name
-  - index = true;
+  - stdlayout = false;
   = _("Documentation")
 
 block content
-  div.row
-    div.col-xs-12.col-lg-offset-1.col-lg-10
-      div.documentation
-        include:markdown-it(plugins=['markdown-it-anchor', 'markdown-it-highlightjs']) ../@@DOC@@
+  div.container-fluid#page-body
+    div.row
+      div.col-lg-3.col-md-4
+        include documentation_sidebar.pug
+
+      div.col-xs-12.col-md-8.col-lg-9
+        div.documentation
+          include:markdown-it(plugins=['markdown-it-anchor', 'markdown-it-highlightjs', ['markdown-it-table-of-contents', { includeLevel: [2,3] }]]) ../@@DOC@@

@@ -1,10 +1,12 @@
-# Almond Dialog API Reference
+# Almond Dialog API
 
 The Almond Dialog API allows you to integrate the Almond agent in new UIs, new platforms, or third party products such as Alexa.
 
 This page describes only the abstract interface of the Almond agent.
 A concrete interface is provided over [Web Sockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) by [Web Almond](/doc/my-api.md#endpoint-meapiconversation).
 Other concrete implementations are provided by the [Alexa bridge](https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud/blob/master/routes/my_api.js) or by the internal APIs of the platforms that have a UI (e.g. platform-android, platform-gnome).
+
+[[toc]]
 
 ## Interaction model
 
