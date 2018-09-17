@@ -12,19 +12,7 @@
 const db = require('../util/db');
 
 function create(client, user) {
-    const KEYS = ['username', 'human_name', 'email', 'locale', 'timezone', 'google_id',
-                  'password', 'salt',
-                  'cloud_id', 'auth_token', 'storage_key',
-                  'developer_org'];
-    KEYS.forEach((key) => {
-        if (user[key] === undefined)
-            user[key] = null;
-    });
-    const vals = KEYS.map((key) => user[key]);
-    const marks = KEYS.map(() => '?');
-
-    return db.insertOne(client,
-        `insert into users(${KEYS.join(',')}) values (${marks.join(',')})`, vals).then((id) => {
+    return db.insertOne(client, `insert into users set ?`, [user]).then((id) => {
         user.id = id;
         return user;
     });

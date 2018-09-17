@@ -16,6 +16,10 @@ module.exports = {
     create(client, entity) {
         return db.insertOne(client, `insert into entity_names set language = 'en', ?`, [entity]);
     },
+    createMany(client, entities) {
+        return db.insertOne(client, `insert into entity_names(id, language, name, is_well_known, has_ner_support) values ?`,
+            [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support])]);
+    },
 
     get(client, id, language = 'en') {
         return db.selectOne(client, "select * from entity_names where id = ? and language = ?",

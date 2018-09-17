@@ -76,6 +76,20 @@ function connect() {
 module.exports = {
     getPool,
     connect,
+    tearDown() {
+        if (_pool === undefined)
+            return Promise.resolve();
+        const pool = _pool;
+        _pool = undefined;
+        return new Promise((resolve, reject) => {
+            pool.end((err) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve();
+            });
+        });
+    },
 
     withClient(callback) {
         return connect().then(([client, done]) => {

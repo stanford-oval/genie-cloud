@@ -111,16 +111,14 @@ Set up your database by executing the SQL in `model/schema.sql`. Then set `DATAB
 See the documentation of node-mysql for options. If you use Amazon RDS, you should say so with `ssl=Amazon%20RDS`.
 It is recommended you set `timezone=Z` in the options (telling the database to store dates and times in UTC timezone).
 
-The SQL script will create a default `root` user, with password `rootroot`.
-The database is initially empty.
+After that, execute:
+```node ./scripts/bootstrap.js```
 
-If you are using the embedded Thingpedia, you must populate it with the builtin Thingpedia entries
-([org.thingpedia.builtin.thingengine](https://almond.stanford.edu/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine), [org.thingpedia.builtin.thingengine.builtin](https://almond.stanford.edu/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine.builtin),
- [org.thingpedia.builtin.thingengine.remote](https://almond.stanford.edu/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine.remote),
- [org.thingpedia.builtin.test](https://almond.stanford.edu/thingpedia/devices/by-id/org.thingpedia.builtin.test))
- before you can run Web Almond.
+This script will create the default `root` user, with password `rootroot`.
 
-The database initialization will also create a default `anonymous` user, with the same password as the root user. This enables users to try
+If you are using the embedded Thingpedia, the script will also populate the database with the builtin Thingpedia entries.
+
+The script will also create a default `anonymous` user, with the same password as the root user. This enables users to try
 Web Almond without creating an account for themselves. Note that the default anonymous user is missing
 all service accounts, including those like YouTube that are advertised as suggestions to users.
 

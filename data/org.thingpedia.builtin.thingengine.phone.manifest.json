@@ -1,0 +1,335 @@
+{
+    "thingpedia_name": "Phone",
+    "thingpedia_description": "Install the Almond App on your phone to access your mobile features, including your location",
+    "module_type": "org.thingpedia.builtin",
+    "params": {},
+    "category": "physical",
+    "subcategory": "communication",
+    "types": [],
+    "child_types": [],
+    "auth": {
+        "type": "builtin"
+    },
+    "queries": {
+        "get_gps": {
+            "args": [
+                {
+                    "name": "location",
+                    "type": "Location",
+                    "question": "What location are you interested in?",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "altitude",
+                    "type": "Measure(m)",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "bearing",
+                    "type": "Number",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "speed",
+                    "type": "Measure(mps)",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                }
+            ],
+            "doc": "get last known GPS location",
+            "confirmation": "your location",
+            "confirmation_remote": "$__person's location",
+            "canonical": "get current location on phone",
+            "formatted": [
+                {
+                    "type": "text",
+                    "text": "Current Location: ${location}"
+                }
+            ],
+            "poll_interval": 0,
+            "is_list": false
+        },
+        "sms": {
+            "args": [
+                {
+                    "name": "sender",
+                    "type": "Entity(tt:phone_number)",
+                    "question": "What number do you want to monitor?",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "message",
+                    "type": "String",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "date",
+                    "type": "Date",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                }
+            ],
+            "doc": "trigger when an SMS is received",
+            "confirmation": "your SMS",
+            "confirmation_remote": "$__person's SMS",
+            "canonical": "receive sms on phone",
+            "formatted": [
+                {
+                    "type": "text",
+                    "text": "SMS from ${from} received at ${date}: ${body}"
+                }
+            ],
+            "poll_interval": 0,
+            "is_list": true
+        }
+    },
+    "actions": {
+        "send_sms": {
+            "args": [
+                {
+                    "name": "to",
+                    "type": "Entity(tt:phone_number)",
+                    "question": "Who do you want to text?",
+                    "is_input": true,
+                    "required": true
+                },
+                {
+                    "name": "message",
+                    "type": "String",
+                    "question": "What do you want to say in your text?",
+                    "is_input": true,
+                    "required": true
+                }
+            ],
+            "doc": "send a message to the specified phone number (carrier charges apply)",
+            "confirmation": "send a message to $to containing $message",
+            "confirmation_remote": "send a message from $__person to $to containing $message",
+            "canonical": "send sms on phone",
+            "formatted": [],
+            "poll_interval": -1,
+            "is_list": false
+        },
+        "set_ringer": {
+            "args": [
+                {
+                    "name": "mode",
+                    "type": "Enum(normal,vibrate,silent)",
+                    "question": "What mode to you want to set?",
+                    "is_input": true,
+                    "required": true
+                }
+            ],
+            "doc": "set ringer mode; valid values are \"normal\", \"vibrate\" and \"silent\"",
+            "confirmation": "set your phone to $mode",
+            "confirmation_remote": "set $__person's phone to $mode",
+            "canonical": "set ringer on phone",
+            "formatted": [],
+            "poll_interval": -1,
+            "is_list": false
+        },
+        "call": {
+            "args": [
+                {
+                    "name": "number",
+                    "type": "Entity(tt:phone_number)",
+                    "question": "Who do you want to call?",
+                    "is_input": true,
+                    "required": true
+                }
+            ],
+            "doc": "place a phone call",
+            "confirmation": "call $number",
+            "confirmation_remote": "call $number using $__person's phone",
+            "canonical": "make call on phone",
+            "formatted": [],
+            "poll_interval": -1,
+            "is_list": false
+        },
+        "call_emergency": {
+            "args": [],
+            "doc": "place an emergency call; due to regulations on emergency numbers, the call is not actually placed, it just shows the dialer with the right number",
+            "confirmation": "call emergency assistance",
+            "confirmation_remote": "call emergency assistance from $__person's phone",
+            "canonical": "call emergency on phone",
+            "formatted": [],
+            "poll_interval": -1,
+            "is_list": false
+        }
+    },
+    "examples": [
+        {
+            "utterance": "when my location changes",
+            "program": "let stream x := monitor (@org.thingpedia.builtin.thingengine.phone.get_gps());"
+        },
+        {
+            "utterance": "when i move",
+            "program": "let stream x := monitor (@org.thingpedia.builtin.thingengine.phone.get_gps());"
+        },
+        {
+            "utterance": "when my location changes to $p_location",
+            "program": "let stream x := \\(p_location :Location) -> edge (monitor (@org.thingpedia.builtin.thingengine.phone.get_gps())) on location == p_location;"
+        },
+        {
+            "utterance": "when i receive a sms",
+            "program": "let stream x := monitor (@org.thingpedia.builtin.thingengine.phone.sms());"
+        },
+        {
+            "utterance": "when i receive a sms from $p_sender ",
+            "program": "let stream x := \\(p_sender :Entity(tt:phone_number)) -> monitor ((@org.thingpedia.builtin.thingengine.phone.sms()), sender == p_sender);"
+        },
+        {
+            "utterance": "my current location",
+            "program": "let table x := @org.thingpedia.builtin.thingengine.phone.get_gps();"
+        },
+        {
+            "utterance": "send an sms to $p_to saying $p_message",
+            "program": "let action x := \\(p_to :Entity(tt:phone_number), p_message :String) -> @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to, message=p_message);"
+        },
+        {
+            "utterance": "send an sms message to $p_to saying $p_message",
+            "program": "let action x := \\(p_to :Entity(tt:phone_number), p_message :String) -> @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to, message=p_message);"
+        },
+        {
+            "utterance": "send a text to $p_to saying $p_message",
+            "program": "let action x := \\(p_to :Entity(tt:phone_number), p_message :String) -> @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to, message=p_message);"
+        },
+        {
+            "utterance": "set my phone to $p_mode",
+            "program": "let action x := \\(p_mode :Enum(normal,vibrate,silent)) -> @org.thingpedia.builtin.thingengine.phone.set_ringer(mode=p_mode);"
+        },
+        {
+            "utterance": "call $p_number",
+            "program": "let action x := \\(p_number :Entity(tt:phone_number)) -> @org.thingpedia.builtin.thingengine.phone.call(number=p_number);"
+        },
+        {
+            "utterance": "dial $p_number",
+            "program": "let action x := \\(p_number :Entity(tt:phone_number)) -> @org.thingpedia.builtin.thingengine.phone.call(number=p_number);"
+        },
+        {
+            "utterance": "call 911",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.call_emergency();"
+        },
+        {
+            "utterance": "call ambulance",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.call_emergency();"
+        },
+        {
+            "utterance": "call fire department",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.call_emergency();"
+        },
+        {
+            "utterance": "call police",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.call_emergency();"
+        },
+        {
+            "utterance": "text $p_to saying $p_message",
+            "program": "let action x := \\(p_to :Entity(tt:phone_number), p_message :String) -> @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to, message=p_message);"
+        },
+        {
+            "utterance": "send a text to $p_to",
+            "program": "let action x := \\(p_to :Entity(tt:phone_number)) -> @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to);"
+        },
+        {
+            "utterance": "send a message to $p_to",
+            "program": "let action x := \\(p_to :Entity(tt:phone_number)) -> @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to);"
+        },
+        {
+            "utterance": "when i reach $p_location",
+            "program": "let stream x := \\(p_location :Location) -> edge (monitor (@org.thingpedia.builtin.thingengine.phone.get_gps())) on location == p_location;"
+        },
+        {
+            "utterance": "when i move away from $p_location",
+            "program": "let stream x := \\(p_location :Location) -> edge (monitor (@org.thingpedia.builtin.thingengine.phone.get_gps())) on !(location == p_location);"
+        },
+        {
+            "utterance": "when i leave $p_location",
+            "program": "let stream x := \\(p_location :Location) -> edge (monitor (@org.thingpedia.builtin.thingengine.phone.get_gps())) on !(location == p_location);"
+        },
+        {
+            "utterance": "my sms inbox",
+            "program": "let table x := @org.thingpedia.builtin.thingengine.phone.sms();"
+        },
+        {
+            "utterance": "sms in my phone",
+            "program": "let table x := @org.thingpedia.builtin.thingengine.phone.sms();"
+        },
+        {
+            "utterance": "texts i received",
+            "program": "let table x := @org.thingpedia.builtin.thingengine.phone.sms();"
+        },
+        {
+            "utterance": "texts from $p_sender",
+            "program": "let table x := \\(p_sender :Entity(tt:phone_number)) -> (@org.thingpedia.builtin.thingengine.phone.sms()), sender == p_sender;"
+        },
+        {
+            "utterance": "texts i received today",
+            "program": "let table x := (@org.thingpedia.builtin.thingengine.phone.sms()), date >= start_of(day);"
+        },
+        {
+            "utterance": "texts i received in the last hour",
+            "program": "let table x := (@org.thingpedia.builtin.thingengine.phone.sms()), date >= start_of(h);"
+        },
+        {
+            "utterance": "turn on vibration in my phone",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.set_ringer(mode=enum(vibrate));"
+        },
+        {
+            "utterance": "turn off ringer and vibration in my phone",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.set_ringer(mode=enum(silent));"
+        },
+        {
+            "utterance": "make my phone silent",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.set_ringer(mode=enum(silent));"
+        },
+        {
+            "utterance": "make my phone vibrate for calls",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.set_ringer(mode=enum(vibrate));"
+        },
+        {
+            "utterance": "place a phone call",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.call();"
+        },
+        {
+            "utterance": "phone $p_number",
+            "program": "let action x := \\(p_number :Entity(tt:phone_number)) -> @org.thingpedia.builtin.thingengine.phone.call(number=p_number);"
+        },
+        {
+            "utterance": "call somebody",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.call();"
+        },
+        {
+            "utterance": "call my friend",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.call();"
+        },
+        {
+            "utterance": "call ${p_number}",
+            "program": "let action x := \\(p_number :Entity(tt:contact_name)) -> @org.thingpedia.builtin.thingengine.phone.call(number=p_number);"
+        },
+        {
+            "utterance": "mute my phone",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.phone.set_ringer(mode=enum(silent));"
+        },
+        {
+            "utterance": "make a call to ${p_number}",
+            "program": "let action x := \\(p_number :Entity(tt:contact_name)) -> @org.thingpedia.builtin.thingengine.phone.call(number=p_number);"
+        },
+        {
+            "utterance": "send a text to $p_to containing $p_message",
+            "program": "let action x := \\(p_to :Entity(tt:phone_number), p_message :String) -> @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to, message=p_message);"
+        },
+        {
+            "utterance": "send a message to $p_to containing $p_message",
+            "program": "let action x := \\(p_to :Entity(tt:phone_number), p_message :String) -> @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to, message=p_message);"
+        }
+    ]
+}

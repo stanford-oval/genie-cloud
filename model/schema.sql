@@ -218,7 +218,6 @@ CREATE TABLE `device_schema_channel_canonicals` (
   `confirmation_remote` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
   `formatted` mediumtext CHARACTER SET utf8 DEFAULT NULL,
   `questions` mediumtext CHARACTER SET utf8 NOT NULL,
-  `keywords` mediumtext CHARACTER SET utf8 NOT NULL,
   `argcanonicals` mediumtext CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`schema_id`,`version`,`language`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

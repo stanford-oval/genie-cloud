@@ -1,0 +1,80 @@
+{
+    "thingpedia_name": "Almond Home",
+    "thingpedia_description": "Your Almond, in your living room",
+    "module_type": "org.thingpedia.builtin",
+    "params": {},
+    "category": "physical",
+    "subcategory": "home",
+    "types": [],
+    "child_types": [],
+    "auth": {
+        "type": "builtin"
+    },
+    "actions": {
+        "stop_playing": {
+            "args": [],
+            "doc": "stop playing whatever is being played",
+            "confirmation": "stop playing the current song or movie in your Almond Home",
+            "confirmation_remote": "stop playing the current song or movie in $__person's Almond Home",
+            "canonical": "stop playing on almond home",
+            "formatted": [],
+            "poll_interval": 0
+        },
+        "start_playing": {
+            "args": [
+                {
+                    "name": "link",
+                    "type": "Entity(tt:url)",
+                    "question": "What do you want to play? Enter the URL to the file",
+                    "is_input": true,
+                    "required": true
+                }
+            ],
+            "doc": "plays the given URL on the local speaker and TV output",
+            "confirmation": "play ${link} in your Almond Home",
+            "confirmation_remote": "play ${link} in $__person's Almond Home",
+            "canonical": "start playing on almond home",
+            "formatted": [],
+            "poll_interval": 0
+        }
+    },
+    "queries": {},
+    "examples": [
+        {
+            "utterance": "play ${p_link} on my almond home",
+            "program": "let action x := \\(p_link :Entity(tt:url)) -> @org.thingpedia.builtin.thingengine.home.start_playing(link=p_link);"
+        },
+        {
+            "utterance": "play something on my almond home",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.home.start_playing();"
+        },
+        {
+            "utterance": "play ${p_link}",
+            "program": "let action x := \\(p_link :Entity(tt:url)) -> @org.thingpedia.builtin.thingengine.home.start_playing(link=p_link);"
+        },
+        {
+            "utterance": "play some music",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.home.start_playing();"
+        },
+        {
+            "utterance": "play a video",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.home.start_playing();"
+        },
+        {
+            "utterance": "stop playing music on my almond home",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.home.stop_playing();"
+        },
+        {
+            "utterance": "stop playing the video on my almond home",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.home.stop_playing();"
+        },
+        {
+            "utterance": "stop the playback on my almond home",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.home.stop_playing();"
+        },
+        {
+            "utterance": "stop playing the video",
+            "program": "let action x := @org.thingpedia.builtin.thingengine.home.stop_playing();"
+        }
+    ]
+}

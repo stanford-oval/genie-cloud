@@ -3,6 +3,8 @@ branches:
   - /^wip/
 language: node_js
 sudo: true
+addons:
+  mariadb: '10.2'
 node_js:
 - '8'
 before_install:
@@ -10,5 +12,8 @@ before_install:
 install:
 - sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev
 - yarn
+before_script:
+- mysql -u travis -e "create database if not exists thingengine_test; grant all privileges on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
 script:
 - yarn lint
+- ./tests/thingpedia-integration.sh
