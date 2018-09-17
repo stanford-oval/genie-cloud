@@ -22,3 +22,4 @@ before_script:
 script:
 - yarn lint
 - yarn test
+after_success: yarn run coverage

@@ -24,6 +24,7 @@
     "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js",
     "test": "nyc ./tests/everything.sh",
     "prepublish": "which yarn >/dev/null 2>&1 && ( yarn compile-mo && yarn update-docs ) || ( npm run compile-mo && npm run update-docs )",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
     "install": "make -C sandbox all || echo WARNING: failed to compile the sandbox"
   },
   "resolutions": {},
@@ -92,6 +93,7 @@
     "babelify": "^7.3.0",
     "browserify": "^16.1.1",
     "byline": "^5.0.0",
+    "coveralls": "^3.0.2",
     "deep-equal": "^1.0.1",
     "eslint": "^4.17.0",
     "jsxgettext": "^0.10.1",
