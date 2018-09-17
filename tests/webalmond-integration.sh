@@ -46,7 +46,7 @@ node $srcdir/main.js &
 frontendpid=$!
 
 # sleep until both processes are settled
-sleep 10
+sleep 30
 
 # TODO run tests here
 

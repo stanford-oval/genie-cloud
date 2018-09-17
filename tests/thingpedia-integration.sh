@@ -53,7 +53,7 @@ node $srcdir/main.js &
 frontendpid=$!
 
 # sleep until the process is settled
-sleep 10
+sleep 30
 
 # if the developer says --sleep on the command line, just
 # sleep forever
