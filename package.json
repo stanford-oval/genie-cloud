@@ -24,7 +24,7 @@
     "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js",
     "test": "nyc ./tests/everything.sh",
     "prepublish": "which yarn >/dev/null 2>&1 && ( yarn compile-mo && yarn update-docs ) || ( npm run compile-mo && npm run update-docs )",
-    "install": "make -C sandbox all"
+    "install": "make -C sandbox all || echo WARNING: failed to compile the sandbox"
   },
   "resolutions": {},
   "dependencies": {
