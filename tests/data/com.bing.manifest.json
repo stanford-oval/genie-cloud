@@ -1,0 +1,171 @@
+{
+    "thingpedia_name": "Bing Search",
+    "thingpedia_description": "Search the web with Bing",
+    "module_type": "org.thingpedia.v2",
+    "params": {},
+    "category": "data",
+    "subcategory": "service",
+    "types": [],
+    "child_types": [],
+    "auth": {
+        "type": "none"
+    },
+    "queries": {
+        "web_search": {
+            "args": [
+                {
+                    "name": "query",
+                    "type": "String",
+                    "question": "What do you want to search?",
+                    "is_input": true,
+                    "required": true
+                },
+                {
+                    "name": "title",
+                    "type": "String",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "description",
+                    "type": "String",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "link",
+                    "type": "Entity(tt:url)",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                }
+            ],
+            "doc": "search for `query` on Bing",
+            "confirmation": "websites matching $query on Bing",
+            "confirmation_remote": "",
+            "canonical": "web search on bing",
+            "formatted": [
+                {
+                    "type": "rdl",
+                    "webCallback": "${link}",
+                    "displayTitle": "${title}",
+                    "displayText": "${description}"
+                }
+            ],
+            "poll_interval": 3600000,
+            "is_list": true
+        },
+        "image_search": {
+            "args": [
+                {
+                    "name": "query",
+                    "type": "String",
+                    "question": "What do you want to search?",
+                    "is_input": true,
+                    "required": true
+                },
+                {
+                    "name": "title",
+                    "type": "String",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "picture_url",
+                    "type": "Entity(tt:picture)",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "link",
+                    "type": "Entity(tt:url)",
+                    "question": "",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "width",
+                    "type": "Number",
+                    "question": "What width are you looking for (in pixels)?",
+                    "is_input": false,
+                    "required": false
+                },
+                {
+                    "name": "height",
+                    "type": "Number",
+                    "question": "What height are you looking for (in pixels)?",
+                    "is_input": false,
+                    "required": false
+                }
+            ],
+            "doc": "search for `query` on Bing Images",
+            "confirmation": "images matching $query from Bing",
+            "confirmation_remote": "",
+            "canonical": "image search on bing",
+            "formatted": [
+                {
+                    "type": "rdl",
+                    "webCallback": "${link}",
+                    "displayTitle": "${title}"
+                },
+                {
+                    "type": "picture",
+                    "url": "${picture_url}"
+                }
+            ],
+            "poll_interval": 3600000,
+            "is_list": true
+        }
+    },
+    "actions": {},
+    "examples": [
+        {
+            "utterance": "${p_query:const} on bing",
+            "program": "let table x := \\(p_query :String) -> @com.bing.web_search(query=p_query);"
+        },
+        {
+            "utterance": "bing $p_query",
+            "program": "let table x := \\(p_query :String) -> @com.bing.web_search(query=p_query);"
+        },
+        {
+            "utterance": "${p_query:const} images on bing",
+            "program": "let table x := \\(p_query :String) -> @com.bing.image_search(query=p_query);"
+        },
+        {
+            "utterance": "images matching $p_query from bing",
+            "program": "let table x := \\(p_query :String) -> @com.bing.image_search(query=p_query);"
+        },
+        {
+            "utterance": "images from bing matching $p_query with size $p_width x $p_height",
+            "program": "let table x := \\(p_query :String, p_width :Number, p_height :Number) -> (@com.bing.image_search(query=p_query)), (width == p_width && height == p_height);"
+        },
+        {
+            "utterance": "images from bing matching $p_query larger than $p_width x $p_height",
+            "program": "let table x := \\(p_query :String, p_width :Number, p_height :Number) -> (@com.bing.image_search(query=p_query)), (width >= p_width && height >= p_height);"
+        },
+        {
+            "utterance": "images from bing matching $p_query wider than $p_width",
+            "program": "let table x := \\(p_query :String, p_width :Number) -> (@com.bing.image_search(query=p_query)), width >= p_width;"
+        },
+        {
+            "utterance": "websites matching $p_query",
+            "program": "let table x := \\(p_query :String) -> @com.bing.web_search(query=p_query);"
+        },
+        {
+            "utterance": "images from bing matching $p_query larger than $p_width x $p_height in either dimension",
+            "program": "let table x := \\(p_query :String, p_width :Number, p_height :Number) -> (@com.bing.image_search(query=p_query)), (width >= p_width || height >= p_height);"
+        },
+        {
+            "utterance": "images from bing matching $p_query taller than $p_height",
+            "program": "let table x := \\(p_query :String, p_height :Number) -> (@com.bing.image_search(query=p_query)), height >= p_height;"
+        },
+        {
+            "utterance": "images from bing matching $p_query smaller than $p_width x $p_height",
+            "program": "let table x := \\(p_query :String, p_width :Number, p_height :Number) -> (@com.bing.image_search(query=p_query)), (width <= p_width && height <= p_height);"
+        }
+    ]
+}

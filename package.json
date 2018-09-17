@@ -22,6 +22,7 @@
     "update-bundle": "browserify -o public/javascripts/trainer-bundle.js browser/trainer.js; browserify -o public/javascripts/new-command-bundle.js browser/new_command.js",
     "update-docs": "for f in doc/*.md ; do sed \"s|@@DOC@@|$f|\" views/doc_base.pug > views/doc_$(basename \"$f\" .md ).pug ; done",
     "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js",
+    "test": "nyc ./tests/everything.sh",
     "prepublish": "which yarn >/dev/null 2>&1 && ( yarn compile-mo && yarn update-docs ) || ( npm run compile-mo && npm run update-docs )",
     "install": "make -C sandbox all"
   },
@@ -94,9 +95,17 @@
     "deep-equal": "^1.0.1",
     "eslint": "^4.17.0",
     "jsxgettext": "^0.10.1",
+    "nyc": "^13.0.1",
     "pug-lint": "^2.4.0"
   },
   "optionalDependencies": {
     "aws-sdk": "^2.2.48"
+  },
+  "nyc": {
+    "exclude": [
+      "coverage/**",
+      "tests/**",
+      "secret_config.js"
+    ]
   }
 }

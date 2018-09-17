@@ -13,7 +13,7 @@ install:
 - sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev
 - yarn
 before_script:
-- mysql -u travis -e "create database if not exists thingengine_test; grant all privileges on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
+- mysql -u root -e "create database if not exists thingengine_test; grant all privileges on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
 script:
 - yarn lint
-- ./tests/thingpedia-integration.sh
+- yarn test

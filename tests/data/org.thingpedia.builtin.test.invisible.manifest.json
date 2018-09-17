@@ -1,0 +1,35 @@
+{
+  "thingpedia_name": "Invisible Device",
+  "thingpedia_description": "This device does not exist. This entry is visible only to the administrators of Thingpedia. It exists to test that the Thingpedia API properly masks and reveals devices based on the appropriate developer key. DO NOT APPROVE THIS DEVICE.",
+  "module_type": "org.thingpedia.builtin",
+  "params": {},
+  "category": "system",
+  "subcategory": "service",
+  "types": [],
+  "child_types": [],
+  "auth": {
+    "type": "builtin"
+  },
+  "queries": {},
+  "actions": {
+    "eat_data": {
+      "args": [
+        {
+          "name": "data",
+          "type": "String",
+          "question": "What do you want me to consume?",
+          "is_input": true,
+          "required": true
+        }
+      ],
+      "doc": "consume some data, do nothing",
+      "confirmation": "consume $data",
+      "confirmation_remote": "consume $data on $__person's Almond",
+      "canonical": "eat data on test",
+      "formatted": [],
+      "poll_interval": -1,
+      "is_list": false
+    }
+  },
+  "examples": []
+}
