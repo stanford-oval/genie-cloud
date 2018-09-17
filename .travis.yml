@@ -8,6 +8,11 @@ addons:
 node_js:
 - '8'
 before_install:
+- mkdir cvc4/
+- wget https://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.5-x86_64-linux-opt
+  -O cvc4/cvc4
+- chmod +x cvc4/cvc4
+- export PATH="`pwd`/cvc4:$PATH"
 - sudo apt-get update -q -y
 install:
 - sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev
