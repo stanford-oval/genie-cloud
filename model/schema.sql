@@ -1,9 +1,3 @@
--- MySQL dump 10.16  Distrib 10.2.14-MariaDB, for Linux (x86_64)
---
--- Host: localhost    Database: thingengine
--- ------------------------------------------------------
--- Server version	10.2.14-MariaDB
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -14,64 +8,6 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-
---
--- Table structure for table `app`
---
-
-DROP TABLE IF EXISTS `app`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `app` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `owner` int(11) DEFAULT NULL,
-  `app_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
-  `name` varchar(255) CHARACTER SET utf8 NOT NULL,
-  `description` text CHARACTER SET utf8 NOT NULL,
-  `code` mediumtext COLLATE utf8_bin NOT NULL,
-  `visible` tinyint(1) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `app_id` (`app_id`),
-  KEY `owner` (`owner`),
-  CONSTRAINT `app_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `app`
---
-
-LOCK TABLES `app` WRITE;
-/*!40000 ALTER TABLE `app` DISABLE KEYS */;
-/*!40000 ALTER TABLE `app` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `app_tag`
---
-
-DROP TABLE IF EXISTS `app_tag`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `app_tag` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `app_id` int(11) NOT NULL,
-  `tag` varchar(255) CHARACTER SET utf8 NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `tag` (`tag`),
-  KEY `app_id` (`app_id`),
-  CONSTRAINT `app_tag_ibfk_1` FOREIGN KEY (`app_id`) REFERENCES `app` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `app_tag`
---
-
-LOCK TABLES `app_tag` WRITE;
-/*!40000 ALTER TABLE `app_tag` DISABLE KEYS */;
-/*!40000 ALTER TABLE `app_tag` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `background`
@@ -95,15 +31,6 @@ CREATE TABLE `background` (
   CONSTRAINT `background_ibfk_2` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `background`
---
-
-LOCK TABLES `background` WRITE;
-/*!40000 ALTER TABLE `background` DISABLE KEYS */;
-/*!40000 ALTER TABLE `background` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `background_rectangle`
@@ -138,15 +65,6 @@ CREATE TABLE `background_rectangle` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `background_rectangle`
---
-
-LOCK TABLES `background_rectangle` WRITE;
-/*!40000 ALTER TABLE `background_rectangle` DISABLE KEYS */;
-/*!40000 ALTER TABLE `background_rectangle` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `background_tag`
 --
 
@@ -161,15 +79,6 @@ CREATE TABLE `background_tag` (
   CONSTRAINT `background_tag_ibfk_1` FOREIGN KEY (`background_id`) REFERENCES `background` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `background_tag`
---
-
-LOCK TABLES `background_tag` WRITE;
-/*!40000 ALTER TABLE `background_tag` DISABLE KEYS */;
-/*!40000 ALTER TABLE `background_tag` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `category`
@@ -192,13 +101,19 @@ CREATE TABLE `category` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `category`
+-- Table structure for table `command_suggestions`
 --
 
-LOCK TABLES `category` WRITE;
-/*!40000 ALTER TABLE `category` DISABLE KEYS */;
-/*!40000 ALTER TABLE `category` ENABLE KEYS */;
-UNLOCK TABLES;
+DROP TABLE IF EXISTS `command_suggestions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `command_suggestions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `command` text CHARACTER SET utf8 NOT NULL,
+  `suggest_time` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `device_class`
@@ -229,15 +144,6 @@ CREATE TABLE `device_class` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `device_class`
---
-
-LOCK TABLES `device_class` WRITE;
-/*!40000 ALTER TABLE `device_class` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_class` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `device_class_kind`
 --
 
@@ -249,43 +155,11 @@ CREATE TABLE `device_class_kind` (
   `kind` varchar(128) COLLATE utf8_bin NOT NULL,
   `is_child` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`device_id`,`kind`),
-  CONSTRAINT `device_class_kind_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `device_class` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  KEY `kind` (`kind`),
+  CONSTRAINT `device_class_kind_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `device_class` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `device_class_kind_ibfk_2` FOREIGN KEY (`kind`) REFERENCES `device_schema` (`kind`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `device_class_kind`
---
-
-LOCK TABLES `device_class_kind` WRITE;
-/*!40000 ALTER TABLE `device_class_kind` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_class_kind` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `device_class_tag`
---
-
-DROP TABLE IF EXISTS `device_class_tag`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `device_class_tag` (
-  `tag` varchar(128) COLLATE utf8_bin NOT NULL,
-  `device_id` int(11) NOT NULL,
-  PRIMARY KEY (`tag`,`device_id`),
-  KEY `device_id` (`device_id`),
-  CONSTRAINT `device_class_tag_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `device_class` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `device_class_tag`
---
-
-LOCK TABLES `device_class_tag` WRITE;
-/*!40000 ALTER TABLE `device_class_tag` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_class_tag` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `device_code_version`
@@ -303,15 +177,6 @@ CREATE TABLE `device_code_version` (
   CONSTRAINT `device_code_version_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `device_class` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `device_code_version`
---
-
-LOCK TABLES `device_code_version` WRITE;
-/*!40000 ALTER TABLE `device_code_version` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_code_version` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `device_schema`
@@ -337,15 +202,6 @@ CREATE TABLE `device_schema` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `device_schema`
---
-
-LOCK TABLES `device_schema` WRITE;
-/*!40000 ALTER TABLE `device_schema` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_schema` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `device_schema_channel_canonicals`
 --
 
@@ -362,20 +218,10 @@ CREATE TABLE `device_schema_channel_canonicals` (
   `confirmation_remote` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
   `formatted` mediumtext CHARACTER SET utf8 DEFAULT NULL,
   `questions` mediumtext CHARACTER SET utf8 NOT NULL,
-  `keywords` mediumtext CHARACTER SET utf8 NOT NULL,
   `argcanonicals` mediumtext CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`schema_id`,`version`,`language`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `device_schema_channel_canonicals`
---
-
-LOCK TABLES `device_schema_channel_canonicals` WRITE;
-/*!40000 ALTER TABLE `device_schema_channel_canonicals` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_schema_channel_canonicals` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `device_schema_channels`
@@ -401,15 +247,6 @@ CREATE TABLE `device_schema_channels` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `device_schema_channels`
---
-
-LOCK TABLES `device_schema_channels` WRITE;
-/*!40000 ALTER TABLE `device_schema_channels` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_schema_channels` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `device_schema_snapshot`
 --
 
@@ -420,7 +257,7 @@ CREATE TABLE `device_schema_snapshot` (
   `snapshot_id` int(11) NOT NULL,
   `schema_id` int(11) NOT NULL,
   `kind` varchar(128) COLLATE utf8_bin NOT NULL,
-  `kind_type` enum('primary','global','app','other') COLLATE utf8_bin NOT NULL DEFAULT 'other',
+  `kind_type` enum('primary','app','category','discovery','global','other') COLLATE utf8_bin NOT NULL DEFAULT 'other',
   `owner` int(11) DEFAULT 1,
   `developer_version` int(11) NOT NULL,
   `approved_version` int(11) DEFAULT NULL,
@@ -434,13 +271,21 @@ CREATE TABLE `device_schema_snapshot` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `device_schema_snapshot`
+-- Table structure for table `device_schema_version`
 --
 
-LOCK TABLES `device_schema_snapshot` WRITE;
-/*!40000 ALTER TABLE `device_schema_snapshot` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_schema_snapshot` ENABLE KEYS */;
-UNLOCK TABLES;
+DROP TABLE IF EXISTS `device_schema_version`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `device_schema_version` (
+  `schema_id` int(11) NOT NULL,
+  `version` int(11) NOT NULL,
+  `types` mediumtext COLLATE utf8_bin NOT NULL,
+  `meta` mediumtext COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (`schema_id`,`version`),
+  CONSTRAINT `device_schema_version_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `entity_lexicon`
@@ -463,15 +308,6 @@ CREATE TABLE `entity_lexicon` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `entity_lexicon`
---
-
-LOCK TABLES `entity_lexicon` WRITE;
-/*!40000 ALTER TABLE `entity_lexicon` DISABLE KEYS */;
-/*!40000 ALTER TABLE `entity_lexicon` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `entity_names`
 --
 
@@ -487,15 +323,6 @@ CREATE TABLE `entity_names` (
   PRIMARY KEY (`id`,`language`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `entity_names`
---
-
-LOCK TABLES `entity_names` WRITE;
-/*!40000 ALTER TABLE `entity_names` DISABLE KEYS */;
-/*!40000 ALTER TABLE `entity_names` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `entity_names_snapshot`
@@ -517,13 +344,21 @@ CREATE TABLE `entity_names_snapshot` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `entity_names_snapshot`
+-- Table structure for table `example_rule_schema`
 --
 
-LOCK TABLES `entity_names_snapshot` WRITE;
-/*!40000 ALTER TABLE `entity_names_snapshot` DISABLE KEYS */;
-/*!40000 ALTER TABLE `entity_names_snapshot` ENABLE KEYS */;
-UNLOCK TABLES;
+DROP TABLE IF EXISTS `example_rule_schema`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `example_rule_schema` (
+  `schema_id` int(11) NOT NULL,
+  `example_id` int(11) NOT NULL,
+  PRIMARY KEY (`schema_id`,`example_id`),
+  KEY `example_id` (`example_id`),
+  CONSTRAINT `example_rule_schema_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `example_rule_schema_ibfk_2` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `example_utterances`
@@ -535,31 +370,25 @@ DROP TABLE IF EXISTS `example_utterances`;
 CREATE TABLE `example_utterances` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `schema_id` int(11) DEFAULT NULL,
-  `app_id` int(11) DEFAULT NULL,
   `is_base` tinyint(1) NOT NULL DEFAULT 0,
   `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `type` char(32) COLLATE utf8_bin NOT NULL DEFAULT 'other',
+  `flags` set('synthetic','augmented','obsolete','ambiguous') COLLATE utf8_bin DEFAULT '',
   `utterance` text CHARACTER SET utf8 NOT NULL,
   `preprocessed` text CHARACTER SET utf8 NOT NULL,
   `target_json` text COLLATE utf8_bin NOT NULL,
   `target_code` text COLLATE utf8_bin NOT NULL,
   `click_count` int(11) NOT NULL DEFAULT 0,
+  `owner` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `schema_id` (`schema_id`),
-  KEY `app_id` (`app_id`),
   KEY `language_type` (`language`,`type`),
-  FULLTEXT KEY `preprocessed` (`preprocessed`)
+  KEY `owner` (`owner`),
+  FULLTEXT KEY `preprocessed` (`preprocessed`),
+  CONSTRAINT `example_utterances_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `example_utterances_ibfk_2` FOREIGN KEY (`owner`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `example_utterances`
---
-
-LOCK TABLES `example_utterances` WRITE;
-/*!40000 ALTER TABLE `example_utterances` DISABLE KEYS */;
-/*!40000 ALTER TABLE `example_utterances` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `mturk_batch`
@@ -576,15 +405,6 @@ CREATE TABLE `mturk_batch` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `mturk_batch`
---
-
-LOCK TABLES `mturk_batch` WRITE;
-/*!40000 ALTER TABLE `mturk_batch` DISABLE KEYS */;
-/*!40000 ALTER TABLE `mturk_batch` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `mturk_input`
@@ -615,15 +435,6 @@ CREATE TABLE `mturk_input` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `mturk_input`
---
-
-LOCK TABLES `mturk_input` WRITE;
-/*!40000 ALTER TABLE `mturk_input` DISABLE KEYS */;
-/*!40000 ALTER TABLE `mturk_input` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `mturk_log`
 --
 
@@ -644,15 +455,6 @@ CREATE TABLE `mturk_log` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `mturk_log`
---
-
-LOCK TABLES `mturk_log` WRITE;
-/*!40000 ALTER TABLE `mturk_log` DISABLE KEYS */;
-/*!40000 ALTER TABLE `mturk_log` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `mturk_output`
 --
 
@@ -669,17 +471,8 @@ CREATE TABLE `mturk_output` (
   PRIMARY KEY (`submission_id`,`example_id`),
   KEY `example_id` (`example_id`),
   CONSTRAINT `mturk_output_ibfk_1` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `mturk_output`
---
-
-LOCK TABLES `mturk_output` WRITE;
-/*!40000 ALTER TABLE `mturk_output` DISABLE KEYS */;
-/*!40000 ALTER TABLE `mturk_output` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `oauth2_access_tokens`
@@ -699,15 +492,6 @@ CREATE TABLE `oauth2_access_tokens` (
   CONSTRAINT `oauth2_access_tokens_ibfk_2` FOREIGN KEY (`client_id`) REFERENCES `oauth2_clients` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `oauth2_access_tokens`
---
-
-LOCK TABLES `oauth2_access_tokens` WRITE;
-/*!40000 ALTER TABLE `oauth2_access_tokens` DISABLE KEYS */;
-/*!40000 ALTER TABLE `oauth2_access_tokens` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `oauth2_auth_codes`
@@ -730,15 +514,6 @@ CREATE TABLE `oauth2_auth_codes` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `oauth2_auth_codes`
---
-
-LOCK TABLES `oauth2_auth_codes` WRITE;
-/*!40000 ALTER TABLE `oauth2_auth_codes` DISABLE KEYS */;
-/*!40000 ALTER TABLE `oauth2_auth_codes` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `oauth2_clients`
 --
 
@@ -756,15 +531,6 @@ CREATE TABLE `oauth2_clients` (
   CONSTRAINT `oauth2_clients_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `oauth2_clients`
---
-
-LOCK TABLES `oauth2_clients` WRITE;
-/*!40000 ALTER TABLE `oauth2_clients` DISABLE KEYS */;
-/*!40000 ALTER TABLE `oauth2_clients` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `organizations`
@@ -785,16 +551,6 @@ CREATE TABLE `organizations` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `organizations`
---
-
-LOCK TABLES `organizations` WRITE;
-/*!40000 ALTER TABLE `organizations` DISABLE KEYS */;
-INSERT INTO `organizations` VALUES (0,'Site Administration','','0243de281cf4892575bef0477c177387fac1883ce4e7dd558eaf0e10777bd194',0);
-/*!40000 ALTER TABLE `organizations` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `sessions`
 --
 
@@ -808,15 +564,6 @@ CREATE TABLE `sessions` (
   PRIMARY KEY (`session_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `sessions`
---
-
-LOCK TABLES `sessions` WRITE;
-/*!40000 ALTER TABLE `sessions` DISABLE KEYS */;
-/*!40000 ALTER TABLE `sessions` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `snapshot`
@@ -834,13 +581,19 @@ CREATE TABLE `snapshot` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `snapshot`
+-- Table structure for table `subscribe`
 --
 
-LOCK TABLES `snapshot` WRITE;
-/*!40000 ALTER TABLE `snapshot` DISABLE KEYS */;
-/*!40000 ALTER TABLE `snapshot` ENABLE KEYS */;
-UNLOCK TABLES;
+DROP TABLE IF EXISTS `subscribe`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `subscribe` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `email` varchar(255) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `subscribe_time` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `users`
@@ -881,18 +634,6 @@ CREATE TABLE `users` (
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`developer_org`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES
-(0,'root','Administrator','root@localhost','en-US','America/Los_Angeles',NULL,NULL,NULL,'a266940f93a5928c96b50c173c26cad2054c8077e1caa63584dfcfaa4881d2f1','00832c5af6048c2fc9713722ef0c896202e2f1b30a746394900fb0e8132d958d','5f9ea96b5ce8c0b1','6311efb5e042580a3ccd95c6104af72865195fb94045104d6784533b39f77fd6','6fdf9e57fa9ab621e6a93d5a99cb1c7d4b12f58a5f3481dd2082cc23ff700b71',1,NULL,3,0,0,current_timestamp,current_timestamp),
-(1,'anonymous','Anonymous User','anonymous@localhost','en-US','America/Los_Angeles',NULL,NULL,NULL,'a266940f93a5928c96b50c173c26cad2054c8077e1caa63584dfcfaa4881d2f1','00832c5af6048c2fc9713722ef0c896202e2f1b30a746394900fb0e8132d958d','aed747094bdc037e','435b4590edd13ffba01784e3abde5d9e33c86b6e8161414721455c2845ca9721','fa83f17a0ecca92bc6e87b55e21d37c05ac9a2e69d234bbbfe8c39c8eca7c68b',0,NULL,0,0,0,current_timestamp,current_timestamp);
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -902,5 +643,3 @@ UNLOCK TABLES;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2018-05-23 22:22:56

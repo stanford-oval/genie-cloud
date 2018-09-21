@@ -17,7 +17,6 @@ const deviceModel = require('../model/device');
 const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
 const commandModel = require('../model/example');
-const userModel = require('../model/user');
 
 const ThingpediaClient = require('../util/thingpedia-client');
 const ImageCacheManager = require('../util/cache_manager');

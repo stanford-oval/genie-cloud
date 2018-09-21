@@ -1,0 +1,16 @@
+{
+    "thingpedia_name": "ThingSystem Configuration",
+    "thingpedia_description": "A placeholder for configuration parameters of the ThingSystem. This device is created and loaded automatically by the system.",
+    "module_type": "org.thingpedia.builtin",
+    "params": {},
+    "category": "system",
+    "subcategory": "service",
+    "types": [],
+    "child_types": [],
+    "auth": {
+        "type": "builtin"
+    },
+    "actions": {},
+    "queries": {},
+    "examples": []
+}

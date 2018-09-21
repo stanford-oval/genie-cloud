@@ -59,6 +59,9 @@ module.exports = {
                     cloud_id: cloudId,
                     auth_token: authToken,
                     storage_key: storageKey,
+                    developer_org: options.developer_org || null,
+                    developer_status: options.developer_status || 0,
+                    roles: options.roles || 0,
                 });
             });
         });

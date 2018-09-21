@@ -1,5 +1,7 @@
 *~
 *.tsv
+*.zip
+*.bak
 home/
 
 /platform_config.js
@@ -7,9 +9,15 @@ home/
 /public/cache
 /public/brassau
 /public/friendhub
+/public/download/devices
+/public/download/backgrounds
+/public/download/icons
 
 views/doc_*.pug
 
 node_modules/
 
 yarn-error.log
+
+/.nyc_output
+/coverage
