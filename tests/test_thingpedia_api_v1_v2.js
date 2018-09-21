@@ -50,13 +50,96 @@ const BING_SCHEMA = {
     }
 };
 
+const BING_METADATA = {
+    kind_type: 'primary',
+    triggers: {},
+    actions: {},
+    queries: {
+        image_search: {
+            schema: ["String", "String", "Entity(tt:picture)", "Entity(tt:url)", "Number", "Number"],
+            args: ["query", "title", "picture_url", "link", "width", "height"],
+            required: [true, false, false, false, false, false],
+            is_input: [true, false, false, false, false, false],
+            is_list: true,
+            is_monitorable: true,
+            confirmation: "images matching $query from Bing",
+            confirmation_remote: "images matching $query from Bing",
+            doc: "search for `query` on Bing Images",
+            canonical: "image search on bing",
+            argcanonicals: ["query", "title", "picture url", "link", "width", "height"],
+            questions: [
+              "What do you want to search?",
+              "",
+              "",
+              "",
+              "What width are you looking for (in pixels)?",
+              "What height are you looking for (in pixels)?"
+            ]
+        },
+        web_search: {
+            schema: ["String", "String", "String", "Entity(tt:url)"],
+            args: ["query", "title", "description", "link"],
+            required: [true, false, false, false],
+            is_input: [true, false, false, false],
+            is_list: true,
+            is_monitorable: true,
+            confirmation: "websites matching $query on Bing",
+            confirmation_remote: "websites matching $query on Bing",
+            doc: "search for `query` on Bing",
+            canonical: "web search on bing",
+            argcanonicals: ["query", "title", "description", "link"],
+            questions: [
+              "What do you want to search?",
+              "",
+              "",
+              ""
+            ]
+        }
+    }
+};
+
 async function testGetSchemas() {
     assert.deepStrictEqual(await request('/api/schema/com.bing'), {
         'com.bing': BING_SCHEMA
+    });
+
+    assert.deepStrictEqual(await request('/api/schema/com.bing,org.thingpedia.builtin.test.nonexistent'), {
+        'com.bing': BING_SCHEMA
+    });
+
+    assert.deepStrictEqual(await request('/api/schema/com.bing,org.thingpedia.builtin.test.invisible'), {
+        'com.bing': BING_SCHEMA,
+        'org.thingpedia.builtin.test.invisible': {
+            kind_type: 'primary',
+            triggers: {},
+            queries: {},
+            actions: {}
+        }
+    });
+}
+
+async function testGetMetadata() {
+    assert.deepStrictEqual(await request('/api/schema-metadata/com.bing'), {
+        'com.bing': BING_METADATA
+    });
+
+    assert.deepStrictEqual(await request('/api/schema-metadata/com.bing,org.thingpedia.builtin.test.nonexistent'), {
+        'com.bing': BING_METADATA
+    });
+
+    assert.deepStrictEqual(await request('/api/schema-metadata/com.bing,org.thingpedia.builtin.test.invisible'), {
+        'com.bing': BING_METADATA,
+        'org.thingpedia.builtin.test.invisible': {
+            kind_type: 'primary',
+            triggers: {},
+            queries: {},
+            actions: {}
+        }
     });
 }
 
 async function main() {
     await testGetSchemas();
+    await testGetMetadata();
 }
 main();
