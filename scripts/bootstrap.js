@@ -15,13 +15,12 @@
 require('thingengine-core/lib/polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
 
-const crypto = require('crypto');
-
 const db = require('../util/db');
 const user = require('../util/user');
 const organization = require('../model/organization');
 const entityModel = require('../model/entity');
 const schemaModel = require('../model/schema');
+const makeRandom = require('../util/random');
 
 const ManifestToSchema = require('../util/manifest_to_schema');
 const Importer = require('../util/import_device');
@@ -30,9 +29,6 @@ const Config = require('../config');
 
 const req = { _(x) { return x; } };
 
-function makeRandom(size = 32) {
-    return crypto.randomBytes(size).toString('hex');
-}
 function clean(name) {
     if (/^[vwgp]_/.test(name))
         name = name.substr(2);

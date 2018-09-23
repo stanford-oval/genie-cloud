@@ -108,13 +108,32 @@ async function testGetSchemas() {
     });
 
     assert.deepStrictEqual(await request('/api/schema/com.bing,org.thingpedia.builtin.test.invisible'), {
+        'com.bing': BING_SCHEMA
+    });
+
+    assert.deepStrictEqual(await request(
+        `/api/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
         'com.bing': BING_SCHEMA,
         'org.thingpedia.builtin.test.invisible': {
             kind_type: 'primary',
             triggers: {},
             queries: {},
-            actions: {}
+            actions: {
+                "eat_data": {
+                    types: ["String"],
+                    args: ["data"],
+                    is_input: [true],
+                    required: [true],
+                    is_monitorable: false,
+                    is_list: false
+                },
+            }
         }
+    });
+
+    assert.deepStrictEqual(await request(
+        `/api/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
+        'com.bing': BING_SCHEMA
     });
 }
 
@@ -128,13 +147,38 @@ async function testGetMetadata() {
     });
 
     assert.deepStrictEqual(await request('/api/schema-metadata/com.bing,org.thingpedia.builtin.test.invisible'), {
+        'com.bing': BING_METADATA
+    });
+
+    assert.deepStrictEqual(await request(
+        `/api/schema-metadata/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
         'com.bing': BING_METADATA,
         'org.thingpedia.builtin.test.invisible': {
-            kind_type: 'primary',
+            kind_type: "primary",
             triggers: {},
             queries: {},
-            actions: {}
+            actions: {
+                "eat_data": {
+                    schema: ["String"],
+                    args: ["data"],
+                    is_input: [true],
+                    required: [true],
+                    questions: ["What do you want me to consume?"],
+                    argcanonicals: ["data"],
+                    doc: "consume some data, do nothing",
+                    confirmation: "consume $data",
+                    confirmation_remote: "consume $data on $__person's Almond",
+                    canonical: "eat data on test",
+                    is_list: false,
+                    is_monitorable: false
+                }
+            }
         }
+    });
+
+    assert.deepStrictEqual(await request(
+        `/api/schema-metadata/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
+        'com.bing': BING_METADATA
     });
 }
 

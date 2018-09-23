@@ -20,7 +20,7 @@ EOF
 
 # clean the database and bootstrap
 mysql -u thingengine -pthingengine -h localhost -D thingengine_test < $srcdir/model/schema.sql
-node $srcdir/scripts/bootstrap.js
+eval $(node $srcdir/scripts/bootstrap.js)
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`

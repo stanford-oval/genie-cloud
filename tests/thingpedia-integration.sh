@@ -47,7 +47,7 @@ done
 # (this has to occur after setting up the download
 # directories because it copies the zip file)
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
-node $srcdir/tests/load_test_thingpedia.js
+eval $(node $srcdir/tests/load_test_thingpedia.js)
 
 node $srcdir/main.js &
 frontendpid=$!

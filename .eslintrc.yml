@@ -4,8 +4,6 @@ env:
 parserOptions:
   ecmaVersion: 2017
 extends: 'eslint:recommended'
-parserOptions:
-  ecmaVersion: 2017
 rules:
   indent: off
   no-console: off
