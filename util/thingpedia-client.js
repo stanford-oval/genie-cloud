@@ -361,17 +361,31 @@ module.exports = class ThingpediaClientCloud {
         return Promise.resolve().then(() => _discoveryServer.decode(body));
     }
 
+    async _getOrg(dbClient) {
+        const [org] = await organization.getByDeveloperKey(dbClient, this.developerKey);
+        return org || null;
+    }
+    async _getOrgId(dbClient) {
+        const org = await this._getOrg(dbClient);
+        if (org === null)
+            return null;
+        else if (org.is_admin)
+            return -1;
+        else
+            return org.id;
+    }
+
     getExamplesByKey(key) {
-        return db.withClient((dbClient) => {
-            return exampleModel.getByKey(dbClient, key, this.language);
+        return db.withClient(async (dbClient) => {
+            return exampleModel.getByKey(dbClient, key, await this._getOrgId(dbClient), this.language);
         });
     }
 
     getExamplesByKinds(kinds) {
         if (kinds.length === 0)
             return Promise.resolve([]);
-        return db.withClient((dbClient) => {
-            return exampleModel.getByKinds(dbClient, kinds, this.language);
+        return db.withClient(async (dbClient) => {
+            return exampleModel.getByKinds(dbClient, kinds, await this._getOrgId(dbClient), this.language);
         });
     }
 

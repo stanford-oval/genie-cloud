@@ -182,8 +182,92 @@ async function testGetMetadata() {
     });
 }
 
+function checkExamples(generated, expected) {
+    const uniqueIds = new Set;
+    const expectMap = new Map;
+    assert.strictEqual(generated.length, expected.length);
+
+    for (let exp of expected) {
+        delete exp.id;
+        expectMap.set(exp.utterance, exp);
+    }
+
+    for (let gen of generated) {
+        assert(!uniqueIds.has(gen.id), `duplicate id ${gen.id}`);
+        uniqueIds.add(gen.id);
+
+        delete gen.id;
+        assert.deepStrictEqual(gen.target_code,
+            expectMap.get(gen.utterance).program);
+
+        assert.strictEqual(typeof gen.preprocessed, 'string');
+        assert.strictEqual(typeof gen.click_count, 'number');
+        assert(gen.click_count >= 0);
+    }
+}
+function checkExamplesByKey(generated, key) {
+    const uniqueIds = new Set;
+
+    for (let gen of generated) {
+        assert(!uniqueIds.has(gen.id), `duplicate id ${gen.id}`);
+        uniqueIds.add(gen.id);
+
+        assert(gen.utterance.toLowerCase().indexOf(key) >= 0, `expected ${gen.utterance} to contain ${key}`);
+
+        assert.strictEqual(typeof gen.preprocessed, 'string');
+        assert.strictEqual(typeof gen.utterance, 'string');
+        assert.strictEqual(typeof gen.target_code, 'string');
+        assert.strictEqual(typeof gen.click_count, 'number');
+        assert(gen.click_count >= 0);
+    }
+}
+
+
+async function testGetExamplesByDevice() {
+    // mind the . vs .. here: there's two different data/ folders
+    const BING_EXAMPLES = require('./data/com.bing.manifest.json').examples;
+    const BUILTIN_EXAMPLES = require('../data/org.thingpedia.builtin.thingengine.builtin.manifest.json').examples;
+    const INVISIBLE_EXAMPLES = require('./data/org.thingpedia.builtin.test.invisible.manifest.json').examples;
+
+    checkExamples(await request('/api/examples/by-kinds/com.bing'), BING_EXAMPLES);
+    checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin'),
+        BUILTIN_EXAMPLES);
+    checkExamples(await request(
+        '/api/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin,com.bing'),
+        BUILTIN_EXAMPLES.concat(BING_EXAMPLES));
+
+    checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.test.invisible'), []);
+
+    checkExamples(await request(
+        `/api/examples/by-kinds/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
+        INVISIBLE_EXAMPLES);
+
+    checkExamples(await request(
+        `/api/examples/by-kinds/org.thingpedia.builtin.test.invisible,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`),
+        INVISIBLE_EXAMPLES);
+
+    checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), []);
+}
+
+async function testGetExamplesByKey() {
+    // mind the . vs .. here: there's two different data/ folders
+    const BING_EXAMPLES = require('./data/com.bing.manifest.json').examples;
+    const PHONE_EXAMPLES = require('../data/org.thingpedia.builtin.thingengine.phone.manifest.json').examples;
+    const INVISIBLE_EXAMPLES = require('./data/org.thingpedia.builtin.test.invisible.manifest.json').examples;
+
+    checkExamples(await request('/api/examples?key=bing'), BING_EXAMPLES);
+    checkExamples(await request('/api/examples?key=phone'), PHONE_EXAMPLES);
+    checkExamplesByKey(await request('/api/examples?key=matching'), 'matching');
+
+    checkExamples(await request('/api/examples?key=invisible'), []);
+    checkExamples(await request(`/api/examples?key=invisible&developer_key=${process.env.DEVELOPER_KEY}`),
+        INVISIBLE_EXAMPLES);
+}
+
 async function main() {
     await testGetSchemas();
     await testGetMetadata();
+    await testGetExamplesByDevice();
+    await testGetExamplesByKey();
 }
 main();

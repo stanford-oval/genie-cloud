@@ -33,6 +33,15 @@ function localeToLanguage(locale) {
     return (locale || 'en').split(/[-_@.]/)[0];
 }
 
+function getOrgId(req) {
+    if (!req.user)
+        return null;
+    if (req.user.developer_status >= user.DeveloperStatus.ADMIN)
+        return -1;
+    else
+        return req.user.developer_org;
+}
+
 function getDetails(fn, param, req, res) {
     var language = req.user ? localeToLanguage(req.user.locale) : 'en';
 
@@ -68,7 +77,7 @@ function getDetails(fn, param, req, res) {
                     return schema.isKindTranslated(client, d.primary_kind, language).then((t) => {
                         d.translated = t;
                      });
-                }), exampleModel.getByKinds(client, [d.primary_kind], language).then((examples) => {
+                }), exampleModel.getByKinds(client, [d.primary_kind], getOrgId(req), language).then((examples) => {
                     d.examples = examples;
                 }), TrainingServer.get().check(language, d.primary_kind).then((job) => {
                     d.current_job = job;

@@ -31,5 +31,10 @@
       "is_list": false
     }
   },
-  "examples": []
+  "examples": [
+    {
+      "utterance": "test admin-only example",
+      "program": "let action x := @org.thingpedia.builtin.test.invisible.eat_data();"
+    }
+  ]
 }
