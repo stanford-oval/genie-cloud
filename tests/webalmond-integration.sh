@@ -48,7 +48,7 @@ frontendpid=$!
 # in interactive mode, sleep forever
 # the developer will run the tests by hand
 # and Ctrl+C
-if test "$1" = "--interactive" ; do
+if test "$1" = "--interactive" ; then
     sleep 84600
 else
     # sleep until both processes are settled

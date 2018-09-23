@@ -1,0 +1,59 @@
+extends layout
+block styles
+  link(rel='stylesheet', href='/stylesheets/index.css')
+  link(rel='stylesheet', href='/stylesheets/app.css')
+  link(rel='stylesheet', href='https://use.fontawesome.com/releases/v5.2.0/css/all.css')
+
+block scripts
+  script(src='/javascripts/app.js')
+  script(src='/javascripts/index.js')
+
+block page_name
+  - stdlayout = false;
+  = _("Almond")
+
+block content
+  if authenticated
+    div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+
+  div#page-body
+    section.divider#section-heading
+      h1#almond-title Almond
+      h2#almond-subtitle The Open Virtual Assistant
+
+    div.sections
+
+      if WITH_THINGPEDIA === 'embedded'
+        section.divider#section-commandpedia
+          h3= _("Popular Commands")
+          div.container#commandpedia(csrf=csrfToken)
+            div.navbar.navbar-default#command-list-navbar
+              form.navbar-form.navbar-left(action='', method='get')
+                div.form-group
+                  input.form-control#command-search-box(type='text', name='q', placeholder="I want to find a command...")
+                  button.btn.btn-primary#command-search-button(type="submit")= _("Search")
+                div.form-group
+                  button.btn.btn-primary#command-reset-button= _("Reset")
+            div.row#command-container
+            div.row
+              div.col-xs-12
+                nav
+                  ul.pager
+                    li#commands-page-prev
+                      a(href='#')= _("Previous")
+                    | &nbsp;
+                    li#commands-page-next
+                      a(href='#')= _("Next")
+            br
+            div.row
+              div.col-sm-6.col-md-4.col-md-offset-2
+                a(href='/thingpedia/commands/add').btn.btn-primary.btn-block= _("Add a New Command")
+              div.col-sm-6.col-md-4
+                a(href='/thingpedia/commands/suggest').btn.btn-default.btn-block= _("Suggest a New Command")
+
+        section.divider
+          h3= _("Still Don't See What You Want? ")
+          div.container
+            div.row
+              div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
+                a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Create a New Device")

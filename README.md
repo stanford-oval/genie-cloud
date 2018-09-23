@@ -26,7 +26,9 @@ A working MySQL server is also required.
 This repository uses yarn for dependency tracking.
 You should install yarn from [its website](https://yarnpkg.com/en/docs/install), and then run:
 
-```yarn install```
+```
+yarn install
+```
 
 Note: due to strict version requirements between the different Almond components,
 which are hosted as git repositories and not published on the npm registry, using
@@ -71,6 +73,15 @@ If `ENABLE_REDIRECT` is true, any request with a hostname or scheme that is not 
 be redirected to the correct origin. This is support seamless migration between domains, and
 transparent upgrade to HTTPS.
 
+Once you have set up TLS, you should also set `ENABLE_SECURITY_HEADERS` to true, which will enable
+Strict Transport Security, X-Frame-Options and other important security-related HTTP headers.
+
+You can customize the website, by overriding the content of the index and about pages to use different
+pug files, using `ABOUT_OVERRIDE`. If you plan to serve Web Almond to users and allow registration,
+at the minimum you must override the terms of service page and the privacy policy page, as they
+are empty in the default installation. See `stanford/config.js` and `views/stanford` for examples
+of how to do so.
+
 If needed, you can also change `OAUTH_REDIRECT_ORIGIN` to set the origin for your OAuth redirects.
 The latter is used to support Login With Google, and to configure OAuth-based accounts in Web Almond,
 so it must be the same origin that you will configure for OAuth redirect URLs.
@@ -106,13 +117,17 @@ If you skip this step, set `THINGENGINE_DISABLE_SANDBOX=1` in your environment.
 
 Set up your database by executing the SQL in `model/schema.sql`. Then set `DATABASE_URL` in your environment:
 
-```DATABASE_URL=mysql://user:password@host:port/database?options```
+```sh
+DATABASE_URL=mysql://user:password@host:port/database?options
+```
 
 See the documentation of node-mysql for options. If you use Amazon RDS, you should say so with `ssl=Amazon%20RDS`.
 It is recommended you set `timezone=Z` in the options (telling the database to store dates and times in UTC timezone).
 
 After that, execute:
-```node ./scripts/bootstrap.js```
+```sh
+node ./scripts/bootstrap.js
+```
 
 This script will create the default `root` user, with password `rootroot`.
 
@@ -131,7 +146,9 @@ It goes without saying, you should change the password for both the `root` and `
 Web Almond is composed of a master process, and a number of worker processes.
 To start the master process, do:
 
-```node ./almond/master.js```
+```sh
+node ./almond/master.js
+```
 
 The master process listens on the two sockets indicated in `config.js`. You can use a path
 in the configuration file, a port, or host name/IP address with a port name.
@@ -144,6 +161,8 @@ the repository is located at `/opt/thingengine` and the local state directory is
 
 Finally, you can run the web frontend, by saying:
 
-```node ./main.js```
+```
+node ./main.js
+```
 
 Again, a systemd unit file is provided, called `thingengine-website.service`.

@@ -102,7 +102,7 @@ module.exports = class Frontend {
                 next();
             });
         }
-        if (IS_ALMOND_WEBSITE) {
+        if (Config.ENABLE_SECURITY_HEADERS) {
             // security headers
             this._app.use((req, res, next) => {
                 res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
@@ -178,6 +178,11 @@ module.exports = class Frontend {
             next();
         });
         this._app.use((req, res, next) => {
+            // Capital C so we don't conflict with other parameters
+            // set by various pages
+            res.locals.Config = Config;
+
+            // the old way of doing things - eventually should be refactored
             res.locals.S3_CLOUDFRONT_HOST = Config.S3_CLOUDFRONT_HOST;
             res.locals.THINGPEDIA_URL = Config.THINGPEDIA_URL;
             res.locals.WITH_THINGPEDIA = Config.WITH_THINGPEDIA;
@@ -251,19 +256,26 @@ module.exports = class Frontend {
         this._app.use('/friendhub', require('./routes/friendhub'));
 
         this._app.use(csurf({ cookie: false }));
-        this._app.use('/', require('./routes/app'));
+        this._app.use((req, res, next) => {
+            res.locals.csrfToken = req.csrfToken();
+            next();
+        });
+
+        this._app.use('/', require('./routes/about'));
         this._app.use('/', require('./routes/qrcode'));
         this._app.use('/doc', (req, res) => {
             res.redirect(301, req.originalUrl.replace('/doc', '/thingpedia/developers'));
         });
 
-        this._app.use('/research', require('./routes/research'));
         this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));
         this._app.use('/devices', require('./routes/devices_compat'));
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
+            this._app.use('/thingpedia', require('./routes/thingpedia_portal'));
+            this._app.use('/thingpedia/command', require('./routes/commandpedia'));
+
             this._app.use('/thingpedia/examples', require('./routes/thingpedia_examples'));
             this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
             this._app.use('/thingpedia/schemas', require('./routes/thingpedia_schemas'));

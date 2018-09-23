@@ -1,15 +1,17 @@
 ul.nav.navbar-nav
   li.hidden-md.hidden-lg.hidden-sm
     a(href="/")= _("Home")
-  li
-    a(href='/research')= _("Research")
+  for page in Config.EXTRA_ABOUT_PAGES
+    if page.navbar !== null
+      li
+        a(href='/about/' + page.url)= _(page.navbar)
   li
     a(href="/me")= _("My Almond")
   if WITH_THINGPEDIA === 'embedded'
     li
       a(href='/thingpedia')= _("Thingpedia")
-  li
-    a(href='/thingpedia/developers')= _("Developers")
+    li
+      a(href='/thingpedia/developers')= _("Developers")
   if authenticated
     if user.developer_org !== null
       li

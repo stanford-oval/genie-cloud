@@ -21,7 +21,7 @@
     "compile-mo": "for i in po/*.po ; do msgfmt $i -o po/`basename $i .po`.mo ; done",
     "update-bundle": "browserify -o public/javascripts/trainer-bundle.js browser/trainer.js; browserify -o public/javascripts/new-command-bundle.js browser/new_command.js",
     "update-docs": "./scripts/update-docs.sh",
-    "lint": "eslint almond/ browser/ model/ routes/ util/ main.js frontend.js",
+    "lint": "eslint almond/ browser/ model/ routes/ util/ stanford/ config.js main.js frontend.js",
     "test": "nyc ./tests/everything.sh",
     "prepublish": "which yarn >/dev/null 2>&1 && ( yarn compile-mo && yarn update-docs ) || ( npm run compile-mo && npm run update-docs )",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
