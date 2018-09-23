@@ -64,7 +64,7 @@ sleep 30
 test "$1" == "--sleep" && sleep 1d
 
 node $srcdir/tests/test_thingpedia_api_v1_v2.js
-#node $srcdir/tests/test_thingpedia_api_v3.js
+node $srcdir/tests/test_thingpedia_api_v3.js
 
 kill $frontendpid
 frontendpid=
