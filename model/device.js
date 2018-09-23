@@ -134,17 +134,17 @@ module.exports = {
 
     getByCategoryWithCode(client, category, org) {
         if (org !== null && org.is_admin) {
-            return db.selectAll(client, "select d.primary_kind, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and category = ? "
                 + "and d.developer_version = dcv.version order by name", [category]);
         } else if (org !== null) {
-            return db.selectAll(client, "select d.primary_kind, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) "
                 + "and category = ? order by name", [org.id, org.id, category]);
         } else {
-            return db.selectAll(client, "select d.primary_kind, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and category = ? order by name", [category]);
         }
@@ -152,17 +152,17 @@ module.exports = {
 
     getBySubcategoryWithCode(client, category, org) {
         if (org !== null && org.is_admin) {
-            return db.selectAll(client, "select d.primary_kind, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and subcategory = ? "
                 + "and d.developer_version = dcv.version order by name", [category]);
         } else if (org !== null) {
-            return db.selectAll(client, "select d.primary_kind, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) "
                 + "and subcategory = ? order by name", [org.id, org.id, category]);
         } else {
-            return db.selectAll(client, "select d.primary_kind, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and subcategory = ? order by name", [category]);
         }
@@ -170,7 +170,7 @@ module.exports = {
 
     getAllApprovedWithCode(client, org, start, end) {
         if (org !== null && org.is_admin) {
-            const query = "select d.primary_kind, d.name, dcv.code from device_class d, "
+            const query = "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.developer_version order by d.name";
             if (start !== undefined && end !== undefined) {
@@ -180,7 +180,7 @@ module.exports = {
                 return db.selectAll(client, query, []);
             }
         } else if (org !== null) {
-            const query = "select d.primary_kind, d.name, dcv.code from device_class d, "
+            const query = "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) order by d.name";
@@ -191,7 +191,7 @@ module.exports = {
                 return db.selectAll(client, query, [org.id, org.id]);
             }
         } else {
-            const query = "select d.primary_kind, d.name, dcv.code from device_class d, "
+            const query = "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version order by d.name";
             if (start !== undefined && end !== undefined) {

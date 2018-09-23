@@ -758,6 +758,15 @@ v1.get('/devices', (req, res, next) => {
         return;
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     client.getDeviceFactories(req.query.class).then((obj) => {
+        // convert to v1 format
+        obj = obj.map((d) => {
+            return {
+                primary_kind: d.kind,
+                name: d.text,
+                factory: d
+            };
+        });
+
         res.cacheFor(86400000);
         res.json(obj);
     }).catch(next);
@@ -1323,7 +1332,7 @@ v3.get('/examples/search', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     var isBase = req.query.base !== '0';
 
-    client.getExamplesByKey(req.query.key, isBase).then((result) => {
+    client.getExamplesByKey(req.query.q, isBase).then((result) => {
         res.cacheFor(300000);
         res.status(200).json({ result: 'ok', data: result });
     }).catch(next);

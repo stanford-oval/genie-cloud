@@ -252,95 +252,70 @@ module.exports = class ThingpediaClientCloud {
     }
 
     getDeviceFactories(klass) {
-        var developerKey = this.developerKey;
+        return db.withClient(async (dbClient) => {
+            const org = await this._getOrg(dbClient);
 
-        return db.withClient((dbClient) => {
-            return Promise.resolve().then(() => {
-                if (developerKey)
-                    return organization.getByDeveloperKey(dbClient, developerKey);
+            let devices;
+            if (klass) {
+                if (['online','physical','data','system'].indexOf(klass) >= 0)
+                    devices = await device.getByCategoryWithCode(dbClient, klass, org);
+                else if (CATEGORIES.has(klass))
+                    devices = await device.getBySubcategoryWithCode(dbClient, klass, org);
                 else
-                    return [];
-            }).then((orgs) => {
-                var org = null;
-                if (orgs.length > 0)
-                    org = orgs[0];
+                    throw new Error("Invalid class parameter");
+            } else {
+                devices = await device.getAllApprovedWithCode(dbClient, org);
+            }
 
-                var devices;
-                if (klass) {
-                    if (['online','physical','data','system'].indexOf(klass) >= 0)
-                        devices = device.getByCategoryWithCode(dbClient, klass, org);
-                    else if (CATEGORIES.has(klass))
-                        devices = device.getBySubcategoryWithCode(dbClient, klass, org);
-                    else
-                        devices = Promise.reject(new Error("Invalid class parameter"));
-                } else {
-                    devices = device.getAllApprovedWithCode(dbClient, org);
-                }
-                return devices.then((devices) => {
-                    devices.forEach((d) => {
-                        try {
-                            this._deviceMakeFactory(d);
-                        } catch(e) { /**/ }
-                    });
-                    devices = devices.filter((d) => {
-                        return !!d.factory;
-                    });
-                    return devices;
-                });
-            });
+            const factories = [];
+            for (let d of devices) {
+                const factory = this._deviceMakeFactory(d);
+                if (factory)
+                    factories.push(factory);
+            }
+            return factories;
         });
     }
 
     getDeviceSetup(kinds) {
         if (kinds.length === 0)
             return Promise.resolve({});
-        var developerKey = this.developerKey;
 
-        return db.withClient((dbClient) => {
-            return Promise.resolve().then(() => {
-                if (developerKey)
-                    return organization.getByDeveloperKey(dbClient, developerKey);
-                else
-                    return [];
-            }).then((orgs) => {
-                var org = null;
-                if (orgs.length > 0)
-                    org = orgs[0];
+        return db.withClient(async (dbClient) => {
+            const org = await this._getOrg(dbClient);
 
-                for (let i = 0; i < kinds.length; i++) {
-                     if (kinds[i] === 'messaging')
-                         kinds[i] = Config.MESSAGING_DEVICE;
-                }
+            for (let i = 0; i < kinds.length; i++) {
+                 if (kinds[i] === 'messaging')
+                     kinds[i] = Config.MESSAGING_DEVICE;
+            }
 
-                return device.getDevicesForSetup(dbClient, kinds, org);
-            }).then((devices) => {
-                var result = {};
-                devices.forEach((d) => {
-                    try {
-                        this._deviceMakeFactory(d);
-                        if (d.factory) {
-                            if (d.for_kind in result) {
-                                if (result[d.for_kind].type !== 'multiple') {
-                                     let first_choice = result[d.for_kind];
-                                     result[d.for_kind] = { type: 'multiple', choices: [first_choice] };
-                                }
-                                result[d.for_kind].choices.push(d.factory);
-                            } else {
-                                result[d.for_kind] = d.factory;
+            const devices = await device.getDevicesForSetup(dbClient, kinds, org);
+            const result = {};
+            devices.forEach((d) => {
+                try {
+                    this._deviceMakeFactory(d);
+                    if (d.factory) {
+                        if (d.for_kind in result) {
+                            if (result[d.for_kind].type !== 'multiple') {
+                                 let first_choice = result[d.for_kind];
+                                 result[d.for_kind] = { type: 'multiple', choices: [first_choice] };
                             }
-                            if (d.for_kind === Config.MESSAGING_DEVICE)
-                                result['messaging'] = d.factory;
+                            result[d.for_kind].choices.push(d.factory);
+                        } else {
+                            result[d.for_kind] = d.factory;
                         }
-                    } catch(e) { /**/ }
-                });
-
-                for (let kind of kinds) {
-                    if (!(kind in result))
-                        result[kind] = { type: 'multiple', choices: [] };
-                }
-
-                return result;
+                        if (d.for_kind === Config.MESSAGING_DEVICE)
+                            result['messaging'] = d.factory;
+                    }
+                } catch(e) { /**/ }
             });
+
+            for (let kind of kinds) {
+                if (!(kind in result))
+                    result[kind] = { type: 'multiple', choices: [] };
+            }
+
+            return result;
         });
     }
 
