@@ -54,17 +54,18 @@ eval $(node $srcdir/tests/load_test_thingpedia.js)
 node $srcdir/main.js &
 frontendpid=$!
 
-# sleep until the process is settled
-sleep 30
+# in interactive mode, sleep forever
+# the developer will run the tests by hand
+# and Ctrl+C
+if test "$1" = "--interactive" ; do
+    sleep 84600
+else
+    # sleep until the process is settled
+    sleep 30
 
-# if the developer says --sleep on the command line, just
-# sleep forever
-# this allows the developer (aka, me) to fire a browser,
-# login and check wtf is going on
-test "$1" == "--sleep" && sleep 1d
-
-node $srcdir/tests/test_thingpedia_api_v1_v2.js
-node $srcdir/tests/test_thingpedia_api_v3.js
+    node $srcdir/tests/test_thingpedia_api_v1_v2.js
+    node $srcdir/tests/test_thingpedia_api_v3.js
+fi
 
 kill $frontendpid
 frontendpid=

@@ -45,14 +45,21 @@ masterpid=$!
 node $srcdir/main.js &
 frontendpid=$!
 
-# sleep until both processes are settled
-sleep 30
+# in interactive mode, sleep forever
+# the developer will run the tests by hand
+# and Ctrl+C
+if test "$1" = "--interactive" ; do
+    sleep 84600
+else
+    # sleep until both processes are settled
+    sleep 30
 
-# TODO run tests here
+    # test the website by making HTTP requests directly
+    node $srcdir/tests/test_website_basic.js
 
-# sample test: the word Almond appears somewhere on the front page
-# (real tests should use Selenium probably)
-curl -f 'http://127.0.0.1:8080/' | grep "Almond" >/dev/null
+    # test the website in a browser
+    SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
+fi
 
 kill $frontendpid
 frontendpid=
