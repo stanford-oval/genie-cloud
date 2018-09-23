@@ -898,9 +898,9 @@ v3.get('/devices/all', (req, res, next) => {
         return;
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceList(req.query.class || null, page, page_size).then((obj) => {
+    client.getDeviceList(req.query.class || null, page, page_size).then(({ devices }) => {
         res.cacheFor(86400000);
-        res.json({ result: 'ok', data: obj });
+        res.json({ result: 'ok', data: devices });
     }).catch(next);
 });
 
@@ -918,7 +918,6 @@ v3.get('/devices/all', (req, res, next) => {
  *
  * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
  * @apiSuccess {Object[]} data The array of all devices
- * @apiSuccess {Number} data.weight Search rank (lower is better)
  * @apiSuccess {String} data.primary_kind The primary identifier of the device
  * @apiSuccess {String} data.name The user visible name of the device
  * @apiSuccess {String} data.description A longer, user visible, description of the device
@@ -930,7 +929,6 @@ v3.get('/devices/all', (req, res, next) => {
  *    "result": "ok",
  *    "data": [
  *      {
- *        "weight": 1
  *        "primary_kind": "com.twitter",
  *        "name": "Twitter Account",
  *        "description": "Connect your Almond with Twitter",
@@ -947,16 +945,8 @@ v1.get('/devices/search', (req, res, next) => {
         return;
     }
 
-    db.withClient((dbClient) => {
-        return deviceModel.getByFuzzySearch(dbClient, q);
-    }).then((devices) => {
-        var kinds = new Set;
-        devices = devices.filter((d) => {
-            if (kinds.has(d.primary_kind))
-                return false;
-            kinds.add(d.primary_kind);
-            return true;
-        });
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    client.getDeviceSearch(q).then((devices) => {
         res.cacheFor(86400000);
         res.json({ devices });
     }).catch(next);
@@ -969,16 +959,8 @@ v3.get('/devices/search', (req, res, next) => {
         return;
     }
 
-    db.withClient((dbClient) => {
-        return deviceModel.getByFuzzySearch(dbClient, q);
-    }).then((devices) => {
-        var kinds = new Set;
-        devices = devices.filter((d) => {
-            if (kinds.has(d.primary_kind))
-                return false;
-            kinds.add(d.primary_kind);
-            return true;
-        });
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    client.getDeviceSearch(q).then((devices) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: devices });
     }).catch(next);

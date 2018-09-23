@@ -452,16 +452,12 @@ async function testGetDeviceList(_class) {
             assertNonEmptyString(device.name);
             assertNonEmptyString(device.description);
             assertNonEmptyString(device.primary_kind);
-            assertNonEmptyString(device.module_type);
             assertNonEmptyString(device.category);
             assertNonEmptyString(device.subcategory);
             if (_class) {
                 assert.deepStrictEqual(device.category, _class);
                 assert(EXPECTED[_class].includes(device.primary_kind));
             }
-
-            assert.deepStrictEqual(typeof device.approved_version, 'number');
-            assert.deepStrictEqual(typeof device.developer_version, 'number');
 
             // no duplicates
             assert(!publicDevices.has(device.primary_kind));
@@ -478,7 +474,6 @@ async function testGetDeviceList(_class) {
 async function testDeviceSearch() {
     assert.deepStrictEqual(await request('/api/devices/search?q=bing'), {
         devices: [{
-            weight: 1,
             primary_kind: 'com.bing',
             name: 'Bing Search',
             description: 'Search the web with Bing',
@@ -492,7 +487,6 @@ async function testDeviceSearch() {
 
     assert.deepStrictEqual(await request(`/api/devices/search?q=invisible&developer_key=${process.env.DEVELOPER_KEY}`), {
         devices: [{
-            weight: 1,
             primary_kind: 'org.thingpedia.builtin.test.invisible',
             name: 'Invisible Device',
             description: 'This device is owned by Bob. It was not approved.',
@@ -502,14 +496,7 @@ async function testDeviceSearch() {
     });
 
     assert.deepStrictEqual(await request(`/api/devices/search?q=bing+invisible&developer_key=${process.env.DEVELOPER_KEY}`), {
-        devices: [{
-            weight: 1,
-            primary_kind: 'org.thingpedia.builtin.test.invisible',
-            name: 'Invisible Device',
-            description: 'This device is owned by Bob. It was not approved.',
-            category: 'system',
-            subcategory: 'service'
-        }]
+        devices: []
     });
 }
 

@@ -226,34 +226,26 @@ module.exports = class ThingpediaClientCloud {
         }
     }
 
+    getDeviceSearch(q) {
+        return db.withClient(async (dbClient) => {
+            const org = await this._getOrg(dbClient);
+            return device.getByFuzzySearch(dbClient, q, org);
+        });
+    }
+
     getDeviceList(klass, page, page_size) {
-        var developerKey = this.developerKey;
-
-        return db.withClient((dbClient) => {
-            return Promise.resolve().then(() => {
-                if (developerKey)
-                    return organization.getByDeveloperKey(dbClient, developerKey);
+        return db.withClient(async (dbClient) => {
+            const org = await this._getOrg(dbClient);
+            if (klass) {
+                if (['online','physical','data','system'].indexOf(klass) >= 0)
+                    return device.getByCategory(dbClient, klass, org, page*page_size, page_size+1);
+                else if (CATEGORIES.has(klass))
+                    return device.getBySubcategory(dbClient, klass, org, page*page_size, page_size+1);
                 else
-                    return [];
-            }).then((orgs) => {
-                var org = null;
-                if (orgs.length > 0)
-                    org = orgs[0];
-
-                var devices;
-                if (klass) {
-                    if (['online','physical','data','system'].indexOf(klass) >= 0)
-                        devices = device.getByCategory(dbClient, klass, org, page*page_size, page_size+1);
-                    else if (CATEGORIES.has(klass))
-                        devices = device.getBySubcategory(dbClient, klass, org, page*page_size, page_size+1);
-                    else
-                        devices = Promise.reject(new Error("Invalid class parameter"));
-                } else {
-                    devices = device.getAllApproved(dbClient, org, page*page_size, page_size+1);
-                }
-
-                return devices;
-            });
+                    throw new Error("Invalid class parameter");
+            } else {
+                return device.getAllApproved(dbClient, org, page*page_size, page_size+1);
+            }
         }).then((devices) => {
             return ({ devices });
         });
@@ -412,6 +404,7 @@ module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getDeviceSetup', 'getDeviceSetup2',
                                         'getDeviceFactories',
                                         'getDeviceList',
+                                        'getDeviceSearch',
                                         'getKindByDiscovery',
                                         'getExamplesByKinds', 'getExamplesByKey',
                                         'clickExample', 'lookupEntity'];

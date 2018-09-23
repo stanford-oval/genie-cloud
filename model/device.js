@@ -84,15 +84,37 @@ module.exports = {
         }
     },
 
-    getByFuzzySearch(client, tag) {
-        var pctag = '%' + tag + '%';
-        return db.selectAll(client, "(select 0 as weight, d.primary_kind,d.name,d.description,d.category,d.subcategory from device_class d where primary_kind = ?) union "
-                                + " (select 1, d.primary_kind,d.name,d.description,d.category,d.subcategory from device_class d where name like ? or description like ?)"
-                                + " union "
-                                + " (select 2, d.primary_kind,d.name,d.description,d.category,d.subcategory from device_class d, device_class_kind dk "
-                                + " where dk.device_id = d.id and dk.kind = ?)"
-                                + " order by weight asc, name asc limit 20",
-                                [tag, pctag, pctag, tag]);
+    getByFuzzySearch(client, tag, org) {
+        const pctag = '%' + tag + '%';
+
+        if (org !== null && org.is_admin) {
+            return db.selectAll(client,
+                `select
+                 primary_kind, name, description, category,
+                 subcategory from device_class where primary_kind = ?
+                 or name like ? or description like ?
+                 or id in (select device_id from device_class_kind where kind = ?)
+                 order by name asc limit 20`,
+                [tag, pctag, pctag, tag]);
+        } else if (org !== null) {
+            return db.selectAll(client,
+                `select primary_kind, name, description, category,
+                 subcategory from device_class where (primary_kind = ?
+                 or name like ? or description like ?
+                 or id in (select device_id from device_class_kind where kind = ?))
+                 and (approved_version is not null or owner = ?)
+                 order by name asc limit 20`,
+                [tag, pctag, pctag, tag, org.id]);
+        } else {
+            return db.selectAll(client,
+                `select primary_kind, name, description, category,
+                 subcategory from device_class where (primary_kind = ?
+                 or name like ? or description like ?
+                 or id in (select device_id from device_class_kind where kind = ?))
+                 and approved_version is not null
+                 order by name asc limit 20`,
+                [tag, pctag, pctag, tag]);
+        }
     },
 
     getCodeByVersion(client, id, version) {
