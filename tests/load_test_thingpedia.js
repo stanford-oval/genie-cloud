@@ -18,6 +18,8 @@ const path = require('path');
 const db = require('../util/db');
 const userModel = require('../model/user');
 const organization = require('../model/organization');
+const entityModel = require('../model/entity');
+
 const user = require('../util/user');
 const Importer = require('../util/import_device');
 const makeRandom = require('../util/random');
@@ -56,6 +58,27 @@ async function loadAllDevices(dbClient, bob, root) {
     });
 }
 
+async function loadEntityValues(dbClient) {
+    await entityModel.createMany(dbClient, [{
+        id: 'tt:stock_id',
+        name: 'Company Stock ID',
+        language: 'en',
+        is_well_known: false,
+        has_ner_support: true,
+    }]);
+
+    await db.insertOne(dbClient,
+        `insert ignore into entity_lexicon(language,entity_id,entity_value,
+        entity_canonical,entity_name) values ?`,
+         [[
+         ['en', 'org.freedesktop:app_id', 'edu.stanford.Almond', 'almond', 'Almond'],
+         ['en', 'org.freedesktop:app_id', 'org.gnome.Builder', 'gnome builder', 'GNOME Builder'],
+         ['en', 'org.freedesktop:app_id', 'org.gnome.Weather.Application', 'gnome weather', 'GNOME Weather'],
+         ['en', 'tt:stock_id', 'goog', 'alphabet inc.', 'Alphabet Inc.'],
+         ['en', 'tt:stock_id', 'msft', 'microsoft corp.', 'Microsoft Corp.'],
+         ]]);
+}
+
 async function main() {
     platform.init();
 
@@ -82,6 +105,7 @@ async function main() {
 
         const [root] = await userModel.getByName(dbClient, 'root');
         await loadAllDevices(dbClient, bob, root);
+        await loadEntityValues(dbClient);
 
         console.log(`export DEVELOPER_KEY="${newOrg.developer_key}"`);
     });

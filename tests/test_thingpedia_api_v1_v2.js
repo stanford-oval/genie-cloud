@@ -542,6 +542,177 @@ async function testDiscovery() {
     assert(!failed);
 }
 
+async function testGetEntityIcon() {
+    let failed = false;
+    try {
+        await Tp.Helpers.Http.get(THINGPEDIA_URL + '/api/entities/icon?entity_type=tt:stock_id&entity_value=goog&entity_display=Alphabet+Inc.',
+            { followRedirects: false });
+        failed = true;
+    } catch(e) {
+        assert.strictEqual(e.code, 301);
+        assert(e.redirect.endsWith('.png'));
+    }
+    assert(!failed);
+}
+
+async function testGetEntityList() {
+    assert.deepStrictEqual(await request('/api/entities'),
+        {"result":"ok",
+        "data":[{
+            "type":"org.freedesktop:app_id",
+            "name":"Freedesktop App Identifier",
+            "is_well_known":0,
+            "has_ner_support":1
+        },{
+            "type":"tt:stock_id",
+            "name":"Company Stock ID",
+            "is_well_known":0,
+            "has_ner_support":1
+        },{
+            "type":"tt:contact",
+            "name":"Contact Identity",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:contact_name",
+            "name":"Contact Name",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:device",
+            "name":"Device Name",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:email_address",
+            "name":"Email Address",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:flow_token",
+            "name":"Flow Identifier",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:function",
+            "name":"Function Name",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:hashtag",
+            "name":"Hashtag",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:path_name",
+            "name":"Unix Path",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:phone_number",
+            "name":"Phone Number",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:picture",
+            "name":"Picture",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:program",
+            "name":"Program",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:url",
+            "name":"URL",
+            "is_well_known":1,
+            "has_ner_support":0
+        },{
+            "type":"tt:username",
+            "name":"Username",
+            "is_well_known":1,
+            "has_ner_support":0
+        }]}
+    );
+}
+
+async function testGetEntityValues() {
+    assert.deepStrictEqual(await request('/api/entities/list/tt:username'), {
+        result: 'ok',
+        data: []
+    });
+
+    assert.deepStrictEqual(await request('/api/entities/list/org.freedesktop:app_id'), {
+        result: 'ok',
+        data: [
+        { id: 'edu.stanford.Almond', name: 'Almond' },
+        { id: 'org.gnome.Builder', name: 'GNOME Builder' },
+        { id: 'org.gnome.Weather.Application', name: 'GNOME Weather' }
+        ]
+    });
+}
+
+async function testLookupEntity() {
+    assert.deepStrictEqual(await request('/api/entities/lookup?q=gnome'), {
+        result: 'ok',
+        data: [
+        {
+          type: 'org.freedesktop:app_id',
+          value: 'org.gnome.Builder',
+          canonical: 'gnome builder',
+          name: 'GNOME Builder'
+        },{
+          type: 'org.freedesktop:app_id',
+          value: 'org.gnome.Weather.Application',
+          canonical: 'gnome weather',
+          name: 'GNOME Weather' }
+        ]
+    });
+    assert.deepStrictEqual(await request('/api/entities/lookup?q=builder'), {
+        result: 'ok',
+        data: [
+        {
+          type: 'org.freedesktop:app_id',
+          value: 'org.gnome.Builder',
+          canonical: 'gnome builder',
+          name: 'GNOME Builder'
+        }]
+    });
+
+    assert.deepStrictEqual(await request('/api/entities/lookup/org.freedesktop:app_id?q=gnome'), {
+        result: 'ok',
+        meta: {
+            name: 'Freedesktop App Identifier',
+            has_ner_support: 1,
+            is_well_known: 0
+        },
+        data: [
+        {
+          type: 'org.freedesktop:app_id',
+          value: 'org.gnome.Builder',
+          canonical: 'gnome builder',
+          name: 'GNOME Builder'
+        },{
+          type: 'org.freedesktop:app_id',
+          value: 'org.gnome.Weather.Application',
+          canonical: 'gnome weather',
+          name: 'GNOME Weather' }
+        ]
+    });
+
+    assert.deepStrictEqual(await request('/api/entities/lookup/tt:stock_id?q=gnome'), {
+        result: 'ok',
+        meta: {
+            name: 'Company Stock ID',
+            has_ner_support: 1,
+            is_well_known: 0
+        },
+        data: []
+    });
+
+}
+
 async function main() {
     await testGetSchemas();
     await testGetMetadata();
@@ -561,5 +732,9 @@ async function main() {
     await testGetDeviceList('system');
     await testDiscovery();
     await testDeviceSearch();
+    await testGetEntityIcon();
+    await testGetEntityList();
+    await testGetEntityValues();
+    await testLookupEntity();
 }
 main();

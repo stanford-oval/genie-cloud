@@ -42,6 +42,8 @@ for x in devices icons backgrounds ; do
     mkdir -p $workdir/shared/$x
     ln -sf -T $workdir/shared/$x $srcdir/public/download/$x
 done
+mkdir -p $workdir/shared/cache
+echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
 
 # load some more data into Thingpedia
 # (this has to occur after setting up the download
