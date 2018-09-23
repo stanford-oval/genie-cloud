@@ -3,17 +3,11 @@ extends layout
 block styles
   link(rel='stylesheet', href='/stylesheets/index.css')
 
-block scripts
-  script(src='/javascripts/index.js')
-
 block page_name
   - stdlayout = false;
   | Almond
 
 block content
-  if authenticated
-    div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
-
   div#page-body
     if IS_ALMOND_WEBSITE
       div.sections
