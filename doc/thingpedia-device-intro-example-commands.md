@@ -1,5 +1,7 @@
 # Writing Example Commands for Your Device
 
+[[toc]]
+
 ## Composable Examples
 ThingTalk can compose multiple primitive commands to create a complicated compound command. 
 To leverage the full power of ThingTalk, we recommend to write composable example commands as follows.

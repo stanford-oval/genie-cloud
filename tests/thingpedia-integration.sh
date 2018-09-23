@@ -42,12 +42,14 @@ for x in devices icons backgrounds ; do
     mkdir -p $workdir/shared/$x
     ln -sf -T $workdir/shared/$x $srcdir/public/download/$x
 done
+mkdir -p $workdir/shared/cache
+echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
 
 # load some more data into Thingpedia
 # (this has to occur after setting up the download
 # directories because it copies the zip file)
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
-node $srcdir/tests/load_test_thingpedia.js
+eval $(node $srcdir/tests/load_test_thingpedia.js)
 
 node $srcdir/main.js &
 frontendpid=$!
@@ -62,7 +64,7 @@ sleep 30
 test "$1" == "--sleep" && sleep 1d
 
 node $srcdir/tests/test_thingpedia_api_v1_v2.js
-#node $srcdir/tests/test_thingpedia_api_v3.js
+node $srcdir/tests/test_thingpedia_api_v3.js
 
 kill $frontendpid
 frontendpid=

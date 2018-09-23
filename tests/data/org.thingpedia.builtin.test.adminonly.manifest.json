@@ -1,6 +1,6 @@
 {
-  "thingpedia_name": "Invisible Device",
-  "thingpedia_description": "This device is owned by Bob. It was not approved.",
+  "thingpedia_name": "Admin-only Device",
+  "thingpedia_description": "This device does not exist. This entry is visible only to the administrators of Thingpedia. It exists to test that the Thingpedia API properly masks and reveals devices based on the appropriate developer key. DO NOT APPROVE THIS DEVICE.",
   "module_type": "org.thingpedia.builtin",
   "params": {},
   "category": "system",
@@ -8,7 +8,7 @@
   "types": [],
   "child_types": [],
   "auth": {
-    "type": "oauth2"
+    "type": "none"
   },
   "queries": {},
   "actions": {
@@ -34,7 +34,7 @@
   "examples": [
     {
       "utterance": "test admin-only example",
-      "program": "let action x := @org.thingpedia.builtin.test.invisible.eat_data();"
+      "program": "let action x := @org.thingpedia.builtin.test.adminonly.eat_data();"
     }
   ]
 }

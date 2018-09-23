@@ -1956,6 +1956,7 @@ function loadTemplate(ex) {
             console.log('Invalid template ' + ex.id + ' (wrong number of declarations)');
     }).catch((e) => {
         console.error('Failed to load template ' + ex.id + ': ' + e.message);
+        console.error(e.stack);
     });
 }
 

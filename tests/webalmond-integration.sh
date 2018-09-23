@@ -20,7 +20,7 @@ EOF
 
 # clean the database and bootstrap
 mysql -u thingengine -pthingengine -h localhost -D thingengine_test < $srcdir/model/schema.sql
-node $srcdir/scripts/bootstrap.js
+eval $(node $srcdir/scripts/bootstrap.js)
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
@@ -52,7 +52,7 @@ sleep 30
 
 # sample test: the word Almond appears somewhere on the front page
 # (real tests should use Selenium probably)
-curl -f 'http://127.0.0.1:8080/' | grep -q "Almond"
+curl -f 'http://127.0.0.1:8080/' | grep "Almond" >/dev/null
 
 kill $frontendpid
 frontendpid=

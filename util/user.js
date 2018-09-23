@@ -13,16 +13,13 @@ const Q = require('q');
 const crypto = require('crypto');
 const db = require('./db');
 const model = require('../model/user');
+const makeRandom = require('../util/random');
 
 const Config = require('../config');
 
 function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
         .then((buffer) => buffer.toString('hex'));
-}
-
-function makeRandom(size = 32) {
-    return crypto.randomBytes(size).toString('hex');
 }
 
 module.exports = {

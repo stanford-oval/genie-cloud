@@ -11,7 +11,6 @@
 
 const Q = require('q');
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
 
 const db = require('../util/db');
@@ -22,10 +21,6 @@ const oauth2 = require('../model/oauth2');
 const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
-
-function render(req, res, what) {
-    res.render('doc_' + what, { page_title: req._("Thingpedia - Documentation") });
-}
 
 router.get('/', (req, res) => {
     Promise.resolve().then(() => {
@@ -60,23 +55,15 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:what', (req, res) => {
-    if (!/^[a-z0-9\-.]+$/.test(req.params.what) ||
-        !req.params.what.endsWith('.md')) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: req._("Malformed request") });
-        return;
-    }
+for (let doc of require('../doc/doc-list.json')) {
+    router.get('/' + doc + '.md', (req, res, next) => {
+        res.render('doc_' + doc, {
+            page_title: req._("Thingpedia - Documentation"),
+            currentPage: doc
+        });
+    });
+}
 
-    var what = req.params.what.substr(0, req.params.what.length - 3);
-    if (what !== 'base' &&
-        fs.existsSync(path.resolve(path.dirname(module.filename),
-                                   '../views/doc_' + what + '.pug'))) {
-        render(req, res, what);
-    } else {
-        res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: req._("Not Found.") });
-    }
-});
+router.use('/thingpedia-api', express.static(path.join(__dirname, '../doc/thingpedia-api')));
 
 module.exports = router;

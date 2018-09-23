@@ -47,8 +47,15 @@ function selectAll(client, string, args) {
 
 function selectOne(client, string, args) {
     return selectAll(client, string, args).then((rows) => {
-        if (rows.length !== 1)
-            throw new Error("Wrong number of rows returned, expected 1, got " + rows.length);
+        if (rows.length !== 1) {
+            if (rows.length === 0) {
+                const err = new Error("Not Found");
+                err.code = 'ENOENT';
+                throw err;
+            } else {
+                throw new Error("Wrong number of rows returned, expected 1, got " + rows.length);
+            }
+        }
 
         return rows[0];
     });

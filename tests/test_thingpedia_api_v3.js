@@ -20,7 +20,7 @@ const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 assert.strictEqual(Config.THINGPEDIA_URL, '/thingpedia');
 
-const THINGPEDIA_URL = 'http://127.0.0.1:8080/thingpedia';
+const THINGPEDIA_URL = 'http://127.0.0.1:8080/thingpedia/api/v3';
 async function request(url) {
     const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url);
     //console.log(result);
@@ -57,7 +57,7 @@ const BING_METADATA = {
     actions: {},
     queries: {
         image_search: {
-            schema: ["String", "String", "Entity(tt:picture)", "Entity(tt:url)", "Number", "Number"],
+            types: ["String", "String", "Entity(tt:picture)", "Entity(tt:url)", "Number", "Number"],
             args: ["query", "title", "picture_url", "link", "width", "height"],
             required: [true, false, false, false, false, false],
             is_input: [true, false, false, false, false, false],
@@ -78,7 +78,7 @@ const BING_METADATA = {
             ]
         },
         web_search: {
-            schema: ["String", "String", "String", "Entity(tt:url)"],
+            types: ["String", "String", "String", "Entity(tt:url)"],
             args: ["query", "title", "description", "link"],
             required: [true, false, false, false],
             is_input: [true, false, false, false],
@@ -100,90 +100,122 @@ const BING_METADATA = {
 };
 
 async function testGetSchemas() {
-    assert.deepStrictEqual(await request('/api/schema/com.bing'), {
-        'com.bing': BING_SCHEMA
+    assert.deepStrictEqual(await request('/schema/com.bing'), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_SCHEMA
+        }
     });
 
-    assert.deepStrictEqual(await request('/api/schema/com.bing,org.thingpedia.builtin.test.nonexistent'), {
-        'com.bing': BING_SCHEMA
+    assert.deepStrictEqual(await request('/schema/com.bing,org.thingpedia.builtin.test.nonexistent'), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_SCHEMA
+        }
     });
 
-    assert.deepStrictEqual(await request('/api/schema/com.bing,org.thingpedia.builtin.test.invisible'), {
-        'com.bing': BING_SCHEMA
-    });
-
-    assert.deepStrictEqual(await request(
-        `/api/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
-        'com.bing': BING_SCHEMA,
-        'org.thingpedia.builtin.test.invisible': {
-            kind_type: 'primary',
-            triggers: {},
-            queries: {},
-            actions: {
-                "eat_data": {
-                    types: ["String"],
-                    args: ["data"],
-                    is_input: [true],
-                    required: [true],
-                    is_monitorable: false,
-                    is_list: false
-                },
-            }
+    assert.deepStrictEqual(await request('/schema/com.bing,org.thingpedia.builtin.test.invisible'), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_SCHEMA
         }
     });
 
     assert.deepStrictEqual(await request(
-        `/api/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
-        'com.bing': BING_SCHEMA
-    });
-}
-
-async function testGetMetadata() {
-    assert.deepStrictEqual(await request('/api/schema-metadata/com.bing'), {
-        'com.bing': BING_METADATA
-    });
-
-    assert.deepStrictEqual(await request('/api/schema-metadata/com.bing,org.thingpedia.builtin.test.nonexistent'), {
-        'com.bing': BING_METADATA
-    });
-
-    assert.deepStrictEqual(await request('/api/schema-metadata/com.bing,org.thingpedia.builtin.test.invisible'), {
-        'com.bing': BING_METADATA
-    });
-
-    assert.deepStrictEqual(await request(
-        `/api/schema-metadata/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
-        'com.bing': BING_METADATA,
-        'org.thingpedia.builtin.test.invisible': {
-            kind_type: "primary",
-            triggers: {},
-            queries: {},
-            actions: {
-                "eat_data": {
-                    schema: ["String"],
-                    args: ["data"],
-                    is_input: [true],
-                    required: [true],
-                    questions: ["What do you want me to consume?"],
-                    argcanonicals: ["data"],
-                    doc: "consume some data, do nothing",
-                    confirmation: "consume $data",
-                    confirmation_remote: "consume $data on $__person's Almond",
-                    canonical: "eat data on test",
-                    is_list: false,
-                    is_monitorable: false
+        `/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_SCHEMA,
+            'org.thingpedia.builtin.test.invisible': {
+                kind_type: 'primary',
+                triggers: {},
+                queries: {},
+                actions: {
+                    "eat_data": {
+                        types: ["String"],
+                        args: ["data"],
+                        is_input: [true],
+                        required: [true],
+                        is_monitorable: false,
+                        is_list: false
+                    },
                 }
             }
         }
     });
 
     assert.deepStrictEqual(await request(
-        `/api/schema-metadata/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
-        'com.bing': BING_METADATA
+        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_SCHEMA
+        }
+    });
+}
+
+async function testGetMetadata() {
+    assert.deepStrictEqual(await request('/schema-metadata/com.bing'), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_METADATA
+        }
+    });
+
+    assert.deepStrictEqual(await request('/schema-metadata/com.bing,org.thingpedia.builtin.test.nonexistent'), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_METADATA
+        }
+    });
+
+    assert.deepStrictEqual(await request('/schema-metadata/com.bing,org.thingpedia.builtin.test.invisible'), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_METADATA
+        }
+    });
+
+    assert.deepStrictEqual(await request(
+        `/schema-metadata/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_METADATA,
+            'org.thingpedia.builtin.test.invisible': {
+                kind_type: "primary",
+                triggers: {},
+                queries: {},
+                actions: {
+                    "eat_data": {
+                        types: ["String"],
+                        args: ["data"],
+                        is_input: [true],
+                        required: [true],
+                        questions: ["What do you want me to consume?"],
+                        argcanonicals: ["data"],
+                        doc: "consume some data, do nothing",
+                        confirmation: "consume $data",
+                        confirmation_remote: "consume $data on $__person's Almond",
+                        canonical: "eat data on test",
+                        is_list: false,
+                        is_monitorable: false
+                    }
+                }
+            }
+        }
+    });
+
+    assert.deepStrictEqual(await request(
+        `/schema-metadata/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_METADATA
+        }
     });
 }
 
 function checkExamples(generated, expected) {
+    assert.strictEqual(generated.result, 'ok');
+    generated = generated.data;
     const uniqueIds = new Set;
     const expectMap = new Map;
     assert.strictEqual(generated.length, expected.length);
@@ -207,6 +239,8 @@ function checkExamples(generated, expected) {
     }
 }
 function checkExamplesByKey(generated, key) {
+    assert.strictEqual(generated.result, 'ok');
+    generated = generated.data;
     const uniqueIds = new Set;
 
     for (let gen of generated) {
@@ -230,24 +264,24 @@ async function testGetExamplesByDevice() {
     const BUILTIN_EXAMPLES = require('../data/org.thingpedia.builtin.thingengine.builtin.manifest.json').examples;
     const INVISIBLE_EXAMPLES = require('./data/org.thingpedia.builtin.test.invisible.manifest.json').examples;
 
-    checkExamples(await request('/api/examples/by-kinds/com.bing'), BING_EXAMPLES);
-    checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin'),
+    checkExamples(await request('/examples/by-kinds/com.bing'), BING_EXAMPLES);
+    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin'),
         BUILTIN_EXAMPLES);
     checkExamples(await request(
-        '/api/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin,com.bing'),
+        '/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin,com.bing'),
         BUILTIN_EXAMPLES.concat(BING_EXAMPLES));
 
-    checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.test.invisible'), []);
+    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.invisible'), []);
 
     checkExamples(await request(
-        `/api/examples/by-kinds/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
+        `/examples/by-kinds/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
 
     checkExamples(await request(
-        `/api/examples/by-kinds/org.thingpedia.builtin.test.invisible,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`),
+        `/examples/by-kinds/org.thingpedia.builtin.test.invisible,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
 
-    checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), []);
+    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), []);
 }
 
 async function testGetExamplesByKey() {
@@ -256,19 +290,19 @@ async function testGetExamplesByKey() {
     const PHONE_EXAMPLES = require('../data/org.thingpedia.builtin.thingengine.phone.manifest.json').examples;
     const INVISIBLE_EXAMPLES = require('./data/org.thingpedia.builtin.test.invisible.manifest.json').examples;
 
-    checkExamples(await request('/api/examples?key=bing'), BING_EXAMPLES);
-    checkExamples(await request('/api/examples?key=phone'), PHONE_EXAMPLES);
-    checkExamplesByKey(await request('/api/examples?key=matching'), 'matching');
+    checkExamples(await request('/examples/search?q=bing'), BING_EXAMPLES);
+    checkExamples(await request('/examples/search?q=phone'), PHONE_EXAMPLES);
+    checkExamplesByKey(await request('/examples/search?q=matching'), 'matching');
 
-    checkExamples(await request('/api/examples?key=invisible'), []);
-    checkExamples(await request(`/api/examples?key=invisible&developer_key=${process.env.DEVELOPER_KEY}`),
+    checkExamples(await request('/examples/search?q=invisible'), []);
+    checkExamples(await request(`/examples/search?q=invisible&developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
 }
 
 async function testGetDeviceIcon() {
     let failed = false;
     try {
-        await Tp.Helpers.Http.get(THINGPEDIA_URL + '/api/devices/icon/com.bing',
+        await Tp.Helpers.Http.get(THINGPEDIA_URL + '/devices/icon/com.bing',
             { followRedirects: false });
         failed = true;
     } catch(e) {
@@ -284,6 +318,9 @@ function deepClone(x) {
 }
 
 function checkManifest(obtained, expected) {
+    assert.strictEqual(obtained.result, 'ok');
+    obtained = obtained.data;
+
     delete expected.thingpedia_name;
     delete expected.thingpedia_description;
     delete expected.examples;
@@ -301,77 +338,95 @@ async function testGetDeviceManifest() {
     const BING = deepClone(require('./data/com.bing.manifest.json'));
     const INVISIBLE = deepClone(require('./data/org.thingpedia.builtin.test.invisible.manifest.json'));
 
-    checkManifest(await request('/api/code/devices/com.bing'), BING);
+    checkManifest(await request('/devices/code/com.bing'), BING);
 
-    await assert.rejects(() => request('/api/code/devices/org.thingpedia.builtin.test.invisible'));
+    await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.invisible'));
     checkManifest(await request(
-        `/api/code/devices/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
+        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE);
 
     await assert.rejects(() => request(
-        `/api/code/devices/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`));
+        `/devices/code/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`));
 }
 
 async function testGetDeviceSetup() {
-    assert.deepStrictEqual(await request('/api/devices/setup/com.bing'), {
-        'com.bing': {
-            text: "Bing Search",
-            category: 'data',
-            type: 'none',
-            kind: 'com.bing'
+    assert.deepStrictEqual(await request('/devices/setup/com.bing'), {
+        result: 'ok',
+        data: {
+            'com.bing': {
+                text: "Bing Search",
+                category: 'data',
+                type: 'none',
+                kind: 'com.bing'
+            }
         }
     });
 
-    assert.deepStrictEqual(await request('/api/devices/setup/org.thingpedia.builtin.thingengine.builtin'), {
-        'org.thingpedia.builtin.thingengine.builtin': {
-            type: 'multiple',
-            choices: []
+    assert.deepStrictEqual(await request('/devices/setup/org.thingpedia.builtin.thingengine.builtin'), {
+        result: 'ok',
+        data: {
+            'org.thingpedia.builtin.thingengine.builtin': {
+                type: 'multiple',
+                choices: []
+            }
         }
     });
 
-    assert.deepStrictEqual(await request('/api/devices/setup/com.bing,org.thingpedia.builtin.thingengine.builtin'), {
-        'com.bing': {
-            text: "Bing Search",
-            category: 'data',
-            type: 'none',
-            kind: 'com.bing'
-        },
-        'org.thingpedia.builtin.thingengine.builtin': {
-            type: 'multiple',
-            choices: []
+    assert.deepStrictEqual(await request('/devices/setup/com.bing,org.thingpedia.builtin.thingengine.builtin'), {
+        result: 'ok',
+        data: {
+            'com.bing': {
+                text: "Bing Search",
+                category: 'data',
+                type: 'none',
+                kind: 'com.bing'
+            },
+            'org.thingpedia.builtin.thingengine.builtin': {
+                type: 'multiple',
+                choices: []
+            }
         }
     });
 
-    assert.deepStrictEqual(await request('/api/devices/setup/org.thingpedia.builtin.test.invisible'), {
-        'org.thingpedia.builtin.test.invisible': {
-            type: 'multiple',
-            choices: []
+    assert.deepStrictEqual(await request('/devices/setup/org.thingpedia.builtin.test.invisible'), {
+        result: 'ok',
+        data: {
+            'org.thingpedia.builtin.test.invisible': {
+                type: 'multiple',
+                choices: []
+            }
         }
     });
 
     assert.deepStrictEqual(await request(
-        `/api/devices/setup/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
-        'org.thingpedia.builtin.test.invisible': {
-            type: 'oauth2',
-            text: "Invisible Device",
-            category: 'system',
-            kind: 'org.thingpedia.builtin.test.invisible'
+        `/devices/setup/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'org.thingpedia.builtin.test.invisible': {
+                type: 'oauth2',
+                text: "Invisible Device",
+                category: 'system',
+                kind: 'org.thingpedia.builtin.test.invisible'
+            }
         }
     });
 
-    assert.deepStrictEqual(await request('/api/devices/setup/messaging'), {
-        'messaging': {
-            type: 'interactive',
-            text: "Matrix",
-            category: 'online',
-            kind: 'org.thingpedia.builtin.matrix'
-        },
-        'org.thingpedia.builtin.matrix': {
-            type: 'interactive',
-            text: "Matrix",
-            category: 'online',
-            kind: 'org.thingpedia.builtin.matrix'
-        },
+    assert.deepStrictEqual(await request('/devices/setup/messaging'), {
+        result: 'ok',
+        data: {
+            'messaging': {
+                type: 'interactive',
+                text: "Matrix",
+                category: 'online',
+                kind: 'org.thingpedia.builtin.matrix'
+            },
+            'org.thingpedia.builtin.matrix': {
+                type: 'interactive',
+                text: "Matrix",
+                category: 'online',
+                kind: 'org.thingpedia.builtin.matrix'
+            },
+        }
     });
 
     /*    'com.bing': {
@@ -395,23 +450,22 @@ async function testGetDeviceSetupList(_class) {
     };
 
     const kinds = new Set;
-    for (let dev of await request('/api/devices?' + (_class !== null ? `class=${_class}` : ''))) {
-        assert(!kinds.has(dev.primary_kind));
-        kinds.add(dev.primary_kind);
+    const result = await request('/devices/setup?' + (_class !== null ? `class=${_class}` : ''));
+    assert.strictEqual(result.result, 'ok');
+    for (let dev of result.data) {
+        assert(!kinds.has(dev.kind));
+        kinds.add(dev.kind);
 
-        assertNonEmptyString(dev.name);
-        assertNonEmptyString(dev.primary_kind);
+        assertNonEmptyString(dev.text);
+        assertNonEmptyString(dev.kind);
         if (_class) {
-            assert(EXPECTED[_class].includes(dev.primary_kind),
+            assert.strictEqual(dev.category, _class);
+            assert(EXPECTED[_class].includes(dev.kind),
                    `unexpected device ${dev.primary_kind} in category ${_class}`);
         }
 
-        const factory = dev.factory;
-        assert.deepStrictEqual(factory.kind, dev.primary_kind);
-        assertNonEmptyString(factory.text);
-        assert.deepStrictEqual(factory.text, dev.name);
-        assert(['none', 'discovery', 'interactive', 'form', 'oauth2'].indexOf(factory.type) >= 0,
-        `Invalid factory type ${factory.type} for ${factory.kind}`);
+        assert(['none', 'discovery', 'interactive', 'form', 'oauth2'].indexOf(dev.type) >= 0,
+        `Invalid factory type ${dev.type} for ${factory.kind}`);
     }
 }
 
@@ -431,17 +485,17 @@ async function testGetDeviceList(_class) {
 
     const publicDevices = new Set;
 
-    const { devices: page0 } = await request('/api/devices/all?' + (_class !== null ? `class=${_class}` : ''));
+    const { data: page0 } = await request('/devices/all?' + (_class !== null ? `class=${_class}` : ''));
 
     // weird values for page are the same as ignored
-    const { devices: pageMinusOne } = await request('/api/devices/all?page=-1&' + (_class !== null ? `class=${_class}` : ''));
+    const { data: pageMinusOne } = await request('/devices/all?page=-1&' + (_class !== null ? `class=${_class}` : ''));
     assert.deepStrictEqual(pageMinusOne, page0);
-    const { devices: pageInvalid } = await request('/api/devices/all?page=invalid&' + (_class !== null ? `class=${_class}` : ''));
+    const { data: pageInvalid } = await request('/devices/all?page=invalid&' + (_class !== null ? `class=${_class}` : ''));
     assert.deepStrictEqual(pageInvalid, page0);
 
     const kinds = new Set;
     for (let i = 0; ; i++) {
-        const { devices: page } = await request(`/api/devices/all?page=${i}&page_size=10&` + (_class !== null ? `class=${_class}` : ''));
+        const { data: page } = await request(`/devices/all?page=${i}&page_size=10&` + (_class !== null ? `class=${_class}` : ''));
         if (i === 0)
             assert.deepStrictEqual(page, page0);
         for (let j = 0; j < Math.min(page.length, 10); j++) {
@@ -472,8 +526,9 @@ async function testGetDeviceList(_class) {
 }
 
 async function testDeviceSearch() {
-    assert.deepStrictEqual(await request('/api/devices/search?q=bing'), {
-        devices: [{
+    assert.deepStrictEqual(await request('/devices/search?q=bing'), {
+        result: 'ok',
+        data: [{
             primary_kind: 'com.bing',
             name: 'Bing Search',
             description: 'Search the web with Bing',
@@ -482,11 +537,13 @@ async function testDeviceSearch() {
         }]
     });
 
-    assert.deepStrictEqual(await request('/api/devices/search?q=invisible'), {
-        devices: [] });
+    assert.deepStrictEqual(await request('/devices/search?q=invisible'), {
+        result: 'ok',
+        data: [] });
 
-    assert.deepStrictEqual(await request(`/api/devices/search?q=invisible&developer_key=${process.env.DEVELOPER_KEY}`), {
-        devices: [{
+    assert.deepStrictEqual(await request(`/devices/search?q=invisible&developer_key=${process.env.DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: [{
             primary_kind: 'org.thingpedia.builtin.test.invisible',
             name: 'Invisible Device',
             description: 'This device is owned by Bob. It was not approved.',
@@ -495,23 +552,28 @@ async function testDeviceSearch() {
         }]
     });
 
-    assert.deepStrictEqual(await request(`/api/devices/search?q=bing+invisible&developer_key=${process.env.DEVELOPER_KEY}`), {
-        devices: []
+    assert.deepStrictEqual(await request(`/devices/search?q=bing+invisible&developer_key=${process.env.DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: []
     });
 }
 
 async function testDiscovery() {
-    assert.deepStrictEqual(await Tp.Helpers.Http.post(THINGPEDIA_URL + '/api/discovery',
+    assert.deepStrictEqual(JSON.parse(await Tp.Helpers.Http.post(THINGPEDIA_URL + '/devices/discovery',
         JSON.stringify({
             kind: 'bluetooth',
             uuids: [],
             class: 0
-        }), { dataContentType: 'application/json'}),
-        'org.thingpedia.builtin.bluetooth.generic');
+        }), { dataContentType: 'application/json'})), {
+        result: 'ok',
+        data: {
+            kind: 'org.thingpedia.builtin.bluetooth.generic'
+        }
+    });
 
     let failed = false;
     try {
-        await Tp.Helpers.Http.post(THINGPEDIA_URL + '/api/discovery',
+        await Tp.Helpers.Http.post(THINGPEDIA_URL + '/devices/discovery',
             JSON.stringify({
                 kind: 'invalid',
             }), { dataContentType: 'application/json'});
@@ -524,7 +586,7 @@ async function testDiscovery() {
 
     failed = false;
     try {
-        await Tp.Helpers.Http.post(THINGPEDIA_URL + '/api/discovery',
+        await Tp.Helpers.Http.post(THINGPEDIA_URL + '/devices/discovery',
             JSON.stringify({
                 // LG TV
                 kind: 'upnp',
@@ -545,7 +607,7 @@ async function testDiscovery() {
 async function testGetEntityIcon() {
     let failed = false;
     try {
-        await Tp.Helpers.Http.get(THINGPEDIA_URL + '/api/entities/icon?entity_type=tt:stock_id&entity_value=goog&entity_display=Alphabet+Inc.',
+        await Tp.Helpers.Http.get(THINGPEDIA_URL + '/entities/icon?entity_type=tt:stock_id&entity_value=goog&entity_display=Alphabet+Inc.',
             { followRedirects: false });
         failed = true;
     } catch(e) {
@@ -556,7 +618,7 @@ async function testGetEntityIcon() {
 }
 
 async function testGetEntityList() {
-    assert.deepStrictEqual(await request('/api/entities'),
+    assert.deepStrictEqual(await request('/entities/all'),
         {"result":"ok",
         "data":[{
             "type":"org.freedesktop:app_id",
@@ -638,23 +700,23 @@ async function testGetEntityList() {
 }
 
 async function testGetEntityValues() {
-    assert.deepStrictEqual(await request('/api/entities/list/tt:username'), {
+    assert.deepStrictEqual(await request('/entities/list/tt:username'), {
         result: 'ok',
         data: []
     });
 
-    assert.deepStrictEqual(await request('/api/entities/list/org.freedesktop:app_id'), {
+    assert.deepStrictEqual(await request('/entities/list/org.freedesktop:app_id'), {
         result: 'ok',
         data: [
-        { id: 'edu.stanford.Almond', name: 'Almond' },
-        { id: 'org.gnome.Builder', name: 'GNOME Builder' },
-        { id: 'org.gnome.Weather.Application', name: 'GNOME Weather' }
+        { value: 'edu.stanford.Almond', name: 'Almond', canonical: 'almond' },
+        { value: 'org.gnome.Builder', name: 'GNOME Builder', canonical: 'gnome builder' },
+        { value: 'org.gnome.Weather.Application', name: 'GNOME Weather', canonical: 'gnome weather' }
         ]
     });
 }
 
 async function testLookupEntity() {
-    assert.deepStrictEqual(await request('/api/entities/lookup?q=gnome'), {
+    assert.deepStrictEqual(await request('/entities/lookup?q=gnome'), {
         result: 'ok',
         data: [
         {
@@ -669,7 +731,7 @@ async function testLookupEntity() {
           name: 'GNOME Weather' }
         ]
     });
-    assert.deepStrictEqual(await request('/api/entities/lookup?q=builder'), {
+    assert.deepStrictEqual(await request('/entities/lookup?q=builder'), {
         result: 'ok',
         data: [
         {
@@ -680,7 +742,7 @@ async function testLookupEntity() {
         }]
     });
 
-    assert.deepStrictEqual(await request('/api/entities/lookup/org.freedesktop:app_id?q=gnome'), {
+    assert.deepStrictEqual(await request('/entities/lookup/org.freedesktop:app_id?q=gnome'), {
         result: 'ok',
         meta: {
             name: 'Freedesktop App Identifier',
@@ -701,7 +763,7 @@ async function testLookupEntity() {
         ]
     });
 
-    assert.deepStrictEqual(await request('/api/entities/lookup/tt:stock_id?q=gnome'), {
+    assert.deepStrictEqual(await request('/entities/lookup/tt:stock_id?q=gnome'), {
         result: 'ok',
         meta: {
             name: 'Company Stock ID',

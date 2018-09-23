@@ -87,7 +87,7 @@ module.exports = class ThingpediaClientCloud {
                     else
                         throw new Error('Not Authorized');
                 }, (e) => {
-                    if (e.message === 'Wrong number of rows returned, expected 1, got 0') {
+                    if (e.code === 'ENOENT') {
                         // = no such device, but we hide this fact and return a generic Not Authorized
                         throw new Error('Not Authorized');
                     } else {
@@ -114,8 +114,11 @@ module.exports = class ThingpediaClientCloud {
 
                 return device.getFullCodeByPrimaryKind(dbClient, kind, org);
             }).then((devs) => {
-                if (devs.length < 1)
-                    throw new Error(kind + ' not Found');
+                if (devs.length < 1) {
+                    const err = new Error('Not Found');
+                    err.code = 'ENOENT';
+                    throw err;
+                }
 
                 var dev = devs[0];
                 var ast = JSON.parse(dev.code);
@@ -130,6 +133,8 @@ module.exports = class ThingpediaClientCloud {
     }
 
     getSchemas(schemas) {
+        if (schemas.length === 0)
+            return Promise.resolve({});
         var developerKey = this.developerKey;
 
         return db.withClient((dbClient) => {
@@ -161,6 +166,9 @@ module.exports = class ThingpediaClientCloud {
     }
 
     getMetas(schemas) {
+        if (schemas.length === 0)
+            return Promise.resolve({});
+
         var developerKey = this.developerKey;
 
         return db.withClient((dbClient) => {
@@ -218,153 +226,133 @@ module.exports = class ThingpediaClientCloud {
         }
     }
 
+    getDeviceSearch(q) {
+        return db.withClient(async (dbClient) => {
+            const org = await this._getOrg(dbClient);
+            return device.getByFuzzySearch(dbClient, q, org);
+        });
+    }
+
     getDeviceList(klass, page, page_size) {
-        var developerKey = this.developerKey;
-
-        return db.withClient((dbClient) => {
-            return Promise.resolve().then(() => {
-                if (developerKey)
-                    return organization.getByDeveloperKey(dbClient, developerKey);
+        return db.withClient(async (dbClient) => {
+            const org = await this._getOrg(dbClient);
+            if (klass) {
+                if (['online','physical','data','system'].indexOf(klass) >= 0)
+                    return device.getByCategory(dbClient, klass, org, page*page_size, page_size+1);
+                else if (CATEGORIES.has(klass))
+                    return device.getBySubcategory(dbClient, klass, org, page*page_size, page_size+1);
                 else
-                    return [];
-            }).then((orgs) => {
-                var org = null;
-                if (orgs.length > 0)
-                    org = orgs[0];
-
-                var devices;
-                if (klass) {
-                    if (['online','physical','data','system'].indexOf(klass) >= 0)
-                        devices = device.getByCategory(dbClient, klass, org, page*page_size, page_size+1);
-                    else if (CATEGORIES.has(klass))
-                        devices = device.getBySubcategory(dbClient, klass, org, page*page_size, page_size+1);
-                    else
-                        devices = Promise.reject(new Error("Invalid class parameter"));
-                } else {
-                    devices = device.getAllApproved(dbClient, org, page*page_size, page_size+1);
-                }
-
-                return devices;
-            });
+                    throw new Error("Invalid class parameter");
+            } else {
+                return device.getAllApproved(dbClient, org, page*page_size, page_size+1);
+            }
         }).then((devices) => {
             return ({ devices });
         });
     }
 
     getDeviceFactories(klass) {
-        var developerKey = this.developerKey;
+        return db.withClient(async (dbClient) => {
+            const org = await this._getOrg(dbClient);
 
-        return db.withClient((dbClient) => {
-            return Promise.resolve().then(() => {
-                if (developerKey)
-                    return organization.getByDeveloperKey(dbClient, developerKey);
+            let devices;
+            if (klass) {
+                if (['online','physical','data','system'].indexOf(klass) >= 0)
+                    devices = await device.getByCategoryWithCode(dbClient, klass, org);
+                else if (CATEGORIES.has(klass))
+                    devices = await device.getBySubcategoryWithCode(dbClient, klass, org);
                 else
-                    return [];
-            }).then((orgs) => {
-                var org = null;
-                if (orgs.length > 0)
-                    org = orgs[0];
+                    throw new Error("Invalid class parameter");
+            } else {
+                devices = await device.getAllApprovedWithCode(dbClient, org);
+            }
 
-                var devices;
-                if (klass) {
-                    if (['online','physical','data','system'].indexOf(klass) >= 0)
-                        devices = device.getByCategoryWithCode(dbClient, klass, org);
-                    else if (CATEGORIES.has(klass))
-                        devices = device.getBySubcategoryWithCode(dbClient, klass, org);
-                    else
-                        devices = Promise.reject(new Error("Invalid class parameter"));
-                } else {
-                    devices = device.getAllApprovedWithCode(dbClient, org);
-                }
-                return devices.then((devices) => {
-                    devices.forEach((d) => {
-                        try {
-                            this._deviceMakeFactory(d);
-                        } catch(e) { /**/ }
-                    });
-                    devices = devices.filter((d) => {
-                        return !!d.factory;
-                    });
-                    return devices;
-                });
-            });
-        });
-    }
-
-    getDeviceSetup2(kinds) {
-        var developerKey = this.developerKey;
-
-        return db.withClient((dbClient) => {
-            return Promise.resolve().then(() => {
-                if (developerKey)
-                    return organization.getByDeveloperKey(dbClient, developerKey);
-                else
-                    return [];
-            }).then((orgs) => {
-                var org = null;
-                if (orgs.length > 0)
-                    org = orgs[0];
-
-                for (let i = 0; i < kinds.length; i++) {
-                     if (kinds[i] === 'messaging')
-                         kinds[i] = Config.MESSAGING_DEVICE;
-                }
-
-                return device.getDevicesForSetup(dbClient, kinds, org);
-            }).then((devices) => {
-                var result = {};
-                devices.forEach((d) => {
-                    try {
-                        this._deviceMakeFactory(d);
-                        if (d.factory) {
-                            if (d.for_kind in result) {
-                                if (result[d.for_kind].type !== 'multiple') {
-                                     let first_choice = result[d.for_kind];
-                                     result[d.for_kind] = { type: 'multiple', choices: [first_choice] };
-                                }
-                                result[d.for_kind].choices.push(d.factory);
-                            } else {
-                                result[d.for_kind] = d.factory;
-                            }
-                            if (d.for_kind === Config.MESSAGING_DEVICE)
-                                result['messaging'] = d.factory;
-                        }
-                    } catch(e) { /**/ }
-                });
-
-                for (let kind of kinds) {
-                    if (!(kind in result))
-                        result[kind] = { type: 'multiple', choices: [] };
-                }
-
-                return result;
-            });
+            const factories = [];
+            for (let d of devices) {
+                const factory = this._deviceMakeFactory(d);
+                if (factory)
+                    factories.push(factory);
+            }
+            return factories;
         });
     }
 
     getDeviceSetup(kinds) {
-        return this.getDeviceSetup2(kinds).then((result) => {
-            for (let name in result) {
-                if (result[name].type === 'multiple')
-                    result[name].choices = result[name].choices.map((c) => c.text);
+        if (kinds.length === 0)
+            return Promise.resolve({});
+
+        return db.withClient(async (dbClient) => {
+            const org = await this._getOrg(dbClient);
+
+            for (let i = 0; i < kinds.length; i++) {
+                 if (kinds[i] === 'messaging')
+                     kinds[i] = Config.MESSAGING_DEVICE;
             }
+
+            const devices = await device.getDevicesForSetup(dbClient, kinds, org);
+            const result = {};
+            devices.forEach((d) => {
+                try {
+                    this._deviceMakeFactory(d);
+                    if (d.factory) {
+                        if (d.for_kind in result) {
+                            if (result[d.for_kind].type !== 'multiple') {
+                                 let first_choice = result[d.for_kind];
+                                 result[d.for_kind] = { type: 'multiple', choices: [first_choice] };
+                            }
+                            result[d.for_kind].choices.push(d.factory);
+                        } else {
+                            result[d.for_kind] = d.factory;
+                        }
+                        if (d.for_kind === Config.MESSAGING_DEVICE)
+                            result['messaging'] = d.factory;
+                    }
+                } catch(e) { /**/ }
+            });
+
+            for (let kind of kinds) {
+                if (!(kind in result))
+                    result[kind] = { type: 'multiple', choices: [] };
+            }
+
             return result;
         });
+    }
+
+    // FIXME: remove this when almond-dialog-agent is fixed to use getDeviceSetup
+    getDeviceSetup2(kinds) {
+        return this.getDeviceSetup(kinds);
     }
 
     getKindByDiscovery(body) {
         return Promise.resolve().then(() => _discoveryServer.decode(body));
     }
 
+    async _getOrg(dbClient) {
+        const [org] = await organization.getByDeveloperKey(dbClient, this.developerKey);
+        return org || null;
+    }
+    async _getOrgId(dbClient) {
+        const org = await this._getOrg(dbClient);
+        if (org === null)
+            return null;
+        else if (org.is_admin)
+            return -1;
+        else
+            return org.id;
+    }
+
     getExamplesByKey(key) {
-        return db.withClient((dbClient) => {
-            return exampleModel.getByKey(dbClient, key, this.language);
+        return db.withClient(async (dbClient) => {
+            return exampleModel.getByKey(dbClient, key, await this._getOrgId(dbClient), this.language);
         });
     }
 
     getExamplesByKinds(kinds) {
-        return db.withClient((dbClient) => {
-            return exampleModel.getByKinds(dbClient, kinds, this.language);
+        if (kinds.length === 0)
+            return Promise.resolve([]);
+        return db.withClient(async (dbClient) => {
+            return exampleModel.getByKinds(dbClient, kinds, await this._getOrgId(dbClient), this.language);
         });
     }
 
@@ -391,6 +379,7 @@ module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getDeviceSetup', 'getDeviceSetup2',
                                         'getDeviceFactories',
                                         'getDeviceList',
+                                        'getDeviceSearch',
                                         'getKindByDiscovery',
                                         'getExamplesByKinds', 'getExamplesByKey',
                                         'clickExample', 'lookupEntity'];

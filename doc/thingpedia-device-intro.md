@@ -1,6 +1,6 @@
 # Writing Thingpedia Entries
 
----
+[[toc]]
 
 ## Getting Started
 

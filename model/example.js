@@ -79,27 +79,111 @@ module.exports = {
             [language]);
     },
 
-    getByKey(client, key, language) {
-        return db.selectAll(client,
-              ` select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds where
-                 eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and match preprocessed against
-                 (?) and target_code <> ''
+    getByKey(client, key, org, language) {
+        if (org === -1) { // admin
+            return db.selectAll(client,
+              `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                eu.target_code,eu.click_count from example_utterances eu,
+                device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
+                and eu.type = 'thingpedia' and language = ?
+                and match preprocessed against (?) and target_code <> '')
                union distinct
-               (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds where
-                 eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and match kind_canonical against
-                 (?) and target_code <> '')
+               (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                eu.target_code,eu.click_count from example_utterances eu,
+                device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
+                and eu.type = 'thingpedia' and language = ?
+                and match kind_canonical against (?) and target_code <> '')
                limit 50`,
             [language, key, language, key]);
+        } else if (org !== null) {
+            return db.selectAll(client,
+              `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                eu.target_code,eu.click_count from example_utterances eu,
+                device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
+                and eu.type = 'thingpedia' and language = ?
+                and match preprocessed against (?) and target_code <> ''
+                and (ds.approved_version is not null or ds.owner = ?))
+               union distinct
+               (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                eu.target_code,eu.click_count from example_utterances eu,
+                device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
+                and eu.type = 'thingpedia' and language = ?
+                and match kind_canonical against (?) and target_code <> ''
+                and (ds.approved_version is not null or ds.owner = ?))
+               limit 50`,
+            [language, key, org, language, key, org]);
+        } else {
+            return db.selectAll(client,
+              `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                eu.target_code,eu.click_count from example_utterances eu,
+                device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
+                and eu.type = 'thingpedia' and language = ?
+                and match preprocessed against (?) and target_code <> ''
+                and ds.approved_version is not null)
+               union distinct
+               (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                eu.target_code,eu.click_count from example_utterances eu,
+                device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
+                and eu.type = 'thingpedia' and language = ?
+                and match kind_canonical against (?) and target_code <> ''
+                and ds.approved_version is not null)
+               limit 50`,
+            [language, key, language, key]);
+        }
     },
 
-    getByKinds: function(client, kinds, language) {
-        return db.selectAll(client,
-              `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds where eu.schema_id = ds.id
-               and eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and ds.kind in (?) and target_code <> '')
-            union distinct (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count from example_utterances eu, device_schema ds, device_class dc, device_class_kind dck
-            where eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id and not dck.is_child and dc.primary_kind in (?) and language = ?
-            and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1)`,
-            [language, kinds, kinds, language]);
+    getByKinds(client, kinds, org, language) {
+        if (org === -1) { // admin
+            return db.selectAll(client,
+                `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                  eu.target_code,eu.click_count from example_utterances eu,
+                  device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
+                  and eu.type = 'thingpedia' and language = ?
+                  and ds.kind in (?) and target_code <> '')
+                union distinct
+                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                 eu.target_code,eu.click_count from example_utterances eu,
+                 device_schema ds, device_class dc, device_class_kind dck where
+                 eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
+                 and not dck.is_child and dc.primary_kind in (?) and language = ?
+                 and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1)`,
+                [language, kinds, kinds, language]);
+        } else if (org !== null) {
+            return db.selectAll(client,
+                `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                  eu.target_code,eu.click_count from example_utterances eu,
+                  device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
+                  and eu.type = 'thingpedia' and language = ?
+                  and ds.kind in (?) and target_code <> ''
+                  and (ds.approved_version is not null or ds.owner = ?))
+                union distinct
+                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                 eu.target_code,eu.click_count from example_utterances eu,
+                 device_schema ds, device_class dc, device_class_kind dck where
+                 eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
+                 and not dck.is_child and dc.primary_kind in (?) and language = ?
+                 and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1
+                 and (ds.approved_version is not null or ds.owner = ?)
+                 and (dc.approved_version is not null or dc.owner = ?))`,
+                [language, kinds, org, kinds, language, org, org]);
+        } else {
+            return db.selectAll(client,
+                `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                  eu.target_code,eu.click_count from example_utterances eu,
+                  device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
+                  and eu.type = 'thingpedia' and language = ?
+                  and ds.kind in (?) and target_code <> ''
+                  and ds.approved_version is not null)
+                union distinct
+                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+                 eu.target_code,eu.click_count from example_utterances eu,
+                 device_schema ds, device_class dc, device_class_kind dck where
+                 eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
+                 and not dck.is_child and dc.primary_kind in (?) and language = ?
+                 and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1
+                 and ds.approved_version is not null and dc.approved_version is not null)`,
+                [language, kinds, kinds, language]);
+        }
     },
 
     getBaseBySchema(client, schemaId, language) {
