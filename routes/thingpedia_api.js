@@ -1163,6 +1163,11 @@ v1.post('/discovery', (req, res, next) => {
 
         res.cacheFor(86400000);
         res.status(200).send(result.primary_kind);
+    }).catch((e) => {
+        if (e.message === 'Not Found')
+            res.status(404).json({ error: 'Not Found' });
+        else
+            throw e;
     }));
 });
 
@@ -1199,6 +1204,11 @@ v3.post('/devices/discovery', (req, res, next) => {
 
         res.cacheFor(86400000);
         res.status(200).json({ result: 'ok', data: { kind: result.primary_kind } });
+    }).catch((e) => {
+        if (e.message === 'Not Found')
+            res.status(404).json({ error: 'Not Found' });
+        else
+            throw e;
     }));
 });
 
