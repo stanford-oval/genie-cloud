@@ -66,6 +66,8 @@ class EngineProcess extends events.EventEmitter {
         this._rpcId = null;
 
         this._hadExit = false;
+        this._deadPromise = null;
+        this._deadCallback = null;
     }
 
     get id() {
@@ -103,6 +105,14 @@ class EngineProcess extends events.EventEmitter {
         if (this._child === null)
             return;
 
+        this._deadPromise = new Promise((resolve, reject) => {
+            this._deadCallback = resolve;
+
+            setTimeout(() => {
+                reject(new Error(`Timeout waiting for child ${this._id} to die`));
+            }, 30000);
+        });
+
         console.log('Killing process with ID ' + this._id);
         this._child.kill();
 
@@ -121,6 +131,9 @@ class EngineProcess extends events.EventEmitter {
 
     waitReady() {
         return Promise.resolve(this._starting).then(() => this);
+    }
+    waitDead() {
+        return Promise.resolve(this._deadPromise);
     }
 
     send(msg, socket) {
@@ -192,6 +205,9 @@ class EngineProcess extends events.EventEmitter {
                 if (this.shared || code !== 0)
                     console.error('Child with ID ' + this._id + ' exited with code ' + code);
                 reject(new Error('Exited with code ' + code));
+
+                if (this._deadCallback)
+                    this._deadCallback(code);
                 if (!this._hadExit) {
                     this._hadExit = true;
                     this.emit('exit');
@@ -225,6 +241,7 @@ class EngineManager extends events.EventEmitter {
         this._rrproc = [];
         this._nextProcess = null;
         this._engines = {};
+        this._stopped = false;
     }
 
     _findProcessForUser(user) {
@@ -257,6 +274,11 @@ class EngineManager extends events.EventEmitter {
                 obj.thingpediaClient.$free();
             delete engines[user.id];
 
+            // if the EngineManager is being stopped, the user will die
+            // the "hard" way (by killing the worker process)
+            // we don't want to restart it either way
+            if (this._stopped)
+                manual = true;
             if (!manual && obj.process.shared) {
                 // if the process died, some user might have been killed as a side effect
                 // set timeout to restart the user 10 s in the future
@@ -305,7 +327,27 @@ class EngineManager extends events.EventEmitter {
         this._engines[userId].process.send({ type: 'direct', target: userId, replyId: replyId }, socket);
     }
 
-    start() {
+    _startSharedProcesses(nprocesses) {
+        let promises = new Array(nprocesses);
+        this._rrproc = new Array(nprocesses);
+        this._nextProcess = 0;
+        for (let i = 0; i < nprocesses; i++) {
+            const proc = new EngineProcess('S' + i, null);
+            proc.on('exit', () => {
+                if (this._stopped)
+                    return;
+                proc.restart(5000);
+            });
+
+            this._rrproc[i] = proc;
+            promises[i] = proc.start();
+            this._processes['S' + i] = proc;
+        }
+
+        return Promise.all(promises);
+    }
+
+    _getNProcesses() {
         let ncpus, nprocesses;
 
         if (ENABLE_SHARED_PROCESS) {
@@ -314,29 +356,20 @@ class EngineManager extends events.EventEmitter {
         } else {
             ncpus = 0; nprocesses = 0;
         }
-        let promises = new Array(nprocesses);
-        this._rrproc = new Array(nprocesses);
-        this._nextProcess = 0;
-        for (var i = 0; i < nprocesses; i++) {
-            this._rrproc[i] = new EngineProcess('S' + i, null);
-            this._rrproc[i].on('exit', function() {
-                let proc = this;
-                proc.restart(5000);
-            });
-            promises[i] = this._rrproc[i].start();
-            this._processes['S' + i] = this._rrproc[i];
-        }
 
-        return Promise.all(promises).then(() => {
-            return db.withClient((client) => {
-                return user.getAll(client).then((rows) => {
-                    return Promise.all(rows.map((r) => {
-                        return this._runUser(r).catch((e) => {
-                            console.error('User ' + r.id + ' failed to start: ' + e.message);
-                        });
-                    }));
+        return nprocesses;
+    }
+
+    async start() {
+        await this._startSharedProcesses(this._getNProcesses());
+
+        await db.withClient(async (client) => {
+            const rows = await user.getAll(client);
+            return Promise.all(rows.map((r) => {
+                return this._runUser(r).catch((e) => {
+                    console.error('User ' + r.id + ' failed to start: ' + e.message);
                 });
-            });
+            }));
         });
     }
 
@@ -350,12 +383,18 @@ class EngineManager extends events.EventEmitter {
     }
 
     stop() {
-        this.killAllUsers();
+        this._stopped = true;
+        return this.killAllUsers();
     }
 
     killAllUsers() {
-        for (let userId in this._processes)
-            this._processes[userId].kill();
+        const promises = [];
+        for (let userId in this._processes) {
+            const proc = this._processes[userId];
+            proc.kill();
+            promises.push(proc.waitDead());
+        }
+        return Promise.all(promises);
     }
 
     killUser(userId) {
