@@ -107,4 +107,6 @@ module.exports.MESSAGING_DEVICE = 'org.thingpedia.builtin.matrix';
 // load more configuration that should not go in git (eg secret keys)
 try {
     Object.assign(module.exports, require('./secret_config.js'));
-} catch(e) {}
+} catch(e) {
+    // ignore if there is no file
+}
