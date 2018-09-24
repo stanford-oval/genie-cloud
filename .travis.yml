@@ -5,6 +5,7 @@ language: node_js
 sudo: true
 addons:
   mariadb: '10.2'
+  firefox: 'latest-esr'
 node_js:
 - '8'
 before_install:
