@@ -72,15 +72,3 @@ rule by going in the [your Almond](/me), looking for "Twitter ⇒ Notification",
 And if you want to stop Almond from touching your Twitter
 altogheter, you can also do so from [your Almond page](/me), by forgetting
 your Twitter account.
-
-### Inside Almond: the Logs
-
-If you click on [More Details](/status) from the [Developer Portal](/thingpedia/developers),
-you will access the status of your Almond. In particular, you get access
-to the full execution log.
-Here, if you make a mistake, and stuff stops working, you can try and figure out why.
-
-Or maybe we made a mistake in writing Almond, in which case, when you
-[report a bug](https://github.com/Stanford-IoT-Lab/thingengine-platform-cloud/issues) we will
-appreciate seeing the full debug log (don't forget to redact your personal info
-away!).

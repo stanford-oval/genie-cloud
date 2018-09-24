@@ -29,6 +29,8 @@ on_error() {
     rm -fr $workdir
     test -n "$frontendpid" && kill $frontendpid
     frontendpid=
+    test -n "$masterpid" && kill $masterpid
+    masterpid=
     wait
 }
 trap on_error ERR INT TERM
@@ -74,11 +76,34 @@ wait
 # now enable the Stanford pages and run the website again
 echo "Object.assign(module.exports, require('./stanford/config.js'));" >> $srcdir/secret_config.js
 
+# the website crawler tests will touch the web almond pages
+# too, so make sure we don't die with 400 or 500 because Almond is off
+# we have just tested operation without web almond anyway
+export THINGENGINE_DISABLE_SANDBOX=1
+node $srcdir/almond/master.js &
+masterpid=$!
+
 node $srcdir/main.js &
 frontendpid=$!
 
+# sleep until the process is settled
+sleep 30
+
 # run the website tests from web almond, this time with Thingpedia + Stanford
 # enabled
+
+# login as bob
+bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+# login as root
+root_cookie=$(node $srcdir/tests/login.js root rootroot)
+
+# run the automated link checker
+# first without login
+node $srcdir/tests/linkcheck.js
+# then as bob (developer)
+COOKIE="${bob_cookie}" node $srcdir/tests/linkcheck.js
+# then as root (admin)
+COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
 
 # test the website by making HTTP requests directly
 node $srcdir/tests/test_website_basic.js
@@ -88,6 +113,8 @@ SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
 
 kill $frontendpid
 frontendpid=
+kill $masterpid
+masterpid=
 wait
 
 rm -rf $workdir

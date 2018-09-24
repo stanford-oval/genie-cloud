@@ -100,8 +100,10 @@
     "eslint": "^4.17.0",
     "jsxgettext": "^0.10.1",
     "nyc": "^13.0.1",
+    "parse5": "^5.1.0",
     "pug-lint": "^2.4.0",
-    "selenium-webdriver": "^4.0.0-alpha.1"
+    "selenium-webdriver": "^4.0.0-alpha.1",
+    "tough-cookie": "^2.4.3"
   },
   "optionalDependencies": {
     "aws-sdk": "^2.2.48",

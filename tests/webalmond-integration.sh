@@ -37,6 +37,8 @@ trap on_error ERR INT TERM
 oldpwd=`pwd`
 cd $workdir
 
+node $srcdir/tests/load_test_webalmond.js
+
 # FIXME test with sandbox too...
 export THINGENGINE_DISABLE_SANDBOX=1
 node $srcdir/almond/master.js &
@@ -53,6 +55,19 @@ if test "$1" = "--interactive" ; then
 else
     # sleep until both processes are settled
     sleep 30
+
+    # login as bob
+    bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+    # login as root
+    root_cookie=$(node $srcdir/tests/login.js root rootroot)
+
+    # run the automated link checker
+    # first without login
+    node $srcdir/tests/linkcheck.js
+    # then as bob (developer)
+    COOKIE="${bob_cookie}" node $srcdir/tests/linkcheck.js
+    # then as root (admin)
+    COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
 
     # test the website by making HTTP requests directly
     node $srcdir/tests/test_website_basic.js

@@ -274,7 +274,7 @@ module.exports = class Frontend {
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia', require('./routes/thingpedia_portal'));
-            this._app.use('/thingpedia/command', require('./routes/commandpedia'));
+            this._app.use('/thingpedia/commands', require('./routes/commandpedia'));
 
             this._app.use('/thingpedia/examples', require('./routes/thingpedia_examples'));
             this._app.use('/thingpedia/devices', require('./routes/thingpedia_devices'));
