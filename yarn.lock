@@ -5856,6 +5856,15 @@ thingtalk@^1.0.0, thingtalk@^1.1.1:
     consumer-queue "^1.0.0"
     smtlib "^0.1.1"
 
+"thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
+  version "1.2.0"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/77ccb75ebc48c1a8ff729032ab0f7e3bed9ea89d"
+  dependencies:
+    adt "~0.7.2"
+    byline "^5.0.0"
+    consumer-queue "^1.0.0"
+    smtlib "^0.1.1"
+
 through2@^2.0.0, through2@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/through2/-/through2-2.0.3.tgz#0004569b37c7c74ba39c43f3ced78d1ad94140be"
