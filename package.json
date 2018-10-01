@@ -30,6 +30,7 @@
   "resolutions": {},
   "dependencies": {
     "accept-language": "^2.0.17",
+    "accepts": "^1.3.5",
     "actions-on-google": "^2.2.0",
     "almond-dialog-agent": "^1.0.3",
     "body-parser": "~1.13.3",

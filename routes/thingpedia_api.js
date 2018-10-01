@@ -11,6 +11,7 @@
 
 const Q = require('q');
 const express = require('express');
+const accepts = require('accepts');
 
 const db = require('../util/db');
 const deviceModel = require('../model/device');
@@ -1206,9 +1207,8 @@ v3.post('/devices/discovery', (req, res, next) => {
 v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var isBase = req.query.base !== '0';
 
-    client.getExamplesByKinds(kinds, isBase).then((result) => {
+    client.getExamplesByKinds(kinds, 'application/json;apiVersion=1').then((result) => {
         res.cacheFor(300000);
         res.status(200).json(result);
     }).catch(next);
@@ -1222,6 +1222,11 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
  *
  * @apiDescription Retrieve the example commands from the cheatsheet for
  *   the given devices.
+ *
+ * This API performs content negotiation, based on the `Accept` header. If
+ * the `Accept` header is unset or set to `application/x-thingtalk`, then a ThingTalk
+ * dataset is returned. Otherwise, the accept header must be set to `application/json`,
+ * or a 405 Not Acceptable error occurs.
  *
  * @apiParam {String[]} kinds Comma-separated list of device identifiers for which to return examples
  * @apiParam {String} [developer_key] Developer key to use for this operation
@@ -1257,11 +1262,18 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
 v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var isBase = req.query.base !== '0';
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    if (!accept) {
+        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        return;
+    }
 
-    client.getExamplesByKinds(kinds, isBase).then((result) => {
+    client.getExamplesByKinds(kinds, accept).then((result) => {
         res.cacheFor(300000);
-        res.status(200).json({ result: 'ok', data: result });
+        if (typeof result === 'string')
+            res.status(200).set('content-type', 'application/x-thingtalk').send(result);
+        else
+            res.status(200).json({ result: 'ok', data: result });
     }).catch(next);
 });
 
@@ -1272,9 +1284,7 @@ v1.get('/examples', (req, res, next) => {
     }
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var isBase = req.query.base !== '0';
-
-    client.getExamplesByKey(req.query.key, isBase).then((result) => {
+    client.getExamplesByKey(req.query.key, 'application/json;apiVersion=1').then((result) => {
         res.cacheFor(300000);
         res.status(200).json(result);
     }).catch(next);
@@ -1288,6 +1298,11 @@ v1.get('/examples', (req, res, next) => {
  *
  * @apiDescription Search the example commands matching the given query
  *  string. Use this API endpoint to perform autocompletion and provide suggestions.
+ *
+ * This API performs content negotiation, based on the `Accept` header. If
+ * the `Accept` header is unset or set to `application/x-thingtalk`, then a ThingTalk
+ * dataset is returned. Otherwise, the accept header must be set to `application/json`,
+ * or a 405 Not Acceptable error occurs.
  *
  * @apiParam {String} q Query string
  * @apiParam {String} [developer_key] Developer key to use for this operation
@@ -1328,13 +1343,19 @@ v3.get('/examples/search', (req, res, next) => {
         res.status(400).json({ error: "missing query" });
         return;
     }
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    if (!accept) {
+        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        return;
+    }
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var isBase = req.query.base !== '0';
-
-    client.getExamplesByKey(req.query.q, isBase).then((result) => {
+    client.getExamplesByKey(req.query.q, accept).then((result) => {
         res.cacheFor(300000);
-        res.status(200).json({ result: 'ok', data: result });
+        if (typeof result === 'string')
+            res.status(200).set('content-type', 'application/x-thingtalk').send(result);
+        else
+            res.status(200).json({ result: 'ok', data: result });
     }).catch(next);
 });
 

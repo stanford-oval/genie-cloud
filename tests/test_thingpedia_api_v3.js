@@ -15,6 +15,7 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 const assert = require('assert');
 const Tp = require('thingpedia');
+const ThingTalk = require('thingtalk');
 
 const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
@@ -22,9 +23,12 @@ assert.strictEqual(Config.THINGPEDIA_URL, '/thingpedia');
 
 const THINGPEDIA_URL = 'http://127.0.0.1:8080/thingpedia/api/v3';
 async function request(url) {
-    const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url);
+    const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url, { accept: 'application/json' });
     //console.log(result);
     return JSON.parse(result);
+}
+async function ttRequest(url) {
+    return Tp.Helpers.Http.get(THINGPEDIA_URL + url, { accept: 'application/x-thingtalk' });
 }
 
 const BING_SCHEMA = {
@@ -230,8 +234,9 @@ function checkExamples(generated, expected) {
         uniqueIds.add(gen.id);
 
         delete gen.id;
-        assert.deepStrictEqual(gen.target_code,
-            expectMap.get(gen.utterance).program);
+        //assert.deepStrictEqual(gen.target_code,
+        //    expectMap.get(gen.utterance).program);
+        ThingTalk.Grammar.parse(gen.target_code);
 
         assert.strictEqual(typeof gen.preprocessed, 'string');
         assert.strictEqual(typeof gen.click_count, 'number');
@@ -252,11 +257,13 @@ function checkExamplesByKey(generated, key) {
         assert.strictEqual(typeof gen.preprocessed, 'string');
         assert.strictEqual(typeof gen.utterance, 'string');
         assert.strictEqual(typeof gen.target_code, 'string');
+        ThingTalk.Grammar.parse(gen.target_code);
         assert.strictEqual(typeof gen.click_count, 'number');
         assert(gen.click_count >= 0);
     }
 }
 
+const TEST_EXAMPLES = { result: 'ok', data: require('./data/test-examples-v3.json') };
 
 async function testGetExamplesByDevice() {
     // mind the . vs .. here: there's two different data/ folders
@@ -282,6 +289,31 @@ async function testGetExamplesByDevice() {
         INVISIBLE_EXAMPLES);
 
     checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), []);
+
+    assert.deepStrictEqual(await request('/examples/by-kinds/org.thingpedia.builtin.test'), TEST_EXAMPLES);
+
+    assert.deepStrictEqual((await ttRequest('/examples/by-kinds/org.thingpedia.builtin.test')).trim(), `dataset @org.thingpedia.dynamic.by_kinds.org_thingpedia_builtin_test language "en" {
+    action  := @org.thingpedia.builtin.test.eat_data()
+        #_[utterances=["eat some data"]]
+        #_[preprocessed=["eat some data"]]
+        #[id=1000] #[click_count=0];
+    query (p_size :Measure(byte)) := @org.thingpedia.builtin.test.get_data(size=p_size)
+        #_[utterances=["get some data"]]
+        #_[preprocessed=["get some data"]]
+        #[id=1001] #[click_count=7];
+    program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
+        #_[utterances=["keep eating data!","keep eating data! (v2)"]]
+        #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
+        #[id=1002] #[click_count=0];
+    action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
+        #_[utterances=["more data eating..."]]
+        #_[preprocessed=["more data eating ..."]]
+        #[id=1004] #[click_count=0];
+    query  := @org.thingpedia.builtin.test.get_data()
+        #_[utterances=["more data genning..."]]
+        #_[preprocessed=["more data genning ..."]]
+        #[id=1005] #[click_count=0];
+}`);
 }
 
 async function testGetExamplesByKey() {
@@ -297,6 +329,31 @@ async function testGetExamplesByKey() {
     checkExamples(await request('/examples/search?q=invisible'), []);
     checkExamples(await request(`/examples/search?q=invisible&developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
+
+    assert.deepStrictEqual(await request('/examples/search?q=data'), TEST_EXAMPLES);
+
+    assert.deepStrictEqual(await ttRequest('/examples/search?q=data'), `dataset @org.thingpedia.dynamic.by_key.data language "en" {
+    action  := @org.thingpedia.builtin.test.eat_data()
+        #_[utterances=["eat some data"]]
+        #_[preprocessed=["eat some data"]]
+        #[id=1000] #[click_count=0];
+    query (p_size :Measure(byte)) := @org.thingpedia.builtin.test.get_data(size=p_size)
+        #_[utterances=["get some data"]]
+        #_[preprocessed=["get some data"]]
+        #[id=1001] #[click_count=7];
+    program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
+        #_[utterances=["keep eating data!","keep eating data! (v2)"]]
+        #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
+        #[id=1002] #[click_count=0];
+    action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
+        #_[utterances=["more data eating..."]]
+        #_[preprocessed=["more data eating ..."]]
+        #[id=1004] #[click_count=0];
+    query  := @org.thingpedia.builtin.test.get_data()
+        #_[utterances=["more data genning..."]]
+        #_[preprocessed=["more data genning ..."]]
+        #[id=1005] #[click_count=0];
+}`);
 }
 
 async function testGetDeviceIcon() {

@@ -10,6 +10,7 @@
 "use strict";
 
 const ThingpediaDiscovery = require('thingpedia-discovery');
+const ThingTalk = require('thingtalk');
 
 const Config = require('../config');
 
@@ -19,6 +20,7 @@ const organization = require('../model/organization');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
 const entityModel = require('../model/entity');
+const { stringEscape } = require('./escaping');
 
 const S3_HOST = Config.S3_CLOUDFRONT_HOST + '/devices/';
 
@@ -342,17 +344,117 @@ module.exports = class ThingpediaClientCloud {
             return org.id;
     }
 
-    getExamplesByKey(key) {
+    _datasetBackwardCompat(rows, convertLetQuery = false) {
+        for (let row of rows) {
+            if (/^[ \r\n\t\v]*(stream|query|action)[ \r\n\t\v]*(:=|\()/.test(row.target_code)) {
+                // backward compatibility: convert to a declaration
+                const dummydataset = `dataset @foo { ${row.target_code} }`;
+                const parsed = ThingTalk.Grammar.parse(dummydataset);
+                const example = parsed.datasets[0].examples[0];
+                const declaration = new ThingTalk.Ast.Program([],
+                    [new ThingTalk.Ast.Statement.Declaration('x',
+                        (convertLetQuery && example.type === 'query') ? 'table' : example.type,
+                        example.args, example.value)],
+                    [], null);
+                row.target_code = declaration.prettyprint(true);
+            } else {
+                if (convertLetQuery)
+                    row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+query[ \r\n\t\v]/, 'let table ');
+                row.target_code = row.target_code.replace(/^[ \r\n\t\v]*program[ \r\n\t\v]*:=/, '');
+            }
+        }
+        return rows;
+    }
+
+    _rowsToExamples(rows) {
+        // coalesce by target code
+
+        // note: this code is designed to be fast, and avoid parsing the examples in the common
+        // case of up-to-date thingpedia
+
+        let uniqueCode = new Map;
+        for (let row of rows) {
+            let targetCode = row.target_code;
+
+            if (/^[ \r\n\t\v]*let[ \r\n\t\v]/.test(targetCode)) {
+                // forward compatibility: convert the declaration to example syntax
+                const parsed = ThingTalk.Grammar.parse(targetCode);
+                const declaration = parsed.declarations[0];
+
+                const example = new ThingTalk.Ast.Example(-1,
+                    declaration.type === 'table' ? 'query' : declaration.type,
+                    declaration.args,
+                    declaration.value,
+                    [], [], {});
+                targetCode = example.prettyprint('');
+            } else if (!/^[ \r\n\t\v]*(query|action|stream|program)[ \r\n\t\v]/.test(targetCode)) {
+                targetCode = `program := ${targetCode}`;
+            }
+
+            if (uniqueCode.has(targetCode)) {
+                const ex = uniqueCode.get(targetCode);
+                ex.utterances.push(row.utterance);
+                ex.preprocessed.push(row.preprocessed);
+            } else {
+                uniqueCode.set(targetCode, {
+                    id: row.id,
+                    utterances: [row.utterance],
+                    preprocessed: [row.preprocessed],
+                    click_count: row.click_count
+                });
+            }
+        }
+
+
+        let buffer = [];
+        for (let [targetCode, ex] of uniqueCode.entries()) {
+            // remove trailing semicolon
+            targetCode = targetCode.replace(/[ \r\n\t\v]*;[ \r\n\t\v]*$/, '');
+
+            buffer.push(`    ${targetCode}
+        #_[utterances=[${ex.utterances.map(stringEscape)}]]
+        #_[preprocessed=[${ex.preprocessed.map(stringEscape)}]]
+        #[id=${ex.id}] #[click_count=${ex.click_count}];
+`);
+        }
+
+        return buffer.join('');
+    }
+
+    _makeDataset(name, rows) {
+        return `dataset @org.thingpedia.dynamic.${name} language "${this.language}" {
+${this._rowsToExamples(rows)}}`;
+    }
+
+    getExamplesByKey(key, accept = 'application/x-thingtalk') {
         return db.withClient(async (dbClient) => {
-            return exampleModel.getByKey(dbClient, key, await this._getOrgId(dbClient), this.language);
+            const rows = await exampleModel.getByKey(dbClient, key, await this._getOrgId(dbClient), this.language);
+            switch (accept) {
+            case 'application/json;apiVersion=1':
+                return this._datasetBackwardCompat(rows, true);
+            case 'application/json':
+                return this._datasetBackwardCompat(rows, false);
+            default:
+                return this._makeDataset(`by_key.${key.replace(/[^a-zA-Z0-9]+/g, '_')}`,
+                    rows);
+            }
         });
     }
 
-    getExamplesByKinds(kinds) {
+    getExamplesByKinds(kinds, accept = 'application/x-thingtalk') {
         if (kinds.length === 0)
             return Promise.resolve([]);
         return db.withClient(async (dbClient) => {
-            return exampleModel.getByKinds(dbClient, kinds, await this._getOrgId(dbClient), this.language);
+            const rows = await exampleModel.getByKinds(dbClient, kinds, await this._getOrgId(dbClient), this.language);
+            switch (accept) {
+            case 'application/json;apiVersion=1':
+                return this._datasetBackwardCompat(rows, true);
+            case 'application/json':
+                return this._datasetBackwardCompat(rows, false);
+            default:
+                return this._makeDataset(`by_kinds.${kinds.map((k) => k.replace(/[^a-zA-Z0-9]+/g, '_')).join('__')}`,
+                    rows);
+            }
         });
     }
 

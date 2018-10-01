@@ -15,6 +15,7 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 const assert = require('assert');
 const Tp = require('thingpedia');
+const ThingTalk = require('thingtalk');
 
 const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
@@ -198,8 +199,14 @@ function checkExamples(generated, expected) {
         uniqueIds.add(gen.id);
 
         delete gen.id;
-        assert.deepStrictEqual(gen.target_code,
-            expectMap.get(gen.utterance).program);
+        // the resulting code should parse as a program correctly
+        // this is a necessary but insufficient condition because
+        // we're linking against the newer thingtalk library,
+        // which means we will succeed even if the compat code
+        // does not kick in
+        ThingTalk.Grammar.parse(gen.target_code);
+        //assert.deepStrictEqual(gen.target_code,
+        //    expectMap.get(gen.utterance).program);
 
         assert.strictEqual(typeof gen.preprocessed, 'string');
         assert.strictEqual(typeof gen.click_count, 'number');
@@ -218,11 +225,13 @@ function checkExamplesByKey(generated, key) {
         assert.strictEqual(typeof gen.preprocessed, 'string');
         assert.strictEqual(typeof gen.utterance, 'string');
         assert.strictEqual(typeof gen.target_code, 'string');
+        ThingTalk.Grammar.parse(gen.target_code);
         assert.strictEqual(typeof gen.click_count, 'number');
         assert(gen.click_count >= 0);
     }
 }
 
+const TEST_EXAMPLES = require('./data/test-examples-v1.json');
 
 async function testGetExamplesByDevice() {
     // mind the . vs .. here: there's two different data/ folders
@@ -248,6 +257,8 @@ async function testGetExamplesByDevice() {
         INVISIBLE_EXAMPLES);
 
     checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), []);
+
+    assert.deepStrictEqual(await request('/api/examples/by-kinds/org.thingpedia.builtin.test'), TEST_EXAMPLES);
 }
 
 async function testGetExamplesByKey() {
@@ -263,6 +274,8 @@ async function testGetExamplesByKey() {
     checkExamples(await request('/api/examples?key=invisible'), []);
     checkExamples(await request(`/api/examples?key=invisible&developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
+
+    assert.deepStrictEqual(await request('/api/examples?key=data'), TEST_EXAMPLES);
 }
 
 async function testGetDeviceIcon() {
