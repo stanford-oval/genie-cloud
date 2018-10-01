@@ -159,7 +159,7 @@ The following are valid `link` URLs:
 - `/user/register`: the user must register before completing the action (only valid in the anonymous API)
 - `/apps`: go to My Almond
 - `/devices/oauth2/$kind?name=$name`: perform OAuth configuration for a device of type `$kind`; `$name` is the name of the device and is provided to avoid a Thingpedia lookup
-- `/devices/configure/$kind?name=$name&controls=$controls`: perform form-based configuration for a device of type `$kind`; `$name` is name of the device and `$controls` is the JSON serialization of the device factory (see the [Thingpedia API](/doc/thingpedia-api.md) for details)
+- `/devices/configure/$kind?name=$name&controls=$controls`: perform form-based configuration for a device of type `$kind`; `$name` is name of the device and `$controls` is the JSON serialization of the device factory (see the [Thingpedia API](/doc/thingpedia-api) for details)
 
 Apps are encouraged to ignore unexpected link URLs, or to redirect the user to the corresponding page at `https://almond.stanford.edu`.
 

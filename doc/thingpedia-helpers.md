@@ -736,7 +736,7 @@ Use this object to run ThingTalk code.
 get thingpedia() : ThingpediaClient
 ```
 
-Provides access to a client side library to query the [Thingpedia API](/doc/thingpedia-api.md).
+Provides access to a client side library to query the [Thingpedia API](/doc/thingpedia-api).
 
 ### getter stats
 

@@ -25,17 +25,22 @@ eval $(node $srcdir/scripts/bootstrap.js)
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
-    rm -fr $workdir
     test -n "$frontendpid" && kill $frontendpid
     frontendpid=
     test -n "$masterpid" && kill $masterpid
     masterpid=
     wait
+
+    # remove workdir after the processes have died, or they'll fail
+    # to write to it
+    rm -fr $workdir
 }
 trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
+
+node $srcdir/tests/load_test_webalmond.js
 
 # FIXME test with sandbox too...
 export THINGENGINE_DISABLE_SANDBOX=1
@@ -45,14 +50,34 @@ masterpid=$!
 node $srcdir/main.js &
 frontendpid=$!
 
-# sleep until both processes are settled
-sleep 30
+# in interactive mode, sleep forever
+# the developer will run the tests by hand
+# and Ctrl+C
+if test "$1" = "--interactive" ; then
+    sleep 84600
+else
+    # sleep until both processes are settled
+    sleep 30
 
-# TODO run tests here
+    # login as bob
+    bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+    # login as root
+    root_cookie=$(node $srcdir/tests/login.js root rootroot)
 
-# sample test: the word Almond appears somewhere on the front page
-# (real tests should use Selenium probably)
-curl -f 'http://127.0.0.1:8080/' | grep "Almond" >/dev/null
+    # run the automated link checker
+    # first without login
+    node $srcdir/tests/linkcheck.js
+    # then as bob (developer)
+    COOKIE="${bob_cookie}" node $srcdir/tests/linkcheck.js
+    # then as root (admin)
+    COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
+
+    # test the website by making HTTP requests directly
+    node $srcdir/tests/test_website_basic.js
+
+    # test the website in a browser
+    SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
+fi
 
 kill $frontendpid
 frontendpid=

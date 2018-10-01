@@ -52,7 +52,9 @@ function handleSignal() {
     // give ourselves 10s to die gracefully, then just exit
     setTimeout(() => {
         process.exit();
-    }, 10000);
+    }, 10000)
+    // the timeout will not keep us alive if we're done with everything
+    .unref();
 }
 
 function runEngine(thingpediaClient, options) {

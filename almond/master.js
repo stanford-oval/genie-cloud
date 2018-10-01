@@ -88,8 +88,13 @@ class ControlSocketServer {
     }
 
     stop() {
-        for (var conn of this._connections)
-            conn.end();
+        for (var conn of this._connections) {
+            try {
+                conn.end();
+            } catch(e) {
+                console.error(`Failed to stop one connection: ${e.message}`);
+            }
+        }
         return Q.ninvoke(this._server, 'close');
     }
 }
@@ -108,12 +113,23 @@ function main() {
         process.exit(1);
     });
 
-    function stop() {
-        return Promise.all([enginemanager.stop(), directSocket.stop(), controlSocket.stop()]).catch((e) => {
+    let _stopping = false;
+    async function stop() {
+        if (_stopping)
+            return;
+        _stopping = true;
+        try {
+            await Promise.all([
+                enginemanager.stop(),
+                directSocket.stop(),
+                controlSocket.stop()
+            ]);
+        } catch(e) {
             console.error('Failed to stop: ' + e.message);
             console.error(e.stack);
             process.exit(1);
-        }).then(() => process.exit(0));
+        }
+        process.exit(0);
     }
 
     process.on('SIGINT', stop);

@@ -5,6 +5,7 @@ language: node_js
 sudo: true
 addons:
   mariadb: '10.2'
+  firefox: 'latest-esr'
 node_js:
 - '8'
 before_install:
@@ -12,7 +13,10 @@ before_install:
 - wget https://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.5-x86_64-linux-opt
   -O cvc4/cvc4
 - chmod +x cvc4/cvc4
-- export PATH="`pwd`/cvc4:$PATH"
+- mkdir geckodriver/
+- wget https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz
+- tar xvf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver/
+- export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
 - sudo apt-get update -q -y
 install:
 - sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev realpath

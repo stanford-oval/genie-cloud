@@ -34,6 +34,33 @@ module.exports.SERVER_ORIGIN = 'http://127.0.0.1:8080';
 // or scheme
 module.exports.ENABLE_REDIRECT = true;
 
+// enable Strict-Transport-Security, Content-Security-Policy and other
+// security related headers
+// requires TLS
+module.exports.ENABLE_SECURITY_HEADERS = false;
+
+// override which pug file to use for about pages
+// use this to customize the index, terms-of-service, etc. pages
+// the key should be the page name (part of path after /about)
+// the value should be the name of a pug file in views, without the .pug
+// extension
+// if unspecified, defaults to "about_" + page_name, eg. for research
+// it defaults to showing about_research.pug
+//
+// use ABOUT_OVERRIDE['index'] to override the whole website index
+// note that "/about" with no page unconditionally redirects to "/"
+module.exports.ABOUT_OVERRIDE = {};
+
+// adds new pages to the /about hierarchy
+// the format should be:
+// {
+//   url: path name, excluding /about part
+//   title: page title
+//   view: name of pug file
+//   navbar: link label in navbar, or null to exclude from the navbar
+// }
+module.exports.EXTRA_ABOUT_PAGES = [];
+
 // additional origins that should be allowed to make Cookie-authenticated
 // API requests
 module.exports.EXTRA_ORIGINS = [];
@@ -80,4 +107,6 @@ module.exports.MESSAGING_DEVICE = 'org.thingpedia.builtin.matrix';
 // load more configuration that should not go in git (eg secret keys)
 try {
     Object.assign(module.exports, require('./secret_config.js'));
-} catch(e) {}
+} catch(e) {
+    // ignore if there is no file
+}
