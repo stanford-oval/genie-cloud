@@ -58,6 +58,20 @@ module.exports = class ThingpediaClientCloud {
         this.language = (locale || 'en').split(/[-_@.]/)[0];
     }
 
+    async _getOrg(dbClient) {
+        const [org] = await organization.getByDeveloperKey(dbClient, this.developerKey);
+        return org || null;
+    }
+    async _getOrgId(dbClient) {
+        const org = await this._getOrg(dbClient);
+        if (org === null)
+            return null;
+        else if (org.is_admin)
+            return -1;
+        else
+            return org.id;
+    }
+
     getModuleLocation(kind, version) {
         if (kind in LEGACY_MAPS)
             kind = LEGACY_MAPS[kind];
@@ -100,37 +114,40 @@ module.exports = class ThingpediaClientCloud {
         });
     }
 
-    getDeviceCode(kind) {
-        var developerKey = this.developerKey;
+    getDeviceCode(kind, accept) {
+        return db.withClient(async (dbClient) => {
+            const devs = await device.getFullCodeByPrimaryKind(dbClient, kind, await this._getOrg(dbClient));
+            if (devs.length < 1) {
+                const err = new Error('Not Found');
+                err.code = 'ENOENT';
+                throw err;
+            }
 
-        return db.withClient((dbClient) => {
-            return Promise.resolve().then(() => {
-                if (developerKey)
-                    return organization.getByDeveloperKey(dbClient, developerKey);
-                else
-                    return [];
-            }).then((orgs) => {
-                var org = null;
-                if (orgs.length > 0)
-                    org = orgs[0];
+            const dev = devs[0];
+            const isJSON = /^\s*\{/.test(dev.code);
 
-                return device.getFullCodeByPrimaryKind(dbClient, kind, org);
-            }).then((devs) => {
-                if (devs.length < 1) {
-                    const err = new Error('Not Found');
-                    err.code = 'ENOENT';
-                    throw err;
-                }
+            let manifest;
+            if (isJSON) {
+                manifest = JSON.parse(dev.code);
+                manifest.version = dev.version;
+            }
 
-                var dev = devs[0];
-                var ast = JSON.parse(dev.code);
-                ast.version = dev.version;
+            switch (accept) {
+            case 'application/json':
+                if (!isJSON)
+                    manifest = ThingTalk.Ast.toManifest(ThingTalk.Grammar.parse(dev.code));
                 if (dev.version !== dev.approved_version)
-                    ast.developer = true;
+                    manifest.developer = true;
                 else
-                    ast.developer = false;
-                return ast;
-            });
+                    manifest.developer = false;
+                return manifest;
+            case 'application/x-thingtalk':
+            default:
+                if (isJSON)
+                    return ThingTalk.Ast.fromManifest(manifest).prettyprint();
+                else
+                    return dev.code;
+            }
         });
     }
 
@@ -328,20 +345,6 @@ module.exports = class ThingpediaClientCloud {
 
     getKindByDiscovery(body) {
         return Promise.resolve().then(() => _discoveryServer.decode(body));
-    }
-
-    async _getOrg(dbClient) {
-        const [org] = await organization.getByDeveloperKey(dbClient, this.developerKey);
-        return org || null;
-    }
-    async _getOrgId(dbClient) {
-        const org = await this._getOrg(dbClient);
-        if (org === null)
-            return null;
-        else if (org.is_admin)
-            return -1;
-        else
-            return org.id;
     }
 
     _datasetBackwardCompat(rows, convertLetQuery = false) {

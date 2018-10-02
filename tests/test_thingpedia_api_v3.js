@@ -294,25 +294,25 @@ async function testGetExamplesByDevice() {
 
     assert.deepStrictEqual((await ttRequest('/examples/by-kinds/org.thingpedia.builtin.test')).trim(), `dataset @org.thingpedia.dynamic.by_kinds.org_thingpedia_builtin_test language "en" {
     action  := @org.thingpedia.builtin.test.eat_data()
-        #_[utterances=["eat some data"]]
-        #_[preprocessed=["eat some data"]]
-        #[id=1000] #[click_count=0];
-    query (p_size :Measure(byte)) := @org.thingpedia.builtin.test.get_data(size=p_size)
-        #_[utterances=["get some data"]]
-        #_[preprocessed=["get some data"]]
-        #[id=1001] #[click_count=7];
+    #_[utterances=["eat some data"]]
+    #_[preprocessed=["eat some data"]]
+    #[id=1000] #[click_count=0];
+    query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
+    #_[utterances=["get some data"]]
+    #_[preprocessed=["get some data"]]
+    #[id=1001] #[click_count=7];
     program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
-        #_[utterances=["keep eating data!","keep eating data! (v2)"]]
-        #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
-        #[id=1002] #[click_count=0];
+    #_[utterances=["keep eating data!","keep eating data! (v2)"]]
+    #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
+    #[id=1002] #[click_count=0];
     action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
-        #_[utterances=["more data eating..."]]
-        #_[preprocessed=["more data eating ..."]]
-        #[id=1004] #[click_count=0];
+    #_[utterances=["more data eating..."]]
+    #_[preprocessed=["more data eating ..."]]
+    #[id=1004] #[click_count=0];
     query  := @org.thingpedia.builtin.test.get_data()
-        #_[utterances=["more data genning..."]]
-        #_[preprocessed=["more data genning ..."]]
-        #[id=1005] #[click_count=0];
+    #_[utterances=["more data genning..."]]
+    #_[preprocessed=["more data genning ..."]]
+    #[id=1005] #[click_count=0];
 }`);
 }
 
@@ -334,25 +334,25 @@ async function testGetExamplesByKey() {
 
     assert.deepStrictEqual(await ttRequest('/examples/search?q=data'), `dataset @org.thingpedia.dynamic.by_key.data language "en" {
     action  := @org.thingpedia.builtin.test.eat_data()
-        #_[utterances=["eat some data"]]
-        #_[preprocessed=["eat some data"]]
-        #[id=1000] #[click_count=0];
-    query (p_size :Measure(byte)) := @org.thingpedia.builtin.test.get_data(size=p_size)
-        #_[utterances=["get some data"]]
-        #_[preprocessed=["get some data"]]
-        #[id=1001] #[click_count=7];
+    #_[utterances=["eat some data"]]
+    #_[preprocessed=["eat some data"]]
+    #[id=1000] #[click_count=0];
+    query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
+    #_[utterances=["get some data"]]
+    #_[preprocessed=["get some data"]]
+    #[id=1001] #[click_count=7];
     program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
-        #_[utterances=["keep eating data!","keep eating data! (v2)"]]
-        #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
-        #[id=1002] #[click_count=0];
+    #_[utterances=["keep eating data!","keep eating data! (v2)"]]
+    #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
+    #[id=1002] #[click_count=0];
     action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
-        #_[utterances=["more data eating..."]]
-        #_[preprocessed=["more data eating ..."]]
-        #[id=1004] #[click_count=0];
+    #_[utterances=["more data eating..."]]
+    #_[preprocessed=["more data eating ..."]]
+    #[id=1004] #[click_count=0];
     query  := @org.thingpedia.builtin.test.get_data()
-        #_[utterances=["more data genning..."]]
-        #_[preprocessed=["more data genning ..."]]
-        #[id=1005] #[click_count=0];
+    #_[utterances=["more data genning..."]]
+    #_[preprocessed=["more data genning ..."]]
+    #[id=1005] #[click_count=0];
 }`);
 }
 
@@ -396,6 +396,36 @@ async function testGetDeviceManifest() {
     const INVISIBLE = deepClone(require('./data/org.thingpedia.builtin.test.invisible.manifest.json'));
 
     checkManifest(await request('/devices/code/com.bing'), BING);
+
+    assert.deepStrictEqual(await ttRequest('/devices/code/com.bing'), `class @undefined {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"],
+                                    out title: String,
+                                    out description: String,
+                                    out link: Entity(tt:url))
+  #_[canonical="web search on bing"]
+  #_[confirmation="websites matching $query on Bing"]
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
+  #_[doc="search for ${'`query`'} on Bing"]
+  #[poll_interval=3600000ms];
+
+  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"],
+                                      out title: String,
+                                      out picture_url: Entity(tt:picture),
+                                      out link: Entity(tt:url),
+                                      out width: Number #_[prompt="What width are you looking for (in pixels)?"],
+                                      out height: Number #_[prompt="What height are you looking for (in pixels)?"])
+  #_[canonical="image search on bing"]
+  #_[confirmation="images matching $query from Bing"]
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
+  #_[doc="search for ${'`query`'} on Bing Images"]
+  #[poll_interval=3600000ms];
+}
+#[category="data"]
+#[subcategory="service"]
+`);
 
     await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.invisible'));
     checkManifest(await request(

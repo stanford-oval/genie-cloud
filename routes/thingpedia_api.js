@@ -592,7 +592,7 @@ v3.get('/schema-metadata/:schemas', (req, res, next) => {
  */
 v1.get('/code/devices/:kind', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getDeviceCode(req.params.kind).then((code) => {
+    errorWrap(req, res, next, client.getDeviceCode(req.params.kind, 'application/json').then((code) => {
         if (code.developer)
             res.cacheFor(3600000);
         else
@@ -610,6 +610,11 @@ v1.get('/code/devices/:kind', (req, res, next) => {
  * @apiDescription Retrieve the manifest associated with the named device.
  *   See the [Guide to writing Thingpedia Entries](../thingpedia-device-intro.md)
  *   for a complete description of the manifest format.
+
+ * This API performs content negotiation, based on the `Accept` header. If
+ * the `Accept` header is unset or set to `application/x-thingtalk`, then a ThingTalk
+ * dataset is returned. Otherwise, the accept header must be set to `application/json`,
+ * or a 405 Not Acceptable error occurs.
  *
  * @apiParam {String} kind The identifier of the device to retrieve
  * @apiParam {String} [developer_key] Developer key to use for this operation
@@ -622,13 +627,32 @@ v1.get('/code/devices/:kind', (req, res, next) => {
 // consistency with the other /devices end points
 v3.get('/code/devices/:kind', (req, res, next) => next('router'));
 v3.get('/devices/code/:kind', (req, res, next) => {
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    if (!accept) {
+        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        return;
+    }
+
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getDeviceCode(req.params.kind).then((code) => {
-        if (code.developer)
-            res.cacheFor(3600000);
-        else
-            res.cacheFor(86400000);
-        res.json({ result: 'ok', data: code });
+    errorWrap(req, res, next, client.getDeviceCode(req.params.kind, accept).then((code) => {
+        res.set('Vary', 'Accept');
+        if (typeof code === 'string') {
+            const match = /#\[version=([0-9]+)\]/.exec(code);
+            const version = match ? match[1] : -1;
+            if (version >= 0)
+                res.set('ETag', `W/"version=${version}"`);
+
+            res.cacheFor(86400);
+            res.set('Content-Type', 'application/x-thingtalk');
+            res.send(code);
+        } else {
+            const version = code.version;
+            if (version >= 0)
+                res.set('ETag', `W/"version=${version}"`);
+
+            res.cacheFor(86400);
+            res.json({ result: 'ok', data: code });
+        }
     }));
 });
 
@@ -1269,6 +1293,7 @@ v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
     }
 
     client.getExamplesByKinds(kinds, accept).then((result) => {
+        res.set('Vary', 'Accept');
         res.cacheFor(300000);
         if (typeof result === 'string')
             res.status(200).set('content-type', 'application/x-thingtalk').send(result);
