@@ -2,7 +2,7 @@
 //
 // This file is part of Thingpedia
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -14,6 +14,7 @@ require('codemirror/mode/javascript/javascript');
 require('codemirror/addon/lint/lint');
 require('codemirror/addon/lint/javascript-lint');
 require('codemirror/addon/lint/json-lint');
+require('./deps/codemirror-thingtalk');
 
 $(() => {
     const codemirror = new Map;
@@ -32,6 +33,7 @@ $(() => {
         const cm = CodeMirror.fromTextArea(textarea, {
             mode: MODES[textarea.id],
             tabSize: 8,
+            indentUnit: 4,
             lineNumbers: true,
             gutters: ["CodeMirror-lint-markers"],
             lint: true

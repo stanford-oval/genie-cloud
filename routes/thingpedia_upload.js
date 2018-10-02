@@ -245,7 +245,8 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res
             ]);
 
             code = JSON.stringify(Importer.migrateManifest(code, d), undefined, 2);
-            const dataset = DatasetUtils.examplesToDataset(d.primary_kind, 'en', examples);
+            const dataset = DatasetUtils.examplesToDataset(d.primary_kind, 'en', examples,
+                                                           { editMode: true });
 
             res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - edit device"),
                                                              id: req.params.id,

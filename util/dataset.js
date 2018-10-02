@@ -12,7 +12,7 @@
 const ThingTalk = require('thingtalk');
 const { stringEscape } = require('./escaping');
 
-function rowsToExamples(rows) {
+function rowsToExamples(rows, { editMode = false}) {
     // coalesce by target code
 
     // note: this code is designed to be fast, and avoid parsing the examples in the common
@@ -57,19 +57,27 @@ function rowsToExamples(rows) {
         // remove trailing semicolon
         targetCode = targetCode.replace(/[ \r\n\t\v]*;[ \r\n\t\v]*$/, '');
 
-        buffer.push(`    ${targetCode}
+        if (editMode) {
+            buffer.push(`    ${targetCode}
+    #_[utterances=[${ex.utterances.map(stringEscape)}]]
+    #[id=${ex.id}];
+
+`);
+        } else {
+            buffer.push(`    ${targetCode}
     #_[utterances=[${ex.utterances.map(stringEscape)}]]
     #_[preprocessed=[${ex.preprocessed.map(stringEscape)}]]
     #[id=${ex.id}] #[click_count=${ex.click_count}];
 `);
+        }
     }
 
     return buffer.join('');
 }
 
 module.exports = {
-    examplesToDataset(name, language, rows) {
+    examplesToDataset(name, language, rows, options = {}) {
         return `dataset @${name} language "${language}" {
-${rowsToExamples(rows)}}`;
+${rowsToExamples(rows, options)}}`;
     }
 };
