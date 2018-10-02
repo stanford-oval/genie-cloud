@@ -2,6 +2,8 @@
 *.tsv
 *.zip
 *.bak
+*-bundle.js
+
 home/
 
 /platform_config.js
