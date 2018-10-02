@@ -16,20 +16,35 @@ require('codemirror/addon/lint/javascript-lint');
 require('codemirror/addon/lint/json-lint');
 
 $(() => {
-    $('#device-code').each(function() {
-         CodeMirror.fromTextArea(this, { mode: 'application/json',
-                                         tabSize: 8,
-                                         lineNumbers: true,
-                                         gutters: ["CodeMirror-lint-markers"],
-                                         lint: true
-                                       });
+    const codemirror = new Map;
+    const MODES = {
+        'device-code': 'application/json',
+        'device-dataset': 'application/x-thingtalk'
+    };
+    $('#device-editor-sidebar').on('shown.bs.tab', (event) => {
+        const textarea = $(event.target.getAttribute('href') + ' textarea.enable-codemirror')[0];
+        if (!textarea)
+            return;
+
+        if (codemirror.has(textarea.id))
+            return;
+
+        const cm = CodeMirror.fromTextArea(textarea, {
+            mode: MODES[textarea.id],
+            tabSize: 8,
+            lineNumbers: true,
+            gutters: ["CodeMirror-lint-markers"],
+            lint: true
+        });
+        codemirror.set(textarea.id, cm);
     });
-    $('#device-dataset').each(function() {
-         CodeMirror.fromTextArea(this, { mode: 'application/x-thingtalk',
-                                         tabSize: 8,
-                                         lineNumbers: true,
-                                         gutters: ["CodeMirror-lint-markers"],
-                                         lint: true
-                                       });
-    });
+
+    /*$('.tab-switcher a').click(function(event) {
+        event.preventDefault();
+        $('.tab-switcher a').removeClass('checked');
+        $('.tab-container .tab').removeClass('selected');
+        const a = $(this);
+        a.addClass('checked');
+        $(a.attr('href')).addClass('selected');
+    });*/
 });

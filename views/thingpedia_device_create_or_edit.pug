@@ -3,75 +3,94 @@ extends layout
 block styles
   link(rel='stylesheet', href='/stylesheets/codemirror.css')
   link(rel='stylesheet', href='/stylesheets/lint.css')
-  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+  link(rel='stylesheet', href='/stylesheets/thingpedia-device-create.css')
 
 block scripts
   script(src='/javascripts/jsonlint.js')
   script(src='/javascripts/thingpedia-device-create-bundle.js')
 
+block page_name
+  - stdlayout = false;
+  - includefooter = false;
+  = _("Device Editor")
+
 block content
-  if create
-    h1= _("Submit a new device entry")
-  else
-    h1= _("Edit device entry")
+  form(action=(create ? '/thingpedia/upload/create' : '/thingpedia/upload/update/' + id), enctype='multipart/form-data', method='post', data-toggle='validator')#thing-form
+    input(type='hidden',name='_csrf',value=csrfToken)
 
-  div.container
-    if error
-      div.row
-        div.col-xs-12
-          div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
-            button(type='button', data-dismiss='alert', aria-label="Close").close
-              span(aria-hidden='true') ×
-            if typeof error === 'string'
-              p= error
-            else if error.name === 'SyntaxError'
-              p= _("Syntax error at %s line %d: %s").format(error.fileName, error.lineNumber, error.message)
-            else if error.message
-              p= error.message
-            else
-              p= String(error)
+    div.container-fluid#page-body
+      div.row#device-toolbar
+        div.col-lg-1.col-md-2
+          button(type='submit').btn.btn-block.btn-sm.btn-primary
+            span(aria-hidden='true').glyphicon.glyphicon-save-file
+            = create ? _("Create") : _("Save")
 
-    div.row
-      div.col-xs-12
-        form(action=(create ? '/thingpedia/upload/create' : '/thingpedia/upload/update/' + id), enctype='multipart/form-data', method='post', data-toggle='validator')#thing-form
-          input(type='hidden',name='_csrf',value=csrfToken)
-
-          div.form-group
-            label(for='device-kind').control-label= _("Device ID")
-            input(type='text',name='primary_kind',required=true,maxlength=128,value=device.primary_kind).form-control#device-kind
-            span.help-block= _("The unique name of your device entry. This should be a namespaced name like “org.example” or “com.mything”.")
-
-          div.form-group
-            label(for='device-name').control-label= _("Device Name")
-            input(type='text',name='name',required=true,maxlength=255,value=device.name).form-control#device-name
-            span.help-block= _("This will be shown in the Thingpedia catalog.")
-
-          div.form-group
-            label(for='device-description-input').control-label= _("Device Description")
-            textarea(name='description',required=true).form-control#device-description= device.description
-
-          div.form-group
-            label(for='device-icon').control-label= _("Device Icon")
-            input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#device-icon
-
-          div.form-group
-            label(for='device-zipfile').control-label= _("Upload ZIP file with JS code")
-            input(type='file',name='zipfile')#device-zipfile
-
-          div.form-group
-            label(for='device-code').control-label Device Manifest
-            textarea(name='code',required=true).form-control#device-code= device.code
-
-          div.form-group
-            label(for='device-dataset').control-label= _("Default Dataset")
-            textarea(name='code',required=true).form-control#device-dataset= device.dataset
-
+        div.col-lg-2.col-md-2
           if user.developer_status >= 2
             div.checkbox
               label(for='device-approve').control-label
                 input(type='checkbox',name='approve',value='1',checked=approve)#device-approve
-                = _(" Approve this device right away.")
+                = ' ' + _("Approve immediately")
 
-          div.form-group
-            button(type='submit').btn.btn-primary= _("Submit")
+        div.col-lg-9.col-md-8#device-error
+          if error
+            p(role='alert').text-danger
+              span(aria-hidden='true').glyphicon.glyphicon-warning-sign
+              |
+              |
+              if typeof error === 'string'
+                = error
+              else if error.name === 'SyntaxError'
+                = _("Syntax error at %s line %d: %s").format(error.fileName, error.lineNumber, error.message)
+              else if error.message
+                = error.message
+              else
+                = String(error)
 
+      div.row
+        nav.col-lg-3.col-md-4#device-editor-sidebar
+          ul(role='tablist').nav.nav-pills.nav-stacked
+            li.active
+              a(href='#device-metadata', aria-controls='#device-metadata', role='tab', data-toggle='tab')
+                //-span(aria-hidden='true').glyphicon.glyphicon-file
+                = _("Metadata")
+            li
+              a(href='#device-code-tab', aria-controls='#device-code-tab', role='tab', data-toggle='tab')
+                //-span(aria-hidden='true').glyphicon.glyphicon-file
+                = _("Manifest")
+            li
+              a(href='#device-dataset-tab', aria-controls='#device-dataset-tab', role='tab', data-toggle='tab')
+                //-span(aria-hidden='true').glyphicon.glyphicon-file
+                = _("Dataset")
+
+        div.col-lg-9.col-md-8.tab-content#device-editor-body
+          div.tab-pane.fade.in.active#device-metadata
+            div.form-group
+              label(for='device-kind').control-label= _("Device ID")
+              input(type='text',name='primary_kind',required=true,maxlength=128,value=device.primary_kind).form-control#device-kind
+              span.help-block= _("The unique name of your device entry. This should be a namespaced name like “org.example” or “com.mything”.")
+
+            div.form-group
+              label(for='device-name').control-label= _("Device Name")
+              input(type='text',name='name',required=true,maxlength=255,value=device.name).form-control#device-name
+              span.help-block= _("This will be shown in the Thingpedia catalog.")
+
+            div.form-group
+              label(for='device-description-input').control-label= _("Device Description")
+              textarea(name='description',required=true).form-control#device-description= device.description
+
+            div.form-group
+              label(for='device-icon').control-label= _("Device Icon")
+              input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#device-icon
+
+            div.form-group
+              label(for='device-zipfile').control-label= _("Upload ZIP file with JS code")
+              input(type='file',name='zipfile')#device-zipfile
+
+          div.tab-pane.fade#device-code-tab
+            label(for='device-code').control-label.sr-only= _("Device Manifest")
+            textarea(name='code',required=true).enable-codemirror.form-control#device-code= device.code
+
+          div.tab-pane.fade#device-dataset-tab
+            label(for='device-dataset').control-label.sr-only= _("Default Dataset")
+            textarea(name='code',required=true).enable-codemirror.form-control#device-dataset= device.dataset

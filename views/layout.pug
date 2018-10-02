@@ -23,6 +23,7 @@ html
 
   - var index = false;
   - var stdlayout = true;
+  - var includefooter = true;
   body(data-icon-cdn=S3_CLOUDFRONT_HOST, data-developer-key=authenticated ? user.developer_key : false,
        data-locale=locale, data-thingpedia-url=THINGPEDIA_URL, data-user-id=user.id)
     nav.navbar-inverse.navbar.navbar-fixed-top(role="banner")
@@ -51,16 +52,17 @@ html
     else
       block content
 
-    footer
-      div.container
-        div.row
-          div.col-xs-12
-            p
-              small!= _("Almond and Thingpedia are part of a research project of the <a href='http://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> at Stanford University.")
-            p
-              small
-                != _("Almond is free software, distributed under the <a href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html'>GPLv2 license</a>. ")
-                | &nbsp;&nbsp;
-                a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud/issues')= _("Report a bug")
-                | &nbsp;&nbsp;
-                a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud').label.label-default Fork me on Github!
+    if includefooter
+      footer
+        div.container
+          div.row
+            div.col-xs-12
+              p
+                small!= _("Almond and Thingpedia are part of a research project of the <a href='http://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> at Stanford University.")
+              p
+                small
+                  != _("Almond is free software, distributed under the <a href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.html'>GPLv2 license</a>. ")
+                  | &nbsp;&nbsp;
+                  a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud/issues')= _("Report a bug")
+                  | &nbsp;&nbsp;
+                  a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-platform-cloud').label.label-default Fork me on Github!
