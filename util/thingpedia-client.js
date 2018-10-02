@@ -20,7 +20,7 @@ const organization = require('../model/organization');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
 const entityModel = require('../model/entity');
-const { stringEscape } = require('./escaping');
+const DatasetUtils = require('./dataset');
 
 const S3_HOST = Config.S3_CLOUDFRONT_HOST + '/devices/';
 
@@ -365,65 +365,8 @@ module.exports = class ThingpediaClientCloud {
         }
         return rows;
     }
-
-    _rowsToExamples(rows) {
-        // coalesce by target code
-
-        // note: this code is designed to be fast, and avoid parsing the examples in the common
-        // case of up-to-date thingpedia
-
-        let uniqueCode = new Map;
-        for (let row of rows) {
-            let targetCode = row.target_code;
-
-            if (/^[ \r\n\t\v]*let[ \r\n\t\v]/.test(targetCode)) {
-                // forward compatibility: convert the declaration to example syntax
-                const parsed = ThingTalk.Grammar.parse(targetCode);
-                const declaration = parsed.declarations[0];
-
-                const example = new ThingTalk.Ast.Example(-1,
-                    declaration.type === 'table' ? 'query' : declaration.type,
-                    declaration.args,
-                    declaration.value,
-                    [], [], {});
-                targetCode = example.prettyprint('');
-            } else if (!/^[ \r\n\t\v]*(query|action|stream|program)[ \r\n\t\v]/.test(targetCode)) {
-                targetCode = `program := ${targetCode}`;
-            }
-
-            if (uniqueCode.has(targetCode)) {
-                const ex = uniqueCode.get(targetCode);
-                ex.utterances.push(row.utterance);
-                ex.preprocessed.push(row.preprocessed);
-            } else {
-                uniqueCode.set(targetCode, {
-                    id: row.id,
-                    utterances: [row.utterance],
-                    preprocessed: [row.preprocessed],
-                    click_count: row.click_count
-                });
-            }
-        }
-
-
-        let buffer = [];
-        for (let [targetCode, ex] of uniqueCode.entries()) {
-            // remove trailing semicolon
-            targetCode = targetCode.replace(/[ \r\n\t\v]*;[ \r\n\t\v]*$/, '');
-
-            buffer.push(`    ${targetCode}
-        #_[utterances=[${ex.utterances.map(stringEscape)}]]
-        #_[preprocessed=[${ex.preprocessed.map(stringEscape)}]]
-        #[id=${ex.id}] #[click_count=${ex.click_count}];
-`);
-        }
-
-        return buffer.join('');
-    }
-
     _makeDataset(name, rows) {
-        return `dataset @org.thingpedia.dynamic.${name} language "${this.language}" {
-${this._rowsToExamples(rows)}}`;
+        return DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.${name}`, this.language, rows);
     }
 
     getExamplesByKey(key, accept = 'application/x-thingtalk') {

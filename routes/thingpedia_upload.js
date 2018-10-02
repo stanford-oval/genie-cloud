@@ -15,14 +15,17 @@ const fs = require('fs');
 const multer = require('multer');
 const csurf = require('csurf');
 
-const db = require('../util/db');
-const code_storage = require('../util/code_storage');
-const model = require('../model/device');
-const user = require('../util/user');
 const platform = require('../util/platform');
+const db = require('../util/db');
+const model = require('../model/device');
+const exampleModel = require('../model/example');
+
+const code_storage = require('../util/code_storage');
 const TrainingServer = require('../util/training_server');
 const Importer = require('../util/import_device');
+const DatasetUtils = require('../util/dataset');
 
+const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
@@ -47,7 +50,8 @@ router.get('/create', user.redirectLogIn, user.requireDeveloper(), (req, res) =>
     res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - create new device"),
                                                      csrfToken: req.csrfToken(),
                                                      device: { fullcode: false,
-                                                               code: code },
+                                                               code: code,
+                                                               dataset: '' },
                                                      create: true });
 });
 
@@ -229,27 +233,28 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(), (req, res) =>
 
 router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
     Promise.resolve().then(() => {
-        return db.withClient((dbClient) => {
-            return model.get(dbClient, req.params.id).then((d) => {
-                if (d.owner !== req.user.developer_org &&
-                    req.user.developer < user.DeveloperStatus.ADMIN)
-                    throw new Error(req._("Not Authorized"));
+        return db.withClient(async (dbClient) => {
+            const d = await model.get(dbClient, req.params.id);
+            if (d.owner !== req.user.developer_org &&
+                req.user.developer < user.DeveloperStatus.ADMIN)
+                throw new Error(req._("Not Authorized"));
 
-                return model.getCodeByVersion(dbClient, req.params.id, d.developer_version).then((row) => {
-                    d.code = Importer.migrateManifest(row.code, d);
-                    return d;
-                });
-            }).then((d) => {
-                res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - edit device"),
-                                                                 csrfToken: req.csrfToken(),
-                                                                 id: req.params.id,
-                                                                 device: { name: d.name,
-                                                                           primary_kind: d.primary_kind,
-                                                                           description: d.description,
-                                                                           code: d.code,
-                                                                           fullcode: d.fullcode },
-                                                                 create: false });
-            });
+            let [{code}, examples] = await Promise.all([
+                model.getCodeByVersion(dbClient, req.params.id, d.developer_version),
+                exampleModel.getBaseBySchemaKind(dbClient, d.primary_kind, 'en')
+            ]);
+
+            code = JSON.stringify(Importer.migrateManifest(code, d), undefined, 2);
+            const dataset = DatasetUtils.examplesToDataset(d.primary_kind, 'en', examples);
+
+            res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - edit device"),
+                                                             id: req.params.id,
+                                                             device: { name: d.name,
+                                                                       primary_kind: d.primary_kind,
+                                                                       description: d.description,
+                                                                       code: code,
+                                                                       dataset: dataset },
+                                                             create: false });
         });
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),

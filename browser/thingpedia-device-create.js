@@ -10,10 +10,22 @@
 "use strict";
 
 const CodeMirror = require('codemirror');
+require('codemirror/mode/javascript/javascript');
+require('codemirror/addon/lint/lint');
+require('codemirror/addon/lint/javascript-lint');
+require('codemirror/addon/lint/json-lint');
 
-$(function() {
+$(() => {
     $('#device-code').each(function() {
          CodeMirror.fromTextArea(this, { mode: 'application/json',
+                                         tabSize: 8,
+                                         lineNumbers: true,
+                                         gutters: ["CodeMirror-lint-markers"],
+                                         lint: true
+                                       });
+    });
+    $('#device-dataset').each(function() {
+         CodeMirror.fromTextArea(this, { mode: 'application/x-thingtalk',
                                          tabSize: 8,
                                          lineNumbers: true,
                                          gutters: ["CodeMirror-lint-markers"],

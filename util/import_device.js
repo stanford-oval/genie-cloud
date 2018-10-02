@@ -340,69 +340,6 @@ async function importDevice(dbClient, req, primary_kind, manifest, { owner = 0, 
     return device;
 }
 
-const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
-
-function legacyCreateExample(utterance, kind, function_name, function_type, function_obj) {
-    let inargmap = {};
-    let outargmap = {};
-    for (let arg of function_obj.args) {
-        if (arg.is_input)
-            inargmap[arg.name] = arg.type;
-        else
-            outargmap[arg.name] = arg.type;
-    }
-
-    let regexp = new RegExp(PARAM_REGEX, 'g');
-
-    let in_args = '';
-    let filter = '';
-    let arg_decl = '';
-    let any_arg = false;
-    let any_in_arg = false;
-    let any_out_arg = false;
-
-    let match = regexp.exec(utterance);
-    while (match !== null) {
-        let [, param1, param2,] = match;
-        let param = param1 || param2;
-
-        if (param in inargmap) {
-            let type = inargmap[param];
-            if (any_in_arg)
-                in_args += ', ';
-            if (any_arg)
-                arg_decl += ', ';
-            in_args += `${param}=p_${param}`;
-            arg_decl += `p_${param} :${type}`;
-            any_in_arg = true;
-            any_arg = true;
-        } else {
-            let type = outargmap[param];
-            if (any_out_arg)
-                filter += ' && ';
-            if (any_arg)
-                arg_decl += ', ';
-            filter += `${param} == p_${param}`;
-            arg_decl += `p_${param} :${type}`;
-            any_out_arg = true;
-            any_arg = true;
-        }
-
-        match = regexp.exec(utterance);
-    }
-
-    let result = `@${kind}.${function_name}(${in_args})`;
-    if (filter !== '')
-        result += `, ${filter}`;
-    if (function_type === 'triggers')
-        result = `let stream x := \\(${arg_decl}) -> monitor ${result};`;
-    else if (function_type === 'queries')
-        result = `let table x := \\(${arg_decl}) -> ${result};`;
-    else
-        result = `let action x := \\(${arg_decl}) -> ${result};`;
-    return { utterance: utterance, program: result };
-}
-
 function migrateManifest(code, device) {
     let ast = JSON.parse(code);
 
@@ -418,20 +355,6 @@ function migrateManifest(code, device) {
     });
     ast.child_types = ast.child_types || [];
 
-    if (!ast.examples) {
-        ast.examples = [];
-
-        for (let function_type of ['triggers','queries','actions']) {
-            for (let function_name in ast[function_type]) {
-                let function_obj = ast[function_type][function_name];
-
-                for (let example of (function_obj.examples || []))
-                    ast.examples.push(legacyCreateExample(example, device.primary_kind, function_name, function_type, function_obj));
-                delete function_obj.examples;
-            }
-        }
-    }
-
     for (let function_type of ['triggers','queries']) {
         for (let function_name in ast[function_type]) {
             let function_obj = ast[function_type][function_name];
@@ -442,7 +365,10 @@ function migrateManifest(code, device) {
         }
     }
 
-    return JSON.stringify(ast);
+    // examples are now stored elsewhere
+    delete ast.examples;
+
+    return ast;
 }
 
 module.exports = {
