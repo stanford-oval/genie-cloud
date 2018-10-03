@@ -9,8 +9,9 @@
 // See COPYING for details
 "use strict";
 
-const ThingpediaDiscovery = require('thingpedia-discovery');
+const TpDiscovery = require('thingpedia-discovery');
 const ThingTalk = require('thingtalk');
+const TpClient = require('thingpedia-client');
 
 const Config = require('../config');
 
@@ -46,13 +47,32 @@ class ThingpediaDiscoveryDatabase {
     }
 }
 
-var _discoveryServer = new ThingpediaDiscovery.Server(new ThingpediaDiscoveryDatabase());
+var _discoveryServer = new TpDiscovery.Server(new ThingpediaDiscoveryDatabase());
 
 const CATEGORIES = new Set(['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management']);
 
-module.exports = class ThingpediaClientCloud {
+// TpClient.BaseClient wants a Platform instance rather than
+// a static pair of (developerKey, locale) because it wants to
+// be immune to changes in the developer key (which in the clients
+// can occur at runtime)
+// In almond-cloud, the developer key is immutable so this is not
+// an issue, but we still wrap the key and locale in a Platform object
+// to keep the API consistent
+class Platform {
+    constructor(developerKey, locale) {
+        this._developerKey = developerKey;
+        this.locale = locale;
+    }
+
+    getDeveloperKey() {
+        return this._developerKey;
+    }
+}
+
+module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     constructor(developerKey, locale, dbClient = null) {
-        this.developerKey = developerKey;
+        super(new Platform(developerKey, locale));
+
         // only keep the language part of the locale, we don't
         // yet distinguish en_US from en_GB
         this.language = (locale || 'en').split(/[-_@.]/)[0];
