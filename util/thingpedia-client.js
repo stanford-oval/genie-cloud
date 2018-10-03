@@ -9,6 +9,8 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
+
 const TpDiscovery = require('thingpedia-discovery');
 const ThingTalk = require('thingtalk');
 const TpClient = require('thingpedia-client');
@@ -217,32 +219,6 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         });
     }
 
-    _deviceMakeFactory(d) {
-        const ast = JSON.parse(d.code);
-
-        delete d.code;
-        if (ast.auth.type === 'builtin') {
-            d.factory = null;
-        } else if (ast.auth.type === 'discovery') {
-            d.factory = ({ type: 'discovery', category: d.category, kind: d.primary_kind, text: d.name,
-                           discoveryType: ast.auth.discoveryType });
-        } else if (ast.auth.type === 'interactive') {
-            d.factory = ({ type: 'interactive', category: d.category, kind: d.primary_kind, text: d.name });
-        } else if (ast.auth.type === 'none' &&
-                   Object.keys(ast.params).length === 0) {
-            d.factory = ({ type: 'none', category: d.category, kind: d.primary_kind, text: d.name });
-        } else if (ast.auth.type === 'oauth2') {
-            d.factory = ({ type: 'oauth2', category: d.category, kind: d.primary_kind, text: d.name });
-        } else {
-            d.factory = ({ type: 'form', category: d.category, kind: d.primary_kind, text: d.name,
-                           fields: Object.keys(ast.params).map((k) => {
-                               let p = ast.params[k];
-                               return ({ name: k, label: p[0], type: p[1] });
-                           })
-                         });
-        }
-    }
-
     getDeviceSearch(q) {
         return db.withClient(async (dbClient) => {
             const org = await this._getOrg(dbClient);
@@ -268,6 +244,15 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         });
     }
 
+    _ensureDeviceFactory(d) {
+        if (d.factory !== null)
+            return typeof d.factory === 'string' ? JSON.parse(d.factory) : d.factory;
+
+        assert(/\s+\{/.test(d.code));
+        const classDef = ThingTalk.Ast.ClassDef.fromManifest(d.primary_kind, JSON.parse(d.code));
+        return Importer.makeDeviceFactory(classDef);
+    }
+
     getDeviceFactories(klass) {
         return db.withClient(async (dbClient) => {
             const org = await this._getOrg(dbClient);
@@ -286,7 +271,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
 
             const factories = [];
             for (let d of devices) {
-                const factory = this._deviceMakeFactory(d);
+                const factory = this._ensureDeviceFactory(d);
                 if (factory)
                     factories.push(factory);
             }
@@ -310,7 +295,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
             const result = {};
             devices.forEach((d) => {
                 try {
-                    this._deviceMakeFactory(d);
+                    d.factory = this._ensureDeviceFactory(d);
                     if (d.factory) {
                         if (d.for_kind in result) {
                             if (result[d.for_kind].type !== 'multiple') {

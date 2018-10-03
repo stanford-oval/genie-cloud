@@ -341,7 +341,9 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     const schemaId = await ensurePrimarySchema(dbClient, device.name,
                                                classDef, req, approve);
     await ensureDataset(dbClient, schemaId, dataset);
+    const factory = makeDeviceFactory(classDef);
 
+    classDef.annotations.version = ThingTalk.Ast.Value.Number(device.developer_version);
     const versionedInfo = {
         code: classDef.prettyprint(),
         fullcode: isFullCode(classDef),
@@ -381,10 +383,37 @@ function migrateManifest(code, device) {
     return ThingTalk.Ast.fromManifest(device.primary_kind, ast).prettyprint();
 }
 
+function makeDeviceFactory(classDef) {
+    const ast = JSON.parse(d.code);
+
+    delete d.code;
+    if (ast.auth.type === 'builtin') {
+        d.factory = null;
+    } else if (ast.auth.type === 'discovery') {
+        d.factory = ({ type: 'discovery', category: d.category, kind: d.primary_kind, text: d.name,
+                       discoveryType: ast.auth.discoveryType });
+    } else if (ast.auth.type === 'interactive') {
+        d.factory = ({ type: 'interactive', category: d.category, kind: d.primary_kind, text: d.name });
+    } else if (ast.auth.type === 'none' &&
+               Object.keys(ast.params).length === 0) {
+        d.factory = ({ type: 'none', category: d.category, kind: d.primary_kind, text: d.name });
+    } else if (ast.auth.type === 'oauth2') {
+        d.factory = ({ type: 'oauth2', category: d.category, kind: d.primary_kind, text: d.name });
+    } else {
+        d.factory = ({ type: 'form', category: d.category, kind: d.primary_kind, text: d.name,
+                       fields: Object.keys(ast.params).map((k) => {
+                           let p = ast.params[k];
+                           return ({ name: k, label: p[0], type: p[1] });
+                       })
+                     });
+    }
+}
+
 module.exports = {
     validateDevice,
     ensurePrimarySchema,
     ensureDataset,
+    makeDeviceFactory,
 
     isFullCode,
     getCategory,
@@ -394,5 +423,5 @@ module.exports = {
 
     importDevice,
 
-    migrateManifest
+    migrateManifest,
 };
