@@ -136,9 +136,13 @@ async function doCreateOrUpdate(id, create, req, res) {
                 developer_version: developer_version,
                 approved_version: approve ? developer_version : null,
             };
+
+            const factory = Importer.makeDeviceFactory(classDef, generalInfo);
             const versionedInfo = {
                 code: classDef.prettyprint(),
-                module_type: classDef.loader.module
+                factory: JSON.stringify(factory),
+                module_type: classDef.loader.module,
+                fullcode: fullcode
             };
 
             if (create) {

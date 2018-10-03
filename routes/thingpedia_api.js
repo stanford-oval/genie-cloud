@@ -285,7 +285,7 @@ v3.get('/schema/:schemas', (req, res, next) => {
 
     const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     errorWrap(req, res, next, client.getSchemas(schemas, withMetadata, accept).then((obj) => {
-        req.set('Vary', 'Accept');
+        res.set('Vary', 'Accept');
 
         // don't cache if the user is a developer
         if (!req.query.developer_key)
@@ -760,9 +760,9 @@ v1.get('/devices/all', (req, res, next) => {
         return;
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceList(req.query.class || null, page, page_size).then((obj) => {
+    client.getDeviceList(req.query.class || null, page, page_size).then((devices) => {
         res.cacheFor(86400000);
-        res.json(obj);
+        res.json({ devices });
     }).catch(next);
 });
 
@@ -810,7 +810,7 @@ v3.get('/devices/all', (req, res, next) => {
         return;
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceList(req.query.class || null, page, page_size).then(({ devices }) => {
+    client.getDeviceList(req.query.class || null, page, page_size).then((devices) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: devices });
     }).catch(next);

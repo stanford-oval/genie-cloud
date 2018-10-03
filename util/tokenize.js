@@ -10,6 +10,12 @@
 "use strict";
 
 module.exports = {
+    clean(name) {
+        if (/^[vwg]_/.test(name))
+            name = name.substr(2);
+        return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+    },
+
     tokenize(string) {
         var tokens = string.split(/(\s+|[,."'!?])/g);
         return tokens.filter((t) => !(/^\s*$/).test(t)).map((t) => t.toLowerCase());

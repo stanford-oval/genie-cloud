@@ -239,18 +239,16 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
             } else {
                 return device.getAllApproved(dbClient, org, page*page_size, page_size+1);
             }
-        }).then((devices) => {
-            return ({ devices });
         });
     }
 
-    _ensureDeviceFactory(d) {
-        if (d.factory !== null)
-            return typeof d.factory === 'string' ? JSON.parse(d.factory) : d.factory;
+    _ensureDeviceFactory(device) {
+        if (device.factory !== null)
+            return typeof device.factory === 'string' ? JSON.parse(device.factory) : device.factory;
 
-        assert(/\s+\{/.test(d.code));
-        const classDef = ThingTalk.Ast.ClassDef.fromManifest(d.primary_kind, JSON.parse(d.code));
-        return Importer.makeDeviceFactory(classDef);
+        assert(/\s+\{/.test(device.code));
+        const classDef = ThingTalk.Ast.ClassDef.fromManifest(device.primary_kind, JSON.parse(device.code));
+        return Importer.makeDeviceFactory(classDef, device);
     }
 
     getDeviceFactories(klass) {
@@ -405,8 +403,8 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
 };
 module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getModuleLocation', 'getDeviceCode',
-                                        'getSchemas', 'getMetas',
-                                        'getDeviceSetup', 'getDeviceSetup2',
+                                        'getSchemas', 'getMixins',
+                                        'getDeviceSetup',
                                         'getDeviceFactories',
                                         'getDeviceList',
                                         'getDeviceSearch',

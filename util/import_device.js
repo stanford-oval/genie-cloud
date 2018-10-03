@@ -288,6 +288,15 @@ function getCategory(classDef) {
     if (classDef.annotations.system && classDef.annotations.system.toJS())
         return 'system';
 
+    if (classDef.loader.module === 'org.thingpedia.builtin') {
+        switch (classDef.kind) {
+        case 'org.thingpedia.builtin.thingengine.gnome':
+        case 'org.thingpedia.builtin.thingengine.phone':
+        case 'org.thingpedia.builtin.thingengine.home':
+            return 'physical';
+        }
+    }
+
     switch (classDef.config.module) {
     case 'org.thingpedia.config.builtin':
     case 'org.thingpedia.config.none':
@@ -341,11 +350,12 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     const schemaId = await ensurePrimarySchema(dbClient, device.name,
                                                classDef, req, approve);
     await ensureDataset(dbClient, schemaId, dataset);
-    const factory = makeDeviceFactory(classDef);
+    const factory = makeDeviceFactory(classDef, device);
 
     classDef.annotations.version = ThingTalk.Ast.Value.Number(device.developer_version);
     const versionedInfo = {
         code: classDef.prettyprint(),
+        factory: JSON.stringify(factory),
         fullcode: isFullCode(classDef),
         module_type: classDef.loader.module
     };
@@ -383,29 +393,90 @@ function migrateManifest(code, device) {
     return ThingTalk.Ast.fromManifest(device.primary_kind, ast).prettyprint();
 }
 
-function makeDeviceFactory(classDef) {
-    const ast = JSON.parse(d.code);
+function makeDeviceFactory(classDef, device) {
+    const config = classDef.config;
+    function getInputParam(name) {
+        for (let inParam of config.in_params) {
+            if (inParam.name === name)
+                return inParam.value.toJS();
+        }
+        return undefined;
+    }
+    function toFields(argMap) {
+        return Object.keys(argMap).map((k) => {
+            const type = argMap[k];
+            let htmlType;
+            if (type.isPassword)
+                htmlType = 'password';
+            else if (type.isNumber || type.isMeasure)
+                htmlType = 'number';
+            else
+                htmlType = 'text';
+            return { name: k, label: tokenizer.clean(k), type: htmlType };
+        });
+    }
 
-    delete d.code;
-    if (ast.auth.type === 'builtin') {
-        d.factory = null;
-    } else if (ast.auth.type === 'discovery') {
-        d.factory = ({ type: 'discovery', category: d.category, kind: d.primary_kind, text: d.name,
-                       discoveryType: ast.auth.discoveryType });
-    } else if (ast.auth.type === 'interactive') {
-        d.factory = ({ type: 'interactive', category: d.category, kind: d.primary_kind, text: d.name });
-    } else if (ast.auth.type === 'none' &&
-               Object.keys(ast.params).length === 0) {
-        d.factory = ({ type: 'none', category: d.category, kind: d.primary_kind, text: d.name });
-    } else if (ast.auth.type === 'oauth2') {
-        d.factory = ({ type: 'oauth2', category: d.category, kind: d.primary_kind, text: d.name });
-    } else {
-        d.factory = ({ type: 'form', category: d.category, kind: d.primary_kind, text: d.name,
-                       fields: Object.keys(ast.params).map((k) => {
-                           let p = ast.params[k];
-                           return ({ name: k, label: p[0], type: p[1] });
-                       })
-                     });
+    switch (config.module) {
+    case 'org.thingpedia.config.builtin':
+        return null;
+
+    case 'org.thingpedia.config.discovery':
+        return {
+            type: 'discovery',
+            category: device.category,
+            kind: device.primary_kind,
+            text: device.name,
+            discoveryType: getInputParam('protocol')
+        };
+
+    case 'org.thingpedia.config.interactive':
+        return {
+            type: 'interactive',
+            category: device.category,
+            kind: device.primary_kind,
+            text: device.name
+        };
+
+    case 'org.thingpedia.config.none':
+        return {
+            type: 'none',
+            category: device.category,
+            kind: device.primary_kind,
+            text: device.name
+        };
+
+    case 'org.thingpedia.config.oauth2':
+    case 'org.thingpedia.config.custom_oauth':
+        return {
+            type: 'oauth2',
+            category: device.category,
+            kind: device.primary_kind,
+            text: device.name
+        };
+
+    case 'org.thingpedia.config.form':
+        return {
+            type: 'form',
+            category: device.category,
+            kind: device.primary_kind,
+            text: device.name,
+            fields: toFields(getInputParam('params'))
+        };
+
+    case 'org.thingpedia.config.basic_auth':
+        return {
+            type: 'form',
+            category: device.category,
+            kind: device.primary_kind,
+            text: device.name,
+            fields: [
+                { name: 'username', label: 'Username', type: 'text' },
+                { name: 'password', label: 'Password', type: 'password' }
+            ].concat(toFields(getInputParam('extra_params')))
+        };
+
+    default:
+        throw new Error(`Unrecognized config mixin ${config.module}`);
     }
 }
 
