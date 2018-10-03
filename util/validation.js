@@ -175,6 +175,31 @@ module.exports = {
         }
     },
 
+    validateInvocation2(where, what, entities) {
+        for (const name in where) {
+            if (FORBIDDEN_NAMES.has(name))
+                throw new Error(`${name} is not allowed as a function name`);
+
+            if (!where[name].metadata.canonical)
+                throw new Error('Missing canonical form for ' + name);
+            if (where[name].metadata.canonical.indexOf('$') >= 0)
+                throw new Error('Detected placeholder in canonical form ' + name + ': this is incorrect, the canonical form must not contain parameters');
+            if (!where[name].metadata.confirmation)
+                throw new Error('Missing confirmation for ' + name);
+
+            for (const argname of where[name].args) {
+                if (FORBIDDEN_NAMES.has(argname))
+                    throw new Error(`${argname} is not allowed as argument name in ${name}`);
+                const type = where[name].getArgType(argname);
+                if (type.isEntity)
+                    entities.add(type.type);
+                const arg = where[name].getArgument(argname);
+                if (arg.required && !arg.metadata.prompt)
+                    throw new Error('Required argument ' + name + '.' + arg.name + ' must have a slot filling prompt');
+            }
+        }
+    },
+
     _validateUtterance(args, utterance) {
         if (/_{4}/.test(utterance))
             throw new Error('Do not use blanks (4 underscores or more) in utterance, use placeholders');
@@ -235,7 +260,7 @@ module.exports = {
     },
 
     tokenizeAllExamples(language, examples) {
-        return Promise.all(examples.map((ex, i) => {
+        return Promise.all(examples.map(async (ex, i) => {
             let replaced = '';
             let params = [];
 
@@ -257,29 +282,29 @@ module.exports = {
                 params.push([param, opt]);
             }
 
-            return TokenizerService.tokenize(language, replaced).then(({tokens, entities}) => {
-                if (Object.keys(entities).length > 0)
-                    throw new Error(`Error in Example ${i+1}: Cannot have entities in the utterance`);
-                
-                let preprocessed = '';
-                let first = true;
-                for (let token of tokens) {
-                    if (token === '____') {
-                        let [param, opt] = params.shift();
-                        if (opt)
-                            token = '${' + param + ':' + opt + '}';
-                        else
-                            token = '${' + param + '}';
-                    } else if (token === '$') {
-                        token = '$$';
-                    }
-                    if (!first)
-                        preprocessed += ' ';
-                    preprocessed += token;
-                    first = false;
+            const {tokens, entities} = await TokenizerService.tokenize(language, replaced);
+            if (Object.keys(entities).length > 0)
+                throw new Error(`Error in Example ${i+1}: Cannot have entities in the utterance`);
+
+            let preprocessed = '';
+            let first = true;
+            for (let token of tokens) {
+                if (token === '____') {
+                    let [param, opt] = params.shift();
+                    if (opt)
+                        token = '${' + param + ':' + opt + '}';
+                    else
+                        token = '${' + param + '}';
+                } else if (token === '$') {
+                    token = '$$';
                 }
-                return { program: ex.program, utterance: ex.utterance, preprocessed };
-            });
+                if (!first)
+                    preprocessed += ' ';
+                preprocessed += token;
+                first = false;
+            }
+
+            ex.preprocessed = preprocessed ;
         }));
     },
 
@@ -305,5 +330,28 @@ module.exports = {
 
         let schemaRetriever = new SingleDeviceSchemaRetriever(kind, ast);
         return Promise.all(ast.examples.map(this._validateExample.bind(this, schemaRetriever))).then(() => entities);
+    },
+
+    validateAllInvocations2(kind, classDef) {
+        if (FORBIDDEN_NAMES.has(kind))
+            throw new Error(`${kind} is not allowed as a device ID`);
+
+        let entities = new Set;
+        this.validateInvocation2(classDef.actions, 'action', entities);
+        this.validateInvocation2(classDef.queries, 'query', entities);
+        return Array.from(entities);
+    },
+
+    validateDataset(dataset) {
+        for (let ex of dataset.examples) {
+            let ruleprog = ex.toProgram();
+
+            // try and convert to NN
+            ThingTalk.NNSyntax.toNN(ruleprog, {});
+            // validate placeholders in the utterance
+
+            for (let utterance of ex.utterances)
+                this._validateUtterance(ex.args, utterance);
+        }
     }
 };

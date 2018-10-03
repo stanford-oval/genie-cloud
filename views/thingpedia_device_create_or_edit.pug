@@ -66,21 +66,32 @@ block content
         div.col-lg-9.col-md-8.tab-content#device-editor-body
           div.tab-pane.fade.in.active#device-metadata
             div.form-group
-              label(for='device-kind').control-label= _("Device ID")
+              label(for='device-kind').control-label= _("ID")
               input(type='text',name='primary_kind',required=true,maxlength=128,value=device.primary_kind).form-control#device-kind
               span.help-block= _("The unique name of your device entry. This should be a namespaced name like “org.example” or “com.mything”.")
 
             div.form-group
-              label(for='device-name').control-label= _("Device Name")
+              label(for='device-name').control-label= _("Name")
               input(type='text',name='name',required=true,maxlength=255,value=device.name).form-control#device-name
               span.help-block= _("This will be shown in the Thingpedia catalog.")
 
             div.form-group
-              label(for='device-description-input').control-label= _("Device Description")
+              label(for='device-description-input').control-label= _("Description")
               textarea(name='description',required=true).form-control#device-description= device.description
 
             div.form-group
-              label(for='device-icon').control-label= _("Device Icon")
+              label(for='device-subcategory').control-label= _("Category")
+              select(name='subcategory',required=true).form-control#device-subcategory
+                option(value='media', selected=(device.subcategory === 'media'))= _("Media")
+                option(value='social-network', selected=(device.subcategory === 'social-network'))= _("Social Network")
+                option(value='communication', selected=(device.subcategory === 'communication'))= _("Communication")
+                option(value='home', selected=(device.subcategory === 'home'))= _("Home")
+                option(value='health', selected=(device.subcategory === 'health'))= _("Health & Fitness")
+                option(value='data-management', selected=(device.subcategory === 'data-management'))= _("Data Management")
+                option(value='service', selected=(device.subcategory === 'service'))= _("Other")
+
+            div.form-group
+              label(for='device-icon').control-label= _("Icon")
               input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#device-icon
 
             div.form-group

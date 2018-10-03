@@ -153,6 +153,7 @@ async function importBuiltinDevices(dbClient, rootOrg) {
     ];
 
     for (let primaryKind of BUILTIN_DEVICES) {
+        console.log(`Loading builtin device ${primaryKind}`);
         const manifest = require('../data/' + primaryKind + '.manifest.json');
         await Importer.importDevice(dbClient, req, primaryKind, manifest, {
             owner: rootOrg.id,

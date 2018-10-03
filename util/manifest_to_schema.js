@@ -10,6 +10,47 @@
 "use strict";
 
 module.exports = {
+    classDefToSchema(classDef) {
+        const result = {
+            actions: {},
+            queries: {}
+        };
+
+        for (let what of ['actions', 'queries']) {
+            const into = result[what];
+            for (let name in classDef[what]) {
+                const fnDef = classDef[what][name];
+
+                const out = into[name] = {
+                    doc: fnDef.metadata.doc || '',
+                    confirmation: fnDef.metadata.confirmation,
+                    confirmation_remote: fnDef.metadata.confirmation_remote || '',
+                    canonical: fnDef.metadata.canonical,
+                    is_list: fnDef.is_list,
+                    is_monitorable: fnDef.is_monitorable,
+                    schema: [],
+                    args: [],
+                    argcanonicals: [],
+                    questions: [],
+                    required: [],
+                    is_input: []
+                };
+                for (let argname of fnDef.args) {
+                    const arg = fnDef.getArgument(argname);
+                    out.schema.push(arg.type);
+                    out.args.push(argname);
+                    // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
+                    out.argcanonicals.push(argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
+                    out.questions.push(arg.question);
+                    out.required.push(!!arg.required);
+                    out.is_input.push(!!arg.is_input);
+                }
+            }
+        }
+
+        return result;
+    },
+
     toSchema(ast) {
         var triggers = {};
         var actions = {};

@@ -20,7 +20,9 @@ function rowsToExamples(rows, { editMode = false}) {
 
     let uniqueCode = new Map;
     for (let row of rows) {
-        let targetCode = row.target_code;
+        let targetCode = row.target_code || row.program;
+        if (!targetCode)
+            throw new Error(`Invalid example ${row.id}, missing program`);
 
         if (/^[ \r\n\t\v]*let[ \r\n\t\v]/.test(targetCode)) {
             // forward compatibility: convert the declaration to example syntax
@@ -32,7 +34,7 @@ function rowsToExamples(rows, { editMode = false}) {
                 declaration.args,
                 declaration.value,
                 [], [], {});
-            targetCode = example.prettyprint('');
+            targetCode = example.prettyprint('').trim();
         } else if (!/^[ \r\n\t\v]*(query|action|stream|program)[ \r\n\t\v]/.test(targetCode)) {
             targetCode = `program := ${targetCode}`;
         }
@@ -58,11 +60,18 @@ function rowsToExamples(rows, { editMode = false}) {
         targetCode = targetCode.replace(/[ \r\n\t\v]*;[ \r\n\t\v]*$/, '');
 
         if (editMode) {
-            buffer.push(`    ${targetCode}
+            if (ex.id !== undefined) {
+                buffer.push(`    ${targetCode}
     #_[utterances=[${ex.utterances.map(stringEscape)}]]
     #[id=${ex.id}];
 
 `);
+            } else {
+                buffer.push(`    ${targetCode}
+    #_[utterances=[${ex.utterances.map(stringEscape)}]];
+
+`);
+            }
         } else {
             buffer.push(`    ${targetCode}
     #_[utterances=[${ex.utterances.map(stringEscape)}]]

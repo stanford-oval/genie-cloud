@@ -19,7 +19,7 @@ require('./deps/codemirror-thingtalk');
 $(() => {
     const codemirror = new Map;
     const MODES = {
-        'device-code': 'application/json',
+        'device-code': 'application/x-thingtalk',
         'device-dataset': 'application/x-thingtalk'
     };
     $('#device-editor-sidebar').on('shown.bs.tab', (event) => {

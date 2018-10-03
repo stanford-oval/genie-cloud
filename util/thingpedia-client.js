@@ -51,11 +51,20 @@ var _discoveryServer = new ThingpediaDiscovery.Server(new ThingpediaDiscoveryDat
 const CATEGORIES = new Set(['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management']);
 
 module.exports = class ThingpediaClientCloud {
-    constructor(developerKey, locale) {
+    constructor(developerKey, locale, dbClient = null) {
         this.developerKey = developerKey;
         // only keep the language part of the locale, we don't
         // yet distinguish en_US from en_GB
         this.language = (locale || 'en').split(/[-_@.]/)[0];
+
+        this._dbClient = null;
+    }
+
+    _withClient(func) {
+        if (this._dbClient)
+            return func(this._dbClient);
+        else
+            return db.withClient(func);
     }
 
     async _getOrg(dbClient) {
@@ -154,33 +163,21 @@ module.exports = class ThingpediaClientCloud {
     getSchemas(schemas) {
         if (schemas.length === 0)
             return Promise.resolve({});
-        var developerKey = this.developerKey;
 
-        return db.withClient((dbClient) => {
-            return Promise.resolve().then(() => {
-                if (developerKey)
-                    return organization.getByDeveloperKey(dbClient, developerKey);
-                else
-                    return [];
-            }).then((orgs) => {
-                var org = null;
-                if (orgs.length > 0)
-                    org = orgs[0];
-                return schema.getTypesAndNamesByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null);
-            }).then((rows) => {
-                var obj = {};
+        return this._withClient(async (dbClient) => {
+            const rows = await schema.getTypesAndNamesByKinds(dbClient, schemas, await this._getOrgId(dbClient));
+            const obj = {};
 
-                rows.forEach((row) => {
-                    obj[row.kind] = {
-                        kind_type: row.kind_type,
-                        triggers: row.triggers,
-                        actions: row.actions,
-                        queries: row.queries
-                    };
-                });
-
-                return obj;
+            rows.forEach((row) => {
+                obj[row.kind] = {
+                    kind_type: row.kind_type,
+                    triggers: row.triggers,
+                    actions: row.actions,
+                    queries: row.queries
+                };
             });
+
+            return obj;
         });
     }
 
@@ -188,34 +185,20 @@ module.exports = class ThingpediaClientCloud {
         if (schemas.length === 0)
             return Promise.resolve({});
 
-        var developerKey = this.developerKey;
+        return this._withClient(async (dbClient) => {
+            const rows = schema.getMetasByKinds(dbClient, schemas, await this._getOrgId(dbClient), this.language);
+            const obj = {};
 
-        return db.withClient((dbClient) => {
-            return Promise.resolve().then(() => {
-                if (developerKey)
-                    return organization.getByDeveloperKey(dbClient, developerKey);
-                else
-                    return [];
-            }).then((orgs) => {
-                var org = null;
-                if (orgs.length > 0)
-                    org = orgs[0];
-
-                return schema.getMetasByKinds(dbClient, schemas, org !== null ? (org.is_admin ? -1 : org.id) : null, this.language);
-            }).then((rows) => {
-                var obj = {};
-
-                rows.forEach((row) => {
-                    obj[row.kind] = {
-                        kind_type: row.kind_type,
-                        triggers: row.triggers,
-                        actions: row.actions,
-                        queries: row.queries
-                    };
-                });
-
-                return obj;
+            rows.forEach((row) => {
+                obj[row.kind] = {
+                    kind_type: row.kind_type,
+                    triggers: row.triggers,
+                    actions: row.actions,
+                    queries: row.queries
+                };
             });
+
+            return obj;
         });
     }
 

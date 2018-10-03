@@ -200,6 +200,12 @@ module.exports = {
     createMany,
     create,
 
+    deleteMany(client, ids) {
+        if (ids.length === 0)
+            return Promise.resolve();
+        return db.query(client, "delete from example_utterances where id in (?)", [ids]);
+    },
+
     deleteBySchema(client, schemaId, language) {
         return db.query(client, "delete from example_utterances where schema_id = ? and language = ?",
             [schemaId, language]);

@@ -16,7 +16,7 @@ const ThingTalk = require('thingtalk');
 
 const code_storage = require('../util/code_storage');
 const model = require('../model/device');
-const schema = require('../model/schema');
+const schemaModel = require('../model/schema');
 const user = require('../util/user');
 const exampleModel = require('../model/example');
 const entityModel = require('../model/entity');
@@ -25,127 +25,70 @@ const ManifestToSchema = require('../util/manifest_to_schema');
 const tokenizer = require('../util/tokenize');
 const graphics = require('../almond/graphics');
 const colorScheme = require('../util/color_scheme');
+const DatasetUtils = require('../util/dataset');
 
-function schemaCompatible(s1, s2) {
-    return s1.length >= s2.length &&
-        s2.every((t, i) => {
-            if (t === s1[i]) return true;
-            var t1 = ThingTalk.Type.fromString(t);
-            var t2 = ThingTalk.Type.fromString(s1[i]);
-            return t1.equals(t2);
-        });
-}
+const ThingpediaClient = require('../util/thingpedia-client');
 
-function validateSchema(dbClient, types, ast, req) {
-    if (types.length === 0)
-        return Promise.resolve();
-
-    return schema.getTypesAndNamesByKinds(dbClient, types, req.user.developer_org).then((rows) => {
-        if (rows.length < types.length)
-            throw new Error(req._("Invalid device types %s").format(types));
-
-        function validate(where, what, against, type) {
-            for (var name in against) {
-                if (!(name in where))
-                    throw new Error(req._("Type %s requires %s %s").format(type, what, name));
-                var types = where[name].args.map((a) => a.type);
-                if (!schemaCompatible(types, against[name].types))
-                    throw new Error(req._("Schema for %s is not compatible with type %s").format(name, type));
-            }
-        }
-
-        for (let row of rows) {
-            validate(ast.actions, 'action', row.actions, row.kind);
-            validate(ast.queries, 'query', row.queries, row.kind);
-        }
-    });
-}
-
-const CATEGORIES = new Set(['physical','data','online','system']);
-const CATEGORY_TYPES = new Set(['data-source', 'online-account', 'thingengine-system']);
 const SUBCATEGORIES = new Set(['service','media','social-network','communication','home','health','data-management']);
-const ALLOWED_MODULE_TYPES = new Set(['org.thingpedia.v2', 'org.thingpedia.v1', 'org.thingpedia.rss', 'org.thingpedia.rest_json', 'org.thingpedia.builtin', 'org.thingpedia.generic_rest.v1', 'org.thingpedia.embedded']);
 const JAVASCRIPT_MODULE_TYPES = new Set(['org.thingpedia.v1', 'org.thingpedia.v2', 'org.thingpedia.builtin']);
-const AUTH_TYPES = new Set(['none','oauth2','basic','builtin','discovery','interactive']);
 
-function validateDevice(dbClient, req, options, ast = null) {
-    var name = options.name;
-    var description = options.description;
-    var kind = options.primary_kind;
+async function validateDevice(dbClient, req, options, classCode, datasetCode) {
+    const tpClient = new ThingpediaClient(req.user.developer_key, req.user.locale, dbClient);
+    const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
+
+    const name = options.name;
+    const description = options.description;
+    const kind = options.primary_kind;
 
     if (!name || !description || !kind)
-        throw new Error(req._("Not all required fields were present"));
+        throw new Error("Not all required fields were present");
+    if (!SUBCATEGORIES.has(options.subcategory))
+        throw new Error(req._("Invalid device category %s").format(options.subcategory));
 
-    if (ast === null)
-        ast = JSON.parse(options.code);
-    if (!ast.module_type || !ALLOWED_MODULE_TYPES.has(ast.module_type))
-        throw new Error(req._("Invalid module type"));
-    const fullcode = !JAVASCRIPT_MODULE_TYPES.has(ast.module_type);
+    const parsed = await ThingTalk.Grammar.parseAndTypecheck(`${classCode}\n${datasetCode}`, schemaRetriever, true);
 
-    if (!ast.params)
-        ast.params = {};
-    if (!ast.types)
-        ast.types = [];
-    if (!ast.child_types)
-        ast.child_types = [];
-    if (!ast.auth)
-        ast.auth = {"type":"none"};
-    if (ast.module_type === 'org.thingpedia.embedded') {
-        ast.auth.type = 'builtin';
-        ast.params = {};
-    }
-    if (!ast.auth.type || !AUTH_TYPES.has(ast.auth.type))
-        throw new Error(req._("Invalid authentication type"));
-    if (ast.auth.type === 'basic' && (!ast.params.username || !ast.params.password))
-        throw new Error(req._("Username and password must be declared for basic authentication"));
-    if (!CATEGORIES.has(ast.category))
-        throw new Error(req._("Invalid category %s").format(ast.category));
-    if (!SUBCATEGORIES.has(ast.subcategory))
-        throw new Error(req._("Invalid device domain %s").format(ast.subcategory));
-    //if (ast.auth.type === 'oauth2' && !ast.auth.client_id && !ast.auth.client_secret)
-    //    throw new Error(req._("Client ID and Client Secret must be provided for OAuth 2 authentication"));
-    ast.types = ast.types.filter((t) => {
-        return !CATEGORY_TYPES.has(t) && !SUBCATEGORIES.has(t);
-    });
-    ast.child_types.forEach((t) => {
-        if (CATEGORY_TYPES.has(t) || SUBCATEGORIES.has(t))
-            throw new Error(req._("Cannot specify category %s as child type").format(t));
-    });
-    if (ast['global-name'])
-        throw new Error(req._("Global names are obsolete, remove them"));
+    if (!parsed.isMeta || parsed.classes.length !== 1 || parsed.classes[0].kind !== kind)
+        throw new Error("Invalid manifest file: must contain exactly one class, with the same identifier as the device");
+    const classDef = parsed.classes[0];
 
-    return Promise.resolve().then(() => {
-        return Validation.validateAllInvocations(kind, ast);
-    }).then((entities) => {
-        return entityModel.checkAllExist(dbClient, Array.from(entities));
-    }).then(() => {
-        if (fullcode && ast.module_type !== 'org.thingpedia.embedded') {
-            if (!ast.name)
-                ast.name = name;
-            if (!ast.description)
-                ast.description = description;
-            for (let name in ast.triggers) {
-                if (!ast.triggers[name].url)
-                    throw new Error(req._("Missing trigger url for %s").format(name));
-            }
-            for (let name in ast.actions) {
-                if (!ast.actions[name].url)
-                    throw new Error(req._("Missing action url for %s").format(name));
-            }
-            for (let name in ast.queries) {
-                if (!ast.queries[name].url)
-                    throw new Error(req._("Missing query url for %s").format(name));
-            }
+    if (parsed.datasets.length > 1 || (parsed.datasets.length > 0 && parsed.datasets[0].name !== '@' + kind))
+        throw new Error("Invalid dataset file: must contain exactly one dataset, with the same identifier as the device");
+    const dataset = parsed.datasets.length > 0 ? parsed.datasets[0] :
+        new ThingTalk.Ast.Dataset('@' + kind, 'en', [], {});
+
+    if (!classDef.loader)
+        throw new Error("loader mixin missing from class declaration");
+    if (!classDef.config)
+        throw new Error("config mixin missing from class declaration");
+
+    const moduleType = classDef.loader.module;
+    const fullcode = !JAVASCRIPT_MODULE_TYPES.has(moduleType);
+
+    const entities = await Validation.validateAllInvocations2(kind, classDef);
+    await entityModel.checkAllExist(dbClient, entities);
+    if (fullcode && moduleType !== 'org.thingpedia.embedded') {
+        if (!classDef.metadata.name)
+            classDef.metadata.name = name;
+        if (!classDef.metadata.description)
+            classDef.metadata.description = name;
+        for (let name in classDef.actions) {
+            if (!classDef.actions[name].annotations.url)
+                throw new Error(req._("Missing action url for %s").format(name));
         }
+        for (let name in classDef.queries) {
+            if (!classDef.queries[name].annotations.url)
+                throw new Error(req._("Missing query url for %s").format(name));
+        }
+    }
+    await Validation.validateDataset(dataset);
 
-        return validateSchema(dbClient, ast.types, ast, req);
-    }).then(() => ast);
+    return [classDef, dataset];
 }
 
-function ensurePrimarySchema(dbClient, name, kind, ast, req, approve) {
-    const metas = ManifestToSchema.toSchema(ast);
+async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
+    const metas = ManifestToSchema.classDefToSchema(classDef);
 
-    return schema.getByKind(dbClient, kind).then((existing) => {
+    return (await schemaModel.getByKind(dbClient, classDef.kind).then((existing) => {
         if (existing.owner !== req.user.developer_org &&
             req.user.developer_status < user.DeveloperStatus.ADMIN)
             throw new Error(req._("Not Authorized"));
@@ -154,13 +97,13 @@ function ensurePrimarySchema(dbClient, name, kind, ast, req, approve) {
             kind_canonical: tokenizer.tokenize(name).join(' '),
             developer_version: existing.developer_version + 1
         };
-        if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER && approve)
+        if (approve)
             obj.approved_version = obj.developer_version;
 
-        return schema.update(dbClient, existing.id, existing.kind, obj, metas);
+        return schemaModel.update(dbClient, existing.id, existing.kind, obj, metas);
     }, (e) => {
         var obj = {
-            kind: kind,
+            kind: classDef.kind,
             kind_canonical: tokenizer.tokenize(name).join(' '),
             kind_type: 'primary',
             owner: req.user.developer_org
@@ -172,32 +115,97 @@ function ensurePrimarySchema(dbClient, name, kind, ast, req, approve) {
             obj.approved_version = 0;
             obj.developer_version = 0;
         }
-        return schema.create(dbClient, obj, metas);
-    }).then((schema) => {
-        return ensureExamples(dbClient, schema.id, ast);
-    });
+        return schemaModel.create(dbClient, obj, metas);
+    })).id;
 }
 
-function ensureExamples(dbClient, schemaId, ast) {
-    return exampleModel.deleteBySchema(dbClient, schemaId, 'en').then(() => {
-        return Validation.tokenizeAllExamples('en', ast.examples);
-    }).then((examples) => {
-        return exampleModel.createMany(dbClient, examples.map((ex) => {
+function exampleToCode(example) {
+    const clone = example.clone();
+    clone.id = -1;
+    clone.utterances = [];
+    clone.preprocessed = [];
+    clone.metadata = {};
+    return clone.prettyprint();
+}
+
+async function ensureDataset(dbClient, schemaId, dataset) {
+    /* This functions does three things:
+
+       - it fetches the list of existing examples in the database
+       - it matches the IDs against the examples in the dataset file
+         and updates the database
+       - it creates fresh examples for secondary utterances
+    */
+
+    const existing = new Map;
+    const toDelete = new Set;
+
+    const old = await exampleModel.getBaseBySchema(dbClient, schemaId, 'en');
+    for (let row of old) {
+        existing.set(row.id, row);
+        toDelete.add(row.id);
+    }
+
+    const toCreate = [];
+    const toUpdate = [];
+
+    for (let example of dataset.examples) {
+        const code = exampleToCode(example);
+
+        if (example.id >= 0) {
+            if (existing.has(example.id)) {
+                toDelete.delete(example.id);
+                if (existing.utterance !== example.utterances[0] ||
+                    existing.target_code !== code) {
+                    toUpdate.push({ id: example.id,
+                                    utterance: example.utterances[0],
+                                    target_code: code });
+                }
+            } else {
+                example.id = -1;
+            }
+        }
+        if (example.id < 0) {
+            toCreate.push({
+                utterance: example.utterances[0],
+                target_code: code
+            });
+        }
+
+        for (let i = 1; i < example.utterances.length; i++) {
+            toCreate.push({
+                utterance: example.utterances[i],
+                target_code: code
+            });
+        }
+    }
+
+    await Promise.all([
+        Validation.tokenizeAllExamples('en', toUpdate),
+        Validation.tokenizeAllExamples('en', toCreate)
+    ]);
+
+    await Promise.all([
+        exampleModel.deleteMany(dbClient, Array.from(toDelete)),
+        Promise.all(toUpdate.map((ex) => {
+            return exampleModel.update(dbClient, ex.id, ex);
+        })),
+        exampleModel.createMany(dbClient, toCreate.map((ex) => {
             return ({
                 schema_id: schemaId,
                 utterance: ex.utterance,
                 preprocessed: ex.preprocessed,
-                target_code: ex.program,
+                target_code: ex.target_code,
                 target_json: '', // FIXME
                 type: 'thingpedia',
                 language: 'en',
                 is_base: 1
             });
-        }));
-    });
+        }))
+    ]);
 }
 
-function uploadZipFile(req, obj, ast, stream) {
+function uploadZipFile(req, obj, stream) {
     var zipFile = new JSZip();
 
     return Promise.resolve().then(() => {
@@ -250,7 +258,7 @@ function uploadZipFile(req, obj, ast, stream) {
     });
 }
 
-function uploadJavaScript(req, obj, ast, stream) {
+function uploadJavaScript(req, obj, stream) {
     var zipFile = new JSZip();
 
     return Promise.resolve().then(() => {
@@ -272,8 +280,23 @@ function uploadJavaScript(req, obj, ast, stream) {
     });
 }
 
-function isFullCode(moduleType) {
-    return !JAVASCRIPT_MODULE_TYPES.has(moduleType);
+function isFullCode(classDef) {
+    return !JAVASCRIPT_MODULE_TYPES.has(classDef.loader.module);
+}
+
+function getCategory(classDef) {
+    if (classDef.annotations.system && classDef.annotations.system.toJS())
+        return 'system';
+
+    switch (classDef.config.module) {
+    case 'org.thingpedia.config.builtin':
+    case 'org.thingpedia.config.none':
+        return 'data';
+    case 'org.thingpedia.config.discovery':
+        return 'physical';
+    default:
+        return 'online';
+    }
 }
 
 async function uploadIcon(primary_kind, iconPath, deleteAfterwards = true) {
@@ -292,33 +315,43 @@ async function uploadIcon(primary_kind, iconPath, deleteAfterwards = true) {
     }
 }
 
-async function importDevice(dbClient, req, primary_kind, manifest, { owner = 0, zipFilePath = null, iconPath = null, approve = true }) {
+async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipFilePath = null, iconPath = null, approve = true }) {
     const device = {
         primary_kind: primary_kind,
         owner: owner,
-        name: manifest.thingpedia_name,
-        description: manifest.thingpedia_description,
-        fullcode: isFullCode(manifest.module_type),
-        module_type: manifest.module_type,
-        category: manifest.category,
-        subcategory: manifest.subcategory,
+        name: json.thingpedia_name,
+        description: json.thingpedia_description,
+        subcategory: json.subcategory,
         approved_version: (approve ? 0 : null),
         developer_version: 0
     };
-    delete manifest.thingpedia_name;
-    delete manifest.thingpedia_description;
 
-    await validateDevice(dbClient, req, device, manifest);
+    const classCode = migrateManifest(json, device);
+    device.source_code = classCode;
 
-    await ensurePrimarySchema(dbClient, device.name, device.primary_kind,
-                              manifest, req, approve);
+    const datasetCode = DatasetUtils.examplesToDataset(primary_kind, 'en',
+        json.examples, { editMode: true });
 
-    var extraKinds = manifest.types;
-    var extraChildKinds = manifest.child_types;
+    const [classDef, dataset] = await validateDevice(dbClient, req, device, classCode, datasetCode);
+    device.category = getCategory(classDef);
 
-    await model.create(dbClient, device, extraKinds,
-                       extraChildKinds,
-                       JSON.stringify(manifest));
+    await ensurePrimarySchema(dbClient, device.name, classDef,
+                              req, approve);
+
+    const schemaId = await ensurePrimarySchema(dbClient, device.name,
+                                               classDef, req, approve);
+    await ensureDataset(dbClient, schemaId, dataset);
+
+    const versionedInfo = {
+        code: classDef.prettyprint(),
+        fullcode: isFullCode(classDef),
+        module_type: classDef.loader.module
+    };
+
+    await model.create(dbClient, device, classDef.extends || [],
+                       classDef.annotations.child_types ?
+                       classDef.annotations.child_types.toJS() : [],
+                       versionedInfo);
 
     if (device.fullcode || device.module_type === 'org.thingpedia.builtin')
         return device;
@@ -326,13 +359,10 @@ async function importDevice(dbClient, req, primary_kind, manifest, { owner = 0, 
     if (zipFilePath === null)
         return device;
 
-    if (zipFilePath.endsWith('.js')) {
-        await uploadJavaScript(req, device, manifest,
-                               fs.createReadStream(zipFilePath));
-    } else {
-        await uploadZipFile(req, device, manifest,
-                            fs.createReadStream(zipFilePath));
-    }
+    if (zipFilePath.endsWith('.js'))
+        await uploadJavaScript(req, device, fs.createReadStream(zipFilePath));
+    else
+        await uploadZipFile(req, device, fs.createReadStream(zipFilePath));
 
     if (iconPath !== null)
         uploadIcon(device.primary_kind, iconPath, false);
@@ -341,41 +371,23 @@ async function importDevice(dbClient, req, primary_kind, manifest, { owner = 0, 
 }
 
 function migrateManifest(code, device) {
-    let ast = JSON.parse(code);
+    const isJSON = typeof code === 'object' || /^\s*\{/.test(code);
+    if (!isJSON) // already migrated
+        return code;
 
-    delete ast.global_name;
-    delete ast['global-name'];
-    ast.category = device.category;
-    ast.subcategory = device.subcategory;
+    let ast = typeof code === 'string' ? JSON.parse(code) : code;
 
-    ast.types = (ast.types || []).filter((t) => {
-        if (CATEGORY_TYPES.has(t) || SUBCATEGORIES.has(t))
-            return false;
-        return true;
-    });
-    ast.child_types = ast.child_types || [];
-
-    for (let function_type of ['triggers','queries']) {
-        for (let function_name in ast[function_type]) {
-            let function_obj = ast[function_type][function_name];
-
-            if (!('poll_interval' in function_obj))
-                function_obj.poll_interval = function_obj['poll-interval'] || -1;
-            delete function_obj['poll-interval'];
-        }
-    }
-
-    // examples are now stored elsewhere
-    delete ast.examples;
-
-    return ast;
+    ast.system = device.category === 'system';
+    return ThingTalk.Ast.fromManifest(device.primary_kind, ast).prettyprint();
 }
 
 module.exports = {
     validateDevice,
     ensurePrimarySchema,
+    ensureDataset,
 
     isFullCode,
+    getCategory,
     uploadZipFile,
     uploadJavaScript,
     uploadIcon,

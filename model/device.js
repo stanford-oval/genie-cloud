@@ -24,25 +24,15 @@ function insertKinds(client, deviceId, extraKinds, extraChildKinds) {
                     [extraValues]);
 }
 
-function create(client, device, extraKinds, extraChildKinds, code) {
-    var KEYS = ['primary_kind', 'owner', 'name', 'description', 'fullcode', 'module_type',
-                'category', 'subcategory', 'approved_version', 'developer_version'];
-    KEYS.forEach((key) => {
-        if (device[key] === undefined)
-            device[key] = null;
-    });
-    var vals = KEYS.map((key) => device[key]);
-    var marks = KEYS.map(() => '?');
-
-    return db.insertOne(client, 'insert into device_class(' + KEYS.join(',') + ') '
-                        + 'values (' + marks.join(',') + ')', vals).then((id) => {
-        device.id = id;
-
-        return insertKinds(client, device.id, extraKinds, extraChildKinds);
-    }).then(() => {
-        return db.insertOne(client, 'insert into device_code_version(device_id, version, code) '
-                            + 'values(?, ?, ?)', [device.id, device.developer_version, code]);
-    }).then(() => device);
+async function create(client, device, extraKinds, extraChildKinds, versionedInfo) {
+    device.id = await db.insertOne(client, 'insert into device_class set ?', [device]);
+    versionedInfo.device_id = device.id;
+    versionedInfo.version = device.developer_version;
+    await Promise.all([
+        insertKinds(client, device.id, extraKinds, extraChildKinds),
+        db.insertOne(client, `insert into device_code_version set ?`, [versionedInfo])
+    ]);
+    return device;
 }
 
 function update(client, id, device, extraKinds, extraChildKinds, code) {
