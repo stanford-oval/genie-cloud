@@ -153,6 +153,31 @@ async function testGetMetadata() {
     });
 
     assert.deepStrictEqual(await request(
+        `/api/schema-metadata/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
+        'org.thingpedia.builtin.test.invisible': {
+            kind_type: "primary",
+            triggers: {},
+            queries: {},
+            actions: {
+                "eat_data": {
+                    schema: ["String"],
+                    args: ["data"],
+                    is_input: [true],
+                    required: [true],
+                    questions: ["What do you want me to consume?"],
+                    argcanonicals: ["data"],
+                    doc: "consume some data, do nothing",
+                    confirmation: "consume $data",
+                    confirmation_remote: "consume $data on $__person's Almond",
+                    canonical: "eat data on test",
+                    is_list: false,
+                    is_monitorable: false
+                }
+            }
+        }
+    });
+
+    assert.deepStrictEqual(await request(
         `/api/schema-metadata/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
         'com.bing': BING_METADATA,
         'org.thingpedia.builtin.test.invisible': {

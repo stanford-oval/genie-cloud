@@ -21,7 +21,10 @@ const organization = require('../model/organization');
 const schema = require('../model/schema');
 const exampleModel = require('../model/example');
 const entityModel = require('../model/entity');
+
 const DatasetUtils = require('./dataset');
+const SchemaUtils = require('./manifest_to_schema');
+const Importer = require('./import_device');
 
 const S3_HOST = Config.S3_CLOUDFRONT_HOST + '/devices/';
 
@@ -180,45 +183,37 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         });
     }
 
-    getSchemas(schemas) {
+    getSchemas(schemas, withMetadata, accept = 'application/x-thingtalk') {
         if (schemas.length === 0)
             return Promise.resolve({});
 
         return this._withClient(async (dbClient) => {
-            const rows = await schema.getTypesAndNamesByKinds(dbClient, schemas, await this._getOrgId(dbClient));
-            const obj = {};
+            let rows;
+            if (withMetadata)
+                rows = await schema.getMetasByKinds(dbClient, schemas, await this._getOrgId(dbClient), this.language);
+            else
+                rows = await schema.getTypesAndNamesByKinds(dbClient, schemas, await this._getOrgId(dbClient));
 
-            rows.forEach((row) => {
-                obj[row.kind] = {
-                    kind_type: row.kind_type,
-                    triggers: row.triggers,
-                    actions: row.actions,
-                    queries: row.queries
-                };
-            });
+            switch (accept) {
+            case 'application/json': {
+                const obj = {};
+                rows.forEach((row) => {
+                    obj[row.kind] = {
+                        kind_type: row.kind_type,
+                        triggers: row.triggers,
+                        actions: row.actions,
+                        queries: row.queries
+                    };
+                });
+                return obj;
+            }
 
-            return obj;
-        });
-    }
-
-    getMetas(schemas) {
-        if (schemas.length === 0)
-            return Promise.resolve({});
-
-        return this._withClient(async (dbClient) => {
-            const rows = schema.getMetasByKinds(dbClient, schemas, await this._getOrgId(dbClient), this.language);
-            const obj = {};
-
-            rows.forEach((row) => {
-                obj[row.kind] = {
-                    kind_type: row.kind_type,
-                    triggers: row.triggers,
-                    actions: row.actions,
-                    queries: row.queries
-                };
-            });
-
-            return obj;
+            case 'application/x-thingtalk':
+            default: {
+                const classDefs = SchemaUtils.schemaListToClassDefs(rows, withMetadata);
+                return classDefs.prettyprint();
+            }
+            }
         });
     }
 
@@ -359,15 +354,14 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
                 const example = parsed.datasets[0].examples[0];
                 const declaration = new ThingTalk.Ast.Program([],
                     [new ThingTalk.Ast.Statement.Declaration('x',
-                        (convertLetQuery && example.type === 'query') ? 'table' : example.type,
-                        example.args, example.value)],
+                        example.type, example.args, example.value)],
                     [], null);
                 row.target_code = declaration.prettyprint(true);
             } else {
-                if (convertLetQuery)
-                    row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+query[ \r\n\t\v]/, 'let table ');
                 row.target_code = row.target_code.replace(/^[ \r\n\t\v]*program[ \r\n\t\v]*:=/, '');
             }
+            if (convertLetQuery)
+                row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+query[ \r\n\t\v]/, 'let table ');
         }
         return rows;
     }

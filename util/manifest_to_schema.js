@@ -9,7 +9,78 @@
 // See COPYING for details
 "use strict";
 
+const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Type = ThingTalk.Type;
+
+function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
+    const args = [];
+    // compat with Thingpedia API quirks
+    const types = schema.types || schema.schema;
+
+    types.forEach((type, i) => {
+        type = Type.fromString(type);
+        const argname = schema.args[i];
+        const argrequired = !!schema.required[i];
+        const arginput = !!schema.is_input[i];
+
+        let direction;
+        if (argrequired)
+            direction = Ast.ArgDirection.IN_REQ;
+        else if (arginput)
+            direction = Ast.ArgDirection.IN_OPT;
+        else
+            direction = Ast.ArgDirection.OUT;
+        const metadata = {};
+        if (isMeta) {
+            metadata.prompt = schema.questions[i] || '';
+            metadata.canonical = schema.argcanonicals[i] || argname;
+        }
+        const annotations = {};
+
+        args.push(new Ast.ArgumentDef(direction, argname,
+            type, metadata, annotations));
+    });
+
+    const metadata = {};
+    if (isMeta) {
+        metadata.canonical = schema.canonical || '';
+        metadata.confirmation = schema.confirmation || '';
+    }
+    const annotations = {};
+
+    return new Ast.FunctionDef(functionType,
+                               functionName,
+                               args,
+                               schema.is_list,
+                               schema.is_monitorable,
+                               metadata,
+                               annotations);
+}
+
+function makeSchemaClassDef(kind, schema, isMeta) {
+    const queries = {};
+    for (let name in schema.queries)
+        queries[name] = makeSchemaFunctionDef('query', name, schema.queries[name], isMeta);
+    const actions = {};
+    for (let name in schema.actions)
+        actions[name] = makeSchemaFunctionDef('action', name, schema.actions[name], isMeta);
+
+    const imports = [];
+    const metadata = {};
+    const annotations = {};
+    return new Ast.ClassDef(kind, null, queries, actions,
+                            imports, metadata, annotations);
+}
+
 module.exports = {
+    schemaListToClassDefs(rows, isMeta) {
+        const classes = [];
+        for (let row of rows)
+            classes.push(makeSchemaClassDef(row.kind, row, isMeta));
+        return Ast.Input.Meta(classes, []);
+    },
+
     classDefToSchema(classDef) {
         const result = {
             actions: {},
@@ -22,7 +93,7 @@ module.exports = {
                 const fnDef = classDef[what][name];
 
                 const out = into[name] = {
-                    doc: fnDef.metadata.doc || '',
+                    doc: fnDef.annotations.doc ? fnDef.annotations.doc.toJS() : '',
                     confirmation: fnDef.metadata.confirmation,
                     confirmation_remote: fnDef.metadata.confirmation_remote || '',
                     canonical: fnDef.metadata.canonical,
@@ -37,11 +108,14 @@ module.exports = {
                 };
                 for (let argname of fnDef.args) {
                     const arg = fnDef.getArgument(argname);
-                    out.schema.push(arg.type);
+                    out.schema.push(String(arg.type));
                     out.args.push(argname);
                     // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
-                    out.argcanonicals.push(argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
-                    out.questions.push(arg.question);
+
+                    const argcanonical = arg.metadata.canonical ||
+                        argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+                    out.argcanonicals.push(argcanonical);
+                    out.questions.push(arg.metadata.prompt || '');
                     out.required.push(!!arg.required);
                     out.is_input.push(!!arg.is_input);
                 }
