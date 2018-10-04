@@ -9,7 +9,10 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
 const express = require('express');
+
+const ThingTalk = require('thingtalk');
 
 const Config = require('../config');
 
@@ -20,18 +23,15 @@ const schema = require('../model/schema');
 const exampleModel = require('../model/example');
 const TrainingServer = require('../util/training_server');
 const SendMail = require('../util/sendmail');
+const I18n = require('../util/i18n');
+const tokenize = require('../util/tokenize');
+const DatasetUtils = require('../util/dataset');
 
 var router = express.Router();
 
 router.get('/', (req, res) => {
     res.redirect(301, '/thingpedia');
 });
-
-function localeToLanguage(locale) {
-    // only keep the language part of the locale, we don't
-    // yet distinguish en_US from en_GB
-    return (locale || 'en').split(/[-_@.]/)[0];
-}
 
 function getOrgId(req) {
     if (!req.user)
@@ -43,93 +43,66 @@ function getOrgId(req) {
 }
 
 function getDetails(fn, param, req, res) {
-    var language = req.user ? localeToLanguage(req.user.locale) : 'en';
+    const language = req.user ? I18n.localeToLanguage(req.user.locale) : 'en';
 
-    Promise.resolve().then(() => {
-        return db.withClient((client) => {
-            return fn(client, param).then((d) => {
-                return Promise.resolve().then(() => {
-                    if ('version' in req.query && req.user && req.user.developer_status >= user.DeveloperStatus.ADMIN)
-                        return model.getCodeByVersion(client, d.id, parseInt(req.query.version));
-                    else if (req.user && (req.user.developer_org === d.owner ||
-                             req.user.developer_status >= user.DeveloperStatus.ADMIN))
-                        return model.getCodeByVersion(client, d.id, d.developer_version);
-                    else if (d.approved_version !== null)
-                        return model.getCodeByVersion(client, d.id, d.approved_version);
-                    else
-                        return Promise.resolve({code:'{}'});
-                }).then((row) => {
-                    d.version = row.version;
-                    d.code = row.code;
-                    return d;
-                }).catch((e) => {
-                    if ('version' in req.query)
-                        throw new Error(req._("Failed to find the code for the given version (it might have been GC'ed)."));
-                    else
-                        throw e;
-                });
-            }).then((d) => {
-                return Promise.all([Promise.resolve().then(() => {
-                    if (language === 'en') {
-                        d.translated = true;
-                        return Promise.resolve();
-                    }
-                    return schema.isKindTranslated(client, d.primary_kind, language).then((t) => {
-                        d.translated = t;
-                     });
-                }), exampleModel.getByKinds(client, [d.primary_kind], getOrgId(req), language).then((examples) => {
-                    d.examples = examples;
-                }), TrainingServer.get().check(language, d.primary_kind).then((job) => {
-                    d.current_job = job;
-                })]).then(() => d);
-            });
-        }).then((d) => {
-            var online = false;
+    return db.withClient(async (client) => {
+        const device = await fn(client, param);
 
-            d.types = [];
-            d.child_types = [];
-            var actions = {}, queries = {};
-            var ast = JSON.parse(d.code);
-            d.types = ast.types || [];
-            d.child_types = ast.child_types || [];
+        let version;
+        if ('version' in req.query && req.user && req.user.developer_status >= user.DeveloperStatus.ADMIN)
+            version = parseInt(req.query.version);
+        else if (req.user && (req.user.developer_org === device.owner ||
+                 req.user.developer_status >= user.DeveloperStatus.ADMIN))
+            version = device.developer_version;
+        else
+            version = device.approved_version;
 
-            let trigger_ex = [], query_ex = [], action_ex = [], other_ex = [];
-            for (let ex of d.examples) {
-                if (ex.target_code.startsWith('let stream '))
-                    trigger_ex.push(ex);
-                else if (ex.target_code.startsWith('let table '))
-                    query_ex.push(ex);
-                else if (ex.target_code.startsWith('let action '))
-                    action_ex.push(ex);
-                else
-                    other_ex.push(ex);
-            }
-            d.examples = [].concat(trigger_ex, query_ex, action_ex, other_ex);
+        device.version = version;
 
-            actions = ast.actions || {};
-            queries = ast.queries || {};
+        let [code, translated, examples, current_job] = await Promise.all([
+            version !== null ? await model.getCodeByVersion(client, device.id, version) :
+            `class @${device.primary_kind} {}`,
 
-            var title;
-            if (online)
-                title = req._("Thingpedia - Account details");
-            else
-                title = req._("Thingpedia - Device details");
+            language === 'en' ? true : schema.isKindTranslated(client, device.primary_kind, language),
 
-            res.render('thingpedia_device_details', { page_title: title,
-                                                      S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
-                                                      csrfToken: req.csrfToken(),
-                                                      device: d,
-                                                      actions: actions,
-                                                      queries: queries });
-        });
+            exampleModel.getByKinds(client, [device.primary_kind], getOrgId(req), language),
+            TrainingServer.get().check(language, device.primary_kind)
+        ]);
+        device.translated = translated;
+        device.current_job = current_job;
+
+        var online = false;
+
+        const parsed = ThingTalk.Grammar.parse(code);
+        assert(parsed.isMeta && parsed.classes.length > 0);
+        const classDef = parsed.classes[0];
+
+        examples = DatasetUtils.sortAndChunkExamples(examples);
+
+        var title;
+        if (online)
+            title = req._("Thingpedia - Account details");
+        else
+            title = req._("Thingpedia - Device details");
+
+        res.render('thingpedia_device_details', { page_title: title,
+                                                  S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
+                                                  csrfToken: req.csrfToken(),
+                                                  device: device,
+                                                  classDef: classDef,
+                                                  examples: examples,
+                                                  clean: tokenize.clean });
     }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+        if (e.code !== 'ENOENT')
+            throw e;
+
+        res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     });
 }
 
-router.get('/by-id/:kind', (req, res) => {
-    getDetails(model.getByPrimaryKind, req.params.kind, req, res);
+router.get('/by-id/:kind', (req, res, next) => {
+    getDetails(model.getByPrimaryKind, req.params.kind, req, res).catch(next);
 });
 
 router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {

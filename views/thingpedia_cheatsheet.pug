@@ -11,41 +11,15 @@ block page_name
 
 block content
   div.grid(data-packery='{ "itemSelector": ".grid-item", "gutter": 10 }')#cheatsheet
-    -
-      function* split(pattern, regexp) {
-        // a split that preserves capturing parenthesis
-
-        let clone = new RegExp(regexp, 'g');
-        let match = clone.exec(pattern);
-
-        let i = 0;
-        while (match !== null) {
-          if (match.index > i)
-              yield pattern.substring(i, match.index);
-          yield match;
-          i = clone.lastIndex;
-          match = clone.exec(pattern);
-        }
-        if (i < pattern.length)
-          yield pattern.substring(i, pattern.length);
-      }
-      function clean(name) {
-        if (/^[vwgp]_/.test(name))
-          name = name.substr(2);
-        return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-      }
-      var PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
-
     mixin do_command(e)
       span(title=e.target_code)
-        if e.target_code.startsWith('let stream ')
+        if e.type === 'stream'
           span.trigger= _("WHEN: ")
-        else if e.target_code.startsWith('let table ')
+        else if e.type === 'query'
           span.query= _("GET: ")
-        else if e.target_code.startsWith('let action ')
+        else if e.type === 'action'
           span.action= _("DO: ")
-        - if (e.utterance.startsWith(',')) { e.utterance = e.utterance.substring(1).trim(); }
-        - for (var chunk of split(e.utterance, PARAM_REGEX))
+        for chunk in e.utterance_chunks
           if typeof chunk === 'string'
             = chunk
           else
@@ -56,22 +30,13 @@ block content
               | ____ #[small= '(' + clean(param1||param2) + ')']
 
     each d in devices
-      if d.triggers.length === 0 && d.queries.length === 0 && d.actions.length === 0
+      if d.examples.length === 0
         - continue;
       div.grid-item
         h3
           img(src=S3_CLOUDFRONT_HOST + '/icons/' + d.primary_kind + '.png', alt="Icon for " + d.name)
           a(href='/thingpedia/devices/by-id/' + d.primary_kind)= d.name
         ul
-          for ex in d.triggers
-            li
-              +do_command(ex)
-          for ex in d.queries
-            li
-              +do_command(ex)
-          for ex in d.actions
-            li
-              +do_command(ex)
-          for ex in d.other
+          for ex in d.examples
             li
               +do_command(ex)

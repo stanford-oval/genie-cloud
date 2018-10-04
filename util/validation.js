@@ -11,12 +11,11 @@
 
 const ThingTalk = require('thingtalk');
 
+const { splitParams } = require('./tokenize');
 const TokenizerService = require('./tokenizer_service');
 
 const KIND_REGEX = /^[A-Za-z_][A-Za-z0-9_.-]*$/;
 const ARGNAME_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
-
-const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 
 const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 '__proto__', 'constructor', '__defineGetter__', '__defineSetter__', '__lookupGetter__',
@@ -64,26 +63,6 @@ class SingleDeviceSchemaRetriever {
         }
         return Promise.resolve(ret);
     }
-}
-
-function split(pattern, regexp) {
-    // a split that preserves capturing parenthesis
-
-    let clone = new RegExp(regexp, 'g');
-    let match = clone.exec(pattern);
-
-    let chunks = [];
-    let i = 0;
-    while (match !== null) {
-       if (match.index > i)
-            chunks.push(pattern.substring(i, match.index));
-        chunks.push(match);
-        i = clone.lastIndex;
-        match = clone.exec(pattern);
-    }
-    if (i < pattern.length)
-        chunks.push(pattern.substring(i, pattern.length));
-    return chunks;
 }
 
 module.exports = {
@@ -204,10 +183,8 @@ module.exports = {
         if (/_{4}/.test(utterance))
             throw new Error('Do not use blanks (4 underscores or more) in utterance, use placeholders');
 
-        let chunks = split(utterance.trim(), PARAM_REGEX);
-
         let placeholders = new Set;
-        for (let chunk of chunks) {
+        for (let chunk of splitParams(utterance.trim())) {
             if (chunk === '')
                 continue;
             if (typeof chunk === 'string')
@@ -264,7 +241,7 @@ module.exports = {
             let replaced = '';
             let params = [];
 
-            for (let chunk of split(ex.utterance, PARAM_REGEX)) {
+            for (let chunk of splitParams(ex.utterance.trim())) {
                 if (chunk === '')
                     continue;
                 if (typeof chunk === 'string') {

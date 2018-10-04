@@ -91,6 +91,11 @@
 .device-channels {
     padding: 0;
 }
+.device-channels code {
+    display: block;
+    color: inherit;
+    background-color: #eeeeee;
+}
 .device-channels >li {
     display: block;
     margin-bottom: 2em;

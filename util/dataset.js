@@ -11,6 +11,7 @@
 
 const ThingTalk = require('thingtalk');
 const { stringEscape } = require('./escaping');
+const { splitParams } = require('./tokenize');
 
 function rowsToExamples(rows, { editMode = false}) {
     // coalesce by target code
@@ -88,5 +89,41 @@ module.exports = {
     examplesToDataset(name, language, rows, options = {}) {
         return `dataset @${name} language "${language}" {
 ${rowsToExamples(rows, options)}}`;
+    },
+
+    sortAndChunkExamples(rows) {
+        let trigger_ex = [], query_ex = [], action_ex = [], other_ex = [];
+        for (let ex of rows) {
+            ex.target_code = ex.target_code.replace(/^\s*let\s+table/, 'query')
+                .replace(/^\s*let\s+(stream|query|action)/, '$1');
+
+            if (ex.utterance.startsWith(','))
+                ex.utterance = ex.utterance.substring(1);
+            ex.utterance_chunks = splitParams(ex.utterance.trim());
+
+            const match = /^\s*(stream|query|action|program)/.exec(ex.target_code);
+            if (match === null) {
+                ex.type = 'program';
+                other_ex.push(ex);
+                continue;
+            }
+            ex.type = match[1];
+            switch (match[1]) {
+            case 'stream':
+                trigger_ex.push(ex);
+                break;
+            case 'query':
+                query_ex.push(ex);
+                break;
+            case 'action':
+                action_ex.push(ex);
+                break;
+            default:
+                other_ex.push(ex);
+                break;
+            }
+        }
+
+        return [].concat(trigger_ex, query_ex, action_ex, other_ex);
     }
 };

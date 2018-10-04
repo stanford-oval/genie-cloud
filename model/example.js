@@ -73,9 +73,11 @@ module.exports = {
             order by click_count desc`, [language, `%${query}%`, `%${query}%`]);
     },
 
-    getBaseByLanguage(client, language) {
-        return db.selectAll(client, "select * from example_utterances where is_base and type = 'thingpedia' and "
-            + " language = ? order by click_count desc, id asc",
+    getCheatsheet(client, language) {
+        return db.selectAll(client, `select eu.id,eu.utterance,eu.target_code,ds.kind
+            from example_utterances eu, device_schema ds where eu.schema_id = ds.id and
+            eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and ds.approved_version is not null
+            order by click_count desc, id asc`,
             [language]);
     },
 

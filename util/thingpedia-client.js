@@ -27,6 +27,7 @@ const entityModel = require('../model/entity');
 const DatasetUtils = require('./dataset');
 const SchemaUtils = require('./manifest_to_schema');
 const Importer = require('./import_device');
+const I18n = require('./i18n');
 
 const S3_HOST = Config.S3_CLOUDFRONT_HOST + '/devices/';
 
@@ -78,9 +79,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     constructor(developerKey, locale, dbClient = null) {
         super(new Platform(developerKey, locale));
 
-        // only keep the language part of the locale, we don't
-        // yet distinguish en_US from en_GB
-        this.language = (locale || 'en').split(/[-_@.]/)[0];
+        this.language = I18n.localeToLanguage(locale);
 
         this._dbClient = null;
     }

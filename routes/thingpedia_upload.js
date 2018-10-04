@@ -212,12 +212,12 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res
                 req.user.developer < user.DeveloperStatus.ADMIN)
                 throw new Error(req._("Not Authorized"));
 
-            let [{code}, examples] = await Promise.all([
-                model.getCodeByVersion(dbClient, req.params.id, d.developer_version),
+            let [code, examples] = await Promise.all([
+                d.source_code || model.getCodeByVersion(dbClient, req.params.id, d.developer_version),
                 exampleModel.getBaseBySchemaKind(dbClient, d.primary_kind, 'en')
             ]);
 
-            code = d.source_code || Importer.migrateManifest(code, d);
+            code = Importer.migrateManifest(code, d);
             const dataset = DatasetUtils.examplesToDataset(d.primary_kind, 'en', examples,
                                                            { editMode: true });
 

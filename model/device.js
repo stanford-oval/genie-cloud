@@ -108,8 +108,8 @@ module.exports = {
     },
 
     getCodeByVersion(client, id, version) {
-        return db.selectOne(client, "select code,version from device_code_version where device_id = ? and version = ?",
-            [id, version]);
+        return db.selectOne(client, "select code from device_code_version where device_id = ? and version = ?",
+            [id, version]).then((row) => row.code);
     },
 
     getByPrimaryKind(client, kind) {
