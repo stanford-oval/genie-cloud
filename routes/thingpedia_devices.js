@@ -26,6 +26,7 @@ const SendMail = require('../util/sendmail');
 const I18n = require('../util/i18n');
 const tokenize = require('../util/tokenize');
 const DatasetUtils = require('../util/dataset');
+const Importer = require('../util/import_device');
 
 var router = express.Router();
 
@@ -73,7 +74,7 @@ function getDetails(fn, param, req, res) {
 
         var online = false;
 
-        const parsed = ThingTalk.Grammar.parse(code);
+        const parsed = ThingTalk.Grammar.parse(Importer.migrateManifest(code, device));
         assert(parsed.isMeta && parsed.classes.length > 0);
         const classDef = parsed.classes[0];
 
