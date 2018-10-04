@@ -69,8 +69,11 @@ function isJavaScript(file) {
         (file.originalname && file.originalname.endsWith('.js'));
 }
 
-async function doCreateOrUpdate(id, create, req, res) {
-    const kind = req.body.primary_kind;
+async function doCreateOrUpdate(kind, create, req, res) {
+    if (create)
+        kind = req.body.primary_kind;
+    else
+        req.body.primary_kind = kind;
     const approve = req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER &&
         !!req.body.approve;
 
@@ -87,7 +90,7 @@ async function doCreateOrUpdate(id, create, req, res) {
                         throw new Error(req._("An icon must be specified for new devices"));
                 } else {
                     try {
-                        old = await model.get(dbClient, id);
+                        old = await model.getByPrimaryKind(dbClient, kind);
                     } catch(e) {
                         throw new Error(req._("Existing device not found"));
                     }
@@ -102,7 +105,6 @@ async function doCreateOrUpdate(id, create, req, res) {
                                                                   req._("Thingpedia - create new device") :
                                                                   req._("Thingpedia - edit device")),
                                                                  error: e,
-                                                                 id: id,
                                                                  device: req.body,
                                                                  create: create });
                 return false;
@@ -146,7 +148,7 @@ async function doCreateOrUpdate(id, create, req, res) {
                 await model.create(dbClient, generalInfo, extraKinds, extraChildKinds, versionedInfo);
             } else {
                 generalInfo.owner = old.owner;
-                await model.update(dbClient, id, generalInfo, extraKinds, extraChildKinds, versionedInfo);
+                await model.update(dbClient, old.id, generalInfo, extraKinds, extraChildKinds, versionedInfo);
             }
 
             if (downloadable) {
@@ -200,10 +202,10 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(), (req, res, ne
     doCreateOrUpdate(undefined, true, req, res).catch(next);
 });
 
-router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
+router.get('/update/:kind', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
     Promise.resolve().then(() => {
         return db.withClient(async (dbClient) => {
-            const d = await model.get(dbClient, req.params.id);
+            const d = await model.getByPrimaryKind(dbClient, req.params.kind);
             if (d.owner !== req.user.developer_org &&
                 req.user.developer < user.DeveloperStatus.ADMIN)
                 throw new Error(req._("Not Authorized"));
@@ -232,8 +234,8 @@ router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res
     }).catch(next);
 });
 
-router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
-    doCreateOrUpdate(req.params.id, false, req, res).catch(next);
+router.post('/update/:kind', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
+    doCreateOrUpdate(req.params.kind, false, req, res).catch(next);
 });
 
 module.exports = router;

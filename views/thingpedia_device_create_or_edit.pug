@@ -12,10 +12,13 @@ block scripts
 block page_name
   - stdlayout = false;
   - includefooter = false;
-  = _("Device Editor")
+  if create
+    = _("Create Device")
+  else
+    = _("Device Editor")
 
 block content
-  form(action=(create ? '/thingpedia/upload/create' : '/thingpedia/upload/update/' + id), enctype='multipart/form-data', method='post', data-toggle='validator')#thing-form
+  form(action=(create ? '/thingpedia/upload/create' : '/thingpedia/upload/update/' + device.primary_kind), enctype='multipart/form-data', method='post', data-toggle='validator')#thing-form
     input(type='hidden',name='_csrf',value=csrfToken)
 
     div.container-fluid#page-body
@@ -67,8 +70,11 @@ block content
           div.tab-pane.fade.in.active#device-metadata
             div.form-group
               label(for='device-kind').control-label= _("ID")
-              input(type='text',name='primary_kind',required=true,maxlength=128,value=device.primary_kind).form-control#device-kind
-              span.help-block= _("The unique name of your device entry. This should be a namespaced name like “org.example” or “com.mything”.")
+              if create
+                input(type='text',name='primary_kind',required=true,maxlength=128,value=device.primary_kind).form-control#device-kind
+                span.help-block= _("The unique name of your device entry. This should be a namespaced name like “org.example” or “com.mything”.")
+              else
+                p.form-control-static= device.primary_kind
 
             div.form-group
               label(for='device-name').control-label= _("Name")

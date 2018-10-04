@@ -114,49 +114,47 @@ router.get('/by-id/:kind', (req, res, next) => {
     getDetails(model.getByPrimaryKind, req.params.kind, req, res).catch(next);
 });
 
-router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.post('/approve', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res, next) => {
     db.withTransaction((dbClient) => {
-        return model.get(dbClient, req.params.id).then((device) => {
-            return model.approve(dbClient, req.params.id).then(() => {
-                return schema.approveByKind(dbClient, device.primary_kind);
-            }).then(() => device);
-        });
-    }).then((device) => {
-        res.redirect('/thingpedia/devices/by-id/' + device.primary_kind);
+        return Promise.all([
+            model.approve(dbClient, req.body.kind),
+            schema.approveByKind(dbClient, req.body.kind)
+        ]);
+    }).then(() => {
+        res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
+    }).catch((e) => {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).catch(next);
+});
+
+router.post('/unapprove', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+    db.withTransaction((dbClient) => {
+        return Promise.all([
+            model.unapprove(dbClient, req.body.kind),
+            schema.unapproveByKind(dbClient, req.body.kind)
+        ]);
+    }).then(() => {
+        res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
 
-router.post('/unapprove/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.post('/delete', user.requireLogIn, user.requireDeveloper(),  (req, res) => {
     db.withTransaction((dbClient) => {
-        return model.get(dbClient, req.params.id).then((device) => {
-            return model.unapprove(dbClient, req.params.id).then(() => {
-                return schema.unapproveByKind(dbClient, device.primary_kind);
-            }).then(() => device);
-        });
-    }).then((device) => {
-        res.redirect('/thingpedia/devices/by-id/' + device.primary_kind);
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
-
-router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  (req, res) => {
-    db.withTransaction((dbClient) => {
-        return model.get(dbClient, req.params.id).then((row) => {
+        return model.getByPrimaryKind(dbClient, req.body.kind).then((row) => {
             if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
                 res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: req._("Not Authorized") });
                 return Promise.resolve();
             }
 
-            return model.delete(dbClient, req.params.id).then(() => {
-                res.redirect(303, '/thingpedia/devices');
-            });
+            return model.delete(dbClient, row.id);
         });
+    }).then(() => {
+        res.redirect(303, '/thingpedia/devices');
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e.message });
@@ -182,7 +180,7 @@ ${(req.body.comments || '').trim()}
     };
 
     SendMail.send(mailOptions).then(() => {
-        res.redirect(301, '/thingpedia/devices/by-id/' + req.body.kind);
+        res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });

@@ -292,11 +292,11 @@ module.exports = {
         return db.query(client, "delete from device_class where id = ?", [id]);
     },
 
-    approve(client, id) {
-        return db.query(client, "update device_class set approved_version = developer_version where id = ?", [id]);
+    approve(client, kind) {
+        return db.query(client, "update device_class set approved_version = developer_version where primary_kind = ?", [kind]);
     },
-    unapprove(client, id) {
-        return db.query(client, "update device_class set approved_version = null where id = ?", [id]);
+    unapprove(client, kind) {
+        return db.query(client, "update device_class set approved_version = null where primary_kind = ?", [kind]);
     },
 
     getAll(client, start, end) {

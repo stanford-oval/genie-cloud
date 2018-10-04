@@ -20,8 +20,9 @@ block content
   if device.approved_version === null
     div.alert.alert-warning(role='alert')
       if user && (user.developer_status >= 3 || user.developer_status >=2 && user.developer_org === device.owner)
-        form(action='/thingpedia/devices/approve/' + device.id, method='post').form-inline
+        form(action='/thingpedia/devices/approve', method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=device.primary_kind)
           p.form-group= _("This device is not yet approved.")
             | &#x20;
             button(type='submit').btn.btn-success= _("Approve it")
@@ -34,8 +35,9 @@ block content
   else if device.approved_version !== device.developer_version && user && user.developer_status >= 3
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
-        form(action='/thingpedia/devices/approve/' + device.id, method='post').form-inline
+        form(action='/thingpedia/devices/approve', method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=device.primary_kind)
           p.form-group= _("A newer version of this device was submitted.")
             | &#x20;
             button(type='submit').btn.btn-success= _("Approve it")
@@ -237,15 +239,17 @@ block content
   div.row#device-details-actions
     if authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
       div.col-md-3
-        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.id)= _("Update")
+        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.primary_kind)= _("Update")
       if user.developer_status >= 2 && device.approved_version !== null
         div.col-md-3
-          form(action='/thingpedia/devices/unapprove/' + device.id, method='post').form-delete-device
+          form(action='/thingpedia/devices/unapprove', method='post').form-delete-device
             input(type='hidden',name='_csrf',value=csrfToken)
+            input(type='hidden',name='kind',value=device.primary_kind)
             button(type='submit').btn.btn-danger.btn-block= _("Remove from collection")
       div.col-md-3
-        form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
+        form(action='/thingpedia/devices/delete', method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=device.primary_kind)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
     if device.download_url
       div.col-md-3
