@@ -2,7 +2,7 @@ extends layout
 
 block styles
   link(rel='stylesheet', href='/stylesheets/status.css')
-  link(rel='stylesheet', href='/stylesheets/sidebar.css')
+  link(rel='stylesheet', href='/stylesheets/thingpedia_dev_sidebar.css')
 
 block scripts
   script(src='/javascripts/status.js')
@@ -16,7 +16,7 @@ block content
   div.container-fluid#page-body
     div.row
       div.col-lg-3.col-md-4
-        include sidebar
+        include thingpedia_dev_sidebar
 
       div.col-xs-12.col-md-8.col-lg-9
         section.divider

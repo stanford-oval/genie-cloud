@@ -3,7 +3,7 @@ extends layout
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia.css')
   link(rel='stylesheet', href='/stylesheets/train-almond.css')
-  link(rel='stylesheet', href='/stylesheets/sidebar.css')
+  link(rel='stylesheet', href='/stylesheets/thingpedia_dev_sidebar.css')
 
 block page_name
   - stdlayout = false;
@@ -14,42 +14,40 @@ block content
   div.container-fluid#page-body
     div.row
       div.col-lg-3.col-md-4
-        include sidebar
+        include thingpedia_dev_sidebar
 
       div.col-xs-12.col-md-8.col-lg-9
         section.divider#sentence-to-code-block
           h3= _("Train Almond")
-          div.container
-            div.row
-              p
-                = _("If Almond is misbehaving or misinterpreting your input, you can correct it here.")
-                |
-                |
-                != _("Type a sentence and then press <kbd>Enter</kbd>. Then click on the corresponding interpretation, or use the ThingTalk options to write the corresponding code manually.")
+          p
+            = _("If Almond is misbehaving or misinterpreting your input, you can correct it here.")
+            |
+            |
+            != _("Type a sentence and then press <kbd>Enter</kbd>. Then click on the corresponding interpretation, or use the ThingTalk options to write the corresponding code manually.")
 
-              div
-                div.checkbox
-                  label
-                    input(type='checkbox')#edit-thingtalk
-                    = _("Edit ThingTalk before learning.")
-                form#sentence-to-code-form
-                  div.form-group
-                    label.sr-only(for="utterance")= _("Input:")
-                    input.form-control(type="text", placeholder="What do you want Almond to do?")#utterance
-                div#thingtalk-editor.hidden
-                  div.form-group#thingtalk-group
-                    label(for='thingtalk')= _("Code:")
-                    input.form-control(type="text")#thingtalk
-                    span.help-block#thingtalk-error
-                  div.form-group
-                    button(type='button').btn.btn-primary#sentence-to-code-done= _("Learn")
-              div#results-container
-                p#sabrina-thinks= _("Almond's choice: ")
-                span#prediction
-                p= _("Your choice:")
-                ul#results
+          div
+            div.checkbox
+              label
+                input(type='checkbox')#edit-thingtalk
+                = _("Edit ThingTalk before learning.")
+            form#sentence-to-code-form
+              div.form-group
+                label.sr-only(for="utterance")= _("Input:")
+                input.form-control(type="text", placeholder="What do you want Almond to do?")#utterance
+            div#thingtalk-editor.hidden
+              div.form-group#thingtalk-group
+                label(for='thingtalk')= _("Code:")
+                input.form-control(type="text")#thingtalk
+                span.help-block#thingtalk-error
+              div.form-group
+                button(type='button').btn.btn-primary#sentence-to-code-done= _("Learn")
+          div#results-container
+            p#sabrina-thinks= _("Almond's choice: ")
+            span#prediction
+            p= _("Your choice:")
+            ul#results
 
-              div#counter-box
-                = _("You have trained Almond with ")
-                span#counter
-                = _(" sentences. Thank you!")
+          div#counter-box
+            = _("You have trained Almond with ")
+            span#counter
+            = _(" sentences. Thank you!")

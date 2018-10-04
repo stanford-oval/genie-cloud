@@ -1,19 +1,20 @@
 nav#doc-sidebar
   ul
     li(class=(section === 'overview' ? 'current' : ''))
-      a(href='/thingpedia/developers') Overview
+      a.doc-sidebar-subtitle(href='/thingpedia/developers') Overview
     if authenticated && user.developer_org !== null
       li(class = (section === 'status' ? 'current' : ''))
-        a(href='/thingpedia/developers/status') Almond Status and Logs
+        a.doc-sidebar-subtitle(href='/thingpedia/developers/status') Almond Status and Logs
       li(class=(section === 'oauth' ? 'current' : ''))
-        a(href='/thingpedia/developers/oauth') Oauth 2.0 Applications
+        a.doc-sidebar-subtitle(href='/thingpedia/developers/oauth') Oauth 2.0 Applications
     if authenticated
       li(class=(section === 'train-almond' ? 'current' : ''))
-        a(href='/thingpedia/developers/train') Train Almond
-    li.thingpedia-docs Thingpedia Documentation
-      ul
+        a.doc-sidebar-subtitle(href='/thingpedia/developers/train') Train Almond
+    li.thingpedia-docs
+      a.doc-sidebar-subtitle(href='#thingpedia-doc-list',data-toggle='collapse') Thingpedia Documentation
+      ul#thingpedia-doc-list(class=(!!currentPage ? 'collapse in' : 'collapse'))
         li(class=(['getting-started', 'thingtalk-intro'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          | For Users
+          p.doc-sidebar-subtitle For Users
           ul
             li(class=(currentPage === 'getting-started' ? 'current' : ''))
               a(href='/thingpedia/developers/getting-started.md') Getting Started with Almond
@@ -22,7 +23,7 @@ nav#doc-sidebar
               a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
 
         li(class=(['thingpedia-device-intro', 'thingpedia-device-intro-auth-n-discovery', 'thingpedia-device-intro-example-commands', 'thingpedia-device-with-zero-code'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          | For Thingpedia Contributors
+          p.doc-sidebar-subtitle For Thingpedia Contributors
           ul
             li(class=(currentPage === 'thingpedia-device-intro' ? 'current' : ''))
               a(href='/thingpedia/developers/thingpedia-device-intro.md') Writing Thingpedia Entries
@@ -37,17 +38,15 @@ nav#doc-sidebar
               a(href='/thingpedia/developers/thingpedia-device-with-zero-code.md') Declarative Thingpedia Entries
 
         li(class=(['my-api', 'almond-dialog-api-reference'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          | For Almond Integrators
+          p.doc-sidebar-subtitle For Almond Integrators
           ul
             li(class=(currentPage === 'my-api' ? 'current' : ''))
               a(href='/thingpedia/developers/my-api.md') Web Almond API
-
-          ul
             li(class=(currentPage === 'almond-dialog-api-reference' ? 'current' : ''))
               a(href='/thingpedia/developers/almond-dialog-api-reference.md') Almond Dialog API
 
         li(class=(['thingtalk-reference', 'thingpedia-helpers'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          | Reference Manuals
+          p.doc-sidebar-subtitle Reference Manuals
           ul
             li(class=(currentPage === 'thingtalk-reference' ? 'current' : ''))
               a(href='/thingpedia/developers/thingtalk-reference.md') ThingTalk Reference
