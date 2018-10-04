@@ -24,7 +24,9 @@ const exampleModel = require('../model/example');
 
 const code_storage = require('../util/code_storage');
 const TrainingServer = require('../util/training_server');
+const Validation = require('../util/validation');
 const Importer = require('../util/import_device');
+const FactoryUtils = require('../util/device_factories');
 const DatasetUtils = require('../util/dataset');
 
 const user = require('../util/user');
@@ -37,21 +39,14 @@ router.use(multer({ dest: platform.getTmpDir() }).fields([
     { name: 'icon', maxCount: 1 }
 ]));
 router.use(csurf({ cookie: false }));
-
-const DEFAULT_CODE = {"module_type": "org.thingpedia.v2",
-                      "params": {},
-                      "auth": {"type": "none"},
-                      "types": [],
-                      "child_types": [],
-                      "queries": {},
-                      "actions": {},
-                    };
+router.use((req, res, next) => {
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
 
 router.get('/create', user.redirectLogIn, user.requireDeveloper(), (req, res) => {
-    var code = JSON.stringify(DEFAULT_CODE, undefined, 2);
     res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - create new device"),
-                                                     csrfToken: req.csrfToken(),
-                                                     device: { code: code,
+                                                     device: { code: '',
                                                                dataset: '' },
                                                      create: true });
 });
@@ -85,8 +80,8 @@ async function doCreateOrUpdate(id, create, req, res) {
             let dataset;
             let old = null;
             try {
-                [classDef, dataset] = await Importer.validateDevice(dbClient, req, req.body,
-                                                                    req.body.code, req.body.dataset);
+                [classDef, dataset] = await Validation.validateDevice(dbClient, req, req.body,
+                                                                      req.body.code, req.body.dataset);
                 if (create) {
                     if (!req.files.icon || !req.files.icon.length)
                         throw new Error(req._("An icon must be specified for new devices"));
@@ -101,11 +96,11 @@ async function doCreateOrUpdate(id, create, req, res) {
                         throw new Error(req._("Existing device not found"));
                 }
             } catch(e) {
+                console.error(e.stack);
                 res.render('thingpedia_device_create_or_edit', { page_title:
                                                                  (create ?
                                                                   req._("Thingpedia - create new device") :
                                                                   req._("Thingpedia - edit device")),
-                                                                 csrfToken: req.csrfToken(),
                                                                  error: e,
                                                                  id: id,
                                                                  device: req.body,
@@ -117,11 +112,11 @@ async function doCreateOrUpdate(id, create, req, res) {
                                                                 classDef, req, approve);
             await Importer.ensureDataset(dbClient, schemaId, dataset);
 
-            const extraKinds = classDef.extends;
+            const extraKinds = classDef.extends || [];
             const extraChildKinds = classDef.annotations.child_types ?
                 classDef.annotations.child_types.toJS() : [];
 
-            const fullcode = Importer.isFullCode(classDef);
+            const downloadable = Importer.isDownloadable(classDef);
 
             const developer_version = create ? 0 : old.developer_version + 1;
             classDef.annotations.version = ThingTalk.Ast.Value.Number(developer_version);
@@ -134,15 +129,16 @@ async function doCreateOrUpdate(id, create, req, res) {
                 subcategory: req.body.subcategory,
                 source_code: req.body.code,
                 developer_version: developer_version,
-                approved_version: approve ? developer_version : null,
+                approved_version: approve ? developer_version :
+                    (old !== null ? old.approved_version : null),
             };
 
-            const factory = Importer.makeDeviceFactory(classDef, generalInfo);
+            const factory = FactoryUtils.makeDeviceFactory(classDef, generalInfo);
             const versionedInfo = {
                 code: classDef.prettyprint(),
                 factory: JSON.stringify(factory),
                 module_type: classDef.loader.module,
-                fullcode: fullcode
+                downloadable: downloadable
             };
 
             if (create) {
@@ -153,7 +149,7 @@ async function doCreateOrUpdate(id, create, req, res) {
                 await model.update(dbClient, id, generalInfo, extraKinds, extraChildKinds, versionedInfo);
             }
 
-            if (!fullcode) {
+            if (downloadable) {
                 const zipFile = req.files && req.files.zipfile && req.files.zipfile.length ?
                     req.files.zipfile[0] : null;
 

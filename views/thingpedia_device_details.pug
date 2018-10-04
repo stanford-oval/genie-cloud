@@ -247,9 +247,9 @@ block content
         form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
-    if device.module_type === 'org.thingpedia.v1' || device.module_type === 'org.thingpedia.v2'
+    if device.download_url
       div.col-md-3
-        a.btn.btn-default.btn-block(href=CDN_HOST + '/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip')= _("Download code")
+        a.btn.btn-default.btn-block(href=device.download_url)= _("Download code")
     if authenticated && user.locale !== 'en-US'
         div.col-md-2
           a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind)= _("Translate")

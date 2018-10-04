@@ -172,7 +172,7 @@ CREATE TABLE `device_code_version` (
   `version` int(11) NOT NULL,
   `code` mediumtext COLLATE utf8_bin NOT NULL,
   `factory` mediumtext COLLATE utf8_bin NOT NULL,
-  `fullcode` tinyint(1) NOT NULL DEFAULT 0,
+  `downloadable` tinyint(1) NOT NULL DEFAULT 0,
   `module_type` varchar(64) COLLATE utf8_bin NOT NULL,
   `mtime` datetime NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`device_id`,`version`),

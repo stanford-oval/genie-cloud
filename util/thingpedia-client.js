@@ -26,7 +26,7 @@ const entityModel = require('../model/entity');
 
 const DatasetUtils = require('./dataset');
 const SchemaUtils = require('./manifest_to_schema');
-const Importer = require('./import_device');
+const FactoryUtils = require('./device_factories');
 const I18n = require('./i18n');
 const codeStorage = require('./code_storage');
 
@@ -101,7 +101,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         const [approvedVersion, maxVersion] = await db.withClient(async (dbClient) => {
             const org = await this._getOrg(dbClient);
             const device = await device.getDownloadVersion(dbClient, kind);
-            if (device.fullcode)
+            if (!device.downloadable)
                 throw new Error('No Code Available');
             if (org !== null && ((org.id === device.owner) || org.is_admin))
                 return [device.approved_version, device.developer_version];
@@ -218,7 +218,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
 
         assert(/\s+\{/.test(device.code));
         const classDef = ThingTalk.Ast.ClassDef.fromManifest(device.primary_kind, JSON.parse(device.code));
-        return Importer.makeDeviceFactory(classDef, device);
+        return FactoryUtils.makeDeviceFactory(classDef, device);
     }
 
     getDeviceFactories(klass) {

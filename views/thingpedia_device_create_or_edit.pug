@@ -56,12 +56,12 @@ block content
                 = _("Metadata")
             li
               a(href='#device-code-tab', aria-controls='#device-code-tab', role='tab', data-toggle='tab')
-                //-span(aria-hidden='true').glyphicon.glyphicon-file
-                = _("Manifest")
+                span(aria-hidden='true').glyphicon.glyphicon-file
+                = _("manifest.tt")
             li
               a(href='#device-dataset-tab', aria-controls='#device-dataset-tab', role='tab', data-toggle='tab')
-                //-span(aria-hidden='true').glyphicon.glyphicon-file
-                = _("Dataset")
+                span(aria-hidden='true').glyphicon.glyphicon-file
+                = _("dataset.tt")
 
         div.col-lg-9.col-md-8.tab-content#device-editor-body
           div.tab-pane.fade.in.active#device-metadata
@@ -104,4 +104,4 @@ block content
 
           div.tab-pane.fade#device-dataset-tab
             label(for='device-dataset').control-label.sr-only= _("Default Dataset")
-            textarea(name='code',required=true).enable-codemirror.form-control#device-dataset= device.dataset
+            textarea(name='dataset',required=true).enable-codemirror.form-control#device-dataset= device.dataset

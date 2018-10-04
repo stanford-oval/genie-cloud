@@ -14,7 +14,8 @@ DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test"
 export DATABASE_URL
 
 cat > $srcdir/secret_config.js <<'EOF'
-module.exports.S3_CLOUDFRONT_HOST = '/download';
+module.exports.FILE_STORAGE_BACKEND = 'local';
+module.exports.CDN_HOST = '/download';
 module.exports.WITH_THINGPEDIA = 'embedded';
 module.exports.THINGPEDIA_URL = '/thingpedia';
 EOF

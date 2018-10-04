@@ -2,7 +2,7 @@
 //
 // This file is part of Thingpedia
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -14,79 +14,25 @@ const fs = require('fs');
 const JSZip = require('jszip');
 const ThingTalk = require('thingtalk');
 
-const code_storage = require('../util/code_storage');
 const model = require('../model/device');
 const schemaModel = require('../model/schema');
-const user = require('../util/user');
 const exampleModel = require('../model/example');
-const entityModel = require('../model/entity');
-const Validation = require('../util/validation');
-const ManifestToSchema = require('../util/manifest_to_schema');
-const tokenizer = require('../util/tokenize');
+
+const user = require('./user');
+
+const tokenizer = require('./tokenize');
 const graphics = require('../almond/graphics');
-const colorScheme = require('../util/color_scheme');
-const DatasetUtils = require('../util/dataset');
+const colorScheme = require('./color_scheme');
 
-const ThingpediaClient = require('../util/thingpedia-client');
+const Validation = require('./validation');
+const code_storage = require('./code_storage');
+const SchemaUtils = require('./manifest_to_schema');
+const DatasetUtils = require('./dataset');
+const FactoryUtils = require('./device_factories');
 
-const SUBCATEGORIES = new Set(['service','media','social-network','communication','home','health','data-management']);
-const JAVASCRIPT_MODULE_TYPES = new Set(['org.thingpedia.v1', 'org.thingpedia.v2', 'org.thingpedia.builtin']);
-
-async function validateDevice(dbClient, req, options, classCode, datasetCode) {
-    const tpClient = new ThingpediaClient(req.user.developer_key, req.user.locale, dbClient);
-    const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
-
-    const name = options.name;
-    const description = options.description;
-    const kind = options.primary_kind;
-
-    if (!name || !description || !kind)
-        throw new Error("Not all required fields were present");
-    if (!SUBCATEGORIES.has(options.subcategory))
-        throw new Error(req._("Invalid device category %s").format(options.subcategory));
-
-    const parsed = await ThingTalk.Grammar.parseAndTypecheck(`${classCode}\n${datasetCode}`, schemaRetriever, true);
-
-    if (!parsed.isMeta || parsed.classes.length !== 1 || parsed.classes[0].kind !== kind)
-        throw new Error("Invalid manifest file: must contain exactly one class, with the same identifier as the device");
-    const classDef = parsed.classes[0];
-
-    if (parsed.datasets.length > 1 || (parsed.datasets.length > 0 && parsed.datasets[0].name !== '@' + kind))
-        throw new Error("Invalid dataset file: must contain exactly one dataset, with the same identifier as the device");
-    const dataset = parsed.datasets.length > 0 ? parsed.datasets[0] :
-        new ThingTalk.Ast.Dataset('@' + kind, 'en', [], {});
-
-    if (!classDef.loader)
-        throw new Error("loader mixin missing from class declaration");
-    if (!classDef.config)
-        throw new Error("config mixin missing from class declaration");
-
-    const moduleType = classDef.loader.module;
-    const fullcode = !JAVASCRIPT_MODULE_TYPES.has(moduleType);
-
-    const entities = await Validation.validateAllInvocations2(kind, classDef);
-    await entityModel.checkAllExist(dbClient, entities);
-    if (fullcode && moduleType !== 'org.thingpedia.embedded') {
-        if (!classDef.metadata.name)
-            classDef.metadata.name = name;
-        if (!classDef.metadata.description)
-            classDef.metadata.description = name;
-        for (let name in classDef.actions) {
-            if (!classDef.actions[name].annotations.url)
-                throw new Error(req._("Missing action url for %s").format(name));
-        }
-        for (let name in classDef.queries) {
-            if (!classDef.queries[name].annotations.url)
-                throw new Error(req._("Missing query url for %s").format(name));
-        }
-    }
-    await Validation.validateDataset(dataset);
-
-    return [classDef, dataset];
-}
 
 async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
-    const metas = ManifestToSchema.classDefToSchema(classDef);
+    const metas = SchemaUtils.classDefToSchema(classDef);
 
     return (await schemaModel.getByKind(dbClient, classDef.kind).then((existing) => {
         if (existing.owner !== req.user.developer_org &&
@@ -280,9 +226,11 @@ function uploadJavaScript(req, obj, stream) {
     });
 }
 
-function isFullCode(classDef) {
-    return !JAVASCRIPT_MODULE_TYPES.has(classDef.loader.module) ||
-        classDef.loader.module === 'org.thingpedia.builtin';
+function isDownloadable(classDef) {
+    const loader = classDef.loader;
+    return Validation.JAVASCRIPT_MODULE_TYPES.has(loader.module) &&
+        loader.module !== 'org.thingpedia.builtin' &&
+        loader.module !== 'org.thingpedia.embedded';
 }
 
 function getCategory(classDef) {
@@ -342,7 +290,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     const datasetCode = DatasetUtils.examplesToDataset(primary_kind, 'en',
         json.examples, { editMode: true });
 
-    const [classDef, dataset] = await validateDevice(dbClient, req, device, classCode, datasetCode);
+    const [classDef, dataset] = await Validation.validateDevice(dbClient, req, device, classCode, datasetCode);
     device.category = getCategory(classDef);
 
     await ensurePrimarySchema(dbClient, device.name, classDef,
@@ -351,13 +299,13 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     const schemaId = await ensurePrimarySchema(dbClient, device.name,
                                                classDef, req, approve);
     await ensureDataset(dbClient, schemaId, dataset);
-    const factory = makeDeviceFactory(classDef, device);
+    const factory = FactoryUtils.makeDeviceFactory(classDef, device);
 
     classDef.annotations.version = ThingTalk.Ast.Value.Number(device.developer_version);
     const versionedInfo = {
         code: classDef.prettyprint(),
         factory: JSON.stringify(factory),
-        fullcode: isFullCode(classDef),
+        downloadable: isDownloadable(classDef),
         module_type: classDef.loader.module
     };
 
@@ -366,7 +314,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
                        classDef.annotations.child_types.toJS() : [],
                        versionedInfo);
 
-    if (device.fullcode)
+    if (!versionedInfo.downloadable)
         return device;
 
     if (zipFilePath === null)
@@ -394,100 +342,12 @@ function migrateManifest(code, device) {
     return ThingTalk.Ast.fromManifest(device.primary_kind, ast).prettyprint();
 }
 
-function makeDeviceFactory(classDef, device) {
-    const config = classDef.config;
-    function getInputParam(name) {
-        for (let inParam of config.in_params) {
-            if (inParam.name === name)
-                return inParam.value.toJS();
-        }
-        return undefined;
-    }
-    function toFields(argMap) {
-        return Object.keys(argMap).map((k) => {
-            const type = argMap[k];
-            let htmlType;
-            if (type.isPassword)
-                htmlType = 'password';
-            else if (type.isNumber || type.isMeasure)
-                htmlType = 'number';
-            else
-                htmlType = 'text';
-            return { name: k, label: tokenizer.clean(k), type: htmlType };
-        });
-    }
-
-    switch (config.module) {
-    case 'org.thingpedia.config.builtin':
-        return null;
-
-    case 'org.thingpedia.config.discovery':
-        return {
-            type: 'discovery',
-            category: device.category,
-            kind: device.primary_kind,
-            text: device.name,
-            discoveryType: getInputParam('protocol')
-        };
-
-    case 'org.thingpedia.config.interactive':
-        return {
-            type: 'interactive',
-            category: device.category,
-            kind: device.primary_kind,
-            text: device.name
-        };
-
-    case 'org.thingpedia.config.none':
-        return {
-            type: 'none',
-            category: device.category,
-            kind: device.primary_kind,
-            text: device.name
-        };
-
-    case 'org.thingpedia.config.oauth2':
-    case 'org.thingpedia.config.custom_oauth':
-        return {
-            type: 'oauth2',
-            category: device.category,
-            kind: device.primary_kind,
-            text: device.name
-        };
-
-    case 'org.thingpedia.config.form':
-        return {
-            type: 'form',
-            category: device.category,
-            kind: device.primary_kind,
-            text: device.name,
-            fields: toFields(getInputParam('params'))
-        };
-
-    case 'org.thingpedia.config.basic_auth':
-        return {
-            type: 'form',
-            category: device.category,
-            kind: device.primary_kind,
-            text: device.name,
-            fields: [
-                { name: 'username', label: 'Username', type: 'text' },
-                { name: 'password', label: 'Password', type: 'password' }
-            ].concat(toFields(getInputParam('extra_params')))
-        };
-
-    default:
-        throw new Error(`Unrecognized config mixin ${config.module}`);
-    }
-}
 
 module.exports = {
-    validateDevice,
     ensurePrimarySchema,
     ensureDataset,
-    makeDeviceFactory,
 
-    isFullCode,
+    isDownloadable,
     getCategory,
     uploadZipFile,
     uploadJavaScript,
