@@ -6732,10 +6732,9 @@ text-table@~0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-thingengine-core@^1.0.2:
+"thingengine-core@github:Stanford-Mobisocial-IoT-Lab/thingengine-core":
   version "1.1.2"
-  resolved "https://registry.yarnpkg.com/thingengine-core/-/thingengine-core-1.1.2.tgz#07da2078e96b55f6472e334fd90ac466d335735e"
-  integrity sha512-CLLQCBgG1330J3qA3ex6I5BkHTUSYj02yU0v49sDlujit+ywQawLyqd1iVCssnHOYhwAxQ6H9iXfkgqAXaiadA==
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/tar.gz/dc0e29818fe3337159296bb5a781c1ee10324af6"
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.1"
@@ -6777,17 +6776,7 @@ thingpedia@^2.2.0, thingpedia@^2.2.1, thingpedia@^2.2.2:
     tmp "0.0.33"
     xml2js "^0.4.17"
 
-thingtalk@^1.0.0, thingtalk@^1.1.1:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.2.0.tgz#affb743f3e55918fd977d1801ec766bcee7bf523"
-  integrity sha512-jQVYaBT9SmbGfDaja9Std5sauaLkrlms6V2s7pRiChvHwHTmTv2P8pahg0LNyBcf2ZEbHnmigpmwH7tXaLsD6g==
-  dependencies:
-    adt "~0.7.2"
-    byline "^5.0.0"
-    consumer-queue "^1.0.0"
-    smtlib "^0.1.1"
-
-"thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
+thingtalk@^1.0.0, thingtalk@^1.1.1, "thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
   version "1.2.0"
   resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/77ccb75ebc48c1a8ff729032ab0f7e3bed9ea89d"
   dependencies:
