@@ -9,6 +9,23 @@
 // See COPYING for details
 "use strict";
 
+const tokenizer = require('./tokenize');
+
+function entityTypeToHTMLType(type) {
+    switch (type) {
+    case 'tt:password':
+        return 'password';
+    case 'tt:url':
+        return 'url';
+    case 'tt:phone_number':
+        return 'tel';
+    case 'tt:email_address':
+        return 'email';
+    default:
+        return 'text';
+    }
+}
+
 function makeDeviceFactory(classDef, device) {
     const config = classDef.config;
     function getInputParam(name) {
@@ -22,10 +39,12 @@ function makeDeviceFactory(classDef, device) {
         return Object.keys(argMap).map((k) => {
             const type = argMap[k];
             let htmlType;
-            if (type.isPassword)
-                htmlType = 'password';
+            if (type.isEntity)
+                htmlType = entityTypeToHTMLType(type.type);
             else if (type.isNumber || type.isMeasure)
                 htmlType = 'number';
+            else if (type.isBoolean)
+                htmlType = 'checkbox';
             else
                 htmlType = 'text';
             return { name: k, label: tokenizer.clean(k), type: htmlType };
