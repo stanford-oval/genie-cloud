@@ -2,6 +2,7 @@ extends layout
 
 block styles
   link(rel='stylesheet', href='/stylesheets/docs.css')
+  link(rel='stylesheet', href='/stylesheets/sidebar.css')
   link(rel="stylesheet"
       href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow-night-eighties.min.css")
 
@@ -13,7 +14,7 @@ block content
   div.container-fluid#page-body
     div.row
       div.col-lg-3.col-md-4
-        include documentation_sidebar.pug
+        include sidebar
 
       div.col-xs-12.col-md-8.col-lg-9
         div.documentation

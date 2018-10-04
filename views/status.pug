@@ -2,51 +2,63 @@ extends layout
 
 block styles
   link(rel='stylesheet', href='/stylesheets/status.css')
+  link(rel='stylesheet', href='/stylesheets/sidebar.css')
 
 block scripts
   script(src='/javascripts/status.js')
 
 block page_name
+  - stdlayout = false;
+  - var section = 'status';
   = _("Status")
 
 block content
-  p= _("Status of your ThingEngine: ")
-    if isRunning
-      strong= _("Running")
-    else
-      strong= _("Killed")
+  div.container-fluid#page-body
+    div.row
+      div.col-lg-3.col-md-4
+        include sidebar
 
-  if isRunning
-    form(action='/me/status/kill', method='post')
-      input(type='hidden',name='_csrf',value=csrfToken)
-      button(type='submit').btn.btn-danger= _("Kill")
-  else
-    form(action='/me/status/start', method='post')
-      input(type='hidden',name='_csrf',value=csrfToken)
-      button(type='submit').btn.btn-danger= _("Start")
+      div.col-xs-12.col-md-8.col-lg-9
+        section.divider
+          h3= _("Almond Status and Logs")
+          div.container
+            p= _("Status of your Almond Engine: ")
+              if isRunning
+                strong= _("Running")
+              else
+                strong= _("Killed")
 
-  h2= _("Cached Modules")
+            if isRunning
+              form(action='/me/status/kill', method='post')
+                input(type='hidden',name='_csrf',value=csrfToken)
+                button(type='submit').btn.btn-danger= _("Kill")
+            else
+              form(action='/me/status/start', method='post')
+                input(type='hidden',name='_csrf',value=csrfToken)
+                button(type='submit').btn.btn-danger= _("Start")
 
-  table.table#cached-module-table
-    thead
-      tr
-        th= _("Name")
-        th= _("Version")
-        th= _("Actions")
-    tbody
-      each m in modules
-        tr
-          td= m.name
-          td= m.version
-          td
-            form(action='/me/status/update-module/' + m.name, method='post')
-              input(type='hidden',name='_csrf',value=csrfToken)
-              button(type='submit').btn.btn-default= _("Update")
+            h2= _("Cached Modules")
 
-  if user.developer_key
-    h2= _("Logs")
-    div#log-view
-  else
-    p= _("You are not approved developer, so you cannot see the logs of your engine. ")
-      a(href='/user/request-developer')= _("Apply to be a developer")
-      | .
+            table.table#cached-module-table
+              thead
+                tr
+                  th= _("Name")
+                  th= _("Version")
+                  th= _("Actions")
+              tbody
+                each m in modules
+                  tr
+                    td= m.name
+                    td= m.version
+                    td
+                      form(action='/me/status/update-module/' + m.name, method='post')
+                        input(type='hidden',name='_csrf',value=csrfToken)
+                        button(type='submit').btn.btn-default= _("Update")
+
+            if user.developer_key
+              h2= _("Logs")
+              div#log-view
+            else
+              p= _("You are not approved developer, so you cannot see the logs of your engine. ")
+                a(href='/user/request-developer')= _("Apply to be a developer")
+                | .

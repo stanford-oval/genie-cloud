@@ -1,0 +1,85 @@
+nav#doc-sidebar {
+  display: block;
+  margin-top: 80px;
+  background-color: whitesmoke;
+  padding-top: 1em;
+  padding-bottom: 1em;
+}
+
+@media screen and (min-width: 1000px) {
+  nav#doc-sidebar {
+    position: fixed;
+    margin-top: 30px;
+    width: 20vw;
+    min-width: 280px;
+  }
+  nav#doc-sidebar > ul > li > ul > li > a {
+    padding-right: 40px;
+  }
+}
+
+/* general style */
+nav#doc-sidebar ul {
+  padding: 0;
+}
+nav#doc-sidebar li {
+  display: block;
+  padding-left: 20px;
+}
+nav#doc-sidebar li.current {
+  background-color: #1f2c39;
+  color: white;
+}
+nav#doc-sidebar a:hover {
+  text-decoration: none;
+}
+
+/* level 1 items */
+nav#doc-sidebar > ul > li {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-weight: bold;
+}
+nav#doc-sidebar > ul > li.current > a {
+  color: white;
+}
+nav#doc-sidebar > ul > li:not(.current) > a {
+  color: #1f2c39;
+}
+nav#doc-sidebar > ul > li:not(.thingpedia-docs):hover {
+  background-color: lightgray;
+}
+
+/* level 2 items (docs category) */
+nav#doc-sidebar > ul > li > ul > li {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-weight: bold;
+  color: #1f2c39;
+}
+nav#doc-sidebar > ul > li > ul > li:hover:not(.current) {
+  background-color: lightgray;
+}
+nav#doc-sidebar > ul > li > ul > li > a:hover {
+  text-decoration: none;
+}
+
+/* level 3+ items (docs) */
+nav#doc-sidebar > ul > li > ul > li > ul li {
+  font-weight: normal;
+  color: black;
+  padding: 0 0 0 20px;
+}
+nav#doc-sidebar > ul > li > ul > li.current > ul li > a {
+  color: #dea844;
+}
+nav#doc-sidebar > ul > li > ul > li.current > ul li.current > a {
+  color: #ffdb9a;
+  background-color: transparent;
+}
+nav#doc-sidebar > ul > li > ul > li > ul li > a:hover {
+  color: #dea844;
+}
+nav#doc-sidebar > ul > li > ul > li.current > ul li > a:hover {
+  color: #ffdb9a;
+}
