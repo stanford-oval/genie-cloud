@@ -229,7 +229,7 @@ router.post('/by-id/:kind', user.requireLogIn, (req, res) => {
             });
         });
     }).then(() => {
-        res.redirect(303, '/thingpedia/schemas/by-id/' + req.params.kind);
+        res.redirect(303, '/thingpedia/classes/by-id/' + req.params.kind);
     }).catch((e) => {
         console.error(e.stack);
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),

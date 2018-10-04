@@ -25,7 +25,7 @@ router.get('/', (req, res, next) => {
     db.withClient((dbClient) => {
         return model.getAllForList(dbClient);
     }).then((rows) => {
-        res.render('thingpedia_schema_list', { page_title: req._("Thingpedia - Supported Types"),
+        res.render('thingpedia_schema_list', { page_title: req._("Thingpedia - List of All Classes"),
                                                schemas: rows });
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
@@ -92,7 +92,7 @@ router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.Develo
             if (schema.kind_type !== 'other')
                 throw new Error(req._("This schema is associated with a device or app and should not be manipulated directly"));
             return model.approve(dbClient, req.params.id).then(() => {
-                res.redirect(303, '/thingpedia/schemas/by-id/' + schema.kind);
+                res.redirect(303, '/thingpedia/classes/by-id/' + schema.kind);
             });
         });
     }).catch((e) => {
@@ -124,7 +124,7 @@ router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  (req, re
 
 // only allow admins to deal with global schemas for now...
 router.get('/create', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
-    res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Create new Type"),
+    res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Create New Class"),
                                            create: true,
                                            csrfToken: req.csrfToken(),
                                            schema: { kind: '',
@@ -324,7 +324,7 @@ function doCreateOrUpdate(id, create, req, res) {
                 if (obj === null)
                     return;
 
-                res.redirect('/thingpedia/schemas/by-id/' + obj.kind);
+                res.redirect('/thingpedia/classes/by-id/' + obj.kind);
             });
         });
     }).catch((e) => {
