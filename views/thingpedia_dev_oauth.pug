@@ -20,43 +20,41 @@ block content
           if authenticated && user.developer_org !== null
             section.divider
               h3= _("Your OAuth 2.0 Applications")
-
-              div.container
-                if developer_oauth2_clients.length > 0
-                  each client, i in developer_oauth2_clients
-                    div.row
-                      div.col-xs-12.col-md-10.col-md-offset-1
-                        div.panel.panel-default
-                          p.panel-heading= client.name
-                          div.panel-body
-                            p
-                              b= _("Client ID: ")
-                              span= client.id
-                            if user.developer_status > 0
-                              p
-                                b= _("Client Secret: ")
-                                span= client.secret
-                else
-                  div.row
-                    div.col-xs-12
-                      p= _("Your organization does not have any OAuth 2.0 Client IDs yet.")
-
-                if user.developer_status > 0
+              if developer_oauth2_clients.length > 0
+                each client, i in developer_oauth2_clients
                   div.row
                     div.col-xs-12.col-md-10.col-md-offset-1
                       div.panel.panel-default
-                        p.panel-heading= _("Create a new OAuth 2.0 Client ID")
+                        p.panel-heading= client.name
                         div.panel-body
-                          form(action='/me/api/oauth2/clients/create', enctype='multipart/form-data', method='post', data-toggle='validator')
-                            input(type='hidden',name='_csrf',value=csrfToken)
-                            div.form-group
-                              label(for='new-oauth-name').control-label= _("Name")
-                              input(type='text',name='name').form-control#new-oauth-name
-                              span.help-block= _("This name will be shown on the authorization page")
+                          p
+                            b= _("Client ID: ")
+                            span= client.id
+                          if user.developer_status > 0
+                            p
+                              b= _("Client Secret: ")
+                              span= client.secret
+              else
+                div.row
+                  div.col-xs-12
+                    p= _("Your organization does not have any OAuth 2.0 Client IDs yet.")
 
-                            div.form-group
-                              label(for='new-oauth-icon').control-label= _("Icon")
-                              input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#new-oauth-icon
+              if user.developer_status > 0
+                div.row
+                  div.col-xs-12.col-md-10.col-md-offset-1
+                    div.panel.panel-default
+                      p.panel-heading= _("Create a new OAuth 2.0 Client ID")
+                      div.panel-body
+                        form(action='/me/api/oauth2/clients/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+                          input(type='hidden',name='_csrf',value=csrfToken)
+                          div.form-group
+                            label(for='new-oauth-name').control-label= _("Name")
+                            input(type='text',name='name').form-control#new-oauth-name
+                            span.help-block= _("This name will be shown on the authorization page")
 
-                            div.form-group
-                              button(type='submit').btn.btn-primary= _("Create")
+                          div.form-group
+                            label(for='new-oauth-icon').control-label= _("Icon")
+                            input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#new-oauth-icon
+
+                          div.form-group
+                            button(type='submit').btn.btn-primary= _("Create")
