@@ -26,82 +26,15 @@ const JAVASCRIPT_MODULE_TYPES = new Set([
 ]);
 const SUBCATEGORIES = new Set(['service','media','social-network','communication','home','health','data-management']);
 
-const KIND_REGEX = /^[A-Za-z_][A-Za-z0-9_.-]*$/;
-const ARGNAME_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
-
 const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 '__proto__', 'constructor', '__defineGetter__', '__defineSetter__', '__lookupGetter__',
 '__lookupSetter__', 'eval', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
 'toLocaleString', 'toSource', 'toString', 'unwatch', 'watch', 'valueOf']);
 
 
-// A SchemaRetriever that only returns results for the single device it is configured at,
-// and fails for everything else
-class SingleDeviceSchemaRetriever {
-    constructor(kind, ast) {
-        this._kind = kind;
-        this._ast = ast;
-    }
-
-    _where(where) {
-        switch (where) {
-            case 'query': return 'queries';
-            case 'action': return 'actions';
-            case 'trigger': return 'triggers';
-            default: return where;
-        }
-    }
-
-    getSchemaAndNames(kind, what, name) {
-        if (kind !== this._kind)
-            return Promise.reject(new Error('Cannot use other devices in example commands'));
-
-        const where = this._where(what);
-        if (!(name in this._ast[where]))
-            throw new Error("Schema " + kind + " has no " + what + " " + name);
-
-        let ret = {
-            args: [],
-            types: [],
-            is_input: [],
-            required: [],
-            is_list: this._ast[where][name].is_list,
-            is_monitorable: 'poll_interval' in this._ast[where][name] ?
-                this._ast[where][name].poll_interval >= 0 :
-                this._ast[where][name].is_monitorable
-        };
-        for (let arg of this._ast[where][name].args) {
-            ret.args.push(arg.name);
-            ret.types.push(ThingTalk.Type.fromString(arg.type));
-            ret.is_input.push(arg.is_input);
-            ret.required.push(arg.required);
-        }
-        return Promise.resolve(ret);
-    }
-}
-
-function validateAllInvocations2(kind, classDef, options = {}) {
-    if (FORBIDDEN_NAMES.has(kind))
-        throw new Error(`${kind} is not allowed as a device ID`);
-
-    let entities = new Set;
-    validateInvocation2(kind, classDef.actions, 'action', entities, options);
-    validateInvocation2(kind, classDef.queries, 'query', entities, options);
-    return Array.from(entities);
-}
-
-async function validateDevice(dbClient, req, options, classCode, datasetCode) {
+async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
     const tpClient = new ThingpediaClient(req.user.developer_key, req.user.locale, dbClient);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
-
-    const name = options.name;
-    const description = options.description;
-    const kind = options.primary_kind;
-
-    if (!name || !description || !kind)
-        throw new Error("Not all required fields were present");
-    if (!SUBCATEGORIES.has(options.subcategory))
-        throw new Error(req._("Invalid device category %s").format(options.subcategory));
 
     let parsed;
     try {
@@ -119,14 +52,44 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         throw e;
     }
 
-    if (!parsed.isMeta || parsed.classes.length !== 1 || parsed.classes[0].kind !== kind)
+    if (!parsed.isMeta || parsed.classes.length !== 1 ||
+        (kind !== null && parsed.classes[0].kind !== kind))
         throw new Error("Invalid manifest file: must contain exactly one class, with the same identifier as the device");
     const classDef = parsed.classes[0];
 
     if (parsed.datasets.length > 1 || (parsed.datasets.length > 0 && parsed.datasets[0].name !== '@' + kind))
-        throw new Error("Invalid dataset file: must contain exactly one dataset, with the same identifier as the device");
+        throw new Error("Invalid dataset file: must contain exactly one dataset, with the same identifier as the class");
     const dataset = parsed.datasets.length > 0 ? parsed.datasets[0] :
         new ThingTalk.Ast.Dataset('@' + kind, 'en', [], {});
+
+    return [classDef, dataset];
+}
+
+async function validateSchema(dbClient, req, options, classCode, datasetCode) {
+    const [classDef, dataset] = await loadClassDef(dbClient, req, options.kind || null,
+        classCode, datasetCode);
+
+    const entities = await validateAllInvocations(classDef, {
+        checkPollInterval: false,
+        checkUrl: false,
+        deviceName: null
+    });
+    await entityModel.checkAllExist(dbClient, entities);
+    await validateDataset(dataset);
+
+    return [classDef, dataset];
+}
+
+async function validateDevice(dbClient, req, options, classCode, datasetCode) {
+    const name = options.name;
+    const description = options.description;
+    const kind = options.primary_kind;
+
+    if (!name || !description || !kind)
+        throw new Error("Not all required fields were present");
+    if (!SUBCATEGORIES.has(options.subcategory))
+        throw new Error(req._("Invalid device category %s").format(options.subcategory));
+    const [classDef, dataset] = await loadClassDef(dbClient, req, kind, classCode, datasetCode);
 
     if (!classDef.loader)
         throw new Error("loader mixin missing from class declaration");
@@ -136,9 +99,9 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     const moduleType = classDef.loader.module;
     const fullcode = !JAVASCRIPT_MODULE_TYPES.has(moduleType);
 
-    const entities = await validateAllInvocations2(kind, classDef, {
+    const entities = await validateAllInvocations(classDef, {
         checkPollInterval: true,
-        checlUrl: fullcode,
+        checkUrl: fullcode,
         deviceName: name
     });
     await entityModel.checkAllExist(dbClient, entities);
@@ -198,11 +161,21 @@ function validateUtterance(args, utterance) {
     }
 }
 
+function validateAllInvocations(classDef, options = {}) {
+    if (FORBIDDEN_NAMES.has(classDef.kind))
+        throw new Error(`${classDef.kind} is not allowed as a device ID`);
+
+    let entities = new Set;
+    validateInvocation(classDef.kind, classDef.actions, 'action', entities, options);
+    validateInvocation(classDef.kind, classDef.queries, 'query', entities, options);
+    return Array.from(entities);
+}
+
 function autogenCanonical(name, kind, deviceName) {
     return `${clean(name)} on ${deviceName ? tokenize(deviceName).join(' ') : cleanKind(kind)}`;
 }
 
-function validateInvocation2(kind, where, what, entities, options = {}) {
+function validateInvocation(kind, where, what, entities, options = {}) {
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
             throw new Error(`${name} is not allowed as a function name`);
@@ -268,100 +241,9 @@ module.exports = {
     JAVASCRIPT_MODULE_TYPES,
     cleanKind,
 
-    validateInvocation(where, what, entities) {
-        for (var name in where) {
-            if (FORBIDDEN_NAMES.has(name))
-                throw new Error(`${name} is not allowed as a function name`);
-
-            if (!where[name].canonical)
-                throw new Error('Missing canonical form for ' + name);
-            if (where[name].canonical.indexOf('$') >= 0)
-                throw new Error('Detected placeholder in canonical form ' + name + ': this is incorrect, the canonical form must not contain parameters'); 
-            if (!where[name].confirmation)
-                throw new Error('Missing confirmation for ' + name);
-            if (where[name].examples)
-                throw new Error('Examples should be at the toplevel, not under ' + name);
-            where[name].doc = where[name].doc || '';
-            where[name].args = where[name].args || [];
-
-            if (what === 'action') {
-                where[name].is_list = false;
-                if ('poll_interval' in where[name])
-                    where[name].poll_interval = -1;
-                else
-                    where[name].is_monitorable = false;
-            } else {
-                where[name].is_list = !!where[name].is_list;
-                if ('poll_interval' in where[name]) {
-                    if (typeof where[name].poll_interval !== 'number' || where[name].poll_interval !== Math.floor(where[name].poll_interval)
-                        || where[name].poll_interval <= -2)
-                        throw new Error('Invalid polling interval for ' + name + ' (must be a positive integer to poll, 0 for push or -1 to disable monitoring)');
-                } else {
-                    where[name].is_monitorable = !!where[name].is_monitorable;
-                }
-            }
-
-            for (var arg of where[name].args) {
-                if (!arg.name)
-                    throw new Error('Missing argument name in ' + name);
-                if (!ARGNAME_REGEX.test(arg.name))
-                    throw new Error('Invalid argument name ' + arg.name + ' (must contain only letters, numbers and underscore, and cannot start with a number)');
-                if (FORBIDDEN_NAMES.has(arg.name))
-                    throw new Error(`${arg.name} is not allowed as argument name in ${name}`);
-                if (!arg.type)
-                    throw new Error("Missing type for argument " + name + '.' + arg.name);
-                try {
-                    let type = ThingTalk.Type.fromString(arg.type);
-                    if (type.isEntity)
-                        entities.add(type.type);
-                    arg.type = type.toString();
-                } catch(e) {
-                    throw new Error('Invalid type ' + arg.type + ' for argument ' + name + '.' + arg.name);
-                }
-                arg.question = arg.question || '';
-                arg.required = arg.required || false;
-                arg.is_input = arg.is_input || false;
-                if (!arg.is_input && what === 'action')
-                    throw new Error('Action ' + name + ' cannot have output argument ' + arg.name);
-                if (arg.required && !arg.question)
-                    throw new Error('Required argument ' + name + '.' + arg.name + ' must have a slot filling question');
-                if (arg.required && !arg.is_input)
-                    throw new Error('Argument ' + name + '.' + arg.name + ' cannot be both output and required');
-            }
-        }
-    },
-
     validateDevice,
+    validateSchema,
     validateDataset,
-
-    _validateExample(schemaRetriever, ex, i) {
-        return Promise.resolve().then(() => {
-            if (!ex.utterance || !ex.program)
-                throw new Error("Invalid example");
-            return ThingTalk.Grammar.parseAndTypecheck(ex.program, schemaRetriever, false);
-        }).then((prog) => {
-            if (prog.declarations.length + prog.rules.length !== 1)
-                throw new Error('Cannot use multiple rules in an example command');
-            let ruleprog, args;
-            if (prog.rules.length === 1) {
-                ruleprog = prog;
-                args = {};
-            } else {
-                ruleprog = prog.declarations[0].toProgram();
-                args = prog.declarations[0].args;
-            }
-
-            // try and convert to NN
-            ThingTalk.NNSyntax.toNN(ruleprog, {});
-            // validate placeholders in the utterance
-            validateUtterance(args, ex.utterance);
-
-            // rewrite the program using canonical syntax
-            ex.program = prog.prettyprint(true).trim();
-        }).catch((e) => {
-            throw new Error(`Error in Example ${i+1}: ${e.message}`);
-        });
-    },
 
     tokenizeAllExamples(language, examples) {
         return Promise.all(examples.map(async (ex, i) => {
@@ -410,29 +292,5 @@ module.exports = {
 
             ex.preprocessed = preprocessed ;
         }));
-    },
-
-    validateAllInvocations(kind, ast) {
-        if (!KIND_REGEX.test(kind))
-            throw new Error("Invalid ID, must use alphanumeric characters, underscore and period only.");
-        if (FORBIDDEN_NAMES.has(kind))
-            throw new Error(`${kind} is not allowed as a device ID`);
-
-        if (!ast.actions)
-            ast.actions = {};
-        if (!ast.queries)
-            ast.queries = {};
-        if (ast.triggers && Object.keys(ast.triggers).length > 0)
-            throw new Error("Triggers don't exist any more, delete all of them");
-
-        let entities = new Set;
-        this.validateInvocation(ast.actions, 'action', entities);
-        this.validateInvocation(ast.queries, 'query', entities);
-
-        if (!ast.examples)
-            ast.examples = [];
-
-        let schemaRetriever = new SingleDeviceSchemaRetriever(kind, ast);
-        return Promise.all(ast.examples.map(this._validateExample.bind(this, schemaRetriever))).then(() => entities);
-    },
+    }
 };

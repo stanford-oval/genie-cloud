@@ -143,20 +143,26 @@ router.post('/unapprove', user.requireLogIn, user.requireDeveloper(user.Develope
 });
 
 router.post('/delete', user.requireLogIn, user.requireDeveloper(),  (req, res) => {
-    db.withTransaction((dbClient) => {
-        return model.getByPrimaryKind(dbClient, req.body.kind).then((row) => {
-            if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
-                res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
-                                                  message: req._("Not Authorized") });
-                return Promise.resolve();
-            }
+    db.withTransaction(async (dbClient) => {
+        const row = await model.getByPrimaryKind(dbClient, req.body.kind);
+        if (row.owner !== req.user.developer_org &&
+            req.user.developer < user.DeveloperStatus.ADMIN) {
+            // note that this must be exactly the same error used by util/db.js
+            // so that a true not found is indistinguishable from not having permission
+            const err = new Error("Not Found");
+            err.code = 'ENOENT';
+            throw err;
+        }
 
-            return model.delete(dbClient, row.id);
-        });
+        return model.delete(dbClient, row.id);
     }).then(() => {
         res.redirect(303, '/thingpedia/devices');
     }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+        if (e.code === 'ENOENT')
+            res.status(404);
+        else
+            res.status(400);
+        res.render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e.message });
     }).done();
 });
