@@ -106,28 +106,25 @@ block content
     p
       i= _("This is a builtin device in certain versions of Almond. It may not be available in the Almond you are using.")
 
-  h2.device-subtitle#device-version= _("Class: ")
-    code= '@' + device.primary_kind
-    if device.version !== device.approved_version && device.version !== device.developer_version
-      if device.approved_version === null
-        = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
-      else if device.approved_version !== device.developer_version
-        = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
+  if authenticated && user.developer_org !== null
+    h2.device-subtitle#device-version= _("Class: ")
+      a(href='/thingpedia/classes/by-id/' + device.primary_kind)= '@' + device.primary_kind
+      if device.version !== device.approved_version && device.version !== device.developer_version
+        if device.approved_version === null
+          = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
+        else if device.approved_version !== device.developer_version
+          = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
+        else
+          = _(", version %d; this version: %d").format(device.approved_version, device.version)
       else
-        = _(", version %d; this version: %d").format(device.approved_version, device.version)
-    else
-      if device.approved_version === null
-        = _(", version none (approved), %d (developer)").format(device.developer_version)
-      else if device.approved_version !== device.developer_version
-        = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
-      else
-        = _(", version %d").format(device.approved_version)
-    |
-    |
-    small
-      a(href='/thingpedia/schemas/by-id/' + device.primary_kind)= _("metadata details")
+        if device.approved_version === null
+          = _(", version none (approved), %d (developer)").format(device.developer_version)
+        else if device.approved_version !== device.developer_version
+          = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
+        else
+          = _(", version %d").format(device.approved_version)
 
-  h2.device-subtitle= _("Uploaded By: ")
+  p#device-uploaded-by= _("Uploaded By: ")
     if user && user.roles & 0x1
       a(href='/admin/organizations/details/' + device.owner)=device.owner_name
     else
@@ -137,7 +134,7 @@ block content
     h2.device-subtitle= _("Extends: ")
       for k in classDef.extends
         = " "
-        a(href='/thingpedia/schemas/by-id/' + k)
+        a(href='/thingpedia/classes/by-id/' + k)
           span.label.label-default= '@' + k
 
   div.clearfix
@@ -153,7 +150,7 @@ block content
             a(href='/thingpedia/devices/by-id/' + k)
               span= '@' + k
           else
-            a(href='/thingpedia/schemas/by-id/' + k)
+            a(href='/thingpedia/classes/by-id/' + k)
               span= '@' + k
 
   h2.device-subtitle= _("Commands")
