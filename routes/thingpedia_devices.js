@@ -87,7 +87,7 @@ function getDetails(fn, param, req, res) {
             title = req._("Thingpedia - Device details");
 
         res.render('thingpedia_device_details', { page_title: title,
-                                                  S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
+                                                  CDN_HOST: Config.CDN_HOST,
                                                   csrfToken: req.csrfToken(),
                                                   device: device,
                                                   classDef: classDef,

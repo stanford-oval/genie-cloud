@@ -183,7 +183,7 @@ module.exports = class Frontend {
             res.locals.Config = Config;
 
             // the old way of doing things - eventually should be refactored
-            res.locals.S3_CLOUDFRONT_HOST = Config.S3_CLOUDFRONT_HOST;
+            res.locals.CDN_HOST = Config.CDN_HOST;
             res.locals.THINGPEDIA_URL = Config.THINGPEDIA_URL;
             res.locals.WITH_THINGPEDIA = Config.WITH_THINGPEDIA;
             res.locals.ENABLE_ANONYMOUS_USER = Config.ENABLE_ANONYMOUS_USER;

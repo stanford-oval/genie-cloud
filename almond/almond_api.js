@@ -42,7 +42,7 @@ module.exports = class AlmondApi {
         return this._formatter.formatForType(outputType, outputValue, 'messages').then((messages) => {
             this._sendWs({ result: {
                 appId: appId,
-                icon: icon ? Config.S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png' : null,
+                icon: icon ? Config.CDN_HOST + '/icons/' + icon + '.png' : null,
                 raw: outputValue,
                 type: outputType,
                 formatted: messages
@@ -53,7 +53,7 @@ module.exports = class AlmondApi {
     notifyError(appId, icon, error) {
         this._sendWs({ error: {
             appId: appId,
-            icon: icon ? Config.S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png' : null,
+            icon: icon ? Config.CDN_HOST + '/icons/' + icon + '.png' : null,
             error: error
         }});
     }
@@ -163,7 +163,7 @@ module.exports = class AlmondApi {
                     uniqueId: app.uniqueId,
                     description: app.description,
                     code: app.code,
-                    icon: Config.S3_CLOUDFRONT_HOST + '/icons/' + app.icon + '.png',
+                    icon: Config.CDN_HOST + '/icons/' + app.icon + '.png',
                     results, errors
                 };
             });
@@ -230,7 +230,7 @@ module.exports = class AlmondApi {
                 name: device.name,
                 description: device.description,
                 kind: device.kind,
-                icon: Config.S3_CLOUDFRONT_HOST + '/icons/' + device.kind + '.png',
+                icon: Config.CDN_HOST + '/icons/' + device.kind + '.png',
             };
         }
 

@@ -281,7 +281,8 @@ function uploadJavaScript(req, obj, stream) {
 }
 
 function isFullCode(classDef) {
-    return !JAVASCRIPT_MODULE_TYPES.has(classDef.loader.module);
+    return !JAVASCRIPT_MODULE_TYPES.has(classDef.loader.module) ||
+        classDef.loader.module === 'org.thingpedia.builtin';
 }
 
 function getCategory(classDef) {
@@ -365,7 +366,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
                        classDef.annotations.child_types.toJS() : [],
                        versionedInfo);
 
-    if (device.fullcode || device.module_type === 'org.thingpedia.builtin')
+    if (device.fullcode)
         return device;
 
     if (zipFilePath === null)

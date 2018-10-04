@@ -74,7 +74,7 @@ router.get('/', (req, res, next) => {
             device.examples = DatasetUtils.sortAndChunkExamples(device.examples);
 
         res.render('thingpedia_cheatsheet', { page_title: req._("Thingpedia - Supported Operations"),
-                                              S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
+                                              CDN_HOST: Config.CDN_HOST,
                                               csrfToken: req.csrfToken(),
                                               devices: devices,
                                               clean: tokenize.clean });

@@ -34,7 +34,7 @@ block content
         - continue;
       div.grid-item
         h3
-          img(src=S3_CLOUDFRONT_HOST + '/icons/' + d.primary_kind + '.png', alt="Icon for " + d.name)
+          img(src=CDN_HOST + '/icons/' + d.primary_kind + '.png', alt="Icon for " + d.name)
           a(href='/thingpedia/devices/by-id/' + d.primary_kind)= d.name
         ul
           for ex in d.examples

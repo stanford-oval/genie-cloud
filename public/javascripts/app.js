@@ -1,6 +1,6 @@
 "use strict";
 $(function() {
-    const S3_CLOUDFRONT_HOST = $('body').attr('data-icon-cdn');
+    const CDN_HOST = $('body').attr('data-icon-cdn');
     const csrfToken = $('#commandpedia').attr('csrf');
 
     let page = 0;
@@ -31,7 +31,7 @@ $(function() {
             let icons = $('<div>').addClass('device-icon-list-small');
             command.devices.forEach((device) => {
                 let link = $('<a>').attr('href', '/thingpedia/devices/by-id/' + device);
-                let icon = $('<img>').attr('src', S3_CLOUDFRONT_HOST + '/icons/' + device + '.png');
+                let icon = $('<img>').attr('src', CDN_HOST + '/icons/' + device + '.png');
                 link.append(icon);
                 icons.append(link);
             });

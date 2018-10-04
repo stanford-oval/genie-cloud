@@ -9,11 +9,17 @@
 // See COPYING for details
 "use strict";
 
+// Where to store icons and zip files
+// Set to s3 to use Amazon S3, local to use the local filesystem
+// (which must be configured with the correct permissions)
+module.exports.FILE_STORAGE_BACKEND = 'local';
+
 // The location where icons and zip files are stored
-// This can be an absolute URI ending in cloudfront.net, which enables the
-// S3 storage backend, or the exact string "/download", which enables the
-// local storage backend
-module.exports.S3_CLOUDFRONT_HOST = '/download';
+// If using the S3 storage backend, this could be the S3 website URL, or the URL
+// of a CloudFront distribution mapping to the S3 bucket.
+// If using the `local` storage backend, it must be the exact string "/download"
+module.exports.CDN_HOST = '/download';
+
 module.exports.THINGENGINE_MANAGER_ADDRESS = './control';
 module.exports.THINGENGINE_DIRECT_ADDRESS = './direct';
 module.exports.BING_KEY = '';

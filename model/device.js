@@ -246,6 +246,11 @@ module.exports = {
         }
     },
 
+    getDownloadVersion(client, kind) {
+        return db.selectAll(client, `select fullcode, owner, developer_version, approved_version from
+            device_class where kind = ?`, [kind]);
+    },
+
     getAllApproved(client, org, start, end) {
         if (org !== null && org.is_admin) {
             if (start !== undefined && end !== undefined) {

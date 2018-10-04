@@ -11,7 +11,7 @@ block content
   h1= _("Authorize %s to access your Almond?").format(client.name)
 
   aside#app-icon-large
-    img(src=S3_CLOUDFRONT_HOST + '/icons/oauth:' + client.id + '.png', alt="Icon for " + client.name)
+    img(src=CDN_HOST + '/icons/oauth:' + client.id + '.png', alt="Icon for " + client.name)
 
   p= _("If you say yes, the application will be allowed full access to your devices and accounts and will be able to run rules on your behalf.")
 

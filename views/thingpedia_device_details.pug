@@ -90,7 +90,7 @@ block content
       
 
   aside#device-icon-large
-    img(src=S3_CLOUDFRONT_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
+    img(src=CDN_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
 
   p#device-description= device.description
 
@@ -249,7 +249,7 @@ block content
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
     if device.module_type === 'org.thingpedia.v1' || device.module_type === 'org.thingpedia.v2'
       div.col-md-3
-        a.btn.btn-default.btn-block(href=S3_CLOUDFRONT_HOST + '/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip')= _("Download code")
+        a.btn.btn-default.btn-block(href=CDN_HOST + '/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip')= _("Download code")
     if authenticated && user.locale !== 'en-US'
         div.col-md-2
           a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind)= _("Translate")

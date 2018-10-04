@@ -639,9 +639,9 @@ v1.get('/devices/icon/:kind', (req, res) => {
 
     if (req.query.style && /^[0-9]+$/.test(req.query.style)
         && req.query.style >= 1 && req.query.style <= 8)
-       res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/style-' + req.query.style + '/' + req.params.kind + '.png');
+       res.redirect(301, Config.CDN_HOST + '/icons/style-' + req.query.style + '/' + req.params.kind + '.png');
     else
-       res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/' + req.params.kind + '.png');
+       res.redirect(301, Config.CDN_HOST + '/icons/' + req.params.kind + '.png');
 });
 
 function isValidDeviceClass(req, res) {

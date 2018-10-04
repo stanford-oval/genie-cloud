@@ -17,7 +17,14 @@ const platform = require('./platform');
 
 let _backend;
 
-if (Config.S3_CLOUDFRONT_HOST.endsWith('cloudfront.net')) {
+function getDownloadLocation(kind, version, developer) {
+    // FIXME: when using the S3 backend, we should generate a signed request
+    // if the user is a developer (as the device should not be downloadable
+    // freely)
+    return Promise.resolve(`${Config.CDN_HOST}/devices/${kind}-v${version}.zip`);
+}
+
+if (Config.FILE_STORAGE_BACKEND === 's3') {
     const AWS = require('aws-sdk');
 
     AWS.config.update({ region: 'us-west-2',
@@ -62,8 +69,9 @@ if (Config.S3_CLOUDFRONT_HOST.endsWith('cloudfront.net')) {
                             name + ' v' + version);
             });
         },
+        getDownloadLocation
     };
-} else if (Config.S3_CLOUDFRONT_HOST === '/download') {
+} else if (Config.FILE_STORAGE_BACKEND === 'local') {
     _backend = {
         storeIcon(blob, name) {
             let output = fs.createWriteStream(platform.getWritableDir() + '/icons/' + name + '.png');
@@ -103,9 +111,10 @@ if (Config.S3_CLOUDFRONT_HOST.endsWith('cloudfront.net')) {
                 output.on('error', errback);
             });
         },
+        getDownloadLocation
     };
 } else {
-    throw new Error('Invalid configuration S3_CLOUDFRONT_HOST');
+    throw new Error('Invalid configuration CDN_HOST');
 }
 
 module.exports = _backend;

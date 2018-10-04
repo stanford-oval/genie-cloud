@@ -48,7 +48,7 @@ $(function() {
     var container = $('#chat');
     var currentGrid = null;
 
-    var S3_CLOUDFRONT_HOST = $('body').attr('data-icon-cdn');
+    var CDN_HOST = $('body').attr('data-icon-cdn');
     function almondMessage(icon) {
         var msg = $('<span>').addClass('message-container from-almond');
         icon = icon || 'org.thingpedia.builtin.thingengine.builtin';
@@ -57,7 +57,7 @@ $(function() {
         if (thingpediaUrl !== '/thingpedia')
             src = thingpediaUrl + '/api/devices/icon/' + icon;
         else
-            src = S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png';
+            src = CDN_HOST + '/icons/' + icon + '.png';
         msg.append($('<img>').addClass('icon').attr('src', src));
         container.append(msg);
         return msg;

@@ -153,7 +153,7 @@ async function doCreateOrUpdate(id, create, req, res) {
                 await model.update(dbClient, id, generalInfo, extraKinds, extraChildKinds, versionedInfo);
             }
 
-            if (!fullcode && versionedInfo.module_type !== 'org.thingpedia.builtin') {
+            if (!fullcode) {
                 const zipFile = req.files && req.files.zipfile && req.files.zipfile.length ?
                     req.files.zipfile[0] : null;
 

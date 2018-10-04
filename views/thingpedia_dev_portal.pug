@@ -132,7 +132,7 @@ block content
                       a(href='/thingpedia/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
                       div.panel-body
                         p.device-icon-small
-                          img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
+                          img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
                         p=dev.description
                       div.panel-footer
                         div.row
