@@ -28,7 +28,7 @@
     "install": "make -C sandbox all || echo WARNING: failed to compile the sandbox"
   },
   "resolutions": {
-    "thingpedia-client": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client",
+    "thingpedia-client": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client#wip/tests-for-new-tt",
     "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk",
     "thingengine-core": "github:Stanford-Mobisocial-IoT-Lab/thingengine-core"
   },
@@ -86,7 +86,7 @@
     "sockaddr": "^1.0.0",
     "thingengine-core": "github:Stanford-Mobisocial-IoT-Lab/thingengine-core",
     "thingpedia": "^2.2.2",
-    "thingpedia-client": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client",
+    "thingpedia-client": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client#wip/tests-for-new-tt",
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk",
     "tmp": "0.0.33",
