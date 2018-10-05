@@ -9,6 +9,7 @@ addons:
 node_js:
 - '8'
 before_install:
+- curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.10.1
 - mkdir cvc4/
 - wget https://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.5-x86_64-linux-opt
   -O cvc4/cvc4
@@ -16,10 +17,12 @@ before_install:
 - mkdir geckodriver/
 - wget https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz
 - tar xvf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver/
-- export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+- export PATH="`pwd`/cvc4:`pwd`/geckodriver:$HOME/.yarn/bin:$PATH"
 - sudo apt-get update -q -y
+- (cd .. ; git clone --depth=50 https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk.git ; cd ThingTalk ; yarn ; yarn link )
 install:
 - sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev realpath
+- yarn link thingtalk
 - yarn
 before_script:
 - mysql -u root -e "create database if not exists thingengine_test; grant all privileges on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"

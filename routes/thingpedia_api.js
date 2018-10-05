@@ -11,6 +11,7 @@
 
 const Q = require('q');
 const express = require('express');
+const accepts = require('accepts');
 
 const db = require('../util/db');
 const deviceModel = require('../model/device');
@@ -20,6 +21,7 @@ const commandModel = require('../model/example');
 
 const ThingpediaClient = require('../util/thingpedia-client');
 const ImageCacheManager = require('../util/cache_manager');
+const SchemaUtils = require('../util/manifest_to_schema');
 const { tokenize } = require('../util/tokenize');
 
 const Config = require('../config');
@@ -154,7 +156,7 @@ function errorWrap(req, res, next, promise) {
 v1.get('/schema/:schemas', (req, res, next) => {
     var schemas = req.params.schemas.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getSchemas(schemas).then((obj) => {
+    errorWrap(req, res, next, client.getSchemas(schemas, false, 'application/json').then((obj) => {
         // don't cache if the user is a developer
         if (!req.query.developer_key)
             res.cacheFor(86400000);
@@ -163,22 +165,31 @@ v1.get('/schema/:schemas', (req, res, next) => {
 });
 
 /**
- * @api {get} /v3/schema/:schema_ids Get Type Information
+ * @api {get} /v3/schema/:schema_ids Get Type Information And Metadata
  * @apiName GetSchema
  * @apiGroup Schemas
  * @apiVersion 0.3.0
  *
- * @apiDescription Retrieve the ThingTalk type information
+ * @apiDescription Retrieve the ThingTalk type information and natural language metadata
  *   associated with the named schemas (device interfaces);
  *   multiple schemas can be requested at once, separated by a comma.
  *
- *   Returns an object with one property for each schema ID.
+ *   This API performs content negotiation, based on the `Accept` header. If
+ *   the `Accept` header is unset or set to `application/x-thingtalk`, then a ThingTalk
+ *   dataset is returned. Otherwise, the accept header must be set to `application/json`,
+ *   or a 405 Not Acceptable error occurs.
+ *
+ *   If set to return ThingTalk, this API returns a single ThingTalk meta file containing
+ *   multiple classes. If set to return JSON, it returns an object with one property for each schema ID.
  *   If a given ID does not exist or is not visible to the calling user, this
- *   endpoint will silently return nothing.
+ *   endpoint will silently return nothing. The documentation is here for the JSON response
+ *   format. See ThingTalk's documentation for the syntax of meta files.
  *
  * @apiParam {String[]} schema_ids The identifiers (kinds) of the schemas
  *   to retrieve
+ * @apiParam {Number{0-1}} meta Include natural language metadata in the output
  * @apiParam {String} [developer_key] Developer key to use for this operation
+ * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
  *
  * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
  * @apiSuccess {Object} data An object with one property for each schema ID
@@ -263,13 +274,26 @@ v1.get('/schema/:schemas', (req, res, next) => {
  *
 **/
 v3.get('/schema/:schemas', (req, res, next) => {
-    var schemas = req.params.schemas.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getSchemas(schemas).then((obj) => {
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    if (!accept) {
+        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        return;
+    }
+
+    const schemas = req.params.schemas.split(',');
+    const withMetadata = req.query.meta === '1';
+
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    errorWrap(req, res, next, client.getSchemas(schemas, withMetadata, accept).then((obj) => {
+        res.set('Vary', 'Accept');
+
         // don't cache if the user is a developer
         if (!req.query.developer_key)
             res.cacheFor(86400000);
-        res.json({ result: 'ok', data: obj });
+        if (typeof obj === 'string')
+            res.set('Content-Type', 'application/x-thingtalk').send(obj);
+        else
+            res.json({ result: 'ok', data: obj });
     }));
 });
 
@@ -408,7 +432,7 @@ v3.get('/schema/:schemas', (req, res, next) => {
 v1.get('/schema-metadata/:schemas', (req, res, next) => {
     var schemas = req.params.schemas.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getMetas(schemas).then((obj) => {
+    errorWrap(req, res, next, client.getSchemas(schemas, true, 'application/json').then((obj) => {
         // don't cache if the user is a developer
         if (!req.query.developer_key)
             res.cacheFor(86400000);
@@ -427,153 +451,8 @@ v1.get('/schema-metadata/:schemas', (req, res, next) => {
     }));
 });
 
-/**
- * @api {get} /v3/schema-metadata/:schema_ids Get Type Information and Metadata
- * @apiName GetSchemaMetadata
- * @apiGroup Schemas
- * @apiVersion 0.3.0
- *
- * @apiDescription Retrieve the ThingTalk type information and natural language metadata
- *   associated with the named schemas (device interfaces);
- *   multiple schemas can be requested at once, separated by a comma.
- *
- *   Returns an object with one property for each schema ID.
- *   If a given ID does not exist or is not visible to the calling user, this
- *   endpoint will silently return nothing.
- *
- * @apiParam {String[]} schema_ids The identifiers (kinds) of the schemas
- *   to retrieve
- * @apiParam {String} [developer_key] Developer key to use for this operation
- * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
- *
- * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
- * @apiSuccess {Object} data An object with one property for each schema ID
- * @apiSuccess {Object} data.id Each schema
- * @apiSuccess {Object} data.id.triggers The triggers in this schema (obsolete, and always empty)
- * @apiSuccess {Object} data.id.queries The queries in this schema
- * @apiSuccess {Object} data.id.actions The actions in this schema
- * @apiSuccess {String[]} data.id.actions.args The names of all parameters of this functions
- * @apiSuccess {String[]} data.id.actions.types The ThingTalk type of all parameters of this function
- * @apiSuccess {Boolean[]} data.id.actions.required For each parameter, the corresponding element in this array is `true` if the parameter is required, and `false` otherwise
- * @apiSuccess {Boolean[]} data.id.actions.is_input For each parameter, the corresponding element in this array is `true` if the parameter is an input parameter, and `false` otherwise if the parameter is an output
- * @apiSuccess {Boolean} data.id.actions.is_list Whether this function returns a list; this is always false for actions
- * @apiSuccess {Boolean} data.id.actions.is_monitorable Whether this function can be monitored; this is always false for actions
- * @apiSuccess {String} data.id.confirmation Confirmation string for this function
- * @apiSuccess {String} data.id.confirmation_remote Remote confirmation string (obsolete)
- * @apiSuccess {String} data.id.doc Documentation string for this function, to be shown eg. in a reference manual for the device
- * @apiSuccess {String} data.id.canonical Short, concise description of this function, omitting stop words
- * @apiSuccess {String[]} data.id.argcanonicals Translated argument names, to be used to construct sentences and display to the user; one element per argument
- * @apiSuccess {String[]} data.id.questions Slot-filling questions
- *
- * @apiSuccessExample {json} Example Response:
- *
- *  {
- *    "result": "ok",
- *    "data": {
- *      "com.twitter": {
- *        "kind_type": "primary",
- *        "triggers": {},
- *        "queries": {
- *          "home_timeline": {
- *            "types": [
- *              "String",
- *              "Array(Entity(tt:hashtag))",
- *              "Array(Entity(tt:url))",
- *              "Entity(tt:username)",
- *              "Entity(tt:username)",
- *              "Entity(com.twitter:id)"
- *            ],
- *            "args": [
- *              "text",
- *              "hashtags",
- *              "urls",
- *              "author",
- *              "in_reply_to",
- *              "tweet_id"
- *            ],
- *            "required": [
- *              false,
- *              false,
- *              false,
- *              false,
- *              false,
- *              false
- *            ],
- *            "is_input": [
- *              false,
- *              false,
- *              false,
- *              false,
- *              false,
- *              false
- *            ],
- *            "is_list": true,
- *            "is_monitorable": true,
- *            "confirmation": "tweets from anyone you follow",
- *            "confirmation_remote": "tweets from anyone $__person's follow",
- *            "doc": "shows your Twitter timeline (the home page of Twitter)",
- *            "canonical": "twitter home timeline",
- *            "argcanonicals": [
- *              "text",
- *              "hashtags",
- *              "urls",
- *              "author",
- *              "in reply to",
- *              "tweet id"
- *            ],
- *            "questions": [
- *              "",
- *              "",
- *              "",
- *              "",
- *              "",
- *              ""
- *            ]
- *          }
- *        },
- *        "actions": {
- *          "post": {
- *            "types": [
- *              "String"
- *            ],
- *            "args": [
- *              "status"
- *            ],
- *            "required": [
- *              true
- *            ],
- *            "is_input": [
- *              true
- *            ],
- *            "is_list": false,
- *            "is_monitorable": false,
- *            "confirmation": "tweet $status",
- *            "confirmation_remote": "post $status on $__person's Twitter",
- *            "doc": "post a tweet; use # to include a hashtag and @ to reply",
- *            "canonical": "post on twitter",
- *            "argcanonicals": [
- *              "status"
- *            ],
- *            "questions": [
- *              "What do you want to tweet?"
- *            ]
- *          }
- *        }
- *      }
- *    }
- *  }
- *
-**/
-v3.get('/schema-metadata/:schemas', (req, res, next) => {
-    var schemas = req.params.schemas.split(',');
-    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getMetas(schemas).then((obj) => {
-        // don't cache if the user is a developer
-        if (!req.query.developer_key)
-            res.cacheFor(86400000);
-        res.json({ result: 'ok', data: obj });
-    }));
-});
+// in v3, /schema-metadata/ was merged with /schema, as in snapshot
+v3.get('/schema-metadata/:schemas', (req, res, next) => next('router'));
 
 /**
  * @api {get} /v1/code/devices/:kind Get Device Manifest
@@ -591,7 +470,7 @@ v3.get('/schema-metadata/:schemas', (req, res, next) => {
  */
 v1.get('/code/devices/:kind', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getDeviceCode(req.params.kind).then((code) => {
+    errorWrap(req, res, next, client.getDeviceCode(req.params.kind, 'application/json').then((code) => {
         if (code.developer)
             res.cacheFor(3600000);
         else
@@ -609,6 +488,11 @@ v1.get('/code/devices/:kind', (req, res, next) => {
  * @apiDescription Retrieve the manifest associated with the named device.
  *   See the [Guide to writing Thingpedia Entries](../thingpedia-device-intro.md)
  *   for a complete description of the manifest format.
+
+ * This API performs content negotiation, based on the `Accept` header. If
+ * the `Accept` header is unset or set to `application/x-thingtalk`, then a ThingTalk
+ * dataset is returned. Otherwise, the accept header must be set to `application/json`,
+ * or a 405 Not Acceptable error occurs.
  *
  * @apiParam {String} kind The identifier of the device to retrieve
  * @apiParam {String} [developer_key] Developer key to use for this operation
@@ -621,13 +505,32 @@ v1.get('/code/devices/:kind', (req, res, next) => {
 // consistency with the other /devices end points
 v3.get('/code/devices/:kind', (req, res, next) => next('router'));
 v3.get('/devices/code/:kind', (req, res, next) => {
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    if (!accept) {
+        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        return;
+    }
+
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getDeviceCode(req.params.kind).then((code) => {
-        if (code.developer)
-            res.cacheFor(3600000);
-        else
-            res.cacheFor(86400000);
-        res.json({ result: 'ok', data: code });
+    errorWrap(req, res, next, client.getDeviceCode(req.params.kind, accept).then((code) => {
+        res.set('Vary', 'Accept');
+        if (typeof code === 'string') {
+            const match = /#\[version=([0-9]+)\]/.exec(code);
+            const version = match ? match[1] : -1;
+            if (version >= 0)
+                res.set('ETag', `W/"version=${version}"`);
+
+            res.cacheFor(86400);
+            res.set('Content-Type', 'application/x-thingtalk');
+            res.send(code);
+        } else {
+            const version = code.version;
+            if (version >= 0)
+                res.set('ETag', `W/"version=${version}"`);
+
+            res.cacheFor(86400);
+            res.json({ result: 'ok', data: code });
+        }
     }));
 });
 
@@ -736,9 +639,9 @@ v1.get('/devices/icon/:kind', (req, res) => {
 
     if (req.query.style && /^[0-9]+$/.test(req.query.style)
         && req.query.style >= 1 && req.query.style <= 8)
-       res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/style-' + req.query.style + '/' + req.params.kind + '.png');
+       res.redirect(301, Config.CDN_HOST + '/icons/style-' + req.query.style + '/' + req.params.kind + '.png');
     else
-       res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/' + req.params.kind + '.png');
+       res.redirect(301, Config.CDN_HOST + '/icons/' + req.params.kind + '.png');
 });
 
 function isValidDeviceClass(req, res) {
@@ -857,9 +760,9 @@ v1.get('/devices/all', (req, res, next) => {
         return;
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceList(req.query.class || null, page, page_size).then((obj) => {
+    client.getDeviceList(req.query.class || null, page, page_size).then((devices) => {
         res.cacheFor(86400000);
-        res.json(obj);
+        res.json({ devices });
     }).catch(next);
 });
 
@@ -907,7 +810,7 @@ v3.get('/devices/all', (req, res, next) => {
         return;
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    client.getDeviceList(req.query.class || null, page, page_size).then(({ devices }) => {
+    client.getDeviceList(req.query.class || null, page, page_size).then((devices) => {
         res.cacheFor(86400000);
         res.json({ result: 'ok', data: devices });
     }).catch(next);
@@ -1206,9 +1109,8 @@ v3.post('/devices/discovery', (req, res, next) => {
 v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var isBase = req.query.base !== '0';
 
-    client.getExamplesByKinds(kinds, isBase).then((result) => {
+    client.getExamplesByKinds(kinds, 'application/json;apiVersion=1').then((result) => {
         res.cacheFor(300000);
         res.status(200).json(result);
     }).catch(next);
@@ -1222,6 +1124,11 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
  *
  * @apiDescription Retrieve the example commands from the cheatsheet for
  *   the given devices.
+ *
+ * This API performs content negotiation, based on the `Accept` header. If
+ * the `Accept` header is unset or set to `application/x-thingtalk`, then a ThingTalk
+ * dataset is returned. Otherwise, the accept header must be set to `application/json`,
+ * or a 405 Not Acceptable error occurs.
  *
  * @apiParam {String[]} kinds Comma-separated list of device identifiers for which to return examples
  * @apiParam {String} [developer_key] Developer key to use for this operation
@@ -1257,11 +1164,19 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
 v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var isBase = req.query.base !== '0';
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    if (!accept) {
+        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        return;
+    }
 
-    client.getExamplesByKinds(kinds, isBase).then((result) => {
+    client.getExamplesByKinds(kinds, accept).then((result) => {
+        res.set('Vary', 'Accept');
         res.cacheFor(300000);
-        res.status(200).json({ result: 'ok', data: result });
+        if (typeof result === 'string')
+            res.status(200).set('content-type', 'application/x-thingtalk').send(result);
+        else
+            res.status(200).json({ result: 'ok', data: result });
     }).catch(next);
 });
 
@@ -1272,9 +1187,7 @@ v1.get('/examples', (req, res, next) => {
     }
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var isBase = req.query.base !== '0';
-
-    client.getExamplesByKey(req.query.key, isBase).then((result) => {
+    client.getExamplesByKey(req.query.key, 'application/json;apiVersion=1').then((result) => {
         res.cacheFor(300000);
         res.status(200).json(result);
     }).catch(next);
@@ -1288,6 +1201,11 @@ v1.get('/examples', (req, res, next) => {
  *
  * @apiDescription Search the example commands matching the given query
  *  string. Use this API endpoint to perform autocompletion and provide suggestions.
+ *
+ * This API performs content negotiation, based on the `Accept` header. If
+ * the `Accept` header is unset or set to `application/x-thingtalk`, then a ThingTalk
+ * dataset is returned. Otherwise, the accept header must be set to `application/json`,
+ * or a 405 Not Acceptable error occurs.
  *
  * @apiParam {String} q Query string
  * @apiParam {String} [developer_key] Developer key to use for this operation
@@ -1328,13 +1246,19 @@ v3.get('/examples/search', (req, res, next) => {
         res.status(400).json({ error: "missing query" });
         return;
     }
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    if (!accept) {
+        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        return;
+    }
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    var isBase = req.query.base !== '0';
-
-    client.getExamplesByKey(req.query.q, isBase).then((result) => {
+    client.getExamplesByKey(req.query.q, accept).then((result) => {
         res.cacheFor(300000);
-        res.status(200).json({ result: 'ok', data: result });
+        if (typeof result === 'string')
+            res.status(200).set('content-type', 'application/x-thingtalk').send(result);
+        else
+            res.status(200).json({ result: 'ok', data: result });
     }).catch(next);
 });
 
@@ -1708,6 +1632,11 @@ v3.get('/entities/icon', (req, res, next) => {
  *   from all the devices that were present in Thingpedia at the time of the
  *   given snapshot.
  *
+ *   This API performs content negotiation, based on the `Accept` header. If
+ *   the `Accept` header is unset or set to `application/x-thingtalk`, then a ThingTalk
+ *   meta file is returned. Otherwise, the accept header must be set to `application/json`,
+ *   or a 405 Not Acceptable error occurs.
+ *
  * @apiParam {Number} snapshot The numeric Thingpedia snapshot identifier. Use -1 to refer to
  *  the current contents of Thingpedia.
  * @apiParam {Number{0-1}} meta Include natural language metadata in the output
@@ -1734,7 +1663,8 @@ v3.get('/entities/icon', (req, res, next) => {
  * @apiSuccess {String[]} data.id.questions Slot-filling questions
  *
 **/
-v1.get('/snapshot/:id', (req, res, next) => {
+
+function getSnapshot(req, res, next, accept) {
     const getMeta = req.query.meta === '1';
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const snapshotId = parseInt(req.params.id);
@@ -1764,8 +1694,28 @@ v1.get('/snapshot/:id', (req, res, next) => {
         } else {
             res.cacheFor(3600000);
         }
-        res.status(200).json({ result: 'ok', data: rows });
+
+        if (accept === 'application/json') {
+            res.json({ result: 'ok', data: rows });
+        } else {
+            res.set('Content-Type', 'application/x-thingtalk');
+            res.send(SchemaUtils.schemaListToClassDefs(rows, getMeta).prettyprint());
+        }
     }).catch(next);
+}
+
+v1.get('/snapshot/:id', (req, res, next) => {
+    getSnapshot(req, res, next, 'application/json');
+});
+v3.get('/snapshot/:id', (req, res, next) => {
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    if (!accept) {
+        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        return;
+    }
+    res.set('Vary', 'Accept');
+
+    getSnapshot(req, res, next, accept);
 });
 
 // all endpoints that have not been overridden in v2 use the v1 version

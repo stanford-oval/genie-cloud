@@ -4,6 +4,7 @@ block scripts
   script(src='/javascripts/device.js')
 
 block styles
+  link(rel='stylesheet', href='/stylesheets/codemirror.css')
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
   link(rel='stylesheet', href='/stylesheets/thingpedia-cheatsheet.css')
 
@@ -19,8 +20,9 @@ block content
   if device.approved_version === null
     div.alert.alert-warning(role='alert')
       if user && (user.developer_status >= 3 || user.developer_status >=2 && user.developer_org === device.owner)
-        form(action='/thingpedia/devices/approve/' + device.id, method='post').form-inline
+        form(action='/thingpedia/devices/approve', method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=device.primary_kind)
           p.form-group= _("This device is not yet approved.")
             | &#x20;
             button(type='submit').btn.btn-success= _("Approve it")
@@ -33,8 +35,9 @@ block content
   else if device.approved_version !== device.developer_version && user && user.developer_status >= 3
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
-        form(action='/thingpedia/devices/approve/' + device.id, method='post').form-inline
+        form(action='/thingpedia/devices/approve', method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=device.primary_kind)
           p.form-group= _("A newer version of this device was submitted.")
             | &#x20;
             button(type='submit').btn.btn-success= _("Approve it")
@@ -89,7 +92,7 @@ block content
       
 
   aside#device-icon-large
-    img(src=S3_CLOUDFRONT_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
+    img(src=CDN_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
 
   p#device-description= device.description
 
@@ -103,183 +106,151 @@ block content
     p
       i= _("This is a builtin device in certain versions of Almond. It may not be available in the Almond you are using.")
 
-  h2.device-subtitle#device-version= _("Class: ")
-    code= '@' + device.primary_kind
-    if device.version !== device.approved_version && device.version !== device.developer_version
-      if device.approved_version === null
-        = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
-      else if device.approved_version !== device.developer_version
-        = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
+  if authenticated && user.developer_org !== null
+    h2.device-subtitle#device-version= _("Class: ")
+      a(href='/thingpedia/classes/by-id/' + device.primary_kind)= '@' + device.primary_kind
+      if device.version !== device.approved_version && device.version !== device.developer_version
+        if device.approved_version === null
+          = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
+        else if device.approved_version !== device.developer_version
+          = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
+        else
+          = _(", version %d; this version: %d").format(device.approved_version, device.version)
       else
-        = _(", version %d; this version: %d").format(device.approved_version, device.version)
-    else
-      if device.approved_version === null
-        = _(", version none (approved), %d (developer)").format(device.developer_version)
-      else if device.approved_version !== device.developer_version
-        = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
-      else
-        = _(", version %d").format(device.approved_version)
-    |
-    |
-    small
-      a(href='/thingpedia/schemas/by-id/' + device.primary_kind)= _("metadata details")
+        if device.approved_version === null
+          = _(", version none (approved), %d (developer)").format(device.developer_version)
+        else if device.approved_version !== device.developer_version
+          = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
+        else
+          = _(", version %d").format(device.approved_version)
 
-  h2.device-subtitle= _("Uploaded By: ")
+  p#device-uploaded-by= _("Uploaded By: ")
     if user && user.roles & 0x1
       a(href='/admin/organizations/details/' + device.owner)=device.owner_name
     else
       = device.owner_name
 
-  if device.types.length > 0
+  if classDef.extends !== null
     h2.device-subtitle= _("Extends: ")
-      for k in device.types
+      for k in classDef.extends
         = " "
-        a(href='/thingpedia/schemas/by-id/' + k)
-          span.label.label-default= k
+        a(href='/thingpedia/classes/by-id/' + k)
+          span.label.label-default= '@' + k
 
   div.clearfix
 
-  if device.child_types.length > 0
+  if classDef.annotations.child_types && classDef.annotations.child_types.value.length > 0
     h2.device-subtitle= _("Configures:")
     p.help-block= _("Configuring this device will also configure one or more of the following")
 
     ul.device-child-types
-      for k in device.child_types
+      for k in classDef.annotations.child_types.toJS()
         li
           if k.indexOf('.') >= 0
             a(href='/thingpedia/devices/by-id/' + k)
-              span= k
+              span= '@' + k
           else
-            a(href='/thingpedia/schemas/by-id/' + k)
-              span= k
-
-  -
-    function* split(pattern, regexp) {
-      // a split that preserves capturing parenthesis
-
-      let clone = new RegExp(regexp, 'g');
-      let match = clone.exec(pattern);
-
-      let i = 0;
-      while (match !== null) {
-        if (match.index > i)
-            yield pattern.substring(i, match.index);
-        yield match;
-        i = clone.lastIndex;
-        match = clone.exec(pattern);
-      }
-      if (i < pattern.length)
-        yield pattern.substring(i, pattern.length);
-    }
-    function clean(name) {
-      if (/^[vwgp]_/.test(name))
-        name = name.substr(2);
-      return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-    }
-    var PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
+            a(href='/thingpedia/classes/by-id/' + k)
+              span= '@' + k
 
   h2.device-subtitle= _("Commands")
-  if device.examples.length > 0
+  if examples.length > 0
     ul.device-examples
-      for e in device.examples
+      for e in examples
         li
           span(title=e.target_code)
-            if e.target_code.startsWith('let stream ')
+            if e.type === 'stream'
               span.trigger= _("WHEN: ")
-            else if e.target_code.startsWith('let table ')
+            else if e.type === 'query'
               span.query= _("GET: ")
-            else if e.target_code.startsWith('let action ')
+            else if e.type === 'action'
               span.action= _("DO: ")
-            - if (e.utterance.startsWith(',')) { e.utterance = e.utterance.substring(1).trim(); }
-            - for (var chunk of split(e.utterance, PARAM_REGEX))
+
+            for chunk in e.utterance_chunks
               if typeof chunk === 'string'
                  = chunk
               else
-                 - var [match, param1, param2, opt] = chunk;
+                 - let [match, param1, param2, opt] = chunk;
                  if match === '$$'
                    | $
                  else
                    | ____ #[small= '(' + clean(param1||param2) + ')']
   else
-    // this cannot really happen anymore, because we show commands of the child types too
+    //- this cannot really happen anymore, because we show commands of the child types too
     p#no-commands= _("This device has no commands of its own.")
 
   div.clearfix
 
   mixin invocation(inv, name, inv_type)
     li
-      code #{name}(
-        for a, i in inv.args
+      code.cm-s-default #[span.cm-variable= name](
+        for argname, i in inv.args
+          - let a = inv.getArgument(argname)
           if i !== 0
             br
-            span.indent= ' '.repeat(name.length+2)
-          if a.is_input
-            = 'in '
-            if a.required
-              = 'req '
+            span.indent= ' '.repeat(name.length+1)
+          span.cm-keyword
+            if a.is_input
+              = 'in '
+              if a.required
+                = 'req '
+              else
+                = 'opt '
             else
-              = 'opt '
-          else
-              = 'out '
-          |  #{a.name} : 
-          if a.type.startsWith('Entity(')
-            a(href=`/thingpedia/entities/by-id/${a.type.substring('Entity('.length, a.type.length-1)}`)= a.type
-          else if a.type.startsWith('Array(Entity(')
-            | Array(#[a(href=`/thingpedia/entities/by-id/${a.type.substring('Array(Entity('.length, a.type.length-2)}`)= a.type.substring('Array('.length, a.type.length-1)])
-          else
-            = a.type
+                = 'out '
+          |  #[span.cm-variable= a.name] :
+          span.cm-variable-3
+            if a.type.isEntity
+              a(href=`/thingpedia/entities/by-id/${a.type.type}`)= String(a.type)
+            else if a.type.isArray && a.type.elem.isEntity
+              | Array(#[a(href=`/thingpedia/entities/by-id/${a.type.elem.type}`)= String(a.type.elem)])
+            else
+              = String(a.type)
           if i !== inv.args.length-1
             = ', '
         = ')'
+      | #{inv.annotations.doc ? inv.annotations.doc.toJS() : ''}
       br
-      | #{inv.doc}
-      //-br
-      //-= _("Canonical: ")
-      //-span.canonical= inv.canonical
-      //-br
-      //-= _("Local Confirmation: ")
-      //-span.confirmation= inv.confirmation
-      //-br
-      //-= _("Remote Confirmation: ")
-      //-span.confirmation_remote= inv.confirmation_remote
-      //-if inv_type === 'query'
-        br
+      //-
         = _("Polling Interval: ")
-        span.poll_interval= inv.poll_interval === 0 ? _("Push-based") : (inv.poll_interval < 0 ? _("Non-deterministic") : _("%d ms").format(inv.poll_interval))
+        - let poll_interval = inv.annotations.poll_interval ? inv.annotations.poll_interval.toJS () : -1;
+        span.poll_interval= poll_interval === 0 ? _("Push-based") : (poll_interval < 0 ? _("Non-deterministic") : _("%d ms").format(poll_interval))
         br
         if inv.is_list
           = _("This function returns a list of results.")
         else
           = _("This function returns a single result.")
 
-  if Object.keys(queries).length > 0
+  if Object.keys(classDef.queries).length > 0
     h2.device-subtitle= _("Queries")
     ul.device-channels
-      for inv, name in queries
+      for inv, name in classDef.queries
         +invocation(inv, name, 'query')
 
-  if Object.keys(actions).length > 0
+  if Object.keys(classDef.actions).length > 0
     h2.device-subtitle= _("Actions")
     ul.device-channels
-      for inv, name in actions
+      for inv, name in classDef.actions
         +invocation(inv, name, 'action')
 
   div.row#device-details-actions
     if authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
       div.col-md-3
-        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.id)= _("Update")
+        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.primary_kind)= _("Update")
       if user.developer_status >= 2 && device.approved_version !== null
         div.col-md-3
-          form(action='/thingpedia/devices/unapprove/' + device.id, method='post').form-delete-device
+          form(action='/thingpedia/devices/unapprove', method='post').form-delete-device
             input(type='hidden',name='_csrf',value=csrfToken)
+            input(type='hidden',name='kind',value=device.primary_kind)
             button(type='submit').btn.btn-danger.btn-block= _("Remove from collection")
       div.col-md-3
-        form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
+        form(action='/thingpedia/devices/delete', method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=device.primary_kind)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
-    if device.module_type === 'org.thingpedia.v1' || device.module_type === 'org.thingpedia.v2'
+    if device.download_url
       div.col-md-3
-        a.btn.btn-default.btn-block(href=S3_CLOUDFRONT_HOST + '/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip')= _("Download code")
+        a.btn.btn-default.btn-block(href=device.download_url)= _("Download code")
     if authenticated && user.locale !== 'en-US'
         div.col-md-2
           a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind)= _("Translate")

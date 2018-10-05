@@ -24,37 +24,27 @@ function insertKinds(client, deviceId, extraKinds, extraChildKinds) {
                     [extraValues]);
 }
 
-function create(client, device, extraKinds, extraChildKinds, code) {
-    var KEYS = ['primary_kind', 'owner', 'name', 'description', 'fullcode', 'module_type',
-                'category', 'subcategory', 'approved_version', 'developer_version'];
-    KEYS.forEach((key) => {
-        if (device[key] === undefined)
-            device[key] = null;
-    });
-    var vals = KEYS.map((key) => device[key]);
-    var marks = KEYS.map(() => '?');
-
-    return db.insertOne(client, 'insert into device_class(' + KEYS.join(',') + ') '
-                        + 'values (' + marks.join(',') + ')', vals).then((id) => {
-        device.id = id;
-
-        return insertKinds(client, device.id, extraKinds, extraChildKinds);
-    }).then(() => {
-        return db.insertOne(client, 'insert into device_code_version(device_id, version, code) '
-                            + 'values(?, ?, ?)', [device.id, device.developer_version, code]);
-    }).then(() => device);
+async function create(client, device, extraKinds, extraChildKinds, versionedInfo) {
+    device.id = await db.insertOne(client, 'insert into device_class set ?', [device]);
+    versionedInfo.device_id = device.id;
+    versionedInfo.version = device.developer_version;
+    await Promise.all([
+        insertKinds(client, device.id, extraKinds, extraChildKinds),
+        db.insertOne(client, `insert into device_code_version set ?`, [versionedInfo])
+    ]);
+    return device;
 }
 
-function update(client, id, device, extraKinds, extraChildKinds, code) {
-    return db.query(client, "update device_class set ? where id = ?", [device, id]).then(() => {
-        return db.query(client, "delete from device_class_kind where device_id = ?", [id]);
-    }).then(() => {
-        return insertKinds(client, id, extraKinds, extraChildKinds);
-    }).then(() => {
-        return db.insertOne(client, 'insert into device_code_version(device_id, version, code) '
-                            + 'values(?, ?, ?)', [id, device.developer_version, code]);
-    })
-    .then(() => device);
+async function update(client, id, device, extraKinds, extraChildKinds, versionedInfo) {
+    await db.query(client, "update device_class set ? where id = ?", [device, id]);
+    await db.query(client, "delete from device_class_kind where device_id = ?", [id]);
+    versionedInfo.device_id = id;
+    versionedInfo.version = device.developer_version;
+    await Promise.all([
+        insertKinds(client, id, extraKinds, extraChildKinds),
+        db.insertOne(client, 'insert into device_code_version set ?', [versionedInfo])
+    ]);
+    return device;
 }
 
 module.exports = {
@@ -68,17 +58,17 @@ module.exports = {
 
     getFullCodeByPrimaryKind(client, kind, org) {
         if (org !== null && org.is_admin) {
-            return db.selectAll(client, "select fullcode, code, version, approved_version from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and dcv.version = d.developer_version", [kind]);
         } else if (org !== null) {
-            return db.selectAll(client, "select fullcode, code, version, approved_version from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and ((dcv.version = d.developer_version and d.owner = ?) "
                                 + "or (dcv.version = d.approved_version and d.owner <> ?))",
                                 [kind, org.id, org.id]);
         } else {
-            return db.selectAll(client, "select fullcode, code, version, approved_version from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and dcv.version = d.approved_version", [kind]);
         }
@@ -118,8 +108,8 @@ module.exports = {
     },
 
     getCodeByVersion(client, id, version) {
-        return db.selectOne(client, "select code,version from device_code_version where device_id = ? and version = ?",
-            [id, version]);
+        return db.selectOne(client, "select code from device_code_version where device_id = ? and version = ?",
+            [id, version]).then((row) => row.code);
     },
 
     getByPrimaryKind(client, kind) {
@@ -134,17 +124,17 @@ module.exports = {
 
     getByCategoryWithCode(client, category, org) {
         if (org !== null && org.is_admin) {
-            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and category = ? "
                 + "and d.developer_version = dcv.version order by name", [category]);
         } else if (org !== null) {
-            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) "
                 + "and category = ? order by name", [org.id, org.id, category]);
         } else {
-            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and category = ? order by name", [category]);
         }
@@ -152,17 +142,17 @@ module.exports = {
 
     getBySubcategoryWithCode(client, category, org) {
         if (org !== null && org.is_admin) {
-            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and subcategory = ? "
                 + "and d.developer_version = dcv.version order by name", [category]);
         } else if (org !== null) {
-            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) "
                 + "and subcategory = ? order by name", [org.id, org.id, category]);
         } else {
-            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
+            return db.selectAll(client, "select d.primary_kind, d.category, d.name, dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and subcategory = ? order by name", [category]);
         }
@@ -170,7 +160,7 @@ module.exports = {
 
     getAllApprovedWithCode(client, org, start, end) {
         if (org !== null && org.is_admin) {
-            const query = "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
+            const query = "select d.primary_kind, d.category, d.name, dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.developer_version order by d.name";
             if (start !== undefined && end !== undefined) {
@@ -180,7 +170,7 @@ module.exports = {
                 return db.selectAll(client, query, []);
             }
         } else if (org !== null) {
-            const query = "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
+            const query = "select d.primary_kind, d.category, d.name, dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) order by d.name";
@@ -191,7 +181,7 @@ module.exports = {
                 return db.selectAll(client, query, [org.id, org.id]);
             }
         } else {
-            const query = "select d.primary_kind, d.category, d.name, dcv.code from device_class d, "
+            const query = "select d.primary_kind, d.category, d.name, dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version order by d.name";
             if (start !== undefined && end !== undefined) {
@@ -256,6 +246,11 @@ module.exports = {
         }
     },
 
+    getDownloadVersion(client, kind) {
+        return db.selectAll(client, `select downloadable, owner, developer_version, approved_version from
+            device_class where kind = ?`, [kind]);
+    },
+
     getAllApproved(client, org, start, end) {
         if (org !== null && org.is_admin) {
             if (start !== undefined && end !== undefined) {
@@ -297,11 +292,11 @@ module.exports = {
         return db.query(client, "delete from device_class where id = ?", [id]);
     },
 
-    approve(client, id) {
-        return db.query(client, "update device_class set approved_version = developer_version where id = ?", [id]);
+    approve(client, kind) {
+        return db.query(client, "update device_class set approved_version = developer_version where primary_kind = ?", [kind]);
     },
-    unapprove(client, id) {
-        return db.query(client, "update device_class set approved_version = null where id = ?", [id]);
+    unapprove(client, kind) {
+        return db.query(client, "update device_class set approved_version = null where primary_kind = ?", [kind]);
     },
 
     getAll(client, start, end) {
@@ -364,13 +359,13 @@ module.exports = {
 
     getDevicesForSetup(client, names, org) {
         if (org !== null && org.is_admin) {
-            const query = "(select d.*, d.primary_kind as for_kind,dcv.code from device_class d, "
+            const query = "(select d.*, d.primary_kind as for_kind,dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.developer_version and "
-                + "d.primary_kind in (?)) union all (select d.*, dck.kind as for_kind,dcv.code from device_class d, "
+                + "d.primary_kind in (?)) union all (select d.*, dck.kind as for_kind,dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
                 + "dcv.version = d.developer_version and "
-                + "dck.kind in (?)) union all (select d.*, dck2.kind as for_kind,dcv.code from device_class d, "
+                + "dck.kind in (?)) union all (select d.*, dck2.kind as for_kind,dcv.code, dcv.factory from device_class d, "
                 + "device_class d2, device_class_kind dck2, "
                 + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
                 + "dcv.version = d.developer_version and "
@@ -378,15 +373,15 @@ module.exports = {
                 + "dck2.kind in (?))";
             return db.selectAll(client, query, [names, names, names]);
         } else if (org !== null) {
-            const query = "(select d.*, d.primary_kind as for_kind,dcv.code from device_class d, "
+            const query = "(select d.*, d.primary_kind as for_kind,dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) and "
-                + "d.primary_kind in (?)) union all (select d.*, dck.kind as for_kind,dcv.code from device_class d, "
+                + "d.primary_kind in (?)) union all (select d.*, dck.kind as for_kind,dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
                 + " (dcv.version = d.approved_version and d.owner <> ?)) and "
-                + "dck.kind in (?)) union all (select d.*, dck2.kind as for_kind,dcv.code from device_class d, "
+                + "dck.kind in (?)) union all (select d.*, dck2.kind as for_kind,dcv.code, dcv.factory from device_class d, "
                 + "device_class d2, device_class_kind dck2, "
                 + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
                 + "((dcv.version = d.developer_version and d.owner = ?) or "
@@ -395,13 +390,13 @@ module.exports = {
                 + "dck2.kind in (?))";
             return db.selectAll(client, query, [org.id, org.id, names, org.id, org.id, names, org.id, org.id, names]);
         } else {
-            const query = "(select d.*, d.primary_kind as for_kind,dcv.code from device_class d, "
+            const query = "(select d.*, d.primary_kind as for_kind,dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv where d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and "
-                + "d.primary_kind in (?)) union all (select d.*, dck.kind as for_kind,dcv.code from device_class d, "
+                + "d.primary_kind in (?)) union all (select d.*, dck.kind as for_kind,dcv.code, dcv.factory from device_class d, "
                 + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and "
-                + "dck.kind in (?)) union all (select d.*, dck2.kind as for_kind,dcv.code from device_class d, "
+                + "dck.kind in (?)) union all (select d.*, dck2.kind as for_kind,dcv.code, dcv.factory from device_class d, "
                 + "device_class d2, device_class_kind dck2, "
                 + "device_code_version dcv, device_class_kind dck where dck.device_id = d.id and d.id = dcv.device_id and "
                 + "dcv.version = d.approved_version and "

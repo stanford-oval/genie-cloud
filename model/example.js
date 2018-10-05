@@ -15,7 +15,7 @@ function createMany(client, examples) {
     if (examples.length === 0)
         return Promise.resolve();
 
-    const KEYS = ['schema_id', 'is_base', 'language', 'utterance', 'preprocessed', 'target_json', 'target_code', 'type', 'click_count'];
+    const KEYS = ['id', 'schema_id', 'is_base', 'language', 'utterance', 'preprocessed', 'target_json', 'target_code', 'type', 'click_count'];
     const arrays = [];
     examples.forEach((ex) => {
         if (!ex.type)
@@ -73,9 +73,11 @@ module.exports = {
             order by click_count desc`, [language, `%${query}%`, `%${query}%`]);
     },
 
-    getBaseByLanguage(client, language) {
-        return db.selectAll(client, "select * from example_utterances where is_base and type = 'thingpedia' and "
-            + " language = ? order by click_count desc, id asc",
+    getCheatsheet(client, language) {
+        return db.selectAll(client, `select eu.id,eu.utterance,eu.target_code,ds.kind
+            from example_utterances eu, device_schema ds where eu.schema_id = ds.id and
+            eu.is_base = 1 and eu.type = 'thingpedia' and language = ? and ds.approved_version is not null
+            order by click_count desc, id asc`,
             [language]);
     },
 
@@ -199,6 +201,12 @@ module.exports = {
 
     createMany,
     create,
+
+    deleteMany(client, ids) {
+        if (ids.length === 0)
+            return Promise.resolve();
+        return db.query(client, "delete from example_utterances where id in (?)", [ids]);
+    },
 
     deleteBySchema(client, schemaId, language) {
         return db.query(client, "delete from example_utterances where schema_id = ? and language = ?",

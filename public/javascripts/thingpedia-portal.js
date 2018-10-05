@@ -1,6 +1,6 @@
 "use strict";
 $(function() {
-    var S3_CLOUDFRONT_HOST = $('body').attr('data-icon-cdn');
+    var CDN_HOST = $('body').attr('data-icon-cdn');
     var developerKey = $('body').attr('data-developer-key') || '';
     var page = 0;
     var insearch = false;
@@ -31,7 +31,7 @@ $(function() {
             var panelBody = $('<div>').addClass('panel-body');
             var deviceIconContainer = $('<p>').addClass('device-icon-small');
             var deviceIcon = $('<img>');
-            deviceIcon.attr('src', S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png')
+            deviceIcon.attr('src', CDN_HOST + '/icons/' + dev.primary_kind + '.png')
                 .attr("Icon for " + dev.name);
             deviceIconContainer.append(deviceIcon);
             panelBody.append(deviceIconContainer);

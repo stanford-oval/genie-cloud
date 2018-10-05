@@ -15,9 +15,12 @@ const db = require('../util/db');
 const user = require('../util/user');
 const model = require('../model/schema');
 const exampleModel = require('../model/example');
-const entityModel = require('../model/entity');
+
 const Validation = require('../util/validation');
-const ManifestToSchema = require('../util/manifest_to_schema');
+const Importer = require('../util/import_device');
+const SchemaUtils = require('../util/manifest_to_schema');
+const DatasetUtils = require('../util/dataset');
+const I18n = require('../util/i18n');
 
 var router = express.Router();
 
@@ -25,7 +28,7 @@ router.get('/', (req, res, next) => {
     db.withClient((dbClient) => {
         return model.getAllForList(dbClient);
     }).then((rows) => {
-        res.render('thingpedia_schema_list', { page_title: req._("Thingpedia - Supported Types"),
+        res.render('thingpedia_schema_list', { page_title: req._("Thingpedia - List of All Classes"),
                                                schemas: rows });
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
@@ -33,347 +36,204 @@ router.get('/', (req, res, next) => {
     }).catch(next);
 });
 
-function localeToLanguage(locale) {
-    // only keep the language part of the locale, we don't
-    // yet distinguish en_US from en_GB
-    return (locale || 'en').split(/[-_@.]/)[0];
+function getOrgId(req) {
+    if (!req.user)
+        return null;
+    if (req.user.developer_status >= user.DeveloperStatus.ADMIN)
+        return -1;
+    else
+        return req.user.developer_org;
 }
 
-router.get('/by-id/:kind', (req, res) => {
-    const language = req.query.language || (req.user ? localeToLanguage(req.user.locale) : 'en');
-    db.withClient((dbClient) => {
-        return model.getMetasByKinds(dbClient, [req.params.kind], req.user ? (req.user.developer_status >= 3 ? -1 : req.user.developer_org) : null, language).then((rows) => {
-            if (rows.length === 0) {
-                res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
-                                                  message: req._("Not Found.") });
-                return null;
-            }
-
-            return rows[0];
-        }).then((row) => {
-            if (row === null)
-                return null;
-            return exampleModel.getBaseBySchema(dbClient, row.id, language).then((examples) => {
-                row.examples = examples;
-                return row;
-            });
-        }).then((row) => {
-            if (row === null)
-                return null;
-            if (language === 'en') {
-                row.translated = true;
-                return row;
-            }
-            return model.isKindTranslated(dbClient, row.kind, language).then((t) => {
-                row.translated = t;
-                return row;
-            });
-        });
-    }).then((row) => {
-        if (row === null)
+router.get('/by-id/:kind', (req, res, next) => {
+    const language = req.query.language || (req.user ? I18n.localeToLanguage(req.user.locale) : 'en');
+    db.withClient(async (dbClient) => {
+        const rows = await model.getMetasByKinds(dbClient, [req.params.kind], getOrgId(req), language);
+        if (rows.length === 0) {
+            res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
+                                              message: req._("Not Found.") });
             return;
+        }
+        const row = rows[0];
+
+        let [translated, examples] = await Promise.all([
+            language === 'en' ? true : model.isKindTranslated(dbClient, req.params.kind, language),
+            exampleModel.getByKinds(dbClient, [req.params.kind], getOrgId(req), language),
+        ]);
+        row.translated = translated;
+
+        row.code = SchemaUtils.schemaListToClassDefs(rows, true).prettyprint();
+        row.dataset = DatasetUtils.examplesToDataset(req.params.kind, 'en', examples,
+                                                       { editMode: true });
 
         res.render('thingpedia_schema', { page_title: req._("Thingpedia - Type detail"),
                                           csrfToken: req.csrfToken(),
-                                          schema: row,
-                                          triggers: row.triggers,
-                                          actions: row.actions,
-                                          queries: row.queries });
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+                                          schema: row });
+    }).catch(next);
 });
 
-router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
-    db.withTransaction((dbClient) => {
-        return model.get(dbClient, req.params.id).then((schema) => {
-            if (schema.kind_type !== 'other')
-                throw new Error(req._("This schema is associated with a device or app and should not be manipulated directly"));
-            return model.approve(dbClient, req.params.id).then(() => {
-                res.redirect(303, '/thingpedia/schemas/by-id/' + schema.kind);
-            });
-        });
+router.post('/approve', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+    db.withTransaction(async (dbClient) => {
+        const schema = await model.getByKind(dbClient, req.body.kind);
+        if (schema.kind_type !== 'other')
+            throw new Error(req._("This schema is associated with a device or app and should not be manipulated directly"));
+        await model.approve(dbClient, schema.id);
+    }).then(() => {
+        res.redirect(303, '/thingpedia/classes/by-id/' + req.body.kind);
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
 
-router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  (req, res) => {
-    db.withTransaction((dbClient) => {
-        return model.get(dbClient, req.params.id).then((row) => {
-            if (row.kind_type !== 'other')
-                throw new Error(req._("This schema is associated with a device or app and should not be manipulated directly"));
-            if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
-                res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
-                                                  message: req._("Not Authorized") });
-                return Promise.resolve();
-            }
+router.post('/delete', user.requireLogIn, user.requireDeveloper(),  (req, res) => {
+    db.withTransaction(async (dbClient) => {
+        const row = await model.getByKind(dbClient, req.body.kind);
+        if (row.owner !== req.user.developer_org &&
+            req.user.developer < user.DeveloperStatus.ADMIN) {
+            // note that this must be exactly the same error used by util/db.js
+            // so that a true not found is indistinguishable from not having permission
+            const err = new Error("Not Found");
+            err.code = 'ENOENT';
+            throw err;
+        }
+        if (row.kind_type !== 'other')
+            throw new Error(req._("This schema is associated with a device or app and should not be manipulated directly"));
 
-            return model.delete(dbClient, req.params.id).then(() => {
-                res.redirect(303, '/thingpedia/devices');
-            });
-        });
+        return model.delete(dbClient, row.id);
+    }).then(() => {
+        res.redirect(303, '/thingpedia/devices');
     }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+        if (e.code === 'ENOENT')
+            res.status(404);
+        else
+            res.status(400);
+        res.render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e.message });
     }).done();
 });
 
 // only allow admins to deal with global schemas for now...
 router.get('/create', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
-    res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Create new Type"),
+    res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Create New Class"),
                                            create: true,
-                                           csrfToken: req.csrfToken(),
                                            schema: { kind: '',
-                                                     code: JSON.stringify({
-                                                         actions: {},
-                                                         queries: {}
-                                          })}});
+                                                     code: '',
+                                                     dataset: '' }
+                                          });
 });
 
-function validateSchema(dbClient, req) {
-    var code = req.body.code;
-    var kind = req.body.kind;
+function doCreateOrUpdate(kind, create, req, res) {
+    if (!create)
+        req.body.kind = kind;
+    const approve = req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER &&
+        !!req.body.approve;
 
-    if (!code || !kind)
-        throw new Error(req._("Not all required fields were presents"));
+    return db.withTransaction(async (dbClient) => {
+        let classDef;
+        let dataset;
+        let old = null;
+        try {
+            [classDef, dataset] = await Validation.validateSchema(dbClient, req, req.body,
+                                                                  req.body.code, req.body.dataset);
 
-    var ast = JSON.parse(code);
-    return Validation.validateAllInvocations(kind, ast).then((entities) => {
-        return entityModel.checkAllExist(dbClient, Array.from(entities));
-    }).then(() => ast);
-}
-
-function ensureExamples(dbClient, schemaId, ast) {
-    return exampleModel.deleteBySchema(dbClient, schemaId, 'en').then(() => {
-        return Validation.tokenizeAllExamples('en', ast.examples);
-    }).then((examples) => {
-        return exampleModel.createMany(dbClient, examples.map((ex) => {
-            return ({
-                schema_id: schemaId,
-                utterance: ex.utterance,
-                preprocessed: ex.preprocessed,
-                target_code: ex.program,
-                target_json: '', // FIXME
-                type: 'thingpedia',
-                language: 'en',
-                is_base: 1
-            });
-        }));
-    });
-}
-
-function findInvocation(ex) {
-    const REGEXP = /^(?:tt:)?(\$?[a-z0-9A-Z_.-]+)\.([a-z0-9A-Z_]+)$/;
-    var parsed = JSON.parse(ex.target_json);
-    if (parsed.action)
-        return ['actions', REGEXP.exec(parsed.action.name.id)];
-    else if (parsed.trigger)
-        return ['triggers', REGEXP.exec(parsed.trigger.name.id)];
-    else if (parsed.query)
-       return ['queries', REGEXP.exec(parsed.query.name.id)];
-    else
-        return null;
-}
-
-const PARAM_REGEX = /\$(?:([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
-
-function legacyCreateExample(utterance, kind, function_name, function_type, function_obj) {
-    let inargmap = {};
-    let outargmap = {};
-    for (let arg of function_obj.args) {
-        if (arg.is_input)
-            inargmap[arg.name] = arg.type;
-        else
-            outargmap[arg.name] = arg.type;
-    }
-
-    let regexp = new RegExp(PARAM_REGEX, 'g');
-
-    let in_args = '';
-    let filter = '';
-    let arg_decl = '';
-    let any_arg = false;
-    let any_in_arg = false;
-    let any_out_arg = false;
-
-    let match = regexp.exec(utterance);
-    while (match !== null) {
-        let [, param1, param2, /*option*/] = match;
-        let param = param1 || param2;
-
-        if (param in inargmap) {
-            let type = inargmap[param];
-            if (any_in_arg)
-                in_args += ', ';
-            if (any_arg)
-                arg_decl += ', ';
-            in_args += `${param}=p_${param}`;
-            arg_decl += `p_${param} :${type}`;
-            any_in_arg = true;
-            any_arg = true;
-        } else {
-            let type = outargmap[param];
-            if (any_out_arg)
-                filter += ' && ';
-            if (any_arg)
-                arg_decl += ', ';
-            filter += `${param} == p_${param}`;
-            arg_decl += `p_${param} :${type}`;
-            any_out_arg = true;
-            any_arg = true;
+            if (!create) {
+                try {
+                    old = await model.getByKind(dbClient, kind);
+                } catch(e) {
+                    throw new Error(req._("Existing device not found"));
+                }
+                if (old.owner !== req.user.developer_org &&
+                    req.user.developer_status < user.DeveloperStatus.ADMIN)
+                    throw new Error(req._("Existing device not found"));
+            }
+        } catch(e) {
+            console.error(e.stack);
+            res.render('thingpedia_schema_edit', { page_title:
+                                                   (create ?
+                                                    req._("Thingpedia - Create New Class") :
+                                                    req._("Thingpedia - Edit Class")),
+                                                   error: e,
+                                                   schema: { kind: kind,
+                                                             code: req.body.code,
+                                                             dataset: req.body.dataset },
+                                                   create: create });
+            return;
         }
 
-        match = regexp.exec(utterance);
-    }
+        kind = classDef.kind;
+        const metas = SchemaUtils.classDefToSchema(classDef);
+        const obj = {
+            kind: kind,
+            kind_canonical: Validation.cleanKind(kind),
+        };
 
-    let result = `@${kind}.${function_name}(${in_args})`;
-    if (filter !== '')
-        result += `, ${filter}`;
-    if (function_type === 'triggers')
-        result = `let stream x := \\(${arg_decl}) -> monitor ${result};`;
-    else if (function_type === 'queries')
-        result = `let table x := \\(${arg_decl}) -> ${result};`;
-    else
-        result = `let action x := \\(${arg_decl}) -> ${result};`;
-    return { utterance: utterance, program: result };
-}
+        if (create) {
+            obj.kind_type = 'other';
+            obj.owner = req.user.developer_org;
+            obj.developer_version = 0;
+            if (approve)
+                obj.approved_version = 0;
+            else
+                obj.approved_version = null;
+            await model.create(dbClient, obj, metas);
+        } else {
+            obj.developer_version = old.developer_version + 1;
+            if (approve)
+                obj.approved_version = obj.developer_version;
 
-function migrateManifest(ast, examples, kind) {
-    ast.examples = examples.map((ex) => {
-        if (ex.target_code)
-            return { utterance: ex.utterance, program: ex.target_code };
+            await model.update(dbClient, old.id, obj.kind, obj, metas);
+        }
 
-        let [function_type, [,,function_name]] = findInvocation(ex);
-        return legacyCreateExample(ex.utterance, kind, function_name, function_type, ast[function_type][function_name]);
-    });
-}
-
-function doCreateOrUpdate(id, create, req, res) {
-    var code = req.body.code;
-    var kind = req.body.kind;
-    var approve = !!req.body.approve;
-
-    var gAst = undefined;
-
-    Promise.resolve().then(() => {
-        return db.withTransaction((dbClient) => {
-            return Promise.resolve().then(() => {
-                return validateSchema(dbClient, req);
-            }).catch((e) => {
-                console.error(e.stack);
-                res.render('thingpedia_schema_edit', { page_title:
-                                                       (create ?
-                                                        req._("Thingpedia - Create new Type") :
-                                                        req._("Thingpedia - Edit Type")),
-                                                       csrfToken: req.csrfToken(),
-                                                       error: e,
-                                                       id: id,
-                                                       schema: { kind: kind,
-                                                                 code: code },
-                                                       create: create });
-                return null;
-            }).then((ast) => {
-                if (ast === null)
-                    return null;
-
-                gAst = ast;
-                const metas = ManifestToSchema.toSchema(ast);
-                const obj = {
-                    kind: kind,
-                    kind_canonical: Validation.cleanKind(kind),
-                };
-
-                if (create) {
-                    obj.kind_type = 'other';
-                    obj.owner = req.user.developer_org;
-                    if (req.user.developer_status < user.DeveloperStatus.TRUSTED_DEVELOPER ||
-                        !approve) {
-                        obj.approved_version = null;
-                        obj.developer_version = 0;
-                    } else {
-                        obj.approved_version = 0;
-                        obj.developer_version = 0;
-                    }
-                    return model.create(dbClient, obj, metas);
-                } else {
-                    return model.get(dbClient, id).then((old) => {
-                        if (old.owner !== req.user.developer_org &&
-                            req.user.developer_status < user.DeveloperStatus.ADMIN)
-                            throw new Error(req._("Not Authorized"));
-                        if (old.kind_type !== 'other')
-                            throw new Error(req._("Only non-device specific types can be modified from this page. Upload a new interface package to modify a device type"));
-
-                        obj.developer_version = old.developer_version + 1;
-                        if (req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER &&
-                            approve)
-                            obj.approved_version = obj.developer_version;
-
-                        return model.update(dbClient, id, obj.kind, obj, metas);
-                    });
-                }
-            }).then((obj) => {
-                if (obj === null)
-                    return null;
-
-                return ensureExamples(dbClient, obj.id, gAst).then(() => obj);
-            }).then((obj) => {
-                if (obj === null)
-                    return;
-
-                res.redirect('/thingpedia/schemas/by-id/' + obj.kind);
-            });
-        });
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
+        await Importer.ensureDataset(dbClient, obj.id, dataset);
+        res.redirect('/thingpedia/classes/by-id/' + obj.kind);
     });
 }
 
 // restrict generic type creation to admins
-router.post('/create', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
-    doCreateOrUpdate(undefined, true, req, res);
+router.post('/create', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res, next) => {
+    doCreateOrUpdate(undefined, true, req, res).catch(next);
 });
 
-router.get('/update/:id', user.redirectLogIn, user.requireDeveloper(), (req, res) => {
-    Promise.resolve().then(() => {
-        return db.withClient((dbClient) => {
-            return model.get(dbClient, req.params.id).then((d) => {
-                if (d.owner !== req.user.developer_org &&
-                    req.user.developer < user.DeveloperStatus.ADMIN)
-                    throw new Error(req._("Not Authorized"));
-                if (d.kind_type !== 'other')
-                    throw new Error(req._("Only non-device and non-app specific types can be modified from this page. Upload a new interface package to modify a device type"));
+router.get('/update/:kind', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
+    db.withClient(async (dbClient) => {
+        const schema = await model.getByKind(dbClient, req.params.kind);
+        if (schema.owner !== req.user.developer_org &&
+            req.user.developer < user.DeveloperStatus.ADMIN) {
+            // note that this must be exactly the same error used by util/db.js
+            // so that a true not found is indistinguishable from not having permission
+            const err = new Error("Not Found");
+            err.code = 'ENOENT';
+            throw err;
+        }
+        if (schema.kind_type !== 'other')
+            throw new Error(req._("Only non-device and non-app specific types can be modified from this page. Upload a new interface package to modify a device type"));
 
-                return Promise.all([
-                    d,
-                    model.getMetasByKindAtVersion(dbClient, d.kind, d.developer_version, 'en'),
-                    exampleModel.getBaseBySchema(dbClient, req.params.id, 'en')
-                ]);
-            });
-        }).then(([d, [meta], examples]) => {
-            const ast = ManifestToSchema.toManifest(meta);
-            migrateManifest(ast, examples, d.kind);
+        const [meta, examples] = await Promise.all([
+            model.getMetasByKindAtVersion(dbClient, schema.kind, schema.developer_version, 'en'),
+            exampleModel.getBaseBySchemaKind(dbClient, req.params.kind, 'en')
+        ]);
 
-            d.code = JSON.stringify(ast);
-            res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Edit type"),
-                                                   csrfToken: req.csrfToken(),
-                                                   id: req.params.id,
-                                                   schema: d,
-                                                   create: false });
-        });
+        schema.code = SchemaUtils.schemaListToClassDefs(meta, true).prettyprint();
+        schema.dataset = DatasetUtils.examplesToDataset(req.params.kind, 'en', examples,
+                                                       { editMode: true });
+
+        res.render('thingpedia_schema_edit', { page_title: req._("Thingpedia - Edit type"),
+                                               id: req.params.id,
+                                               schema: schema,
+                                               create: false });
     }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    });
+        if (e.code === 'ENOENT')
+            res.status(404);
+        else
+            res.status(400);
+        res.render('error', { page_title: req._("Thingpedia - Error"),
+                              message: e });
+    }).catch(next);
 });
 
-router.post('/update/:id', user.requireLogIn, user.requireDeveloper(), (req, res) => {
-    doCreateOrUpdate(req.params.id, false, req, res);
+router.post('/update/:kind', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
+    doCreateOrUpdate(req.params.kind, false, req, res).catch(next);
 });
 
 module.exports = router;

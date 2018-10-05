@@ -15,16 +15,29 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 const assert = require('assert');
 const Tp = require('thingpedia');
+const ThingTalk = require('thingtalk');
 
 const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 assert.strictEqual(Config.THINGPEDIA_URL, '/thingpedia');
 
+/*function toCharArray(str) {
+    const array = new Array(str.length);
+    for (let i = 0; i < str.length; i++)
+        array[i] = str.charCodeAt(i);
+    return array;
+}*/
+
 const THINGPEDIA_URL = 'http://127.0.0.1:8080/thingpedia/api/v3';
 async function request(url) {
-    const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url);
+    const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url, { accept: 'application/json' });
     //console.log(result);
     return JSON.parse(result);
+}
+async function ttRequest(url) {
+    const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url, { accept: 'application/x-thingtalk' });
+    //console.log(result);
+    return result;
 }
 
 const BING_SCHEMA = {
@@ -99,6 +112,78 @@ const BING_METADATA = {
     }
 };
 
+const BING_CLASS = `class @com.bing {
+  monitorable list query image_search(in req query: String,
+                                      out title: String,
+                                      out picture_url: Entity(tt:picture),
+                                      out link: Entity(tt:url),
+                                      out width: Number,
+                                      out height: Number);
+
+  monitorable list query web_search(in req query: String,
+                                    out title: String,
+                                    out description: String,
+                                    out link: Entity(tt:url));
+}
+`;
+const BING_CLASS_WITH_METADATA = `class @com.bing {
+  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
+                                      out title: String #_[canonical="title"],
+                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                      out link: Entity(tt:url) #_[canonical="link"],
+                                      out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
+                                      out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
+  #_[canonical="image search on bing"]
+  #_[confirmation="images matching $query from Bing"];
+
+  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
+                                    out title: String #_[canonical="title"],
+                                    out description: String #_[canonical="description"],
+                                    out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="web search on bing"]
+  #_[confirmation="websites matching $query on Bing"];
+}
+`;
+const BING_CLASS_FULL = `class @com.bing
+#[version=0] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
+                                    out title: String #_[canonical="title"],
+                                    out description: String #_[canonical="description"],
+                                    out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="web search on bing"]
+  #_[confirmation="websites matching $query on Bing"]
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
+  #[poll_interval=3600000ms]
+  #[doc="search for ${'`query`'} on Bing"];
+
+  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
+                                      out title: String #_[canonical="title"],
+                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                      out link: Entity(tt:url) #_[canonical="link"],
+                                      out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
+                                      out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
+  #_[canonical="image search on bing"]
+  #_[confirmation="images matching $query from Bing"]
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
+  #[poll_interval=3600000ms]
+  #[doc="search for ${'`query`'} on Bing Images"];
+}
+`;
+
+const INVISIBLE_CLASS = `class @org.thingpedia.builtin.test.invisible {
+  action eat_data(in req data: String);
+}
+`;
+const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisible {
+  action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
+  #_[canonical="eat data on test"]
+  #_[confirmation="consume $data"];
+}
+`;
+
 async function testGetSchemas() {
     assert.deepStrictEqual(await request('/schema/com.bing'), {
         result: 'ok',
@@ -106,6 +191,7 @@ async function testGetSchemas() {
             'com.bing': BING_SCHEMA
         }
     });
+    assert.deepStrictEqual(await ttRequest('/schema/com.bing'), BING_CLASS);
 
     assert.deepStrictEqual(await request('/schema/com.bing,org.thingpedia.builtin.test.nonexistent'), {
         result: 'ok',
@@ -113,6 +199,7 @@ async function testGetSchemas() {
             'com.bing': BING_SCHEMA
         }
     });
+    assert.deepStrictEqual(await ttRequest('/schema/com.bing,org.thingpedia.builtin.test.nonexistent'), BING_CLASS);
 
     assert.deepStrictEqual(await request('/schema/com.bing,org.thingpedia.builtin.test.invisible'), {
         result: 'ok',
@@ -120,6 +207,7 @@ async function testGetSchemas() {
             'com.bing': BING_SCHEMA
         }
     });
+    assert.deepStrictEqual(await ttRequest('/schema/com.bing,org.thingpedia.builtin.test.invisible'), BING_CLASS);
 
     assert.deepStrictEqual(await request(
         `/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
@@ -143,6 +231,9 @@ async function testGetSchemas() {
             }
         }
     });
+    assert.deepStrictEqual(await ttRequest(
+        `/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
+        BING_CLASS + INVISIBLE_CLASS);
 
     assert.deepStrictEqual(await request(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
@@ -151,32 +242,40 @@ async function testGetSchemas() {
             'com.bing': BING_SCHEMA
         }
     });
+    assert.deepStrictEqual(await ttRequest(
+        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`),
+        BING_CLASS);
 }
 
 async function testGetMetadata() {
-    assert.deepStrictEqual(await request('/schema-metadata/com.bing'), {
+    assert.deepStrictEqual(await request('/schema/com.bing?meta=1'), {
         result: 'ok',
         data: {
             'com.bing': BING_METADATA
         }
     });
+    assert.deepStrictEqual(await ttRequest('/schema/com.bing?meta=1'), BING_CLASS_WITH_METADATA);
 
-    assert.deepStrictEqual(await request('/schema-metadata/com.bing,org.thingpedia.builtin.test.nonexistent'), {
+    assert.deepStrictEqual(await request('/schema/com.bing,org.thingpedia.builtin.test.nonexistent?meta=1'), {
         result: 'ok',
         data: {
             'com.bing': BING_METADATA
         }
     });
+    assert.deepStrictEqual(await ttRequest('/schema/com.bing,org.thingpedia.builtin.test.nonexistent?meta=1'),
+        BING_CLASS_WITH_METADATA);
 
-    assert.deepStrictEqual(await request('/schema-metadata/com.bing,org.thingpedia.builtin.test.invisible'), {
+    assert.deepStrictEqual(await request('/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1'), {
         result: 'ok',
         data: {
             'com.bing': BING_METADATA
         }
     });
+    assert.deepStrictEqual(await ttRequest('/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1'),
+        BING_CLASS_WITH_METADATA);
 
     assert.deepStrictEqual(await request(
-        `/schema-metadata/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`), {
+        `/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1&developer_key=${process.env.DEVELOPER_KEY}`), {
         result: 'ok',
         data: {
             'com.bing': BING_METADATA,
@@ -204,13 +303,21 @@ async function testGetMetadata() {
         }
     });
 
+    assert.deepStrictEqual(await ttRequest(
+        `/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1&developer_key=${process.env.DEVELOPER_KEY}`),
+        BING_CLASS_WITH_METADATA + INVISIBLE_CLASS_WITH_METADATA);
+
     assert.deepStrictEqual(await request(
-        `/schema-metadata/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
+        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.DEVELOPER_KEY}`), {
         result: 'ok',
         data: {
             'com.bing': BING_METADATA
         }
     });
+
+    assert.deepStrictEqual(await ttRequest(
+        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.DEVELOPER_KEY}`),
+        BING_CLASS_WITH_METADATA);
 }
 
 function checkExamples(generated, expected) {
@@ -230,8 +337,9 @@ function checkExamples(generated, expected) {
         uniqueIds.add(gen.id);
 
         delete gen.id;
-        assert.deepStrictEqual(gen.target_code,
-            expectMap.get(gen.utterance).program);
+        //assert.deepStrictEqual(gen.target_code,
+        //    expectMap.get(gen.utterance).program);
+        ThingTalk.Grammar.parse(gen.target_code);
 
         assert.strictEqual(typeof gen.preprocessed, 'string');
         assert.strictEqual(typeof gen.click_count, 'number');
@@ -252,11 +360,13 @@ function checkExamplesByKey(generated, key) {
         assert.strictEqual(typeof gen.preprocessed, 'string');
         assert.strictEqual(typeof gen.utterance, 'string');
         assert.strictEqual(typeof gen.target_code, 'string');
+        ThingTalk.Grammar.parse(gen.target_code);
         assert.strictEqual(typeof gen.click_count, 'number');
         assert(gen.click_count >= 0);
     }
 }
 
+const TEST_EXAMPLES = { result: 'ok', data: require('./data/test-examples-v3.json') };
 
 async function testGetExamplesByDevice() {
     // mind the . vs .. here: there's two different data/ folders
@@ -282,6 +392,31 @@ async function testGetExamplesByDevice() {
         INVISIBLE_EXAMPLES);
 
     checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), []);
+
+    assert.deepStrictEqual(await request('/examples/by-kinds/org.thingpedia.builtin.test'), TEST_EXAMPLES);
+
+    assert.deepStrictEqual((await ttRequest('/examples/by-kinds/org.thingpedia.builtin.test')).trim(), `dataset @org.thingpedia.dynamic.by_kinds.org_thingpedia_builtin_test language "en" {
+    action  := @org.thingpedia.builtin.test.eat_data()
+    #_[utterances=["eat some data"]]
+    #_[preprocessed=["eat some data"]]
+    #[id=1000] #[click_count=0];
+    query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
+    #_[utterances=["get some data"]]
+    #_[preprocessed=["get some data"]]
+    #[id=1001] #[click_count=7];
+    program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
+    #_[utterances=["keep eating data!","keep eating data! (v2)"]]
+    #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
+    #[id=1002] #[click_count=0];
+    action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
+    #_[utterances=["more data eating..."]]
+    #_[preprocessed=["more data eating ..."]]
+    #[id=1004] #[click_count=0];
+    query  := @org.thingpedia.builtin.test.get_data()
+    #_[utterances=["more data genning..."]]
+    #_[preprocessed=["more data genning ..."]]
+    #[id=1005] #[click_count=0];
+}`);
 }
 
 async function testGetExamplesByKey() {
@@ -297,6 +432,31 @@ async function testGetExamplesByKey() {
     checkExamples(await request('/examples/search?q=invisible'), []);
     checkExamples(await request(`/examples/search?q=invisible&developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
+
+    assert.deepStrictEqual(await request('/examples/search?q=data'), TEST_EXAMPLES);
+
+    assert.deepStrictEqual(await ttRequest('/examples/search?q=data'), `dataset @org.thingpedia.dynamic.by_key.data language "en" {
+    action  := @org.thingpedia.builtin.test.eat_data()
+    #_[utterances=["eat some data"]]
+    #_[preprocessed=["eat some data"]]
+    #[id=1000] #[click_count=0];
+    query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
+    #_[utterances=["get some data"]]
+    #_[preprocessed=["get some data"]]
+    #[id=1001] #[click_count=7];
+    program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
+    #_[utterances=["keep eating data!","keep eating data! (v2)"]]
+    #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
+    #[id=1002] #[click_count=0];
+    action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
+    #_[utterances=["more data eating..."]]
+    #_[preprocessed=["more data eating ..."]]
+    #[id=1004] #[click_count=0];
+    query  := @org.thingpedia.builtin.test.get_data()
+    #_[utterances=["more data genning..."]]
+    #_[preprocessed=["more data genning ..."]]
+    #[id=1005] #[click_count=0];
+}`);
 }
 
 async function testGetDeviceIcon() {
@@ -339,6 +499,9 @@ async function testGetDeviceManifest() {
     const INVISIBLE = deepClone(require('./data/org.thingpedia.builtin.test.invisible.manifest.json'));
 
     checkManifest(await request('/devices/code/com.bing'), BING);
+
+    //console.log(String(toCharArray(BING_CLASS_FULL)));
+    assert.strictEqual(await ttRequest('/devices/code/com.bing'), BING_CLASS_FULL);
 
     await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.invisible'));
     checkManifest(await request(
@@ -465,7 +628,7 @@ async function testGetDeviceSetupList(_class) {
         }
 
         assert(['none', 'discovery', 'interactive', 'form', 'oauth2'].indexOf(dev.type) >= 0,
-        `Invalid factory type ${dev.type} for ${factory.kind}`);
+        `Invalid factory type ${dev.type} for ${dev.kind}`);
     }
 }
 

@@ -181,8 +181,8 @@ class Platform {
         return this._timezone;
     }
 
-    createAssistant(engine) {
-        this._assistant = new Assistant(engine);
+    createAssistant(engine, options) {
+        this._assistant = new Assistant(engine, options);
         // for compat
         engine.assistant = this._assistant;
     }

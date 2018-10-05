@@ -19,6 +19,7 @@ const db = require('../util/db');
 const userModel = require('../model/user');
 const organization = require('../model/organization');
 const entityModel = require('../model/entity');
+const exampleModel = require('../model/example');
 
 const user = require('../util/user');
 const Importer = require('../util/import_device');
@@ -79,6 +80,85 @@ async function loadEntityValues(dbClient) {
          ]]);
 }
 
+async function loadExamples(dbClient) {
+    const { id: schemaId } = await db.selectOne(dbClient, `select id from device_schema where kind = 'org.thingpedia.builtin.test'`);
+
+    await exampleModel.createMany(dbClient, [
+    {
+        id: 1000,
+        schema_id: schemaId,
+        is_base: true,
+        language: 'en',
+        utterance: 'eat some data',
+        preprocessed: 'eat some data',
+        target_json: '',
+        target_code: 'let action x := @org.thingpedia.builtin.test.eat_data();',
+        type: 'thingpedia',
+        click_count: 0
+    },
+    {
+        id: 1001,
+        schema_id: schemaId,
+        is_base: true,
+        language: 'en',
+        utterance: 'get some data',
+        preprocessed: 'get some data',
+        target_json: '',
+        target_code: 'let query x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);',
+        type: 'thingpedia',
+        click_count: 7
+    },
+    {
+        id: 1002,
+        schema_id: schemaId,
+        is_base: true,
+        language: 'en',
+        utterance: 'keep eating data!',
+        preprocessed: 'keep eating data !',
+        target_json: '',
+        target_code: 'monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();',
+        type: 'thingpedia',
+        click_count: 0
+    },
+    {
+        id: 1003,
+        schema_id: schemaId,
+        is_base: true,
+        language: 'en',
+        utterance: 'keep eating data! (v2)',
+        preprocessed: 'keep eating data ! -lrb- v2 -rrb-',
+        target_json: '',
+        target_code: 'program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();',
+        type: 'thingpedia',
+        click_count: 0
+    },
+    {
+        id: 1004,
+        schema_id: schemaId,
+        is_base: true,
+        language: 'en',
+        utterance: 'more data eating...',
+        preprocessed: 'more data eating ...',
+        target_json: '',
+        target_code: 'action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data);',
+        type: 'thingpedia',
+        click_count: 0
+    },
+    {
+        id: 1005,
+        schema_id: schemaId,
+        is_base: true,
+        language: 'en',
+        utterance: 'more data genning...',
+        preprocessed: 'more data genning ...',
+        target_json: '',
+        target_code: 'let table _ := @org.thingpedia.builtin.test.get_data();',
+        type: 'thingpedia',
+        click_count: 0
+    }
+    ]);
+}
+
 async function main() {
     platform.init();
 
@@ -106,6 +186,7 @@ async function main() {
         const [root] = await userModel.getByName(dbClient, 'root');
         await loadAllDevices(dbClient, bob, root);
         await loadEntityValues(dbClient);
+        await loadExamples(dbClient);
 
         console.log(`export DEVELOPER_KEY="${newOrg.developer_key}"`);
     });

@@ -22,9 +22,10 @@ class Conversation extends Almond {
 Conversation.prototype.$rpcMethods = ['start', 'handleCommand', 'handleParsedCommand', 'handleThingTalk'];
 
 module.exports = class Assistant extends events.EventEmitter {
-    constructor(engine) {
+    constructor(engine, options) {
         super();
 
+        this._url = Config.NL_SERVER_URL + '/@' + options.modelTag;
         this._engine = engine;
         this._conversations = {};
         this._lastConversation = null;
@@ -72,7 +73,7 @@ module.exports = class Assistant extends events.EventEmitter {
             return Promise.resolve(this._conversations[id]);
         }
         options = options || {};
-        options.sempreUrl = Config.NL_SERVER_URL;
+        options.sempreUrl = this._url;
         let conv = this.openConversation(id, user, delegate, options);
         return Promise.resolve(conv.start()).then(() => conv);
     }
@@ -83,7 +84,7 @@ module.exports = class Assistant extends events.EventEmitter {
             delete this._conversations[feedId];
         }
         options = options || {};
-        options.sempreUrl = Config.NL_SERVER_URL;
+        options.sempreUrl = this._url;
         var conv = new Conversation(this._engine, feedId, user, delegate, options);
         conv.on('active', () => this._lastConversation = conv);
         this._lastConversation = conv;

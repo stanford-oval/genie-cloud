@@ -7,10 +7,13 @@ process.env.TEST_MODE = '1';
     await Promise.all(array.map((fn) => fn()));
 }*/
 async function seq(array) {
-    for (let fn of array)
-        await fn();
+    for (let fn of array) {
+        console.log(`Running tests for ${fn}`);
+        await require(fn)();
+    }
 }
 
 seq([
-    require('./test_tokenize')
+    ('./test_tokenize'),
+    ('./test_device_factories')
 ]);

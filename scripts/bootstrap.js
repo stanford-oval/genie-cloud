@@ -24,16 +24,11 @@ const makeRandom = require('../util/random');
 
 const ManifestToSchema = require('../util/manifest_to_schema');
 const Importer = require('../util/import_device');
+const { clean } = require('../util/tokenize');
 
 const Config = require('../config');
 
 const req = { _(x) { return x; } };
-
-function clean(name) {
-    if (/^[vwgp]_/.test(name))
-        name = name.substr(2);
-    return name.replace(/_/g, ' ').replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
-}
 
 async function createRootOrg(dbClient) {
     return organization.create(dbClient, {
@@ -153,6 +148,7 @@ async function importBuiltinDevices(dbClient, rootOrg) {
     ];
 
     for (let primaryKind of BUILTIN_DEVICES) {
+        console.log(`Loading builtin device ${primaryKind}`);
         const manifest = require('../data/' + primaryKind + '.manifest.json');
         await Importer.importDevice(dbClient, req, primaryKind, manifest, {
             owner: rootOrg.id,

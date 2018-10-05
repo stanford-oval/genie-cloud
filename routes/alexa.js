@@ -204,7 +204,9 @@ router.post('/', (req, res, next) => {
     } else {
         text = req.body.request.intent.slots.command ? req.body.request.intent.slots.command.value :
             (req.body.request.intent.slots.spotify_command ? req.body.request.intent.slots.spotify_command.value : '');
-        if (req.body.request.dialogState === 'STARTED')
+        text = text.replace('dance boy', 'danceable').replace('dance bowet', 'danceable').replace('decibel day', 'danceability').replace('decibel', 'danceability').replace('danceables', 'danceable');
+        text = text.replace(' temple of ', ' tempo of ').replace(' temp of ', 'tempo of ').replace('with temp ', 'with tempo ').replace('with temple ', 'with tempo ');
+        if (req.body.request.dialogState === 'STARTED' && req.body.request.intent.name !== 'wake_me_up' && req.body.request.intent.name !== 'almondify')
             text = req.body.request.intent.name + ' ' + text;
     }
 

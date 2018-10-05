@@ -63,6 +63,12 @@ load();
 module.exports = {
     LANGS,
 
+    localeToLanguage(locale) {
+        // only keep the language part of the locale, we don't
+        // yet distinguish en_US from en_GB
+        return (locale || 'en').split(/[-_@.]/)[0];
+    },
+
     get(locale) {
         locale = locale.split(/[-_@.,]/);
         let lang = languages[locale.join('-')];
