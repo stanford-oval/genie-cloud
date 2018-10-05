@@ -49,12 +49,12 @@ function prepareThingEngineStatus(req) {
 
 router.get('/', (req, res) => {
     prepareUserInfo(req).then(([developer_org, developer_org_members, developer_devices, developer_oauth2_clients]) => {
-        res.render('thingpedia_dev_console', { page_title: req._("Thingpedia - Developer Portal"),
-                                               csrfToken: req.csrfToken(),
-                                               developer_org_name: developer_org.name,
-                                               developer_org_members: developer_org_members,
-                                               developer_devices: developer_devices,
-                                               developer_oauth2_clients: developer_oauth2_clients
+        res.render('thingpedia_dev_overview', { page_title: req._("Thingpedia - Developer Portal"),
+                                                csrfToken: req.csrfToken(),
+                                                developer_org_name: developer_org.name,
+                                                developer_org_members: developer_org_members,
+                                                developer_devices: developer_devices,
+                                                developer_oauth2_clients: developer_oauth2_clients
         });
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
