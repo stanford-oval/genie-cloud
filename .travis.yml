@@ -19,8 +19,10 @@ before_install:
 - tar xvf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver/
 - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$HOME/.yarn/bin:$PATH"
 - sudo apt-get update -q -y
+- (cd .. ; git clone --depth=50 https://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk.git ; cd ThingTalk ; yarn ; yarn link )
 install:
 - sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev realpath
+- yarn link thingtalk
 - yarn
 before_script:
 - mysql -u root -e "create database if not exists thingengine_test; grant all privileges on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
