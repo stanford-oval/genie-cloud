@@ -1,14 +1,17 @@
 branches:
   except:
-  - /^wip/
+  - "/^wip/"
 language: node_js
 sudo: true
 addons:
   mariadb: '10.2'
-  firefox: 'latest-esr'
+  firefox: latest-esr
 node_js:
 - '8'
 before_install:
+- openssl aes-256-cbc -K $encrypted_6dd165f04fd2_key -iv $encrypted_6dd165f04fd2_iv
+  -in ./travis/id_rsa.autodeploy.enc -out ./travis/id_rsa.autodeploy -d
+- chmod 0600 ./travis/id_rsa.autodeploy
 - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.10.1
 - mkdir cvc4/
 - wget https://cvc4.cs.stanford.edu/downloads/builds/x86_64-linux-opt/cvc4-1.5-x86_64-linux-opt
@@ -25,8 +28,15 @@ install:
 - yarn link thingtalk
 - yarn
 before_script:
-- mysql -u root -e "create database if not exists thingengine_test; grant all privileges on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
+- mysql -u root -e "create database if not exists thingengine_test; grant all privileges
+  on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
 script:
 - yarn lint
 - yarn test
 after_success: yarn run coverage
+deploy:
+  provider: script
+  script: ssh -i ./travis/id_rsa.autodeploy autodeploy@almond-dev.stanford.edu
+  on:
+    branch: staging
+    repo: Stanford-Mobisocial-IoT-Lab/almond-cloud-private
