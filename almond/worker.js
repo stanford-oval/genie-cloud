@@ -63,7 +63,7 @@ function runEngine(thingpediaClient, options) {
     var obj = { cloudId: options.cloudId, running: false, sockets: new Set };
     var engine = new Engine(platform, { thingpediaUrl: Config.THINGPEDIA_URL });
     obj.engine = engine;
-    platform.createAssistant(engine);
+    platform.createAssistant(engine, options);
     engine.open().then(() => {
         obj.running = true;
 
@@ -102,7 +102,7 @@ function handleDirectSocket(userId, replyId, socket) {
     let obj = _engines.get(userId);
     if (!obj) {
         console.log('Could not find an engine with the required user ID');
-        rpcSocket.call(replyId, 'error', ['Invalid user ID']);
+        rpcSocket.call(replyId, 'error', ['Invalid user ID ' + userId]);
         rpcSocket.end();
         return;
     }

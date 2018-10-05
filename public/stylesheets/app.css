@@ -52,3 +52,37 @@
   padding-left: 10px;
   padding-right: 2px;
 }
+
+#cheatsheet-screenshot:hover {
+  filter: blur(5px);
+
+}
+
+img {
+  max-width:100%;
+  max-height:100%;
+}
+
+.image-wrap {
+  text-align:center;
+}
+
+.hover-text {
+  position: absolute;
+  bottom: 10%;
+  left: 0;
+  right: 0;
+  color: #2c3e50;
+  visibility: hidden;
+  opacity: 0;
+  font-size: 20px;
+}
+
+.image-wrap:hover img {
+  filter: blur(2px);
+}
+
+.image-wrap:hover .hover-text {
+  visibility: visible;
+  opacity: 1;
+}

@@ -31,6 +31,11 @@ class TrainingServer {
         return Tp.Helpers.Http.get(Config.TRAINING_URL + '/jobs/current', { auth }).then((response) => {
             let parsed = JSON.parse(response);
             return parsed;
+        }).catch((e) => {
+            // if the server is down return nothing
+            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
+                return null;
+            throw e;
         });
     }
 
@@ -45,7 +50,7 @@ class TrainingServer {
         let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
         Tp.Helpers.Http.post(Config.TRAINING_URL + '/jobs/create', JSON.stringify({
             language: language,
-            forDevices: device ? [device] : []
+            forDevices: device ? [device] : null
         }), { auth: auth, dataContentType: 'application/json' }).then((response) => {
             let parsed = JSON.parse(response);
             console.log('Successfully started training job ' + parsed.id);
@@ -66,6 +71,9 @@ class TrainingServer {
             let parsed = JSON.parse(response);
             return parsed;
         }).catch((e) => {
+            // if the server is down return nothing
+            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
+                return null;
             if (e.code === 404)
                 return null;
             throw e;

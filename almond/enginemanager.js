@@ -84,7 +84,8 @@ class EngineProcess extends events.EventEmitter {
             developerKey: user.developer_key,
             locale: user.locale,
             timezone: user.timezone,
-            storageKey: user.storage_key }]);
+            storageKey: user.storage_key,
+            modelTag: user.model_tag || 'default' }]);
     }
 
     killEngine(userId) {

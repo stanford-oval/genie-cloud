@@ -6,21 +6,27 @@ block styles
 
 block scripts
   script(src='/javascripts/app.js')
+  script(src='/javascripts/index.js')
 
 block page_name
   - stdlayout = false;
   = _("Almond")
 
 block content
+  if authenticated
+    div#cloud-id-holder(data-cloud-id=user.cloud_id, data-auth-token=user.auth_token)
+
   div#page-body
     section.divider#section-heading
       h1#almond-title Almond
-      h2#almond-subtitle The Open Virtual Assistant
+      h2#almond-subtitle The Stanford Open Virtual Assistant Project
 
       div.container
         div.row
           div.col-xs-12.col-md-6.col-md-offset-3
-            p=_("Almond lets you interact with your services and accounts in natural language, with flexibility and privacy.")
+            p
+              | Almond lets you interact with your services and accounts in natural language with unprecedented expressivity.
+              | All the code is open-source and can be run on personal phones or home servers to preserve privacy.
 
         div.row#subscribe
           div.col-xs-12.col-md-6.col-md-offset-3
@@ -36,6 +42,27 @@ block content
 
     div.sections
       section.divider
+        h3= _("60+ Devices, 200+ Functions, and Growing")
+        div.container
+          div.row
+            div.col-md-4.col-xs-12
+              p
+                | Almond draws its power from the crowdsourced <a href='/thingpedia'>Thingpedia</a>, an open collection of Web and Internet
+                |  of Things APIs.
+                |  Anyone can contribute support for the favorite service, with a few lines of code and a handful of natural language sentences.
+              p
+                | Thingpedia supports more than 60 different services, accounts and IoT devices, and more than 200 functions.
+                | All the functions can then be combined to form exponentially more compound commands.
+                a(href='#section-commandpedia')= _(" (Examples) ")
+              p
+                | Almond is free and open-source software, and is available on <a href='https://github.com/Stanford-Mobisocial-IoT-Lab'>Github</a>.
+                | You can download, distribute or modify Almond as you see fit.
+            div.col-md-8.col-xs-12.image-wrap
+              a(href='/thingpedia/cheatsheet')
+                img(src='/images/cheatsheet.png', alt='Thingpedia Cheatsheet')#cheatsheet-screenshot
+                p.hover-text= _('Click to see more')
+
+      section.divider#section-commandpedia
         h3= _("Popular Commands")
         div.container#commandpedia(csrf=csrfToken)
           div.navbar.navbar-default#command-list-navbar
@@ -62,17 +89,7 @@ block content
             div.col-sm-6.col-md-4
               a(href='/commands/suggest').btn.btn-default.btn-block= _("Suggest a New Command")
 
-      section.divider
-        h3= _("More Devices and Services Almond Supports")
-        div.container
-          div.row
-            div.col-md-12.device-icon-list
-              for device in ['com.spotify', 'com.facebook', 'com.twitter', 'com.gmail', 'org.thingpedia.icalendar', 'com.slack', 'com.nest', 'org.arxiv', 'org.thingpedia.weather', 'org.thingpedia.rss', 'com.steampowered', 'com.washingtonpost', 'com.wolframalpha', 'com.wunderlist', 'com.yandex.translate', 'com.dropbox']
-                a(href='/thingpedia/devices/by-id/' + device)
-                  img(src=S3_CLOUDFRONT_HOST + '/icons/' + device + '.png', alt='Icon')
-          div.row
-            h4.text-center
-              a(href='/thingpedia/cheatsheet')= _("And More")
+
 
 
 

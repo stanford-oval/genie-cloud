@@ -74,20 +74,12 @@ block content
       p
         if device.current_job.status === 'queued'
            = _("Status: queued.")
-        else if device.current_job.status === 'download_dataset'
-           = _("Status: phase 1/7: downloading dataset.")
-        else if device.current_job.status === 'gen_synthetic'
-           = _("Status: phase 2/7: generating synthetic set.")
-        else if device.current_job.status === 'apply_ppdb'
-           = _("Status: phase 3/7: augmenting training set.")
-        else if device.current_job.status === 'prepare'
-           = _("Status: phase 4/7: preparing Thingpedia metadata and word embeddings.")
-        else if device.current_job.status === 'combine_dataset'
-           = _("Status: phase 5/7: combining datasets.")
-        else if device.current_job.status === 'training'
-           = _("Status: phase 6/7: training machine learning model (%.0f%%).").format(device.current_job.progress*100)
-        else if device.current_job.status === 'uploading'
-           = _("Status: phase 7/7: uploading trained model.")
+        else if ['download_dataset', 'gen_synthetic', 'apply_ppdb', 'combine_dataset', 'replace_parameters'].indexOf(device.current_job.status) >= 0
+           = _("Status: phase 1/3: preparing dataset (%.0f%%).").format(device.current_job.progress*100)
+        else if ['prepare', 'training'].indexOf(device.current_job.status) >= 0
+           = _("Status: phase 2/3: training machine learning model (%.0f%%).").format(device.current_job.progress*100)
+        else if ['testing', 'uploading']
+           = _("Status: phase 3/3: validating and uploading trained model.")
         else
            = _("Status: running.")
         |

@@ -76,4 +76,8 @@ router.get('/about/privacy', (req, res, next) => {
     });
 });
 
+router.get('/about/research', (req, res) => {
+    res.redirect(302, '/research');
+});
+
 module.exports = router;

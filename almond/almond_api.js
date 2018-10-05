@@ -20,7 +20,7 @@ const Config = require('../config');
 module.exports = class AlmondApi {
     constructor(engine) {
         this._engine = engine;
-        this._parser = new ParserClient(undefined, engine.platform.locale, engine.platform.getSharedPreferences());
+        this._parser = new ParserClient(Config.NL_SERVER_URL, engine.platform.locale, engine.platform.getSharedPreferences());
         this._formatter = new Formatter(this._engine.platform.locale, this._engine.platform.timezone, this._engine.schemas);
 
         this._outputs = new Set;
