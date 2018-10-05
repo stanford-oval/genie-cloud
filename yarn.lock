@@ -1716,10 +1716,6 @@ cliui@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/cliui/-/cliui-2.1.0.tgz#4b475760ff80264c762c3a1719032e91c7fea0d1"
   integrity sha1-S0dXYP+AJkx2LDoXGQMukcf+oNE=
-  dependencies:
-    center-align "^0.1.1"
-    right-align "^0.1.1"
-    wordwrap "0.0.2"
 
 cliui@^3.0.3:
   version "3.2.0"
@@ -6688,9 +6684,10 @@ text-table@~0.2.0:
     uuid "^3.1.0"
     ws "^6.0.0"
 
-"thingpedia-client@github:Stanford-Mobisocial-IoT-Lab/thingpedia-client":
+"thingpedia-client@github:Stanford-Mobisocial-IoT-Lab/thingpedia-client", "thingpedia-client@github:Stanford-Mobisocial-IoT-Lab/thingpedia-client#wip/tests-for-new-tt":
   version "0.1.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-client/tar.gz/27f6d51f7dfb2a08dee69b2bc5628680c7be5c45"
+  uid b6aa982fb27aa1fb24f556d2b60791d3cd326b1d
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-client/tar.gz/b6aa982fb27aa1fb24f556d2b60791d3cd326b1d"
   dependencies:
     thingpedia "^2.2.1"
     tmp "0.0.33"
@@ -6717,7 +6714,6 @@ thingpedia@^2.2.0, thingpedia@^2.2.1, thingpedia@^2.2.2:
 
 thingtalk@^1.0.0, thingtalk@^1.1.1, "thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
   version "1.2.0"
-  uid b8c39280cb29528025da9f23b8e9fb6267c28258
   resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/b8c39280cb29528025da9f23b8e9fb6267c28258"
   dependencies:
     adt "~0.7.2"
