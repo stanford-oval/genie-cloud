@@ -81,9 +81,6 @@ router.post('/', (req, res, next) => {
         res.status(401).json({error: 'no user found'});
     }
 }, (req, res) => {
-    console.log('Dialogflow Request headers: ' + JSON.stringify(req.headers));
-    console.log('Dialogflow Request body: ' + JSON.stringify(req.body));
-    console.log('Dialogflow Request user: ' + JSON.stringify(req.user));
     const agent = new WebhookClient({request: req, response: res});
     const raw = req.body.queryResult.queryText;
     console.log('Received command: ' + raw);
@@ -108,8 +105,6 @@ router.post('/', (req, res, next) => {
         }).then((conversation) => {
             return conversation.handleCommand(raw);
         }).then(() => {
-            console.log('Delegate buffer: ' + delegate._buffer);
-            console.log('Delegate askSpecial: ' + delegate._askSpecial);
             if (delegate._buffer) {
                 agent.add(delegate._buffer);
             } else {
