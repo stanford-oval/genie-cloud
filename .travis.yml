@@ -4,6 +4,8 @@ branches:
 language: node_js
 sudo: true
 addons:
+  ssh_known_hosts:
+  - almond-dev.stanford.edu
   mariadb: '10.2'
   firefox: latest-esr
 node_js:
