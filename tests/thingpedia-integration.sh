@@ -27,12 +27,13 @@ node $srcdir/scripts/bootstrap.js
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
-    rm -fr $workdir
     test -n "$frontendpid" && kill $frontendpid
     frontendpid=
     test -n "$masterpid" && kill $masterpid
     masterpid=
     wait
+
+    rm -fr $workdir
 }
 trap on_error ERR INT TERM
 
