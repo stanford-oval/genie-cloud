@@ -644,6 +644,25 @@ v1.get('/devices/icon/:kind', (req, res) => {
        res.redirect(301, Config.CDN_HOST + '/icons/' + req.params.kind + '.png');
 });
 
+/**
+ * @api {get} /v3/devices/package/:kind Get Device Package
+ * @apiName GetDevicePackage
+ * @apiGroup Devices
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Download the JS package for a given device.
+ *
+ * @apiParam {String} kind The identifier of the desired device.
+ */
+v3.get('/devices/package/:kind', (req, res, next) => {
+    const kind = req.params.kind;
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    errorWrap(req, res, next, client.getModuleLocation(kind, req.query.version).then((location) => {
+        res.cacheFor(60000);
+        res.redirect(302, location);
+    }));
+});
+
 function isValidDeviceClass(req, res) {
     if (req.query.class &&
         ['online', 'physical', 'data', 'system',
