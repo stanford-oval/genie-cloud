@@ -100,13 +100,13 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     async getModuleLocation(kind, version) {
         const [approvedVersion, maxVersion] = await db.withClient(async (dbClient) => {
             const org = await this._getOrg(dbClient);
-            const device = await device.getDownloadVersion(dbClient, kind);
-            if (!device.downloadable)
+            const dev = await device.getDownloadVersion(dbClient, kind);
+            if (!dev.downloadable)
                 throw new Error('No Code Available');
-            if (org !== null && ((org.id === device.owner) || org.is_admin))
-                return [device.approved_version, device.developer_version];
+            if (org !== null && ((org.id === dev.owner) || org.is_admin))
+                return [dev.approved_version, dev.developer_version];
             else
-                return [device.approved_version, device.approved_version];
+                return [dev.approved_version, dev.approved_version];
         });
         if (maxVersion === null || version > maxVersion)
             throw new Error('Not Authorized');
