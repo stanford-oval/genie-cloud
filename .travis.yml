@@ -36,6 +36,7 @@ script:
 after_success: yarn run coverage
 deploy:
   provider: script
+  skip_cleanup: true
   script: ssh -i ./travis/id_rsa.autodeploy autodeploy@almond-dev.stanford.edu
   on:
     branch: staging
