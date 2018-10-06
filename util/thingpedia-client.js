@@ -148,7 +148,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
             case 'application/x-thingtalk':
             default:
                 if (isJSON)
-                    return ThingTalk.Ast.fromManifest(manifest).prettyprint();
+                    return ThingTalk.Ast.fromManifest(kind, manifest).prettyprint();
                 else
                     return dev.code;
             }
@@ -216,7 +216,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         if (device.factory !== null)
             return typeof device.factory === 'string' ? JSON.parse(device.factory) : device.factory;
 
-        assert(/\s+\{/.test(device.code));
+        assert(/\s*\{/.test(device.code));
         const classDef = ThingTalk.Ast.ClassDef.fromManifest(device.primary_kind, JSON.parse(device.code));
         return FactoryUtils.makeDeviceFactory(classDef, device);
     }

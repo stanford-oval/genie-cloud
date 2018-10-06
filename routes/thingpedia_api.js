@@ -520,7 +520,7 @@ v3.get('/devices/code/:kind', (req, res, next) => {
             if (version >= 0)
                 res.set('ETag', `W/"version=${version}"`);
 
-            res.cacheFor(86400);
+            res.cacheFor(86400000);
             res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
             res.send(code);
         } else {
@@ -528,7 +528,7 @@ v3.get('/devices/code/:kind', (req, res, next) => {
             if (version >= 0)
                 res.set('ETag', `W/"version=${version}"`);
 
-            res.cacheFor(86400);
+            res.cacheFor(86400000);
             res.json({ result: 'ok', data: code });
         }
     }));
