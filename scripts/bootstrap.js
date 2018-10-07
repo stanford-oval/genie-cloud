@@ -19,6 +19,7 @@ const db = require('../util/db');
 const user = require('../util/user');
 const organization = require('../model/organization');
 const entityModel = require('../model/entity');
+const stringModel = require('../model/strings');
 const schemaModel = require('../model/schema');
 const makeRandom = require('../util/random');
 
@@ -99,6 +100,22 @@ async function importStandardEntities(dbClient) {
     });
 }
 
+async function importStandardStringTypes(dbClient, rootOrg) {
+    const STRING_TYPES = {
+        'tt:search_query': 'Web Search Query',
+        'tt:short_free_text': 'General Text (short phrase)',
+        'tt:long_free_text': 'General Text (paragraph)',
+    };
+
+    await stringModel.createMany(dbClient, Object.keys(STRING_TYPES).map((id) => {
+        return {
+            type_name: id,
+            name: STRING_TYPES[id],
+            language: 'en',
+        };
+    }));
+}
+
 async function importStandardSchemas(dbClient, rootOrg) {
     const CATEGORIES = ['online-account', 'data-source', 'thingengine-system',
         'communication', 'data-management', 'health', 'home',
@@ -164,6 +181,7 @@ async function main() {
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             await importStandardEntities(dbClient, rootOrg);
+            await importStandardStringTypes(dbClient, rootOrg);
             await importStandardSchemas(dbClient, rootOrg);
             await importBuiltinDevices(dbClient, rootOrg);
         }

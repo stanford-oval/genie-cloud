@@ -14,6 +14,8 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 const assert = require('assert');
 const path = require('path');
+const util = require('util');
+const fs = require('fs');
 
 const db = require('../util/db');
 const userModel = require('../model/user');
@@ -79,6 +81,20 @@ async function loadEntityValues(dbClient) {
          ['en', 'tt:stock_id', 'goog', 'alphabet inc.', 'Alphabet Inc.'],
          ['en', 'tt:stock_id', 'msft', 'microsoft corp.', 'Microsoft Corp.'],
          ]]);
+}
+
+async function loadStringValues(dbClient) {
+    for (let type of ['tt:search_query', 'tt:long_free_text']) {
+        const filename = path.resolve(path.dirname(module.filename), './data/' + type + '.txt');
+        const data = (await util.promisify(fs.readFile)(filename)).toString().trim().split('\n');
+
+        const {id:typeId} = await db.selectOne(dbClient,
+            `select id from string_types where language='en' and type_name=?`, [type]);
+        await db.insertOne(dbClient,
+            `insert into string_values(type_id,value,preprocessed) values ?`,
+            [data.map((v) => [typeId, v, v])],
+        );
+    }
 }
 
 async function loadExamples(dbClient) {
@@ -187,6 +203,7 @@ async function main() {
         const [root] = await userModel.getByName(dbClient, 'root');
         await loadAllDevices(dbClient, bob, root);
         await loadEntityValues(dbClient);
+        await loadStringValues(dbClient);
         await loadExamples(dbClient);
 
         console.log(`export DEVELOPER_KEY="${newOrg.developer_key}"`);
