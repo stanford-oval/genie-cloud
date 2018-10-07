@@ -25,6 +25,7 @@ const makeRandom = require('../util/random');
 const ManifestToSchema = require('../util/manifest_to_schema');
 const Importer = require('../util/import_device');
 const { clean } = require('../util/tokenize');
+const TokenizerService = require('../util/tokenizer_service');
 
 const Config = require('../config');
 
@@ -169,5 +170,6 @@ async function main() {
     });
 
     await db.tearDown();
+    TokenizerService.tearDown();
 }
 main();
