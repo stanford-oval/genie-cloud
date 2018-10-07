@@ -346,6 +346,39 @@ CREATE TABLE `entity_names_snapshot` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `string_types`
+--
+
+DROP TABLE IF EXISTS `string_types`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `string_types` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `language` char(15) COLLATE utf8_bin NOT NULL,
+  `type_name` varchar(255) COLLATE utf8_bin NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8 NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`language`, `type_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `string_values`
+--
+
+DROP TABLE IF EXISTS `string_values`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `string_values` (
+  `type_id` int(11) NOT NULL,
+  `value` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `preprocessed` varchar(255) CHARACTER SET utf8 NOT NULL,
+  KEY (`type_id`),
+  CONSTRAINT `string_values_ibfk_1` FOREIGN KEY (`type_id`) REFERENCES `string_types` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `example_rule_schema`
 --
 
