@@ -41,7 +41,7 @@
         "type": "thingpedia",
         "utterance": "more data eating...",
         "preprocessed": "more data eating ...",
-        "target_code": "let action x := \\(p_data :String) -> @org.thingpedia.builtin.test.eat_data(data=p_data);",
+        "target_code": "let action x := @org.thingpedia.builtin.test.eat_data();",
         "click_count": 0
     },
     {

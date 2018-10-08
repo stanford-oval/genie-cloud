@@ -157,7 +157,7 @@ async function loadExamples(dbClient) {
         utterance: 'more data eating...',
         preprocessed: 'more data eating ...',
         target_json: '',
-        target_code: 'action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data);',
+        target_code: 'action () := @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
         click_count: 0
     },

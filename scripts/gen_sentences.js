@@ -13,7 +13,6 @@ require('thingengine-core/lib/polyfill');
 
 const fs = require('fs');
 const assert = require('assert');
-const Q = require('q');
 const seedrandom = require('seedrandom');
 
 const ThingTalk = require('thingtalk');
@@ -23,77 +22,27 @@ const Generate = ThingTalk.Generate;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 // HACK
 const { optimizeFilter } = require('thingtalk/lib/optimize');
+const { split, splitParams, clean } = require('../util/tokenize');
 
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const db = require('../util/db');
 // const i18n = require('../util/i18n');
 
-const MAX_DEPTH = process.argv[4] !== undefined ? parseInt(process.argv[4]) : 6;
-if (isNaN(MAX_DEPTH))
+// hack to be able to use await with global variables
+async function script(outputFile, _language, maxDepth, turkingFlag) {
+if (maxDepth === undefined)
+    maxDepth = 6;
+else
+    maxDepth = parseInt(maxDepth);
+if (isNaN(maxDepth))
     throw new Error('invalid max depth');
-const TURKING_MODE = process.argv[5] === '--turking';
+const TURKING_MODE = turkingFlag === '--turking';
 
-// FIXME this should be in Thingpedia
-const NON_MONITORABLE_FUNCTIONS = new Set([
-    'com.dropbox:open',
-    'com.giphy:get',
-    'com.imgflip:generate',
-    'com.imgflip:list',
-    'com.thecatapi:get',
-    'com.xkcd:random_comic',
-    'com.yandex.translate:detect_language',
-    'com.yandex.translate:translate',
-    'org.thingpedia.builtin.thingengine.builtin:get_date',
-    'org.thingpedia.builtin.thingengine.builtin:get_random_between',
-    'org.thingpedia.builtin.thingengine.builtin:get_time',
-    'org.thingpedia.builtin.thingengine.gnome:get_screenshot',
-    'security-camera:get_snapshot',
-    'security-camera:get_url',
-    'uk.co.thedogapi:get',
-]);
+const _tpClient = new AdminThingpediaClient(_language);
+const _schemaRetriever = new SchemaRetriever(_tpClient);
 
-const SINGLE_RESULT_FUNCTIONS = new Set([
-    'com.bodytrace.scale:get',
-    'com.dropbox:get_space_usage',
-    'com.dropbox:open',
-    'com.giphy:get',
-    'com.imgflip:generate',
-    'com.linkedin:get_profile',
-    'com.phdcomics:get_post',
-    'com.thecatapi:get',
-    'com.xkcd:get_comic',
-    'com.xkcd:random_comic',
-    'com.yahoo.finance:get_stock_div',
-    'com.yahoo.finance:get_stock_quote',
-    'com.yandex.translate:detect_language',
-    'com.yandex.translate:translate',
-    'edu.stanford.rakeshr1.fitbit:getbody',
-    'edu.stanford.rakeshr1.fitbit:getsteps',
-    'gov.nasa:apod',
-    'gov.nasa:asteroid',
-    'gov.nasa:rover',
-    'org.thingpedia.builtin.thingengine.builtin:get_date',
-    'org.thingpedia.builtin.thingengine.builtin:get_random_between',
-    'org.thingpedia.builtin.thingengine.builtin:get_time',
-    'org.thingpedia.builtin.thingengine.phone:get_gps',
-    'org.thingpedia.weather:current',
-    'org.thingpedia.weather:moon',
-    'org.thingpedia.weather:sunrise',
-    'security-camera:current_event',
-    'security-camera:get_snapshot',
-    'security-camera:get_url',
-    'thermostat:get_humidity',
-    'thermostat:get_hvac_state',
-    'thermostat:get_temperature',
-    'uk.co.thedogapi:get',
-    'us.sportradar:mlb',
-    'us.sportradar:nba',
-    'us.sportradar:ncaafb',
-    'us.sportradar:ncaambb',
-    'us.sportradar:soccer_eu',
-    'us.sportradar:soccer_us',
-]);
-
+const NON_MONITORABLE_FUNCTIONS = new Set;
+const SINGLE_RESULT_FUNCTIONS = new Set;
 
 const ARGUMENT_NAMES = {
     'updated': ['update time'],
@@ -111,25 +60,8 @@ const ARGUMENT_NAMES = {
     'mime_type': ['file type', 'type'],
 };
 
-// FIXME pick this up from Thingpedia
-const ID_TYPES = new Set([
-    'Entity(com.twitter:id)',
-    'Entity(com.google.drive:file_id)',
-    'Entity(instagram:media_id)',
-    'Entity(com.thecatapi:image_id)',
-    'Entity(dogapi:image_id)',
-    'Entity(com.gmail:email_id)',
-    'Entity(com.gmail:thread_id)',
-    'Entity(com.live.onedrive:file_id)',
-    'Entity(gov.nasa:asteroid_id)',
-    'Entity(com.youtube:channel_id)',
-    'Entity(com.youtube:video_id)'
-]);
-
-const NON_CONSTANT_TYPES = new Set([
-    'Entity(com.live.onedrive:user_id)',
-    'Entity(omlet:feed_id)'
-]);
+const ID_TYPES = new Set;
+const NON_CONSTANT_TYPES = new Set;
 
 const rng = seedrandom.alea('almond is awesome');
 function coin(prob) {
@@ -140,137 +72,41 @@ function uniform(array) {
     return array[Math.floor(rng() * array.length)];
 }
 
-class FastSchemaRetriever extends SchemaRetriever {
-    getMeta(...args) {
-        return super.getMeta(...args).then((schema) => {
-            // we don't care about these, wipe them so we can clone faster
-            // and use less RAM
-            schema.questions = [];
-            schema.canonical ='';
-            schema.confirmation = '';
-            return schema;
-        });
-    }
-}
-
 // const gettext = i18n.get('en');
 
-/*const _metadata = {
-    triggers: [],
-    queries: [],
-    actions: []
-};*/
-
-const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 const NON_TERM_REGEX = /\${(?:choice\(([^)]+)\)|([a-zA-Z0-9._:(),]+))}/;
-
-function split(pattern, regexp) {
-    // a split that preserves capturing parenthesis
-
-    let clone = new RegExp(regexp, 'g');
-    let match = clone.exec(pattern);
-
-    let chunks = [];
-    let i = 0;
-    while (match !== null) {
-       if (match.index > i)
-            chunks.push(pattern.substring(i, match.index));
-        chunks.push(match);
-        i = clone.lastIndex;
-        match = clone.exec(pattern);
-    }
-    if (i < pattern.length)
-        chunks.push(pattern.substring(i, pattern.length));
-    return chunks;
-}
-
-function clean(name) {
-    if (/^[vwgp]_/.test(name))
-        name = name.substr(2);
-    return name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
-}
 
 function makeProgram(rule) {
     return new Ast.Program([], [], [rule], null);
 }
 
-const TIMER_SCHEMA = new Ast.FunctionDef('other',
-    ['__timestamp'], // args
-    [Type.Measure('ms')], // types
-    { __timestamp: 0 }, // index
-    {}, // inReq
-    {}, // inOpt
-    { __timestamp: Type.Measure('ms') }, // out
+const TIMER_SCHEMA = new Ast.FunctionDef('stream',
+    'timer',
+    [], // args,
     false, // is_list
-    true, // is_monitorable
-    'every fixed interval', // canonical
-    'every ${interval}', // confirmation
-    '', // confirmation_remote
-    ['timestamp'], // argcanonicals
-    [''] // questions
+    true,  // is_monitorable
+    {
+    canonical: 'every fixed interval',
+    confirmation: 'every ${interval}',
+    },
+    {} // annotations
 );
 
-const AT_TIMER_SCHEMA = new Ast.FunctionDef('other',
-    ['__timestamp'], // args
-    [Type.Measure('ms')], // types
-    { __timestamp: 0 }, // index
-    {}, // inReq
-    {}, // inOpt
-    { __timestamp: Type.Measure('ms') }, // out
+const AT_TIMER_SCHEMA = new Ast.FunctionDef('stream',
+    'attimer',
+    [], // args,
     false, // is_list
-    true, // is_monitorable
-    'every day', // canonical
-    'every day at ${time}', // confirmation
-    '', // confirmation_remote
-    ['timestamp'], // argcanonicals
-    [''] // questions
+    true,  // is_monitorable
+    {
+    canonical: 'every day',
+    confirmation: 'every day at ${interval}',
+    },
+    {} // annotations
 );
 
-const SAY_SCHEMA = new Ast.FunctionDef('other',
-    ['message'], // args
-    [Type.String], // types
-    { message: 0 }, // index
-    { message: Type.String }, // inReq
-    {}, // inOpt
-    {}, // out
-    false, // is_list
-    false, // is_monitorable
-    'say', // canonical
-    '', // confirmation
-    '', // confirmation_remote
-    ['message'], // argcanonicals
-    [''] // questions
-);
-const LOCATION_SCHEMA = new Ast.FunctionDef('primary',
-    ['location'], // args
-    [Type.Location], // types
-    { location: 0 }, // index
-    { location: Type.Location }, // inReq
-    {}, // inOpt
-    {}, // out
-    false, // is_list
-    true, // is_monitorable
-    'get gps', // canonical
-    '', // confirmation
-    '', // confirmation_remote
-    ['location'], // argcanonicals
-    [''] // questions
-);
-const GET_TIME_SCHEMA = new Ast.FunctionDef('primary',
-    ['time'], // args
-    [Type.Date], // types
-    { time: 0 }, // index
-    { time: Type.Date }, // inReq
-    {}, // inOpt
-    {}, // out
-    false, // is_list
-    false, // is_monitorable
-    'get time', // canonical
-    '', // confirmation
-    '', // confirmation_remote
-    ['time'], // argcanonicals
-    [''] // questions
-);
+const SAY_SCHEMA = await _schemaRetriever.getMeta('org.thingpedia.builtin.thingengine.builtin', 'action', 'say');
+const LOCATION_SCHEMA = await _schemaRetriever.getMeta('org.thingpedia.builtin.thingengine.phone', 'query', 'get_gps');
+const GET_TIME_SCHEMA =  await _schemaRetriever.getMeta('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_time');
 
 // A numbered constant, eg. QUOTED_STRING_0 or NUMBER_1 or HASHTAG_3
 // During generation, this constant is put in the program as a VarRef
@@ -534,11 +370,7 @@ function *makeConstantDerivations(symbol, type, prefix = null) {
 }
 
 function removeInputParameter(schema, pname) {
-    if (!schema.inReq[pname])
-        return schema;
-    let clone = schema.clone();
-    delete clone.inReq[pname];
-    return clone;
+    return schema.removeArgument(pname);
 }
 
 function isUnaryTableToTableOp(table) {
@@ -630,18 +462,6 @@ function isSelfJoinStream(stream) {
     return false;
 }
 
-function isSelfJoinTable(stream) {
-    let functions = findFunctionNameTable(stream);
-    if (functions.length > 1) {
-        functions.sort();
-        for (let i = 0; i < functions.length-1; i++) {
-            if (functions[i] === functions[i+1])
-                return true;
-        }
-    }
-    return false;
-}
-
 function checkNotSelfJoinStream(stream) {
     if (isSelfJoinStream(stream))
         return null;
@@ -663,9 +483,10 @@ function betaReduceInvocation(invocation, pname, value) {
 }
 
 function betaReduceAction(action, pname, value) {
-    let [clone, replaced] = betaReduceInvocation(action, pname, value);
-    if (!clone || !replaced)
+    let [cloneInvocation, replaced] = betaReduceInvocation(action.invocation, pname, value);
+    if (!cloneInvocation || !replaced)
         return null;
+    const clone = Ast.Action.Invocation(cloneInvocation, action.schema);
     if (replaced !== pname)
         clone.schema = removeInputParameter(action.schema, pname);
     return clone;
@@ -727,10 +548,10 @@ function betaReduceStream(stream, pname, value) {
 function unassignInputParameter(schema, passign, pname) {
     if (passign === undefined)
         return schema;
-    let clone = schema.clone();
-    clone.inReq[passign] = schema.inReq[pname];
-    delete clone.inReq[pname];
-    return clone;
+
+    let arg = schema.getArgument(passign).clone();
+    arg.name = pname;
+    return schema.addArguments([arg]);
 }
 
 // perform eta reduction
@@ -749,20 +570,20 @@ function etaReduceInvocation(invocation, pname) {
     }
     if (!passign)
         return [undefined, clone];
-    clone.schema = unassignInputParameter(invocation.schema, pname);
+    clone.schema = unassignInputParameter(invocation.schema, passign, pname);
 
     return [passign, clone];
 }
 
 function etaReduceTable(table, pname) {
-    if (!table.schema.inReq[pname])
+    if (!table.schema.hasArgument(pname) || !table.schema.isArgInput(pname))
         return [undefined, table];
     if (table.isInvocation) {
-        let [passign, unassigned] = etaReduceInvocation(table.invocation, pname);
-        return [passign, new Ast.Table.Invocation(unassigned, unassignInputParameter(table.schema, passign, pname))];
+        let [passign, clone] = etaReduceInvocation(table.invocation, pname);
+        return [passign, new Ast.Table.Invocation(clone, clone.schema)];
     } else if (table.isFilter) {
-        let [passign, unassigned] = etaReduceTable(table.table, pname);
-        return [passign, new Ast.Table.Filter(unassigned, table.filter, unassignInputParameter(table.schema, passign, pname))];
+        let [passign, clone] = etaReduceTable(table.table, pname);
+        return [passign, new Ast.Table.Filter(clone, table.filter, clone.schema)];
     } else {
         // TODO
         return [undefined, table];
@@ -808,7 +629,7 @@ function makeEdgeFilterStream(op) {
             return null;
 
         return new Ast.Stream.EdgeFilter(new Ast.Stream.Monitor(proj.table, null, proj.table.schema), f, proj.table.schema);
-    }
+    };
 }
 
 function addUnit(unit) {
@@ -871,21 +692,6 @@ function checkConstants(combiner, topLevel = true) {
     };
 }
 
-// check that there are no holes in the constants,
-// but only if there are no placeholders (which could
-// introduce new constants and break this check)
-// for prefixes of top-level statements
-/*function maybeCheckConstants(combiner) {
-    return function(children) {
-        let result = combiner(children);
-        if (result === null)
-            return null;
-        if (result.hasPlaceholders())
-            return result;
-        return doCheckConstants(result);
-    };
-}*/
-
 function combineStreamCommand(stream, command) {
     if (command.table) {
         stream = new Ast.Stream.Join(stream, command.table, [], command.table.schema);
@@ -901,12 +707,15 @@ function builtinSayAction(pname) {
     let selector = new Ast.Selector.Device('org.thingpedia.builtin.thingengine.builtin', null, null);
     if (pname instanceof Ast.Value) {
         let param = new Ast.InputParam('message', pname);
-        return new Ast.Invocation(selector, 'say', [param], SAY_SCHEMA);
+        return new Ast.Action.Invocation(Ast.Invocation(selector, 'say', [param], SAY_SCHEMA),
+            SAY_SCHEMA.removeArgument('message'));
     } if (pname) {
         let param = new Ast.InputParam('message', new Ast.Value.VarRef(pname));
-        return new Ast.Invocation(selector, 'say', [param], SAY_SCHEMA);
+        return new Ast.Action.Invocation(new Ast.Invocation(selector, 'say', [param], SAY_SCHEMA),
+            SAY_SCHEMA.removeArgument('message'));
     } else {
-        return new Ast.Invocation(selector, 'say', [], SAY_SCHEMA);
+        return new Ast.Action.Invocation(new Ast.Invocation(selector, 'say', [], SAY_SCHEMA),
+            SAY_SCHEMA.removeArgument('message'));
     }
 }
 
@@ -1026,19 +835,22 @@ function makeGetPredicate(op, negate = false) {
         if (!schema.out[arg].equals(value.getType()))
             return null;
         return new Ast.BooleanExpression.External(selector, channel, proj.table.invocation.in_params, filter, proj.table.invocation.schema);
-    }
+    };
 }
 
 function inParamsToFilters(in_params) {
     const operands = [];
-    for (let param of in_params)
+    for (let param of in_params) {
+        if (param.value.isUndefined)
+            continue;
         operands.push(Ast.BooleanExpression.Atom(param.name, '==', param.value));
+    }
     return Ast.BooleanExpression.And(operands);
 }
 
 function makePolicy(principal, table, action) {
     const policyAction = action ? 
-        new Ast.PermissionFunction.Specified(action.selector.kind, action.channel, inParamsToFilters(action.in_params), action.schema) :
+        new Ast.PermissionFunction.Specified(action.invocation.selector.kind, action.invocation.channel, inParamsToFilters(action.invocation.in_params), action.invocation.schema) :
         Ast.PermissionFunction.Builtin;
         
     let queryfilter = Ast.BooleanExpression.True;
@@ -1049,10 +861,12 @@ function makePolicy(principal, table, action) {
         
         if (table.isFilter && table.table.isInvocation) {
             queryfilter = Ast.BooleanExpression.And([inParamsToFilters(table.table.invocation.in_params), table.filter]);
-            policyQuery = new Ast.PermissionFunction.Specified(table.table.invocation.selector.kind, table.table.invocation.channel, queryfilter, table.schema);
+            policyQuery = new Ast.PermissionFunction.Specified(table.table.invocation.selector.kind, table.table.invocation.channel, queryfilter,
+                table.table.invocation.schema);
         } else if (table.isInvocation) {
             queryfilter = inParamsToFilters(table.invocation.in_params);
-            policyQuery = new Ast.PermissionFunction.Specified(table.invocation.selector.kind, table.invocation.channel, queryfilter, table.schema);
+            policyQuery = new Ast.PermissionFunction.Specified(table.invocation.selector.kind, table.invocation.channel, queryfilter,
+                table.invocation.schema);
         } else {
             return null;
         }
@@ -1246,6 +1060,11 @@ const GRAMMAR = {
         ['their ${out_param_Array(Any)}', disableIfTurking(simpleCombine(identity))]
     ],
 
+    // empty defaults for certain parameter types in case we don't have devices with
+    // those parameter
+    'projection_Entity(tt:username)': [],
+    'projection_Entity(tt:email_address)': [],
+
     'atom_filter': [
         ['before ${constant_Time}', simpleCombine((t1) => makeTimeGetPredicate(null, t1))],
         ['after ${constant_Time}', simpleCombine((t2) => makeTimeGetPredicate(t2, null))],
@@ -1374,13 +1193,13 @@ const GRAMMAR = {
         })],
     ],
 
-    thingpedia_table: [],
+    thingpedia_query: [],
     thingpedia_get_command: [],
     thingpedia_stream: [],
     thingpedia_action: [],
 
     complete_table: [
-        ['${thingpedia_table}', checkIfComplete(simpleCombine(identity))],
+        ['${thingpedia_query}', checkIfComplete(simpleCombine(identity))],
         ['${table_join_replace_placeholder}', checkIfComplete(simpleCombine(identity))],
     ],
     complete_get_command: [
@@ -1525,7 +1344,7 @@ const GRAMMAR = {
                     return null;
 
                 let clone = command.actions[0].clone();
-                clone.in_params.push(new Ast.InputParam(joinArg.name, joinArg));
+                clone.invocation.in_params.push(new Ast.InputParam(joinArg.name, joinArg));
                 return new Ast.Statement.Command(command.table, [clone]);
             });
         })],
@@ -1590,7 +1409,7 @@ const GRAMMAR = {
                     return null;
 
                 let clone = rule.actions[0].clone();
-                clone.in_params.push(new Ast.InputParam(joinArg.name, joinArg));
+                clone.invocation.in_params.push(new Ast.InputParam(joinArg.name, joinArg));
                 return new Ast.Statement.Rule(rule.stream, [clone]);
             });
         })],
@@ -1618,7 +1437,7 @@ const GRAMMAR = {
         // NOTE: the schema is not quite right but it's ok because the stream is complete
         // and the table is what we care about
         ['${stream} ${thingpedia_get_command}', checkConstants(simpleCombine((stream, table) => checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema))))],
-        ['${stream} ${choice(get|show me|give me|tell me|retrieve)} ${thingpedia_table}', checkConstants(simpleCombine((stream, table) => checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema))))],
+        ['${stream} ${choice(get|show me|give me|tell me|retrieve)} ${thingpedia_query}', checkConstants(simpleCombine((stream, table) => checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema))))],
         ['${stream} ${choice(get|show me|give me|tell me|retrieve)} ${choice(|what is )}${projection_Any}', checkConstants(simpleCombine((stream, proj) => {
             if (proj.args[0] === 'picture_url')
                 return null;
@@ -1630,7 +1449,7 @@ const GRAMMAR = {
         }))],
 
         ['${thingpedia_get_command} ${stream}', checkConstants(simpleCombine((table, stream) => checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema))))],
-        ['${choice(get|show me|give me|tell me|retrieve)} ${thingpedia_table} ${stream}', checkConstants(simpleCombine((table, stream) => checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema))))],
+        ['${choice(get|show me|give me|tell me|retrieve)} ${thingpedia_query} ${stream}', checkConstants(simpleCombine((table, stream) => checkNotSelfJoinStream(new Ast.Stream.Join(stream, table, [], table.schema))))],
         ['${choice(get|show me|give me|tell me|retrieve)} ${projection_Any} ${stream}', checkConstants(simpleCombine((proj, stream) => {
             if (proj.args[0] === 'picture_url')
                 return null;
@@ -1863,9 +1682,6 @@ const allTypes = new Map;
 const allInParams = new Map;
 const allOutParams = new Set;
 
-const _language = process.argv[3] || 'en';
-const _schemaRetriever = new FastSchemaRetriever(new AdminThingpediaClient(_language));
-
 function loadTemplateAsDeclaration(ex, decl) {
     decl.name = 'ex_' + ex.id;
     //console.log(program.prettyprint(true));
@@ -1873,15 +1689,15 @@ function loadTemplateAsDeclaration(ex, decl) {
     // ignore builtin actions:
     // debug_log is not interesting, say is special and we handle differently, configure/discover are not
     // composable
-    if (TURKING_MODE && decl.type === 'action' && decl.value.selector.kind === 'org.thingpedia.builtin.thingengine.builtin')
+    if (TURKING_MODE && decl.type === 'action' && decl.value.invocation.selector.kind === 'org.thingpedia.builtin.thingengine.builtin')
         return;
-    if (decl.type === 'action' && decl.value.selector.kind === 'org.thingpedia.builtin.thingengine.builtin' && decl.value.channel === 'say')
+    if (decl.type === 'action' && decl.value.invocation.selector.kind === 'org.thingpedia.builtin.thingengine.builtin' && decl.value.channel === 'say')
         return;
     if (decl.type === 'stream' && (decl.value.isTimer || decl.value.isAtTimer))
         return;
 
     // HACK HACK HACK
-    if (decl.type === 'table' && ex.preprocessed[0] === ',') {
+    if (decl.type === 'query' && ex.preprocessed[0] === ',') {
         ex.preprocessed = ex.preprocessed.substring(1).trim();
         decl.type = 'get_command';
     }
@@ -1912,7 +1728,13 @@ function loadTemplateAsDeclaration(ex, decl) {
         if (!(pname in decl.value.schema.inReq)) {
             // somewhat of a hack, we declare the argument for the value,
             // because later we will muck with schema only
-            decl.value.schema.inReq[pname] = ptype;
+            decl.value.schema = decl.value.schema.addArguments([new Ast.ArgumentDef(
+                Ast.ArgDirection.IN_REQ,
+                pname,
+                ptype,
+                {canonical: clean(pname)},
+                {}
+            )]);
         }
         allInParams.set(pname + '+' + ptype, ptype);
         allTypes.set(String(ptype), ptype);
@@ -1923,7 +1745,7 @@ function loadTemplateAsDeclaration(ex, decl) {
         allTypes.set(String(ptype), ptype);
     }
 
-    let chunks = split(ex.preprocessed.trim(), PARAM_REGEX);
+    let chunks = splitParams(ex.preprocessed.trim());
     let grammarrule = [];
 
     for (let chunk of chunks) {
@@ -1946,18 +1768,21 @@ function loadTemplateAsDeclaration(ex, decl) {
     GRAMMAR['thingpedia_' + decl.type].push([grammarrule, simpleCombine(() => decl.value)]);
 }
 
-function loadTemplate(ex) {
-    return Promise.resolve().then(() => ThingTalk.Grammar.parseAndTypecheck(ex.target_code, _schemaRetriever, true)).then((program) => {
-        if (program.rules.length === 1 && program.declarations.length === 0)
+async function loadTemplate(row) {
+    const datasetCode = `dataset @dummy language "${_language}" { ${row.target_code} }`;
+
+    try {
+        const parsed = await ThingTalk.Grammar.parseAndTypecheck(datasetCode, _schemaRetriever, true);
+
+        const ex = parsed.datasets[0].examples[0];
+        if (ex.type === 'program') // FIXME
             ; // ignore examples that consist of a rule (they are just dataset)
-        else if (program.declarations.length === 1 && program.declarations.length === 1)
-            loadTemplateAsDeclaration(ex, program.declarations[0]);
         else
-            console.log('Invalid template ' + ex.id + ' (wrong number of declarations)');
-    }).catch((e) => {
-        console.error('Failed to load template ' + ex.id + ': ' + e.message);
+            loadTemplateAsDeclaration(row, ex);
+    } catch (e) {
+        console.error('Failed to load template ' + row.id + ': ' + e.message);
         console.error(e.stack);
-    });
+    }
 }
 
 function loadDevice(device) {
@@ -1989,6 +1814,33 @@ function loadIdType(idType) {
         console.log('Loaded type ' + type + ' as non-constant type');
         NON_CONSTANT_TYPES.add(type);
     }
+}
+
+// perform a join with parameter passing
+function mergeSchemas(functionType, lhsSchema, rhsSchema, passign) {
+    // handle parameter name conflicts by having the second primitive win
+    const newArgNames = new Set;
+    const newArgs = [];
+    for (let argname of rhsSchema.args) {
+        if (argname === passign)
+            continue;
+        newArgNames.add(argname);
+        newArgs.push(rhsSchema.getArgument(argname));
+    }
+    for (let argname of lhsSchema.args) {
+        if (newArgNames.has(argname))
+            continue;
+        if (!lhsSchema.isArgInput(argname))
+            continue;
+        newArgNames.add(argname);
+        newArgs.push(lhsSchema.getArgument(argname));
+    }
+
+    return new Ast.ExpressionSignature(functionType,
+        newArgs, // args
+        lhsSchema.is_list || rhsSchema.is_list, // is_list
+        lhsSchema.is_monitorable && rhsSchema.is_monitorable // is_monitorable
+    );
 }
 
 function loadMetadata(language) {
@@ -2046,13 +1898,12 @@ function loadMetadata(language) {
             if (!ID_TYPES.has(typestr)) {
                 GRAMMAR['projection_' + typestr] = [
                     ['${the_out_param_' + typestr + '} of ${complete_table}', simpleCombine((outParam, table) => {
-                        let name = outParam.name;
+                        const name = outParam.name;
                         if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
                             return null;
                         if (name === 'picture_url' && TURKING_MODE)
                             return null;
-                        let newSchema = table.schema.clone();
-                        newSchema.out = { [name]: table.schema.out[name] };
+                        const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
                         return new Ast.Table.Projection(table, [name], newSchema);
                     })],
                 ];
@@ -2105,14 +1956,13 @@ function loadMetadata(language) {
             if (!ID_TYPES.has(typestr)) {
                 GRAMMAR['stream_projection_' + typestr] = [
                     ['${the_out_param_' + typestr + '} of new ${complete_table}', simpleCombine((outParam, table) => {
-                        let name = outParam.name;
+                        const name = outParam.name;
                         if (!table.schema.out[name] || !Type.isAssignable(table.schema.out[name], type))
                             return null;
                         if (!isMonitorable(table))
                             return null;
-                        let stream = new Ast.Stream.Monitor(table, null, table.schema);
-                        let newSchema = stream.schema.clone();
-                        newSchema.out = { [name]: stream.schema.out[name] };
+                        const stream = new Ast.Stream.Monitor(table, null, table.schema);
+                        const newSchema = stream.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === name);
                         return new Ast.Stream.Projection(stream, [name], newSchema);
                     })],
                 ];
@@ -2182,7 +2032,7 @@ function loadMetadata(language) {
             //    continue;
             //console.log(pname + ' := ' + ptype + ' ( ' + key + ' )');
 
-            GRAMMAR.thingpedia_table.push(['${thingpedia_table}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
+            GRAMMAR.thingpedia_query.push(['${thingpedia_query}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
                 if (!ptype || !ptype.equals(value.getType()))
                     return null;
@@ -2205,7 +2055,7 @@ function loadMetadata(language) {
                 if (value.isDate && value.value === null && value.offset === null)
                     return null;
                 return betaReduceTable(lhs, pname, value);
-            }, { isConstant: true, allowEmptyPictureURL: true })])
+            }, { isConstant: true, allowEmptyPictureURL: true })]);
 
             GRAMMAR.thingpedia_stream.push(['${thingpedia_stream}${constant_' + ptype + '}', combineReplacePlaceholder(pname, (lhs, value) => {
                 let ptype = lhs.schema.inReq[pname];
@@ -2251,36 +2101,14 @@ function loadMetadata(language) {
                 }
                 //console.log('passign: ' + passign + ', ptype: ' + ptype);
 
-                // FIXME handle parameter name conflicts
-                let newSchema = new Ast.FunctionDef('other',
-                    [], // FIXME args
-                    [], // FIXME types
-                    {}, // FIXME index
-                    {}, // inReq,
-                    {}, // inOpt
-                    {}, // out
-                    projection.schema.is_list || etaReduced.schema.is_list, // is_list
-                    projection.schema.is_monitorable && etaReduced.schema.is_monitorable, // is_monitorable
-                    '', // canonical
-                    '', // confirmation
-                    '', // confirmation_remote
-                    [], // argcanonicals
-                    [] // questions
-                );
-                Object.assign(newSchema.inReq, projection.schema.inReq);
-                Object.assign(newSchema.inOpt, projection.schema.inOpt);
-                Object.assign(newSchema.inReq, etaReduced.schema.inReq);
-                Object.assign(newSchema.inOpt, etaReduced.schema.inOpt);
-                Object.assign(newSchema.out, etaReduced.schema.out);
-                delete newSchema.inReq[passign];
-
+                const newSchema = mergeSchemas('query', projection.schema, etaReduced.schema, passign);
                 let replacement = joinArg === '$event' ? new Ast.Value.Event(null) : new Ast.Value.VarRef(joinArg);
                 return new Ast.Table.Join(projection.table, etaReduced, [new Ast.InputParam(passign, replacement)], newSchema);
             };
 
             if (!ID_TYPES.has(String(ptype)))
-                GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_table}${projection_' + ptype + '}', combineReplacePlaceholder(pname, tableJoinReplacePlaceholder, { isConstant: false })]);
-            GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_table}${single_projection_' + ptype + '}', combineReplacePlaceholder(pname, tableJoinReplacePlaceholder, { isConstant: false })]);
+                GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_query}${projection_' + ptype + '}', combineReplacePlaceholder(pname, tableJoinReplacePlaceholder, { isConstant: false })]);
+            GRAMMAR.table_join_replace_placeholder.push(['${thingpedia_query}${single_projection_' + ptype + '}', combineReplacePlaceholder(pname, tableJoinReplacePlaceholder, { isConstant: false })]);
 
             const actionReplaceParamWithTable = (into, projection) => {
                 if (projection === null)
@@ -2433,27 +2261,7 @@ function loadMetadata(language) {
                 }
                 //console.log('passign: ' + passign + ', ptype: ' + ptype);
 
-                // FIXME handle parameter name conflicts
-                let newSchema = new Ast.FunctionDef('other',
-                    [], // FIXME args
-                    [], // FIXME types
-                    {}, // FIXME index
-                    {}, // inReq,
-                    {}, // inOpt
-                    {}, // out
-                    '', // canonical
-                    '', // confirmation
-                    '', // confirmation_remote
-                    [], // argcanonicals
-                    [] // questions
-                );
-                Object.assign(newSchema.inReq, stream.stream.schema.inReq);
-                Object.assign(newSchema.inOpt, stream.stream.schema.inOpt);
-                Object.assign(newSchema.inReq, etaReduced.schema.inReq);
-                Object.assign(newSchema.inOpt, etaReduced.schema.inOpt);
-                Object.assign(newSchema.out, etaReduced.schema.out);
-                delete newSchema.inReq[passign];
-
+                const newSchema = mergeSchemas('stream', stream.schema, etaReduced.schema, passign);
                 return new Ast.Stream.Join(stream.stream, etaReduced, stream.in_params.concat([new Ast.InputParam(passign, joinArg)]), newSchema);
             };
 
@@ -2739,7 +2547,7 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
         return;
         
     // prevent exponential behavior!
-    while (worstCaseGenSize >= 50000000 && maxdepth >= 0) {
+    while (worstCaseGenSize >= 1000000 && maxdepth >= 0) {
         console.log(`expand NT[${nonterminal}] -> ${expansion.join('')} : worst case ${worstCaseGenSize}, reducing max depth`);
         maxdepth--;
         worstCaseGenSize = computeWorstCaseGenSize(maxdepth);
@@ -2840,13 +2648,13 @@ function initChart() {
 function *generate() {
     let charts = [];
 
-    for (let i = 0; i <= MAX_DEPTH; i++) {
+    for (let i = 0; i <= maxDepth; i++) {
         console.log(`--- DEPTH ${i}`);
         charts[i] = initChart();
 
         for (let nonterminal in GRAMMAR) {
             const minDistance = _minDistanceFromRoot[nonterminal];
-            if (minDistance === undefined || minDistance > MAX_DEPTH - i)
+            if (minDistance === undefined || minDistance > maxDepth - i)
                 continue;
             let j = 0;
             for (let rule of GRAMMAR[nonterminal]) {
@@ -2860,8 +2668,6 @@ function *generate() {
                         continue;
                     }*/
                     //everything.add(key);
-                    if (nonterminal === 'atom_filter' && derivation.value.isExternal)
-                        console.log(`$${nonterminal} -> ${derivation}`);
                     charts[i][nonterminal].push(derivation);
                 }
                 j++;
@@ -2877,27 +2683,32 @@ function *generate() {
     }
 }
 
-function asyncIterate(iterator, loop) {
-    return Q().then(function minibatch() {
-        for (let i = 0; i < 10000; i++) {
+function delay(ms) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, ms);
+    });
+}
+
+async function asyncIterate(iterator, loop) {
+    for (;;) {
+        for (let i = 0; i < 1000; i++) {
             let { value, done } = iterator.next();
             if (done)
-                return Q();
+                return;
             loop(value);
         }
-
-        return Q.delay(10).then(minibatch);
-    });
+        await delay(10);
+    }
 }
 
 function postprocess(sentence) {
     return sentence.replace(/ new (my|the|a) /, (_, what) => ` ${what} new `)
-        .replace(/ 's (my|their|his|her) /, ` 's `)
+        .replace(/ 's (my|their|his|her) /, ` 's `) //'
         .trim();
 }
 
 function main() {
-    const outfile = process.argv[2] || 'output.tsv';
+    const outfile = outputFile || 'output.tsv';
     const output = fs.createWriteStream(outfile);
 
     loadMetadata(_language).then(() => {
@@ -2913,9 +2724,14 @@ function main() {
             try {
                 sequence = ThingTalk.NNSyntax.toNN(program, {});
                 //ThingTalk.NNSyntax.fromNN(sequence, {});
+
+                if (sequence.some((t) => t.endsWith(':undefined')))
+                    throw new TypeError(`Generated undefined type`);
             } catch(e) {
                 console.error(sentence);
                 console.error(String(program));
+                console.error(sequence);
+
                 console.error(program.prettyprint(program).trim());
                 throw e;
             }
@@ -2929,4 +2745,6 @@ function main() {
 
     output.on('finish', () => process.exit());
 }
-main();
+return main();
+}
+script(...process.argv.slice(2));

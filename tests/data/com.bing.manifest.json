@@ -67,14 +67,16 @@
                     "type": "String",
                     "question": "What do you want to search?",
                     "is_input": true,
-                    "required": true
+                    "required": true,
+                    "string_values": "tt:search_query"
                 },
                 {
                     "name": "title",
                     "type": "String",
                     "question": "",
                     "is_input": false,
-                    "required": false
+                    "required": false,
+                    "string_values": "tt:short_free_text"
                 },
                 {
                     "name": "picture_url",

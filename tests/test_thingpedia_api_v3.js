@@ -152,9 +152,9 @@ const BING_CLASS_FULL = `class @com.bing
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
-  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
-                                    out title: String #_[canonical="title"],
-                                    out description: String #_[canonical="description"],
+  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                    out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
+                                    out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
                                     out link: Entity(tt:url) #_[canonical="link"])
   #_[canonical="web search on bing"]
   #_[confirmation="websites matching $query on Bing"]
@@ -162,8 +162,8 @@ const BING_CLASS_FULL = `class @com.bing
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing"];
 
-  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
-                                      out title: String #_[canonical="title"],
+  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                      out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
                                       out picture_url: Entity(tt:picture) #_[canonical="picture url"],
                                       out link: Entity(tt:url) #_[canonical="link"],
                                       out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
@@ -411,7 +411,7 @@ async function testGetExamplesByDevice() {
     #_[utterances=["keep eating data!","keep eating data! (v2)"]]
     #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
     #[id=1002] #[click_count=0];
-    action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
+    action () := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["more data eating..."]]
     #_[preprocessed=["more data eating ..."]]
     #[id=1004] #[click_count=0];
@@ -451,7 +451,7 @@ async function testGetExamplesByKey() {
     #_[utterances=["keep eating data!","keep eating data! (v2)"]]
     #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
     #[id=1002] #[click_count=0];
-    action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
+    action () := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["more data eating..."]]
     #_[preprocessed=["more data eating ..."]]
     #[id=1004] #[click_count=0];
