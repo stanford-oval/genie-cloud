@@ -163,39 +163,5 @@ module.exports = {
         handleOne(ast.queries, queries);
 
         return { triggers, actions, queries };
-    },
-
-    toManifest(meta) {
-        let ast = {
-        };
-        for (let what of ['triggers', 'queries', 'actions']) {
-            ast[what] = {};
-            for (let name in meta[what]) {
-                let argnames = meta[what][name].args;
-                let questions = meta[what][name].questions || [];
-                let argrequired = meta[what][name].required || [];
-                var argisinput = meta[what][name].is_input || [];
-                let args = [];
-                meta[what][name].schema.forEach((type, i) => {
-                    args.push({
-                        type: type,
-                        name: argnames[i],
-                        question: questions[i] || '',
-                        required: argrequired[i] || false,
-                        is_input: argisinput[i] || false,
-                    });
-                });
-                ast[what][name] = {
-                    args: args,
-                    doc: meta[what][name].doc || '',
-                    confirmation: meta[what][name].confirmation || '',
-                    confirmation_remote: meta[what][name].confirmation_remote || '',
-                    canonical: meta[what][name].canonical || '',
-                    is_list: meta[what][name].is_list,
-                    is_monitorable: meta[what][name].is_monitorable
-                };
-            }
-        }
-        return ast;
     }
 };

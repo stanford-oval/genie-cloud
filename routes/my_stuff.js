@@ -95,7 +95,7 @@ router.get('/', user.redirectLogIn, (req, res) => {
                                  isRunning: isRunning,
                                  apps: appinfo,
                                  devices: devinfo,
-                                 S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST
+                                 CDN_HOST: Config.CDN_HOST
                                 });
     }).catch((e) => {
         console.log(e.stack);
@@ -112,7 +112,7 @@ router.post('/', user.redirectLogIn, (req, res) => {
             isRunning: isRunning,
             apps: appinfo,
             devices: devinfo,
-            S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
+            CDN_HOST: Config.CDN_HOST,
             command: req.body.command
         });
     }).catch((e) => {

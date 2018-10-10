@@ -65,7 +65,7 @@ function runEngine(thingpediaClient, options) {
     var obj = { cloudId: options.cloudId, running: false, sockets: new Set };
     var engine = new Engine(platform, { thingpediaUrl: Config.THINGPEDIA_URL });
     obj.engine = engine;
-    platform.createAssistant(engine);
+    platform.createAssistant(engine, options);
     engine.open().then(() => {
         obj.running = true;
 

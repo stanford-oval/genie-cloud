@@ -14,7 +14,8 @@ DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test"
 export DATABASE_URL
 
 cat > $srcdir/secret_config.js <<'EOF'
-module.exports.S3_CLOUDFRONT_HOST = '/download';
+module.exports.FILE_STORAGE_BACKEND = 'local';
+module.exports.CDN_HOST = '/download';
 module.exports.WITH_THINGPEDIA = 'embedded';
 module.exports.THINGPEDIA_URL = '/thingpedia';
 EOF
@@ -26,12 +27,13 @@ node $srcdir/scripts/bootstrap.js
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
-    rm -fr $workdir
     test -n "$frontendpid" && kill $frontendpid
     frontendpid=
     test -n "$masterpid" && kill $masterpid
     masterpid=
     wait
+
+    rm -fr $workdir
 }
 trap on_error ERR INT TERM
 

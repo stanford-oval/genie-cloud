@@ -18,9 +18,9 @@ block content
           div.col-xs-12
             div.alert.alert-info(role='alert')
               if currentTrainingJob.eta
-                p= _("Current Training Job: %s (%.0f%%). Started at %s for %s. ETA: %s").format(currentTrainingJob.status,currentTrainingJob.progress*100,(new Date(currentTrainingJob.startTime)).toLocaleString(user.locale, { timeZone: user.timezone }), currentTrainingJob.forDevices.join(', '), (new Date(currentTrainingJob.eta)).toLocaleString(user.locale, { timeZone: user.timezone }))
+                p= _("Current Training Job: %s (%.0f%%). Started at %s for [%s] (@%s/%s). ETA: %s").format(currentTrainingJob.status,currentTrainingJob.progress*100,(new Date(currentTrainingJob.startTime)).toLocaleString(user.locale, { timeZone: user.timezone }), currentTrainingJob.forDevices.join(', '), currentTrainingJob.modelTag, currentTrainingJob.language, (new Date(currentTrainingJob.eta)).toLocaleString(user.locale, { timeZone: user.timezone }))
               else
-                p= _("Current Training Job: %s (%.0f%%). Started at %s for %s.").format(currentTrainingJob.status, currentTrainingJob.progress*100, (new Date(currentTrainingJob.startTime)).toLocaleString(user.locale, { timeZone: user.timezone }), currentTrainingJob.forDevices.join(', '))
+                p= _("Current Training Job: %s (%.0f%%). Started at %s for [%s] (@%s/%s).").format(currentTrainingJob.status, currentTrainingJob.progress*100, (new Date(currentTrainingJob.startTime)).toLocaleString(user.locale, { timeZone: user.timezone }), currentTrainingJob.forDevices.join(', '), currentTrainingJob.modelTag, currentTrainingJob.language)
 
     div.sections
       section.divider
@@ -37,7 +37,7 @@ block content
                   li
                     a(href='/admin/review-queue') Unreviewed Devices
                   li
-                    a(href='/thingpedia/schemas') Thingpedia Types
+                    a(href='/thingpedia/classes') Thingpedia Types
                   li
                     a(href='/thingpedia/entities') Thingpedia Entities
                   li

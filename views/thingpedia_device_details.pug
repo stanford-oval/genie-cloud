@@ -20,8 +20,9 @@ block content
   if device.approved_version === null
     div.alert.alert-warning(role='alert')
       if user && (user.developer_status >= 3 || user.developer_status >=2 && user.developer_org === device.owner)
-        form(action='/thingpedia/devices/approve/' + device.id, method='post').form-inline
+        form(action='/thingpedia/devices/approve', method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=device.primary_kind)
           p.form-group= _("This device is not yet approved.")
             | &#x20;
             button(type='submit').btn.btn-success= _("Approve it")
@@ -34,8 +35,9 @@ block content
   else if device.approved_version !== device.developer_version && user && user.developer_status >= 3
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
-        form(action='/thingpedia/devices/approve/' + device.id, method='post').form-inline
+        form(action='/thingpedia/devices/approve', method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=device.primary_kind)
           p.form-group= _("A newer version of this device was submitted.")
             | &#x20;
             button(type='submit').btn.btn-success= _("Approve it")
@@ -90,7 +92,7 @@ block content
       
 
   aside#device-icon-large
-    img(src=S3_CLOUDFRONT_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
+    img(src=CDN_HOST + '/icons/' + device.primary_kind + '.png', alt="Icon for " + device.name)
 
   p#device-description= device.description
 
@@ -104,28 +106,25 @@ block content
     p
       i= _("This is a builtin device in certain versions of Almond. It may not be available in the Almond you are using.")
 
-  h2.device-subtitle#device-version= _("Class: ")
-    code= '@' + device.primary_kind
-    if device.version !== device.approved_version && device.version !== device.developer_version
-      if device.approved_version === null
-        = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
-      else if device.approved_version !== device.developer_version
-        = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
+  if authenticated && user.developer_org !== null
+    h2.device-subtitle#device-version= _("Class: ")
+      a(href='/thingpedia/classes/by-id/' + device.primary_kind)= '@' + device.primary_kind
+      if device.version !== device.approved_version && device.version !== device.developer_version
+        if device.approved_version === null
+          = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
+        else if device.approved_version !== device.developer_version
+          = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
+        else
+          = _(", version %d; this version: %d").format(device.approved_version, device.version)
       else
-        = _(", version %d; this version: %d").format(device.approved_version, device.version)
-    else
-      if device.approved_version === null
-        = _(", version none (approved), %d (developer)").format(device.developer_version)
-      else if device.approved_version !== device.developer_version
-        = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
-      else
-        = _(", version %d").format(device.approved_version)
-    |
-    |
-    small
-      a(href='/thingpedia/schemas/by-id/' + device.primary_kind)= _("metadata details")
+        if device.approved_version === null
+          = _(", version none (approved), %d (developer)").format(device.developer_version)
+        else if device.approved_version !== device.developer_version
+          = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
+        else
+          = _(", version %d").format(device.approved_version)
 
-  h2.device-subtitle= _("Uploaded By: ")
+  p#device-uploaded-by= _("Uploaded By: ")
     if user && user.roles & 0x1
       a(href='/admin/organizations/details/' + device.owner)=device.owner_name
     else
@@ -135,7 +134,7 @@ block content
     h2.device-subtitle= _("Extends: ")
       for k in classDef.extends
         = " "
-        a(href='/thingpedia/schemas/by-id/' + k)
+        a(href='/thingpedia/classes/by-id/' + k)
           span.label.label-default= '@' + k
 
   div.clearfix
@@ -151,7 +150,7 @@ block content
             a(href='/thingpedia/devices/by-id/' + k)
               span= '@' + k
           else
-            a(href='/thingpedia/schemas/by-id/' + k)
+            a(href='/thingpedia/classes/by-id/' + k)
               span= '@' + k
 
   h2.device-subtitle= _("Commands")
@@ -237,19 +236,21 @@ block content
   div.row#device-details-actions
     if authenticated && (user.developer_status >= 3 || device.owner === user.developer_org)
       div.col-md-3
-        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.id)= _("Update")
+        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.primary_kind)= _("Update")
       if user.developer_status >= 2 && device.approved_version !== null
         div.col-md-3
-          form(action='/thingpedia/devices/unapprove/' + device.id, method='post').form-delete-device
+          form(action='/thingpedia/devices/unapprove', method='post').form-delete-device
             input(type='hidden',name='_csrf',value=csrfToken)
+            input(type='hidden',name='kind',value=device.primary_kind)
             button(type='submit').btn.btn-danger.btn-block= _("Remove from collection")
       div.col-md-3
-        form(action='/thingpedia/devices/delete/' + device.id, method='post').form-delete-device
+        form(action='/thingpedia/devices/delete', method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=device.primary_kind)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
-    if device.module_type === 'org.thingpedia.v1' || device.module_type === 'org.thingpedia.v2'
+    if device.download_url
       div.col-md-3
-        a.btn.btn-default.btn-block(href=S3_CLOUDFRONT_HOST + '/devices/' + device.primary_kind + '-v' + device.developer_version + '.zip')= _("Download code")
+        a.btn.btn-default.btn-block(href=device.download_url)= _("Download code")
     if authenticated && user.locale !== 'en-US'
         div.col-md-2
           a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind)= _("Translate")

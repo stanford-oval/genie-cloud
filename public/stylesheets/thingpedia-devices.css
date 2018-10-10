@@ -91,10 +91,13 @@
 .device-channels {
     padding: 0;
 }
-.device-channels code {
+.device-channels code, .schema-code-block {
     display: block;
     color: inherit;
     background-color: #eeeeee;
+}
+.schema-code-block {
+    white-space: pre;
 }
 .device-channels >li {
     display: block;

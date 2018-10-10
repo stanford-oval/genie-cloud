@@ -7,15 +7,16 @@ block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
 
 block page_name
-  = _("Type: %s").format(schema.kind)
+  = _("Class: %s").format(schema.kind)
 
 block content
   if schema.approved_version === null
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
         if schema.kind_type === 'other'
-          form(action='/thingpedia/schemas/approve/' + schema.id, method='post').form-inline
+          form(action='/thingpedia/classes/approve', method='post').form-inline
             input(type='hidden',name='_csrf',value=csrfToken)
+            input(type='hidden',name='kind',value=schema.kind)
             p.form-group= _("This type is not yet approved.")
               | &#x20;
               button(type='submit').btn.btn-success= _("Approve it")
@@ -26,8 +27,9 @@ block content
   else if schema.approved_version !== schema.developer_version && user && user.developer_status >= 3
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
-        form(action='/thingpedia/schemas/approve/' + schema.id, method='post').form-inline
+        form(action='/thingpedia/classes/approve/' + schema.id, method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=schema.kind)
           p.form-group= _("A newer version of this schema was submitted.")
             if schema.kind_type === 'other'
               | &#x20;
@@ -90,92 +92,22 @@ block content
       else
         = _("Version: %d").format(schema.approved_version)
 
-  mixin invocation(inv, name, inv_type)
-    li
-      code #{name}(
-        for a, i in inv.args
-          if i !== 0
-            br
-            span.indent= ' '.repeat(name.length+2)
-          if inv.is_input[i]
-            = 'in '
-            if inv.required[i]
-              = 'req '
-            else
-              = 'opt '
-          else
-              = 'out '
-          |  #{a} : 
-          if inv.types[i].startsWith('Entity(')
-            a(href=`/thingpedia/entities/by-id/${inv.types[i].substring('Entity('.length, inv.types[i].length-1)}`)= inv.types[i]
-          else if inv.types[i].startsWith('Array(Entity(')
-            | Array(#[a(href=`/thingpedia/entities/by-id/${inv.types[i].substring('Array(Entity('.length, inv.types[i].length-2)}`)= inv.types[i].substring('Array('.length, inv.types[i].length-1)])
-          else
-            = inv.types[i]
-          if i !== inv.args.length-1
-            = ', '
-        = ')'
-      br
-      | #{inv.doc}
-      br
-      = _("Canonical: ")
-      span.canonical= inv.canonical
-      br
-      = _("Local Confirmation: ")
-      span.confirmation= inv.confirmation
-      br
-      = _("Remote Confirmation: ")
-      span.confirmation_remote= inv.confirmation_remote
-      if inv_type === 'query'
-        br
-        if inv.is_monitorable
-          = _("This function can be monitored.")
-        else
-          = _("This function cannot be monitored.")
-        br
-        if inv.is_list
-          = _("This function returns a list of results.")
-        else
-          = _("This function returns a single result.")
+  h2.device-subtitle= _("Class Definition")
+  code.schema-code-block#schema-code
+    = schema.code
 
-
-  if Object.keys(triggers).length > 0
-    h2.device-subtitle= _("Triggers")
-    ul.device-channels
-      for t, name in triggers
-        +invocation(t, name, 'trigger')
-
-  if Object.keys(queries).length > 0
-    h2.device-subtitle= _("Queries")
-    ul.device-channels
-      for q, name in queries
-        +invocation(q, name, 'query')
-
-  if Object.keys(actions).length > 0
-    h2.device-subtitle= _("Actions")
-    ul.device-channels
-      for a, name in actions
-        +invocation(a, name, 'action')
-
-  h2.device-subtitle= _("Example Commands")
-  if schema.examples.length > 0
-    ul.device-examples
-      for e in schema.examples
-        li
-          if authenticated && user.developer_status >= 3
-            span(title=e.target_code || e.target_json)= e.utterance
-          else
-            span= e.utterance
-  else
-    p#no-commands= _("This type has no commands.")
+  h2.device-subtitle= _("Dataset")
+  code.schema-code-block#schema-dataset
+    = schema.dataset
 
   div.row#device-details-actions
     if schema.kind_type === 'other' && authenticated && (user.developer_status >= 3 || schema.owner === user.developer_org)
       div.col-md-2
-        a.btn.btn-warning.btn-block(href='/thingpedia/schemas/update/' + schema.id)= _("Edit")
+        a.btn.btn-warning.btn-block(href='/thingpedia/classes/update/' + schema.kind)= _("Edit")
       div.col-md-2
-        form(action='/thingpedia/schemas/delete/' + schema.id, method='post').form-delete-device
+        form(action='/thingpedia/classes/delete', method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
+          input(type='hidden',name='kind',value=schema.kind)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
     if authenticated && user.locale !== 'en-US'
       div.col-md-2

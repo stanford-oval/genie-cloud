@@ -22,8 +22,10 @@ $(() => {
         'device-code': 'application/x-thingtalk',
         'device-dataset': 'application/x-thingtalk'
     };
-    $('#device-editor-sidebar').on('shown.bs.tab', (event) => {
-        const textarea = $(event.target.getAttribute('href') + ' textarea.enable-codemirror')[0];
+    function activateTab(tab) {
+        if (!tab)
+            return;
+        const textarea = $(tab.getAttribute('href') + ' textarea.enable-codemirror')[0];
         if (!textarea)
             return;
 
@@ -39,7 +41,12 @@ $(() => {
             lint: true
         });
         codemirror.set(textarea.id, cm);
+    }
+
+    $('#device-editor-sidebar').on('shown.bs.tab', (event) => {
+        activateTab(event.target);
     });
+    activateTab($('#device-editor-sidebar li.active > a')[0]);
 
     /*$('.tab-switcher a').click(function(event) {
         event.preventDefault();

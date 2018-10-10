@@ -26,18 +26,10 @@ const entityModel = require('../model/entity');
 
 const DatasetUtils = require('./dataset');
 const SchemaUtils = require('./manifest_to_schema');
-const Importer = require('./import_device');
+const FactoryUtils = require('./device_factories');
 const I18n = require('./i18n');
+const codeStorage = require('./code_storage');
 
-const S3_HOST = Config.S3_CLOUDFRONT_HOST + '/devices/';
-
-const LEGACY_MAPS = {
-    'linkedin': 'com.linkedin',
-    'bodytrace-scale': 'com.bodytrace.scale',
-    'twitter-account': 'com.twitter',
-    'google-account': 'com.google',
-    'facebook': 'com.facebook'
-};
 
 class ThingpediaDiscoveryDatabase {
     getByAnyKind(kind) {
@@ -105,46 +97,25 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
             return org.id;
     }
 
-    getModuleLocation(kind, version) {
-        if (kind in LEGACY_MAPS)
-            kind = LEGACY_MAPS[kind];
-
-        if (version)
-            return Promise.resolve(S3_HOST + kind + '-v' + version + '.zip');
-
-        var developerKey = this.developerKey;
-
-        return db.withClient((dbClient) => {
-            return Promise.resolve().then(() => {
-                if (developerKey)
-                    return organization.getByDeveloperKey(dbClient, developerKey);
-                else
-                    return [];
-            }).then((orgs) => {
-                var org = null;
-                if (orgs.length > 0)
-                    org = orgs[0];
-
-                return device.getByPrimaryKind(dbClient, kind).then((device) => {
-                    if (device.fullcode)
-                        throw new Error('No Code Available');
-
-                    if (org !== null && ((org.id === device.owner) || org.is_admin))
-                        return (S3_HOST + device.primary_kind + '-v' + device.developer_version + '.zip');
-                    else if (device.approved_version !== null)
-                        return (S3_HOST + device.primary_kind + '-v' + device.approved_version + '.zip');
-                    else
-                        throw new Error('Not Authorized');
-                }, (e) => {
-                    if (e.code === 'ENOENT') {
-                        // = no such device, but we hide this fact and return a generic Not Authorized
-                        throw new Error('Not Authorized');
-                    } else {
-                        throw e;
-                    }
-                });
-            });
+    async getModuleLocation(kind, version) {
+        const [approvedVersion, maxVersion] = await db.withClient(async (dbClient) => {
+            const org = await this._getOrg(dbClient);
+            const device = await device.getDownloadVersion(dbClient, kind);
+            if (!device.downloadable)
+                throw new Error('No Code Available');
+            if (org !== null && ((org.id === device.owner) || org.is_admin))
+                return [device.approved_version, device.developer_version];
+            else
+                return [device.approved_version, device.approved_version];
         });
+        if (maxVersion === null || version > maxVersion)
+            throw new Error('Not Authorized');
+        if (version === undefined || version === '')
+            version = maxVersion;
+
+        const developer = approvedVersion === null || version > approvedVersion;
+
+        return codeStorage.getDownloadLocation(kind, version, developer);
     }
 
     getDeviceCode(kind, accept) {
@@ -247,7 +218,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
 
         assert(/\s+\{/.test(device.code));
         const classDef = ThingTalk.Ast.ClassDef.fromManifest(device.primary_kind, JSON.parse(device.code));
-        return Importer.makeDeviceFactory(classDef, device);
+        return FactoryUtils.makeDeviceFactory(classDef, device);
     }
 
     getDeviceFactories(klass) {

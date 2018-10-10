@@ -40,11 +40,12 @@ section.divider
           div.panel-footer
             div.row
               div.col-md-6
-                a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id)= _("Update")
+                a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.primary_kind)= _("Update")
 
               div.col-md-6
-                form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
+                form(action='/thingpedia/devices/delete/', method='post').form-delete-device
                   input(type='hidden',name='_csrf',value=csrfToken)
+                  input(type='hidden',name='kind',value=dev.primary_kind)
                   button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
     else
       div.col-xs-12
