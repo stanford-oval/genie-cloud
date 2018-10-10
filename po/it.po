@@ -40,8 +40,8 @@ msgstr "Un utente con questo nome esiste già"
 #: routes/thingpedia_app_upload.js:157 routes/thingpedia_app_upload.js:170
 #: routes/thingpedia_app_upload.js:175 routes/thingpedia_devices.js:143
 #: routes/thingpedia_devices.js:176 routes/thingpedia_devices.js:185
-#: routes/thingpedia_devices.js:195 routes/thingpedia_doc.js:57
-#: routes/thingpedia_doc.js:65 routes/thingpedia_doc.js:75
+#: routes/thingpedia_devices.js:195 routes/thingpedia_developer_console.js:57
+#: routes/thingpedia_developer_console.js:65 routes/thingpedia_developer_console.js:75
 #: routes/thingpedia_schemas.js:43 routes/thingpedia_schemas.js:59
 #: routes/thingpedia_schemas.js:90 routes/thingpedia_schemas.js:105
 #: routes/thingpedia_schemas.js:116 routes/thingpedia_schemas.js:126
@@ -242,19 +242,19 @@ msgstr "Thingpedia - Dettagli del dispositivo"
 msgid "Not Authorized"
 msgstr "Non Autorizzato"
 
-#: routes/thingpedia_doc.js:25
+#: routes/thingpedia_developer_console.js:25
 msgid "Thingpedia - Documentation"
 msgstr "Thingpedia - Documentazione"
 
-#: routes/thingpedia_doc.js:48
+#: routes/thingpedia_developer_console.js:48
 msgid "Thingpedia - Developer Portal"
 msgstr "Thingpedia - Portale Sviluppatori"
 
-#: routes/thingpedia_doc.js:66
+#: routes/thingpedia_developer_console.js:66
 msgid "Malformed request"
 msgstr "Richiesta malformata"
 
-#: routes/thingpedia_doc.js:76 routes/thingpedia_schemas.js:60
+#: routes/thingpedia_developer_console.js:76 routes/thingpedia_schemas.js:60
 #: routes/thingpedia_translate.js:62 routes/thingpedia_translate.js:206
 msgid "Not Found."
 msgstr "Non trovato."

@@ -1,0 +1,49 @@
+section.divider
+  h3= _("Thingpedia Developer Program")
+  div.row#dev-program-intro
+    div.col-xs-12.col-md-8.col-md-offset-2
+      p
+        | Thingpedia is an open, crowdsourced, non-proprietary repository of digital interfaces
+        | and their linguistic representation open to all virtual assistant platforms.
+        | We welcome everyone to contribute to Thingpedia!
+
+section.divider
+  h3= _("Example Applications Built on Top of Almond")
+  div.row
+    div.col-md-6
+      div.dev-example
+        h4.dev-example-title= _("Almond Music with Alexa & Google Home support")
+        div.dev-example-video
+          iframe(src="https://www.youtube.com/embed/M4HG-QDGmBI", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true)
+        p.dev-example-description
+          | Gabby Wright and Hemanth Kini are both music enthusiasts.
+          | They love music and want to control their music with voice through any device around them.
+          | However, the Spotify skill on Alexa or Google Home does not do what they want such as
+          | changing their playlist.
+          | They built Almond Music together as a quarter-long class project with the goal
+          | of creating the best music virtual assistant. We collaborate with them and hook it up
+          | with both Alexa and Google Home.
+          | The hookup layer is still under development. In the future, it will be fully automated
+          | once a device is added to Thingpedia.
+    div.col-md-6
+      div.dev-example
+        h4.dev-example-title= _("A Demo of Multi-user Almond")
+        div.dev-example-video
+          iframe(src="https://www.youtube.com/embed/LFOB_AUmreE", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true)
+        p.dev-example-description
+          | Permission control has been a pain point for voice virtual assistant.
+          | In this video, we demo how Almond can be used to identify users with their voice
+          | and provide fine-grained access control based on the detected identity.
+          | In our design, users are allowed to share any of their digital personal information
+          | they have access to,
+          | and control who, what, when, where, and how the data are to be shared.
+          | The infrastructure of Almond also support remote access control,
+          | where each user talk to their own Almond and Almonds communicate with each other to
+          | manage the sharing and access control.
+          | See our <a href='https://mobisocial.stanford.edu/papers/ubicomp18.pdf'>latest paper presented at Ubicomp'18</a> for more details
+
+section.divider
+  h3= _("Join Us to Build the Best Virtual Assistant!")
+  div.row
+    div.col-xs-8.col-md-4.col-md-offset-4
+      a(href='/user/register').btn.btn-primary.btn-block= _("Apply to be a Developer")
