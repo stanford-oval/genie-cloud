@@ -35,16 +35,16 @@ async function create(client, device, extraKinds, extraChildKinds, versionedInfo
     return device;
 }
 
-function update(client, id, device, extraKinds, extraChildKinds, code) {
-    return db.query(client, "update device_class set ? where id = ?", [device, id]).then(() => {
-        return db.query(client, "delete from device_class_kind where device_id = ?", [id]);
-    }).then(() => {
-        return insertKinds(client, id, extraKinds, extraChildKinds);
-    }).then(() => {
-        return db.insertOne(client, 'insert into device_code_version(device_id, version, code) '
-                            + 'values(?, ?, ?)', [id, device.developer_version, code]);
-    })
-    .then(() => device);
+async function update(client, id, device, extraKinds, extraChildKinds, versionedInfo) {
+    await db.query(client, "update device_class set ? where id = ?", [device, id]);
+    await db.query(client, "delete from device_class_kind where device_id = ?", [id]);
+    versionedInfo.device_id = id;
+    versionedInfo.version = device.developer_version;
+    await Promise.all([
+        insertKinds(client, id, extraKinds, extraChildKinds),
+        db.insertOne(client, 'insert into device_code_version set ?', [versionedInfo])
+    ]);
+    return device;
 }
 
 module.exports = {
@@ -58,17 +58,17 @@ module.exports = {
 
     getFullCodeByPrimaryKind(client, kind, org) {
         if (org !== null && org.is_admin) {
-            return db.selectAll(client, "select fullcode, code, version, approved_version from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and dcv.version = d.developer_version", [kind]);
         } else if (org !== null) {
-            return db.selectAll(client, "select fullcode, code, version, approved_version from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and ((dcv.version = d.developer_version and d.owner = ?) "
                                 + "or (dcv.version = d.approved_version and d.owner <> ?))",
                                 [kind, org.id, org.id]);
         } else {
-            return db.selectAll(client, "select fullcode, code, version, approved_version from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and dcv.version = d.approved_version", [kind]);
         }
@@ -246,6 +246,24 @@ module.exports = {
         }
     },
 
+    getDownloadVersion(client, kind, org) {
+        if (org !== null && org.is_admin) {
+            return db.selectOne(client, `select downloadable, owner, approved_version, version from
+                device_class, device_code_version where device_id = id and version = developer_version
+                and primary_kind = ?`, [kind]);
+        } else if (org !== null) {
+            return db.selectOne(client, `select downloadable, owner, approved_version, version from
+                device_class, device_code_version where device_id = id and
+                ((version = developer_version and owner = ?) or
+                ((version = approved_version and owner <> ?))
+                and primary_kind = ?`, [org.id, org.id, kind]);
+        } else {
+            return db.selectOne(client, `select downloadable, owner, approved_version, version from
+                device_class, device_code_version where device_id = id and version = approved_version
+                and primary_kind = ?`, [kind]);
+        }
+    },
+
     getAllApproved(client, org, start, end) {
         if (org !== null && org.is_admin) {
             if (start !== undefined && end !== undefined) {
@@ -287,11 +305,11 @@ module.exports = {
         return db.query(client, "delete from device_class where id = ?", [id]);
     },
 
-    approve(client, id) {
-        return db.query(client, "update device_class set approved_version = developer_version where id = ?", [id]);
+    approve(client, kind) {
+        return db.query(client, "update device_class set approved_version = developer_version where primary_kind = ?", [kind]);
     },
-    unapprove(client, id) {
-        return db.query(client, "update device_class set approved_version = null where id = ?", [id]);
+    unapprove(client, kind) {
+        return db.query(client, "update device_class set approved_version = null where primary_kind = ?", [kind]);
     },
 
     getAll(client, start, end) {

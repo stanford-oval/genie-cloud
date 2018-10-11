@@ -34,9 +34,12 @@ async function request(url) {
     //console.log(result);
     return JSON.parse(result);
 }
+async function streamRequest(url, options) {
+    return Tp.Helpers.Http.getStream(THINGPEDIA_URL + url, options);
+}
 async function ttRequest(url) {
     const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url, { accept: 'application/x-thingtalk' });
-    //console.log(String(toCharArray(result)));
+    //console.log(result);
     return result;
 }
 
@@ -149,22 +152,22 @@ const BING_CLASS_FULL = `class @com.bing
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
-  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"],
-                                    out title: String,
-                                    out description: String,
-                                    out link: Entity(tt:url))
+  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
+                                    out title: String #_[canonical="title"],
+                                    out description: String #_[canonical="description"],
+                                    out link: Entity(tt:url) #_[canonical="link"])
   #_[canonical="web search on bing"]
   #_[confirmation="websites matching $query on Bing"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing"];
 
-  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"],
-                                      out title: String,
-                                      out picture_url: Entity(tt:picture),
-                                      out link: Entity(tt:url),
-                                      out width: Number #_[prompt="What width are you looking for (in pixels)?"],
-                                      out height: Number #_[prompt="What height are you looking for (in pixels)?"])
+  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
+                                      out title: String #_[canonical="title"],
+                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                      out link: Entity(tt:url) #_[canonical="link"],
+                                      out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
+                                      out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
   #_[canonical="image search on bing"]
   #_[confirmation="images matching $query from Bing"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
@@ -510,6 +513,15 @@ async function testGetDeviceManifest() {
 
     await assert.rejects(() => request(
         `/devices/code/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`));
+}
+
+async function testGetDevicePackage() {
+    const source = await streamRequest('/devices/package/com.bing');
+    await new Promise((resolve, reject) => {
+        source.on('error', reject);
+        source.on('end', resolve);
+        source.resume();
+    });
 }
 
 async function testGetDeviceSetup() {
@@ -945,6 +957,7 @@ async function main() {
     await testGetExamplesByKey();
     await testGetDeviceIcon();
     await testGetDeviceManifest();
+    await testGetDevicePackage();
     await testGetDeviceSetup();
     await testGetDeviceSetupList(null);
     await testGetDeviceSetupList('online');

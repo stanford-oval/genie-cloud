@@ -103,7 +103,7 @@ function describeApp(app) {
     return Promise.all([app.uniqueId, app.description, app.error, app.code, app.state, app.icon])
         .then(([uniqueId, description, error, code, state, icon]) => ({
             uniqueId, description, error: error, code, slots: state,
-            icon: icon ? Config.S3_CLOUDFRONT_HOST + '/icons/' + icon + '.png' : null
+            icon: icon ? Config.CDN_HOST + '/icons/' + icon + '.png' : null
         }));
 }
 

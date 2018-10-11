@@ -35,16 +35,17 @@ section.divider
           a(href='/thingpedia/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
           div.panel-body
             p.device-icon-small
-              img(src=S3_CLOUDFRONT_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
+              img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
             p=dev.description
           div.panel-footer
             div.row
               div.col-md-6
-                a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.id)= _("Update")
+                a.btn.btn-sm.btn-warning.btn-block(href='/thingpedia/upload/update/' + dev.primary_kind)= _("Update")
 
               div.col-md-6
-                form(action='/thingpedia/devices/delete/' + dev.id, method='post').form-delete-device
+                form(action='/thingpedia/devices/delete/', method='post').form-delete-device
                   input(type='hidden',name='_csrf',value=csrfToken)
+                  input(type='hidden',name='kind',value=dev.id)
                   button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
     else
       div.col-xs-12

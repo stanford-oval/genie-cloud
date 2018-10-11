@@ -83,7 +83,7 @@ async function testBasic(driver) {
 async function skipDataCollectionConfirmation(driver) {
     await driver.get(BASE_URL + '/me');
     await driver.wait(
-        WD.until.elementLocated(WD.By.id('input')),
+        WD.until.elementLocated(WD.By.css('.message')),
         30000);
 
     let messages = await driver.findElements(WD.By.css('.message'));

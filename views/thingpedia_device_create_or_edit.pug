@@ -12,10 +12,13 @@ block scripts
 block page_name
   - stdlayout = false;
   - includefooter = false;
-  = _("Device Editor")
+  if create
+    = _("Create Device")
+  else
+    = _("Device Editor")
 
 block content
-  form(action=(create ? '/thingpedia/upload/create' : '/thingpedia/upload/update/' + id), enctype='multipart/form-data', method='post', data-toggle='validator')#thing-form
+  form(action=(create ? '/thingpedia/upload/create' : '/thingpedia/upload/update/' + device.primary_kind), enctype='multipart/form-data', method='post', data-toggle='validator')#thing-form
     input(type='hidden',name='_csrf',value=csrfToken)
 
     div.container-fluid#page-body
@@ -56,19 +59,22 @@ block content
                 = _("Metadata")
             li
               a(href='#device-code-tab', aria-controls='#device-code-tab', role='tab', data-toggle='tab')
-                //-span(aria-hidden='true').glyphicon.glyphicon-file
-                = _("Manifest")
+                span(aria-hidden='true').glyphicon.glyphicon-file
+                = _("manifest.tt")
             li
               a(href='#device-dataset-tab', aria-controls='#device-dataset-tab', role='tab', data-toggle='tab')
-                //-span(aria-hidden='true').glyphicon.glyphicon-file
-                = _("Dataset")
+                span(aria-hidden='true').glyphicon.glyphicon-file
+                = _("dataset.tt")
 
         div.col-lg-9.col-md-8.tab-content#device-editor-body
           div.tab-pane.fade.in.active#device-metadata
             div.form-group
               label(for='device-kind').control-label= _("ID")
-              input(type='text',name='primary_kind',required=true,maxlength=128,value=device.primary_kind).form-control#device-kind
-              span.help-block= _("The unique name of your device entry. This should be a namespaced name like “org.example” or “com.mything”.")
+              if create
+                input(type='text',name='primary_kind',required=true,maxlength=128,value=device.primary_kind).form-control#device-kind
+                span.help-block= _("The unique name of your device entry. This should be a namespaced name like “org.example” or “com.mything”.")
+              else
+                p.form-control-static= device.primary_kind
 
             div.form-group
               label(for='device-name').control-label= _("Name")
@@ -99,9 +105,9 @@ block content
               input(type='file',name='zipfile')#device-zipfile
 
           div.tab-pane.fade#device-code-tab
-            label(for='device-code').control-label.sr-only= _("Device Manifest")
+            label(for='device-code').control-label.sr-only= _("Manifest")
             textarea(name='code',required=true).enable-codemirror.form-control#device-code= device.code
 
           div.tab-pane.fade#device-dataset-tab
             label(for='device-dataset').control-label.sr-only= _("Default Dataset")
-            textarea(name='code',required=true).enable-codemirror.form-control#device-dataset= device.dataset
+            textarea(name='dataset',required=true).enable-codemirror.form-control#device-dataset= device.dataset

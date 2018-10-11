@@ -3,58 +3,71 @@ extends layout
 block styles
   link(rel='stylesheet', href='/stylesheets/codemirror.css')
   link(rel='stylesheet', href='/stylesheets/lint.css')
-  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+  link(rel='stylesheet', href='/stylesheets/thingpedia-device-create.css')
 
 block scripts
   script(src='/javascripts/jsonlint.js')
-  script(src='/javascripts/codemirror.js')
-  script(src='/javascripts/jsoneditor.min.js')
-  script(src='/javascripts/thingpedia-schema-create.js')
+  script(src='/javascripts/thingpedia-device-create-bundle.js')
+
+block page_name
+  - stdlayout = false;
+  - includefooter = false;
+  if create
+    = _("Create Class")
+  else
+    = _("Class Editor")
 
 block content
-  if create
-    h1= _("Submit a new type")
-  else
-    h1= _("Edit type")
+  form(action=(create ? '/thingpedia/classes/create' : '/thingpedia/classes/update/' + schema.primary_kind), method='post', data-toggle='validator')#thing-form
+    input(type='hidden',name='_csrf',value=csrfToken)
 
-  div.container
-    if error
-      div.row
-        div.col-xs-12
-          div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
-            button(type='button', data-dismiss='alert', aria-label="Close").close
-              span(aria-hidden='true') ×
-            if typeof error === 'string'
-              p= error
-            else if error.name === 'SyntaxError'
-              p= _("Syntax error at %s line %d: %s").format(error.fileName, error.lineNumber, error.message)
-            else if error.message
-              p= error.message
-            else
-              p= String(error)
+    div.container-fluid#page-body
+      div.row#device-toolbar
+        div.col-lg-1.col-md-2
+          button(type='submit').btn.btn-block.btn-sm.btn-primary
+            span(aria-hidden='true').glyphicon.glyphicon-save-file
+            = create ? _("Create") : _("Save")
 
-    div.row
-      div.col-xs-12
-        form(action=(create ? '/thingpedia/schemas/create' : '/thingpedia/schemas/update/' + id), method='post', data-toggle='validator')#thing-form
-          input(type='hidden',name='_csrf',value=csrfToken)
-
-          div.form-group
-            label(for='device-kind').control-label= _("Type ID")
-            input(type='text',name='kind',required=true,maxlength=128,value=schema.kind).form-control#device-kind
-            span.help-block= _("The unique id of your type. This should be a short English-like identifier like “thermostat” or “speaker”.")
-
-          div.form-group.hidden
-            label(for='device-code').control-label= _("Type Manifest")
-            textarea(name='code',required=true).form-control#device-code #{schema.code}
-
-          div#json-manifest-placeholder
-
+        div.col-lg-2.col-md-2
           if user.developer_status >= 2
             div.checkbox
               label(for='device-approve').control-label
                 input(type='checkbox',name='approve',value='1',checked=approve)#device-approve
-                = _(" Approve this type right away.")
+                = ' ' + _("Approve immediately")
 
-          div.form-group
-            button(type='submit').btn.btn-primary Submit
+        div.col-lg-9.col-md-8#device-error
+          if error
+            p(role='alert').text-danger
+              span(aria-hidden='true').glyphicon.glyphicon-warning-sign
+              |
+              |
+              if typeof error === 'string'
+                = error
+              else if error.name === 'SyntaxError'
+                = _("Syntax error at %s line %d: %s").format(error.fileName, error.lineNumber, error.message)
+              else if error.message
+                = error.message
+              else
+                = String(error)
+
+      div.row
+        nav.col-lg-3.col-md-4#device-editor-sidebar
+          ul(role='tablist').nav.nav-pills.nav-stacked
+            li.active
+              a(href='#device-code-tab', aria-controls='#device-code-tab', role='tab', data-toggle='tab')
+                span(aria-hidden='true').glyphicon.glyphicon-file
+                = _("manifest.tt")
+            li
+              a(href='#device-dataset-tab', aria-controls='#device-dataset-tab', role='tab', data-toggle='tab')
+                span(aria-hidden='true').glyphicon.glyphicon-file
+                = _("dataset.tt")
+
+        div.col-lg-9.col-md-8.tab-content#device-editor-body
+          div.tab-pane.fade.in.active#device-code-tab
+            label(for='device-code').control-label.sr-only= _("Manifest")
+            textarea(name='code',required=true).enable-codemirror.form-control#device-code= schema.code
+
+          div.tab-pane.fade#device-dataset-tab
+            label(for='device-dataset').control-label.sr-only= _("Default Dataset")
+            textarea(name='dataset',required=true).enable-codemirror.form-control#device-dataset= schema.dataset
 

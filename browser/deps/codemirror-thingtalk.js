@@ -65,6 +65,8 @@ CodeMirror.registerHelper("lint", "thingtalk", (text) => {
     try {
         ThingTalk.Grammar.parse(text);
     } catch(e) {
+        if (e.name !== 'SyntaxError')
+            throw e;
         found.push({
             from: CodeMirror.Pos(e.location.start.line-1, e.location.start.column-1),
             to: CodeMirror.Pos(e.location.end.line-1, e.location.end.column-1),

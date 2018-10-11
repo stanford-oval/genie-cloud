@@ -350,6 +350,15 @@ async function testGetDeviceManifest() {
         `/api/code/devices/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`));
 }
 
+async function testGetDevicePackage() {
+    const source = await Tp.Helpers.Http.getStream(THINGPEDIA_URL + '/download/devices/com.bing.zip');
+    await new Promise((resolve, reject) => {
+        source.on('error', reject);
+        source.on('end', resolve);
+        source.resume();
+    });
+}
+
 async function testGetDeviceSetup() {
     assert.deepStrictEqual(await request('/api/devices/setup/com.bing'), {
         'com.bing': {
@@ -758,6 +767,7 @@ async function main() {
     await testGetExamplesByKey();
     await testGetDeviceIcon();
     await testGetDeviceManifest();
+    await testGetDevicePackage();
     await testGetDeviceSetup();
     await testGetDeviceSetupList(null);
     await testGetDeviceSetupList('online');

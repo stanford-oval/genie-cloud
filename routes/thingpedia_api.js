@@ -274,7 +274,7 @@ v1.get('/schema/:schemas', (req, res, next) => {
  *
 **/
 v3.get('/schema/:schemas', (req, res, next) => {
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
         return;
@@ -291,7 +291,7 @@ v3.get('/schema/:schemas', (req, res, next) => {
         if (!req.query.developer_key)
             res.cacheFor(86400000);
         if (typeof obj === 'string')
-            res.set('Content-Type', 'application/x-thingtalk').send(obj);
+            res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept).send(obj);
         else
             res.json({ result: 'ok', data: obj });
     }));
@@ -505,7 +505,7 @@ v1.get('/code/devices/:kind', (req, res, next) => {
 // consistency with the other /devices end points
 v3.get('/code/devices/:kind', (req, res, next) => next('router'));
 v3.get('/devices/code/:kind', (req, res, next) => {
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
         return;
@@ -520,15 +520,15 @@ v3.get('/devices/code/:kind', (req, res, next) => {
             if (version >= 0)
                 res.set('ETag', `W/"version=${version}"`);
 
-            res.cacheFor(86400);
-            res.set('Content-Type', 'application/x-thingtalk');
+            res.cacheFor(86400000);
+            res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
             res.send(code);
         } else {
             const version = code.version;
             if (version >= 0)
                 res.set('ETag', `W/"version=${version}"`);
 
-            res.cacheFor(86400);
+            res.cacheFor(86400000);
             res.json({ result: 'ok', data: code });
         }
     }));
@@ -639,9 +639,28 @@ v1.get('/devices/icon/:kind', (req, res) => {
 
     if (req.query.style && /^[0-9]+$/.test(req.query.style)
         && req.query.style >= 1 && req.query.style <= 8)
-       res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/style-' + req.query.style + '/' + req.params.kind + '.png');
+       res.redirect(301, Config.CDN_HOST + '/icons/style-' + req.query.style + '/' + req.params.kind + '.png');
     else
-       res.redirect(301, Config.S3_CLOUDFRONT_HOST + '/icons/' + req.params.kind + '.png');
+       res.redirect(301, Config.CDN_HOST + '/icons/' + req.params.kind + '.png');
+});
+
+/**
+ * @api {get} /v3/devices/package/:kind Get Device Package
+ * @apiName GetDevicePackage
+ * @apiGroup Devices
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Download the JS package for a given device.
+ *
+ * @apiParam {String} kind The identifier of the desired device.
+ */
+v3.get('/devices/package/:kind', (req, res, next) => {
+    const kind = req.params.kind;
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    errorWrap(req, res, next, client.getModuleLocation(kind, req.query.version).then((location) => {
+        res.cacheFor(60000);
+        res.redirect(302, location);
+    }));
 });
 
 function isValidDeviceClass(req, res) {
@@ -1164,7 +1183,7 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
 v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
         return;
@@ -1173,8 +1192,10 @@ v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
     client.getExamplesByKinds(kinds, accept).then((result) => {
         res.set('Vary', 'Accept');
         res.cacheFor(300000);
+        res.status(200);
+        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
         if (typeof result === 'string')
-            res.status(200).set('content-type', 'application/x-thingtalk').send(result);
+            res.send(result);
         else
             res.status(200).json({ result: 'ok', data: result });
     }).catch(next);
@@ -1246,7 +1267,7 @@ v3.get('/examples/search', (req, res, next) => {
         res.status(400).json({ error: "missing query" });
         return;
     }
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
         return;
@@ -1255,10 +1276,12 @@ v3.get('/examples/search', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
     client.getExamplesByKey(req.query.q, accept).then((result) => {
         res.cacheFor(300000);
+        res.status(200);
+        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
         if (typeof result === 'string')
-            res.status(200).set('content-type', 'application/x-thingtalk').send(result);
+            res.send(result);
         else
-            res.status(200).json({ result: 'ok', data: result });
+            res.json({ result: 'ok', data: result });
     }).catch(next);
 });
 
@@ -1698,7 +1721,7 @@ function getSnapshot(req, res, next, accept) {
         if (accept === 'application/json') {
             res.json({ result: 'ok', data: rows });
         } else {
-            res.set('Content-Type', 'application/x-thingtalk');
+            res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
             res.send(SchemaUtils.schemaListToClassDefs(rows, getMeta).prettyprint());
         }
     }).catch(next);
@@ -1708,7 +1731,7 @@ v1.get('/snapshot/:id', (req, res, next) => {
     getSnapshot(req, res, next, 'application/json');
 });
 v3.get('/snapshot/:id', (req, res, next) => {
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
         return;

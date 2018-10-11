@@ -27,6 +27,7 @@ const I18n = require('../util/i18n');
 const tokenize = require('../util/tokenize');
 const DatasetUtils = require('../util/dataset');
 const Importer = require('../util/import_device');
+const codeStorage = require('../util/code_storage');
 
 var router = express.Router();
 
@@ -78,6 +79,7 @@ function getDetails(fn, param, req, res) {
         assert(parsed.isMeta && parsed.classes.length > 0);
         const classDef = parsed.classes[0];
 
+
         examples = DatasetUtils.sortAndChunkExamples(examples);
 
         var title;
@@ -86,8 +88,14 @@ function getDetails(fn, param, req, res) {
         else
             title = req._("Thingpedia - Device details");
 
+        const downloadable = Importer.isDownloadable(classDef);
+        if (downloadable) {
+            device.download_url = await codeStorage.getDownloadLocation(device.primary_kind, version,
+                device.approved_version === null || version > device.approved_version);
+        }
+
         res.render('thingpedia_device_details', { page_title: title,
-                                                  S3_CLOUDFRONT_HOST: Config.S3_CLOUDFRONT_HOST,
+                                                  CDN_HOST: Config.CDN_HOST,
                                                   csrfToken: req.csrfToken(),
                                                   device: device,
                                                   classDef: classDef,
@@ -106,51 +114,55 @@ router.get('/by-id/:kind', (req, res, next) => {
     getDetails(model.getByPrimaryKind, req.params.kind, req, res).catch(next);
 });
 
-router.post('/approve/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.post('/approve', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res, next) => {
     db.withTransaction((dbClient) => {
-        return model.get(dbClient, req.params.id).then((device) => {
-            return model.approve(dbClient, req.params.id).then(() => {
-                return schema.approveByKind(dbClient, device.primary_kind);
-            }).then(() => device);
-        });
-    }).then((device) => {
-        res.redirect('/thingpedia/devices/by-id/' + device.primary_kind);
+        return Promise.all([
+            model.approve(dbClient, req.body.kind),
+            schema.approveByKind(dbClient, req.body.kind)
+        ]);
+    }).then(() => {
+        res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
+    }).catch((e) => {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+    }).catch(next);
+});
+
+router.post('/unapprove', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+    db.withTransaction((dbClient) => {
+        return Promise.all([
+            model.unapprove(dbClient, req.body.kind),
+            schema.unapproveByKind(dbClient, req.body.kind)
+        ]);
+    }).then(() => {
+        res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
 });
 
-router.post('/unapprove/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
-    db.withTransaction((dbClient) => {
-        return model.get(dbClient, req.params.id).then((device) => {
-            return model.unapprove(dbClient, req.params.id).then(() => {
-                return schema.unapproveByKind(dbClient, device.primary_kind);
-            }).then(() => device);
-        });
-    }).then((device) => {
-        res.redirect('/thingpedia/devices/by-id/' + device.primary_kind);
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
-});
+router.post('/delete', user.requireLogIn, user.requireDeveloper(),  (req, res) => {
+    db.withTransaction(async (dbClient) => {
+        const row = await model.getByPrimaryKind(dbClient, req.body.kind);
+        if (row.owner !== req.user.developer_org &&
+            req.user.developer < user.DeveloperStatus.ADMIN) {
+            // note that this must be exactly the same error used by util/db.js
+            // so that a true not found is indistinguishable from not having permission
+            const err = new Error("Not Found");
+            err.code = 'ENOENT';
+            throw err;
+        }
 
-router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(),  (req, res) => {
-    db.withTransaction((dbClient) => {
-        return model.get(dbClient, req.params.id).then((row) => {
-            if (row.owner !== req.user.developer_org && req.user.developer_status < user.DeveloperStatus.ADMIN) {
-                res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
-                                                  message: req._("Not Authorized") });
-                return Promise.resolve();
-            }
-
-            return model.delete(dbClient, req.params.id).then(() => {
-                res.redirect(303, '/thingpedia/devices');
-            });
-        });
+        return model.delete(dbClient, row.id);
+    }).then(() => {
+        res.redirect(303, '/thingpedia/devices');
     }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+        if (e.code === 'ENOENT')
+            res.status(404);
+        else
+            res.status(400);
+        res.render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e.message });
     }).done();
 });
@@ -174,7 +186,7 @@ ${(req.body.comments || '').trim()}
     };
 
     SendMail.send(mailOptions).then(() => {
-        res.redirect(301, '/thingpedia/devices/by-id/' + req.body.kind);
+        res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
