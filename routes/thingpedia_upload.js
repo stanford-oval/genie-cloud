@@ -211,7 +211,7 @@ router.get('/update/:kind', user.redirectLogIn, user.requireDeveloper(), (req, r
                 throw new Error(req._("Not Authorized"));
 
             let [code, examples] = await Promise.all([
-                d.source_code || model.getCodeByVersion(dbClient, req.params.id, d.developer_version),
+                d.source_code || model.getCodeByVersion(dbClient, d.id, d.developer_version),
                 exampleModel.getBaseBySchemaKind(dbClient, d.primary_kind, 'en')
             ]);
 
@@ -220,10 +220,11 @@ router.get('/update/:kind', user.redirectLogIn, user.requireDeveloper(), (req, r
                                                            { editMode: true });
 
             res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - edit device"),
-                                                             id: req.params.id,
+                                                             id: d.id,
                                                              device: { name: d.name,
                                                                        primary_kind: d.primary_kind,
                                                                        description: d.description,
+                                                                       subcategory: d.subcategory,
                                                                        code: code,
                                                                        dataset: dataset },
                                                              create: false });
