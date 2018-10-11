@@ -27,7 +27,7 @@ routes/thingengine_ws.js
 routes/thingpedia_api.js
 routes/thingpedia_cheatsheet.js
 routes/thingpedia_devices.js
-routes/thingpedia_doc.js
+routes/thingpedia_developer_console.js
 routes/thingpedia_download.js
 routes/thingpedia_examples.js
 routes/thingpedia_schemas.js

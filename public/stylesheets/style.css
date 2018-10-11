@@ -1,11 +1,10 @@
 html, body {
-  height: 100%;
   margin: 0;
 }
 
 #page-body {
     margin-top: 60px;
-    min-height: 80%;
+    min-height: calc(100vh - 210px);
     height: auto !important;
 }
 
@@ -104,7 +103,7 @@ pre, pre code {
 }
 
 footer {
-  margin-top: 1.5em;
+  margin-top: 30px;
   padding-top: 1.5em;
   background-color: #1a242f;
   color: white;
