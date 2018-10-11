@@ -18,8 +18,6 @@ const organization = require('../model/organization');
 const device = require('../model/device');
 const oauth2 = require('../model/oauth2');
 
-const EngineManager = require('../almond/enginemanagerclient');
-
 var router = express.Router();
 
 function prepareUserInfo(req) {
@@ -38,16 +36,7 @@ function prepareUserInfo(req) {
     });
 }
 
-function prepareThingEngineStatus(req) {
-    return Promise.resolve().then(() => {
-        if (req.user)
-            return EngineManager.get().isRunning(req.user.id);
-        else
-            return false;
-    });
-}
-
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
     prepareUserInfo(req).then(([developer_org, developer_org_members, developer_devices, developer_oauth2_clients]) => {
         res.render('thingpedia_dev_overview', { page_title: req._("Thingpedia - Developer Portal"),
                                                 csrfToken: req.csrfToken(),
@@ -56,13 +45,10 @@ router.get('/', (req, res) => {
                                                 developer_devices: developer_devices,
                                                 developer_oauth2_clients: developer_oauth2_clients
         });
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    });
+    }).catch(next);
 });
 
-router.get('/oauth', (req, res) => {
+router.get('/oauth', (req, res, next) => {
     prepareUserInfo(req).then(([developer_org, developer_org_members, developer_devices, developer_oauth2_clients]) => {
         res.render('thingpedia_dev_oauth', { page_title: req._("Thingpedia - Oauth 2.0 Applications"),
                                              csrfToken: req.csrfToken(),
@@ -71,10 +57,7 @@ router.get('/oauth', (req, res) => {
                                              developer_devices: developer_devices,
                                              developer_oauth2_clients: developer_oauth2_clients
         });
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-            message: e });
-    });
+    }).catch(next);
 });
 
 
