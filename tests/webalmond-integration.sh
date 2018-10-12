@@ -15,7 +15,7 @@ export DATABASE_URL
 
 cat > $srcdir/secret_config.js <<'EOF'
 module.exports.WITH_THINGPEDIA = 'external';
-module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+module.exports.THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 EOF
 
 # clean the database and bootstrap
