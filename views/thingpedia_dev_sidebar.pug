@@ -22,17 +22,20 @@ nav#doc-sidebar
             li(class=(currentPage === 'thingtalk-intro' ? 'current' : ''))
               a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
 
-        li(class=(['thingpedia-device-intro', 'thingpedia-device-intro-auth-n-discovery', 'thingpedia-device-intro-example-commands', 'thingpedia-device-with-zero-code'].indexOf(currentPage) >= 0 ? 'current' : ''))
+        li(class=(['thingpedia-device-intro', 'thingpedia-device-intro-auth-n-discovery', 'thingpedia-device-intro-example-commands', 'thingpedia-device-with-zero-code', 'thingpedia-device-class'].indexOf(currentPage) >= 0 ? 'current' : ''))
           p.doc-sidebar-subtitle For Thingpedia Contributors
           ul
             li(class=(currentPage === 'thingpedia-device-intro' ? 'current' : ''))
               a(href='/thingpedia/developers/thingpedia-device-intro.md') Writing Thingpedia Entries
 
-            li(class=(currentPage === 'thingpedia-device-intro-auth-n-discovery' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-device-intro-auth-n-discovery.md') Authentication & Discovery
+            li(class=(currentPage === 'thingpedia-device-class' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingpedia-device-class.md') Writing Device Class
 
             li(class=(currentPage === 'thingpedia-device-intro-example-commands' ? 'current' : ''))
               a(href='/thingpedia/developers/thingpedia-device-intro-example-commands.md') Adding Natural Language
+
+            li(class=(currentPage === 'thingpedia-device-intro-auth-n-discovery' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingpedia-device-intro-auth-n-discovery.md') Authentication & Discovery
 
             li(class=(currentPage === 'thingpedia-device-with-zero-code' ? 'current' : ''))
               a(href='/thingpedia/developers/thingpedia-device-with-zero-code.md') Declarative Thingpedia Entries
