@@ -45,7 +45,7 @@ section.divider
               div.col-md-6
                 form(action='/thingpedia/devices/delete/', method='post').form-delete-device
                   input(type='hidden',name='_csrf',value=csrfToken)
-                  input(type='hidden',name='kind',value=dev.id)
+                  input(type='hidden',name='kind',value=dev.primary_kind)
                   button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
     else
       div.col-xs-12
