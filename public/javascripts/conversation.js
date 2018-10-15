@@ -261,7 +261,7 @@ $(function() {
         ws.send(JSON.stringify({ type: 'parsed', json: json }));
     }
     function handleThingTalk(tt) {
-        appendUserMessage('Code: ' + tt);
+        appendUserMessage('\\t ' + tt);
         ws.send(JSON.stringify({ type: 'tt', code: tt }));
     }
     function handleChoice(idx, title) {
