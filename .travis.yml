@@ -42,4 +42,4 @@ deploy:
   script: ssh -i ./travis/id_rsa.autodeploy autodeploy@almond-dev.stanford.edu
   on:
     branch: staging
-    repo: Stanford-Mobisocial-IoT-Lab/almond-cloud-private
+    repo: Stanford-Mobisocial-IoT-Lab/almond-cloud
