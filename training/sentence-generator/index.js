@@ -28,7 +28,6 @@ module.exports = class SentenceGenerator extends stream.Readable {
         super({ objectMode: true });
         this._schemas = new SchemaRetriever(options.thingpediaClient, null, !options.debug);
 
-
         this._options = options;
 
         this._allTypes = new Map;
