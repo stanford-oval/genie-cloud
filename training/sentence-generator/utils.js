@@ -12,12 +12,6 @@
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
-function coin(rng, prob) {
-    return rng() <= prob;
-}
-function uniform(rng, array) {
-    return array[Math.floor(rng() * array.length)];
-}
 
 const TIMER_SCHEMA = new Ast.FunctionDef('stream',
     'timer',
@@ -79,9 +73,6 @@ function flip(f) {
 module.exports = {
     identity,
     flip,
-
-    coin,
-    uniform,
 
     TIMER_SCHEMA,
     AT_TIMER_SCHEMA,

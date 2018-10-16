@@ -25,7 +25,7 @@ const exampleModel = require('../model/example');
 
 const user = require('../util/user');
 const Importer = require('../util/import_device');
-const makeRandom = require('../util/random');
+const { makeRandom } = require('../util/random');
 const TokenizerService = require('../util/tokenizer_service');
 
 const platform = require('../util/platform');
@@ -111,7 +111,8 @@ async function loadExamples(dbClient) {
         target_json: '',
         target_code: 'let action x := @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
-        click_count: 0
+        click_count: 0,
+        flags: 'template'
     },
     {
         id: 1001,
@@ -123,7 +124,8 @@ async function loadExamples(dbClient) {
         target_json: '',
         target_code: 'let query x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);',
         type: 'thingpedia',
-        click_count: 7
+        click_count: 7,
+        flags: 'template'
     },
     {
         id: 1002,
@@ -135,7 +137,8 @@ async function loadExamples(dbClient) {
         target_json: '',
         target_code: 'monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
-        click_count: 0
+        click_count: 0,
+        flags: 'template'
     },
     {
         id: 1003,
@@ -147,7 +150,8 @@ async function loadExamples(dbClient) {
         target_json: '',
         target_code: 'program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
-        click_count: 0
+        click_count: 0,
+        flags: 'template'
     },
     {
         id: 1004,
@@ -159,7 +163,8 @@ async function loadExamples(dbClient) {
         target_json: '',
         target_code: 'action () := @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
-        click_count: 0
+        click_count: 0,
+        flags: 'template'
     },
     {
         id: 1005,
@@ -171,7 +176,8 @@ async function loadExamples(dbClient) {
         target_json: '',
         target_code: 'let table _ := @org.thingpedia.builtin.test.get_data();',
         type: 'thingpedia',
-        click_count: 0
+        click_count: 0,
+        flags: 'template'
     }
     ]);
 }

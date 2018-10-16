@@ -408,7 +408,7 @@ CREATE TABLE `example_utterances` (
   `is_base` tinyint(1) NOT NULL DEFAULT 0,
   `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `type` char(32) COLLATE utf8_bin NOT NULL DEFAULT 'other',
-  `flags` set('synthetic','augmented','obsolete','ambiguous') COLLATE utf8_bin DEFAULT '',
+  `flags` set('synthetic','augmented','obsolete','ambiguous','replaced','template','training') COLLATE utf8_bin NOT NULL DEFAULT '',
   `utterance` text CHARACTER SET utf8 NOT NULL,
   `preprocessed` text CHARACTER SET utf8 NOT NULL,
   `target_json` text COLLATE utf8_bin NOT NULL,

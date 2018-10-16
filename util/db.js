@@ -110,18 +110,31 @@ module.exports = {
         });
     },
 
-    withTransaction(transaction) {
-        return connect().then(([client, done]) => {
-            return query(client, 'start transaction').then(() => {
-                return transaction(client).then((result) => {
-                    return commit(client, result, done);
-                }).catch((err) => {
-                    return rollback(client, err, done);
-                });
-            }, (error) => {
+    withTransaction(transaction, isolationLevel = 'serializable') {
+        // NOTE: some part of the code still rely on db.withClient
+        // and db.withTransaction returning a Q.Promise rather than
+        // a native Promise (eg they use .done() or .finally())
+        // hence, you must not convert this function to async (as
+        // that always returns a native Promise)
+        // using async for callbacks is fine, as long as the first
+        // returned promise is Q.Promise
+
+        return connect().then(async ([client, done]) => {
+            // danger! we're pasting strings into SQL
+            // this is ok because the argument NEVER comes from user input
+            try {
+                await query(client, `set transaction isolation level ${isolationLevel}`);
+                await query(client, 'start transaction');
+                try {
+                    const result = await transaction(client);
+                    await commit(client, result, done);
+                } catch(err) {
+                    await rollback(client, err, done);
+                }
+            } catch (error) {
                 done(error);
                 throw error;
-            });
+            }
         });
     },
 

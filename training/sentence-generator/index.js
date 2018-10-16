@@ -243,8 +243,15 @@ module.exports = class SentenceGenerator extends stream.Readable {
         }
     }
 
+    _withClient(func) {
+        if (this._options.dbClient)
+            return func(this._options.dbClient);
+        else
+            return db.withClient(func);
+    }
+
     async _loadMetadata() {
-        const [examples, devices, idTypes] = await db.withClient((dbClient) => {
+        const [examples, devices, idTypes] = await this._withClient((dbClient) => {
             return Promise.all([
                 db.selectAll(dbClient, `select * from example_utterances where type = 'thingpedia' and language = ? and is_base = 1 and target_code <> ''`,
                     [this._options.language]),

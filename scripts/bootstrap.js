@@ -21,7 +21,7 @@ const organization = require('../model/organization');
 const entityModel = require('../model/entity');
 const stringModel = require('../model/strings');
 const schemaModel = require('../model/schema');
-const makeRandom = require('../util/random');
+const { makeRandom } = require('../util/random');
 
 const ManifestToSchema = require('../util/manifest_to_schema');
 const Importer = require('../util/import_device');

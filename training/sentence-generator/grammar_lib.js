@@ -13,7 +13,7 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
 const { split } = require('../../util/tokenize');
-const { coin, uniform } = require('./utils');
+const { coin, uniform } = require('../../util/random');
 
 const NON_TERM_REGEX = /\${(?:choice\(([^)]+)\)|([a-zA-Z0-9._:(),]+))}/;
 
@@ -301,7 +301,7 @@ class Choice {
     }
 
     choose(rng) {
-        return uniform(rng, this.choices);
+        return uniform(this.choices, rng);
     }
 
     toString() {
@@ -541,7 +541,7 @@ function *expandRule(charts, depth, nonterminal, rulenumber, [expansion, combine
             if (k === expansion.length) {
                 //console.log('combine: ' + choices.join(' ++ '));
                 //console.log('depths: ' + depths);
-                if (!(coinProbability < 1) || coin(rng, coinProbability)) {
+                if (!(coinProbability < 1) || coin(coinProbability, rng)) {
                     let v = combiner(choices.map((c) => c instanceof Choice ? c.choose(rng) : c));
                     if (v !== null) {
                         actualGenSize ++;

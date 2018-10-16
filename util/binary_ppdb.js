@@ -10,6 +10,9 @@
 "use strict";
 
 const assert = require('assert');
+const fs = require('fs');
+const mmap = require('mmap-io');
+const util = require('util');
 
 // Compact, binary representation of a PPDB database, suitable for mmap'ing
 //
@@ -83,8 +86,10 @@ function findBucket(key, numBuckets, hashTable, dataSegment) {
     let hash = strHash(key);
     for (let probeCount = 0; probeCount < numBuckets; probeCount++) {
         let index = (hash + 7 * probeCount) % numBuckets;
-        let dataOffset = hashTable.readUInt32LE(index);
-        let indexKeyLength = dataSegment.readUInt8LE(dataOffset);
+        let dataOffset = hashTable.readUInt32LE(index * 4);
+        if (dataOffset === EMPTY_BUCKET)
+            return EMPTY_BUCKET;
+        let indexKeyLength = dataSegment.readUInt8(dataOffset);
         if (indexKeyLength !== keyLength)
             continue;
         let indexKey = dataSegment.slice(dataOffset + 1, dataOffset + 1 + indexKeyLength).toString('utf8');
@@ -168,19 +173,29 @@ module.exports = class BinaryPPDB {
         let dataOffset = findBucket(key, this._numBuckets, this._hashTable,
             this._dataSegment);
         if (dataOffset === EMPTY_BUCKET)
-            return new Set;
+            return [];
 
         let numValues = this._dataSegment.readUInt16LE(dataOffset);
         dataOffset += 2;
-        let result = new Set;
+        let result = [];
         for (let i = 0; i < numValues; i++) {
-            let length = this._dataSegment.readUInt8LE(dataOffset);
+            let length = this._dataSegment.readUInt8(dataOffset);
             dataOffset += 1;
             let value = this._dataSegment.toString('utf8', dataOffset, dataOffset + length);
-            result.add(value);
+            result.push(value);
             dataOffset += length;
         }
         return result;
     }
+
+    static async mapFile(filename) {
+        const fd = await util.promisify(fs.open)(filename, 'r');
+        const stats = await util.promisify(fs.fstat)(fd);
+
+        const buffer = mmap.map(Math.ceil(stats.size / mmap.PAGESIZE) * mmap.PAGESIZE,
+            mmap.PROT_READ, mmap.MAP_SHARED | mmap.MAP_POPULATE, fd, 0, mmap.MADV_RANDOM);
+        return new BinaryPPDB(buffer);
+    }
 };
 module.exports.Builder = BinaryPPDBBuilder;
+
