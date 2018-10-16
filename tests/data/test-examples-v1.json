@@ -12,8 +12,8 @@
     "id": 1001,
     "language": "en",
     "type": "thingpedia",
-    "utterance": "get some data",
-    "preprocessed": "get some data",
+    "utterance": "get ${p_size} of data",
+    "preprocessed": "get ${p_size} of data",
     "target_code": "let table x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);",
     "click_count": 7
   },

@@ -404,8 +404,8 @@ async function testGetExamplesByDevice() {
     #_[preprocessed=["eat some data"]]
     #[id=1000] #[click_count=0];
     query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
-    #_[utterances=["get some data"]]
-    #_[preprocessed=["get some data"]]
+    #_[utterances=["get ${'${p_size}'} of data"]]
+    #_[preprocessed=["get ${'${p_size}'} of data"]]
     #[id=1001] #[click_count=7];
     program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["keep eating data!","keep eating data! (v2)"]]
@@ -444,8 +444,8 @@ async function testGetExamplesByKey() {
     #_[preprocessed=["eat some data"]]
     #[id=1000] #[click_count=0];
     query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
-    #_[utterances=["get some data"]]
-    #_[preprocessed=["get some data"]]
+    #_[utterances=["get ${'${p_size}'} of data"]]
+    #_[preprocessed=["get ${'${p_size}'} of data"]]
     #[id=1001] #[click_count=7];
     program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["keep eating data!","keep eating data! (v2)"]]

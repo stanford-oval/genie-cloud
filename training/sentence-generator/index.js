@@ -125,6 +125,8 @@ module.exports = class SentenceGenerator extends stream.Readable {
             return;
 
         // HACK HACK HACK
+        if (decl.type === 'table')
+            decl.type = 'query';
         if (decl.type === 'query' && ex.preprocessed[0] === ',') {
             ex.preprocessed = ex.preprocessed.substring(1).trim();
             decl.type = 'get_command';
@@ -197,16 +199,23 @@ module.exports = class SentenceGenerator extends stream.Readable {
     }
 
     async _loadTemplate(row) {
-        const datasetCode = `dataset @dummy language "${this._options.language}" { ${row.target_code} }`;
-
         try {
-            const parsed = await ThingTalk.Grammar.parseAndTypecheck(datasetCode, this._schemas, true);
+            if (/^[ \r\n\t\v]*let[ \r\n\t\v]+/.test(row.target_code)) {
+                // backward compatibility: load as a declaration
+                const parsed = await ThingTalk.Grammar.parseAndTypecheck(row.target_code, this._schemas, true);
 
-            const ex = parsed.datasets[0].examples[0];
-            if (ex.type === 'program') // FIXME
-                ; // ignore examples that consist of a rule (they are just dataset)
-            else
-                this._loadTemplateAsDeclaration(row, ex);
+                const decl = parsed.declarations[0];
+                this._loadTemplateAsDeclaration(row, decl);
+            } else {
+                const datasetCode = `dataset @dummy language "${this._options.language}" { ${row.target_code} }`;
+                const parsed = await ThingTalk.Grammar.parseAndTypecheck(datasetCode, this._schemas, true);
+
+                const ex = parsed.datasets[0].examples[0];
+                if (ex.type === 'program') // FIXME
+                    ; // ignore examples that consist of a rule (they are just dataset)
+                else
+                    this._loadTemplateAsDeclaration(row, ex);
+            }
         } catch (e) {
             console.error('Failed to load template ' + row.id + ': ' + e.message);
             console.error(e.stack);
