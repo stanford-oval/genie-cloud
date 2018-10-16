@@ -68,7 +68,7 @@ $(function() {
             return;
 
         container[0].scrollIntoView(false);
-        window.scrollTo(0,document.body.scrollHeight);
+        //window.scrollTo(0,document.body.scrollHeight);
         scrollChat();
         setTimeout(scrollChat, 1000);
     }
