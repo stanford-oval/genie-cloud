@@ -248,7 +248,6 @@ async function main() {
         description: 'Update Thingpedia Dataset'
     });
     parser.addArgument(['-l', '--language'], {
-        nargs: 1,
         required: true,
     });
     parser.addArgument(['-a', '--all'], {
@@ -257,7 +256,6 @@ async function main() {
         help: 'Update all datasets, including paraphrased ones.'
     });
     parser.addArgument(['-d', '--device'], {
-        nargs: 1,
         action: 'append',
         metavar: 'DEVICE',
         help: 'Restrict generation to command of the given device. This option can be passed multiple times to specify multiple devices',
@@ -265,26 +263,22 @@ async function main() {
     });
     parser.addArgument('--maxDepth', {
         type: Number,
-        nargs: 1,
         defaultValue: 3,
         help: 'Maximum depth of synthetic sentence generation',
     });
     parser.addArgument('--ppdb', {
-        nargs: 1,
         defaultValue: './ppdb-2.0-m-lexical.bin',
         metavar: 'FILENAME',
         help: 'Path to the binary PPDB file',
     });
     parser.addArgument('--ppdb-synthetic-fraction', {
         type: Number,
-        nargs: 1,
         defaultValue: 0.1,
         metavar: 'FRACTION',
         help: 'Fraction of synthetic sentences to augment with PPDB',
     });
     parser.addArgument('--ppdb-paraphrase-fraction', {
         type: Number,
-        nargs: 1,
         defaultValue: 0.1,
         metavar: 'FRACTION',
         help: 'Fraction of paraphrase sentences to augment with PPDB',
@@ -292,7 +286,7 @@ async function main() {
 
     const args = parser.parseArgs();
 
-    const updater = new DatasetUpdater(args.language[0], args.forDevices, {
+    const updater = new DatasetUpdater(args.language, args.forDevices, {
         regenerateAll: args.all,
         maxDepth: args.maxDepth,
 
