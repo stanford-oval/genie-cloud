@@ -41,6 +41,20 @@ Almond also supports compound commands which interoperate functions from differe
 For example, you can ask Almond to `send me a slack message if bob tweets`, 
 `create a meme and tweet it`.
 
+Note that you will need to link your Twitter and Slack account with Almond to try these examples. 
+In the following, we will have a step-by-step example to show you how to configure that. 
+
+If you do not want to go through it now, you can try Almond 
+in [My Almond](/me) page or [here](https://almond.stanford.edu/get-almond) 
+if you don't have an account yet. 
+You will be able to use public services such as news, translation, weather, without configuring any device. 
+Here are some example commands you can try. 
+- `get a cat picture`
+- `show me the weather in San Francisco?`
+- `get new york times headlines`
+- `translate a sentence to Chinese`
+
+
 ## Step-by-step example: Twitter to Almond
 
 This example will guide you through filtering your Twitter feed and redirect
