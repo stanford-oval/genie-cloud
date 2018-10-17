@@ -9,7 +9,7 @@ This short introduction will teach you the basics of using your Almond.
 ## What is Almond?
 
 Almond is the open virtual assistant that you can access through both of 
-your phone and the [web](/me). It can help you configure your devices, accounts, 
+your phone and the [web](/about/get-almond). It can help you configure your devices, accounts, 
 and public services, retrieve data from them, and execute actions on them.
 It also allows you to easily share your data with your friends and families 
 with control in your hand. 
@@ -45,7 +45,7 @@ For example, you can ask Almond to `send me a slack message if bob tweets`,
 
 This example will guide you through filtering your Twitter feed and redirect
 to Almond. At the end of the example, it will tell you about any tweet in your
-stream containing the hashtag "almondapp".
+stream containing the hashtag "Stanford".
 
 ### Step 0: Register for Almond
 
@@ -75,10 +75,10 @@ Almond page, which now includes Twitter.
 Now Almond connects to your Twitter account. 
 You can use the chat interface under [My Almond](/me) to write the following to Almond.
 
-`notify me if i receive a tweet with hashtag #almondapp`
+`notify me if i receive a tweet with hashtag #Stanford`
 
 Follow the prompts to confirm, and congrats! You have your first standing query.
-Now you will be notified whenever you open Web Almond of all tweets with hashtags \#almondapp.
+Now you will be notified whenever you open Web Almond of all tweets with hashtags \#Stanford.
 
 Some other commands you can try:
 - get recent tweets from users you follow: `get tweets`
@@ -86,8 +86,8 @@ Some other commands you can try:
 - post "hello" on your Twitter (if you don't mind): `tweet hello`
 - follow our Twitter account: `follow @almondstanford on Twitter` 
 
-Whenever you're tired of Almond telling you about Almond tweets, you can disable the
-rule by going to "Active Commands" section under [my Almond](/me), 
+Whenever you're tired of Almond telling you about Stanford tweets, you can disable the
+rule by going to "Active Commands" section under [My Almond](/me), 
 looking for "Twitter ⇒ Notification", and clicking "Stop".
 
 And if you want to stop Almond from touching your Twitter altogether, 
