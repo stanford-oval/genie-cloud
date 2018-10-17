@@ -15,10 +15,13 @@ process.on('unhandledRejection', (up) => { throw up; });
 const stream = require('stream');
 const seedrandom = require('seedrandom');
 
+const ThingTalk = require('thingtalk');
+
 const exampleModel = require('../model/example');
 
 const BinaryPPDB = require('../util/binary_ppdb');
 const SentenceGenerator = require('./sentence-generator');
+const ParameterReplacer = require('./replace_parameters');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const { coin, uniform, choose } = require('../util/random');
 
@@ -52,6 +55,7 @@ const db = require('../util/db');
 //   same rows and then insert fresh rows to replace them
 //   don't do that
 
+
 class DatasetUpdater {
     constructor(language, forDevices, options) {
         this._language = language;
@@ -62,7 +66,11 @@ class DatasetUpdater {
         this._forDevices = forDevices;
 
         this._ppdb = null;
+        this._paramReplacer = null;
+
         this._dbClient = null;
+        this._tpClient = null;
+        this._schemas = null;
     }
 
     async _clearExistingDataset() {
@@ -146,20 +154,37 @@ class DatasetUpdater {
         return output;
     }
 
-    async _processSyntheticMinibatch(objs) {
-        if (objs.length === 0)
+    async _processSyntheticMinibatch(syntheticExamples) {
+        if (syntheticExamples.length === 0)
             return;
 
-        objs.forEach((o) => {
+        syntheticExamples.forEach((o) => {
             delete o.id;
             o.type = 'generated';
-            o.flags = 'synthetic';
+            o.flags = 'synthetic,training';
             o.preprocessed = o.utterance;
         });
+
+        const ppdbExamples = this._applyPPDB(syntheticExamples, this._options.ppdbProbabilitySynthetic);
+
         await Promise.all([
-            this._insertExampleBatch(objs),
-            this._insertExampleBatch(this._applyPPDB(objs, this._options.ppdbProbabilitySynthetic))
+            this._insertExampleBatch(syntheticExamples),
+            this._insertExampleBatch(ppdbExamples),
+
+            this._replaceParameters(syntheticExamples),
+            this._replaceParameters(ppdbExamples)
         ]);
+    }
+
+    async _replaceParameters(examples) {
+        const replaced = await Promise.all(examples.map((ex) => {
+            return this._paramReplacer.process(ex);
+        }));
+        const flattened = [];
+        for (let el of replaced)
+            flattened.push(...el);
+
+        return this._insertExampleBatch(flattened);
     }
 
     async _genSynthetic() {
@@ -167,7 +192,8 @@ class DatasetUpdater {
             rng: this._rng,
             language: this._language,
             dbClient: this._dbClient,
-            thingpediaClient: new AdminThingpediaClient(this._language, this._dbClient),
+            thingpediaClient: this._tpClient,
+            schemaRetriever: this._schemas,
             turkingMode: false,
             maxDepth: this._options.maxDepth,
             debug: false
@@ -193,6 +219,12 @@ class DatasetUpdater {
     }
 
     async _transaction() {
+        this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
+        this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
+
+        this._paramReplacer = new ParameterReplacer(this._language, this._schemas, this._dbClient, this._rng);
+        await this._paramReplacer.initialize();
+
         await this._clearExistingDataset();
         await this._genSynthetic();
     }
@@ -200,7 +232,8 @@ class DatasetUpdater {
     async run() {
         this._ppdb = await BinaryPPDB.mapFile(this._options.ppdbFile);
 
-        return db.withTransaction((dbClient) => {
+
+        return db.withTransaction(async (dbClient) => {
             this._dbClient = dbClient;
             return this._transaction();
         }, 'read committed');

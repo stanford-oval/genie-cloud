@@ -31,7 +31,7 @@ module.exports = {
     },
 
     getValues(client, typeName, language = 'en') {
-        return db.selectAll(client, `select value, preprocessed from string_values, string_types
+        return db.selectAll(client, `select preprocessed, weight from string_values, string_types
             where type_id = id and type_name = ? and language = ?`, [typeName, language]);
     },
 

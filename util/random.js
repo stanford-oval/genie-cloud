@@ -48,6 +48,20 @@ function coin(prob, rng = Math.random) {
 function uniform(array, rng = Math.random) {
     return array[Math.floor(rng() * array.length)];
 }
+function categorical(weights, rng = Math.random) {
+    const cumsum = new Array(weights.length);
+    cumsum[0] = weights[0];
+    for (let i = 1; i < weights.length; i++)
+        cumsum[i] = cumsum[i-1] + weights[i];
+
+    const value = rng() * cumsum[cumsum.length-1];
+
+    for (let i = 0; i < weights.length; i++) {
+        if (value <= cumsum[i])
+            return i;
+    }
+    return cumsum.length-1;
+}
 
 function makeRandom(size = 32) {
     return crypto.randomBytes(size).toString('hex');
@@ -57,6 +71,7 @@ module.exports = {
     coin,
     uniform,
     choose,
+    categorical,
 
     makeRandom
 };

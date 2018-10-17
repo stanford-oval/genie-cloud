@@ -241,6 +241,7 @@ CREATE TABLE `device_schema_channels` (
   `argnames` mediumtext COLLATE utf8_bin NOT NULL,
   `required` mediumtext COLLATE utf8_bin NOT NULL,
   `is_input` mediumtext COLLATE utf8_bin NOT NULL,
+  `string_values` mediumtext COLLATE utf8_bin NOT NULL,
   `doc` mediumtext COLLATE utf8_bin NOT NULL,
   `is_list` tinyint(1) NOT NULL DEFAULT 1,
   `is_monitorable` tinyint(1) NOT NULL DEFAULT 1,
@@ -373,6 +374,7 @@ CREATE TABLE `string_values` (
   `type_id` int(11) NOT NULL,
   `value` varchar(255) CHARACTER SET utf8 NOT NULL,
   `preprocessed` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `weight` double not null default 1.0,
   KEY (`type_id`),
   CONSTRAINT `string_values_ibfk_1` FOREIGN KEY (`type_id`) REFERENCES `string_types` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

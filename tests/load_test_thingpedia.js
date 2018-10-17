@@ -91,8 +91,8 @@ async function loadStringValues(dbClient) {
         const {id:typeId} = await db.selectOne(dbClient,
             `select id from string_types where language='en' and type_name=?`, [type]);
         await db.insertOne(dbClient,
-            `insert into string_values(type_id,value,preprocessed) values ?`,
-            [data.map((v) => [typeId, v, v])],
+            `insert into string_values(type_id,value,preprocessed,weight) values ?`,
+            [data.map((v) => [typeId, v, v, 1.0])],
         );
     }
 }

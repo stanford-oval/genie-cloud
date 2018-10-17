@@ -26,7 +26,7 @@ const db = require('../../util/db');
 module.exports = class SentenceGenerator extends stream.Readable {
     constructor(options) {
         super({ objectMode: true });
-        this._schemas = new SchemaRetriever(options.thingpediaClient, null, !options.debug);
+        this._schemas = options.schemaRetriever || new SchemaRetriever(options.thingpediaClient, null, !options.debug);
 
         this._options = options;
 
