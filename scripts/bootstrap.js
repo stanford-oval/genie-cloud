@@ -15,6 +15,12 @@
 require('thingengine-core/lib/polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
 
+const path = require('path');
+const fs = require('fs');
+const util = require('util');
+
+const yaml = require('js-yaml');
+
 const db = require('../util/db');
 const user = require('../util/user');
 const organization = require('../model/organization');
@@ -23,7 +29,6 @@ const stringModel = require('../model/strings');
 const schemaModel = require('../model/schema');
 const { makeRandom } = require('../util/random');
 
-const ManifestToSchema = require('../util/manifest_to_schema');
 const Importer = require('../util/import_device');
 const { clean } = require('../util/tokenize');
 const TokenizerService = require('../util/tokenizer_service');
@@ -135,21 +140,6 @@ async function importStandardSchemas(dbClient, rootOrg) {
     await db.query(dbClient, `insert into device_schema(kind,
         kind_type, owner, developer_version, approved_version, kind_canonical) values ?`,
         [CATEGORIES.map((c) => [c, 'category', rootOrg.id, 0, 0, clean(c)])]);
-
-    const STD_SCHEMAS = ['messaging'];
-    for (let stdSchema of STD_SCHEMAS) {
-        const manifest = require('../data/' + stdSchema + '.manifest.json');
-        const metas = ManifestToSchema.toSchema(manifest);
-
-        await schemaModel.create(dbClient, {
-            kind: stdSchema,
-            kind_type: 'other',
-            developer_version: 0,
-            approved_version: 0,
-            owner: rootOrg.id,
-            kind_canonical: clean(stdSchema)
-        }, metas);
-    }
 }
 
 async function importBuiltinDevices(dbClient, rootOrg) {
@@ -162,12 +152,20 @@ async function importBuiltinDevices(dbClient, rootOrg) {
         'org.thingpedia.builtin.thingengine.remote',
         'org.thingpedia.builtin.test',
         'org.thingpedia.builtin.bluetooth.generic',
-        'org.thingpedia.builtin.matrix'
+        'messaging',
+        'org.thingpedia.builtin.matrix',
     ];
 
     for (let primaryKind of BUILTIN_DEVICES) {
         console.log(`Loading builtin device ${primaryKind}`);
-        const manifest = require('../data/' + primaryKind + '.manifest.json');
+
+        let manifest;
+        try {
+            manifest = require('../data/' + primaryKind + '.manifest.json');
+        } catch(e) {
+            const filename = path.resolve(path.dirname(module.filename), '../data/' + primaryKind + '.yaml');
+            manifest = yaml.safeLoad((await util.promisify(fs.readFile)(filename)).toString(), { filename });
+        }
         await Importer.importDevice(dbClient, req, primaryKind, manifest, {
             owner: rootOrg.id,
         });

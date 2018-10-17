@@ -489,7 +489,8 @@ async function testGetDeviceList(_class) {
                  'org.thingpedia.builtin.thingengine.builtin'],
         'system': ['org.thingpedia.builtin.test',
                    'org.thingpedia.builtin.thingengine',
-                   'org.thingpedia.builtin.thingengine.remote']
+                   'org.thingpedia.builtin.thingengine.remote',
+                   'messaging']
     };
 
     const publicDevices = new Set;
@@ -519,7 +520,7 @@ async function testGetDeviceList(_class) {
             assertNonEmptyString(device.subcategory);
             if (_class) {
                 assert.deepStrictEqual(device.category, _class);
-                assert(EXPECTED[_class].includes(device.primary_kind));
+                assert(EXPECTED[_class].includes(device.primary_kind), `unexpected device ${device.primary_kind} in category ${_class}`);
             }
 
             // no duplicates

@@ -35,6 +35,9 @@ function getInputParam(config, name) {
 }
 
 function makeDeviceFactory(classDef, device) {
+    if (classDef.is_abstract)
+        return null;
+
     const config = classDef.config;
 
     function toFields(argMap) {

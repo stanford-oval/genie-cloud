@@ -98,16 +98,18 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     if (kind.indexOf('.') < 0 && LEGACY_KINDS.indexOf(kind) < 0)
         throw new Error(`Invalid device ID ${kind}: must contain at least one period`);
 
-    if (!classDef.loader)
-        throw new Error("loader mixin missing from class declaration");
-    if (!classDef.config)
-        classDef.imports.push(new ThingTalk.Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', []));
+    if (!classDef.is_abstract) {
+        if (!classDef.loader)
+            throw new Error("loader mixin missing from class declaration");
+        if (!classDef.config)
+            classDef.imports.push(new ThingTalk.Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', []));
+    }
 
-    const moduleType = classDef.loader.module;
-    const fullcode = !JAVASCRIPT_MODULE_TYPES.has(moduleType);
+    const moduleType = classDef.is_abstract ? null : classDef.loader.module;
+    const fullcode = !classDef.is_abstract && !JAVASCRIPT_MODULE_TYPES.has(moduleType);
 
     const [entities, stringTypes] = await validateAllInvocations(classDef, {
-        checkPollInterval: true,
+        checkPollInterval: !classDef.is_abstract,
         checkUrl: fullcode,
         deviceName: name
     });

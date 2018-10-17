@@ -3921,7 +3921,7 @@ js-tokens@^3.0.2:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
   integrity sha1-mGbfOVECEw449/mWvOtlRDIJwls=
 
-js-yaml@^3.11.0, js-yaml@^3.9.1:
+js-yaml@^3.11.0, js-yaml@^3.12.0, js-yaml@^3.9.1:
   version "3.12.0"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.12.0.tgz#eaed656ec8344f10f527c6bfa1b6e2244de167d1"
   integrity sha512-PIt2cnwmPfL4hKNwqeiuz4bKfnzHTBv6HyVgjahA6mPLwPDzjDWrplJBMjHUFxku/N3FlmrbyPclad+I+4mJ3A==
@@ -6707,7 +6707,6 @@ thingpedia@^2.2.0, thingpedia@^2.2.1, thingpedia@^2.2.2:
 
 thingtalk@^1.0.0, thingtalk@^1.1.1, "thingtalk@git://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk", "thingtalk@github:Stanford-Mobisocial-IoT-Lab/ThingTalk":
   version "1.2.0"
-  uid a6169cdba602e4cda386b2d7d5ddd9bda655eb40
   resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk/tar.gz/a6169cdba602e4cda386b2d7d5ddd9bda655eb40"
   dependencies:
     adt "~0.7.2"
