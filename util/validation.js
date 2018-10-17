@@ -82,6 +82,8 @@ async function validateSchema(dbClient, req, options, classCode, datasetCode) {
     return [classDef, dataset];
 }
 
+const LEGACY_KINDS = ['security-camera', 'car', 'messaging', 'light-bulb', 'smoke-alarm', 'thermostat'];
+
 async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     const name = options.name;
     const description = options.description;
@@ -92,6 +94,9 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     if (!SUBCATEGORIES.has(options.subcategory))
         throw new Error(req._("Invalid device category %s").format(options.subcategory));
     const [classDef, dataset] = await loadClassDef(dbClient, req, kind, classCode, datasetCode);
+
+    if (kind.indexOf('.') < 0 && LEGACY_KINDS.indexOf(kind) < 0)
+        throw new Error(`Invalid device ID ${kind}: must contain at least one period`);
 
     if (!classDef.loader)
         throw new Error("loader mixin missing from class declaration");
