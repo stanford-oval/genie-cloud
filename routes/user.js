@@ -14,7 +14,7 @@ const Tp = require('thingpedia');
 const express = require('express');
 const passport = require('passport');
 
-const user = require('../util/user');
+const userUtils = require('../util/user');
 const model = require('../model/user');
 const db = require('../util/db');
 const SendMail = require('../util/sendmail');
@@ -24,13 +24,13 @@ const EngineManager = require('../almond/enginemanagerclient');
 var router = express.Router();
 
 router.get('/oauth2/google', passport.authenticate('google', {
-    scope: user.GOOGLE_SCOPES,
+    scope: userUtils.GOOGLE_SCOPES,
 }));
 router.get('/oauth2/google/callback', passport.authenticate('google'), (req, res, next) => {
    if (req.user.newly_created) {
        req.user.newly_created = false;
        res.locals.authenticated = true;
-       res.locals.user = user;
+       res.locals.user = req.user;
        res.render('register_success', {
            page_title: req._("Thingpedia - Registration Successful"),
            username: req.user.username,
@@ -114,28 +114,22 @@ router.post('/register', (req, res, next) => {
         return;
     }
 
-    Promise.resolve().then(() => {
-        return db.withTransaction((dbClient) => {
-            return user.register(dbClient, req, options).then((user) => {
-                return Q.ninvoke(req, 'login', user).then(() => user);
-            });
-        }).then((user) => {
-            return EngineManager.get().startUser(user.id).then(() => user);
-        }).then((user) => {
-            res.locals.authenticated = true;
-            res.locals.user = user;
-            res.render('register_success', {
-                page_title: req._("Thingpedia - Registration Successful"),
-                username: options.username,
-                cloudId: user.cloud_id,
-                authToken: user.auth_token });
+    Promise.resolve().then(async () => {
+        const user = await db.withTransaction(async (dbClient) => {
+            const user = await userUtils.register(dbClient, req, options);
+            await Q.ninvoke(req, 'login', user);
+            return user;
         });
-    }).catch((error) => {
-        res.render('register', {
-            csrfToken: req.csrfToken(),
-            page_title: req._("Thingpedia - Register"),
-            error: error });
-    });
+        await EngineManager.get().startUser(user.id);
+
+        res.locals.authenticated = true;
+        res.locals.user = user;
+        res.render('register_success', {
+            page_title: req._("Thingpedia - Registration Successful"),
+            username: options.username,
+            cloudId: user.cloud_id,
+            authToken: user.auth_token });
+    }).catch(next);
 });
 
 
@@ -200,11 +194,11 @@ function getProfile(req, res, pwError, profileError) {
     });
 }
 
-router.get('/profile', user.redirectLogIn, (req, res, next) => {
+router.get('/profile', userUtils.redirectLogIn, (req, res, next) => {
     getProfile(req, res, undefined, undefined).catch(next);
 });
 
-router.post('/profile', user.requireLogIn, (req, res, next) => {
+router.post('/profile', userUtils.requireLogIn, (req, res, next) => {
     return db.withTransaction((dbClient) => {
         if (typeof req.body.username !== 'string' ||
             req.body.username.length === 0 ||
@@ -231,7 +225,7 @@ router.post('/profile', user.requireLogIn, (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/change-password', user.requireLogIn, (req, res, next) => {
+router.post('/change-password', userUtils.requireLogIn, (req, res, next) => {
     var password, oldpassword;
     Promise.resolve().then(() => {
         if (typeof req.body['password'] !== 'string' ||
@@ -250,7 +244,7 @@ router.post('/change-password', user.requireLogIn, (req, res, next) => {
         }
 
         return db.withTransaction((dbClient) => {
-            return user.update(dbClient, req.user, oldpassword, password);
+            return userUtils.update(dbClient, req.user, oldpassword, password);
         }).then(() => {
             res.redirect(303, '/user/profile');
         });
@@ -259,7 +253,7 @@ router.post('/change-password', user.requireLogIn, (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/delete', user.requireLogIn, (req, res, next) => {
+router.post('/delete', userUtils.requireLogIn, (req, res, next) => {
     db.withTransaction((dbClient) => {
         return EngineManager.get().deleteUser(req.user.id).then(() => {
             return model.delete(dbClient, req.user.id);
@@ -270,8 +264,8 @@ router.post('/delete', user.requireLogIn, (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/request-developer', user.redirectLogIn, (req, res, next) => {
-    if (req.user.developer_status >= user.DeveloperStatus.DEVELOPER) {
+router.get('/request-developer', userUtils.redirectLogIn, (req, res, next) => {
+    if (req.user.developer_status >= userUtils.DeveloperStatus.DEVELOPER) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You are already an enrolled developer.") });
         return;
@@ -283,8 +277,8 @@ router.get('/request-developer', user.redirectLogIn, (req, res, next) => {
                  csrfToken: req.csrfToken() });
 });
 
-router.post('/request-developer', user.requireLogIn, (req, res, next) => {
-    if (req.user.developer_status >= user.DeveloperStatus.DEVELOPER) {
+router.post('/request-developer', userUtils.requireLogIn, (req, res, next) => {
+    if (req.user.developer_status >= userUtils.DeveloperStatus.DEVELOPER) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You are already an enrolled developer.") });
         return;
