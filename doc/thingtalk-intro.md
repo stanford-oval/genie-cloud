@@ -1,4 +1,4 @@
-# ThingTalk Program by examples
+# ThingTalk by Examples
 
 [[toc]]
 
@@ -88,7 +88,7 @@ Note that if the rule also contains a monitor stream,
 both the data from the stream and query will be available to use in the action.
 
 ## Action — what does the program do at the end?
-After a rule is triggered and the data is retrieved, we finally run the action.
+After a rule is triggered and the data is retrieved, the program will run an action.
 `notify` is the default action which shows the data from the stream and the query to the user.
 Besides `notify`, the action part can also invoke any action function in Thingpedia. 
 For example, instead of being notified inside Almond, you can choose to send the information
@@ -98,7 +98,8 @@ monitor @com.foxnews.get() => @com.slack.send();
 ```
 
 ## Handling Parameters
-In the examples we used, we don't have any parameters for functions
+So far, we have not used any parameters for functions in our examples.
+In the following we will introduce how to handle parameters in ThingTalk. 
 
 ### Specifying input parameters
 Parameters in ThingTalk are passed by keyword, using the names indicated in the device specification.
@@ -110,7 +111,7 @@ In this example, we set `count=3` so we can get 3 cat pictures (Who doesn't like
 
 ### Parameter passing
 In addition to constant values, we can also pass the value returned by previous functions, by specifying the name
-of one _output parameter_ of the previous function.
+of one _output parameter_ of the previous function. 
 ```tt
 monitor @com.foxnews.get() => @com.slack.send(channel="general", message=title);
 ```
