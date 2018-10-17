@@ -27,19 +27,11 @@ function query(client, string, args) {
 function rollback(client, err, done) {
     return query(client, 'rollback').then(() => {
         done();
-        throw err;
     }, (rollerr) => {
         done(rollerr);
-        throw err;
     });
 }
 
-function commit(client, result, done) {
-    return query(client, 'commit').then(() => {
-        done();
-        return result;
-    });
-}
 
 function selectAll(client, string, args) {
     return query(client, string, args).then(([rows, fields]) => rows);
@@ -127,9 +119,12 @@ module.exports = {
                 await query(client, 'start transaction');
                 try {
                     const result = await transaction(client);
-                    await commit(client, result, done);
+                    await query(client, 'commit');
+                    done();
+                    return result;
                 } catch(err) {
                     await rollback(client, err, done);
+                    throw err;
                 }
             } catch (error) {
                 done(error);
