@@ -30,7 +30,7 @@ now => @com.thecatapi.get() => notify;
 
 In this example, the stream is just `now`, which invokes the action exactly once 
 when the program started. The query invokes the `get` function from the device
-[Cat API](/thingpedia/devices/by-id/com.thecatapi)
+[Cat API](https://almond.stanford.edu/thingpedia/devices/by-id/com.thecatapi)
 which returns a cat picture. The action is set to `notify`, which will simply show the 
 result to the user.
 To test this, you can go to [Web Almond](/me/conversation) and type `\t` followed by a space followed by the ThingTalk code.
@@ -55,7 +55,7 @@ For example, one can set up a monitor for Fox News with the following command
 monitor @com.foxnews.get() => notify;
 ```
 This rule starts a monitor on `get` query function 
-from [Fox news](/thingpedia/devices/by-id/com.foxnews)
+from [Fox news](https://almond.stanford.edu/thingpedia/devices/by-id/com.foxnews)
 produces a notification to the user every time Fox News publishes something new.
 Note that in this example, there is no query part. When the monitor gets triggered,
 it also passes the information directly to the action `notify`.
@@ -154,7 +154,7 @@ two sources of data at the same time:
 now => @com.foxnews.get() join @com.yandex.translate.translate(target_language="ch") on (text=title) => notify;
 ```
 In this case, each news from Fox News is combined with the `translate` query from
-[Yandex Translate](/thingpedia/devices/by-id/com.yandex.translate),
+[Yandex Translate](https://almond.stanford.edu/thingpedia/devices/by-id/com.yandex.translate),
 using `text=title` as the join condition.
 In practice, this rule means that get the title of news from Fox News, translate it 
 to Chinese, and show translated title to the user. 
