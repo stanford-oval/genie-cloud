@@ -375,6 +375,8 @@ CREATE TABLE `string_types` (
   `language` char(15) COLLATE utf8_bin NOT NULL,
   `type_name` varchar(255) COLLATE utf8_bin NOT NULL,
   `name` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `license` enum('public-domain', 'free', 'non-commercial', 'proprietary') COLLATE utf8_bin not null default 'public-domain',
+  `attribution` mediumtext CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY (`language`, `type_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

@@ -16,8 +16,8 @@ module.exports = {
         return db.insertOne(client, `insert into string_types set ?`, [stringType]);
     },
     createMany(client, stringTypes) {
-        return db.insertOne(client, `insert into string_types(language, type_name, name) values ?`,
-            [stringTypes.map((st) => [st.language, st.type_name, st.name])]);
+        return db.insertOne(client, `insert into string_types(language, type_name, name, license, attribution) values ?`,
+            [stringTypes.map((st) => [st.language, st.type_name, st.name, st.license, st.attribution])]);
     },
 
     get(client, id, language = 'en') {
