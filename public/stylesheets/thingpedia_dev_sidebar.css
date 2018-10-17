@@ -63,7 +63,7 @@ nav#doc-sidebar > ul > li:hover, nav#doc-sidebar > ul > li.thingpedia-docs > a:h
   background-color: lightgray;
 }
 nav#doc-sidebar > ul > li.thingpedia-docs:hover {
-  background-color: white;
+  background-color: whitesmoke;
 }
 nav#doc-sidebar li.current > .doc-sidebar-subtitle {
   color: white;

@@ -1,209 +1,205 @@
-# ThingTalk by examples
+# ThingTalk by Examples
 
 [[toc]]
 
 ## What is ThingTalk?
 
-ThingTalk is the programming language that Almond uses. It's a _declarative
+Almond is a _programmable virtual assistant_, that is, every command that the user issues is
+translated into a programming language, called ThingTalk and then executed. ThingTalk is a _declarative
 domain-specific language_, which means it's a language that we specifically developed
 for the Internet of Things (hence the name) and it does not use common constructs
-like for, if or for statements, providing a higher level abstraction for connecting
-things.
+like `for`, `if` or `while` statements, providing a higher level abstraction for connecting
+things, while hiding the details of configuration and networking.
 
 ## What can I write in ThingTalk?
 
-ThingTalk shares similar spirit with the well-known 
+ThingTalk is similar in spirit to the well-known
 [IFTTT](https://ifttt.com/) service, but provides a more powerful and flexible way to express
 more complicated tasks.
 
-A ThingTalk program is composed of a list of _rules_. A rule combines a _stream_ with an action.
-The stream determines both the data to operate on and the time at which the action is executed.
+A ThingTalk program is composed of a list of _rules_, each terminated by a semicolon.
+A rule combines a _stream_,  a _query_ (optional), and an _action_ in order.
+The stream and query together determine the time at which the action 
+is executed and the data to operate. 
+These three components are connected with `=>` to form the rule.
 
-## The Basics
+Here is an example of ThingTalk program which gets a cat picture and shows it to the user:
+```tt
+now => @com.thecatapi.get() => notify;
+```
 
-Let's start with the basics: like every programming language, we start from Hello World.
-This tutorial assumes that you already have configured Almond. If not, see the [Getting Started Tutorial](/doc/getting-started.md)
-first.
-
-This is the code for the Hello World app:
-
-    now => @org.thingpedia.builtin.thingengine.builtin.say(message="Hello, world!");
-
+In this example, the stream is just `now`, which invokes the action exactly once 
+when the program started. The query invokes the `get` function from the device
+[Cat API](https://almond.stanford.edu/thingpedia/devices/by-id/com.thecatapi)
+which returns a cat picture. The action is set to `notify`, which will simply show the 
+result to the user.
 To test this, you can go to [Web Almond](/me/conversation) and type `\t` followed by a space followed by the ThingTalk code.
 The special `\t` prefix tells the system that your input is code and not a natural language sentence.
 
-Here we can see we define our program with one rule with it.
-The rule has two parts: the part before the `=>` is the stream, the part after is the action.
 
-Here the trigger is just `now`, which invokes the action exactly once (when the program is started), with no data.
-For the action, we choose `say` from the [Miscellaneous Interfaces](/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine.builtin),
-which just displays the message back. Parameters in ThingTalk are passed by keyword, using
-the names indicated in the device specification.
+## Stream — when does the action run?
+In the previous example, you have seen one example of stream, `now`, which fires once at the moment
+the rule is created. 
+In addition to `now`, ThingTalk allows a rule to stay active in the background and trigger the action 
+at a future time when a certain condition is met.  
+The supported stream types include _monitor stream_ and _timer_.
 
-## Operating on Data
+### Monitor stream 
+In Thingpedia, there are two types of functions: _query_ and _action_.
+Most queries are _monitorable_, which means they can be turned into a stream,
+called _monitor stream_.
+A monitor stream will trigger the rest of the rule once the returned data from the query changes.
 
-The `now` stream contains no data and fires only once, so it is not particularly
-interesting. To access more complex streams, we have three options:
+For example, one can set up a monitor for Fox News with the following command
+```tt 
+monitor @com.foxnews.get() => notify;
+```
+This rule starts a monitor on `get` query function 
+from [Fox news](https://almond.stanford.edu/thingpedia/devices/by-id/com.foxnews)
+produces a notification to the user every time Fox News publishes something new.
+Note that in this example, there is no query part. When the monitor gets triggered,
+it also passes the information directly to the action `notify`.
 
- - combine `now` with a source of data: `now => <table>`
- - monitor a source of data (table)
- - monitor a source of data and then combine it with a second source
-
-A source of data is specified in the form of a (virtual) _table_, representing a
-remotely-accessible database. The simplest form of table invokes a single query,
-chosen from a device specification:
-
-    now => @com.twitter.my_tweets() => notify
-
-In this case, we choose the `my_tweets` query from [Twitter](/thingpedia/devices/by-id/com.twitter),
-pass no parameters, and combine it with the `now` stream. The result is a source
-of data that contains the list of recent tweets from the user.
-
-In this example, the program uses the `notify` action, which presents the data
-to the user (in the form of speech, text, or a widget, depending on the form factor
-of Almond). Alternatively, one can specify an action with side effects:
-
-    now => @com.twitter.my_tweets() => @com.twitter.retweet(tweet_id=tweet_id)
-
-The action is executed for each row returned by the stream or table.
-In this case, we use the `tweet_id` output parameter from the source of data, and bind
-it to the input parameter with the same name of `@com.twitter.retweet`. The result
-is that all recent tweets by the user are retweeted.
-
-## Continuous Execution
-
-In addition to `now`, ThingTalk supports _monitor streams_, which continuously monitor
-a table for changes in data, and execute the actions on new rows.
-In code, this would look like:
-
-    monitor @com.twitter.my_tweets() => notify;
-
-This produces a notification to the user every time the user tweets.
-
-Streams can also be combined with tables to form a _join stream_, which reads from
-two sources of data at the same time:
-
-    (monitor @com.twitter.my_tweets()) join @com.bing.web_search() on (query=text) => notify;
-    
-In this case, each new tweet from the user is combined with the `web_search` table
-from [Bing](/thingpedia/devices/by-id/com.bing), using `query = text` as the join
-condition. In practice, this rule means that every time the user tweets, Almond
-will search the text of the tweet on Bing and show the result to the user.
-
-The order of `monitor` and `join` can also be reversed:
-
-    monitor (@com.twitter.my_tweets() join @com.bing.web_search() on (query=text)) => notify;
-
-In that case, Almond will monitor the join of the two tables, that is, it will continuously
-query Bing based on the user's tweets and notify if the search results change (that is,
-if there is a new row that was not present previously).
-
-## Filtering
-
-What if the user does not want to return all tweets, but only those with a specific
-hashtag? This can be accomplished using a filter:
-
-    now => @com.twitter.my_tweets(), contains(hashtags, "almond"^^tt:hashtag) => notify;
-
-The filter is specified with a comma following the table that it filters, followed
-by a boolean predicate that uses the output parameters of that table. Multiple filters
-can be combined with `&&` (and) and `||` (or).
-For the full list of predicates supported by ThingTalk, see the [ThingTalk reference](/doc/thingtalk-reference.md).
-
-In this example, we filter on the `hashtags` parameter, which is of type `Array(Entity(tt:hashtag))`,
-so we use the `contains` predicate. The value, which must be of type `Entity(tt:hashtag)`,
-is specified using the `^^` syntax to separate the actual value from its type.
-
-Filters can be applied to both tables and streams, i.e. the following are equivalent:
-
-    (monitor @com.twitter.my_tweets()), contains(hashtags, "almond"^^tt:hashtag) => notify;
-    monitor (@com.twitter.my_tweets(), contains(hashtags, "almond"^^tt:hashtag)) => notify;
-
-If parenthesis are omitted, the `monitor` keyword has precedence.
-
-## Timers
-
+### Timer
 In addition to operating on changes on data, rules can be fired at specific times using
 timer streams, using the syntax:
-
-    timer(base=makeDate(), interval=1h) => @org.thingpedia.builtin.thingengine.builtin.say(message="Hourly reminder!");
+```tt
+timer(base=makeDate(), interval=1h) => @com.thecatapi.get() => notify;
+```
 
 This syntax creates a timer that starts now (`makeDate()` with no parameter is the current
 time) and fires every hour.
 
-Timers, like monitor streams, can be combined with other data sources:
+A second form of timer triggers every day at a specific time:
+```tt
+attimer(time=makeTime(8, 0)) => @com.thecatapi.get() => notify;
+```
 
-    timer(base=makeDate(), interval=1h) join @com.twitter.my_tweets() => notify;
+This syntax creates a timer that triggers every day at 8 AM. 
 
 For the precise syntax of timers, see the [ThingTalk reference](/doc/thingtalk-reference.md).
 
-## Edge Stream
+## Query — what data does the action need?
+In our first example, we have seen a query `@com.thecatapi.get()`.
+It talks to the Cat API and gets a random cat picture from it.
 
-Monitor streams are a special case of _edge streams_: streams that are constructed from
-another stream, and filter it based on immediate history. Two types of edge streams
-exist: _edge on new_ streams, and _edge filter_ streams.
+The query in a rule provides data for the action to consume.
+Note that if the rule also contains a monitor stream,
+both the data from the stream and query will be available to use in the action.
 
-An edge on new stream filters the stream to contain only data that was not previously
-present in the stream. This is very similar to a monitor stream, and in fact monitor
-is syntactic sugar for edge stream with a particular timer. I.e.
+## Action — what does the program do at the end?
+After a rule is triggered and the data is retrieved, the program will run an action.
+`notify` is the default action which shows the data from the stream and the query to the user.
+Besides `notify`, the action part can also invoke any action function in Thingpedia. 
+For example, instead of being notified inside Almond, you can choose to send the information
+to Slack as follows:
+```tt
+monitor @com.foxnews.get() => @com.slack.send();
+```
 
-    monitor @com.twitter.my_tweets() => notify
+## Handling Parameters
+So far, we have not used any parameters for functions in our examples.
+In the following we will introduce how to handle parameters in ThingTalk. 
 
-Is (semantically) equivalent to
+### Specifying input parameters
+Parameters in ThingTalk are passed by keyword, using the names indicated in the device specification.
+```tt
+now => @com.thecatapi.get(count=3) => notify;
+```
+The `get` function for `@com.thecatapi` has an optional input parameter `count`. 
+In this example, we set `count=3` so we can get 3 cat pictures (Who doesn't like more cats?)
 
-    edge (timer(base=makeDate(), interval=...) join @com.twitter.my_tweets()) on new => notify
+### Parameter passing
+In addition to constant values, we can also pass the value returned by previous functions, by specifying the name
+of one _output parameter_ of the previous function. 
+```tt
+monitor @com.foxnews.get() => @com.slack.send(channel="general", message=title);
+```
 
-Where the interval is automatically chosen based on the polling interval specified in
-Thingpedia.
+### Filtering on output parameters
+What if the user does not want to be notified of all news articles, but only of those related to a specific topic?
+This can be accomplished using a filter:
+```tt
+monitor (@com.foxnews.get(), title =~ "Stanford") => notify;
+```
+The filter is specified with a comma following the table that it filters, followed
+by a boolean predicate that uses the output parameters of that table. 
+In this example, we filter on the `title` parameter; the rule will be triggered only if
+the title of the article contains (denoted by `=~`) the word "Stanford".
 
-Edge streams can be useful when combined with timers:
+Multiple filters can be combined with `&&` (and) and `||` (or):
+```tt
+monitor @com.foxnews.get(), title =~ "Stanford" || title =~ "Almond" => notify;
+```
 
-    edge (timer(base=makeDate(), interval=1h) join @com.twitter.my_tweets()) on new => notify;
-    
-This program will look at the user's tweets at most every hour (rather than instantly, which is
-the default for `@com.twitter.my_tweets`), and furthermore will only notify on new tweets.
+For the full list of predicates supported by ThingTalk, see the [ThingTalk reference](/doc/thingtalk-reference.md).
 
-Moreover, edge filters allow to specify richer conditions than "the value differs".
+## Code Snippet
+So far, we only introduced full programs, composed of a stream (possibly `now`), a query, and an action
+(possibly `notify`). These programs are complete and not composable.
+
+We can instead split each part of a program into a composable part using the following declaration syntax:
+```tt
+query (count : Number) := @com.thecatapi.get(count=count);
+stream (keyword : String) := monitor @com.foxnews.get(), title =~ keyword;
+```
+
+Code snippets are used to provide composable examples for devices in Thingpedia,
+as detailed [in their guide](/doc/thingpedia-device-intro-example-commands.md).
+ 
+## Advanced Topics 
+### Joins
+A query can be combined with another query to form a _join_, which reads from
+two sources of data at the same time:
+```tt
+now => @com.foxnews.get() join @com.yandex.translate.translate(target_language="ch") on (text=title) => notify;
+```
+In this case, each news from Fox News is combined with the `translate` query from
+[Yandex Translate](https://almond.stanford.edu/thingpedia/devices/by-id/com.yandex.translate),
+using `text=title` as the join condition.
+In practice, this rule means that get the title of news from Fox News, translate it 
+to Chinese, and show translated title to the user. 
+
+A monitor stream can also work with a joined query:
+```tt
+monitor (@com.foxnews.get() join @com.bing.web_search() on (query=title)) => notify;
+```
+In that case, Almond will monitor the join of the two queries, that is, it will continuously
+query Bing based on the news title and notify if the search results change.
+
+Note that the semantics of this command is different from the following one:
+```tt
+monitor @com.foxnews.get() => @com.bing.web_search(query=title) => notify;
+```
+Instead of monitoring changes of the search results, this only monitors the changes 
+on Fox News, and then runs the Bing search once it detects a new article.
+
+### Edge monitor
+In addition to `now`, timer, and monitor stream, ThingTalk also supports _edge_monitor_. 
+Two types of edge streams exist: _edge on new_ streams, and _edge filter_ streams.
+
+An edge-on-new stream filters the stream to contain only data that was not previously
+present in the stream. This is very similar to a monitor stream.
+It can be useful when combined with timers to have customized 
+polling interval different from the default: 
+```tt
+edge (timer(base=makeDate(), interval=1min) join @com.foxnews.get()) on new => notify;
+```
+
+This program will look at the Fox News at most every minute (rather than 1 hour, which is
+the default interval for `@com.foxnews.get`), and furthermore will only notify on new news.
+
+Moreover, edge filters allow specifying richer conditions than "the value differs".
 With an edge filter (whose syntax is `edge` _stream_ `on` _filter_), the rule is only evaluated
 if the filter was previously false and is now true.
 
 Consider the two examples:
-
-    edge (monitor @thermostat.get_temperature()) on value >= 70F => notify;
-    monitor @thermostat.get_temperature(), value >= 70F => notify;
+```tt
+edge (monitor @thermostat.get_temperature()) on value >= 70F => notify;
+monitor @thermostat.get_temperature(), value >= 70F => notify;
+```
 
 In the first case, the user receives only one notification, as the thermostat crosses from below
-70 Farhenheit to above. In the second case, once the temperature is above 70, any fluctuation
+70 Fahrenheit to above. In the second case, once the temperature is above 70, any fluctuation
 will result in a new notification, which is potentially unwanted. For this reason, it is more
 common to use edge filters rather than regular filters with numeric values.
-
-## Lambdas
-
-So far, we only introduced full programs, composed of a stream (possibly `now`) or table and an action
-(possibly `notify`). These programs are complete and not composable.
-
-We can instead split each part of a program into a composable part using lambda syntax:
-
-    let table my_tweets := \() -> @com.twitter.my_tweets();
-    let table my_tweets_with_hashtag := \(hashtag : Entity(tt:hashtag)) -> @com.twitter.my_tweets(), contains(hashtags, hashtag);
-    let stream when_i_tweet := \() -> monitor @com.twitter.my_tweets();
-
-Lambdas are declared with `let`, followed by the type of the declaration (`table`, `stream` or `action`),
-followed by a name, the list of parameters, and their body.
-
-If the lambda has no parameters, the `\() ->` syntax can be omitted, so the following are equivalent:
-
-    let table my_tweets := \() -> @com.twitter.my_tweets();
-    let table my_tweets := @com.twitter.my_tweets();
-
-Lambdas can be used in a program to make it more readable:
-
-    {
-    let stream when_i_tweet := \() -> monitor @com.twitter.my_tweets();
-    when_i_tweet() => notify;
-    }
-
-Here we wrap the program in `{}` because it uses more than one statement.
-
-Lambdas are also used to provide composable examples for Thingpedia Devices,
-as detailed [in their guide](/doc/thingpedia-device-intro-example-commands.md).
