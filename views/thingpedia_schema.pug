@@ -14,7 +14,7 @@ block content
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
         if schema.kind_type === 'other'
-          form(action='/thingpedia/classes/approve', method='post').form-inline
+          form(action='/thingpedia/devices/approve', method='post').form-inline
             input(type='hidden',name='_csrf',value=csrfToken)
             input(type='hidden',name='kind',value=schema.kind)
             p.form-group= _("This type is not yet approved.")
@@ -27,7 +27,7 @@ block content
   else if schema.approved_version !== schema.developer_version && user && user.developer_status >= 3
     div.alert.alert-warning(role='alert')
       if user && user.developer_status >= 3
-        form(action='/thingpedia/classes/approve/' + schema.id, method='post').form-inline
+        form(action='/thingpedia/devices/approve/' + schema.id, method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=schema.kind)
           p.form-group= _("A newer version of this schema was submitted.")
@@ -69,9 +69,9 @@ block content
   div.row#device-details-actions
     if schema.kind_type === 'other' && authenticated && (user.developer_status >= 3 || schema.owner === user.developer_org)
       div.col-md-2
-        a.btn.btn-warning.btn-block(href='/thingpedia/classes/update/' + schema.kind)= _("Edit")
+        a.btn.btn-warning.btn-block(href='/thingpedia/devices/update/' + schema.kind)= _("Edit")
       div.col-md-2
-        form(action='/thingpedia/classes/delete', method='post').form-delete-device
+        form(action='/thingpedia/devices/delete', method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=schema.kind)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")

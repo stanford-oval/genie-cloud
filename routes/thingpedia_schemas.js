@@ -57,6 +57,7 @@ router.get('/by-id/:kind', (req, res, next) => {
         ]);
 
         const row = {
+            owner: devices[0].owner,
             approved_version: devices[0].approved_version,
             developer_version: devices[0].developer_version,
             kind: req.params.kind,
