@@ -43,45 +43,11 @@ block content
         = _("The translation for this type in your language is incomplete. ")
         a(href='/thingpedia/translate/by-id/' + schema.kind).btn.btn-default= _("Contribute translation")
 
-  if schema.kind === 'data-source'
-    p= _("This type is just a marker that indicates a publicly available web service, such as Bing or Xkcd.")
-
-  if schema.kind === 'online-account'
-    p= _("This type is a marker that denotes an account, as opposed to a physical device.")
-
-  if schema.kind === 'communication'
-    p= _("This type is a category marker for Communication services, such as texting or email.")
-
-  if schema.kind === 'data-management'
-    p= _("This type is a category marker for Data Management and Data Storage accounts, such as Dropbox and Google Drive.")
-
-  if schema.kind === 'health'
-    p= _("This type is a category marker for Health and Fitness devices, like FitBit and Jawbone UP.")
-
-  if schema.kind === 'home'
-    p= _("This type is a category marker for Home IoT devices, such as Philips Hue lightbulbs or the LG Smart TV.")
-
-  if schema.kind === 'media'
-    p= _("This type is a category marker for Mass Media and content aggregators, such as RSS, YouTube or newspapers.")
-
-  if schema.kind === 'social-network'
-    p= _("This type is a category marker for Social Network accounts, like Facebook or Twitter.")
-
-  if schema.kind === 'service'
-    p= _("This type is a category marker for generic services that don't fit in any other category, like Uber, eBay or the weather.")
-
-  if schema.kind === 'thingengine-system'
-    p= _("This type is a category marker for special pseudo-devices that are created and managed by the ThingSystem, and are invisible to the user.")
-
   if schema.kind_type === 'discovery'
     p
       = _("This type is a marker for discovery. ")
       = _("It is used by a device to indicate a certain low-level capability, and has no actions of its own. ")
       != _("Most likely, you will find this type toghether with another more generic type, eg. <i>bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb</i>, indicating the A2DP Speaker capability, would be accompanied by <i>speaker</i>.")
-
-  if schema.kind_type === 'primary'
-    p
-      = _("This type belongs to a specific device, which can be configured and manipulated by recalling the type by name.")
 
   if user && user.developer_org !== null
     h2.device-subtitle#device-version

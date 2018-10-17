@@ -130,7 +130,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
 
     getDeviceCode(kind, accept) {
         return db.withClient(async (dbClient) => {
-            const devs = await device.getFullCodeByPrimaryKind(dbClient, kind, await this._getOrg(dbClient));
+            const devs = await device.getFullCodeByPrimaryKind(dbClient, kind, await this._getOrgId(dbClient));
             if (devs.length < 1) {
                 const err = new Error('Not Found');
                 err.code = 'ENOENT';

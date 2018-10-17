@@ -66,22 +66,6 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
     return [classDef, dataset];
 }
 
-async function validateSchema(dbClient, req, options, classCode, datasetCode) {
-    const [classDef, dataset] = await loadClassDef(dbClient, req, options.kind || null,
-        classCode, datasetCode);
-
-    const [entities, stringTypes] = await validateAllInvocations(classDef, {
-        checkPollInterval: false,
-        checkUrl: false,
-        deviceName: null
-    });
-    await entityModel.checkAllExist(dbClient, entities);
-    await stringModel.checkAllExist(dbClient, stringTypes);
-    await validateDataset(dataset);
-
-    return [classDef, dataset];
-}
-
 const LEGACY_KINDS = ['security-camera', 'car', 'messaging', 'light-bulb', 'smoke-alarm', 'thermostat'];
 
 async function validateDevice(dbClient, req, options, classCode, datasetCode) {
@@ -260,7 +244,6 @@ module.exports = {
     cleanKind,
 
     validateDevice,
-    validateSchema,
     validateDataset,
 
     tokenizeAllExamples(language, examples) {
