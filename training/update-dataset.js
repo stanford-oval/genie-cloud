@@ -14,6 +14,7 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 const stream = require('stream');
 const seedrandom = require('seedrandom');
+const argparse = require('argparse');
 
 const ThingTalk = require('thingtalk');
 
@@ -242,15 +243,62 @@ class DatasetUpdater {
 
 
 async function main() {
-    const [language, forDevices] = process.argv.slice(2);
+    const parser = new argparse.ArgumentParser({
+        addHelp: true,
+        description: 'Update Thingpedia Dataset'
+    });
+    parser.addArgument(['-l', '--language'], {
+        nargs: 1,
+        required: true,
+    });
+    parser.addArgument(['-a', '--all'], {
+        nargs: 0,
+        action: 'storeTrue',
+        help: 'Update all datasets, including paraphrased ones.'
+    });
+    parser.addArgument(['-d', '--device'], {
+        nargs: 1,
+        action: 'append',
+        metavar: 'DEVICE',
+        help: 'Restrict generation to command of the given device. This option can be passed multiple times to specify multiple devices',
+        dest: 'forDevices',
+    });
+    parser.addArgument('--maxDepth', {
+        type: Number,
+        nargs: 1,
+        defaultValue: 3,
+        help: 'Maximum depth of synthetic sentence generation',
+    });
+    parser.addArgument('--ppdb', {
+        nargs: 1,
+        defaultValue: './ppdb-2.0-m-lexical.bin',
+        metavar: 'FILENAME',
+        help: 'Path to the binary PPDB file',
+    });
+    parser.addArgument('--ppdb-synthetic-fraction', {
+        type: Number,
+        nargs: 1,
+        defaultValue: 0.1,
+        metavar: 'FRACTION',
+        help: 'Fraction of synthetic sentences to augment with PPDB',
+    });
+    parser.addArgument('--ppdb-paraphrase-fraction', {
+        type: Number,
+        nargs: 1,
+        defaultValue: 0.1,
+        metavar: 'FRACTION',
+        help: 'Fraction of paraphrase sentences to augment with PPDB',
+    });
 
-    const updater = new DatasetUpdater(language, forDevices, {
-        regenerateAll: true,
-        maxDepth: 3,
+    const args = parser.parseArgs();
 
-        ppdbFile: './ppdb-2.0-m-lexical.bin',
-        ppdbProbabilitySynthetic: 0.1,
-        ppdbProbabilityGenerated: 1.0
+    const updater = new DatasetUpdater(args.language[0], args.forDevices, {
+        regenerateAll: args.all,
+        maxDepth: args.maxDepth,
+
+        ppdbFile: args.ppdb,
+        ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
+        ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction
     });
     await updater.run();
 

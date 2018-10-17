@@ -37,6 +37,7 @@
     "accepts": "^1.3.5",
     "actions-on-google": "^2.2.0",
     "almond-dialog-agent": "^1.0.3",
+    "argparse": "^1.0.10",
     "body-parser": "~1.13.3",
     "cacheable-middleware": "0.0.1",
     "canvas": "^1.6.10",
