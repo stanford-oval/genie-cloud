@@ -91,6 +91,14 @@ const BING_METADATA = {
               "",
               "What width are you looking for (in pixels)?",
               "What height are you looking for (in pixels)?"
+            ],
+            string_values: [
+              "tt:search_query",
+              "tt:short_free_text",
+              null,
+              null,
+              null,
+              null
             ]
         },
         web_search: {
@@ -110,6 +118,12 @@ const BING_METADATA = {
               "",
               "",
               ""
+            ],
+            string_values: [
+              "tt:search_query",
+              "tt:short_free_text",
+              "tt:long_free_text",
+              null,
             ]
         }
     }
@@ -130,8 +144,8 @@ const BING_CLASS = `class @com.bing {
 }
 `;
 const BING_CLASS_WITH_METADATA = `class @com.bing {
-  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
-                                      out title: String #_[canonical="title"],
+  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                      out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
                                       out picture_url: Entity(tt:picture) #_[canonical="picture url"],
                                       out link: Entity(tt:url) #_[canonical="link"],
                                       out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
@@ -139,9 +153,9 @@ const BING_CLASS_WITH_METADATA = `class @com.bing {
   #_[canonical="image search on bing"]
   #_[confirmation="images matching $query from Bing"];
 
-  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
-                                    out title: String #_[canonical="title"],
-                                    out description: String #_[canonical="description"],
+  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                    out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
+                                    out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
                                     out link: Entity(tt:url) #_[canonical="link"])
   #_[canonical="web search on bing"]
   #_[confirmation="websites matching $query on Bing"];
@@ -299,7 +313,8 @@ async function testGetMetadata() {
                         confirmation_remote: "consume $data on $__person's Almond",
                         canonical: "eat data on test",
                         is_list: false,
-                        is_monitorable: false
+                        is_monitorable: false,
+                        string_values: [null]
                     }
                 }
             }
