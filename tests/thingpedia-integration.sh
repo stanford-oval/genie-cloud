@@ -125,7 +125,7 @@ wait
 node $srcdir/scripts/generate_binary_ppdb.js $srcdir/tests/data/ppdb-2.0-xs-lexical $workdir/ppdb-2.0-xs-lexical.bin
 
 # now generate the dataset (which will be saved to mysql)
-node $srcdir/training/update-dataset.js -l en -a --ppdb $workdir/ppdb-2.0-xs-lexical.bin
+node $srcdir/training/update-dataset.js -l en -a --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin
 
 # download and check
 test $(node $srcdir/training/download-dataset.js -l en --no-quote-free | sha256sum | cut -f1 -d' ') = "98ae6b1c31466c38216bad64a9abc0ad4b478c1e0d876e855a7b60222115ea86"

@@ -261,9 +261,9 @@ async function main() {
         help: 'Restrict generation to command of the given device. This option can be passed multiple times to specify multiple devices',
         dest: 'forDevices',
     });
-    parser.addArgument('--maxDepth', {
+    parser.addArgument('--maxdepth', {
         type: Number,
-        defaultValue: 3,
+        defaultValue: 5,
         help: 'Maximum depth of synthetic sentence generation',
     });
     parser.addArgument('--ppdb', {
@@ -288,7 +288,7 @@ async function main() {
 
     const updater = new DatasetUpdater(args.language, args.forDevices, {
         regenerateAll: args.all,
-        maxDepth: args.maxDepth,
+        maxDepth: args.maxdepth,
 
         ppdbFile: args.ppdb,
         ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
