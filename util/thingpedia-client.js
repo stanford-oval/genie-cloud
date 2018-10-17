@@ -100,13 +100,10 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     async getModuleLocation(kind, version) {
         const [approvedVersion, maxVersion] = await db.withClient(async (dbClient) => {
             const org = await this._getOrg(dbClient);
-            const device = await device.getDownloadVersion(dbClient, kind);
-            if (!device.downloadable)
+            const dev = await device.getDownloadVersion(dbClient, kind, org);
+            if (!dev.downloadable)
                 throw new Error('No Code Available');
-            if (org !== null && ((org.id === device.owner) || org.is_admin))
-                return [device.approved_version, device.developer_version];
-            else
-                return [device.approved_version, device.approved_version];
+            return [dev.approved_version, dev.version];
         });
         if (maxVersion === null || version > maxVersion)
             throw new Error('Not Authorized');
@@ -148,7 +145,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
             case 'application/x-thingtalk':
             default:
                 if (isJSON)
-                    return ThingTalk.Ast.fromManifest(manifest).prettyprint();
+                    return ThingTalk.Ast.fromManifest(kind, manifest).prettyprint();
                 else
                     return dev.code;
             }
@@ -216,7 +213,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         if (device.factory !== null)
             return typeof device.factory === 'string' ? JSON.parse(device.factory) : device.factory;
 
-        assert(/\s+\{/.test(device.code));
+        assert(/\s*\{/.test(device.code));
         const classDef = ThingTalk.Ast.ClassDef.fromManifest(device.primary_kind, JSON.parse(device.code));
         return FactoryUtils.makeDeviceFactory(classDef, device);
     }
@@ -375,6 +372,7 @@ module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getModuleLocation', 'getDeviceCode',
                                         'getSchemas', 'getMixins',
                                         'getDeviceSetup',
+                                        'getDeviceSetup2',
                                         'getDeviceFactories',
                                         'getDeviceList',
                                         'getDeviceSearch',

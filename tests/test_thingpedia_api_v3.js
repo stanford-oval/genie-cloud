@@ -34,6 +34,9 @@ async function request(url) {
     //console.log(result);
     return JSON.parse(result);
 }
+async function streamRequest(url, options) {
+    return Tp.Helpers.Http.getStream(THINGPEDIA_URL + url, options);
+}
 async function ttRequest(url) {
     const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url, { accept: 'application/x-thingtalk' });
     //console.log(result);
@@ -512,6 +515,15 @@ async function testGetDeviceManifest() {
         `/devices/code/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`));
 }
 
+async function testGetDevicePackage() {
+    const source = await streamRequest('/devices/package/com.bing');
+    await new Promise((resolve, reject) => {
+        source.on('error', reject);
+        source.on('end', resolve);
+        source.resume();
+    });
+}
+
 async function testGetDeviceSetup() {
     assert.deepStrictEqual(await request('/devices/setup/com.bing'), {
         result: 'ok',
@@ -945,6 +957,7 @@ async function main() {
     await testGetExamplesByKey();
     await testGetDeviceIcon();
     await testGetDeviceManifest();
+    await testGetDevicePackage();
     await testGetDeviceSetup();
     await testGetDeviceSetupList(null);
     await testGetDeviceSetupList('online');

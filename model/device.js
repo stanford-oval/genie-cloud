@@ -246,9 +246,22 @@ module.exports = {
         }
     },
 
-    getDownloadVersion(client, kind) {
-        return db.selectAll(client, `select downloadable, owner, developer_version, approved_version from
-            device_class where kind = ?`, [kind]);
+    getDownloadVersion(client, kind, org) {
+        if (org !== null && org.is_admin) {
+            return db.selectOne(client, `select downloadable, owner, approved_version, version from
+                device_class, device_code_version where device_id = id and version = developer_version
+                and primary_kind = ?`, [kind]);
+        } else if (org !== null) {
+            return db.selectOne(client, `select downloadable, owner, approved_version, version from
+                device_class, device_code_version where device_id = id and
+                ((version = developer_version and owner = ?) or
+                ((version = approved_version and owner <> ?))
+                and primary_kind = ?`, [org.id, org.id, kind]);
+        } else {
+            return db.selectOne(client, `select downloadable, owner, approved_version, version from
+                device_class, device_code_version where device_id = id and version = approved_version
+                and primary_kind = ?`, [kind]);
+        }
     },
 
     getAllApproved(client, org, start, end) {

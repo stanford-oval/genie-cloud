@@ -18,7 +18,7 @@ block content
       div.col-xs-12.col-md-8.col-lg-9
         if authenticated && user.developer_org !== null
           section.divider
-            h3= _("Your OAuth 2.0 Applications")
+            h3= _("Your OAuth Applications")
             if developer_oauth2_clients.length > 0
               each client, i in developer_oauth2_clients
                 div.row
