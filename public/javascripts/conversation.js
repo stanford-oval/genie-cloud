@@ -68,7 +68,7 @@ $(function() {
             return;
 
         container[0].scrollIntoView(false);
-        window.scrollTo(0,document.body.scrollHeight);
+        //window.scrollTo(0,document.body.scrollHeight);
         scrollChat();
         setTimeout(scrollChat, 1000);
     }
@@ -261,7 +261,7 @@ $(function() {
         ws.send(JSON.stringify({ type: 'parsed', json: json }));
     }
     function handleThingTalk(tt) {
-        appendUserMessage('Code: ' + tt);
+        appendUserMessage('\\t ' + tt);
         ws.send(JSON.stringify({ type: 'tt', code: tt }));
     }
     function handleChoice(idx, title) {
