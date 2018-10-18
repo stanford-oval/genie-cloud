@@ -17,7 +17,7 @@ const net = require('net');
 const sockaddr = require('sockaddr');
 
 const EngineManager = require('./enginemanager');
-const JsonDatagramSocket = require('./json_datagram_socket');
+const JsonDatagramSocket = require('../util/json_datagram_socket');
 
 const Config = require('../config');
 

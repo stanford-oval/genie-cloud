@@ -13,6 +13,7 @@ const assert = require('assert');
 const ThingTalk = require('thingtalk');
 
 const entityModel = require('../model/entity');
+const stringModel = require('../model/strings');
 
 const { clean, splitParams, tokenize } = require('./tokenize');
 const TokenizerService = require('./tokenizer_service');
@@ -69,12 +70,13 @@ async function validateSchema(dbClient, req, options, classCode, datasetCode) {
     const [classDef, dataset] = await loadClassDef(dbClient, req, options.kind || null,
         classCode, datasetCode);
 
-    const entities = await validateAllInvocations(classDef, {
+    const [entities, stringTypes] = await validateAllInvocations(classDef, {
         checkPollInterval: false,
         checkUrl: false,
         deviceName: null
     });
     await entityModel.checkAllExist(dbClient, entities);
+    await stringModel.checkAllExist(dbClient, stringTypes);
     await validateDataset(dataset);
 
     return [classDef, dataset];
@@ -99,12 +101,13 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     const moduleType = classDef.loader.module;
     const fullcode = !JAVASCRIPT_MODULE_TYPES.has(moduleType);
 
-    const entities = await validateAllInvocations(classDef, {
+    const [entities, stringTypes] = await validateAllInvocations(classDef, {
         checkPollInterval: true,
         checkUrl: fullcode,
         deviceName: name
     });
     await entityModel.checkAllExist(dbClient, entities);
+    await stringModel.checkAllExist(dbClient, stringTypes);
     if (fullcode) {
         if (!classDef.metadata.name)
             classDef.metadata.name = name;
@@ -166,16 +169,17 @@ function validateAllInvocations(classDef, options = {}) {
         throw new Error(`${classDef.kind} is not allowed as a device ID`);
 
     let entities = new Set;
-    validateInvocation(classDef.kind, classDef.actions, 'action', entities, options);
-    validateInvocation(classDef.kind, classDef.queries, 'query', entities, options);
-    return Array.from(entities);
+    let stringTypes = new Set;
+    validateInvocation(classDef.kind, classDef.actions, 'action', entities, stringTypes, options);
+    validateInvocation(classDef.kind, classDef.queries, 'query', entities, stringTypes, options);
+    return [Array.from(entities), Array.from(stringTypes)];
 }
 
 function autogenCanonical(name, kind, deviceName) {
     return `${clean(name)} on ${deviceName ? tokenize(deviceName).join(' ') : cleanKind(kind)}`;
 }
 
-function validateInvocation(kind, where, what, entities, options = {}) {
+function validateInvocation(kind, where, what, entities, stringTypes, options = {}) {
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
             throw new Error(`${name} is not allowed as a function name`);
@@ -201,9 +205,16 @@ function validateInvocation(kind, where, what, entities, options = {}) {
             if (FORBIDDEN_NAMES.has(argname))
                 throw new Error(`${argname} is not allowed as argument name in ${name}`);
             const type = where[name].getArgType(argname);
-            if (type.isEntity)
-                entities.add(type.type);
             const arg = where[name].getArgument(argname);
+            if (type.isEntity) {
+                entities.add(type.type);
+            } else if (type.isString) {
+                if (arg.annotations['string_values'])
+                    stringTypes.add(arg.annotations['string_values'].toJS());
+            } else {
+                if (arg.annotations['string_values'])
+                    throw new Error('The string_values annotation is valid only for String-typed parameters');
+            }
             if (!arg.metadata.canonical)
                 arg.metadata.canonical = clean(argname);
             if (arg.required && !arg.metadata.prompt)

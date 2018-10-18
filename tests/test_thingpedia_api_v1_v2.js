@@ -76,6 +76,14 @@ const BING_METADATA = {
               "",
               "What width are you looking for (in pixels)?",
               "What height are you looking for (in pixels)?"
+            ],
+            string_values: [
+              "tt:search_query",
+              "tt:short_free_text",
+              null,
+              null,
+              null,
+              null
             ]
         },
         web_search: {
@@ -95,6 +103,12 @@ const BING_METADATA = {
               "",
               "",
               ""
+            ],
+            string_values: [
+              "tt:search_query",
+              "tt:short_free_text",
+              "tt:long_free_text",
+              null,
             ]
         }
     }
@@ -171,7 +185,8 @@ async function testGetMetadata() {
                     confirmation_remote: "consume $data on $__person's Almond",
                     canonical: "eat data on test",
                     is_list: false,
-                    is_monitorable: false
+                    is_monitorable: false,
+                    string_values: [null],
                 }
             }
         }
@@ -197,7 +212,8 @@ async function testGetMetadata() {
                     confirmation_remote: "consume $data on $__person's Almond",
                     canonical: "eat data on test",
                     is_list: false,
-                    is_monitorable: false
+                    is_monitorable: false,
+                    string_values: [null]
                 }
             }
         }

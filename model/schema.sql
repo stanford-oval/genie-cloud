@@ -241,6 +241,7 @@ CREATE TABLE `device_schema_channels` (
   `argnames` mediumtext COLLATE utf8_bin NOT NULL,
   `required` mediumtext COLLATE utf8_bin NOT NULL,
   `is_input` mediumtext COLLATE utf8_bin NOT NULL,
+  `string_values` mediumtext COLLATE utf8_bin NOT NULL,
   `doc` mediumtext COLLATE utf8_bin NOT NULL,
   `is_list` tinyint(1) NOT NULL DEFAULT 1,
   `is_monitorable` tinyint(1) NOT NULL DEFAULT 1,
@@ -346,6 +347,40 @@ CREATE TABLE `entity_names_snapshot` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `string_types`
+--
+
+DROP TABLE IF EXISTS `string_types`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `string_types` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `language` char(15) COLLATE utf8_bin NOT NULL,
+  `type_name` varchar(255) COLLATE utf8_bin NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8 NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`language`, `type_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `string_values`
+--
+
+DROP TABLE IF EXISTS `string_values`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `string_values` (
+  `type_id` int(11) NOT NULL,
+  `value` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `preprocessed` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `weight` double not null default 1.0,
+  KEY (`type_id`),
+  CONSTRAINT `string_values_ibfk_1` FOREIGN KEY (`type_id`) REFERENCES `string_types` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `example_rule_schema`
 --
 
@@ -375,7 +410,7 @@ CREATE TABLE `example_utterances` (
   `is_base` tinyint(1) NOT NULL DEFAULT 0,
   `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `type` char(32) COLLATE utf8_bin NOT NULL DEFAULT 'other',
-  `flags` set('synthetic','augmented','obsolete','ambiguous') COLLATE utf8_bin DEFAULT '',
+  `flags` set('synthetic','augmented','obsolete','ambiguous','replaced','template','training') COLLATE utf8_bin NOT NULL DEFAULT '',
   `utterance` text CHARACTER SET utf8 NOT NULL,
   `preprocessed` text CHARACTER SET utf8 NOT NULL,
   `target_json` text COLLATE utf8_bin NOT NULL,

@@ -91,6 +91,14 @@ const BING_METADATA = {
               "",
               "What width are you looking for (in pixels)?",
               "What height are you looking for (in pixels)?"
+            ],
+            string_values: [
+              "tt:search_query",
+              "tt:short_free_text",
+              null,
+              null,
+              null,
+              null
             ]
         },
         web_search: {
@@ -110,6 +118,12 @@ const BING_METADATA = {
               "",
               "",
               ""
+            ],
+            string_values: [
+              "tt:search_query",
+              "tt:short_free_text",
+              "tt:long_free_text",
+              null,
             ]
         }
     }
@@ -130,8 +144,8 @@ const BING_CLASS = `class @com.bing {
 }
 `;
 const BING_CLASS_WITH_METADATA = `class @com.bing {
-  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
-                                      out title: String #_[canonical="title"],
+  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                      out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
                                       out picture_url: Entity(tt:picture) #_[canonical="picture url"],
                                       out link: Entity(tt:url) #_[canonical="link"],
                                       out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
@@ -139,9 +153,9 @@ const BING_CLASS_WITH_METADATA = `class @com.bing {
   #_[canonical="image search on bing"]
   #_[confirmation="images matching $query from Bing"];
 
-  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
-                                    out title: String #_[canonical="title"],
-                                    out description: String #_[canonical="description"],
+  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                    out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
+                                    out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
                                     out link: Entity(tt:url) #_[canonical="link"])
   #_[canonical="web search on bing"]
   #_[confirmation="websites matching $query on Bing"];
@@ -152,9 +166,9 @@ const BING_CLASS_FULL = `class @com.bing
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
-  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
-                                    out title: String #_[canonical="title"],
-                                    out description: String #_[canonical="description"],
+  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                    out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
+                                    out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
                                     out link: Entity(tt:url) #_[canonical="link"])
   #_[canonical="web search on bing"]
   #_[confirmation="websites matching $query on Bing"]
@@ -162,8 +176,8 @@ const BING_CLASS_FULL = `class @com.bing
   #[poll_interval=3600000ms]
   #[doc="search for ${'`query`'} on Bing"];
 
-  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"],
-                                      out title: String #_[canonical="title"],
+  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                      out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
                                       out picture_url: Entity(tt:picture) #_[canonical="picture url"],
                                       out link: Entity(tt:url) #_[canonical="link"],
                                       out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
@@ -299,7 +313,8 @@ async function testGetMetadata() {
                         confirmation_remote: "consume $data on $__person's Almond",
                         canonical: "eat data on test",
                         is_list: false,
-                        is_monitorable: false
+                        is_monitorable: false,
+                        string_values: [null]
                     }
                 }
             }
@@ -404,14 +419,14 @@ async function testGetExamplesByDevice() {
     #_[preprocessed=["eat some data"]]
     #[id=1000] #[click_count=0];
     query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
-    #_[utterances=["get some data"]]
-    #_[preprocessed=["get some data"]]
+    #_[utterances=["get ${'${p_size}'} of data"]]
+    #_[preprocessed=["get ${'${p_size}'} of data"]]
     #[id=1001] #[click_count=7];
     program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["keep eating data!","keep eating data! (v2)"]]
     #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
     #[id=1002] #[click_count=0];
-    action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
+    action () := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["more data eating..."]]
     #_[preprocessed=["more data eating ..."]]
     #[id=1004] #[click_count=0];
@@ -444,14 +459,14 @@ async function testGetExamplesByKey() {
     #_[preprocessed=["eat some data"]]
     #[id=1000] #[click_count=0];
     query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
-    #_[utterances=["get some data"]]
-    #_[preprocessed=["get some data"]]
+    #_[utterances=["get ${'${p_size}'} of data"]]
+    #_[preprocessed=["get ${'${p_size}'} of data"]]
     #[id=1001] #[click_count=7];
     program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["keep eating data!","keep eating data! (v2)"]]
     #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
     #[id=1002] #[click_count=0];
-    action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data)
+    action () := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["more data eating..."]]
     #_[preprocessed=["more data eating ..."]]
     #[id=1004] #[click_count=0];
