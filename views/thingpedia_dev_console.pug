@@ -47,6 +47,22 @@ section.divider
                   input(type='hidden',name='_csrf',value=csrfToken)
                   input(type='hidden',name='kind',value=dev.primary_kind)
                   button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Delete")
+  else
+    div.col-xs-12
+      p= _("Your organization does not own any device yet.")
+
+
+  div.row
+    if authenticated && user.developer_status >= 1
+      if user.developer_status >= 3
+        div.col-sm-6.col-md-4.col-md-offset-2
+          a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")
+        div.col-sm-6.col-md-4
+          a(href='/thingpedia/classes/create').btn.btn-default.btn-block= _("Create a new class")
+      else
+        div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+          a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")
     else
-      div.col-xs-12
-        p= _("Your organization does not own any device yet.")
+      div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+        a(href='/user/request-developer').btn.btn-primary.btn-block= _("Become a Thingpedia Developer")
+
