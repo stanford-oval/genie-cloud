@@ -9,20 +9,45 @@
 // See COPYING for details
 "use strict";
 
+const stream = require('stream');
 const db = require('../util/db');
 
 module.exports = {
-    create(client, stringType) {
-        return db.insertOne(client, `insert into string_types set ?`, [stringType]);
+    async create(client, stringType) {
+        const id = await db.insertOne(client, `insert into string_types set ?`, [stringType]);
+        stringType.id = id;
+        return stringType;
     },
     createMany(client, stringTypes) {
         return db.insertOne(client, `insert into string_types(language, type_name, name, license, attribution) values ?`,
             [stringTypes.map((st) => [st.language, st.type_name, st.name, st.license, st.attribution])]);
     },
 
+    insertValueStream(client, readable) {
+        const writable = new stream.Writable({
+            objectMode: true,
+            write(obj, encoding, callback) {
+                client.query(`insert into string_values set ?`, [obj], callback);
+            },
+            writev(objs, callback) {
+                client.query(`insert into string_values(type_id, value, preprocessed, weight) values ?`,
+                [objs.map((o) => [o.chunk.type_id, o.chunk.value, o.chunk.preprocessed, o.chunk.weight])], callback);
+            }
+        });
+        return new Promise((resolve, reject) => {
+            writable.on('error', reject);
+            writable.on('finish', resolve);
+            readable.pipe(writable);
+        });
+    },
+
     get(client, id, language = 'en') {
         return db.selectOne(client, `select * from string_types where id = ? and language = ?`,
                             [id, language]);
+    },
+    getByTypeName(client, typeName, language = 'en') {
+        return db.selectOne(client, `select * from string_types where type_name = ? and language = ?`,
+                            [typeName, language]);
     },
 
     getAll(client, language = 'en') {
@@ -32,6 +57,11 @@ module.exports = {
 
     getValues(client, typeName, language = 'en') {
         return db.selectAll(client, `select preprocessed, weight from string_values, string_types
+            where type_id = id and type_name = ? and language = ?`, [typeName, language]);
+    },
+
+    streamValues(client, typeName, language = 'en') {
+        return client.query(`select value, preprocessed, weight from string_values, string_types
             where type_id = id and type_name = ? and language = ?`, [typeName, language]);
     },
 

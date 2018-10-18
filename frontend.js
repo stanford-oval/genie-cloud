@@ -250,6 +250,7 @@ module.exports = class Frontend {
             // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
             this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
             this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
+            this._app.use('/thingpedia/strings', require('./routes/thingpedia_strings'));
         }
 
         this._app.use('/mturk', require('./routes/mturk'));
