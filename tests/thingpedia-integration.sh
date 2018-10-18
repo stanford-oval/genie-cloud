@@ -128,7 +128,7 @@ node $srcdir/scripts/generate_binary_ppdb.js $srcdir/tests/data/ppdb-2.0-xs-lexi
 node $srcdir/training/update-dataset.js -l en -a --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin
 
 # download and check
-test $(node $srcdir/training/download-dataset.js -l en --no-quote-free | sha256sum | cut -f1 -d' ') = "98ae6b1c31466c38216bad64a9abc0ad4b478c1e0d876e855a7b60222115ea86"
-test $(node $srcdir/training/download-dataset.js -l en --quote-free | sha256sum | cut -f1 -d' ') = "1b1aa2cd55c2ad948db488da54a2a18ed04887ff9412bc737da3e12362b42ecc"
+test $(node $srcdir/training/download-dataset.js -l en --no-quote-free | sha256sum | cut -f1 -d' ') = "59784eced41cfe58c79c64cceb25f9f7fd75e8fc1fdcc7e56e69bfa7068cbbef"
+test $(node $srcdir/training/download-dataset.js -l en --quote-free | sha256sum | cut -f1 -d' ') = "5baf23d41ee5843adcdcc82b0467b5b906ed69efe06633c987246c52ae0856d2"
 
 rm -rf $workdir
