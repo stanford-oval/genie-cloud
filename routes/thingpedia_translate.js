@@ -157,7 +157,8 @@ function ensureExamples(dbClient, schemaId, ast, language) {
                 target_json: '', // FIXME
                 type: 'thingpedia',
                 language: 'en',
-                is_base: 1
+                is_base: 1,
+                flags: 'template'
             });
         });
         return exampleModel.createMany(dbClient, examples);

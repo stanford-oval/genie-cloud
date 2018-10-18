@@ -13,7 +13,7 @@ const Q = require('q');
 const crypto = require('crypto');
 const db = require('./db');
 const model = require('../model/user');
-const makeRandom = require('../util/random');
+const { makeRandom } = require('./random');
 
 const Config = require('../config');
 

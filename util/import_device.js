@@ -145,7 +145,8 @@ async function ensureDataset(dbClient, schemaId, dataset) {
                 target_json: '', // FIXME
                 type: 'thingpedia',
                 language: 'en',
-                is_base: 1
+                is_base: 1,
+                flags: 'template'
             });
         }))
     ]);

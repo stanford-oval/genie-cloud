@@ -37,6 +37,8 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
             metadata.canonical = schema.argcanonicals[i] || argname;
         }
         const annotations = {};
+        if (isMeta && schema.string_values[i])
+            annotations.string_values = Ast.Value.String(schema.string_values[i]);
 
         args.push(new Ast.ArgumentDef(direction, argname,
             type, metadata, annotations));
@@ -104,7 +106,8 @@ module.exports = {
                     argcanonicals: [],
                     questions: [],
                     required: [],
-                    is_input: []
+                    is_input: [],
+                    string_values: []
                 };
                 for (let argname of fnDef.args) {
                     const arg = fnDef.getArgument(argname);
@@ -118,6 +121,11 @@ module.exports = {
                     out.questions.push(arg.metadata.prompt || '');
                     out.required.push(!!arg.required);
                     out.is_input.push(!!arg.is_input);
+
+                    if (arg.annotations.string_values)
+                        out.string_values.push(arg.annotations.string_values.toJS());
+                    else
+                        out.string_values.push(null);
                 }
             }
         }
@@ -144,7 +152,8 @@ module.exports = {
                     argcanonicals: [],
                     questions: [],
                     required: [],
-                    is_input: []
+                    is_input: [],
+                    string_values: [],
                 };
                 for (var arg of ast[name].args) {
                     out[name].schema.push(arg.type);
@@ -154,6 +163,7 @@ module.exports = {
                     out[name].questions.push(arg.question);
                     out[name].required.push(!!arg.required);
                     out[name].is_input.push(!!arg.is_input);
+                    out[name].string_values.push(arg.string_values || null);
                 }
             }
         }

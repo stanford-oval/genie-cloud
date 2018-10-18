@@ -14,6 +14,8 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 const assert = require('assert');
 const path = require('path');
+const util = require('util');
+const fs = require('fs');
 
 const db = require('../util/db');
 const userModel = require('../model/user');
@@ -23,7 +25,8 @@ const exampleModel = require('../model/example');
 
 const user = require('../util/user');
 const Importer = require('../util/import_device');
-const makeRandom = require('../util/random');
+const { makeRandom } = require('../util/random');
+const TokenizerService = require('../util/tokenizer_service');
 
 const platform = require('../util/platform');
 
@@ -80,6 +83,20 @@ async function loadEntityValues(dbClient) {
          ]]);
 }
 
+async function loadStringValues(dbClient) {
+    for (let type of ['tt:search_query', 'tt:long_free_text']) {
+        const filename = path.resolve(path.dirname(module.filename), './data/' + type + '.txt');
+        const data = (await util.promisify(fs.readFile)(filename)).toString().trim().split('\n');
+
+        const {id:typeId} = await db.selectOne(dbClient,
+            `select id from string_types where language='en' and type_name=?`, [type]);
+        await db.insertOne(dbClient,
+            `insert into string_values(type_id,value,preprocessed,weight) values ?`,
+            [data.map((v) => [typeId, v, v, 1.0])],
+        );
+    }
+}
+
 async function loadExamples(dbClient) {
     const { id: schemaId } = await db.selectOne(dbClient, `select id from device_schema where kind = 'org.thingpedia.builtin.test'`);
 
@@ -94,19 +111,21 @@ async function loadExamples(dbClient) {
         target_json: '',
         target_code: 'let action x := @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
-        click_count: 0
+        click_count: 0,
+        flags: 'template'
     },
     {
         id: 1001,
         schema_id: schemaId,
         is_base: true,
         language: 'en',
-        utterance: 'get some data',
-        preprocessed: 'get some data',
+        utterance: 'get ${p_size} of data',
+        preprocessed: 'get ${p_size} of data',
         target_json: '',
         target_code: 'let query x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);',
         type: 'thingpedia',
-        click_count: 7
+        click_count: 7,
+        flags: 'template'
     },
     {
         id: 1002,
@@ -118,7 +137,8 @@ async function loadExamples(dbClient) {
         target_json: '',
         target_code: 'monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
-        click_count: 0
+        click_count: 0,
+        flags: 'template'
     },
     {
         id: 1003,
@@ -130,7 +150,8 @@ async function loadExamples(dbClient) {
         target_json: '',
         target_code: 'program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
-        click_count: 0
+        click_count: 0,
+        flags: 'template'
     },
     {
         id: 1004,
@@ -140,9 +161,10 @@ async function loadExamples(dbClient) {
         utterance: 'more data eating...',
         preprocessed: 'more data eating ...',
         target_json: '',
-        target_code: 'action (p_data : String) := @org.thingpedia.builtin.test.eat_data(data=p_data);',
+        target_code: 'action () := @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
-        click_count: 0
+        click_count: 0,
+        flags: 'template'
     },
     {
         id: 1005,
@@ -154,7 +176,8 @@ async function loadExamples(dbClient) {
         target_json: '',
         target_code: 'let table _ := @org.thingpedia.builtin.test.get_data();',
         type: 'thingpedia',
-        click_count: 0
+        click_count: 0,
+        flags: 'template'
     }
     ]);
 }
@@ -186,11 +209,13 @@ async function main() {
         const [root] = await userModel.getByName(dbClient, 'root');
         await loadAllDevices(dbClient, bob, root);
         await loadEntityValues(dbClient);
+        await loadStringValues(dbClient);
         await loadExamples(dbClient);
 
         console.log(`export DEVELOPER_KEY="${newOrg.developer_key}"`);
     });
 
     await db.tearDown();
+    TokenizerService.tearDown();
 }
 main();

@@ -12,8 +12,8 @@
         "id": 1001,
         "language": "en",
         "type": "thingpedia",
-        "utterance": "get some data",
-        "preprocessed": "get some data",
+        "utterance": "get ${p_size} of data",
+        "preprocessed": "get ${p_size} of data",
         "target_code": "let query x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);",
         "click_count": 7
     },
@@ -41,7 +41,7 @@
         "type": "thingpedia",
         "utterance": "more data eating...",
         "preprocessed": "more data eating ...",
-        "target_code": "let action x := \\(p_data :String) -> @org.thingpedia.builtin.test.eat_data(data=p_data);",
+        "target_code": "let action x := @org.thingpedia.builtin.test.eat_data();",
         "click_count": 0
     },
     {

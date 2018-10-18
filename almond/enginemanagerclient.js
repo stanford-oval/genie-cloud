@@ -15,7 +15,7 @@ const events = require('events');
 const rpc = require('transparent-rpc');
 const sockaddr = require('sockaddr');
 
-const JsonDatagramSocket = require('./json_datagram_socket');
+const JsonDatagramSocket = require('../util/json_datagram_socket');
 
 const Config = require('../config');
 
