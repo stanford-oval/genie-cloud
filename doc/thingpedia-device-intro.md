@@ -2,11 +2,11 @@
 
 [[toc]]
 
-## Getting Started
+## Getting started
 
-### The basics: Devices and Functions
+### The basics: devices and functions
 
-At the highest level, a Thingpedia entries is just a nodejs
+At the highest level, a Thingpedia entry is just a nodejs
 package, whose main entry point is a _device class_.
 
 From a device class, the system will obtain _device instances_,
@@ -23,39 +23,70 @@ a query or an action.
 
 ### Become a developer
 
-At the moment, Thingpedia is still in closed beta. But you can request a
-developer account from
-[here](/user/request-developer).
+You can request a developer account from [here](/user/request-developer).
 Once you are approved by the Thingpedia administrators
-(you can check your status
-from [your profile page](/user/profile)),
+(you can check your status from [your profile page](/user/profile)),
 you will be able to upload your own devices or services to Thingpedia and
 enable users to use it through Almond.
 
+The device creation page lives 
+[here](https://almond.stanford.edu/thingpedia/upload/create).
+It can be reached from the "Upload a new device" button 
+at the bottom of [Thingpedia Portal](https://almond.stanford.edu/thingpedia)
+or [Thingpedia Developer Portal](https://almond.stanford.edu/thingpedia/developers).
+It looks like this: 
+
+![screenshot](/images/docs/metadata_page.png)
+
 ### Looking for examples?
-You can download the source code of any existing "supported interfaces" from
-[Thingpedia](/thingpedia/devices).
-In addition, you can go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
+In the following, we will use The Cat API as a running example to go through 
+the steps to create a device in Thingpedia. 
+You can also go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
 to see the device packages we developed, and observe these concepts
 in action. 
+We recommend to look at the following devices as examples: 
++ [Giphy](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.giphy),
+a very simple device which returns GIFs
++ [LinkedIn](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.linkedin),
+an interface for LinkedIn which shows how authentication works. 
++ [LG TV](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.lg.tv.webos2),
+a more complicated example which involves a physical device.
+
+### Advice for the first device?
+You can add whatever device you want. 
+But to get started, we suggest to work on a public web service first 
+so that you don't need to worry about OAuth authentication or configuration for IoTs.
+You can find a collective list of public APIs from [toddmotto/public-apis](https://github.com/toddmotto/public-apis).
+Pick the one interests you the most 
+(and ideally requires no authentication or only needs an API key).
 
 ---
 
-
-## Writing Device Metadata
+## Writing metadata
 Getting started, some basic metadata about your device needs to be provided. 
-The metadata includes `ID`, `Name`, `Description`, `Category`, `Icon`, and `JS code`.
+The metadata includes `ID`, `Name`, `Description`, `Category`, `Icon`, and `JS Device Package`.
 
 `ID` is a string that uniquely identifies the device class. 
 A common way is to use reverse domain name notation. 
-E.g., for LinkedIn in Thingpedia, its ID is `com.linkedin`.
+E.g., for LinkedIn in Thingpedia, its ID is `com.linkedin`, for our beloved 
+The Cat API, its ID is `com.thecatapi`.
 
 `Name` and `Description` on the other hand will be used in the Thingpedia catalog,
-so that user can know what your device does at a glance.
+so that user can know what your device does at a glance. E.g., "The Cat API" looks
+like this in Thingpedia catalog:
+
+![screenshot](/images/docs/thingpedia_catalog.png)
 
 `Category` helps us organize the devices on Thingpedia and makes it easier 
 for users to search for your device. It could be one of the following seven domains:
-`media`, `social-network`, `home`, `communication`, `health`, `data-management`, and `others`.
+- `Media`: e.g., news, comics, and The Cat API.
+- `Social Network`: e.g., Facebook, Twitter.
+- `Home`: smart home devices such as security camera, smart TV.
+- `Communication`: e.g., messaging services, email, sms. 
+- `Health & Fitness`: e.g., fitness tracker, health-related IoTs. 
+- `Data Management`: e.g., cloud storage services, Github.
+- `Others`: everything else, such as weather, calendar.
+
 These types are also used for categorizing devices. A device without these types will not be
 shown in the device list when users use `help` in Almond.
 
@@ -64,9 +95,10 @@ and `JS Device Package` will be introduced later.
 
 ---
 
-## Writing Device Manifest
-All devices published on Thingpedia must include _device manifest_ written in ThingTalk.
-It defines the _device class_ you want to create whose name is the `ID` defined in device metadata. 
+## Writing manifest
+All devices published on Thingpedia must include _device manifest_ written in ThingTalk, 
+i.e., `manifest.tt`.
+It defines the _device class_ you want to create whose name is the `ID` defined in the metadata. 
 Check [Writing Device Class](/doc/thingpedia-device-class.md) for the instructions on 
 how to write a device class. 
 
@@ -75,9 +107,10 @@ A ThingTalk editor is provided to help you write it, which can be found at the
 
 ---
 
-## Writing Dataset 
+## Writing dataset 
 In addition to the device manifest, developers are also required to provide example
-natural language utterances corresponding to the functions supported by the device.
+natural language utterances corresponding to the functions supported by the device
+in `dataset.tt`.
 
 The examples provide both documentation for the user 
 (they will be provided by `help <name>`) and training data for the system.
@@ -88,30 +121,26 @@ Check [Writing Example Commands for Your Device](/doc/thingpedia-device-intro-ex
 for detailed instruction on how to write the examples. 
 
 ---
-## Writing Device Package
-If the `loader` from mixin `org.thingpedia.v2` is chosen in the device manifest, 
-developers are required to provide a _device package_ containing the Javascript code
+## Writing JS device package
+Depending on the type of your device, you might need 
+to provide a _device package_ containing the Javascript code
 to describe more details about how the device is configured and how each function behaves. 
+This package will need to be uploaded at the metadata page before you submit.
 
-### The layout of a Device package
+### The layout of a device package
 The Thingpedia API assumes a precise layout for a device package, which
 must be a zip file containing exactly the JS files and the package.json,
 as well as any dependency you need. You should not assume any nodejs
 module beyond the 'thingpedia' module illustrated here - if you need any,
 bundle them in your zip file. 
 
+If there is no dependency needed and all your code is in one file, you can 
+also upload the file directly, and we will generate the package.json and zip file for you.
+
 If you are using a Mac, please use command line to compress the folder: 
 `zip -r xx.zip your-folder-name`. 
 Compressing from the right-click menu in Mac will create a new folder which 
 makes the system fail to find the files in the root directory.
-
-If there is no dependency needed and all your code is in one file, you can 
-also upload the file directly, and we will generate the package.json and zip file for you. 
-
-For the package.json file, don't worry about the additional attribute
-_thingpedia-version_ which appear in the examples we provided. The attribute
-will be generated automatically when you upload your code to
-Thingpedia with proper device metadata.
 
 The primary entry point (i.e., the one named as "main" in package.json)
 should be a _device class_. You would instantiate the device class
@@ -136,122 +165,167 @@ If you are not familiar with the class syntax, see the [MDN documentation](https
 Then, for each query or action you want to expose, you would
 add functions to your device class with prefix `get_` or `do_` respectively.
 So for example, if
-you want to expose query `get_profile` and action `share` for LinkedIn device, 
+you want to expose query `get` for The Cat API, 
 you would modify your `device.js` as follows:
 
 ```javascript
 const Tp = require('thingpedia');
 
-module.exports = class LinkedinDevice extends Tp.BaseDevice {
+module.exports = class CatAPIDevice extends Tp.BaseDevice {
     constructor(engine, state) {
         super(engine, state);
-
-        this.uniqueId = 'com.linkedin-' + this.userId;
-        this.name = "LinkedIn Account of %s".format(this.userName);
-        this.description = "This is your LinkedIn account";
+        // constructor
     }
 
-    get_get_profile() {
-        // get user profile
+    get_get() {
+        // return cat pictures
     }
-
-    do_share() {
-        // share on LinkedIn
-    }
-
-    // other methods 
 };
 ```
 
-### A closer look to the Device class
-
-#### The BaseDevice API
+### The `BaseDevice` API
 
 When you create a device class, you declare
 a subclass of [`Tp.BaseDevice`](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-api/blob/master/lib/base_device.js),
 the base class of all device classes.
 
-The full reference of the `BaseDevice` class is given in the [Thingpedia interface reference](/doc/thingpedia-helpers.md#class-basedevice).
+To construct the subclass, three properties are required: `uniqueId`, `name`, and `description`
+Different from the `ID` in the metadata, `uniqueId` uniquely identifies the device **instance**
+of a user. For example, a user may configure two different Twitter accounts, and they will need
+different IDs in Almond. A common way is to concatenate the device ID, a dash, and then a specific 
+ID for the  corresponding account. E.g., `"com.twitter" + this.state.userId`.
+Similarly, `name` and `description` will be used in [My Almond](/me) and they should be different
+for different accounts, so that users can easily tell which account an instance associates with.
+For example, for Twitter, the name could be `"Twitter Account for " + this.state.screenName`.
 
-#### Handling authentication and discovery
+For The Cat API, since it is a public service and there will be only one instance for each user,
+we can just use the same ID, name, and description in metadata: 
 
-Most devices will require some kind of authentication, three ways to do
+```javascript 
+constructor(engine, state) {
+    super(engine, state);
+
+    this.uniqueId = 'com.thecatapi';
+    this.name = "The Cat API";
+    this.description = "Where every day is Caturday!";
+}
+```
+
+The full reference of the `BaseDevice` class is given in the [Thingpedia interface reference](/doc/thingpedia-helpers.md#class-basedevice). 
+
+### Handling authentication and discovery
+
+Unlike The Cat API, lots of devices will require some kind of authentication.
+Three ways to do
 authentication are supported, including `basic` (traditional username and
 password), `oauth2` (OAuth 1.0 and 2.0 style authentication), and `discovery`
 (authentication by discovery and local interactive paring). Here's a
 [complete guide for authentication and discovery](/doc/thingpedia-device-intro-auth-n-discovery.md).  
 
-#### HTTP Helpers
+### HTTP helpers
 
-Our system provide a generic interface `Tp.Helpers.Http` for basic HTTP request.
+Our system provides a generic interface `Tp.Helpers.Http` for basic HTTP request.
 These are wrappers for [nodejs http API](https://nodejs.org/api/http.html)
 with a Promise interface.
 
-The available APIs are described in [Thingpedia interface reference](/doc/thingpedia-helpers.md#module-helpers-http)
+Two of the most useful interfaces are probably 
+`Tp.Helpers.Http.get()` and `Tp.Helpers.Http.post()`, which deal with HTTP GET request
+and POST request, respectively. We will see an example in practice in the next section.
 
-### An Example
+A full list of the available APIs can be found in 
+[Thingpedia interface reference](/doc/thingpedia-helpers.md#module-helpers-http)
+
+### Query and action
+Recall that we separate Thingpedia functions in two different types: query and action.
+A query returns data and makes no side effect, while action does not return any data but makes side effect to the world.
+
+Both query and action take an Object to get the value of input parameters. 
+For example, `get` function in The Cat API has one input parameter `count`, thus the function will look like: 
+```javascript
+get_get({ count }) {
+    // returns $count cat pictures 
+}
+```
+
+A Query always returns an array of Object specifies the value of each output parameter.
+For example, `get` function in The Cat API has 3 output parameters `image_id`, `pictuer_url`, and `link`, 
+the output should look like:
+```javascript
+get_get({ count }) {
+    ...
+    return [{ image_id: ..., picture_url: ..., link: ... }];
+}
+```
+
+Now let's implement the `get` function for The Cat API for real with HTTP helpers.
+The function should look like this: 
+```javascript
+get_get({ count }) {
+    count = count || 1; // fetch 1 cat by default
+    const url = URL + '&results_per_page=' + count;
+    return Tp.Helpers.Http.get(url).then((result) => Tp.Helpers.Xml.parseString(result))
+    .then((parsed) => {
+        const array = parsed.response.data[0].images[0].image;
+        return array.map((image) => {
+            return { image_id: image.id[0], 
+                     picture_url: image.url[0],
+                     link: 'http://thecatapi.com/?id=' + image.id[0] };
+        });
+    });
+}
+```
+
+`count` is an optional input parameter, we set it to 1 if it's left unspecified.
+Then we call `Tp.Helpers.Http.get()` to the URL of the API endpoint.
+The Cat API returns the result in `XML` format, so we parse it with `Tp.Helpers.Xml.parseString()`
+to extract a JS Object.
+Then we find the values we need and assign them to the corresponding parameters for return. 
+Note that, we used [`Array.prototype.map()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map)
+to create the returned Array. 
+Don't be fooled by the final `return` statement, we are still returning an Array.
+
+### First JS package: The Cat API 
+Put all the components together, we have The Cat API code as follows. 
+Since no library other than `thingpedia` is needed for this package. We can simply upload the `.js` file,
+and the `.zip` package will be generated automatically.
 ```javascript
 "use strict";
 
 const Tp = require('thingpedia');
 
-const PROFILE_URL = 'https://api.linkedin.com/v1/people/~:(id,formatted-name,headline,industry,specialties,positions,picture-url)?format=json';
-const SHARE_URL = 'https://api.linkedin.com/v1/people/~/shares?format=json';
+const URL = 'http://thecatapi.com/api/images/get?api_key=<YOUR-API-KEY>&format=xml&type=jpg,png';
 
-module.exports = class LinkedinDevice extends Tp.BaseDevice {
+module.exports = class CatAPIDevice extends Tp.BaseDevice {
     constructor(engine, state) {
         super(engine, state);
 
-        this.uniqueId = 'com.linkedin-' + this.userId;
-        this.name = "LinkedIn Account of %s".format(this.userName);
-        this.description = "This is your LinkedIn account";
+        this.uniqueId = 'com.thecatapi';
+        this.name = "The Cat API";
+        this.description = "Where every day is Caturday!";
     }
 
-    get userId() {
-        return this.state.userId;
-    }
-
-    get userName() {
-        return this.state.userName;
-    }
-
-    get_get_profile() {
-        return Tp.Helpers.Http.get(PROFILE_URL, {
-            useOAuth2: this,
-            accept: 'application/json' }).then((response) => {
-            const parsed = JSON.parse(response);
-
-            return [{ formatted_name: parsed.formattedName,
-                      headline: parsed.headline || '',
-                      industry: parsed.industry || '',
-                      specialties: parsed.specialties || '',
-                      positions: ('values' in parsed) ? parsed.positions.values.map((p) => p.summary) : [],
-                      profile_picture: parsed.pictureUrl || '' }];
-        });
-    }
-
-    do_share({ status }) {
-        return Tp.Helpers.Http.post(SHARE_URL, JSON.stringify({
-            comment: status,
-            visibility: {
-                code: 'anyone'
-            }
-        }), {
-            useOAuth2: this,
-            dataContentType: 'application/json',
-            accept: 'application/json'
+    get_get({ count }) {
+        count = count || 1;
+        const url = URL + '&results_per_page=' + count;
+        return Tp.Helpers.Http.get(url).then((result) => Tp.Helpers.Xml.parseString(result))
+        .then((parsed) => {
+            const array = parsed.response.data[0].images[0].image;
+            return array.map((image) => {
+                return { image_id: image.id[0], 
+                         picture_url: image.url[0],
+                         link: 'http://thecatapi.com/?id=' + image.id[0] };
+            });
         });
     }
 };
 ```
 
-
 --- 
 
-## Publishing and Testing on Thingpedia
+## Publishing and testing on Thingpedia
 
-Once you are ready to let other people try your device interface, you can publish it on Thingpedia.
-You can submit your device by click the `Submit` button at the bottom of the 
+Once you are ready to let other people try your device, you can publish it on Thingpedia.
+You can submit your device by clicking the `Create` button at the top of the 
 [creation page](/thingpedia/upload/create). 
 
 Once submitted, the device is not automatically available to all users. Instead,
@@ -261,22 +335,22 @@ if you have already been approved to be a developer.
 You should be able to test your device right away using the [Web Almond](/me/conversation) interface.
 While if you want to test on Android Almond, you need one
 more step: go to settings and enable cloud sync.
-Currently, the Android Almond still requires some update before it can be used under
-the latest version of ThingTalk and Thingpedia, so Web Almond is recommended.
 
 When you upload your device the first time, you cannot use the natural language at all until it is fully trained.
 When you edit it later, your device will be usable but the language might not reflect your latest changes.
 The training of natural language takes up to 8 hours. You can see the status of the training at the top of the details page for your entry. 
 The training is complete when the blue banner disappears. 
-Before the training is ready, you can test by typing ThingTalk directly; this is accomplished using the `\t` prefix in Web Almond. For example, to test the command 
-`@org.weather.current`, you can write: `\t now => @org.weather.current() => notify;`
+Before the training is ready, you can test by typing ThingTalk directly; this is accomplished using the `\t` prefix in Web Almond. 
+For example, to test the `get` command for The Cat API, 
+you can write: `\t now => @com.thecatapi.get(count=3) => notify;`. 
+Please refer to [ThingTalk by Examples](/doc/thingtalk-intro.md) for more details about how to write a command in ThingTalk.
 
 The device will become available to other users after being reviewed and approved by a
 Thingpedia administrator.
 
-### Accessing Logs
+### Accessing logs
 
-If you click on [Almond Status and Log](/me/status) on the side bar,
+If you click on [Almond Status and Logs](/me/status) on the sidebar,
 you will access the status of your Almond. In particular, you get access
 to the full execution log.
 You can use `console.log` and `console.error` from your code to print in these logs.
