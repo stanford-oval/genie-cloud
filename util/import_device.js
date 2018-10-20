@@ -251,7 +251,8 @@ function getCategory(classDef) {
     case 'org.thingpedia.config.builtin':
     case 'org.thingpedia.config.none':
         return 'data';
-    case 'org.thingpedia.config.discovery':
+    case 'org.thingpedia.config.discovery.bluetooth':
+    case 'org.thingpedia.config.discovery.upnp':
         return 'physical';
     default:
         return 'online';

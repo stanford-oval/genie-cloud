@@ -55,13 +55,21 @@ function makeDeviceFactory(classDef, device) {
     case 'org.thingpedia.config.builtin':
         return null;
 
-    case 'org.thingpedia.config.discovery':
+    case 'org.thingpedia.config.discovery.bluetooth':
         return {
             type: 'discovery',
             category: device.category,
             kind: device.primary_kind,
             text: device.name,
-            discoveryType: getInputParam('protocol')
+            discoveryType: 'bluetooth'
+        };
+    case 'org.thingpedia.config.discovery.upnp':
+        return {
+            type: 'discovery',
+            category: device.category,
+            kind: device.primary_kind,
+            text: device.name,
+            discoveryType: 'upnp'
         };
 
     case 'org.thingpedia.config.interactive':

@@ -95,7 +95,7 @@ const TEST_CASES = [
 
     [`class @com.lg.tv.webos2 {
         import loader from @org.thingpedia.v2();
-        import config from @org.thingpedia.config.discovery(protocol=enum(upnp));
+        import config from @org.thingpedia.config.discovery.upnp(st=['urn:lge:com:service:webos:second-screen-1']);
     }`, {
         primary_kind: "com.lg.tv.webos2",
         name: "LG TV",
@@ -106,6 +106,21 @@ const TEST_CASES = [
         kind: 'com.lg.tv.webos2',
         category: 'physical',
         discoveryType: 'upnp'
+    }],
+
+    [`class @org.thingpedia.bluetooth.speaker.a2dp {
+        import loader from @org.thingpedia.v2();
+        import config from @org.thingpedia.config.discovery.bluetooth(uuids=['0000110b-0000-1000-8000-00805f9b34fb']);
+    }`, {
+        primary_kind: "org.thingpedia.bluetooth.speaker.a2dp",
+        name: "Bluetooth Speaker",
+        category: 'physical',
+    }, {
+        type: 'discovery',
+        text: "Bluetooth Speaker",
+        kind: 'org.thingpedia.bluetooth.speaker.a2dp',
+        category: 'physical',
+        discoveryType: 'bluetooth'
     }],
 ];
 
