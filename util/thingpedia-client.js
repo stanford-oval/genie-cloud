@@ -32,12 +32,25 @@ const codeStorage = require('./code_storage');
 
 
 class ThingpediaDiscoveryDatabase {
-    getByAnyKind(kind) {
-        return db.withClient((dbClient) => device.getByAnyKind(dbClient, kind));
+    getByDiscoveryService(discoveryType, service) {
+        return db.withClient((dbClient) => device.getByDiscoveryService(dbClient, discoveryType, service));
+    }
+    getAllDiscoveryServices(deviceId) {
+        return db.withClient((dbClient) => device.getAllDiscoveryServices(dbClient, deviceId));
     }
 
+    // for compatibility until thingpedia-discovery is updated
+    getByAnyKind(kind) {
+        if (kind.startsWith('bluetooth-'))
+            return this.getByDiscoveryService('bluetooth', kind.substring('bluetooth-').length);
+        if (kind.startsWith('upnp-'))
+            return this.getByDiscoveryService('upnp', kind.substring('upnp-').length);
+        return db.withClient((dbClient) => device.getByAnyKind(dbClient, kind));
+    }
     getAllKinds(deviceId) {
-        return db.withClient((dbClient) => device.getAllKinds(dbClient, deviceId));
+        return this.getAllDiscoveryServices(deviceId).then((services) => services.map((s) => {
+            return s.discovery_type + s.service;
+        }));
     }
 
     getByPrimaryKind(kind) {

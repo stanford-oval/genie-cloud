@@ -317,6 +317,9 @@ module.exports = {
         return db.selectAll(client, "select * from device_class_kind where device_id = ? "
                             + "order by kind", [id]);
     },
+    getAllDiscoveryServices(client, id) {
+        return db.selectAll(client, "select * from device_discovery_services where device_id = ?", [id]);
+    },
 
     create,
     update,
