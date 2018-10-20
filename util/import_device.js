@@ -314,6 +314,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     await model.create(dbClient, device, classDef.extends || [],
                        classDef.annotations.child_types ?
                        classDef.annotations.child_types.toJS() : [],
+                       FactoryUtils.getDiscoveryServices(classDef),
                        versionedInfo);
 
     if (!versionedInfo.downloadable)

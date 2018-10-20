@@ -24,24 +24,37 @@ function insertKinds(client, deviceId, extraKinds, extraChildKinds) {
                     [extraValues]);
 }
 
-async function create(client, device, extraKinds, extraChildKinds, versionedInfo) {
+function insertDiscoveryServices(client, deviceId, discoveryServices) {
+    if (discoveryServices.length === 0)
+        return Promise.resolve([]);
+
+    return db.query(client, 'insert into device_discovery_services(device_id, discovery_type, service) values ?',
+        [discoveryServices.map((ds) => [deviceId, ds.discovery_type, ds.service])]);
+}
+
+async function create(client, device, extraKinds, extraChildKinds, discoveryServices, versionedInfo) {
     device.id = await db.insertOne(client, 'insert into device_class set ?', [device]);
     versionedInfo.device_id = device.id;
     versionedInfo.version = device.developer_version;
     await Promise.all([
         insertKinds(client, device.id, extraKinds, extraChildKinds),
+        insertDiscoveryServices(client, device.id, discoveryServices),
         db.insertOne(client, `insert into device_code_version set ?`, [versionedInfo])
     ]);
     return device;
 }
 
-async function update(client, id, device, extraKinds, extraChildKinds, versionedInfo) {
-    await db.query(client, "update device_class set ? where id = ?", [device, id]);
-    await db.query(client, "delete from device_class_kind where device_id = ?", [id]);
+async function update(client, id, device, extraKinds, extraChildKinds, discoveryServices, versionedInfo) {
+    await Promise.all([
+        db.query(client, "update device_class set ? where id = ?", [device, id]),
+        db.query(client, "delete from device_class_kind where device_id = ?", [id]),
+        db.query(client, "delete from device_discovery_services where device_id ?", [id])
+    ]);
     versionedInfo.device_id = id;
     versionedInfo.version = device.developer_version;
     await Promise.all([
         insertKinds(client, id, extraKinds, extraChildKinds),
+        insertDiscoveryServices(client, id, discoveryServices),
         db.insertOne(client, 'insert into device_code_version set ?', [versionedInfo])
     ]);
     return device;
@@ -120,6 +133,12 @@ module.exports = {
         return db.selectAll(client, "select * from device_class where primary_kind = ? union "
                             + "(select d.* from device_class d, device_class_kind dk "
                             + "where dk.device_id = d.id and dk.kind = ? and not dk.is_child)", [kind, kind]);
+    },
+
+    getByDiscoveryService(client, discoveryType, service) {
+        return db.selectAll(client, `select d.* from device_class d, device_discovery_services dds
+            where dds.device_id = d.id and dds.discovery_type = ? and dds.service = ?`,
+            [discoveryType, service]);
     },
 
     getByCategoryWithCode(client, category, org) {

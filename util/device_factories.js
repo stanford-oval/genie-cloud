@@ -26,15 +26,17 @@ function entityTypeToHTMLType(type) {
     }
 }
 
+function getInputParam(config, name) {
+    for (let inParam of config.in_params) {
+        if (inParam.name === name)
+            return inParam.value.toJS();
+    }
+    return undefined;
+}
+
 function makeDeviceFactory(classDef, device) {
     const config = classDef.config;
-    function getInputParam(name) {
-        for (let inParam of config.in_params) {
-            if (inParam.name === name)
-                return inParam.value.toJS();
-        }
-        return undefined;
-    }
+
     function toFields(argMap) {
         return Object.keys(argMap).map((k) => {
             const type = argMap[k];
@@ -103,7 +105,7 @@ function makeDeviceFactory(classDef, device) {
             category: device.category,
             kind: device.primary_kind,
             text: device.name,
-            fields: toFields(getInputParam('params'))
+            fields: toFields(getInputParam(config, 'params'))
         };
 
     case 'org.thingpedia.config.basic_auth':
@@ -115,7 +117,7 @@ function makeDeviceFactory(classDef, device) {
             fields: [
                 { name: 'username', label: 'Username', type: 'text' },
                 { name: 'password', label: 'Password', type: 'password' }
-            ].concat(toFields(getInputParam('extra_params')))
+            ].concat(toFields(getInputParam(config, 'extra_params')))
         };
 
     default:
@@ -123,6 +125,43 @@ function makeDeviceFactory(classDef, device) {
     }
 }
 
+function getDiscoveryServices(classDef) {
+    if (classDef.is_abstract)
+        return [];
+
+    const config = classDef.config;
+    switch (config.module) {
+    case 'org.thingpedia.config.discovery.bluetooth': {
+        const uuids = getInputParam(config, 'uuids');
+        const deviceClass = getInputParam(config, 'device_class');
+
+        const services = uuids.map((u) => {
+            return {
+                discovery_type: 'bluetooth',
+                service: 'uuid-' + u.toLowerCase()
+            };
+        });
+        if (deviceClass) {
+            services.push({
+                discovery_type: 'bluetooth',
+                service: 'class-' + deviceClass
+            });
+        }
+        return services;
+    }
+    case 'org.thingpedia.config.discovery.upnp':
+        return getInputParam(config, 'st').map((st) => {
+            return {
+                discovery_type: 'upnp',
+                service: st.toLowerCase().replace(/^urn:/, '').replace(/:/g, '-')
+            };
+        });
+    default:
+        return [];
+    }
+}
+
 module.exports = {
-    makeDeviceFactory
+    makeDeviceFactory,
+    getDiscoveryServices
 };
