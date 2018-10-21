@@ -3,31 +3,13 @@
 [[toc]]
 
 ## Getting started
-
-### The basics: devices and functions
-
-At the highest level, a Thingpedia entry is just a nodejs
-package, whose main entry point is a _device class_.
-
-From a device class, the system will obtain _device instances_,
-which are the individual objects that represent things in
-the system (we use "device" as a term in the code to mean both
-physical devices and web services). A device instance contains
-all the descriptors that are needed to identify the thing,
-such as account ID or IP/MAC address, and contains any authentication
-information.
-
-From each device instance, when needed the system will invoke
-_Thingpedia functions_. A Thingpedia function is an abstraction over
-a query or an action.
-
-### Become a developer
-
+A developer account is required to make contributions to Thingpedia. 
 You can request a developer account from [here](/user/request-developer).
 Once you are approved by the Thingpedia administrators
 (you can check your status from [your profile page](/user/profile)),
-you will be able to upload your own devices or services to Thingpedia and
-enable users to use it through Almond.
+you will be able to upload your own devices to Thingpedia and
+enable users to use it through Almond. 
+(We use the term _device_ to refer to both physical device and web service.)
 
 The device creation page lives 
 [here](https://almond.stanford.edu/thingpedia/upload/create).
@@ -38,38 +20,27 @@ It looks like this:
 
 ![screenshot](/images/docs/metadata_page.png)
 
-### Looking for examples?
-In the following, we will use The Cat API as a running example to go through 
-the steps to create a device in Thingpedia. 
-You can also go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
-to see the device packages we developed, and observe these concepts
-in action. 
-We recommend to look at the following devices as examples: 
-+ [Giphy](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.giphy),
-a very simple device which returns GIFs
-+ [LinkedIn](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.linkedin),
-an interface for LinkedIn which shows how authentication works. 
-+ [LG TV](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.lg.tv.webos2),
-a more complicated example which involves a physical device.
-
-### Advice for the first device?
-You can add whatever device you want. 
-But to get started, we suggest to work on a public web service first 
-so that you don't need to worry about OAuth authentication or configuration for IoTs.
+In the following, we will use 
+[The Cat API](https://almond.stanford.edu/thingpedia/devices/by-id/com.thecatapi) 
+as a running example to go through the steps of creating a device in Thingpedia. 
+We highly recommend you to choose a device you are interested in to work though this tutorial. 
+However, to avoid getting into the details of the OAuth authentication or configuration for IoTs too early,
+a public web service which requires no authentication or only needs an API key would
+be preferred. 
 You can find a collective list of public APIs from [toddmotto/public-apis](https://github.com/toddmotto/public-apis).
-Pick the one interests you the most 
-(and ideally requires no authentication or only needs an API key).
+
 
 ---
 
 ## Writing metadata
-Getting started, some basic metadata about your device needs to be provided. 
-The metadata includes `ID`, `Name`, `Description`, `Category`, `Icon`, and `JS Device Package`.
+First, you will need to fill some basic _metadata_ about your device, 
+including `ID`, `Name`, `Description`, `Category`, and `Icon`.
 
-`ID` is a string that uniquely identifies the device class. 
-A common way is to use reverse domain name notation. 
-E.g., for LinkedIn in Thingpedia, its ID is `com.linkedin`, for our beloved 
-The Cat API, its ID is `com.thecatapi`.
+`ID` is a string that **uniquely** identifies the device class. 
+A reverse domain name notation is required. 
+E.g., ID of The Cat API is `com.thecatapi` because it is service provided by `https://thecatapi.com`.
+Similarly, the ID of [NASA Daily](https://almond.stanford.edu/thingpedia/devices/by-id/gov.nasa) is `gov.nasa`
+and the ID of [Google Drive](https://almond.stanford.edu/thingpedia/devices/by-id/com.google.drive) is `com.google.drive`.
 
 `Name` and `Description` on the other hand will be used in the Thingpedia catalog,
 so that user can know what your device does at a glance. E.g., "The Cat API" looks
@@ -90,8 +61,11 @@ for users to search for your device. It could be one of the following seven doma
 These types are also used for categorizing devices. A device without these types will not be
 shown in the device list when users use `help` in Almond.
 
-`Icon` is required to be a `.PNG` file and a square picture is recommended, 
-and `JS Device Package` will be introduced later.
+`Icon` is required to be a `.PNG` file and a 512x512 picture is recommended.
+
+`JS Device Package` is an optional package depending on the type of your device specified 
+in the manifest. It contains the JS code describing the details of the configuration and 
+function behavior. This will be introduced in detail [later](#writing-js-device-package) in this tutorial.
 
 ---
 
@@ -359,3 +333,16 @@ Or maybe we made a mistake in writing Almond, in which case, when you
 [report a bug](https://github.com/Stanford-IoT-Lab/thingengine-platform-cloud/issues) we will
 appreciate seeing the full debug log (don't forget to redact your personal info
 away!).
+
+
+## Need more examples?
+You can go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
+to see more device packages we developed, and observe these concepts we introduced in action. 
+
+We recommend to look at the following devices as examples: 
++ [Giphy](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.giphy),
+a very simple device which returns GIFs
++ [LinkedIn](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.linkedin),
+an interface for LinkedIn which shows how authentication works. 
++ [LG TV](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.lg.tv.webos2),
+a more complicated example which involves a physical device.
