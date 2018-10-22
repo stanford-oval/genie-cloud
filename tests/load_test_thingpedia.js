@@ -42,6 +42,7 @@ async function loadAllDevices(dbClient, bob, root) {
     const invisible = require('./data/org.thingpedia.builtin.test.invisible.manifest.json');
     await Importer.importDevice(dbClient, req, 'org.thingpedia.builtin.test.invisible', invisible, {
         owner: req.user.developer_org,
+        iconPath: path.resolve(path.dirname(module.filename), '../data/org.thingpedia.builtin.thingengine.builtin.png'),
         approve: false
     });
 
@@ -49,6 +50,7 @@ async function loadAllDevices(dbClient, bob, root) {
     await Importer.importDevice(dbClient, req, 'com.bing', bing, {
         owner: req.user.developer_org,
         zipFilePath: path.resolve(path.dirname(module.filename), './data/com.bing.zip'),
+        iconPath: path.resolve(path.dirname(module.filename), './data/com.bing.png'),
         approve: true
     });
 
@@ -58,6 +60,7 @@ async function loadAllDevices(dbClient, bob, root) {
     const adminonly = require('./data/org.thingpedia.builtin.test.adminonly.manifest.json');
     await Importer.importDevice(dbClient, req, 'org.thingpedia.builtin.test.adminonly', adminonly, {
         owner: req.user.developer_org,
+        iconPath: path.resolve(path.dirname(module.filename), '../data/org.thingpedia.builtin.thingengine.builtin.png'),
         approve: false
     });
 }

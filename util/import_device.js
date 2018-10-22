@@ -320,16 +320,12 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
                        FactoryUtils.getDiscoveryServices(classDef),
                        versionedInfo);
 
-    if (!versionedInfo.downloadable)
-        return device;
-
-    if (zipFilePath === null)
-        return device;
-
-    if (zipFilePath.endsWith('.js'))
-        await uploadJavaScript(req, device, fs.createReadStream(zipFilePath));
-    else
-        await uploadZipFile(req, device, fs.createReadStream(zipFilePath));
+    if (versionedInfo.downloadable && zipFilePath !== null) {
+        if (zipFilePath.endsWith('.js'))
+            await uploadJavaScript(req, device, fs.createReadStream(zipFilePath));
+        else
+            await uploadZipFile(req, device, fs.createReadStream(zipFilePath));
+    }
 
     if (iconPath !== null)
         uploadIcon(device.primary_kind, iconPath, false);
