@@ -70,7 +70,7 @@ async function login(driver, username, password) {
     await submit.click();
 }
 
-async function testBasic(driver) {
+async function testHomepage(driver) {
     await driver.get(BASE_URL + '/');
 
     const title = await driver.wait(
@@ -78,6 +78,23 @@ async function testBasic(driver) {
         30000);
 
     assert.strictEqual(await title.getText(), 'Almond');
+
+    const subtitle = await driver.findElement(WD.By.id('almond-subtitle'));
+    if (Config.ABOUT_OVERRIDE['index'] === 'stanford/about_index.pug')
+        assert.strictEqual(await subtitle.getText(), 'The Stanford Open Virtual Assistant Project');
+    else
+        assert.strictEqual(await subtitle.getText(), 'The Open Virtual Assistant');
+
+    if (Config.WITH_THINGPEDIA === 'embedded') {
+        await driver.wait(WD.until.elementLocated(WD.By.css('#command-container .command-utterance')),
+            30000);
+
+        const commands = await driver.findElements(WD.By.css('#command-container .command-utterance'));
+        assert.strictEqual(commands.length, 1);
+
+        assert.strictEqual(await commands[0].getText(), 'every day at 9:00 AM set my laptop background to pizza images');
+        assert.strictEqual(await commands[0].getAttribute('title'), '( attimer time = TIME_0 ) join ( @com.bing.image_search param:query:String = " pizza " ) => @org.thingpedia.builtin.thingengine.gnome.set_background on  param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture)');
+    }
 }
 
 async function skipDataCollectionConfirmation(driver) {
@@ -245,7 +262,7 @@ async function testRegister(driver) {
 }
 
 async function main() {
-    await withSelenium(testBasic);
+    await withSelenium(testHomepage);
     await withSelenium(testMyConversation);
     await withSelenium(testRegister);
 }

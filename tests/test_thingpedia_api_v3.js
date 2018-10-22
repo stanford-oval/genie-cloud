@@ -477,6 +477,34 @@ async function testGetExamplesByKey() {
 }`);
 }
 
+async function testGetCommands() {
+    const TEST_DATA = [{
+        "id":1006,
+        "language":"en",
+        "type":"commandpedia",
+        "utterance":"every day at 9:00 AM set my laptop background to pizza images",
+        "preprocessed":"every day at TIME_0 set my laptop background to pizza images",
+        "target_code":"( attimer time = TIME_0 ) join ( @com.bing.image_search param:query:String = \" pizza \" ) => @org.thingpedia.builtin.thingengine.gnome.set_background on  param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture)",
+        "click_count":0,
+        "owner_name":"bob",
+        "devices":["com.bing","org.thingpedia.builtin.thingengine.gnome"]
+    }];
+
+    assert.deepStrictEqual(await request('/commands/all'), {
+        result: 'ok',
+        data: TEST_DATA
+    });
+
+    assert.deepStrictEqual(await request('/commands/search?q=laptop'), {
+        result: 'ok',
+        data: TEST_DATA
+    });
+
+    assert.deepStrictEqual(await request('/commands/search?q=foo'), {
+        result: 'ok',
+        data: [] });
+}
+
 async function testGetDeviceIcon() {
     let failed = false;
     try {
@@ -971,6 +999,7 @@ async function main() {
     await testGetMetadata();
     await testGetExamplesByDevice();
     await testGetExamplesByKey();
+    await testGetCommands();
     await testGetDeviceIcon();
     await testGetDeviceManifest();
     await testGetDevicePackage();
