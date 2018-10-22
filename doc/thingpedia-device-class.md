@@ -46,7 +46,7 @@ More options such as OAuth and IoT discovery are described in
 The user interacts with your Thingpedia device through two types of functions: queries and actions. 
 Thus, the first step is to decide on what queries and actions you should expose.
 
-The only requirement imposed from Thingpedia is that queries are free of side-effects and can return results (as output arguments),
+The only requirement imposed from Thingpedia is that queries are free of side-effects and can return results (as output parameters),
 and actions have side effects, and cannot return results. Other than that, the design of which functions to include is highly device specific.
 
 ### Qualifiers
@@ -66,7 +66,7 @@ It also returns a single cat by default, so we also don't mark it as `list`.
 ### Parameters
 To take full advantage of the functionality we provided in ThingTalk (filtering, chaining, etc.),  
 every parameter needed for ___both input and output___ should be listed. 
-An argument is described as follows: 
+An parameter is described as follows: 
 ```tt
 [in req | in opt | out] <name> : <type>
 ```  
@@ -93,7 +93,7 @@ It's  denoted by `#_[<key>=<value>]`.
 Here is a list of required natural language annotations for functions:
 - `canonical`: The canonical form of the function name, used by the semantic parser (certain versions);
 it's a good idea to omit stop words for this, and to use a longer expression. 
-You must omit all parameters from the canonical form.
+You must omit all arguments from the canonical form.
 - `confirmation`: A string used to construct the final confirmation question before a rule is created
 or an action is invoked. For actions, use the imperative form, e.g. “send a message”,
 and for query use the noun-phrase form e.g. “cat pictures” instead of “get cat pictures”.
