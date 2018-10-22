@@ -37,3 +37,9 @@
 .documentation table th {
     vertical-align: bottom;
 }
+
+img[alt=screenshot] {
+  display: block;
+  margin: auto;
+  max-width: 800px;
+}
