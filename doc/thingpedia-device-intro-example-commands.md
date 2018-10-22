@@ -15,7 +15,7 @@ dataset @com.thecatapi {
 }
 ```
 
-Similar to device class, the name of the dataset is as defined in the device metadata 
+Similar to the device class, the name of the dataset is as defined in the device metadata 
 with the `@` sign. 
 
 Instead of writing full programs, we write parts using code snippet syntax introduced in 
@@ -30,7 +30,7 @@ The `utterances` annotation takes a list of strings to show different ways to
 express the same function. 
 Similar to the `confirmation` annotation for functions as introduced in device class, 
 the corresponding utterance of a query should be a noun phrase, and the one of 
-an action should be a verb phrase in imperative form.
+an action should be a verb phrase in the imperative form.
 
 Arguments can also be used in the dataset, and they can be referred in the 
 utterances with `$argname`:  

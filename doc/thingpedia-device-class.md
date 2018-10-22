@@ -37,9 +37,9 @@ Other mixins for loader include `@org.thingpedia.rss` and `@org.thingpedia.gener
 They give users the ability to write a device with standard RSS and RESTful interfaces without any JS code.
 For more details, please refer to [declarative Thingpedia entries](/doc/thingpedia-device-with-zero-code.md). 
 
-Mixin `@org.thingpedia.config.none` provides the basic config module for devices require no authentication
-or those only require an API key.
-More options such as OAuth and IoT discovery are described in
+Mixin `@org.thingpedia.config.none` provides the basic config module for devices 
+that require no authentication or those only require an API key.
+More options such as OAuth and IoT discovery are described in the
 [complete guide for authentication and discovery](/doc/thingpedia-device-intro-auth-n-discovery.md).
 
 ## Function declarations
@@ -66,7 +66,7 @@ It also returns a single cat by default, so we also don't mark it as `list`.
 ### Parameters
 To take full advantage of the functionality we provided in ThingTalk (filtering, chaining, etc.),  
 every parameter needed for ___both input and output___ should be listed. 
-An parameter is described as follows: 
+A parameter is described as follows: 
 ```tt
 [in req | in opt | out] <name> : <type>
 ```  
@@ -82,7 +82,7 @@ and 3 output parameters of type Entities: `image_id`, `picture_url`, and `link`.
 
 ### Annotations
 Annotations are used to provide additional information to the corresponding code. 
-Annotations always comes after the code and before the semicolon. 
+Annotations always come after the code and before the semicolon. 
 There are two types of annotations: natural language annotation and implementation annotation.
 
 #### Natural language annotation
@@ -98,7 +98,7 @@ You must omit all arguments from the canonical form.
 or an action is invoked. For actions, use the imperative form, e.g. “send a message”,
 and for query use the noun-phrase form e.g. “cat pictures” instead of “get cat pictures”.
 You can refer to required arguments with `$argname` or `${argname}` (the latter is only needed if
-the argument is immediately followed by a letter number or underscore).
+the argument is immediately followed by a letter, number, or underscore).
                   
 #### Implementation annotation
 Implementation annotation is used for describing the implementation details of a function. 
