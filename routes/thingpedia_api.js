@@ -897,29 +897,18 @@ v3.get('/devices/search', (req, res, next) => {
     }).catch(next);
 });
 
-function getCommandDetails(client, commands) {
-    let promisesAll = commands.map((command) => {
+function getCommandDetails(commands) {
+    for (let command of commands) {
         // get device kinds from target_code
         let functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
-        let devices = functions.map((f) => {
-            let device_name = f.split('.');
-            device_name.splice(-1, 1);
-            return device_name.join('.').substr(1);
-        });
-        // deduplicate
-        command.devices = devices.filter((device, pos) => devices.indexOf(device) === pos);
-
-        // get device names
-        command.deviceNames = [];
-        let promises = command.devices.map((device) => {
-            return deviceModel.getByAnyKind(client, device).then((devices) => {
-                command.deviceNames.push(devices[0].name);
-            });
-        });
-
-        return promises;
-    });
-    return Promise.all([].concat.apply([], promisesAll));
+        let devices = new Set(functions.map((f) => {
+            let kind = f.split('.');
+            kind.splice(-1, 1);
+            kind = kind.join('.').substr(1);
+            return kind;
+        }));
+        command.devices = Array.from(devices);
+    }
 }
 
 /**
@@ -964,9 +953,6 @@ function getCommandDetails(client, commands) {
  *        "devices": [
  *          "com.cryptonator"
  *        ],
- *        "deviceNames": [
- *          "Cryptonator"
- *        ]
  *      },
  *      ...
  *    ]
@@ -978,10 +964,9 @@ v1.get('/commands/all', (req, res, next) => {
 
     db.withTransaction((client) => {
         return commandModel.getCommands(client, language, page * page_size, page_size).then((commands) => {
-            return getCommandDetails(client, commands).then(() => {
-                res.cacheFor(3600 * 1000);
-                res.json({ result: 'ok', data: commands });
-            });
+            getCommandDetails(commands);
+            res.cacheFor(3600 * 1000);
+            res.json({ result: 'ok', data: commands });
         });
     }).catch(next);
 });
@@ -1008,7 +993,6 @@ v1.get('/commands/all', (req, res, next) => {
  * @apiSuccess {Number} data.click_count How popular this command is (number of users who have favorited it)
  * @apiSuccess {String} data.owner_name The username of the user who contributed this command
  * @apiSuccess {String[]} data.devices IDs of the devices referenced by this command
- * @apiSuccess {String[]} data.deviceNames User visible names of the devices referenced by this command
  *
  * @apiSuccessExample {json} Example Response:
  *  {
@@ -1025,9 +1009,6 @@ v1.get('/commands/all', (req, res, next) => {
  *        "owner_name": "sileixu",
  *        "devices": [
  *          "com.cryptonator"
- *        ],
- *        "deviceNames": [
- *          "Cryptonator"
  *        ]
  *      },
  *      ...
@@ -1044,10 +1025,9 @@ v1.get('/commands/search', (req, res, next) => {
 
     db.withTransaction((client) => {
         return commandModel.getCommandsByFuzzySearch(client, language, q).then((commands) => {
-            return getCommandDetails(client, commands).then(() => {
-                res.cacheFor(3600 * 1000);
-                res.json({ result: 'ok', data: commands });
-            });
+            getCommandDetails(commands);
+            res.cacheFor(3600 * 1000);
+            res.json({ result: 'ok', data: commands });
         });
     }).catch(next);
 });
