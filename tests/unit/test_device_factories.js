@@ -95,7 +95,7 @@ const TEST_CASES = [
 
     [`class @com.lg.tv.webos2 {
         import loader from @org.thingpedia.v2();
-        import config from @org.thingpedia.config.discovery.upnp(st=['urn:lge:com:service:webos:second-screen-1']);
+        import config from @org.thingpedia.config.discovery.upnp(search_target=['urn:lge:com:service:webos:second-screen-1']);
     }`, {
         primary_kind: "com.lg.tv.webos2",
         name: "LG TV",
