@@ -161,6 +161,23 @@ CREATE TABLE `device_class_kind` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `device_discovery_services`
+--
+
+DROP TABLE IF EXISTS `device_discovery_services`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `device_discovery_services` (
+  `device_id` int(11) NOT NULL,
+  `discovery_type` enum('bluetooth', 'upnp') COLLATE utf8_bin NOT NULL,
+  `service` varchar(128) COLLATE utf8_bin NOT NULL DEFAULT 0,
+  PRIMARY KEY (`device_id`,`discovery_type`,`service`),
+  KEY `descriptor` (`discovery_type`,`service`),
+  CONSTRAINT `device_discovery_descriptor_ibfk_1` FOREIGN KEY (`device_id`) REFERENCES `device_class` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `device_code_version`
 --
 

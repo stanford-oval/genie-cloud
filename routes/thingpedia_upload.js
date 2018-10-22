@@ -135,6 +135,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
                     (old !== null ? old.approved_version : null),
             };
 
+            const discoveryServices = FactoryUtils.getDiscoveryServices(classDef);
             const factory = FactoryUtils.makeDeviceFactory(classDef, generalInfo);
             const versionedInfo = {
                 code: classDef.prettyprint(),
@@ -145,10 +146,10 @@ async function doCreateOrUpdate(kind, create, req, res) {
 
             if (create) {
                 generalInfo.owner = req.user.developer_org;
-                await model.create(dbClient, generalInfo, extraKinds, extraChildKinds, versionedInfo);
+                await model.create(dbClient, generalInfo, extraKinds, extraChildKinds, discoveryServices, versionedInfo);
             } else {
                 generalInfo.owner = old.owner;
-                await model.update(dbClient, old.id, generalInfo, extraKinds, extraChildKinds, versionedInfo);
+                await model.update(dbClient, old.id, generalInfo, extraKinds, extraChildKinds, discoveryServices, versionedInfo);
             }
 
             if (downloadable) {
