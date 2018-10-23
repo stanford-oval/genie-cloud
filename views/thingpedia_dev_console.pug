@@ -54,14 +54,8 @@ section.divider
 
   div.row
     if authenticated && user.developer_status >= 1
-      if user.developer_status >= 3
-        div.col-sm-6.col-md-4.col-md-offset-2
-          a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")
-        div.col-sm-6.col-md-4
-          a(href='/thingpedia/classes/create').btn.btn-default.btn-block= _("Create a new class")
-      else
-        div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
-          a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")
+      div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+        a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")
     else
       div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
         a(href='/user/request-developer').btn.btn-primary.btn-block= _("Become a Thingpedia Developer")
