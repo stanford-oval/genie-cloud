@@ -22,7 +22,7 @@ nav#doc-sidebar
             li(class=(currentPage === 'thingtalk-intro' ? 'current' : ''))
               a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
 
-        li(class=(['thingpedia-tutorial', 'thingpedia-device-intro-auth-n-discovery', 'thingpedia-tutorial-dataset', 'thingpedia-device-with-zero-code', 'thingpedia-tutorial-manifest', 'thingpedia-error-handling', 'thingpedia-nl-support'].indexOf(currentPage) >= 0 ? 'current' : ''))
+        li(class=(['thingpedia-tutorial', 'thingpedia-device-intro-auth-n-discovery', 'thingpedia-tutorial-dataset', 'thingpedia-device-with-zero-code', 'thingpedia-tutorial-manifest', 'thingpedia-error-handling', 'thingpedia-nl-support', 'thingpedia-tutorial-js-package'].indexOf(currentPage) >= 0 ? 'current' : ''))
           p.doc-sidebar-subtitle For Thingpedia Contributors
           p.doc-sidebar-subsubtitle Tutorials
           ul
@@ -34,6 +34,9 @@ nav#doc-sidebar
 
             li(class=(currentPage === 'thingpedia-tutorial-dataset' ? 'current' : ''))
               a(href='/thingpedia/developers/thingpedia-tutorial-dataset.md') Adding Natural Language
+
+            li(class=(currentPage === 'thingpedia-tutorial-js-package' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingpedia-tutorial-js-package.md') Writing JS Device Packages
 
           p.doc-sidebar-subsubtitle Topic Guides
           ul
