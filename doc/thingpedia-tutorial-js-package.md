@@ -1,8 +1,10 @@
 # Writing JS Device Packages
-Depending on the type of your device, you might need 
-to provide a _device package_ containing the Javascript code
-to describe more details about how the device is configured and how each function behaves. 
-This package will need to be uploaded at the metadata page before you submit.
+If you choose to use the loader provided by `@org.thingpdedia.v2` in your manifest,
+a _device package_ is required for your device. 
+It contains the Javascript code describing the details about how your device 
+will be configured and how each function behaves. 
+In the following, this tutorial will continue using The Cat API as an example
+to show how the package is organized and how to write it. 
 
 ### The layout of a device package
 The Thingpedia API assumes a precise layout for a device package, which
@@ -163,8 +165,8 @@ Don't be fooled by the final `return` statement, we are still returning an Array
 
 ### The first JS package: The Cat API 
 Put all the components together, we have The Cat API code as follows. 
-Since no library other than `thingpedia` is needed for this package. We can simply upload the `.js` file,
-and the `.zip` package will be generated automatically.
+Since no library other than `thingpedia` is needed for this package. We can simply upload the `.js` file
+in the metadata page, and the `.zip` package will be generated automatically.
 ```javascript
 "use strict";
 
