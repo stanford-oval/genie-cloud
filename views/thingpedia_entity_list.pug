@@ -48,17 +48,14 @@ block content
   table.table
     thead
       tr
-        th= _("Prefix")
         th= _("ID")
         th= _("Description")
         th= _("Well known?")
         th= _("Has NER support?")
     tbody
       for e in entities
-        - var split = e.id.split(':')
         tr
-          td= split[0]
-          td= split[1]
+          td= e.id
           td
             a(href='/thingpedia/entities/by-id/' + e.id)
               = e.name

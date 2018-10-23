@@ -113,11 +113,19 @@ async function importStandardStringTypes(dbClient, rootOrg) {
     };
 
     await stringModel.createMany(dbClient, Object.keys(STRING_TYPES).map((id) => {
-        return {
+        const obj = {
             type_name: id,
             name: STRING_TYPES[id],
             language: 'en',
+            license: 'public-domain',
+            attribution: '',
         };
+        if (id === 'tt:long_free_text') {
+            obj.license = 'non-commercial';
+            obj.attribution = 'The Brown Corpus <http://www.hit.uib.no/icame/brown/bcm.html>';
+        }
+
+        return obj;
     }));
 }
 

@@ -103,3 +103,7 @@
     display: block;
     margin-bottom: 2em;
 }
+
+.license-header {
+  font-weight: bold;
+}
