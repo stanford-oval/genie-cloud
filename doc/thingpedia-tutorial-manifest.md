@@ -85,22 +85,19 @@ Annotations are used to provide additional information to the corresponding code
 Annotations always come after the code and before the semicolon. 
 There are two types of annotations: natural language annotation and implementation annotation.
 
-#### Natural language annotation
+#### Natural language annotations
 Natural language annotation, as its name, is the annotation related to natural language 
 and it will be translated to different languages based on users' profile. 
 It's  denoted by `#_[<key>=<value>]`.
 
-Here is a list of required natural language annotations for functions:
-- `canonical`: The canonical form of the function name, used by the semantic parser (certain versions);
-it's a good idea to omit stop words for this, and to use a longer expression. 
-You must omit all arguments from the canonical form.
-- `confirmation`: A string used to construct the final confirmation question before a rule is created
+Each function is required to have `confirmation` natural language annotation:
+A string used to construct the final confirmation question before a rule is created
 or an action is invoked. For actions, use the imperative form, e.g. “send a message”,
 and for query use the noun-phrase form e.g. “cat pictures” instead of “get cat pictures”.
 You can refer to required arguments with `$argname` or `${argname}` (the latter is only needed if
 the argument is immediately followed by a letter, number, or underscore).
                   
-#### Implementation annotation
+#### Implementation annotations
 Implementation annotation is used for describing the implementation details of a function. 
 This is denoted by `#[<key>=<value>]` (without the underscore as in natural language annotation).               
    
@@ -110,4 +107,7 @@ Here is a list of required implementation annotations for functions:
 if it is monitored. It takes a time interval, e.g., `#[poll_interval=5min]`.
 
 
+A lot more optional annotations are supported in ThingTalk - for not only functions but also parameters and 
+device classes. 
+Refer to [annotation reference](/doc/thingpedia-annotations.md) for the full list.  
 

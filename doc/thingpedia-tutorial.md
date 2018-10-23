@@ -32,7 +32,7 @@ You can find a collective list of public APIs from [toddmotto/public-apis](https
 
 ---
 
-## Writing metadata
+## Writing the metadata
 First, you will need to fill some basic _metadata_ about your device, 
 including `ID`, `Name`, `Description`, `Category`, and `Icon`.
 
@@ -69,7 +69,7 @@ function behavior. This will be introduced in detail [later](#writing-js-device-
 
 ---
 
-## Writing manifest
+## Writing the manifest
 All devices published on Thingpedia must include _device manifest_ written in ThingTalk, 
 i.e., `manifest.tt`.
 It defines the _device class_ you want to create whose name is the `ID` defined in the metadata. 
@@ -81,7 +81,7 @@ A ThingTalk editor is provided to help you write it, which can be found at the
 
 ---
 
-## Writing dataset 
+## Writing the dataset 
 In addition to the device manifest, developers are also required to provide example
 natural language utterances corresponding to the functions supported by the device
 in `dataset.tt`.
@@ -95,7 +95,7 @@ Check [Writing Example Commands for Your Device](/doc/thingpedia-tutorial-datase
 for detailed instruction on how to write the examples. 
 
 ---
-## Writing JS device package
+## Writing the JS device package
 Depending on the type of your device, you might need 
 to provide a _device package_ containing the Javascript code
 to describe more details about how the device is configured and how each function behaves. 
@@ -258,7 +258,7 @@ Note that, we used [`Array.prototype.map()`](https://developer.mozilla.org/en-US
 to create the returned Array. 
 Don't be fooled by the final `return` statement, we are still returning an Array.
 
-### First JS package: The Cat API 
+### The first JS package: The Cat API 
 Put all the components together, we have The Cat API code as follows. 
 Since no library other than `thingpedia` is needed for this package. We can simply upload the `.js` file,
 and the `.zip` package will be generated automatically.
