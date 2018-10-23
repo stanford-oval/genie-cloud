@@ -479,7 +479,7 @@ async function testGetExamplesByKey() {
 
 async function testGetCommands() {
     const TEST_DATA = [{
-        "id":1006,
+        "id":999,
         "language":"en",
         "type":"commandpedia",
         "utterance":"every day at 9:00 AM set my laptop background to pizza images",

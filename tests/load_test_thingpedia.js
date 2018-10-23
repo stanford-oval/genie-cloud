@@ -104,6 +104,23 @@ async function loadExamples(dbClient, bob) {
     const { id: schemaId } = await db.selectOne(dbClient, `select id from device_schema where kind = 'org.thingpedia.builtin.test'`);
 
     await exampleModel.createMany(dbClient, [
+    // commandpedia
+    {
+        id: 999,
+        schema_id: null,
+        is_base: false,
+        language: 'en',
+        utterance: 'every day at 9:00 AM set my laptop background to pizza images',
+        preprocessed: 'every day at TIME_0 set my laptop background to pizza images',
+        target_json: '',
+        target_code: '( attimer time = TIME_0 ) join ( @com.bing.image_search param:query:String = " pizza " ) => @org.thingpedia.builtin.thingengine.gnome.set_background on  param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture)',
+        type: 'commandpedia',
+        owner: bob.id,
+        click_count: 0,
+        flags: '',
+    },
+
+    // thingpedia
     {
         id: 1000,
         schema_id: schemaId,
@@ -182,22 +199,6 @@ async function loadExamples(dbClient, bob) {
         click_count: 0,
         flags: 'template'
     },
-
-    // commandpedia
-    {
-        id: 1006,
-        schema_id: null,
-        is_base: false,
-        language: 'en',
-        utterance: 'every day at 9:00 AM set my laptop background to pizza images',
-        preprocessed: 'every day at TIME_0 set my laptop background to pizza images',
-        target_json: '',
-        target_code: '( attimer time = TIME_0 ) join ( @com.bing.image_search param:query:String = " pizza " ) => @org.thingpedia.builtin.thingengine.gnome.set_background on  param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture)',
-        type: 'commandpedia',
-        owner: bob.id,
-        click_count: 0,
-        flags: '',
-    }
 
     ]);
 }
