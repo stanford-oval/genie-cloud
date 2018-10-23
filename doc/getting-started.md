@@ -8,11 +8,10 @@ This short introduction will teach you the basics of using your Almond.
 
 ## What is Almond?
 
-Almond is the open virtual assistant that you can access through both of 
-your phone and the [web](/about/get-almond). It can help you configure your devices, accounts, 
+Almond is the open virtual assistant that you can access through  
+your phone and the [web](/about/get-almond). It helps you configure your devices, accounts, 
 and public services, retrieve data from them, and execute actions on them.
-It also allows you to easily share your data with your friends and families 
-with control in your hand. 
+It also lets you share your data with your friends and families easily.  
 Oh, by the way, it's open source and it protects your privacy!
 
 ## What is Thingpedia?
@@ -23,16 +22,15 @@ Just like how Wikipedia stores knowledge about the world,
 Thingpedia stores knowledge about devices in the world. 
 Wikipedia is organized around articles; 
 Thingpedia is organized around devices, such as Twitter, a light bulb, or a thermostat.
-It creates an interoperable web of devices and let users program them in 
+It creates an interoperable web of devices and let users connect them in 
 natural language. 
 
 ## What can I do with Almond?
 
-Almond draws the power from Thingpedia. 
 It supports simple commands including 
 actions (eg. `post on twitter`),
-time-based rules (eg. `tweet every hour`),
 one-time queries (eg. `search tweets`),
+time-based rules (eg. `tweet every hour`),
 and standing queries (eg. `monitor new tweets`).
 On top of one-time queries and standing queries, filters can be used to further refine 
 the commands (eg. `search tweets from bob`, `monitor new tweets about almond`).
