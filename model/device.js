@@ -318,11 +318,6 @@ module.exports = {
         }
     },
 
-    getByTag(client, tag) {
-        return db.selectAll(client, "select dc.* from device_class dc, device_class_tag dct "
-                            + "where dct.device_id = dc.id and dct.tag = ? order by dc.name", [tag]);
-    },
-
     getAllKinds(client, id) {
         return db.selectAll(client, "select * from device_class_kind where device_id = ? "
                             + "order by kind", [id]);
@@ -372,38 +367,6 @@ module.exports = {
                 device_code_version app_dcv on d.id = app_dcv.device_id and d.approved_version = app_dcv.version
                 where org.id = d.owner and (d.approved_version is null or d.approved_version != d.developer_version)
                 and dev_dcv.version = d.developer_version and dev_dcv.device_id = d.id order by last_modified desc`);
-        }
-    },
-
-    getAllWithKindOrChildKind(client, kind, start, end) {
-        var query = "select d.* from device_class d where exists (select 1 from device_class_kind "
-            + "dk where dk.device_id = d.id and dk.kind = ?) order by d.name";
-        if (start !== undefined && end !== undefined)
-            return db.selectAll(client, query + " limit ?,?", [kind, start, end]);
-        else
-            return db.selectAll(client, query, [kind]);
-    },
-
-    getApprovedByKindsWithCode(client, names, org) {
-        if (org !== null && org.is_admin) {
-            const query = "select d.*, dcv.code from device_class d, "
-                + "device_code_version dcv where d.id = dcv.device_id and "
-                + "dcv.version = d.developer_version and "
-                + "d.primary_kind in (?)";
-            return db.selectAll(client, query, [names]);
-        } else if (org !== null) {
-            const query = "select d.*, dcv.code from device_class d, "
-                + "device_code_version dcv where d.id = dcv.device_id and "
-                + "((dcv.version = d.developer_version and d.owner = ?) or "
-                + " (dcv.version = d.approved_version and d.owner <> ?)) and "
-                + "d.primary_kind in (?)";
-            return db.selectAll(client, query, [org.id, org.id, names]);
-        } else {
-            const query = "select d.*, dcv.code from device_class d, "
-                + "device_code_version dcv where d.id = dcv.device_id and "
-                + "dcv.version = d.approved_version and "
-                + "d.primary_kind in (?)";
-            return db.selectAll(client, query, [names]);
         }
     },
 
