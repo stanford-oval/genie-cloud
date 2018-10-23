@@ -73,7 +73,7 @@ function behavior. This will be introduced in detail [later](#writing-js-device-
 All devices published on Thingpedia must include _device manifest_ written in ThingTalk, 
 i.e., `manifest.tt`.
 It defines the _device class_ you want to create whose name is the `ID` defined in the metadata. 
-Check [Writing Device Class](/doc/thingpedia-device-class.md) for the instructions on 
+Check [Writing Device Class](/doc/thingpedia-tutorial-manifest.md) for the instructions on 
 how to write a device class. 
 
 A ThingTalk editor is provided to help you write it, which can be found at the
@@ -91,7 +91,7 @@ The examples provide both documentation for the user
 The accuracy of the parser heavily relies on the quality and quantity of examples.
 Thus, developers are recommended to write as many example commands as possible to cover
 all possible usage of your device. 
-Check [Writing Example Commands for Your Device](/doc/thingpedia-device-intro-example-commands.md)
+Check [Writing Example Commands for Your Device](/doc/thingpedia-tutorial-dataset.md)
 for detailed instruction on how to write the examples. 
 
 ---

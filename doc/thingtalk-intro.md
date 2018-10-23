@@ -145,7 +145,7 @@ stream (keyword : String) := monitor @com.foxnews.get(), title =~ keyword;
 ```
 
 Code snippets are used to provide composable examples for devices in Thingpedia,
-as detailed [in their guide](/doc/thingpedia-device-intro-example-commands.md).
+as detailed [in their guide](/doc/thingpedia-tutorial-dataset.md).
  
 ## Advanced Topics 
 ### Joins
