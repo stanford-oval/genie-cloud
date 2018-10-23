@@ -21,11 +21,6 @@ with the `@` sign.
 Instead of writing full programs, we write parts using code snippet syntax introduced in 
 [ThingTalk introduction](/doc/thingtalk-intro.md#code-snippet), plus the `utterances` 
 natural language annotation.
-In The Cat API, the query to get cats can be declared using the following syntax:
-```tt
-query := @com.thecatapi.get()
-#_[utterances=["a cat picture","a random cat picture","cats"]];
-```
 The `utterances` annotation takes a list of strings to show different ways to 
 express the same function. 
 Similar to the `confirmation` annotation for functions as introduced in device class, 
@@ -33,15 +28,11 @@ the corresponding utterance of a query should be a noun phrase, and the one of
 an action should be a verb phrase in the imperative form.
 
 Arguments can also be used in the dataset, and they can be referred in the 
-utterances with `$argname`:  
-```tt
-query (p_count :Number) := @com.thecatapi.get(count=p_count)
-#_[utterances=["$p_count cat pictures"]];
-```
+utterances with `$argname` as in the second example provided in the dataset for The Cat API.
 
 A query can be monitored to create a _stream_ if it's marked as monitorable.
 For example, a stream to monitor my latest emails can be declared as follows:
 ```tt
 stream := monitor (@com.email.inbox())
-#_[utterances=["when i receive an email"]]
+#_[utterances=["when i receive an email", "when a new email comes in"]];
 ```
