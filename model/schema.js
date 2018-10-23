@@ -240,10 +240,6 @@ module.exports = {
                             [language, snapshotId]).then(processMetaRows);
     },
 
-    getAllForList(client, id) {
-        return db.selectAll(client, "select * from device_schema where kind_type <> 'global' order by kind_type desc, kind asc");
-    },
-
     getByKind(client, kind) {
         return db.selectOne(client, "select * from device_schema where kind = ?", [kind]);
     },

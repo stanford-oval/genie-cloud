@@ -229,13 +229,16 @@ function uploadJavaScript(req, obj, stream) {
 
 function isDownloadable(classDef) {
     const loader = classDef.loader;
-    return Validation.JAVASCRIPT_MODULE_TYPES.has(loader.module) &&
+    return !classDef.is_abstract &&
+        Validation.JAVASCRIPT_MODULE_TYPES.has(loader.module) &&
         loader.module !== 'org.thingpedia.builtin' &&
         loader.module !== 'org.thingpedia.embedded';
 }
 
 function getCategory(classDef) {
     if (classDef.annotations.system && classDef.annotations.system.toJS())
+        return 'system';
+    if (classDef.is_abstract)
         return 'system';
 
     if (classDef.loader.module === 'org.thingpedia.builtin') {
@@ -286,10 +289,10 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
         developer_version: 0
     };
 
-    const classCode = migrateManifest(json, device);
+    const classCode = json.class || migrateManifest(json, device);
     device.source_code = classCode;
 
-    const datasetCode = DatasetUtils.examplesToDataset(primary_kind, 'en',
+    const datasetCode = json.dataset || DatasetUtils.examplesToDataset(primary_kind, 'en',
         json.examples, { editMode: true });
 
     const [classDef, dataset] = await Validation.validateDevice(dbClient, req, device, classCode, datasetCode);
@@ -308,7 +311,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
         code: classDef.prettyprint(),
         factory: JSON.stringify(factory),
         downloadable: isDownloadable(classDef),
-        module_type: classDef.loader.module
+        module_type: classDef.is_abstract ? 'org.thingpedia.abstract' : classDef.loader.module
     };
 
     await model.create(dbClient, device, classDef.extends || [],

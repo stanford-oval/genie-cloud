@@ -13,6 +13,8 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 
+const { clean } = require('./tokenize');
+
 function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
     const args = [];
     // compat with Thingpedia API quirks
@@ -75,7 +77,25 @@ function makeSchemaClassDef(kind, schema, isMeta) {
                             imports, metadata, annotations);
 }
 
+function mergeFunctionDefAndSchema(fnDef, schema) {
+    for (let key of ['confirmation', 'confirmation_remote', 'canonical'])
+        fnDef.metadata[key] = schema[key];
+    for (let i = 0; i < fnDef.args.length; i++) {
+        const arg = fnDef.getArgument(fnDef.args[i]);
+        arg.metadata.canonical = schema.argcanonicals[i];
+        if (schema.questions[i])
+            arg.metadata.prompt = schema.questions[i];
+    }
+}
+
 module.exports = {
+    mergeClassDefAndSchema(classDef, schema) {
+        for (let name in classDef.queries)
+            mergeFunctionDefAndSchema(classDef.queries[name], schema.queries[name]);
+        for (let name in classDef.actions)
+            mergeFunctionDefAndSchema(classDef.actions[name], schema.actions[name]);
+    },
+
     schemaListToClassDefs(rows, isMeta) {
         const classes = [];
         for (let row of rows)
@@ -115,8 +135,7 @@ module.exports = {
                     out.args.push(argname);
                     // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
 
-                    const argcanonical = arg.metadata.canonical ||
-                        argname.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
+                    const argcanonical = arg.metadata.canonical || clean(argname);
                     out.argcanonicals.push(argcanonical);
                     out.questions.push(arg.metadata.prompt || '');
                     out.required.push(!!arg.required);

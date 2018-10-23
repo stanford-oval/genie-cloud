@@ -66,21 +66,7 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
     return [classDef, dataset];
 }
 
-async function validateSchema(dbClient, req, options, classCode, datasetCode) {
-    const [classDef, dataset] = await loadClassDef(dbClient, req, options.kind || null,
-        classCode, datasetCode);
-
-    const [entities, stringTypes] = await validateAllInvocations(classDef, {
-        checkPollInterval: false,
-        checkUrl: false,
-        deviceName: null
-    });
-    await entityModel.checkAllExist(dbClient, entities);
-    await stringModel.checkAllExist(dbClient, stringTypes);
-    await validateDataset(dataset);
-
-    return [classDef, dataset];
-}
+const LEGACY_KINDS = ['security-camera', 'car', 'messaging', 'light-bulb', 'smoke-alarm', 'thermostat'];
 
 async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     const name = options.name;
@@ -93,16 +79,21 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         throw new Error(req._("Invalid device category %s").format(options.subcategory));
     const [classDef, dataset] = await loadClassDef(dbClient, req, kind, classCode, datasetCode);
 
-    if (!classDef.loader)
-        throw new Error("loader mixin missing from class declaration");
-    if (!classDef.config)
-        classDef.imports.push(new ThingTalk.Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', []));
+    if (kind.indexOf('.') < 0 && LEGACY_KINDS.indexOf(kind) < 0)
+        throw new Error(`Invalid device ID ${kind}: must contain at least one period`);
 
-    const moduleType = classDef.loader.module;
-    const fullcode = !JAVASCRIPT_MODULE_TYPES.has(moduleType);
+    if (!classDef.is_abstract) {
+        if (!classDef.loader)
+            throw new Error("loader mixin missing from class declaration");
+        if (!classDef.config)
+            classDef.imports.push(new ThingTalk.Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', []));
+    }
+
+    const moduleType = classDef.is_abstract ? null : classDef.loader.module;
+    const fullcode = !classDef.is_abstract && !JAVASCRIPT_MODULE_TYPES.has(moduleType);
 
     const [entities, stringTypes] = await validateAllInvocations(classDef, {
-        checkPollInterval: true,
+        checkPollInterval: !classDef.is_abstract,
         checkUrl: fullcode,
         deviceName: name
     });
@@ -253,7 +244,6 @@ module.exports = {
     cleanKind,
 
     validateDevice,
-    validateSchema,
     validateDataset,
 
     tokenizeAllExamples(language, examples) {

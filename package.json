@@ -59,6 +59,7 @@
     "gm": "~1.21.1",
     "highlight.js": "^9.12.0",
     "img-color-extractor": "^1.0.7",
+    "js-yaml": "^3.12.0",
     "jstransformer-markdown-it": "^2.0.0",
     "jszip": "^3.0.0",
     "leveldown": "^1.4.6",

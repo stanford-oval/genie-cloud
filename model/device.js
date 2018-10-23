@@ -69,19 +69,19 @@ module.exports = {
         return db.selectAll(client, "select * from device_class where owner = ? order by name asc", [owner]);
     },
 
-    getFullCodeByPrimaryKind(client, kind, org) {
-        if (org !== null && org.is_admin) {
-            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
+    getFullCodeByPrimaryKind(client, kind, orgId) {
+        if (orgId === -1) {
+            return db.selectAll(client, "select code, version, approved_version, developer_version from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and dcv.version = d.developer_version", [kind]);
-        } else if (org !== null) {
-            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
+        } else if (orgId !== null) {
+            return db.selectAll(client, "select code, version, approved_version, developer_version from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and ((dcv.version = d.developer_version and d.owner = ?) "
                                 + "or (dcv.version = d.approved_version and d.owner <> ?))",
-                                [kind, org.id, org.id]);
+                                [kind, orgId, orgId]);
         } else {
-            return db.selectAll(client, "select code, version, approved_version from device_code_version dcv, device_class d "
+            return db.selectAll(client, "select code, version, approved_version, developer_version from device_code_version dcv, device_class d "
                                 + "where d.primary_kind = ? and dcv.device_id = d.id "
                                 + "and dcv.version = d.approved_version", [kind]);
         }
