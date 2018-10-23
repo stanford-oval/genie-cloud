@@ -1,18 +1,18 @@
-# Writing Device Class in ThingTalk
+# Writing Device Classes in ThingTalk
 
 [[toc]]
 
 Device class describes how the device will be loaded by the system, how it will 
 be configured, and what it does. 
 In the following, we will continue using The Cat API as an example to illustrate 
-how to write your own device class. The device class of it looks like this:
+how to write your own device class. Its device class looks like this:
 
 ```tt
 class @com.thecatapi {
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
-  query get(in opt count: Number,
+  list query get(in opt count: Number,
             out image_id: Entity(com.thecatapi:image_id),
             out picture_url: Entity(tt:picture),
             out link: Entity(tt:url))
@@ -52,7 +52,7 @@ and actions have side effects, and cannot return results. Other than that, the d
 ### Qualifiers
 Additional qualifier can be used to specify the property of the query. 
 A query is `monitorable` if it's meaningful to monitor its return value and get triggered. 
-A query is a `list` query if it normally returns multiple results. 
+A query is a `list` query if it returns multiple results. 
 
 For example, a query to return latest emails would be considered both `monitorable` and `list`,
 and its declaration will look like:
@@ -61,11 +61,12 @@ monitorable list latest_emails (...);
 ```
 
 For The Cat API, it returns a random cat every time, so it's not reasonable to monitor it. 
-It also returns a single cat by default, so we also don't mark it as `list`.
+It returns multiple cat pictures (with the `count` input parameter), 
+so we mark it as `list`.
 
 ### Parameters
 To take full advantage of the functionality we provided in ThingTalk (filtering, chaining, etc.),  
-every parameter needed for ___both input and output___ should be listed. 
+every parameter needed for ___both input and output___ must be listed. 
 A parameter is described as follows: 
 ```tt
 [in req | in opt | out] <name> : <type>
@@ -88,7 +89,7 @@ There are two types of annotations: natural language annotation and implementati
 #### Natural language annotations
 Natural language annotation, as its name, is the annotation related to natural language 
 and it will be translated to different languages based on users' profile. 
-It's  denoted by `#_[<key>=<value>]`.
+It's denoted by `#_[<key>=<value>]`.
 
 Each function is required to have `confirmation` natural language annotation:
 A string used to construct the final confirmation question before a rule is created
@@ -98,8 +99,8 @@ You can refer to required arguments with `$argname` or `${argname}` (the latter 
 the argument is immediately followed by a letter, number, or underscore).
                   
 #### Implementation annotations
-Implementation annotation is used for describing the implementation details of a function. 
-This is denoted by `#[<key>=<value>]` (without the underscore as in natural language annotation).               
+Implementation annotations are used for describing certain implementation characteristics of a function. 
+They are denoted by `#[<key>=<value>]` (without the underscore used by natural language annotations).               
    
 Here is a list of required implementation annotations for functions:               
 - `doc`: This is used for documentation for developers. 
@@ -108,6 +109,6 @@ if it is monitored. It takes a time interval, e.g., `#[poll_interval=5min]`.
 
 
 A lot more optional annotations are supported in ThingTalk - for not only functions but also parameters and 
-device classes. 
+device classes. They will give you better user experience and better natural language support for your device. 
 Refer to [annotation reference](/doc/thingpedia-annotations.md) for the full list.  
 
