@@ -134,6 +134,8 @@ async function doCreateOrUpdate(kind, create, req, res) {
                 approved_version: approve ? developer_version :
                     (old !== null ? old.approved_version : null),
             };
+            if (req.files.icon && req.files.icon.length)
+                Object.assign(generalInfo, await Importer.uploadIcon(kind, req.files.icon[0].path));
 
             const discoveryServices = FactoryUtils.getDiscoveryServices(classDef);
             const factory = FactoryUtils.makeDeviceFactory(classDef, generalInfo);
@@ -168,13 +170,6 @@ async function doCreateOrUpdate(kind, create, req, res) {
                     await Importer.uploadJavaScript(req, generalInfo, stream);
                 else
                     await Importer.uploadZipFile(req, generalInfo, stream);
-            }
-
-            if (req.files.icon && req.files.icon.length) {
-                // upload the icon asynchronously to avoid blocking the request
-                setTimeout(() => {
-                    Importer.uploadIcon(kind, req.files.icon[0].path);
-                }, 0);
             }
 
             // trigger the training server if configured

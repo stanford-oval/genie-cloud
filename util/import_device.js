@@ -13,6 +13,7 @@ const Q = require('q');
 const fs = require('fs');
 const JSZip = require('jszip');
 const ThingTalk = require('thingtalk');
+const stream = require('stream');
 
 const model = require('../model/device');
 const schemaModel = require('../model/schema');
@@ -267,11 +268,33 @@ async function uploadIcon(primary_kind, iconPath, deleteAfterwards = true) {
         var image = graphics.createImageFromPath(iconPath);
         image.resizeFit(512, 512);
         const [stdout,] = await image.stream('png');
-        await code_storage.storeIcon(stdout, primary_kind);
-        await colorScheme(iconPath, primary_kind);
-    } catch(e) {
-        console.error('Failed to upload icon to S3: ' + e);
-        console.error(e.stack);
+
+        // we need to consume the stream twice: once
+        // to upload to S3 / store on reliable file system
+        // and the other time to compute the color scheme
+        //
+        // in theory, nodejs supports this
+        // in practice, it depends heavily on what each library
+        // is doing, and I don't want to dig too deep in their
+        // source code (plus it could break at any moment)
+        //
+        // instead, we create a separate PassThrough for each
+        // destination
+
+        const pt1 = new stream.PassThrough();
+        stdout.pipe(pt1);
+
+        const pt2 = new stream.PassThrough();
+        stdout.pipe(pt2);
+
+        // we must run the two consumers in parallel, or one of
+        // the streams will be forced to buffer everything in memory
+        // and we'll be sad
+        const [,result] = await Promise.all([
+            code_storage.storeIcon(pt1, primary_kind),
+            colorScheme(pt2, primary_kind)
+        ]);
+        return result;
     } finally {
         if (deleteAfterwards)
             await Q.nfcall(fs.unlink, iconPath);
@@ -314,6 +337,9 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
         module_type: classDef.is_abstract ? 'org.thingpedia.abstract' : classDef.loader.module
     };
 
+    if (iconPath)
+        Object.assign(device, await uploadIcon(primary_kind, iconPath, false));
+
     await model.create(dbClient, device, classDef.extends || [],
                        classDef.annotations.child_types ?
                        classDef.annotations.child_types.toJS() : [],
@@ -326,9 +352,6 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
         else
             await uploadZipFile(req, device, fs.createReadStream(zipFilePath));
     }
-
-    if (iconPath !== null)
-        uploadIcon(device.primary_kind, iconPath, false);
 
     return device;
 }
