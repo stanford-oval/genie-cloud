@@ -14,7 +14,6 @@ const express = require('express');
 const accepts = require('accepts');
 
 const db = require('../util/db');
-const deviceModel = require('../model/device');
 const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
 const commandModel = require('../model/example');
