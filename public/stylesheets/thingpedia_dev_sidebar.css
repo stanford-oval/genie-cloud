@@ -79,7 +79,7 @@ nav#doc-sidebar > ul > li > ul > li {
 }
 nav#doc-sidebar > ul > li > ul > li > * {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 2px;
   font-weight: bold;
   color: #1f2c39;
 }
