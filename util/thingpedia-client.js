@@ -42,14 +42,14 @@ class ThingpediaDiscoveryDatabase {
     // for compatibility until thingpedia-discovery is updated
     getByAnyKind(kind) {
         if (kind.startsWith('bluetooth-'))
-            return this.getByDiscoveryService('bluetooth', kind.substring('bluetooth-').length);
+            return this.getByDiscoveryService('bluetooth', kind.substring('bluetooth-'.length));
         if (kind.startsWith('upnp-'))
-            return this.getByDiscoveryService('upnp', kind.substring('upnp-').length);
+            return this.getByDiscoveryService('upnp', kind.substring('upnp-'.length));
         return db.withClient((dbClient) => device.getByAnyKind(dbClient, kind));
     }
     getAllKinds(deviceId) {
         return this.getAllDiscoveryServices(deviceId).then((services) => services.map((s) => {
-            return s.discovery_type + s.service;
+            return { kind: s.discovery_type + s.service };
         }));
     }
 
