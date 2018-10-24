@@ -304,7 +304,7 @@ module.exports = class ParameterReplacer {
                 output.push(replacements.get(token));
             } else if (isReplaceToken(token)) {
                 if (!parameters.has(token)) {
-                    console.error(`error at ${id}: constant is in sentence but not in program`);
+                    // ignore this: we might have decided not to replace the parameter
                     output.push(token);
                     continue;
                 }
@@ -340,10 +340,7 @@ module.exports = class ParameterReplacer {
         return output;
     }
 
-    process(example) {
-        const sentence = example.preprocessed.split(' ');
-        const program = example.target_code.split(' ');
-
+    _computeReplaceableParameters(sentence, program) {
         const parameters = new Map;
 
         let curFn = [];
@@ -369,6 +366,19 @@ module.exports = class ParameterReplacer {
             } else if (OPERATORS.has(token)) {
                 curOp = token;
             } else if (isReplaceToken(token)) {
+                if (/^(QUOTED_STRING|HASHTAG|USERNAME)_/.test(token)) {
+                    // with some probability, we leave the parameter quoted
+                    // this ensures that some sentences are trained with quotes too
+                    // which is useful because quoted sentences are more reliable
+                    // in the face of unks
+                    // we only do this for QUOTED_STRING, HASHTAG and USERNAME
+                    // (and not GENERIC_ENTITY) because those NER extractors are always
+                    // enabled, while the GENERIC_ENTITY one is enabled or disabled
+                    // in almond-tokenizer manually
+                    if (coin(0.1, this._rng))
+                        return parameters;
+                }
+
                 if (curFn.length === 0) {
                     assert.strictEqual(curParam, 'source+Entity(tt:contact)');
                     parameters.set(token, '$source+' + curParam + '+' + curOp);
@@ -377,6 +387,15 @@ module.exports = class ParameterReplacer {
                 }
             }
         }
+
+        return parameters;
+    }
+
+    process(example) {
+        const sentence = example.preprocessed.split(' ');
+        const program = example.target_code.split(' ');
+
+        const parameters = this._computeReplaceableParameters(sentence, program);
 
         const promises = [];
         for (let i = 0; i < blowupFactor(example, parameters); i++) {
