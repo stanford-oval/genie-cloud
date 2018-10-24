@@ -83,12 +83,12 @@ async function main() {
     let query;
     if (argv.quote_free) {
         query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-            where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
+            use index (language_flags) where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
             and target_code<>'' and preprocessed<>''`,
             [language]);
     } else {
         query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-            where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
+            use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
             and target_code<>'' and preprocessed<>''`,
             [language]);
     }

@@ -415,7 +415,7 @@ CREATE TABLE `example_utterances` (
   `is_base` tinyint(1) NOT NULL DEFAULT 0,
   `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `type` char(32) COLLATE utf8_bin NOT NULL DEFAULT 'other',
-  `flags` set('synthetic','augmented','obsolete','ambiguous','replaced','template','training') COLLATE utf8_bin NOT NULL DEFAULT '',
+  `flags` set('synthetic','augmented','obsolete','ambiguous','replaced','template','training','exact') COLLATE utf8_bin NOT NULL DEFAULT '',
   `utterance` text CHARACTER SET utf8 NOT NULL,
   `preprocessed` text CHARACTER SET utf8 NOT NULL,
   `target_json` text COLLATE utf8_bin NOT NULL,
@@ -425,6 +425,7 @@ CREATE TABLE `example_utterances` (
   PRIMARY KEY (`id`),
   KEY `schema_id` (`schema_id`),
   KEY `language_type` (`language`,`type`),
+  KEY `language_flags` (`language`,`flags`),
   KEY `owner` (`owner`),
   CONSTRAINT `example_utterances_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `example_utterances_ibfk_2` FOREIGN KEY (`owner`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE

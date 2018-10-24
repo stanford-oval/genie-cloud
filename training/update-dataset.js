@@ -163,6 +163,9 @@ class DatasetUpdater {
             delete o.id;
             o.type = 'generated';
             o.flags = 'synthetic,training';
+            if (o.depth <= 2)
+                o.flags += ',exact';
+
             o.preprocessed = o.utterance;
         });
 

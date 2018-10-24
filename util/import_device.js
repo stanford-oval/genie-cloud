@@ -127,6 +127,9 @@ async function ensureDataset(dbClient, schemaId, dataset) {
         }
     }
 
+    if (toDelete.length === 0 && toCreate.length === 0 && toUpdate.length === 0)
+        return;
+
     await Promise.all([
         Validation.tokenizeAllExamples('en', toUpdate),
         Validation.tokenizeAllExamples('en', toCreate)

@@ -107,7 +107,7 @@ module.exports = class SentenceGenerator extends stream.Readable {
 
         let id = String(this._i++);
         id = depth + '000000000'.substring(0,9-id.length) + id;
-        return this.push({ id, utterance, target_code: sequence.join(' ') });
+        return this.push({ depth, id, utterance, target_code: sequence.join(' ') });
     }
 
     _loadTemplateAsDeclaration(ex, decl) {
