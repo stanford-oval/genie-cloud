@@ -63,8 +63,14 @@ class DatasetUpdater {
         this._options = options;
         this._rng = seedrandom.alea('almond is awesome');
 
-        // TODO: use this for incremental updates
         this._forDevices = forDevices;
+        if (forDevices !== null && forDevices.length > 0) {
+            this._forDevicesPattern = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
+            this._forDevicesRegexp = new RegExp(this._forDevicesPattern);
+        } else {
+            this._forDevicesPattern = null;
+            this._forDevicesRegexp = null;
+        }
 
         this._ppdb = null;
         this._paramReplacer = null;
@@ -78,6 +84,9 @@ class DatasetUpdater {
         if (this._options.regenerateAll) {
             await db.query(this._dbClient, `delete from example_utterances where language = ? and (type = 'generated' or
                 find_in_set('augmented', flags) or find_in_set('replaced', flags))`, [this._language]);
+        } else if (this._forDevicesPattern !== null) {
+            await db.query(this._dbClient, `delete from example_utterances where language = ? and type = 'generated'
+                and target_code rlike ?`, [this._language, this._forDevicesPattern]);
         } else {
             await db.query(this._dbClient, `delete from example_utterances where language = ? and type = 'generated'`, [this._language]);
         }
@@ -158,6 +167,12 @@ class DatasetUpdater {
     async _processSyntheticMinibatch(syntheticExamples) {
         if (syntheticExamples.length === 0)
             return;
+
+        if (this._forDevicesPattern !== null) {
+            syntheticExamples = syntheticExamples.filter((o) => {
+                return this._forDevicesRegexp.test(o.target_code);
+            });
+        }
 
         syntheticExamples.forEach((o) => {
             delete o.id;

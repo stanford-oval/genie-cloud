@@ -142,4 +142,7 @@ aa96c14766ff18f3d2cf021a5fe88a024f6d1562e973505873d8fbf3053a3446  train-quote-fr
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  eval-quote-free.tsv
 EOF
 
+# now regenerate the dataset incrementally
+node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin
+
 rm -rf $workdir
