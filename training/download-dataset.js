@@ -73,24 +73,47 @@ async function main() {
         dest: 'quote_free',
         help: argparse.SUPPRESS,
     });
+    parser.addArgument(['-d', '--device'], {
+        action: 'append',
+        metavar: 'DEVICE',
+        help: 'Restrict download to commands of the given device. This option can be passed multiple times to specify multiple devices',
+        dest: 'forDevices',
+    });
     const argv = parser.parseArgs();
     const language = argv.language;
+    const forDevices = argv.forDevices;
 
     const rng = seedrandom(argv.random_seed);
 
     const [dbClient, dbDone] = await db.connect();
 
     let query;
-    if (argv.quote_free) {
-        query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-            use index (language_flags) where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
-            and target_code<>'' and preprocessed<>''`,
-            [language]);
+    if (forDevices && forDevices.length > 0) {
+        const regexp = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
+
+        if (argv.quote_free) {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                use index (language_flags) where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
+                and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
+                [language, regexp]);
+        } else {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
+                and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
+                [language, regexp]);
+        }
     } else {
-        query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-            use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
-            and target_code<>'' and preprocessed<>''`,
-            [language]);
+        if (argv.quote_free) {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                use index (language_flags) where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
+                and target_code<>'' and preprocessed<>''`,
+                [language]);
+        } else {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
+                and target_code<>'' and preprocessed<>''`,
+                [language]);
+        }
     }
 
     query.on('result', (row) => {

@@ -24,6 +24,8 @@ trap on_error ERR INT TERM
 job_id=$1
 lang=$2
 model_tag=$3
+update_args=$4
+download_args=$5
 shift
 shift
 shift
@@ -66,10 +68,16 @@ echo "gen_synthetic" 1>&3
 node --max_old_space_size=24000 ${BASEDIR}/update-dataset.js \
   --language ${lang} \
   --maxdepth ${synthetic_depth} \
-  --ppdb ${PPDB}
+  --ppdb ${PPDB} \
+  ${update_args}
 
 echo "download_dataset" 1>&3
-node ${BASEDIR}/download-dataset.js -l ${lang} --quote-free --train ${DATASET}/train.tsv --eval ${DATASET}/eval.tsv
+node ${BASEDIR}/download-dataset.js \
+  --language ${lang} \
+  --quote-free \
+  ${download_args} \
+  --train ${DATASET}/train.tsv \
+  --eval ${DATASET}/eval.tsv
 touch ${DATASET}/test.tsv
 
 echo "prepare" 1>&3

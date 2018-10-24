@@ -130,8 +130,14 @@ class TrainingDaemon {
         console.log(`Starting job ${job.id} for model @${job.modelTag}/${job.language}`);
         try {
             const args = [job.id, job.language, job.modelTag];
+            if (job.forDevices !== null)
+                args.push(job.forDevices.map((d) => '--device ' + d));
+            else
+                args.push('');
             if (job.modelTag !== 'default')
-                args.push(...this._models[job.modelTag]);
+                args.push(this._models[job.modelTag].map((d) => '--device ' + d));
+            else
+                args.push('');
             const script = path.resolve(path.dirname(module.filename), 'train.sh');
 
             const env = {};
