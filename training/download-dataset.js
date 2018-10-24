@@ -17,13 +17,20 @@ const seedrandom = require('seedrandom');
 const db = require('../util/db');
 const { coin } = require('../util/random');
 
+function parseFlags(flags) {
+    const parsed = {};
+    for (let flag of flags.split(','))
+        parsed[flag] = true;
+    return parsed;
+}
+
 function makeId(id, flags) {
     let prefix = '';
-    if (flags.indexOf('replaced') >= 0)
+    if (flags.replaced)
         prefix += 'R';
-    if (flags.indexOf('augmented') >= 0)
+    if (flags.augmented)
         prefix += 'P';
-    if (flags.indexOf('synthetic') >= 0)
+    if (flags.synthetic)
         prefix += 'S';
     return prefix + id;
 }
@@ -87,9 +94,10 @@ async function main() {
     }
 
     query.on('result', (row) => {
-        const line = makeId(row.id, row.flags) + '\t' + row.preprocessed + '\t' + row.target_code + '\n';
+        const flags = parseFlags(row.flags);
+        const line = makeId(row.id, flags) + '\t' + row.preprocessed + '\t' + row.target_code + '\n';
 
-        if (coin(argv.eval_prob, rng))
+        if (!flags.synthetic && !flags.augmented && coin(argv.eval_prob, rng))
             argv.eval.write(line);
         else
             argv.train.write(line);
