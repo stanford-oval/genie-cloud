@@ -37,6 +37,8 @@ test -f ${BASEDIR}/config.sh && . ${BASEDIR}/config.sh
 
 train_steps=${train_steps:-100000}
 synthetic_depth=${synthetic_depth:-4}
+model=${model:-luinet_copy_transformer}
+hparams_set=${hparams_set:-transformer_luinet}
 decode_hparams=${decode_hparams:-"beam_size=10,return_beams=true"}
 
 HOMEDIR=${HOMEDIR:-`pwd`}
@@ -67,6 +69,7 @@ node --max_old_space_size=24000 ${BASEDIR}/update-dataset.js -l ${lang} --all \
 
 echo "download_dataset" 1>&3
 node ${BASEDIR}/download-dataset.js -l ${lang} --quote-free --train ${DATASET}/train.tsv --eval ${DATASET}/eval.tsv
+touch ${DATASET}/test.tsv
 
 echo "prepare" 1>&3
 ${LUINET_PATH}/luinet-datagen \
@@ -77,11 +80,11 @@ ${LUINET_PATH}/luinet-datagen \
 
 echo "training" 1>&3
 
-${LUINET_PATH}/luinet/luinet-trainer \
+${LUINET_PATH}/luinet-trainer \
     --data_dir ${WORKDIR} \
     --problem semparse_thingtalk_noquote \
-    --model luinet_copy_transformer \
-    --hparams_set transformer_tiny_luinet \
+    --model ${model} \
+    --hparams_set ${hparams_set} \
     --output_dir ${WORKDIR}/model \
     --train_steps ${train_steps} \
     --export_saved_model \
@@ -98,8 +101,8 @@ test -d ${best_model_dir} || die "Did not produce a trained model"
 
 echo '{
 "problem": "semparse_thingtalk_noquote",
-"model": "luinet_copy_transformer",
-"hparams_set": "transformer_tiny_luinet",
+"model": "'${model}'",
+"hparams_set": "'${hparams_set}'",
 "hparams_overrides": "",
 "decode_hparams": "'${decode_hparams}'"
 }' > ${best_model_dir}/model.json
