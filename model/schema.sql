@@ -637,6 +637,20 @@ CREATE TABLE `subscribe` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `models`
+--
+
+DROP TABLE IF EXISTS `models`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `models` (
+  `tag` varchar(64) COLLATE utf8_bin,
+  `for_devices` mediumtext COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (`tag`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `users`
 --
 
@@ -650,6 +664,7 @@ CREATE TABLE `users` (
   `email` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `locale` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en-US',
   `timezone` varchar(64) COLLATE utf8_bin NOT NULL DEFAULT 'America/Los_Angeles',
+  `model_tag` varchar(64) COLLATE utf8_bin DEFAULT NULL,
   `google_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `facebook_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `omlet_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,

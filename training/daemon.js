@@ -21,12 +21,11 @@ const child_process = require('child_process');
 const byline = require('byline');
 
 const SendMail = require('../util/sendmail');
+const db = require('../util/db');
 
 const Config = require('../config');
 
 const ACCESS_TOKEN = Config.TRAINING_ACCESS_TOKEN;
-
-const MODELS = Config.TRAINING_MODELS || {};
 
 function addAll(array, add) {
     for (let elem of add) {
@@ -49,6 +48,18 @@ class TrainingDaemon {
         this._current_job = null;
         this._next_jobs = [];
         this._next_id = 0;
+
+        this._models = {};
+    }
+
+    async _reloadModels() {
+        const rows = await db.withClient((dbClient) => {
+            return db.selectAll(dbClient, `select * from models`);
+        });
+        const result = {};
+        for (let row of rows)
+            result[row.tag] = JSON.parse(row.for_devices);
+        this._models = result;
     }
 
     _saveToDisk() {
@@ -117,7 +128,7 @@ class TrainingDaemon {
         try {
             const args = [job.id, job.language, job.modelTag];
             if (job.modelTag !== 'default')
-                args.push(...MODELS[job.modelTag]);
+                args.push(...this._models[job.modelTag]);
             const script = path.resolve(path.dirname(module.filename), 'train-one.sh');
 
             const child = child_process.spawn(script, args, {
@@ -211,16 +222,18 @@ class TrainingDaemon {
         }
     }
 
-    scheduleJob(jobTemplate) {
+    async scheduleJob(jobTemplate) {
         let forDevices = jobTemplate.forDevices;
         let language = jobTemplate.language;
         if (!language)
             language = 'en';
 
+        await this._reloadModels();
+
         if (forDevices === null) {
             // queue all models
             this._queueOrMergeJob([], language, 'default');
-            for (let modelTag in MODELS)
+            for (let modelTag in this._models)
                 this._queueOrMergeJob([], language, modelTag);
         } else {
             if (!Array.isArray(forDevices))
@@ -231,8 +244,8 @@ class TrainingDaemon {
 
             // check if any of the other models are impacted
             // by this device
-            for (let modelTag in MODELS) {
-                let modelDevices = MODELS[modelTag];
+            for (let modelTag in this._models) {
+                let modelDevices = this._models[modelTag];
                 if (nonEmptyIntersection(modelDevices, forDevices))
                     this._queueOrMergeJob(forDevices, language, modelTag);
             }
@@ -265,9 +278,9 @@ class TrainingDaemon {
             next();
         });
 
-        app.post('/jobs/create', (req, res) => {
+        app.post('/jobs/create', async (req, res, next) => {
             try {
-                let id = this.scheduleJob(req.body);
+                let id = await this.scheduleJob(req.body);
                 res.json({result:'scheduled', id: id });
             } catch(e) {
                 res.status(400).json({error: e.message, code: e.code});
@@ -307,6 +320,10 @@ class TrainingDaemon {
             }
 
             res.status(404).json({ error: 'No job queued for ' + req.params.language + '/' + req.params.forDevice });
+        });
+        app.use((err, req, res, next) => {
+            console.error(err);
+            res.status(500).json({ error: err.message });
         });
 
         app.listen(app.get('port'));
