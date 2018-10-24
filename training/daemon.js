@@ -43,6 +43,186 @@ function nonEmptyIntersection(one, two) {
     return false;
 }
 
+function taskTrain(job) {
+    try {
+        const args = [job.id, job.language, job.modelTag];
+        if (job.forDevices !== null)
+            args.push(job.forDevices.map((d) => '--device ' + d));
+        else
+            args.push('');
+        if (job.modelTag !== 'default')
+            args.push(this._models[job.modelTag].map((d) => '--device ' + d));
+        else
+            args.push('');
+        const script = path.resolve(path.dirname(module.filename), 'train.sh');
+
+        const env = {};
+        Object.assign(env, process.env);
+        env.LUINET_PATH = path.resolve(process.cwd(), Config.LUINET_PATH);
+        env.NL_SERVER_ADMIN_TOKEN = Config.NL_SERVER_ADMIN_TOKEN;
+        env.INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
+        env.THINGPEDIA_URL = Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL);
+        const child = child_process.spawn(script, args, {
+            stdio: ['ignore', 'inherit', 'inherit', 'pipe'],
+            env: env
+        });
+        child.on('error', (err) => {
+            console.error(`Failed to launch job ${job.id}: ${err}`);
+            job.fail(job, err.message);
+        });
+        child.on('exit', () => {
+            console.log(`Completed job ${job.id}`);
+            job.taskComplete();
+        });
+        child.stdio[3].setEncoding('utf-8');
+        let pipe = byline(child.stdio[3]);
+        pipe.on('data', (line) => {
+            line = line.trim();
+            if (line.startsWith('eta:')) {
+                let eta = parseFloat(line.substring('eta:'.length));
+                console.log(`ETA for job ${job.id}: ${eta} seconds`);
+
+                let now = Date.now() / 1000;
+                let endTime = now + eta;
+                // round to whole minutes
+                endTime = 60*Math.ceil(endTime / 60);
+                job.setEta((new Date(endTime * 1000)).toISOString());
+            } else if (line.startsWith('progress:')) {
+                let [progress, n_epochs] = line.substring('progress:'.length).split('/');
+                job.progress = parseInt(progress)/parseInt(n_epochs);
+                job.setProgress((`Progress for job ${job.id}: ${Math.floor(job.progress*100)}`));
+            } else {
+                console.log(`Job ${job.id} is now ${line}`);
+                job.setStatus(line);
+            }
+        });
+    } catch(err) {
+        console.error(`Failed to launch job ${job.id}: ${err}`);
+        job.fail(err.message);
+    }
+}
+
+const TASKS = [
+    taskTrain,
+];
+
+class Job {
+    constructor(daemon, id, forDevices, language, modelTag) {
+        this._daemon = daemon;
+        this.data = {
+            id: id,
+            forDevices: forDevices,
+            language: language,
+            modelTag: modelTag,
+            startTime: null,
+            endTime: null,
+            taskIndex: 0,
+            status: 'queued',
+            progress: 0,
+            eta: null,
+        };
+    }
+
+    static load(daemon, json) {
+        const self = new Job(daemon);
+        self.data = json;
+        return self;
+    }
+
+    toJSON() {
+        return this.data;
+    }
+
+    save() {
+        return this._daemon.save();
+    }
+
+    start() {
+        this.data.startTime = (new Date).toISOString();
+        this.data.status = 'started';
+
+        console.log(`Starting job ${this.data.id} for model @${this.data.modelTag}/${this.data.language}`);
+
+        this._startNextTask();
+    }
+
+    _startNextTask() {
+        const task = TASKS[this.data.taskIndex];
+        task(this);
+        this.save();
+    }
+
+    taskComplete() {
+        this.data.taskIndex ++;
+        if (this.data.taskIndex < TASKS.length)
+            this._startNextTask();
+        else
+            this.complete();
+    }
+
+    fail(error) {
+        this.data.status = 'error';
+        this.data.error = error;
+        this.complete();
+    }
+
+    complete() {
+        this.data.endTime = (new Date).toISOString();
+        this._daemon.jobComplete(this);
+    }
+
+    get id() {
+        return this.data.id;
+    }
+
+    get language() {
+        return this.data.language;
+    }
+    get forDevices() {
+        return this.data.forDevices;
+    }
+    get modelTag() {
+        return this.data.modelTag;
+    }
+
+    addDevices(forDevices) {
+        addAll(this.data.forDevices, forDevices);
+        return this.save();
+    }
+
+    get startTime() {
+        return this.data.startTime;
+    }
+    get endTime() {
+        return this.data.endTime;
+    }
+
+    get progress() {
+        return this.data.progress;
+    }
+    setProgress(value) {
+        this.data.progress = value;
+        return this.save();
+    }
+
+    get status() {
+        return this.data.status;
+    }
+    setStatus(value) {
+        this.data.status = value;
+        this.data.progress = 0;
+        return this.save();
+    }
+
+    get eta() {
+        return this.data.eta;
+    }
+    setEta(value) {
+        this.data.eta = value;
+        return this.save();
+    }
+}
+
 class TrainingDaemon {
     constructor() {
         this._last_job = null;
@@ -63,7 +243,7 @@ class TrainingDaemon {
         this._models = result;
     }
 
-    _saveToDisk() {
+    save() {
         fs.writeFileSync('jobs.json', JSON.stringify({
             next_id: this._next_id,
             last: this._last_job,
@@ -72,9 +252,7 @@ class TrainingDaemon {
         }));
     }
 
-    _jobComplete(job) {
-        job.endTime = (new Date).toISOString();
-
+    jobComplete(job) {
         if (job !== this._current_job)
             return;
 
@@ -100,118 +278,31 @@ class TrainingDaemon {
             this._saveToDisk();
     }
 
-    _handleProgress(job, line) {
-        if (line.startsWith('eta:')) {
-            let eta = parseFloat(line.substring('eta:'.length));
-            console.log(`ETA for job ${job.id}: ${eta} seconds`);
-
-            let now = Date.now() / 1000;
-            let endTime = now + eta;
-            // round to whole minutes
-            endTime = 60*Math.ceil(endTime / 60);
-            job.eta = (new Date(endTime * 1000)).toISOString();
-        } else if (line.startsWith('progress:')) {
-            let [progress, n_epochs] = line.substring('progress:'.length).split('/');
-            job.progress = parseInt(progress)/parseInt(n_epochs);
-            console.log(`Progress for job ${job.id}: ${Math.floor(job.progress*100)}`);
-        } else {
-            console.log(`Job ${job.id} is now ${line}`);
-            job.status = line;
-            job.progress = 0;
-        }
-        this._saveToDisk();
-    }
-
     _startJob(job) {
         this._current_job = job;
-        this._current_job.startTime = (new Date).toISOString();
-        this._current_job.status = 'started';
-
-        console.log(`Starting job ${job.id} for model @${job.modelTag}/${job.language}`);
-        try {
-            const args = [job.id, job.language, job.modelTag];
-            if (job.forDevices !== null)
-                args.push(job.forDevices.map((d) => '--device ' + d));
-            else
-                args.push('');
-            if (job.modelTag !== 'default')
-                args.push(this._models[job.modelTag].map((d) => '--device ' + d));
-            else
-                args.push('');
-            const script = path.resolve(path.dirname(module.filename), 'train.sh');
-
-            const env = {};
-            Object.assign(env, process.env);
-            env.LUINET_PATH = path.resolve(process.cwd(), Config.LUINET_PATH);
-            env.NL_SERVER_ADMIN_TOKEN = Config.NL_SERVER_ADMIN_TOKEN;
-            env.INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
-            env.THINGPEDIA_URL = Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL);
-            const child = child_process.spawn(script, args, {
-                stdio: ['ignore', 'inherit', 'inherit', 'pipe'],
-                env: env
-            });
-            child.on('error', (err) => {
-                console.error(`Failed to launch job ${job.id}: ${err}`);
-                job.status = 'error';
-                this._jobComplete(job);
-            });
-            child.on('exit', () => {
-                console.log(`Completed job ${job.id}`);
-                this._jobComplete(job);
-            });
-            child.stdio[3].setEncoding('utf-8');
-            let pipe = byline(child.stdio[3]);
-            pipe.on('data', (data) => {
-                this._handleProgress(job, data.trim());
-            });
-        } catch(err) {
-            console.error(`Failed to launch job ${job.id}: ${err}`);
-            job.status = 'error';
-            this._jobComplete(job);
-        }
-
-        this._saveToDisk();
+        job.start();
     }
 
     _queueOrMergeJob(forDevices, language, modelTag) {
         if (this._current_job === null) {
             assert(this._next_jobs.length === 0);
-            let newjob = {
-                id: this._next_id++,
-                forDevices: forDevices,
-                language: language,
-                modelTag: modelTag,
-                startTime: null,
-                endTime: null,
-                status: 'not_started',
-                progress: 0,
-                eta: null,
-            };
+            let newjob = new Job(this, this._next_id++,
+                forDevices, language, modelTag);
             this._startJob(newjob);
             return newjob.id;
         } else {
             for (let candidate of this._next_jobs) {
                 if (candidate.language === language &&
                     candidate.modelTag === modelTag) {
-                    addAll(candidate.forDevices, forDevices);
-                    this._saveToDisk();
+                    candidate.addDevices(forDevices);
                     return candidate.id;
                 }
             }
-            let newjob = {
-                id: this._next_id++,
-                forDevices: forDevices,
-                language: language,
-                modelTag: modelTag,
-                startTime: null,
-                endTime: null,
-                status: 'queued',
-                progress: 0,
-                eta: null,
-            };
+            let newjob = new Job(this, this._next_id++,
+                forDevices, language, modelTag);
             console.log(`Queued job ${newjob.id} for model @${modelTag}/${language}`);
             this._next_jobs.push(newjob);
-            this._saveToDisk();
+            newjob.save();
             return newjob.id;
         }
     }
@@ -221,9 +312,9 @@ class TrainingDaemon {
             let data = fs.readFileSync('jobs.json');
             let parsed = JSON.parse(data);
             this._next_id = parsed.next_id || 0;
-            this._last_job = parsed.last || null;
-            this._current_job = parsed.current || null;
-            this._next_jobs = parsed.next || [];
+            this._last_job = parsed.last ? Job.load(this, parsed.last) : null;
+            this._current_job = parsed.current ? Job.load(this, parsed.current) : null;
+            this._next_jobs = (parsed.next || []).map((j) => Job.load(this, j));
 
             // we crashed so the current job necessarily failed
             if (this._current_job) {
