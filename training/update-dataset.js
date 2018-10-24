@@ -164,11 +164,11 @@ class DatasetUpdater {
         return output;
     }
 
-    async _processSyntheticMinibatch(syntheticExamples) {
-        if (syntheticExamples.length === 0)
+    async _processMinibatch(syntheticExamples, flags, type, ppdbProb) {
+       	if (syntheticExamples.length === 0)
             return;
 
-        if (this._forDevicesPattern !== null) {
+        if (!this._options.regenerateAll && this._forDevicesPattern !== null) {
             syntheticExamples = syntheticExamples.filter((o) => {
                 return this._forDevicesRegexp.test(o.target_code);
             });
@@ -176,18 +176,23 @@ class DatasetUpdater {
 
         syntheticExamples.forEach((o) => {
             delete o.id;
-            o.type = 'generated';
-            o.flags = 'synthetic,training';
-            if (o.depth <= 2)
-                o.flags += ',exact';
-
-            o.preprocessed = o.utterance;
+            if (type)
+                o.type = type;
+            if (flags)
+                o.flags = flags;
+            if (type === 'generated') {
+                if (o.depth <= 2)
+                    o.flags += ',exact';
+                o.preprocessed = o.utterance;
+            }
         });
 
-        const ppdbExamples = this._applyPPDB(syntheticExamples, this._options.ppdbProbabilitySynthetic);
+        const ppdbExamples = this._applyPPDB(syntheticExamples, ppdbProb);
+
+        if (type === 'generated')
+            await this._insertExampleBatch(syntheticExamples);
 
         await Promise.all([
-            this._insertExampleBatch(syntheticExamples),
             this._insertExampleBatch(ppdbExamples),
 
             this._replaceParameters(syntheticExamples),
@@ -224,13 +229,38 @@ class DatasetUpdater {
             highWaterMark: 100,
 
             write: (obj, encoding, callback) => {
-                this._processSyntheticMinibatch([obj]).then(() => callback(null), (err) => callback(err));
+                this._processMinibatch([obj], 'synthetic,training', 'generated', this._options.ppdbProbabilitySynthetic).then(() => callback(null), (err) => callback(err));
             },
             writev: (objs, callback) => {
-                this._processSyntheticMinibatch(objs.map((o) => o.chunk)).then(() => callback(null), (err) => callback(err));
+                this._processMinibatch(objs.map((o) => o.chunk), 'synthetic,training', 'generated', this._options.ppdbProbabilitySynthetic).then(() => callback(null), (err) => callback(err));
             }
         });
         generator.pipe(writer);
+        return new Promise((resolve, reject) => {
+            writer.on('finish', resolve);
+            writer.on('error', reject);
+        });
+    }
+
+    async _regenerateReplacedParaphrases() {
+        const writer = new stream.Writable({
+            objectMode: true,
+            highWaterMark: 100,
+
+            write: (obj, encoding, callback) => {
+                this._processMinibatch([obj], null, null, this._options.ppdbProbabilityParaphrase).then(() => callback(null), (err) => callback(err));
+            },
+            writev: (objs, callback) => {
+                this._processMinibatch(objs.map((o) => o.chunk), null, null, this._options.ppdbProbabilityParaphrase).then(() => callback(null), (err) => callback(err));
+            }
+        });
+
+        const rows = await db.selectAll(this._dbClient, `select id,flags,type,preprocessed,target_code from example_utterances use index (language_flags) where language = ?
+             and type <> 'generated' and find_in_set('training', flags)`, [this._language]);
+
+        for (let row of rows)
+            writer.write(row);
+
         return new Promise((resolve, reject) => {
             writer.on('finish', resolve);
             writer.on('error', reject);
@@ -245,6 +275,8 @@ class DatasetUpdater {
         await this._paramReplacer.initialize();
 
         await this._clearExistingDataset();
+        if (this._options.regenerateAll)
+            await this._regenerateReplacedParaphrases();
         await this._genSynthetic();
     }
 

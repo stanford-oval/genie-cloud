@@ -10,30 +10,21 @@
 // See COPYING for details
 "use strict";
 
-const Url = require('url');
 const assert = require('assert');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 const errorHandler = require('errorhandler');
-const child_process = require('child_process');
-const byline = require('byline');
 
 const SendMail = require('../util/sendmail');
 const db = require('../util/db');
 
+const Job = require('./training_job');
+
 const Config = require('../config');
-
-const ACCESS_TOKEN = Config.TRAINING_ACCESS_TOKEN;
-
-function addAll(array, add) {
-    for (let elem of add) {
-        if (array.indexOf(elem) < 0)
-            array.push(elem);
-    }
-}
 
 function nonEmptyIntersection(one, two) {
     for (let el of one) {
@@ -41,186 +32,6 @@ function nonEmptyIntersection(one, two) {
             return true;
     }
     return false;
-}
-
-function taskTrain(job) {
-    try {
-        const args = [job.id, job.language, job.modelTag];
-        if (job.forDevices !== null)
-            args.push(job.forDevices.map((d) => '--device ' + d));
-        else
-            args.push('');
-        if (job.modelTag !== 'default')
-            args.push(this._models[job.modelTag].map((d) => '--device ' + d));
-        else
-            args.push('');
-        const script = path.resolve(path.dirname(module.filename), 'train.sh');
-
-        const env = {};
-        Object.assign(env, process.env);
-        env.LUINET_PATH = path.resolve(process.cwd(), Config.LUINET_PATH);
-        env.NL_SERVER_ADMIN_TOKEN = Config.NL_SERVER_ADMIN_TOKEN;
-        env.INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
-        env.THINGPEDIA_URL = Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL);
-        const child = child_process.spawn(script, args, {
-            stdio: ['ignore', 'inherit', 'inherit', 'pipe'],
-            env: env
-        });
-        child.on('error', (err) => {
-            console.error(`Failed to launch job ${job.id}: ${err}`);
-            job.fail(job, err.message);
-        });
-        child.on('exit', () => {
-            console.log(`Completed job ${job.id}`);
-            job.taskComplete();
-        });
-        child.stdio[3].setEncoding('utf-8');
-        let pipe = byline(child.stdio[3]);
-        pipe.on('data', (line) => {
-            line = line.trim();
-            if (line.startsWith('eta:')) {
-                let eta = parseFloat(line.substring('eta:'.length));
-                console.log(`ETA for job ${job.id}: ${eta} seconds`);
-
-                let now = Date.now() / 1000;
-                let endTime = now + eta;
-                // round to whole minutes
-                endTime = 60*Math.ceil(endTime / 60);
-                job.setEta((new Date(endTime * 1000)).toISOString());
-            } else if (line.startsWith('progress:')) {
-                let [progress, n_epochs] = line.substring('progress:'.length).split('/');
-                job.progress = parseInt(progress)/parseInt(n_epochs);
-                job.setProgress((`Progress for job ${job.id}: ${Math.floor(job.progress*100)}`));
-            } else {
-                console.log(`Job ${job.id} is now ${line}`);
-                job.setStatus(line);
-            }
-        });
-    } catch(err) {
-        console.error(`Failed to launch job ${job.id}: ${err}`);
-        job.fail(err.message);
-    }
-}
-
-const TASKS = [
-    taskTrain,
-];
-
-class Job {
-    constructor(daemon, id, forDevices, language, modelTag) {
-        this._daemon = daemon;
-        this.data = {
-            id: id,
-            forDevices: forDevices,
-            language: language,
-            modelTag: modelTag,
-            startTime: null,
-            endTime: null,
-            taskIndex: 0,
-            status: 'queued',
-            progress: 0,
-            eta: null,
-        };
-    }
-
-    static load(daemon, json) {
-        const self = new Job(daemon);
-        self.data = json;
-        return self;
-    }
-
-    toJSON() {
-        return this.data;
-    }
-
-    save() {
-        return this._daemon.save();
-    }
-
-    start() {
-        this.data.startTime = (new Date).toISOString();
-        this.data.status = 'started';
-
-        console.log(`Starting job ${this.data.id} for model @${this.data.modelTag}/${this.data.language}`);
-
-        this._startNextTask();
-    }
-
-    _startNextTask() {
-        const task = TASKS[this.data.taskIndex];
-        task(this);
-        this.save();
-    }
-
-    taskComplete() {
-        this.data.taskIndex ++;
-        if (this.data.taskIndex < TASKS.length)
-            this._startNextTask();
-        else
-            this.complete();
-    }
-
-    fail(error) {
-        this.data.status = 'error';
-        this.data.error = error;
-        this.complete();
-    }
-
-    complete() {
-        this.data.endTime = (new Date).toISOString();
-        this._daemon.jobComplete(this);
-    }
-
-    get id() {
-        return this.data.id;
-    }
-
-    get language() {
-        return this.data.language;
-    }
-    get forDevices() {
-        return this.data.forDevices;
-    }
-    get modelTag() {
-        return this.data.modelTag;
-    }
-
-    addDevices(forDevices) {
-        addAll(this.data.forDevices, forDevices);
-        return this.save();
-    }
-
-    get startTime() {
-        return this.data.startTime;
-    }
-    get endTime() {
-        return this.data.endTime;
-    }
-
-    get progress() {
-        return this.data.progress;
-    }
-    setProgress(value) {
-        this.data.progress = value;
-        return this.save();
-    }
-
-    get status() {
-        return this.data.status;
-    }
-    setStatus(value) {
-        this.data.status = value;
-        this.data.progress = 0;
-        return this.save();
-    }
-
-    get eta() {
-        return this.data.eta;
-    }
-    setEta(value) {
-        this.data.eta = value;
-        return this.save();
-    }
 }
 
 class TrainingDaemon {
@@ -262,7 +73,9 @@ class TrainingDaemon {
                 to: 'thingpedia-admins@lists.stanford.edu',
                 subject: `Training Job ${job.id} failed`,
                 text: `Training Job ${job.id}, for devices [${job.forDevices.join(', ')}], failed.
-    Check the logs for further information.`
+
+The error reported was: ${job.error}.
+Check the logs for further information.`
             };
             SendMail.send(mailOptions).catch((e) => {
                 console.error(`Failed to send notification email: ${e.message}`);
@@ -275,7 +88,7 @@ class TrainingDaemon {
         if (this._current_job)
             this._startJob(this._current_job);
         else
-            this._saveToDisk();
+            this.save();
     }
 
     _startJob(job) {
@@ -307,7 +120,9 @@ class TrainingDaemon {
         }
     }
 
-    loadExistingJobs() {
+    async loadExistingJobs() {
+        await this._reloadModels();
+
         try {
             let data = fs.readFileSync('jobs.json');
             let parsed = JSON.parse(data);
@@ -317,11 +132,8 @@ class TrainingDaemon {
             this._next_jobs = (parsed.next || []).map((j) => Job.load(this, j));
 
             // we crashed so the current job necessarily failed
-            if (this._current_job) {
-                this._current_job.status = 'error';
-                this._current_job.error = 'Master process failed';
-                this._jobComplete(this._current_job);
-            }
+            if (this._current_job)
+                this._current_job.fail(new Error('Master process failed'));
         } catch(e) {
             if (e.code === 'ENOENT')
                 return;
@@ -374,11 +186,11 @@ class TrainingDaemon {
             app.use(errorHandler());
 
         app.use((req, res, next) => {
-            if (req.query.access_token === ACCESS_TOKEN) {
+            if (req.query.access_token === Config.TRAINING_ACCESS_TOKEN) {
                 next();
                 return;
             }
-            if (req.headers.authorization !== `Bearer ${ACCESS_TOKEN}`) {
+            if (req.headers.authorization !== `Bearer ${Config.TRAINING_ACCESS_TOKEN}`) {
                 res.status(401).json({error:'Not Authorized'});
                 return;
             }

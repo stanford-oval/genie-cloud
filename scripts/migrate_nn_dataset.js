@@ -96,6 +96,7 @@ async function main() {
                                    [regenerated, row.id]);
                 } catch(e) {
                     console.error(`Failed to handle ${row.id}: ${e.message}`);
+                    console.error(e.stack);
                 }
             }).catch((e) => query.emit('error', e)));
         });
