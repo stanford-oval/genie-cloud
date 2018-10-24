@@ -237,7 +237,7 @@ class DatasetUpdater {
         return db.withTransaction(async (dbClient) => {
             this._dbClient = dbClient;
             return this._transaction();
-        }, 'read committed');
+        }, 'repeatable read');
     }
 }
 

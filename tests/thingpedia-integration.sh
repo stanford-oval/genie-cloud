@@ -131,7 +131,15 @@ node $srcdir/scripts/generate_binary_ppdb.js $srcdir/tests/data/ppdb-2.0-xs-lexi
 node $srcdir/training/update-dataset.js -l en -a --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin
 
 # download and check
-test $(node $srcdir/training/download-dataset.js -l en --no-quote-free | sha256sum | cut -f1 -d' ') = "59784eced41cfe58c79c64cceb25f9f7fd75e8fc1fdcc7e56e69bfa7068cbbef"
-test $(node $srcdir/training/download-dataset.js -l en --quote-free | sha256sum | cut -f1 -d' ') = "5baf23d41ee5843adcdcc82b0467b5b906ed69efe06633c987246c52ae0856d2"
+node $srcdir/training/download-dataset.js -l en --no-quote-free --train train-quoted.tsv --eval eval-quoted.tsv
+node $srcdir/training/download-dataset.js -l en --quote-free --train train-quote-free.tsv --eval eval-quote-free.tsv
+
+sha256sum train-quoted.tsv eval-quoted.tsv train-quote-free.tsv eval-quote-free.tsv
+sha256sum -c <<EOF
+48d5a325ed07ff57c1d16ed7e5b835a609a98a3fbc67afa318331f707d3ed20e  train-quoted.tsv
+704babae760b19a92ff6e3aaec7cfb3db7777309062f7f04c54a13714cdd7d67  eval-quoted.tsv
+313fa7360da2e28bbc01e3f94828f413eb1efc23052ea87221b1aa87f63f8d4b  train-quote-free.tsv
+9b88dff8640cae0500c5bb2aab5c7ef13f9c63e409f2c0afc5c1940f2b28d64b  eval-quote-free.tsv
+EOF
 
 rm -rf $workdir

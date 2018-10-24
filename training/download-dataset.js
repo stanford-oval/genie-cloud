@@ -12,8 +12,10 @@
 
 const fs = require('fs');
 const argparse = require('argparse');
+const seedrandom = require('seedrandom');
 
 const db = require('../util/db');
+const { coin } = require('../util/random');
 
 function makeId(id, flags) {
     let prefix = '';
@@ -34,10 +36,24 @@ async function main() {
     parser.addArgument(['-l', '--language'], {
         required: true,
     });
-    parser.addArgument(['-o', '--output'], {
+    parser.addArgument(['--train'], {
+        required: true,
         type: fs.createWriteStream,
-        help: 'Write to the specified file instead of standard output',
-        defaultValue: process.stdout,
+        help: 'Train file output path',
+    });
+    parser.addArgument(['--eval'], {
+        required: true,
+        type: fs.createWriteStream,
+        help: 'Eval file output path',
+    });
+    parser.addArgument(['--eval-prob'], {
+        type: Number,
+        help: 'Eval probability',
+        defaultValue: 0.1,
+    });
+    parser.addArgument(['--random-seed'], {
+        help: 'Random seed',
+        defaultValue: 'abcdefghi',
     });
     parser.addArgument(['--quote-free'], {
         nargs: 0,
@@ -52,7 +68,8 @@ async function main() {
     });
     const argv = parser.parseArgs();
     const language = argv.language;
-    const output = argv.output;
+
+    const rng = seedrandom(argv.random_seed);
 
     const [dbClient, dbDone] = await db.connect();
 
@@ -70,11 +87,16 @@ async function main() {
     }
 
     query.on('result', (row) => {
-        output.write(makeId(row.id, row.flags) + '\t' + row.preprocessed + '\t' + row.target_code + '\n');
+        const line = makeId(row.id, row.flags) + '\t' + row.preprocessed + '\t' + row.target_code + '\n';
+
+        if (coin(argv.eval_prob, rng))
+            argv.eval.write(line);
+        else
+            argv.train.write(line);
     });
     query.on('end', () => {
-        if (output !== process.stdout)
-            output.end();
+        argv.train.end();
+        argv.eval.end();
         dbDone();
         db.tearDown();
     });

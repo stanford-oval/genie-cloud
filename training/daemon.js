@@ -10,6 +10,7 @@
 // See COPYING for details
 "use strict";
 
+const Url = require('url');
 const assert = require('assert');
 const express = require('express');
 const fs = require('fs');
@@ -85,7 +86,9 @@ class TrainingDaemon {
                 text: `Training Job ${job.id}, for devices [${job.forDevices.join(', ')}], failed.
     Check the logs for further information.`
             };
-            SendMail.send(mailOptions);
+            SendMail.send(mailOptions).catch((e) => {
+                console.error(`Failed to send notification email: ${e.message}`);
+            });
         }
 
         fs.appendFileSync('jobs_history', JSON.stringify(this._current_job) + '\n');
@@ -129,10 +132,17 @@ class TrainingDaemon {
             const args = [job.id, job.language, job.modelTag];
             if (job.modelTag !== 'default')
                 args.push(...this._models[job.modelTag]);
-            const script = path.resolve(path.dirname(module.filename), 'train-one.sh');
+            const script = path.resolve(path.dirname(module.filename), 'train.sh');
 
+            const env = {};
+            Object.assign(env, process.env);
+            env.LUINET_PATH = path.resolve(process.cwd(), Config.LUINET_PATH);
+            env.NL_SERVER_ADMIN_TOKEN = Config.NL_SERVER_ADMIN_TOKEN;
+            env.INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
+            env.THINGPEDIA_URL = Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL);
             const child = child_process.spawn(script, args, {
-                stdio: ['ignore', 'inherit', 'inherit', 'pipe']
+                stdio: ['ignore', 'inherit', 'inherit', 'pipe'],
+                env: env
             });
             child.on('error', (err) => {
                 console.error(`Failed to launch job ${job.id}: ${err}`);

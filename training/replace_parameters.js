@@ -200,6 +200,9 @@ module.exports = class ParameterReplacer {
     async _getParamListKey(fn, pname, ptype) {
         if (fn === '$source' || fn === '$executor')
             return ['string', 'tt:person_name'];
+        while (ptype.isArray)
+            ptype = ptype.elem;
+
         if (ptype.isEntity)
             return this._getEntityListKey(ptype.type);
 
