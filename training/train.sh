@@ -63,7 +63,8 @@ mkdir ${WORKDIR}
 mkdir ${JOBDIR}/server
 
 echo "gen_synthetic" 1>&3
-node --max_old_space_size=24000 ${BASEDIR}/update-dataset.js -l ${lang} --all \
+node --max_old_space_size=24000 ${BASEDIR}/update-dataset.js \
+  --language ${lang} \
   --maxdepth ${synthetic_depth} \
   --ppdb ${PPDB}
 
