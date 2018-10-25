@@ -287,7 +287,6 @@ module.exports = class Frontend {
             this._app.use('/thingpedia/developers', require('./routes/thingpedia_developer_console'));
         }
 
-        this._app.use('/publications', require('./routes/publications'));
         this._app.use('/user', require('./routes/user'));
         this._app.use('/admin', require('./routes/admin'));
 
