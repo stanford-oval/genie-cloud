@@ -2,6 +2,8 @@
 In this tutorial, you will create a device for 
 [The Cat API](https://thecatapi.com/) in Thingpedia.
 It gives you cute cat pictures! 
+Since the API returns results in XML format instead of JSON,
+a Javascript package is needed to process the data. 
 
 ## Step 1: setting up your device
 Go to the [Device Creation Page](/thingpedia/upload/create), fill in the following basic information 
@@ -22,20 +24,20 @@ const Tp = require('thingpedia');
 const URL = 'http://thecatapi.com/api/images/get?api_key=<YOUR-API-KEY>&format=xml&type=jpg,png';
 
 module.exports = class CatAPIDevice extends Tp.BaseDevice {
-    constructor(engine, state) {
-        super(engine, state);
-
-        this.uniqueId = 'com.thecatapi';
-        this.name = "The Cat API";
-        this.description = "Where every day is Caturday!";
-    }
-
+    /* 
+    A query function called "get", which returns $count number of cat pictures
+    the "get" before the underscore tells the system this is a "query" function instead of an "action" function
+    the "get" after the underscore indicates the name of the function
+    */
     get_get({ count }) {
         count = count || 1;
         const url = URL + '&results_per_page=' + count;
+        // Tp.Helpers.Http provides wrappers for nodejs http APIs with a Promise interface
+        // In this case an HTTP GET request is sent and it returns a Promise of the result
         return Tp.Helpers.Http.get(url).then((result) => Tp.Helpers.Xml.parseString(result))
         .then((parsed) => {
             const array = parsed.response.data[0].images[0].image;
+            // All queries always return an array. Here we use Array.prototype.map() to create a new Array
             return array.map((image) => {
                 return { image_id: image.id[0], 
                          picture_url: image.url[0],
@@ -45,19 +47,29 @@ module.exports = class CatAPIDevice extends Tp.BaseDevice {
     }
 };
 ``` 
+References: 
+[Node.js HTTP APIs](https://nodejs.org/api/http.html), 
+[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise),
+[Array.prototype.map()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map).
 
 ## Step 2: describing what your device does
 Click on `manifest.tt` on the left panel. Copy the following code to the editor.
 ```tt
 class @com.thecatapi {
-  import loader from @org.thingpedia.v2();
-  import config from @org.thingpedia.config.none();
+  // tell the system this device uses customized js code
+  import loader from @org.thingpedia.v2(); 
 
+  /* 
+    The function to get random cat pictures.
+    Example commands: "show me a cat", "get 3 cats".
+    Qualifiers: 
+      - list: the query returns multiple results  
+  */
   list query get(in opt count: Number,
             out image_id: Entity(com.thecatapi:image_id),
             out picture_url: Entity(tt:picture),
             out link: Entity(tt:url))
-  #_[canonical="get cat on thecatapi"]
+  // confirmation sentence which will be prompted to the users before execution:
   #_[confirmation="cat pictures"]
   #[doc="get `count` many cat pictures"];
 }
@@ -67,11 +79,17 @@ class @com.thecatapi {
 Click on `dataset.tt` on the left panel. Copy the following code to the editor
 ```tt
 dataset @com.thecatapi {
-    query  := @com.thecatapi.get()
-    #_[utterances=["a cat picture","a random cat picture","cats"]];
+  // "utterances" annotation specifies different way to express the command
+  query  := @com.thecatapi.get()
+  #_[utterances=["a cat picture","a random cat picture","cats"]];
 
-    query (p_count :Number)  := @com.thecatapi.get(count=p_count)
-    #_[utterances=["${p_count:const} cat pictures"]];
+  /* 
+    Example command can also have parameters.
+    Each parameter used must specify the type, such that when connecting different 
+    snippets together, the system know what argument can be passed to the parameter.
+  */
+  query (p_count :Number)  := @com.thecatapi.get(count=p_count)
+  #_[utterances=["${p_count:const} cat pictures"]];
 }
 ```
 

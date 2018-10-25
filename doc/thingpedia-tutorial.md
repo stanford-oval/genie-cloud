@@ -1,15 +1,23 @@
-# Tutorial 3: Writing Your Own Device
+# Tutorial 4: Writing Your Own Device
 
 [[toc]]
 
-## Getting started
+In this tutorial, 
+we will use [The Cat API](https://almond.stanford.edu/thingpedia/devices/by-id/com.thecatapi) 
+again as a running example.
+But different from tutorial 2, we will explain more details about each step.
+We encourage you to create a device you are interested in to work through this tutorial.
+To avoid getting into the details of the OAuth authentication or configuration for IoTs too early,
+a public web service which requires no authentication or only needs an API key would be preferred. 
+You can find a collective list of public APIs from [toddmotto/public-apis](https://github.com/toddmotto/public-apis).
+
+## Get started
 A developer account is required to make contributions to Thingpedia. 
 You can request a developer account from [here](/user/request-developer).
 Once you are approved by the Thingpedia administrators
 (you can check your status from [your profile page](/user/profile)),
 you will be able to upload your own devices to Thingpedia and
 enable users to use it through Almond. 
-(We use the term _device_ to refer to both physical device and web service.)
 
 The device creation page lives 
 [here](https://almond.stanford.edu/thingpedia/upload/create).
@@ -20,21 +28,12 @@ It looks like this:
 
 ![screenshot](/images/docs/metadata_page.png)
 
-In the following, we will use 
-[The Cat API](https://almond.stanford.edu/thingpedia/devices/by-id/com.thecatapi) 
-as a running example to go through the steps of creating a device in Thingpedia. 
-We highly recommend you to choose a device you are interested in to work though this tutorial. 
-However, to avoid getting into the details of the OAuth authentication or configuration for IoTs too early,
-a public web service which requires no authentication or only needs an API key would
-be preferred. 
-You can find a collective list of public APIs from [toddmotto/public-apis](https://github.com/toddmotto/public-apis).
-
-
 ---
 
-## Writing the metadata
+## Fill in basic information
 First, you will need to fill some basic _metadata_ about your device, 
-including `ID`, `Name`, `Description`, `Category`, and `Icon`.
+including `ID`, `Name`, `Description`, `Category`, and `Icon`. The information
+will be used to present your device to the users in Thingpedia and Almond clients.
 
 `ID` is a string that **uniquely** identifies the device class. 
 A reverse domain name notation is required. 
@@ -58,9 +57,6 @@ for users to search for your device. It could be one of the following seven doma
 - `Data Management`: e.g., cloud storage services, Github.
 - `Others`: everything else, such as weather, calendar.
 
-These types are also used for categorizing devices. A device without these types will not be
-shown in the device list when users use `help` in Almond.
-
 `Icon` is required to be a `.PNG` file and a 512x512 picture is recommended.
 
 `JS Device Package` is an optional package depending on the type of your device specified 
@@ -69,16 +65,16 @@ function behavior. This will be introduced in detail [later](#writing-js-device-
 
 ---
 
-## Writing the manifest
+## Define the device class
 All devices published on Thingpedia must include _device manifest_ written in ThingTalk, 
 i.e., `manifest.tt`.
-It defines the _device class_ you want to create whose name is the `ID` defined in the metadata. 
+It defines the _device class_ you want to create. 
 Check [Writing Device Class](/doc/thingpedia-tutorial-manifest.md) for the instructions on 
 how to write a device class. 
 
 ---
 
-## Writing the dataset 
+## Supply natural language data 
 In addition to the device manifest, developers are also required to provide example
 natural language utterances corresponding to the functions supported by the device
 in `dataset.tt`.
@@ -92,7 +88,7 @@ Check [Writing Example Commands for Your Device](/doc/thingpedia-tutorial-datase
 for detailed instruction on how to write the examples. 
 
 ---
-## Writing the JS device package
+## Write the JS device package
 Depending on the type of your device, you might need 
 to provide a _device package_ containing the Javascript code
 to describe more details about how the device is configured and how each function behaves. 
@@ -102,7 +98,7 @@ for its tutorial.
 
 --- 
 
-## Publishing and testing on Thingpedia
+## Publish and test on Thingpedia
 
 Once you are ready to let other people try your device, you can publish it on Thingpedia.
 You can submit your device by clicking the `Create` button at the top of the 
