@@ -47,10 +47,10 @@ block content
                   label(for='new-string-license').control-label= _("License")
                   select(name='license').form-control#new-string-license
                     option(value='public-domain',selected=true)= _("Public domain")
-                    option(value='free-permissive',selected=true)= _("Free (permissive)")
-                    option(value='free-copyleft',selected=true)= _("Free (GPL-compatible copyleft)")
-                    option(value='non-commercial',selected=true)= _("Non Commercial (incl. academic licenses)")
-                    option(value='proprietary',selected=true)= _("Proprietary")
+                    option(value='free-permissive')= _("Free (permissive)")
+                    option(value='free-copyleft')= _("Free (GPL-compatible copyleft)")
+                    option(value='non-commercial')= _("Non Commercial (incl. academic licenses)")
+                    option(value='proprietary')= _("Proprietary")
                   span.help-block
                     | By submitting this dataset, you agree to license it with the above choice of license,
                     |  in accordance with the #[a(href='/about/tos') Terms of Service]. You must not upload datasets
