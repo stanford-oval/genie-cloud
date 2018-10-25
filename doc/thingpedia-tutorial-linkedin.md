@@ -1,8 +1,9 @@
 # Tutorial 3: LinkedIn
 
-In the last two tutorials, we have worked on two public services.
-In this tutorial, we will create a personal device: LinkedIn,
-which uses OAuth.  
+In the last two tutorials, we have worked on two public services, New York Times and The Cat API.
+In this tutorial, we will create a personal device: LinkedIn.
+It allows users to link their own LinkedIn accounts by OAuth, query their own LinkedIn
+profiles, and publish posts on LinkedIn.
 
 ## Step 1: set up your device
 Go to the [Device Creation Page](/thingpedia/upload/create), fill in the following basic information 
@@ -10,7 +11,7 @@ about the device:
 
 - ID: `<your-name>.linkedin` (Each device in Thingpedia needs an unique ID, so use your name or email address 
 in the device name to make sure it won't conflict with others)
-- Name: `My LinkIn`
+- Name: `My LinkedIn`
 - Description: `LinkedIn Account in Almond`
 - Category: `Social Network`
 - Icon: choose a PNG file you like (512x512 resolution is recommended)
