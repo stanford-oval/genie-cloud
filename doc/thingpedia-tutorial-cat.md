@@ -78,7 +78,7 @@ dataset @com.thecatapi {
 ## Step 4: submitting the device
 Click the `SAVE` button at the top left corner to submit the device. 
 Congratulation! You made yourself a cat device in Thingpedia. 
-Go to [Thingpedia page](/thingpedia) and search for "cat" to see your device.
+Go to [Thingpedia page](/thingpedia) and search for "my cat api" to see your device.
 
 ## Try your device
 Go to [My Almond](/me). Type in `get cats`. 

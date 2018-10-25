@@ -19,27 +19,33 @@ nav#doc-sidebar
       a.doc-sidebar-subtitle(href='#thingpedia-doc-list',data-toggle='collapse') Thingpedia Documentation
       ul#thingpedia-doc-list(class=(!!currentPage ? 'collapse in' : 'collapse'))
 
-        li(class=(currentPage.startsWith('thingpedia-tutorial') ? 'current' : ''))
+        li(class=(['thingtalk-intro', 'thingpedia-intro'].indexOf(currentPage) >= 0 ? 'current' : ''))
+          a.doc-sidebar-subtitle Overview
+          ul
+            li(class=(currentPage === 'thingpedia-intro' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingpedia-intro.md') Introduction to Almond and Thingpedia
+
+            li(class=(currentPage === 'thingtalk-intro' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
+
+        li(class=(!!currentPage && currentPage.startsWith('thingpedia-tutorial') ? 'current' : ''))
           a.doc-sidebar-subtitle Tutorials
           ul
-            li(class=(currentPage === 'thingpedia-tutorial-overview' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-tutorial-overview.md') Overview
-
             li(class=(currentPage === 'thingpedia-tutorial-nyt' ? 'current' : ''))
               a(href='/thingpedia/developers/thingpedia-tutorial-nyt.md') Tutorial 1: NY Times RSS Feed
 
             li(class=(currentPage === 'thingpedia-tutorial-cat' ? 'current' : ''))
               a(href='/thingpedia/developers/thingpedia-tutorial-cat.md') Tutorial 2: The Cat API
 
-            li(class=(currentPage === 'thingpedia-tutorial' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-tutorial.md') Tutorial 3: Create Your Own Device
+            li(class=(currentPage === 'thingpedia-tutorial-linkedin' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingpedia-tutorial-linkedin.md') Tutorial 3: LinkedIn
 
-        li(class=(['thingpedia-device-intro-auth-n-discovery', 'thingpedia-device-with-zero-code', 'thingpedia-error-handling', 'thingpedia-nl-support', 'thingtalk-intro'].indexOf(currentPage) >= 0 ? 'current' : ''))
+            li(class=(currentPage === 'thingpedia-tutorial' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingpedia-tutorial.md') Tutorial 4: Write Your Own Device
+
+        li(class=(['thingpedia-device-intro-auth-n-discovery', 'thingpedia-device-with-zero-code', 'thingpedia-error-handling', 'thingpedia-nl-support'].indexOf(currentPage) >= 0 ? 'current' : ''))
           a.doc-sidebar-subtitle Topic Guides
           ul
-            li(class=(currentPage === 'thingtalk-intro' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingtalk-intro.md') ThingTalk by Examples
-
             li(class=(currentPage === 'thingpedia-nl-support' ? 'current' : ''))
               a(href='/thingpedia/developers/thingpedia-nl-support.md') Natural Language Support for Devices
 

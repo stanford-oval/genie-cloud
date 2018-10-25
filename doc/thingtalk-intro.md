@@ -1,4 +1,4 @@
-# ThingTalk by Examples
+# Introduction to ThingTalk
 
 [[toc]]
 
@@ -6,16 +6,18 @@
 
 Almond is a _programmable virtual assistant_, that is, every command that the user issues is
 translated into a programming language, called ThingTalk and then executed. ThingTalk is a _declarative
-domain-specific language_, which means it's a language that we specifically developed
-for the Internet of Things (hence the name) and it does not use common constructs
-like `for`, `if` or `while` statements, providing a higher level abstraction for connecting
+domain-specific language_ we specifically developed for the Internet of Things.
+It provides a higher level abstraction for connecting
 things, while hiding the details of configuration and networking.
 
 ## What can I write in ThingTalk?
 
-ThingTalk is similar in spirit to the well-known
-[IFTTT](https://ifttt.com/) service, but provides a more powerful and flexible way to express
-more complicated tasks.
+ThingTalk provides a powerful and flexible way to express complicated tasks.
+
+A ThingTalk program has a simple construct: `stream => query => action`
+where each of `stream`, `query`, and `action` can b
+Stream determines when the rest of the program. 
+
 
 A ThingTalk program is composed of a list of _rules_, each terminated by a semicolon.
 A rule combines a _stream_,  a _query_ (optional), and an _action_ in order.

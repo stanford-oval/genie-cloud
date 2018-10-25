@@ -1,4 +1,4 @@
-# Writing Thingpedia Entries
+# Tutorial 3: Writing Your Own Device
 
 [[toc]]
 
