@@ -45,7 +45,7 @@ class @com.nytimes {
   // if the query is monitored, how frequent we invoke it
   #[poll_interval=60min] 
   #[doc="read the front page of the New York Times"]
-  // the URL of the API endpoint
+  // the URL of RSS feed
   #[url="http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"];
 }
 ```

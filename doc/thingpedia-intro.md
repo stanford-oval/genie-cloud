@@ -28,12 +28,12 @@ complicated tasks with a single command, such as
 
 ## How Almond works? 
 Almond virtual assistant has two major components:
-_Almond agent_ which communicates with the users in natural language, and
-_Almond engine_ which runs the commands issued by the users. 
-The following diagram illustrates how Almond works internally.
+the _Almond agent_ communicates with the users in natural language, and
+the _Almond engine_ runs the commands issued by the users. 
+The following diagram illustrates how Almond works internally:
 ![architecture](/images/thingengine-arch.svg)
 
-1. A user issues a command, say "get my recent tweets", in English.
+1. A user issues a command, say “get my recent tweets”, in English.
 
 2. Almond agent translates the command to the corresponding [ThingTalk](/doc/thingtalk-intro.md) program 
 and send it to Almond engine.
@@ -56,14 +56,14 @@ to OAuth page to link his account to Almond.
 We prepared a series of tutorials to show you how to create devices in Thingpedia. 
 Two major components, `manifest.tt` and `dataset.tt`, are needed.
 `manifest.tt` contains the manifest of the device, describing what the device does, including the 
-authentication method, the signature of the functions;
+authentication method and the signature of the functions;
 `dataset.tt` contains example command-utterance pairs for training the natural language
 parser. 
 
 If the device you want to create gets results from a standard RSS Feed
 or RESTful APIs in JSON, these two files are sufficient 
 (see [Tutorial 1](/doc/thingpedia-tutorial-nyt.md) for an example).
-If you want customized behavior, such as customized authentication, computation on the returned
+If you want customized behavior, such as customized authentication, or compute on the returned
 results from the API endpoints, you can submit a Javascript package to describe 
 the behavior of your device as well. 
 See [Tutorial 2](/doc/thingpedia-tutorial-cat.md) and 

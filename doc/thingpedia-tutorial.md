@@ -5,10 +5,10 @@
 In this tutorial, 
 we will use [The Cat API](https://almond.stanford.edu/thingpedia/devices/by-id/com.thecatapi) 
 again as a running example.
-But different from tutorial 2, we will explain more details about each step.
+But unlike Tutorial 2, we will explain more details about each step.
 We encourage you to create a device you are interested in to work through this tutorial.
 To avoid getting into the details of the OAuth authentication or configuration for IoTs too early,
-a public web service which requires no authentication or only needs an API key would be preferred. 
+we recommend to try a public web service which requires no authentication or only needs an API key. 
 You can find a collective list of public APIs from [toddmotto/public-apis](https://github.com/toddmotto/public-apis).
 
 ## Get started

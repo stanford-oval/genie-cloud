@@ -52,8 +52,8 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
     }
 
     /* 
-    A user might have multiple accounts for non-public services.
-    Thus we need to have a unique ID to identify different instance of the class.
+    A user might have multiple accounts for non-public services and devices.
+    Thus we need to have an unique ID to identify different instances of the class.
     And optionally, we give each instance a different name and description, so
     that users can easily tell which account a device instance associates with 
     in their device list. 
@@ -71,6 +71,12 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
     The "get_" prefix indicates this is a query, not an action
     */
     get_get_profile() {
+        /* 
+        Tp.Helpers.Http provides wrappers for nodejs http APIs with a Promise interface.
+        In this case an HTTP GET request is sent to PROFILE_URL
+        with the options including the auth information and expected output type,
+        and then returns a Promise of the response.
+        */
         return Tp.Helpers.Http.get(PROFILE_URL, {
             useOAuth2: this,
             accept: 'application/json' }).then((response) => {
@@ -90,6 +96,10 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
     The "do_" prefix indicates this is an action, not a query
     */
     do_share({ status }) {
+        /* 
+        Send an HTTP POST request to SHARE_URL with the data we want to post.
+        Options includes the auth information, the format of the data, and expected output type 
+        */
         return Tp.Helpers.Http.post(SHARE_URL, JSON.stringify({
             comment: status,
             visibility: {
@@ -103,6 +113,10 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
     }
 };
 ```
+References: 
+[Node.js HTTP APIs](https://nodejs.org/api/http.html), 
+[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise),
+[Array.prototype.map()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map).
 
 ## Step 2: describe what your device does
 Click on `manifest.tt` on the left panel. Copy the following code to the editor:
