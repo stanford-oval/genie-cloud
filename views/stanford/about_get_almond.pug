@@ -1,11 +1,11 @@
 extends ../layout
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/conversation.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/conversation.css')
 
 block scripts
   if ENABLE_ANONYMOUS_USER
-    script(src='/javascripts/conversation.js')
+    script(src=Config.ASSET_CDN + '/javascripts/conversation.js')
 
 block page_name
   = _("Getting Almond")

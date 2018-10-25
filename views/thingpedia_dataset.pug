@@ -4,7 +4,7 @@ block page_name
   = _("Dataset: %s/%s").format(language, type)
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/thingpedia-dataset.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-dataset.css')
 
 block content
   nav

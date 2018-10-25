@@ -1,10 +1,10 @@
 extends layout
 
 block scripts
-  script(src='/javascripts/thingpedia-portal.js')
+  script(src=Config.ASSET_CDN + '/javascripts/thingpedia-portal.js')
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
 
 block page_name
   - stdlayout = false;

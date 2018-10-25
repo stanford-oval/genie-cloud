@@ -1,7 +1,7 @@
 extends ../layout
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/index.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/index.css')
 
 block page_name
   - stdlayout = false;
@@ -107,8 +107,8 @@ block content
                 | With GDPR, individuals can get access to all their personal information in the cloud and share them at will.
 
             div.col-md-6
-              img(src='/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
-              img(src='/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
+              img(src=Config.ASSET_CDN + '/images/comma-security-camera-example.svg',alt=_("A dad can access the security camera of his daughter, until certain conditions specified by her."))
+              img(src=Config.ASSET_CDN + '/images/comma-arch.svg',alt=_("The architecture of communicating virtual assistants."))
 
       section.divider
         h3= _("Natural-language Programming Methodology")
@@ -137,7 +137,7 @@ block content
                 | to generate not just functional, but aesthetically pleasing, apps.
           div.row
             div.col-xs-12
-              img(src='/images/style-transfer.png',alt=("Apply style transfer to virtual assistant GUI."),width="100%")
+              img(src=Config.ASSET_CDN + '/images/style-transfer.png',alt=("Apply style transfer to virtual assistant GUI."),width="100%")
 
       section.divider
         h3= _("Inter-Virtual Assistant Communication")
@@ -156,7 +156,7 @@ block content
                 | Ann’s father can simply say "Show me Ann's security camera", his virtual assistant can automatically
                 | execute the command on Ann’s virtual assistant using DTP, provided Ann has given permission.
             div.col-md-6
-              img(src='/images/dtp-arch-diagram.png',alt=("Apply style transfer to virtual assistant GUI."),width="100%")
+              img(src=Config.ASSET_CDN + '/images/dtp-arch-diagram.png',alt=("Apply style transfer to virtual assistant GUI."),width="100%")
       section.divider
         h3= _("Research Agenda")
         div.container

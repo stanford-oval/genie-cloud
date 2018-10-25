@@ -20,6 +20,16 @@ module.exports.FILE_STORAGE_BACKEND = 'local';
 // If using the `local` storage backend, it must be the exact string "/download"
 module.exports.CDN_HOST = '/download';
 
+// The CDN to use for website assets (javascript, css, images files contained in public/ )
+// If you are using CloudFront+S3, you can use `./scripts/sync-assets-to-s3.sh ${s3_bucket}`
+// to upload the assets. If you are using CloudFront+ELB, you can simply point the
+// CDN to the almond-cloud website; the website will act as origin server for the content
+// and set appropriate cache headers.
+// Use a fully qualified URL (including https://) and omit the trailing slash.
+// Leave blank if you do not want to use a CDN, in which case assets will
+// be loaded directly from the almond-cloud website.
+module.exports.ASSET_CDN = '';
+
 module.exports.THINGENGINE_MANAGER_ADDRESS = './control';
 module.exports.THINGENGINE_DIRECT_ADDRESS = './direct';
 module.exports.BING_KEY = '';

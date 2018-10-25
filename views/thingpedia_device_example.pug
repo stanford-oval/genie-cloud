@@ -1,15 +1,15 @@
 extends layout
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/codemirror.css')
-  link(rel='stylesheet', href='/stylesheets/lint.css')
-  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/codemirror.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/lint.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
 
 block scripts
-  script(src='/javascripts/jsonlint.js')
-  script(src='/javascripts/codemirror.js')
-  script(src='/javascripts/jsoneditor.min.js')
-  script(src='/javascripts/thingpedia-device-create.js')
+  script(src=Config.ASSET_CDN + '/javascripts/jsonlint.js')
+  script(src=Config.ASSET_CDN + '/javascripts/codemirror.js')
+  script(src=Config.ASSET_CDN + '/javascripts/jsoneditor.min.js')
+  script(src=Config.ASSET_CDN + '/javascripts/thingpedia-device-create.js')
 
 block content
   h1=_("Example Thingpedia upload/update page")

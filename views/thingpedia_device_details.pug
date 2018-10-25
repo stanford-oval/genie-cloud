@@ -1,12 +1,12 @@
 extends layout
 
 block scripts
-  script(src='/javascripts/device.js')
+  script(src=Config.ASSET_CDN + '/javascripts/device.js')
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/codemirror.css')
-  link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
-  link(rel='stylesheet', href='/stylesheets/thingpedia-cheatsheet.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/codemirror.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-cheatsheet.css')
 
 block page_name
   if device.category === 'online'

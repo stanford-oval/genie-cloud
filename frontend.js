@@ -187,7 +187,6 @@ module.exports = class Frontend {
             res.locals.THINGPEDIA_URL = Config.THINGPEDIA_URL;
             res.locals.WITH_THINGPEDIA = Config.WITH_THINGPEDIA;
             res.locals.ENABLE_ANONYMOUS_USER = Config.ENABLE_ANONYMOUS_USER;
-            res.locals.IS_ALMOND_WEBSITE = IS_ALMOND_WEBSITE;
             next();
         });
 

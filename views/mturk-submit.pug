@@ -1,7 +1,7 @@
 extends layout
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/mturk.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/mturk.css')
 
 block page_name
   = _('Thank You!')

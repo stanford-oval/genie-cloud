@@ -9,16 +9,15 @@ html
     //,integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7",crossorigin="anonymous")
     link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css')
     link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic")
-    link(rel='stylesheet', href='/stylesheets/bootstrap.min.css')
-    //link(rel='stylesheet', href='/stylesheets/agency.min.css')
-    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/bootstrap.min.css')
+    link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/style.css')
     block styles
     script(src="//code.jquery.com/jquery-1.11.2.min.js")
     script(src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js")
     //,integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous")
-    script(src='/javascripts/validator.min.js')
-    script(src='/javascripts/jstz.min.js')
-    script(src='/javascripts/shared.js')
+    script(src=Config.ASSET_CDN + '/javascripts/validator.min.js')
+    script(src=Config.ASSET_CDN + '/javascripts/jstz.min.js')
+    script(src=Config.ASSET_CDN + '/javascripts/shared.js')
     block scripts
 
   - var index = false;

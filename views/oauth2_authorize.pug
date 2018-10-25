@@ -1,7 +1,7 @@
 extends layout
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/oauth2.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/oauth2.css')
 
 block page_name
   - var index = true;

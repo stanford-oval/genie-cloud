@@ -4,7 +4,7 @@ block page_name
   = _("Thingpedia Developer Organizations")
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/admin.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/admin.css')
 
 block content
   if page_num >= 0

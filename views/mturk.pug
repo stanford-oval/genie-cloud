@@ -1,10 +1,10 @@
 extends layout
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/mturk.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/mturk.css')
 
 block scripts
-  script(src='/javascripts/mturk_check.js')
+  script(src=Config.ASSET_CDN + '/javascripts/mturk_check.js')
 
 block page_name
   - var stdlayout = false;

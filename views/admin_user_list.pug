@@ -4,10 +4,10 @@ block page_name
   = _("Almond User List")
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/admin.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/admin.css')
 
 block scripts
-  script(src='/javascripts/admin.js')
+  script(src=Config.ASSET_CDN + '/javascripts/admin.js')
 
 block content
   div.navbar.navbar-default#user-search-navbar
