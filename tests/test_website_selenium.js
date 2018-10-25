@@ -14,6 +14,7 @@ require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
 
 const assert = require('assert');
+const Tp = require('thingpedia');
 
 const WD = require('selenium-webdriver');
 const chrome = require('selenium-webdriver/chrome');
@@ -47,6 +48,38 @@ async function withSelenium(test) {
     }
 }
 
+const _checkedImages = new Set;
+
+/**
+ * Check that all images have URLs that return a valid image
+ * (valid HTTP status and valid content-type).
+ */
+async function checkAllImages(driver) {
+    const currentUrl = await driver.getCurrentUrl();
+    const images = await driver.findElements(WD.By.css('img'));
+
+    await Promise.all(images.map(async (img) => {
+        const src = await img.getAttribute('src');
+
+        // small optimization: we only check an image once
+        // (we don't have dynamic images)
+        // (we still need to use selenium to check images rather than
+        // a linkchecker-style approach to make sure we catch JS-added
+        // images)
+        if (_checkedImages.has(src))
+            return;
+        _checkedImages.add(src);
+
+        // this is not exactly what the browser does
+        const res = await Tp.Helpers.Http.getStream(src, { extraHeaders: {
+            Referrer: currentUrl
+        }});
+        assert(res.headers['content-type'].startsWith('image/'),
+               `expected image/* content type for image, found ${res['content-type']}`);
+        res.resume();
+    }));
+}
+
 async function fillFormField(driver, id, ...value) {
     const entry = await driver.findElement(WD.By.id(id));
     await entry.sendKeys(...value);
@@ -58,11 +91,13 @@ async function login(driver, username, password) {
     const loginLink = await driver.wait(
         WD.until.elementLocated(WD.By.linkText('Log In')),
         30000);
+    await checkAllImages(driver);
     await loginLink.click();
 
     const submit = await driver.wait(
         WD.until.elementLocated(WD.By.css('button.btn.btn-primary[type=submit]')),
         30000);
+    await checkAllImages(driver);
 
     await fillFormField(driver, 'username', username);
     await fillFormField(driver, 'password', password);
@@ -70,14 +105,32 @@ async function login(driver, username, password) {
     await submit.click();
 }
 
-async function testBasic(driver) {
+async function testHomepage(driver) {
     await driver.get(BASE_URL + '/');
 
     const title = await driver.wait(
         WD.until.elementLocated(WD.By.id('almond-title')),
         30000);
+    await checkAllImages(driver);
 
     assert.strictEqual(await title.getText(), 'Almond');
+
+    const subtitle = await driver.findElement(WD.By.id('almond-subtitle'));
+    if (Config.ABOUT_OVERRIDE['index'] === 'stanford/about_index.pug')
+        assert.strictEqual(await subtitle.getText(), 'The Stanford Open Virtual Assistant Project');
+    else
+        assert.strictEqual(await subtitle.getText(), 'The Open Virtual Assistant');
+
+    if (Config.WITH_THINGPEDIA === 'embedded') {
+        await driver.wait(WD.until.elementLocated(WD.By.css('#command-container .command-utterance')),
+            30000);
+
+        const commands = await driver.findElements(WD.By.css('#command-container .command-utterance'));
+        assert.strictEqual(commands.length, 1);
+
+        assert.strictEqual(await commands[0].getText(), 'every day at 9:00 AM set my laptop background to pizza images');
+        assert.strictEqual(await commands[0].getAttribute('title'), '( attimer time = TIME_0 ) join ( @com.bing.image_search param:query:String = " pizza " ) => @org.thingpedia.builtin.thingengine.gnome.set_background on  param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture)');
+    }
 }
 
 async function skipDataCollectionConfirmation(driver) {
@@ -85,6 +138,7 @@ async function skipDataCollectionConfirmation(driver) {
     await driver.wait(
         WD.until.elementLocated(WD.By.css('.message')),
         30000);
+    await checkAllImages(driver);
 
     let messages = await driver.findElements(WD.By.css('.message'));
     assert.strictEqual(await messages[0].getText(), `Hello! I'm Almond, your virtual assistant.`); //'
@@ -113,6 +167,7 @@ async function testMyConversation(driver) {
     const inputEntry = await driver.wait(
         WD.until.elementLocated(WD.By.id('input')),
         30000);
+    await checkAllImages(driver);
 
     let messages = await driver.findElements(WD.By.css('.message'));
     assert.strictEqual(messages.length, 1);
@@ -154,12 +209,14 @@ async function testRegister(driver) {
         const getAlmond = await driver.wait(
             WD.until.elementLocated(WD.By.linkText('Get Almond')),
             30000);
+        await checkAllImages(driver);
 
         await getAlmond.click();
 
         const createAccount = await driver.wait(
             WD.until.elementLocated(WD.By.linkText('Create An Account')),
             30000);
+        await checkAllImages(driver);
 
         await createAccount.click();
     } else {
@@ -168,12 +225,14 @@ async function testRegister(driver) {
         const logIn = await driver.wait(
             WD.until.elementLocated(WD.By.linkText('Log In')),
             30000);
+        await checkAllImages(driver);
 
         await logIn.click();
 
         const signUpNow = await driver.wait(
             WD.until.elementLocated(WD.By.linkText('Sign up now!')),
             30000);
+        await checkAllImages(driver);
 
         await signUpNow.click();
     }
@@ -245,7 +304,7 @@ async function testRegister(driver) {
 }
 
 async function main() {
-    await withSelenium(testBasic);
+    await withSelenium(testHomepage);
     await withSelenium(testMyConversation);
     await withSelenium(testRegister);
 }

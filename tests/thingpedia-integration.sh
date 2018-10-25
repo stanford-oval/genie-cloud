@@ -20,10 +20,6 @@ module.exports.WITH_THINGPEDIA = 'embedded';
 module.exports.THINGPEDIA_URL = '/thingpedia';
 EOF
 
-# clean the database and bootstrap
-mysql -u thingengine -pthingengine -h localhost -D thingengine_test < $srcdir/model/schema.sql
-node $srcdir/scripts/bootstrap.js
-
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
@@ -49,9 +45,13 @@ done
 mkdir -p $workdir/shared/cache
 echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
 
-# load some more data into Thingpedia
+# clean the database and bootstrap
 # (this has to occur after setting up the download
-# directories because it copies the zip file)
+# directories because it copies the icon png files)
+mysql -u thingengine -pthingengine -h localhost -D thingengine_test < $srcdir/model/schema.sql
+node $srcdir/scripts/bootstrap.js
+
+# load some more data into Thingpedia
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
 eval $(node $srcdir/tests/load_test_thingpedia.js)
 

@@ -10,12 +10,7 @@
 
 "use strict";
 
-const path = require('path');
-const Q = require('q');
-const fs = require('fs');
 const colorExtractor = require('img-color-extractor');
-
-const TARGET_JSON = path.resolve(path.dirname(module.filename), '../public/friendhub/backgrounds/color_schemes.json');
 
 const defaultsOptions = {
     background: '#FFFFFF',
@@ -25,54 +20,32 @@ const defaultsOptions = {
 };
 
 const ColorScheme = require('color-scheme');
-const scheme = new ColorScheme;
 
-function makeColorScheme(stream) {
-    return colorExtractor.extract(stream, defaultsOptions).then((colors_dominant) => {
-        if(colors_dominant[0].color === "#ffffff")
-            colors_dominant.shift();
-        
-        colors_dominant = colors_dominant.map((color) => color.color);
-        let color_dominant = colors_dominant[0];
-        color_dominant = color_dominant.replace(/^#/, '');
+module.exports = async function makeColorScheme(stream) {
+    let colors_dominant = await colorExtractor.extract(stream, defaultsOptions);
+    const scheme = new ColorScheme;
 
+    if (colors_dominant[0].color === "#ffffff")
+        colors_dominant.shift();
 
-        let colors_palette_default = scheme.from_hex(color_dominant)
-            .scheme('contrast')
-            .variation('default')
-            .colors()
-            .map((color) => "#" + color);
+    colors_dominant = colors_dominant.map((color) => color.color);
+    const color_dominant = colors_dominant[0].replace(/^#/, '');
 
-        let colors_palette_light = scheme.from_hex(color_dominant)
-            .scheme('contrast')
-            .variation('light')
-            .colors()
-            .map((color) => "#" + color);
+    const colors_palette_default = scheme.from_hex(color_dominant)
+        .scheme('contrast')
+        .variation('default')
+        .colors()
+        .map((color) => "#" + color);
 
-        return [colors_dominant, colors_palette_default, colors_palette_light];
-    });
-}
+    const colors_palette_light = scheme.from_hex(color_dominant)
+        .scheme('contrast')
+        .variation('light')
+        .colors()
+        .map((color) => "#" + color);
 
-function processOneDevice(path, kind, into) {
-    return Promise.resolve(fs.createReadStream(path)).then((stream) => {
-        return makeColorScheme(stream);
-    }).then(([colors_dominant, colors_palette_default, colors_palette_light]) => {
-        console.log('processed ' + kind);
-        into[kind] = {
-            colors_dominant, colors_palette_default, colors_palette_light
-        };
-    }).catch((e) => {
-        console.error('failed to process ' + kind, e);
-        into[kind] = {};
-    });
-}
-
-function updateColorScheme(path, kind) {
-    return Q.nfcall(fs.readFile, TARGET_JSON).then((data) => JSON.parse(data)).then((parsed) => {
-         return processOneDevice(path, kind, parsed).then(() => {
-             return Q.nfcall(fs.writeFile, TARGET_JSON, JSON.stringify(parsed, undefined, 2));
-         });
-    });
-}
-
-module.exports = updateColorScheme;
+    return {
+        colors_dominant: JSON.stringify(colors_dominant),
+        colors_palette_default: JSON.stringify(colors_palette_default),
+        colors_palette_light: JSON.stringify(colors_palette_light)
+    };
+};

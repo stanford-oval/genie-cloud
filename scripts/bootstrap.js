@@ -26,12 +26,12 @@ const user = require('../util/user');
 const organization = require('../model/organization');
 const entityModel = require('../model/entity');
 const stringModel = require('../model/strings');
-const schemaModel = require('../model/schema');
 const { makeRandom } = require('../util/random');
 
 const Importer = require('../util/import_device');
 const { clean } = require('../util/tokenize');
 const TokenizerService = require('../util/tokenizer_service');
+const platform = require('../util/platform');
 
 const Config = require('../config');
 
@@ -150,6 +150,16 @@ async function importStandardSchemas(dbClient, rootOrg) {
         [CATEGORIES.map((c) => [c, 'category', rootOrg.id, 0, 0, clean(c)])]);
 }
 
+function getBuiltinIcon(kind) {
+    switch (kind) {
+    case 'org.thingpedia.builtin.bluetooth.generic':
+    case 'org.thingpedia.builtin.matrix':
+        return kind;
+    default:
+        return 'org.thingpedia.builtin.thingengine.builtin';
+    }
+}
+
 async function importBuiltinDevices(dbClient, rootOrg) {
     const BUILTIN_DEVICES = [
         'org.thingpedia.builtin.thingengine',
@@ -174,13 +184,20 @@ async function importBuiltinDevices(dbClient, rootOrg) {
             const filename = path.resolve(path.dirname(module.filename), '../data/' + primaryKind + '.yaml');
             manifest = yaml.safeLoad((await util.promisify(fs.readFile)(filename)).toString(), { filename });
         }
+
+        const iconPath = path.resolve(path.dirname(module.filename),
+                                      '../data/' + getBuiltinIcon(primaryKind) + '.png');
+
         await Importer.importDevice(dbClient, req, primaryKind, manifest, {
             owner: rootOrg.id,
+            iconPath: iconPath
         });
     }
 }
 
 async function main() {
+    platform.init();
+
     await db.withTransaction(async (dbClient) => {
         const rootOrg = await createRootOrg(dbClient);
         await createDefaultUsers(dbClient, rootOrg);

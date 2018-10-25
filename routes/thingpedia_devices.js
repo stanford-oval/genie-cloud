@@ -79,7 +79,6 @@ function getDetails(fn, param, req, res) {
         assert(parsed.isMeta && parsed.classes.length > 0);
         const classDef = parsed.classes[0];
 
-
         examples = DatasetUtils.sortAndChunkExamples(examples);
 
         var title;
@@ -88,7 +87,7 @@ function getDetails(fn, param, req, res) {
         else
             title = req._("Thingpedia - Device details");
 
-        const downloadable = Importer.isDownloadable(classDef);
+        const downloadable = version !== null ? Importer.isDownloadable(classDef) : false;
         if (downloadable) {
             device.download_url = await codeStorage.getDownloadLocation(device.primary_kind, version,
                 device.approved_version === null || version > device.approved_version);

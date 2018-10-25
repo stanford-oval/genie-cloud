@@ -42,6 +42,7 @@ async function loadAllDevices(dbClient, bob, root) {
     const invisible = require('./data/org.thingpedia.builtin.test.invisible.manifest.json');
     await Importer.importDevice(dbClient, req, 'org.thingpedia.builtin.test.invisible', invisible, {
         owner: req.user.developer_org,
+        iconPath: path.resolve(path.dirname(module.filename), '../data/org.thingpedia.builtin.thingengine.builtin.png'),
         approve: false
     });
 
@@ -49,6 +50,7 @@ async function loadAllDevices(dbClient, bob, root) {
     await Importer.importDevice(dbClient, req, 'com.bing', bing, {
         owner: req.user.developer_org,
         zipFilePath: path.resolve(path.dirname(module.filename), './data/com.bing.zip'),
+        iconPath: path.resolve(path.dirname(module.filename), './data/com.bing.png'),
         approve: true
     });
 
@@ -58,6 +60,7 @@ async function loadAllDevices(dbClient, bob, root) {
     const adminonly = require('./data/org.thingpedia.builtin.test.adminonly.manifest.json');
     await Importer.importDevice(dbClient, req, 'org.thingpedia.builtin.test.adminonly', adminonly, {
         owner: req.user.developer_org,
+        iconPath: path.resolve(path.dirname(module.filename), '../data/org.thingpedia.builtin.thingengine.builtin.png'),
         approve: false
     });
 }
@@ -97,10 +100,27 @@ async function loadStringValues(dbClient) {
     }
 }
 
-async function loadExamples(dbClient) {
+async function loadExamples(dbClient, bob) {
     const { id: schemaId } = await db.selectOne(dbClient, `select id from device_schema where kind = 'org.thingpedia.builtin.test'`);
 
     await exampleModel.createMany(dbClient, [
+    // commandpedia
+    {
+        id: 999,
+        schema_id: null,
+        is_base: false,
+        language: 'en',
+        utterance: 'every day at 9:00 AM set my laptop background to pizza images',
+        preprocessed: 'every day at TIME_0 set my laptop background to pizza images',
+        target_json: '',
+        target_code: '( attimer time = TIME_0 ) join ( @com.bing.image_search param:query:String = " pizza " ) => @org.thingpedia.builtin.thingengine.gnome.set_background on  param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture)',
+        type: 'commandpedia',
+        owner: bob.id,
+        click_count: 0,
+        flags: '',
+    },
+
+    // thingpedia
     {
         id: 1000,
         schema_id: schemaId,
@@ -178,7 +198,8 @@ async function loadExamples(dbClient) {
         type: 'thingpedia',
         click_count: 0,
         flags: 'template'
-    }
+    },
+
     ]);
 }
 
@@ -210,7 +231,7 @@ async function main() {
         await loadAllDevices(dbClient, bob, root);
         await loadEntityValues(dbClient);
         await loadStringValues(dbClient);
-        await loadExamples(dbClient);
+        await loadExamples(dbClient, bob);
 
         console.log(`export DEVELOPER_KEY="${newOrg.developer_key}"`);
     });
