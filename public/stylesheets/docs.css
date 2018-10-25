@@ -43,3 +43,9 @@ img[alt=screenshot] {
   margin: auto;
   max-width: 800px;
 }
+
+img[alt=architecture] {
+  display: block;
+  margin: auto;
+  max-width: 600px;
+}

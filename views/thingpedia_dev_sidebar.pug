@@ -1,7 +1,12 @@
 nav#doc-sidebar
   ul
-    li(class=(section === 'overview' ? 'current' : ''))
-      a.doc-sidebar-subtitle(href='/thingpedia/developers') Overview
+
+    if authenticated && user.developer_org !== null
+      li(class=(section === 'overview' ? 'current' : ''))
+        a.doc-sidebar-subtitle(href='/thingpedia/developers') Home
+    else
+      li(class=(section === 'overview' ? 'current' : ''))
+        a.doc-sidebar-subtitle(href='/thingpedia/developers') Overview
     if authenticated && user.developer_org !== null
       li(class = (section === 'status' ? 'current' : ''))
         a.doc-sidebar-subtitle(href='/thingpedia/developers/status') Almond Status and Logs
@@ -13,29 +18,33 @@ nav#doc-sidebar
     li.thingpedia-docs
       a.doc-sidebar-subtitle(href='#thingpedia-doc-list',data-toggle='collapse') Thingpedia Documentation
       ul#thingpedia-doc-list(class=(!!currentPage ? 'collapse in' : 'collapse'))
-        li(class=(['getting-started', 'thingtalk-intro'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          p.doc-sidebar-subtitle For Users
+
+        li(class=(['thingtalk-intro', 'thingpedia-intro'].indexOf(currentPage) >= 0 ? 'current' : ''))
+          a.doc-sidebar-subtitle Overview
           ul
-            li(class=(currentPage === 'getting-started' ? 'current' : ''))
-              a(href='/thingpedia/developers/getting-started.md') Getting Started with Almond
+            li(class=(currentPage === 'thingpedia-intro' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingpedia-intro.md') Introduction to Almond and Thingpedia
 
             li(class=(currentPage === 'thingtalk-intro' ? 'current' : ''))
               a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
 
-        li(class=(['thingpedia-tutorial', 'thingpedia-device-intro-auth-n-discovery', 'thingpedia-tutorial-dataset', 'thingpedia-device-with-zero-code', 'thingpedia-tutorial-manifest', 'thingpedia-error-handling', 'thingpedia-nl-support'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          p.doc-sidebar-subtitle For Thingpedia Contributors
-          p.doc-sidebar-subsubtitle Tutorials
+        li(class=(!!currentPage && currentPage.startsWith('thingpedia-tutorial') ? 'current' : ''))
+          a.doc-sidebar-subtitle Tutorials
           ul
+            li(class=(currentPage === 'thingpedia-tutorial-nyt' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingpedia-tutorial-nyt.md') Tutorial 1: NY Times RSS Feed
+
+            li(class=(currentPage === 'thingpedia-tutorial-cat' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingpedia-tutorial-cat.md') Tutorial 2: The Cat API
+
+            li(class=(currentPage === 'thingpedia-tutorial-linkedin' ? 'current' : ''))
+              a(href='/thingpedia/developers/thingpedia-tutorial-linkedin.md') Tutorial 3: LinkedIn
+
             li(class=(currentPage === 'thingpedia-tutorial' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-tutorial.md') Writing Thingpedia Entries
+              a(href='/thingpedia/developers/thingpedia-tutorial.md') Tutorial 4: Write Your Own Device
 
-            li(class=(currentPage === 'thingpedia-tutorial-manifest' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-tutorial-manifest.md') Writing Device Classes
-
-            li(class=(currentPage === 'thingpedia-tutorial-dataset' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-tutorial-dataset.md') Adding Natural Language
-
-          p.doc-sidebar-subsubtitle Topic Guides
+        li(class=(['thingpedia-device-intro-auth-n-discovery', 'thingpedia-device-with-zero-code', 'thingpedia-error-handling', 'thingpedia-nl-support'].indexOf(currentPage) >= 0 ? 'current' : ''))
+          a.doc-sidebar-subtitle Topic Guides
           ul
             li(class=(currentPage === 'thingpedia-nl-support' ? 'current' : ''))
               a(href='/thingpedia/developers/thingpedia-nl-support.md') Natural Language Support for Devices
@@ -50,7 +59,7 @@ nav#doc-sidebar
               a(href='/thingpedia/developers/thingpedia-error-handling.md') Error Handling
 
         li(class=(['my-api', 'almond-dialog-api-reference'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          a.doc-sidebar-subtitle For Almond Integrators
+          a.doc-sidebar-subtitle Almond Integration APIs
           ul
             li(class=(currentPage === 'my-api' ? 'current' : ''))
               a(href='/thingpedia/developers/my-api.md') Web Almond API
