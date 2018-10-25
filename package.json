@@ -29,7 +29,7 @@
   },
   "resolutions": {
     "thingpedia-client": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client",
-    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk",
+    "thingtalk": "~1.3.0",
     "thingengine-core": "github:Stanford-Mobisocial-IoT-Lab/thingengine-core"
   },
   "dependencies": {
@@ -91,7 +91,7 @@
     "thingpedia": "^2.2.2",
     "thingpedia-client": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client",
     "thingpedia-discovery": "^1.0.0",
-    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/ThingTalk",
+    "thingtalk": "~1.3.0",
     "tmp": "0.0.33",
     "transparent-rpc": "^0.0.1",
     "url": "~0.10.3",
