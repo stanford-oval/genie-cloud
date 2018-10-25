@@ -173,7 +173,9 @@ class ThingTalkTrainer {
         } else {
             let thingtalk = $('#input-command-thingtalk').val();
             if (thingtalk.length > 0) {
-                this._learnThingTalk(thingtalk).then(() => {
+                Promise.resolve().then(() => {
+                    return this._learnThingTalk(thingtalk);
+                }).then(() => {
                     $('#thingtalk-group').removeClass('has-error');
                     $('#thingtalk-error').text('');
                     this._updateConfirmation();
