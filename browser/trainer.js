@@ -170,7 +170,9 @@ class ThingTalkTrainer {
         event.preventDefault();
 
         var tt = $('#thingtalk').val();
-        this._learnThingTalk(tt).then((data) => {
+        Promise.resolve().then(() => {
+            return this._learnThingTalk(tt);
+        }).then((data) => {
             $('#results-container').hide();
             $('#thingtalk-editor').addClass('hidden');
             $('#thingtalk-group').removeClass('has-error');
