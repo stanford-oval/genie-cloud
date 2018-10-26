@@ -63,6 +63,10 @@ class TrainingDaemon {
         }));
     }
 
+    recordDuration(job, taskName, duration) {
+        // FIXME do something with it
+    }
+
     jobComplete(job) {
         if (job !== this._current_job)
             return;
@@ -100,7 +104,7 @@ Check the logs for further information.`
         if (this._current_job === null) {
             assert(this._next_jobs.length === 0);
             let newjob = new Job(this, this._next_id++,
-                forDevices, language, modelTag);
+                'train', forDevices, language, modelTag);
             this._startJob(newjob);
             return newjob.id;
         } else {
@@ -112,7 +116,7 @@ Check the logs for further information.`
                 }
             }
             let newjob = new Job(this, this._next_id++,
-                forDevices, language, modelTag);
+                'train', forDevices, language, modelTag);
             console.log(`Queued job ${newjob.id} for model @${modelTag}/${language}`);
             this._next_jobs.push(newjob);
             newjob.save();

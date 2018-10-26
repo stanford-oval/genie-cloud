@@ -57,7 +57,7 @@ function execCommand(job, script, argv, handleStderr = null, extraEnv = {}) {
         env.THINGPEDIA_URL = Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL);
         env.GLOVE = GLOVE;
 
-        const stdio = ['ignore', 'inherit', handleStderr ? 'pipe' : 'inherit'];
+        const stdio = ['ignore', 'pipe', 'pipe'];
 
         console.log(`${script} ${argv.map((a) => "'" + a + "'").join(' ')}`);
         const child = child_process.spawn(script, argv, { stdio, env });
@@ -71,14 +71,19 @@ function execCommand(job, script, argv, handleStderr = null, extraEnv = {}) {
                 resolve();
         });
 
-        if (handleStderr) {
-            child.stdio[2].setEncoding('utf-8');
-            let pipe = byline(child.stdio[2]);
-            pipe.on('data', (line) => {
-                console.error(line);
-                handleStderr(line.trim());
-            });
-        }
+        child.stdio[1].setEncoding('utf-8');
+        let stdout = byline(child.stdio[2]);
+        stdout.on('data', (line) => {
+            process.stdout.write(`job ${job.id}: ${line}\n`);
+        });
+
+        child.stdio[2].setEncoding('utf-8');
+        let stderr = byline(child.stdio[2]);
+        stderr.on('data', (line) => {
+            process.stderr.write(`job ${job.id}: ${line}\n`);
+            if (handleStderr)
+                handleStderr(line);
+        });
     });
 }
 
@@ -130,28 +135,7 @@ async function taskPrepare(job) {
     fs.symlinkSync(path.resolve(job.jobDir, 'workdir/model'), path.resolve(`./tensorboard/${job.modelTag}/${job.language}/in-progress`));
 }
 
-async function updateDataset(job) {
-    const script = process.execPath;
-
-    const args = process.execArgv.concat([
-        '--max_old_space_size=24000',
-        path.resolve(path.dirname(module.filename), './update-dataset.js'),
-        '--language', job.language,
-        '--maxdepth', TRAINING_CONFIG.synthetic_depth,
-        '--ppdb', PPDB
-    ]);
-    if (job.forDevices !== null) {
-        for (let d of job.forDevices)
-            args.push('--device', d);
-    } else if (job.modelTag !== 'default') {
-        for (let d of job._daemon._models[job.modelTag])
-            args.push('--device', d);
-    }
-
-    await execCommand(job, script, args);
-}
-
-async function downloadDataset(job) {
+async function taskDownloadDataset(job) {
     const script = process.execPath;
 
     const dataset = path.resolve(job.jobDir, 'dataset');
@@ -172,8 +156,24 @@ async function downloadDataset(job) {
 }
 
 async function taskUpdateDataset(job) {
-    await job.setStatus('gen_synthetic');
-    await updateDataset(job);
+    const script = process.execPath;
+
+    const args = process.execArgv.concat([
+        '--max_old_space_size=24000',
+        path.resolve(path.dirname(module.filename), './update-dataset.js'),
+        '--language', job.language,
+        '--maxdepth', TRAINING_CONFIG.synthetic_depth,
+        '--ppdb', PPDB
+    ]);
+    if (job.forDevices !== null) {
+        for (let d of job.forDevices)
+            args.push('--device', d);
+    } else if (job.modelTag !== 'default') {
+        for (let d of job._daemon._models[job.modelTag])
+            args.push('--device', d);
+    }
+
+    await execCommand(job, script, args);
 
     // reload the exact matches now that the synthetic set has been updated
     try {
@@ -183,16 +183,12 @@ async function taskUpdateDataset(job) {
     } catch(e) {
         console.error(`Failed to ask server to reload exact matches: ${e.message}`);
     }
-
-    await job.setStatus('download_dataset');
-    await downloadDataset(job);
 }
 
-async function taskTrain(job) {
+async function taskTraining(job) {
     const workdir = path.resolve(job.jobDir, 'workdir');
     const dataset = path.resolve(job.jobDir, 'dataset');
 
-    await job.setStatus('training');
     await execCommand(job, path.resolve(Config.LUINET_PATH, 'luinet-datagen'), [
         '--data_dir', workdir,
         '--src_data_dir', dataset,
@@ -238,8 +234,6 @@ async function taskTrain(job) {
 }
 
 async function taskTesting(job) {
-    await job.setStatus('testing');
-
     const port = Math.floor(1024+Math.random()*10000);
     await util.promisify(fs.writeFile)(path.resolve(job.jobDir, 'server/server.conf'), `[server]
 port=${port}
@@ -278,8 +272,6 @@ ${job.language}=${job.bestModelDir}
 }
 
 async function taskUploading(job) {
-    await job.setStatus('uploading');
-
     const modelLangDir = `${job.modelTag}:${job.language}`;
 
     const INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
@@ -307,15 +299,26 @@ async function taskUploading(job) {
     });
 }
 
-const TASKS = [
-    taskPrepare, taskUpdateDataset, taskTrain, taskTesting, taskUploading
-];
+const TASKS = {
+    'train': [taskPrepare, taskUpdateDataset, taskDownloadDataset, taskTraining, taskTesting, taskUploading]
+};
+
+function taskName(task) {
+    let name;
+    if (typeof task === 'function')
+        name = task.name;
+    else
+        name = String(task);
+    name = name.replace(/^task/, '').replace(/([a-z])([A-Z])/g, (_, one, two) => (one + '_' + two.toLowerCase()));
+    return name;
+}
 
 module.exports = class Job {
-    constructor(daemon, id, forDevices, language, modelTag) {
+    constructor(daemon, id, jobType, forDevices, language, modelTag) {
         this._daemon = daemon;
         this.data = {
             id: id,
+            jobType: jobType,
             forDevices: forDevices,
             language: language,
             modelTag: modelTag,
@@ -325,7 +328,11 @@ module.exports = class Job {
             status: 'queued',
             progress: 0,
             eta: null,
+
+            taskStats: {}
         };
+
+        this._allTasks = TASKS[this.data.jobType];
 
         this.jobDir = null;
         this.bestModelDir = null;
@@ -347,30 +354,46 @@ module.exports = class Job {
     }
 
     start() {
-        this.data.startTime = (new Date).toISOString();
-        this.data.status = 'started';
-
         console.log(`Starting job ${this.data.id} for model @${this.data.modelTag}/${this.data.language}`);
 
-        this._startNextTask();
-    }
-
-    _startNextTask() {
-        const task = TASKS[this.data.taskIndex];
-        task(this).then(() => {
-            this.data.taskIndex ++;
-            if (this.data.taskIndex < TASKS.length)
-                this._startNextTask();
-            else
-                this.complete();
-        }).catch((err) => {
+        this._doStart().catch((err) => {
             this.fail(err);
         });
-        this.save();
+    }
+
+    _currentTaskName() {
+        return taskName(this._allTasks[this.data.taskIndex]);
+    }
+
+    async _doStart() {
+        this.data.startTime = (new Date).toISOString();
+        this.data.status = 'started';
+        await this.save();
+
+        for (let i = 0; i < this._allTasks.length; i++) {
+            this.data.taskIndex = i;
+            const taskName = this._currentTaskName();
+            console.log(`Job ${this.data.id} is now ${taskName}`);
+            this.data.status = taskName;
+            this.data.progress = 0;
+            await this.save();
+
+            const start = new Date();
+            const task = this._allTasks[this.data.taskIndex];
+            await task(this);
+            const end = new Date();
+
+            const duration = end - start;
+            console.log(`Completed task ${taskName} in ${Math.round(duration/1000)} seconds`);
+
+            this.data.taskStats[taskName] = end - start;
+            this._daemon.recordDuration(this, taskName, duration);
+        }
+        this.complete();
     }
 
     fail(error) {
-        console.error(`Job ${this.data.id} failed: ${error}`);
+        console.error(`Job ${this.data.id} failed during task ${this._currentTaskName()}: ${error}`);
         if (error.stack)
             console.error(error.stack);
         this.data.status = 'error';
@@ -411,6 +434,12 @@ module.exports = class Job {
         return this.data.endTime;
     }
 
+    get status() {
+        return this.data.status;
+    }
+    get eta() {
+        return this.data.eta;
+    }
     get progress() {
         return this.data.progress;
     }
@@ -442,22 +471,4 @@ module.exports = class Job {
         return this.save();
     }
 
-    get status() {
-        return this.data.status;
-    }
-    setStatus(value) {
-        console.log(`Job ${this.data.id} is now ${value}`);
-
-        this.data.status = value;
-        this.data.progress = 0;
-        return this.save();
-    }
-
-    get eta() {
-        return this.data.eta;
-    }
-    setEta(value) {
-        this.data.eta = value;
-        return this.save();
-    }
 };
