@@ -40,6 +40,15 @@ const ENTITIES = {
     TIME_1: { hour: 0, minute: 2, second: 0  },
     TIME_2: { hour: 0, minute: 3, second: 0  },
     TIME_3: { hour: 0, minute: 4, second: 0  },
+    CURRENCY_0: { value: 2, unit: 'usd' },
+    CURRENCY_1: { value: 3, unit: 'usd' },
+    CURRENCY_2: { value: 4, unit: 'usd' },
+    CURRENCY_3: { value: 5, unit: 'usd' },
+    LOCATION_0: { latitude: 2, longitude: 2 },
+    LOCATION_1: { latitude: 3, longitude: 3 },
+    LOCATION_2: { latitude: 4, longitude: 4 },
+    LOCATION_3: { latitude: 5, longitude: 5 },
+
 };
 Object.freeze(ENTITIES);
 
@@ -48,14 +57,13 @@ function replaceWithSlots(program) {
 
     const entities = {};
     Object.assign(entities, ENTITIES);
-    let j = 0;
+    let j = 2;
     for (let i = 0; i < program.length; i++) {
         const token = program[i];
-        if (/^(QUOTED_STRING|GENERIC_ENTITY|USERNAME|PHONE_NUMBER|EMAIL_ADDRESS|URL|HASHTAG|CURRENCY|PATH_NAME|LOCATION)_/.test(token)) {
-            const slot = `SLOT_${j++}`;
-            entities[slot] = ThingTalk.Ast.Value.VarRef(`__const_${escape(token)}`);
-            program[i] = slot;
-        }
+        if (/^GENERIC_ENTITY_/.test(token))
+            entities[token] = { value: `generic-${j++}`, display: `generic-display-${j}` };
+        else if (/^(QUOTED_STRING|USERNAME|PHONE_NUMBER|EMAIL_ADDRESS|URL|HASHTAG|PATH_NAME)_/.test(token))
+            entities[token] = `dummy-${j++}`;
     }
     return [program, entities];
 }
@@ -63,15 +71,13 @@ function replaceWithSlots(program) {
 async function main() {
     const language = process.argv[2];
 
-    await db.withTransaction((dbClient) => {
+    await db.withTransaction(async (dbClient) => {
         const tpClient = new AdminThingpediaClient(language, dbClient);
         const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
-        const query = dbClient.query(`select id,preprocessed,target_code from example_utterances where type not in ('thingpedia','log','generated') and target_code<>'' and not find_in_set('obsolete', flags) and not find_in_set('replaced', flags) and language =? and target_code not like 'bookkeeping %' and target_code not like 'policy %' `, [language]);
+        const rows = await db.selectAll(dbClient, `select id,preprocessed,target_code from example_utterances where type not in ('thingpedia','log','generated') and target_code<>'' and not find_in_set('obsolete', flags) and not find_in_set('replaced', flags) and not find_in_set('augmented', flags) and language =? and target_code not like 'bookkeeping %' and target_code not like 'policy %' `, [language]);
 
-        const promises = [];
-        query.on('result', (row) => {
-            promises.push(Promise.resolve().then(async () => {
+        await Promise.all(rows.map(async (row) => {
                 try {
                     const [slottedProgram, entities] = replaceWithSlots(row.target_code);
                     const parsed = ThingTalk.NNSyntax.fromNN(slottedProgram, entities);
@@ -79,6 +85,7 @@ async function main() {
                     try {
                         await parsed.typecheck(schemaRetriever);
                     } catch(e) {
+                        console.error(`Failed to handle ${row.id}: ${e.message}`);
                         return;
                     }
 
@@ -98,13 +105,7 @@ async function main() {
                     console.error(`Failed to handle ${row.id}: ${e.message}`);
                     console.error(e.stack);
                 }
-            }).catch((e) => query.emit('error', e)));
-        });
-
-        return new Promise((resolve, reject) => {
-            query.on('end', () => resolve(Promise.all(promises)));
-            query.on('error', reject);
-        });
+        }));
     });
 
     await db.tearDown();
