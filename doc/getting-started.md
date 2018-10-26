@@ -11,8 +11,7 @@ This short introduction will teach you the basics of using your Almond.
 Almond is the open virtual assistant that you can access through
 your phone and the [web](/about/get-almond). It helps you configure your devices, accounts, 
 and public services, retrieve data from them, and execute actions on them.
-It also allows you to easily share your data with your friends and families 
-with control in your hand. 
+It also lets you to share your data with your friends and families easily.
 Oh, by the way, it's open source and it protects your privacy!
 
 ## What is Thingpedia?
