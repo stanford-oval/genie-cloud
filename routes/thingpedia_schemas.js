@@ -61,7 +61,7 @@ router.get('/by-id/:kind', (req, res, next) => {
         const code = classDef.prettyprint();
         const highlightedCode = highlightjs.highlight('tt', code).value;
         const dataset = DatasetUtils.examplesToDataset(req.params.kind, 'en', examples,
-            { editMode: true })
+            { editMode: true });
         const highlighedDataset = highlightjs.highlight('tt', dataset).value;
 
         const row = {
