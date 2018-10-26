@@ -108,6 +108,19 @@ $(function() {
 
     loadAll();
 
+    let slideIndex = 0;
+    showSlides();
+
+    function showSlides() {
+        let slides = $('.icon-slide');
+        for (let i = 0; i < slides.length; i++)
+            $(slides[i]).css('display', 'none');
+        slideIndex ++;
+        if (slideIndex > slides.length) slideIndex = 1;
+        $(slides[slideIndex - 1]).css('display', 'block');
+        setTimeout(() => showSlides(slideIndex + 1), 3000);
+    }
+
     $('#commands-page-prev').click(function(event) {
         page = page - 1;
         if (!(page >= 0))

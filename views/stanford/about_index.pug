@@ -23,16 +23,19 @@ block content
 
       div.container
         div.row
-          div.col-xs-12.col-md-6.col-md-offset-3
-            p
-              | Almond lets you interact with your services and accounts in natural language with unprecedented expressivity.
-              | All the code is open-source and can be run on personal phones or home servers to preserve privacy.
+          div.col-xs-12.col-md-3.col-md-offset-3
+            h4 Smart
+            p Connect your IoT devices, services, and accounts with flexibility
+          div.col-xs-12.col-md-3
+            h4 Preserve privacy
+            p Almond is open-source and can be run on your phone or server
 
         div.row#subscribe
           div.col-xs-12.col-md-6.col-md-offset-3
             a(href='/about/get-almond').scroller.btn.btn-primary= _("Get Almond")
             |
             a(href='/about/research').scroller.btn.btn-primary= _("Learn More")
+
           div.col-xs-12.col-md-6.col-md-offset-3
             input(type='email', placeholder='Your Email').form-control#subscribe-email
             button.btn.btn-primary(csrf=csrfToken)#subscribe-start= _("Interested and would like to contribute? Sign up to stay tuned!")
@@ -41,26 +44,22 @@ block content
             p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
 
     div.sections
-      section.divider
-        h3= _("60+ Devices, 200+ Functions, and Growing")
+      section.divider#supported-devices
+        h3= _("Devices and Services Supported")
         div.container
-          div.row
-            div.col-md-4.col-xs-12
-              p
-                | Almond draws its power from the crowdsourced <a href='/thingpedia'>Thingpedia</a>, an open collection of Web and Internet
-                |  of Things APIs.
-                |  Anyone can contribute support for the favorite service, with a few lines of code and a handful of natural language sentences.
-              p
-                | Thingpedia supports more than 60 different services, accounts and IoT devices, and more than 200 functions.
-                | All the functions can then be combined to form exponentially more compound commands.
-                a(href='#section-commandpedia')= _(" (Examples) ")
-              p
-                | Almond is free and open-source software, and is available on <a href='https://github.com/Stanford-Mobisocial-IoT-Lab'>Github</a>.
-                | You can download, distribute or modify Almond as you see fit.
-            div.col-md-8.col-xs-12.image-wrap
-              a(href='/thingpedia/cheatsheet')
-                img(src='/images/cheatsheet.png', alt='Thingpedia Cheatsheet')#cheatsheet-screenshot
-                p.hover-text= _('Click to see more')
+          div.slideshow-container
+            - var page = 0;
+            - var page_size = 10;
+            while page < devices.length / page_size
+              div.icon-slide
+                - for (var i = 0; i < page_size; i++)
+                  if page * page_size + i > devices.length - 1
+                    - break;
+                  a(href='/thingpedia/devices/by-id/' + devices[page * page_size + i].primary_kind)
+                    img(src=CDN_HOST + '/icons/' + devices[page * page_size + i].primary_kind + '.png')
+              - page ++
+            br
+            a(href='/thingpedia/cheatsheet').hover-text= _('Click to see more')
 
       section.divider#section-commandpedia
         h3= _("Popular Commands")
