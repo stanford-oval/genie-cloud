@@ -90,6 +90,8 @@ class DatasetUpdater {
         } else {
             await db.query(this._dbClient, `delete from example_utterances where language = ? and type = 'generated'`, [this._language]);
         }
+
+        console.log(`Dataset cleaned`);
     }
 
     async _insertExampleBatch(examples) {
@@ -180,6 +182,8 @@ class DatasetUpdater {
                 o.type = type;
             if (flags)
                 o.flags = flags;
+            else
+                o.flags = o.flags.replace(/(^|,)exact/, '');
             if (type === 'generated') {
                 if (o.depth <= 2)
                     o.flags += ',exact';
@@ -243,28 +247,16 @@ class DatasetUpdater {
     }
 
     async _regenerateReplacedParaphrases() {
-        const writer = new stream.Writable({
-            objectMode: true,
-            highWaterMark: 100,
-
-            write: (obj, encoding, callback) => {
-                this._processMinibatch([obj], null, null, this._options.ppdbProbabilityParaphrase).then(() => callback(null), (err) => callback(err));
-            },
-            writev: (objs, callback) => {
-                this._processMinibatch(objs.map((o) => o.chunk), null, null, this._options.ppdbProbabilityParaphrase).then(() => callback(null), (err) => callback(err));
-            }
-        });
-
         const rows = await db.selectAll(this._dbClient, `select id,flags,type,preprocessed,target_code from example_utterances use index (language_flags) where language = ?
              and type <> 'generated' and find_in_set('training', flags)`, [this._language]);
 
-        for (let row of rows)
-            writer.write(row);
-
-        return new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
-            writer.on('error', reject);
-        });
+        console.log(`Loaded ${rows.length} rows`);
+        for (let i = 0; i < rows.length; i += 1000) {
+            console.log(i);
+            const minibatch = rows.slice(i, i+1000);
+            await this._processMinibatch(minibatch, null, null, this._options.ppdbProbabilityParaphrase);
+        }
+        console.log(`Completed paraphrase dataset`);
     }
 
     async _transaction() {
@@ -329,7 +321,7 @@ async function main() {
     });
     parser.addArgument('--ppdb-paraphrase-fraction', {
         type: Number,
-        defaultValue: 0.1,
+        defaultValue: 1.0,
         metavar: 'FRACTION',
         help: 'Fraction of paraphrase sentences to augment with PPDB',
     });

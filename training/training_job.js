@@ -253,21 +253,23 @@ ${job.language}=${job.bestModelDir}
             const server = child_process.spawn(path.resolve(Config.LUINET_PATH, 'luinet-server'), [
                 '--config_file', path.resolve(job.jobDir, 'server/server.conf')
             ], { stdio: ['ignore', 'inherit', 'inherit'] });
-            server.on('error', reject);
+            try {
+                server.on('error', reject);
 
-            // wait 30 seconds for the server to start...
-            await delay(30000);
+                // wait 30 seconds for the server to start...
+                await delay(30000);
 
-            const env = {
-                TEST_MODE: 1,
-                SEMPRE_URL: `http://127.0.0.1:${port}`,
-            };
-            await execCommand(process.execPath, process.execArgv.concat([
-                '-e',
-                `process.on("unhandledRejection", (up) => { throw up; }); require("${require.resolve('almond-dialog-agent/test/test_parser')}")();`
-            ]), null, env);
-
-            server.kill();
+                const env = {
+                    TEST_MODE: 1,
+                    SEMPRE_URL: `http://127.0.0.1:${port}`,
+                };
+                await execCommand(job, process.execPath, process.execArgv.concat([
+                    '-e',
+                    `process.on("unhandledRejection", (up) => { throw up; }); require("${require.resolve('almond-dialog-agent/test/test_parser')}")();`
+                ]), null, env);
+            } finally {
+                server.kill();
+            }
             resolve();
         } catch(e) {
             reject(e);
@@ -281,7 +283,7 @@ async function taskUploading(job) {
     const modelLangDir = `${job.modelTag}:${job.language}`;
 
     const INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
-    await execCommand('rsync', ['-rtv',
+    await execCommand(job, 'rsync', ['-rv',
         path.resolve(job.bestModelDir) + '/',
         INFERENCE_SERVER + `:/var/lib/luinet/${modelLangDir}/`
     ]);
@@ -429,7 +431,6 @@ module.exports = class Job {
             }
             const avgSpeed = speedSum / 9;
 
-            console.log(`Estimated speed: ${avgSpeed} /msec`);
             let eta = Math.ceil(now.getTime() + (1 - value) / avgSpeed);
 
             // add 10 minutes to account for validation, uploading, etc.
