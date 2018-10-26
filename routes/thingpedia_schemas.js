@@ -10,6 +10,7 @@
 "use strict";
 
 const express = require('express');
+const highlightjs = require('highlight.js');
 
 const ThingTalk = require('thingtalk');
 
@@ -57,15 +58,22 @@ router.get('/by-id/:kind', (req, res, next) => {
             exampleModel.getByKinds(dbClient, [req.params.kind], getOrgId(req), language),
         ]);
 
+        const code = classDef.prettyprint();
+        const highlightedCode = highlightjs.highlight('tt', code).value;
+        const dataset = DatasetUtils.examplesToDataset(req.params.kind, 'en', examples,
+            { editMode: true })
+        const highlighedDataset = highlightjs.highlight('tt', dataset).value;
+
         const row = {
             owner: devices[0].owner,
             approved_version: devices[0].approved_version,
             developer_version: devices[0].developer_version,
             kind: req.params.kind,
             translated: translated,
-            code: classDef.prettyprint(),
-            dataset: DatasetUtils.examplesToDataset(req.params.kind, 'en', examples,
-                                                    { editMode: true })
+            code: code,
+            highlightedCode: highlightedCode,
+            dataset: dataset,
+            highlighedDataset: highlighedDataset
         };
 
         res.render('thingpedia_schema', { page_title: req._("Thingpedia - Type detail"),
