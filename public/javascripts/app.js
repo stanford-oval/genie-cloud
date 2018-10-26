@@ -118,7 +118,7 @@ $(function() {
         slideIndex ++;
         if (slideIndex > slides.length) slideIndex = 1;
         $(slides[slideIndex - 1]).css('display', 'block');
-        setTimeout(() => showSlides(slideIndex + 1), 3000);
+        setTimeout(() => showSlides(), 3000);
     }
 
     $('#commands-page-prev').click(function(event) {

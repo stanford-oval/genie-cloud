@@ -56,7 +56,7 @@ block content
                   if page * page_size + i > devices.length - 1
                     - break;
                   a(href='/thingpedia/devices/by-id/' + devices[page * page_size + i].primary_kind)
-                    img(src=CDN_HOST + '/icons/' + devices[page * page_size + i].primary_kind + '.png')
+                    img(src=CDN_HOST + '/icons/' + devices[page * page_size + i].primary_kind + '.png', alt='Icon for ' + devices[page * page_size + i].name)
               - page ++
             br
             a(href='/thingpedia/cheatsheet').hover-text= _('Click to see more')

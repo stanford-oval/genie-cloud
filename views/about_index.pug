@@ -24,6 +24,23 @@ block content
     div.sections
 
       if WITH_THINGPEDIA === 'embedded'
+        section.divider#supported-devices
+          h3= _("Devices and Services Supported")
+          div.container
+            div.slideshow-container
+              - var page = 0;
+              - var page_size = 10;
+              while page < devices.length / page_size
+                div.icon-slide
+                  - for (var i = 0; i < page_size; i++)
+                  if page * page_size + i > devices.length - 1
+                    - break;
+                  a(href='/thingpedia/devices/by-id/' + devices[page * page_size + i].primary_kind)
+                    img(src=CDN_HOST + '/icons/' + devices[page * page_size + i].primary_kind + '.png', alt='Icon for ' + devices[page * page_size + i].name)
+                - page ++
+              br
+              a(href='/thingpedia/cheatsheet').hover-text= _('Click to see more')
+
         section.divider#section-commandpedia
           h3= _("Popular Commands")
           div.container#commandpedia(csrf=csrfToken)
