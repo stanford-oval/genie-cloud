@@ -155,7 +155,7 @@ async function taskDownloadDataset(job) {
     await util.promisify(fs.writeFile)(path.resolve(dataset, 'test.tsv'), '');
 }
 
-async function taskUpdateDataset(job) {
+async function taskUpdatingDataset(job) {
     const script = process.execPath;
 
     const args = process.execArgv.concat([
@@ -174,7 +174,9 @@ async function taskUpdateDataset(job) {
     }
 
     await execCommand(job, script, args);
+}
 
+async function taskReloadingExact(job) {
     // reload the exact matches now that the synthetic set has been updated
     try {
         await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/@${job.modelTag}/${job.language}/admin/exact/reload?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
@@ -185,7 +187,7 @@ async function taskUpdateDataset(job) {
     }
 }
 
-async function taskTraining(job) {
+async function taskDatagen(job) {
     const workdir = path.resolve(job.jobDir, 'workdir');
     const dataset = path.resolve(job.jobDir, 'dataset');
 
@@ -195,6 +197,10 @@ async function taskTraining(job) {
         '--problem', 'semparse_thingtalk_noquote',
         '--thingpedia_snapshot', '-1'
     ]);
+}
+
+async function taskTraining(job) {
+    const workdir = path.resolve(job.jobDir, 'workdir');
 
     await execCommand(job, path.resolve(Config.LUINET_PATH, 'luinet-trainer'), [
         '--data_dir', workdir,
@@ -300,8 +306,8 @@ async function taskUploading(job) {
 }
 
 const TASKS = {
-    'update-dataset': [taskUpdateDataset],
-    'train': [taskPrepare, taskDownloadDataset, taskTraining, taskTesting, taskUploading]
+    'update-dataset': [taskUpdatingDataset, taskReloadingExact],
+    'train': [taskPrepare, taskDownloadDataset, taskDatagen, taskTraining, taskTesting, taskUploading]
 };
 
 function taskName(task) {

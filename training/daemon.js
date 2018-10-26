@@ -320,39 +320,57 @@ Check the logs for further information.`
             }
         });
         app.get('/jobs', (req, res) => {
-            let jobs = [];
-            if (this._current_job)
-                jobs.push(this._current_job);
-            jobs.push(...this._next_jobs);
-            res.json({
-                jobs
-            });
+            let jobs = {};
+            for (let jobType in this._queues) {
+                const queue = this._queues[jobType];
+
+                const into = jobs[jobType] = [];
+                if (queue.current)
+                    into.push(queue.current);
+                into.push(...queue.next);
+                into.push(...queue.waiting);
+            }
+            res.json(jobs);
         });
         app.get('/jobs/last', (req, res) => {
-            res.json(this._last_job);
+            let jobs = {};
+            for (let jobType in this._queues) {
+                const queue = this._queues[jobType];
+                jobs[jobType] = queue.last;
+            }
+
+            res.json(jobs);
         });
         app.get('/jobs/current', (req, res) => {
-            res.json(this._current_job);
+            let jobs = {};
+            for (let jobType in this._queues) {
+                const queue = this._queues[jobType];
+                jobs[jobType] = queue.current;
+            }
         });
         app.get('/jobs/:language/:forDevice', (req, res) => {
-            if (this._current_job === null) {
-                res.status(404).json({ error: 'No job queued for ' + req.params.language + '/' + req.params.forDevice });
-                return;
-            }
+            let jobs = {};
 
-            if (this._current_job.language === req.params.language && this._current_job.forDevices.some((d) => d === req.params.forDevice)) {
-                res.json(this._current_job);
-                return;
-            }
+            for (let jobType in this._queues) {
+                const queue = this._queues[jobType];
+                jobs[jobType] = [];
 
-            for (let candidate of this._next_jobs) {
-                if (candidate.language === req.params.language && candidate.forDevices.some((d) => d === req.params.forDevice)) {
-                    res.json(candidate);
-                    return;
+                if (queue.current !== null &&
+                    queue.current.language === req.params.language &&
+                    (queue.current.forDevices.length === 0 || queue.current.forDevices.some((d) => d === req.params.forDevice))) {
+                    jobs[jobType].push(queue.current);
+                    continue;
+                }
+
+                for (let candidate of queue.next) {
+                    if (candidate.language === req.params.language &&
+                        (queue.current.forDevices.length === 0 || candidate.forDevices.some((d) => d === req.params.forDevice))) {
+                        jobs[jobType].push(queue.current);
+                        return;
+                    }
                 }
             }
-
-            res.status(404).json({ error: 'No job queued for ' + req.params.language + '/' + req.params.forDevice });
+            res.json(jobs);
         });
         app.use((err, req, res, next) => {
             console.error(err);
