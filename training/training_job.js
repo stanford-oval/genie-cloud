@@ -72,7 +72,7 @@ function execCommand(job, script, argv, handleStderr = null, extraEnv = {}) {
         });
 
         child.stdio[1].setEncoding('utf-8');
-        let stdout = byline(child.stdio[2]);
+        let stdout = byline(child.stdio[1]);
         stdout.on('data', (line) => {
             process.stdout.write(`job ${job.id}: ${line}\n`);
         });
@@ -300,7 +300,8 @@ async function taskUploading(job) {
 }
 
 const TASKS = {
-    'train': [taskPrepare, taskUpdateDataset, taskDownloadDataset, taskTraining, taskTesting, taskUploading]
+    'update-dataset': [taskUpdateDataset],
+    'train': [taskPrepare, taskDownloadDataset, taskTraining, taskTesting, taskUploading]
 };
 
 function taskName(task) {
@@ -309,12 +310,12 @@ function taskName(task) {
         name = task.name;
     else
         name = String(task);
-    name = name.replace(/^task/, '').replace(/([a-z])([A-Z])/g, (_, one, two) => (one + '_' + two.toLowerCase()));
+    name = name.replace(/^task/, '').replace(/([a-z])([A-Z])/g, (_, one, two) => (one + '_' + two)).toLowerCase();
     return name;
 }
 
 module.exports = class Job {
-    constructor(daemon, id, jobType, forDevices, language, modelTag) {
+    constructor(daemon, id, jobType, forDevices, language, modelTag, dependsOn) {
         this._daemon = daemon;
         this.data = {
             id: id,
@@ -328,6 +329,7 @@ module.exports = class Job {
             status: 'queued',
             progress: 0,
             eta: null,
+            dependsOn: dependsOn,
 
             taskStats: {}
         };
@@ -342,6 +344,8 @@ module.exports = class Job {
     static load(daemon, json) {
         const self = new Job(daemon);
         self.data = json;
+        self._allTasks = TASKS[self.data.jobType];
+
         return self;
     }
 
@@ -354,7 +358,7 @@ module.exports = class Job {
     }
 
     start() {
-        console.log(`Starting job ${this.data.id} for model @${this.data.modelTag}/${this.data.language}`);
+        console.log(`Starting ${this.data.jobType} job ${this.data.id} for model @${this.data.modelTag}/${this.data.language}`);
 
         this._doStart().catch((err) => {
             this.fail(err);
@@ -404,12 +408,18 @@ module.exports = class Job {
     complete() {
         this.data.endTime = (new Date).toISOString();
 
-        console.log(`Completed job ${this.data.id} for model @${this.data.modelTag}/${this.data.language}`);
+        console.log(`Completed ${this.data.jobType} job ${this.data.id} for model @${this.data.modelTag}/${this.data.language}`);
         this._daemon.jobComplete(this);
     }
 
     get id() {
         return this.data.id;
+    }
+    get jobType() {
+        return this.data.jobType;
+    }
+    get dependsOn() {
+        return this.data.dependsOn;
     }
 
     get language() {

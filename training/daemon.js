@@ -34,14 +34,37 @@ function nonEmptyIntersection(one, two) {
     return false;
 }
 
+const JOB_TYPES = ['update-dataset', 'train'];
+
 class TrainingDaemon {
     constructor() {
-        this._last_job = null;
-        this._current_job = null;
-        this._next_jobs = [];
         this._next_id = 0;
+        this._queues = {};
+        for (let jobType of JOB_TYPES) {
+            // last: last completed job of this type (for post-mortem debugging)
+            // current: job in progress
+            // next: jobs with no dependencies that are waiting in the queue
+            // waiting: jobs that are waiting on a dependency
+
+            this._queues[jobType] = {
+                last: null,
+                current: null,
+                next: [],
+                waiting: [],
+            };
+        }
+        this._dependencies = new Map;
 
         this._models = {};
+    }
+
+    _addDependency(job) {
+        if (job.dependsOn === null || job.dependsOn === undefined)
+            return;
+        if (this._dependencies.has(job.dependsOn))
+            this._dependencies.get(job.dependsOn).push(job);
+        else
+            this._dependencies.set(job.dependsOn, [job]);
     }
 
     async _reloadModels() {
@@ -52,76 +75,14 @@ class TrainingDaemon {
         for (let row of rows)
             result[row.tag] = JSON.parse(row.for_devices);
         this._models = result;
+        return result;
     }
 
     save() {
         fs.writeFileSync('jobs.json', JSON.stringify({
             next_id: this._next_id,
-            last: this._last_job,
-            current: this._current_job,
-            next: this._next_jobs
+            queues: this._queues
         }));
-    }
-
-    recordDuration(job, taskName, duration) {
-        // FIXME do something with it
-    }
-
-    jobComplete(job) {
-        if (job !== this._current_job)
-            return;
-
-        if (job.status === 'failed' || job.status === 'error') {
-            const mailOptions = {
-                from: 'Almond Training Service <almond-nntraining@parmesan.stanford.edu>',
-                to: 'thingpedia-admins@lists.stanford.edu',
-                subject: `Training Job ${job.id} failed`,
-                text: `Training Job ${job.id}, for devices [${job.forDevices.join(', ')}], failed.
-
-The error reported was: ${job.error}.
-Check the logs for further information.`
-            };
-            SendMail.send(mailOptions).catch((e) => {
-                console.error(`Failed to send notification email: ${e.message}`);
-            });
-        }
-
-        fs.appendFileSync('jobs_history', JSON.stringify(this._current_job) + '\n');
-        this._last_job = this._current_job;
-        this._current_job = this._next_jobs.shift() || null;
-        if (this._current_job)
-            this._startJob(this._current_job);
-        else
-            this.save();
-    }
-
-    _startJob(job) {
-        this._current_job = job;
-        job.start();
-    }
-
-    _queueOrMergeJob(forDevices, language, modelTag) {
-        if (this._current_job === null) {
-            assert(this._next_jobs.length === 0);
-            let newjob = new Job(this, this._next_id++,
-                'train', forDevices, language, modelTag);
-            this._startJob(newjob);
-            return newjob.id;
-        } else {
-            for (let candidate of this._next_jobs) {
-                if (candidate.language === language &&
-                    candidate.modelTag === modelTag) {
-                    candidate.addDevices(forDevices);
-                    return candidate.id;
-                }
-            }
-            let newjob = new Job(this, this._next_id++,
-                'train', forDevices, language, modelTag);
-            console.log(`Queued job ${newjob.id} for model @${modelTag}/${language}`);
-            this._next_jobs.push(newjob);
-            newjob.save();
-            return newjob.id;
-        }
     }
 
     async loadExistingJobs() {
@@ -131,13 +92,37 @@ Check the logs for further information.`
             let data = fs.readFileSync('jobs.json');
             let parsed = JSON.parse(data);
             this._next_id = parsed.next_id || 0;
-            this._last_job = parsed.last ? Job.load(this, parsed.last) : null;
-            this._current_job = parsed.current ? Job.load(this, parsed.current) : null;
-            this._next_jobs = (parsed.next || []).map((j) => Job.load(this, j));
+            const queues = parsed.queues || {};
+            for (let jobType in queues) {
+                const queue = queues[jobType];
 
-            // we crashed so the current job necessarily failed
-            if (this._current_job)
-                this._current_job.fail(new Error('Master process failed'));
+                if (queue.last)
+                    this._queues[jobType].last = Job.load(this, queue.last);
+                if (queue.current)
+                    this._queues[jobType].current = Job.load(this, queue.current);
+                this._queues[jobType].next = (queue.next || []).map((j) => Job.load(this, j));
+
+                this._queues[jobType].waiting = (queue.waiting || []).map((j) => Job.load(this, j));
+
+                // add dependency of waiting jobs to our internal data structures
+                // note that we would not have dependencies for jobs in status last, current or
+                // next, by definition
+                // (their dependsOn fields might be !== null, but the corresponding job completed)
+                for (let job of this._queues[jobType].waiting)
+                    this._addDependency(job);
+            }
+            for (let jobType in queues) {
+                // we crashed so the current job necessarily failed
+                if (this._queues[jobType].current)
+                    this._queues[jobType].current.fail(new Error('Master process failed'));
+            }
+
+            this.save();
+
+            setImmediate(() => {
+                for (let jobType in queues)
+                    this._startNextJob(jobType);
+            });
         } catch(e) {
             if (e.code === 'ENOENT')
                 return;
@@ -145,34 +130,158 @@ Check the logs for further information.`
         }
     }
 
-    async scheduleJob(jobTemplate) {
-        let forDevices = jobTemplate.forDevices;
-        let language = jobTemplate.language;
-        if (!language)
-            language = 'en';
+    recordDuration(job, taskName, duration) {
+        // FIXME do something with it
+    }
 
-        await this._reloadModels();
+    _notifyFailure(job) {
+        const mailOptions = {
+            from: 'Almond Training Service <almond-nntraining@parmesan.stanford.edu>',
+            to: 'thingpedia-admins@lists.stanford.edu',
+            subject: `Training Job ${job.id} failed`,
+            text: `Training Job ${job.id}, of type ${job.jobType}, for devices [${job.forDevices.join(', ')}] (@${job.modelTag}/${job.language}), failed.
 
-        if (forDevices === null) {
-            // queue all models
-            this._queueOrMergeJob([], language, 'default');
-            for (let modelTag in this._models)
-                this._queueOrMergeJob([], language, modelTag);
-        } else {
-            if (!Array.isArray(forDevices))
-                throw new TypeError('forDevices must be an array of strings');
+The error reported was: ${job.error}.
+Check the logs for further information.`
+        };
+        SendMail.send(mailOptions).catch((e) => {
+            console.error(`Failed to send notification email: ${e.message}`);
+        });
+    }
 
-            // queue the default job always
-            this._queueOrMergeJob(forDevices, language, 'default');
+    jobComplete(job) {
+        fs.appendFileSync('jobs_history', JSON.stringify(job) + '\n');
 
-            // check if any of the other models are impacted
-            // by this device
-            for (let modelTag in this._models) {
-                let modelDevices = this._models[modelTag];
-                if (nonEmptyIntersection(modelDevices, forDevices))
-                    this._queueOrMergeJob(forDevices, language, modelTag);
+        const current = this._queues[job.jobType].current;
+        // nobody likes races
+        if (job !== current)
+            return;
+        this._queues[job.jobType].last = job;
+        this._queues[job.jobType].current = null;
+
+        const dependents = this._dependencies.get(job.id) || [];
+        console.log(`Dependencies of job ${job.id}: [${dependents.map((d) => d.id).join(', ')}]`);
+        let success = true;
+        if (job.status === 'failed' || job.status === 'error') {
+            if (job.error !== `Dependency failed`)
+                this._notifyFailure(job);
+            success = false;
+        }
+
+        let toSchedule = new Set();
+        toSchedule.add(job.jobType);
+        for (let dep of dependents) {
+            const waitIndex = this._queues[dep.jobType].waiting.indexOf(dep);
+            assert(waitIndex >= 0);
+
+            this._queues[dep.jobType].waiting.splice(waitIndex, 1);
+
+            if (success) {
+                this._queues[dep.jobType].next.push(dep);
+                toSchedule.add(dep.jobType);
+            } else {
+                setImmediate(() => {
+                    dep.fail(new Error(`Dependency failed`));
+                });
             }
         }
+        this.save();
+
+        setImmediate(() => {
+            for (let jobType of toSchedule)
+                this._startNextJob(jobType);
+        });
+    }
+
+    _startNextJob(jobType) {
+        const queue = this._queues[jobType];
+
+        if (queue.current !== null)
+            return;
+        if (queue.next.length === 0)
+            return;
+        const next = queue.next.shift();
+        queue.current = next;
+        next.start();
+    }
+
+    _queueOrMergeJob(forDevices, jobType, language, modelTag, dependsOn) {
+        const queue = this._queues[jobType];
+        for (let candidate of queue.next) {
+            if (candidate.language === language &&
+                candidate.modelTag === modelTag &&
+                candidate.dependsOn === dependsOn) {
+                candidate.addDevices(forDevices);
+                return candidate.id;
+            }
+        }
+        for (let candidate of queue.waiting) {
+            if (candidate.language === language &&
+                candidate.modelTag === modelTag &&
+                candidate.dependsOn === dependsOn) {
+                candidate.addDevices(forDevices);
+                return candidate.id;
+            }
+        }
+
+        let newjob = new Job(this, this._next_id++,
+            jobType, forDevices, language, modelTag, dependsOn);
+        if (dependsOn !== null) {
+            queue.waiting.push(newjob);
+            this._addDependency(newjob);
+        } else {
+            queue.next.push(newjob);
+        }
+        console.log(`Queued ${jobType} job ${newjob.id} for model @${modelTag}/${language}`);
+
+        setImmediate(() => {
+            this._startNextJob(jobType);
+        });
+        return newjob.id;
+    }
+
+    async scheduleJob(jobTemplate) {
+        let forDevices = jobTemplate.forDevices;
+        if (forDevices !== null && !Array.isArray(forDevices))
+            throw new Error('forDevices must be an array of strings');
+        let language = jobTemplate.language || 'en';
+        let jobType = jobTemplate.jobType || 'train';
+
+        const models = await this._reloadModels();
+
+        if (jobType === 'train' || jobType === 'train-only') {
+            let dependsOn = null;
+            if (jobType !== 'train-only') {
+                // there is only one dataset (per language) for all models, so we only queue
+                // one update-dataset job
+                dependsOn = this._queueOrMergeJob(forDevices || [], 'update-dataset',
+                    language, 'default', null);
+            }
+
+            if (forDevices === null) {
+                // queue all models
+                this._queueOrMergeJob([], 'train', language, 'default', dependsOn);
+                for (let modelTag in models)
+                    this._queueOrMergeJob([], 'train', language, modelTag, dependsOn);
+            } else {
+                // queue the default job always
+                this._queueOrMergeJob(forDevices, 'train', language, 'default', dependsOn);
+
+                // check if any of the other models are impacted
+                // by this device
+                for (let modelTag in models) {
+                    let modelDevices = models[modelTag];
+                    if (nonEmptyIntersection(modelDevices, forDevices))
+                        this._queueOrMergeJob(forDevices, 'train', language, modelTag, dependsOn);
+                }
+            }
+        } else if (jobType === 'update-dataset') {
+            await this._queueOrMergeJob(forDevices, 'update-dataset', language, 'default', null);
+        } else {
+            throw new Error(`Invalid job type ${jobType}`);
+        }
+
+        await this.save();
     }
 
     initFrontend() {
@@ -201,11 +310,12 @@ Check the logs for further information.`
             next();
         });
 
-        app.post('/jobs/create', async (req, res, next) => {
+        app.post('/jobs/create', async (req, res, next) => { //'
             try {
                 let id = await this.scheduleJob(req.body);
                 res.json({result:'scheduled', id: id });
             } catch(e) {
+                console.error(e);
                 res.status(400).json({error: e.message, code: e.code});
             }
         });
