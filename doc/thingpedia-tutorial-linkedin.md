@@ -159,17 +159,14 @@ class @com.linkedin {
 Click on `dataset.tt` on the left panel. Copy the following code to the editor:
 ```tt
 dataset @com.linkedin language "en" {
-    query  := @com.linkedin.get_profile()
-    #_[utterances=["my linkedin profile","my profile on linkedin"]]
-    #[id=1687841];
+  query  := @com.linkedin.get_profile()
+  #_[utterances=["my linkedin profile","my profile on linkedin"]];
 
-    action (p_status :String)  := @com.linkedin.share(status=p_status)
-    #_[utterances=["share $p_status on linkedin","post $p_status on linkedin"]]
-    #[id=1687842];
+  action (p_status :String)  := @com.linkedin.share(status=p_status)
+  #_[utterances=["share $p_status on linkedin","post $p_status on linkedin"]];
 
-    action  := @com.linkedin.share()
-    #_[utterances=["update my linkedin","post something on my linkedin"]]
-    #[id=1687844];
+  action  := @com.linkedin.share()
+  #_[utterances=["update my linkedin","post something on my linkedin"]];
 }
 ```
 

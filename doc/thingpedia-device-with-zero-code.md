@@ -1,12 +1,30 @@
-# Declarative Thingpedia Entries
+# Declarative Devices in Thingpedia
 
-Thingpedia provides a way to connect to some devices that use common protocols with no additional JavaScript code.
-Currently, we support Generic [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) APIs that use no authentication or just standard OAuth 2.0, and RSS feeds (in Atom or RSS 1.0 format).
+Thingpedia provides a way to connect to devices that use common protocols with no additional JavaScript code.
+Currently, we support RSS feeds (in Atom or RSS 1.0 format),
+and Generic [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) APIs that return JSON. 
+Note that if a device needs OAuth or other customized computation on the return results, a Javascript 
+code package is required. 
 
 [[toc]]
 
+## RSS Feed
+We provide a simple interface to connect RSS feed services with Almond.
+You can find an example in [Tutorial 1](/doc/thingpedia-tutorial-nyt.md).
+
+Five parameters are supported:
+- `title` 
+- `link` (the link to the original page, in type `URL`)
+- `updated` (the updated time of the feed, in type `Date`)
+- `description`
+- `picture_url`
+
+Note that some RSS feed may only contains `title` and `link`. 
+Check the RSS feed format carefully and DO NOT use an argument if it is not in the feed of your service. 
+
 ## Generic REST
-If a device simply provides an interface for HTTP requests, `Generic REST` package type will probably save you lots of time. 
+If a device uses generic RESTful APIs and returns the data in JSON format, 
+`loader` from `@org.thingpedia.generic_rest.v1` will help you connect the device easily. 
 
 In the following, let's go through a simple example: [Quotes](/thingpedia/devices/by-id/com.forismatic.quotes).
 _Quotes_ uses the API provided by [forismatic.com](https://forismatic.com/en/api/), which requires no authentication or developer key.
@@ -21,36 +39,43 @@ It returns a random quote in JSON format as follows:
 }
 ``` 
 
-To hook this service up with Almond, go to [device creation page](/thingpedia/upload/create) 
-and pick `Generic REST` as the package type.
-Add a query. Then click on `Properties` button of the query and tick the box for `API Endpoint URL`. 
-The corresponding field will show up and simply fill in the URL of the API of your service, 
-in this case: 
-```json
-http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en
+To create a device for this service in Thingpedia, we define the device class as follows:
+```tt
+class @com.forismatic.quotes {
+  // tell the system the device uses generic rest
+  import loader from @org.thingpedia.generic_rest.v1();
+
+  // the function to return a random quote
+  query get(out text: String #[json_key="quoteText"],
+            out author: String #[json_key="quoteAuthor"])
+  #_[confirmation="a quote"]
+  #_[formatted=[{type="text",text="${text} By ${author}."}]]
+  #[doc="get a quote"]
+  #[url="http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en"];
+}
+```
+The device class contains one query function called "get", which returns a random quote.
+We first need to tell the system where we get the data from. 
+We use the annotation `url` to specify the URL of the API end point for this function,
+as shown in the last line. 
+
+Then we need to choose the parameters we care about from the JSON output. 
+In this example, we want `quoteText` and `quoteAuthor`. 
+Thus, we add two output parameters, `text` and `author`, both in type `String`.
+Then for each of them, we use annotation `json_key` to specify the corresponding filed name
+from the JSON. Thus we have 
+```tt
+out text: String #[json_key="quoteText"]
+```
+and 
+```tt
+out author: String #[json_key="quoteAuthor"]
 ```
 
-Then we need to add the arguments we care about from the JSON output. 
-In this _Quotes_ example, we want `quoteText` and `quoteAuthor`. 
-Thus, we create two arguments, one named `text`, and the other named `author`, both in type `String`.
-Then for each argument, tick the box `JSON Property Name` and fill the corresponding field name from the JSON.
-So fill `quoteText` for argument `text` and `quoteAuthor` for `author`.
+If the parameter name is the same with the corresponding field name in JSON, the 
+`json_key` annotation can be omitted. 
 
-Fill in the rest empty boxes as usual and write some example commands for the device, and that's it! 
-Pick an icon you like, and submit the device, you are good to go!
+Then, put the code in `manifest.tt`, add some example commands in `dataset.tt`, and submit. 
+No Javascript needed!
 
-## RSS Feed
-We also provide a simple interface to hook up RSS feed style services.
-Pick `RSS Feed` as the package type and similar to `Generic REST`, put the RSS feed URL into the field
-`API Endpoint URL`.
-Five arguments are supported:
-- `title` 
-- `link` (the link to the original page, in type `URL`)
-- `updated` (the updated time of the feed, in type `Date`)
-- `description`
-- `picture_url`
 
-Note that some RSS feed may only contains `title` and `link`. 
-Check the RSS feed format carefully and DO NOT use an argument if it is not in the feed of your service. 
-
-Then as usual, fill in the rest, add example commands, and submit. No code needed! 
