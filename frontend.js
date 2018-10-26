@@ -187,7 +187,6 @@ module.exports = class Frontend {
             res.locals.THINGPEDIA_URL = Config.THINGPEDIA_URL;
             res.locals.WITH_THINGPEDIA = Config.WITH_THINGPEDIA;
             res.locals.ENABLE_ANONYMOUS_USER = Config.ENABLE_ANONYMOUS_USER;
-            res.locals.IS_ALMOND_WEBSITE = IS_ALMOND_WEBSITE;
             next();
         });
 
@@ -287,7 +286,6 @@ module.exports = class Frontend {
             this._app.use('/thingpedia/developers', require('./routes/thingpedia_developer_console'));
         }
 
-        this._app.use('/publications', require('./routes/publications'));
         this._app.use('/user', require('./routes/user'));
         this._app.use('/admin', require('./routes/admin'));
 

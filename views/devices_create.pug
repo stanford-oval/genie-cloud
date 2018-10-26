@@ -1,7 +1,7 @@
 extends layout
 
 block scripts
-  script(src='/javascripts/devices-create.js')
+  script(src=Config.ASSET_CDN + '/javascripts/devices-create.js')
 
 block page_name
   if klass === 'online'

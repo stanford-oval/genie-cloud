@@ -5,8 +5,8 @@ block page_name
   = _("Developer Organization: %s").format(org.name)
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/admin.css')
-  link(rel='stylesheet', href='/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/admin.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
 
 block content
   div#page-body

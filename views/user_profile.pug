@@ -1,8 +1,8 @@
 extends layout
 
 block scripts
-  script(src='/javascripts/qrcode.js')
-  script(src='/javascripts/profile.js')
+  script(src=Config.ASSET_CDN + '/javascripts/qrcode.js')
+  script(src=Config.ASSET_CDN + '/javascripts/profile.js')
 
 block page_name
   = _("User Profile")

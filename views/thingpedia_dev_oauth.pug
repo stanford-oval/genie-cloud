@@ -1,8 +1,8 @@
 extends layout
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/thingpedia.css')
-  link(rel='stylesheet', href='/stylesheets/thingpedia_dev_sidebar.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia_dev_sidebar.css')
 
 block page_name
   - stdlayout = false;

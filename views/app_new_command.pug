@@ -1,8 +1,8 @@
 extends layout
 block styles
-  link(rel='stylesheet', href='/stylesheets/app.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/app.css')
 block scripts
-  script(src='/javascripts/new-command-bundle.js')
+  script(src=Config.ASSET_CDN + '/javascripts/new-command-bundle.js')
 
 block page_name
   | Add a New Command

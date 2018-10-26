@@ -1,10 +1,10 @@
 extends layout
 
 block scripts
-  script(src='/javascripts/conversation.js')
+  script(src=Config.ASSET_CDN + '/javascripts/conversation.js')
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/conversation.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/conversation.css')
 
 block page_name
   = _("Web Almond")

@@ -1,11 +1,11 @@
 extends layout
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/status.css')
-  link(rel='stylesheet', href='/stylesheets/thingpedia_dev_sidebar.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/status.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia_dev_sidebar.css')
 
 block scripts
-  script(src='/javascripts/status.js')
+  script(src=Config.ASSET_CDN + '/javascripts/status.js')
 
 block page_name
   - stdlayout = false;

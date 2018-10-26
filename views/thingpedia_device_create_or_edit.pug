@@ -1,13 +1,13 @@
 extends layout
 
 block styles
-  link(rel='stylesheet', href='/stylesheets/codemirror.css')
-  link(rel='stylesheet', href='/stylesheets/lint.css')
-  link(rel='stylesheet', href='/stylesheets/thingpedia-device-create.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/codemirror.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/lint.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-device-create.css')
 
 block scripts
-  script(src='/javascripts/jsonlint.js')
-  script(src='/javascripts/thingpedia-device-create-bundle.js')
+  script(src=Config.ASSET_CDN + '/javascripts/jsonlint.js')
+  script(src=Config.ASSET_CDN + '/javascripts/thingpedia-device-create-bundle.js')
 
 block page_name
   - stdlayout = false;
