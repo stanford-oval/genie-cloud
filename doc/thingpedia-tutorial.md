@@ -124,7 +124,7 @@ Please refer to [ThingTalk by Examples](/doc/thingtalk-intro.md) for more detail
 The device will become available to other users after being reviewed and approved by a
 Thingpedia administrator.
 
-### Accessing logs
+### Access logs
 
 If you click on [Almond Status and Logs](/me/status) on the sidebar,
 you will access the status of your Almond. In particular, you get access
