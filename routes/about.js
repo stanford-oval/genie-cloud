@@ -26,7 +26,11 @@ router.get('/', (req, res, next) => {
             let kind = d.primary_kind;
             if (kind.endsWith('bluetooth.generic') || kind.endsWith('phone') || kind.endsWith('matrix'))
                 return true;
-            return !kind.startsWith('@org.thingpedia.builtin');
+            if (kind === 'com.tesla')
+                return false;
+            if (kind.startsWith('com.nest') && kind.length > 'com.nest'.length)
+                return false;
+            return !kind.startsWith('org.thingpedia.builtin');
         });
         res.render(Config.ABOUT_OVERRIDE['index'] || 'about_index', {
             page_title: req._('Almond'),
