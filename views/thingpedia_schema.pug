@@ -5,6 +5,7 @@ block scripts
 
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia-devices.css')
+  link(rel='stylesheet', href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css")
 
 block page_name
   = _("Class: %s").format(schema.kind)
@@ -59,12 +60,12 @@ block content
         = _("Version: %d").format(schema.approved_version)
 
   h2.device-subtitle= _("Class Definition")
-  code.schema-code-block#schema-code
-    = schema.code
+  code.hljs.schema-code-block#schema-code
+    != schema.highlightedCode
 
   h2.device-subtitle= _("Dataset")
-  code.schema-code-block#schema-dataset
-    = schema.dataset
+  code.hljs.schema-code-block#schema-dataset
+    != schema.highlighedDataset
 
   div.row#device-details-actions
     if schema.kind_type === 'other' && authenticated && (user.developer_status >= 3 || schema.owner === user.developer_org)
