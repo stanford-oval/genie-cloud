@@ -14,14 +14,26 @@
 const express = require('express');
 
 const Config = require('../config');
+const db = require('../util/db');
+const deviceModel = require('../model/device');
 
 let router = express.Router();
 
-router.get('/', (req, res) => {
-    res.render(Config.ABOUT_OVERRIDE['index'] || 'about_index', {
-        page_title: req._('Almond'),
-        csrfToken: req.csrfToken()
-    });
+router.get('/', (req, res, next) => {
+    db.withClient(async (dbClient) => {
+        const devices = await deviceModel.getAllApproved(dbClient, null);
+        let filtered_devices = devices.filter((d) => {
+            let kind = d.primary_kind;
+            if (kind.endsWith('bluetooth.generic') || kind.endsWith('phone') || kind.endsWith('matrix'))
+                return true;
+            return !kind.startsWith('@org.thingpedia.builtin');
+        });
+        res.render(Config.ABOUT_OVERRIDE['index'] || 'about_index', {
+            page_title: req._('Almond'),
+            csrfToken: req.csrfToken(),
+            devices: filtered_devices
+        });
+    }).catch(next);
 });
 router.get('/about', (req, res) => {
     res.redirect(301, '/');
