@@ -10,6 +10,7 @@
 "use strict";
 
 const db = require('../util/db');
+const { tokenize } = require('../util/tokenize');
 
 function createMany(client, examples) {
     if (examples.length === 0)
@@ -83,13 +84,14 @@ module.exports = {
     },
 
     getByKey(client, key, org, language) {
+        const regexp = '(^| )(' + tokenize(key).join('|') + ')( |$)';
         if (org === -1) { // admin
             return db.selectAll(client,
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                 eu.target_code,eu.click_count from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
-                and match preprocessed against (?) and target_code <> '')
+                and preprocessed rlike (?) and target_code <> '')
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                 eu.target_code,eu.click_count from example_utterances eu,
@@ -97,14 +99,14 @@ module.exports = {
                 and eu.type = 'thingpedia' and language = ?
                 and match kind_canonical against (?) and target_code <> '')
                limit 50`,
-            [language, key, language, key]);
+            [language, regexp, language, key]);
         } else if (org !== null) {
             return db.selectAll(client,
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                 eu.target_code,eu.click_count from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
-                and match preprocessed against (?) and target_code <> ''
+                and preprocessed rlike (?) and target_code <> ''
                 and (ds.approved_version is not null or ds.owner = ?))
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
@@ -114,14 +116,14 @@ module.exports = {
                 and match kind_canonical against (?) and target_code <> ''
                 and (ds.approved_version is not null or ds.owner = ?))
                limit 50`,
-            [language, key, org, language, key, org]);
+            [language, regexp, org, language, key, org]);
         } else {
             return db.selectAll(client,
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
                 eu.target_code,eu.click_count from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
-                and match preprocessed against (?) and target_code <> ''
+                and preprocessed rlike (?) and target_code <> ''
                 and ds.approved_version is not null)
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
@@ -131,7 +133,7 @@ module.exports = {
                 and match kind_canonical against (?) and target_code <> ''
                 and ds.approved_version is not null)
                limit 50`,
-            [language, key, language, key]);
+            [language, regexp, language, key]);
         }
     },
 
