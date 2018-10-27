@@ -10,7 +10,6 @@
 "use strict";
 
 const express = require('express');
-const jade = require('pug');
 const crypto = require('crypto');
 
 const user = require('../util/user');
@@ -130,11 +129,6 @@ router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res) =>
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
     }).done();
-});
-
-router.post('/blow-view-cache', user.requireRole(user.Role.ADMIN), (req, res) => {
-    jade.cache = {};
-    res.redirect(303, '/admin');
 });
 
 function getTraining(req, res) {

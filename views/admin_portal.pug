@@ -49,8 +49,3 @@ block content
                 form(action='/admin/users/kill/all', method='post')
                   input(type='hidden',name='_csrf',value=csrfToken)
                   button(type='submit').btn.btn-danger.btn-block= _("Kill all users")
-
-              div.col-md-2
-                form(action='/admin/blow-view-cache', method='post')
-                  input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
