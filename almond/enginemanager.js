@@ -17,6 +17,7 @@ const os = require('os');
 const events = require('events');
 const stream = require('stream');
 const rpc = require('transparent-rpc');
+const util = require('util');
 
 const user = require('../model/user');
 const db = require('../util/db');
@@ -405,12 +406,19 @@ class EngineManager extends events.EventEmitter {
         return Promise.resolve(obj.process.killEngine(userId));
     }
 
-    deleteUser(userId) {
+    _getUserCloudIdForPath(userId) {
         let obj = this._engines[userId];
-        if (obj.process !== null)
-            obj.process.killEngine(userId);
-
-        return Q.nfcall(child_process.exec, 'rm -fr ./' + obj.cloudId);
+        if (obj) {
+            if (obj.process !== null)
+                obj.process.killEngine(userId);
+            return Promise.resolve(obj.cloudId);
+        } else {
+            return db.withClient((dbClient) => {
+                return user.get(dbClient, userId);
+            }).then((user) => {
+                return user.cloud_id;
+            });
+        }
     }
 
     restartUser(userId) {
@@ -418,7 +426,21 @@ class EngineManager extends events.EventEmitter {
             return this.startUser(userId);
         });
     }
+
+    async deleteUser(userId) {
+        console.log(`Deleting all data for ${userId}`);
+        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId));
+        return util.promisify(child_process.execFile)('/bin/rm',
+            ['-rf', dir]);
+    }
+
+    async clearCache(userId) {
+        console.log(`Clearing cache for ${userId}`);
+        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId), 'cache');
+        return util.promisify(child_process.execFile)('/bin/rm',
+            ['-rf', dir]);
+    }
 }
-EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers', 'deleteUser', 'restartUser'];
+EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers',  'restartUser', 'deleteUser', 'clearCache'];
 
 module.exports = EngineManager;

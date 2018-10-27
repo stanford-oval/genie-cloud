@@ -107,6 +107,37 @@ router.post('/start', user.requireLogIn, (req, res) => {
     }).done();
 });
 
+router.post('/recovery/clear-cache', user.requireLogIn, (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const engineManager = EngineManager.get();
+
+        if (await engineManager.isRunning(req.user.id)) {
+            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                              message: req._("Your engine is running, kill it before attempting recovery") });
+            return;
+        }
+
+        await engineManager.clearCache(req.user.id);
+        res.redirect(303, '/me/status');
+    }).catch(next);
+});
+
+router.post('/recovery/clear-data', user.requireLogIn, (req, res, next) => {
+    Promise.resolve().then(async () => {
+        const engineManager = EngineManager.get();
+
+        if (await engineManager.isRunning(req.user.id)) {
+            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                              message: req._("Your engine is running, kill it before attempting recovery") });
+            return;
+        }
+
+        await engineManager.deleteUser(req.user.id);
+        res.redirect(303, '/me/status');
+    }).catch(next);
+});
+
+
 router.post('/update-module/:kind', user.requireLogIn, (req, res) => {
     return EngineManager.get().getEngine(req.user.id).then((engine) => {
         return engine.devices.updateDevicesOfKind(req.params.kind);
