@@ -49,17 +49,9 @@ function renderUserList(users) {
     })).then(() => users);
 }
 
-router.get('/', user.redirectRole(user.Role.ADMIN), (req, res) => {
-    TrainingServer.get().getCurrentJob().then((current_job) => {
-        res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
-                                     csrfToken: req.csrfToken(),
-                                     currentTrainingJob: current_job });
-    }).catch((e) => {
-        console.error('Failed to check current training job: ' + e.message);
-        res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
-                                     csrfToken: req.csrfToken(),
-                                     currentTrainingJob: null });
-    });
+router.get('/', user.redirectRole(user.Role.ADMIN), (req, res, next) => {
+    res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
+                                 csrfToken: req.csrfToken() });
 });
 
 router.get('/users', user.redirectRole(user.Role.ADMIN), (req, res) => {
@@ -145,9 +137,28 @@ router.post('/blow-view-cache', user.requireRole(user.Role.ADMIN), (req, res) =>
     res.redirect(303, '/admin');
 });
 
-router.post('/start-training', user.requireRole(user.Role.ADMIN), (req, res) => {
-    TrainingServer.get().queue(req.query.language || 'en', null);
-    res.redirect(303, '/admin');
+function getTraining(req, res) {
+    return TrainingServer.get().getJobQueue().then((jobs) => {
+        res.render('admin_training', { page_title: req._("Thingpedia - Administration - Natural Language Training"),
+                                     csrfToken: req.csrfToken(),
+                                     jobs });
+    });
+}
+
+router.get('/training', user.redirectRole(user.Role.ADMIN), (req, res, next) => {
+    getTraining(req, res).catch(next);
+});
+
+router.post('/training', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+    TrainingServer.get().queue(req.body.language, null, req.body.job_type).then(() => {
+        return getTraining(req, res);
+    }).catch(next);
+});
+
+router.post('/training/kill', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+    TrainingServer.get().kill(parseInt(req.body.job_id)).then(() => {
+        return res.redirect(303, '/admin/training');
+    }).catch(next);
 });
 
 router.post('/users/delete/:id', user.requireRole(user.Role.ADMIN), (req, res) => {

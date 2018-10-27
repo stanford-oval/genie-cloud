@@ -61,14 +61,21 @@ function execCommand(job, script, argv, handleStderr = null, extraEnv = {}) {
 
         console.log(`${script} ${argv.map((a) => "'" + a + "'").join(' ')}`);
         const child = child_process.spawn(script, argv, { stdio, env });
+        job.child = child;
         child.on('error', reject);
         child.on('exit', (code, signal) => {
-            if (signal)
-                reject(new Error(`Command crashed with signal ${signal}`));
-            else if (code !== 0)
-                reject(new Error(`Command exited with code ${code}`));
-            else
-                resolve();
+            job.child = null;
+            if (signal) {
+                if (signal === 'SIGINT' || signal === 'SIGTERM')
+                    reject(new Error(`Killed`));
+                else
+                    reject(new Error(`Command crashed with signal ${signal}`));
+            } else {
+                if (code !== 0)
+                    reject(new Error(`Command exited with code ${code}`));
+                else
+                    resolve();
+            }
         });
 
         child.stdio[1].setEncoding('utf-8');
@@ -340,6 +347,8 @@ module.exports = class Job {
             taskStats: {}
         };
 
+        this._killed = false;
+        this.child = null;
         this._allTasks = TASKS[this.data.jobType];
 
         this.jobDir = null;
@@ -381,6 +390,9 @@ module.exports = class Job {
         await this.save();
 
         for (let i = 0; i < this._allTasks.length; i++) {
+            if (this._killed)
+                throw new Error(`Killed`);
+
             this.data.taskIndex = i;
             const taskName = this._currentTaskName();
             console.log(`Job ${this.data.id} is now ${taskName}`);
@@ -402,10 +414,19 @@ module.exports = class Job {
         this.complete();
     }
 
+    kill() {
+        console.log(`Job ${this.data.id} killed`);
+        this._killed = true;
+        if (this.child)
+            this.child.kill('SIGTERM');
+    }
+
     fail(error) {
-        console.error(`Job ${this.data.id} failed during task ${this._currentTaskName()}: ${error}`);
-        if (error.stack)
-            console.error(error.stack);
+        if (this.data.status !== 'queued' && !this._killed) {
+            console.error(`Job ${this.data.id} failed during task ${this._currentTaskName()}: ${error}`);
+            if (error.stack)
+                console.error(error.stack);
+        }
         this.data.status = 'error';
         this.data.error = error.message;
         this.complete();
@@ -452,6 +473,9 @@ module.exports = class Job {
 
     get status() {
         return this.data.status;
+    }
+    get error() {
+        return this.data.error;
     }
     get eta() {
         return this.data.eta;

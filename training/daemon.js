@@ -160,10 +160,12 @@ Check the logs for further information.`
         this._queues[job.jobType].current = null;
 
         const dependents = this._dependencies.get(job.id) || [];
+        this._dependencies.delete(job.id);
         console.log(`Dependencies of job ${job.id}: [${dependents.map((d) => d.id).join(', ')}]`);
         let success = true;
         if (job.status === 'failed' || job.status === 'error') {
-            if (job.error !== `Dependency failed`)
+            console.log(job.error);
+            if (job.error !== `Dependency failed` && job.error !== `Killed`)
                 this._notifyFailure(job);
             success = false;
         }
@@ -175,6 +177,7 @@ Check the logs for further information.`
             assert(waitIndex >= 0);
 
             this._queues[dep.jobType].waiting.splice(waitIndex, 1);
+            dep.data.dependsOn = null;
 
             if (success) {
                 this._queues[dep.jobType].next.push(dep);
@@ -319,6 +322,49 @@ Check the logs for further information.`
                 res.status(400).json({error: e.message, code: e.code});
             }
         });
+        app.post('/jobs/kill', async (req, res, next) => {
+            const id = req.body.id;
+            let found = false;
+            for (let jobType in this._queues) {
+                const queue = this._queues[jobType];
+                if (queue.current && queue.current.id === id) {
+                    queue.current.kill();
+                    found = true;
+                    break;
+                }
+                for (let i = 0; i < queue.next.length; i++) {
+                     let job = queue.next[i];
+                     if (job.id === id) {
+                         queue.next.splice(i, 1);
+                         job.fail(new Error(`Killed`));
+                         found = true;
+                         break;
+                     }
+                }
+                if (found)
+                    break;
+                for (let i = 0; i < queue.waiting.length; i++) {
+                     let job = queue.waiting[i];
+                     if (job.id === id) {
+                         queue.waiting.splice(i, 1);
+                         const dependencies = this._dependencies.get(job.dependsOn) || [];
+                         const depIndex = dependencies.indexOf(job);
+                         if (depIndex >= 0)
+                             dependencies.splice(depIndex, 1);
+
+                         job.fail(new Error(`Killed`));
+                         found = true;
+                         break;
+                     }
+                }
+                if (found)
+                    break;
+            }
+            if (found)
+                res.json({result:'killed'});
+            else
+                res.status(404).json({result:'not_found'});
+        });
         app.get('/jobs', (req, res) => {
             let jobs = {};
             for (let jobType in this._queues) {
@@ -353,20 +399,19 @@ Check the logs for further information.`
 
             for (let jobType in this._queues) {
                 const queue = this._queues[jobType];
-                jobs[jobType] = [];
 
                 if (queue.current !== null &&
                     queue.current.language === req.params.language &&
                     (queue.current.forDevices.length === 0 || queue.current.forDevices.some((d) => d === req.params.forDevice))) {
-                    jobs[jobType].push(queue.current);
+                    jobs[jobType] = queue.current;
                     continue;
                 }
 
-                for (let candidate of queue.next) {
+                for (let candidate of queue.next.concat(queue.waiting)) {
                     if (candidate.language === req.params.language &&
                         (queue.current.forDevices.length === 0 || candidate.forDevices.some((d) => d === req.params.forDevice))) {
-                        jobs[jobType].push(queue.current);
-                        return;
+                        jobs[jobType] = candidate;
+                        break;
                     }
                 }
             }
