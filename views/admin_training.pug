@@ -72,7 +72,7 @@ block content
                 = _("waiting for %d").format(job.dependsOn)
               else
                 = job.status.replace('_', ' ')
-            td= `${job.progress.toFixed(0)}%`
+            td= `${(job.progress*100).toFixed(0)}%`
             td
               if job.startTime
                 = (new Date(job.startTime)).toLocaleString(user.locale, { timeZone: user.timezone })
