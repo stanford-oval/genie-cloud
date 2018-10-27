@@ -393,6 +393,7 @@ Check the logs for further information.`
                 const queue = this._queues[jobType];
                 jobs[jobType] = queue.current;
             }
+            res.json(jobs);
         });
         app.get('/jobs/:language/:forDevice', (req, res) => {
             let jobs = {};
