@@ -407,15 +407,15 @@ align-text@^0.1.1, align-text@^0.1.3:
     longest "^1.0.1"
     repeat-string "^1.5.2"
 
-almond-dialog-agent@^1.0.3:
+"almond-dialog-agent@github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent":
   version "1.1.0"
-  resolved "https://registry.yarnpkg.com/almond-dialog-agent/-/almond-dialog-agent-1.1.0.tgz#287314d7874aa57262ed1fd31c2725b0e6702528"
-  integrity sha512-/aexuv5ATlu86l054NQN30sZWa17qBhjjT75qMcn8sQZHpSW732tTOrmR6xToG/IxFRA/BgUMlOA2pv7ARCx7w==
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent/tar.gz/7818f487548df67c6f675115aa56a6fc84aceb30"
   dependencies:
     adt "~0.7.2"
     consumer-queue "^1.0.0"
     thingpedia "^2.2.0"
-    thingtalk "^1.1.1"
+    thingpedia-client "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client"
+    thingtalk "~1.3.0"
     uuid "^3.1.0"
 
 amdefine@>=0.0.4:
@@ -6711,7 +6711,7 @@ thingpedia@^2.2.0, thingpedia@^2.2.1, thingpedia@^2.2.2, thingpedia@^2.3.0:
     tmp "0.0.33"
     xml2js "^0.4.17"
 
-thingtalk@^1.1.1, thingtalk@~1.3.0:
+thingtalk@~1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.3.0.tgz#87ad712aa4651dd5bc473f31ab0581459f0f28c6"
   integrity sha512-u0Jr2+q1ZOZKJTqftHfLw5qcQSJJb9ZNXROuNH2nc7y4DLp8Rd0YX9OlYzvpu6xQLHENK1hkHgf7u9IKdC9bvw==

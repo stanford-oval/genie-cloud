@@ -37,7 +37,7 @@
     "accept-language": "^2.0.17",
     "accepts": "^1.3.5",
     "actions-on-google": "^2.2.0",
-    "almond-dialog-agent": "^1.0.3",
+    "almond-dialog-agent": "github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent",
     "argparse": "^1.0.10",
     "body-parser": "~1.13.3",
     "cacheable-middleware": "0.0.1",
