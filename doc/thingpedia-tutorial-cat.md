@@ -89,7 +89,7 @@ dataset @com.thecatapi {
     snippets together, the system knows what argument can be passed to the parameter.
   */
   query (p_count :Number)  := @com.thecatapi.get(count=p_count)
-  #_[utterances=["${p_count:const} cat pictures"]];
+  #_[utterances=["${p_count} cat pictures"]];
 }
 ```
 

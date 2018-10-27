@@ -8,19 +8,10 @@ so that Almond understands users' commands related to your device
 and present the results to the users properly. 
 
 ## Natural language understanding
-When creating a new device, a dataset files containing example commands is required. 
+When creating a new device, a dataset files containing the example commands is required. 
 These example commands provide the training data for your device. 
 The natural language understanding ability of Almond heavily relies on the quality 
 and quantity of the examples. 
-
-## Example commands
-A dataset contains ThingTalk commands and their corresponding utterances. 
-The syntax is as follows:
-```tt
-query := @com.thecatapi.get();
-#_[utterances=["a cat picture","a random cat picture","cats"]];
-```
-An `utterances` annotation is used. It takes a list of strings to present different ways of expressing the command
 
 ### Code snippet vs full program
 We strongly suggest to use _code snippet_ instead of _full program_ in the example commands.
@@ -35,15 +26,75 @@ As shown in the previous example, the code snippet of the query to get a cat pic
 query := @com.thecatapi.get();
 ```
 A code snippet cannot be executed by Almond right away, but it can be composed with other 
-code snippet to form a full program. 
+code snippet and builtin functions (e.g., `now`, `notify`, `timer`) to form a full program. 
 
+Once Almond receives the code snippets, it will compose it with other code snippets randomly. 
+For example, if we have the following two code snippets:
+```tt
+query := @com.thecatapi.get();
+action := @com.slack.send();
+```
+We can generate a list of full programs including:
+```tt
+now => @com.thecatapi.get() => notify;
+now => @com.slack.send();
+now => @com.thecatapi.get() => @com.slack.send();
+attimer(time=...) => @com.thecatapi.get() => notify;
+attimer(time=...) => @com.slack.send();
+attimer(time=...) => @com.thecatapi.get() => @com.slack.send();
+```
 
-- stream: when clause
-- query: noun phrase
-- action: verb phrase in the imperative form
+Thus, by providing the composable code snippets, Almond will be able to generate a large 
+number of full programs for training and thus get a better accuracy. 
+
+### Utterances
+Each command needs a list of utterances. The syntax is as follows:
+```tt
+query (p_count :Number)  := @com.thecatapi.get(count=p_count)
+#_[utterances=["$p_count cat pictures", "$p_count cats"]];
+```
+An `utterances` annotation is used to provide different ways of expressing the commands.
+It takes a list of strings where parameters can be referred by `$param` or `${param}`.
+
+The utterances will be used to generate the _synthetic sentence_ of the 
+full program composed by the code snippet. 
+For example, if we have the following two code snippets with the corresponding utterances:
+```tt
+query := @com.thecatapi.get() #_[utterances=["a cat picture"];
+action := @com.slack.send() #_[utterances=["send a message to slack"];
+```
+Then when we compose the full program `now => @com.thecatapi.get() => @com.slack.send();`,
+we will generate the synthetic sentences such as:
+“get/search/show me/find **_a cat picture_**, then **_send a message to slack_**”.
+
+By default, the utterances for a query should be __noun phrases__. 
+When we compose the sentence, we will add generic verbs before the noun phrase such as `get`, `show`.
+As in our example, we have utterance “a cat picture” instead of “get a cat picture”.
+This is particularly useful for parameter passing. 
+For example, in the following program, the cat picture is sent to Slack:
+```tt
+now => @com.thecatapi.get() => @com.slack.send_picture(picture_url=picture_url);
+``` 
+Let's say an utterance of `@com.slack.send_picture` is `send $picture_url to Slack`.
+When we compose the sentence,
+we will replace the parameter with the utterance of `@com.thecatapi.get`, and generate:
+“send **_a cat picture_** to Slack”.
+
+If you want to use a non-generic verb for your query, put a comma `,` before your utterance.
+For example, a command to get the translation of some text 
+might want to use the command-specific verb `translate`, 
+thus we can write the utterance as “, translate the text”.
+
+For streams, write the utterances as a _when phrase_, such as “when it's raining”, “when I receive an email”.
+For actions, write the utterances as a verb phrase in the imperative form, such as “send a message”.
 
 ### Other tips and tricks
-- `canonical` annotation for function name and parameter name
+#### `canonical` annotation 
+Unlike most of the other programming languages, parameter names and function names matter 
+in ThingTalk: they are used for generating synthetic sentences. 
+
+To make the synthetic sentences more natural, you can use `canonical` annotations
+to provide how the parameter will be expressed in natural language.  
 
 ## Response with natural language
 Once Almond understands the issued command, Almond will execute it
