@@ -1,106 +1,33 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingEngine
+//
+// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
 "use strict";
 
 const fs = require('fs');
-const ThingTalk = require('thingtalk');
+const util = require('util');
+const path = require('path');
+const Url = require('url');
+const child_process = require('child_process');
+const Tp = require('thingpedia');
+
 const db = require('../util/db');
+const DatasetUtils = require('../util/dataset');
+const { clean } = require('../util/tokenize');
 
-const exampleModel = require('../model/example');
-const deviceModel = require('../model/device');
+const Config = require('../config');
 
-function findInvocation(parsed, id) {
-    if (parsed.type === 'action')
-        return parsed.value;
-    else if (parsed.type)
-        return findInvocation(parsed.value, id);
-    if (parsed.isMonitor)
-        return findInvocation(parsed.table, id);
-    if (parsed.isFilter)
-        return findInvocation(parsed.table || parsed.stream, id);
-    if (parsed.isEdgeFilter)
-        return findInvocation(parsed.stream, id);
-    if (parsed.isInvocation)
-        return parsed.invocation;
-    throw new Error(id + ' not action query or trigger, is ' + parsed);
-}
-
-function get_examples() {
-    return db.withClient((dbClient) => {
-        var deviceMap = {};
-
-        return deviceModel.getAll(dbClient).then((devices) => {
-            devices.forEach((d) => {
-                if (!d.approved_version)
-                    return;
-                if (d.primary_kind === 'org.thingpedia.demo.coffee' || d.primary_kind === 'org.thingpedia.builtin.thingengine.home')
-                    return;
-                deviceMap[d.primary_kind] = {
-                    name: d.name,
-                    primary_kind: d.primary_kind,
-                    id: d.id,
-                    triggers: [],
-                    queries: [],
-                    actions: []
-                };
-            });
-        }).then(() => {
-            return exampleModel.getBaseByLanguage(dbClient, 'en');
-        }).then((examples) => {
-            const kindMap = {
-                'thermostat': 'com.nest',
-                'light-bulb': 'com.hue',
-                'security-camera': 'com.nest',
-                'car': 'com.tesla',
-                'speaker': 'org.thingpedia.bluetooth.speaker.a2dp',
-                'scale': 'com.bodytrace.scale',
-                'heatpad': 'com.parklonamerica.heatpad',
-                'activity-tracker': 'com.jawbone.up',
-                'fitness-tracker': 'com.jawbone.up',
-                'heartrate-monitor': 'com.jawbone.up',
-                'sleep-tracker': 'com.jawbone.up',
-                'tumblr-blog': 'com.tumblr'
-            };
-
-            var dupes = new Set;
-
-            examples.forEach((ex) => {
-                if (dupes.has(ex.target_code) || !ex.target_code)
-                    return;
-
-                dupes.add(ex.target_code);
-                var parsed = ThingTalk.Grammar.parse(ex.target_code);
-                if (!parsed.declarations.length)
-                    return;
-                var invocation = findInvocation(parsed.declarations[0], ex.id);
-                if (!invocation)
-                    return;
-                var kind = invocation.selector.kind;
-
-                if (kind in kindMap)
-                    kind = kindMap[kind];
-                if (!(kind in deviceMap)) {
-                    // ignore what we don't recognize
-                    //console.log('Unrecognized kind ' + kind);
-                } else {
-                    var sentence = ex.utterance.replace(/\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/g, '____');
-                    if (parsed.declarations[0].type === 'stream')
-                        deviceMap[kind].triggers.push(sentence);
-                    if (parsed.declarations[0].type === 'table')
-                        deviceMap[kind].queries.push(sentence);
-                    if (parsed.declarations[0].type === 'action')
-                        deviceMap[kind].actions.push(sentence);
-                }
-            });
-
-            var devices = Object.keys(deviceMap).map((k) => deviceMap[k]);
-            return devices;
-        });
-    });
-}
-
-function gen_tex(devices, path) {
+async function genTex(devices, path) {
     let tex;
     tex = '\\documentclass[10pt]{article}\n'
-        + '\\usepackage[paperheight=1080px,paperwidth=1920px,margin=25px]{geometry}\n'
+        // we want the base font to be 5pt, but \documentclass{article}
+        // does not like that, so we just double the paper size
+        + '\\usepackage[paperheight=17in,paperwidth=22in,margin=25px]{geometry}\n'
         + '\\usepackage{graphicx}\n'
         + '\\usepackage[default]{lato}\n'
         + '\\usepackage{multicol}\n'
@@ -112,57 +39,132 @@ function gen_tex(devices, path) {
         + '\\newcommand{\\DO}[0]{\\textcolor[rgb]{0.05, 0.5, 0.06}{\\textsc{do: }}}\n'
         + '\\begin{document}\n'
         + '\\pagestyle{empty}\n'
-        + '\\begin{multicols}{8}\n';
+        + '\\begin{multicols}{6}\n';
 
+    const icons = [];
     devices.forEach((d) => {
-        if (d.triggers.length + d.queries.length + d.actions.length === 0)
+        if (d.examples.length === 0)
             return;
-        tex += foramtDeviceName(d);
-        d.triggers.forEach((t) => {
-            tex += formatExample(t, 'trigger') + '\n\n';
-        })
-        d.queries.forEach((q) => {
-            tex += formatExample(q, 'query') + '\n\n';
-        })
-        d.actions.forEach((a) => {
-            tex += formatExample(a, 'action') + '\n\n';
-        })
-        tex += '\\bigbreak\n\\bigbreak\n'
-    })
+
+        icons.push(d.primary_kind);
+        tex += formatDeviceName(d);
+        for (let ex of d.examples)
+            tex += formatExample(ex);
+
+        tex += '\\bigbreak\n\\bigbreak\n';
+    });
 
     tex += '\\end{multicols}\n' + '\\end{document}\n';
 
-    fs.writeFile(path + '/cheatsheet.tex', tex, (err) => {
-        if (err) return console.error(err);
-        console.log('saved');        
-    })
+    await util.promisify(fs.writeFile)(path + '/cheatsheet.tex', tex);
 
+    return icons;
 }
 
-function foramtDeviceName(d) {
+function formatDeviceName(d) {
     let tex = `\\includegraphics[height=12px]{icons/{${d.primary_kind}}.png} `;
     tex += '{\\bf\\large ' + d.name + '}\n\n';
+    tex += '\\vspace{0.1em}';
     return tex;
 }
 
-function formatExample(ex, type) {
-    if (type === 'trigger')
-        ex = '\\WHEN ' + ex;
-    else if (type === 'query')
-        ex = '\\GET ' + ex;
-    else if (type === 'action')
-        ex = '\\DO ' + ex;
-    ex = '\\textbullet ' + ex
-    return ex.replace(/____/g, '\\_\\_\\_\\_');
+function formatExample(ex) {
+    let buf = '\\textbullet ';
+    if (ex.type === 'stream')
+        buf += '\\WHEN ';
+    else if (ex.type === 'query')
+        buf += '\\GET ';
+    else if (ex.type === 'action')
+        buf += '\\DO ';
+
+    for (let chunk of ex.utterance_chunks) {
+        if (typeof chunk === 'string') {
+            buf += chunk;
+        } else {
+            const [match, param1, param2, ] = chunk;
+            if (match === '$$')
+              buf += '\\$';
+            else
+              buf += '\\_\\_\\_\\_ {\\small (' + clean(param1||param2) + ')}';
+        }
+    }
+
+    buf += '\n\n';
+    return buf;
 }
 
+async function saveFile(url, file) {
+    const input = await Tp.Helpers.Http.getStream(url);
+    const output = fs.createWriteStream(file);
+    input.pipe(output);
 
-function main() {
-    const path = process.argv[2] || './cheatsheet/'
-    get_examples().then((devices) => {
-        gen_tex(devices, path);
-    }).done();
-
+    return new Promise((resolve, reject) => {
+        output.on('finish', resolve);
+        output.on('error', reject);
+    });
 }
 
+async function safeMkdir(dir, options) {
+    try {
+         await util.promisify(fs.mkdir)(dir, options);
+    } catch(e) {
+         if (e.code === 'EEXIST')
+             return;
+         throw e;
+    }
+}
+
+async function execCommand(command, argv, options) {
+    const child = child_process.spawn(command, argv, options);
+    return new Promise((resolve, reject) => {
+        child.on('error', reject);
+        child.on('exit', (code, signal) => {
+            if (signal) {
+                if (signal === 'SIGINT' || signal === 'SIGTERM')
+                    reject(new Error(`Killed`));
+                else
+                    reject(new Error(`Command crashed with signal ${signal}`));
+            } else {
+                if (code !== 0)
+                    reject(new Error(`Command exited with code ${code}`));
+                else
+                    resolve();
+            }
+        });
+    });
+}
+
+async function main() {
+    try {
+        const language = process.argv[2] || 'en';
+        const outputpath = path.resolve(process.argv[3] || './cheatsheet');
+        await safeMkdir(outputpath);
+
+        const devices = await DatasetUtils.getCheatsheet(language);
+        const icons = await genTex(devices, outputpath);
+
+        await safeMkdir(`${outputpath}/icons`);
+
+        const baseUrl = Url.resolve(Config.SERVER_ORIGIN, Config.CDN_HOST);
+        for (let icon of icons) {
+            const iconfile = `${outputpath}/icons/${icon}.png`;
+            if (fs.existsSync(iconfile))
+                continue;
+            const url = Url.resolve(baseUrl, `/icons/${icon}.png`);
+            try {
+                await saveFile(url, iconfile);
+            } catch(e) {
+                console.error(`Failed to download icon for ${icon}`);
+            }
+        }
+
+        await execCommand('latexmk',
+            ['-pdf', 'cheatsheet.tex'], {
+            cwd: outputpath,
+            stdio: ['ignore', 'inherit', 'inherit'],
+        });
+    } finally {
+        await db.tearDown();
+    }
+}
 main();
