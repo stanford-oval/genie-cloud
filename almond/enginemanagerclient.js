@@ -208,6 +208,12 @@ class EngineManagerClient extends events.EventEmitter {
         return this._rpcControl.deleteUser(userId);
     }
 
+    clearCache(userId) {
+        if (!this._rpcControl)
+            return Q.reject(new Error('EngineManager died'));
+        return this._rpcControl.clearCache(userId);
+    }
+
     restartUser(userId) {
         if (!this._rpcControl)
             return Q.reject(new Error('EngineManager died'));

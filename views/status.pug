@@ -13,10 +13,11 @@ block page_name
   = _("Status")
 
 block content
-  div.container-fluid#page-body
+  div(class=WITH_THINGPEDIA === 'embedded' ? 'container-fluid' : 'container')#page-body
     div.row
-      div.col-lg-3.col-md-4
-        include thingpedia_dev_sidebar
+      if WITH_THINGPEDIA === 'embedded'
+        div.col-lg-3.col-md-4
+          include thingpedia_dev_sidebar
 
       div.col-xs-12.col-md-8.col-lg-9
         section.divider
@@ -27,37 +28,77 @@ block content
             else
               strong= _("Killed")
 
-          if isRunning
-            form(action='/me/status/kill', method='post')
-              input(type='hidden',name='_csrf',value=csrfToken)
-              button(type='submit').btn.btn-danger= _("Kill")
-          else
-            form(action='/me/status/start', method='post')
-              input(type='hidden',name='_csrf',value=csrfToken)
-              button(type='submit').btn.btn-danger= _("Start")
+          div.row
+            div.col-sm-3
+              if isRunning
+                form(action='/me/status/kill', method='post')
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-sm.btn-block.btn-danger= _("Kill")
+              else
+                form(action='/me/status/start', method='post')
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-sm.btn-block.btn-danger= _("Start")
+
+          if !isRunning
+            h2= _("Recovery Options")
+
+            div.row
+              div.col-sm-3
+                form(action='/me/status/recovery/clear-cache', method='post')
+                  input(type='hidden',name='_csrf',value=csrfToken)
+                  button(type='submit').btn.btn-sm.btn-danger.btn-block= _("Clear cache")
+
+              div.col-sm-3
+                a(href='#delete-data-dialog',data-toggle='modal').btn.btn-sm.btn-danger.btn-block= _("Clear data")
+
+              div.modal.fade#delete-data-dialog(role='dialog')
+                div.modal-dialog
+                  div.modal-content
+                    div.modal-header
+                      a.close(data-dismiss='modal', aria-label="Close")
+                        span(aria-hidden='true') ×
+
+                      h4.modal-title= _("Are you sure you want to delete all your data?")
+
+                    div.modal-body
+                      p
+                        = _("This operation will remove all your configured accounts, and stop all active commands. Use this option only as a last resort to recover a broken engine.")
+                        |
+                        |
+                        if user.developer_org !== null
+                          = _("Your submissions to Thingpedia will not be affected.")
+
+                      form(action='/me/status/recovery/clear-data', method='post')
+                        input(type='hidden',name='_csrf',value=csrfToken)
+
+                        div.form-group
+                          button(type='submit').btn.btn-danger= _("Clear Data")
 
           h2= _("Cached Modules")
 
-          table.table#cached-module-table
-            thead
-              tr
-                th= _("Name")
-                th= _("Version")
-                th= _("Actions")
-            tbody
-              each m in modules
+          if isRunning
+            table.table#cached-module-table
+              thead
                 tr
-                  td= m.name
-                  td= m.version
-                  td
-                    form(action='/me/status/update-module/' + m.name, method='post')
-                      input(type='hidden',name='_csrf',value=csrfToken)
-                      button(type='submit').btn.btn-default= _("Update")
+                  th= _("Name")
+                  th= _("Version")
+                  th= _("Actions")
+              tbody
+                each m in modules
+                  tr
+                    td= m.name
+                    td= m.version
+                    td
+                      form(action='/me/status/update-module/' + m.name, method='post')
+                        input(type='hidden',name='_csrf',value=csrfToken)
+                        button(type='submit').btn.btn-default= _("Update")
+          else
+            p= _("The list of cached modules is not available when the engine is not running.")
 
           if user.developer_key
             h2= _("Logs")
             div#log-view
           else
-            p= _("You are not approved developer, so you cannot see the logs of your engine. ")
+            p= _("You are not an approved developer, so you cannot see the logs of your engine. ")
               a(href='/user/request-developer')= _("Apply to be a developer")
               | .

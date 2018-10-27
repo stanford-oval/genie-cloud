@@ -17,6 +17,7 @@ const os = require('os');
 const events = require('events');
 const stream = require('stream');
 const rpc = require('transparent-rpc');
+const util = require('util');
 
 const user = require('../model/user');
 const db = require('../util/db');
@@ -202,6 +203,12 @@ class EngineProcess extends events.EventEmitter {
                 console.error('Child with ID ' + this._id + ' reported an error: ' + error);
                 reject(new Error('Reported error ' + error));
             });
+            child.on('disconnect', () => {
+                if (!this._hadExit) {
+                    this._hadExit = true;
+                    this.emit('exit');
+                }
+            });
             child.on('exit', (code, signal) => {
                 if (this.shared || code !== 0)
                     console.error('Child with ID ' + this._id + ' exited with code ' + code);
@@ -269,7 +276,7 @@ class EngineManager extends events.EventEmitter {
         var die = (manual) => {
             if (engines[user.id] !== obj)
                 return;
-            obj.process.removeListener('die', die);
+            obj.process.removeListener('exit', die);
             obj.process.removeListener('engine-removed', onRemoved);
             if (obj.thingpediaClient)
                 obj.thingpediaClient.$free();
@@ -383,9 +390,10 @@ class EngineManager extends events.EventEmitter {
         });
     }
 
-    stop() {
+    async stop() {
         this._stopped = true;
-        return this.killAllUsers();
+        await this.killAllUsers();
+        console.log(`EngineManager stopped`);
     }
 
     killAllUsers() {
@@ -405,12 +413,19 @@ class EngineManager extends events.EventEmitter {
         return Promise.resolve(obj.process.killEngine(userId));
     }
 
-    deleteUser(userId) {
+    _getUserCloudIdForPath(userId) {
         let obj = this._engines[userId];
-        if (obj.process !== null)
-            obj.process.killEngine(userId);
-
-        return Q.nfcall(child_process.exec, 'rm -fr ./' + obj.cloudId);
+        if (obj) {
+            if (obj.process !== null)
+                obj.process.killEngine(userId);
+            return Promise.resolve(obj.cloudId);
+        } else {
+            return db.withClient((dbClient) => {
+                return user.get(dbClient, userId);
+            }).then((user) => {
+                return user.cloud_id;
+            });
+        }
     }
 
     restartUser(userId) {
@@ -418,7 +433,21 @@ class EngineManager extends events.EventEmitter {
             return this.startUser(userId);
         });
     }
+
+    async deleteUser(userId) {
+        console.log(`Deleting all data for ${userId}`);
+        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId));
+        return util.promisify(child_process.execFile)('/bin/rm',
+            ['-rf', dir]);
+    }
+
+    async clearCache(userId) {
+        console.log(`Clearing cache for ${userId}`);
+        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId), 'cache');
+        return util.promisify(child_process.execFile)('/bin/rm',
+            ['-rf', dir]);
+    }
 }
-EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers', 'deleteUser', 'restartUser'];
+EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers',  'restartUser', 'deleteUser', 'clearCache'];
 
 module.exports = EngineManager;
