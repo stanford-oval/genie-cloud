@@ -279,7 +279,7 @@ Check the logs for further information.`
                 }
             }
         } else if (jobType === 'update-dataset') {
-            await this._queueOrMergeJob(forDevices, 'update-dataset', language, 'default', null);
+            await this._queueOrMergeJob(forDevices || [], 'update-dataset', language, 'default', null);
         } else {
             throw new Error(`Invalid job type ${jobType}`);
         }
