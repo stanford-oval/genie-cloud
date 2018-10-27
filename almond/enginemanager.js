@@ -203,6 +203,12 @@ class EngineProcess extends events.EventEmitter {
                 console.error('Child with ID ' + this._id + ' reported an error: ' + error);
                 reject(new Error('Reported error ' + error));
             });
+            child.on('disconnect', () => {
+                if (!this._hadExit) {
+                    this._hadExit = true;
+                    this.emit('exit');
+                }
+            });
             child.on('exit', (code, signal) => {
                 if (this.shared || code !== 0)
                     console.error('Child with ID ' + this._id + ' exited with code ' + code);
@@ -270,7 +276,7 @@ class EngineManager extends events.EventEmitter {
         var die = (manual) => {
             if (engines[user.id] !== obj)
                 return;
-            obj.process.removeListener('die', die);
+            obj.process.removeListener('exit', die);
             obj.process.removeListener('engine-removed', onRemoved);
             if (obj.thingpediaClient)
                 obj.thingpediaClient.$free();
@@ -384,9 +390,10 @@ class EngineManager extends events.EventEmitter {
         });
     }
 
-    stop() {
+    async stop() {
         this._stopped = true;
-        return this.killAllUsers();
+        await this.killAllUsers();
+        console.log(`EngineManager stopped`);
     }
 
     killAllUsers() {
