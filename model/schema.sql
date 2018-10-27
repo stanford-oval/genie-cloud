@@ -426,7 +426,6 @@ CREATE TABLE `example_utterances` (
   KEY `schema_id` (`schema_id`),
   KEY `language_type` (`language`,`type`),
   KEY `owner` (`owner`),
-  FULLTEXT KEY `preprocessed` (`preprocessed`),
   CONSTRAINT `example_utterances_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `example_utterances_ibfk_2` FOREIGN KEY (`owner`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
