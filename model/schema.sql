@@ -403,23 +403,6 @@ CREATE TABLE `string_values` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `example_rule_schema`
---
-
-DROP TABLE IF EXISTS `example_rule_schema`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `example_rule_schema` (
-  `schema_id` int(11) NOT NULL,
-  `example_id` int(11) NOT NULL,
-  PRIMARY KEY (`schema_id`,`example_id`),
-  KEY `example_id` (`example_id`),
-  CONSTRAINT `example_rule_schema_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT `example_rule_schema_ibfk_2` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
 -- Table structure for table `example_utterances`
 --
 
