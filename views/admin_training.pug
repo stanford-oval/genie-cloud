@@ -49,8 +49,10 @@ block content
         tr
           th= _("ID")
           th= _("Language")
-          th= _("Model")
-          th= _("Devices")
+          if jobType !== 'update-dataset'
+            th= _("Model")
+          if jobType !== 'train'
+            th= _("Devices")
           th= _("Status")
           th= _("Progress")
           th= _("Start Time")
@@ -61,12 +63,14 @@ block content
           tr
             td= job.id
             td= job.language
-            td= `@${job.modelTag}`
-            td
-              if job.forDevices.length === 0
-                i= _("all")
-              else
-                = job.forDevices.join(', ')
+            if jobType !== 'update-dataset'
+              td= `@${job.modelTag}`
+            if jobType !== 'train'
+              td
+                if job.forDevices.length === 0
+                  i= _("all")
+                else
+                  = job.forDevices.join(', ')
             td
               if job.status === 'queued' && job.dependsOn !== null
                 = _("waiting for %d").format(job.dependsOn)
