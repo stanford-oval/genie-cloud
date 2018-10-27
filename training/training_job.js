@@ -25,11 +25,11 @@ const GLOVE = process.env.GLOVE || path.resolve('./glove.42B.300d.txt');
 const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 
 const DEFAULT_TRAINING_CONFIG = {
-    train_steps: 100000,
+    train_steps: 400000,
     synthetic_depth: 4,
-    model: 'luinet_copy_transformer',
-    hparams_set: 'transformer_luinet',
-    decode_hparams: "beam_size=10,return_beams=true"
+    model: 'luinet_copy_seq2seq',
+    hparams_set: 'lstm_luinet',
+    decode_hparams: "beam_size=20,return_beams=true"
 };
 const TRAINING_CONFIG = Config.TRAINING_CONFIG || {};
 for (let name in DEFAULT_TRAINING_CONFIG) {
