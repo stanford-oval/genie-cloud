@@ -79,14 +79,14 @@ class @com.thecatapi {
 Click on `dataset.tt` on the left panel. Copy the following code to the editor
 ```tt
 dataset @com.thecatapi {
-  // "utterances" annotation specifies different way to express the command
+  // the "utterances" annotation specifies different ways to express the command
   query  := @com.thecatapi.get()
   #_[utterances=["a cat picture","a random cat picture","cats"]];
 
   /* 
     Example command can also have parameters.
     Each parameter used must specify the type, such that when connecting different 
-    snippets together, the system know what argument can be passed to the parameter.
+    snippets together, the system knows what argument can be passed to the parameter.
   */
   query (p_count :Number)  := @com.thecatapi.get(count=p_count)
   #_[utterances=["${p_count:const} cat pictures"]];

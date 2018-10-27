@@ -24,12 +24,12 @@ in the device name to make sure it won't conflict with others)
 Click on `manifest.tt` on the left panel. Copy the following code to the editor:
 ```tt
 class @com.nytimes {
-  // tell almond it is a rss device
+  // tell almond it is an rss feed device
   import loader from @org.thingpedia.rss(); 
 
   /* 
-    The function to return the articles from front page.
-    Example commands: "get articles from new york times front pages"
+    The function to return the articles from the front page.
+    Example commands: "get articles from New York Times front page"
     Qualifiers: 
       - monitorable: if you want the query to be monitored and trigger actions on change
       - list: if the query returns multiple results  
@@ -45,7 +45,7 @@ class @com.nytimes {
   // if the query is monitored, how frequent we invoke it
   #[poll_interval=60min] 
   #[doc="read the front page of the New York Times"]
-  // the URL of RSS feed
+  // the URL of the RSS feed
   #[url="http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"];
 }
 ```
@@ -54,11 +54,11 @@ class @com.nytimes {
 Click on `dataset.tt` on the left panel. Copy the following code to the editor:
 ```tt
 dataset @com.nytimes {
-  // "utterances" annotation specifies different way to express the command
+  // the "utterances" annotation specifies different ways to express the command
   query  := @com.nytimes.get_front_page()
   #_[utterances=["new york times","the front page of the new york times","articles in the new york times"]];
     
-  // filteres can be applied to get partial results
+  // filters can be applied to get partial results
   query  := (@com.nytimes.get_front_page()), updated >= start_of(day)
   #_[utterances=["today 's articles in the new york times"]];
     
@@ -74,4 +74,4 @@ Congratulation! You made your first device for Thingpedia.
 Go to [Thingpedia page](/thingpedia) and search for "my New York Times" to see your device.
 
 ## Try your device
-Go to [My Almond](/me). Type in `get new york times`. 
+Go to [My Almond](/me). Type in `get New York Times`. 

@@ -52,7 +52,7 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
     }
 
     /* 
-    A user might have multiple accounts for non-public services and devices.
+    A user might have multiple accounts for LinkedIn.
     Thus we need to have an unique ID to identify different instances of the class.
     And optionally, we give each instance a different name and description, so
     that users can easily tell which account a device instance associates with 
@@ -72,9 +72,9 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
     */
     get_get_profile() {
         /* 
-        Tp.Helpers.Http provides wrappers for nodejs http APIs with a Promise interface.
+        Tp.Helpers.Http provides wrappers for the nodejs http APIs with a Promise interface.
         In this case an HTTP GET request is sent to PROFILE_URL
-        with the options including the auth information and expected output type,
+        with the options including the auth information and the expected output type,
         and then returns a Promise of the response.
         */
         return Tp.Helpers.Http.get(PROFILE_URL, {
@@ -98,7 +98,7 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
     do_share({ status }) {
         /* 
         Send an HTTP POST request to SHARE_URL with the data we want to post.
-        Options includes the auth information, the format of the data, and expected output type 
+        Options include the auth information, the format of the data, and the expected output type 
         */
         return Tp.Helpers.Http.post(SHARE_URL, JSON.stringify({
             comment: status,
