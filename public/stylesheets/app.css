@@ -74,5 +74,7 @@
 
 .icon-slide img {
   width: 80px;
+  height: 80px;
+  object-fit: contain;
   margin: 0 10px 10px 10px;
 }
