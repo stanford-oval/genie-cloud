@@ -69,8 +69,6 @@ $(function() {
         if (!$('#input:focus').length)
             return;
 
-        container[0].scrollIntoView(false);
-        //window.scrollTo(0,document.body.scrollHeight);
         scrollChat();
         setTimeout(scrollChat, 1000);
     }
@@ -276,7 +274,6 @@ $(function() {
     function appendUserMessage(text) {
         container.append($('<span>').addClass('message message-text from-user')
             .text(text));
-        container[0].scrollIntoView(false);
     }
 
     $('#input-form').submit(function(event) {
