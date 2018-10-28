@@ -10,13 +10,15 @@ $(function() {
 
         function connect() {
             ws = new WebSocket(url);
-            ws.onopen = function() {
-                wasOpen = true;
-                reconnectTimeout = 100;
-                $('#input-form-group').removeClass('has-warning');
-                $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
+            ws.onmessage = function(event) {
+                if (!wasOpen) {
+                    wasOpen = true;
+                    reconnectTimeout = 100;
+                    $('#input-form-group').removeClass('has-warning');
+                    $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
+                }
+                onWebsocketMessage(event);
             };
-            ws.onmessage = onWebsocketMessage;
 
             ws.onclose = function() {
                 console.error('Web socket closed');
