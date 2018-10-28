@@ -270,10 +270,13 @@ function doConversation(user, anonymous, ws) {
         };
         EngineManager.get().on('socket-closed', onclosed);
 
-        var assistantUser = { name: user.human_name || user.username, anonymous };
-        var delegate = new WebsocketAssistantDelegate(ws);
+        // "isOwner" is a multi-user assistant thing, it has nothing to do with anonymous or not
+        const assistantUser = { name: user.human_name || user.username, isOwner: true };
+        const options = { showWelcome: true, anonymous };
 
-        var opened = false;
+        const delegate = new WebsocketAssistantDelegate(ws);
+
+        let opened = false;
         const id = 'web-' + makeRandom(4);
         ws.on('error', (err) => {
             ws.close();
@@ -286,7 +289,7 @@ function doConversation(user, anonymous, ws) {
             opened = false;
         });
 
-        return engine.assistant.openConversation(id, assistantUser, delegate, { showWelcome: true })
+        return engine.assistant.openConversation(id, assistantUser, delegate, options)
             .then((conversation) => {
                 opened = true;
                 return Promise.resolve(conversation.start()).then(() => conversation);
