@@ -88,30 +88,33 @@ masterpid=$!
 node $srcdir/main.js &
 frontendpid=$!
 
-# sleep until the process is settled
-sleep 30
+if test "$1" = "--webalmond-interactive" ; then
+    sleep 84600
+else
+    # sleep until the process is settled
+    sleep 30
+    # run the website tests from web almond, this time with Thingpedia + Stanford
+    # enabled
 
-# run the website tests from web almond, this time with Thingpedia + Stanford
-# enabled
+    # login as bob
+    bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+    # login as root
+    root_cookie=$(node $srcdir/tests/login.js root rootroot)
 
-# login as bob
-bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
-# login as root
-root_cookie=$(node $srcdir/tests/login.js root rootroot)
+    # run the automated link checker
+    # first without login
+    node $srcdir/tests/linkcheck.js
+    # then as bob (developer)
+    COOKIE="${bob_cookie}" node $srcdir/tests/linkcheck.js
+    # then as root (admin)
+    COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
 
-# run the automated link checker
-# first without login
-node $srcdir/tests/linkcheck.js
-# then as bob (developer)
-COOKIE="${bob_cookie}" node $srcdir/tests/linkcheck.js
-# then as root (admin)
-COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
+    # test the website by making HTTP requests directly
+    node $srcdir/tests/test_website_basic.js
 
-# test the website by making HTTP requests directly
-node $srcdir/tests/test_website_basic.js
-
-# test the website in a browser
-SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
+    # test the website in a browser
+    SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
+fi
 
 kill $frontendpid
 frontendpid=
