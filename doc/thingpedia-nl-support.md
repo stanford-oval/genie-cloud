@@ -75,7 +75,7 @@ For example, in the following program, the cat picture is sent to Slack:
 ```tt
 now => @com.thecatapi.get() => @com.slack.send_picture(picture_url=picture_url);
 ``` 
-Let's say an utterance of `@com.slack.send_picture` is “send $picture_url to Slack”.
+Let's say an utterance of `@com.slack.send_picture` is “send $p_picture_url on Slack”.
 When we compose the sentence,
 we will replace the parameter with the utterance of `@com.thecatapi.get`, and generate:
 “send **_a cat picture_** to Slack”.
