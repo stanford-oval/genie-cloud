@@ -259,10 +259,9 @@ class WebsocketAssistantDelegate {
 }
 WebsocketAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
 
-function doConversation(user, anonymous, ws) {
-    return Q.try(() => {
-        return EngineManager.get().getEngine(user.id);
-    }).then((engine) => {
+async function doConversation(user, anonymous, ws) {
+    try {
+        const engine = await EngineManager.get().getEngine(user.id);
         const onclosed = (userId) => {
             if (userId === user.id)
                 ws.close();
@@ -289,34 +288,43 @@ function doConversation(user, anonymous, ws) {
             opened = false;
         });
 
-        return engine.assistant.openConversation(id, assistantUser, delegate, options)
-            .then((conversation) => {
-                opened = true;
-                return Promise.resolve(conversation.start()).then(() => conversation);
-            }).then((conversation) => {
-                ws.on('message', (data) => {
-                    Q.try(() => {
-                        var parsed = JSON.parse(data);
-                        switch(parsed.type) {
-                        case 'command':
-                            return conversation.handleCommand(parsed.text);
-                        case 'parsed':
-                            return conversation.handleParsedCommand(parsed.json);
-                        case 'tt':
-                            return conversation.handleThingTalk(parsed.code);
-                        default:
-                            throw new Error('Invalid command type ' + parsed.type);
-                        }
-                    }).catch((e) => {
-                        console.error(e.stack);
-                        ws.send(JSON.stringify({ type: 'error', error:e.message }));
-                    });
-                });
+        const conversation = await engine.assistant.openConversation(id, assistantUser, delegate, options);
+        opened = true;
+        ws.on('message', (data) => {
+            Promise.resolve().then(() => {
+                var parsed = JSON.parse(data);
+                switch(parsed.type) {
+                case 'command':
+                    return conversation.handleCommand(parsed.text);
+                case 'parsed':
+                    return conversation.handleParsedCommand(parsed.json);
+                case 'tt':
+                    return conversation.handleThingTalk(parsed.code);
+                default:
+                    throw new Error('Invalid command type ' + parsed.type);
+                }
+            }).catch((e) => {
+                console.error(e.stack);
+                ws.send(JSON.stringify({ type: 'error', error:e.message }));
+            }).catch((e) => {
+                // likely, the websocket is busted
+                console.error(`Failed to send error on conversation websocket: ${e.message}`);
+
+                // ignore "Not Opened" error in closing
+                try {
+                    ws.close();
+                } catch(e) {/**/}
             });
-    }).catch((error) => {
+        });
+        await conversation.start();
+    } catch(error) {
         console.error('Error in conversation websocket: ' + error.message);
-        ws.close();
-    });
+
+        // ignore "Not Opened" error in closing
+        try {
+            ws.close();
+        } catch(e) {/**/}
+    }
 }
 
 router.ws('/conversation', (ws, req, next) => {
