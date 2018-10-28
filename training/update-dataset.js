@@ -167,7 +167,7 @@ class DatasetUpdater {
     }
 
     async _processMinibatch(syntheticExamples, flags, type, ppdbProb) {
-       	if (syntheticExamples.length === 0)
+        if (syntheticExamples.length === 0)
             return;
 
         if (!this._options.regenerateAll && this._forDevicesPattern !== null) {
