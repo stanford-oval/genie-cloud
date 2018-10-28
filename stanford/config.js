@@ -17,6 +17,8 @@
 // gettext marker
 function _(x) { return x; }
 
+module.exports.ENABLE_ANONYMOUS_USER = true;
+
 module.exports.ABOUT_OVERRIDE = {
     index: 'stanford/about_index.pug',
     tos: 'stanford/about_tos.pug',

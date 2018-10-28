@@ -10,13 +10,15 @@ $(function() {
 
         function connect() {
             ws = new WebSocket(url);
-            ws.onopen = function() {
-                wasOpen = true;
-                reconnectTimeout = 100;
-                $('#input-form-group').removeClass('has-warning');
-                $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
+            ws.onmessage = function(event) {
+                if (!wasOpen) {
+                    wasOpen = true;
+                    reconnectTimeout = 100;
+                    $('#input-form-group').removeClass('has-warning');
+                    $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
+                }
+                onWebsocketMessage(event);
             };
-            ws.onmessage = onWebsocketMessage;
 
             ws.onclose = function() {
                 console.error('Web socket closed');
@@ -67,8 +69,6 @@ $(function() {
         if (!$('#input:focus').length)
             return;
 
-        container[0].scrollIntoView(false);
-        //window.scrollTo(0,document.body.scrollHeight);
         scrollChat();
         setTimeout(scrollChat, 1000);
     }
@@ -274,7 +274,6 @@ $(function() {
     function appendUserMessage(text) {
         container.append($('<span>').addClass('message message-text from-user')
             .text(text));
-        container[0].scrollIntoView(false);
     }
 
     $('#input-form').submit(function(event) {
