@@ -173,7 +173,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
             }
 
             // trigger the training server if configured
-            TrainingServer.get().queue('en', kind);
+            await TrainingServer.get().queue('en', [kind], 'update-dataset');
 
             return true;
         });

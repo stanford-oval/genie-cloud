@@ -1711,6 +1711,13 @@ cli-cursor@^2.1.0:
   dependencies:
     restore-cursor "^2.0.0"
 
+cli-table@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/cli-table/-/cli-table-0.3.1.tgz#f53b05266a8b1a0b934b3d0821e6e2dc5914ae23"
+  integrity sha1-9TsFJmqLGguTSz0IIebi3FkUriM=
+  dependencies:
+    colors "1.0.3"
+
 cli-width@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/cli-width/-/cli-width-2.2.0.tgz#ff19ede8a9a5e579324147b0c11f0fbcbabed639"
@@ -1790,7 +1797,7 @@ color-thief@^2.2.2:
   dependencies:
     canvas "~1.6.11"
 
-colors@1.0.x:
+colors@1.0.3, colors@1.0.x:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/colors/-/colors-1.0.3.tgz#0433f44d809680fdeb60ed260f1b0c262e82a40b"
   integrity sha1-BDP0TYCWgP3rYO0mDxsMJi6CpAs=
@@ -3388,7 +3395,6 @@ hash.js@^1.0.0, hash.js@^1.0.3:
 
 highlight.js@^9.9.0, "highlight.js@github:Stanford-Mobisocial-IoT-Lab/highlight.js":
   version "9.13.1"
-  uid d8b52ffad72de0f1c6b74362ebe305bb3d1ee12a
   resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/highlight.js/tar.gz/d8b52ffad72de0f1c6b74362ebe305bb3d1ee12a"
 
 hmac-drbg@^1.0.0:
@@ -6679,7 +6685,7 @@ text-table@~0.2.0:
     thingpedia "^2.2.1"
     thingpedia-client "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client"
     thingpedia-discovery "^1.0.0"
-    thingtalk "~1.3.0"
+    thingtalk "^1.0.0"
     uuid "^3.1.0"
     ws "^6.0.0"
 
@@ -6687,8 +6693,8 @@ text-table@~0.2.0:
   version "0.1.0"
   resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-client/tar.gz/184378d0c405502b6349f72966f5e9435228f741"
   dependencies:
-    thingpedia "^2.3.0"
-    thingtalk "~1.3.0"
+    thingpedia "^2.2.1"
+    thingtalk "git://github.com/Stanford-Mobisocial-IoT-Lab/ThingTalk"
     tmp "0.0.33"
 
 thingpedia-discovery@^1.0.0:

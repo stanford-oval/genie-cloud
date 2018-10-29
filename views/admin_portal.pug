@@ -12,16 +12,6 @@ block content
     h1.hidden-xs.hidden-sm#page-title.dev-portal-title
       = _("Administration")
 
-    if currentTrainingJob
-      div.container
-        div.row
-          div.col-xs-12
-            div.alert.alert-info(role='alert')
-              if currentTrainingJob.eta
-                p= _("Current Training Job: %s (%.0f%%). Started at %s for [%s] (@%s/%s). ETA: %s").format(currentTrainingJob.status,currentTrainingJob.progress*100,(new Date(currentTrainingJob.startTime)).toLocaleString(user.locale, { timeZone: user.timezone }), currentTrainingJob.forDevices.join(', '), currentTrainingJob.modelTag, currentTrainingJob.language, (new Date(currentTrainingJob.eta)).toLocaleString(user.locale, { timeZone: user.timezone }))
-              else
-                p= _("Current Training Job: %s (%.0f%%). Started at %s for [%s] (@%s/%s).").format(currentTrainingJob.status, currentTrainingJob.progress*100, (new Date(currentTrainingJob.startTime)).toLocaleString(user.locale, { timeZone: user.timezone }), currentTrainingJob.forDevices.join(', '), currentTrainingJob.modelTag, currentTrainingJob.language)
-
     div.sections
       section.divider
         div.container
@@ -34,6 +24,9 @@ block content
                   li
                     a(href='/admin/organizations') Developer Organizations
                 if WITH_THINGPEDIA === 'embedded'
+                  if user.roles & 0x1
+                    li
+                      a(href='/admin/training') Natural Language Training
                   li
                     a(href='/admin/review-queue') Unreviewed Devices
                   li
@@ -56,13 +49,3 @@ block content
                 form(action='/admin/users/kill/all', method='post')
                   input(type='hidden',name='_csrf',value=csrfToken)
                   button(type='submit').btn.btn-danger.btn-block= _("Kill all users")
-
-              div.col-md-2
-                form(action='/admin/blow-view-cache', method='post')
-                  input(type='hidden',name='_csrf',value=csrfToken)
-                  button(type='submit').btn.btn-default.btn-block= _("Clear view cache")
-
-            div.col-md-3
-              form(action='/admin/start-training', method='post')
-                input(type='hidden',name='_csrf',value=csrfToken)
-                button(type='submit').btn.btn-default.btn-block= _("Start a new training job")

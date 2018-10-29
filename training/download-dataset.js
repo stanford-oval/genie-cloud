@@ -12,16 +12,25 @@
 
 const fs = require('fs');
 const argparse = require('argparse');
+const seedrandom = require('seedrandom');
 
 const db = require('../util/db');
+const { coin } = require('../util/random');
+
+function parseFlags(flags) {
+    const parsed = {};
+    for (let flag of flags.split(','))
+        parsed[flag] = true;
+    return parsed;
+}
 
 function makeId(id, flags) {
     let prefix = '';
-    if (flags.indexOf('replaced') >= 0)
+    if (flags.replaced)
         prefix += 'R';
-    if (flags.indexOf('augmented') >= 0)
+    if (flags.augmented)
         prefix += 'P';
-    if (flags.indexOf('synthetic') >= 0)
+    if (flags.synthetic)
         prefix += 'S';
     return prefix + id;
 }
@@ -34,10 +43,24 @@ async function main() {
     parser.addArgument(['-l', '--language'], {
         required: true,
     });
-    parser.addArgument(['-o', '--output'], {
+    parser.addArgument(['--train'], {
+        required: true,
         type: fs.createWriteStream,
-        help: 'Write to the specified file instead of standard output',
-        defaultValue: process.stdout,
+        help: 'Train file output path',
+    });
+    parser.addArgument(['--eval'], {
+        required: true,
+        type: fs.createWriteStream,
+        help: 'Eval file output path',
+    });
+    parser.addArgument(['--eval-prob'], {
+        type: Number,
+        help: 'Eval probability',
+        defaultValue: 0.1,
+    });
+    parser.addArgument(['--random-seed'], {
+        help: 'Random seed',
+        defaultValue: 'abcdefghi',
     });
     parser.addArgument(['--quote-free'], {
         nargs: 0,
@@ -50,31 +73,61 @@ async function main() {
         dest: 'quote_free',
         help: argparse.SUPPRESS,
     });
+    parser.addArgument(['-d', '--device'], {
+        action: 'append',
+        metavar: 'DEVICE',
+        help: 'Restrict download to commands of the given device. This option can be passed multiple times to specify multiple devices',
+        dest: 'forDevices',
+    });
     const argv = parser.parseArgs();
     const language = argv.language;
-    const output = argv.output;
+    const forDevices = argv.forDevices;
+
+    const rng = seedrandom(argv.random_seed);
 
     const [dbClient, dbDone] = await db.connect();
 
     let query;
-    if (argv.quote_free) {
-        query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-            where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
-            and target_code<>'' and preprocessed<>''`,
-            [language]);
+    if (forDevices && forDevices.length > 0) {
+        const regexp = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
+
+        if (argv.quote_free) {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                use index (language_flags) where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
+                and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
+                [language, regexp]);
+        } else {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
+                and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
+                [language, regexp]);
+        }
     } else {
-        query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-            where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
-            and target_code<>'' and preprocessed<>''`,
-            [language]);
+        if (argv.quote_free) {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                use index (language_flags) where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
+                and target_code<>'' and preprocessed<>''`,
+                [language]);
+        } else {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
+                and target_code<>'' and preprocessed<>''`,
+                [language]);
+        }
     }
 
     query.on('result', (row) => {
-        output.write(makeId(row.id, row.flags) + '\t' + row.preprocessed + '\t' + row.target_code + '\n');
+        const flags = parseFlags(row.flags);
+        const line = makeId(row.id, flags) + '\t' + row.preprocessed + '\t' + row.target_code + '\n';
+
+        if (!flags.synthetic && !flags.augmented && coin(argv.eval_prob, rng))
+            argv.eval.write(line);
+        else
+            argv.train.write(line);
     });
     query.on('end', () => {
-        if (output !== process.stdout)
-            output.end();
+        argv.train.end();
+        argv.eval.end();
         dbDone();
         db.tearDown();
     });

@@ -1,0 +1,13 @@
+[Unit]
+Description=Almond Automatic Training Service Daemon
+Requires=almond-tokenizer.service
+After=almond-tokenizer.service
+
+[Service]
+Type=simple
+User=almond-training
+WorkingDirectory=/var/lib/almond-training
+ExecStart=/usr/bin/node /opt/almond-cloud/training/daemon.js
+
+[Install]
+WantedBy=multi-user.target

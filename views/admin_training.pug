@@ -1,0 +1,90 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href='/stylesheets/thingpedia.css')
+
+block page_name
+  = _("Natural Language Training")
+
+block content
+  div.modal.fade#new-training-job-dialog(role='dialog')
+    div.modal-dialog
+      div.modal-content
+        div.modal-header
+          a.close(data-dismiss='modal', aria-label="Close")
+            span(aria-hidden='true') ×
+
+          h4.modal-title= _("New Training Job")
+
+        div.modal-body
+          form(action='/admin/training', method='post')
+            input(type='hidden',name='_csrf',value=csrfToken)
+
+            div.form-group
+              label.control-label(for='new-job-language')= _("Language")
+              select(name='language').form-control#new-job-language
+                option(value='en',selected=true)= _("English")
+                option(value='it')= _("Italian")
+                option(value='zh')= _("Chinese")
+                //option(value='es')= _("Spanish")
+            div.form-group
+              label.control-label(for='new-job-type')= _("Job Type")
+              select(name='job_type').form-control#new-job-type
+                option(value='update-dataset')= _("Update dataset")
+                option(value='train-only')= _("Train model")
+                option(value='train',selected=true)= _("Update & Train")
+                //option(value='es')= _("Spanish")
+
+            button(type='submit').btn.btn-primary= _("Queue Job")
+
+  div.row
+    div.col-md-3
+      a(data-toggle='modal', href='#new-training-job-dialog').btn.btn-primary.btn-sm.btn-block= _("Queue a new training job")
+
+  for queue,jobType in jobs
+    h2= _("Queue: %s").format(jobType)
+
+    table.table
+      thead
+        tr
+          th= _("ID")
+          th= _("Language")
+          if jobType !== 'update-dataset'
+            th= _("Model")
+          if jobType !== 'train'
+            th= _("Devices")
+          th= _("Status")
+          th= _("Progress")
+          th= _("Start Time")
+          th= _("ETA")
+          th= _("Actions")
+      tbody
+        for job in queue
+          tr
+            td= job.id
+            td= job.language
+            if jobType !== 'update-dataset'
+              td= `@${job.modelTag}`
+            if jobType !== 'train'
+              td
+                if job.forDevices.length === 0
+                  i= _("all")
+                else
+                  = job.forDevices.join(', ')
+            td
+              if job.status === 'queued' && job.dependsOn !== null
+                = _("waiting for %d").format(job.dependsOn)
+              else
+                = job.status.replace('_', ' ')
+            td= `${(job.progress*100).toFixed(0)}%`
+            td
+              if job.startTime
+                = (new Date(job.startTime)).toLocaleString(user.locale, { timeZone: user.timezone })
+            td
+              if job.eta
+                = (new Date(job.eta)).toLocaleString(user.locale, { timeZone: user.timezone })
+            td
+              form(action='/admin/training/kill', method='post')
+                input(type='hidden',name='_csrf',value=csrfToken)
+                input(type='hidden',name='job_id',value=job.id)
+                button(type='submit').btn.btn-sm.btn-danger= _("Kill")

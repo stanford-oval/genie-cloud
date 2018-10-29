@@ -61,7 +61,7 @@ function getDetails(fn, param, req, res) {
 
         device.version = version;
 
-        let [code, translated, examples, current_job] = await Promise.all([
+        let [code, translated, examples, current_jobs] = await Promise.all([
             version !== null ? await model.getCodeByVersion(client, device.id, version) :
             `class @${device.primary_kind} {}`,
 
@@ -71,7 +71,7 @@ function getDetails(fn, param, req, res) {
             TrainingServer.get().check(language, device.primary_kind)
         ]);
         device.translated = translated;
-        device.current_job = current_job;
+        device.current_jobs = current_jobs;
 
         var online = false;
 
