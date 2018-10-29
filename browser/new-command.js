@@ -51,6 +51,9 @@ class ThingTalkTrainer {
         $('#suggest-command-no-thingtalk').click((event) => {
             this._suggestCommand(event);
         });
+        $('#results-fail-write-thingtalk').click((event) => {
+            this._rejectAll(event);
+        });
         $('#form-new-command').submit(this._submit.bind(this));
     }
 
@@ -67,6 +70,7 @@ class ThingTalkTrainer {
             $('#thingtalk-error').text('');
             $('#input-command-thingtalk').val(tt);
             $('#results-container').addClass('hidden');
+            $('#results-fail').addClass('hidden');
             $('#input-command-confirmation').val(a.attr('utterance'));
             $('#thingtalk-group').show();
             this._predicted = true;
@@ -80,6 +84,7 @@ class ThingTalkTrainer {
     _rejectAll(event) {
         event.preventDefault();
         $('#results-container').addClass('hidden');
+        $('#results-fail').addClass('hidden');
         $('#thingtalk-group').show();
     }
 
@@ -114,10 +119,13 @@ class ThingTalkTrainer {
                 .addClass('none-of-above')
                 .click(this._rejectAll.bind(this));
             results.append($('<li >').append(link));
-            if (prediction !== null)
+            if (prediction !== null) {
                 $('#results-container').removeClass('hidden');
-            else
+                $('#results-fail').addClass('hidden');
+            } else {
                 $('#results-container').addClass('hidden');
+                $('#results-fail').removeClass('hidden');
+            }
         });
     }
 

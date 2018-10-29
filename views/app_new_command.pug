@@ -17,6 +17,11 @@ block content
     div#results-container.hidden
       p= _("Do you mean:")
       ul#results
+    div#results-fail.hidden
+      p= _("Sorry, I did not understand that.")
+        |
+        |
+        a(href='#')#results-fail-write-thingtalk= _("Write ThingTalk code manually.")
     div(hidden=true).form-group#thingtalk-group
       label(for='input-command-thingtalk').control-label= _("ThingTalk Code")
       a('href'='/doc/thingtalk-intro.md')= _(" (How to write ThingTalk?)")
