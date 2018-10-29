@@ -360,6 +360,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     const factory = FactoryUtils.makeDeviceFactory(classDef, device);
 
     classDef.annotations.version = ThingTalk.Ast.Value.Number(device.developer_version);
+    classDef.annotations.package_version = ThingTalk.Ast.Value.Number(device.developer_version);
     const versionedInfo = {
         code: classDef.prettyprint(),
         factory: JSON.stringify(factory),

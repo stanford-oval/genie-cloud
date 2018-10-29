@@ -162,7 +162,8 @@ const BING_CLASS_WITH_METADATA = `class @com.bing {
 }
 `;
 const BING_CLASS_FULL = `class @com.bing
-#[version=0] {
+#[version=0]
+#[package_version=0] {
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 

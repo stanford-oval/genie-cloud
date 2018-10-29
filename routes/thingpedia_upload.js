@@ -122,6 +122,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
 
             const developer_version = create ? 0 : old.developer_version + 1;
             classDef.annotations.version = ThingTalk.Ast.Value.Number(developer_version);
+            classDef.annotations.package_version = ThingTalk.Ast.Value.Number(developer_version);
 
             const generalInfo = {
                 primary_kind: kind,
