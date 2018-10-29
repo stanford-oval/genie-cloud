@@ -28,16 +28,13 @@
     "install": "make -C sandbox all || echo WARNING: failed to compile the sandbox"
   },
   "resolutions": {
-    "highlight.js": "github:Stanford-Mobisocial-IoT-Lab/highlight.js",
-    "thingpedia-client": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client",
-    "thingtalk": "~1.3.0",
-    "thingengine-core": "github:Stanford-Mobisocial-IoT-Lab/thingengine-core"
+    "highlight.js": "github:Stanford-Mobisocial-IoT-Lab/highlight.js"
   },
   "dependencies": {
     "accept-language": "^2.0.17",
     "accepts": "^1.3.5",
     "actions-on-google": "^2.2.0",
-    "almond-dialog-agent": "github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent",
+    "almond-dialog-agent": "^1.2.0",
     "argparse": "^1.0.10",
     "body-parser": "~1.13.3",
     "cacheable-middleware": "0.0.1",
@@ -88,9 +85,9 @@
     "serve-favicon": "~2.3.0",
     "smtlib": "^0.1.1",
     "sockaddr": "^1.0.0",
-    "thingengine-core": "github:Stanford-Mobisocial-IoT-Lab/thingengine-core",
+    "thingengine-core": "^1.2.0",
     "thingpedia": "^2.2.2",
-    "thingpedia-client": "github:Stanford-Mobisocial-IoT-Lab/thingpedia-client",
+    "thingpedia-client": "^0.1.0",
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "~1.3.0",
     "tmp": "0.0.33",
