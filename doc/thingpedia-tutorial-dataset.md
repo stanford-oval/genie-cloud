@@ -1,4 +1,4 @@
-# Writing Example Commands for Your Device
+# Write Example Commands for Your Device
 
 To get natural language support, 
 a `dataset` is required to supply example commands for your device. 
@@ -21,6 +21,9 @@ with the `@` sign.
 Instead of writing full programs, we write parts using code snippet syntax introduced in 
 [ThingTalk introduction](/doc/thingtalk-intro.md#code-snippet), plus the `utterances` 
 natural language annotation.
+(See [code snippet vs full program](/doc/thingpedia-nl-support.md#code-snippet-vs-full-program) 
+for a comparison between the two.)
+
 The `utterances` annotation takes a list of strings to show different ways to 
 express the same function. 
 Similar to the `confirmation` annotation for functions as introduced in device class, 
@@ -36,3 +39,6 @@ For example, a stream to monitor my latest emails can be declared as follows:
 stream := monitor (@com.email.inbox())
 #_[utterances=["when i receive an email", "when a new email comes in"]];
 ```
+
+More details about can be found in 
+[Natural Language Support for Devices](/doc/thingpedia-nl-support.md#natural-language-understanding).
