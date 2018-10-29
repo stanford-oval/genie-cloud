@@ -108,7 +108,7 @@ block content
                       a(href=THINGPEDIA_URL + '/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
                       div.panel-body
                         p.device-icon-small
-                          img(src=CDN_HOST + '/icons/' + dev.kind + '.png', alt="Icon for " + dev.name)
+                          img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
                         p=dev.description
             else
               div.row
