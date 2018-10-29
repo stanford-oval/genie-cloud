@@ -173,6 +173,9 @@ class ThingTalkTrainer {
         Promise.resolve().then(() => {
             return this._learnThingTalk(tt);
         }).then((data) => {
+            if (!data)
+                return;
+
             $('#results-container').hide();
             $('#thingtalk-editor').addClass('hidden');
             $('#thingtalk-group').removeClass('has-error');
@@ -207,6 +210,10 @@ class ThingTalkTrainer {
     }
 
     _learnThingTalk(text) {
+        text = text.trim();
+        if (!text)
+            return Promise.resolve(null);
+
         const raw = this._raw;
         return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((program) => {
             const code = this._toNN(program);

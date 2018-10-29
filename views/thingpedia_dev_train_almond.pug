@@ -2,8 +2,10 @@ extends layout
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
-  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/train-almond.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia_dev_sidebar.css')
+
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/trainer-bundle.js')
 
 block page_name
   - stdlayout = false;
