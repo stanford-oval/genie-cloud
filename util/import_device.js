@@ -14,6 +14,7 @@ const fs = require('fs');
 const JSZip = require('jszip');
 const ThingTalk = require('thingtalk');
 const stream = require('stream');
+const deq = require('deep-equal');
 
 const model = require('../model/device');
 const schemaModel = require('../model/schema');
@@ -31,14 +32,39 @@ const SchemaUtils = require('./manifest_to_schema');
 const DatasetUtils = require('./dataset');
 const FactoryUtils = require('./device_factories');
 
+function areMetaIdentical(one, two) {
+    for (let what of ['queries', 'actions']) {
+        const oneKeys = Object.keys(one[what]).sort();
+        const twoKeys = Object.keys(two[what]).sort();
+        if (oneKeys.length !== twoKeys.length)
+            return false;
+        for (let i = 0; i < oneKeys.length; i++) {
+            if (oneKeys[i] !== twoKeys[i])
+                return false;
+
+            // ignore confirmation remote in comparison
+            one[what][oneKeys[i]].confirmation_remote = two[what][twoKeys[i]].confirmation_remote;
+            if (!deq(one[what][oneKeys[i]], two[what][twoKeys[i]], { strict: true }))
+                return false;
+        }
+    }
+
+    return true;
+}
 
 async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
     const metas = SchemaUtils.classDefToSchema(classDef);
 
-    return (await schemaModel.getByKind(dbClient, classDef.kind).then((existing) => {
+    return schemaModel.getByKind(dbClient, classDef.kind).then(async (existing) => {
         if (existing.owner !== req.user.developer_org &&
             req.user.developer_status < user.DeveloperStatus.ADMIN)
             throw new Error(req._("Not Authorized"));
+
+        const existingMeta = (await schemaModel.getMetasByKindAtVersion(dbClient, classDef.kind, existing.developer_version, 'en'))[0];
+        if (areMetaIdentical(existingMeta, metas)) {
+            console.log('Skipped updating of schema: identical to previous version');
+            return [existing.id, false];
+        }
 
         var obj = {
             kind_canonical: tokenizer.tokenize(name).join(' '),
@@ -47,8 +73,9 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
         if (approve)
             obj.approved_version = obj.developer_version;
 
-        return schemaModel.update(dbClient, existing.id, existing.kind, obj, metas);
-    }, (e) => {
+        await schemaModel.update(dbClient, existing.id, existing.kind, obj, metas);
+        return [existing.id, true];
+    }, async (e) => {
         var obj = {
             kind: classDef.kind,
             kind_canonical: tokenizer.tokenize(name).join(' '),
@@ -62,8 +89,10 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
             obj.approved_version = 0;
             obj.developer_version = 0;
         }
-        return schemaModel.create(dbClient, obj, metas);
-    })).id;
+
+        const schema = await schemaModel.create(dbClient, obj, metas);
+        return [schema.id, true];
+    });
 }
 
 function exampleToCode(example) {
@@ -128,7 +157,7 @@ async function ensureDataset(dbClient, schemaId, dataset) {
     }
 
     if (toDelete.length === 0 && toCreate.length === 0 && toUpdate.length === 0)
-        return;
+        return false;
 
     await Promise.all([
         Validation.tokenizeAllExamples('en', toUpdate),
@@ -154,6 +183,7 @@ async function ensureDataset(dbClient, schemaId, dataset) {
             });
         }))
     ]);
+    return true;
 }
 
 function uploadZipFile(req, obj, stream) {
@@ -324,11 +354,8 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
     const [classDef, dataset] = await Validation.validateDevice(dbClient, req, device, classCode, datasetCode);
     device.category = getCategory(classDef);
 
-    await ensurePrimarySchema(dbClient, device.name, classDef,
-                              req, approve);
-
-    const schemaId = await ensurePrimarySchema(dbClient, device.name,
-                                               classDef, req, approve);
+    const [schemaId,] = await ensurePrimarySchema(dbClient, device.name,
+                                                  classDef, req, approve);
     await ensureDataset(dbClient, schemaId, dataset);
     const factory = FactoryUtils.makeDeviceFactory(classDef, device);
 

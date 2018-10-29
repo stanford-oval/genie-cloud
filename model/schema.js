@@ -42,7 +42,7 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
             const meta = from[name];
             channels.push([schemaId, version, name, what,
                            meta.doc,
-                           JSON.stringify(meta.schema),
+                           JSON.stringify(meta.types),
                            JSON.stringify(meta.args),
                            JSON.stringify(meta.required),
                            JSON.stringify(meta.is_input),
@@ -129,10 +129,10 @@ function processMetaRows(rows) {
             is_input: JSON.parse(row.is_input) || [],
             is_list: !!row.is_list,
             is_monitorable: !!row.is_monitorable,
-            confirmation: row.confirmation || row.doc,
-            confirmation_remote: row.confirmation_remote || row.confirmation || row.doc,
+            confirmation: row.confirmation,
+            confirmation_remote: row.confirmation_remote || row.confirmation, // for compatibility
             doc: row.doc,
-            canonical: row.canonical || '',
+            canonical: row.canonical,
             argcanonicals: JSON.parse(row.argcanonicals) || [],
             questions: JSON.parse(row.questions) || [],
             string_values: JSON.parse(row.string_values) || [],
