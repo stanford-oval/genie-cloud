@@ -54,7 +54,7 @@ $(function() {
             main.append(icons);
             let info = $('<div>');
             main.append(info);
-            let utterance = $('<p>').addClass('command-utterance').attr('title', command.target_code).text(command.utterance);
+            let utterance = $('<p>').addClass('command-utterance').text(command.utterance);
             info.append(utterance);
 
             let user = $('<div>').addClass('device-owner');
