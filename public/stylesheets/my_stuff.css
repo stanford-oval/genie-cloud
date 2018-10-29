@@ -6,6 +6,9 @@
 .installed-dev .panel-heading {
     display: block;
 }
+.installed-dev .panel-footer {
+    min-height: 56px;
+}
 
 .form-delete-app {
     float: right;

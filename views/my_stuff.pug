@@ -13,7 +13,7 @@ block styles
 
 mixin device_list(devices)
   div.device-list
-    div.row
+    div.aligned-grid.row
       each dev, i in devices
         if i % 6 === 0
           div.clearfix.visible-lg.visible-md
@@ -21,7 +21,7 @@ mixin device_list(devices)
           div.clearfix.visible-lg
         else if i % 2 === 0
           div.clearfix.visible-md
-        div.col-lg-4.col-md-6
+        div.aligned-grid-item.col-lg-4.col-md-6
           div.panel.panel-default.installed-dev
             a(href=THINGPEDIA_URL + '/devices/by-id/' + dev.kind).panel-heading
               h2.panel-title= dev.name
