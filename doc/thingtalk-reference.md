@@ -19,7 +19,7 @@ property that represents the user visible name of the object. In JavaScript,
 entities can be represented as simple strings, or using the `Thingpedia.Value.Entity` class. 
 For example, the stock ID of Google can be represented as:
     ```javascript
-    Thingpedia.Value.Entity("goog", "tt:stock_id", "Alphabet Inc.")
+    new Thingpedia.Value.Entity("goog", "tt:stock_id", "Alphabet Inc.")
     ```
 
   The following entity types have special meaning to the semantic parser:
@@ -51,7 +51,7 @@ the unit is not normalized, and is accessible at runtime. In JavaScript this typ
 is represented as a number (the unit will default to US dollar), 
 or using the `Thingpedia.Value.Currency` type. For example:
     ```javascript
-    Thingpedia.Value.Currency(100, 'usd')
+    new Thingpedia.Value.Currency(100, 'usd')
     ```
 
 * `Date`: a specific point in time (date and time).
@@ -61,7 +61,7 @@ In JavaScript this is represented with the [Date](https://developer.mozilla.org/
 In JavaScript this is an object of class `Thingpedia.Value.Time` with `.hour`, `.minute` and `.second` property.
 For example, 7 PM is represented as:
    ```javascript
-   Thingpedia.Value.Time(19, 0, 0) 
+   new Thingpedia.Value.Time(19, 0, 0) 
    ```
 
 * `Location`: a specific point on the Earth surface, as a pair of latitude and longitude, and optional name. 
@@ -69,7 +69,7 @@ In JavaScript this is an object of class `Thingpedia.Value.Location`.
 It has 3 properties: the latitude, the longitude, and the name of the location (optional). 
 For example, we work here: 
     ```javascript 
-    Thingpedia.Value.Location(37.43, -122.1733, "Gates Computer Science, Stanford").
+    new Thingpedia.Value.Location(37.43, -122.1733, "Gates Computer Science, Stanford").
     ```
 * `Array(elem)`: an ordered sequence of values of the same type; arrays are compared by
   value (i.e., two arrays are equal if the have the same size and are
