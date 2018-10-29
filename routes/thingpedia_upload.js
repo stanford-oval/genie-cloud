@@ -110,9 +110,9 @@ async function doCreateOrUpdate(kind, create, req, res) {
                 return false;
             }
 
-            const schemaId = await Importer.ensurePrimarySchema(dbClient, req.body.name,
-                                                                classDef, req, approve);
-            await Importer.ensureDataset(dbClient, schemaId, dataset);
+            const [schemaId, schemaChanged] = await Importer.ensurePrimarySchema(dbClient, req.body.name,
+                                                                                 classDef, req, approve);
+            const datasetChanged = await Importer.ensureDataset(dbClient, schemaId, dataset);
 
             const extraKinds = classDef.extends || [];
             const extraChildKinds = classDef.annotations.child_types ?
@@ -122,6 +122,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
 
             const developer_version = create ? 0 : old.developer_version + 1;
             classDef.annotations.version = ThingTalk.Ast.Value.Number(developer_version);
+            classDef.annotations.package_version = ThingTalk.Ast.Value.Number(developer_version);
 
             const generalInfo = {
                 primary_kind: kind,
@@ -172,8 +173,10 @@ async function doCreateOrUpdate(kind, create, req, res) {
                     await Importer.uploadZipFile(req, generalInfo, stream);
             }
 
-            // trigger the training server if configured
-            await TrainingServer.get().queue('en', [kind], 'update-dataset');
+            if (schemaChanged || datasetChanged) {
+                // trigger the training server if configured
+                await TrainingServer.get().queue('en', [kind], 'update-dataset');
+            }
 
             return true;
         });

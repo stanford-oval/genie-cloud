@@ -121,7 +121,7 @@ module.exports = {
                     canonical: fnDef.metadata.canonical,
                     is_list: fnDef.is_list,
                     is_monitorable: fnDef.is_monitorable,
-                    schema: [],
+                    types: [],
                     args: [],
                     argcanonicals: [],
                     questions: [],
@@ -131,7 +131,7 @@ module.exports = {
                 };
                 for (let argname of fnDef.args) {
                     const arg = fnDef.getArgument(argname);
-                    out.schema.push(String(arg.type));
+                    out.types.push(String(arg.type));
                     out.args.push(argname);
                     // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
 

@@ -48,7 +48,7 @@ async function update(client, id, device, extraKinds, extraChildKinds, discovery
     await Promise.all([
         db.query(client, "update device_class set ? where id = ?", [device, id]),
         db.query(client, "delete from device_class_kind where device_id = ?", [id]),
-        db.query(client, "delete from device_discovery_services where device_id ?", [id])
+        db.query(client, "delete from device_discovery_services where device_id = ?", [id])
     ]);
     versionedInfo.device_id = id;
     versionedInfo.version = device.developer_version;
