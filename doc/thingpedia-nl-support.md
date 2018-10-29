@@ -121,32 +121,16 @@ Note: internally, the examples are not stored as `.tt` files, so any comment in 
 will be lost, and multiple examples with the same code will be collapsed.  
 
 ### Other tips and tricks
-#### `canonical` annotation 
-Unlike most of the other programming languages, the choice of parameter names and function names is 
+Unlike most of the other programming languages, the choice of parameter names is 
 important in ThingTalk: it affects the performance of the natural language translation. 
 
-For example, function `@com.thecatapi.get` has an output parameter `image_id`. 
-We will generate sentences like “get a cat picture, then send the __image id__ to Slack” when composing 
-the following program.
+For example, when composing the following program:
 ```tt
-now => @com.thecatapi.get() => @com.slack.send(message=image_id);
+now => @com.nyt.get_front_page() => @com.slack.send(message=title);
 ```
+we will generate the synthetic sentence : 
+“get the front page of the new york times, then send the __title__ to Slack”.
 
-To make the synthetic sentences more natural, you can use `canonical` annotations
-when declaring your function in device manifest. 
-The annotation specifies how the parameter will be expressed in natural language.  
-For example, we can define the `@com.thecatapi.get` like this:
-```tt
-list query get(in opt count: Number,
-               out image_id: Entity(com.thecatapi:image_id) #_[canonical="id of the picture"],
-               out picture_url: Entity(tt:picture),
-               out link: Entity(tt:url))
-```
-
-Then, for the same program, we will generate 
-“get a cat picture, then send the __id of the picture__ to Slack”.
-
-#### Parameter naming conventions
 To achieve the best accuracy, we suggest to use the same parameter names 
 as other similar devices. Here are some naming conventions to follow:
 - if your function returns a picture as the main result, name the argument `picture_url`
@@ -164,7 +148,7 @@ as other similar devices. Here are some naming conventions to follow:
 - if your function returns multiple results, and you can control the number of results returned, use a `count` parameter of type `Number`
    
 
-## Natural language
+## Natural language Responses
 Once Almond understands the issued command, Almond will ask for additional information 
 if needed, execute the command, and present the results.
 
