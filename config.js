@@ -94,8 +94,10 @@ module.exports.EXTRA_ORIGINS = [];
 // fields of the various services
 module.exports.OAUTH_REDIRECT_ORIGIN = module.exports.SERVER_ORIGIN;
 
-// the URL of a almond-nnparser-compatible Natural Language parsing server
+// the URL of a luinet-compatible Natural Language parsing server
 module.exports.NL_SERVER_URL = 'https://almond-nl.stanford.edu';
+// access token for administrative operations in luinet
+module.exports.NL_SERVER_ADMIN_TOKEN = null;
 
 // set to true to let users try out Almond without logging in
 // they will operate as the user "anonymous"
@@ -108,6 +110,9 @@ module.exports.ENABLE_ANONYMOUS_USER = false;
 // devices are updated in Thingpedia
 module.exports.TRAINING_URL = null;
 module.exports.TRAINING_ACCESS_TOKEN = null;
+
+// Path to the luinet package (to be used by the auto training daemon)
+module.exports.LUINET_PATH = './luinet';
 
 // OAuth Client secret to support Login With Google
 module.exports.GOOGLE_CLIENT_SECRET = null;

@@ -111,7 +111,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     }
 
     async getModuleLocation(kind, version) {
-        const [approvedVersion, maxVersion] = await db.withClient(async (dbClient) => {
+        const [approvedVersion, maxVersion] = await this._withClient(async (dbClient) => {
             const org = await this._getOrg(dbClient);
             const dev = await device.getDownloadVersion(dbClient, kind, org);
             if (!dev.downloadable)
@@ -129,7 +129,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     }
 
     getDeviceCode(kind, accept) {
-        return db.withClient(async (dbClient) => {
+        return this._withClient(async (dbClient) => {
             const devs = await device.getFullCodeByPrimaryKind(dbClient, kind, await this._getOrgId(dbClient));
             if (devs.length < 1) {
                 const err = new Error('Not Found');
@@ -200,14 +200,14 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     }
 
     getDeviceSearch(q) {
-        return db.withClient(async (dbClient) => {
+        return this._withClient(async (dbClient) => {
             const org = await this._getOrg(dbClient);
             return device.getByFuzzySearch(dbClient, q, org);
         });
     }
 
     getDeviceList(klass, page, page_size) {
-        return db.withClient(async (dbClient) => {
+        return this._withClient(async (dbClient) => {
             const org = await this._getOrg(dbClient);
             if (klass) {
                 if (['online','physical','data','system'].indexOf(klass) >= 0)
@@ -232,7 +232,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     }
 
     getDeviceFactories(klass) {
-        return db.withClient(async (dbClient) => {
+        return this._withClient(async (dbClient) => {
             const org = await this._getOrg(dbClient);
 
             let devices;
@@ -261,7 +261,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         if (kinds.length === 0)
             return Promise.resolve({});
 
-        return db.withClient(async (dbClient) => {
+        return this._withClient(async (dbClient) => {
             const org = await this._getOrg(dbClient);
 
             for (let i = 0; i < kinds.length; i++) {
@@ -333,7 +333,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     }
 
     getExamplesByKey(key, accept = 'application/x-thingtalk') {
-        return db.withClient(async (dbClient) => {
+        return this._withClient(async (dbClient) => {
             const rows = await exampleModel.getByKey(dbClient, key, await this._getOrgId(dbClient), this.language);
             switch (accept) {
             case 'application/json;apiVersion=1':
@@ -350,7 +350,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     getExamplesByKinds(kinds, accept = 'application/x-thingtalk') {
         if (kinds.length === 0)
             return Promise.resolve([]);
-        return db.withClient(async (dbClient) => {
+        return this._withClient(async (dbClient) => {
             const rows = await exampleModel.getByKinds(dbClient, kinds, await this._getOrgId(dbClient), this.language);
             switch (accept) {
             case 'application/json;apiVersion=1':
@@ -365,13 +365,13 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     }
 
     clickExample(exampleId) {
-        return db.withClient((dbClient) => {
+        return this._withClient((dbClient) => {
             return exampleModel.click(dbClient, exampleId);
         });
     }
 
     lookupEntity(entityType, searchTerm) {
-        return db.withClient((dbClient) => {
+        return this._withClient((dbClient) => {
             return Promise.all([entityModel.lookupWithType(dbClient, this.language, entityType, searchTerm),
                                 entityModel.get(dbClient, entityType, this.language)]);
         }).then(([rows, meta]) => {

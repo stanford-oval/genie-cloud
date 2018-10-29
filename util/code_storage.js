@@ -11,6 +11,7 @@
 
 const fs = require('fs');
 const Q = require('q');
+const Url = require('url');
 
 const Config = require('../config');
 const platform = require('./platform');
@@ -21,7 +22,9 @@ function getDownloadLocation(kind, version, developer) {
     // FIXME: when using the S3 backend, we should generate a signed request
     // if the user is a developer (as the device should not be downloadable
     // freely)
-    return Promise.resolve(`${Config.CDN_HOST}/devices/${kind}-v${version}.zip`);
+
+    // Resolve the URL against SERVER_ORIGIN if CDN_HOST is empty
+    return Promise.resolve(Url.resolve(Config.SERVER_ORIGIN, `${Config.CDN_HOST}/devices/${kind}-v${version}.zip`));
 }
 
 if (Config.FILE_STORAGE_BACKEND === 's3') {

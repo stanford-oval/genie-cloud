@@ -67,28 +67,30 @@ block content
           = _("The translation for this device in your language is incomplete. ")
         a(href='/thingpedia/translate/by-id/' + device.primary_kind).btn.btn-default= _("Contribute translation")
 
-  if device.current_job
+  if device.current_jobs['update-dataset'] && user && user.developer_org === device.owner
     div.alert.alert-info(role='alert')
       p
-        if user && user.developer_org === device.owner
-           = _("The natural language model for this device is being updated. If you recently update the metadata for this device, you should wait until the model is ready before testing.")
-        else
-           = _("The natural language model for this device is being updated. You should wait until the model is ready before using it.")
+        = _("The natural language dataset for this device is being updated. You should wait before testing.")
+
+  else if device.current_jobs.train
+    div.alert.alert-info(role='alert')
       p
-        if device.current_job.status === 'queued'
+        = _("The natural language model for this device is being updated. Natural language support might be limited.")
+      p
+        if device.current_jobs.train.status === 'queued'
            = _("Status: queued.")
-        else if ['download_dataset', 'gen_synthetic', 'apply_ppdb', 'combine_dataset', 'replace_parameters'].indexOf(device.current_job.status) >= 0
-           = _("Status: phase 1/3: preparing dataset (%.0f%%).").format(device.current_job.progress*100)
-        else if ['prepare', 'training'].indexOf(device.current_job.status) >= 0
-           = _("Status: phase 2/3: training machine learning model (%.0f%%).").format(device.current_job.progress*100)
-        else if ['testing', 'uploading']
+        else if ['prepare', 'download_dataset', 'datagen'].indexOf(device.current_jobs.train.status) >= 0
+           = _("Status: phase 1/3: preparing dataset.")
+        else if ['training'].indexOf(device.current_jobs.train.status) >= 0
+           = _("Status: phase 2/3: training machine learning model (%.0f%%).").format(device.current_jobs.train.progress*100)
+        else if ['testing', 'uploading'].indexOf(device.current_jobs.train.status) >= 0
            = _("Status: phase 3/3: validating and uploading trained model.")
         else
            = _("Status: running.")
         |
         |
-        if device.current_job.eta
-          = _("ETA: %s").format((new Date(device.current_job.eta)).toLocaleString(locale, { timeZone: user ? user.timezone : undefined, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', 'minute': 'numeric' }))
+        if device.current_jobs.train.eta
+          = _("ETA: %s").format((new Date(device.current_jobs.train.eta)).toLocaleString(locale, { timeZone: user ? user.timezone : undefined, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', 'minute': 'numeric' }))
       
 
   aside#device-icon-large

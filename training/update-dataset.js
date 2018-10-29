@@ -63,8 +63,14 @@ class DatasetUpdater {
         this._options = options;
         this._rng = seedrandom.alea('almond is awesome');
 
-        // TODO: use this for incremental updates
         this._forDevices = forDevices;
+        if (forDevices !== null && forDevices.length > 0) {
+            this._forDevicesPattern = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
+            this._forDevicesRegexp = new RegExp(this._forDevicesPattern);
+        } else {
+            this._forDevicesPattern = null;
+            this._forDevicesRegexp = null;
+        }
 
         this._ppdb = null;
         this._paramReplacer = null;
@@ -78,9 +84,14 @@ class DatasetUpdater {
         if (this._options.regenerateAll) {
             await db.query(this._dbClient, `delete from example_utterances where language = ? and (type = 'generated' or
                 find_in_set('augmented', flags) or find_in_set('replaced', flags))`, [this._language]);
+        } else if (this._forDevicesPattern !== null) {
+            await db.query(this._dbClient, `delete from example_utterances where language = ? and type = 'generated'
+                and target_code rlike ?`, [this._language, this._forDevicesPattern]);
         } else {
             await db.query(this._dbClient, `delete from example_utterances where language = ? and type = 'generated'`, [this._language]);
         }
+
+        console.log(`Dataset cleaned`);
     }
 
     async _insertExampleBatch(examples) {
@@ -155,21 +166,37 @@ class DatasetUpdater {
         return output;
     }
 
-    async _processSyntheticMinibatch(syntheticExamples) {
+    async _processMinibatch(syntheticExamples, flags, type, ppdbProb) {
         if (syntheticExamples.length === 0)
             return;
 
+        if (!this._options.regenerateAll && this._forDevicesPattern !== null) {
+            syntheticExamples = syntheticExamples.filter((o) => {
+                return this._forDevicesRegexp.test(o.target_code);
+            });
+        }
+
         syntheticExamples.forEach((o) => {
             delete o.id;
-            o.type = 'generated';
-            o.flags = 'synthetic,training';
-            o.preprocessed = o.utterance;
+            if (type)
+                o.type = type;
+            if (flags)
+                o.flags = flags;
+            else
+                o.flags = o.flags.replace(/(^|,)exact/, '');
+            if (type === 'generated') {
+                if (o.depth <= 2)
+                    o.flags += ',exact';
+                o.preprocessed = o.utterance;
+            }
         });
 
-        const ppdbExamples = this._applyPPDB(syntheticExamples, this._options.ppdbProbabilitySynthetic);
+        const ppdbExamples = this._applyPPDB(syntheticExamples, ppdbProb);
+
+        if (type === 'generated')
+            await this._insertExampleBatch(syntheticExamples);
 
         await Promise.all([
-            this._insertExampleBatch(syntheticExamples),
             this._insertExampleBatch(ppdbExamples),
 
             this._replaceParameters(syntheticExamples),
@@ -206,10 +233,10 @@ class DatasetUpdater {
             highWaterMark: 100,
 
             write: (obj, encoding, callback) => {
-                this._processSyntheticMinibatch([obj]).then(() => callback(null), (err) => callback(err));
+                this._processMinibatch([obj], 'synthetic,training', 'generated', this._options.ppdbProbabilitySynthetic).then(() => callback(null), (err) => callback(err));
             },
             writev: (objs, callback) => {
-                this._processSyntheticMinibatch(objs.map((o) => o.chunk)).then(() => callback(null), (err) => callback(err));
+                this._processMinibatch(objs.map((o) => o.chunk), 'synthetic,training', 'generated', this._options.ppdbProbabilitySynthetic).then(() => callback(null), (err) => callback(err));
             }
         });
         generator.pipe(writer);
@@ -217,6 +244,19 @@ class DatasetUpdater {
             writer.on('finish', resolve);
             writer.on('error', reject);
         });
+    }
+
+    async _regenerateReplacedParaphrases() {
+        const rows = await db.selectAll(this._dbClient, `select id,flags,type,preprocessed,target_code from example_utterances use index (language_flags) where language = ?
+             and type <> 'generated' and find_in_set('training', flags)`, [this._language]);
+
+        console.log(`Loaded ${rows.length} rows`);
+        for (let i = 0; i < rows.length; i += 1000) {
+            console.log(i);
+            const minibatch = rows.slice(i, i+1000);
+            await this._processMinibatch(minibatch, null, null, this._options.ppdbProbabilityParaphrase);
+        }
+        console.log(`Completed paraphrase dataset`);
     }
 
     async _transaction() {
@@ -227,6 +267,8 @@ class DatasetUpdater {
         await this._paramReplacer.initialize();
 
         await this._clearExistingDataset();
+        if (this._options.regenerateAll)
+            await this._regenerateReplacedParaphrases();
         await this._genSynthetic();
     }
 
@@ -237,7 +279,7 @@ class DatasetUpdater {
         return db.withTransaction(async (dbClient) => {
             this._dbClient = dbClient;
             return this._transaction();
-        }, 'read committed');
+        }, 'repeatable read');
     }
 }
 
@@ -279,7 +321,7 @@ async function main() {
     });
     parser.addArgument('--ppdb-paraphrase-fraction', {
         type: Number,
-        defaultValue: 0.1,
+        defaultValue: 1.0,
         metavar: 'FRACTION',
         help: 'Fraction of paraphrase sentences to augment with PPDB',
     });

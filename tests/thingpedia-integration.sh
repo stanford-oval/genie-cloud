@@ -88,30 +88,33 @@ masterpid=$!
 node $srcdir/main.js &
 frontendpid=$!
 
-# sleep until the process is settled
-sleep 30
+if test "$1" = "--webalmond-interactive" ; then
+    sleep 84600
+else
+    # sleep until the process is settled
+    sleep 30
+    # run the website tests from web almond, this time with Thingpedia + Stanford
+    # enabled
 
-# run the website tests from web almond, this time with Thingpedia + Stanford
-# enabled
+    # login as bob
+    bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+    # login as root
+    root_cookie=$(node $srcdir/tests/login.js root rootroot)
 
-# login as bob
-bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
-# login as root
-root_cookie=$(node $srcdir/tests/login.js root rootroot)
+    # run the automated link checker
+    # first without login
+    node $srcdir/tests/linkcheck.js
+    # then as bob (developer)
+    COOKIE="${bob_cookie}" node $srcdir/tests/linkcheck.js
+    # then as root (admin)
+    COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
 
-# run the automated link checker
-# first without login
-node $srcdir/tests/linkcheck.js
-# then as bob (developer)
-COOKIE="${bob_cookie}" node $srcdir/tests/linkcheck.js
-# then as root (admin)
-COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
+    # test the website by making HTTP requests directly
+    node $srcdir/tests/test_website_basic.js
 
-# test the website by making HTTP requests directly
-node $srcdir/tests/test_website_basic.js
-
-# test the website in a browser
-SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
+    # test the website in a browser
+    SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
+fi
 
 kill $frontendpid
 frontendpid=
@@ -128,7 +131,18 @@ node $srcdir/scripts/generate_binary_ppdb.js $srcdir/tests/data/ppdb-2.0-xs-lexi
 node $srcdir/training/update-dataset.js -l en -a --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin
 
 # download and check
-test $(node $srcdir/training/download-dataset.js -l en --no-quote-free | sha256sum | cut -f1 -d' ') = "59784eced41cfe58c79c64cceb25f9f7fd75e8fc1fdcc7e56e69bfa7068cbbef"
-test $(node $srcdir/training/download-dataset.js -l en --quote-free | sha256sum | cut -f1 -d' ') = "5baf23d41ee5843adcdcc82b0467b5b906ed69efe06633c987246c52ae0856d2"
+node $srcdir/training/download-dataset.js -l en --no-quote-free --train train-quoted.tsv --eval eval-quoted.tsv
+node $srcdir/training/download-dataset.js -l en --quote-free --train train-quote-free.tsv --eval eval-quote-free.tsv
+
+sha256sum train-quoted.tsv eval-quoted.tsv train-quote-free.tsv eval-quote-free.tsv
+sha256sum -c <<EOF
+604e9ec09533a9dfa22190ce82baedceb796d81571747d1c8029ae7ab3b5bde9  train-quoted.tsv
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  eval-quoted.tsv
+d0e867c777b312d9b6645c3f7a5f7a084a2431fb3db5212b22b2e88c76395481  train-quote-free.tsv
+e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  eval-quote-free.tsv
+EOF
+
+# now regenerate the dataset incrementally
+node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin
 
 rm -rf $workdir
