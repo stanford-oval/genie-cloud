@@ -168,59 +168,95 @@
   margin-bottom: 1em;
 }
 
-.project-icon {
+#about-research .divider {
+    clear: both;
+}
+
+@media (min-width: 992px) {
+#about-research .divider > .row > .col-md-6:first-child {
+    padding-left: 0px;
+}
+#about-research .divider > .row > .col-md-6:last-child {
+    padding-right: 0px;
+}
+}
+
+#about-research .divider > * {
+    margin-right: auto;
+    margin-left: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+@media (min-width: 768px) {
+    #about-research .divider > * {
+        width: 750px;
+    }
+}
+@media (min-width: 992px) {
+    #about-research .divider > * {
+        width: 970px;
+    }
+}
+@media (min-width: 1200px) {
+    #about-research .divider > * {
+        width: 1170px;
+    }
+}
+
+#about-research .divider img {
+    width: 100%;
+}
+
+.hanging-icon-block {
+    display: block;
+}
+.hanging-icon-block::before {
+    background-size: 80px 80px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: white;
+    border-radius: 50%;
+
+    content: " ";
+    margin-right: 2em;
+    display: block;
+    float: left;
     width: 100px;
     height: 100px;
-    border-radius: 50%;
-    background-size:cover;
-    float: left;
-    margin: 1em;
 }
-.project-details {
-    float: left;
-    width: 70%;
-    margin: 1em;
+.hanging-icon-block > * {
+    overflow: auto;
 }
-#project-server {
+.hanging-icon-block {
+    margin-bottom: 1em;
+}
+.row:last-child > .hanging-icon-block {
+    margin-bottom: 0px;
+}
+
+#agenda-thingpedia::before {
+    background-image: url(../images/icon-thingpedia.png);
+}
+#agenda-thingtalk::before, #agenda-dtp::before {
+    background-image: url(../images/icon-tt.png);
+}
+#agenda-luinet::before, #agenda-guinet::before {
+    background-image: url(../images/icon-nn.png);
+}
+#project-server::before {
     background-image: url(../images/icon-cloud.png);
-    background-color: white;
     background-size: 90px 90px;
-    background-repeat: no-repeat;
-    background-position: center;
 }
-#project-compound {
+#project-compound::before {
     background-image: url(../images/icon-compound.png);
 }
-#project-email {
+#project-email::before {
     background-image: url(../images/icon-email.png);
-    background-color: white;
-    background-size: 80px 80px;
-    background-repeat: no-repeat;
-    background-position: center;
 }
 
-#agenda-thingpedia {
-    background-image: url(../images/icon-thingpedia.png);
-    background-color: white;
-    background-size: 80px 80px;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
-#agenda-thingtalk {
-  background-image: url(../images/icon-tt.png);
-}
-
-#agenda-luinet {
-  background-image: url(../images/icon-nn.png);
-}
-
-#agenda-guinet {
-  background-image: url(../images/icon-nn.png);
-}
-
-#agenda-dtp {
-  background-image: url(../images/icon-tt.png);
+/* the double ID selector is needed to have the correct CSS specificity */
+#about-research #agenda-dtp, #about-research #project-email {
+    max-width: 570px;
 }
 
 .timeline ul li {
