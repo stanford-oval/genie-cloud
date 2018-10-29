@@ -27,7 +27,7 @@ block content
             h4 Smart
             p Connect your IoT devices, services, and accounts with flexibility
           div.col-xs-12.col-md-3
-            h4 Preserve privacy
+            h4 Privacy-preserving
             p Almond is open-source and can be run on your phone or server
 
         div.row#subscribe
@@ -59,7 +59,7 @@ block content
                     img(src=CDN_HOST + '/icons/' + devices[page * page_size + i].primary_kind + '.png', alt='Icon for ' + devices[page * page_size + i].name)
               - page ++
             br
-            a(href='/thingpedia/cheatsheet').hover-text= _('Click to see more')
+            a(href='/thingpedia/cheatsheet').hover-text= _('And many more!')
 
       section.divider#section-commandpedia
         h3= _("Popular Commands")
