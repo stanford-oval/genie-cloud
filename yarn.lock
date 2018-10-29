@@ -3395,6 +3395,7 @@ hash.js@^1.0.0, hash.js@^1.0.3:
 
 highlight.js@^9.9.0, "highlight.js@github:Stanford-Mobisocial-IoT-Lab/highlight.js":
   version "9.13.1"
+  uid d8b52ffad72de0f1c6b74362ebe305bb3d1ee12a
   resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/highlight.js/tar.gz/d8b52ffad72de0f1c6b74362ebe305bb3d1ee12a"
 
 hmac-drbg@^1.0.0:
