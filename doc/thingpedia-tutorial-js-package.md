@@ -136,6 +136,9 @@ get_get({ count }) {
 }
 ```
 
+The details of how different ThingTalk types are represented in Javascript
+can be found in [ThingTalk Reference](/doc/thingtalk-reference.md). 
+
 Now let's implement the `get` function for The Cat API for real with HTTP helpers.
 The function should look like this: 
 ```javascript
