@@ -1,9 +1,9 @@
 #log-view {
-    height: 30em;
-    overflow: auto;
+  height: 30em;
+  overflow: auto;
 }
 
 #log-view p {
-    margin-bottom: 0;
-    margin-top: 0;
+  margin-bottom: 0;
+  margin-top: 0;
 }

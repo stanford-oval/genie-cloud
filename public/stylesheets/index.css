@@ -1,133 +1,137 @@
 #index-banner {
-    padding-top: 50px;
-    padding-bottom: 50px;
-    background-image:url(../images/world.jpg);
-    background-size: contain;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  background-image: url(../images/world.jpg);
+  background-size: contain;
 }
 
 #index-banner > div {
-    box-shadow: 0px 0px 10px #AAAAAA;
-    /*background-color: rgba(244, 244, 244, 0.917);*/
-    background-color: white;
-    /*height: 67%;*/
-    margin-right:auto;
-    margin-left:auto;
-    max-width: 867px;
-    padding: 6px 3.7% 25px 3.7%;
-    text-align: center;
-    /*color: #666666;*/
+  box-shadow: 0 0 10px #aaa;
+
+  /* background-color: rgba(244, 244, 244, 0.917); */
+  background-color: white;
+
+  /* height: 67%; */
+  margin-right: auto;
+  margin-left: auto;
+  max-width: 867px;
+  padding: 6px 3.7% 25px 3.7%;
+  text-align: center;
+
+  /* color: #666666; */
 }
 
 #index-banner h1 {
-    font-weight: 900;
-    margin-bottom: 30px;
+  font-weight: 900;
+  margin-bottom: 30px;
 }
 
 #index-banner h2 {
-    font-weight:900;
-    margin-bottom: 20px;
+  font-weight: 900;
+  margin-bottom: 20px;
 }
 
 #index-banner p {
-    font-size: 1.5em;
-    margin-bottom: 0.5em;
-    line-height: 1.5;
+  font-size: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.5;
 }
 
 #examples p {
-    font-size: 1.5em;
+  font-size: 1.5em;
 }
 
 #examples .row {
-    margin-top: 2em;
+  margin-top: 2em;
 }
 
 #examples .row:first-child {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 #examples img {
-    display: block;
-    margin: auto;
-    width: 75%;
+  display: block;
+  margin: auto;
+  width: 75%;
 }
 
 #get-started {
-    text-align: center;
+  text-align: center;
 }
 
 #get-started img {
-    display: block;
-    width: 75%;
-    margin: auto;
+  display: block;
+  width: 75%;
+  margin: auto;
 }
 
 #thingpedia-arch-diagram {
-    display: block;
-    width: 80%;
-    margin: auto;
+  display: block;
+  width: 80%;
+  margin: auto;
 }
 
 .section-title, .section-subtitle {
-    text-align: center;
+  text-align: center;
 }
 
 .team-profile-mid {
-    margin: auto;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background-size:cover;
+  margin: auto;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-size: cover;
 }
 
 #team-profile-mid-monica {
-    background-image:url(../images/monica-lam.jpg);
+  background-image: url(../images/monica-lam.jpg);
 }
 
 #team-profile-mid-rsocher {
-    background-image:url(../images/richard-socher.jpg);
+  background-image: url(../images/richard-socher.jpg);
 }
 
 #team-profile-mid-giovanni {
-    background-image:url(../images/giovanni.jpeg);
+  background-image: url(../images/giovanni.jpeg);
 }
 
 #team-profile-mid-michael {
-    background-image:url(../images/michael-fischer.png);
+  background-image: url(../images/michael-fischer.png);
 }
 
 #team-profile-mid-jiwon {
-    background-image:url(../images/jiwon-seo.jpg);
+  background-image: url(../images/jiwon-seo.jpg);
 }
 
 #team-profile-mid-rakesh {
-    background-image:url(../images/rakesh.jpg);
+  background-image: url(../images/rakesh.jpg);
 }
 
 #team-profile-mid-silei {
-    background-image:url(../images/silei.jpg);
+  background-image: url(../images/silei.jpg);
 }
 
 #team-profile-mid-richard {
-    background-image:url(../images/richard-yang.jpg);
-    /*background-size:contain;*/
+  background-image: url(../images/richard-yang.jpg);
+
+  /* background-size:contain; */
 }
 
 #team-profile-mid-mehrad {
-    background-image:url(../images/mehrad.png);
+  background-image: url(../images/mehrad.png);
 }
 
 #team .profile-name {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 .team-profile-text {
-    text-align: center;
-    font-size: 12px;
+  text-align: center;
+  font-size: 12px;
 }
 
 #almond-title {
-  color:#dea844;
+  color: #dea844;
 }
 
 #thingpedia-icon-cloud {
@@ -138,18 +142,23 @@
 #multi-color-example .black {
   color: black;
 }
+
 #multi-color-example .blue {
   color: blue;
 }
+
 #multi-color-example .red {
   color: red;
 }
+
 #multi-color-example .purple {
   color: purple;
 }
+
 #multi-color-example .green {
   color: green;
 }
+
 #multi-color-example code {
   color: inherit;
   background-color: transparent;
@@ -159,6 +168,7 @@
   padding: 0.5em;
   border: 2px solid black;
 }
+
 #multi-color-example .arrow {
   text-align: center;
   font-size: 36px;
@@ -169,42 +179,46 @@
 }
 
 .project-icon {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background-size:cover;
-    float: left;
-    margin: 1em;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-size: cover;
+  float: left;
+  margin: 1em;
 }
+
 .project-details {
-    float: left;
-    width: 70%;
-    margin: 1em;
+  float: left;
+  width: 70%;
+  margin: 1em;
 }
+
 #project-server {
-    background-image: url(../images/icon-cloud.png);
-    background-color: white;
-    background-size: 90px 90px;
-    background-repeat: no-repeat;
-    background-position: center;
+  background-image: url(../images/icon-cloud.png);
+  background-color: white;
+  background-size: 90px 90px;
+  background-repeat: no-repeat;
+  background-position: center;
 }
+
 #project-compound {
-    background-image: url(../images/icon-compound.png);
+  background-image: url(../images/icon-compound.png);
 }
+
 #project-email {
-    background-image: url(../images/icon-email.png);
-    background-color: white;
-    background-size: 80px 80px;
-    background-repeat: no-repeat;
-    background-position: center;
+  background-image: url(../images/icon-email.png);
+  background-color: white;
+  background-size: 80px 80px;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 #agenda-thingpedia {
-    background-image: url(../images/icon-thingpedia.png);
-    background-color: white;
-    background-size: 80px 80px;
-    background-repeat: no-repeat;
-    background-position: center;
+  background-image: url(../images/icon-thingpedia.png);
+  background-color: white;
+  background-size: 80px 80px;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 #agenda-thingtalk {
@@ -224,115 +238,119 @@
 }
 
 .timeline ul li {
-    list-style-type: none;
-    position: relative;
-    width: 6px;
-    margin: 0 auto;
-    padding-top: 50px;
-    background: lightgray;
+  list-style-type: none;
+  position: relative;
+  width: 6px;
+  margin: 0 auto;
+  padding-top: 50px;
+  background: lightgray;
 }
 
 .timeline ul li::after {
-    content: '';
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 30px;
-    border: 4px solid #dea844;
-    border-radius: 50%;
-    background: white;
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 30px;
+  border: 4px solid #dea844;
+  border-radius: 50%;
+  background: white;
 }
 
 .timeline ul li div {
-    position: relative;
-    bottom: 0;
-    width: 550px;
-    padding: 15px;
-    background: #2c3e50;
-    color: white;
+  position: relative;
+  bottom: 0;
+  width: 550px;
+  padding: 15px;
+  background: #2c3e50;
+  color: white;
 }
 
 .timeline ul li div a {
-    color: #dea844;
+  color: #dea844;
 }
 
 .timeline ul li div::before {
-    content: '';
-    position: absolute;
-    bottom: 7px;
-    width: 0;
-    height: 0;
-    border-style: solid;
+  content: '';
+  position: absolute;
+  bottom: 7px;
+  width: 0;
+  height: 0;
+  border-style: solid;
 }
+
 .timeline ul li:nth-child(odd) div {
-    left: 45px;
+  left: 45px;
 }
 
 .timeline ul li:nth-child(odd) div::before {
-    left: -15px;
-    border-width: 8px 16px 8px 0;
-    border-color: transparent #2c3e50 transparent transparent;
+  left: -15px;
+  border-width: 8px 16px 8px 0;
+  border-color: transparent #2c3e50 transparent transparent;
 }
+
 .timeline ul li:nth-child(even) div {
-    left: -589px;
+  left: -589px;
 }
 
 .timeline ul li:nth-child(even) div::before {
-    right: -15px;
-    border-width: 8px 0 8px 16px;
-    border-color: transparent transparent transparent #2c3e50;
+  right: -15px;
+  border-width: 8px 0 8px 16px;
+  border-color: transparent transparent transparent #2c3e50;
 }
 
 @media screen and (max-width: 1300px) {
-    .timeline ul li div {
-        width: 400px;
-    }
-    .timeline ul li:nth-child(even) div {
-        left: -439px; /*250+45-6*/
-    }
+  .timeline ul li div {
+    width: 400px;
+  }
+
+  .timeline ul li:nth-child(even) div {
+    left: -439px; /* 250+45-6 */
+  }
 }
 
 @media screen and (max-width: 1000px) {
-    .timeline ul li div {
-        width: 300px;
-    }
-    .timeline ul li:nth-child(even) div {
-        left: -339px; /*250+45-6*/
-    }
+  .timeline ul li div {
+    width: 300px;
+  }
+
+  .timeline ul li:nth-child(even) div {
+    left: -339px; /* 250+45-6 */
+  }
 }
 
 @media screen and (max-width: 750px) {
-    .timeline ul li {
-        margin-left: 20px;
-    }
+  .timeline ul li {
+    margin-left: 20px;
+  }
 
-    .timeline ul li div {
-        width: calc(100vw - 150px);
-    }
+  .timeline ul li div {
+    width: calc(100vw - 150px);
+  }
 
-    .timeline ul li:nth-child(even) div {
-        left: 45px;
-    }
+  .timeline ul li:nth-child(even) div {
+    left: 45px;
+  }
 
-    .timeline ul li:nth-child(even) div::before {
-        left: -15px;
-        border-width: 8px 16px 8px 0;
-        border-color: transparent #2c3e50 transparent transparent;
-    }
+  .timeline ul li:nth-child(even) div::before {
+    left: -15px;
+    border-width: 8px 16px 8px 0;
+    border-color: transparent #2c3e50 transparent transparent;
+  }
 }
 
 #subscribe {
-    margin-top: 20px;
-    margin-bottom: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 #subscribe-email {
-    margin: auto;
-    width: 40%;
+  margin: auto;
+  width: 40%;
 }
 
 #subscribe-done {
-    padding: 10px;
+  padding: 10px;
 }

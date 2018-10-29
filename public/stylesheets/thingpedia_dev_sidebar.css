@@ -15,6 +15,7 @@ nav#doc-sidebar {
     max-height: calc(100vh - 90px);
     overflow-y: auto;
   }
+
   nav#doc-sidebar > ul > li > ul > li > a {
     padding-right: 40px;
   }
@@ -24,19 +25,24 @@ nav#doc-sidebar {
 nav#doc-sidebar ul {
   padding: 0;
 }
+
 nav#doc-sidebar li {
   display: block;
   padding: 0;
 }
+
 nav#doc-sidebar a {
   display: block;
 }
+
 nav#doc-sidebar .doc-sidebar-subtitle, nav#doc-sidebar a {
   padding-left: 20px;
 }
+
 nav#doc-sidebar .doc-sidebar-subsubtitle {
   padding-left: 40px;
 }
+
 nav#doc-sidebar > ul > li > ul > li .doc-sidebar-subtitle, nav#doc-sidebar > ul > li > ul > li a {
   padding-left: 40px;
 }
@@ -46,6 +52,7 @@ nav#doc-sidebar li.current {
   background-color: #1f2c39;
   color: white;
 }
+
 nav#doc-sidebar a:hover {
   text-decoration: none;
 }
@@ -56,18 +63,23 @@ nav#doc-sidebar > ul > li > .doc-sidebar-subtitle {
   padding-bottom: 10px;
   font-weight: bold;
 }
+
 nav#doc-sidebar > ul > li > a {
   color: #1f2c39;
 }
+
 nav#doc-sidebar > ul > li.current > a {
   color: white;
 }
+
 nav#doc-sidebar > ul > li:hover, nav#doc-sidebar > ul > li.thingpedia-docs > a:hover {
   background-color: lightgray;
 }
+
 nav#doc-sidebar > ul > li.thingpedia-docs:hover {
   background-color: whitesmoke;
 }
+
 nav#doc-sidebar li.current > .doc-sidebar-subtitle {
   color: white;
 }
@@ -77,28 +89,35 @@ nav#doc-sidebar > ul > li > ul > li {
   padding-top: 5px;
   padding-bottom: 5px;
 }
+
 nav#doc-sidebar > ul > li > ul > li > * {
   display: block;
   margin-bottom: 2px;
   font-weight: bold;
   color: #1f2c39;
 }
+
 nav#doc-sidebar > ul > li > ul > li > *:first-child {
-  margin-top: 0px;
+  margin-top: 0;
 }
+
 nav#doc-sidebar > ul > li > ul > li > *:last-child {
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
+
 nav#doc-sidebar > ul > li > ul > li:hover:not(.current) {
   background-color: lightgray;
 }
+
 nav#doc-sidebar > ul > li > ul > li > a:hover {
   text-decoration: none;
 }
+
 nav#doc-sidebar > ul > li > ul > li > .doc-sidebar-subsubtitle {
   font-weight: normal;
-  margin: 0px;
+  margin: 0;
 }
+
 nav#doc-sidebar li.current > .doc-sidebar-subsubtitle {
   color: white;
 }
@@ -107,18 +126,23 @@ nav#doc-sidebar li.current > .doc-sidebar-subsubtitle {
 nav#doc-sidebar > ul > li > ul > li > ul li {
   font-weight: normal;
   color: black;
-  /*padding: 0 0 0 20px;*/
+
+  /* padding: 0 0 0 20px; */
 }
+
 nav#doc-sidebar > ul > li > ul > li.current > ul li > a {
   color: #dea844;
 }
+
 nav#doc-sidebar > ul > li > ul > li.current > ul li.current > a {
   color: #ffdb9a;
   background-color: transparent;
 }
+
 nav#doc-sidebar > ul > li > ul > li > ul li > a:hover {
   color: #dea844;
 }
+
 nav#doc-sidebar > ul > li > ul > li.current > ul li > a:hover {
   color: #ffdb9a;
 }

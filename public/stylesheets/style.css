@@ -3,84 +3,84 @@ html, body {
 }
 
 #page-body {
-    margin-top: 60px;
-    min-height: calc(100vh - 210px);
-    height: auto !important;
+  margin-top: 60px;
+  min-height: calc(100vh - 210px);
+  height: auto !important;
 }
 
 #page-title {
-    text-align: center;
+  text-align: center;
 }
 
 .placeholder {
-    font-style: italic;
+  font-style: italic;
 }
 
 .form-inline .form-control {
-    margin-left: 6px;
-    margin-right: 12px;
+  margin-left: 6px;
+  margin-right: 12px;
 }
 
 .form-inline .form-block {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 #navbar-login-button {
-    margin-right: 30px;
+  margin-right: 30px;
 }
 
 #qrcode-placeholder > img {
-    margin-left: auto;
-    margin-right: auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #qrcode-target {
-    display:none;
+  display: none;
 }
 
 #config-phone-mobile-browser {
-    display:none;
+  display: none;
 }
 
 .app-content {
-    font-size: 120%;
+  font-size: 120%;
 }
 
 .app-content h1 {
-    font-size: 200%;
+  font-size: 200%;
 }
 
 .app-content h2 {
-    font-size: 110%;
+  font-size: 110%;
 }
 
 #code {
-    height: 20em;
+  height: 20em;
 }
 
 .online-account-choice {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 .online-account-expander {
-    padding-top: 1em;
+  padding-top: 1em;
 }
 
 #app-install-description {
-    font-style: italic;
+  font-style: italic;
 }
 
 #app-install-well .btn, #show-hide-code .btn {
-    margin-bottom: 1em;
+  margin-bottom: 1em;
 }
 
 #app-install-alert {
-    margin-bottom: 1em;
+  margin-bottom: 1em;
 }
 
 pre, pre code {
-    color: black;
+  color: black;
 }
 
 .app-template {
@@ -88,18 +88,18 @@ pre, pre code {
 }
 
 .device-icon-small > img {
-    display: block;
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-    border-radius: 5px;
-    margin: 0 auto;
+  display: block;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 5px;
+  margin: 0 auto;
 }
 
 .dev-template .panel-heading {
-    font-weight: bold;
-    text-align: center;
-    display: block;
+  font-weight: bold;
+  text-align: center;
+  display: block;
 }
 
 footer {
@@ -111,13 +111,13 @@ footer {
   min-height: 120px;
 }
 
-/*#page-body p a:link:not(.btn), #page-body p a:visited:not(.btn) {
+/* #page-body p a:link:not(.btn), #page-body p a:visited:not(.btn) {
   color: #2c3e50;
   text-decoration: underline;
 }
 #page-body p a:hover:not(.btn) {
   color: #f7c374;
-}*/
+} */
 
 body {
   font-size: 16px;
@@ -144,9 +144,11 @@ body {
 .sections > :nth-child(odd) {
   background-color: white;
 }
+
 .sections > :nth-child(even) {
   background-color: #f3f4f2;
 }
+
 .sections > .divider {
   padding-top: 2em;
   padding-bottom: 4em;
@@ -159,5 +161,5 @@ body {
 }
 
 .panel > .panel-heading {
-  margin-top: 0px;
+  margin-top: 0;
 }

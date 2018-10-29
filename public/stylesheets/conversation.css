@@ -41,7 +41,6 @@
   width: 90%;
   text-align: right;
   margin-left: auto;
-
   border-image-source: url(/images/bubble_user.png);
   border-image-slice: 88 130 93 97 fill;
   border-image-width: 13px 24px 12px 24px;
@@ -92,6 +91,7 @@
 #conversation .message-rdl-title {
   font-weight: bold;
 }
+
 #conversation .message-rdl-content {
   display: block;
 }

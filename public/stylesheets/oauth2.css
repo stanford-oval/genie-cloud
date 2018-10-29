@@ -1,15 +1,16 @@
 #app-icon-large {
-    display: block;
-    float: left;
+  display: block;
+  float: left;
 }
 
 #app-icon-large > img {
-    display: block;
-    width: 160px;
-    /* accept non-perfectly square images */
-    height: 160px;
-    object-fit: contain;
-    border-radius: 10px;
-    margin-right: 1em;
-    margin-bottom: 1em;
+  display: block;
+  width: 160px;
+
+  /* accept non-perfectly square images */
+  height: 160px;
+  object-fit: contain;
+  border-radius: 10px;
+  margin-right: 1em;
+  margin-bottom: 1em;
 }

@@ -23,11 +23,11 @@
 }
 
 .query {
-  color: rgb(220,136,8);
+  color: rgb(220, 136, 8);
 }
 
 .action {
-  color: rgb(34,139,34);
+  color: rgb(34, 139, 34);
 }
 
 #cheatsheet .grid-item {
@@ -35,14 +35,14 @@
 }
 
 @media (min-width: 992px) {
-#cheatsheet .grid-item {
-  width: 32%;
-}
+  #cheatsheet .grid-item {
+    width: 32%;
+  }
 }
 
 @media (min-width: 1200px) {
-#cheatsheet .grid-item {
-  width: 24%;
-}
+  #cheatsheet .grid-item {
+    width: 24%;
+  }
 }
 

@@ -1,12 +1,12 @@
 #users-table td {
-    vertical-align: middle;
+  vertical-align: middle;
 }
 
 .actions-dropdown button {
-    margin-top: 6px;
-    margin-bottom: 6px;
+  margin-top: 6px;
+  margin-bottom: 6px;
 }
 
 #user-search-navbar {
-    margin-top: 1em;
+  margin-top: 1em;
 }

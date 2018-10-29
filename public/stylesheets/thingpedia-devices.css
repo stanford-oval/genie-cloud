@@ -1,107 +1,112 @@
 #almond-title {
-  color:#dea844;
+  color: #dea844;
 }
 
 #rule-new-button {
-    margin-top: 30px;
+  margin-top: 30px;
 }
 
 #device-search-box {
-    margin-right: 15px;
+  margin-right: 15px;
 }
 
 #device-list-navbar {
-    margin-top: 30px;
-    margin-bottom: 30px;
+  margin-top: 30px;
+  margin-bottom: 30px;
 }
 
 #device-description-input {
-    height: 4em;
+  height: 4em;
 }
 
 #device-code, .CodeMirror {
-    height: 50em;
+  height: 50em;
 }
 
 .device-subtitle {
-    font-size: 25px;
+  font-size: 25px;
 }
 
 #device-details-actions {
-    margin-top: 1em;
+  margin-top: 1em;
 }
 
 #json-manifest-placeholder .well h3 {
-    margin-top: 10.5px;
-    margin-bottom: 0px;
-    font-size: 19px;
+  margin-top: 10.5px;
+  margin-bottom: 0;
+  font-size: 19px;
 }
 
 #json-manifest-placeholder .well {
-    min-height: 0px;
-    margin-bottom: 0px;
+  min-height: 0;
+  margin-bottom: 0;
 }
 
 #json-manifest-placeholder > div > .well > div > .well {
-    padding-left: 0px;
-    padding-right: 0px;
-    border-radius: 0px;
+  padding-left: 0;
+  padding-right: 0;
+  border-radius: 0;
 }
 
 #json-manifest-placeholder .form-group {
-    margin-bottom: 0px;
+  margin-bottom: 0;
 }
 
 #device-icon-large {
-    display: block;
-    float: left;
+  display: block;
+  float: left;
 }
 
 #device-icon-large > img {
-    display: block;
-    width: 160px;
-    /* accept non-perfectly square images */
-    height: 160px;
-    object-fit: contain;
-    border-radius: 10px;
-    margin-right: 1em;
-    margin-bottom: 1em;
+  display: block;
+  width: 160px;
+
+  /* accept non-perfectly square images */
+  height: 160px;
+  object-fit: contain;
+  border-radius: 10px;
+  margin-right: 1em;
+  margin-bottom: 1em;
 }
 
 .device-icon-small > img {
-    display: block;
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-    border-radius: 5px;
-    margin: 0 auto;
+  display: block;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 5px;
+  margin: 0 auto;
 }
 
 .canonical {
-    font-style: italic;
+  font-style: italic;
 }
 
 #no-commands {
-    font-style: italic;
+  font-style: italic;
 }
 
 .device-channels .indent {
-    white-space: pre;
+  white-space: pre;
 }
+
 .device-channels {
-    padding: 0;
+  padding: 0;
 }
+
 .device-channels code, .schema-code-block {
-    display: block;
-    color: inherit;
-    background-color: #eeeeee;
+  display: block;
+  color: inherit;
+  background-color: #eee;
 }
+
 .schema-code-block {
-    white-space: pre;
+  white-space: pre;
 }
-.device-channels >li {
-    display: block;
-    margin-bottom: 2em;
+
+.device-channels > li {
+  display: block;
+  margin-bottom: 2em;
 }
 
 .license-header {

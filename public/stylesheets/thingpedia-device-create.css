@@ -5,93 +5,99 @@
 }
 
 @media screen and (min-width: 1000px) {
+  #page-body {
+    margin: 0;
+    position: fixed;
+    top: 60px;
+    bottom: 0;
+    right: 0;
+    left: 0;
+  }
 
-#page-body {
-  margin: 0px;
-  position: fixed;
-  top: 60px;
-  bottom: 0px;
-  right: 0px;
-  left: 0px;
-}
+  #device-toolbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    padding-top: 0;
+    padding-bottom: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
 
-#device-toolbar {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  right: 0px;
-  height: 50px;
-  padding-top: 0px;
-  padding-bottom: 0px;
-  width: 100%;
+  #device-toolbar > div {
+    float: none;
+  }
 
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-}
-#device-toolbar > div {
-  float: none;
-}
+  #device-toolbar > #device-error {
+    flex-grow: 1;
+    width: auto;
+  }
 
-#device-toolbar > #device-error {
-  flex-grow: 1;
-  width: auto;
-}
-#device-toolbar > #device-error p {
-  margin-bottom: 0px;
-}
+  #device-toolbar > #device-error p {
+    margin-bottom: 0;
+  }
 
-#device-editor-sidebar {
-  position: absolute;
-  top: 50px;
-  bottom: 0px;
-  left: 0px;
-  width: 20%;
-}
-#device-editor-body {
-  position: absolute;
-  top: 50px;
-  width: 80%;
-  bottom: 0px;
-  right: 0px;
-}
+  #device-editor-sidebar {
+    position: absolute;
+    top: 50px;
+    bottom: 0;
+    left: 0;
+    width: 20%;
+  }
 
-#device-metadata {
-  overflow-y: auto;
-}
-#device-code, #device-dataset {
-  height: 100%;
-  width: 100%;
-}
-#device-editor-body .CodeMirror {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
+  #device-editor-body {
+    position: absolute;
+    top: 50px;
+    width: 80%;
+    bottom: 0;
+    right: 0;
+  }
 
+  #device-metadata {
+    overflow-y: auto;
+  }
+
+  #device-code, #device-dataset {
+    height: 100%;
+    width: 100%;
+  }
+
+  #device-editor-body .CodeMirror {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 #device-editor-sidebar {
   background-color: lightgray;
-  padding: 0px;
+  padding: 0;
 }
+
 #device-editor-sidebar a {
-  border-top-left-radius: 0px;
-  border-bottom-left-radius: 0px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
   border-top-right-radius: 5px;
   border-bottom-right-radius: 5px;
 }
+
 #device-editor-sidebar a {
   color: black;
 }
+
 #device-editor-sidebar li.active > a {
   color: white;
 }
 
 #device-editor-body {
-  padding: 0px;
+  padding: 0;
 }
+
 #device-metadata {
   padding-left: 15px;
   padding-right: 15px;

@@ -1,37 +1,37 @@
 .app-template {
-    border: 1px gray;
-    border-radius: 5px;
+  border: 1px gray;
+  border-radius: 5px;
 }
 
 .installed-dev .panel-heading {
-    display: block;
+  display: block;
 }
 
 .form-delete-app {
-    float: right;
+  float: right;
 }
 
 
 /* Style the button that is used to open and close the collapsible content */
 .collapsible {
-    background-color: #f3f4f2;
-    cursor: pointer;
-    padding: 10px;
-    width: 100%;
-    border: none;
-    text-align: left;
-    outline: none;
-    font-size: 20px;
-    margin:5px;
+  background-color: #f3f4f2;
+  cursor: pointer;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 20px;
+  margin: 5px;
 }
 
 .active, .collapsible:hover {
-    background-color: #2c3e50;
-    color: white;
+  background-color: #2c3e50;
+  color: white;
 }
 
 .device-list, .command-list {
-    padding: 18px 18px;
-    display: none;
-    overflow: hidden;
+  padding: 18px 18px;
+  display: none;
+  overflow: hidden;
 }
