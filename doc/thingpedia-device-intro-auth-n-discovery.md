@@ -2,29 +2,58 @@
 
 [[toc]]
 
-## Handling Authentication
+## Different types of authentication
 
-### Different types of authentication
+Most devices require some kind of authentication, for example a password, an OAuth 2.0
+access token, or local interactive pairing via some protocol. 
+Developers can specify how the device should be configured in the device class
+by import `config` module from the following supported mixins:
 
-Most devices will require some kind of authentication, for example a password or an OAuth 2.0
-access token. After the device is set up and stored to disk, this is easy because you have
-the authentication data, but you need a way to obtain it at first.
+- `@org.thingpedia.config.none`: for devices with no authentication at all
+- `@org.thingpedia.config.form`: for devices with no authentication but require extra information from the user to configure
+- `@org.thingpedia.config.basic_auth`: for devices that use traditional username and password
+- `@org.thingpedia.oauth2`: for OAuth 1.0 and 2.0 style authentication
+- `@org.thingpedia.config.discovery.upnp`: for authentication by discovery and local interactive pairing via UPnP protocol 
+- `@org.thingpedia.config.discovery.bluetooth`: for authentication by discovery and local interactive pairing via Bluetooth protocol 
 
-The way it is handled is through the `Authentication` field in the _manifest file_.
-Three ways to do authentication are supported:
+### Device with no authentication
+Some public services require no authentication to request for data.
+In this case, no `config` module needs to be imported for the device explicitly 
+and the one from `@org.thingpedia.config.none` will be automatically used. 
 
-- `none`: means that the device has no authentication at all, it only uses publicly available APIs;
-the resulting configuration UI will be a single button (unless you need other data,
-in which case it will be a form); in this case you have nothing to do
-- `basic`: traditional username and password; your state must contain `username` and `password`
-properties, which are set to the values provided by the user through a form. An example can be found 
-[here](https://almond.stanford.edu/thingpedia/upload/example/3).
-- `oauth2`: OAuth 1.0 and 2.0 style authentication; the user clicks and is redirected to a login
-page, then the login page redirects back to ThingEngine giving you the authorization code
-- `discovery`: authentication by discovery and local interactive pairing
-- `builtin`: for internal use only
+If an API key is required, you can specify it as follows 
+```tt
+import config from @org.thingpedia.config.cone(api_key=<your-api-key>);
+```
 
-### `oauth2` authentication helpers
+If some other information is required from the user, you can use the `config`
+module from `@org.thingpedia.config.form`, where you can define the configuration parameters
+you need. 
+For example, in [RSS feed](https://almond.stanford.edu/thingpedia/upload/update/org.thingpedia.rss),
+users can type in the URL of the RSS feed when they configure the device. 
+It imports the `config` module as follows:
+```tt
+import config from @org.thingpedia.config.form(params=makeArgMap(name:String, url:String));
+```
+
+### Username and password
+If a device does not provide an OAuth interface, a traditional username/password method 
+is supported. It can be considered as a special case of `@org.thingpedia.config.form`
+with two fields builtin: `username` and `password`. If needed, additional parameters can be specified 
+with `extra_params`:
+```tt
+import config from @org.thingpedia.config.basic_auth(extra_params=makeArgMap(...))
+```
+Note: this is not recommended if OAuth is available. 
+
+### OAuth
+Most of the online accounts use OAuth nowadays. 
+The `config` can be imported as follows:
+```tt
+import config from @org.thingpedia.config.oauth2(client_id=<your-client-id>, client_secret=<your-client-secret>);
+```
+
+#### `oauth2` authentication helpers
 
 As mentioned before, despite the name, `oauth2` is the authentication type of
 all OAuth style schemes. But if you use exactly OAuth 2.0 as specified in
@@ -34,13 +63,10 @@ can use a shorter helper:
 ```javascript
 static get runOAuth2() {
     return Tp.Helpers.OAuth2({
-        kind: "com.example",
-        client_id: "your_oauth2_client_id",
-        client_secret: "your_oauth2_client_secret_obfuscated_as_rot13",
         authorize: "https://api.example.com/1.0/authorize",
-        scope: ['example_user_profile', 'example_basic_info']
         get_access_token: "https://api.example.com/1.0/token",
-        callback: function(accessToken, refreshToken) { /* add device here */ }
+        scope: ['example_user_profile', 'example_basic_info'],
+        callback: function(engine, accessToken, refreshToken) { /* add device here */ }
     });
 }
 ```
@@ -71,11 +97,9 @@ static get runOAuth2() {
 }
 ```
 
-NOTE: the JS code will be publicly available, so do not put sensitive information in the code. 
-To add client id and client secret, add the corresponding properties in the `Authentication` field 
-in the manifest. An example can be found [here](https://almond.stanford.edu/thingpedia/upload/example/9). 
 
-### `oauth2` authentication the slow way
+
+#### `oauth2` authentication the slow way
 
 If your device uses OAuth-style authentication that is different from RFC 6749, 
 you must implement `runOAuth2` in your
@@ -139,7 +163,7 @@ runOAuth2(engine, req) {
 
 
 
-## Handling Discovery
+### Local discovery
 
 Local discovery in Thingpedia relies on the
 [thingpedia-discovery](https://github.com/Stanford-IoT-Lab/thingpedia-discovery)
@@ -197,7 +221,7 @@ Finally, your device must set `this.descriptors` to a list of protocol specific
 device descriptors that will help the generic code recognize if a device was
 already configured or not, and must set `state.discoveredBy` to `engine.ownTier`.
 
-### Bluetooth discovery
+#### Bluetooth discovery
 
 Discovery data:
 

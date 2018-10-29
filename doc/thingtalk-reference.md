@@ -4,22 +4,23 @@
 
 ## Types
 
-* `Any`: the base, or unspecified, type; use it when the other types
-  are not appropriate
-
-* `Boolean`: `true` or `false`
+* `Boolean`: `true` or `false`.
 
 * `String`: any string; strings do not have to be valid UTF-16, but
-   they are stored as UCS-2 and cannot have embedded NUL characters
+   they are stored as UCS-2 and cannot have embedded NUL characters.
 
 * `Enum(e1, e2, ...)`: enumerated type, having values `e1`, `e2`, etc.
    (e.g. `Enum(on,off)` represents the possibility of being `on` or `off`).
-   In JS this is represented as a String, the enum value.
+   In Javascript, this is represented as a String (the enum value).
 
 * `Entity(...)`: an identifier to an object; the type is parametrized with
 the actual entity type. An entity has a value, and an optional `display`
 property that represents the user visible name of the object. In JavaScript,
-entities can be represented as simple strings, or using the `Thingpedia.Value.Entity` class.
+entities can be represented as simple strings, or using the `Thingpedia.Value.Entity` class. 
+For example, the stock ID of Google can be represented as:
+    ```javascript
+    new Thingpedia.Value.Entity("goog", "tt:stock_id", "Alphabet Inc.")
+    ```
 
   The following entity types have special meaning to the semantic parser:
   
@@ -33,26 +34,43 @@ entities can be represented as simple strings, or using the `Thingpedia.Value.En
   - `Entity(tt:device)`: a Thingpedia device type (e.g. `com.twitter`)
   - `Entity(tt:function)`: a Thingpedia function identifier, composed of device type + `:` + function name (e.g. `com.twitter:post`)
   
-  The full list of entity types is available at (/thingpedia/entities). Custom Entity types can be defined, using a prefix other than `tt:`.
+  The full list of entity types is available at [ThingTalk Entity Types](/thingpedia/entities). Custom Entity types can be defined, using a prefix other than `tt:`.
 
 * `Number`: [IEEE754](http://en.wikipedia.org/wiki/IEEE_754) double
-  precision floating point
+  precision floating point.
 
 * `Measure(...)`: same as `Number`, but parametrized by one of the
   unit types; literals of `Measure` type have automatic conversion to
   and from the most common unit types, and be written as a sum of multiple
-  terms (e.g. `6ft + 3in`)
+  terms (e.g. `6ft + 3in`).
+  In Javascript, this is represented as a number, with the same unit defined in 
+  the function signature. 
   
 * `Currency`: a `Number` with a unit. This differs from `Measure` because
 the unit is not normalized, and is accessible at runtime. In JavaScript this type
-is represented using the `Thingpedia.Value.Currency` type.
+is represented as a number (the unit will default to US dollar), 
+or using the `Thingpedia.Value.Currency` type. For example:
+    ```javascript
+    new Thingpedia.Value.Currency(100, 'usd')
+    ```
 
-* `Date`: a specific point in time (date and time); in JavaScript this is represented with the [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) class
+* `Date`: a specific point in time (date and time).
+In JavaScript this is represented with the [Date](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date) class.
 
-* `Time`: a time of day without date; in JavaScript this is an object of class `Thingpedia.Value.Time` (with `.hour`, `.minute` and `.second` property)
+* `Time`: a time of day without date. 
+In JavaScript this is an object of class `Thingpedia.Value.Time` with `.hour`, `.minute` and `.second` property.
+For example, 7 PM is represented as:
+   ```javascript
+   new Thingpedia.Value.Time(19, 0, 0) 
+   ```
 
-* `Location`: a specific point on the Earth surface, as a pair of latitude and longitude, and optional name. In JavaScript this is an object of class `Thingpedia.Value.Location`
-
+* `Location`: a specific point on the Earth surface, as a pair of latitude and longitude, and optional name. 
+In JavaScript this is an object of class `Thingpedia.Value.Location`.
+It has 3 properties: the latitude, the longitude, and the name of the location (optional). 
+For example, we work here: 
+    ```javascript 
+    new Thingpedia.Value.Location(37.43, -122.1733, "Gates Computer Science, Stanford").
+    ```
 * `Array(elem)`: an ordered sequence of values of the same type; arrays are compared by
   value (i.e., two arrays are equal if the have the same size and are
   pair wise equal)

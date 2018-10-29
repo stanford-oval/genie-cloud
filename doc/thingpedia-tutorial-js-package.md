@@ -1,4 +1,4 @@
-# Writing JS Device Packages
+# Write JS Device Packages
 If you choose to use the loader provided by `@org.thingpdedia.v2` in your manifest,
 a _device package_ is required for your device. 
 It contains the Javascript code describing the details about how your device 
@@ -135,6 +135,9 @@ get_get({ count }) {
     return [{ image_id: ..., picture_url: ..., link: ... }];
 }
 ```
+
+The details of how different ThingTalk types are represented in Javascript
+can be found in [ThingTalk Reference](/doc/thingtalk-reference.md). 
 
 Now let's implement the `get` function for The Cat API for real with HTTP helpers.
 The function should look like this: 

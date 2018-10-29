@@ -67,7 +67,7 @@ number of full programs for training and thus get a better accuracy.
 
 ### Utterances 
 An `utterances` annotation is used to provide different ways of expressing a command.
-It takes a list of string, each containing part of a command. In each utterance, concrete 
+It takes a list of strings. In each utterance, concrete 
 values for parameters are replaced by _placeholders_, which can be expressed by `$param` or `${param}`, 
 where _param_ is the name of a declared parameter of the code snippet.
 The braces are needed if the parameter is immediately followed by 

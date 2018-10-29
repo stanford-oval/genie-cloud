@@ -1,4 +1,4 @@
-# Writing Device Classes in ThingTalk
+# Write Device Classes in ThingTalk
 
 [[toc]]
 
@@ -104,7 +104,7 @@ They are denoted by `#[<key>=<value>]` (without the underscore used by natural l
    
 Here is a list of required implementation annotations for functions:               
 - `doc`: This is used for documentation for developers. 
-- `poll_interval` (required for monitorable query): This is used to specify how often the query will be fired
+- `poll_interval` (required for monitorable queries): This is used to specify how often the query will be fired
 if it is monitored. It takes a time interval, e.g., `#[poll_interval=5min]`.
 
 
