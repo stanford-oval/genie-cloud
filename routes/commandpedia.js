@@ -18,16 +18,12 @@ router.get('/add', (req, res) => {
     return res.render('app_new_command', { page_title: req._('Create New Command'), csrfToken: req.csrfToken() });
 });
 
-router.get('/suggest', (req, res) => {
-    return res.render('app_suggest_command', { page_title: req._('Suggest New Command'), csrfToken: req.csrfToken() });
-});
-
 router.post('/suggest', (req, res, next) => {
     let command = req.body['description'];
     db.withTransaction((dbClient) => {
         return commandModel.suggest(dbClient, command);
     }).then(() => {
-        return res.render('app_suggest_command', { page_title: req._('Suggest New Command'), csrfToken: req.csrfToken(), submitted: true });
+        return res.redirect(303, '/thingpedia/commands/add');
     }).catch(next);
 });
 

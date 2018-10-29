@@ -22,6 +22,11 @@ block content
       a('href'='/doc/thingtalk-intro.md')= _(" (How to write ThingTalk?)")
       textarea.form-control#input-command-thingtalk(name="code", placeholder=_("Code Here..."))
       span.help-block#thingtalk-error
+      p
+        = _("Don't know how to write ThingTalk, or do you suspect this command is not supported?")
+        |
+        |
+        a#suggest-command-no-thingtalk(href='#')= _("Suggest this command for future inclusion instead.")
 
     div(hidden=true).form-group#confirmation-group
       label(for='input-command-confirmation').control-label= _("Please confirm this is what you would like your command to do:")
