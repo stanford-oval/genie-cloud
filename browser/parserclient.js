@@ -9,6 +9,8 @@
 // See COPYING for details
 "use strict";
 
+const ThingTalk = require('thingtalk');
+
 const URL = 'https://almond-nl.stanford.edu';
 
 module.exports = class ParserClient {
@@ -26,7 +28,13 @@ module.exports = class ParserClient {
             throw new TypeError('Invalid code parameter to onlineLearn');
         return Promise.resolve($.ajax(this._baseUrl + '/learn', {
             method: 'POST',
-            data: { q: utterance, target: code, store, owner: user }
+            data: {
+                q: utterance,
+                target: code,
+                store,
+                owner: user,
+                thingtalk_version: ThingTalk.version
+            }
         })).catch((e) => {
             // errors are useless because the browser blocks the response on error (due to
             // missing Access-Control-Allow-Origin)
@@ -38,7 +46,7 @@ module.exports = class ParserClient {
         let url = this._baseUrl + '/tokenize';
         return Promise.resolve($.ajax(url, { data: { q: utterance } })).then((parsed) => {
             if (parsed.error)
-                throw new Error('Error received from Almond-NNParser server: ' + parsed.error);
+                throw new Error('Error received from Almond natural language server: ' + parsed.error);
 
             return parsed;
         });
@@ -46,9 +54,16 @@ module.exports = class ParserClient {
 
     sendUtterance(utterance, limit = -1) {
         let url = this._baseUrl + '/query';
-        return Promise.resolve($.ajax(url, { data: { q: utterance, limit: limit, store:'yes' } })).then((parsed) => {
+        return Promise.resolve($.ajax(url, {
+            data: {
+                q: utterance,
+                limit: limit,
+                store:'yes',
+                thingtalk_version: ThingTalk.version
+            }
+        })).then((parsed) => {
             if (parsed.error)
-                throw new Error('Error received from Almond-NNParser server: ' + parsed.error);
+                throw new Error('Error received from Almond natural language server: ' + parsed.error);
 
             return parsed;
         });

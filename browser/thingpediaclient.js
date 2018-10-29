@@ -9,6 +9,8 @@
 // See COPYING for details
 "use strict";
 
+const ThingTalk = require('thingtalk');
+
 const THINGPEDIA_URL = '/thingpedia';
 
 function httpRequest(url) {
@@ -24,6 +26,7 @@ module.exports = class ThingpediaClientBrowser {
     _simpleRequest(to, noAppend) {
         if (!noAppend) {
             to += '?locale=' + this.locale;
+            to += '&thingtalk_version=' + ThingTalk.version;
             if (this.developerKey)
                 to += '&developer_key=' + this.developerKey;
         }
@@ -39,6 +42,7 @@ module.exports = class ThingpediaClientBrowser {
     getSchemas(kinds, withMetadata) {
         var to = THINGPEDIA_URL + '/api/v3/schema/' + kinds.join(',');
         to += '?locale=' + this.locale;
+        to += '&thingtalk_version=' + ThingTalk.version;
         if (withMetadata)
             to += '&meta=1';
         if (this.developerKey)
@@ -50,6 +54,7 @@ module.exports = class ThingpediaClientBrowser {
         var to = THINGPEDIA_URL + '/api/v3/devices/setup';
         if (klass) {
             to += '?class=' + klass;
+            to += '&thingtalk_version=' + ThingTalk.version;
             if (this.developerKey)
                 to += '&developer_key=' + this.developerKey;
             return this._simpleRequest(to, true);
@@ -66,6 +71,7 @@ module.exports = class ThingpediaClientBrowser {
     getExamplesByKey(key, isBase) {
         var to = THINGPEDIA_URL + '/api/v3/examples/search?locale=' + this.locale + '&q=' + encodeURIComponent(key)
             + '&base=' + (isBase ? '1' : '0');
+        to += '&thingtalk_version=' + ThingTalk.version;
         if (this.developerKey)
             to += '&developer_key=' + this.developerKey;
         return this._simpleRequest(to, true);
@@ -74,6 +80,7 @@ module.exports = class ThingpediaClientBrowser {
     getExamplesByKinds(kinds, isBase) {
         var to = THINGPEDIA_URL + '/api/v3/examples/by-kinds/' + kinds.join(',') + '?locale=' + this.locale
             + '&base=' + (isBase ? '1' : '0');
+        to += '&thingtalk_version=' + ThingTalk.version;
         if (this.developerKey)
             to += '&developer_key=' + this.developerKey;
         return this._simpleRequest(to, true);
