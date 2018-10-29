@@ -12,7 +12,7 @@ by import `config` module from the following supported mixins:
 - `@org.thingpedia.config.none`: for devices with no authentication at all
 - `@org.thingpedia.config.form`: for devices with no authentication but require extra information from the user to configure
 - `@org.thingpedia.config.basic_auth`: for devices that use traditional username and password
-- `@org.thingpedia.oauth2`: for OAuth 2.0 authentication as specified in [RFC 6749](https://tools.ietf.org/html/rfc6749)
+- `@org.thingpedia.oauth2`: for OAuth 1.0 and 2.0 style authentication
 - `@org.thingpedia.config.discovery.upnp`: for authentication by discovery and local interactive pairing via UPnP protocol 
 - `@org.thingpedia.config.discovery.bluetooth`: for authentication by discovery and local interactive pairing via Bluetooth protocol 
 
@@ -36,7 +36,7 @@ It imports the `config` module as follows:
 import config from @org.thingpedia.config.form(params=makeArgMap(name:String, url:String));
 ```
 
-### Username and Password
+### Username and password
 If a device does not provide an OAuth interface, a traditional username/password method 
 is supported. It can be considered as a special case of `@org.thingpedia.config.form`
 with two fields builtin: `username` and `password`. If needed, additional parameters can be specified 
@@ -66,7 +66,7 @@ static get runOAuth2() {
         authorize: "https://api.example.com/1.0/authorize",
         get_access_token: "https://api.example.com/1.0/token",
         scope: ['example_user_profile', 'example_basic_info'],
-        callback: function(accessToken, refreshToken) { /* add device here */ }
+        callback: function(engine, accessToken, refreshToken) { /* add device here */ }
     });
 }
 ```
