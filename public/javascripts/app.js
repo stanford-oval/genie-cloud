@@ -6,6 +6,25 @@ $(function() {
     let page = 0;
     let insearch = false;
 
+    let likedCommands = new Set(JSON.parse(window.localStorage.getItem('liked-commands') || '[]'));
+    console.log(likedCommands);
+    function addLiked(id) {
+        if (likedCommands.has(id))
+            return false;
+        likedCommands.add(id);
+        console.log(likedCommands);
+        window.localStorage.setItem('liked-commands', JSON.stringify(Array.from(likedCommands)));
+        return true;
+    }
+    function removeLiked(id) {
+        if (!likedCommands.has(id))
+            return false;
+        likedCommands.delete(id);
+        console.log(likedCommands);
+        window.localStorage.setItem('liked-commands', JSON.stringify(Array.from(likedCommands)));
+        return true;
+    }
+
     function renderCommands(result) {
         let commands = result.data;
         let container = $('#command-container');
@@ -41,7 +60,8 @@ $(function() {
             let user = $('<div>').addClass('device-owner');
             user.append($('<span>').text(`By ${command.owner_name || 'anonymous user'}`));
             let like = $('<a>');
-            let heart = $('<i>').addClass('far').addClass('fa-heart').attr('id', command.id).attr('_csrf', csrfToken);
+            let heart = $('<i>').addClass(likedCommands.has(String(command.id)) ? 'fas' : 'far')
+                .addClass('fa-heart').attr('id', command.id).attr('_csrf', csrfToken);
             like.append(heart);
             user.append(like);
             let count = $('<span>').attr('id', 'count' + command.id).text(command.click_count);
@@ -90,13 +110,17 @@ $(function() {
             let current = Number(count.text());
 
             if (icon.hasClass('far')) {
-                icon.removeClass('far').addClass('fas');
-                $.post('/thingpedia/examples/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
-                count.text(current + 1);
+                if (addLiked(this.id)) {
+                    icon.removeClass('far').addClass('fas');
+                    $.post('/thingpedia/examples/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
+                    count.text(current + 1);
+                }
             } else {
-                icon.removeClass('fas').addClass('far');
-                $.post('/thingpedia/examples/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
-                count.text(current - 1);
+                if (removeLiked(this.id)) {
+                    icon.removeClass('fas').addClass('far');
+                    $.post('/thingpedia/examples/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
+                    count.text(current - 1);
+                }
             }
             event.preventDefault();
         });
