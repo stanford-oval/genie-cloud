@@ -208,8 +208,6 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
             }
             if (!arg.metadata.canonical)
                 arg.metadata.canonical = clean(argname);
-            if (arg.required && !arg.metadata.prompt)
-                throw new Error('Required argument ' + name + '.' + arg.name + ' must have a slot filling prompt');
         }
     }
 }
