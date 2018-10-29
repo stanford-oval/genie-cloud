@@ -161,3 +161,42 @@ body {
 .panel > .panel-heading {
   margin-top: 0px;
 }
+
+/* note: we assume that all browsers which support grid layout also support flexbox
+   (which is true in practice)
+*/
+@supports (display:grid) {
+.aligned-grid > .clearfix, .aligned-grid::before, .aligned-grid::after {
+    display: none !important;;
+}
+
+.aligned-grid {
+    clear: both;
+    display: grid;
+}
+@media screen and (min-width: 992px) {
+.aligned-grid {
+    grid-template-columns: 1fr 1fr;
+}
+}
+@media screen and (min-width: 1200px) {
+.aligned-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+}
+.aligned-grid > .aligned-grid-item  {
+    width: 100%;
+    height: 100%;
+    padding-bottom: 21px;
+}
+.aligned-grid > .aligned-grid-item  > .panel {
+    width: 100%;
+    height: 100%;
+    margin-bottom: 0px;
+    display: flex;
+    flex-direction: column;
+}
+.aligned-grid > .aligned-grid-item > .panel > .panel-body {
+    flex-grow: 2;
+}
+}

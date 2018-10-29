@@ -19,7 +19,7 @@ $(function() {
             else if (i % 2 === 0)
                 container.append($('<div>').addClass('clearfix visible-md'));
 
-            let commandContainer = $('<div>').addClass('col-lg-4 col-md-6 dev-template');
+            let commandContainer = $('<div>').addClass('col-lg-4 col-md-6 aligned-grid-item dev-template');
             let panel = $('<div>').addClass('panel panel-default');
             commandContainer.append(panel);
 
