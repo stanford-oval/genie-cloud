@@ -1,4 +1,4 @@
-# Writing Device Classes in ThingTalk
+# Write Device Classes in ThingTalk
 
 [[toc]]
 

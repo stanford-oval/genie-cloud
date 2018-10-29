@@ -1,4 +1,4 @@
-# Writing JS Device Packages
+# Write JS Device Packages
 If you choose to use the loader provided by `@org.thingpdedia.v2` in your manifest,
 a _device package_ is required for your device. 
 It contains the Javascript code describing the details about how your device 

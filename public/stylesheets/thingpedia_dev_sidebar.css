@@ -41,6 +41,10 @@ nav#doc-sidebar > ul > li > ul > li .doc-sidebar-subtitle, nav#doc-sidebar > ul 
   padding-left: 40px;
 }
 
+nav#doc-sidebar > ul > li > ul > li > ul > li > ul > li {
+  padding-left: 20px;
+}
+
 
 nav#doc-sidebar li.current {
   background-color: #1f2c39;

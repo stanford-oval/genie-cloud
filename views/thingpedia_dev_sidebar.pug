@@ -43,6 +43,16 @@ nav#doc-sidebar
             li(class=(currentPage === 'thingpedia-tutorial' ? 'current' : ''))
               a(href='/thingpedia/developers/thingpedia-tutorial.md') Tutorial 4: Write Your Own Device
 
+              ul
+                li(class=(currentPage === 'thingpedia-tutorial-manifest.md' ? 'current' : ''))
+                  a(href='/thingpedia/developers/thingpedia-tutorial-manifest.md') Write Device Classes
+
+                li(class=(currentPage === 'thingpedia-tutorial-dataset.md' ? 'current' : ''))
+                  a(href='/thingpedia/developers/thingpedia-tutorial-dataset.md') Write Example Commands
+
+                li(class=(currentPage === 'thingpedia-tutorial-js-package.md' ? 'current' : ''))
+                  a(href='/thingpedia/developers/thingpedia-tutorial-js-package.md') Write Javascript Device Packages
+
         li(class=(['thingpedia-device-intro-auth-n-discovery', 'thingpedia-device-with-zero-code', 'thingpedia-nl-support'].indexOf(currentPage) >= 0 ? 'current' : ''))
           a.doc-sidebar-subtitle Topic Guides
           ul
