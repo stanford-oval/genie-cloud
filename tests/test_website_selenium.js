@@ -129,7 +129,6 @@ async function testHomepage(driver) {
         assert.strictEqual(commands.length, 1);
 
         assert.strictEqual(await commands[0].getText(), 'every day at 9:00 AM set my laptop background to pizza images');
-        assert.strictEqual(await commands[0].getAttribute('title'), '( attimer time = TIME_0 ) join ( @com.bing.image_search param:query:String = " pizza " ) => @org.thingpedia.builtin.thingengine.gnome.set_background on  param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture)');
     }
 }
 

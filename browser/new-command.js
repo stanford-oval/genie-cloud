@@ -41,12 +41,18 @@ class ThingTalkTrainer {
 
         $('#input-command-utterance').change(() => {
             this._predicted = false;
-            $('#submit').html('Add');
+            $('#submit').text('Add');
         });
         $('#input-command-thingtalk').change((event) => {
             this._confirmed = false;
             this._codeDone(event);
-            $('#submit').html('Add');
+            $('#submit').text('Add');
+        });
+        $('#suggest-command-no-thingtalk').click((event) => {
+            this._suggestCommand(event);
+        });
+        $('#results-fail-write-thingtalk').click((event) => {
+            this._rejectAll(event);
         });
         $('#form-new-command').submit(this._submit.bind(this));
     }
@@ -64,6 +70,7 @@ class ThingTalkTrainer {
             $('#thingtalk-error').text('');
             $('#input-command-thingtalk').val(tt);
             $('#results-container').addClass('hidden');
+            $('#results-fail').addClass('hidden');
             $('#input-command-confirmation').val(a.attr('utterance'));
             $('#thingtalk-group').show();
             this._predicted = true;
@@ -77,6 +84,7 @@ class ThingTalkTrainer {
     _rejectAll(event) {
         event.preventDefault();
         $('#results-container').addClass('hidden');
+        $('#results-fail').addClass('hidden');
         $('#thingtalk-group').show();
     }
 
@@ -107,14 +115,17 @@ class ThingTalkTrainer {
                 results.append($('<li>').append(link));
             }
             let link = $('<a href="#">')
-                .html('None of the above')
+                .text('None of the above')
                 .addClass('none-of-above')
                 .click(this._rejectAll.bind(this));
             results.append($('<li >').append(link));
-            if (prediction !== null)
+            if (prediction !== null) {
                 $('#results-container').removeClass('hidden');
-            else
+                $('#results-fail').addClass('hidden');
+            } else {
                 $('#results-container').addClass('hidden');
+                $('#results-fail').removeClass('hidden');
+            }
         });
     }
 
@@ -146,6 +157,21 @@ class ThingTalkTrainer {
         return err;
     }
 
+    _suggestCommand(event) {
+        event.preventDefault();
+
+        let utterance = this._raw;
+        Promise.resolve($.ajax('/thingpedia/commands/suggest', {
+            method: 'POST',
+            data: { description: utterance,
+                    _csrf: $('body[data-csrf-token]').attr('data-csrf-token') }
+        })).catch((e) => {
+            console.error(`Failed to store suggestion: ${e}`);
+        }).then(() => {
+            window.location.href = '/';
+        });
+    }
+
     _codeDone(event) {
         event.preventDefault();
 
@@ -169,7 +195,7 @@ class ThingTalkTrainer {
             this._predict(event);
         } else if (!this._confirmed) {
             $('#confirmation-group').show();
-            $('#submit').html('Confirm');
+            $('#submit').text('Confirm');
         } else {
             let thingtalk = $('#input-command-thingtalk').val();
             if (thingtalk.length > 0) {

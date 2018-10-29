@@ -94,8 +94,8 @@ block content
         if WITH_THINGPEDIA === 'embedded'
           h3= _("Devices")
           div.container
-            div.row
-              if devices.length > 0
+            if devices.length > 0
+              div.row.aligned-grid
                 each dev, i in devices
                   if i % 6 === 0
                     div.clearfix.visible-lg.visible-md
@@ -103,13 +103,14 @@ block content
                     div.clearfix.visible-lg
                   else if i % 2 === 0
                     div.clearfix.visible-md
-                  div.col-lg-4.col-md-6.dev-template
+                  div.col-lg-4.col-md-6.aligned-grid-item.dev-template
                     div.panel.panel-default
                       a(href=THINGPEDIA_URL + '/devices/by-id/' + dev.primary_kind).panel-heading= dev.name
                       div.panel-body
                         p.device-icon-small
-                          img(src=CDN_HOST + '/icons/' + dev.kind + '.png', alt="Icon for " + dev.name)
+                          img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name)
                         p=dev.description
-              else
+            else
+              div.row
                 div.col-xs-12
                   p= _("This organization does not own any device yet.")

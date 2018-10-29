@@ -15,7 +15,7 @@ block content
       h1#almond-title Thingpedia
       h2#almond-subtitle The Open API Repository
 
-      p #[big= device_count] devices, #[big= function_count] functions supported, and growing!
+      p #[big= device_count] devices & services, #[big= function_count] functions supported, and growing!
   div.sections
     if !authenticated
       section.divider
@@ -39,7 +39,7 @@ block content
                 |  executable specification corresponding to the device API.
 
     section.divider
-      h3= _("Supported Devices")
+      h3= _("Supported Devices & Services")
 
       div.container
         div.row
@@ -52,7 +52,7 @@ block content
                 div.form-group
                   button.btn.btn-primary#device-reset-button= _("Reset")
 
-        div.row#devices-container
+        div.row.aligned-grid#devices-container
 
         div.row
           div.col-xs-12

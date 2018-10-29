@@ -20,7 +20,7 @@ $(function() {
             else if (i % 2 === 0)
                 container.append($('<div>').addClass('clearfix visible-md'));
 
-            var deviceContainer = $('<div>').addClass('col-lg-4 col-md-6 dev-template');
+            var deviceContainer = $('<div>').addClass('col-lg-4 col-md-6 aligned-grid-item dev-template');
             var panel = $('<div>').addClass('panel panel-default');
             deviceContainer.append(panel);
 
