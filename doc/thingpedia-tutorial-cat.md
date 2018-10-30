@@ -110,4 +110,4 @@ you can go to [My Almond](/me) and type in `get a cat picture` to try out your d
 
 Note that at this point, the natural language support is very limited. 
 If you want to train the full model, click on the `Start training` button at the bottom 
-of the details page of your device. The training will take up to 15 hours.   
+of the details page of your device to start a new training job. The training will take up to 15 hours.   

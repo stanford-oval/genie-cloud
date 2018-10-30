@@ -41,7 +41,7 @@ See [Authentication & Discovery](/doc/thingpedia-device-intro-auth-n-discovery.m
 - Value type: Number
 
 The `version` annotation specifies the version of the device in Thingpedia.
-This will be automatically generated based on the submit history.  
+This will be automatically generated based on the submission history of the device.  
 
 ### `pacakge_version`
 - Type: implementation annotation
@@ -49,7 +49,7 @@ This will be automatically generated based on the submit history.
 - Value type: Number
 
 The `version` annotation specifies the version of the device in Thingpedia.
-This will be automatically generated based on the submit history. 
+This will be automatically generated based on the submission history of the device. 
 
 ### `system`
 - Type: implementation annotation
@@ -126,7 +126,7 @@ See [Natural Language Support for Devices in Thingpedia](/doc/thingpedia-nl-supp
 - Required: yes (only for [declarative Thingpedia devices](/doc/thingpedia-device-with-zero-code.md))
 - Value type: String
 
-The `url` annotation provides the URL of the API endpoint / RSS feed for declarative Thingpedia devices. 
+The `url` annotation provides the URL of the API endpoint or RSS feed for declarative Thingpedia devices. 
 
 ## Parameter annotations
 ### `canonical`
@@ -155,6 +155,18 @@ If omitted, Almond will ask “What's the value of <param>?”
 The `json_key` annotation can only be used for [generic rest devices](/doc/thingpedia-device-with-zero-code.md#generic-rest).
 It specifies the corresponding field name from the returned JSON for the parameter.
 If the parameter name is the same with the field name, this annotation can be omitted.
+
+### `string_values`
+- Type: implementation annotation
+- Required: no 
+- Value type: String
+
+The `string_values` annotation specifies the dataset of example values for the parameter.
+This can only be used for parameters of type String or Entity (hashtags, user names, etc).
+See [Available String Datasets](/thingpedia/strings) for a list of available datasets.
+You should upload your own dataset in order to get the best natural language support,
+and the name of the dataset should be `<device-id>:<param-name>`.
+ 
 
 ## Dataset annotations
 ### `utterances`

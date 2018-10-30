@@ -126,8 +126,9 @@ you can specify the example values for each of your parameter (of type String or
 when declaring the function. 
 The syntax is `#[string_values=<dataset-name>]`.
 
-You can submit your example values in [Available String Datasets](/thingpedia/strings) page,
-or you can just use the existing datasets listed. 
+You can submit your example values in [Available String Datasets](/thingpedia/strings) page.
+Name your dataset as `<device-id>:<param-name>`.
+You can also use the existing datasets listed. 
 For example, the `send` function for Slack can be declared as follows:
 ```tt
 action send(in req channel: Entity(tt:hashtag),
