@@ -190,7 +190,7 @@ module.exports = class ParameterReplacer {
         case 'tt:contact':
         case 'tt:email_address':
         case 'tt:phone_number':
-            return ['string', 'tt:person_name'];
+            return ['string', 'tt:person_first_name'];
 
         default:
             return ['entity', entityType];
@@ -203,10 +203,7 @@ module.exports = class ParameterReplacer {
         while (ptype.isArray)
             ptype = ptype.elem;
 
-        if (ptype.isEntity)
-            return this._getEntityListKey(ptype.type);
-
-        if (!ptype.isString)
+        if (!ptype.isEntity && !ptype.isString)
             throw new TypeError(`Unexpected replaced type ${ptype}`);
 
         const lastDot = fn.lastIndexOf('.');
@@ -218,10 +215,13 @@ module.exports = class ParameterReplacer {
             schema.actions[functionName];
 
         const arg = functionDef.getArgument(pname);
-        if (arg.annotations.string_values)
+        if (arg.annotations.string_values && arg.annotations.string_values.value)
             return ['string', arg.annotations.string_values.toJS()];
-        else
-            return [null, null];
+
+        if (ptype.isEntity)
+            return this._getEntityListKey(ptype.type);
+
+        return [null, null];
     }
 
     async _sampleParam(pid) {
