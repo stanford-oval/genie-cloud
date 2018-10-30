@@ -410,7 +410,7 @@ Check the logs for further information.`
 
                 for (let candidate of queue.next.concat(queue.waiting)) {
                     if (candidate.language === req.params.language &&
-                        (queue.current.forDevices.length === 0 || candidate.forDevices.some((d) => d === req.params.forDevice))) {
+                        (candidate.forDevices.length === 0 || candidate.forDevices.some((d) => d === req.params.forDevice))) {
                         jobs[jobType] = candidate;
                         break;
                     }
