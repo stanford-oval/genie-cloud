@@ -125,8 +125,8 @@ module.exports = {
             [id, version]).then((row) => row.code);
     },
 
-    getByPrimaryKind(client, kind) {
-        return db.selectOne(client, `select d.id,d.name,d.description,d.primary_kind,d.category,
+    getByPrimaryKind(client, kind, includeSourceCode) {
+        return db.selectOne(client, `select ${includeSourceCode ? 'd.source_code,' : ''}d.id,d.name,d.description,d.primary_kind,d.category,
             d.subcategory,d.developer_version,d.approved_version,d.owner,o.name as owner_name
             from device_class d left join organizations o on o.id = d.owner where primary_kind = ?`, [kind]);
     },

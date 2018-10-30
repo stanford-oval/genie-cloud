@@ -204,7 +204,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(), (req, res, ne
 router.get('/update/:kind', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
     Promise.resolve().then(() => {
         return db.withClient(async (dbClient) => {
-            const d = await model.getByPrimaryKind(dbClient, req.params.kind);
+            const d = await model.getByPrimaryKind(dbClient, req.params.kind, true);
             if (d.owner !== req.user.developer_org &&
                 req.user.developer < user.DeveloperStatus.ADMIN)
                 throw new Error(req._("Not Authorized"));
