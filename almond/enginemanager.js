@@ -34,7 +34,11 @@ class ChildProcessSocket extends stream.Duplex {
     _read() {}
 
     _write(data, encoding, callback) {
-        this._child.send({ type: 'rpc', data: data }, null, callback);
+        try {
+            this._child.send({ type: 'rpc', data: data }, null, callback);
+        } catch(e) {
+            callback(e);
+        }
     }
 }
 
