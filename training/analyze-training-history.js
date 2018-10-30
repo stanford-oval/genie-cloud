@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -78,9 +79,14 @@ function main() {
             });
 
             for (let jobKey in data[jobType]) {
-                table.push({ [jobKey]: phases.map((p) => {
-                    return prettyprintTime(data[jobType][jobKey][p].value / data[jobType][jobKey][p].count);
-                }) });
+                const prettyprinted = phases.map((p) => {
+                    if (p in data[jobType][jobKey])
+                        return prettyprintTime(data[jobType][jobKey][p].value / data[jobType][jobKey][p].count);
+                    else
+                        return 'n/a';
+                });
+
+                table.push({ [jobKey]: prettyprinted });
             }
 
             console.log(table.toString());
