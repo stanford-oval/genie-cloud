@@ -286,7 +286,7 @@ router.post('/request-developer', userUtils.requireLogIn, (req, res, next) => {
 
     const mailOptions = {
         from: 'Thingpedia <noreply@thingpedia.stanford.edu>',
-        to: 'thingpedia-admin@lists.stanford.edu',
+        to: 'thingpedia-admins@lists.stanford.edu',
         subject: 'New Developer Access Requested',
         replyTo: {
             name: req.body.realname,
