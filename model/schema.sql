@@ -394,8 +394,8 @@ DROP TABLE IF EXISTS `string_values`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `string_values` (
   `type_id` int(11) NOT NULL,
-  `value` varchar(255) CHARACTER SET utf8 NOT NULL,
-  `preprocessed` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `value` text CHARACTER SET utf8mb4 NOT NULL,
+  `preprocessed` text CHARACTER SET utf8mb4 NOT NULL,
   `weight` double not null default 1.0,
   KEY (`type_id`),
   CONSTRAINT `string_values_ibfk_1` FOREIGN KEY (`type_id`) REFERENCES `string_types` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
