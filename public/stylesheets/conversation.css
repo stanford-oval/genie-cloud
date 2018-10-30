@@ -42,7 +42,7 @@
   text-align: right;
   margin-left: auto;
 
-  border-image-source: url(/images/bubble_user.png);
+  border-image-source: url(../images/bubble_user.png);
   border-image-slice: 88 130 93 97 fill;
   border-image-width: 13px 24px 12px 24px;
   padding: 13px 24px 12px 24px;
@@ -51,7 +51,7 @@
 #conversation .from-almond > .message {
   display: block;
   overflow: auto;
-  border-image-source: url(/images/bubble_almond.png);
+  border-image-source: url(../images/bubble_almond.png);
   border-image-slice: 90 97 94 120 fill;
   border-image-width: 13px 24px 12px 24px;
   padding: 13px 24px 12px 24px;
