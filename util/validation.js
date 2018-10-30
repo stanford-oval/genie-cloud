@@ -195,10 +195,15 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
         for (const argname of where[name].args) {
             if (FORBIDDEN_NAMES.has(argname))
                 throw new Error(`${argname} is not allowed as argument name in ${name}`);
-            const type = where[name].getArgType(argname);
+            let type = where[name].getArgType(argname);
+            while (type.isArray)
+                type = type.elem;
             const arg = where[name].getArgument(argname);
+
             if (type.isEntity) {
                 entities.add(type.type);
+                if (arg.annotations['string_values'])
+                    stringTypes.add(arg.annotations['string_values'].toJS());
             } else if (type.isString) {
                 if (arg.annotations['string_values'])
                     stringTypes.add(arg.annotations['string_values'].toJS());
