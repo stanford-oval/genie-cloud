@@ -65,7 +65,12 @@ class DatasetUpdater {
 
         this._forDevices = forDevices;
         if (forDevices !== null && forDevices.length > 0) {
-            this._forDevicesPattern = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
+            const escapedDevices = forDevices.map((d) => d.replace('.', '\\.')).join('|');
+            const pat1 = ' @(' + escapedDevices + ')\\.[A-Za-z0-9_]+( |$)';
+            const pat2 = ' device:(' + escapedDevices + ')( |$)';
+
+            this._forDevicesPattern = '(' + pat1 + '|' + pat2 + ')';
+            console.log(this._forDevicesPattern);
             this._forDevicesRegexp = new RegExp(this._forDevicesPattern);
         } else {
             this._forDevicesPattern = null;
@@ -176,6 +181,8 @@ class DatasetUpdater {
                 return this._forDevicesRegexp.test(o.target_code);
             });
         }
+        if (syntheticExamples.length === 0)
+            return;
 
         syntheticExamples.forEach((o) => {
             delete o.id;
