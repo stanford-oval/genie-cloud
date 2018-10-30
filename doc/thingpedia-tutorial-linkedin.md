@@ -119,9 +119,11 @@ References:
 [Array.prototype.map()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map).
 
 ## Step 2: describe what your device does
-Click on `manifest.tt` on the left panel. Copy the following code to the editor:
+Click on `manifest.tt` on the left panel. 
+Copy the following code to the editor and replace `<your-name>.linkedin` with the 
+actual device ID:
 ```tt
-class @com.linkedin {
+class @<your-name>.linkedin {
   // tell the system this device uses customized js code
   import loader from @org.thingpedia.v2();
   // tell the system this device uses OAuth2
@@ -156,16 +158,18 @@ class @com.linkedin {
 ```
 
 ## Step 3: provide some natural language examples
-Click on `dataset.tt` on the left panel. Copy the following code to the editor:
+Click on `dataset.tt` on the left panel. 
+Copy the following code to the editor and replace `<your-name>.linkedin` with the 
+actual device ID:
 ```tt
-dataset @com.linkedin language "en" {
-  query  := @com.linkedin.get_profile()
+dataset @<your-name>.linkedin {
+  query  := @<your-name>.linkedin.get_profile()
   #_[utterances=["my linkedin profile","my profile on linkedin"]];
 
-  action (p_status :String)  := @com.linkedin.share(status=p_status)
+  action (p_status :String)  := @<your-name>.linkedin.share(status=p_status)
   #_[utterances=["share $p_status on linkedin","post $p_status on linkedin"]];
 
-  action  := @com.linkedin.share()
+  action  := @<your-name>.linkedin.share()
   #_[utterances=["update my linkedin","post something on my linkedin"]];
 }
 ```
@@ -184,4 +188,10 @@ in Thingpedia. To test the device you just created, use "My LinkedIn" instead of
 After you log in to LinkedIn and grant permission, you will be redirected to your
 Almond page, which now includes LinkedIn.
 
-Try commands such as `get my LinkedIn profile`, `post hello on LinkedIn`. 
+Similar to [Tutorial 1](/doc/thingpedia-tutorial-nyt.md) and [Tutorial 2](/doc/thingpedia-tutorial-cat.md),
+please wait for a couple minutes until the banner disappears.
+Then try commands such as `get my LinkedIn profile`, `update my LinkedIn`. 
+
+Note that at this point, the natural language support is very limited. 
+If you want to train the full model, click on the `Start training` button at the bottom 
+of the details page of your device to start a new training job. The training will take up to 15 hours.   

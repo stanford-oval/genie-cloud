@@ -120,6 +120,29 @@ So put the most common and natural utterance first in the list.
 Note: internally, the examples are not stored as `.tt` files, so any comment in the dataset file
 will be lost, and multiple examples with the same code will be collapsed.  
 
+### Example values for parameters
+To help Almond do a better job on handling commands with parameters, 
+you can specify the example values for each of your parameter (of type String or Entity)
+when declaring the function. 
+The syntax is `#[string_values=<dataset-name>]`.
+
+You can submit your example values in [Available String Datasets](/thingpedia/strings) page.
+Name your dataset as `<device-id>:<param-name>`.
+You can also use the existing datasets listed. 
+For example, the `send` function for Slack can be declared as follows:
+```tt
+action send(in req channel: Entity(tt:hashtag),
+            in req message: String #[string_values="tt:message"])
+```
+In this case, we tell the system 
+to use the values in the dataset `tt:message` as example values for parameter `message`.
+Then Almond will replace `message` with the values in `tt:message` randomly when
+generating the synthetic sentences. 
+  
+Note that example values are useful for both input and output parameters since
+an output parameter can also be used in the command as a filter.
+
+
 ### Other tips and tricks
 Unlike most of the other programming languages, the choice of parameter names is 
 important in ThingTalk: it affects the performance of the natural language translation. 
