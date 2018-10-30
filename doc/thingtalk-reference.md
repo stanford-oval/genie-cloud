@@ -41,10 +41,12 @@ For example, the stock ID of Google can be represented as:
 
 * `Measure(...)`: same as `Number`, but parametrized by one of the
   unit types; literals of `Measure` type have automatic conversion to
-  and from the most common unit types, and be written as a sum of multiple
+  and from the most common unit types, and can be written as a sum of multiple
   terms (e.g. `6ft + 3in`).
-  In Javascript, this is represented as a number, with the same unit defined in 
-  the function signature. 
+  In Javascript, this is represented as a number, to be interpreted 
+  in the [base unit](#units-of-measure) of the `Measure` type. 
+  For example, `6ft + 3in` will be converted to `1.905m`, 
+  and will be interpreted as `1.905` in Javascript.
   
 * `Currency`: a `Number` with a unit. This differs from `Measure` because
 the unit is not normalized, and is accessible at runtime. In JavaScript this type
@@ -162,6 +164,7 @@ The following units are valid for the type `Measure(...)`:
 * `Pa`: pressure (Pascal)
 * `C`: temperature (Celsius)
 * `kcal`: energy (kilocalories)
+* `byte`: data size (Byte)
 
 The following units are additionally recognized in measure literals, and
 implicitly converted to the base unit for all operations.
@@ -192,4 +195,12 @@ implicitly converted to the base unit for all operations.
 | `F` (Fahrenheit)                  | `C`       | temperature       |
 | `K` (Kelvin)                      | `C`       | temperature       |
 | `kJ` (kilojoule)                  | `kcal`    | energy            |
+| `KB` (1000 bytes)                 | `byte`    | data size         |
+| `KiB` (1024 bytes)                | `byte`    | data size         |
+| `MB` (1000 KB)                    | `byte`    | data size         |
+| `MiB` (1024KiB)                   | `byte`    | data size         |
+| `GB` (1000 MB)                    | `byte`    | data size         |
+| `GiB` (1024 MiB)                  | `byte`    | data size         |
+| `TB` (1000 GB)                    | `byte`    | data size         |
+| `TiB` (1024 GiB)                  | `byte`    | data size         |
 
