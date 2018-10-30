@@ -112,10 +112,14 @@ You should be able to test your device right away using the [Web Almond](/me/con
 While if you want to test on Android Almond, you need one
 more step: go to settings and enable cloud sync.
 
-When you upload your device the first time, you cannot use the natural language at all until it is fully trained.
-When you edit it later, your device will be usable but the language might not reflect your latest changes.
-The training of natural language takes up to 8 hours. You can see the status of the training at the top of the details page for your entry. 
+When you upload your device the first time, you will get some limited natural language support 
+after around 5 minutes. 
+If you think your device is ready and want to get the full natural language support, 
+click on the `Start training` button at the bottom of the details page of your device
+to start a new training job. This takes up to 15 hours. 
+You can see the status of the training at the top of the details page for your device. 
 The training is complete when the blue banner disappears. 
+When you edit it later, your device will be usable but the language might not reflect your latest changes.
 Before the training is ready, you can test by typing ThingTalk directly; this is accomplished using the `\t` prefix in Web Almond. 
 For example, to test the `get` command for The Cat API, 
 you can write: `\t now => @com.thecatapi.get(count=3) => notify;`. 
@@ -142,9 +146,12 @@ You can go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT
 to see more device packages we developed, and observe these concepts we introduced in action. 
 
 We recommend to look at the following devices as examples: 
-+ [Giphy](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.giphy),
++ Giphy [[Thingpedia]](https://almond.stanford.edu/thingpedia/classes/by-id/com.giphy) 
+[[Github]](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.giphy):
 a very simple device which returns GIFs
-+ [LinkedIn](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.linkedin),
++ LinkedIn [[Thingpedia]](https://almond.stanford.edu/thingpedia/classes/by-id/com.linkedin) 
+[[Github]](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.linkedin):
 an interface for LinkedIn which shows how authentication works. 
-+ [LG TV](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.lg.tv.webos2),
++ LG TV [[Thingpedia]](https://almond.stanford.edu/thingpedia/classes/by-id/com.lg.tv.webos2) 
+[[Github]](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.lg.tv.webos2):
 a more complicated example which involves a physical device.

@@ -21,9 +21,11 @@ in the device name to make sure it won't conflict with others)
 - JS code: leave it empty
 
 ## Step 2: describe what your device does
-Click on `manifest.tt` on the left panel. Copy the following code to the editor:
+Click on `manifest.tt` on the left panel. 
+Copy the following code to the editor and replace `<your-name>.nytimes` with the 
+actual device ID:
 ```tt
-class @com.nytimes {
+class @<your-name>.nytimes {
   // tell almond it is an rss feed device
   import loader from @org.thingpedia.rss(); 
 
@@ -51,19 +53,21 @@ class @com.nytimes {
 ```
 
 ## Step 3: provide some natural language examples
-Click on `dataset.tt` on the left panel. Copy the following code to the editor:
+Click on `dataset.tt` on the left panel. 
+Copy the following code to the editor and replace `<your-name>.nytimes` with the 
+actual device ID:
 ```tt
-dataset @com.nytimes {
+dataset @<your-name>.nytimes {
   // the "utterances" annotation specifies different ways to express the command
-  query  := @com.nytimes.get_front_page()
+  query  := @<your-name>.nytimes.get_front_page()
   #_[utterances=["new york times","the front page of the new york times","articles in the new york times"]];
     
   // filters can be applied to get partial results
-  query  := (@com.nytimes.get_front_page()), updated >= start_of(day)
+  query  := (@<your-name>.nytimes.get_front_page()), updated >= start_of(day)
   #_[utterances=["today 's articles in the new york times"]];
     
   // a query can be monitored to form a stream, which notifies users when there is a change
-  stream  := monitor (@com.nytimes.get_front_page())
+  stream  := monitor (@<your-name>.nytimes.get_front_page())
   #_[utterances=["when the new york times publishes a new article"]];
 }
 ```
@@ -74,4 +78,11 @@ Congratulation! You made your first device for Thingpedia.
 Go to [Thingpedia page](/thingpedia) and search for "my New York Times" to see your device.
 
 ## Try your device
-Go to [My Almond](/me). Type in `get New York Times`. 
+Please give Almond around 5 minutes to digest the device you just created.
+A banner will tell you the status on the top of the page. 
+Once the banner disappears,
+you can go to [My Almond](/me) and type in `get New York Times` to try out your device.
+
+Note that at this point, the natural language support is very limited. 
+If you want to train the full model, click on the `Start training` button at the bottom 
+of the details page of your device to start a new training job. The training will take up to 15 hours.   
