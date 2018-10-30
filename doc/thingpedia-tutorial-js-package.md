@@ -1,4 +1,7 @@
 # Write JS Device Packages
+
+[[toc]]
+
 If you choose to use the loader provided by `@org.thingpdedia.v2` in your manifest,
 a _device package_ is required for your device. 
 It contains the Javascript code describing the details about how your device 
@@ -6,7 +9,7 @@ will be configured and how each function behaves.
 In the following, this tutorial will continue using The Cat API as an example
 to show how the package is organized and how to write it. 
 
-### The layout of a device package
+## The layout of a device package
 The Thingpedia API assumes a precise layout for a device package, which
 must be a zip file containing exactly the JS files and the package.json,
 as well as any dependency you need. You should not assume any nodejs
@@ -62,7 +65,7 @@ module.exports = class CatAPIDevice extends Tp.BaseDevice {
 };
 ```
 
-### The `BaseDevice` API
+## The `BaseDevice` API
 
 When you create a device class, you declare
 a subclass of [`Tp.BaseDevice`](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-api/blob/master/lib/base_device.js),
@@ -92,7 +95,7 @@ constructor(engine, state) {
 
 The full reference of the `BaseDevice` class is given in the [Thingpedia interface reference](/doc/thingpedia-helpers.md#class-basedevice). 
 
-### Handling authentication and discovery
+## Handling authentication and discovery
 
 Unlike The Cat API, lots of devices will require some kind of authentication.
 Three ways to do
@@ -101,7 +104,7 @@ password), `oauth2` (OAuth 1.0 and 2.0 style authentication), and `discovery`
 (authentication by discovery and local interactive paring). Here's a
 [complete guide for authentication and discovery](/doc/thingpedia-device-intro-auth-n-discovery.md).  
 
-### HTTP helpers
+## HTTP helpers
 
 Our system provides a generic interface `Tp.Helpers.Http` for basic HTTP request.
 These are wrappers for [nodejs http API](https://nodejs.org/api/http.html)
@@ -114,7 +117,7 @@ and POST request, respectively. We will see an example in practice in the next s
 A full list of the available APIs can be found in 
 [Thingpedia interface reference](/doc/thingpedia-helpers.md#module-helpers-http)
 
-### Query and action
+## Query and action
 Recall that we separate Thingpedia functions in two different types: query and action.
 A query returns data and makes no side effect, while action does not return any data but makes side effect to the world.
 
@@ -166,7 +169,7 @@ Note that, we used [`Array.prototype.map()`](https://developer.mozilla.org/en-US
 to create the returned Array. 
 Don't be fooled by the final `return` statement, we are still returning an Array.
 
-### The first JS package: The Cat API 
+## The first JS package: The Cat API 
 Put all the components together, we have The Cat API code as follows. 
 Since no library other than `thingpedia` is needed for this package. We can simply upload the `.js` file
 in the metadata page, and the `.zip` package will be generated automatically.

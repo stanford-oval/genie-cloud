@@ -171,7 +171,7 @@ as other similar devices. Here are some naming conventions to follow:
 - if your function returns multiple results, and you can control the number of results returned, use a `count` parameter of type `Number`
    
 
-## Natural language Responses
+## Natural language responses
 Once Almond understands the issued command, Almond will ask for additional information 
 if needed, execute the command, and present the results.
 
