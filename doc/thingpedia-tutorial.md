@@ -1,4 +1,4 @@
-# Tutorial 4: Writing Your Own Device
+# Tutorial 4: Write Your Own Device
 
 [[toc]]
 
