@@ -99,12 +99,10 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     });
     await entityModel.checkAllExist(dbClient, entities);
     await stringModel.checkAllExist(dbClient, stringTypes);
-    if (fullcode) {
-        if (!classDef.metadata.name)
-            classDef.metadata.name = name;
-        if (!classDef.metadata.description)
-            classDef.metadata.description = name;
-    }
+    if (!classDef.metadata.name)
+        classDef.metadata.name = name;
+    if (!classDef.metadata.description)
+        classDef.metadata.description = description;
     await validateDataset(dataset);
 
     return [classDef, dataset];
