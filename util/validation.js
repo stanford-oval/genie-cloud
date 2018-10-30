@@ -99,12 +99,10 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     });
     await entityModel.checkAllExist(dbClient, entities);
     await stringModel.checkAllExist(dbClient, stringTypes);
-    if (fullcode) {
-        if (!classDef.metadata.name)
-            classDef.metadata.name = name;
-        if (!classDef.metadata.description)
-            classDef.metadata.description = name;
-    }
+    if (!classDef.metadata.name)
+        classDef.metadata.name = name;
+    if (!classDef.metadata.description)
+        classDef.metadata.description = description;
     await validateDataset(dataset);
 
     return [classDef, dataset];
@@ -195,10 +193,15 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
         for (const argname of where[name].args) {
             if (FORBIDDEN_NAMES.has(argname))
                 throw new Error(`${argname} is not allowed as argument name in ${name}`);
-            const type = where[name].getArgType(argname);
+            let type = where[name].getArgType(argname);
+            while (type.isArray)
+                type = type.elem;
             const arg = where[name].getArgument(argname);
+
             if (type.isEntity) {
                 entities.add(type.type);
+                if (arg.annotations['string_values'])
+                    stringTypes.add(arg.annotations['string_values'].toJS());
             } else if (type.isString) {
                 if (arg.annotations['string_values'])
                     stringTypes.add(arg.annotations['string_values'].toJS());

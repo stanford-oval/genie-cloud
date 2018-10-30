@@ -112,7 +112,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
 
             const [schemaId, schemaChanged] = await Importer.ensurePrimarySchema(dbClient, req.body.name,
                                                                                  classDef, req, approve);
-            const datasetChanged = await Importer.ensureDataset(dbClient, schemaId, dataset);
+            const datasetChanged = await Importer.ensureDataset(dbClient, schemaId, dataset, req.body.dataset);
 
             const extraKinds = classDef.extends || [];
             const extraChildKinds = classDef.annotations.child_types ?
@@ -179,7 +179,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
             }
 
             return true;
-        });
+        }, 'repeatable read');
 
         if (ok) {
             // trigger updating the device on the user
@@ -204,7 +204,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(), (req, res, ne
 router.get('/update/:kind', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
     Promise.resolve().then(() => {
         return db.withClient(async (dbClient) => {
-            const d = await model.getByPrimaryKind(dbClient, req.params.kind);
+            const d = await model.getByPrimaryKind(dbClient, req.params.kind, true);
             if (d.owner !== req.user.developer_org &&
                 req.user.developer < user.DeveloperStatus.ADMIN)
                 throw new Error(req._("Not Authorized"));

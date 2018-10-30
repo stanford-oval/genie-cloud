@@ -692,7 +692,8 @@ module.exports = class EnglishLanguage {
 
             'root': [
                 // when => notify
-                ['${choice(notify me|alert me|inform me|let me know|i get notified|i get alerted)} ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? builtinSayAction() : Generate.notifyAction()]))))],
+                ['notify me ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? builtinSayAction() : Generate.notifyAction()]))))],
+                ['${choice(alert me|inform me|let me know|i get notified|i get alerted)} ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? builtinSayAction() : Generate.notifyAction()]))))],
                 ['send me ${choice(a message|an alert|a notification|a pop up notification|a popup notification)} ${stream}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [stream.isTimer || stream.isAtTimer ? builtinSayAction() : Generate.notifyAction()]))))],
                 ['send me a reminder ${timer}', checkConstants(simpleCombine((stream) => makeProgram(new Ast.Statement.Rule(stream, [builtinSayAction()]))))],
                 ['send me ${choice(a message|an alert|a notification|a reminder|a popup notification)} ${timer} ${choice(saying|with the text)} ${constant_String}', checkConstants(simpleCombine((stream, constant) => makeProgram(new Ast.Statement.Rule(stream, [builtinSayAction(constant)]))))],
@@ -773,7 +774,9 @@ module.exports = class EnglishLanguage {
 
                 // now => get => notify
                 ['${complete_get_command}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
-                ['${choice(tell me|give me|show me|get|present|retrieve|pull up)} ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+
+                ['get ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
+                ['${choice(tell me|give me|show me|present|retrieve|pull up)} ${complete_table}', checkConstants(simpleCombine((table) => makeProgram(new Ast.Statement.Command(table, [Generate.notifyAction()]))))],
                 ['${choice(hey almond |please |)}${choice(list|enumerate)} ${with_filtered_table}', checkConstants(simpleCombine((table) => {
                     if (!table.schema.is_list)
                         return null;
@@ -1162,7 +1165,7 @@ module.exports = class EnglishLanguage {
                 grammar.when_get_stream.push(['${when_get_stream}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenGetStream(pname, ptype), { isConstant: false })]);
             if (idTypes.has(String(ptype)) || pname === 'p_picture_url') {
                 if (pname === 'p_picture_url') {
-                    grammar.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => whenGetStream(stream, new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
+                    grammar.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => whenGetStream(pname, ptype)(stream, new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
                 } else {
                     grammar.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => {
                         for (let joinArg in stream.stream.schema.out) {

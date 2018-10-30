@@ -65,7 +65,12 @@ class DatasetUpdater {
 
         this._forDevices = forDevices;
         if (forDevices !== null && forDevices.length > 0) {
-            this._forDevicesPattern = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
+            const escapedDevices = forDevices.map((d) => d.replace('.', '\\.')).join('|');
+            const pat1 = ' @(' + escapedDevices + ')\\.[A-Za-z0-9_]+( |$)';
+            const pat2 = ' device:(' + escapedDevices + ')( |$)';
+
+            this._forDevicesPattern = '(' + pat1 + '|' + pat2 + ')';
+            console.log(this._forDevicesPattern);
             this._forDevicesRegexp = new RegExp(this._forDevicesPattern);
         } else {
             this._forDevicesPattern = null;
@@ -154,8 +159,9 @@ class DatasetUpdater {
                     return word;
             }).join(' ');
 
+            let flags = ex.flags.replace(/,exact/, '');
             output.push({
-                flags: ex.flags ? ex.flags + ',augmented' : 'augmented',
+                flags: flags ? flags + ',augmented' : 'augmented',
                 type: ex.type,
                 utterance: newUtterance,
                 preprocessed: newUtterance,
@@ -175,6 +181,8 @@ class DatasetUpdater {
                 return this._forDevicesRegexp.test(o.target_code);
             });
         }
+        if (syntheticExamples.length === 0)
+            return;
 
         syntheticExamples.forEach((o) => {
             delete o.id;
@@ -305,7 +313,7 @@ async function main() {
     });
     parser.addArgument('--maxdepth', {
         type: Number,
-        defaultValue: 5,
+        defaultValue: 4,
         help: 'Maximum depth of synthetic sentence generation',
     });
     parser.addArgument('--ppdb', {

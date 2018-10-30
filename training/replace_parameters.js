@@ -32,7 +32,7 @@ function isReplaceToken(tok) {
 
 function blowupFactor(example, params) {
     if (example.flags.indexOf('synthetic') >= 0)
-        return 5;
+        return 3;
     if (params.size === 0)
         return 10;
     if (example.flags.indexOf('augmented') >= 0)
@@ -190,7 +190,7 @@ module.exports = class ParameterReplacer {
         case 'tt:contact':
         case 'tt:email_address':
         case 'tt:phone_number':
-            return ['string', 'tt:person_name'];
+            return ['string', 'tt:person_first_name'];
 
         default:
             return ['entity', entityType];
@@ -199,14 +199,11 @@ module.exports = class ParameterReplacer {
 
     async _getParamListKey(fn, pname, ptype) {
         if (fn === '$source' || fn === '$executor')
-            return ['string', 'tt:person_name'];
+            return ['string', 'tt:person_first_name'];
         while (ptype.isArray)
             ptype = ptype.elem;
 
-        if (ptype.isEntity)
-            return this._getEntityListKey(ptype.type);
-
-        if (!ptype.isString)
+        if (!ptype.isEntity && !ptype.isString)
             throw new TypeError(`Unexpected replaced type ${ptype}`);
 
         const lastDot = fn.lastIndexOf('.');
@@ -214,14 +211,18 @@ module.exports = class ParameterReplacer {
         const functionName = fn.substring(lastDot+1);
 
         const schema = await this._schemas.getFullMeta(kind);
-        const functionDef = functionName in schema.queries ? schema.queries[functionName] :
+        const functionDef = functionName in schema.queries ?
+            schema.queries[functionName] :
             schema.actions[functionName];
 
         const arg = functionDef.getArgument(pname);
-        if (arg.annotations.string_values)
+        if (arg.annotations.string_values && arg.annotations.string_values.value)
             return ['string', arg.annotations.string_values.toJS()];
-        else
-            return [null, null];
+
+        if (ptype.isEntity)
+            return this._getEntityListKey(ptype.type);
+
+        return [null, null];
     }
 
     async _sampleParam(pid) {
@@ -403,9 +404,11 @@ module.exports = class ParameterReplacer {
                 const replacements = new Map();
                 const new_sentence = (await this._replaceTokensInSentence(example.id, sentence, parameters, replacements)).join(' ');
                 const new_program = (await this._replaceTokensInProgram(program, replacements)).join(' ');
+
+                let flags = example.flags.replace(/,exact/, '');
                 return {
                     type: example.type,
-                    flags: example.flags ? example.flags + ',replaced' : 'replaced',
+                    flags: flags ? flags + ',replaced' : 'replaced',
                     utterance: example.utterance,
                     preprocessed: new_sentence,
                     target_code: new_program

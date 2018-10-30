@@ -104,7 +104,7 @@ function exampleToCode(example) {
     return clone.prettyprint();
 }
 
-async function ensureDataset(dbClient, schemaId, dataset) {
+async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
     /* This functions does three things:
 
        - it fetches the list of existing examples in the database
@@ -116,7 +116,14 @@ async function ensureDataset(dbClient, schemaId, dataset) {
     const existing = new Map;
     const toDelete = new Set;
 
-    const old = await exampleModel.getBaseBySchema(dbClient, schemaId, 'en');
+    const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language);
+    const oldDataset = DatasetUtils.examplesToDataset(dataset.name.substring(1), dataset.language, old, { editMode: true });
+
+    // if the datasets are byte by byte identical, skip everything and return false
+    // this covers the case where the user did not touch the file at all
+    if (datasetSource.replace(/\r\n/g, '\n').trim() === oldDataset.trim())
+        return false;
+
     for (let row of old) {
         existing.set(row.id, row);
         toDelete.add(row.id);
@@ -177,7 +184,7 @@ async function ensureDataset(dbClient, schemaId, dataset) {
                 target_code: ex.target_code,
                 target_json: '', // FIXME
                 type: 'thingpedia',
-                language: 'en',
+                language: dataset.language,
                 is_base: 1,
                 flags: 'template'
             });
@@ -356,7 +363,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
 
     const [schemaId,] = await ensurePrimarySchema(dbClient, device.name,
                                                   classDef, req, approve);
-    await ensureDataset(dbClient, schemaId, dataset);
+    await ensureDataset(dbClient, schemaId, dataset, datasetCode);
     const factory = FactoryUtils.makeDeviceFactory(classDef, device);
 
     classDef.annotations.version = ThingTalk.Ast.Value.Number(device.developer_version);

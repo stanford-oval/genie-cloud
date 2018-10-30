@@ -58,12 +58,14 @@ module.exports = {
             return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
             eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
             from example_utterances eu left join users u on u.id = eu.owner where
-            type = 'commandpedia' and language = ? order by click_count desc limit ?,?`, [language, start, end + 1]);
+            type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
+            and not find_in_set('augmented', flags) order by click_count desc limit ?,?`, [language, start, end + 1]);
         } else {
             return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
             eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
             from example_utterances eu left join users u on u.id = eu.owner where
-            type = 'commandpedia' and language = ? order by click_count desc`, [language]);
+            type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
+            and not find_in_set('augmented', flags) order by click_count desc`, [language]);
         }
     },
 
@@ -71,7 +73,8 @@ module.exports = {
         return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
             eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
             from example_utterances eu left join users u on u.id = eu.owner where
-            type = 'commandpedia' and language = ? and ( utterance like ? or target_code like ?)
+            type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
+            and not find_in_set('augmented', flags) and ( utterance like ? or target_code like ?)
             order by click_count desc`, [language, `%${query}%`, `%${query}%`]);
     },
 
@@ -192,7 +195,7 @@ module.exports = {
     },
 
     getBaseBySchema(client, schemaId, language) {
-        return db.selectAll(client, "select * from example_utterances where schema_id = ?"
+        return db.selectAll(client, "select * from example_utterances use index(language_type) where schema_id = ?"
             + " and is_base and type = 'thingpedia' and language = ?", [schemaId, language]);
     },
 

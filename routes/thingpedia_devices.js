@@ -166,6 +166,31 @@ router.post('/delete', user.requireLogIn, user.requireDeveloper(),  (req, res) =
     }).done();
 });
 
+router.post('/train', user.requireLogIn, user.requireDeveloper(),  (req, res) => {
+    db.withTransaction(async (dbClient) => {
+        const row = await model.getByPrimaryKind(dbClient, req.body.kind);
+        if (row.owner !== req.user.developer_org &&
+            req.user.developer < user.DeveloperStatus.ADMIN) {
+            // note that this must be exactly the same error used by util/db.js
+            // so that a true not found is indistinguishable from not having permission
+            const err = new Error("Not Found");
+            err.code = 'ENOENT';
+            throw err;
+        }
+
+        return TrainingServer.get().queue('en', [req.body.kind], 'train');
+    }).then(() => {
+        res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
+    }).catch((e) => {
+        if (e.code === 'ENOENT')
+            res.status(404);
+        else
+            res.status(400);
+        res.render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e.message });
+    }).done();
+});
+
 router.post('/request-approval', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     var mailOptions = {
         from: 'Thingpedia <noreply@thingpedia.stanford.edu>',

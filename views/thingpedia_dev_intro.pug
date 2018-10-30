@@ -47,4 +47,7 @@ section.divider
   h3= _("Join Us to Build the Best Virtual Assistant!")
   div.row
     div.col-xs-8.col-md-4.col-md-offset-4
-      a(href='/user/register').btn.btn-primary.btn-block= _("Apply to be a Developer")
+      if authenticated
+        a(href='/user/request-developer').btn.btn-primary.btn-block= _("Apply to be a Developer")
+      else
+        a(href='/user/register').btn.btn-primary.btn-block= _("Apply to be a Developer")

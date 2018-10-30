@@ -52,6 +52,13 @@ router.get('/by-id/:kind', (req, res, next) => {
         const classDef = ThingTalk.Grammar.parse(Importer.migrateManifest(devices[0].code, devices[0]));
         const schema = schemas[0];
         SchemaUtils.mergeClassDefAndSchema(classDef, schema);
+        const config = classDef.classes[0].config;
+        if (config) {
+            config.in_params.forEach((p) => {
+                if ((p.name.endsWith('_secret') || p.name.endsWith('_key')) && p.value.isString)
+                    p.value.value = '<hidden>';
+            });
+        }
 
         let [translated, examples] = await Promise.all([
             language === 'en' ? true : schemaModel.isKindTranslated(dbClient, req.params.kind, language),
@@ -59,6 +66,7 @@ router.get('/by-id/:kind', (req, res, next) => {
         ]);
 
         const code = classDef.prettyprint();
+
         const highlightedCode = highlightjs.highlight('tt', code).value;
         const dataset = DatasetUtils.examplesToDataset(req.params.kind, 'en', examples,
             { editMode: true });
