@@ -53,9 +53,11 @@ References:
 [Array.prototype.map()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map).
 
 ## Step 2: describing what your device does
-Click on `manifest.tt` on the left panel. Copy the following code to the editor.
+Click on `manifest.tt` on the left panel. 
+Copy the following code to the editor and replace `<your-name>.thecatapi` with the 
+actual device ID. 
 ```tt
-class @com.thecatapi {
+class @<your-name>.thecatapi {
   // tell the system this device uses customized js code
   import loader from @org.thingpedia.v2(); 
 
@@ -66,9 +68,9 @@ class @com.thecatapi {
       - list: the query returns multiple results  
   */
   list query get(in opt count: Number,
-            out image_id: Entity(com.thecatapi:image_id),
-            out picture_url: Entity(tt:picture),
-            out link: Entity(tt:url))
+                 out image_id: Entity(com.thecatapi:image_id),
+                 out picture_url: Entity(tt:picture),
+                 out link: Entity(tt:url))
   // confirmation sentence which will be prompted to the users before execution:
   #_[confirmation="cat pictures"]
   #[doc="get `count` many cat pictures"];
@@ -76,11 +78,13 @@ class @com.thecatapi {
 ```
 
 ## Step 3: providing some natural language examples
-Click on `dataset.tt` on the left panel. Copy the following code to the editor
+Click on `dataset.tt` on the left panel. 
+Copy the following code to the editor and replace `<your-name>.thecatapi` with the 
+actual device ID. 
 ```tt
 dataset @com.thecatapi {
   // the "utterances" annotation specifies different ways to express the command
-  query  := @com.thecatapi.get()
+  query  := @<your-name>.thecatapi.get()
   #_[utterances=["a cat picture","a random cat picture","cats"]];
 
   /* 
@@ -88,7 +92,7 @@ dataset @com.thecatapi {
     Each parameter used must specify the type, such that when connecting different 
     snippets together, the system knows what argument can be passed to the parameter.
   */
-  query (p_count :Number)  := @com.thecatapi.get(count=p_count)
+  query (p_count :Number)  := @<your-name>.thecatapi.get(count=p_count)
   #_[utterances=["${p_count:const} cat pictures"]];
 }
 ```
@@ -99,4 +103,11 @@ Congratulation! You made yourself a cat device in Thingpedia.
 Go to [Thingpedia page](/thingpedia) and search for "my cat api" to see your device.
 
 ## Try your device
-Go to [My Almond](/me). Type in `get cats`. 
+Please give Almond around 5 minutes to digest the device you just created.
+A banner will tell you the status on the top of the page. 
+Once the banner disappears,
+you can go to [My Almond](/me) and type in `get a cat picture` to try out your device.
+
+Note that at this point, the natural language support is very limited. 
+If you want to train the full model, click on the `Start training` button at the bottom 
+of the details page of your device. The training will take up to 15 hours.   
