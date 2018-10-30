@@ -39,7 +39,7 @@ module.exports = class AlmondApi {
     }
 
     notify(appId, icon, outputType, outputValue) {
-        return this._formatter.formatForType(outputType, outputValue, 'messages').then((messages) => {
+        return Promise.resolve(this._formatter.formatForType(outputType, outputValue, 'messages')).then((messages) => {
             this._sendWs({ result: {
                 appId: appId,
                 icon: icon ? Config.CDN_HOST + '/icons/' + icon + '.png' : null,
@@ -138,7 +138,7 @@ module.exports = class AlmondApi {
                     }
 
                     if (next.isNotification) {
-                        return this._formatter.formatForType(next.outputType, next.outputValue, 'messages').then((messages) => {
+                        return Promise.resolve(this._formatter.formatForType(next.outputType, next.outputValue, 'messages')).then((messages) => {
                             results.push({ raw: next.outputValue, type: next.outputType, formatted: messages });
                             resolve();
                             return loop.call(this);
