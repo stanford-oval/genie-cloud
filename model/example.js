@@ -192,7 +192,7 @@ module.exports = {
     },
 
     getBaseBySchema(client, schemaId, language) {
-        return db.selectAll(client, "select * from example_utterances where schema_id = ?"
+        return db.selectAll(client, "select * from example_utterances use index(language_type) where schema_id = ?"
             + " and is_base and type = 'thingpedia' and language = ?", [schemaId, language]);
     },
 

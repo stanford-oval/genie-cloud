@@ -112,7 +112,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
 
             const [schemaId, schemaChanged] = await Importer.ensurePrimarySchema(dbClient, req.body.name,
                                                                                  classDef, req, approve);
-            const datasetChanged = await Importer.ensureDataset(dbClient, schemaId, dataset);
+            const datasetChanged = await Importer.ensureDataset(dbClient, schemaId, dataset, req.body.dataset);
 
             const extraKinds = classDef.extends || [];
             const extraChildKinds = classDef.annotations.child_types ?
@@ -179,7 +179,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
             }
 
             return true;
-        });
+        }, 'repeatable read');
 
         if (ok) {
             // trigger updating the device on the user
