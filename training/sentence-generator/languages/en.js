@@ -1162,7 +1162,7 @@ module.exports = class EnglishLanguage {
                 grammar.when_get_stream.push(['${when_get_stream}${the_out_param_' + ptype + '}', combineReplacePlaceholder(pname, whenGetStream(pname, ptype), { isConstant: false })]);
             if (idTypes.has(String(ptype)) || pname === 'p_picture_url') {
                 if (pname === 'p_picture_url') {
-                    grammar.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => whenGetStream(stream, new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
+                    grammar.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => whenGetStream(pname, ptype)(stream, new Ast.Value.VarRef('picture_url')), { isConstant: false })]);
                 } else {
                     grammar.when_get_stream.push(['${when_get_stream}${choice(it|that|them)}', combineReplacePlaceholder(pname, (stream) => {
                         for (let joinArg in stream.stream.schema.out) {

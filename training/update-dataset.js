@@ -154,8 +154,9 @@ class DatasetUpdater {
                     return word;
             }).join(' ');
 
+            let flags = ex.flags.replace(/,exact/, '');
             output.push({
-                flags: ex.flags ? ex.flags + ',augmented' : 'augmented',
+                flags: flags ? flags + ',augmented' : 'augmented',
                 type: ex.type,
                 utterance: newUtterance,
                 preprocessed: newUtterance,
@@ -305,7 +306,7 @@ async function main() {
     });
     parser.addArgument('--maxdepth', {
         type: Number,
-        defaultValue: 5,
+        defaultValue: 4,
         help: 'Maximum depth of synthetic sentence generation',
     });
     parser.addArgument('--ppdb', {
