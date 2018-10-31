@@ -19,32 +19,41 @@ block content
         if authenticated && user.developer_org !== null
           section.divider
             h3= _("Your OAuth Applications")
+
+            p!= _("OAuth apps allow you to develop software that accesses Almond as a service, for example in a smart speaker. For further information, see the <a href='/doc/my-api.md'>Web Almond API Guide</a>.")
             if developer_oauth2_clients.length > 0
-              each client, i in developer_oauth2_clients
-                div.row
-                  div.col-xs-12.col-md-10.col-md-offset-1
-                    div.panel.panel-default
-                      p.panel-heading= client.name
-                      div.panel-body
+              ul#developer-oauth-list
+                each client, i in developer_oauth2_clients
+                  li
+                    div
+                      img(role='presentation',src=CDN_HOST + '/icons/oauth:' + client.id + '.png')
+                    div
+                      h4= client.name
+                      p
+                        b= _("Client ID: ")
+                        span= client.id
+                      if user.developer_status > 0
                         p
-                          b= _("Client ID: ")
-                          span= client.id
-                        if user.developer_status > 0
-                          p
-                            b= _("Client Secret: ")
-                            span= client.secret
+                          b= _("Client Secret: ")
+                          a(href='#',data-toggle='collapse',data-target='#secret-' + client.id)= _("Show/Hide")
+                          div.collapse(id='secret-' + client.id)= client.secret
             else
               div.row
                 div.col-xs-12
-                  p= _("Your organization does not have any OAuth 2.0 Client IDs yet.")
+                  p= _("Your organization does not have any OAuth apps yet.")
 
             if user.developer_status > 0
-              div.row
-                div.col-xs-12.col-md-10.col-md-offset-1
-                  div.panel.panel-default
-                    p.panel-heading= _("Create a new OAuth 2.0 Client ID")
-                    div.panel-body
-                      form(action='/me/api/oauth2/clients/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+              div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+                a(href='#new-oauth-dialog',data-toggle='modal').btn.btn-block.btn-primary= _("Register a new OAuth app")
+              div.modal.fade(role='dialog')#new-oauth-dialog
+                div.modal-dialog
+                  div.modal-content
+                    div.modal-header
+                      a.close(data-dismiss='modal', aria-label="Close")
+                        span(aria-hidden='true') ×
+                      h4.modal-title= _("New OAuth App")
+                    form(action='/me/api/oauth2/clients/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+                      div.modal-body
                         input(type='hidden',name='_csrf',value=csrfToken)
                         div.form-group
                           label(for='new-oauth-name').control-label= _("Name")
@@ -55,5 +64,6 @@ block content
                           label(for='new-oauth-icon').control-label= _("Icon")
                           input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#new-oauth-icon
 
+                      div.modal-footer
                         div.form-group
                           button(type='submit').btn.btn-primary= _("Create")

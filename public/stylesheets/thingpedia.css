@@ -39,26 +39,29 @@
   padding-bottom: 1em;
 }
 
-#developer-device-list {
+#developer-device-list, #developer-oauth-list {
   display: table;
   table-layout: fixed;
   width: 100%;
   border: 1px solid #ddd;
   border-collapse: collapse;
 }
-#developer-device-list > li {
+#developer-device-list > li, #developer-oauth-list > li {
   display: table-row;
   border: 1px solid #ddd;
 }
-#developer-device-list > li > * {
+#developer-device-list > li > *, #developer-oauth-list > li > * {
   display: table-cell;
   padding-top: 10px;
   padding-bottom: 10px;
 }
-#developer-device-list > li > :first-child {
+#developer-device-list > li > * {
+  vertical-align: middle;
+}
+#developer-device-list > li > :first-child, #developer-oauth-list > li > * {
   padding-left: 15px;
 }
-#developer-device-list > li > :last-child {
+#developer-device-list > li > :last-child, #developer-oauth-list > li > * {
   padding-right: 15px;
 }
 #developer-device-list > li > span.action, #developer-device-list > li > form {
@@ -84,4 +87,19 @@ img.device-icon-tiny {
   height: 32px;
   object-fit: contain;
   border-radius: 5px;
+}
+#developer-oauth-list > li > * {
+  vertical-align: top;
+}
+#developer-oauth-list > li > :first-child {
+  width: 76px;
+}
+#developer-oauth-list > li > div > img {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 5px;
+  margin-right: 12em;
+  margin-top: 1em;
 }
