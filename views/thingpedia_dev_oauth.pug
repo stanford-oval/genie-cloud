@@ -43,8 +43,9 @@ block content
                   p= _("Your organization does not have any OAuth apps yet.")
 
             if user.developer_status > 0
-              div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
-                a(href='#new-oauth-dialog',data-toggle='modal').btn.btn-block.btn-primary= _("Register a new OAuth app")
+              div.row
+                div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+                  a(href='#new-oauth-dialog',data-toggle='modal').btn.btn-block.btn-primary= _("Register a new OAuth app")
               div.modal.fade(role='dialog')#new-oauth-dialog
                 div.modal-dialog
                   div.modal-content

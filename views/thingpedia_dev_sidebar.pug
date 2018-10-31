@@ -73,12 +73,12 @@ nav#doc-sidebar
             li(class=(currentPage === 'almond-dialog-api-reference' ? 'current' : ''))
               a(href='/thingpedia/developers/almond-dialog-api-reference.md') Almond Dialog API
 
-        li(class=(['thingtalk-reference', 'thingpedia-helpers', 'thingpedia-annotations'].indexOf(currentPage) >= 0 ? 'current' : ''))
+        li(class=(['thingtalk-reference', 'thingpedia-helpers', 'thingpedia-annotations', 'thingpedia-entity-list'].indexOf(currentPage) >= 0 ? 'current' : ''))
           a.doc-sidebar-subtitle Reference Manuals
           ul
             li(class=(currentPage === 'thingtalk-reference' ? 'current' : ''))
               a(href='/thingpedia/developers/thingtalk-reference.md') ThingTalk Reference
-            li
+            li(class=(currentPage === 'thingpedia-entity-list' ? 'current' : ''))
               a(href='/thingpedia/entities') ThingTalk Entity Types
             li
               a(href='/thingpedia/strings') Available String Datasets

@@ -1,73 +1,76 @@
 extends layout
 
 block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia_dev_sidebar.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
 
 block page_name
-  = _("Entity Types")
+  - stdlayout = false;
+  - var currentPage = 'thingpedia-entity-list';
+  = _("Thingpedia Developer Portal")
 
 block content
-  if authenticated && user.developer_status >= 1
+  div.container-fluid#page-body
     div.row
-      div.col-xs-12.col-md-10.col-md-offset-1
-        div.panel.panel-default
-            p.panel-heading= _("Create a new Entity Type")
-            div.panel-body
-              form(action='/thingpedia/entities/create', enctype='multipart/form-data', method='post', data-toggle='validator')
-                input(type='hidden',name='_csrf',value=csrfToken)
+      div.col-lg-3.col-md-4
+        include thingpedia_dev_sidebar
 
-                div.form-group
-                  label(for='new-entity-id').control-label= _("Entity ID")
-                  input(type='text',name='entity_id').form-control#new-entity-id
-                  span.help-block
-                    | Entity ID, used to form type references in ThingTalk.
-                    |
-                    | Must be of the form <i>prefix</i>:<i>suffix</i>, where <i>prefix</i> is the ID of a device entry you control, and <i>suffix</i> is an identifier
-                div.form-group
-                  label(for='new-entity-name').control-label= _("Description")
-                  input(type='text',name='entity_name').form-control#new-entity-name
-                  span.help-block= _("This description will be shown on the documentation")
-                div.form-group
-                  div.checkbox
-                    label(for='new-entity-no-ner-support').control-label
-                      input(type='checkbox',name='no_ner_support',value='1',checked=true)#new-entity-no-ner-support
-                      = _(" This entity is an opaque identifier that cannot be used from natural language.")
-                div.form-group
-                  label(for='new-entity-upload').control-label= _("List of values")
-                  input(type='file',name='upload',accept='text/csv')#new-entity-upload
-                  span.help-block
-                    | Upload a CSV file with all the values for this entity, one per line.
-                    |  The file should be formatted as <code><i>value</i>,<i>name</i></code>,
-                    |  where <i>value</i> is the API identifier and <i>name</i> is the name that will be available in natural language.
-                    |  If an entity can have multiple names (e.g. the stock ticker symbol "goog" can be recalled as Google or Alphabet),
-                    |  use multiple lines with different names and same value.
+      div.col-xs-12.col-md-8.col-lg-9
+        h3= _("Entity Types")
 
-                div.form-group
-                  button(type='submit').btn.btn-primary= _("Create")
+        if authenticated && user.developer_status >= 1
+          div.row
+            div.col-sm-6.col-md-4
+              a(href='#new-entity-dialog',data-toggle='modal').btn.btn-block.btn-sm.btn-default= _("Create a new entity type")
+          div.modal.fade(role='dialog')#new-entity-dialog
+            div.modal-dialog
+              div.modal-content
+                div.modal-header
+                  h4.modal-title= _("New Entity Type")
+                form(action='/thingpedia/entities/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+                  div.modal-body
+                    input(type='hidden',name='_csrf',value=csrfToken)
 
-  table.table
-    thead
-      tr
-        th= _("ID")
-        th= _("Description")
-        th= _("Well known?")
-        th= _("Has NER support?")
-    tbody
-      for e in entities
-        tr
-          td= e.id
-          td
-            a(href='/thingpedia/entities/by-id/' + e.id)
-              = e.name
-          td
-            if e.is_well_known
-              span.glyphicon.glyphicon-ok(role='presentation')
-              span.sr-only= _("yes")
-            else
-              span.sr-only= _("no")
-          td
-            if e.has_ner_support
-              span.glyphicon.glyphicon-ok(role='presentation')
-              span.sr-only= _("yes")
-            else
-              span.sr-only= _("no")
+                    div.form-group
+                      label(for='new-entity-id').control-label= _("Entity ID")
+                      input(type='text',name='entity_id').form-control#new-entity-id
+                      span.help-block
+                        | Entity ID, used to form type references in ThingTalk.
+                        |
+                        | Must be of the form <i>prefix</i>:<i>suffix</i>, where <i>prefix</i> is the ID of a device entry you control, and <i>suffix</i> is an identifier
+                    div.form-group
+                      label(for='new-entity-name').control-label= _("Description")
+                      input(type='text',name='entity_name').form-control#new-entity-name
+                      span.help-block= _("This description will be shown on the documentation")
+                    div.form-group
+                      div.checkbox
+                        label(for='new-entity-no-ner-support').control-label
+                          input(type='checkbox',name='no_ner_support',value='1',checked=true)#new-entity-no-ner-support
+                          = _(" This entity is an opaque identifier that cannot be used from natural language.")
+                    div.form-group
+                      label(for='new-entity-upload').control-label= _("List of values")
+                      input(type='file',name='upload',accept='text/csv')#new-entity-upload
+                      span.help-block
+                        | Upload a CSV file with all the values for this entity, one per line.
+                        |  The file should be formatted as <code><i>value</i>,<i>name</i></code>,
+                        |  where <i>value</i> is the API identifier and <i>name</i> is the name that will be available in natural language.
+                        |  If an entity can have multiple names (e.g. the stock ticker symbol "goog" can be recalled as Google or Alphabet),
+                        |  use multiple lines with different names and same value.
+
+                  div.modal-footer
+                    div.form-group
+                      button(type='submit').btn.btn-primary= _("Create")
+
+        div.list-group#thingpedia-entity-list
+          for e in entities
+            a(href='/thingpedia/entities/by-id/' + e.id).list-group-item.clearfix
+              div.pull-left
+                h4= e.id
+                p=e.name
+              div.pull-right
+                if e.is_well_known
+                  img(src=CDN_HOST + '/icons/org.thingpedia.builtin.thingengine.builtin.png', alt=_("This is a builtin entity with special natural language support."), title=_("This is a built-in entity type with special natural language support."))
+                if e.has_ner_support
+                  i.fas.fa-language(title=_("This entity can used in natural language"))
+                  span.sr-only= _("This entity can used in natural language")

@@ -107,3 +107,24 @@
 .license-header {
   font-weight: bold;
 }
+
+#thingpedia-entity-list {
+  margin-top: 1.5em;
+}
+
+#thingpedia-entity-list h4 {
+  margin: 0px;
+  margin-bottom: 0.2em;
+}
+#thingpedia-entity-list p {
+  font-size: 14px;
+  margin: 0px;
+}
+#thingpedia-entity-list i.fas {
+  font-size: 40px;
+}
+#thingpedia-entity-list img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
