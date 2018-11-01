@@ -153,45 +153,35 @@ router.post('/subscribe', (req, res, next) => {
     }).catch(next);
 });
 
-function getProfile(req, res, pwError, profileError) {
-    return EngineManager.get().getEngine(req.user.id).then((engine) => {
-        return Promise.all([engine.devices.getDevice('thingengine-own-phone'),
-                            engine.devices.getDevice('thingengine-own-desktop')]);
-    }).then(([phone, desktop]) => {
-        return Promise.all([phone ? phone.state : undefined, desktop ? desktop.state : undefined]);
-    }).then(([phoneState, desktopState]) => {
-        var phone;
-        if (phoneState) {
-            phone = {
-                isConfigured: true,
-            };
-        } else {
-            phone = {
-                isConfigured: false,
-                qrcodeTarget: 'https://thingengine.stanford.edu/qrcode-cloud/' + req.user.cloud_id + '/'
-                    + req.user.auth_token
-            };
-        }
-        var desktop;
-        if (desktopState) {
-            desktop = {
-                isConfigured: true,
-            };
-        } else {
-            desktop = {
-                isConfigured: false,
-            };
-        }
+async function getProfile(req, res, pwError, profileError) {
+    let phone = {
+        isConfigured: false,
+        qrcodeTarget: 'https://thingengine.stanford.edu/qrcode-cloud/' + req.user.cloud_id + '/'
+            + req.user.auth_token
+    };
+    let desktop = {
+        isConfigured: false,
+    };
+    try {
+        const engine = await EngineManager.get().getEngine(req.user.id);
 
-        res.render('user_profile', { page_title: req._("Thingpedia - User Profile"),
-                                     csrfToken: req.csrfToken(),
-                                     pw_error: pwError,
-                                     profile_error: profileError,
-                                     phone: phone, desktop: desktop });
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    });
+        const [phoneProxy, desktopProxy] = await Promise.all([
+            engine.devices.getDevice('thingengine-own-phone'),
+            engine.devices.getDevice('thingengine-own-desktop')
+        ]);
+        if (phoneProxy)
+            phone.isConfigured = true;
+        if (desktopProxy)
+            desktop.isConfigured = true;
+    } catch(e) {
+        // ignore the error if the engine is down
+    }
+
+    res.render('user_profile', { page_title: req._("Thingpedia - User Profile"),
+                                 csrfToken: req.csrfToken(),
+                                 pw_error: pwError,
+                                 profile_error: profileError,
+                                 phone: phone, desktop: desktop });
 }
 
 router.get('/profile', userUtils.redirectLogIn, (req, res, next) => {
@@ -199,7 +189,7 @@ router.get('/profile', userUtils.redirectLogIn, (req, res, next) => {
 });
 
 router.post('/profile', userUtils.requireLogIn, (req, res, next) => {
-    return db.withTransaction((dbClient) => {
+    return db.withTransaction(async (dbClient) => {
         if (typeof req.body.username !== 'string' ||
             req.body.username.length === 0 ||
             req.body.username.length > 255)
@@ -210,15 +200,23 @@ router.post('/profile', userUtils.requireLogIn, (req, res, next) => {
             req.body['email'].length > 255)
             req.body.email = req.user.email;
 
-        return model.update(dbClient, req.user.id,
+        let profile_flags = 0;
+        if (req.body.visible_organization_profile)
+            profile_flags |= userUtils.ProfileFlags.VISIBLE_ORGANIZATION_PROFILE;
+        if (req.body.show_human_name)
+            profile_flags |= userUtils.ProfileFlags.SHOW_HUMAN_NAME;
+        if (req.body.show_profile_picture)
+            profile_flags |= userUtils.ProfileFlags.SHOW_PROFILE_PICTURE;
+
+        await model.update(dbClient, req.user.id,
                             { username: req.body.username,
                               email: req.body.email,
-                              human_name: req.body.human_name });
-    }).then(() => {
+                              human_name: req.body.human_name,
+                              profile_flags });
         req.user.username = req.body.username;
         req.user.email = req.body.email;
         req.user.human_name = req.body.human_name;
-    }).then(() => {
+        req.user.profile_flags = profile_flags;
         return getProfile(req, res, undefined, undefined);
     }).catch((error) => {
         return getProfile(req, res, undefined, error);

@@ -16,6 +16,10 @@ module.exports = {
         return db.selectOne(client, "select * from organizations where id = ?",
                             [id]);
     },
+    getByIdHash(client, idHash) {
+        return db.selectOne(client, "select * from organizations where id_hash = ?",
+                            [idHash]);
+    },
 
     getAll(client, start, end) {
         if (start !== undefined && end !== undefined)
@@ -33,7 +37,7 @@ module.exports = {
     },
 
     getMembers(client, id) {
-        return db.selectAll(client, "select username,developer_status,roles from users where developer_org = ?", [id]);
+        return db.selectAll(client, "select id,cloud_id,username,developer_status,profile_flags,roles from users where developer_org = ?", [id]);
     },
 
     getByDeveloperKey(client, key) {

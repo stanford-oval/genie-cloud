@@ -62,7 +62,8 @@ async function update(client, id, device, extraKinds, extraChildKinds, discovery
 
 module.exports = {
     get(client, id) {
-        return db.selectOne(client, "select d.*, o.name as owner_name from device_class d left join organizations o on o.id = d.owner where d.id = ?", [id]);
+        return db.selectOne(client, `select d.*, o.name as owner_name, o.id_hash as owner_id_hash
+            from device_class d left join organizations o on o.id = d.owner where d.id = ?`, [id]);
     },
 
     getByOwner(client, owner) {
@@ -127,7 +128,7 @@ module.exports = {
 
     getByPrimaryKind(client, kind, includeSourceCode) {
         return db.selectOne(client, `select ${includeSourceCode ? 'd.source_code,' : ''}d.id,d.name,d.description,d.primary_kind,d.category,
-            d.subcategory,d.developer_version,d.approved_version,d.owner,o.name as owner_name
+            d.subcategory,d.developer_version,d.approved_version,d.owner,o.name as owner_name, o.id_hash as owner_id_hash
             from device_class d left join organizations o on o.id = d.owner where primary_kind = ?`, [kind]);
     },
 
@@ -291,6 +292,11 @@ module.exports = {
                 device_class, device_code_version where device_id = id and version = approved_version
                 and primary_kind = ?`, [kind]);
         }
+    },
+
+    getAllApprovedByOwner(client, owner) {
+        return db.selectAll(client, `select primary_kind,name,description,category,subcategory
+            from device_class where approved_version is not null and owner = ? order by name`, [owner]);
     },
 
     getAllApproved(client, org, start, end) {

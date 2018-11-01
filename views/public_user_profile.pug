@@ -1,0 +1,21 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/profiles.css')
+
+block page_name
+  if profile.human_name && (profile.profile_flags & Constants.ProfileFlags.SHOW_HUMAN_NAME)
+    = _("User: %s (%s)").format(profile.human_name, profile.username)
+  else
+    = _("User: %s").format(profile.username)
+
+block content
+  div.row
+    div.col-md-4
+      img(src=profile.profile_pic_url, alt=_("Profile picture of %s").format(profile.username)).img-responsive.img-rounded#user-profile-pic
+
+    div.col-md-8
+      if profile.developer_org !== null
+        p
+          = _("Member of ")
+          a(href='/profiles/organization/' + profile.developer_org_id_hash)= profile.developer_org_name

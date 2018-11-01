@@ -20,29 +20,34 @@ function create(client, user) {
 
 module.exports = {
     get(client, id) {
-        return db.selectOne(client, "select u.*, o.developer_key from users u left join organizations o"
+        return db.selectOne(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                             + " on u.developer_org = o.id where u.id = ?", [id]);
     },
 
     getSearch(client, search) {
         search = '%' + search + '%';
-        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                             + " on u.developer_org = o.id where username like ? or human_name like ? or email like ?",
                             [search, search, search]);
     },
 
     getByName(client, username) {
-        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                             + " on u.developer_org = o.id where username = ?", [username]);
     },
 
     getByGoogleAccount(client, googleId) {
-        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                             + " on u.developer_org = o.id where google_id = ?", [googleId]);
     },
 
     getByCloudId(client, cloudId) {
-        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
+                            + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);
+    },
+
+    getByCloudIdForProfile(client, cloudId) {
+        return db.selectOne(client, "select u.*, o.developer_key, o.name as developer_org_name, o.id_hash as developer_org_id_hash from users u left join organizations o"
                             + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);
     },
 
@@ -51,7 +56,7 @@ module.exports = {
     },
 
     getByAccessToken(client, accessToken) {
-        return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                             + " on u.developer_org = o.id, oauth2_access_tokens oat where"
                             + " oat.user_id = u.id and oat.token = ?",
                             [accessToken]);
@@ -72,10 +77,10 @@ module.exports = {
 
     getAll(client, start, end) {
         if (start !== undefined && end !== undefined) {
-            return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+            return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                                 + " on u.developer_org = o.id order by id limit ?,?", [start,end]);
         } else {
-            return db.selectAll(client, "select u.*, o.developer_key from users u left join organizations o"
+            return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                                 + " on u.developer_org = o.id order by id");
         }
     },

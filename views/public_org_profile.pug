@@ -1,0 +1,46 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/profiles.css')
+
+block page_name
+  = _("Developer Organization: %s").format(organization.name)
+
+block content
+  div.panel.panel-default
+    div.panel-heading
+      h3.panel-title=_("Members")
+
+    if members.length > 0
+      div.list-group
+        each m in members
+          a(href='/profiles/user/' + m.cloud_id).list-group-item.clearfix
+            div.pull-left= m.username
+            div.pull-right
+              if m.developer_status >= 3
+                span= _("Admininstrator")
+              else if m.developer_status >= 2
+                span= _("Trusted Developer")
+              else if m.developer_status >= 1
+                span= _("Developer")
+              else
+                span= _("Tester")
+    else
+      div.panel-body
+        p= _("This organization does not have any publicly visible member.")
+
+  if WITH_THINGPEDIA === 'embedded'
+    div.panel.panel-default
+      div.panel-heading
+        h3.panel-title= _("Devices")
+
+      if devices.length > 0
+        div.list-group
+          each dev, i in devices
+            a(href=THINGPEDIA_URL + '/devices/by-id/' + dev.primary_kind).list-group-item
+              img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', aria-hidden='true').device-icon-tiny
+              = dev.name
+
+      else
+        div.panel-body
+          p= _("This organization does not have any approved device yet.")

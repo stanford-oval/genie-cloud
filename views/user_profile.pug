@@ -40,30 +40,58 @@ block content
           input(type='text',name='human_name',value=user.human_name).form-control#human-name
 
         div.form-group
-          label.control-label= _("Thingpedia Developer Access")
-          if user.developer_status >= 3
-            p.form-control-static= _("Administrator")
-            span.help-block= _("You know what to do.")
-          else if user.developer_status >= 2
-            p.form-control-static= _("Trusted Developer")
-            span.help-block= _("All code you submit can live to all Almonds with no review. Be careful!")
-          else if user.developer_status >= 1
-            p.form-control-static= _("Developer")
-            span.help-block= _("You can submit new entries, but they have to be reviewed by an administrator before users can see them.")
-          else if user.developer_org !== null
-            p.form-control-static= _("Tester")
-            span.help-block= _("You can test the code submitted by other members of your organization, but you cannot modify it or upload new entries.")
-          else
-            p.form-control-static!= _("User (<a href='/user/request-developer'>apply to be a developer</a>)")
+          div.checkbox
+            label
+              input(type='checkbox',name='show_human_name',value='1',checked=!!(user.profile_flags & Constants.ProfileFlags.SHOW_HUMAN_NAME))
+              = _("Show my real name in my public profile.")
 
         div.form-group
-          label.control-label(for='developer-key')= _("Thingpedia Developer Key")
-          p.form-control-static= user.developer_key
-          span.help-block
-            = _("You can use this developer key in other Almonds (such as one you're running locally for testing) to access your devices before they are approved.")
+          div.checkbox
+            label
+              input(type='checkbox',name='show_profile_picture',value='1',checked=!!(user.profile_flags & Constants.ProfileFlags.SHOW_PROFILE_PICTURE))
+              = _("Show my profile picture in my public profile.")
+          span.help-block!=_("Your profile picture is automatically retrieved from <a href='https://en.gravatar.com'>Gravatar</a> using a secure hash of your email.</a>")
+
+        div.form-group
+          label.control-label= _("Developer Organization")
+          if user.developer_org !== null
+            p.form-control-static= _("Member of %s").format(user.developer_org_name)
+          else
+            p.form-control-static!= _("None (<a href='/user/request-developer'>apply to be a developer</a>)")
+
+        if user.developer_org !== null
+          div.form-group
+            div.checkbox
+              label
+                input(type='checkbox',name='visible_organization_profile',value='1',checked=!!(user.profile_flags & Constants.ProfileFlags.VISIBLE_ORGANIZATION_PROFILE))
+                = _("Include my name on my developer organization's public profile.")
+
+          div.form-group
+            label.control-label= _("Developer Access")
+            if user.developer_status >= 3
+              p.form-control-static= _("Administrator")
+              span.help-block= _("You know what to do.")
+            else if user.developer_status >= 2
+              p.form-control-static= _("Trusted Developer")
+              span.help-block= _("All code you submit can go live to all Almonds with no review. Be careful!")
+            else if user.developer_status >= 1
+              p.form-control-static= _("Developer")
+              span.help-block= _("You can submit new entries, but they have to be reviewed by an administrator before users can see them.")
+            else if user.developer_org !== null
+              p.form-control-static= _("Tester")
+              span.help-block= _("You can test the code submitted by other members of your organization, but you cannot modify it or upload new entries.")
+
+          div.form-group
+            label.control-label(for='developer-key')= _("Thingpedia Developer Key")
+            p.form-control-static= user.developer_key
+            span.help-block
+              = _("You can use this developer key in other Almonds (such as one you're running locally for testing) to access your devices before they are approved.")
 
         div.form-group
           button(type='submit').btn.btn-primary= _("Update profile")
+          |
+          |
+          a(href='/profiles/user/' + user.cloud_id).btn.btn-default= _("Show my public profile")
 
   div.panel.panel-default
     div.panel-heading

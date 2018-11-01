@@ -35,6 +35,7 @@ const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
 const db = require('./util/db');
 const i18n = require('./util/i18n');
+const userUtils = require('./util/user');
 
 const Config = require('./config');
 
@@ -181,6 +182,11 @@ module.exports = class Frontend {
             // Capital C so we don't conflict with other parameters
             // set by various pages
             res.locals.Config = Config;
+            res.locals.Constants = {
+                Role: userUtils.Role,
+                DeveloperStatus: userUtils.DeveloperStatus,
+                ProfileFlags: userUtils.ProfileFlags
+            };
 
             // the old way of doing things - eventually should be refactored
             res.locals.CDN_HOST = Config.CDN_HOST;
@@ -286,6 +292,7 @@ module.exports = class Frontend {
             this._app.use('/thingpedia/developers', require('./routes/thingpedia_developer_console'));
         }
 
+        this._app.use('/profiles', require('./routes/thingpedia_profiles'));
         this._app.use('/user', require('./routes/user'));
         this._app.use('/admin', require('./routes/admin'));
 

@@ -76,6 +76,9 @@
   box-sizing: content-box;
   padding-right: 1em;
 }
+#developer-device-list > li > span.image > img {
+  padding-right: 0;
+}
 #developer-device-list > li > a {
   color: inherit;
   text-decoration: none;

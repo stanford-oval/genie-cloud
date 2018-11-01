@@ -583,11 +583,13 @@ DROP TABLE IF EXISTS `organizations`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `organizations` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_hash` char(16) COLLATE utf8_bin NOT NULL,
   `name` varchar(255) CHARACTER SET utf8 NOT NULL,
   `comment` text COLLATE utf8_bin NOT NULL,
   `developer_key` char(64) COLLATE utf8_bin NOT NULL,
   `is_admin` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `id_hash` (`id_hash`),
   UNIQUE KEY `developer_key` (`developer_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -675,6 +677,7 @@ CREATE TABLE `users` (
   `auth_token` char(64) COLLATE utf8_bin NOT NULL,
   `storage_key` char(64) COLLATE utf8_bin NOT NULL,
   `roles` int(11) NOT NULL DEFAULT 0,
+  `profile_flags` int(11) NOT NULL DEFAULT 0,
   `assistant_feed_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `developer_status` tinyint(4) NOT NULL DEFAULT 0,
   `developer_org` int(11) DEFAULT NULL,
