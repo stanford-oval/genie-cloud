@@ -34,6 +34,13 @@ module.exports = {
         ADMIN: 1,
     },
 
+    ProfileFlags: {
+        VISIBLE_ORGANIZATION_PROFILE: 1,
+        SHOW_HUMAN_NAME: 2,
+        SHOW_EMAIL: 4,
+        SHOW_PROFILE_PICTURE: 8,
+    },
+
     GOOGLE_SCOPES: ['openid','profile','email'].join(' '),
 
     register(dbClient, req, options) {
@@ -48,6 +55,7 @@ module.exports = {
             return hashPassword(salt, options.password).then((hash) => {
                 return model.create(dbClient, {
                     username: options.username,
+                    human_name: options.human_name || null,
                     password: hash,
                     email: options.email,
                     locale: options.locale,
@@ -59,6 +67,7 @@ module.exports = {
                     developer_org: options.developer_org || null,
                     developer_status: options.developer_status || 0,
                     roles: options.roles || 0,
+                    profile_flags: options.profile_flags || 0,
                 });
             });
         });
@@ -68,26 +77,18 @@ module.exports = {
         return model.recordLogin(dbClient, userId);
     },
 
-    update(dbClient, user, oldpassword, password) {
-        return Q.try(() => {
-            if (user.salt && user.password) {
-                return hashPassword(user.salt, oldpassword).then((providedHash) => {
-                    if (user.password !== providedHash)
-                        throw new Error('Invalid old password');
-                });
-            } else {
-                return Promise.resolve();
-            }
-        }).then(() => {
-            const salt = makeRandom();
-            return hashPassword(salt, password).then((newhash) => {
-                return model.update(dbClient, user.id, { salt: salt,
-                                                         password: newhash }).then(() => {
-                    user.salt = salt;
-                    user.password = newhash;
-                });
-            });
-        });
+    async update(dbClient, user, oldpassword, password) {
+        if (user.salt && user.password) {
+            const providedHash = await hashPassword(user.salt, oldpassword);
+            if (user.password !== providedHash)
+                throw new Error('Invalid old password');
+        }
+        const salt = makeRandom();
+        const newhash = await hashPassword(salt, password);
+        await model.update(dbClient, user.id, { salt: salt,
+                                                 password: newhash });
+        user.salt = salt;
+        user.password = newhash;
     },
 
     requireLogIn(req, res, next) {

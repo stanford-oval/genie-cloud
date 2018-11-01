@@ -42,6 +42,7 @@ async function createRootOrg(dbClient) {
     return organization.create(dbClient, {
         name: 'Site Administration',
         comment:  '',
+        id_hash: makeRandom(8),
         developer_key: makeRandom(),
         is_admin: true
     });
@@ -57,6 +58,7 @@ async function createDefaultUsers(dbClient, rootOrg) {
         developer_org: rootOrg.id,
         developer_status: user.DeveloperStatus.ADMIN,
         roles: user.Role.ADMIN,
+        profile_flags: user.ProfileFlags.VISIBLE_ORGANIZATION_PROFILE,
     });
 
     await user.register(dbClient, req, {
@@ -66,6 +68,7 @@ async function createDefaultUsers(dbClient, rootOrg) {
         locale: 'en-US',
         timezone: 'America/Los_Angeles',
         developer_org: rootOrg.id,
+        profile_flags: 0
     });
 }
 

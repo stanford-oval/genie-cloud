@@ -210,21 +210,25 @@ async function main() {
         const newOrg = await organization.create(dbClient, {
             name: 'Test Org',
             comment:  '',
+            id_hash: makeRandom(8),
             developer_key: makeRandom(),
             is_admin: false
         });
 
         const bob = await user.register(dbClient, req, {
             username: 'bob',
+            human_name: 'Bob Builder',
             password: '12345678',
             email: 'bob@localhost',
             locale: 'en-US',
             timezone: 'America/Los_Angeles',
             developer_org: newOrg.id,
+            profile_flags: user.ProfileFlags.VISIBLE_ORGANIZATION_PROFILE|user.ProfileFlags.SHOW_HUMAN_NAME|user.ProfileFlags.SHOW_PROFILE_PICTURE,
 
             // must be a TRUSTED_DEVELOPER to self-approve the new device
             // w/o hacks
             developer_status: user.DeveloperStatus.TRUSTED_DEVELOPER,
+
         });
 
         const [root] = await userModel.getByName(dbClient, 'root');

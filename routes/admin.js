@@ -184,7 +184,12 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) 
 
             if (user.developer_org === null) {
                 needsRestart = true;
-                return organization.create(dbClient, { name: '', comment: '', developer_key: makeRandom() }).then((org) => {
+                return organization.create(dbClient, {
+                    name: '',
+                    comment: '',
+                    id_hash: makeRandom(8),
+                    developer_key: makeRandom()
+                }).then((org) => {
                     return model.update(dbClient, user.id, { developer_status: 1,
                                                              developer_org: org.id });
                 });
@@ -310,7 +315,7 @@ router.get('/organizations/details/:id', user.requireRole(user.Role.ADMIN), (req
     db.withClient((dbClient) => {
         return Promise.all([
             organization.get(dbClient, req.params.id),
-            model.getByDeveloperOrg(dbClient, req.params.id),
+            organization.getMembers(dbClient, req.params.id),
             device.getByOwner(dbClient, req.params.id)
         ]);
     }).then(([org, users, devices]) => {

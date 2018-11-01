@@ -207,4 +207,6 @@ img.device-icon-tiny {
   height: 32px;
   object-fit: contain;
   border-radius: 5px;
+  box-sizing: content-box;
+  padding-right: 1em;
 }

@@ -1568,7 +1568,7 @@ function getEntityIcon(res, next, entityValue, entityType, entityDisplay) {
         if (cached)
             res.redirect(301, '/cache/' + cached);
         else
-            res.redirect(301, '/cache/8b0db4cadaa2c66cc139bdea50da5891b0c87435.png');
+            res.redirect(301, Config.ASSET_CDN + '/images/user-no-avatar.png');
             //res.status(404).send('Not Found');
     } else {
         let cacheKey = entityType + ':' + entityValue;

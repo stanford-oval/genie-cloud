@@ -131,7 +131,7 @@ block content
     if user && user.roles & 0x1
       a(href='/admin/organizations/details/' + device.owner)=device.owner_name
     else
-      = device.owner_name
+      a(href='/profiles/organization/' + device.owner_id_hash)= device.owner_name
 
   if classDef.extends !== null
     h2.device-subtitle= _("Extends: ")
