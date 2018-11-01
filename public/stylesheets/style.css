@@ -200,3 +200,11 @@ body {
     flex-grow: 2;
 }
 }
+
+img.device-icon-tiny {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: 5px;
+}

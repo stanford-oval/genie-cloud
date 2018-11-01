@@ -84,13 +84,6 @@
   background-color: #f5f5f5;
 }
 
-img.device-icon-tiny {
-  display: inline-block;
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-  border-radius: 5px;
-}
 #developer-oauth-list > li > * {
   vertical-align: top;
 }
