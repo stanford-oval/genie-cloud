@@ -7,7 +7,7 @@ block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/admin.css')
 
 block content
-  if page_num >= 0
+  if page_num > 0 || organizations.length > 20
     nav
       ul.pager
         if page_num > 0
@@ -24,21 +24,15 @@ block content
         input.form-control#user-search-box(type='text', name='q', value=search)
         button.btn.btn-primary(type="submit")= _("Search")
 
-  table.table#users-table
-    thead
-      tr
-        th #
-        th= _("Name")
-        th= _("Developer Key")
-    tbody
-      each org in organizations.slice(0, 20)
-        tr
-          td
-            a(href='/admin/organizations/details/' + org.id)= org.id
-          td= org.name
-          td= org.developer_key
+  div.list-group
+    each org in organizations.slice(0, 20)
+      a(href='/admin/organizations/details/' + org.id).list-group-item
+        h4= org.name
+        if org.comment
+          p= org.comment
+        p.text-muted= org.developer_key
 
-  if page_num >= 0
+  if page_num > 0 || organizations.length > 20
     nav
       ul.pager
         if page_num > 0
