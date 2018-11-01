@@ -46,6 +46,9 @@
   border: 1px solid #ddd;
   border-collapse: collapse;
 }
+#developer-device-list {
+  margin-bottom: 0;
+}
 #developer-device-list > li, #developer-oauth-list > li {
   display: table-row;
   border: 1px solid #ddd;
@@ -102,4 +105,12 @@ img.device-icon-tiny {
   border-radius: 5px;
   margin-right: 12em;
   margin-top: 1em;
+}
+
+#developer-org-panel h5 {
+  font-weight: bold;
+  margin-top: 2em;
+}
+#developer-org-panel h5:first-child {
+  margin-top: 0;
 }

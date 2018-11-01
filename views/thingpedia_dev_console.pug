@@ -1,52 +1,54 @@
 section.divider
-  h3= _("Profile")
-  div.row
-    div.col-xs-12
-      if developer_org_name
-        p #[b= _("Name:")] #{developer_org_name}
+  if developer_org_name
+    h3= _("Organization: %s").format(developer_org_name)
+  else
+    h3= _("Your developer organization")
 
-      p
-        b= _("Your role: ")
-        if user.developer_status === 0
-          = _("Tester")
-        else if user.developer_status === 1
-          = _("Developer")
-        else if user.developer_status === 2
-          = _("Trusted Dev")
-        else if user.developer_status === 3
-          = _("Administrator")
+  div.panel.panel-primary#developer-org-panel
+    div.panel-heading
+      h4.panel-title= _("Members")
 
-      p
-        b= _("Members: ")
-        = developer_org_members.map((m) => m.username).join(', ')
+    ul.list-group
+      for m in developer_org_members
+        li.list-group-item.clearfix
+          div.pull-left= m.username
+          div.pull-right
+            if m.developer_status === 0
+              = _("Tester")
+            else if m.developer_status === 1
+              = _("Developer")
+            else if m.developer_status === 2
+              = _("Trusted Dev")
+            else if m.developer_status === 3
+              = _("Administrator")
 
-section
-  h3.text-center= _("Your Devices")
+  div.panel.panel-default
+    div.panel-heading
+      h4.panel-title= _("Devices")
 
-  div.row
     if developer_devices.length > 0
-      div.col-xs-12
-        ul#developer-device-list
-          for dev in developer_devices
-            li
-              span.image
-                img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name).device-icon-tiny
-              a(href='/thingpedia/devices/by-id/' + dev.primary_kind)
-                = dev.name
-              span.action.hidden-xs
-                a.btn.btn-sm.btn-warning(href='/thingpedia/upload/update/' + dev.primary_kind)= _("Update")
-              form(action='/thingpedia/devices/delete/', method='post').form-inline.form-delete-device.hidden-xs
-                input(type='hidden',name='_csrf',value=csrfToken)
-                input(type='hidden',name='kind',value=dev.primary_kind)
-                button(type='submit').btn.btn-sm.btn-danger= _("Delete")
+      ul#developer-device-list
+        for dev in developer_devices
+          li
+            span.image
+              img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name).device-icon-tiny
+            a(href='/thingpedia/devices/by-id/' + dev.primary_kind)
+              = dev.name
+            span.action.hidden-xs
+              a.btn.btn-sm.btn-warning(href='/thingpedia/upload/update/' + dev.primary_kind)= _("Update")
+            form(action='/thingpedia/devices/delete/', method='post').form-inline.form-delete-device.hidden-xs
+              input(type='hidden',name='_csrf',value=csrfToken)
+              input(type='hidden',name='kind',value=dev.primary_kind)
+              button(type='submit').btn.btn-sm.btn-danger= _("Delete")
     else
-      div.col-xs-12
+      div.panel-body
         p= _("Your organization does not own any device yet.")
 
-  div.row
-    if authenticated && user.developer_status >= 1
-      div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
-        a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")
-    else
-      div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
-        a(href='/user/request-developer').btn.btn-primary.btn-block= _("Become a Thingpedia Developer")
+    div.panel-footer
+      div.row
+        if authenticated && user.developer_status >= 1
+          div.col-sm-6.col-md-4
+            a(href='/thingpedia/upload/create').btn.btn-primary.btn-sm.btn-block= _("Upload a new device")
+        else
+          div.col-sm-6.col-md-4
+            a(href='/user/request-developer').btn.btn-primary.btn-sm.btn-block= _("Become a Thingpedia Developer")

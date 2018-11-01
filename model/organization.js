@@ -33,7 +33,7 @@ module.exports = {
     },
 
     getMembers(client, id) {
-        return db.selectAll(client, "select username from users where developer_org = ?", [id]);
+        return db.selectAll(client, "select username,developer_status,roles from users where developer_org = ?", [id]);
     },
 
     getByDeveloperKey(client, key) {
