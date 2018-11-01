@@ -61,7 +61,6 @@
     "js-yaml": "^3.12.0",
     "jstransformer-markdown-it": "^2.0.0",
     "jszip": "^3.0.0",
-    "leveldown": "^1.4.6",
     "markdown-it-anchor": "^4.0.0",
     "markdown-it-container-pandoc": "^1.0.0",
     "markdown-it-highlightjs": "^3.0.0",
@@ -116,8 +115,7 @@
     "tough-cookie": "^2.4.3"
   },
   "optionalDependencies": {
-    "aws-sdk": "^2.2.48",
-    "cvc4": "^0.1.1"
+    "aws-sdk": "^2.2.48"
   },
   "nyc": {
     "exclude": [
