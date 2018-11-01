@@ -108,7 +108,7 @@
   font-weight: bold;
 }
 
-#thingpedia-entity-list {
+#thingpedia-entity-list, #thingpedia-string-type-list {
   margin-top: 1.5em;
 }
 
@@ -127,4 +127,7 @@
   width: 40px;
   height: 40px;
   object-fit: contain;
+}
+#thingpedia-string-type-list > li > div > a {
+  margin-top: 1.5em;
 }

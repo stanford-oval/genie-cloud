@@ -27,6 +27,9 @@ block content
             div.modal-dialog
               div.modal-content
                 div.modal-header
+                  a.close(data-dismiss='modal', aria-label="Close")
+                    span(aria-hidden='true') ×
+
                   h4.modal-title= _("New Entity Type")
                 form(action='/thingpedia/entities/create', enctype='multipart/form-data', method='post', data-toggle='validator')
                   div.modal-body
