@@ -17,17 +17,7 @@ const os = require('os');
 const events = require('events');
 const child_process = require('child_process');
 const smtlib = require('smtlib');
-
-// embedded cvc4 is not a required dependency, only an optional
-// one, because it is complicated to build on travis
-// if embedded cvc4 is not possible, we fall back to the
-// out-of-process one
-let smtsolver = null;
-try {
-    smtsolver = require('cvc4');
-} catch(e) {
-    smtsolver = smtlib.LocalCVC4Solver;
-}
+const smtsolver = smtlib.LocalCVC4Solver;
 
 // FIXME we should not punch through the abstraction
 const prefs = require('thingengine-core/lib/util/prefs');
