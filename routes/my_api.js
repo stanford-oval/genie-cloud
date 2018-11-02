@@ -29,10 +29,10 @@ var router = express.Router();
 const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS, 'null'];
 
 function isOriginOk(req) {
-    if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer'))
+    if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer '))
         return true;
     if (typeof req.headers['origin'] !== 'string')
-        return true;
+        return false;
     return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
 }
 
