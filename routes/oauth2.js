@@ -180,6 +180,15 @@ function verifyScope(client, scopes) {
     }
 }
 
+function verifyRedirectUrl(client, redirectURI) {
+    for (let url of JSON.parse(client.allowed_redirect_uris)) {
+        if (redirectURI.startsWith(url))
+            return;
+    }
+
+    throw new oauth2orize.AuthorizationError("invalid redirect_uri", 'unauthorized_client');
+}
+
 router.get('/authorize', user.requireLogIn, server.authorization((clientID, redirectURI, scope, done) => {
     db.withClient((dbClient) => {
         return model.getClients(dbClient, clientID).then((rows) => {
@@ -191,6 +200,7 @@ router.get('/authorize', user.requireLogIn, server.authorization((clientID, redi
     }).then((client) => {
         try {
             verifyScope(client, scope);
+            verifyRedirectUrl(client, redirectURI);
             done(null, client, redirectURI);
         } catch(err) {
             done(err);
@@ -248,11 +258,21 @@ function validateScopes(allowedScopes) {
     return allowedScopes;
 }
 
+function validateRedirectUrls(urls) {
+    for (let url of urls) {
+        const parsed = Url.parse(url);
+        if (parsed.protocol === null || parsed.hostname === null ||
+            (parsed.protocol !== 'https:' && parsed.hostname !== '127.0.0.1'))
+            throw new Error(`Invalid redirect URI (must be an absolute https: URL)`);
+    }
+    return urls;
+}
+
 router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'icon', maxCount: 1 }
 ]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
     const name = req.body.name;
-    let scopes;
+    let scopes, redirectUrls;
     try {
         if (!name)
             throw new Error(req._("Name must be provided"));
@@ -267,6 +287,8 @@ router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
         if (req.user.developer_status < user.DeveloperStatus.ADMIN &&
             scopes.indexOf('user-sync') >= 0)
             throw new Error(req._("user-sync scope is valid only for administrators"));
+
+        redirectUrls = validateRedirectUrls(req.body.redirect_uri.split(/ +/));
     } catch(e) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
@@ -281,7 +303,8 @@ router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
             secret: clientSecret,
             name: name,
             owner: req.user.developer_org,
-            allowed_scopes: scopes.join(' ')
+            allowed_scopes: scopes.join(' '),
+            allowed_redirect_uris: JSON.stringify(redirectUrls)
         });
         await uploadIcon(clientId, req);
         res.redirect(303, '/thingpedia/developers/oauth');

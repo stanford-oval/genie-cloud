@@ -69,6 +69,11 @@ block content
                           input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#new-oauth-icon
 
                         div.form-group
+                          label(for='new-oauth-redirect-uri').control-label= _("Allowed Redirect URLs")
+                          input(type='text',name='redirect_uri').form-control#new-oauth-redirect-uri
+                          span.help-block= _("Multiple URLs can be separated by a space.")
+
+                        div.form-group
                           label.control-label= _("Additional Permissions")
                           div.checkbox
                             label
