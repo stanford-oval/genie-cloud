@@ -24,20 +24,13 @@ module.exports = {
         return db.selectAll(client, "select * from oauth2_clients where owner = ?", [owner]);
     },
 
-    getCodes(client, oauth2ClientId, code) {
-        return db.selectAll(client, "select * from oauth2_auth_codes where client_id = ? and code = ?",
-                            [oauth2ClientId, code]);
-    },
-
-    deleteCode(client, oauth2ClientId, userId) {
-        return db.query(client, "delete from oauth2_auth_codes where client_id = ? and user_id = ?",
-                        [oauth2ClientId, userId]);
-    },
-
     createClient(dbClient, client) {
         return db.insertOne(dbClient, 'insert into oauth2_clients set ?', [client]).then(() => client);
     },
-    createCode(dbClient, code) {
-        return db.insertOne(dbClient, 'replace into oauth2_auth_codes set ?', [code]).then(() => code);
+    createRefreshToken(dbClient, token) {
+        return db.insertOne(dbClient, 'replace into oauth2_refresh_tokens set ?', [token]).then(() => token);
     },
+    getRefreshToken(dbClient, token) {
+        return db.selectOne(dbClient, 'select * from oauth2_refresh_tokens where token = ?', [token]);
+    }
 };

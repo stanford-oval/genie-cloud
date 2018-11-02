@@ -15,6 +15,8 @@ const passport = require('passport');
 const oauth2orize = require('oauth2orize');
 const multer = require('multer');
 const csurf = require('csurf');
+const util = require('util');
+const jwt = require('jsonwebtoken');
 
 const BasicStrategy = require('passport-http').BasicStrategy;
 const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
@@ -28,6 +30,7 @@ const db = require('../util/db');
 const code_storage = require('../util/code_storage');
 const graphics = require('../almond/graphics');
 const platform = require('../util/platform');
+const secret = require('../util/secret_key');
 
 var router = express.Router();
 
@@ -76,17 +79,19 @@ server.deserializeClient((id, done) => {
 // values, and will be exchanged for an access token.
 
 server.grant(oauth2orize.grant.code((client, redirectURI, user, ares, done) => {
-    const code = makeRandom();
-
-    db.withTransaction((dbClient) => {
-        return model.createCode(dbClient, { user_id: user.id,
-                                            client_id: client.id,
-                                            code: code,
-                                            redirectURI: redirectURI });
-    }).then(() => {
-        return code;
-    }).nodeify(done);
+    jwt.sign({
+        sub: client.id,
+        grant_type: 'authorization_code',
+        user_id: user.cloud_id,
+        redirect_uri: redirectURI
+    }, secret.getJWTSigningKey(), { expiresIn: 600 /* seconds */ }, done);
 }));
+
+function sha256(string) {
+    const hash = crypto.createHash('sha256');
+    hash.update(string);
+    return hash.digest().toString('hex');
+}
 
 // Exchange authorization codes for access tokens.  The callback accepts the
 // `client`, which is exchanging `code` and any `redirectURI` from the
@@ -95,29 +100,68 @@ server.grant(oauth2orize.grant.code((client, redirectURI, user, ares, done) => {
 // code.
 
 server.exchange(oauth2orize.exchange.code((client, code, redirectURI, done) => {
-    const token = makeRandom();
+    jwt.verify(code, secret.getJWTSigningKey(), {
+        algorithms: ['HS256'],
+        subject: client.id,
+        clockTolerance: 30,
+    }, (err, decoded) => {
+        // if an error occurs, or the code is wrong, just return false,
+        // which will fail with invalid_grant error
+        if (err || decoded.grant_type !== 'authorization_code' ||
+            (redirectURI && decoded.redirect_uri !== redirectURI)) {
+            done(null, false);
+            return;
+        }
 
-    db.withTransaction((dbClient) => {
-        return model.getCodes(dbClient, client.id, code).then((rows) => {
-            if (rows.length < 1)
-                return false;
-            const oauth2Code = rows[0];
-            if (redirectURI !== oauth2Code.redirectURI)
-                return false;
+        db.withTransaction(async (dbClient) => {
+            // issue the refresh token
+            const refreshToken = await util.promisify(jwt.sign)({
+                sub: client.id,
+                user_id: decoded.user_id,
+                grant_type: 'refresh_token',
+            }, secret.getJWTSigningKey(), { /* never expires */ });
 
-            const user_id = oauth2Code.user_id;
-            return model.deleteCode(dbClient, client.id, oauth2Code.user_id).then(() => {
-                return model.createToken(dbClient, { user_id: user_id,
-                                                     client_id: client.id,
-                                                     token: token });
-            }).then(() => true);
-        });
-    }).then((ok) => {
-        if (ok)
-            return token;
-        else
-            return false;
-    }).nodeify(done);
+            // store a hash of it in the database
+            // note that we don't need a salt or slow hash function because
+            // the original token is unforgeable
+            await model.createRefreshToken(dbClient, { user_id: decoded.user_id,
+                                                       client_id: client.id,
+                                                       token: sha256(refreshToken) });
+
+            // now issue the access token, valid for one hour
+            const accessToken = await util.promisify(jwt.sign)({
+                sub: decoded.user_id,
+            }, secret.getJWTSigningKey(), { expiresIn: 3600 });
+            done(null, accessToken, refreshToken, { expires_in: 3600 });
+        }).catch(done);
+    });
+}));
+
+server.exchange(oauth2orize.exchange.refreshToken((client, refreshToken, scope, done) => {
+    db.withClient(async (dbClient) => {
+        // check that the token is valid
+        let decoded;
+        try {
+            decoded = await util.promisify(jwt.verify)(refreshToken, secret.getJWTSigningKey(), {
+                algorithms: ['HS256'],
+                subject: client.id,
+                clockTolerance: 30,
+            });
+
+            // check that the token is still in the database (has not been revoked or superseded)
+            await model.getRefreshToken(dbClient, sha256(refreshToken));
+        } catch(e) {
+            // reject the token with invalid_grant
+            done(null, false);
+            return;
+        }
+
+        // now issue the access token, valid for one hour
+        const accessToken = await util.promisify(jwt.sign)({
+            sub: decoded.user_id,
+        }, secret.getJWTSigningKey(), { expiresIn: 3600 });
+        done(null, accessToken, refreshToken, { expires_in: 3600 });
+    }).catch(done);
 }));
 
 router.get('/authorize', user.requireLogIn, server.authorization((clientID, redirectURI, done) => {
