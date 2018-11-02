@@ -211,8 +211,12 @@ router.ws('/results', (ws, req, next) => {
         ws.on('error', (err) => {
             ws.close();
         });
-        ws.on('close', () => {
-            engine.assistant.removeOutput(delegate).catch(() => {}); // ignore errors if engine died
+        ws.on('close', async () => {
+            try {
+                await engine.assistant.removeOutput(delegate);
+            } catch(e) {
+                // ignore errors if engine died
+            }
             delegate.$free();
         });
         ws.on('ping', (data) => ws.pong(data));
@@ -275,17 +279,21 @@ async function doConversation(user, anonymous, ws) {
 
         const delegate = new WebsocketAssistantDelegate(ws);
 
-        let opened = false;
+        let opened = false, earlyClose = false;
         const id = 'web-' + makeRandom(4);
         ws.on('error', (err) => {
             ws.close();
         });
-        ws.on('close', () => {
-            if (opened)
-                engine.assistant.closeConversation(id).catch(() => {}); // ignore errors if engine died
-            delegate.$free();
-
+        ws.on('close', async () => {
+            try {
+                if (opened)
+                    await engine.assistant.closeConversation(id);
+            } catch(e) {
+                // ignore errors if engine died
+            }
+            earlyClose = true;
             opened = false;
+            delegate.$free();
         });
 
         const conversation = await engine.assistant.openConversation(id, assistantUser, delegate, options);
@@ -316,6 +324,8 @@ async function doConversation(user, anonymous, ws) {
                 } catch(e) {/**/}
             });
         });
+        if (earlyClose)
+            return;
         await conversation.start();
     } catch(error) {
         console.error('Error in conversation websocket: ' + error.message);
