@@ -72,7 +72,7 @@ router.options('/.*', (req, res, next) => {
     res.send('');
 });
 
-router.get('/parse', (req, res, next) => {
+router.get('/parse', user.requireScope('user-read'), (req, res, next) => {
     let query = req.query.q || null;
     let targetJson = req.query.target_json || null;
     if (!query && !targetJson) {
@@ -100,7 +100,7 @@ function describeApp(app) {
         }));
 }
 
-router.post('/apps/create', (req, res, next) => {
+router.post('/apps/create', user.requireScope('user-exec-command'), (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
@@ -115,7 +115,7 @@ router.post('/apps/create', (req, res, next) => {
     });
 });
 
-router.get('/apps/list', (req, res, next) => {
+router.get('/apps/list', user.requireScope('user-read'), (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
@@ -130,7 +130,7 @@ router.get('/apps/list', (req, res, next) => {
     });
 });
 
-router.get('/apps/get/:appId', (req, res, next) => {
+router.get('/apps/get/:appId', user.requireScope('user-read'), (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
@@ -150,7 +150,7 @@ router.get('/apps/get/:appId', (req, res, next) => {
     });
 });
 
-router.post('/apps/delete/:appId', (req, res, next) => {
+router.post('/apps/delete/:appId', user.requireScope('user-exec-command'), (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
@@ -187,7 +187,7 @@ class WebsocketApiDelegate {
 }
 WebsocketApiDelegate.prototype.$rpcMethods = ['send'];
 
-router.ws('/results', (ws, req, next) => {
+router.ws('/results', user.requireScope('user-read-results'), (ws, req, next) => {
     var user = req.user;
 
     Q.try(() => {
@@ -330,7 +330,7 @@ async function doConversation(user, anonymous, ws) {
     }
 }
 
-router.ws('/conversation', (ws, req, next) => {
+router.ws('/conversation', user.requireScope('user-exec-command'), (ws, req, next) => {
     doConversation(req.user, false, ws);
 });
 
@@ -394,7 +394,7 @@ class WebsocketDelegate {
 }
 WebsocketDelegate.prototype.$rpcMethods = ['ping', 'pong', 'terminate', 'send'];
 
-router.ws('/sync', async (ws, req) => {
+router.ws('/sync', user.requireScope('user-sync'), async (ws, req) => {
     try {
         const userId = req.user.id;
         const engine = await EngineManager.get().getEngine(userId);

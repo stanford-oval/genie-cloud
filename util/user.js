@@ -10,6 +10,7 @@
 "use strict";
 
 const Q = require('q');
+const assert = require('assert');
 const crypto = require('crypto');
 const db = require('./db');
 const model = require('../model/user');
@@ -22,7 +23,22 @@ function hashPassword(salt, password) {
         .then((buffer) => buffer.toString('hex'));
 }
 
+const OAuthScopes = new Set([
+    'profile', // minimum scope: see the user's profile
+
+    'user-read', // read active commands and devices
+    'user-read-results', // read results of active commands
+    'user-exec-command', // execute thingtalk (includes web almond access)
+    'user-sync', // cloud sync (dump credentials)
+
+    'developer-read', // read unapproved devices (equivalent to a developer key)
+    'developer-upload', // upload new devices
+    'developer-admin', // modify thingpedia organization settings, add/remove members
+]);
+
 module.exports = {
+    OAuthScopes,
+
     DeveloperStatus: {
         USER: 0,
         DEVELOPER: 1,
@@ -131,6 +147,23 @@ module.exports = {
             } else {
                 next();
             }
+        };
+    },
+
+    requireScope(scope) {
+        assert(OAuthScopes.has(scope));
+        return function(req, res, next) {
+            if (!req.authInfo) {
+                next();
+                return;
+            }
+
+            if (req.authInfo.scope.indexOf(scope) < 0) {
+                res.status(403).json({error:'invalid scope'});
+                return;
+            }
+
+            next();
         };
     },
 

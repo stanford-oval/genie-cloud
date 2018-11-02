@@ -109,13 +109,14 @@ exports.initialize = function() {
                 algorithms: ['HS256'],
                 clockTolerance: 30,
             });
+            const scope = decoded.scope || ['profile'];
             const [user, options] = await db.withClient(async (dbClient) => {
                 const rows = await model.getByCloudId(dbClient, decoded.sub);
                 if (rows.length < 1)
                     return [false, null];
 
                 await model.recordLogin(dbClient, rows[0].id);
-                return [rows[0], { scope: '*' }];
+                return [rows[0], { scope }];
             });
             done(null, user, options);
         } catch(err) {
