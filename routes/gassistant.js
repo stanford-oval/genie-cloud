@@ -57,9 +57,6 @@ GoogleAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendCho
 
 
 router.post('/', (req, res, next) => {
-    console.log('Dialogflow Request headers: ' + JSON.stringify(req.headers));
-    console.log('Dialogflow Request body: ' + JSON.stringify(req.body));
-    console.log('Dialogflow Request user: ' + req.user);
     if (req.body && req.body.originalDetectIntentRequest.payload.user && req.body.originalDetectIntentRequest.payload.user.accessToken &&
         !req.headers.authorization)
         req.headers.authorization = 'Bearer ' + req.body.originalDetectIntentRequest.payload.user.accessToken;
@@ -83,7 +80,6 @@ router.post('/', (req, res, next) => {
 }, (req, res) => {
     const agent = new WebhookClient({request: req, response: res});
     const raw = req.body.queryResult.queryText;
-    console.log('Received command: ' + raw);
 
     const user = req.user;
     const assistantUser = { name: user.human_name || user.username };
