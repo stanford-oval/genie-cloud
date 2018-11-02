@@ -40,7 +40,4 @@ module.exports = {
     createCode(dbClient, code) {
         return db.insertOne(dbClient, 'replace into oauth2_auth_codes set ?', [code]).then(() => code);
     },
-    createToken(dbClient, token) {
-        return db.insertOne(dbClient, 'replace into oauth2_access_tokens set ?', [token]).then(() => token);
-    },
 };
