@@ -61,19 +61,12 @@ router.ws('/anonymous', (ws, req) => {
 });
 
 router.use((req, res, next) => {
-    passport.authenticate('bearer', (err, user, info) => {
-        // ignore auth failures and ignore sessions
-        if (err) {
-            next(err);
-            return;
-        }
-        if (!user) {
-            next();
-            return;
-        }
-        req.login(user, next);
-    })(req, res, next);
-}, user.requireLogIn);
+    if (req.user) {
+        next();
+        return;
+    }
+    passport.authenticate('bearer', { session: false })(req, res, next);
+});
 
 router.options('/.*', (req, res, next) => {
     res.send('');
