@@ -334,4 +334,96 @@ router.ws('/conversation', (ws, req, next) => {
     doConversation(req.user, false, ws);
 });
 
+class WebsocketDelegate {
+    constructor(ws) {
+        this._ws = ws;
+        this._remote = null;
+    }
+
+    setRemote(remote) {
+        this._remote = remote;
+
+        this._ws.on('message', (data) => {
+            try {
+                remote.onMessage(data);
+            } catch(e) {
+                console.error('Failed to relay websocket message: ' + e.message);
+                this._ws.close();
+            }
+        });
+        this._ws.on('ping', (data) => {
+            try {
+                remote.onPing(data);
+            } catch(e) {
+                // ignore
+                this._ws.close();
+            }
+        });
+        this._ws.on('pong', (data) => {
+            try {
+                remote.onPong(data);
+            } catch(e) {
+                // ignore
+                this._ws.close();
+            }
+        });
+        this._ws.on('close', (data) => {
+            try {
+                remote.onClose(data);
+            } catch(e) {
+                // ignore
+            }
+        });
+    }
+
+    ping() {
+        this._ws.ping();
+    }
+
+    pong() {
+        this._ws.pong();
+    }
+
+    send(data) {
+        this._ws.send(data);
+    }
+
+    terminate() {
+        this._ws.terminate();
+    }
+}
+WebsocketDelegate.prototype.$rpcMethods = ['ping', 'pong', 'terminate', 'send'];
+
+router.ws('/sync', async (ws, req) => {
+    try {
+        const userId = req.user.id;
+        const engine = await EngineManager.get().getEngine(userId);
+
+        const onclosed = (id) => {
+            if (id === userId)
+                ws.close();
+            EngineManager.get().removeListener('socket-closed', onclosed);
+        };
+        EngineManager.get().on('socket-closed', onclosed);
+
+        const delegate = new WebsocketDelegate(ws);
+        ws.on('error', (err) => {
+            ws.close();
+        });
+        ws.on('close', async () => {
+            delegate.$free();
+        });
+
+        const remote = await engine.websocket.newConnection(delegate);
+        delegate.setRemote(remote);
+    } catch (error) {
+        console.error('Error in cloud-sync websocket: ' + error.message);
+
+        // ignore "Not Opened" error in closing
+        try {
+            ws.close();
+        } catch(e) {/**/}
+    }
+});
+
 module.exports = router;
