@@ -121,13 +121,15 @@ server.exchange(oauth2orize.exchange.code((client, code, redirectURI, done) => {
             // store the fact that the permission was granted in the database
             let allScopes = new Set;
             try {
-                allScopes = new Set((await model.getPermission(client.id, decoded.user_id)).scope.split(' '));
+                allScopes = new Set((await model.getPermission(dbClient, client.id, decoded.user_id)).scope.split(' '));
             } catch(e) {
+                if (e.code !== 'ENOENT')
+                    throw e;
                 // ignore if not existing
             }
-            for (let scope of decoded.scope.split(' '))
+            for (let scope of decoded.scope)
                 allScopes.add(scope);
-            await model.createPermission(client.id, decoded.user_id, Array.from(allScopes).join(' '));
+            await model.createPermission(dbClient, client.id, decoded.user_id, Array.from(allScopes).join(' '));
 
             // now issue the access token, valid for one hour
             const accessToken = await util.promisify(jwt.sign)({
@@ -135,7 +137,10 @@ server.exchange(oauth2orize.exchange.code((client, code, redirectURI, done) => {
                 scope: decoded.scope
             }, secret.getJWTSigningKey(), { expiresIn: 3600 });
             done(null, accessToken, refreshToken, { expires_in: 3600 });
-        }).catch(done);
+        }).catch((e) => {
+            console.error(e);
+            done(e);
+        });
     });
 }));
 
@@ -153,7 +158,7 @@ server.exchange(oauth2orize.exchange.refreshToken((client, refreshToken, scope, 
             // check that the permission is still in the database (has not been revoked or superseded)
             const permission = await model.getPermission(dbClient, client.id, decoded.user_id);
             const allScopes = permission.scope.split(' ');
-            for (let scope of decoded.scope.split(' ')) {
+            for (let scope of decoded.scope) {
                 if (allScopes.indexOf(scope) < 0)
                     throw new oauth2orize.AuthorizationError("invalid scope", 'invalid_scope');
             }
@@ -193,7 +198,7 @@ router.get('/authorize', user.requireLogIn, server.authorization((clientID, redi
     db.withClient((dbClient) => {
         return model.getClients(dbClient, clientID).then((rows) => {
             if (rows.length < 1)
-                 return false;
+                throw new oauth2orize.AuthorizationError("invalid client", 'unauthorized_client');
             else
                 return rows[0];
         });

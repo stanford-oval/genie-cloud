@@ -168,6 +168,28 @@ block content
                     |  
                     a.btn.btn-default(data-dismiss='modal')= _("No, I changed my mind")
 
+  div.panel.panel-default#user-authorized-oauth-panel
+    div.panel-heading
+      h2.panel-title= _("Authorized third-party apps")
+
+    if oauth_permissions.length > 0
+      ul.list-group
+        for client in oauth_permissions
+          li.list-group-item.clearfix
+            div.pull-left
+              img(src=CDN_HOST + '/icons/oauth:' + client.id + '.png', role='presentation').device-icon-tiny
+            div.pull-left
+              h4= client.name
+              p= _("By %s").format(client.owner_name)
+            div.pull-right
+              form(action='/user/revoke-oauth2',method='post')
+                input(type='hidden',name='_csrf',value=csrfToken)
+                input(type='hidden',name='client_id',value=client.id)
+                button(type='submit').btn.btn-danger= _("Revoke")
+    else
+      div.panel-body
+        p= _("You have not authorized any third-party app.")
+
   div.panel.panel-default
     div.panel-heading
       h2.panel-title= _("Phone")

@@ -16,6 +16,7 @@ const passport = require('passport');
 
 const userUtils = require('../util/user');
 const model = require('../model/user');
+const oauthModel = require('../model/oauth2');
 const db = require('../util/db');
 const SendMail = require('../util/sendmail');
 
@@ -155,13 +156,13 @@ router.post('/subscribe', (req, res, next) => {
     }).catch(next);
 });
 
-async function getProfile(req, res, pwError, profileError) {
-    let phone = {
+async function getProfile(req, res, pw_error, profile_error) {
+    const phone = {
         isConfigured: false,
         qrcodeTarget: 'https://thingengine.stanford.edu/qrcode-cloud/' + req.user.cloud_id + '/'
             + req.user.auth_token
     };
-    let desktop = {
+    const desktop = {
         isConfigured: false,
     };
     try {
@@ -179,11 +180,17 @@ async function getProfile(req, res, pwError, profileError) {
         // ignore the error if the engine is down
     }
 
+    const oauth_permissions = await db.withClient((dbClient) => {
+        return oauthModel.getAllPermissionsOfUser(dbClient, req.user.cloud_id);
+    });
+
     res.render('user_profile', { page_title: req._("Thingpedia - User Profile"),
                                  csrfToken: req.csrfToken(),
-                                 pw_error: pwError,
-                                 profile_error: profileError,
-                                 phone: phone, desktop: desktop });
+                                 pw_error,
+                                 profile_error,
+                                 oauth_permissions,
+                                 phone,
+                                 desktop });
 }
 
 router.get('/profile', userUtils.requireLogIn, (req, res, next) => {
@@ -222,6 +229,14 @@ router.post('/profile', userUtils.requireLogIn, (req, res, next) => {
         return getProfile(req, res, undefined, undefined);
     }).catch((error) => {
         return getProfile(req, res, undefined, error);
+    }).catch(next);
+});
+
+router.post('/revoke-oauth2', userUtils.requireLogIn, (req, res, next) => {
+    return db.withTransaction((dbClient) => {
+        return oauthModel.revokePermission(dbClient, req.body.client_id, req.user.cloud_id);
+    }).then(() => {
+            res.redirect(303, '/user/profile');
     }).catch(next);
 });
 

@@ -32,7 +32,7 @@ module.exports = {
         return db.selectOne(dbClient, 'select * from oauth2_permissions where client_id = ? and user_id = ?', [clientId, userId]);
     },
     createPermission(dbClient, clientId, userId, scope) {
-        return db.insertOne(dbClient, 'insert or replace into oauth2_permissions(client_id, user_id, scope) values(?,?,?)', [clientId, userId, scope]);
+        return db.insertOne(dbClient, 'replace into oauth2_permissions(client_id, user_id, scope) values(?,?,?)', [clientId, userId, scope]);
     },
     revokePermission(dbClient, clientId, userId) {
         return db.query(dbClient,'delete from oauth2_permissions where client_id = ? and user_id = ?', [clientId, userId]);
@@ -42,6 +42,8 @@ module.exports = {
     },
 
     getAllPermissionsOfUser(dbClient, userId) {
-        return db.selectAll(dbClient, "select oc.* from oauth2_clients oc, oauth2_permissions op where oc.id = op.client_id and op.user_id = ?", [userId]);
+        return db.selectAll(dbClient, `select oc.*, org.name as owner_name from oauth2_clients oc,
+            oauth2_permissions op, organizations org where oc.id = op.client_id and op.user_id = ?
+            and org.id = oc.owner`, [userId]);
     }
 };
