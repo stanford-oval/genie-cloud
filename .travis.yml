@@ -27,7 +27,6 @@ install:
 - sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev
   realpath
 - yarn
-- ( cd node_modules/thingengine-core ; for i in data/*.tt ; do node -e 'console.log(JSON.stringify(require("fs").readFileSync("'${i}'").toString("utf8")))' > lib/devices/builtins/$(basename $i).json ; done )
 before_script:
 - mysql -u root -e "create database if not exists thingengine_test; grant all privileges
   on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
