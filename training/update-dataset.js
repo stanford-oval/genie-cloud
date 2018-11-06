@@ -23,7 +23,6 @@ const exampleModel = require('../model/example');
 
 const BinaryPPDB = require('../util/binary_ppdb');
 const PPDBUtils = require('../util/ppdb');
-const SentenceGenerator = require('./sentence-generator');
 const ParameterReplacer = require('./replace_parameters');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 
@@ -208,7 +207,6 @@ class DatasetUpdater {
         const options = {
             rng: this._rng,
             language: this._language,
-            dbClient: this._dbClient,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
             turkingMode: false,
@@ -216,7 +214,7 @@ class DatasetUpdater {
             debug: false
         };
 
-        const generator = new SentenceGenerator(options);
+        const generator = new ThingTalk.SentenceGenerator(options);
         const writer = new stream.Writable({
             objectMode: true,
             highWaterMark: 100,

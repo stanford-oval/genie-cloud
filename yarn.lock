@@ -6753,10 +6753,9 @@ thingpedia@^2.2.1, thingpedia@^2.2.2, thingpedia@^2.3.0:
     tmp "0.0.33"
     xml2js "^0.4.17"
 
-thingtalk@~1.3.0:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.3.1.tgz#f93b2f63b7a9caca755d5cd7d5da4e4505835f45"
-  integrity sha512-RnuQ1SPxHQSPfThtjEehwL0LaCWfB9fUrmYREd/yiKHSw+82jHtlPt6uU1r8krNH4VisJD+cr9VsIxZkdPJUbw==
+"thingtalk@git://github.com/Stanford-Mobisocial-IoT-Lab/thingtalk", thingtalk@~1.3.0:
+  version "1.3.0"
+  resolved "git://github.com/Stanford-Mobisocial-IoT-Lab/thingtalk#135f6c5540988e952fdc821e5f9d19356a7d5ed9"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"

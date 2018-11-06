@@ -204,6 +204,21 @@ module.exports = {
         return db.selectOne(client, "select * from device_schema where id = ?", [id]);
     },
 
+    getAllApproved(client, org) {
+        if (org === -1) {
+            return db.selectAll(client, `select kind, kind_canonical from device_schema`,
+                []);
+        } else if (org !== null) {
+            return db.selectAll(client, `select kind, kind_canonical from device_schema
+                where (approved_version is not null or owner = ?)`,
+                [org]);
+        } else {
+            return db.selectAll(client, `select kind, kind_canonical from device_schema
+                where approved_version is not null`,
+                []);
+        }
+    },
+
     getCurrentSnapshotTypes(client) {
         return db.selectAll(client, "select name, types, argnames, required, is_input, is_list, is_monitorable, channel_type, kind, kind_type from device_schema ds"
                              + " left join device_schema_channels dsc on ds.id = dsc.schema_id "

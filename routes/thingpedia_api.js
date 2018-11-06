@@ -1350,24 +1350,16 @@ function getAllEntities(req, res, next) {
         return;
     }
 
-    db.withClient((dbClient) => {
-        if (snapshotId >= 0)
-            return entityModel.getSnapshot(dbClient, snapshotId);
-        else
-            return entityModel.getAll(dbClient);
-    }).then((rows) => {
-        if (rows.length > 0 && snapshotId >= 0) {
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+
+    client.getAllEntityNames().then((data) => {
+        if (data.length > 0 && snapshotId >= 0) {
             res.cacheFor(6, 'months');
             res.set('ETag', etag);
         } else {
             res.cacheFor(86400000);
         }
-        res.status(200).json({ result: 'ok', data: rows.map((r) => ({
-            type: r.id,
-            name: r.name,
-            is_well_known: r.is_well_known,
-            has_ner_support: r.has_ner_support
-        })) });
+        res.status(200).json({ result: 'ok', data });
     }).catch(next);
 }
 
