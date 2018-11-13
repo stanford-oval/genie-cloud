@@ -110,6 +110,18 @@ function* requote(id, sentence, program) {
     }
 }
 
+function filterForDevices(set, code) {
+    for (let token of code.split(' ')) {
+        if (token.startsWith('@')) {
+            let split = token.substring(1).split('.');
+            let kind = split.slice(0, split.length-1).join('.');
+            if (!set.has(kind))
+                return false;
+        }
+    }
+    return true;
+}
+
 async function main() {
     const parser = new argparse.ArgumentParser({
         addHelp: true,
@@ -218,9 +230,13 @@ async function main() {
     if (argv.test)
         argv.eval_prob *= 2;
 
+    const forDeviceSet = new Set(forDevices);
     const devtestset = new Set;
     const trainset = new Set;
     query.on('result', (row) => {
+        if (forDevices.length > 0 && !filterForDevices(forDeviceSet, row.target_code))
+            return;
+
         const flags = parseFlags(row.flags);
         const line = makeId(row.id, flags) + '\t' + row.preprocessed + '\t' + row.target_code + '\n';
 
