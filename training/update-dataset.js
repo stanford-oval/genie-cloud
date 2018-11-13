@@ -90,6 +90,10 @@ class DatasetUpdater {
         if (this._options.regenerateAll) {
             await db.query(this._dbClient, `delete from example_utterances where language = ? and (type = 'generated' or
                 find_in_set('augmented', flags) or find_in_set('replaced', flags))`, [this._language]);
+        } else if (this._options.regenerateTypes.length > 0) {
+            await db.query(this._dbClient, `delete from example_utterances where language = ? and
+                type in (?) and (find_in_set('augmented', flags) or find_in_set('replaced', flags))`,
+                [this._language, this._options.regenerateTypes]);
         } else if (this._forDevicesPattern !== null) {
             await db.query(this._dbClient, `delete from example_utterances where language = ? and type = 'generated'
                 and target_code rlike ?`, [this._language, this._forDevicesPattern]);
@@ -256,8 +260,16 @@ class DatasetUpdater {
     }
 
     async _regenerateReplacedParaphrases() {
-        const rows = await db.selectAll(this._dbClient, `select id,flags,type,preprocessed,target_code from example_utterances use index (language_flags) where language = ?
-             and type <> 'generated' and find_in_set('training', flags)`, [this._language]);
+        let rows;
+        if (this._options.regenerateAll) {
+            rows = await db.selectAll(this._dbClient, `select id,flags,type,preprocessed,target_code from
+                example_utterances use index (language_flags) where language = ?
+                and type <> 'generated' and find_in_set('training', flags)`, [this._language]);
+        } else {
+            rows = await db.selectAll(this._dbClient, `select id,flags,type,preprocessed,target_code from
+                example_utterances use index (language_type) where language = ?
+                and find_in_set('training', flags) and type in (?)`, [this._language, this._options.regenerateTypes]);
+        }
 
         console.log(`Loaded ${rows.length} rows`);
         for (let i = 0; i < rows.length; i += 1000) {
@@ -276,9 +288,10 @@ class DatasetUpdater {
         await this._paramReplacer.initialize();
 
         await this._clearExistingDataset();
-        if (this._options.regenerateAll)
+        if (this._options.regenerateAll || this._options.regenerateTypes.length > 0)
             await this._regenerateReplacedParaphrases();
-        await this._genSynthetic();
+        if (this._options.regenerateTypes.length === 0)
+            await this._genSynthetic();
     }
 
     async run() {
@@ -305,6 +318,12 @@ async function main() {
         nargs: 0,
         action: 'storeTrue',
         help: 'Update all datasets, including paraphrased ones.'
+    });
+    parser.addArgument(['-t', '--type'], {
+        action: 'append',
+        metavar: 'TYPE',
+        help: 'Update datasets of the given type.',
+        dest: 'types',
     });
     parser.addArgument(['-d', '--device'], {
         action: 'append',
@@ -339,6 +358,7 @@ async function main() {
 
     const updater = new DatasetUpdater(args.language, args.forDevices, {
         regenerateAll: args.all,
+        regenerateTypes: args.types || [],
         maxDepth: args.maxdepth,
 
         ppdbFile: args.ppdb,
