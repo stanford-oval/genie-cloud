@@ -80,9 +80,16 @@ async function main() {
         help: 'Restrict download to commands of the given device. This option can be passed multiple times to specify multiple devices',
         dest: 'forDevices',
     });
+    parser.addArgument(['-t', '--type'], {
+        action: 'append',
+        metavar: 'TYPE',
+        help: 'Restrict download to commands in the given dataset type.',
+        dest: 'types',
+    });
     const argv = parser.parseArgs();
     const language = argv.language;
     const forDevices = argv.forDevices;
+    const types = argv.types || [];
 
     const rng = seedrandom(argv.random_seed);
 
@@ -102,6 +109,18 @@ async function main() {
                 use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
                 and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
                 [language, regexp]);
+        }
+    } else if (types.length > 0) {
+        if (argv.quote_free) {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                use index (language_type) where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
+                and target_code<>'' and preprocessed<>'' and type in (?)`,
+                [language, types]);
+        } else {
+            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+                use index (language_type) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
+                and target_code<>'' and preprocessed<>'' and type in (?)`,
+                [language, types]);
         }
     } else {
         if (argv.quote_free) {
