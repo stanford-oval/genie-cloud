@@ -128,6 +128,12 @@ async function main() {
         type: fs.createWriteStream,
         help: 'Eval file output path',
     });
+    parser.addArgument(['--test'], {
+        required: false,
+        type: fs.createWriteStream,
+        help: 'Test file output path',
+        defaultValue: null
+    });
     parser.addArgument(['--eval-prob'], {
         type: Number,
         help: 'Eval probability',
@@ -209,6 +215,8 @@ async function main() {
                 [language]);
         }
     }
+    if (argv.test)
+        argv.eval_prob *= 2;
 
     const devtestset = new Set;
     const trainset = new Set;
@@ -222,11 +230,17 @@ async function main() {
             const requoted = Array.from(requote(row.id, row.preprocessed, row.target_code)).join(' ');
 
             if (devtestset.has(requoted)) {
-                argv.eval.write(line);
+                if (argv.test && coin(0.5))
+                    argv.test.write(line);
+                else
+                    argv.eval.write(line);
             } else if (trainset.has(requoted)) {
                 argv.train.write(line);
             } else if (coin(argv.eval_prob, rng)) {
-                argv.eval.write(line);
+                if (argv.test && coin(0.5))
+                    argv.test.write(line);
+                else
+                    argv.eval.write(line);
                 devtestset.add(requoted);
             } else {
                 argv.train.write(line);
@@ -237,6 +251,8 @@ async function main() {
     query.on('end', () => {
         argv.train.end();
         argv.eval.end();
+        if (argv.test)
+            argv.test.end();
         dbDone();
         db.tearDown();
     });
