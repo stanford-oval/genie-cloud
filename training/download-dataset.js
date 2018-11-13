@@ -36,6 +36,80 @@ function makeId(id, flags) {
     return prefix + id;
 }
 
+function findSubstring(sequence, substring) {
+    for (let i = 0; i < sequence.length - substring.length + 1; i++) {
+        let found = true;
+        for (let j = 0; j < substring.length; j++) {
+            if (sequence[i+j] !== substring[j]) {
+                found = false;
+                break;
+            }
+        }
+        if (found)
+            return i;
+    }
+    return -1;
+}
+
+function* requote(id, sentence, program) {
+    sentence = sentence.split(' ');
+    program = program.split(' ');
+
+    const spans = [];
+    let in_string = false;
+    let begin_index = null;
+    let end_index = null;
+    for (let i = 0; i < program.length; i++) {
+        let token = program[i];
+        if (token === '"') {
+            in_string = !in_string;
+            if (in_string) {
+                begin_index = i+1;
+            } else {
+                end_index = i;
+                const substring = program.slice(begin_index, end_index);
+                const idx = findSubstring(sentence, substring);
+                if (idx < 0)
+                    throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
+                spans.push([idx, idx+end_index-begin_index]);
+            }
+        }
+    }
+
+    if (spans.length === 0) {
+        yield* sentence;
+        return;
+    }
+
+    spans.sort((a, b) => {
+        const [abegin, aend] = a;
+        const [bbegin, bend] = b;
+        if (abegin < bbegin)
+            return -1;
+        if (bbegin < abegin)
+            return +1;
+        if (aend < bend)
+            return -1;
+        if (bend < aend)
+            return +1;
+        return 0;
+    });
+    let current_span_idx = 0;
+    let current_span = spans[0];
+    for (let i = 0; i < sentence.length; i++) {
+        let word = sentence[i];
+        if (current_span === null || i < current_span[0]) {
+            yield word;
+        } else if (i === current_span[0]) {
+            yield 'QUOTED_STRING';
+        } else if (i >= current_span[1]) {
+            yield word;
+            current_span_idx += 1;
+            current_span = current_span_idx < spans.length ? spans[current_span_idx] : null;
+        }
+    }
+}
+
 async function main() {
     const parser = new argparse.ArgumentParser({
         addHelp: true,
@@ -136,14 +210,29 @@ async function main() {
         }
     }
 
+    const devtestset = new Set;
+    const trainset = new Set;
     query.on('result', (row) => {
         const flags = parseFlags(row.flags);
         const line = makeId(row.id, flags) + '\t' + row.preprocessed + '\t' + row.target_code + '\n';
 
-        if (!flags.synthetic && !flags.augmented && coin(argv.eval_prob, rng))
-            argv.eval.write(line);
-        else
+        if (flags.synthetic || flags.augmented) {
             argv.train.write(line);
+        } else {
+            const requoted = Array.from(requote(row.id, row.preprocessed, row.target_code)).join(' ');
+
+            if (devtestset.has(requoted)) {
+                argv.eval.write(line);
+            } else if (trainset.has(requoted)) {
+                argv.train.write(line);
+            } else if (coin(argv.eval_prob, rng)) {
+                argv.eval.write(line);
+                devtestset.add(requoted);
+            } else {
+                argv.train.write(line);
+                trainset.add(requoted);
+            }
+        }
     });
     query.on('end', () => {
         argv.train.end();
