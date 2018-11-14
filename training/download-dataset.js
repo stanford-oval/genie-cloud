@@ -180,7 +180,7 @@ async function main() {
     });
     const argv = parser.parseArgs();
     const language = argv.language;
-    const forDevices = argv.forDevices;
+    const forDevices = argv.forDevices || [];
     const types = argv.types || [];
 
     const rng = seedrandom(argv.random_seed);
@@ -188,7 +188,7 @@ async function main() {
     const [dbClient, dbDone] = await db.connect();
 
     let query;
-    if (forDevices && forDevices.length > 0) {
+    if (forDevices.length > 0) {
         const regexp = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
 
         if (argv.quote_free) {
