@@ -23,7 +23,7 @@ const binarySearch = require('../util/binary_search');
 const db = require('../util/db');
 
 function isGoodWord(word) {
-    return /^[a-zA-Z0-9]+|'s|\?$/.test(word);
+    return /^([a-zA-Z0-9]+|'s|\?)$/.test(word);
 }
 
 function isReplaceToken(tok) {

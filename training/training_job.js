@@ -290,7 +290,7 @@ async function taskUploading(job) {
     const INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
     await execCommand(job, 'rsync', ['-rv',
         path.resolve(job.bestModelDir) + '/',
-        INFERENCE_SERVER + `:/var/lib/luinet/${modelLangDir}/`
+        INFERENCE_SERVER + `:${modelLangDir}/`
     ]);
 
     for (let what of ['saved-model', 'tensorboard', 'dataset']) {
