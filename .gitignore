@@ -17,6 +17,7 @@ home/
 /workdir
 
 doc/doc-list.json
+doc/fts.json
 doc/thingpedia-api
 views/doc_*.pug
 !views/doc_base.pug

@@ -18,6 +18,13 @@ nav#doc-sidebar
     li.thingpedia-docs
       a.doc-sidebar-subtitle(href='#thingpedia-doc-list',data-toggle='collapse') Thingpedia Documentation
       ul#thingpedia-doc-list(class=(!!currentPage ? 'collapse in' : 'collapse'))
+        li
+          form(action='#')
+            div.input-group#docsearch-container
+              input(type='text',required=true, placeholder=_("Type to search..."), aria-label=_("Search documentation")).form-control#docsearch-input
+              div#docsearch-results.list-group
+              div.input-group-addon(aria-hidden='true')
+                span.glyphicon.glyphicon-search
 
         li(class=(['thingtalk-intro', 'thingpedia-intro'].indexOf(currentPage) >= 0 ? 'current' : ''))
           a.doc-sidebar-subtitle Overview

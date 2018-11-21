@@ -61,6 +61,8 @@
     "js-yaml": "^3.12.0",
     "jstransformer-markdown-it": "^2.0.0",
     "jszip": "^3.0.0",
+    "lunr": "^2.3.5",
+    "lunr-languages": "^1.0.0",
     "markdown-it-anchor": "^4.0.0",
     "markdown-it-container-pandoc": "^1.0.0",
     "markdown-it-highlightjs": "^3.0.0",
