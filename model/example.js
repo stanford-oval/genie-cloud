@@ -269,7 +269,9 @@ module.exports = {
         return db.selectAll(client, "select distinct language,type,count(*) as size from example_utterances group by language,type");
     },
     getByType(client, language, type, start, end) {
-        return db.selectAll(client, "select * from example_utterances where not is_base and language = ? and type = ? order by id desc limit ?,?",
+        return db.selectAll(client, `select * from example_utterances where not is_base and
+            language = ? and type = ? and not find_in_set('replaced', flags)
+             and not find_in_set('augmented', flags) order by id desc limit ?,?`,
             [language, type, start, end]);
     },
 

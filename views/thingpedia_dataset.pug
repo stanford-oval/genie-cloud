@@ -27,7 +27,21 @@ block content
         p
           form(action='/thingpedia/examples/delete/' + ex.id, method='post')
             input(type='hidden',name='_csrf',value=csrfToken)
-            button(type='submit').btn.btn-small.btn-danger= _("Delete")
+            button(type='submit')
+              span.sr-only= _("Delete")
+              span(aria-hidden='true').glyphicon.glyphicon-remove
+
+          form(action='/thingpedia/examples/upvote/' + ex.id, method='post')
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit')
+              span.sr-only= _("Upvote")
+              span(aria-hidden='true').glyphicon.glyphicon-thumbs-up
+
+          form(action='/thingpedia/examples/downvote/' + ex.id, method='post')
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit')
+              span.sr-only= _("Downvote")
+              span(aria-hidden='true').glyphicon.glyphicon-thumbs-downvote
           
   nav
     ul.pager
