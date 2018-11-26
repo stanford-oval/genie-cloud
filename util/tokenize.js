@@ -30,6 +30,8 @@ function* split(pattern, regexp) {
 }
 
 module.exports = {
+    PARAM_REGEX,
+
     splitParams(utterance) {
         return Array.from(split(utterance, PARAM_REGEX));
     },
