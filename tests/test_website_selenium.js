@@ -126,7 +126,7 @@ async function testHomepage(driver) {
             30000);
 
         const commands = await driver.findElements(WD.By.css('#command-container .command-utterance'));
-        assert.strictEqual(commands.length, 1);
+        assert.strictEqual(commands.length, 9);
 
         assert.strictEqual(await commands[0].getText(), 'every day at 9:00 AM set my laptop background to pizza images');
     }

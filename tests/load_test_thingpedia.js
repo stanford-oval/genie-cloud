@@ -116,7 +116,7 @@ async function loadExamples(dbClient, bob) {
         target_code: '( attimer time = TIME_0 ) join ( @com.bing.image_search param:query:String = " pizza " ) => @org.thingpedia.builtin.thingengine.gnome.set_background on  param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture)',
         type: 'commandpedia',
         owner: bob.id,
-        click_count: 0,
+        click_count: 8,
         flags: '',
     },
 
