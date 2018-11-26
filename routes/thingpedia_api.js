@@ -21,7 +21,7 @@ const commandModel = require('../model/example');
 const ThingpediaClient = require('../util/thingpedia-client');
 const ImageCacheManager = require('../util/cache_manager');
 const SchemaUtils = require('../util/manifest_to_schema');
-const { tokenize } = require('../util/tokenize');
+const { tokenize, PARAM_REGEX } = require('../util/tokenize');
 
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
@@ -898,15 +898,24 @@ v3.get('/devices/search', (req, res, next) => {
 
 function getCommandDetails(commands) {
     for (let command of commands) {
-        // get device kinds from target_code
-        let functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
-        let devices = new Set(functions.map((f) => {
-            let kind = f.split('.');
-            kind.splice(-1, 1);
-            kind = kind.join('.').substr(1);
-            return kind;
-        }));
-        command.devices = Array.from(devices);
+        if (command.is_base) {
+            command.utterance = command.utterance.replace(new RegExp(PARAM_REGEX, 'g'), '____');
+            if (command.utterance.startsWith(', '))
+                command.utterance = command.utterance.substring(2);
+
+            command.devices = [command.kind];
+        } else {
+            // get device kinds from target_code
+            let functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
+            let devices = new Set(functions.map((f) => {
+                let kind = f.split('.');
+                kind.splice(-1, 1);
+                kind = kind.join('.').substr(1);
+                return kind;
+            }));
+            command.devices = Array.from(devices);
+        }
+        delete command.kind;
     }
 }
 

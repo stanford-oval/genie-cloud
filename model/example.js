@@ -54,28 +54,47 @@ module.exports = {
     },
 
     getCommands(client, language, start, end) {
-        if (start !== undefined && end !== undefined) {
-            return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
-            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
-            from example_utterances eu left join users u on u.id = eu.owner where
-            type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
-            and not find_in_set('augmented', flags) order by click_count desc limit ?,?`, [language, start, end + 1]);
-        } else {
-            return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
-            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
-            from example_utterances eu left join users u on u.id = eu.owner where
-            type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
-            and not find_in_set('augmented', flags) order by click_count desc`, [language]);
-        }
+        const query = `
+            (select eu.id,eu.language,eu.type,eu.utterance,
+             eu.preprocessed,eu.target_code,eu.click_count,eu.is_base,null as kind,u.username as owner_name
+             from example_utterances eu left join users u on u.id = eu.owner where
+             type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
+             and not find_in_set('augmented', flags)
+            ) union all (
+             select eu.id,eu.language,eu.type,eu.utterance,
+             eu.preprocessed,eu.target_code,eu.click_count,eu.is_base,ds.kind,org.name as owner_name
+             from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
+             where ds.id = eu.schema_id and type = 'thingpedia' and language = ? and ds.approved_version is not null
+             and is_base
+            ) order by click_count desc`;
+
+        if (start !== undefined && end !== undefined)
+            return db.selectAll(client, `${query} limit ?,?`, [language, language, start, end + 1]);
+        else
+            return db.selectAll(client, query, [language, language]);
     },
 
     getCommandsByFuzzySearch(client, language, query) {
-        return db.selectAll(client, `select eu.id,eu.language,eu.type,eu.utterance,
-            eu.preprocessed,eu.target_code,eu.click_count,u.username as owner_name
-            from example_utterances eu left join users u on u.id = eu.owner where
-            type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
-            and not find_in_set('augmented', flags) and ( utterance like ? or target_code like ?)
-            order by click_count desc`, [language, `%${query}%`, `%${query}%`]);
+        const regexp = '(^| )(' + tokenize(query).join('|') + ')( |$)';
+        return db.selectAll(client, `
+            (select eu.id,eu.language,eu.type,eu.utterance,
+             eu.preprocessed,eu.target_code,eu.click_count,eu.is_base,null as kind,u.username as owner_name
+             from example_utterances eu left join users u on u.id = eu.owner where
+             type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
+             and not find_in_set('augmented', flags) and ( utterance like ? or target_code like ?)
+            ) union all (
+             select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+             eu.target_code,eu.click_count,eu.is_base,ds.kind,org.name as owner_name
+             from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
+             where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
+             and preprocessed rlike (?) and target_code <> ''
+            ) union distinct (
+             select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+             eu.target_code,eu.click_count,eu.is_base,ds.kind,org.name as owner_name
+             from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
+             where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
+             and match kind_canonical against (?) and target_code <> ''
+            ) order by click_count desc`, [language, `%${query}%`, `%${query}%`, language, regexp, language, query]);
     },
 
     getCheatsheet(client, language) {
@@ -250,7 +269,9 @@ module.exports = {
         return db.selectAll(client, "select distinct language,type,count(*) as size from example_utterances group by language,type");
     },
     getByType(client, language, type, start, end) {
-        return db.selectAll(client, "select * from example_utterances where not is_base and language = ? and type = ? order by id desc limit ?,?",
+        return db.selectAll(client, `select * from example_utterances where not is_base and
+            language = ? and type = ? and not find_in_set('replaced', flags)
+             and not find_in_set('augmented', flags) order by id desc limit ?,?`,
             [language, type, start, end]);
     },
 
