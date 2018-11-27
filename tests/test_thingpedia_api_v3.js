@@ -508,12 +508,26 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 1,
+      "id": 113,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "the current time",
-      "preprocessed": "the current time",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.builtin.get_time();\n",
+      "utterance": "show me images from bing matching ____ larger than ____ x ____",
+      "preprocessed": "images from bing matching ${p_query} larger than ${p_width} x ${p_height}",
+      "target_code": "query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width >= p_width && height >= p_height);\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Test Org",
+      "devices": [
+        "com.bing"
+      ]
+    },
+    {
+      "id": 30,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "open the file at ____",
+      "preprocessed": "open the file at ${p_url}",
+      "target_code": "action (p_url :Entity(tt:url))  := @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url);\n",
       "click_count": 1,
       "is_base": 1,
       "owner_name": "Site Administration",
@@ -522,12 +536,40 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 2,
+      "id": 95,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "what time is it",
-      "preprocessed": "what time is it",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.builtin.get_time();\n",
+      "utterance": "show me texts i received in the last hour",
+      "preprocessed": "texts i received in the last hour",
+      "target_code": "query  := (@org.thingpedia.builtin.thingengine.phone.sms()), date >= start_of(h);\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.phone"
+      ]
+    },
+    {
+      "id": 102,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "call somebody",
+      "preprocessed": "call somebody",
+      "target_code": "action  := @org.thingpedia.builtin.thingengine.phone.call(number=$undefined);\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.phone"
+      ]
+    },
+    {
+      "id": 11,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "throw a dice between ____ and ____",
+      "preprocessed": ", throw a dice between ${p_low:const} and ${p_high:const}",
+      "target_code": "query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
       "click_count": 1,
       "is_base": 1,
       "owner_name": "Site Administration",
@@ -536,12 +578,26 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 3,
+      "id": 53,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "the current date",
-      "preprocessed": "the current date",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.builtin.get_date();\n",
+      "utterance": "show me a screenshot of my laptop",
+      "preprocessed": "a screenshot of my laptop",
+      "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 12,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "generate a random number between ____ and ____",
+      "preprocessed": ", generate a random number between ${p_low:const} and ${p_high:const}",
+      "target_code": "query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
       "click_count": 1,
       "is_base": 1,
       "owner_name": "Site Administration",
@@ -550,75 +606,20 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 4,
+      "id": 17,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "what day is today",
-      "preprocessed": "what day is today",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.builtin.get_date();\n",
+      "utterance": "setup ____",
+      "preprocessed": "setup ${p_device}",
+      "target_code": "action (p_device :Entity(tt:device))  := @org.thingpedia.builtin.thingengine.builtin.configure(device=p_device);\n",
       "click_count": 1,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
         "org.thingpedia.builtin.thingengine.builtin"
       ]
-    },
-    {
-      "id": 5,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "what day is it",
-      "preprocessed": "what day is it",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.builtin.get_date();\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.builtin"
-      ]
-    },
-    {
-      "id": 6,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "today 's date",
-      "preprocessed": "today 's date",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.builtin.get_date();\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.builtin"
-      ]
-    },
-    {
-      "id": 7,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "a random number",
-      "preprocessed": "a random number",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=$undefined, high=$undefined);\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.builtin"
-      ]
-    },
-    {
-      "id": 8,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "choose a random number",
-      "preprocessed": ", choose a random number",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=$undefined, high=$undefined);\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.builtin"
-      ]
-    }];
+    }
+  ];
 
     assert.deepStrictEqual(await request('/commands/all'), {
         result: 'ok',
@@ -644,68 +645,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 34,
+      "id": 53,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "open ____ on my laptop",
-      "preprocessed": "open ${p_app_id} on my laptop",
-      "target_code": "action (p_app_id :Entity(org.freedesktop:app_id))  := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id);\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 38,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "open ____ with ____ on my laptop",
-      "preprocessed": "open ${p_url} with ${p_app_id} on my laptop",
-      "target_code": "action (p_url :Entity(tt:url), p_app_id :Entity(org.freedesktop:app_id))  := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id, url=p_url);\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 41,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "lock my laptop",
-      "preprocessed": "lock my laptop",
-      "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.lock();\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 42,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "activate the lock screen on my laptop",
-      "preprocessed": "activate the lock screen on my laptop",
-      "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.lock();\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 44,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "turn ____ my laptop",
-      "preprocessed": "turn ${p_power} my laptop",
-      "target_code": "action (p_power :Enum(on,off))  := @org.thingpedia.builtin.thingengine.gnome.set_power(power=p_power);\n",
+      "utterance": "show me a screenshot of my laptop",
+      "preprocessed": "a screenshot of my laptop",
+      "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
       "click_count": 1,
       "is_base": 1,
       "owner_name": "Site Administration",
@@ -728,82 +673,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 46,
+      "id": 44,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "create a file named ____ on my laptop containing ____",
-      "preprocessed": "create a file named ${p_file_name:const} on my laptop containing ${p_contents}",
-      "target_code": "action (p_file_name :Entity(tt:path_name), p_contents :String)  := @org.thingpedia.builtin.thingengine.gnome.create_file(file_name=p_file_name, contents=p_contents);\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 47,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "delete ____ from my laptop",
-      "preprocessed": "delete ${p_file_name} from my laptop",
-      "target_code": "action (p_file_name :Entity(tt:path_name))  := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 48,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "delete the file named ____ from my laptop",
-      "preprocessed": "delete the file named ${p_file_name:const} from my laptop",
-      "target_code": "action (p_file_name :Entity(tt:path_name))  := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 49,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "change the background on my laptop",
-      "preprocessed": "change the background on my laptop",
-      "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=$undefined);\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 50,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "set the background of my laptop to ____",
-      "preprocessed": "set the background of my laptop to ${p_picture_url}",
-      "target_code": "action (p_picture_url :Entity(tt:picture))  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url);\n",
-      "click_count": 1,
-      "is_base": 1,
-      "owner_name": "Site Administration",
-      "devices": [
-        "org.thingpedia.builtin.thingengine.gnome"
-      ]
-    },
-    {
-      "id": 51,
-      "language": "en",
-      "type": "thingpedia",
-      "utterance": "use ____ as the background of my laptop",
-      "preprocessed": "use ${p_picture_url} as the background of my laptop",
-      "target_code": "action (p_picture_url :Entity(tt:picture))  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url);\n",
+      "utterance": "turn ____ my laptop",
+      "preprocessed": "turn ${p_power} my laptop",
+      "target_code": "action (p_power :Enum(on,off))  := @org.thingpedia.builtin.thingengine.gnome.set_power(power=p_power);\n",
       "click_count": 1,
       "is_base": 1,
       "owner_name": "Site Administration",
@@ -826,12 +701,110 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 53,
+      "id": 51,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "a screenshot of my laptop",
-      "preprocessed": "a screenshot of my laptop",
+      "utterance": "use ____ as the background of my laptop",
+      "preprocessed": "use ${p_picture_url} as the background of my laptop",
+      "target_code": "action (p_picture_url :Entity(tt:picture))  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url);\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 55,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "save a screenshot of my laptop",
+      "preprocessed": ", save a screenshot of my laptop",
       "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 41,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "lock my laptop",
+      "preprocessed": "lock my laptop",
+      "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.lock();\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 50,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "set the background of my laptop to ____",
+      "preprocessed": "set the background of my laptop to ${p_picture_url}",
+      "target_code": "action (p_picture_url :Entity(tt:picture))  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url);\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 49,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "change the background on my laptop",
+      "preprocessed": "change the background on my laptop",
+      "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=$undefined);\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 46,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "create a file named ____ on my laptop containing ____",
+      "preprocessed": "create a file named ${p_file_name:const} on my laptop containing ${p_contents}",
+      "target_code": "action (p_file_name :Entity(tt:path_name), p_contents :String)  := @org.thingpedia.builtin.thingengine.gnome.create_file(file_name=p_file_name, contents=p_contents);\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 34,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "open ____ on my laptop",
+      "preprocessed": "open ${p_app_id} on my laptop",
+      "target_code": "action (p_app_id :Entity(org.freedesktop:app_id))  := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id);\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 48,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "delete the file named ____ from my laptop",
+      "preprocessed": "delete the file named ${p_file_name:const} from my laptop",
+      "target_code": "action (p_file_name :Entity(tt:path_name))  := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);\n",
       "click_count": 1,
       "is_base": 1,
       "owner_name": "Site Administration",
@@ -854,12 +827,40 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 55,
+      "id": 38,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "save a screenshot of my laptop",
-      "preprocessed": ", save a screenshot of my laptop",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
+      "utterance": "open ____ with ____ on my laptop",
+      "preprocessed": "open ${p_url} with ${p_app_id} on my laptop",
+      "target_code": "action (p_url :Entity(tt:url), p_app_id :Entity(org.freedesktop:app_id))  := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id, url=p_url);\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 47,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "delete ____ from my laptop",
+      "preprocessed": "delete ${p_file_name} from my laptop",
+      "target_code": "action (p_file_name :Entity(tt:path_name))  := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);\n",
+      "click_count": 1,
+      "is_base": 1,
+      "owner_name": "Site Administration",
+      "devices": [
+        "org.thingpedia.builtin.thingengine.gnome"
+      ]
+    },
+    {
+      "id": 42,
+      "language": "en",
+      "type": "thingpedia",
+      "utterance": "activate the lock screen on my laptop",
+      "preprocessed": "activate the lock screen on my laptop",
+      "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.lock();\n",
       "click_count": 1,
       "is_base": 1,
       "owner_name": "Site Administration",

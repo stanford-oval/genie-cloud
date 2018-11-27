@@ -902,8 +902,19 @@ function getCommandDetails(commands) {
             command.utterance = command.utterance.replace(new RegExp(PARAM_REGEX, 'g'), '____');
             if (command.utterance.startsWith(', '))
                 command.utterance = command.utterance.substring(2);
+            else if (command.target_code.startsWith('let stream') || command.target_code.startsWith('stream'))
+                command.utterance = 'notify me ' + command.utterance;
+            else if (command.target_code.startsWith('let table') || command.target_code.startsWith('query'))
+                command.utterance = 'show me ' + command.utterance;
 
-            command.devices = [command.kind];
+            const renames = {
+                'light-bulb': 'com.hue',
+                'car': 'com.tesla.car',
+                'thermostat': 'com.nest',
+                'security-camera': 'com.nest'
+            };
+
+            command.devices = [renames[command.kind] || command.kind];
         } else {
             // get device kinds from target_code
             let functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
@@ -973,7 +984,7 @@ v1.get('/commands/all', (req, res, next) => {
     db.withTransaction((client) => {
         return commandModel.getCommands(client, language, page * page_size, page_size).then((commands) => {
             getCommandDetails(commands);
-            res.cacheFor(3600 * 1000);
+            res.cacheFor(30 * 1000);
             res.json({ result: 'ok', data: commands });
         });
     }).catch(next);
@@ -1034,7 +1045,7 @@ v1.get('/commands/search', (req, res, next) => {
     db.withTransaction((client) => {
         return commandModel.getCommandsByFuzzySearch(client, language, q).then((commands) => {
             getCommandDetails(commands);
-            res.cacheFor(3600 * 1000);
+            res.cacheFor(30 * 1000);
             res.json({ result: 'ok', data: commands });
         });
     }).catch(next);

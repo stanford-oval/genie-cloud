@@ -66,7 +66,7 @@ module.exports = {
              from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
              where ds.id = eu.schema_id and type = 'thingpedia' and language = ? and ds.approved_version is not null
              and is_base
-            ) order by click_count desc`;
+            ) order by click_count desc,md5(utterance) asc`;
 
         if (start !== undefined && end !== undefined)
             return db.selectAll(client, `${query} limit ?,?`, [language, language, start, end + 1]);
@@ -94,7 +94,7 @@ module.exports = {
              from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
              where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
              and match kind_canonical against (?) and target_code <> ''
-            ) order by click_count desc`, [language, `%${query}%`, `%${query}%`, language, regexp, language, query]);
+            ) order by click_count desc,md5(utterance) asc`, [language, `%${query}%`, `%${query}%`, language, regexp, language, query]);
     },
 
     getCheatsheet(client, language) {
