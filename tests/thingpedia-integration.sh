@@ -48,7 +48,7 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 # clean the database and bootstrap
 # (this has to occur after setting up the download
 # directories because it copies the icon png files)
-mysql -u thingengine -pthingengine -h localhost -D thingengine_test < $srcdir/model/schema.sql
+$srcdir/scripts/execute-sql-file.js $srcdir/model/schema.sql
 node $srcdir/scripts/bootstrap.js
 
 # load some more data into Thingpedia
