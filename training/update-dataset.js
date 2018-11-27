@@ -88,35 +88,53 @@ class DatasetUpdater {
 
     async _clearExistingDataset() {
         if (this._options.regenerateAll) {
+            await db.query(this._dbClient, `delete from replaced_example_utterances where language = ?`, [this._language]);
             await db.query(this._dbClient, `delete from example_utterances where language = ? and (type = 'generated' or
-                find_in_set('augmented', flags) or find_in_set('replaced', flags))`, [this._language]);
+                find_in_set('augmented', flags))`, [this._language]);
         } else if (this._options.regenerateTypes.length > 0) {
+            await db.query(this._dbClient, `delete from replaced_example_utterances where language = ?
+                and type in (?)`, [this._language, this._options.regenerateTypes]);
             await db.query(this._dbClient, `delete from example_utterances where language = ? and
-                type in (?) and (find_in_set('augmented', flags) or find_in_set('replaced', flags))`,
+                type in (?) and find_in_set('augmented', flags)`,
                 [this._language, this._options.regenerateTypes]);
         } else if (this._forDevicesPattern !== null) {
+            await db.query(this._dbClient, `delete from replaced_example_utterances where language = ? and type = 'generated'
+                and target_code rlike ?`, [this._language, this._forDevicesPattern]);
             await db.query(this._dbClient, `delete from example_utterances where language = ? and type = 'generated'
                 and target_code rlike ?`, [this._language, this._forDevicesPattern]);
         } else {
+            await db.query(this._dbClient, `delete from replaced_example_utterances where language = ? and type = 'generated'`, [this._language]);
             await db.query(this._dbClient, `delete from example_utterances where language = ? and type = 'generated'`, [this._language]);
         }
 
         console.log(`Dataset cleaned`);
     }
 
-    async _insertExampleBatch(examples) {
-        return exampleModel.createMany(this._dbClient, examples.map((ex) => {
-            return {
-                utterance: ex.preprocessed,
-                preprocessed: ex.preprocessed,
-                target_code: ex.target_code,
-                target_json: '',
-                type: ex.type,
-                flags: ex.flags,
-                is_base: 0,
-                language: this._language
-            };
-        }));
+    async _insertExampleBatch(examples, isReplaced) {
+        if (isReplaced) {
+            return exampleModel.createManyReplaced(this._dbClient, examples.map((ex) => {
+                return {
+                    preprocessed: ex.preprocessed,
+                    target_code: ex.target_code,
+                    type: ex.type,
+                    flags: ex.flags,
+                    language: this._language
+                };
+            }));
+        } else {
+            return exampleModel.createMany(this._dbClient, examples.map((ex) => {
+                return {
+                    utterance: ex.preprocessed,
+                    preprocessed: ex.preprocessed,
+                    target_code: ex.target_code,
+                    target_json: '',
+                    type: ex.type,
+                    flags: ex.flags,
+                    is_base: 0,
+                    language: this._language
+                };
+            }));
+        }
     }
 
     _applyPPDB(examples, prob) {
@@ -207,10 +225,10 @@ class DatasetUpdater {
         const ppdbExamples = this._applyPPDB(syntheticExamples, ppdbProb);
 
         if (type === 'generated')
-            await this._insertExampleBatch(syntheticExamples);
+            await this._insertExampleBatch(syntheticExamples, false);
 
         await Promise.all([
-            this._insertExampleBatch(ppdbExamples),
+            this._insertExampleBatch(ppdbExamples, false),
 
             this._replaceParameters(syntheticExamples),
             this._replaceParameters(ppdbExamples)
@@ -225,7 +243,7 @@ class DatasetUpdater {
         for (let el of replaced)
             flattened.push(...el);
 
-        return this._insertExampleBatch(flattened);
+        return this._insertExampleBatch(flattened, true);
     }
 
     async _genSynthetic() {

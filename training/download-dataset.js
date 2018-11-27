@@ -25,9 +25,9 @@ function parseFlags(flags) {
     return parsed;
 }
 
-function makeId(id, flags) {
+function makeId(id, flags, argv) {
     let prefix = '';
-    if (flags.replaced)
+    if (argv.quote_free)
         prefix += 'R';
     if (flags.augmented)
         prefix += 'P';
@@ -192,37 +192,37 @@ async function main() {
         const regexp = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
 
         if (argv.quote_free) {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
+            query = dbClient.query(`select id,flags,preprocessed,target_code from replaced_example_utterances
+                use index (language_flags) where language = ? and find_in_set('training',flags)
                 and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
                 [language, regexp]);
         } else {
             query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
+                use index (language_flags) where language = ? and find_in_set('training',flags)
                 and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
                 [language, regexp]);
         }
     } else if (types.length > 0) {
         if (argv.quote_free) {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_type) where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
+            query = dbClient.query(`select id,flags,preprocessed,target_code from replaced_example_utterances
+                use index (language_type) where language = ? and find_in_set('training',flags)
                 and target_code<>'' and preprocessed<>'' and type in (?)`,
                 [language, types]);
         } else {
             query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_type) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
+                use index (language_type) where language = ? and find_in_set('training',flags)
                 and target_code<>'' and preprocessed<>'' and type in (?)`,
                 [language, types]);
         }
     } else {
         if (argv.quote_free) {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags) and find_in_set('replaced',flags)
+            query = dbClient.query(`select id,flags,preprocessed,target_code from replaced_example_utterances
+                use index (language_flags) where language = ? and find_in_set('training',flags)
                 and target_code<>'' and preprocessed<>''`,
                 [language]);
         } else {
             query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('replaced',flags)
+                use index (language_flags) where language = ? and find_in_set('training',flags)
                 and target_code<>'' and preprocessed<>''`,
                 [language]);
         }
@@ -238,7 +238,7 @@ async function main() {
             return;
 
         const flags = parseFlags(row.flags);
-        const line = makeId(row.id, flags) + '\t' + row.preprocessed + '\t' + row.target_code + '\n';
+        const line = makeId(row.id, flags, argv) + '\t' + row.preprocessed + '\t' + row.target_code + '\n';
 
         if (flags.synthetic || flags.augmented) {
             argv.train.write(line);
