@@ -24,7 +24,9 @@ async function main() {
             '-h', parsed.hostname,
             '-u', user,
             '-p' + pass,
-            '-D', parsed.pathname.substring(1)
+            '-D', parsed.pathname.substring(1),
+            '--batch',
+            '--verbose'
         ];
 
         const stdin = await util.promisify(fs.open)(process.argv[2], 'r');
