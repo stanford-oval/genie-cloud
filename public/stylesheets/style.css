@@ -3,13 +3,34 @@ html, body {
 }
 
 #page-body {
-    margin-top: 60px;
+    margin-top: 45px;
     min-height: calc(100vh - 210px);
     height: auto !important;
 }
 
 #page-title {
     text-align: center;
+}
+
+#stanford-logo {
+    height: 2em;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: baseline;
+    margin-top: -9px;
+}
+#stanford-logo + span {
+    border-left: 1px solid white;
+    padding-left: 8px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+#stanford-signature {
+    width: 150px;
+    object-fit: contain;
+    margin: 0 auto;
+    display: block;
 }
 
 .placeholder {
@@ -105,10 +126,25 @@ pre, pre code {
 footer {
   margin-top: 30px;
   padding-top: 1.5em;
-  background-color: #1a242f;
+  background-color: #8c1515;
   color: white;
   text-align: right;
   min-height: 120px;
+}
+
+footer a:link, footer a:visited, footer a:hover {
+  color: white;
+}
+
+#stanford-footer {
+  text-align: left;
+}
+
+#stanford-footer .link-grid .row {
+  margin-top: 0.3em;
+}
+#stanford-footer .link-grid .row:first-child {
+  margin-top: 1em;
 }
 
 /*#page-body p a:link:not(.btn), #page-body p a:visited:not(.btn) {
@@ -118,10 +154,6 @@ footer {
 #page-body p a:hover:not(.btn) {
   color: #f7c374;
 }*/
-
-body {
-  font-size: 16px;
-}
 
 #section-heading {
   color: white;

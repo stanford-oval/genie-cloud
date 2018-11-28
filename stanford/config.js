@@ -17,6 +17,8 @@
 // gettext marker
 function _(x) { return x; }
 
+module.exports.USE_STANFORD_BRAND = true;
+
 module.exports.ENABLE_ANONYMOUS_USER = true;
 
 module.exports.ABOUT_OVERRIDE = {

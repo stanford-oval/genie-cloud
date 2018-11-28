@@ -5,10 +5,8 @@ html
     meta(http-equiv="X-UA-Compatible",content="IE=edge")
     meta(name="viewport",content="width=device-width, initial-scale=1")
     title= page_title
-    link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css')
-    //,integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7",crossorigin="anonymous")
     link(rel='stylesheet', href='https://use.fontawesome.com/releases/v5.2.0/css/all.css')
-    link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic")
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Source+Sans+Pro")
     link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/bootstrap.min.css')
     link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/style.css')
     block styles
@@ -33,7 +31,10 @@ html
           span.icon-bar
           span.icon-bar
           span.icon-bar
-        a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/') Almond
+        a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/')
+          if Config.USE_STANFORD_BRAND
+            img(src=Config.ASSET_CDN + '/images/stanford-logo.png', aria-hidden='true')#stanford-logo
+          span Almond
         span.navbar-brand.scroller.hidden-md.hidden-lg(aria-hidden='true')
           block page_name
 
@@ -54,15 +55,7 @@ html
 
     if includefooter
       footer
-        div.container
-          div.row
-            div.col-xs-12
-              p
-                small!= _("Almond and Thingpedia are part of a research project of the <a href='https://mobisocial.stanford.edu'>Mobisocial Computing Laboratory</a> at Stanford University.")
-              p
-                small
-                  != _("Almond is free software, distributed under the <a href='https://www.gnu.org/licenses/gpl-3.0-standalone.html'>GPLv3 license</a>. ")
-                  | &nbsp;&nbsp;
-                  a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cloud/issues')= _("Report a bug")
-                  | &nbsp;&nbsp;
-                  a(href='https://github.com/Stanford-Mobisocial-IoT-Lab/almond-cloud').label.label-default Fork me on Github!
+        if Config.USE_STANFORD_BRAND
+          include stanford/footer.pug
+        else
+          include footer.pug
