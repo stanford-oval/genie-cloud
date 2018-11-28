@@ -60,9 +60,8 @@ $(function() {
 
             let user = $('<div>').addClass('device-owner');
             user.append($('<span>').text(`By ${command.owner_name || 'anonymous user'}`));
-            let like = $('<a>');
             let heart = $('<i>').addClass(likedCommands.has(String(command.id)) ? 'fas' : 'far')
-                .addClass('fa-heart').attr('id', command.id).attr('_csrf', csrfToken);
+                .addClass('fa-heart').attr('id', command.id).attr('role', 'button').attr('_csrf', csrfToken);
             heart.click(function(event) {
                 let icon = $('#' + this.id);
 
@@ -85,15 +84,14 @@ $(function() {
                 event.preventDefault();
             });
 
-            like.append(heart);
-            user.append(like);
+            user.append(heart);
             let count = $('<span>').attr('id', 'count' + command.id).text(command.click_count);
             user.append(count);
             info.append(user);
             body.append(main);
             panel.append(body);
 
-            let footer = $('<div>').addClass('panel-footer');
+            let footer = $('<div>').addClass('sr-only panel-footer');
             let footer_row = $('<div>').addClass('row');
             let footer_container = $('<div>').addClass('col-md-6').addClass('col-md-offset-3');
             let form = $('<form>').addClass('form-inline').attr('action', '/me').attr('method', 'post');
@@ -104,6 +102,11 @@ $(function() {
             footer_row.append(footer_container);
             footer.append(footer_row);
             panel.append(footer);
+
+            commandContainer.click(function(event) {
+                event.preventDefault();
+                form.submit();
+            });
 
             output.push(commandContainer[0]);
         }
