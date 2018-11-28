@@ -11,7 +11,7 @@ nav#doc-sidebar {
     position: fixed;
     margin-top: 30px;
     width: 20vw;
-    min-width: 280px;
+    min-width: 300px;
     max-height: calc(100vh - 90px);
     overflow-y: auto;
     z-index: 1;
@@ -48,7 +48,7 @@ nav#doc-sidebar > ul > li > ul > li > ul > li > ul > li {
 
 
 nav#doc-sidebar li.current {
-  background-color: #1f2c39;
+  background-color: #8c1515;
   color: white;
 }
 nav#doc-sidebar a:hover {
@@ -62,7 +62,7 @@ nav#doc-sidebar > ul > li > .doc-sidebar-subtitle {
   font-weight: bold;
 }
 nav#doc-sidebar > ul > li > a {
-  color: #1f2c39;
+  color: black;
 }
 nav#doc-sidebar > ul > li.current > a {
   color: white;
@@ -76,6 +76,9 @@ nav#doc-sidebar > ul > li.thingpedia-docs:hover {
 nav#doc-sidebar li.current > .doc-sidebar-subtitle {
   color: white;
 }
+nav#doc-sidebar li.current > .doc-sidebar-subtitle:hover {
+  color: black;
+}
 
 /* level 2 items (docs category) */
 nav#doc-sidebar > ul > li > ul > li {
@@ -86,7 +89,7 @@ nav#doc-sidebar > ul > li > ul > li > * {
   display: block;
   margin-bottom: 2px;
   font-weight: bold;
-  color: #1f2c39;
+  color: black;
 }
 nav#doc-sidebar > ul > li > ul > li > *:first-child {
   margin-top: 0px;
@@ -114,15 +117,18 @@ nav#doc-sidebar > ul > li > ul > li > ul li {
   color: black;
   /*padding: 0 0 0 20px;*/
 }
+nav#doc-sidebar > ul > li > ul > li > ul li a {
+  padding-right: 10px;
+}
 nav#doc-sidebar > ul > li > ul > li.current > ul li > a {
-  color: #dea844;
+  color: lightgray;
 }
 nav#doc-sidebar > ul > li > ul > li.current > ul li.current > a {
   color: #ffdb9a;
   background-color: transparent;
 }
 nav#doc-sidebar > ul > li > ul > li > ul li > a:hover {
-  color: #dea844;
+  color: #600e0e;
 }
 nav#doc-sidebar > ul > li > ul > li.current > ul li > a:hover {
   color: #ffdb9a;
