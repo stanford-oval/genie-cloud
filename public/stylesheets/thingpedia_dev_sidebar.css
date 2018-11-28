@@ -14,6 +14,7 @@ nav#doc-sidebar {
     min-width: 280px;
     max-height: calc(100vh - 90px);
     overflow-y: auto;
+    z-index: 1;
   }
   nav#doc-sidebar > ul > li > ul > li > a {
     padding-right: 40px;

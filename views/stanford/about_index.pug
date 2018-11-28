@@ -17,8 +17,8 @@ block content
 
   div#page-body
     section.divider#section-heading
-      h1#almond-title Almond
-      h2#almond-subtitle The Stanford Open Virtual Assistant Project
+      h1 Almond
+      h2 The Stanford Open Virtual Assistant Project
 
       div.container
         div.row
@@ -30,17 +30,21 @@ block content
             p Almond is open-source and can be run on your phone or server
 
         div.row#subscribe
-          div.col-xs-12.col-md-6.col-md-offset-3
-            a(href='/about/get-almond').scroller.btn.btn-primary= _("Get Almond")
-            |
-            a(href='/about/research').scroller.btn.btn-primary= _("Learn More")
+          div.col-xs-6.col-lg-2.col-md-3.col-lg-offset-4.col-md-offset-3
+            a(href='/about/get-almond').btn.btn-primary.btn-block= _("Get Almond")
+          div.col-xs-6.col-lg-2.col-md-3
+            a(href='/about/research').btn.btn-primary.btn-block= _("Learn More")
 
-          div.col-xs-12.col-md-6.col-md-offset-3
-            input(type='email', placeholder='Your Email').form-control#subscribe-email
-            button.btn.btn-primary(csrf=csrfToken)#subscribe-start= _("Interested and would like to contribute? Sign up to stay tuned!")
-            button.btn.btn-primary(csrf=csrfToken)#subscribe-submit= _("Subscribe")
-            p#subscribe-hint(hidden=true)= _("Please enter a valid email address.")
-            p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
+        div.row
+          div.col-xs-12.col-lg-4.col-lg-offset-4.col-md-6.col-md-offset-3
+            button.btn.btn-primary(csrf=csrfToken).btn-block#subscribe-start= _("Would you like to contribute? Sign up to stay tuned!")
+            form
+              div.input-group
+                input(type='email', placeholder='Your Email').form-control#subscribe-email
+                span.input-group-btn
+                  button.btn.btn-primary(csrf=csrfToken)#subscribe-submit= _("Subscribe")
+              p#subscribe-hint(hidden=true)= _("Please enter a valid email address.")
+              p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
 
     div.sections
       section.divider#supported-devices

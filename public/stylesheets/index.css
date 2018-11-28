@@ -126,10 +126,6 @@
     font-size: 12px;
 }
 
-#almond-title {
-  color:#dea844;
-}
-
 #thingpedia-icon-cloud {
   display: block;
   width: 100%;
@@ -364,9 +360,8 @@
     margin-bottom: 20px;
 }
 
-#subscribe-email {
-    margin: auto;
-    width: 40%;
+#subscribe-start {
+    white-space: normal;
 }
 
 #subscribe-done {
