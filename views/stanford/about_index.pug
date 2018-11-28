@@ -38,14 +38,15 @@ block content
 
         div.row
           div.col-xs-12.col-lg-4.col-lg-offset-4.col-md-6.col-md-offset-3
-            button.btn.btn-primary(csrf=csrfToken).btn-block#subscribe-start= _("Would you like to contribute? Sign up to stay tuned!")
-            form
-              div.input-group
-                input(type='email', placeholder='Your Email').form-control#subscribe-email
-                span.input-group-btn
-                  button.btn.btn-primary(csrf=csrfToken)#subscribe-submit= _("Subscribe")
-              p#subscribe-hint(hidden=true)= _("Please enter a valid email address.")
-              p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
+            button.btn.btn-primary#subscribe-start= _("Would you like to contribute? Sign up to stay tuned!")
+            form(action='#', method='post', data-toggle='validator')#subscribe-form
+              div.form-group
+                div.input-group
+                  input(type='email', required=true, data-error=_("Please enter a valid email address."), placeholder=_("Your Email")).form-control#subscribe-email
+                  span.input-group-btn
+                    button(type='submit').btn.btn-primary#subscribe-submit= _("Subscribe")
+                span.help-block.with-errors
+            p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
 
     div.sections
       section.divider#supported-devices

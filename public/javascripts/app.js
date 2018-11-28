@@ -1,7 +1,23 @@
 "use strict";
 $(function() {
-    const CDN_HOST = $('body').attr('data-icon-cdn');
-    const csrfToken = $('#commandpedia').attr('csrf');
+    const CDN_HOST = document.body.dataset.iconCdn;
+    const csrfToken = document.body.dataset.csrfToken;
+
+    $('#subscribe-done').hide();
+    $('#subscribe-form').hide();
+
+    $('#subscribe-form').submit(function(event) {
+        event.preventDefault();
+        $.post('/user/subscribe', {'_csrf': csrfToken, 'email': $('#subscribe-email').val() });
+        $('#subscribe-form').hide();
+        $('#subscribe-done').show();
+    });
+
+    $('#subscribe-start').click(function(event) {
+        $('#subscribe-form').show();
+        $('#subscribe-start').hide();
+        event.preventDefault();
+    });
 
     let insearch = false;
 
