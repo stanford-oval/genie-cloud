@@ -1,37 +1,53 @@
-#index-banner {
-    padding-top: 50px;
-    padding-bottom: 50px;
-    background-image:url(../images/world.jpg);
-    background-size: contain;
+#almond-index-carousel .item {
+  height: 720px;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: absolute;
 }
 
-#index-banner > div {
-    box-shadow: 0px 0px 10px #AAAAAA;
-    /*background-color: rgba(244, 244, 244, 0.917);*/
-    background-color: white;
-    /*height: 67%;*/
-    margin-right:auto;
-    margin-left:auto;
-    max-width: 867px;
-    padding: 6px 3.7% 25px 3.7%;
-    text-align: center;
-    /*color: #666666;*/
+#almond-index-carousel .carousel-inner {
+  overflow-x: hidden;
+  overflow-y: visible;
+  height: 720px;
+  position: relative;
 }
 
-#index-banner h1 {
-    font-weight: 900;
-    margin-bottom: 30px;
+#almond-index-carousel h3 {
+  margin-bottom: 0.7em;
 }
 
-#index-banner h2 {
-    font-weight:900;
-    margin-bottom: 20px;
+#almond-index-carousel .carousel-caption > h4 {
+  font-size: 36px;
+  color: #8c1515;
+  text-shadow: none;
+  font-weight: 300;
 }
 
-#index-banner p {
-    font-size: 1.5em;
-    margin-bottom: 0.5em;
-    line-height: 1.5;
+#almond-index-carousel .carousel-caption > p {
+  color: black;
+  text-shadow: none;
+}
+
+#almond-index-carousel img {
+  height: 450px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+#almond-index-carousel img#alexa {
+  height: 350px;
+}
+
+#almond-index-carousel .carousel-control {
+  background: none;
+}
+
+@media screen and (min-width: 1200px) {
+  #almond-index-container {
+    margin: 0 100px;
+  }
 }
 
 #examples p {
@@ -357,6 +373,10 @@
 
 #subscribe {
     margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#subscribe-row {
     margin-bottom: 20px;
 }
 

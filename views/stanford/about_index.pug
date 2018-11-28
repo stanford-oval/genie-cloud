@@ -18,35 +18,93 @@ block content
 
   div#page-body
     section.divider#section-heading
-      h1 Almond
-      h2 The Stanford Open Virtual Assistant Project
-
-      div.container
+      div.container-fluid#almond-index-container
         div.row
-          div.col-xs-12.col-md-3.col-md-offset-3
-            h4 Smart
-            p Connect your IoT devices, services, and accounts with flexibility
-          div.col-xs-12.col-md-3
-            h4 Privacy-preserving
-            p Almond is open-source and can be run on your phone or server
+          div.col-lg-6
+            h1= _("Almond")
+            h2= _("The Stanford Open Virtual Assistant Project")
 
-        div.row#subscribe
-          div.col-xs-6.col-lg-2.col-md-3.col-lg-offset-4.col-md-offset-3
-            a(href='/about/get-almond').btn.btn-primary.btn-block= _("Get Almond")
-          div.col-xs-6.col-lg-2.col-md-3
-            a(href='/about/research').btn.btn-primary.btn-block= _("Learn More")
+            div.row
+              div.col-xs-12.col-md-4.col-md-offset-2
+                h4= _("Smart")
+                p= _("Connect your IoT devices, services, and accounts with flexibility")
+              div.col-xs-12.col-md-4
+                h4= _("Privacy-preserving")
+                p= _("Almond is open-source and can be run on your phone or server")
 
-        div.row
-          div.col-xs-12.col-lg-4.col-lg-offset-4.col-md-6.col-md-offset-3
-            button.btn.btn-primary#subscribe-start= _("Would you like to contribute? Sign up to stay tuned!")
-            form(action='#', method='post', data-toggle='validator')#subscribe-form
-              div.form-group
-                div.input-group
-                  input(type='email', required=true, data-error=_("Please enter a valid email address."), placeholder=_("Your Email")).form-control#subscribe-email
-                  span.input-group-btn
-                    button(type='submit').btn.btn-primary#subscribe-submit= _("Subscribe")
-                span.help-block.with-errors
-            p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
+            div.row#subscribe
+              div.col-xs-6.col-lg-2.col-md-4.col-lg-offset-4.col-md-offset-2
+                a(href='/about/get-almond').btn.btn-primary.btn-block= _("Get Almond")
+              div.col-xs-6.col-lg-2.col-md-4
+                a(href='/about/research').btn.btn-primary.btn-block= _("Learn More")
+
+            div.row#subscribe-row
+              div.col-xs-12.col-lg-4.col-lg-offset-4.col-md-6.col-md-offset-3
+                button.btn.btn-primary#subscribe-start= _("Would you like to contribute? Sign up to stay tuned!")
+                form(action='#', method='post', data-toggle='validator')#subscribe-form
+                  div.form-group
+                    div.input-group
+                      input(type='email', required=true, data-error=_("Please enter a valid email address."), placeholder=_("Your Email")).form-control#subscribe-email
+                      span.input-group-btn
+                        button(type='submit').btn.btn-primary#subscribe-submit= _("Subscribe")
+                    span.help-block.with-errors
+                p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
+
+          div.col-lg-6
+            div.carousel.slide(data-ride='carousel')#almond-index-carousel
+              //-ol.carousel-indicators
+                li(data-target='#almond-index-carousel',data-slide-to='0').active
+                li(data-target='#almond-index-carousel',data-slide-to='1')
+                li(data-target='#almond-index-carousel',data-slide-to='2')
+                li(data-target='#almond-index-carousel',data-slide-to='3')
+                li(data-target='#almond-index-carousel',data-slide-to='4')
+                li(data-target='#almond-index-carousel',data-slide-to='5')
+              div.carousel-inner(role='listbox')
+                div.item.active
+                  h3= _("On Your Phone")
+                  img(src=Config.ASSET_CDN + '/images/carousel-nyt.png',
+                      alt=_("Screenshot of Almond for Android. The user asks: “Show me the New York Times”. Almond replies with news articles."))
+                  div.carousel-caption
+                    h4= _("Quickly Access Any Service Through Voice")
+                    p= _("Say: “Show me the New York Times”")
+                div.item
+                  h3= _("On The Web")
+                  img(src=Config.ASSET_CDN + '/images/carousel-teardrop.png',
+                      alt=_("Screenshot of Web Almond. The user asks: “plot \"x^4 = 0.5^2 (x^2 - y^2)\"”. Almond produces a plot, shaped like a teardrop."))
+                  div.carousel-caption
+                    h4= _("Combine Graphical and Voice for the Best of Both Worlds")
+                    p= _("Say: “plot an equation”")
+                div.item
+                  h3= _("On Your Laptop")
+                  img(src=Config.ASSET_CDN + '/images/carousel-nasa.png',
+                      alt=_("Screenshot of Almond for PC. The list of enabled rules is shown, which includes: “Set your laptop's background to the NASA Astronomy Picture of the Day”. In the background, a NASA picture is shown."))
+                  div.carousel-caption
+                    h4= _("Enhance Your Life With All The Internet's Resources")
+                    p= _("Say: “Change my laptop background to the NASA Picture of the Day”")
+                div.item
+                  h3= _("On Alexa")
+                  img(src=Config.ASSET_CDN + '/images/carousel-alexa.png', alt="Picture of Amazon Echo device")#alexa
+                  div.carousel-caption
+                    h4= _("Automate Your Tasks, Across All Your Services")
+                    p= _("Say: “Tweet the post when my Facebook updates”")
+                    p
+                      em= _("Coming soon!")
+                //-div.item
+                  h3= _("In Your Living Room")
+                  img(src=Config.ASSET_CDN + '/images/carousel-livingroom.png', alt="Picture of Almond Home device")
+                  div.carousel-caption
+                    h4= _("The Best Way To Control Your Home")
+                    p= _("Say: “Turn off my TV if there is nobody in the room”")
+                    p
+                      em= _("Coming soon!")
+
+              a.left.carousel-control(href='#almond-index-carousel',role='button',data-slide='prev')
+                span.glyphicon.glyphicon-chevron-left(aria-hidden='true')
+                span.sr-only= _("Previous")
+              a.right.carousel-control(href='#almond-index-carousel',role='button',data-slide='next')
+                span.glyphicon.glyphicon-chevron-right(aria-hidden='true')
+                span.sr-only= _("Next")
+
 
     div.sections
       section.divider#supported-devices
