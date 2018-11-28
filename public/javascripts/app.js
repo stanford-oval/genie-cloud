@@ -3,7 +3,6 @@ $(function() {
     const CDN_HOST = $('body').attr('data-icon-cdn');
     const csrfToken = $('#commandpedia').attr('csrf');
 
-    let page = 0;
     let insearch = false;
 
     let likedCommands = new Set(JSON.parse(window.localStorage.getItem('liked-commands') || '[]'));
@@ -25,19 +24,21 @@ $(function() {
         return true;
     }
 
+    function updateSearch() {
+        if (insearch) {
+            $('#command-reset-button').show();
+            $('#commands-page-prev').hide();
+            $('#commands-page-next').hide();
+        } else {
+            $('#command-reset-button').hide();
+        }
+    }
+
     function renderCommands(result) {
         let commands = result.data;
-        let container = $('#command-container');
-        container.empty();
+        let output = [];
         for (let i = 0; i < Math.min(commands.length, 9); i++) {
             let command = commands[i];
-            if (i % 6 === 0)
-                container.append($('<div>').addClass('clearfix visible-lg visible-md'));
-            else if (i % 3 === 0)
-                container.append($('<div>').addClass('clearfix visible-lg'));
-            else if (i % 2 === 0)
-                container.append($('<div>').addClass('clearfix visible-md'));
-
             let commandContainer = $('<div>').addClass('col-lg-4 col-md-6 aligned-grid-item dev-template');
             let panel = $('<div>').addClass('panel panel-default');
             commandContainer.append(panel);
@@ -62,6 +63,28 @@ $(function() {
             let like = $('<a>');
             let heart = $('<i>').addClass(likedCommands.has(String(command.id)) ? 'fas' : 'far')
                 .addClass('fa-heart').attr('id', command.id).attr('_csrf', csrfToken);
+            heart.click(function(event) {
+                let icon = $('#' + this.id);
+
+                let count = $('#count' + this.id);
+                let current = Number(count.text());
+
+                if (icon.hasClass('far')) {
+                    if (addLiked(this.id)) {
+                        icon.removeClass('far').addClass('fas');
+                        $.post('/thingpedia/examples/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
+                        count.text(current + 1);
+                    }
+                } else {
+                    if (removeLiked(this.id)) {
+                        icon.removeClass('fas').addClass('far');
+                        $.post('/thingpedia/examples/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
+                        count.text(current - 1);
+                    }
+                }
+                event.preventDefault();
+            });
+
             like.append(heart);
             user.append(like);
             let count = $('<span>').attr('id', 'count' + command.id).text(command.click_count);
@@ -82,55 +105,11 @@ $(function() {
             footer.append(footer_row);
             panel.append(footer);
 
-            container.append(commandContainer);
+            output.push(commandContainer[0]);
         }
 
-        if (insearch) {
-            $('#command-reset-button').show();
-            $('#commands-page-prev').hide();
-            $('#commands-page-next').hide();
-        } else {
-            $('#command-reset-button').hide();
-
-            if (page > 0)
-                $('#commands-page-prev').show();
-            else
-                $('#commands-page-prev').hide();
-
-            if (commands.length > 9)
-                $('#commands-page-next').show();
-            else
-                $('#commands-page-next').hide();
-        }
-
-        $('.fa-heart').click(function(event) {
-            let icon = $('#' + this.id);
-
-            let count = $('#count' + this.id);
-            let current = Number(count.text());
-
-            if (icon.hasClass('far')) {
-                if (addLiked(this.id)) {
-                    icon.removeClass('far').addClass('fas');
-                    $.post('/thingpedia/examples/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
-                    count.text(current + 1);
-                }
-            } else {
-                if (removeLiked(this.id)) {
-                    icon.removeClass('fas').addClass('far');
-                    $.post('/thingpedia/examples/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
-                    count.text(current - 1);
-                }
-            }
-            event.preventDefault();
-        });
+        return output;
     }
-
-    function loadAll() {
-        $.get('/thingpedia/api/commands/all?page=' + page, renderCommands);
-    }
-
-    loadAll();
 
     let slideIndex = 0;
     showSlides();
@@ -145,29 +124,55 @@ $(function() {
         setTimeout(() => showSlides(), 3000);
     }
 
-    $('#commands-page-prev').click(function(event) {
-        page = page - 1;
-        if (!(page >= 0))
-            page = 0;
-        loadAll();
-        event.preventDefault();
-    });
-    $('#commands-page-next').click(function(event) {
-        page = page + 1;
-        loadAll();
-        event.preventDefault();
-    });
+    const $container = $('#command-container');
+    let infScroll;
+
+    function initializeInfiniteScroll() {
+        $container.infiniteScroll({
+            path: function() {
+                return '/thingpedia/api/commands/all?page=' + this.loadCount;
+            },
+
+            append: false,
+            history: false,
+
+            responseType: 'text'
+        });
+        $container.on('load.infiniteScroll', function(event, response) {
+            const parsed = JSON.parse(response);
+            const $items = renderCommands(parsed);
+            $container.infiniteScroll('appendItems', $items);
+        });
+
+        infScroll = $container.data('infiniteScroll');
+        $container.infiniteScroll('loadNextPage');
+    }
+
     $('#command-search-button').click(function(event) {
-        page = 0;
+        event.preventDefault();
         insearch = true;
-        $.get('/thingpedia/api/commands/search?q=' + encodeURIComponent($('#command-search-box').val()), renderCommands);
-        event.preventDefault();
+        if (infScroll) {
+            $container.infiniteScroll('destroy');
+            infScroll = undefined;
+        }
+        $.ajax('/thingpedia/api/commands/search', { data: {
+            q: $('#command-search-box').val()
+        }, method: 'GET' }).then(function(response) {
+            $container.empty();
+            $container.append(renderCommands(response));
+            updateSearch();
+        });
     });
+
     $('#command-reset-button').click(function(event) {
-        page = 0;
-        insearch = false;
-        loadAll();
         event.preventDefault();
+        if (!insearch)
+            return;
+        $container.empty();
+        updateSearch();
+        initializeInfiniteScroll();
     });
+
+    initializeInfiniteScroll();
 
 });

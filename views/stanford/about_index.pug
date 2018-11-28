@@ -4,6 +4,7 @@ block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/app.css')
 
 block scripts
+  script(src='https://unpkg.com/infinite-scroll@3/dist/infinite-scroll.pkgd.min.js')
   script(src=Config.ASSET_CDN + '/javascripts/app.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
 
@@ -75,15 +76,6 @@ block content
               div.form-group
                 button.btn.btn-primary#command-reset-button= _("Reset")
           div.row.aligned-grid#command-container
-          div.row
-            div.col-xs-12
-              nav
-                ul.pager
-                  li#commands-page-prev
-                    a(href='#')= _("Previous")
-                  | &nbsp;
-                  li#commands-page-next
-                    a(href='#')= _("Next")
           br
           div.row
             div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
