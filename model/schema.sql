@@ -415,7 +415,7 @@ CREATE TABLE `example_utterances` (
   `is_base` tinyint(1) NOT NULL DEFAULT 0,
   `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `type` char(32) COLLATE utf8_bin NOT NULL DEFAULT 'other',
-  `flags` set('synthetic','augmented','obsolete','ambiguous','replaced','template','training','exact') COLLATE utf8_bin NOT NULL DEFAULT '',
+  `flags` set('synthetic','augmented','obsolete','ambiguous','template','training','exact') COLLATE utf8_bin NOT NULL DEFAULT '',
   `utterance` text CHARACTER SET utf8 NOT NULL,
   `preprocessed` text CHARACTER SET utf8 NOT NULL,
   `target_json` text COLLATE utf8_bin NOT NULL,
@@ -429,6 +429,26 @@ CREATE TABLE `example_utterances` (
   KEY `owner` (`owner`),
   CONSTRAINT `example_utterances_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `example_utterances_ibfk_2` FOREIGN KEY (`owner`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `replaced_example_utterances`
+--
+
+DROP TABLE IF EXISTS `replaced_example_utterances`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `replaced_example_utterances` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
+  `type` char(32) COLLATE utf8_bin NOT NULL DEFAULT 'other',
+  `flags` set('synthetic','augmented','obsolete','ambiguous','template','training','exact') COLLATE utf8_bin NOT NULL DEFAULT '',
+  `preprocessed` text CHARACTER SET utf8 NOT NULL,
+  `target_code` text COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `language_type` (`language`,`type`),
+  KEY `language_flags` (`language`,`flags`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

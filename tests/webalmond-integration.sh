@@ -19,7 +19,7 @@ module.exports.THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 EOF
 
 # clean the database and bootstrap
-mysql -u thingengine -pthingengine -h localhost -D thingengine_test < $srcdir/model/schema.sql
+$srcdir/scripts/execute-sql-file.js $srcdir/model/schema.sql
 eval $(node $srcdir/scripts/bootstrap.js)
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`

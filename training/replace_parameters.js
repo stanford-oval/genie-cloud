@@ -405,10 +405,9 @@ module.exports = class ParameterReplacer {
                 const new_sentence = (await this._replaceTokensInSentence(example.id, sentence, parameters, replacements)).join(' ');
                 const new_program = (await this._replaceTokensInProgram(program, replacements)).join(' ');
 
-                let flags = example.flags.replace(/,exact/, '');
                 return {
                     type: example.type,
-                    flags: flags ? flags + ',replaced' : 'replaced',
+                    flags: example.flags,
                     utterance: example.utterance,
                     preprocessed: new_sentence,
                     target_code: new_program
