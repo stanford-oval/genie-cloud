@@ -356,6 +356,13 @@ module.exports = {
         }
     },
 
+    getFeatured(client, count = 6) {
+        return db.selectAll(client, `select d.id,d.name,d.primary_kind from device_class d, device_class_tag dt, device_code_version dcv
+            where dt.device_id = d.id and dt.tag = 'featured' and d.approved_version = dcv.version and dcv.device_id = d.id
+            order by mtime desc limit ?`,
+            [count]);
+    },
+
     getReviewQueue(client, start, end) {
         if (start !== undefined && end !== undefined) {
             return db.selectAll(client, `select d.id,d.primary_kind,d.name,d.approved_version,d.developer_version,

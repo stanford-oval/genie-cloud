@@ -127,24 +127,10 @@ block content
 
             div.col-lg-6
               div.row
-                div.col-xs-6.col-sm-4
-                  a(href='/thingpedia/devices/by-id/com.spotify')
-                    img(src='https://almond-static.stanford.edu/icons/com.spotify.png',alt=_("Icon for Spotify")).img-responsive
-                div.col-xs-6.col-sm-4
-                  a(href='/thingpedia/devices/by-id/com.nest')
-                    img(src='https://almond-static.stanford.edu/icons/com.nest.png',alt=_("Icon for Nest")).img-responsive
-                div.col-xs-6.col-sm-4
-                  a(href='/thingpedia/devices/by-id/com.slack')
-                    img(src='https://almond-static.stanford.edu/icons/com.slack.png',alt=_("Icon for Slack")).img-responsive
-                div.col-xs-6.col-sm-4
-                  a(href='/thingpedia/devices/by-id/com.gmail')
-                    img(src='https://almond-static.stanford.edu/icons/com.gmail.png',alt=_("Icon for GMail")).img-responsive
-                div.col-xs-6.col-sm-4
-                  a(href='/thingpedia/devices/by-id/com.twitter')
-                    img(src='https://almond-static.stanford.edu/icons/com.twitter.png',alt=_("Icon for Twitter")).img-responsive
-                div.col-xs-6.col-sm-4
-                  a(href='/thingpedia/devices/by-id/com.uber')
-                    img(src='https://almond-static.stanford.edu/icons/com.uber.png',alt=_("Icon for Uber")).img-responsive
+                for d in featuredDevices
+                  div.col-xs-6.col-sm-4
+                    a(href='/thingpedia/devices/by-id/' + d.primary_kind)
+                      img(src=CDN_HOST + '/icons/' + d.primary_kind + '.png',alt=_("Icon for %s").format(d.name)).img-responsive
 
           //-div.slideshow-container
             - var page = 0;

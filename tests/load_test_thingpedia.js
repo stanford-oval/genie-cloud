@@ -63,6 +63,8 @@ async function loadAllDevices(dbClient, bob, root) {
         iconPath: path.resolve(path.dirname(module.filename), '../data/org.thingpedia.builtin.thingengine.builtin.png'),
         approve: false
     });
+
+    await db.query(dbClient, `insert into device_class_tag(device_id,tag) select id,'featured' from device_class where primary_kind in ('com.bing', 'org.thingpedia.builtin.thingengine.phone')`);
 }
 
 async function loadEntityValues(dbClient) {
