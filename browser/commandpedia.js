@@ -1,57 +1,57 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingEngine
+//
+// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
+//         Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
 "use strict";
-$(function() {
+
+// This file is meant to be used as an entry point to a browserify
+// bundle
+// we can use commonjs but no nodejs deps
+
+require('./polyfill');
+
+const ThingTalkTrainer = require('./deps/new-command');
+const SearchOrInfiniteScroll = require('./deps/search-or-infinite-scroll');
+const PersistentSet = require('./deps/persistent-set');
+
+$(() => {
+    new ThingTalkTrainer({
+        container: '#new-command-dialog',
+    });
+
     const CDN_HOST = document.body.dataset.iconCdn;
     const csrfToken = document.body.dataset.csrfToken;
 
     $('#subscribe-done').hide();
     $('#subscribe-form').hide();
 
-    $('#subscribe-form').submit(function(event) {
+    $('#subscribe-form').submit((event) => {
         event.preventDefault();
         $.post('/user/subscribe', {'_csrf': csrfToken, 'email': $('#subscribe-email').val() });
         $('#subscribe-form').hide();
         $('#subscribe-done').show();
     });
 
-    $('#subscribe-start').click(function(event) {
+    $('#subscribe-start').click((event) => {
         $('#subscribe-form').show();
         $('#subscribe-start').hide();
         event.preventDefault();
     });
 
-    let insearch = false;
+    const likedCommands = new PersistentSet('liked-commands');
 
-    let likedCommands = new Set(JSON.parse(window.localStorage.getItem('liked-commands') || '[]'));
-    console.log(likedCommands);
-    function addLiked(id) {
-        if (likedCommands.has(id))
-            return false;
-        likedCommands.add(id);
-        console.log(likedCommands);
-        window.localStorage.setItem('liked-commands', JSON.stringify(Array.from(likedCommands)));
-        return true;
-    }
-    function removeLiked(id) {
-        if (!likedCommands.has(id))
-            return false;
-        likedCommands.delete(id);
-        console.log(likedCommands);
-        window.localStorage.setItem('liked-commands', JSON.stringify(Array.from(likedCommands)));
-        return true;
-    }
+    new SearchOrInfiniteScroll({
+        container: '#commandpedia',
+        url: '/thingpedia/api/v3/commands/all',
+        searchUrl: '/thingpedia/api/v3/commands/search',
 
-    function updateSearch() {
-        if (insearch)
-            $('#command-reset-button').show();
-        else
-            $('#command-reset-button').hide();
-    }
-
-    function renderCommands(result) {
-        let commands = result.data;
-        let output = [];
-        for (let i = 0; i < Math.min(commands.length, 9); i++) {
-            let command = commands[i];
+        render(command) {
             let commandContainer = $('<div>').addClass('col-lg-4 col-md-6 aligned-grid-item dev-template');
             let panel = $('<div>').addClass('panel panel-default');
             commandContainer.append(panel);
@@ -82,19 +82,20 @@ $(function() {
                 let current = Number(count.text());
 
                 if (icon.hasClass('far')) {
-                    if (addLiked(this.id)) {
+                    if (likedCommands.add(this.id)) {
                         icon.removeClass('far').addClass('fas');
                         $.post('/thingpedia/examples/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
                         count.text(current + 1);
                     }
                 } else {
-                    if (removeLiked(this.id)) {
+                    if (likedCommands.delete(this.id)) {
                         icon.removeClass('fas').addClass('far');
                         $.post('/thingpedia/examples/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
                         count.text(current - 1);
                     }
                 }
                 event.preventDefault();
+                event.stopPropagation();
             });
 
             user.append(heart);
@@ -116,79 +117,13 @@ $(function() {
             footer.append(footer_row);
             panel.append(footer);
 
-            commandContainer.click(function(event) {
+            commandContainer.click((event) => {
                 event.preventDefault();
                 form.submit();
             });
 
-            output.push(commandContainer[0]);
+            return commandContainer[0];
         }
-
-        return output;
-    }
-
-    let slideIndex = 0;
-    showSlides();
-
-    function showSlides() {
-        let slides = $('.icon-slide');
-        for (let i = 0; i < slides.length; i++)
-            $(slides[i]).css('display', 'none');
-        slideIndex ++;
-        if (slideIndex > slides.length) slideIndex = 1;
-        $(slides[slideIndex - 1]).css('display', 'block');
-        setTimeout(() => showSlides(), 3000);
-    }
-
-    const $container = $('#command-container');
-    let infScroll;
-
-    function initializeInfiniteScroll() {
-        $container.infiniteScroll({
-            path: function() {
-                return '/thingpedia/api/commands/all?page=' + this.loadCount;
-            },
-
-            append: false,
-            history: false,
-
-            responseType: 'text'
-        });
-        $container.on('load.infiniteScroll', function(event, response) {
-            const parsed = JSON.parse(response);
-            const $items = renderCommands(parsed);
-            $container.infiniteScroll('appendItems', $items);
-        });
-
-        infScroll = $container.data('infiniteScroll');
-        $container.infiniteScroll('loadNextPage');
-    }
-
-    $('#command-search-button').click(function(event) {
-        event.preventDefault();
-        insearch = true;
-        if (infScroll) {
-            $container.infiniteScroll('destroy');
-            infScroll = undefined;
-        }
-        $.ajax('/thingpedia/api/commands/search', { data: {
-            q: $('#command-search-box').val()
-        }, method: 'GET' }).then(function(response) {
-            $container.empty();
-            $container.append(renderCommands(response));
-            updateSearch();
-        });
     });
-
-    $('#command-reset-button').click(function(event) {
-        event.preventDefault();
-        if (!insearch)
-            return;
-        $container.empty();
-        updateSearch();
-        initializeInfiniteScroll();
-    });
-
-    initializeInfiniteScroll();
 
 });

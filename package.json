@@ -105,6 +105,7 @@
     "codemirror": "^5.40.2",
     "coveralls": "^3.0.2",
     "eslint": "^4.17.0",
+    "infinite-scroll": "^3.0.5",
     "jsxgettext": "^0.10.1",
     "nyc": "^13.0.1",
     "parse5": "^5.1.0",

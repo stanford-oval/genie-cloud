@@ -5,27 +5,25 @@ $(function() {
     var page = 0;
     var insearch = false;
 
+    function updateSearch() {
+        if (insearch)
+            $('#device-reset-button').show();
+        else
+            $('#device-reset-button').hide();
+    }
+
     function renderDevices(result) {
         var devices = result.devices;
-        var container = $('#devices-container');
-        container.empty();
+        var output = [];
 
         for (var i = 0; i < Math.min(devices.length, 9); i++) {
             var dev = devices[i];
 
-            if (i % 6 === 0)
-                container.append($('<div>').addClass('clearfix visible-lg visible-md'));
-            else if (i % 3 === 0)
-                container.append($('<div>').addClass('clearfix visible-lg'));
-            else if (i % 2 === 0)
-                container.append($('<div>').addClass('clearfix visible-md'));
-
-            var deviceContainer = $('<div>').addClass('col-lg-4 col-md-6 aligned-grid-item dev-template');
+            var deviceContainer = $('<a>').attr('href', '/thingpedia/devices/by-id/' + dev.primary_kind).addClass('col-lg-4 col-md-6 aligned-grid-item dev-template');
             var panel = $('<div>').addClass('panel panel-default');
             deviceContainer.append(panel);
 
-            var link = $('<a>').attr('href', '/thingpedia/devices/by-id/' + dev.primary_kind)
-                .addClass('panel-heading').text(dev.name);
+            var link = $('<div>').addClass('panel-heading').text(dev.name);
             panel.append(link);
 
             var panelBody = $('<div>').addClass('panel-body');
@@ -39,25 +37,7 @@ $(function() {
             panelBody.append(description);
             panel.append(panelBody);
 
-            container.append(deviceContainer);
-        }
-
-        if (insearch) {
-            $('#device-reset-button').show();
-            $('#devices-page-prev').hide();
-            $('#devices-page-next').hide();
-        } else {
-            $('#device-reset-button').hide();
-
-            if (page > 0)
-                $('#devices-page-prev').show();
-            else
-                $('#devices-page-prev').hide();
-
-            if (devices.length > 9)
-                $('#devices-page-next').show();
-            else
-                $('#devices-page-next').hide();
+            output.push(deviceContainer);
         }
     }
 

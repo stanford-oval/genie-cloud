@@ -1,7 +1,7 @@
 extends layout
 
 block scripts
-  script(src=Config.ASSET_CDN + '/javascripts/thingpedia-portal.js')
+  script(src=Config.ASSET_CDN + '/javascripts/thingpedia-portal-bundle.js')
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
@@ -42,28 +42,18 @@ block content
       section.divider
         h3= _("Supported Devices & Services")
 
-        div.container
+        div.container#thingpedia-devices
           div.row
             div.col-xs-12
               div.navbar.navbar-default#device-list-navbar
                 form.navbar-form.navbar-left
                   div.form-group
-                    input.form-control#device-search-box(type='text', name='q', placeholder=_("I want to find a device..."))
-                    button.btn.btn-primary#device-search-button= _("Search")
+                    input.form-control(type='text', name='q', placeholder=_("I want to find a device..."))
+                    button.btn.btn-primary.search-button= _("Search")
                   div.form-group
-                    button.btn.btn-primary#device-reset-button= _("Reset")
+                    button.btn.btn-primary.reset-button= _("Reset")
 
           div.row.aligned-grid#devices-container
-
-          div.row
-            div.col-xs-12
-              nav
-                ul.pager
-                  li#devices-page-prev
-                    a(href='#')= _("Previous")
-                  | &nbsp;
-                  li#devices-page-next
-                    a(href='#')= _("Next")
 
       section.divider
         h3= _("Contribute to Thingpedia")

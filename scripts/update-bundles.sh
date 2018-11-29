@@ -3,6 +3,6 @@
 set -e
 set -x
 
-for i in trainer new-command thingpedia-device-create ; do
+for i in trainer commandpedia thingpedia-device-create thingpedia-portal ; do
 	browserify -o public/javascripts/${i}-bundle.js browser/${i}.js
 done
