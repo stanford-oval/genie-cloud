@@ -219,6 +219,8 @@ module.exports = class Frontend {
             res.locals._ = req._;
             res.locals.pgettext = req.pgettext;
             res.locals.ngettext = req.ngettext;
+
+            res.locals.timezone = req.user ? req.user.timezone : 'America/Los_Angeles';
             next();
         });
 
@@ -272,6 +274,7 @@ module.exports = class Frontend {
         this._app.use('/doc', (req, res) => {
             res.redirect(301, req.originalUrl.replace('/doc', '/thingpedia/developers'));
         });
+        this._app.use('/blog', require('./routes/blog'));
 
         this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/me/devices', require('./routes/devices'));
@@ -302,6 +305,21 @@ module.exports = class Frontend {
                 page_title: req._("Almond - Page Not Found"),
                 message: req._("The requested page does not exist")
             });
+        });
+
+        this._app.use((err, req, res, next) => {
+            if (err.errno === 'ENOENT') {
+                // if we get here, we have a 404 response
+                res.status(404).render('error', {
+                    page_title: req._("Almond - Page Not Found"),
+                    message: req._("The requested page does not exist")
+                });
+            } else {
+                res.status(500).render('error', {
+                    page_title: req._("Almond - Internal Server Error"),
+                    error: err
+                });
+            }
         });
 
         this._websocketEndpoints = {};

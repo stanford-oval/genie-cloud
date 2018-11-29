@@ -1,0 +1,44 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/codemirror.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/blog-editor.css')
+
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/blog-editor-bundle.js')
+
+block page_name
+  = _("Almond Blog Editor")
+
+block content
+  form(action=create ? '/admin/blog/create' : '/admin/blog/update', method='post', data-toggle='validator')
+    if !create
+      input(type='hidden',name='id',value=post.id)
+    input(type='hidden',name='_csrf',value=csrfToken)
+    div.form-group
+      label.control-label(for='blog-title')= _("Title")
+      input(type='text',name='title',required=true, value=post.title).form-control#blog-title
+    div.form-group
+      label.control-label(for='blog-blurb')= _("Blurb")
+      textarea(name='blurb',required=true).form-control#blog-blurb= post.blurb
+      span.help-block= _("A short text that will be shown in the front page and archive.")
+
+    div.form-group
+      label.control-label(for='blog-source')= _("Body")
+      textarea(name='source',required=true).form-control#blog-source= post.source
+
+    div.form-group
+      button(type='button').btn.btn-default#blog-preview-button= _("Preview")
+      |
+      |
+      button(type='submit').btn.btn-success= _("Save")
+
+  div.modal.fade#blog-preview(role='dialog')
+    div.modal-dialog(role='document')
+      div.modal-content
+        div.modal-header.text-center
+          a.close(data-dismiss='modal', aria-label="Close")
+            span(aria-hidden='true') ×
+
+          h4.modal-title#blog-preview-title
+        div.modal-body#blog-preview-body

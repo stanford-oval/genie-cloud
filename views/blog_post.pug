@@ -1,0 +1,22 @@
+extends layout
+
+block page_name
+  - var index = true;
+  = _("Almond Blog")
+
+block content
+  h1
+    = post.title
+    |
+    |
+    small
+      a(aria-label=_("Permalink"),title=_("Permalink"),href='/blog/' + post.id + '-' + post.slug) #
+
+  p
+    if post.pub_date === null
+      = _("By %s. Not published yet.").format(post.author_name)
+    else if +post.upd_date == +post.pub_date
+      = _("By %s. Published %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone }))
+    else
+      = _("By %s. Published %s, updated %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone }), post.upd_date.toLocaleString(locale, { timeZone: timezone }))
+  != post.body

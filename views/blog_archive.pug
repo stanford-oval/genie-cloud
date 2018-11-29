@@ -1,0 +1,23 @@
+extends layout
+
+block page_name
+  = _("Almond Blog")
+
+block content
+  for post in posts.slice(0, 10)
+    div.blog-post-ref
+      h2
+        a(href='/blog/' + post.id + '-' + post.slug)= post.title
+      p= post.blurb
+
+      p
+        small= _("By %s. Published %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone }))
+
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/blog?page=' + (page_num-1))= _("Previous")
+      if posts.length > 10
+        li
+          a(href='/blog?page=' + (page_num+1))= _("Next")

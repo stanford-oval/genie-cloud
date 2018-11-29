@@ -9,7 +9,8 @@ bundles := \
 	commandpedia \
 	thingpedia-device-create \
 	thingpedia-portal \
-	trainer
+	trainer \
+	blog-editor
 
 prepare-bundles: $(foreach b,$(bundles),public/javascripts/$(b)-bundle.js)
 

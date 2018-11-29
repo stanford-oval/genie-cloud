@@ -6,6 +6,8 @@ ul.nav.navbar-nav
       li
         a(href='/about/' + page.url)= _(page.navbar)
   li
+    a(href='/blog')= _("Blog")
+  li
     a(href="/me")= _("My Almond")
   if WITH_THINGPEDIA === 'embedded'
     li
