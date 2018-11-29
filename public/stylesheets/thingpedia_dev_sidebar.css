@@ -45,6 +45,42 @@ nav#doc-sidebar > ul > li > ul > li > ul > li > ul > li {
   padding-left: 20px;
 }
 
+#docsearch-container {
+  padding-left: 20px;
+  padding-right: 20px;
+  position: relative;
+  overflow: visible;
+}
+
+#docsearch-results {
+  padding-left: 20px;
+  padding-right: 20px;
+  top: 100%;
+  background-color: white;
+  font-weight: normal;
+}
+#docsearch-results mark {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+#docsearch-input + #docsearch-results {
+  display: none;
+}
+#docsearch-input:valid + #docsearch-results {
+  display: block;
+}
+#docsearch-results > a.list-group-item {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+#docsearch-results > a.list-group-item > span {
+  display: block;
+  text-overflow: ellipsis;
+  max-height: 4.1em;
+  overflow: hidden;
+}
+
 
 nav#doc-sidebar li.current {
   background-color: #1f2c39;
@@ -52,6 +88,14 @@ nav#doc-sidebar li.current {
 }
 nav#doc-sidebar a:hover {
   text-decoration: none;
+}
+
+div#doc-search {
+  padding-right: 30px;
+}
+
+span#doc-search-icon:hover {
+  color: white;
 }
 
 /* level 1 items */

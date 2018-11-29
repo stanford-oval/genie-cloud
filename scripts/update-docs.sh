@@ -9,4 +9,6 @@ for f in doc/*.md ; do
 	comma=","
 done
 echo ']' >> doc/doc-list.json
+
+./scripts/build-doc-index.js
 apidoc -i routes/ -f thingpedia_api.js -o doc/thingpedia-api/ 
