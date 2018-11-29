@@ -18,9 +18,9 @@ require('./polyfill');
 const ThingTalk = require('thingtalk');
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 
-const ParserClient = require('./parserclient');
-const ThingpediaClient = require('./thingpediaclient');
-const reconstructCanonical = require('./reconstruct_canonical');
+const ParserClient = require('./deps/parserclient');
+const ThingpediaClient = require('./deps/thingpediaclient');
+const reconstructCanonical = require('./deps/reconstruct_canonical');
 
 class ThingTalkTrainer {
     constructor(sempreUrl) {

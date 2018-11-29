@@ -21,21 +21,11 @@ let router = express.Router();
 
 router.get('/', (req, res, next) => {
     db.withClient(async (dbClient) => {
-        const devices = await deviceModel.getAllApproved(dbClient, null);
-        let filtered_devices = devices.filter((d) => {
-            let kind = d.primary_kind;
-            if (kind.endsWith('bluetooth.generic') || kind.endsWith('phone') || kind.endsWith('matrix'))
-                return true;
-            if (kind === 'com.tesla')
-                return false;
-            if (kind.startsWith('com.nest') && kind.length > 'com.nest'.length)
-                return false;
-            return !kind.startsWith('org.thingpedia.builtin');
-        });
+        const featuredDevices = await deviceModel.getFeatured(dbClient);
         res.render(Config.ABOUT_OVERRIDE['index'] || 'about_index', {
             page_title: req._('Almond'),
             csrfToken: req.csrfToken(),
-            devices: filtered_devices
+            featuredDevices
         });
     }).catch(next);
 });

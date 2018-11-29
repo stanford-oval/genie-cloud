@@ -9,12 +9,6 @@
 // See COPYING for details
 "use strict";
 
-// This file is meant to be used as an entry point to a browserify
-// bundle
-// we can use commonjs but no nodejs deps
-
-require('./polyfill');
-
 const ThingTalk = require('thingtalk');
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 
@@ -22,9 +16,11 @@ const ParserClient = require('./parserclient');
 const ThingpediaClient = require('./thingpediaclient');
 const reconstructCanonical = require('./reconstruct_canonical');
 
-class ThingTalkTrainer {
-    constructor(sempreUrl) {
-        this.parser = new ParserClient(sempreUrl, 'en-US');
+module.exports = class ThingTalkTrainer {
+    constructor(options) {
+        this._container = options.container;
+
+        this.parser = new ParserClient(options.sempreUrl, 'en-US');
 
         this._locale = $('body[data-locale]').attr('data-locale');
         this._developerKey = $('body[data-developer-key]').attr('data-developer-key') || null;
@@ -262,8 +258,4 @@ class ThingTalkTrainer {
             }));
         });
     }
-}
-
-$(() => {
-    new ThingTalkTrainer();
-});
+};

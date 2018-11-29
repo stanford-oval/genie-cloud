@@ -3,13 +3,38 @@ html, body {
 }
 
 #page-body {
-    margin-top: 60px;
-    min-height: calc(100vh - 210px);
+    margin-top: 45px;
+    min-height: calc(100vh - 195px);
     height: auto !important;
+}
+#page-body.container, #page-body.container-fluid {
+    padding-bottom: 30px;
+    min-height: calc(100vh - 165px);
 }
 
 #page-title {
     text-align: center;
+}
+
+#stanford-logo {
+    height: 2em;
+    object-fit: contain;
+    display: inline-block;
+    vertical-align: baseline;
+    margin-top: -9px;
+}
+#stanford-logo + span {
+    border-left: 1px solid white;
+    padding-left: 8px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+#stanford-signature {
+    width: 150px;
+    object-fit: contain;
+    margin: 0 auto;
+    display: block;
 }
 
 .placeholder {
@@ -103,42 +128,62 @@ pre, pre code {
 }
 
 footer {
-  margin-top: 30px;
   padding-top: 1.5em;
-  background-color: #1a242f;
+  background-color: #8c1515;
   color: white;
   text-align: right;
   min-height: 120px;
 }
 
-/*#page-body p a:link:not(.btn), #page-body p a:visited:not(.btn) {
-  color: #2c3e50;
-  text-decoration: underline;
+footer a:link, footer a:visited, footer a:hover {
+  color: white;
 }
-#page-body p a:hover:not(.btn) {
-  color: #f7c374;
-}*/
 
-body {
-  font-size: 16px;
+#stanford-footer {
+  text-align: left;
+}
+
+#stanford-footer .link-grid .row {
+  margin-top: 0.3em;
+}
+#stanford-footer .link-grid .row:first-child {
+  margin-top: 1em;
 }
 
 #section-heading {
-  color: white;
-  background-color: #2c3e50;
+  color: black;
+  background-color: white;
+  background-image: url(../images/almond-background.png);
+  background-size: cover;
+  background-position: center bottom;
   text-align: center;
   padding-top: 2em;
   padding-bottom: 2em;
 }
 
 #section-heading h1 {
+  color: #8c1515;
+  font-weight: 900;
+  letter-spacing: -.5px;
   font-size: 96px;
-  font-weight: bold;
+
+  text-shadow: 1px 1px 0px black;
+  /*
+  color:#dea844;
+  text-shadow:
+   -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+     1px 1px 0 #000;*/
 }
 
 #section-heading h2 {
   font-size: 42px;
   margin-bottom: 1em;
+}
+
+#section-heading h4 {
+  font-weight: 600;
 }
 
 .sections > :nth-child(odd) {
