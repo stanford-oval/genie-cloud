@@ -18,6 +18,13 @@
   margin-bottom: 30px;
 }
 
+#command-list-navbar .navbar-btn {
+  margin-top: 7px;
+  margin-bottom: 5px;
+  float: right;
+  margin-right: 15px;
+}
+
 .none-of-above {
   color: #2c3e50;
 }

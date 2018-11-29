@@ -5,6 +5,7 @@ block styles
 
 block scripts
   script(src='https://unpkg.com/infinite-scroll@3/dist/infinite-scroll.pkgd.min.js')
+  script(src=Config.ASSET_CDN + '/javascripts/new-command-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/app.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
 
@@ -30,7 +31,7 @@ block content
                 p= _("Connect your IoT devices, services, and accounts with flexibility")
               div.col-xs-12.col-md-4
                 h4= _("Privacy-preserving")
-                p= _("Almond is open-source and can be run on your phone or server")
+                p= _("Almond is open-source and can be run on your phone or PC")
 
             div.row#subscribe
               div.col-xs-6.col-lg-2.col-md-4.col-lg-offset-4.col-md-offset-2
@@ -65,14 +66,14 @@ block content
                   img(src=Config.ASSET_CDN + '/images/carousel-nyt.png',
                       alt=_("Screenshot of Almond for Android. The user asks: “Show me the New York Times”. Almond replies with news articles."))
                   div.carousel-caption
-                    h4= _("Quickly Access Any Service Through Voice")
+                    h4= _("Notifications That Matter To You")
                     p= _("Say: “Show me the New York Times”")
                 div.item
                   h3= _("On The Web")
                   img(src=Config.ASSET_CDN + '/images/carousel-teardrop.png',
                       alt=_("Screenshot of Web Almond. The user asks: “plot \"x^4 = 0.5^2 (x^2 - y^2)\"”. Almond produces a plot, shaped like a teardrop."))
                   div.carousel-caption
-                    h4= _("Combine Graphical and Voice for the Best of Both Worlds")
+                    h4= _("Graphical and Voice is the Best Combination")
                     p= _("Say: “plot an equation”")
                 div.item
                   h3= _("On Your Laptop")
@@ -108,9 +109,46 @@ block content
 
     div.sections
       section.divider#supported-devices
-        h3= _("Devices and Services Supported")
+        h3= _("Your Accounts, Your Data, Your Life")
         div.container
-          div.slideshow-container
+          div.row
+            div.col-lg-6
+              p
+                != _("Almond enables you to use voice and text to control your physical devices, your social network accounts, and many more services: <strong>if it is on the Internet, Almond will let you talk about it</strong>.")
+                |
+                |
+                = _("And talking is not just about questions and actions: Almond allows you to be alerted by the events you care about, connect multiple services toghether, share data from one service with your friends, and more.")
+              p!= _("Or at least, that is the <em>vision</em>. What Almond understands in practice is defined in Thingpedia, a repository we curate of online services and Internet of Things.")
+                |
+                |
+                a(href='/thingpedia')= _("Learn more about Thingpedia")
+                |  and
+                |
+                a(href='/thingpedia/developers')= _("how you can help Almond learn new services and skills")
+                | .
+
+            div.col-lg-6
+              div.row
+                div.col-xs-6.col-sm-4
+                  a(href='/thingpedia/devices/by-id/com.spotify')
+                    img(src='https://almond-static.stanford.edu/icons/com.spotify.png',alt=_("Icon for Spotify")).img-responsive
+                div.col-xs-6.col-sm-4
+                  a(href='/thingpedia/devices/by-id/com.nest')
+                    img(src='https://almond-static.stanford.edu/icons/com.nest.png',alt=_("Icon for Nest")).img-responsive
+                div.col-xs-6.col-sm-4
+                  a(href='/thingpedia/devices/by-id/com.slack')
+                    img(src='https://almond-static.stanford.edu/icons/com.slack.png',alt=_("Icon for Slack")).img-responsive
+                div.col-xs-6.col-sm-4
+                  a(href='/thingpedia/devices/by-id/com.gmail')
+                    img(src='https://almond-static.stanford.edu/icons/com.gmail.png',alt=_("Icon for GMail")).img-responsive
+                div.col-xs-6.col-sm-4
+                  a(href='/thingpedia/devices/by-id/com.twitter')
+                    img(src='https://almond-static.stanford.edu/icons/com.twitter.png',alt=_("Icon for Twitter")).img-responsive
+                div.col-xs-6.col-sm-4
+                  a(href='/thingpedia/devices/by-id/com.uber')
+                    img(src='https://almond-static.stanford.edu/icons/com.uber.png',alt=_("Icon for Uber")).img-responsive
+
+          //-div.slideshow-container
             - var page = 0;
             - var page_size = 10;
             while page < devices.length / page_size
@@ -125,8 +163,11 @@ block content
             a(href='/thingpedia/cheatsheet').hover-text= _('And many more!')
 
       section.divider#section-commandpedia
-        h3= _("Popular Commands")
+        h3= _("What can Almond do?")
         div.container#commandpedia(csrf=csrfToken)
+          div.row
+            div.col-xs-12.col-md-6.col-md-offset-3
+              p= _("Here is a sample of what Almond can do, and a few commands that our users and developers think are interesting. It is not an exhaustive list! Commands can combined in arbitrary ways, creating endless possibilities for your assistant.")
           div.navbar.navbar-default#command-list-navbar
             form.navbar-form.navbar-left(action='', method='get')
               div.form-group
@@ -134,11 +175,55 @@ block content
                 button.btn.btn-primary#command-search-button(type="submit")= _("Search")
               div.form-group
                 button.btn.btn-primary#command-reset-button= _("Reset")
+            button(data-toggle='modal',data-target='#commandpedia-new-command').navbar-btn.btn.btn-primary= _("Add a New Command")
+            div.modal.fade#commandpedia-new-command(role='dialog')
+              div.modal-dialog
+                div.modal-content
+                  div.modal-header
+                    a.close(data-dismiss='modal', aria-label="Close")
+                      span(aria-hidden='true') ×
+
+                    h4.modal-title= _("Add New Command")
+
+                  form#form-new-command
+                    div.modal-body
+                      input(type='hidden', name='_csrf', value=csrfToken)
+
+                      div.form-group
+                        label(for='input-command-utterance').control-label= _("Command")
+                        input.form-control#input-command-utterance(name="description", required=true, placeholder=_("What does the command accomplish?"))
+                      div#results-container.hidden
+                        p= _("Do you mean:")
+                        ul#results
+                      div#results-fail.hidden
+                        p= _("Sorry, I did not understand that.")
+                          |
+                          |
+                          a(href='#')#results-fail-write-thingtalk= _("Write ThingTalk code manually.")
+                      div(hidden=true).form-group#thingtalk-group
+                        label(for='input-command-thingtalk').control-label= _("ThingTalk Code")
+                        a('href'='/doc/thingtalk-intro.md')= _(" (How to write ThingTalk?)")
+                        textarea.form-control#input-command-thingtalk(name="code", placeholder=_("Code Here..."))
+                        span.help-block#thingtalk-error
+                        p
+                          = _("Don't know how to write ThingTalk, or do you suspect this command is not supported?")
+                          |
+                          |
+                          a#suggest-command-no-thingtalk(href='#')= _("Suggest this command for future inclusion instead.")
+
+                      div(hidden=true).form-group#confirmation-group
+                        label(for='input-command-confirmation').control-label= _("Please confirm this is what you would like your command to do:")
+                        textarea.form-control#input-command-confirmation(name="code", readonly=true)
+                    div.modal-footer
+                      div.row
+                        div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
+                          button(type='submit').form-control.btn.btn-primary.btn-block#submit= _("Add")
+
           div.row.aligned-grid#command-container
           br
           div.row
             div.col-sm-6.col-md-4.col-md-offset-4.col-sm-offset-3
-              a(href='/thingpedia/commands/add').btn.btn-primary.btn-block= _("Add a New Command")
+
 
       section.divider
         h3= _("Still Not Seeing What You Want?")

@@ -387,3 +387,15 @@
 #subscribe-done {
     padding: 10px;
 }
+
+#supported-devices .img-responsive {
+  height: 96px;
+  width: 96px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+#section-commandpedia > div > div > div > p {
+  margin-bottom: 1.5em;
+  margin-top: -2em;
+}
