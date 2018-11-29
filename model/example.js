@@ -38,6 +38,26 @@ function createMany(client, examples) {
                         + 'values ?', [arrays]);
 }
 
+function createManyReplaced(client, examples) {
+    if (examples.length === 0)
+        return Promise.resolve();
+
+    const KEYS = ['id', 'flags', 'language', 'type', 'preprocessed', 'target_code'];
+    const arrays = [];
+    examples.forEach((ex) => {
+        const vals = KEYS.map((key) => {
+            if (ex[key] === undefined)
+                return null;
+            else
+                return ex[key];
+        });
+        arrays.push(vals);
+    });
+
+    return db.insertOne(client, 'insert into replaced_example_utterances(' + KEYS.join(',') + ') '
+                        + 'values ?', [arrays]);
+}
+
 function create(client, ex) {
     if (!ex.type)
         ex.type = 'thingpedia';
@@ -225,6 +245,7 @@ module.exports = {
     },
 
     createMany,
+    createManyReplaced,
     create,
 
     deleteMany(client, ids) {

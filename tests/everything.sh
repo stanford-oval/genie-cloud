@@ -5,6 +5,9 @@ set -x
 
 srcdir=`dirname $0`/..
 
+# build tests
+$srcdir/tests/check-migrations.sh
+
 # unit tests
 node $srcdir/tests/unit
 

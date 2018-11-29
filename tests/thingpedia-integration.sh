@@ -48,7 +48,7 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 # clean the database and bootstrap
 # (this has to occur after setting up the download
 # directories because it copies the icon png files)
-mysql -u thingengine -pthingengine -h localhost -D thingengine_test < $srcdir/model/schema.sql
+$srcdir/scripts/execute-sql-file.js $srcdir/model/schema.sql
 node $srcdir/scripts/bootstrap.js
 
 # load some more data into Thingpedia
@@ -136,9 +136,9 @@ node $srcdir/training/download-dataset.js -l en --quote-free --train train-quote
 
 sha256sum train-quoted.tsv eval-quoted.tsv train-quote-free.tsv eval-quote-free.tsv
 sha256sum -c <<EOF
-2ee91e04f3d067105afaf5ea6618c36c2cca2d1e923f66e4b767492211966a51  train-quoted.tsv
+1c90d824d4536a9bba6860129543912712a954c3ac7944fa3e10ce558b1d4844  train-quoted.tsv
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  eval-quoted.tsv
-86cbb4ed14fd11f5f9c739904939acb4499d7cb22449c0316b7c87596b310669  train-quote-free.tsv
+09b38993c67587a00beff850cfa76939a58e1ee9d3b1ced8121b08d4d4001d64  train-quote-free.tsv
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  eval-quote-free.tsv
 EOF
 
