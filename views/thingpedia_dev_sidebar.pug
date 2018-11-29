@@ -16,16 +16,11 @@ nav#doc-sidebar
       li(class=(section === 'train-almond' ? 'current' : ''))
         a.doc-sidebar-subtitle(href='/thingpedia/developers/train') Train Almond
     li.thingpedia-docs
-      a.doc-sidebar-subtitle(href='#thingpedia-doc-list',data-toggle='collapse') Thingpedia Documentation
+      a.doc-sidebar-subtitle(href='#thingpedia-doc-list',data-toggle='collapse')
+        div.pull-left Thingpedia Documentation
+        div.text-right#doc-search
+          span(role='button')#doc-search-icon.glyphicon.glyphicon-search
       ul#thingpedia-doc-list(class=(!!currentPage ? 'collapse in' : 'collapse'))
-        li
-          form(action='#')
-            div.input-group#docsearch-container
-              input(type='text',required=true, placeholder=_("Type to search..."), aria-label=_("Search documentation")).form-control#docsearch-input
-              div#docsearch-results.list-group
-              div.input-group-addon(aria-hidden='true')
-                span.glyphicon.glyphicon-search
-
         li(class=(['thingtalk-intro', 'thingpedia-intro'].indexOf(currentPage) >= 0 ? 'current' : ''))
           a.doc-sidebar-subtitle Overview
           ul
@@ -95,3 +90,17 @@ nav#doc-sidebar
               a(href='/thingpedia/developers/thingpedia-helpers.md') Thingpedia Device API Reference
             li
               a(href='/thingpedia/developers/thingpedia-api') Thingpedia API Reference
+
+div.modal.fade#doc-search-modal(role='dialog')
+  div.modal-dialog
+    div.modal-content
+      div.modal-header.text-center
+        h4.modal-title= _("Thingpedia Documentation Search")
+      div.modal-body
+        form(action='#')
+          div.input-group#docsearch-container
+            input(required=true, placeholder=_("Type to search..."), aria-label=_("Search documentation")).form-control#docsearch-input
+            div#docsearch-results.list-group
+            div.input-group-addon(aria-hidden='true')
+              span.glyphicon.glyphicon-search
+      div.modal-footer

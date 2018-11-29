@@ -91,6 +91,14 @@ nav#doc-sidebar a:hover {
   text-decoration: none;
 }
 
+div#doc-search {
+  padding-right: 30px;
+}
+
+span#doc-search-icon:hover {
+  color: white;
+}
+
 /* level 1 items */
 nav#doc-sidebar > ul > li > .doc-sidebar-subtitle {
   padding-top: 10px;

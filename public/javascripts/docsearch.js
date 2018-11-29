@@ -1,5 +1,10 @@
 "use strict";
 $(function() {
+    $('#doc-search-icon').click(function(event) {
+        $('#doc-search-modal').modal('show');
+        event.stopPropagation();
+    });
+
     $('#docsearch-input').on('input', function() {
         var q = $('#docsearch-input').val();
         
@@ -17,4 +22,9 @@ $(function() {
             });
         });
     });
+});
+
+$(document).keypress(function(e) {
+    if (e.keyCode === 27)
+        $('#doc-search-modal').modal('hide');
 });
