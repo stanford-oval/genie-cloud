@@ -20,6 +20,9 @@ $(function() {
                 var item = $('<a>').addClass('list-group-item').attr('href', result.url).html('<span>' + result.highlight + '</span>');
                 container.append(item);
             });
+            $('.list-group-item').click(function() {
+                $('#doc-search-modal').modal('hide');
+            });
         });
     });
 });
