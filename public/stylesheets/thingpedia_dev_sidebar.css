@@ -46,17 +46,16 @@ nav#doc-sidebar > ul > li > ul > li > ul > li > ul > li {
 }
 
 #docsearch-container {
-  padding-left: 40px;
+  padding-left: 20px;
   padding-right: 20px;
   position: relative;
   overflow: visible;
 }
 
 #docsearch-results {
-  position: absolute;
+  padding-left: 20px;
+  padding-right: 20px;
   top: 100%;
-  right: 20px;
-  left: 40px;
   background-color: white;
   font-weight: normal;
 }

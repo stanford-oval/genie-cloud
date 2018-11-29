@@ -97,10 +97,10 @@ div.modal.fade#doc-search-modal(role='dialog')
       div.modal-header.text-center
         h4.modal-title= _("Thingpedia Documentation Search")
       div.modal-body
-        form(action='#')
+        form(action='#', autocomplete='off')
           div.input-group#docsearch-container
             input(required=true, placeholder=_("Type to search..."), aria-label=_("Search documentation")).form-control#docsearch-input
-            div#docsearch-results.list-group
             div.input-group-addon(aria-hidden='true')
               span.glyphicon.glyphicon-search
+          div#docsearch-results.list-group
       div.modal-footer
