@@ -11,3 +11,10 @@
     margin-top: 1em;
 }
 
+.nowrap {
+    white-space: nowrap;
+}
+
+.nowrap .form-inline {
+    display: inline-block;
+}

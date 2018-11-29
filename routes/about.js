@@ -16,16 +16,19 @@ const express = require('express');
 const Config = require('../config');
 const db = require('../util/db');
 const deviceModel = require('../model/device');
+const blogModel = require('../model/blog');
 
 let router = express.Router();
 
 router.get('/', (req, res, next) => {
     db.withClient(async (dbClient) => {
         const featuredDevices = await deviceModel.getFeatured(dbClient);
+        const news = await blogModel.getAllPublished(dbClient, 0, 3);
         res.render(Config.ABOUT_OVERRIDE['index'] || 'about_index', {
             page_title: req._('Almond'),
             csrfToken: req.csrfToken(),
-            featuredDevices
+            featuredDevices,
+            news
         });
     }).catch(next);
 });

@@ -1,0 +1,52 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/admin.css')
+
+block page_name
+  = _("Almond Blog")
+
+block content
+  p
+    a(href='/admin/blog/create').btn.btn-primary= _("Create a new post")
+
+  div.list-group
+  for post in posts.slice(0, 10)
+    div.list-group-item
+      div.pull-right.nowrap
+        a(href='/admin/blog/update/' + post.id).btn.btn-default.btn-sm= _("Edit")
+        |
+        |
+        if post.pub_date
+          form(action='/admin/blog/unpublish', method='post').form-inline
+            input(type='hidden',name='id',value=post.id)
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-warning.btn-sm= _("Unpublish")
+        else
+          form(action='/admin/blog/publish', method='post').form-inline
+            input(type='hidden',name='id',value=post.id)
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-warning.btn-sm= _("Publish")
+        |
+        |
+        form(action='/admin/blog/delete', method='post').form-inline
+            input(type='hidden',name='id',value=post.id)
+            input(type='hidden',name='_csrf',value=csrfToken)
+            button(type='submit').btn.btn-danger.btn-sm= _("Delete")
+
+      h2
+        a(href='/blog/' + post.id + '-' + post.slug)= post.title
+
+      if post.pub_date
+        p= _("Published %s.").format(post.pub_date.toLocaleString(locale, { timeZone: timezone }))
+      else
+        p= _("Not published yet.")
+
+  nav
+    ul.pager
+      if page_num > 0
+        li
+          a(href='/blog?page=' + (page_num-1))= _("Previous")
+      if posts.length > 10
+        li
+          a(href='/blog?page=' + (page_num+1))= _("Next")
