@@ -155,7 +155,7 @@ footer a:link, footer a:visited, footer a:hover {
   background-color: white;
   background-image: url(../images/almond-background.png);
   background-size: cover;
-  background-position: center top;
+  background-position: center bottom;
   text-align: center;
   padding-top: 2em;
   padding-bottom: 2em;
