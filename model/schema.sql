@@ -153,7 +153,7 @@ DROP TABLE IF EXISTS `device_class_tag`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `device_class_tag` (
-  `device_id` int(11) NOT NULL AUTO_INCREMENT,
+  `device_id` int(11) NOT NULL,
   `tag` varchar(255) COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`device_id`,`tag`),
   KEY `tag` (`tag`),
