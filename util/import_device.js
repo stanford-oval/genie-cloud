@@ -321,7 +321,7 @@ async function uploadIcon(primary_kind, iconPath, deleteAfterwards = true) {
     try {
         var image = graphics.createImageFromPath(iconPath);
         image.resizeFit(512, 512);
-        const [stdout,] = await image.stream('png');
+        const stdout = await image.stream('png');
 
         // we need to consume the stream twice: once
         // to upload to S3 / store on reliable file system

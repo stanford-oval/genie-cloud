@@ -20,7 +20,7 @@
 "use strict";
 
 const mysql = require('mysql');
-const Q = require('q');
+const util = require('util');
 const Prometheus = require('prom-client');
 
 const { NotFoundError, InternalError } = require('../util/errors');
@@ -71,13 +71,24 @@ function getDB() {
         return url;
 }
 
+function doQuery(client, string, args) {
+    return new Promise((resolve, reject) => {
+        client.query(string, args, (err, result, fields) => {
+            if (err)
+                reject(err);
+            else
+                resolve([result, fields]);
+        });
+    });
+}
+
 function monitoredQuery(client, string, args) {
     const queryStartTime = new Date;
     const dbCommand = getDBCommand(string);
     const labels = { command: dbCommand, query: string };
     dbQueryTotal.inc(labels);
 
-    return Q.ninvoke(client, 'query', string, args).then((result) => {
+    return doQuery(client, string, args).then((result) => {
         dbQueryDuration.observe(labels, Date.now() - queryStartTime.getTime());
         return result;
     }, (err) => {
@@ -91,7 +102,7 @@ function query(client, string, args) {
     if (Config.ENABLE_PROMETHEUS && !/^(commit$|rollback$|start transaction |set transaction |)/i.test(string))
         return monitoredQuery(client, string, args);
     else
-        return Q.ninvoke(client, 'query', string, args);
+        return doQuery(client, string, args);
 }
 
 function rollback(client, err, done) {
@@ -129,7 +140,8 @@ function getPool() {
 }
 
 function connect() {
-    return Q.ninvoke(getPool(), 'getConnection').then((connection) => {
+    const pool = getPool();
+    return util.promisify(pool.getConnection).call(pool).then((connection) => {
         function done(error) {
             if (error !== undefined)
                 connection.destroy();
@@ -170,45 +182,35 @@ module.exports = {
         });
     },
 
-    withTransaction(transaction, isolationLevel = 'serializable', readOnly = 'read write') {
-        // NOTE: some part of the code still rely on db.withClient
-        // and db.withTransaction returning a Q.Promise rather than
-        // a native Promise (eg they use .done() or .finally())
-        // hence, you must not convert this function to async (as
-        // that always returns a native Promise)
-        // using async for callbacks is fine, as long as the first
-        // returned promise is Q.Promise
-
+    async withTransaction(transaction, isolationLevel = 'serializable', readOnly = 'read write') {
         dbTransactionTotal.inc();
-        return connect().then(async ([client, done]) => {
-            // danger! we're pasting strings into SQL
-            // this is ok because the argument NEVER comes from user input
+        const [client, done] = await connect();
+        // danger! we're pasting strings into SQL
+        // this is ok because the argument NEVER comes from user input
+        try {
+            await query(client, `set transaction isolation level ${isolationLevel}`);
+            await query(client, `start transaction ${readOnly}`);
             try {
-                await query(client, `set transaction isolation level ${isolationLevel}`);
-                await query(client, `start transaction ${readOnly}`);
-                try {
-                    const result = await transaction(client);
-                    await query(client, 'commit');
-                    done();
-                    return result;
-                } catch(err) {
-                    await rollback(client, err, done);
-                    throw err;
-                }
-            } catch (error) {
-                done(error);
-                throw error;
+                const result = await transaction(client);
+                await query(client, 'commit');
+                done();
+                return result;
+            } catch(err) {
+                await rollback(client, err, done);
+                throw err;
             }
-        });
+        } catch (error) {
+            done(error);
+            throw error;
+        }
     },
 
-    insertOne(client, string, args) {
-        return query(client, string, args).then(([result, fields]) => {
-            if (result.insertId === undefined)
-                throw new InternalError('E_NO_ID', "Row does not have ID");
+    async insertOne(client, string, args) {
+        const [result,] = await query(client, string, args);
+        if (result.insertId === undefined)
+            throw new InternalError('E_NO_ID', "Row does not have ID");
 
-            return result.insertId;
-        });
+        return result.insertId;
     },
 
     insertIgnore(client, string, args) {

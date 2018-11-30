@@ -19,7 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Q = require('q');
 const crypto = require('crypto');
 const util = require('util');
 const jwt = require('jsonwebtoken');
@@ -46,7 +45,7 @@ const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GITHUB_CL
 const TOTP_PERIOD = 30; // duration in second of TOTP code
 
 function hashPassword(salt, password) {
-    return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
+    return util.promisify(crypto.pbkdf2)(password, salt, 10000, 32, 'sha1')
         .then((buffer) => buffer.toString('hex'));
 }
 
@@ -156,7 +155,7 @@ function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
             });
             return user;
         });
-    }).nodeify(done);
+    }).then((user) => done(null, user), done);
 }
 
 function associateGoogle(user, accessToken, refreshToken, profile, done) {
@@ -173,7 +172,7 @@ function associateGoogle(user, accessToken, refreshToken, profile, done) {
             });
             return user;
         });
-    }).nodeify(done);
+    }).then((user) => done(null, user), done);
 }
 
 function authenticateGithub(req, accessToken, refreshToken, profile, done) {
@@ -225,7 +224,7 @@ exports.initialize = function() {
     });
 
     passport.deserializeUser((id, done) => {
-        db.withClient((client) => model.get(client, id)).nodeify(done);
+        db.withClient((client) => model.get(client, id)).then((user) => done(null, user), done);
     });
 
     passport.use(new BearerStrategy(async (accessToken, done) => {
@@ -258,7 +257,7 @@ exports.initialize = function() {
 
                 return model.recordLogin(dbClient, rows[0].id).then(() => rows[0]);
             });
-        }).nodeify(done);
+        }).then((res) => done(null, res), (err) => done(err));
     }
 
     passport.use(new BasicStrategy(verifyCloudIdAuthToken));
@@ -282,7 +281,7 @@ exports.initialize = function() {
             done(null, result[0], { message: result[1] });
         }, (err) => {
             done(err);
-        }).done();
+        });
     }));
 
     if (GOOGLE_CLIENT_ID) {

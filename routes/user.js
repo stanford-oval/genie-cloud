@@ -19,7 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Q = require('q');
 const Url = require('url');
 const Tp = require('thingpedia');
 const express = require('express');
@@ -278,7 +277,16 @@ const registerArguments = {
     locale: 'string'
 };
 
-
+function login(req, user) {
+    return new Promise((resolve, reject) => {
+        req.login(user, (err) => {
+            if (err)
+                reject(err);
+            else
+                resolve();
+        });
+    });
+}
 
 router.post('/register', iv.validatePOST(registerArguments), (req, res, next) => {
     var options = {};
@@ -330,7 +338,7 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
                 });
                 return null;
             }
-            await Q.ninvoke(req, 'login', user);
+            await login(req, user);
             return user;
         });
         if (!user)
@@ -570,7 +578,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
         }
 
         await userUtils.resetPassword(dbClient, user, req.body.password);
-        await Q.ninvoke(req, 'login', user);
+        await login(req, user);
         await model.recordLogin(dbClient, user.id);
 
         // we have completed 2fa above

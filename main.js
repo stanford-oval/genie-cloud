@@ -24,8 +24,6 @@
 require('thingpedia');
 
 // common initialization code
-const Q = require('q');
-Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
 require('./util/config_init');
 const i18n = require('./util/i18n');

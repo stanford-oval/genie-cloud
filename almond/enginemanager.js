@@ -19,7 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Q = require('q');
 const child_process = require('child_process');
 const path = require('path');
 const fs = require('fs');
@@ -63,6 +62,12 @@ function safeMkdirSync(dir) {
         if (e.code !== 'EEXIST')
             throw e;
     }
+}
+
+function delay(ms) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, ms);
+    });
 }
 
 class EngineProcess extends events.EventEmitter {
@@ -165,11 +170,11 @@ class EngineProcess extends events.EventEmitter {
         this.emit('exit', true);
     }
 
-    restart(delay) {
+    restart(ms) {
         this._child = null;
         this._rpcSocket = null;
         this._rpcId = null;
-        return this._starting = Q.delay(delay).then(() => this.start());
+        return this._starting = delay(ms).then(() => this.start());
     }
 
     waitReady() {
