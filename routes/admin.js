@@ -10,7 +10,6 @@
 "use strict";
 
 const express = require('express');
-const crypto = require('crypto');
 const markdown = require('markdown-it');
 
 const user = require('../util/user');
@@ -21,9 +20,7 @@ const blogModel = require('../model/blog');
 const db = require('../util/db');
 const TrainingServer = require('../util/training_server');
 
-function makeRandom() {
-    return crypto.randomBytes(32).toString('hex');
-}
+const { makeRandom } = require('../util/random');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
