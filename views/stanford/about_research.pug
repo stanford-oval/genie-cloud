@@ -12,7 +12,7 @@ block content
     div.sections#about-research
       include:markdown-it(html=true, plugins=['markdown-it-anchor', 'markdown-it-highlightjs', 'markdown-it-container-pandoc', ['markdown-it-table-of-contents', { includeLevel: [2,3] }]]) ./about_research.md
 
-      section.divider
+      section.divider#publication-timeline
         h3= _("Publication Timeline")
         section.timeline
           ul

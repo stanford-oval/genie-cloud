@@ -62,6 +62,7 @@
     "lunr-languages": "^1.0.0",
     "markdown-it-anchor": "^4.0.0",
     "markdown-it-container-pandoc": "^1.0.0",
+    "markdown-it-footnote": "^3.0.1",
     "markdown-it-highlightjs": "^3.0.0",
     "markdown-it-table-of-contents": "^0.4.3",
     "mmap-io": "^1.0.0",

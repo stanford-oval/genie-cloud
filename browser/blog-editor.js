@@ -19,6 +19,7 @@ $(() => {
         mode: 'markdown',
         tabSize: 8,
         indentUnit: 4,
+        lineWrapping: true,
         gutters: []
     });
 
@@ -29,6 +30,7 @@ $(() => {
         md.use(require('markdown-it-anchor'));
         md.use(require('markdown-it-highlightjs'));
         md.use(require('markdown-it-container-pandoc'));
+        md.use(require('markdown-it-footnote'));
         md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
 
         const title = $('#blog-title').val();

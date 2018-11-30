@@ -57,7 +57,7 @@ router.get('/user/:cloud_id', (req, res, next) => {
         const profile = await userModel.getByCloudIdForProfile(dbClient, req.params.cloud_id);
 
         const emailHash = profile.profile_flags & user.ProfileFlags.SHOW_PROFILE_PICTURE ?
-            md5((user.email || '').trim().toLowerCase()) :
+            md5((profile.email || '').trim().toLowerCase()) :
             '00000000000000000000000000000000';
         profile.profile_pic_url = `https://www.gravatar.com/avatar/${emailHash}?s=250&d=mp`;
 

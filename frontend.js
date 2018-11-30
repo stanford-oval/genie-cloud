@@ -317,7 +317,7 @@ module.exports = class Frontend {
             } else {
                 res.status(500).render('error', {
                     page_title: req._("Almond - Internal Server Error"),
-                    error: err
+                    message: err
                 });
             }
         });

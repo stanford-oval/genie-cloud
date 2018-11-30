@@ -10,7 +10,6 @@
 "use strict";
 
 const express = require('express');
-const crypto = require('crypto');
 const markdown = require('markdown-it');
 
 const user = require('../util/user');
@@ -21,9 +20,7 @@ const blogModel = require('../model/blog');
 const db = require('../util/db');
 const TrainingServer = require('../util/training_server');
 
-function makeRandom() {
-    return crypto.randomBytes(32).toString('hex');
-}
+const { makeRandom } = require('../util/random');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -415,6 +412,7 @@ router.post('/blog/update', user.requireRole(user.Role.ADMIN), (req, res, next) 
     md.use(require('markdown-it-anchor'));
     md.use(require('markdown-it-highlightjs'));
     md.use(require('markdown-it-container-pandoc'));
+    md.use(require('markdown-it-footnote'));
     md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
 
     const rendered = md.render(req.body.source);
@@ -439,6 +437,7 @@ router.post('/blog/create', user.requireRole(user.Role.ADMIN), (req, res, next) 
     md.use(require('markdown-it-anchor'));
     md.use(require('markdown-it-highlightjs'));
     md.use(require('markdown-it-container-pandoc'));
+    md.use(require('markdown-it-footnote'));
     md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
 
     const rendered = md.render(req.body.source);
