@@ -59,6 +59,8 @@ router.post('/login', passport.authenticate('local', { failureRedirect: '/user/l
     // Redirection back to the original page
     var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
     delete req.session.redirect_to;
+    if (redirect_to.startsWith('/user/login'))
+        redirect_to = '/';
     res.redirect(303, redirect_to);
 });
 
