@@ -255,3 +255,26 @@ img.device-icon-tiny {
   box-sizing: content-box;
   padding-right: 1em;
 }
+
+.aside {
+    font-size: 0.8em;
+}
+.aside.pull-left {
+    margin-right: 1.5em;
+}
+.aside.pull-right {
+    margin-left: 1.5em;
+}
+.aside img {
+    max-height: 200px;
+    min-width: 100px;
+    display: block;
+    margin: 0 auto;
+}
+.aside .caption {
+    text-align: center;
+}
+
+.blog-post h2, .blog-post h3 {
+    clear: both;
+}
