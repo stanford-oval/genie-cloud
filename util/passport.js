@@ -133,7 +133,7 @@ exports.initialize = function() {
         db.withClient((dbClient) => {
             return model.getByName(dbClient, username).then((rows) => {
                 if (rows.length < 1)
-                    return [false, "An user with this username does not exist"];
+                    return [false, "Invalid username or password"];
 
                 return hashPassword(rows[0].salt, password).then((hash) => {
                     if (hash !== rows[0].password)

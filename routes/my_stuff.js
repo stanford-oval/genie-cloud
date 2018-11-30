@@ -17,6 +17,7 @@ const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
+router.use(user.requireLogIn);
 
 function getAllApps(req, engine) {
     return engine.apps.getAllApps().then((apps) => {
@@ -87,7 +88,7 @@ function getInfo(req) {
     });
 }
 
-router.get('/', user.redirectLogIn, (req, res) => {
+router.get('/', (req, res) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
         res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
                                  messages: req.flash('app-message'),
@@ -104,7 +105,7 @@ router.get('/', user.redirectLogIn, (req, res) => {
     }).done();
 });
 
-router.post('/', user.redirectLogIn, (req, res) => {
+router.post('/', (req, res) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
         res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
             messages: req.flash('app-message'),
@@ -122,7 +123,7 @@ router.post('/', user.redirectLogIn, (req, res) => {
     }).done();
 });
 
-router.post('/apps/delete', user.requireLogIn, (req, res, next) => {
+router.post('/apps/delete', (req, res, next) => {
     EngineManager.get().getEngine(req.user.id).then((engine) => {
         const id = req.body.id;
         return Promise.all([engine, engine.apps.getApp(id)]);
@@ -143,11 +144,11 @@ router.post('/apps/delete', user.requireLogIn, (req, res, next) => {
     }).done();
 });
 
-router.get('/conversation', user.redirectLogIn, (req, res, next) => {
+router.get('/conversation', (req, res, next) => {
     res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond") });
 });
 
-router.post('/conversation', user.redirectLogIn, (req, res) => {
+router.post('/conversation', (req, res) => {
     res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond"), command: req.body.command });
 });
 

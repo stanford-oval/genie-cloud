@@ -45,7 +45,11 @@ router.get('/oauth2/google/callback', passport.authenticate('google'), (req, res
 });
 
 router.get('/login', (req, res, next) => {
-    req.logout();
+    if (req.user) {
+        res.redirect('/');
+        return;
+    }
+
     res.render('login', {
         csrfToken: req.csrfToken(),
         errors: req.flash('error'),
@@ -59,6 +63,8 @@ router.post('/login', passport.authenticate('local', { failureRedirect: '/user/l
     // Redirection back to the original page
     var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
     delete req.session.redirect_to;
+    if (redirect_to.startsWith('/user/login'))
+        redirect_to = '/';
     res.redirect(303, redirect_to);
 });
 
@@ -140,13 +146,9 @@ router.get('/logout', (req, res, next) => {
 
 router.post('/subscribe', (req, res, next) => {
     let email = req.body['email'];
-    db.withTransaction((dbClient) => {
-        return model.subscribe(dbClient, email);
-    }).then(() => {
-        return Tp.Helpers.Http.post('https://mailman.stanford.edu/mailman/subscribe/thingpedia-support',
-                                    `email=${encodeURIComponent(email)}&digest=0&email-button=Subscribe`,
-                                    { dataContentType: 'application/x-www-form-urlencoded' });
-    }).then(() => {
+    Tp.Helpers.Http.post('https://mailman.stanford.edu/mailman/subscribe/thingpedia-support',
+                         `email=${encodeURIComponent(email)}&digest=0&email-button=Subscribe`,
+                         { dataContentType: 'application/x-www-form-urlencoded' }).then(() => {
         res.json({ result: 'ok' });
     }).catch((e) => {
         res.status(400).json({ error: e });
@@ -184,7 +186,7 @@ async function getProfile(req, res, pwError, profileError) {
                                  phone: phone, desktop: desktop });
 }
 
-router.get('/profile', userUtils.redirectLogIn, (req, res, next) => {
+router.get('/profile', userUtils.requireLogIn, (req, res, next) => {
     getProfile(req, res, undefined, undefined).catch(next);
 });
 
@@ -262,7 +264,7 @@ router.post('/delete', userUtils.requireLogIn, (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/request-developer', userUtils.redirectLogIn, (req, res, next) => {
+router.get('/request-developer', userUtils.requireLogIn, (req, res, next) => {
     if (req.user.developer_status >= userUtils.DeveloperStatus.DEVELOPER) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You are already an enrolled developer.") });

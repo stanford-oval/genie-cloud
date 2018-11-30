@@ -143,7 +143,7 @@ router.get('/', (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/download/:id', user.redirectLogIn, (req, res, next) => {
+router.get('/download/:id', user.requireLogIn, (req, res, next) => {
     const language = I18n.localeToLanguage(req.locale);
 
     db.withClient(async (dbClient) => {

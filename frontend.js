@@ -260,6 +260,7 @@ module.exports = class Frontend {
             this._app.use('/thingpedia/strings', require('./routes/thingpedia_strings'));
         }
 
+        // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
         this._app.use('/mturk', require('./routes/mturk'));
         this._app.use('/friendhub', require('./routes/friendhub'));
 
@@ -308,13 +309,24 @@ module.exports = class Frontend {
         });
 
         this._app.use((err, req, res, next) => {
-            if (err.errno === 'ENOENT') {
+            if (err.code === 'EBADCSRFTOKEN') {
+                res.status(403).render('error', {
+                    page_title: req._("Almond - Forbidden"),
+                    message: err,
+
+                    // make sure we have a csrf token in the page
+                    // (this error could be raised before we hit the general code that sets it
+                    // everywhere)
+                    csrfToken: req.csrfToken()
+                });
+            } else if (err.errno === 'ENOENT') {
                 // if we get here, we have a 404 response
                 res.status(404).render('error', {
                     page_title: req._("Almond - Page Not Found"),
                     message: req._("The requested page does not exist")
                 });
             } else {
+                console.error(err);
                 res.status(500).render('error', {
                     page_title: req._("Almond - Internal Server Error"),
                     message: err

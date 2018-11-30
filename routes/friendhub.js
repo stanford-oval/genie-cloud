@@ -13,6 +13,7 @@ const Q = require('q');
 const fs = require('fs');
 const express = require('express');
 const multer = require('multer');
+const csurf = require('csurf');
 const Canvas = require('canvas');
 const xml2js = require('xml2js');
 const ColorThief = require('color-thief');
@@ -30,18 +31,7 @@ const palette_size = 4;
 
 let router = express.Router();
 
-router.use(multer({ dest: platform.getTmpDir() }).fields([
-    { name: 'background', maxCount: 1 },
-    { name: 'xml', maxCount: 1 }
-]));
-
-router.post('/upload', user.requireLogIn, user.requireDeveloper(), (req, res) => {
-    uploadBackground(req, res);
-});
-
-router.get('/', user.requireLogIn, user.requireDeveloper(), (req, res) => {
-    res.render('friendhub', { page_title: req._("Friend Hub") });
-});
+router.use(user.requireLogIn);
 
 router.get('/search', (req, res) => {
     let tags = req.query.tags.split(/[ ,]+/) || null;
@@ -55,7 +45,22 @@ router.get('/search', (req, res) => {
     });
 });
 
-router.get('/delete', user.requireLogIn, user.requireDeveloper(), (req, res) => {
+router.use(user.requireLogIn, user.requireDeveloper());
+
+router.post('/upload', multer({ dest: platform.getTmpDir() }).fields([
+    { name: 'background', maxCount: 1 },
+    { name: 'xml', maxCount: 1 }
+]), csurf({ cookie: false }),  (req, res) => {
+    uploadBackground(req, res);
+});
+
+router.use(csurf({ cookie: false }));
+
+router.get('/', (req, res) => {
+    res.render('friendhub', { page_title: req._("Friend Hub") });
+});
+
+router.post('/delete', (req, res) => {
     let id = req.query.id;
     Q.try(() => {
         return db.withTransaction((dbClient) => deleteBackground(dbClient, id));

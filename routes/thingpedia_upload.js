@@ -43,8 +43,9 @@ router.use((req, res, next) => {
     res.locals.csrfToken = req.csrfToken();
     next();
 });
+router.use(user.requireLogIn, user.requireDeveloper());
 
-router.get('/create', user.redirectLogIn, user.requireDeveloper(), (req, res) => {
+router.get('/create', (req, res) => {
     res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - create new device"),
                                                      device: { code: '',
                                                                dataset: '' },
@@ -197,11 +198,11 @@ async function doCreateOrUpdate(kind, create, req, res) {
     }
 }
 
-router.post('/create', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
+router.post('/create', (req, res, next) => {
     doCreateOrUpdate(undefined, true, req, res).catch(next);
 });
 
-router.get('/update/:kind', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
+router.get('/update/:kind', (req, res, next) => {
     Promise.resolve().then(() => {
         return db.withClient(async (dbClient) => {
             const d = await model.getByPrimaryKind(dbClient, req.params.kind, true);
@@ -234,7 +235,7 @@ router.get('/update/:kind', user.redirectLogIn, user.requireDeveloper(), (req, r
     }).catch(next);
 });
 
-router.post('/update/:kind', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
+router.post('/update/:kind', (req, res, next) => {
     doCreateOrUpdate(req.params.kind, false, req, res).catch(next);
 });
 

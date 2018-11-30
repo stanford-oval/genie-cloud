@@ -16,8 +16,9 @@ const snapshot = require('../model/snapshot');
 const db = require('../util/db');
 
 const router = express.Router();
+router.use(user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN));
 
-router.get('/', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.get('/', (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -38,7 +39,7 @@ router.get('/', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.A
     }).done();
 });
 
-router.post('/create', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.post('/create', (req, res) => {
     db.withTransaction((dbClient) => {
         var obj = {
             description: req.body.description || '',

@@ -16,7 +16,9 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
-router.get('/oauth2/callback/:kind', user.redirectLogIn, (req, res, next) => {
+router.use(user.requireLogIn);
+
+router.get('/oauth2/callback/:kind', (req, res, next) => {
     const kind = req.params.kind;
 
     EngineManager.get().getEngine(req.user.id).then((engine) => {

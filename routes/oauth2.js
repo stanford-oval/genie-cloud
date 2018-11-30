@@ -120,7 +120,7 @@ server.exchange(oauth2orize.exchange.code((client, code, redirectURI, done) => {
     }).nodeify(done);
 }));
 
-router.get('/authorize', user.redirectLogIn, server.authorization((clientID, redirectURI, done) => {
+router.get('/authorize', user.requireLogIn, server.authorization((clientID, redirectURI, done) => {
    db.withClient((dbClient) => {
        return model.getClients(dbClient, clientID).then((rows) => {
            if (rows.length < 1)
