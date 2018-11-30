@@ -29,7 +29,7 @@ var router = express.Router();
 
 router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'upload', maxCount: 1 }
-]), csurf({ cookie: false }), user.requireRole(user.Role.ADMIN), (req, res) => {
+]), csurf({ cookie: false }), user.requireLogIn, user.requireRole(user.Role.ADMIN), (req, res) => {
     if (!req.files.upload || !req.files.upload.length) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
             message: req._("Must upload the CSV file")
@@ -102,7 +102,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
 
 router.use(csurf({ cookie: false }));
 
-router.get('/', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/', user.requireLogIn, user.requireRole(user.Role.ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return model.getBatches(dbClient);
     }).then((batches) => {
@@ -114,7 +114,7 @@ router.get('/', user.requireRole(user.Role.ADMIN), (req, res) => {
     });
 });
 
-router.get('/csv/:batch', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return new Promise((resolve, reject) => {
             res.set('Content-disposition', 'attachment; filename=mturk.csv');
@@ -140,7 +140,7 @@ router.get('/csv/:batch', user.requireRole(user.Role.ADMIN), (req, res) => {
     }).done();
 });
 
-router.get('/validation/csv/:batch', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/validation/csv/:batch', user.requireLogIn, user.requireRole(user.Role.ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return new Promise((resolve, reject) => {
             res.set('Content-disposition', 'attachment; filename=validate.csv');

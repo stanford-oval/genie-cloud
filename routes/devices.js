@@ -16,7 +16,9 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
-router.get('/create', user.requireLogIn, (req, res, next) => {
+router.use(user.requireLogIn);
+
+router.get('/create', (req, res, next) => {
     if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Invalid device class") });
@@ -31,7 +33,7 @@ router.get('/create', user.requireLogIn, (req, res, next) => {
                                  });
 });
 
-router.post('/create', user.requireLogIn, (req, res, next) => {
+router.post('/create', (req, res, next) => {
     EngineManager.get().getEngine(req.user.id).then((engine) => {
         const devices = engine.devices;
 
@@ -54,7 +56,7 @@ router.post('/create', user.requireLogIn, (req, res, next) => {
     }).done();
 });
 
-router.post('/delete', user.requireLogIn, (req, res, next) => {
+router.post('/delete', (req, res, next) => {
     EngineManager.get().getEngine(req.user.id).then((engine) => {
         const id = req.body.id;
         if (!engine.devices.hasDevice(id)) {
@@ -91,7 +93,7 @@ router.post('/delete', user.requireLogIn, (req, res, next) => {
     successRedirect: '/me'
 }));*/
 
-router.get('/oauth2/:kind', user.requireLogIn, (req, res, next) => {
+router.get('/oauth2/:kind', (req, res, next) => {
     const kind = req.params.kind;
 
     EngineManager.get().getEngine(req.user.id).then((engine) => {

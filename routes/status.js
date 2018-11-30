@@ -17,6 +17,7 @@ const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
 
 const router = express.Router();
+router.use(user.requireLogIn);
 
 function readLogs(userId, startCursor) {
     var args = ['-f', '-o', 'json-sse'];
@@ -56,7 +57,7 @@ function getCachedModules(userId) {
     });
 }
 
-router.get('/', user.requireLogIn, (req, res) => {
+router.get('/', (req, res) => {
     getCachedModules(req.user.id).then((modules) => {
         return EngineManager.get().isRunning(req.user.id).then((isRunning) => {
             res.render('status', { page_title: req._("Thingpedia - Status"),
@@ -67,7 +68,7 @@ router.get('/', user.requireLogIn, (req, res) => {
     }).done();
 });
 
-router.get('/logs', user.requireLogIn, user.requireDeveloper(), (req, res) => {
+router.get('/logs', user.requireDeveloper(), (req, res) => {
     var child = readLogs(req.user.id, req.query.startCursor);
     var stdout = child.stdout;
     res.set('Content-Type', 'text/event-stream');
@@ -82,14 +83,14 @@ router.get('/logs', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     });
 });
 
-router.post('/kill', user.requireLogIn, (req, res) => {
+router.post('/kill', (req, res) => {
     var engineManager = EngineManager.get();
 
     engineManager.killUser(req.user.id);
     res.redirect(303, '/me/status');
 });
 
-router.post('/start', user.requireLogIn, (req, res) => {
+router.post('/start', (req, res) => {
     var engineManager = EngineManager.get();
 
     engineManager.isRunning(req.user.id).then((isRunning) => {
@@ -107,7 +108,7 @@ router.post('/start', user.requireLogIn, (req, res) => {
     }).done();
 });
 
-router.post('/recovery/clear-cache', user.requireLogIn, (req, res, next) => {
+router.post('/recovery/clear-cache', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engineManager = EngineManager.get();
 
@@ -122,7 +123,7 @@ router.post('/recovery/clear-cache', user.requireLogIn, (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/recovery/clear-data', user.requireLogIn, (req, res, next) => {
+router.post('/recovery/clear-data', (req, res, next) => {
     Promise.resolve().then(async () => {
         const engineManager = EngineManager.get();
 
@@ -138,7 +139,7 @@ router.post('/recovery/clear-data', user.requireLogIn, (req, res, next) => {
 });
 
 
-router.post('/update-module/:kind', user.requireLogIn, (req, res) => {
+router.post('/update-module/:kind', (req, res) => {
     return EngineManager.get().getEngine(req.user.id).then((engine) => {
         return engine.devices.updateDevicesOfKind(req.params.kind);
     }).then(() => {

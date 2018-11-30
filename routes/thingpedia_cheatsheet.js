@@ -19,8 +19,6 @@ const Config = require('../config');
 
 var router = express.Router();
 
-
-
 router.get('/', (req, res, next) => {
     const language = req.user ? I18n.localeToLanguage(req.user.locale) : 'en';
 
