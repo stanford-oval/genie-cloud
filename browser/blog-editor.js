@@ -19,6 +19,7 @@ $(() => {
         mode: 'markdown',
         tabSize: 8,
         indentUnit: 4,
+        lineWrapping: true,
         gutters: []
     });
 
