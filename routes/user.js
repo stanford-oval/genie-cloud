@@ -45,7 +45,11 @@ router.get('/oauth2/google/callback', passport.authenticate('google'), (req, res
 });
 
 router.get('/login', (req, res, next) => {
-    req.logout();
+    if (req.user) {
+        res.redirect('/');
+        return;
+    }
+
     res.render('login', {
         csrfToken: req.csrfToken(),
         errors: req.flash('error'),
