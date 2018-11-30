@@ -50,12 +50,14 @@ function renderUserList(users) {
     })).then(() => users);
 }
 
-router.get('/', user.redirectRole(user.Role.ADMIN), (req, res, next) => {
+router.use(user.redirectLogIn);
+
+router.get('/', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
                                  csrfToken: req.csrfToken() });
 });
 
-router.get('/users', user.redirectRole(user.Role.ADMIN), (req, res) => {
+router.get('/users', user.requireRole(user.Role.ADMIN), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -75,7 +77,7 @@ router.get('/users', user.redirectRole(user.Role.ADMIN), (req, res) => {
     }).done();
 });
 
-router.get('/users/search', user.redirectRole(user.Role.ADMIN), (req, res) => {
+router.get('/users/search', user.requireRole(user.Role.ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         if (req.query.q !== '' && !isNaN(req.query.q))
             return Promise.all([model.get(dbClient, Number(req.query.q))]);
@@ -141,7 +143,7 @@ function getTraining(req, res) {
     });
 }
 
-router.get('/training', user.redirectRole(user.Role.ADMIN), (req, res, next) => {
+router.get('/training', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     getTraining(req, res).catch(next);
 });
 
@@ -252,7 +254,7 @@ router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (r
     }).done();
 });
 
-router.get('/review-queue', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.get('/review-queue', user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -364,7 +366,7 @@ router.post('/organizations/set-name', user.requireRole(user.Role.ADMIN), (req, 
 
 const BLOG_POSTS_PER_PAGE = 10;
 
-router.get('/blog', user.redirectLogIn, user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.get('/blog', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -382,7 +384,7 @@ router.get('/blog', user.redirectLogIn, user.requireRole(user.Role.ADMIN), (req,
     }).catch(next);
 });
 
-router.get('/blog/update/:id', user.redirectLogIn, user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.get('/blog/update/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.getForEdit(dbClient, req.params.id);
     }).then((post) => {
@@ -394,7 +396,7 @@ router.get('/blog/update/:id', user.redirectLogIn, user.requireRole(user.Role.AD
     }).catch(next);
 });
 
-router.get('/blog/create', user.redirectLogIn, user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.get('/blog/create', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     res.render('blog_create_or_edit', {
         page_title: req._("Almond - Blog Editor"),
         create: true,

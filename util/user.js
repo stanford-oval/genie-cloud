@@ -112,19 +112,10 @@ module.exports = {
     requireRole(role) {
         return function(req, res, next) {
             if (!req.user || ((req.user.roles & role) !== role)) {
-                res.status(401).render('login_required',
-                                       { page_title: req._("Thingpedia - Error") });
-            } else {
-                next();
-            }
-        };
-    },
-
-    redirectRole(role) {
-        return function(req, res, next) {
-            if (!req.user || ((req.user.roles & role) !== role)) {
-                req.session.redirect_to = req.originalUrl;
-                res.redirect('/user/login');
+                res.status(403).render('error', {
+                    page_title: req._("Thingpedia - Error"),
+                    message: req._("You do not have permission to perform this operation.")
+                });
             } else {
                 next();
             }
