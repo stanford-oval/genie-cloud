@@ -136,13 +136,11 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
         const code = exampleToCode(example);
 
         if (example.id >= 0) {
-            if (existing.has(example.id)) {
+            if (existing.has(example.id) && existing.target_code === code) {
                 toDelete.delete(example.id);
-                if (existing.utterance !== example.utterances[0] ||
-                    existing.target_code !== code) {
+                if (existing.utterance !== example.utterances[0]) {
                     toUpdate.push({ id: example.id,
-                                    utterance: example.utterances[0],
-                                    target_code: code });
+                                    utterance: example.utterances[0] });
                 }
             } else {
                 example.id = -1;
