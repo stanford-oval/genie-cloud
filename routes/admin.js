@@ -50,7 +50,7 @@ function renderUserList(users) {
     })).then(() => users);
 }
 
-router.use(user.redirectLogIn);
+router.use(user.requireLogIn);
 
 router.get('/', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),

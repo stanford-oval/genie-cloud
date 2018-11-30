@@ -17,7 +17,7 @@ const model = require('../model/example');
 
 const router = express.Router();
 
-router.get('/', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.get('/', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return model.getTypes(dbClient);
     }).then((rows) => {
@@ -31,7 +31,7 @@ router.get('/', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.A
     });
 });
 
-router.get('/:language/:type', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.get('/:language/:type', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;

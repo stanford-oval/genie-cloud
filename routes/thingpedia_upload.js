@@ -44,7 +44,7 @@ router.use((req, res, next) => {
     next();
 });
 
-router.get('/create', user.redirectLogIn, user.requireDeveloper(), (req, res) => {
+router.get('/create', user.requireLogIn, user.requireDeveloper(), (req, res) => {
     res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - create new device"),
                                                      device: { code: '',
                                                                dataset: '' },
@@ -201,7 +201,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(), (req, res, ne
     doCreateOrUpdate(undefined, true, req, res).catch(next);
 });
 
-router.get('/update/:kind', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
+router.get('/update/:kind', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
     Promise.resolve().then(() => {
         return db.withClient(async (dbClient) => {
             const d = await model.getByPrimaryKind(dbClient, req.params.kind, true);

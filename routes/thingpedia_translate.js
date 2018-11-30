@@ -28,7 +28,7 @@ function localeToLanguage(locale) {
     return (locale || 'en').split(/[-_@.]/)[0];
 }
 
-router.get('/by-id/:kind', user.redirectLogIn, (req, res) => {
+router.get('/by-id/:kind', user.requireLogIn, (req, res) => {
     const language = req.query.language || localeToLanguage(req.user.locale);
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),

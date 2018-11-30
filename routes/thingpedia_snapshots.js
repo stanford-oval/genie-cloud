@@ -17,7 +17,7 @@ const db = require('../util/db');
 
 const router = express.Router();
 
-router.get('/', user.redirectLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.get('/', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;

@@ -87,7 +87,7 @@ function getInfo(req) {
     });
 }
 
-router.get('/', user.redirectLogIn, (req, res) => {
+router.get('/', user.requireLogIn, (req, res) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
         res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
                                  messages: req.flash('app-message'),
@@ -104,7 +104,7 @@ router.get('/', user.redirectLogIn, (req, res) => {
     }).done();
 });
 
-router.post('/', user.redirectLogIn, (req, res) => {
+router.post('/', user.requireLogIn, (req, res) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
         res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
             messages: req.flash('app-message'),
@@ -143,11 +143,11 @@ router.post('/apps/delete', user.requireLogIn, (req, res, next) => {
     }).done();
 });
 
-router.get('/conversation', user.redirectLogIn, (req, res, next) => {
+router.get('/conversation', user.requireLogIn, (req, res, next) => {
     res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond") });
 });
 
-router.post('/conversation', user.redirectLogIn, (req, res) => {
+router.post('/conversation', user.requireLogIn, (req, res) => {
     res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond"), command: req.body.command });
 });
 

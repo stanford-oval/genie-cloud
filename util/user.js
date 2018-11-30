@@ -93,17 +93,13 @@ module.exports = {
 
     requireLogIn(req, res, next) {
         if (!req.user) {
-            res.status(401).render('login_required',
-                                   { page_title: req._("Thingpedia - Error") });
-        } else {
-            next();
-        }
-    },
-
-    redirectLogIn(req, res, next) {
-        if (!req.user) {
-            req.session.redirect_to = req.originalUrl;
-            res.redirect('/user/login');
+            if (req.method === 'GET' || req.method === 'HEAD') {
+                req.session.redirect_to = req.originalUrl;
+                res.redirect('/user/login');
+            } else {
+                res.status(401).render('login_required',
+                                       { page_title: req._("Thingpedia - Error") });
+            }
         } else {
             next();
         }

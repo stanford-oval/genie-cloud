@@ -16,7 +16,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
 
-router.get('/create', user.redirectLogIn, (req, res, next) => {
+router.get('/create', user.requireLogIn, (req, res, next) => {
     if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Invalid device class") });
@@ -82,7 +82,7 @@ router.post('/delete', user.requireLogIn, (req, res, next) => {
 });
 
 // special case google because we have login with google
-/*router.get('/oauth2/com.google', user.redirectLogIn, function(req, res, next) {
+/*router.get('/oauth2/com.google', user.requireLogIn, function(req, res, next) {
     req.session.redirect_to = '/me';
     next();
 }, passport.authorize('google', {
@@ -91,7 +91,7 @@ router.post('/delete', user.requireLogIn, (req, res, next) => {
     successRedirect: '/me'
 }));*/
 
-router.get('/oauth2/:kind', user.redirectLogIn, (req, res, next) => {
+router.get('/oauth2/:kind', user.requireLogIn, (req, res, next) => {
     const kind = req.params.kind;
 
     EngineManager.get().getEngine(req.user.id).then((engine) => {

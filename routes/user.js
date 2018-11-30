@@ -182,7 +182,7 @@ async function getProfile(req, res, pwError, profileError) {
                                  phone: phone, desktop: desktop });
 }
 
-router.get('/profile', userUtils.redirectLogIn, (req, res, next) => {
+router.get('/profile', userUtils.requireLogIn, (req, res, next) => {
     getProfile(req, res, undefined, undefined).catch(next);
 });
 
@@ -260,7 +260,7 @@ router.post('/delete', userUtils.requireLogIn, (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/request-developer', userUtils.redirectLogIn, (req, res, next) => {
+router.get('/request-developer', userUtils.requireLogIn, (req, res, next) => {
     if (req.user.developer_status >= userUtils.DeveloperStatus.DEVELOPER) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You are already an enrolled developer.") });

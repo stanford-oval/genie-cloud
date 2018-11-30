@@ -56,7 +56,7 @@ function getCachedModules(userId) {
     });
 }
 
-router.get('/', user.redirectLogIn, (req, res) => {
+router.get('/', user.requireLogIn, (req, res) => {
     getCachedModules(req.user.id).then((modules) => {
         return EngineManager.get().isRunning(req.user.id).then((isRunning) => {
             res.render('status', { page_title: req._("Thingpedia - Status"),
