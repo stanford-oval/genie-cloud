@@ -222,7 +222,23 @@ module.exports = class ParameterReplacer {
         if (ptype.isEntity)
             return this._getEntityListKey(ptype.type);
 
-        return [null, null];
+        if (!this._warned.has(pname + ':' + ptype)) {
+            console.log(`Found no values for ${pname}:${ptype}`);
+            this._warned.add(pname + ':' + ptype);
+        }
+
+        switch (pname) {
+        case 'message':
+        case 'snippet':
+        case 'text':
+        case 'description':
+        case 'status':
+        case 'body':
+            return ['string', 'tt:long_free_text'];
+
+        default:
+            return ['string', 'tt:short_free_text'];
+        }
     }
 
     async _sampleParam(pid) {
@@ -230,13 +246,8 @@ module.exports = class ParameterReplacer {
         const ptype = ThingTalk.Type.fromString(ptypestr);
 
         const valueList = await this._loader.get(await this._getParamListKey(fn, pname, ptype));
-        if (valueList.size === 0) {
-            if (!this._warned.has(pid)) {
-                console.log(`Found no values for ${pid}`);
-                this._warned.add(pid);
-            }
+        if (valueList.size === 0)
             return null;
-        }
 
         let attempts = 50;
         while (attempts > 0) {
