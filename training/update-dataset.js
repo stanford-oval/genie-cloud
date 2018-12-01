@@ -305,7 +305,6 @@ class DatasetUpdater {
         this._paramReplacer = new ParameterReplacer(this._language, this._schemas, this._dbClient, this._rng);
         await this._paramReplacer.initialize();
 
-        await this._clearExistingDataset();
         if (this._options.regenerateAll || this._options.regenerateTypes.length > 0)
             await this._regenerateReplacedParaphrases();
         if (this._options.regenerateTypes.length === 0)
@@ -315,8 +314,11 @@ class DatasetUpdater {
     async run() {
         this._ppdb = await BinaryPPDB.mapFile(this._options.ppdbFile);
 
-
-        return db.withTransaction(async (dbClient) => {
+        await db.withTransaction(async (dbClient) => {
+            this._dbClient = dbClient;
+            await this._clearExistingDataset();
+        });
+        await db.withTransaction(async (dbClient) => {
             this._dbClient = dbClient;
             return this._transaction();
         }, 'repeatable read');
