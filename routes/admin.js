@@ -132,34 +132,15 @@ router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res) =>
     }).done();
 });
 
-function getTraining(req, res) {
-    return TrainingServer.get().getJobQueue().then((jobs) => {
-        res.render('admin_training', { page_title: req._("Thingpedia - Administration - Natural Language Training"),
-                                     csrfToken: req.csrfToken(),
-                                     metrics: {
-                                        'default/en': {
-                                            'accuracy': 0.88,
-                                            'accuracy_without_parameters': 0.89,
-                                            'device_accuracy': 0.95,
-                                            'num_function_accuracy': 0.99,
-                                            'function_accuracy': 0.93,
-                                            'token_f1_accuracy': 0.99,
-                                            'bleu_score': 0.99,
-                                            'grammar_accuracy': 1.0,
-                                        },
-                                        'com.spotify/en': {
-                                            'accuracy': 0.92,
-                                            'accuracy_without_parameters': 0.925,
-                                            'device_accuracy': 0.99,
-                                            'num_function_accuracy': 0.99,
-                                            'function_accuracy': 0.96,
-                                            'token_f1_accuracy': 0.99,
-                                            'bleu_score': 0.99,
-                                            'grammar_accuracy': 1.0,
-                                        }
-                                     },
-                                     jobs });
-    });
+async function getTraining(req, res) {
+    const [jobs, metrics] = await Promise.all([
+        TrainingServer.get().getJobQueue(),
+        TrainingServer.get().getMetrics()
+    ]);
+    res.render('admin_training', { page_title: req._("Thingpedia - Administration - Natural Language Training"),
+                                 csrfToken: req.csrfToken(),
+                                 metrics,
+                                 jobs });
 }
 
 router.get('/training', user.requireRole(user.Role.ADMIN), (req, res, next) => {
