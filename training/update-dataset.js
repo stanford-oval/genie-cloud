@@ -302,7 +302,11 @@ class DatasetUpdater {
         this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
 
-        this._paramReplacer = new ParameterReplacer(this._language, this._schemas, this._dbClient, this._rng);
+        this._paramReplacer = new ParameterReplacer(this._language, this._schemas, this._dbClient, {
+            rng: this._rng,
+            addFlag: false,
+            quotedProbability: this._options.quotedProbability,
+        });
         await this._paramReplacer.initialize();
 
         if (this._options.regenerateAll || this._options.regenerateTypes.length > 0)
@@ -373,6 +377,12 @@ async function main() {
         metavar: 'FRACTION',
         help: 'Fraction of paraphrase sentences to augment with PPDB',
     });
+    parser.addArgument('--quoted-fraction', {
+        type: Number,
+        defaultValue: 0.1,
+        metavar: 'FRACTION',
+        help: 'Fraction of sentences that will not have their quoted parameters replaced',
+    });
 
     const args = parser.parseArgs();
 
@@ -383,7 +393,8 @@ async function main() {
 
         ppdbFile: args.ppdb,
         ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
-        ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction
+        ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
+        quotedProbability: args.quoted_fraction
     });
     await updater.run();
 

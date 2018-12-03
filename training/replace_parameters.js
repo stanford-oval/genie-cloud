@@ -164,12 +164,14 @@ function *resampleIgnorableAndAbbreviations(ptype, sentence, rng) {
 }
 
 module.exports = class ParameterReplacer {
-    constructor(language, schemas, dbClient, rng = Math.random) {
+    constructor(language, schemas, dbClient, { quotedProbability, rng = Math.random, addFlag = false }) {
         this._language = language;
         this._schemas = schemas || null;
         this._dbClient = dbClient || null;
         this._loader = null;
         this._rng = rng;
+        this._addFlag = addFlag;
+        this._quotedProbability = quotedProbability;
 
         this._warned = new Set;
     }
@@ -223,7 +225,7 @@ module.exports = class ParameterReplacer {
             return this._getEntityListKey(ptype.type);
 
         if (!this._warned.has(pname + ':' + ptype)) {
-            console.log(`Found no values for ${pname}:${ptype}`);
+            console.error(`Found no values for ${pname}:${ptype}`);
             this._warned.add(pname + ':' + ptype);
         }
 
@@ -387,7 +389,7 @@ module.exports = class ParameterReplacer {
                     // (and not GENERIC_ENTITY) because those NER extractors are always
                     // enabled, while the GENERIC_ENTITY one is enabled or disabled
                     // in almond-tokenizer manually
-                    if (coin(0.1, this._rng))
+                    if (coin(this._quotedProbability, this._rng))
                         return parameters;
                 }
 
@@ -417,8 +419,9 @@ module.exports = class ParameterReplacer {
                 const new_program = (await this._replaceTokensInProgram(program, replacements)).join(' ');
 
                 return {
+                    id: example.id + '-' + i,
                     type: example.type,
-                    flags: example.flags,
+                    flags: this._addFlag ? (example.flags ? (example.flags + ',replaced') : 'replaced') : example.flags,
                     utterance: example.utterance,
                     preprocessed: new_sentence,
                     target_code: new_program
