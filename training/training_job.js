@@ -29,13 +29,12 @@ const DEFAULT_TRAINING_CONFIG = {
     synthetic_depth: 4,
     model: 'luinet_copy_seq2seq',
     hparams_set: 'lstm_luinet',
-    decode_hparams: "beam_size=20,return_beams=true"
+    hparams_overrides: '',
+    decode_hparams: "beam_size=20,return_beams=true",
+    problem: 'semparse_thingtalk_noquote',
+    eval_early_stopping_metric: 'metrics-semparse_thingtalk_noquote/accuracy',
+    eval_early_stopping_metric_minimize: false
 };
-const TRAINING_CONFIG = Config.TRAINING_CONFIG || {};
-for (let name in DEFAULT_TRAINING_CONFIG) {
-    if (!(name in TRAINING_CONFIG))
-        TRAINING_CONFIG[name] = DEFAULT_TRAINING_CONFIG[name];
-}
 
 function delay(timeout) {
     return new Promise((resolve, reject) => {
@@ -140,6 +139,13 @@ async function taskPrepare(job) {
     fs.symlinkSync(path.resolve(job.jobDir, 'dataset'), path.resolve(`./dataset/${job.modelTag}/${job.language}/in-progress`));
     safeUnlinkSync(path.resolve(`./tensorboard/${job.modelTag}/${job.language}/in-progress`));
     fs.symlinkSync(path.resolve(job.jobDir, 'workdir/model'), path.resolve(`./tensorboard/${job.modelTag}/${job.language}/in-progress`));
+
+    const configFile = Config.TRAINING_CONFIG_FILE;
+    const config = {};
+    Object.assign(config, DEFAULT_TRAINING_CONFIG);
+    if (configFile)
+        Object.assign(config, JSON.parse(await util.promisify(fs.readFile)(configFile, { encoding: 'utf8' })));
+    job.config = config;
 }
 
 async function taskDownloadDataset(job) {
@@ -169,7 +175,7 @@ async function taskUpdatingDataset(job) {
         '--max_old_space_size=24000',
         path.resolve(path.dirname(module.filename), './update-dataset.js'),
         '--language', job.language,
-        '--maxdepth', TRAINING_CONFIG.synthetic_depth,
+        '--maxdepth', job.config.synthetic_depth,
         '--ppdb', PPDB
     ]);
     if (job.forDevices !== null) {
@@ -211,19 +217,20 @@ async function taskTraining(job) {
 
     await execCommand(job, path.resolve(Config.LUINET_PATH, 'luinet-trainer'), [
         '--data_dir', workdir,
-        '--problem', 'semparse_thingtalk_noquote',
-        '--model', TRAINING_CONFIG.model,
-        '--hparams_set', TRAINING_CONFIG.hparams_set,
+        '--problem', job.config.problem,
+        '--model', job.config.model,
+        '--hparams_set', job.config.hparams_set,
+        '--hparams', job.config.hparams_overrides,
         '--output_dir', path.resolve(workdir, 'model'),
-        '--train_steps', TRAINING_CONFIG.train_steps,
+        '--train_steps', job.config.train_steps,
         '--export_saved_model',
-        '--eval_early_stopping_metric', 'metrics-semparse_thingtalk_noquote/accuracy',
-        '--noeval_early_stopping_metric_minimize',
-        '--decode_hparams', TRAINING_CONFIG.decode_hparams
+        '--eval_early_stopping_metric', job.config.eval_early_stopping_metric,
+        `--${job.config.eval_early_stopping_metric_minimize ? '' : 'no'}eval_early_stopping_metric_minimize`,
+        '--decode_hparams', job.config.decode_hparams
     ], (line) => {
         const match = / step = ([0-9]+) /.exec(line);
         if (match !== null)
-            job.setProgress(parseFloat(match[1])/TRAINING_CONFIG.train_steps);
+            job.setProgress(parseFloat(match[1])/job.config.train_steps);
     });
 
     const filenames = await util.promisify(fs.readdir)(path.resolve(workdir, 'model/export/best'));
@@ -238,11 +245,11 @@ async function taskTraining(job) {
     job.bestModelDir = path.resolve(workdir, 'model/export/best', bestModel);
 
     await util.promisify(fs.writeFile)(path.resolve(job.bestModelDir, 'model.json'), JSON.stringify({
-        "problem": "semparse_thingtalk_noquote",
-        "model": TRAINING_CONFIG.model,
-        "hparams_set": TRAINING_CONFIG.hparams_set,
-        "hparams_overrides": "",
-        "decode_hparams": TRAINING_CONFIG.decode_hparams
+        "problem": job.config.problem,
+        "model": job.config.model,
+        "hparams_set": job.config.hparams_set,
+        "hparams_overrides": job.config.hparams_overrides,
+        "decode_hparams": job.config.decode_hparams
     }));
 }
 
