@@ -212,6 +212,55 @@ async function taskDatagen(job) {
     ]);
 }
 
+async function extractEvalMetrics(job) {
+    const workdir = path.resolve(job.jobDir, 'workdir');
+
+    let { stdout, stderr } = await util.promisify(child_process.execFile)(path.resolve(Config.LUINET_PATH, 'luinet-trainer'), [
+        '--output_dir', path.resolve(workdir, 'model'),
+        '--eval_early_stopping_metric', job.config.eval_early_stopping_metric,
+        `--${job.config.eval_early_stopping_metric_minimize ? '' : 'no'}eval_early_stopping_metric_minimize`,
+    ]);
+
+    if (stderr)
+        throw new Error(stderr);
+
+    job.metrics = {};
+    stdout = stdout.trim();
+
+    const prefix = 'metrics-' + job.config.problem + '/';
+    for (let line of stdout.split('\n')) {
+        let [key, value] = line.split('=');
+        key = key.trim();
+        if (key.startsWith(prefix))
+            key = key.substring(prefix.length);
+        value = parseFloat(value.trim());
+        job.metrics[key] = value;
+    }
+}
+
+async function findBestModel(job) {
+    const workdir = path.resolve(job.jobDir, 'workdir');
+
+    const filenames = await util.promisify(fs.readdir)(path.resolve(workdir, 'model/export/best'));
+    filenames.sort((a, b) => {
+        // sort numerically, largest first
+        return parseInt(b) - parseInt(a);
+    });
+    if (filenames.length === 0)
+        throw new Error("Did not produce a trained model");
+
+    const bestModel = filenames[0];
+    job.bestModelDir = path.resolve(workdir, 'model/export/best', bestModel);
+
+    await util.promisify(fs.writeFile)(path.resolve(job.bestModelDir, 'model.json'), JSON.stringify({
+        "problem": job.config.problem,
+        "model": job.config.model,
+        "hparams_set": job.config.hparams_set,
+        "hparams_overrides": job.config.hparams_overrides,
+        "decode_hparams": job.config.decode_hparams
+    }));
+}
+
 async function taskTraining(job) {
     const workdir = path.resolve(job.jobDir, 'workdir');
 
@@ -233,24 +282,8 @@ async function taskTraining(job) {
             job.setProgress(parseFloat(match[1])/job.config.train_steps);
     });
 
-    const filenames = await util.promisify(fs.readdir)(path.resolve(workdir, 'model/export/best'));
-    filenames.sort((a, b) => {
-        // sort numerically, largest first
-        return parseInt(b) - parseInt(a);
-    });
-    if (filenames.length === 0)
-        throw new Error("Did not produce a trained model");
-
-    const bestModel = filenames[0];
-    job.bestModelDir = path.resolve(workdir, 'model/export/best', bestModel);
-
-    await util.promisify(fs.writeFile)(path.resolve(job.bestModelDir, 'model.json'), JSON.stringify({
-        "problem": job.config.problem,
-        "model": job.config.model,
-        "hparams_set": job.config.hparams_set,
-        "hparams_overrides": job.config.hparams_overrides,
-        "decode_hparams": job.config.decode_hparams
-    }));
+    await findBestModel(job);
+    await extractEvalMetrics(job);
 }
 
 async function taskTesting(job) {
@@ -476,6 +509,19 @@ module.exports = class Job {
     }
     get endTime() {
         return this.data.endTime;
+    }
+
+    get config() {
+        return this.data.config;
+    }
+    set config(v) {
+        return this.data.config = v;
+    }
+    get metrics() {
+        return this.data.metrics;
+    }
+    set metrics(v) {
+        return this.data.metrics = v;
     }
 
     get status() {
