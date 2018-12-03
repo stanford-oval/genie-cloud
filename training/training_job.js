@@ -451,6 +451,8 @@ module.exports = class Job {
             this.data.taskStats[taskName] = end - start;
             this._daemon.recordDuration(this, taskName, duration);
         }
+
+        this.data.status = 'success';
         this.complete();
     }
 
