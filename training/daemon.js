@@ -49,6 +49,7 @@ class TrainingDaemon {
 
             this._queues[jobType] = {
                 last: null,
+                lastSuccess: {},
                 current: null,
                 next: [],
                 waiting: [],
@@ -99,6 +100,14 @@ class TrainingDaemon {
 
                 if (queue.last)
                     this._queues[jobType].last = Job.load(this, queue.last);
+
+                for (let key in queue.lastSuccess) {
+                    const jobData = queue.lastSuccess[key];
+                    if (queue.last && queue.last.id === jobData.id)
+                        this._queues[jobType].lastSuccess[key] = this._queues[jobType].last;
+                    else
+                        this._queues[jobType].lastSuccess[key] = Job.load(jobData);
+                }
                 if (queue.current)
                     this._queues[jobType].current = Job.load(this, queue.current);
                 this._queues[jobType].next = (queue.next || []).map((j) => Job.load(this, j));
@@ -158,6 +167,8 @@ Check the logs for further information.`
         if (job !== current)
             return;
         this._queues[job.jobType].last = job;
+        if (job.status === 'success')
+            this._queues[job.jobType][job.modelTag + '/' + job.language] = job; //'
         this._queues[job.jobType].current = null;
 
         const dependents = this._dependencies.get(job.id) || [];
@@ -312,6 +323,15 @@ Check the logs for further information.`
                 return;
             }
             next();
+        });
+
+        app.get('/metrics', async (req, res, next) => {
+            const queue = this._queues.train;
+
+            const out = {};
+            for (let key in queue.lastSuccess)
+                out[key] = queue.lastSuccess[key].metrics;
+            res.json(out);
         });
 
         app.post('/jobs/create', async (req, res, next) => { //'

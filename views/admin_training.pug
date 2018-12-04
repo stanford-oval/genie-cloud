@@ -1,5 +1,8 @@
 extends layout
 
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/admin-nl-training-bundle.js')
+
 block styles
   link(rel='stylesheet', href='/stylesheets/thingpedia.css')
 
@@ -40,6 +43,25 @@ block content
   div.row
     div.col-md-3
       a(data-toggle='modal', href='#new-training-job-dialog').btn.btn-primary.btn-sm.btn-block= _("Queue a new training job")
+
+  h2= _("Current Metrics")
+  canvas(width='400', height='750', data-metrics=JSON.stringify(metrics))#chart-accuracy-combined
+    for model,tag in metrics
+      h3= _("Model: %s").format(tag)
+      p
+        -
+          const LABELS = {
+              'accuracy': "Program",
+              'function_accuracy': "Function",
+              'device_accuracy': "Device",
+              'num_function_accuracy': "Prim/Compound",
+              'grammar_accuracy': "Syntax"
+          };
+        for label,key in LABELS
+          = _("%s: %.1f%%").format(label, 100*model[key])
+          |
+          |
+
 
   for queue,jobType in jobs
     h2= _("Queue: %s").format(jobType)

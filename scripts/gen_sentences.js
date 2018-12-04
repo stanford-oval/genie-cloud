@@ -16,25 +16,55 @@ process.on('unhandledRejection', (up) => { throw up; });
 const fs = require('fs');
 const stream = require('stream');
 const seedrandom = require('seedrandom');
+const argparse = require('argparse');
 
 const SentenceGenerator = require('../training/sentence-generator');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 
 function main() {
-    let [,, outputFile, _language, maxDepth, turkingFlag] = process.argv;
-    if (maxDepth === undefined)
-        maxDepth = 6;
-    else
-        maxDepth = parseInt(maxDepth);
-    if (isNaN(maxDepth))
-        throw new Error('invalid max depth');
+    const parser = new argparse.ArgumentParser({
+        addHelp: true,
+        description: 'Generate a set of synthetic sentences manually'
+    });
+    parser.addArgument(['-l', '--language'], {
+        required: true,
+    });
+    parser.addArgument(['-o', '--output'], {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.addArgument('--maxdepth', {
+        type: Number,
+        defaultValue: 6,
+        help: 'Maximum depth of synthetic sentence generation',
+    });
+    parser.addArgument('--turking', {
+        nargs: 0,
+        action: 'storeTrue',
+        help: 'Restrict grammar rules to MTurk-friendly ones.',
+        defaultValue: false
+    });
+    parser.addArgument('--debug', {
+        nargs: 0,
+        action: 'storeTrue',
+        help: 'Enable debugging.',
+        defaultValue: true
+    });
+    parser.addArgument('--no-debug', {
+        nargs: 0,
+        action: 'storeFalse',
+        dest: 'debug',
+        help: 'Enable debugging.',
+    });
+
+    const args = parser.parseArgs();
     const options = {
         rng: seedrandom.alea('almond is awesome'),
-        language: _language,
-        thingpediaClient: new AdminThingpediaClient(_language),
-        turkingMode: turkingFlag === '--turking',
-        maxDepth: maxDepth,
-        debug: true
+        language: 'en',
+        thingpediaClient: new AdminThingpediaClient(args.language),
+        turkingMode: args.turking,
+        maxDepth: args.maxdepth,
+        debug: args.debug
     };
 
     const generator = new SentenceGenerator(options);
@@ -42,7 +72,7 @@ function main() {
         writableObjectMode: true,
         
         transform(ex, encoding, callback) {
-            callback(null, ex.id + '\t' + ex.utterance + '\t' + ex.target_code + '\n');
+            callback(null, 'S' + ex.id + '\t' + ex.utterance + '\t' + ex.target_code + '\n');
         },
         
         flush(callback) {
@@ -50,11 +80,7 @@ function main() {
         }
     });
 
-    const outfile = outputFile || 'output.tsv';
-    const output = fs.createWriteStream(outfile);
-
-    generator.pipe(transform).pipe(output);
-
-    output.on('finish', () => process.exit());
+    generator.pipe(transform).pipe(args.output);
+    args.output.on('finish', () => process.exit());
 }
 return main();

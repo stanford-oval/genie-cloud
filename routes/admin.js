@@ -132,12 +132,15 @@ router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res) =>
     }).done();
 });
 
-function getTraining(req, res) {
-    return TrainingServer.get().getJobQueue().then((jobs) => {
-        res.render('admin_training', { page_title: req._("Thingpedia - Administration - Natural Language Training"),
-                                     csrfToken: req.csrfToken(),
-                                     jobs });
-    });
+async function getTraining(req, res) {
+    const [jobs, metrics] = await Promise.all([
+        TrainingServer.get().getJobQueue(),
+        TrainingServer.get().getMetrics()
+    ]);
+    res.render('admin_training', { page_title: req._("Thingpedia - Administration - Natural Language Training"),
+                                 csrfToken: req.csrfToken(),
+                                 metrics,
+                                 jobs });
 }
 
 router.get('/training', user.requireRole(user.Role.ADMIN), (req, res, next) => {

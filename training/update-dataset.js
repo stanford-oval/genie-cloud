@@ -22,10 +22,10 @@ const ThingTalk = require('thingtalk');
 const exampleModel = require('../model/example');
 
 const BinaryPPDB = require('../util/binary_ppdb');
+const PPDBUtils = require('../util/ppdb');
 const SentenceGenerator = require('./sentence-generator');
 const ParameterReplacer = require('./replace_parameters');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
-const { coin, uniform, choose } = require('../util/random');
 
 const db = require('../util/db');
 
@@ -141,55 +141,13 @@ class DatasetUpdater {
         const output = [];
 
         for (let ex of examples) {
-            let inSpan = false;
-            let spanWords = new Set;
-            for (let tok of ex.target_code.split(' ')) {
-                if (tok === '"')
-                    inSpan = !inSpan;
-                else if (inSpan)
-                    spanWords.add(tok);
-            }
-
-            const sentence = ex.preprocessed.split(' ');
-            const replaceable = new Map;
-            for (let word of sentence) {
-                if (spanWords.has(word))
-                    continue;
-
-                let replacements = this._ppdb.get(word);
-                if (replacements.length > 0)
-                    replaceable.set(word, replacements);
-            }
-
-            if (replaceable.size === 0) {
-                if (this._options.debug)
-                    console.log(`ppdb: skipped ${ex.id} (no replaceable words found)`);
-                continue;
-            }
-            let toreplace;
-            if (replaceable.size === 1)
-                toreplace = Array.from(replaceable.keys());
-            else
-                toreplace = choose(Array.from(replaceable.keys()), 2, this._rng);
-
-            if (!coin(prob, this._rng))
-                continue;
-
-            const newUtterance = sentence.map((word) => {
-                if (toreplace.indexOf(word) >= 0)
-                    return uniform(replaceable.get(word), this._rng);
-                else
-                    return word;
-            }).join(' ');
-
-            let flags = ex.flags.replace(/,exact/, '');
-            output.push({
-                flags: flags ? flags + ',augmented' : 'augmented',
-                type: ex.type,
-                utterance: newUtterance,
-                preprocessed: newUtterance,
-                target_code: ex.target_code
+            const newex = PPDBUtils.apply(ex, this._ppdb, {
+                probability: prob,
+                debug: this._debug,
+                rng: this._rng
             });
+            if (newex)
+                output.push(newex);
         }
 
         return output;
@@ -302,10 +260,13 @@ class DatasetUpdater {
         this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
 
-        this._paramReplacer = new ParameterReplacer(this._language, this._schemas, this._dbClient, this._rng);
+        this._paramReplacer = new ParameterReplacer(this._language, this._schemas, this._dbClient, {
+            rng: this._rng,
+            addFlag: false,
+            quotedProbability: this._options.quotedProbability,
+        });
         await this._paramReplacer.initialize();
 
-        await this._clearExistingDataset();
         if (this._options.regenerateAll || this._options.regenerateTypes.length > 0)
             await this._regenerateReplacedParaphrases();
         if (this._options.regenerateTypes.length === 0)
@@ -315,8 +276,11 @@ class DatasetUpdater {
     async run() {
         this._ppdb = await BinaryPPDB.mapFile(this._options.ppdbFile);
 
-
-        return db.withTransaction(async (dbClient) => {
+        await db.withTransaction(async (dbClient) => {
+            this._dbClient = dbClient;
+            await this._clearExistingDataset();
+        });
+        await db.withTransaction(async (dbClient) => {
             this._dbClient = dbClient;
             return this._transaction();
         }, 'repeatable read');
@@ -371,6 +335,12 @@ async function main() {
         metavar: 'FRACTION',
         help: 'Fraction of paraphrase sentences to augment with PPDB',
     });
+    parser.addArgument('--quoted-fraction', {
+        type: Number,
+        defaultValue: 0.1,
+        metavar: 'FRACTION',
+        help: 'Fraction of sentences that will not have their quoted parameters replaced',
+    });
 
     const args = parser.parseArgs();
 
@@ -381,7 +351,8 @@ async function main() {
 
         ppdbFile: args.ppdb,
         ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
-        ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction
+        ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
+        quotedProbability: args.quoted_fraction
     });
     await updater.run();
 

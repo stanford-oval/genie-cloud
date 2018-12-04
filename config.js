@@ -111,6 +111,9 @@ module.exports.ENABLE_ANONYMOUS_USER = false;
 module.exports.TRAINING_URL = null;
 module.exports.TRAINING_ACCESS_TOKEN = null;
 
+// Configuration file for training (to override the defaults in training/training_job.js)
+module.exports.TRAINING_CONFIG_FILE = null;
+
 // Path to the luinet package (to be used by the auto training daemon)
 module.exports.LUINET_PATH = './luinet';
 

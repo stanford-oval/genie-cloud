@@ -6,6 +6,7 @@ public/javascripts/%-bundle.js : browser/%.js browser/deps/*
 	browserify -o $@ $<
 
 bundles := \
+	admin-nl-training \
 	commandpedia \
 	thingpedia-device-create \
 	thingpedia-portal \
