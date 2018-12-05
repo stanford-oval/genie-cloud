@@ -197,7 +197,17 @@ const INVISIBLE_CLASS = `class @org.thingpedia.builtin.test.invisible {
   action eat_data(in req data: String);
 }
 `;
+const ADMINONLY_CLASS = `class @org.thingpedia.builtin.test.adminonly {
+  action eat_data(in req data: String);
+}
+`;
 const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisible {
+  action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
+  #_[canonical="eat data on test"]
+  #_[confirmation="consume $data"];
+}
+`;
+const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.adminonly {
   action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
   #_[canonical="eat data on test"]
   #_[confirmation="consume $data"];
@@ -256,6 +266,32 @@ async function testGetSchemas() {
         BING_CLASS + INVISIBLE_CLASS);
 
     assert.deepStrictEqual(await request(
+        `/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_SCHEMA,
+            'org.thingpedia.builtin.test.invisible': {
+                kind_type: 'primary',
+                triggers: {},
+                queries: {},
+                actions: {
+                    "eat_data": {
+                        types: ["String"],
+                        args: ["data"],
+                        is_input: [true],
+                        required: [true],
+                        is_monitorable: false,
+                        is_list: false
+                    },
+                }
+            }
+        }
+    });
+    assert.deepStrictEqual(await ttRequest(
+        `/schema/com.bing,org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
+        BING_CLASS + INVISIBLE_CLASS);
+
+    assert.deepStrictEqual(await request(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
         result: 'ok',
         data: {
@@ -265,6 +301,32 @@ async function testGetSchemas() {
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`),
         BING_CLASS);
+
+    assert.deepStrictEqual(await request(
+        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_SCHEMA,
+            'org.thingpedia.builtin.test.adminonly': {
+                kind_type: 'primary',
+                triggers: {},
+                queries: {},
+                actions: {
+                    "eat_data": {
+                        types: ["String"],
+                        args: ["data"],
+                        is_input: [true],
+                        required: [true],
+                        is_monitorable: false,
+                        is_list: false
+                    },
+                }
+            }
+        }
+    });
+    assert.deepStrictEqual(await ttRequest(
+        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
+        BING_CLASS + ADMINONLY_CLASS);
 }
 
 async function testGetMetadata() {
@@ -329,6 +391,40 @@ async function testGetMetadata() {
         BING_CLASS_WITH_METADATA + INVISIBLE_CLASS_WITH_METADATA);
 
     assert.deepStrictEqual(await request(
+        `/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_METADATA,
+            'org.thingpedia.builtin.test.invisible': {
+                kind_type: "primary",
+                triggers: {},
+                queries: {},
+                actions: {
+                    "eat_data": {
+                        types: ["String"],
+                        args: ["data"],
+                        is_input: [true],
+                        required: [true],
+                        questions: ["What do you want me to consume?"],
+                        argcanonicals: ["data"],
+                        doc: "consume some data, do nothing",
+                        confirmation: "consume $data",
+                        confirmation_remote: "consume $data on $__person's Almond",
+                        canonical: "eat data on test",
+                        is_list: false,
+                        is_monitorable: false,
+                        string_values: [null]
+                    }
+                }
+            }
+        }
+    });
+
+    assert.deepStrictEqual(await ttRequest(
+        `/schema/com.bing,org.thingpedia.builtin.test.invisible?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
+        BING_CLASS_WITH_METADATA + INVISIBLE_CLASS_WITH_METADATA);
+
+    assert.deepStrictEqual(await request(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.DEVELOPER_KEY}`), {
         result: 'ok',
         data: {
@@ -339,6 +435,40 @@ async function testGetMetadata() {
     assert.deepStrictEqual(await ttRequest(
         `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.DEVELOPER_KEY}`),
         BING_CLASS_WITH_METADATA);
+
+    assert.deepStrictEqual(await request(
+        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'com.bing': BING_METADATA,
+            'org.thingpedia.builtin.test.adminonly': {
+                kind_type: "primary",
+                triggers: {},
+                queries: {},
+                actions: {
+                    "eat_data": {
+                        types: ["String"],
+                        args: ["data"],
+                        is_input: [true],
+                        required: [true],
+                        questions: ["What do you want me to consume?"],
+                        argcanonicals: ["data"],
+                        doc: "consume some data, do nothing",
+                        confirmation: "consume $data",
+                        confirmation_remote: "consume $data on $__person's Almond",
+                        canonical: "eat data on test",
+                        is_list: false,
+                        is_monitorable: false,
+                        string_values: [null]
+                    }
+                }
+            }
+        }
+    });
+
+    assert.deepStrictEqual(await ttRequest(
+        `/schema/com.bing,org.thingpedia.builtin.test.adminonly?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
+        BING_CLASS_WITH_METADATA + ADMINONLY_CLASS_WITH_METADATA);
 }
 
 function checkExamples(generated, expected) {
@@ -914,19 +1044,27 @@ function checkManifest(obtained, expected) {
 async function testGetDeviceManifest() {
     const BING = deepClone(require('./data/com.bing.manifest.json'));
     const INVISIBLE = deepClone(require('./data/org.thingpedia.builtin.test.invisible.manifest.json'));
+    const ADMINONLY = deepClone(require('./data/org.thingpedia.builtin.test.adminonly.manifest.json'));
 
     checkManifest(await request('/devices/code/com.bing'), BING);
 
     //console.log(String(toCharArray(BING_CLASS_FULL)));
     assert.strictEqual(await ttRequest('/devices/code/com.bing'), BING_CLASS_FULL);
+    assert.strictEqual(await ttRequest(`/devices/code/com.bing?developer_key=${process.env.DEVELOPER_KEY}`), BING_CLASS_FULL);
+    assert.strictEqual(await ttRequest(`/devices/code/com.bing?developer_key=${process.env.ROOT_DEVELOPER_KEY}`), BING_CLASS_FULL);
 
     await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.invisible'));
+    await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.nonexistent'));
     checkManifest(await request(
         `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE);
 
     await assert.rejects(() => request(
         `/devices/code/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`));
+
+    checkManifest(await request(
+        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
+        ADMINONLY);
 }
 
 async function testGetDevicePackage() {
@@ -938,6 +1076,13 @@ async function testGetDevicePackage() {
     });
 
     source = await streamRequest(`/devices/package/com.bing?developer_key=${process.env.DEVELOPER_KEY}`);
+    await new Promise((resolve, reject) => {
+        source.on('error', reject);
+        source.on('end', resolve);
+        source.resume();
+    });
+
+    source = await streamRequest(`/devices/package/com.bing?developer_key=${process.env.ROOT_DEVELOPER_KEY}`);
     await new Promise((resolve, reject) => {
         source.on('error', reject);
         source.on('end', resolve);
@@ -1003,6 +1148,43 @@ async function testGetDeviceSetup() {
                 text: "Invisible Device",
                 category: 'system',
                 kind: 'org.thingpedia.builtin.test.invisible'
+            }
+        }
+    });
+
+    assert.deepStrictEqual(await request(
+        `/devices/setup/org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'org.thingpedia.builtin.test.invisible': {
+                type: 'oauth2',
+                text: "Invisible Device",
+                category: 'system',
+                kind: 'org.thingpedia.builtin.test.invisible'
+            }
+        }
+    });
+
+    assert.deepStrictEqual(await request(
+        `/devices/setup/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'org.thingpedia.builtin.test.adminonly': {
+                type: 'multiple',
+                choices: []
+            }
+        }
+    });
+
+    assert.deepStrictEqual(await request(
+        `/devices/setup/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: {
+            'org.thingpedia.builtin.test.adminonly': {
+                type: 'none',
+                text: "Admin-only Device",
+                category: 'system',
+                kind: 'org.thingpedia.builtin.test.adminonly'
             }
         }
     });
@@ -1150,6 +1332,22 @@ async function testDeviceSearch() {
     });
 
     assert.deepStrictEqual(await request(`/devices/search?q=bing+invisible&developer_key=${process.env.DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: []
+    });
+
+    assert.deepStrictEqual(await request(`/devices/search?q=invisible&developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
+        result: 'ok',
+        data: [{
+            primary_kind: 'org.thingpedia.builtin.test.invisible',
+            name: 'Invisible Device',
+            description: 'This device is owned by Bob. It was not approved.',
+            category: 'system',
+            subcategory: 'service'
+        }]
+    });
+
+    assert.deepStrictEqual(await request(`/devices/search?q=bing+invisible&developer_key=${process.env.ROOT_DEVELOPER_KEY}`), {
         result: 'ok',
         data: []
     });

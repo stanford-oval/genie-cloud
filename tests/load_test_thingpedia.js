@@ -239,7 +239,7 @@ async function main() {
         await loadStringValues(dbClient);
         await loadExamples(dbClient, bob);
 
-        console.log(`export DEVELOPER_KEY="${newOrg.developer_key}"`);
+        console.log(`export DEVELOPER_KEY="${newOrg.developer_key}" ROOT_DEVELOPER_KEY="${root.developer_key}"`);
     });
 
     await db.tearDown();
