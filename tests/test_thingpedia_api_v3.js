@@ -930,7 +930,14 @@ async function testGetDeviceManifest() {
 }
 
 async function testGetDevicePackage() {
-    const source = await streamRequest('/devices/package/com.bing');
+    let source = await streamRequest('/devices/package/com.bing');
+    await new Promise((resolve, reject) => {
+        source.on('error', reject);
+        source.on('end', resolve);
+        source.resume();
+    });
+
+    source = await streamRequest(`/devices/package/com.bing?developer_key=${process.env.DEVELOPER_KEY}`);
     await new Promise((resolve, reject) => {
         source.on('error', reject);
         source.on('end', resolve);
