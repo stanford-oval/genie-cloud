@@ -285,7 +285,7 @@ module.exports = {
             return db.selectOne(client, `select downloadable, owner, approved_version, version from
                 device_class, device_code_version where device_id = id and
                 ((version = developer_version and owner = ?) or
-                ((version = approved_version and owner <> ?))
+                 (version = approved_version and owner <> ?))
                 and primary_kind = ?`, [org.id, org.id, kind]);
         } else {
             return db.selectOne(client, `select downloadable, owner, approved_version, version from
