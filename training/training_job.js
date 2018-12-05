@@ -208,7 +208,7 @@ async function taskDatagen(job) {
 async function extractEvalMetrics(job) {
     const workdir = path.resolve(job.jobDir, 'workdir');
 
-    let { stdout, stderr } = await util.promisify(child_process.execFile)(path.resolve(Config.LUINET_PATH, 'luinet-trainer'), [
+    let { stdout, stderr } = await util.promisify(child_process.execFile)(path.resolve(Config.LUINET_PATH, 'luinet-print-metrics'), [
         '--output_dir', path.resolve(workdir, 'model'),
         '--eval_early_stopping_metric', job.config.eval_early_stopping_metric,
         `--${job.config.eval_early_stopping_metric_minimize ? '' : 'no'}eval_early_stopping_metric_minimize`,
