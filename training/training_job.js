@@ -139,13 +139,6 @@ async function taskPrepare(job) {
     fs.symlinkSync(path.resolve(job.jobDir, 'dataset'), path.resolve(`./dataset/${job.modelTag}/${job.language}/in-progress`));
     safeUnlinkSync(path.resolve(`./tensorboard/${job.modelTag}/${job.language}/in-progress`));
     fs.symlinkSync(path.resolve(job.jobDir, 'workdir/model'), path.resolve(`./tensorboard/${job.modelTag}/${job.language}/in-progress`));
-
-    const configFile = Config.TRAINING_CONFIG_FILE;
-    const config = {};
-    Object.assign(config, DEFAULT_TRAINING_CONFIG);
-    if (configFile)
-        Object.assign(config, JSON.parse(await util.promisify(fs.readFile)(configFile, { encoding: 'utf8' })));
-    job.config = config;
 }
 
 async function taskDownloadDataset(job) {
@@ -427,6 +420,13 @@ module.exports = class Job {
     async _doStart() {
         this.data.startTime = (new Date).toISOString();
         this.data.status = 'started';
+
+        const configFile = Config.TRAINING_CONFIG_FILE;
+        const config = {};
+        Object.assign(config, DEFAULT_TRAINING_CONFIG);
+        if (configFile)
+            Object.assign(config, JSON.parse(await util.promisify(fs.readFile)(configFile, { encoding: 'utf8' })));
+        this.data.config = config;
         await this.save();
 
         for (let i = 0; i < this._allTasks.length; i++) {
@@ -515,9 +515,6 @@ module.exports = class Job {
 
     get config() {
         return this.data.config;
-    }
-    set config(v) {
-        return this.data.config = v;
     }
     get metrics() {
         return this.data.metrics;
