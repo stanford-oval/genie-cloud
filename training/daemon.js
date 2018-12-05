@@ -168,7 +168,7 @@ Check the logs for further information.`
             return;
         this._queues[job.jobType].last = job;
         if (job.status === 'success')
-            this._queues[job.jobType][job.modelTag + '/' + job.language] = job; //'
+            this._queues[job.jobType].lastSuccess[job.modelTag + '/' + job.language] = job; //'
         this._queues[job.jobType].current = null;
 
         const dependents = this._dependencies.get(job.id) || [];
