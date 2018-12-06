@@ -43,6 +43,7 @@ module.exports.EXTRA_ABOUT_PAGES = [
     {
         url: 'get-involved',
         view: 'stanford/about_get_involved.pug',
-        title: _("Get Involved")
+        title: _("Get Involved With Almond"),
+        navbar: _("Get Involved")
     }
 ];
