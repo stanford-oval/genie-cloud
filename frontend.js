@@ -330,7 +330,7 @@ module.exports = class Frontend {
                 console.error(err);
                 res.status(500).render('error', {
                     page_title: req._("Almond - Internal Server Error"),
-                    message: err
+                    message: req._("Code: %s").format(err.code || err.sqlState || err.errno)
                 });
             }
         });
