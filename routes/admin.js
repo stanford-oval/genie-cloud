@@ -391,7 +391,8 @@ router.get('/blog/update/:id', user.requireRole(user.Role.ADMIN), (req, res, nex
         return res.render('blog_create_or_edit', {
             page_title: req._("Almond - Blog Editor"),
             create: false,
-            post
+            post,
+            messages: req.flash('admin-blog-message'),
         });
     }).catch(next);
 });
@@ -400,6 +401,7 @@ router.get('/blog/create', user.requireRole(user.Role.ADMIN), (req, res, next) =
     res.render('blog_create_or_edit', {
         page_title: req._("Almond - Blog Editor"),
         create: true,
+        messages: [],
         post: {
             title: '',
             blurb: '',
@@ -432,7 +434,8 @@ router.post('/blog/update', user.requireRole(user.Role.ADMIN), (req, res, next) 
             body: rendered,
         });
     }).then(() => {
-        return res.redirect(303, '/blog/' + req.body.id + '-' + slug);
+        req.flash('admin-blog-message', req._("Saved"));
+        return res.redirect(303, '/admin/blog/update/' + req.body.id);
     }).catch(next);
 });
 
@@ -458,7 +461,8 @@ router.post('/blog/create', user.requireRole(user.Role.ADMIN), (req, res, next) 
             body: rendered,
         });
     }).then((post) => {
-        return res.redirect(303, '/blog/' + post.id + '-' + slug);
+        req.flash('admin-blog-message', req._("Saved"));
+        return res.redirect(303, '/admin/blog/update/' + post.id);
     }).catch(next);
 });
 

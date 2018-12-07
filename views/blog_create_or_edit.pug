@@ -11,6 +11,12 @@ block page_name
   = _("Almond Blog Editor")
 
 block content
+  for message in messages
+    div.alert.alert-success.alert-dismissible.fade.in(role='alert')
+      button(type='button', data-dismiss='alert', aria-label="Close").close
+        span(aria-hidden='true') ×
+      p= message
+
   form(action=create ? '/admin/blog/create' : '/admin/blog/update', method='post', data-toggle='validator')
     if !create
       input(type='hidden',name='id',value=post.id)
