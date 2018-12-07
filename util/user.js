@@ -48,6 +48,10 @@ module.exports = {
 
     Role: {
         ADMIN: 1,
+        BLOG_EDITOR: 2,
+
+        // all privileges
+        ROOT: 3
     },
 
     ProfileFlags: {
@@ -132,6 +136,17 @@ module.exports = {
                 next();
             }
         };
+    },
+
+    requireAnyRole(req, res, next) {
+        if (req.user.roles === 0 && req.user.developer_status < 3) {
+            res.status(403).render('error', {
+                page_title: req._("Thingpedia - Error"),
+                message: req._("You do not have permission to perform this operation.")
+            });
+        } else {
+            next();
+        }
     },
 
     requireDeveloper(required) {

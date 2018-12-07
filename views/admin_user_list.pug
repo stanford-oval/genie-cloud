@@ -57,9 +57,14 @@ block content
           td= user.locale
           td= user.timezone
           td
-            if user.roles & Constants.Role.ADMIN
+            if user.roles !== 0
+              - let roles = []
+              if user.roles & Constants.Role.ADMIN
+                - roles.push(_("Site Admin"))
+              if user.roles & Constants.Role.BLOG_EDITOR
+                - roles.push(_("Blog Editor"))
               span(title=user.developer_key)
-                a(href='/admin/organizations/details/' + user.developer_org)= _("Site Admin")
+                a(href='/admin/organizations/details/' + user.developer_org)= roles.join(', ')
             else if user.developer_status >= 3
               span(title=user.developer_key)
                 a(href='/admin/organizations/details/' + user.developer_org)= _("Admin")

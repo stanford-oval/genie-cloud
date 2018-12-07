@@ -76,7 +76,7 @@ router.get('/:id_slug', (req, res, next) => {
         return blogModel.getForView(dbClient, id);
     }).then((post) => {
         if (post.pub_date === null) {
-            if (!req.user || !(req.user.roles & user.Role.ADMIN)) {
+            if (!req.user || !(req.user.roles & user.Role.BLOG_EDITOR)) {
                 const e = new Error("Not Found");
                 e.errno = 'ENOENT';
                 throw e;

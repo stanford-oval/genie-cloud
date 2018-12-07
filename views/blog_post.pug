@@ -24,6 +24,6 @@ block content
       hr
       != post.body
 
-      if authenticated && (user.roles & Constants.Role.ADMIN)
+      if authenticated && (user.roles & Constants.Role.BLOG_EDITOR)
         p
           a(href='/admin/blog/update/' + post.id).btn.btn-default= _("Edit")

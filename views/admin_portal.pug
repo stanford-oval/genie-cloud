@@ -23,25 +23,27 @@ block content
                     a(href='/admin/users') Users
                   li
                     a(href='/admin/organizations') Developer Organizations
+                if user.roles & Constants.Role.BLOG_EDITOR
                   li
                     a(href='/admin/blog') Blog Archive
                 if WITH_THINGPEDIA === 'embedded'
                   if user.roles & Constants.Role.ADMIN
                     li
                       a(href='/admin/training') Natural Language Training
-                  li
-                    a(href='/admin/review-queue') Unreviewed Devices
-                  li
-                    a(href='/thingpedia/entities') Thingpedia Entities
-                  li
-                    a(href='/thingpedia/strings') Thingpedia String Datasets
-                  li
-                    a(href='/thingpedia/snapshots') Thingpedia Snapshots
-                  li
-                    a(href='/thingpedia/datasets') Thingpedia Datasets
-                if (user.roles & Constants.Role.ADMIN) && WITH_THINGPEDIA === 'embedded'
-                  li
-                    a(href='/mturk') MTurk Batches
+                  if user.developer_status >= 3
+                    li
+                      a(href='/admin/review-queue') Unreviewed Devices
+                    li
+                      a(href='/thingpedia/entities') Thingpedia Entities
+                    li
+                      a(href='/thingpedia/strings') Thingpedia String Datasets
+                    li
+                      a(href='/thingpedia/snapshots') Thingpedia Snapshots
+                    li
+                      a(href='/thingpedia/datasets') Thingpedia Datasets
+                  if user.roles & Constants.Role.ADMIN
+                    li
+                      a(href='/mturk') MTurk Batches
 
       section.divider
         div.container

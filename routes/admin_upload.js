@@ -32,7 +32,7 @@ router.use((req, res, next) => {
     res.locals.csrfToken = req.csrfToken();
     next();
 });
-router.use(user.requireLogIn, user.requireRole(user.Role.ADMIN));
+router.use(user.requireLogIn, user.requireRole(user.Role.BLOG_EDITOR));
 
 function hashfile(filename) {
     const stream = fs.createReadStream(filename);
