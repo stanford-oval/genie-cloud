@@ -10,7 +10,7 @@ block scripts
 block page_name
   - stdlayout = false;
   - var section = 'overview';
-  = _("Thingpedia Developer Portal")
+  = _("Developer Console")
 
 block content
   div.container-fluid#page-body
@@ -19,7 +19,4 @@ block content
         include thingpedia_dev_sidebar
 
       div.col-xs-12.col-md-8.col-lg-9
-        if authenticated && user.developer_org !== null
-          include thingpedia_dev_console
-        else
-          include thingpedia_dev_intro
+        include thingpedia_dev_console

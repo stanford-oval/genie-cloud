@@ -127,7 +127,7 @@ pre, pre code {
     display: block;
 }
 
-footer {
+footer.page-footer {
   padding-top: 1.5em;
   background-color: #8c1515;
   color: white;
@@ -135,7 +135,7 @@ footer {
   min-height: 120px;
 }
 
-footer a:link, footer a:visited, footer a:hover {
+footer.page-footer a:link, footer.page-footer a:visited, footer.page-footer a:hover {
   color: white;
 }
 
@@ -200,7 +200,7 @@ footer a:link, footer a:visited, footer a:hover {
 .divider h3 {
   text-align: center;
   font-size: 36px;
-  margin-bottom: 1.5em;
+  margin-bottom: 0.8em;
 }
 
 .panel > .panel-heading {
