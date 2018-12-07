@@ -23,8 +23,6 @@ const user = require('../util/user');
 
 const Config = require('../config');
 
-const user = require('../util/user');
-
 var router = express.Router();
 
 const HAS_ABOUT_GET_INVOLVED = Config.EXTRA_ABOUT_PAGES.some((p) => p.url === 'get-involved');
