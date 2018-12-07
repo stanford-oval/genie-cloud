@@ -74,6 +74,10 @@ module.exports = {
         return db.selectAll(client, "select * from example_utterances");
     },
 
+    // The ForUser variants of getCommands and getCommandsByFuzzySearch
+    // return an additional column, "liked", which is a boolean indicating
+    // whether the named user liked the given command or not
+    // They are used to color the hearts in Commandpedia, if the user is logged in
     getCommandsForUser(client, language, userId, start, end) {
         const query = `
             (select eu.id,eu.language,eu.type,eu.utterance,
