@@ -57,7 +57,7 @@ block content
           td= user.locale
           td= user.timezone
           td
-            if user.roles & 0x1
+            if user.roles & Constants.Role.ADMIN
               span(title=user.developer_key)
                 a(href='/admin/organizations/details/' + user.developer_org)= _("Site Admin")
             else if user.developer_status >= 3
@@ -120,4 +120,3 @@ block content
       if users.length > USERS_PER_PAGE
         li
           a(href='/admin/users?page=' + (page_num+1))= _("Next")
-

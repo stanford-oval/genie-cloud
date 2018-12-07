@@ -18,7 +18,7 @@ block content
           div.row
             div.col-xs-12
               ul
-                if user.roles & 0x1
+                if user.roles & Constants.Role.ADMIN
                   li
                     a(href='/admin/users') Users
                   li
@@ -26,7 +26,7 @@ block content
                   li
                     a(href='/admin/blog') Blog Archive
                 if WITH_THINGPEDIA === 'embedded'
-                  if user.roles & 0x1
+                  if user.roles & Constants.Role.ADMIN
                     li
                       a(href='/admin/training') Natural Language Training
                   li
@@ -39,14 +39,14 @@ block content
                     a(href='/thingpedia/snapshots') Thingpedia Snapshots
                   li
                     a(href='/thingpedia/datasets') Thingpedia Datasets
-                if user.roles & 0x1 && WITH_THINGPEDIA === 'embedded'
+                if (user.roles & Constants.Role.ADMIN) && WITH_THINGPEDIA === 'embedded'
                   li
                     a(href='/mturk') MTurk Batches
 
       section.divider
         div.container
           div.row
-            if user.roles & 0x1
+            if user.roles & Constants.Role.ADMIN
               div.col-md-2
                 form(action='/admin/users/kill/all', method='post')
                   input(type='hidden',name='_csrf',value=csrfToken)
