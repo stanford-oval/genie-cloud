@@ -38,7 +38,7 @@ cd $workdir
 
 # set up download directories
 mkdir -p $srcdir/public/download
-for x in devices icons backgrounds ; do
+for x in devices icons backgrounds blog-assets ; do
     mkdir -p $workdir/shared/$x
     ln -sf -T $workdir/shared/$x $srcdir/public/download/$x
 done

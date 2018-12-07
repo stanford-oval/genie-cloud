@@ -27,6 +27,18 @@ function getDownloadLocation(kind, version, developer) {
     return Promise.resolve(Url.resolve(Config.SERVER_ORIGIN, `${Config.CDN_HOST}/devices/${kind}-v${version}.zip`));
 }
 
+function writeFile(blob, into) {
+    let output = fs.createWriteStream(into);
+    if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
+        output.end(blob);
+    else
+        blob.pipe(output);
+    return new Promise((callback, errback) => {
+        output.on('finish', callback);
+        output.on('error', errback);
+    });
+}
+
 if (Config.FILE_STORAGE_BACKEND === 's3') {
     const AWS = require('aws-sdk');
 
@@ -55,6 +67,15 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
                 console.log('Successfully uploading png file to S3 for ' + name);
             });
         },
+        storeBlogAsset(blob, name, contentType = 'application/octet-stream') {
+            var s3 = new AWS.S3();
+            var upload = s3.upload({ Bucket: 'thingpedia2',
+                                     Key: 'blog-assets/' + name,
+                                     Body: blob,
+                                     ContentType: contentType });
+
+            return Q.ninvoke(upload, 'send');
+        },
         downloadZipFile(name, version) {
             var s3 = new AWS.S3();
             var download = s3.getObject({ Bucket: 'thingpedia2',
@@ -77,26 +98,13 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
 } else if (Config.FILE_STORAGE_BACKEND === 'local') {
     _backend = {
         storeIcon(blob, name) {
-            let output = fs.createWriteStream(platform.getWritableDir() + '/icons/' + name + '.png');
-            if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
-                output.end(blob);
-            else
-                blob.pipe(output);
-            return new Promise((callback, errback) => {
-                output.on('finish', callback);
-                output.on('error', errback);
-            });
+            return writeFile(blob, platform.getWritableDir() + '/icons/' + name + '.png');
         },
         storeBackground(blob, name) {
-            let output = fs.createWriteStream(platform.getWritableDir() + '/backgrounds/' + name + '.png');
-            if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
-                output.end(blob);
-            else
-                blob.pipe(output);
-            return new Promise((callback, errback) => {
-                output.on('finish', callback);
-                output.on('error', errback);
-            });
+            return writeFile(blob, platform.getWritableDir() + '/backgrounds/' + name + '.png');
+        },
+        storeBlogAsset(blob, name, contentType = 'application/octet-stream') {
+            return writeFile(blob, platform.getWritableDir() + '/blog-assets/' + name);
         },
         downloadZipFile(name, version) {
             let filename = platform.getWritableDir() + '/devices/' + name + '-v' + version + '.zip';
@@ -104,15 +112,7 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
         },
         storeZipFile(blob, name, version) {
             let filename = platform.getWritableDir() + '/devices/' + name + '-v' + version + '.zip';
-            let output = fs.createWriteStream(filename);
-            if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
-                output.end(blob);
-            else
-                blob.pipe(output);
-            return new Promise((callback, errback) => {
-                output.on('finish', callback);
-                output.on('error', errback);
-            });
+            return writeFile(blob, filename);
         },
         getDownloadLocation
     };

@@ -263,6 +263,7 @@ module.exports = class Frontend {
         // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
         this._app.use('/mturk', require('./routes/mturk'));
         this._app.use('/friendhub', require('./routes/friendhub'));
+        this._app.use('/admin', require('./routes/admin_upload'));
 
         this._app.use(csurf({ cookie: false }));
         this._app.use((req, res, next) => {
