@@ -1,0 +1,185 @@
+extends ../layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia_dev_sidebar.css')
+
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
+
+block page_name
+  - stdlayout = false;
+  - var section = 'overview';
+  = _("Contribute To Almond")
+
+block content
+  div.container-fluid#page-body
+    div.row
+      div.col-lg-3.col-md-4
+        include ../thingpedia_dev_sidebar
+
+      div.col-xs-12.col-md-8.col-lg-9#get-involved-container
+        section.divider
+          h3= _("Contribute To Almond")
+          div.row#dev-program-intro
+            div.col-xs-12.col-md-8.col-md-offset-2
+              p
+                | Almond is a community project, and we welcome anyone to use it, contribute to it,
+                | and help us make it the best virtual assistant.
+              p
+                | You can contribute to Thingpedia, our crowdsourced, non-proprietary repository of digital interfaces
+                | and their linguistic representation. You can improve our website, client applications,
+                | dialog agents, or even our underlying technology. You can use, remix, and rebrand
+                | Almond in your own project
+              p
+                strong We welcome everyone to contribute to Almond!
+
+        section.divider
+          h3= _("What can I build with Almond?")
+          div.row
+            div.col-lg-offset-2.col-lg-8.col-md-offset-1.col-md-10
+              p.text-center.
+                All sorts of projects can be made using the Almond platform. Here are two
+                 that we think are cool. Yours could be next!
+              p.text-center.
+                Also, see our #[a(href='/about/research#projects-in-progress') research page] and
+                 our #[a(href='/blog') blog] to see what else the Almond project is cooking.
+
+            div.col-md-6
+              div.dev-example
+                h4.dev-example-title= _("Almond Music with Alexa & Google Home support")
+                div.dev-example-video
+                  iframe(src="https://www.youtube.com/embed/M4HG-QDGmBI", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true, cc_load_policy=1)
+                p.dev-example-description
+                  | Gabby and Hemanth are both music enthusiasts.
+                  | They love music and want to control their music with voice through any device around them.
+                  | However, the Spotify skill on Alexa or Google Home does not do what they want such as
+                  | changing their playlist.
+                  | They built Almond Music together as a quarter-long class project with the goal
+                  | of creating the best music virtual assistant. We collaborate with them to integrate
+                  | the service with both Alexa and Google Home.
+                  | The integration layer is still under development. In the future, it will be fully automated
+                  | once a device is added to Thingpedia.
+            div.col-md-6
+              div.dev-example
+                h4.dev-example-title= _("Multi-user Almond")
+                div.dev-example-video
+                  iframe(src="https://www.youtube.com/embed/LFOB_AUmreE", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true, cc_load_policy=1)
+                p.dev-example-description
+                  | Sharing a smart speaker among multiple people in the household is useful
+                  | but at the same time raises privacy and parental control issues.
+                  | In this video, we demo how Almond can be used to identify users with their voice
+                  | and provide fine-grained access control based on the detected identity.
+                  | In our design, users are allowed to share any of their digital personal information
+                  | they have access to,
+                  | and control who, what, when, where, and how the data are to be shared.
+                  | The infrastructure of Almond also supports remote access control,
+                  | where each user talks to their own Almond and Almonds communicate with each other to
+                  | manage the sharing and access control.
+                  | See our <a href='https://almond-static.stanford.edu/papers/ubicomp18.pdf'>latest paper presented at Ubicomp'18</a> for more details.
+
+        section.divider#section-what-can-i-do-for-almond
+          h3= _("What can I do for Almond?")
+
+          div.row
+            div.col-lg-offset-2.col-lg-offset-8
+              blockquote
+                p Ask not what Almond can do for you — ask what you can do for Almond.
+                footer J. F. K. would have said that, totally.
+
+          div.row
+            div.col-md-6
+              h4= _("Contribute To Thingpedia")
+              p.
+                Do you own a device, or know of a service that you want to control through Almond?
+                You can add it to Thingpedia, and have Almond immediately learn about it!
+              p.
+                Check out our #[a(href='/thingpedia/developers/thingpedia-intro.md') developer documentation],
+                and when you're ready, #[a(href='/user/request-developer') apply to our developer program].
+
+            div.col-md-6
+              h4= _("Use Almond in your research or product")
+              p.
+                Almond is open source, and anybody can use it for any purpose. Are you building a smart
+                speaker, or an app that needs a natural language interface? Then Almond is for you.
+              p.
+                Almond provides an #[a(href='/thingpedia/developers/my-api.md') open API] that you can
+                use from your service or device directly. You can also download
+
+            div.col-md-6
+              h4= _("Develop Almond")
+              p.
+                Have you found a bug? Or a feature that you really want? Head to our
+                #[a(href='https://github.com/Stanford-Mobisocial-IoT-Lab') Github page] to find our
+                code base. Fork it, patch it, grow it.
+              p.
+                Also, don't hesitate to get in touch through our
+                #[a(href='mailto:thingpedia-support@lists.stanford.edu') support mailing list]
+                (public) for help with larger projects, access to internal documentation,
+                and details of the Almond architecture.
+
+            div.col-md-6
+              h4= _("Donate to Almond")
+              p.
+                Almond is generously funded by the
+                #[a(href='https://mobisocial.stanford.edu') Mobile and Social Computing Lab], an industrial affiliates
+                program within Stanford University's #[a(href='https://engineering.stanford.edu/') School of Engineering].
+              p.
+                The #[a(href='https://mobisocial.stanford.edu/index.php?page=affiliates') affiliates program]
+                provides an opportunity for industry and other organization to collaborate and interact
+                with our research team, through a recurrent sponsorship agreement.
+                Smaller donations can also be provided #[a(href='https://engineering.stanford.edu/get-involved/give') to the university].
+                All contributions to Stanford are tax deductible in the United States.
+
+        section.divider#section-get-in-touch
+          h3= _("Get In Touch")
+
+          div.row
+            div.col-lg-4.col-md-6
+              a(href='https://twitter.com/AlmondStanford').media
+                div.media-left.media-middle
+                  img(src=Config.ASSET_CDN + '/images/logo-twitter.png').media-object
+                div.media-body.media-middle
+                  h4.media-heading Twitter
+
+            div.col-lg-4.col-md-6
+              a(href='/blog/feed.rss').media
+                div.media-left.media-middle
+                  img(src=Config.ASSET_CDN + '/images/logo-rss.png').media-object
+                div.media-body.media-middle
+                  h4.media-heading RSS Feed
+
+            div.col-lg-4.col-md-6
+              a(href='https://gitter.im/Stanford-Mobisocial-IoT-Lab/Lobby').media
+                div.media-left.media-middle
+                  img(src=Config.ASSET_CDN + '/images/logo-gitter.png').media-object
+                div.media-body.media-middle
+                  h4.media-heading Gitter
+
+            div.col-lg-4.col-md-6
+              a(href='https://github.com/Stanford-Mobisocial-IoT-Lab').media
+                div.media-left.media-middle
+                  img(src=Config.ASSET_CDN + '/images/logo-github.png').media-object
+                div.media-body.media-middle
+                  h4.media-heading GitHub
+
+            div.col-lg-4.col-md-6
+              a(href='https://mailman.stanford.edu/mailman/listinfo/thingpedia-support').media
+                div.media-left.media-middle
+                  img(src=Config.ASSET_CDN + '/images/logo-email.png').media-object
+                div.media-body.media-middle
+                  h4.media-heading Mailing List (Support and Announcements)
+
+            div.col-lg-4.col-md-6
+              a(href='https://mailman.stanford.edu/mailman/listinfo/thingpedia-admins').media
+                div.media-left.media-middle
+                  img(src=Config.ASSET_CDN + '/images/logo-email.png').media-object
+                div.media-body.media-middle
+                  h4.media-heading Mailing List (Private Inquiries)
+
+            //-div.col-lg-6.col-md-6
+              a(href='https://stanford-oval.slack.com').media
+                div.media-left.media-middle
+                  img(src=Config.ASSET_CDN + '/images/logo-slack.png').media-object
+                div.media-body.media-middle
+                  h4.media-heading Slack (by invitation only)

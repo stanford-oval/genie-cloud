@@ -12,12 +12,12 @@ ul.nav.navbar-nav
   if WITH_THINGPEDIA === 'embedded'
     li
       a(href='/thingpedia')= _("Thingpedia")
-    li
-      a(href='/thingpedia/developers')= _("Developers")
-  if authenticated
-    if user.developer_status >= 3
+    if authenticated && user.developer_org
       li
-        a(href="/admin")= _("Admin")
+        a(href='/thingpedia/developers')= _("Console")
+  if authenticated && user.developer_status >= 3
+    li
+      a(href="/admin")= _("Admin")
 
 ul.nav.navbar-nav.navbar-right
   if authenticated

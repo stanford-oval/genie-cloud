@@ -110,3 +110,37 @@
 #developer-org-panel h5:first-child {
   margin-top: 0;
 }
+
+.dev-example {
+  margin-top: 1.5em;
+}
+
+#section-get-in-touch img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+#section-get-in-touch a {
+  border: 1px solid lightgray;
+  display: table;
+  margin-bottom: 1em;
+}
+
+#section-get-in-touch a .media-object {
+  padding-left: 15px;
+}
+
+#section-get-in-touch a:hover, #section-get-in-touch a:focus {
+  box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+}
+
+#section-what-can-i-do-for-almond h4 {
+  font-size: 22px;
+}
+
+@media screen and (min-width: 1000px) {
+#get-involved-container {
+  padding-right: 50px;
+}
+}

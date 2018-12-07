@@ -19,44 +19,48 @@ const db = require('../util/db');
 const organization = require('../model/organization');
 const device = require('../model/device');
 const oauth2 = require('../model/oauth2');
+const user = require('../util/user');
+
+const Config = require('../config');
 
 var router = express.Router();
 
-function prepareUserInfo(req) {
-    return Promise.resolve().then(() => {
-        if (req.user && req.user.developer_org !== null) {
-            return db.withClient((dbClient) => {
+const HAS_ABOUT_GET_INVOLVED = Config.EXTRA_ABOUT_PAGES.some((p) => p.url === 'get-involved');
+
+router.get('/', (req, res, next) => {
+    if (!req.user || !req.user.developer_org) {
+        if (HAS_ABOUT_GET_INVOLVED) {
+            res.redirect('/about/get-involved');
+        } else {
+            res.status(403).render('developer_access_required',
+                                   { page_title: req._("Thingpedia - Error"),
+                                     title: req._("Developer Access required"),
+                                     csrfToken: req.csrfToken() });
+        }
+        return;
+    }
+
+    db.withClient((dbClient) => {
                 return Q.all([
                     organization.get(dbClient, req.user.developer_org),
                     organization.getMembers(dbClient, req.user.developer_org),
-                    device.getByOwner(dbClient, req.user.developer_org),
-                    oauth2.getClientsByOwner(dbClient, req.user.developer_org)]);
-            });
-        } else {
-            return [{}, [], []];
-        }
-    });
-}
-
-router.get('/', (req, res, next) => {
-    prepareUserInfo(req).then(([developer_org, developer_org_members, developer_devices, developer_oauth2_clients]) => {
+                    device.getByOwner(dbClient, req.user.developer_org)]);
+    }).then(([developer_org, developer_org_members, developer_devices]) => {
         res.render('thingpedia_dev_overview', { page_title: req._("Thingpedia - Developer Portal"),
                                                 csrfToken: req.csrfToken(),
                                                 developer_org_name: developer_org.name,
                                                 developer_org_members: developer_org_members,
                                                 developer_devices: developer_devices,
-                                                developer_oauth2_clients: developer_oauth2_clients
         });
     }).catch(next);
 });
 
-router.get('/oauth', (req, res, next) => {
-    prepareUserInfo(req).then(([developer_org, developer_org_members, developer_devices, developer_oauth2_clients]) => {
-        res.render('thingpedia_dev_oauth', { page_title: req._("Thingpedia - Oauth 2.0 Applications"),
+router.get('/oauth', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
+    db.withClient((dbClient) => {
+        return oauth2.getClientsByOwner(dbClient, req.user.developer_org);
+    }).then((developer_oauth2_clients) => {
+        res.render('thingpedia_dev_oauth', { page_title: req._("Thingpedia - OAuth 2.0 Applications"),
                                              csrfToken: req.csrfToken(),
-                                             developer_org_name: developer_org.name,
-                                             developer_org_members: developer_org_members,
-                                             developer_devices: developer_devices,
                                              developer_oauth2_clients: developer_oauth2_clients
         });
     }).catch(next);
