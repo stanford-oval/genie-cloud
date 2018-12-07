@@ -17,13 +17,14 @@ function createMany(client, examples) {
         return Promise.resolve();
 
     const KEYS = ['id', 'schema_id', 'is_base', 'flags', 'language', 'utterance', 'preprocessed',
-                  'target_json', 'target_code', 'type', 'click_count', 'owner'];
+                  'target_json', 'target_code', 'type', 'click_count', 'like_count', 'owner'];
     const arrays = [];
     examples.forEach((ex) => {
         if (!ex.type)
             ex.type = 'thingpedia';
         if (ex.click_count === undefined)
             ex.click_count = 1;
+        ex.like_count = 0;
         KEYS.forEach((key) => {
             if (ex[key] === undefined)
                 ex[key] = null;
@@ -73,20 +74,70 @@ module.exports = {
         return db.selectAll(client, "select * from example_utterances");
     },
 
-    getCommands(client, language, start, end) {
+    getCommandsForUser(client, language, userId, start, end) {
         const query = `
             (select eu.id,eu.language,eu.type,eu.utterance,
-             eu.preprocessed,eu.target_code,eu.click_count,eu.is_base,null as kind,u.username as owner_name
+             eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,null as kind,u.username as owner_name,
+             (exists (select 1 from example_likes where example_id = eu.id and user_id = ?)) as liked
              from example_utterances eu left join users u on u.id = eu.owner where
              type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
              and not find_in_set('augmented', flags)
             ) union all (
              select eu.id,eu.language,eu.type,eu.utterance,
-             eu.preprocessed,eu.target_code,eu.click_count,eu.is_base,ds.kind,org.name as owner_name
+             eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,ds.kind,org.name as owner_name,
+             (exists (select 1 from example_likes where example_id = eu.id and user_id = ?)) as liked
              from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
              where ds.id = eu.schema_id and type = 'thingpedia' and language = ? and ds.approved_version is not null
              and is_base
-            ) order by click_count desc,md5(utterance) asc`;
+            ) order by like_count desc,md5(utterance) asc`;
+
+        if (start !== undefined && end !== undefined)
+            return db.selectAll(client, `${query} limit ?,?`, [userId, language, userId, language, start, end + 1]);
+        else
+            return db.selectAll(client, query, [userId, language, userId, language]);
+    },
+
+    getCommandsByFuzzySearchForUser(client, language, userId, query) {
+        const regexp = '(^| )(' + tokenize(query).join('|') + ')( |$)';
+        return db.selectAll(client, `
+            (select eu.id,eu.language,eu.type,eu.utterance,
+             eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,null as kind,u.username as owner_name,
+             (exists (select 1 from example_likes where example_id = eu.id and user_id = ?)) as liked
+             from example_utterances eu left join users u on u.id = eu.owner where
+             type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
+             and not find_in_set('augmented', flags) and ( utterance like ? or target_code like ?)
+            ) union all (
+             select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+             eu.target_code,eu.click_count,eu.like_count,eu.is_base,ds.kind,org.name as owner_name,
+             (exists (select 1 from example_likes where example_id = eu.id and user_id = ?)) as liked
+             from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
+             where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
+             and preprocessed rlike (?) and target_code <> ''
+            ) union distinct (
+             select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
+             eu.target_code,eu.click_count,eu.like_count,eu.is_base,ds.kind,org.name as owner_name,
+             (exists (select 1 from example_likes where example_id = eu.id and user_id = ?)) as liked
+             from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
+             where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
+             and match kind_canonical against (?) and target_code <> ''
+            ) order by like_count desc,md5(utterance) asc`, [userId, language, `%${query}%`, `%${query}%`,
+                userId, language, regexp, userId, language, query]);
+    },
+
+    getCommands(client, language, start, end) {
+        const query = `
+            (select eu.id,eu.language,eu.type,eu.utterance,
+             eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,null as kind,u.username as owner_name
+             from example_utterances eu left join users u on u.id = eu.owner where
+             type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
+             and not find_in_set('augmented', flags)
+            ) union all (
+             select eu.id,eu.language,eu.type,eu.utterance,
+             eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,ds.kind,org.name as owner_name
+             from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
+             where ds.id = eu.schema_id and type = 'thingpedia' and language = ? and ds.approved_version is not null
+             and is_base
+            ) order by like_count desc,md5(utterance) asc`;
 
         if (start !== undefined && end !== undefined)
             return db.selectAll(client, `${query} limit ?,?`, [language, language, start, end + 1]);
@@ -98,23 +149,23 @@ module.exports = {
         const regexp = '(^| )(' + tokenize(query).join('|') + ')( |$)';
         return db.selectAll(client, `
             (select eu.id,eu.language,eu.type,eu.utterance,
-             eu.preprocessed,eu.target_code,eu.click_count,eu.is_base,null as kind,u.username as owner_name
+             eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,null as kind,u.username as owner_name
              from example_utterances eu left join users u on u.id = eu.owner where
              type = 'commandpedia' and language = ? and not find_in_set('replaced', flags)
              and not find_in_set('augmented', flags) and ( utterance like ? or target_code like ?)
             ) union all (
              select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-             eu.target_code,eu.click_count,eu.is_base,ds.kind,org.name as owner_name
+             eu.target_code,eu.click_count,eu.like_count,eu.is_base,ds.kind,org.name as owner_name
              from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
              where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
              and preprocessed rlike (?) and target_code <> ''
             ) union distinct (
              select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-             eu.target_code,eu.click_count,eu.is_base,ds.kind,org.name as owner_name
+             eu.target_code,eu.click_count,eu.like_count,eu.is_base,ds.kind,org.name as owner_name
              from (example_utterances eu, device_schema ds) left join organizations org on org.id = ds.owner
              where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
              and match kind_canonical against (?) and target_code <> ''
-            ) order by click_count desc,md5(utterance) asc`, [language, `%${query}%`, `%${query}%`, language, regexp, language, query]);
+            ) order by like_count desc,md5(utterance) asc`, [language, `%${query}%`, `%${query}%`, language, regexp, language, query]);
     },
 
     getCheatsheet(client, language) {
@@ -130,13 +181,13 @@ module.exports = {
         if (org === -1) { // admin
             return db.selectAll(client,
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and preprocessed rlike (?) and target_code <> '')
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and match kind_canonical against (?) and target_code <> '')
@@ -145,14 +196,14 @@ module.exports = {
         } else if (org !== null) {
             return db.selectAll(client,
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and preprocessed rlike (?) and target_code <> ''
                 and (ds.approved_version is not null or ds.owner = ?))
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and match kind_canonical against (?) and target_code <> ''
@@ -162,14 +213,14 @@ module.exports = {
         } else {
             return db.selectAll(client,
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and preprocessed rlike (?) and target_code <> ''
                 and ds.approved_version is not null)
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and match kind_canonical against (?) and target_code <> ''
@@ -183,13 +234,13 @@ module.exports = {
         if (org === -1) { // admin
             return db.selectAll(client,
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                  eu.target_code,eu.click_count from example_utterances eu,
+                  eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                   and eu.type = 'thingpedia' and language = ?
                   and ds.kind in (?) and target_code <> '')
                 union distinct
                 (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                 eu.target_code,eu.click_count from example_utterances eu,
+                 eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
                  and not dck.is_child and dc.primary_kind in (?) and language = ?
@@ -198,14 +249,14 @@ module.exports = {
         } else if (org !== null) {
             return db.selectAll(client,
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                  eu.target_code,eu.click_count from example_utterances eu,
+                  eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                   and eu.type = 'thingpedia' and language = ?
                   and ds.kind in (?) and target_code <> ''
                   and (ds.approved_version is not null or ds.owner = ?))
                 union distinct
                 (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                 eu.target_code,eu.click_count from example_utterances eu,
+                 eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
                  and not dck.is_child and dc.primary_kind in (?) and language = ?
@@ -216,14 +267,14 @@ module.exports = {
         } else {
             return db.selectAll(client,
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                  eu.target_code,eu.click_count from example_utterances eu,
+                  eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                   and eu.type = 'thingpedia' and language = ?
                   and ds.kind in (?) and target_code <> ''
                   and ds.approved_version is not null)
                 union distinct
                 (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                 eu.target_code,eu.click_count from example_utterances eu,
+                 eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
                  and not dck.is_child and dc.primary_kind in (?) and language = ?
@@ -267,15 +318,18 @@ module.exports = {
         return db.query(client, "update example_utterances set click_count = click_count + 1 where id = ?", [exampleId]);
     },
 
-    // for now, upvoting/downvoting goes into the click_count directly
-    // in the future, we might want to separate them so that upvotes are counted more than clicks
-    // and people are prevented from voting multiple times
-    upvote(client, exampleId) {
-        return db.query(client, "update example_utterances set click_count = click_count + 1 where id = ?", [exampleId]);
+    async like(client, userId, exampleId) {
+        const inserted = await db.insertIgnore(client, `insert ignore into example_likes(example_id, user_id) values (?, ?)`, [exampleId, userId]);
+        if (inserted)
+            await db.query(client, `update example_utterances set like_count = like_count + 1 where id = ?`, [exampleId]);
+        return inserted;
     },
 
-    downvote(client, exampleId) {
-        return db.query(client, "update example_utterances set click_count = greatest(-1, click_count - 1) where id = ?", [exampleId]);
+    async unlike(client, userId, exampleId) {
+        await db.query(client, `update example_utterances set like_count = like_count - 1 where id = ? and
+            exists (select 1 from example_likes where user_id = ? and example_id = ?)`, [exampleId, userId, exampleId]);
+        const [result,] = await db.query(client, `delete from example_likes where user_id = ? and example_id = ?`, [userId, exampleId]);
+        return result.affectedRows > 0;
     },
 
     hide(client, exampleId) {
@@ -284,6 +338,12 @@ module.exports = {
 
     deleteById(client, exampleId) {
         return db.query(client, "delete from example_utterances where id = ?", [exampleId]);
+    },
+
+    async deleteAllLikesFromUser(client, userId) {
+        await db.query(client, `update example_utterances set like_count = like_count - 1 where
+            exists (select 1 from example_likes where user_id = ? and example_id = id)`, [userId]);
+        await db.query(client, `delete from example_likes where user_id = ?`, [userId]);
     },
 
     getTypes(client) {

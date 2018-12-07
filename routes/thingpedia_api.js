@@ -898,6 +898,8 @@ v3.get('/devices/search', (req, res, next) => {
 
 function getCommandDetails(commands) {
     for (let command of commands) {
+        if (command.liked !== undefined)
+            command.liked = !!command.liked;
         if (command.is_base) {
             command.utterance = command.utterance.replace(new RegExp(PARAM_REGEX, 'g'), '____');
             if (command.utterance.startsWith(', '))
@@ -928,6 +930,14 @@ function getCommandDetails(commands) {
         }
         delete command.kind;
     }
+}
+
+const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS, 'null'];
+
+function isOriginOk(req) {
+    if (typeof req.headers['origin'] !== 'string')
+        return false;
+    return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
 }
 
 /**
@@ -981,12 +991,16 @@ v1.get('/commands/all', (req, res, next) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const [page, page_size] = validatePageAndSize(req, 9);
 
-    db.withTransaction((client) => {
-        return commandModel.getCommands(client, language, page * page_size, page_size).then((commands) => {
-            getCommandDetails(commands);
-            res.cacheFor(30 * 1000);
-            res.json({ result: 'ok', data: commands });
-        });
+    db.withTransaction(async (client) => {
+        let commands;
+        if (req.user && isOriginOk(req))
+            commands = await commandModel.getCommandsForUser(client, language, req.user.id, page * page_size, page_size);
+        else
+            commands = await commandModel.getCommands(client, language, page * page_size, page_size);
+
+        getCommandDetails(commands);
+        res.cacheFor(30 * 1000);
+        res.json({ result: 'ok', data: commands });
     }).catch(next);
 });
 
@@ -1042,12 +1056,16 @@ v1.get('/commands/search', (req, res, next) => {
         return;
     }
 
-    db.withTransaction((client) => {
-        return commandModel.getCommandsByFuzzySearch(client, language, q).then((commands) => {
-            getCommandDetails(commands);
-            res.cacheFor(30 * 1000);
-            res.json({ result: 'ok', data: commands });
-        });
+    db.withTransaction(async (client) => {
+        let commands;
+        if (req.user && isOriginOk(req))
+            commands = await commandModel.getCommandsByFuzzySearchForUser(client, language, req.user.id, q);
+        else
+            commands = await commandModel.getComgetCommandsByFuzzySearchmands(client, language, q);
+
+        getCommandDetails(commands);
+        res.cacheFor(30 * 1000);
+        res.json({ result: 'ok', data: commands });
     }).catch(next);
 });
 

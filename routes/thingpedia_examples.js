@@ -17,21 +17,21 @@ const db = require('../util/db');
 
 var router = express.Router();
 
-router.post('/upvote/:id', (req, res) => {
+router.post('/upvote/:id', user.requireLogIn, (req, res) => {
     db.withClient((dbClient) => {
-        return model.upvote(dbClient, req.params.id);
-    }).then(() => {
-        res.json({ result: 'ok' });
+        return model.like(dbClient, req.user.id, req.params.id);
+    }).then((liked) => {
+        res.json({ result: (liked ? 'ok' : 'no_change') });
     }, (e) => {
         res.status(400).json({ error: e.message });
     }).done();
 });
 
-router.post('/downvote/:id', (req, res) => {
+router.post('/downvote/:id', user.requireLogIn, (req, res) => {
     db.withClient((dbClient) => {
-        return model.downvote(dbClient, req.params.id);
-    }).then(() => {
-        res.json({ result: 'ok' });
+        return model.unlike(dbClient, req.user.id, req.params.id);
+    }).then((unliked) => {
+        res.json({ result: (unliked ? 'ok' : 'no_change') });
     }, (e) => {
         res.status(400).json({ error: e.message });
     }).done();
