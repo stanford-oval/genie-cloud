@@ -411,7 +411,7 @@ router.get('/blog/create', user.requireRole(user.Role.ADMIN), (req, res, next) =
 });
 
 function slugify(s) {
-    return encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-'));
+    return encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-')).replace(/[^a-z0-9-]/g, '');
 }
 
 router.post('/blog/update', user.requireRole(user.Role.ADMIN), (req, res, next) => {
