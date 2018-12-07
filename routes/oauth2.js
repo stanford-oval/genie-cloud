@@ -9,12 +9,15 @@
 // See COPYING for details
 "use strict";
 
+const Url = require('url');
 const crypto = require('crypto');
 const express = require('express');
 const passport = require('passport');
 const oauth2orize = require('oauth2orize');
 const multer = require('multer');
 const csurf = require('csurf');
+const util = require('util');
+const jwt = require('jsonwebtoken');
 
 const BasicStrategy = require('passport-http').BasicStrategy;
 const ClientPasswordStrategy = require('passport-oauth2-client-password').Strategy;
@@ -28,6 +31,7 @@ const db = require('../util/db');
 const code_storage = require('../util/code_storage');
 const graphics = require('../almond/graphics');
 const platform = require('../util/platform');
+const secret = require('../util/secret_key');
 
 var router = express.Router();
 
@@ -76,16 +80,13 @@ server.deserializeClient((id, done) => {
 // values, and will be exchanged for an access token.
 
 server.grant(oauth2orize.grant.code((client, redirectURI, user, ares, done) => {
-    const code = makeRandom();
-
-    db.withTransaction((dbClient) => {
-        return model.createCode(dbClient, { user_id: user.id,
-                                            client_id: client.id,
-                                            code: code,
-                                            redirectURI: redirectURI });
-    }).then(() => {
-        return code;
-    }).nodeify(done);
+    jwt.sign({
+        sub: client.id,
+        grant_type: 'authorization_code',
+        user_id: user.cloud_id,
+        redirect_uri: redirectURI,
+        scope: ares.scope
+    }, secret.getJWTSigningKey(), { expiresIn: 600 /* seconds */ }, done);
 }));
 
 // Exchange authorization codes for access tokens.  The callback accepts the
@@ -95,57 +96,143 @@ server.grant(oauth2orize.grant.code((client, redirectURI, user, ares, done) => {
 // code.
 
 server.exchange(oauth2orize.exchange.code((client, code, redirectURI, done) => {
-    const token = makeRandom();
+    jwt.verify(code, secret.getJWTSigningKey(), {
+        algorithms: ['HS256'],
+        subject: client.id,
+        clockTolerance: 30,
+    }, (err, decoded) => {
+        // if an error occurs, or the code is wrong, just return false,
+        // which will fail with invalid_grant error
+        if (err || decoded.grant_type !== 'authorization_code' ||
+            (redirectURI && decoded.redirect_uri !== redirectURI)) {
+            done(null, false);
+            return;
+        }
 
-    db.withTransaction((dbClient) => {
-        return model.getCodes(dbClient, client.id, code).then((rows) => {
-            if (rows.length < 1)
-                return false;
-            const oauth2Code = rows[0];
-            if (redirectURI !== oauth2Code.redirectURI)
-                return false;
+        db.withTransaction(async (dbClient) => {
+            // issue the refresh token
+            const refreshToken = await util.promisify(jwt.sign)({
+                sub: client.id,
+                user_id: decoded.user_id,
+                grant_type: 'refresh_token',
+                scope: decoded.scope
+            }, secret.getJWTSigningKey(), { /* never expires */ });
 
-            const user_id = oauth2Code.user_id;
-            return model.deleteCode(dbClient, client.id, oauth2Code.user_id).then(() => {
-                return model.createToken(dbClient, { user_id: user_id,
-                                                     client_id: client.id,
-                                                     token: token });
-            }).then(() => true);
+            // store the fact that the permission was granted in the database
+            let allScopes = new Set;
+            try {
+                allScopes = new Set((await model.getPermission(dbClient, client.id, decoded.user_id)).scope.split(' '));
+            } catch(e) {
+                if (e.code !== 'ENOENT')
+                    throw e;
+                // ignore if not existing
+            }
+            for (let scope of decoded.scope)
+                allScopes.add(scope);
+            await model.createPermission(dbClient, client.id, decoded.user_id, Array.from(allScopes).join(' '));
+
+            // now issue the access token, valid for one hour
+            const accessToken = await util.promisify(jwt.sign)({
+                sub: decoded.user_id,
+                scope: decoded.scope
+            }, secret.getJWTSigningKey(), { expiresIn: 3600 });
+            done(null, accessToken, refreshToken, { expires_in: 3600 });
+        }).catch((e) => {
+            console.error(e);
+            done(e);
         });
-    }).then((ok) => {
-        if (ok)
-            return token;
-        else
-            return false;
-    }).nodeify(done);
+    });
 }));
 
-router.get('/authorize', user.requireLogIn, server.authorization((clientID, redirectURI, done) => {
-   db.withClient((dbClient) => {
-       return model.getClients(dbClient, clientID).then((rows) => {
-           if (rows.length < 1)
-               return false;
-           else
-               return rows[0];
-       });
-   }).then((result) => {
-       done(null, result, redirectURI);
-   }, (err) => {
-       done(err);
-   });
-}, (client, user, done) => {
-   done(null, !!client.magic_power);
+server.exchange(oauth2orize.exchange.refreshToken((client, refreshToken, scope, done) => {
+    db.withClient(async (dbClient) => {
+        // check that the token is valid
+        let decoded;
+        try {
+            decoded = await util.promisify(jwt.verify)(refreshToken, secret.getJWTSigningKey(), {
+                algorithms: ['HS256'],
+                subject: client.id,
+                clockTolerance: 30,
+            });
+
+            // check that the permission is still in the database (has not been revoked or superseded)
+            const permission = await model.getPermission(dbClient, client.id, decoded.user_id);
+            const allScopes = permission.scope.split(' ');
+            for (let scope of decoded.scope) {
+                if (allScopes.indexOf(scope) < 0)
+                    throw new oauth2orize.AuthorizationError("invalid scope", 'invalid_scope');
+            }
+        } catch(e) {
+            // reject the token with invalid_grant
+            done(null, false);
+            return;
+        }
+
+        // now issue the access token, valid for one hour
+        const accessToken = await util.promisify(jwt.sign)({
+            sub: decoded.user_id,
+            scope: decoded.scope
+        }, secret.getJWTSigningKey(), { expiresIn: 3600 });
+        done(null, accessToken, refreshToken, { expires_in: 3600 });
+    }).catch(done);
+}));
+
+function verifyScope(client, scopes) {
+    const allowed = client.allowed_scopes.split(' ');
+    for (let scope of scopes) {
+        if (allowed.indexOf(scope) < 0)
+            throw new oauth2orize.AuthorizationError("invalid scope", 'invalid_scope');
+    }
+}
+
+function verifyRedirectUrl(client, redirectURI) {
+    for (let url of JSON.parse(client.allowed_redirect_uris)) {
+        if (redirectURI.startsWith(url))
+            return;
+    }
+
+    throw new oauth2orize.AuthorizationError("invalid redirect_uri", 'unauthorized_client');
+}
+
+router.get('/authorize', user.requireLogIn, server.authorization((clientID, redirectURI, scope, done) => {
+    db.withClient((dbClient) => {
+        return model.getClients(dbClient, clientID).then((rows) => {
+            if (rows.length < 1)
+                throw new oauth2orize.AuthorizationError("invalid client", 'unauthorized_client');
+            else
+                return rows[0];
+        });
+    }).then((client) => {
+        try {
+            verifyScope(client, scope);
+            verifyRedirectUrl(client, redirectURI);
+            done(null, client, redirectURI);
+        } catch(err) {
+            done(err);
+        }
+    }, (err) => {
+        done(err);
+    });
+}, (client, user, scope, done) => {
+    done(null, !!client.magic_power, { scope });
 }), (req, res, next) => {
-   return res.render('oauth2_authorize', {
-       page_title: req._("Thingpedia - Authorize Access"),
-       transaction_id: req.oauth2.transactionID,
-       client: req.oauth2.client
-   });
-});
+    const parsedUrl = Url.parse(req.oauth2.redirectURI);
+    let origin = parsedUrl.port !== 443 ? (parsedUrl.hostname + ':' + parsedUrl.port) : parsedUrl.hostname;
+
+    return res.render('oauth2_authorize', {
+        page_title: req._("Almond - Authorize Access"),
+        transaction_id: req.oauth2.transactionID,
+        client: req.oauth2.client,
+        scope: req.oauth2.req.scope,
+        origin
+    });
+}, server.errorHandler({ mode: 'indirect' }));
 
 // no need for csurf here, oauth2orize has a uniquely-generated transaction ID that cannot
 // be spoofed with CSRF
-router.post('/authorize', user.requireLogIn, server.decision());
+router.post('/authorize', user.requireLogIn, server.decision((req, done) => {
+    done(null, { scope: req.body.scope.split(' ') });
+}));
 
 router.post('/token',
     passport.authenticate(['oauth2-client-basic', 'oauth2-client-password'], { session: false }),
@@ -166,30 +253,66 @@ function uploadIcon(clientId, req) {
     }
 }
 
+function validateScopes(allowedScopes) {
+    if (!Array.isArray(allowedScopes))
+        allowedScopes = [allowedScopes];
+    for (let scope of allowedScopes) {
+        if (typeof scope !== 'string' || !user.OAuthScopes.has(scope))
+            throw new Error(`Invalid scope`);
+    }
+    return allowedScopes;
+}
+
+function validateRedirectUrls(urls) {
+    for (let url of urls) {
+        const parsed = Url.parse(url);
+        if (parsed.protocol === null || parsed.hostname === null ||
+            (parsed.protocol !== 'https:' && parsed.hostname !== '127.0.0.1'))
+            throw new Error(`Invalid redirect URI (must be an absolute https: URL)`);
+    }
+    return urls;
+}
+
 router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'icon', maxCount: 1 }
 ]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
-    db.withTransaction((dbClient) => {
-        var name = req.body.name;
+    const name = req.body.name;
+    let scopes, redirectUrls;
+    try {
         if (!name)
             throw new Error(req._("Name must be provided"));
         if (!req.files.icon || !req.files.icon.length)
             throw new Error(req._("Must upload an icon"));
+        scopes = validateScopes(req.body.scope);
 
-        var clientId = makeRandom(8);
-        var clientSecret = makeRandom();
-        return model.createClient(dbClient, {
+        if (scopes.indexOf('profile') < 0)
+            scopes.push('profile');
+        scopes.sort();
+
+        if (req.user.developer_status < user.DeveloperStatus.ADMIN &&
+            scopes.indexOf('user-sync') >= 0)
+            throw new Error(req._("user-sync scope is valid only for administrators"));
+
+        redirectUrls = validateRedirectUrls(req.body.redirect_uri.split(/ +/));
+    } catch(e) {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: e });
+        return;
+    }
+
+    db.withTransaction(async (dbClient) => {
+        const clientId = makeRandom(8);
+        const clientSecret = makeRandom();
+        await model.createClient(dbClient, {
             id: clientId,
             secret: clientSecret,
             name: name,
-            owner: req.user.developer_org
-        }).then(() => uploadIcon(clientId, req));
-    }).then(() => {
-        res.redirect(303, '/thingpedia/developers');
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
+            owner: req.user.developer_org,
+            allowed_scopes: scopes.join(' '),
+            allowed_redirect_uris: JSON.stringify(redirectUrls)
+        });
+        await uploadIcon(clientId, req);
+        res.redirect(303, '/thingpedia/developers/oauth');
     }).catch(next);
 });
 

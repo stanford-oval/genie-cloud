@@ -278,3 +278,9 @@ img.device-icon-tiny {
 .blog-post h2, .blog-post h3 {
     clear: both;
 }
+
+#user-authorized-oauth-panel img.device-icon-tiny {
+  box-sizing: content-box;
+  padding-right: 1em;
+  padding-top: 1em;
+}

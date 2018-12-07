@@ -55,13 +55,6 @@ module.exports = {
         return db.selectOne(client, "select id from users u where cloud_id = ?", [cloudId]);
     },
 
-    getByAccessToken(client, accessToken) {
-        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
-                            + " on u.developer_org = o.id, oauth2_access_tokens oat where"
-                            + " oat.user_id = u.id and oat.token = ?",
-                            [accessToken]);
-    },
-
     getByDeveloperOrg(client, developerOrg) {
         return db.selectAll(client, "select u.* from users u where u.developer_org = ?", [developerOrg]);
     },

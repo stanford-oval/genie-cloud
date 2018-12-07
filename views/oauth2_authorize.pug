@@ -13,12 +13,32 @@ block content
   aside#app-icon-large
     img(src=CDN_HOST + '/icons/oauth:' + client.id + '.png', alt="Icon for " + client.name)
 
-  p= _("If you say yes, the application will be allowed full access to your devices and accounts and will be able to run rules on your behalf.")
+  p= _("Authorizing this application will grant the following permissions:")
+  ul
+    if scope.indexOf('profile') >= 0
+      li= _("Read your user profile (name, email).")
+    if scope.indexOf('user-read') >= 0
+      li= _("Read the list of your active commands, and the list of configured devices.")
+    if scope.indexOf('user-exec-command') >= 0
+      li= _("Execute commands on your behalf.")
+    if scope.indexOf('user-sync') >= 0
+      li= _("Access all your stored credentials.")
+    if Config.WITH_THINGPEDIA === 'embedded'
+      if scope.indexOf('developer-read') >= 0
+        li= _("See the devices you uploaded to Thingpedia before they are approved, and access their code.")
+      if scope.indexOf('developer-upload') >= 0
+        li= _("Upload new devices to Thingpedia, and update existing devices.")
+      if scope.indexOf('developer-admin') >= 0
+        li= _("Modify the settings of your Thingpedia developer organization.")
 
   div.clearfix
+  p= _("%s is not affiliated or verified by Almond. We make no representation as to the quality of this application. Please only grant access to applications you trust.").format(client.name)
+
+  p= _("This app is developed by %s (%s)").format(client.owner_name, origin)
 
   form(action='/me/api/oauth2/authorize', method='post').form-inline
     input(name='transaction_id', type='hidden', value=transaction_id)
+    input(name='scope', type='hidden', value=scope.join(' '))
 
     div.form-group
       button.btn.btn-success(type='submit').form-control= _("Allow")

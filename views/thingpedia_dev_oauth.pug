@@ -68,6 +68,35 @@ block content
                           label(for='new-oauth-icon').control-label= _("Icon")
                           input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#new-oauth-icon
 
+                        div.form-group
+                          label(for='new-oauth-redirect-uri').control-label= _("Allowed Redirect URLs")
+                          input(type='text',name='redirect_uri').form-control#new-oauth-redirect-uri
+                          span.help-block= _("Multiple URLs can be separated by a space.")
+
+                        div.form-group
+                          label.control-label= _("Additional Permissions")
+                          div.checkbox
+                            label
+                              input(type='checkbox',name='scope',value='user-read',checked=false)
+                              = _("Read the list of active commands and configured devices")
+                          div.checkbox
+                            label
+                              input(type='checkbox',name='scope',value='user-exec-command',checked=false)
+                              = _("Access Web Almond and execute ThingTalk code")
+                          if Config.WITH_THINGPEDIA === 'embedded'
+                            div.checkbox
+                              label
+                                input(type='checkbox',name='scope',value='developer-read',checked=false)
+                                = _("Read the user's Thingpedia devices.")
+                            div.checkbox
+                              label
+                                input(type='checkbox',name='scope',value='developer-upload',checked=false)
+                                = _("Modify the user's Thingpedia devices and upload new ones.")
+                            div.checkbox
+                              label
+                                input(type='checkbox',name='scope',value='developer-admin',checked=false)
+                                = _("Modify the user's Thingpedia organization settings (name, members).")
+
                       div.modal-footer
                         div.form-group
                           button(type='submit').btn.btn-primary= _("Create")

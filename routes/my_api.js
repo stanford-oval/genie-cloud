@@ -29,10 +29,10 @@ var router = express.Router();
 const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS, 'null'];
 
 function isOriginOk(req) {
-    if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer'))
+    if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer '))
         return true;
     if (typeof req.headers['origin'] !== 'string')
-        return true;
+        return false;
     return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
 }
 
@@ -61,25 +61,18 @@ router.ws('/anonymous', (ws, req) => {
 });
 
 router.use((req, res, next) => {
-    passport.authenticate('bearer', (err, user, info) => {
-        // ignore auth failures and ignore sessions
-        if (err) {
-            next(err);
-            return;
-        }
-        if (!user) {
-            next();
-            return;
-        }
-        req.login(user, next);
-    })(req, res, next);
-}, user.requireLogIn);
+    if (req.user) {
+        next();
+        return;
+    }
+    passport.authenticate('bearer', { session: false })(req, res, next);
+});
 
 router.options('/.*', (req, res, next) => {
     res.send('');
 });
 
-router.get('/parse', (req, res, next) => {
+router.get('/parse', user.requireScope('user-read'), (req, res, next) => {
     let query = req.query.q || null;
     let targetJson = req.query.target_json || null;
     if (!query && !targetJson) {
@@ -107,7 +100,7 @@ function describeApp(app) {
         }));
 }
 
-router.post('/apps/create', (req, res, next) => {
+router.post('/apps/create', user.requireScope('user-exec-command'), (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
@@ -122,7 +115,7 @@ router.post('/apps/create', (req, res, next) => {
     });
 });
 
-router.get('/apps/list', (req, res, next) => {
+router.get('/apps/list', user.requireScope('user-read'), (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
@@ -137,7 +130,7 @@ router.get('/apps/list', (req, res, next) => {
     });
 });
 
-router.get('/apps/get/:appId', (req, res, next) => {
+router.get('/apps/get/:appId', user.requireScope('user-read'), (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
@@ -157,7 +150,7 @@ router.get('/apps/get/:appId', (req, res, next) => {
     });
 });
 
-router.post('/apps/delete/:appId', (req, res, next) => {
+router.post('/apps/delete/:appId', user.requireScope('user-exec-command'), (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
@@ -194,7 +187,7 @@ class WebsocketApiDelegate {
 }
 WebsocketApiDelegate.prototype.$rpcMethods = ['send'];
 
-router.ws('/results', (ws, req, next) => {
+router.ws('/results', user.requireScope('user-read-results'), (ws, req, next) => {
     var user = req.user;
 
     Q.try(() => {
@@ -211,8 +204,12 @@ router.ws('/results', (ws, req, next) => {
         ws.on('error', (err) => {
             ws.close();
         });
-        ws.on('close', () => {
-            engine.assistant.removeOutput(delegate).catch(() => {}); // ignore errors if engine died
+        ws.on('close', async () => {
+            try {
+                await engine.assistant.removeOutput(delegate);
+            } catch(e) {
+                // ignore errors if engine died
+            }
             delegate.$free();
         });
         ws.on('ping', (data) => ws.pong(data));
@@ -275,17 +272,21 @@ async function doConversation(user, anonymous, ws) {
 
         const delegate = new WebsocketAssistantDelegate(ws);
 
-        let opened = false;
+        let opened = false, earlyClose = false;
         const id = 'web-' + makeRandom(4);
         ws.on('error', (err) => {
             ws.close();
         });
-        ws.on('close', () => {
-            if (opened)
-                engine.assistant.closeConversation(id).catch(() => {}); // ignore errors if engine died
-            delegate.$free();
-
+        ws.on('close', async () => {
+            try {
+                if (opened)
+                    await engine.assistant.closeConversation(id);
+            } catch(e) {
+                // ignore errors if engine died
+            }
+            earlyClose = true;
             opened = false;
+            delegate.$free();
         });
 
         const conversation = await engine.assistant.openConversation(id, assistantUser, delegate, options);
@@ -316,6 +317,8 @@ async function doConversation(user, anonymous, ws) {
                 } catch(e) {/**/}
             });
         });
+        if (earlyClose)
+            return;
         await conversation.start();
     } catch(error) {
         console.error('Error in conversation websocket: ' + error.message);
@@ -327,8 +330,100 @@ async function doConversation(user, anonymous, ws) {
     }
 }
 
-router.ws('/conversation', (ws, req, next) => {
+router.ws('/conversation', user.requireScope('user-exec-command'), (ws, req, next) => {
     doConversation(req.user, false, ws);
+});
+
+class WebsocketDelegate {
+    constructor(ws) {
+        this._ws = ws;
+        this._remote = null;
+    }
+
+    setRemote(remote) {
+        this._remote = remote;
+
+        this._ws.on('message', (data) => {
+            try {
+                remote.onMessage(data);
+            } catch(e) {
+                console.error('Failed to relay websocket message: ' + e.message);
+                this._ws.close();
+            }
+        });
+        this._ws.on('ping', (data) => {
+            try {
+                remote.onPing(data);
+            } catch(e) {
+                // ignore
+                this._ws.close();
+            }
+        });
+        this._ws.on('pong', (data) => {
+            try {
+                remote.onPong(data);
+            } catch(e) {
+                // ignore
+                this._ws.close();
+            }
+        });
+        this._ws.on('close', (data) => {
+            try {
+                remote.onClose(data);
+            } catch(e) {
+                // ignore
+            }
+        });
+    }
+
+    ping() {
+        this._ws.ping();
+    }
+
+    pong() {
+        this._ws.pong();
+    }
+
+    send(data) {
+        this._ws.send(data);
+    }
+
+    terminate() {
+        this._ws.terminate();
+    }
+}
+WebsocketDelegate.prototype.$rpcMethods = ['ping', 'pong', 'terminate', 'send'];
+
+router.ws('/sync', user.requireScope('user-sync'), async (ws, req) => {
+    try {
+        const userId = req.user.id;
+        const engine = await EngineManager.get().getEngine(userId);
+
+        const onclosed = (id) => {
+            if (id === userId)
+                ws.close();
+            EngineManager.get().removeListener('socket-closed', onclosed);
+        };
+        EngineManager.get().on('socket-closed', onclosed);
+
+        const delegate = new WebsocketDelegate(ws);
+        ws.on('error', (err) => {
+            ws.close();
+        });
+        ws.on('close', async () => {
+            delegate.$free();
+        });
+
+        const remote = await engine.websocket.newConnection(delegate);
+        delegate.setRemote(remote);
+    } catch (error) {
+        console.error('Error in cloud-sync websocket: ' + error.message);
+
+        // ignore "Not Opened" error in closing
+        try {
+            ws.close();
+        } catch(e) {/**/}
+    }
 });
 
 module.exports = router;

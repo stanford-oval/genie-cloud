@@ -11,8 +11,12 @@
 
 const Q = require('q');
 const crypto = require('crypto');
+const util = require('util');
+const jwt = require('jsonwebtoken');
+
 const db = require('./db');
 const model = require('../model/user');
+const secret = require('./secret_key');
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -99,21 +103,25 @@ exports.initialize = function() {
         db.withClient((client) => model.get(client, id)).nodeify(done);
     });
 
-    passport.use(new BearerStrategy((accessToken, done) => {
-        db.withClient((dbClient) => {
-            return model.getByAccessToken(dbClient, accessToken).then((rows) => {
+    passport.use(new BearerStrategy(async (accessToken, done) => {
+        try {
+            const decoded = await util.promisify(jwt.verify)(accessToken, secret.getJWTSigningKey(), {
+                algorithms: ['HS256'],
+                clockTolerance: 30,
+            });
+            const scope = decoded.scope || ['profile'];
+            const [user, options] = await db.withClient(async (dbClient) => {
+                const rows = await model.getByCloudId(dbClient, decoded.sub);
                 if (rows.length < 1)
                     return [false, null];
 
-                return model.recordLogin(dbClient, rows[0].id).then(() => {
-                    return [rows[0], { scope: '*' }];
-                });
+                await model.recordLogin(dbClient, rows[0].id);
+                return [rows[0], { scope }];
             });
-        }).then((result) => {
-            done(null, result[0], result[1]);
-        }, (err) => {
+            done(null, user, options);
+        } catch(err) {
             done(err);
-        }).done();
+        }
     }));
 
     function verifyCloudIdAuthToken(username, password, done) {

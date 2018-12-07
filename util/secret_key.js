@@ -19,5 +19,16 @@ module.exports = {
                 throw new Error("Configuration error: secret key missing!");
             return key;
         }
+    },
+
+    getJWTSigningKey(app) {
+        if (process.NODE_ENV !== 'production') {
+            return 'not so secret key';
+        } else {
+            var key = process.env.JWT_SIGNING_KEY;
+            if (key === undefined)
+                throw new Error("Configuration error: secret key missing!");
+            return key;
+        }
     }
 };
