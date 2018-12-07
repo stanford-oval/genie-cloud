@@ -97,7 +97,8 @@ function rowsToExamples(rows, { editMode = false}) {
                 id: row.id,
                 utterances: [row.utterance],
                 preprocessed: [row.preprocessed],
-                click_count: row.click_count
+                click_count: row.click_count,
+                like_count: row.like_count,
             });
         }
     }
@@ -125,7 +126,7 @@ function rowsToExamples(rows, { editMode = false}) {
             buffer.push(`    ${targetCode}
     #_[utterances=[${ex.utterances.map(stringEscape)}]]
     #_[preprocessed=[${ex.preprocessed.map(stringEscape)}]]
-    #[id=${ex.id}] #[click_count=${ex.click_count}];
+    #[id=${ex.id}] #[click_count=${ex.click_count}] #[like_count=${ex.like_count}];
 `);
         }
     }

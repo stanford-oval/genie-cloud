@@ -142,6 +142,12 @@ module.exports = {
         });
     },
 
+    insertIgnore(client, string, args) {
+        return query(client, string, args).then(([result, fields]) => {
+            return result.affectedRows > 0;
+        });
+    },
+
     selectOne,
     selectAll,
     query

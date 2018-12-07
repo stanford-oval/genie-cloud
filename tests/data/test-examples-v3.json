@@ -6,6 +6,7 @@
         "utterance": "eat some data",
         "preprocessed": "eat some data",
         "target_code": "let action x := @org.thingpedia.builtin.test.eat_data();",
+        "like_count": 0,
         "click_count": 0
     },
     {
@@ -15,6 +16,7 @@
         "utterance": "get ${p_size} of data",
         "preprocessed": "get ${p_size} of data",
         "target_code": "let query x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);",
+        "like_count": 0,
         "click_count": 7
     },
     {
@@ -24,6 +26,7 @@
         "utterance": "keep eating data!",
         "preprocessed": "keep eating data !",
         "target_code": "monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();",
+        "like_count": 0,
         "click_count": 0
     },
     {
@@ -33,6 +36,7 @@
         "utterance": "keep eating data! (v2)",
         "preprocessed": "keep eating data ! -lrb- v2 -rrb-",
         "target_code": " monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();",
+        "like_count": 0,
         "click_count": 0
     },
     {
@@ -42,6 +46,7 @@
         "utterance": "more data eating...",
         "preprocessed": "more data eating ...",
         "target_code": "let action x := @org.thingpedia.builtin.test.eat_data();",
+        "like_count": 0,
         "click_count": 0
     },
     {
@@ -51,6 +56,7 @@
         "utterance": "more data genning...",
         "preprocessed": "more data genning ...",
         "target_code": "let table _ := @org.thingpedia.builtin.test.get_data();",
+        "like_count": 0,
         "click_count": 0
     }
 ]

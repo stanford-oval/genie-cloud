@@ -203,6 +203,8 @@ async function loadExamples(dbClient, bob) {
     },
 
     ]);
+
+    await exampleModel.like(dbClient, bob.id, 999);
 }
 
 async function main() {

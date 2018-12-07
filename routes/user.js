@@ -15,6 +15,7 @@ const express = require('express');
 const passport = require('passport');
 
 const userUtils = require('../util/user');
+const exampleModel = require('../model/example');
 const model = require('../model/user');
 const oauthModel = require('../model/oauth2');
 const db = require('../util/db');
@@ -269,10 +270,10 @@ router.post('/change-password', userUtils.requireLogIn, (req, res, next) => {
 });
 
 router.post('/delete', userUtils.requireLogIn, (req, res, next) => {
-    db.withTransaction((dbClient) => {
-        return EngineManager.get().deleteUser(req.user.id).then(() => {
-            return model.delete(dbClient, req.user.id);
-        });
+    db.withTransaction(async (dbClient) => {
+        await EngineManager.get().deleteUser(req.user.id);
+        await exampleModel.deleteAllLikesFromUser(dbClient, req.user.id);
+        await model.delete(dbClient, req.user.id);
     }).then(() => {
         req.logout();
         res.redirect(303, '/');

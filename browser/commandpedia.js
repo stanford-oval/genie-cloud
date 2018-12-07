@@ -18,7 +18,6 @@ require('./polyfill');
 
 const ThingTalkTrainer = require('./deps/new-command');
 const SearchOrInfiniteScroll = require('./deps/search-or-infinite-scroll');
-const PersistentSet = require('./deps/persistent-set');
 
 $(() => {
     new ThingTalkTrainer({
@@ -43,8 +42,6 @@ $(() => {
         $('#subscribe-start').hide();
         event.preventDefault();
     });
-
-    const likedCommands = new PersistentSet('liked-commands');
 
     new SearchOrInfiniteScroll({
         container: '#commandpedia',
@@ -73,33 +70,42 @@ $(() => {
 
             let user = $('<div>').addClass('device-owner');
             user.append($('<span>').text(`By ${command.owner_name || 'anonymous user'}`));
-            let heart = $('<i>').addClass(likedCommands.has(String(command.id)) ? 'fas' : 'far')
+            let heart = $('<i>').addClass(command.liked ? 'fas' : 'far')
                 .addClass('fa-heart').attr('id', command.id).attr('role', 'button').attr('_csrf', csrfToken);
             heart.click(function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+
                 let icon = $('#' + this.id);
 
                 let count = $('#count' + this.id);
                 let current = Number(count.text());
 
-                if (icon.hasClass('far')) {
-                    if (likedCommands.add(this.id)) {
-                        icon.removeClass('far').addClass('fas');
-                        $.post('/thingpedia/examples/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
-                        count.text(current + 1);
-                    }
-                } else {
-                    if (likedCommands.delete(this.id)) {
-                        icon.removeClass('fas').addClass('far');
-                        $.post('/thingpedia/examples/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf'));
-                        count.text(current - 1);
-                    }
+                if (!document.body.dataset.userId) {
+                    // not logged in
+                    location.href = '/user/login';
+                    return;
                 }
-                event.preventDefault();
-                event.stopPropagation();
+
+                if (icon.hasClass('far')) {
+                    $.post('/thingpedia/examples/upvote/' + this.id, '_csrf=' + $(this).attr('_csrf')).then((res) => {
+                        if (res.result === 'ok') {
+                            count.text(current + 1);
+                            icon.removeClass('far').addClass('fas');
+                        }
+                    });
+                } else {
+                    $.post('/thingpedia/examples/downvote/' + this.id, '_csrf=' + $(this).attr('_csrf')).then((res) => {
+                        if (res.result === 'ok') {
+                            count.text(current - 1);
+                            icon.removeClass('fas').addClass('far');
+                        }
+                    });
+                }
             });
 
             user.append(heart);
-            let count = $('<span>').attr('id', 'count' + command.id).text(command.click_count);
+            let count = $('<span>').attr('id', 'count' + command.id).text(command.like_count);
             user.append(count);
             info.append(user);
             body.append(main);

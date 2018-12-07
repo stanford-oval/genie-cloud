@@ -437,6 +437,7 @@ CREATE TABLE `example_utterances` (
   `target_json` text COLLATE utf8_bin NOT NULL,
   `target_code` text COLLATE utf8mb4_bin NOT NULL,
   `click_count` int(11) NOT NULL DEFAULT 0,
+  `like_count` int(11) NOT NULL DEFAULT 0,
   `owner` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `schema_id` (`schema_id`),
@@ -445,6 +446,22 @@ CREATE TABLE `example_utterances` (
   KEY `owner` (`owner`),
   CONSTRAINT `example_utterances_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `example_utterances_ibfk_2` FOREIGN KEY (`owner`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `example_likes`
+--
+
+DROP TABLE IF EXISTS `example_likes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `example_likes` (
+  `example_id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  PRIMARY KEY (`example_id`, `user_id`),
+  CONSTRAINT `example_likes_ibfk_1` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `example_likes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
