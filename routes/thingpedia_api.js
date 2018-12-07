@@ -1061,7 +1061,7 @@ v1.get('/commands/search', (req, res, next) => {
         if (req.user && isOriginOk(req))
             commands = await commandModel.getCommandsByFuzzySearchForUser(client, language, req.user.id, q);
         else
-            commands = await commandModel.getComgetCommandsByFuzzySearchmands(client, language, q);
+            commands = await commandModel.getCommandsByFuzzySearch(client, language, q);
 
         getCommandDetails(commands);
         res.cacheFor(30 * 1000);

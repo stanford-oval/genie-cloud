@@ -68,7 +68,11 @@ else
     sleep 30
 
     node $srcdir/tests/test_thingpedia_api_v1_v2.js
-    node $srcdir/tests/test_thingpedia_api_v3.js
+
+    # login as bob
+    bob_cookie=$(node $srcdir/tests/login.js bob 12345678)
+
+    COOKIE="${bob_cookie}" node $srcdir/tests/test_thingpedia_api_v3.js
 fi
 
 kill $frontendpid

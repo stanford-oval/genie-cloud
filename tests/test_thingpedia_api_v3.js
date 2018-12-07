@@ -29,8 +29,9 @@ assert.strictEqual(Config.THINGPEDIA_URL, '/thingpedia');
 }*/
 
 const THINGPEDIA_URL = 'http://127.0.0.1:8080/thingpedia/api/v3';
-async function request(url) {
-    const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url, { accept: 'application/json' });
+async function request(url, options = {}) {
+    options.accept = 'application/json';
+    const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url, options);
     //console.log(result);
     return JSON.parse(result);
 }
@@ -495,6 +496,8 @@ function checkExamples(generated, expected) {
         assert.strictEqual(typeof gen.preprocessed, 'string');
         assert.strictEqual(typeof gen.click_count, 'number');
         assert(gen.click_count >= 0);
+        assert.strictEqual(typeof gen.like_count, 'number');
+        assert(gen.like_count >= 0);
     }
 }
 function checkExamplesByKey(generated, key) {
@@ -514,6 +517,8 @@ function checkExamplesByKey(generated, key) {
         ThingTalk.Grammar.parse(gen.target_code);
         assert.strictEqual(typeof gen.click_count, 'number');
         assert(gen.click_count >= 0);
+        assert.strictEqual(typeof gen.like_count, 'number');
+        assert(gen.like_count >= 0);
     }
 }
 
@@ -550,23 +555,23 @@ async function testGetExamplesByDevice() {
     action  := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["eat some data"]]
     #_[preprocessed=["eat some data"]]
-    #[id=1000] #[click_count=0];
+    #[id=1000] #[click_count=0] #[like_count=0];
     query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
     #_[utterances=["get ${'${p_size}'} of data"]]
     #_[preprocessed=["get ${'${p_size}'} of data"]]
-    #[id=1001] #[click_count=7];
+    #[id=1001] #[click_count=7] #[like_count=0];
     program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["keep eating data!","keep eating data! (v2)"]]
     #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
-    #[id=1002] #[click_count=0];
+    #[id=1002] #[click_count=0] #[like_count=0];
     action () := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["more data eating..."]]
     #_[preprocessed=["more data eating ..."]]
-    #[id=1004] #[click_count=0];
+    #[id=1004] #[click_count=0] #[like_count=0];
     query  := @org.thingpedia.builtin.test.get_data()
     #_[utterances=["more data genning..."]]
     #_[preprocessed=["more data genning ..."]]
-    #[id=1005] #[click_count=0];
+    #[id=1005] #[click_count=0] #[like_count=0];
 }`);
 }
 
@@ -590,23 +595,23 @@ async function testGetExamplesByKey() {
     action  := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["eat some data"]]
     #_[preprocessed=["eat some data"]]
-    #[id=1000] #[click_count=0];
+    #[id=1000] #[click_count=0] #[like_count=0];
     query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
     #_[utterances=["get ${'${p_size}'} of data"]]
     #_[preprocessed=["get ${'${p_size}'} of data"]]
-    #[id=1001] #[click_count=7];
+    #[id=1001] #[click_count=7] #[like_count=0];
     program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["keep eating data!","keep eating data! (v2)"]]
     #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
-    #[id=1002] #[click_count=0];
+    #[id=1002] #[click_count=0] #[like_count=0];
     action () := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["more data eating..."]]
     #_[preprocessed=["more data eating ..."]]
-    #[id=1004] #[click_count=0];
+    #[id=1004] #[click_count=0] #[like_count=0];
     query  := @org.thingpedia.builtin.test.get_data()
     #_[utterances=["more data genning..."]]
     #_[preprocessed=["more data genning ..."]]
-    #[id=1005] #[click_count=0];
+    #[id=1005] #[click_count=0] #[like_count=0];
 }`);
 }
 
@@ -619,6 +624,8 @@ async function testGetCommands() {
         "preprocessed":"every day at TIME_0 set my laptop background to pizza images",
         "target_code":"( attimer time = TIME_0 ) join ( @com.bing.image_search param:query:String = \" pizza \" ) => @org.thingpedia.builtin.thingengine.gnome.set_background on  param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture)",
         "click_count":8,
+        "like_count": 1,
+        "liked": true,
         "is_base": 0,
         "owner_name":"bob",
         "devices":["com.bing","org.thingpedia.builtin.thingengine.gnome"]
@@ -631,6 +638,8 @@ async function testGetCommands() {
       "preprocessed": "get ${p_size} of data",
       "target_code": "let query x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);",
       "click_count": 7,
+      "like_count": 0,
+      "liked": false,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -645,6 +654,8 @@ async function testGetCommands() {
       "preprocessed": "images from bing matching ${p_query} larger than ${p_width} x ${p_height}",
       "target_code": "query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width >= p_width && height >= p_height);\n",
       "click_count": 1,
+      "like_count": 0,
+      "liked": false,
       "is_base": 1,
       "owner_name": "Test Org",
       "devices": [
@@ -659,6 +670,8 @@ async function testGetCommands() {
       "preprocessed": "open the file at ${p_url}",
       "target_code": "action (p_url :Entity(tt:url))  := @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url);\n",
       "click_count": 1,
+      "like_count": 0,
+      "liked": false,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -673,6 +686,8 @@ async function testGetCommands() {
       "preprocessed": "texts i received in the last hour",
       "target_code": "query  := (@org.thingpedia.builtin.thingengine.phone.sms()), date >= start_of(h);\n",
       "click_count": 1,
+      "like_count": 0,
+      "liked": false,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -687,6 +702,8 @@ async function testGetCommands() {
       "preprocessed": "call somebody",
       "target_code": "action  := @org.thingpedia.builtin.thingengine.phone.call(number=$undefined);\n",
       "click_count": 1,
+      "like_count": 0,
+      "liked": false,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -701,6 +718,8 @@ async function testGetCommands() {
       "preprocessed": ", throw a dice between ${p_low:const} and ${p_high:const}",
       "target_code": "query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
       "click_count": 1,
+      "like_count": 0,
+      "liked": false,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -715,6 +734,8 @@ async function testGetCommands() {
       "preprocessed": "a screenshot of my laptop",
       "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
       "click_count": 1,
+      "like_count": 0,
+      "liked": false,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -729,6 +750,8 @@ async function testGetCommands() {
       "preprocessed": ", generate a random number between ${p_low:const} and ${p_high:const}",
       "target_code": "query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
       "click_count": 1,
+      "like_count": 0,
+      "liked": false,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -743,6 +766,8 @@ async function testGetCommands() {
       "preprocessed": "setup ${p_device}",
       "target_code": "action (p_device :Entity(tt:device))  := @org.thingpedia.builtin.thingengine.builtin.configure(device=p_device);\n",
       "click_count": 1,
+      "like_count": 0,
+      "liked": false,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -751,9 +776,41 @@ async function testGetCommands() {
     }
   ];
 
+    // first test with no cookie: there should be no `liked` field
     assert.deepStrictEqual(await request('/commands/all'), {
         result: 'ok',
+        data: TEST_DATA.map((command) => {
+            const clone = {};
+            Object.assign(clone, command);
+            delete clone.liked;
+            return clone;
+        })
+    });
+
+    // now test with cookie and valid origin
+    assert.deepStrictEqual(await request('/commands/all', {
+        extraHeaders: {
+            'Cookie': process.env.COOKIE,
+            'Origin': Config.SERVER_ORIGIN,
+        }
+    }), {
+        result: 'ok',
         data: TEST_DATA
+    });
+
+    // now with cookie and invalid origin (csrf attack)
+    assert.deepStrictEqual(await request('/commands/all', {
+        extraHeaders: {
+            'Cookie': process.env.COOKIE,
+        }
+    }), {
+        result: 'ok',
+        data: TEST_DATA.map((command) => {
+            const clone = {};
+            Object.assign(clone, command);
+            delete clone.liked;
+            return clone;
+        })
     });
 
     assert.deepStrictEqual(await request('/commands/search?q=laptop'), {
@@ -767,6 +824,7 @@ async function testGetCommands() {
       "preprocessed": "every day at TIME_0 set my laptop background to pizza images",
       "target_code": "( attimer time = TIME_0 ) join ( @com.bing.image_search param:query:String = \" pizza \" ) => @org.thingpedia.builtin.thingengine.gnome.set_background on  param:picture_url:Entity(tt:picture) = param:picture_url:Entity(tt:picture)",
       "click_count": 8,
+      "like_count": 1,
       "is_base": 0,
       "owner_name": "bob",
       "devices": [
@@ -782,6 +840,7 @@ async function testGetCommands() {
       "preprocessed": "a screenshot of my laptop",
       "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -796,6 +855,7 @@ async function testGetCommands() {
       "preprocessed": "create a file named ${p_file_name:const} on my laptop",
       "target_code": "action (p_file_name :Entity(tt:path_name))  := @org.thingpedia.builtin.thingengine.gnome.create_file(file_name=p_file_name, contents=$undefined);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -810,6 +870,7 @@ async function testGetCommands() {
       "preprocessed": "turn ${p_power} my laptop",
       "target_code": "action (p_power :Enum(on,off))  := @org.thingpedia.builtin.thingengine.gnome.set_power(power=p_power);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -824,6 +885,7 @@ async function testGetCommands() {
       "preprocessed": "delete a file from my laptop",
       "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=$undefined);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -838,6 +900,7 @@ async function testGetCommands() {
       "preprocessed": "use ${p_picture_url} as the background of my laptop",
       "target_code": "action (p_picture_url :Entity(tt:picture))  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -852,6 +915,7 @@ async function testGetCommands() {
       "preprocessed": ", save a screenshot of my laptop",
       "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -866,6 +930,7 @@ async function testGetCommands() {
       "preprocessed": "lock my laptop",
       "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.lock();\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -880,6 +945,7 @@ async function testGetCommands() {
       "preprocessed": "set the background of my laptop to ${p_picture_url}",
       "target_code": "action (p_picture_url :Entity(tt:picture))  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -894,6 +960,7 @@ async function testGetCommands() {
       "preprocessed": "change the background on my laptop",
       "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=$undefined);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -908,6 +975,7 @@ async function testGetCommands() {
       "preprocessed": "create a file named ${p_file_name:const} on my laptop containing ${p_contents}",
       "target_code": "action (p_file_name :Entity(tt:path_name), p_contents :String)  := @org.thingpedia.builtin.thingengine.gnome.create_file(file_name=p_file_name, contents=p_contents);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -922,6 +990,7 @@ async function testGetCommands() {
       "preprocessed": "open ${p_app_id} on my laptop",
       "target_code": "action (p_app_id :Entity(org.freedesktop:app_id))  := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -936,6 +1005,7 @@ async function testGetCommands() {
       "preprocessed": "delete the file named ${p_file_name:const} from my laptop",
       "target_code": "action (p_file_name :Entity(tt:path_name))  := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -950,6 +1020,7 @@ async function testGetCommands() {
       "preprocessed": ", take a screenshot of my laptop",
       "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -964,6 +1035,7 @@ async function testGetCommands() {
       "preprocessed": "open ${p_url} with ${p_app_id} on my laptop",
       "target_code": "action (p_url :Entity(tt:url), p_app_id :Entity(org.freedesktop:app_id))  := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id, url=p_url);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -978,6 +1050,7 @@ async function testGetCommands() {
       "preprocessed": "delete ${p_file_name} from my laptop",
       "target_code": "action (p_file_name :Entity(tt:path_name))  := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
@@ -992,6 +1065,7 @@ async function testGetCommands() {
       "preprocessed": "activate the lock screen on my laptop",
       "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.lock();\n",
       "click_count": 1,
+      "like_count": 0,
       "is_base": 1,
       "owner_name": "Site Administration",
       "devices": [
