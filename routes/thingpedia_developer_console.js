@@ -52,7 +52,7 @@ router.get('/', (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/oauth', user.redirectLogIn, user.requireDeveloper(), (req, res, next) => {
+router.get('/oauth', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
     prepareUserInfo(req).then(([developer_org, developer_org_members, developer_devices, developer_oauth2_clients]) => {
         res.render('thingpedia_dev_oauth', { page_title: req._("Thingpedia - Oauth 2.0 Applications"),
                                              csrfToken: req.csrfToken(),
