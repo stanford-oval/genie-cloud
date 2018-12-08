@@ -32,9 +32,19 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 '__lookupSetter__', 'eval', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
 'toLocaleString', 'toSource', 'toString', 'unwatch', 'watch', 'valueOf']);
 
+const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
+const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
+const ALLOWED_CLASS_METADATA = new Set(['name', 'description']);
+
 async function validateAnnotations(annotations) {
     for (let name of Object.getOwnPropertyNames(annotations)) {
         if (FORBIDDEN_NAMES.has(name))
+            throw new Error(`Invalid annotation ${name}`);
+    }
+}
+async function validateMetadata(metadata, allowed) {
+    for (let name of Object.getOwnPropertyNames(metadata)) {
+        if (!allowed.has(name))
             throw new Error(`Invalid annotation ${name}`);
     }
 }
@@ -84,7 +94,7 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     if (!SUBCATEGORIES.has(options.subcategory))
         throw new Error(req._("Invalid device category %s").format(options.subcategory));
     const [classDef, dataset] = await loadClassDef(dbClient, req, kind, classCode, datasetCode);
-    validateAnnotations(classDef.metadata);
+    validateMetadata(classDef.metadata, ALLOWED_CLASS_METADATA);
     validateAnnotations(classDef.annotations);
 
     if (kind.indexOf('.') < 0 && LEGACY_KINDS.indexOf(kind) < 0)
@@ -187,7 +197,7 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
             throw new Error(`${name} is not allowed as a function name`);
-        validateAnnotations(where[name].metadata);
+        validateMetadata(where[name].metadata, ALLOWED_FUNCTION_METADATA);
         validateAnnotations(where[name].annotations);
 
         if (!where[name].metadata.canonical)
@@ -214,7 +224,7 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
             while (type.isArray)
                 type = type.elem;
             const arg = where[name].getArgument(argname);
-            validateAnnotations(arg.metadata);
+            validateMetadata(arg.metadata, ALLOWED_ARG_METADATA);
             validateAnnotations(arg.annotations);
 
             if (type.isEntity) {
