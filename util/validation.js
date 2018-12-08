@@ -117,6 +117,12 @@ function validateDataset(dataset) {
             ThingTalk.NNSyntax.toNN(ruleprog, {});
 
             // validate placeholders in all utterances
+            if (ex.utterances.length === 0) {
+                if (ex.annotations.hasOwnProperty('utterances'))
+                    throw new Error(`utterances must be a natural language annotation (with #_[]), not an implementation annotation`);
+                else
+                    throw new Error(`missing utterances annotation`);
+            }
             for (let utterance of ex.utterances)
                 validateUtterance(ex.args, utterance);
         } catch(e) {
