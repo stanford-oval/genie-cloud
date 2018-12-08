@@ -75,7 +75,22 @@ function getDetails(fn, param, req, res) {
 
         var online = false;
 
-        const parsed = ThingTalk.Grammar.parse(Importer.migrateManifest(code, device));
+        let migrated;
+        try {
+            migrated = Importer.migrateManifest(code, device);
+        } catch(e) {
+            // migrations can fail for a number of reasons on old versions,
+            // we don't want an Internal Server Error every time
+            // OTOH, we definitely want the error on the latest version, or
+            // any approved version
+
+            if (version === device.developer_version ||
+                (device.approved_version !== null && version >= device.approved_version))
+                throw e;
+            console.log(`Failed to migrate ${device.primary_kind} at version ${version}: ${e}`);
+            migrated = `class @${device.primary_kind} {}`;
+        }
+        const parsed = ThingTalk.Grammar.parse(migrated);
         assert(parsed.isMeta && parsed.classes.length > 0);
         const classDef = parsed.classes[0];
 
