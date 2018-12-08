@@ -1,6 +1,7 @@
 {
     "thingpedia_name": "Test Device",
     "thingpedia_description": "Test Almond in various ways",
+    "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core",
     "module_type": "org.thingpedia.builtin",
     "params": {},
     "category": "system",

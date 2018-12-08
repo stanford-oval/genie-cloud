@@ -1,6 +1,7 @@
 {
     "thingpedia_name": "Remote ThingSystem",
     "thingpedia_description": "A proxy device for a ThingSystem owned by a different user. This device is created and managed automatically by the system.",
+    "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core",
     "module_type": "org.thingpedia.builtin",
     "params": {},
     "category": "system",

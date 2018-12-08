@@ -347,6 +347,11 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
         owner: owner,
         name: json.thingpedia_name,
         description: json.thingpedia_description,
+        license: json.license || 'GPL-3.0',
+        license_gplcompatible: json.license_gplcompatible || true,
+        website: json.website || '',
+        repository: json.repository || '',
+        issue_tracker: json.issue_tracker || (json.repository ? json.repository + '/issues' : ''),
         subcategory: json.subcategory,
         approved_version: (approve ? 0 : null),
         developer_version: 0

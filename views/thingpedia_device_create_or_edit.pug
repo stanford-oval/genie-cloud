@@ -97,11 +97,35 @@ block content
                 option(value='service', selected=(device.subcategory === 'service'))= _("Other")
 
             div.form-group
+              label(for='device-license').control-label= _("License")
+              input(name='license',type='text',required=true,value=device.license).form-control#device-license
+              span.help-block!= _("The copyright license for the uploaded code, as a <a href='https://spdx.org/licenses/'>SPDX expression</a>")
+            div.checkbox
+              label
+                input(type='checkbox',name='license_gplcompatible',value='1',checked=device.license_gplcompatible)
+                != _("This license is <a href='https://www.gnu.org/licenses/gpl-faq.html#WhatDoesCompatMean'>GPL compatible</a>")
+
+            div.form-group
+              label(for='device-website').control-label= _("Website")
+              input(name='website',type='text',required=false,value=device.website).form-control#device-website
+              span.help-block!= _("A link to the website for service or device, describing it in more detail (optional).")
+
+            div.form-group
+              label(for='device-repository').control-label= _("Source Code Repository")
+              input(name='repository',type='text',required=false,value=device.repository).form-control#device-repository
+              span.help-block!= _("Public repository for the uploaded JavaScript code (optional).")
+
+            div.form-group
+              label(for='device-issue-tracker').control-label= _("Issue Tracker")
+              input(name='issue_tracker',type='text',required=false,value=device.issue_tracker).form-control#device-issue-tracker
+              span.help-block!= _("Link to a public issue tracker where users can report problems with this device.")
+
+            div.form-group
               label(for='device-icon').control-label= _("Icon")
               input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#device-icon
 
             div.form-group
-              label(for='device-zipfile').control-label= _("Upload ZIP file with JS code")
+              label(for='device-zipfile').control-label= _("Upload ZIP file with JavaScript code")
               input(type='file',name='zipfile')#device-zipfile
 
           div.tab-pane.fade#device-code-tab

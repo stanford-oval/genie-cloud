@@ -127,3 +127,7 @@
 #thingpedia-string-type-list > li > div > a {
   margin-top: 1.5em;
 }
+
+.device-details-actions .btn {
+  margin-bottom: 1em;
+}
