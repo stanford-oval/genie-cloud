@@ -788,7 +788,7 @@ v1.get('/devices/all', (req, res, next) => {
  * @api {get} /v3/devices/all Get Full Device List
  * @apiName GetDeviceList
  * @apiGroup Devices
- * @apiVersion 0.3.0
+ * @apiVersion 0.3.1
  *
  * @apiDescription Retrieve the list of all devices in Thingpedia.
  *   Results are paginated according to the `page` and `page_size` parameters.
@@ -804,6 +804,10 @@ v1.get('/devices/all', (req, res, next) => {
  * @apiSuccess {String} data.primary_kind The primary identifier of the device
  * @apiSuccess {String} data.name The user visible name of the device
  * @apiSuccess {String} data.description A longer, user visible, description of the device
+ * @apiSuccess {String} data.license The license for the device package, as a SPDX string
+ * @apiSuccess {String} data.website The primary website for the device or service
+ * @apiSuccess {String} data.repository A link to a public source code repository for the device
+ * @apiSuccess {String} data.issue_tracker A link to page where users can report bugs for the device
  * @apiSuccess {String="physical","online","data"} data.category Whether the device is a phyisical device, online account, or public service
  * @apiSuccess {String="home","data-management","communication","social-network","health","media","service"} data.subcategory The general domain of this device
  *

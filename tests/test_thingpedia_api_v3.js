@@ -1361,6 +1361,10 @@ async function testGetDeviceList(_class) {
             assertNonEmptyString(device.primary_kind);
             assertNonEmptyString(device.category);
             assertNonEmptyString(device.subcategory);
+            assert.strictEqual(typeof device.website, 'string');
+            assert.strictEqual(typeof device.repository, 'string');
+            assert.strictEqual(typeof device.issue_tracker, 'string');
+            assert.strictEqual(typeof device.license, 'string');
             if (_class) {
                 assert.deepStrictEqual(device.category, _class);
                 assert(EXPECTED[_class].includes(device.primary_kind),`unexpected device ${device.primary_kind} in category ${_class}`);
@@ -1386,7 +1390,11 @@ async function testDeviceSearch() {
             name: 'Bing Search',
             description: 'Search the web with Bing',
             category: 'data',
-            subcategory: 'service'
+            subcategory: 'service',
+            website: 'https://www.bing.com',
+            repository: 'https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices',
+            issue_tracker: 'https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/issues',
+            license: 'GPL-3.0'
         }]
     });
 
@@ -1401,7 +1409,11 @@ async function testDeviceSearch() {
             name: 'Invisible Device',
             description: 'This device is owned by Bob. It was not approved.',
             category: 'system',
-            subcategory: 'service'
+            subcategory: 'service',
+            website: '',
+            repository: '',
+            issue_tracker: '',
+            license: 'GPL-3.0'
         }]
     });
 
@@ -1417,7 +1429,11 @@ async function testDeviceSearch() {
             name: 'Invisible Device',
             description: 'This device is owned by Bob. It was not approved.',
             category: 'system',
-            subcategory: 'service'
+            subcategory: 'service',
+            website: '',
+            repository: '',
+            issue_tracker: '',
+            license: 'GPL-3.0'
         }]
     });
 
