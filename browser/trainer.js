@@ -26,8 +26,9 @@ class ThingTalkTrainer {
     constructor(sempreUrl) {
         this.parser = new ParserClient(sempreUrl, 'en-US');
 
-        this._locale = $('body[data-locale]').attr('data-locale');
-        this._developerKey = $('body[data-developer-key]').attr('data-developer-key') || null;
+        this._locale = document.body.dataset.locale;
+        this._developerKey = document.body.dataset.developerKey || null;
+        this._user = document.body.dataset.cloudId || null;
 
         this.thingpedia = new ThingpediaClient(this._developerKey, this._locale);
         this._schemaRetriever = new SchemaRetriever(this.thingpedia);
@@ -206,7 +207,7 @@ class ThingTalkTrainer {
     }
 
     _learnNN(targetCode) {
-        return this.parser.onlineLearn(this._raw, targetCode, 'online');
+        return this.parser.onlineLearn(this._raw, targetCode, 'online', this._user);
     }
 
     _learnThingTalk(text) {
@@ -217,7 +218,7 @@ class ThingTalkTrainer {
         const raw = this._raw;
         return ThingTalk.Grammar.parseAndTypecheck(text, this._schemaRetriever).then((program) => {
             const code = this._toNN(program);
-            return this.parser.onlineLearn(raw, code, 'online');
+            return this.parser.onlineLearn(raw, code, 'online', this._user);
         });
     }
 
