@@ -72,8 +72,9 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     const name = options.name;
     const description = options.description;
     const kind = options.primary_kind;
+    const license = options.license;
 
-    if (!name || !description || !kind)
+    if (!name || !description || !kind || !license)
         throw new Error("Not all required fields were present");
     if (!SUBCATEGORIES.has(options.subcategory))
         throw new Error(req._("Invalid device category %s").format(options.subcategory));

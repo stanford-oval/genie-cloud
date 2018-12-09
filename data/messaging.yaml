@@ -1,5 +1,6 @@
 thingpedia_name: Messaging Interface
 thingpedia_description: This interface is provided by all devices that can be used as messaging backends for communicating Almond.
+repository: https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core
 subcategory: communication
 class: |
   abstract class @messaging {

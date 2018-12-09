@@ -66,6 +66,15 @@ module.exports = {
             from device_class d left join organizations o on o.id = d.owner where d.id = ?`, [id]);
     },
 
+    getByPrimaryKind(client, kind, includeSourceCode) {
+        return db.selectOne(client, `select ${includeSourceCode ? 'd.source_code,' : ''}
+            d.id,d.name,d.description,d.primary_kind,d.category,
+            d.subcategory,d.developer_version,d.approved_version,
+            d.website,d.repository,d.issue_tracker,d.license,d.license_gplcompatible,
+            d.owner,o.name as owner_name, o.id_hash as owner_id_hash
+            from device_class d left join organizations o on o.id = d.owner where primary_kind = ?`, [kind]);
+    },
+
     getByOwner(client, owner) {
         return db.selectAll(client, "select id,name,primary_kind,owner from device_class where owner = ? order by name asc", [owner]);
     },
@@ -95,6 +104,7 @@ module.exports = {
             return db.selectAll(client,
                 `select
                  primary_kind, name, description, category,
+                 website, repository, issue_tracker, license,
                  subcategory from device_class where primary_kind = ?
                  or name like ? or description like ?
                  or id in (select device_id from device_class_kind where kind = ?)
@@ -103,6 +113,7 @@ module.exports = {
         } else if (org !== null) {
             return db.selectAll(client,
                 `select primary_kind, name, description, category,
+                 website, repository, issue_tracker, license,
                  subcategory from device_class where (primary_kind = ?
                  or name like ? or description like ?
                  or id in (select device_id from device_class_kind where kind = ?))
@@ -112,6 +123,7 @@ module.exports = {
         } else {
             return db.selectAll(client,
                 `select primary_kind, name, description, category,
+                 website, repository, issue_tracker, license,
                  subcategory from device_class where (primary_kind = ?
                  or name like ? or description like ?
                  or id in (select device_id from device_class_kind where kind = ?))
@@ -124,12 +136,6 @@ module.exports = {
     getCodeByVersion(client, id, version) {
         return db.selectOne(client, "select code from device_code_version where device_id = ? and version = ?",
             [id, version]).then((row) => row.code);
-    },
-
-    getByPrimaryKind(client, kind, includeSourceCode) {
-        return db.selectOne(client, `select ${includeSourceCode ? 'd.source_code,' : ''}d.id,d.name,d.description,d.primary_kind,d.category,
-            d.subcategory,d.developer_version,d.approved_version,d.owner,o.name as owner_name, o.id_hash as owner_id_hash
-            from device_class d left join organizations o on o.id = d.owner where primary_kind = ?`, [kind]);
     },
 
     getByAnyKind(client, kind) {
@@ -223,57 +229,59 @@ module.exports = {
         }
     },
 
-    getByCategory(client, category, org, start, end) {
-        console.log(start, end);
+    _getByField(client, field, value, org, start, end) {
         if (org !== null && org.is_admin) {
             if (start !== undefined && end !== undefined) {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where category = ? order by name limit ?,?",
-                                    [category, start, end]);
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class where ${field} = ? order by name limit ?,?`,
+                    [value, start, end]);
             } else {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where category = ? order by name", [category]);
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class where ${field} = ? order by name`,
+                    [value]);
             }
         } else if (org !== null) {
             if (start !== undefined && end !== undefined) {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where (approved_version is not null or owner = ?) and category = ? order by name limit ?,?",
-                                    [org.id, category, start, end]);
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class
+                    where (approved_version is not null or owner = ?) and ${field} = ?
+                    order by name limit ?,?`,
+                    [org.id, value, start, end]);
             } else {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where (approved_version is not null or owner = ?) and category = ? order by name",
-                                    [org.id, category]);
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class
+                    where (approved_version is not null or owner = ?) and ${field} = ?
+                    order by name`,
+                    [org.id, value]);
             }
         } else {
             if (start !== undefined && end !== undefined) {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where approved_version is not null and category = ? order by name limit ?,?",
-                                    [category, start, end]);
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class
+                    where approved_version is not null and ${field} = ?
+                    order by name limit ?,?`,
+                    [value, start, end]);
             } else {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where approved_version is not null and category = ? order by name", [category]);
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class
+                    where approved_version is not null and ${field} = ?
+                    order by name`, [value]);
             }
         }
     },
 
+    getByCategory(client, category, org, start, end) {
+        return this._getByField(client, 'category', category, org, start, end);
+    },
+
     getBySubcategory(client, category, org, start, end) {
-        if (org !== null && org.is_admin) {
-            if (start !== undefined && end !== undefined) {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where subcategory = ? order by name limit ?,?",
-                                    [category, start, end]);
-            } else {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where subcategory = ? order by name", [category]);
-            }
-        } else if (org !== null) {
-            if (start !== undefined && end !== undefined) {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where (approved_version is not null or owner = ?) and subcategory = ? order by name limit ?,?",
-                                    [org.id, category, start, end]);
-            } else {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where (approved_version is not null or owner = ?) and subcategory = ? order by name",
-                                    [org.id, category]);
-            }
-        } else {
-            if (start !== undefined && end !== undefined) {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where approved_version is not null and subcategory = ? order by name limit ?,?",
-                                    [category, start, end]);
-            } else {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where approved_version is not null and subcategory = ? order by name", [category]);
-            }
-        }
+        return this._getByField(client, 'subcategory', category, org, start, end);
     },
 
     getDownloadVersion(client, kind, org) {
@@ -295,31 +303,52 @@ module.exports = {
     },
 
     getAllApprovedByOwner(client, owner) {
-        return db.selectAll(client, `select primary_kind,name,description,category,subcategory
-            from device_class where approved_version is not null and owner = ? order by name`, [owner]);
+        return db.selectAll(client, `select primary_kind, name, description,
+            website, repository, issue_tracker, license,
+            category, subcategory from device_class
+            where approved_version is not null and owner = ? order by name`, [owner]);
     },
 
     getAllApproved(client, org, start, end) {
         if (org !== null && org.is_admin) {
             if (start !== undefined && end !== undefined) {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class order by name limit ?,?",
-                                    [start, end]);
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class
+                    order by name limit ?,?`,
+                    [start, end]);
             } else {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class order by name");
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class order by name`);
             }
         } else if (org !== null) {
             if (start !== undefined && end !== undefined) {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where (approved_version is not null or owner = ?) order by name limit ?,?",
-                                    [org.id, start, end]);
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class
+                    where (approved_version is not null or owner = ?)
+                    order by name limit ?,?`,
+                    [org.id, start, end]);
             } else {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where (approved_version is not null or owner = ?) order by name", [org.id]);
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class
+                    where (approved_version is not null or owner = ?)
+                    order by name`, [org.id]);
             }
         } else {
             if (start !== undefined && end !== undefined) {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where approved_version is not null order by name limit ?,?",
-                                    [start, end]);
+                return db.selectAll(client, `select primary_kind, name, description,
+                    website, repository, issue_tracker, license,
+                    category, subcategory from device_class
+                    where approved_version is not null
+                    order by name limit ?,?`,
+                    [start, end]);
             } else {
-                return db.selectAll(client, "select primary_kind,name,description,category,subcategory from device_class where approved_version is not null order by name");
+                return db.selectAll(client, `select primary_kind, name, description,
+                    category, subcategory from device_class
+                    where approved_version is not null order by name`);
             }
         }
     },
@@ -343,17 +372,6 @@ module.exports = {
     },
     unapprove(client, kind) {
         return db.query(client, "update device_class set approved_version = null where primary_kind = ?", [kind]);
-    },
-
-    getAll(client, start, end) {
-        if (start !== undefined && end !== undefined) {
-            return db.selectAll(client, `select d.id,d.name,d.description,d.primary_kind,d.category,
-                d.subcategory,d.developer_version,d.approved_version,d.owner from device_class order by name limit ?,?`,
-                [start, end]);
-        } else {
-            return db.selectAll(client, `select d.id,d.name,d.description,d.primary_kind,d.category,
-                d.subcategory,d.developer_version,d.approved_version,d.owner from device_class order by name`);
-        }
     },
 
     getFeatured(client, count = 6) {
