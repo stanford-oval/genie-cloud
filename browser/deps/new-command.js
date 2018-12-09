@@ -22,9 +22,9 @@ module.exports = class ThingTalkTrainer {
 
         this.parser = new ParserClient(options.sempreUrl, 'en-US');
 
-        this._locale = $('body[data-locale]').attr('data-locale');
-        this._developerKey = $('body[data-developer-key]').attr('data-developer-key') || null;
-        this._user = $('body[data-user-id]').attr('data-user-id') || null;
+        this._locale = document.body.dataset.locale;
+        this._developerKey = document.body.dataset.developerKey || null;
+        this._user = document.body.dataset.cloudId || null;
 
         this.thingpedia = new ThingpediaClient(this._developerKey, this._locale);
         this._schemaRetriever = new SchemaRetriever(this.thingpedia);
