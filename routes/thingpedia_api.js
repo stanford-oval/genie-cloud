@@ -1352,7 +1352,7 @@ function getAllEntities(req, res, next) {
 
     const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
-    client.getAllEntityNames().then((data) => {
+    client.getAllEntityTypes(snapshotId).then((data) => {
         if (data.length > 0 && snapshotId >= 0) {
             res.cacheFor(6, 'months');
             res.set('ETag', etag);

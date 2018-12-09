@@ -181,21 +181,23 @@ module.exports = {
     },
     getBaseByLanguage(client, org, language) {
         if (org === -1) { // admin
-            return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count
-                from example_utterances eu where eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
+            return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,
+                eu.click_count,eu.like_count from example_utterances eu
+                where eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
                 order by id asc`,
                 [language]);
         } else if (org !== null) {
-            return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count
-                from example_utterances eu, device_schema ds where eu.schema_id = ds.id and
+            return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,
+                eu.click_count,eu.like_count from example_utterances eu, device_schema ds
+                where eu.schema_id = ds.id and
                 eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
                 and (ds.approved_version is not null or ds.owner = ?)
                 order by id asc`,
                 [language, org]);
         } else {
-            return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,eu.click_count
-                from example_utterances eu, device_schema ds where eu.schema_id = ds.id and
-                eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
+            return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,
+                eu.click_count,eu.like_count from example_utterances eu, device_schema ds
+                where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
                 and ds.approved_version is not null
                 order by id asc`,
                 [language]);
