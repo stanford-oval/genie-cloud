@@ -25,6 +25,7 @@
     "install": "make install"
   },
   "resolutions": {
+    "thingtalk": "~1.4.1"
   },
   "dependencies": {
     "accept-language": "^2.0.17",
