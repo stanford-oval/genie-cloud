@@ -11,6 +11,12 @@ block page_name
   = _("Almond Blog Editor")
 
 block content
+  for message in messages
+    div.alert.alert-success.alert-dismissible.fade.in(role='alert')
+      button(type='button', data-dismiss='alert', aria-label="Close").close
+        span(aria-hidden='true') ×
+      p= message
+
   form(action=create ? '/admin/blog/create' : '/admin/blog/update', method='post', data-toggle='validator')
     if !create
       input(type='hidden',name='id',value=post.id)
@@ -32,6 +38,9 @@ block content
       |
       |
       button(type='submit').btn.btn-success= _("Save")
+      |
+      |
+      button(type='button')#blog-upload-file-button.btn.btn-default= _("Upload a picture")
 
   div.modal.fade#blog-preview(role='dialog')
     div.modal-dialog(role='document')
@@ -42,3 +51,21 @@ block content
 
           h4.modal-title#blog-preview-title
         div.modal-body#blog-preview-body
+
+  div.modal.fade#blog-upload-file(role='dialog')
+    div.modal-dialog(role='document')
+      div.modal-content
+        div.modal-header.text-center
+          a.close(data-dismiss='modal', aria-label="Close")
+            span(aria-hidden='true') ×
+
+          h4.modal-title= _("Upload a picture")
+        div#blog-upload-file-before-upload
+          form(action='/admin/blog/upload',enctype='multipart/form-data',method='post',data-toggle='validator')#blog-upload-file-form
+            div.modal-body#blog-preview-body
+              div.form-group
+                label.control-label(for='#blog-upload-file-input')= _("File")
+                input(type='file',name='file',accept='image/*',required=true)#blog-upload-file-input
+            div.modal-footer
+              button(type='submit').btn.btn-primary= _("Upload")
+        div#blog-upload-file-after-upload.modal-body

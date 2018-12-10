@@ -35,7 +35,7 @@ block content
                       p
                         b= _("Client ID: ")
                         span= client.id
-                      if user.developer_status > 0
+                      if user.developer_status > Constants.DeveloperStatus.USER
                         p
                           b= _("Client Secret: ")
                           a(href='#',data-toggle='collapse',data-target='#secret-' + client.id)= _("Show/Hide")
@@ -45,7 +45,7 @@ block content
                 div.col-xs-12
                   p= _("Your organization does not have any OAuth apps yet.")
 
-            if user.developer_status > 0
+            if user.developer_status > Constants.DeveloperStatus.USER
               div.row
                 div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
                   a(href='#new-oauth-dialog',data-toggle='modal').btn.btn-block.btn-primary= _("Register a new OAuth app")

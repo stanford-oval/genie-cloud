@@ -22,7 +22,7 @@ block content
       div.col-xs-12.col-md-8.col-lg-9
         h3= _("Entity Types")
 
-        if authenticated && user.developer_status >= 1
+        if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
           div.row
             div.col-sm-6.col-md-4
               a(href='#new-entity-dialog',data-toggle='modal').btn.btn-block.btn-sm.btn-default= _("Create a new entity type")

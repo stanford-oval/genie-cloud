@@ -13,13 +13,13 @@ section.divider
         li.list-group-item.clearfix
           div.pull-left= m.username
           div.pull-right
-            if m.developer_status === 0
+            if m.developer_status === Constants.DeveloperStatus.USER
               = _("Tester")
-            else if m.developer_status === 1
+            else if m.developer_status === Constants.DeveloperStatus.DEVELOPER
               = _("Developer")
-            else if m.developer_status === 2
+            else if m.developer_status === Constants.DeveloperStatus.TRUSTED_DEVELOPER
               = _("Trusted Dev")
-            else if m.developer_status === 3
+            else if m.developer_status === Constants.DeveloperStatus.ADMIN
               = _("Administrator")
 
   div.panel.panel-default
@@ -46,7 +46,7 @@ section.divider
 
     div.panel-footer
       div.row
-        if authenticated && user.developer_status >= 1
+        if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
           div.col-sm-6.col-md-4
             a(href='/thingpedia/upload/create').btn.btn-primary.btn-sm.btn-block= _("Upload a new device")
         else

@@ -1,3 +1,7 @@
 .CodeMirror {
   border: 1px solid #cccccc;
 }
+
+#blog-upload-file-after-upload {
+  display: none;
+}

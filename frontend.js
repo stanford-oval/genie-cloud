@@ -263,6 +263,7 @@ module.exports = class Frontend {
         // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
         this._app.use('/mturk', require('./routes/mturk'));
         this._app.use('/friendhub', require('./routes/friendhub'));
+        this._app.use('/admin', require('./routes/admin_upload'));
 
         this._app.use(csurf({ cookie: false }));
         this._app.use((req, res, next) => {
@@ -329,7 +330,7 @@ module.exports = class Frontend {
                 console.error(err);
                 res.status(500).render('error', {
                     page_title: req._("Almond - Internal Server Error"),
-                    message: err
+                    message: req._("Code: %s").format(err.code || err.sqlState || err.errno)
                 });
             }
         });

@@ -43,11 +43,11 @@ block content
         a(href='/admin/users/search?q=' + user.id).list-group-item.clearfix
           div.pull-left= user.username
           div.pull-right
-            if user.developer_status >= 3
+            if user.developer_status >= Constants.DeveloperStatus.ADMIN
               span= _("Admininstrator")
-            else if user.developer_status >= 2
+            else if user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER
               span= _("Trusted Developer")
-            else if user.developer_status >= 1
+            else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
               span= _("Developer")
             else
               span= _("Tester")

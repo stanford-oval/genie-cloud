@@ -61,7 +61,7 @@ block content
         div.container
           div.row
             div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
-              if authenticated && user.developer_status >= 1
+              if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
                 a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")
               else
                 a(href='/user/request-developer').btn.btn-primary.btn-block= _("Become a Thingpedia Developer")

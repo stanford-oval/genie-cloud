@@ -49,7 +49,7 @@ function renderUserList(users) {
 
 router.use(user.requireLogIn);
 
-router.get('/', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.get('/', user.requireAnyRole, (req, res, next) => {
     res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
                                  csrfToken: req.csrfToken() });
 });
@@ -366,7 +366,7 @@ router.post('/organizations/set-name', user.requireRole(user.Role.ADMIN), (req, 
 
 const BLOG_POSTS_PER_PAGE = 10;
 
-router.get('/blog', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.get('/blog', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -384,22 +384,24 @@ router.get('/blog', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     }).catch(next);
 });
 
-router.get('/blog/update/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.get('/blog/update/:id', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.getForEdit(dbClient, req.params.id);
     }).then((post) => {
         return res.render('blog_create_or_edit', {
             page_title: req._("Almond - Blog Editor"),
             create: false,
-            post
+            post,
+            messages: req.flash('admin-blog-message'),
         });
     }).catch(next);
 });
 
-router.get('/blog/create', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.get('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
     res.render('blog_create_or_edit', {
         page_title: req._("Almond - Blog Editor"),
         create: true,
+        messages: [],
         post: {
             title: '',
             blurb: '',
@@ -409,10 +411,10 @@ router.get('/blog/create', user.requireRole(user.Role.ADMIN), (req, res, next) =
 });
 
 function slugify(s) {
-    return encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-'));
+    return encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-')).replace(/[^a-z0-9-]/g, '');
 }
 
-router.post('/blog/update', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
     const md = new markdown();
     md.use(require('markdown-it-anchor'));
     md.use(require('markdown-it-highlightjs'));
@@ -432,12 +434,13 @@ router.post('/blog/update', user.requireRole(user.Role.ADMIN), (req, res, next) 
             body: rendered,
         });
     }).then(() => {
-        return res.redirect(303, '/blog/' + req.body.id + '-' + slug);
+        req.flash('admin-blog-message', req._("Saved"));
+        return res.redirect(303, '/admin/blog/update/' + req.body.id);
     }).catch(next);
 });
 
 
-router.post('/blog/create', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
     const md = new markdown();
     md.use(require('markdown-it-anchor'));
     md.use(require('markdown-it-highlightjs'));
@@ -458,11 +461,12 @@ router.post('/blog/create', user.requireRole(user.Role.ADMIN), (req, res, next) 
             body: rendered,
         });
     }).then((post) => {
-        return res.redirect(303, '/blog/' + post.id + '-' + slug);
+        req.flash('admin-blog-message', req._("Saved"));
+        return res.redirect(303, '/admin/blog/update/' + post.id);
     }).catch(next);
 });
 
-router.post('/blog/publish', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.post('/blog/publish', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.publish(dbClient, req.body.id);
     }).then(() => {
@@ -470,7 +474,7 @@ router.post('/blog/publish', user.requireRole(user.Role.ADMIN), (req, res, next)
     }).catch(next);
 });
 
-router.post('/blog/unpublish', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.post('/blog/unpublish', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.unpublish(dbClient, req.body.id);
     }).then(() => {
@@ -478,7 +482,7 @@ router.post('/blog/unpublish', user.requireRole(user.Role.ADMIN), (req, res, nex
     }).catch(next);
 });
 
-router.post('/blog/delete', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.post('/blog/delete', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.delete(dbClient, req.body.id);
     }).then(() => {

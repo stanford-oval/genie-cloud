@@ -57,7 +57,7 @@ async function createDefaultUsers(dbClient, rootOrg) {
         timezone: 'America/Los_Angeles',
         developer_org: rootOrg.id,
         developer_status: user.DeveloperStatus.ADMIN,
-        roles: user.Role.ADMIN,
+        roles: user.Role.ROOT,
         profile_flags: user.ProfileFlags.VISIBLE_ORGANIZATION_PROFILE,
     });
 
