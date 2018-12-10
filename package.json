@@ -24,9 +24,7 @@
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "install": "make install"
   },
-  "resolutions": {
-    "thingtalk": "~1.4.1"
-  },
+  "resolutions": {},
   "dependencies": {
     "accept-language": "^2.0.17",
     "accepts": "^1.3.5",
@@ -89,7 +87,7 @@
     "sockaddr": "^1.0.0",
     "thingengine-core": "^1.2.0",
     "thingpedia": "^2.2.2",
-    "thingpedia-client": "^0.1.0",
+    "thingpedia-client": "^0.2.0",
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "~1.4.1",
     "tmp": "0.0.33",
