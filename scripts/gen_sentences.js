@@ -18,7 +18,8 @@ const stream = require('stream');
 const seedrandom = require('seedrandom');
 const argparse = require('argparse');
 
-const SentenceGenerator = require('../training/sentence-generator');
+const ThingTalk = require('thingtalk');
+
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 
 function main() {
@@ -61,13 +62,14 @@ function main() {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         language: 'en',
+        targetLanguage: 'thingtalk',
         thingpediaClient: new AdminThingpediaClient(args.language),
         turkingMode: args.turking,
         maxDepth: args.maxdepth,
         debug: args.debug
     };
 
-    const generator = new SentenceGenerator(options);
+    const generator = new ThingTalk.SentenceGenerator(options);
     const transform = new stream.Transform({
         writableObjectMode: true,
         

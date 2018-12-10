@@ -20,7 +20,7 @@ const Config = require('../config');
 const db = require('./db');
 const device = require('../model/device');
 const organization = require('../model/organization');
-const schema = require('../model/schema');
+const schemaModel = require('../model/schema');
 const exampleModel = require('../model/example');
 const entityModel = require('../model/entity');
 
@@ -172,9 +172,9 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         return this._withClient(async (dbClient) => {
             let rows;
             if (withMetadata)
-                rows = await schema.getMetasByKinds(dbClient, schemas, await this._getOrgId(dbClient), this.language);
+                rows = await schemaModel.getMetasByKinds(dbClient, schemas, await this._getOrgId(dbClient), this.language);
             else
-                rows = await schema.getTypesAndNamesByKinds(dbClient, schemas, await this._getOrgId(dbClient));
+                rows = await schemaModel.getTypesAndNamesByKinds(dbClient, schemas, await this._getOrgId(dbClient));
 
             switch (accept) {
             case 'application/json': {
@@ -378,6 +378,40 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
             const data = rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name }));
             data.meta = { name: meta.name, has_ner_support: meta.has_ner_support, is_well_known: meta.is_well_known };
             return data;
+        });
+    }
+
+    getAllExamples(accept = 'application/x-thingtalk') {
+        return this._withClient(async (dbClient) => {
+            const rows = await exampleModel.getBaseByLanguage(dbClient, await this._getOrgId(dbClient), this.language);
+            switch (accept) {
+            case 'application/json':
+                return this._datasetBackwardCompat(rows, false);
+            default:
+                return this._makeDataset(`everything`, rows);
+            }
+        });
+    }
+
+    getAllDeviceNames() {
+        return this._withClient(async (dbClient) => {
+            return schemaModel.getAllApproved(dbClient, await this._getOrgId(dbClient));
+        });
+    }
+
+    getAllEntityTypes(snapshotId = -1) {
+        return this._withClient((dbClient) => {
+            if (snapshotId >= 0)
+                return entityModel.getSnapshot(dbClient, snapshotId);
+            else
+                return entityModel.getAll(dbClient);
+        }).then((rows) => {
+            return rows.map((r) => ({
+                type: r.id,
+                name: r.name,
+                is_well_known: r.is_well_known,
+                has_ner_support: r.has_ner_support
+            }));
         });
     }
 };
