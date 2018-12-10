@@ -32,6 +32,22 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 '__lookupSetter__', 'eval', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
 'toLocaleString', 'toSource', 'toString', 'unwatch', 'watch', 'valueOf']);
 
+const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
+const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
+const ALLOWED_CLASS_METADATA = new Set(['name', 'description']);
+
+async function validateAnnotations(annotations) {
+    for (let name of Object.getOwnPropertyNames(annotations)) {
+        if (FORBIDDEN_NAMES.has(name))
+            throw new Error(`Invalid annotation ${name}`);
+    }
+}
+async function validateMetadata(metadata, allowed) {
+    for (let name of Object.getOwnPropertyNames(metadata)) {
+        if (!allowed.has(name))
+            throw new Error(`Invalid annotation ${name}`);
+    }
+}
 
 async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
     const tpClient = new ThingpediaClient(req.user.developer_key, req.user.locale, dbClient);
@@ -79,6 +95,8 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     if (!SUBCATEGORIES.has(options.subcategory))
         throw new Error(req._("Invalid device category %s").format(options.subcategory));
     const [classDef, dataset] = await loadClassDef(dbClient, req, kind, classCode, datasetCode);
+    validateMetadata(classDef.metadata, ALLOWED_CLASS_METADATA);
+    validateAnnotations(classDef.annotations);
 
     if (kind.indexOf('.') < 0 && LEGACY_KINDS.indexOf(kind) < 0)
         throw new Error(`Invalid device ID ${kind}: must contain at least one period`);
@@ -118,6 +136,13 @@ function validateDataset(dataset) {
             ThingTalk.NNSyntax.toNN(ruleprog, {});
 
             // validate placeholders in all utterances
+            validateAnnotations(ex.annotations);
+            if (ex.utterances.length === 0) {
+                if (ex.annotations.hasOwnProperty('utterances'))
+                    throw new Error(`utterances must be a natural language annotation (with #_[]), not an implementation annotation`);
+                else
+                    throw new Error(`missing utterances annotation`);
+            }
             for (let utterance of ex.utterances)
                 validateUtterance(ex.args, utterance);
         } catch(e) {
@@ -173,6 +198,8 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
             throw new Error(`${name} is not allowed as a function name`);
+        validateMetadata(where[name].metadata, ALLOWED_FUNCTION_METADATA);
+        validateAnnotations(where[name].annotations);
 
         if (!where[name].metadata.canonical)
             where[name].metadata.canonical = autogenCanonical(name, kind, options.deviceName);
@@ -198,6 +225,8 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
             while (type.isArray)
                 type = type.elem;
             const arg = where[name].getArgument(argname);
+            validateMetadata(arg.metadata, ALLOWED_ARG_METADATA);
+            validateAnnotations(arg.annotations);
 
             if (type.isEntity) {
                 entities.add(type.type);
