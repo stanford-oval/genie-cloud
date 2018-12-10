@@ -65,13 +65,13 @@ block content
                 - roles.push(_("Blog Editor"))
               span(title=user.developer_key)
                 a(href='/admin/organizations/details/' + user.developer_org)= roles.join(', ')
-            else if user.developer_status >= 3
+            else if user.developer_status >= Constants.DeveloperStatus.ADMIN
               span(title=user.developer_key)
                 a(href='/admin/organizations/details/' + user.developer_org)= _("Admin")
-            else if user.developer_status >= 2
+            else if user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER
               span(title=user.developer_key)
                 a(href='/admin/organizations/details/' + user.developer_org)= _("Trusted Dev")
-            else if user.developer_status >= 1
+            else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
               span(title=user.developer_key)
                 a(href='/admin/organizations/details/' + user.developer_org)= _("Developer")
             else if user.developer_org !== null
@@ -100,11 +100,11 @@ block content
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Start user")
               li
-                if user.developer_status < 3
+                if user.developer_status < Constants.DeveloperStatus.ADMIN
                   form(action='/admin/users/promote/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Promote user")
-                if user.developer_status > 0
+                if user.developer_status > Constants.DeveloperStatus.USER
                   form(action='/admin/users/demote/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Demote user")

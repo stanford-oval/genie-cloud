@@ -17,11 +17,11 @@ block content
           a(href='/profiles/user/' + m.cloud_id).list-group-item.clearfix
             div.pull-left= m.username
             div.pull-right
-              if m.developer_status >= 3
+              if m.developer_status >= Constants.DeveloperStatus.ADMIN
                 span= _("Admininstrator")
-              else if m.developer_status >= 2
+              else if m.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER
                 span= _("Trusted Developer")
-              else if m.developer_status >= 1
+              else if m.developer_status >= Constants.DeveloperStatus.DEVELOPER
                 span= _("Developer")
               else
                 span= _("Tester")

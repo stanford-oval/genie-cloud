@@ -22,7 +22,7 @@ block content
       div.col-xs-12.col-md-8.col-lg-9
         h3= _("String Datasets")
 
-        if authenticated && user.developer_status >= 1
+        if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
           div.row
             div.col-sm-6.col-md-4
               a(href='#new-string-type-dialog',data-toggle='modal').btn.btn-block.btn-sm.btn-default= _("Upload a new string dataset")
@@ -43,7 +43,7 @@ block content
                     input(type='text',name='type_name').form-control#new-string-type-name
                     span.help-block
                       | The ID is used to refer to the dataset in a <code>\#[string_values=""]</code> annotation.
-                      if user.developer_status < 3
+                      if user.developer_status < Constants.DeveloperStatus.ADMIN
                         |
                         | It must be of the form <var>prefix</var>:<var>suffix</var>, where <var>prefix</var> is the ID of a device you control, and <var>suffix</var> is an identifier.
                   div.form-group
