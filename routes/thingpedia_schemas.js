@@ -11,6 +11,7 @@
 
 const express = require('express');
 const highlightjs = require('highlight.js');
+highlightjs.registerLanguage('tt', require('../util/highlightjs-thingtalk'));
 
 const ThingTalk = require('thingtalk');
 
