@@ -230,6 +230,11 @@ router.get('/update/:kind', (req, res, next) => {
                                                                        primary_kind: d.primary_kind,
                                                                        description: d.description,
                                                                        subcategory: d.subcategory,
+                                                                       website: d.website,
+                                                                       license: d.license,
+                                                                       license_gplcompatible: d.license_gplcompatible,
+                                                                       repository: d.repository,
+                                                                       issue_tracker: d.issue_tracker,
                                                                        code: code,
                                                                        dataset: dataset },
                                                              create: false });
