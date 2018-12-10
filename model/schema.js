@@ -206,15 +206,17 @@ module.exports = {
 
     getAllApproved(client, org) {
         if (org === -1) {
-            return db.selectAll(client, `select kind, kind_canonical from device_schema`,
+            return db.selectAll(client, `select kind, kind_canonical from device_schema
+                where kind_type in ('primary','other')`,
                 []);
         } else if (org !== null) {
             return db.selectAll(client, `select kind, kind_canonical from device_schema
-                where (approved_version is not null or owner = ?)`,
+                where (approved_version is not null or owner = ?)
+                and kind_type in ('primary','other')`,
                 [org]);
         } else {
             return db.selectAll(client, `select kind, kind_canonical from device_schema
-                where approved_version is not null`,
+                where approved_version is not null and kind_type in ('primary','other')`,
                 []);
         }
     },
