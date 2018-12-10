@@ -25,8 +25,7 @@
     "install": "make install"
   },
   "resolutions": {
-    "highlight.js": "github:Stanford-Mobisocial-IoT-Lab/highlight.js",
-    "thingtalk": "git://github.com/Stanford-Mobisocial-IoT-Lab/thingtalk"
+    "highlight.js": "github:Stanford-Mobisocial-IoT-Lab/highlight.js"
   },
   "dependencies": {
     "accept-language": "^2.0.17",
@@ -92,7 +91,7 @@
     "thingpedia": "^2.2.2",
     "thingpedia-client": "^0.1.0",
     "thingpedia-discovery": "^1.0.0",
-    "thingtalk": "git://github.com/Stanford-Mobisocial-IoT-Lab/thingtalk",
+    "thingtalk": "~1.4.1",
     "tmp": "0.0.33",
     "transparent-rpc": "^0.0.1",
     "ws": "^2.2.3",
