@@ -1,3 +1,4 @@
+"use strict";
 module.exports = function(hljs) {
   let KEYWORDS = {
     keyword: 
@@ -29,8 +30,8 @@ module.exports = function(hljs) {
       NUMBER,
       {
         className: 'symbol', 
-        begin: /\@/,
-        end: /[\s | \( ]/,
+        begin: /@/,
+        end: /[\s | ( ]/,
         excludeEnd: true
       },
       {
