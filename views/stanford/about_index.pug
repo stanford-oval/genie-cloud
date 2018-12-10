@@ -104,19 +104,7 @@ block content
                 span.glyphicon.glyphicon-chevron-right(aria-hidden='true')
                 span.sr-only= _("Next")
 
-
     div.sections
-      section.divider#latest-news
-        h3= _("What's new in Almond")
-        div.container
-          div.row
-            for post in news
-              div.col-md-4
-                h4= post.title
-                p= post.blurb
-                p
-                  a(href='/blog/' + post.id + '-' + post.slug)= _("Read more")
-
       section.divider#supported-devices
         h3= _("Your Accounts, Your Data, Your Life")
         div.container
@@ -156,6 +144,17 @@ block content
               - page ++
             br
             a(href='/thingpedia/cheatsheet').hover-text= _('And many more!')
+
+      section.divider#latest-news
+        h3= _("What's new in Almond")
+        div.container
+          div.row
+            for post in news
+              div.col-md-4
+                h4= post.title
+                p= post.blurb
+                p
+                  a(href='/blog/' + post.id + '-' + post.slug)= _("Read more")
 
       section.divider#section-commandpedia
         h3= _("What can Almond do?")
