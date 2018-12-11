@@ -15,13 +15,13 @@ const InfiniteScroll = require('infinite-scroll');
 module.exports = class SearchOrInfiniteScroll {
     constructor(options) {
         this._developerKey = document.body.dataset.developerKey || '';
+        this._containerKey = options.container;
         this._container = document.querySelector(options.container + ' .aligned-grid');
         this._render = options.render;
 
-        this._getUrl = options.url + '?developer_key=' + this._developerKey;
+        this._pageSize = options.pageSize || 18;
+        this._getUrl = options.url + '?page_size=' + this._pageSize + '&developer_key=' + this._developerKey;
         this._searchUrl = options.searchUrl;
-
-        this._pageSize = options.pageSize || 9;
 
         this._reset = $(options.container + ' .reset-button');
 
@@ -43,6 +43,18 @@ module.exports = class SearchOrInfiniteScroll {
                 $(this._container).append(this._renderCommands(response));
                 this._updateSearch();
             });
+        });
+
+        this._findmore = $(options.container + ' .find-more-button');
+        this._findmore.click((event) => {
+            event.preventDefault();
+
+            if (this._infscroll) {
+                this._infscroll.loadNextPage();
+                this._infscroll.option({ loadOnScroll: true });
+            }
+
+            this._findmore.hide();
         });
 
         this._reset.click((event) => {
@@ -90,6 +102,7 @@ module.exports = class SearchOrInfiniteScroll {
 
             append: false,
             history: false,
+            loadOnScroll: false,
 
             responseType: 'text'
         });
@@ -101,5 +114,6 @@ module.exports = class SearchOrInfiniteScroll {
         });
 
         this._infscroll.loadNextPage();
+        this._findmore.show();
     }
 };
