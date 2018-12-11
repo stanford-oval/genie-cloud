@@ -50,18 +50,6 @@ block content
               div.col-xs-6.col-lg-3.col-md-4
                 a(href='#why-almond').btn.btn-primary.btn-block= _("Learn More")
 
-            div.row#subscribe-row
-              div.col-xs-12.col-lg-6.col-lg-offset-3.col-md-6.col-md-offset-3
-                button.btn.btn-primary#subscribe-start= _("Would you like to contribute? Sign up to stay tuned!")
-                form(action='#', method='post', data-toggle='validator')#subscribe-form
-                  div.form-group
-                    div.input-group
-                      input(type='email', required=true, data-error=_("Please enter a valid email address."), placeholder=_("Your Email")).form-control#subscribe-email
-                      span.input-group-btn
-                        button(type='submit').btn.btn-primary#subscribe-submit= _("Subscribe")
-                    span.help-block.with-errors
-                p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
-
           div.col-lg-6
             div.carousel.slide(data-ride='carousel')#almond-index-carousel
               //-ol.carousel-indicators
@@ -119,7 +107,6 @@ block content
 
             div.row#subscribe-row
               div.col-xs-12.col-lg-6.col-lg-offset-3.col-md-6.col-md-offset-3
-                //-button.btn.btn-primary#subscribe-start= _("Would you like to contribute? Sign up to stay tuned!")
                 form(action='#', method='post', data-toggle='validator')#subscribe-form
                   div.form-group
                     div.input-group

@@ -28,19 +28,11 @@ $(() => {
     const csrfToken = document.body.dataset.csrfToken;
 
     $('#subscribe-done').hide();
-    $('#subscribe-form').hide();
-
     $('#subscribe-form').submit((event) => {
         event.preventDefault();
         $.post('/user/subscribe', {'_csrf': csrfToken, 'email': $('#subscribe-email').val() });
         $('#subscribe-form').hide();
         $('#subscribe-done').show();
-    });
-
-    $('#subscribe-start').click((event) => {
-        $('#subscribe-form').show();
-        $('#subscribe-start').hide();
-        event.preventDefault();
     });
 
     new SearchOrInfiniteScroll({
