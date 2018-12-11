@@ -761,4 +761,69 @@ g.arrow-box-flipped > path {
 }
 
 
+#almond-manifesto-text > h3, #home-page-sections .divider > h3 {
+  font-size: 48px;
+  color: #8c1515;
+  font-weight: bold;
+}
+#almond-manifesto-text > h3 ~ p, #home-page-sections .divider h4 {
+  font-size: 30px;
+  text-align: center;
+  font-weight: normal;
+}
+#almond-manifesto-text h4 {
+  font-size: 24px;
+  color: #8c1515;
+  font-weight: bold;
+}
+#almond-manifesto-text h4 + p {
+  font-size: 18px;
+}
 
+@keyframes rotate {
+  from {
+    transform: rotate(0);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#almond-manifesto-text > img {
+  width: 30%;
+  object-fit: contain;
+  margin: 0 auto 1.5em;
+  display: block;
+  animation: 10s linear rotate infinite;
+}
+
+#almond-manifesto-text > canvas {
+  object-fit: contain;
+  margin: 0 auto 1.5em;
+  display: block;
+  width: 30%;
+}
+
+#almond-manifesto-text .col-md-6 {
+  /*border: 1px solid black;
+  border-radius: 10px;*/
+}
+
+#almond-subtitle {
+  margin-bottom: 0.5em !important;
+}
+
+#almond-logo {
+  display: block;
+  width: 250px;
+  margin: 0 auto 1em;
+}
+
+#almond-explanation-line {
+  text-align: center;
+  font-size: 24px;
+  color: #8c1515;
+}

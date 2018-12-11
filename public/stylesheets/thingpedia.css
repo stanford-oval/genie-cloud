@@ -34,6 +34,12 @@
   padding: 10px;
 }
 
+.dev-example-description {
+  text-align: justify;
+  width: 85%;
+  margin: 0 auto;
+}
+
 .divider {
   padding-top: 1em;
   padding-bottom: 1em;
