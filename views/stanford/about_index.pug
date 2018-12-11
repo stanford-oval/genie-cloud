@@ -24,6 +24,11 @@ block content
             h1#almond-title= _("Almond")
             h2#almond-subtitle= _("The Stanford Open Virtual Assistant Project")
 
+            img(src=Config.ASSET_CDN + '/images/logo.png')#almond-logo
+
+            p.text-center#almond-explanation-line
+              = _("Almond translates your commands into a personalized program.")
+
             div.row
               div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
                 h4= _("Smart")
@@ -224,7 +229,7 @@ block content
               a(href='https://www.youtube.com/watch?v=R-BHyvli6c0')= _("Watch prof. Lam's keynote at Mobicom 2018")
 
       section.divider#why-almond
-        h3= _("Why Almond?")
+        h3= _("What We Do")
 
         div.container
           div.row
@@ -262,7 +267,7 @@ block content
                 li!= _("Synchronization: <q><span class=when>when I post to Twitter</span>, <span class=do>copy the post to Facebook</span></q>.")
                 li!= _("Composition: <q><span class=get>get the Bitcoin price</span> and then <span class=do>send it to my colleague on Slack</span></q>.")
                 li= _("And many more!")
-              p!= _("If you have used <a href='https://ifttt.com'>IFTTT</a>, you'll love Almond.")
+              p= _("If you have used IFTTT, you'll love Almond.")
 
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')
               .example
@@ -287,7 +292,7 @@ block content
           div.row#why-almond-thingpedia-row
             div.col-md-6
               p
-                != _("Almond provides a uniform interface to your physical devices, your social network accounts, and many more services: if it is on the Internet, Almond wants to let you talk to it, from your assistant.")
+                != _("Almond provides a uniform interface to your physical devices, your social network accounts, and many more services. Almond wants to let you access anything on the Internet, from your assistant.")
               p
                 != _("Almond capabilities are defined in <em>Thingpedia</em>, a crowdsourced repository of commands and interfaces to online services and Internet of Things. Anyone can contribute new entries to Thingpedia, and with small amounts of training data, Almond will be immediately able to interact with the new device or service. ")
               p
@@ -311,9 +316,8 @@ block content
           div.row
             div.col-md-6.col-md-push-6
               p
-                = _("Almond uses a state-of-the-art natural language understanding model, based on sequence-to-sequence with attention. This allows Almond to understand you better, and understand more complex commands across more domains than any other assistant on the market. We collaborate with professors from Stanford Natural Language Processing research group, one of the world's leading hubs for NLP research, and we continuously study how to improve Almond.")
-              p
-                != _("In our experiments, we have found that Almond understands user's input with <strong>88%</strong> accuracy, provided that sufficient training data is provided. This is marked improvement over the previous best known result, which would achieve a mere 64%.")
+                = _("Almond uses a state-of-the-art natural language understanding model. Almond's deep learning model allows it to understand more complex commands across more domains than any other assistant on the market: just train Almond with pairs of sentences and programs, and Almond will learn.")
+              p!= _("We collaborate with professors from Stanford Natural Language Processing research group, one of the world's leading hubs for NLP research, to continuously improve Almond. In our experiments, we have found that Almond understands user's input with <strong>88%</strong> accuracy, provided that sufficient training data is provided. This is marked improvement over the previous best known result, which would achieve a mere 64%.")
               p
                 != _("As academics, our research is open-source, and all technology is freely available to the public. Anyone can leverage our algorithm in their product or in their own research. <a href='/about/research'>Learn more about our research</a> and <a href='/about/get-involved'>how you can use Almond's technology</a>.")
 
