@@ -496,6 +496,7 @@ g.arrow-box-flipped > path {
 
 #filters-row .img-responsive {
   max-width: 450px;
+  width: 100%;
   margin: 0 auto;
   object-fit: contain;
 }
