@@ -400,6 +400,10 @@
   font-size: 28px;
 }
 
+#almond-manifesto > p {
+  margin-top: 2em;
+}
+
 #almond-manifesto > svg {
   margin: 0 auto;
   display: block;
