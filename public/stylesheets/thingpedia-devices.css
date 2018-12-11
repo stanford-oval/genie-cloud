@@ -131,3 +131,12 @@
 .device-details-actions .btn {
   margin-bottom: 1em;
 }
+
+.dev-template > a {
+  color: inherit;
+}
+
+.dev-template > a:hover, .dev-template > a:focus {
+  text-decoration: none;
+  box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+}

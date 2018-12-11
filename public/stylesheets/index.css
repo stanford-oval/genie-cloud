@@ -388,13 +388,6 @@
     padding: 10px;
 }
 
-#supported-devices .img-responsive {
-  height: 96px;
-  width: 96px;
-  object-fit: contain;
-  margin: 0 auto;
-}
-
 #section-commandpedia > div > div > div > p {
   margin-bottom: 1.5em;
 }
@@ -406,3 +399,365 @@
 #latest-news h4 {
   font-size: 28px;
 }
+
+#almond-manifesto > p {
+  margin-top: 2em;
+}
+
+#almond-manifesto > svg {
+  margin: 0 auto;
+  display: block;
+  /*border: 2px solid black;*/
+  max-width: 100%;
+  object-fit: contain;
+}
+
+#almond-manifesto > svg > rect {
+  fill: white;
+  stroke: #8c1515;
+  stroke-width: 1px;
+  cursor: pointer;
+}
+
+#almond-manifesto > svg > rect, g.arrow-box > path {
+  filter: url(#almond-manifesto-shadow);
+}
+g.arrow-box-flipped > path {
+  filter: url(#almond-manifesto-shadow-flipped);
+}
+#almond-manifesto > svg > rect:hover {
+  filter: url(#almond-manifesto-shadow-hover);
+}
+#almond-manifesto > svg > rect + .text-bubble + g {
+  display: none;
+}
+#almond-manifesto > svg > rect:hover + .text-bubble + g {
+  display: inline;
+}
+
+#almond-manifesto > svg > .text-bubble {
+  pointer-events: none;
+}
+
+#almond-manifesto > svg > .text-bubble > div {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 24px;
+  color: #8c1515;
+}
+
+#almond-manifesto > svg > line {
+  stroke: black;
+  stroke-width: 2px;
+}
+
+#almond-manifesto-center {
+  fill: #8c1515;
+}
+
+#almond-manifesto-center + foreignObject > div {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3.5em;
+  text-align: center;
+  margin: auto auto;
+  font-size: 48px;
+  color: white;
+}
+
+#almond-manifesto-center + foreignObject > div > h4 {
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+}
+
+.arrow-box div, .arrow-box-flipped div {
+  font-size: 18px;
+  margin: 18px 5px 0 5px;
+}
+
+#compound-commands-row .when {
+  color: red;
+}
+#compound-commands-row .get {
+  color: rgb(220,136,8);
+}
+#compound-commands-row .do {
+  color: rgb(34,139,34);
+}
+#compound-commands-row .example {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 60px 80px 0 80px;
+}
+
+#filters-row .img-responsive {
+  max-width: 450px;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+#why-almond h4 {
+  margin-top: 2.5em;
+  margin-bottom: 0.8em;
+  font-size: 22px;
+  text-align: center;
+}
+#why-almond .row:first-child h4 {
+  margin-top: 0;
+}
+
+#why-almond-thingpedia-row .img-responsive {
+  height: 96px;
+  width: 96px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+#seq-seq-animation > svg {
+  margin: 0 auto;
+  object-fit: contain;
+  display: block;
+  transform: scale(0.8, 0.8);
+}
+
+@keyframes e-post {
+  0% {
+    opacity: 0;
+  }
+  5% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+#seq-seq-animation #e-post {
+  animation: 20s linear e-post infinite;
+}
+
+@keyframes e-on {
+  0% {
+    opacity: 0;
+  }
+  12.5% {
+    opacity: 0;
+  }
+  17.5% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+#seq-seq-animation #e-on {
+  animation: 20s linear e-on infinite;
+}
+
+@keyframes e-twitter {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+#seq-seq-animation #e-twitter {
+  animation: 20s linear e-twitter infinite;
+}
+
+@keyframes e-end {
+  0% {
+    opacity: 0;
+  }
+  37.5% {
+    opacity: 0;
+  }
+  42.5% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+#seq-seq-animation #e-end {
+  animation: 20s linear e-end infinite;
+}
+
+@keyframes d-now {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+#seq-seq-animation #d-now {
+  animation: 20s linear d-now infinite;
+}
+
+@keyframes d-arrow {
+  0% {
+    opacity: 0;
+  }
+  62.5% {
+    opacity: 0;
+  }
+  67.5% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+#seq-seq-animation #d-arrow {
+  animation: 20s linear d-arrow infinite;
+}
+
+@keyframes d-twitter-post {
+  0% {
+    opacity: 0;
+  }
+  75% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+#seq-seq-animation #d-twitter-post {
+  animation: 20s linear d-twitter-post infinite;
+}
+
+@keyframes d-end {
+  0% {
+    opacity: 0;
+  }
+  87.5% {
+    opacity: 0;
+  }
+  92.5% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+#seq-seq-animation #d-end {
+  animation: 20s linear d-end infinite;
+}
+
+
+@keyframes arrow1 {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  59.5% {
+    opacity: 1;
+  }
+  62.5% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+#seq-seq-animation #arrow1 {
+  animation: 20s linear arrow1 infinite;
+}
+
+@keyframes arrow2 {
+  0% {
+    opacity: 0;
+  }
+  62.5% {
+    opacity: 0;
+  }
+  67.5% {
+    opacity: 1;
+  }
+  73% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+#seq-seq-animation #arrow2 {
+  animation: 20s linear arrow2 infinite;
+}
+
+@keyframes arrow3 {
+  0% {
+    opacity: 0;
+  }
+  75% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 1;
+  }
+  85.5% {
+    opacity: 1;
+  }
+  87.5% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+#seq-seq-animation #arrow3 {
+  animation: 20s linear arrow3 infinite;
+}
+
+@keyframes arrow4 {
+  0% {
+    opacity: 0;
+  }
+  87.5% {
+    opacity: 0;
+  }
+  92.5% {
+    opacity: 1;
+  }
+  98% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+#seq-seq-animation #arrow4 {
+  animation: 20s linear arrow4 infinite;
+}
+
+
+

@@ -28,10 +28,10 @@ $(() => {
 
         render(dev) {
             const deviceContainer = $('<div>').addClass('col-lg-4 col-md-6 aligned-grid-item dev-template');
-            const panel = $('<div>').addClass('panel panel-default');
+            const panel = $('<a>').attr('href', '/thingpedia/devices/by-id/' + dev.primary_kind).addClass('panel panel-default');
             deviceContainer.append(panel);
 
-            const heading = $('<a>').attr('href', '/thingpedia/devices/by-id/' + dev.primary_kind).addClass('panel-heading').text(dev.name);
+            const heading = $('<div>').addClass('panel-heading').text(dev.name);
             panel.append(heading);
 
             const panelBody = $('<div>').addClass('panel-body');
