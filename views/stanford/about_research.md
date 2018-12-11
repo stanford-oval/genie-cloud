@@ -52,7 +52,7 @@ early to give consumers a healthy choice of vendors, including the option to kee
 <span class="black">⇒</span>
 <span class="blue">@bing.image_search</span>
 <span class="black">(</span>
-<span class="purple">bitcoin"</span>
+<span class="purple">"bitcoin"</span>
 <span class="black">) ⇒</span>
 <span class="blue">@twitter.post</span>
 <span class="black">(</span>

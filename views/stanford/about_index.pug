@@ -41,7 +41,7 @@ block content
               div.col-xs-6.col-lg-3.col-md-4.col-lg-offset-3.col-md-offset-2
                 a(href='/about/get-almond').btn.btn-primary.btn-block= _("Get Almond")
               div.col-xs-6.col-lg-3.col-md-4
-                a(href='/about/research').btn.btn-primary.btn-block= _("Learn More")
+                a(href='#why-almond').btn.btn-primary.btn-block= _("Learn More")
 
             div.row#subscribe-row
               div.col-xs-12.col-lg-6.col-lg-offset-3.col-md-6.col-md-offset-3
@@ -71,7 +71,7 @@ block content
                       alt=_("Screenshot of Almond for Android. The user asks: “Show me the New York Times”. Almond replies with news articles."))
                   div.carousel-caption
                     h4= _("Notifications That Matter To You")
-                    p= _("Say: “Show me the New York Times”")
+                    p= _("Say: “Monitor the New York Times”")
                 div.item
                   h3= _("On The Web")
                   img(src=Config.ASSET_CDN + '/images/carousel-teardrop.png',
@@ -189,45 +189,102 @@ block content
                   span= _("Extensibility")
               +arrow-box-flipped(900-250-10, 280-150+150*2+40 - 140 - 20, 250, 140, _("New services, new devices should be easy to add, and by anyone. This supports technological innovation."))
 
-      section.divider#supported-devices
-        h3= _("Your Accounts, Your Data, Your Life")
+      section.divider#why-almond
+        h3= _("Why Almond?")
+
         div.container
           div.row
-            div.col-lg-6
+            div.col-xs-12
+              h4= _("Programmable Notifications")
+          div.row#filters-row
+            div.col-md-6
+
               p
-                != _("Almond enables you to use voice and text to control your physical devices, your social network accounts, and many more services: <strong>if it is on the Internet, Almond will let you talk about it</strong>.")
-                |
-                |
-                = _("And talking is not just about questions and actions: Almond allows you to be alerted by the events you care about, connect multiple services together, share data from one service with your friends, and more.")
-              p!= _("Or at least, that is the <em>vision</em>. What Almond understands in practice is defined in Thingpedia, a repository we curate of online services and Internet of Things.")
-                |
-                |
+                != _("Notifications are <em>hard</em>! Every website, every social network, every app is continuously competing for our attention. But that's no more: with Almond, <em>you</em> decide what <em>you</em> care about.")
+              p
+                != _("Commands in Almond can be <i>monitored</i> and <i>filtered</i>: you can specify to be notified whenever the result changes, when a certain condition is true, or only for a certain subset of the data. For example:")
+              ul
+                li= _("You can monitor the New York Times, and be notified when they publish a new article; or you can monitor just the articles with the word “Millennial”, so you know which industry is being killed now.")
+                li= _("You can monitor the weather, or you choose to be notified only when the temperature is below 40 degrees, and it's time to bring in your dog.")
+                li= _("You can monitor your work email, and then decide that, you know what, it's after hours, you don't want to be bothered.")
+              p
+                != _("Almond's conditions can make use of any result returned by a command, like the title of an article or the body of the new email. You can also use a command, and check if that satisfies a condition. Just specify your conditions in English, and let Almond notify you.")
+
+            div.col-md-6
+              img(src=Config.ASSET_CDN + '/images/example-bitcoin.png',alt=_("Example of a notification. The user says “Alert me when the price of Bitcoin is below $3,600”. Almond confirms, and then notifies, as the price of Bitcoin is now $3,500.")).img-responsive
+
+          div.row
+            div.col-xs-12
+              h4= _("Flexible Compound Commands")
+          div.row#compound-commands-row
+            div.col-md-6.col-md-push-6
+
+              p
+                != _("Almond is the first virtual assistant that allows you to specify commands that combine two services at once. You can specify <em class=when>when</em> to execute the command, what data to <em class=get>get</em>, and what to <em class=do>do</em>, and each part can be any of the primitives supported by Almond.")
+              p
+                != _("You can use compound commands for:")
+              ul.example-command-list
+                li!= _("Automation: <q><span class=when>when I leave home</span>, <span class=do>turn off the heating</span></q>.")
+                li!= _("Synchronization: <q><span class=when>when I post to Twitter</span>, <span class=do>copy the post to Facebook</span></q>.")
+                li!= _("Composition: <q><span class=get>get the Bitcoin price</span> and then <span class=do>send it to my colleague on Slack</span></q>.")
+                li= _("And many more!")
+              p!= _("If you have used <a href='https://ifttt.com'>IFTTT</a>, you'll love Almond.")
+
+            div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')
+              .example
+                span.when
+                  | when the New York Times has an article about China,
+                  |
+                br
+                span.get
+                  | translate the headline to Chinese,
+                  |
+                br
+                span then
+                  |
+                  |
+                span.do
+                  | email it to my Friend
+
+          div.row
+            div.col-xs-12
+              h4= _("A Growing, Crowdsourced, Library of Services")
+
+          div.row#why-almond-thingpedia-row
+            div.col-md-6
+              p
+                != _("Almond provides a uniform interface to your physical devices, your social network accounts, and many more services: if it is on the Internet, Almond wants to let you talk to it, from your assistant.")
+              p
+                != _("Almond capabilities are defined in <em>Thingpedia</em>, a large, crowdsourced repository of commands and interfaces to online services and Internet of Things. Anyone can contribute new entries to Thingpedia, and with small amounts of training data, Almond will be immediately able to interact with the new device or service. ")
+              p
                 a(href='/thingpedia')= _("Learn more about Thingpedia")
                 |  and
                 |
-                a(href='/thingpedia/developers')= _("how you can help Almond learn new services and skills")
+                a(href='/about/get-involved')= _("how you can help Almond learn new services and skills")
                 | .
 
-            div.col-lg-6
+            div.col-md-6
               div.row
                 for d in featuredDevices
                   div.col-xs-6.col-sm-4
                     a(href='/thingpedia/devices/by-id/' + d.primary_kind)
                       img(src=CDN_HOST + '/icons/' + d.primary_kind + '.png',alt=_("Icon for %s").format(d.name)).img-responsive
 
-          //-div.slideshow-container
-            - var page = 0;
-            - var page_size = 10;
-            while page < devices.length / page_size
-              div.icon-slide
-                - for (var i = 0; i < page_size; i++)
-                  if page * page_size + i > devices.length - 1
-                    - break;
-                  a(href='/thingpedia/devices/by-id/' + devices[page * page_size + i].primary_kind)
-                    img(src=CDN_HOST + '/icons/' + devices[page * page_size + i].primary_kind + '.png', alt='Icon for ' + devices[page * page_size + i].name)
-              - page ++
-            br
-            a(href='/thingpedia/cheatsheet').hover-text= _('And many more!')
+            div.row
+              div.col-xs-12
+                h4= _("Cutting-Edge Deep Learning Technology")
+
+            div.row
+              div.col-md-6.col-md-push-6
+                p
+                  = _("Almond uses a state-of-the-art natural language understanding model, based on sequence-to-sequence with attention. This allows Almond to understand you better, and understand more complex commands across more domains than any other assistant on the market. We collaborate with professors from Stanford Natural Language Processing research group, one of the world's leading hubs for NLP research, and we continuously study how to improve Almond.")
+                p
+                  != _("In our experiments, we have found that Almond understands user's input with <strong>88%</strong> accuracy, provided that sufficient training data is provided. This is marked improvement over the previous best known result, which would achieve a mere 64%.")
+                p
+                  != _("As academics, our research is open-source, and all technology is freely available to the public. Anyone can leverage our algorithm in their product or in their own research. <a href='/about/research'>Learn more about our research</a> and <a href='/about/get-involved'>how you can use Almond's technology</a>.")
+
+              div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')#seq-seq-animation
+                include ../../art/seq-seq-animation-clean-svg.svg
 
       section.divider#latest-news
         h3= _("What's new in Almond")
