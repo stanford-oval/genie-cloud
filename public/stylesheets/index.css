@@ -400,79 +400,6 @@
   font-size: 28px;
 }
 
-#almond-manifesto > p {
-  margin-top: 2em;
-}
-
-#almond-manifesto > svg {
-  margin: 0 auto;
-  display: block;
-  /*border: 2px solid black;*/
-  max-width: 100%;
-  object-fit: contain;
-}
-
-#almond-manifesto > svg > rect {
-  fill: white;
-  stroke: #8c1515;
-  stroke-width: 1px;
-  cursor: pointer;
-}
-
-#almond-manifesto > svg > rect, g.arrow-box > path {
-  filter: url(#almond-manifesto-shadow);
-}
-g.arrow-box-flipped > path {
-  filter: url(#almond-manifesto-shadow-flipped);
-}
-#almond-manifesto > svg > rect:hover {
-  filter: url(#almond-manifesto-shadow-hover);
-}
-#almond-manifesto > svg > rect + .text-bubble + g {
-  display: none;
-}
-#almond-manifesto > svg > rect:hover + .text-bubble + g {
-  display: inline;
-}
-
-#almond-manifesto > svg > .text-bubble {
-  pointer-events: none;
-}
-
-#almond-manifesto > svg > .text-bubble > div {
-  margin-top: 20px;
-  text-align: center;
-  font-size: 24px;
-  color: #8c1515;
-}
-
-#almond-manifesto > svg > line {
-  stroke: black;
-  stroke-width: 2px;
-}
-
-#almond-manifesto-center {
-  fill: #8c1515;
-}
-
-#almond-manifesto-center + foreignObject > div {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 100%;
-  height: 3.5em;
-  text-align: center;
-  margin: auto auto;
-  font-size: 48px;
-  color: white;
-}
-
-#almond-manifesto-center + foreignObject > div > h4 {
-  margin: 0;
-  padding: 0;
-  font-size: inherit;
-}
-
 .arrow-box div, .arrow-box-flipped div {
   font-size: 18px;
   margin: 18px 5px 0 5px;
@@ -761,24 +688,29 @@ g.arrow-box-flipped > path {
 }
 
 
-#almond-manifesto-text > h3, #home-page-sections .divider > h3 {
+#almond-manifesto > h3, #home-page-sections .divider > h3 {
   font-size: 48px;
   color: #8c1515;
   font-weight: bold;
 }
-#almond-manifesto-text > h3 ~ p, #home-page-sections .divider h4 {
+#almond-manifesto > h3 + canvas + p, #home-page-sections .divider h4 {
   font-size: 30px;
   text-align: center;
   font-weight: normal;
 }
-#almond-manifesto-text h4 {
+#almond-manifesto h4 {
   font-size: 24px;
   color: #8c1515;
   font-weight: bold;
 }
-#almond-manifesto-text h4 + p {
+#almond-manifesto h4 + p {
   font-size: 18px;
 }
+#almond-manifesto-learn-more {
+  margin-top: 2em;
+  text-align: center;
+}
+
 
 @keyframes rotate {
   from {
@@ -792,7 +724,7 @@ g.arrow-box-flipped > path {
   }
 }
 
-#almond-manifesto-text > img {
+#almond-manifesto > img {
   width: 30%;
   object-fit: contain;
   margin: 0 auto 1.5em;
@@ -800,14 +732,14 @@ g.arrow-box-flipped > path {
   animation: 10s linear rotate infinite;
 }
 
-#almond-manifesto-text > canvas {
+#almond-manifesto > canvas {
   object-fit: contain;
   margin: 0 auto 1.5em;
   display: block;
   width: 30%;
 }
 
-#almond-manifesto-text .col-md-6 {
+#almond-manifesto .col-md-6 {
   /*border: 1px solid black;
   border-radius: 10px;*/
 }

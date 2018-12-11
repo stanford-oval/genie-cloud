@@ -119,7 +119,7 @@ block content
     div.sections#home-page-sections
       section.divider
         //- for accessibility and for mobile devices (where hover is not available)
-        div.container#almond-manifesto-text
+        div.container#almond-manifesto
           h3= _("Our Goal: an Open, Interoperable Web")
 
           //-img(src=Config.ASSET_CDN + '/images/icon-network-connection.svg')
@@ -145,75 +145,14 @@ block content
               h4= _("Extensibility")
               p= _("New services, new devices should be easy to add, and by anyone. This supports technological innovation.")
 
-        div.hidden
-          h3= _("The Almond Manifesto")
-
-          div#almond-manifesto
-            svg(xmlns='http://www.w3.org/2000/svg', width=900, height=280-150+150*2+40 + 80 + 10)
-              defs
-                filter#almond-manifesto-shadow
-                  //-feDropShadow(dx=0, dy=0, stdDeviation=8, flood-color="rgba(102, 175, 233, 0.6)")
-                  feDropShadow(dx=3, dy=3, stdDeviation=3, flood-color="darkgray")
-                filter#almond-manifesto-shadow-flipped
-                  //-feDropShadow(dx=0, dy=0, stdDeviation=8, flood-color="rgba(102, 175, 233, 0.6)")
-                  feDropShadow(dx=3, dy=-3, stdDeviation=3, flood-color="darkgray")
-                filter#almond-manifesto-shadow-hover
-                  //-feDropShadow(dx=0, dy=0, stdDeviation=8, flood-color="rgba(102, 175, 233, 0.6)")
-                  feDropShadow(dx=3, dy=3, stdDeviation=3, flood-color="rgba(102, 175, 233, 0.6)")
-
-              mixin arrow-box(x,y,width,height,text)
-                g(transform=`translate(${x} ${y})`).arrow-box
-                  path(d=`M 10 10 H ${width/2-10} L ${width/2} 0 L ${width/2+10} 10 H ${width-10} A 10 10 0 0 1 ${width} 20 V ${height} A 10 10 0 0 1 ${width-10} ${height+10} H 10 A 10 10 0 0 1 0 ${height} V 20 A 10 10 0 0 1 10 10`,stroke='black',fill='white')
-                  foreignObject(x=10,y=10,width=width-20,height=height)
-                    div= text
-              mixin arrow-box-flipped(x,y,width,height,text)
-                g(transform=`translate(${x} ${y})`).arrow-box-flipped
-                  path(d=`M 10 10 H ${width/2-10} L ${width/2} 0 L ${width/2+10} 10 H ${width-10} A 10 10 0 0 1 ${width} 20 V ${height} A 10 10 0 0 1 ${width-10} ${height+10} H 10 A 10 10 0 0 1 0 ${height} V 20 A 10 10 0 0 1 10 10`,stroke='black',fill='white',transform=`translate(0 ${height/2}) scale(1 -1) translate(0 -${height/2})`)
-                  foreignObject(x=10,y=-10,width=width-20,height=height)
-                    div= text
-
-              line(x1=10+250/2, y1=10+80, x2=900/2, y2=250)
-              line(x1=900-250-10+250/2, y1=10+80, x2=900/2, y2=250)
-              line(x1=10+250/2, y1=280-150+150*2+40, x2=900/2, y2=310)
-              line(x1=900-250-10+250/2, y1=280-150+150*2+40, x2=900/2, y2=310)
-
-              ellipse(cx=900/2, cy=280, rx=150, ry=150)#almond-manifesto-center
-              foreignObject(x=(900/2)-150, y=280-150, width=150*2, height=150*2)
-                div(xmlns="http://www.w3.org/1999/xhtml")
-                  h4= _("Open, Interoperable Web")
-
-              rect(ry=20, rx=20, x=10, y=10, width=250, height=80)
-              foreignObject(x=10, y=10, width=250, height=80).text-bubble
-                div(xmlns="http://www.w3.org/1999/xhtml")
-                  span= _("Open Competition")
-              +arrow-box(10,80+10+20,250,140,_("Any company should be able to participate and innovate, without privileging existing monopolies."))
-
-              rect(ry=20, rx=20, x=900-250-10, y=10, width=250, height=80)
-              foreignObject(x=900-250-10, y=10, width=250, height=80).text-bubble
-                div(xmlns="http://www.w3.org/1999/xhtml")
-                  span= _("Programmability")
-              +arrow-box(900-250-10,80+10+20,250,140,_("Users should be able to define their own tasks, without learning complex programming languages."))
-
-              rect(ry=20, rx=20, x=10, y=280-150+150*2+40, width=250, height=80)
-              foreignObject(x=10, y=280-150+150*2+40, width=250, height=80).text-bubble
-                div(xmlns="http://www.w3.org/1999/xhtml")
-                  span= _("Privacy")
-              +arrow-box-flipped(10, 280-150+150*2+40 - 140 - 20, 250, 140, _("Users should control who has access to their data, for what purpose, and with whom their data is shared."))
-
-              rect(ry=20, rx=20, x=900-250-10, y=280-150+150*2+40, width=250, height=80)
-              foreignObject(x=900-250-10, y=280-150+150*2+40, width=250, height=80).text-bubble
-                div(xmlns="http://www.w3.org/1999/xhtml")
-                  span= _("Extensibility")
-              +arrow-box-flipped(900-250-10, 280-150+150*2+40 - 140 - 20, 250, 140, _("New services, new devices should be easy to add, and by anyone. This supports technological innovation."))
-
-            p.text-center
-              a(href='/about/research')= _("Learn More")
-              |
-              |
-              | -
-              |
-              |
-              a(href='https://www.youtube.com/watch?v=R-BHyvli6c0')= _("Watch prof. Lam's keynote at Mobicom 2018")
+          p#almond-manifesto-learn-more
+            a(href='/about/research')= _("Learn More")
+            |
+            |
+            | -
+            |
+            |
+            a(href='https://www.youtube.com/watch?v=R-BHyvli6c0')= _("Watch prof. Lam's keynote at Mobicom 2018")
 
       section.divider#why-almond
         h3= _("What We Do")
