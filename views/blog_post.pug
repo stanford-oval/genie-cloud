@@ -13,15 +13,17 @@ block content
         |
         small
           a(aria-label=_("Permalink"),title=_("Permalink"),href='/blog/' + post.id + '-' + post.slug) #
-
-      p
+      hr
+      img(role='presentation', src=post.image).img-responsive.cover-photo
+	
+      p.byline
         if post.pub_date === null
           = _("By %s. Not published yet.").format(post.author_name)
         else if +post.upd_date == +post.pub_date
-          = _("By %s. Published %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone }))
+          = _("By %s. Published %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone, year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' }))
         else
-          = _("By %s. Published %s, updated %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone }), post.upd_date.toLocaleString(locale, { timeZone: timezone }))
-      hr
+          = _("By %s. Published %s, updated %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone, year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' }), post.upd_date.toLocaleString(locale, { timeZone: timezone, year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' }))
+
       != post.body
 
       if authenticated && (user.roles & Constants.Role.BLOG_EDITOR)

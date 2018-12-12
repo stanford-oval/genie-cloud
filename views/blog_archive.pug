@@ -8,14 +8,14 @@ block content
     div.blog-post-ref
       div.media
         div.media-left
-          img(src=post.image, role='presentation')
+          img(src=post.image, role='presentation').media-object
         div.media-body
           h2.media-heading
             a(href='/blog/' + post.id + '-' + post.slug)= post.title
           p= post.blurb
 
           p
-            small= _("By %s. Published %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone }))
+            small= _("By %s. Published %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone, year: 'numeric', month: 'long', day: 'numeric' }))
 
   nav
     ul.pager
