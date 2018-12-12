@@ -11,6 +11,7 @@
 
 const express = require('express');
 const markdown = require('markdown-it');
+const Url = require('url');
 
 const user = require('../util/user');
 const model = require('../model/user');
@@ -23,6 +24,8 @@ const TrainingServer = require('../util/training_server');
 const { makeRandom } = require('../util/random');
 
 const EngineManager = require('../almond/enginemanagerclient');
+
+const Config = require('../config');
 
 var router = express.Router();
 
@@ -405,6 +408,7 @@ router.get('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, n
         post: {
             title: '',
             blurb: '',
+            image: '',
             source: ''
         }
     });
@@ -422,6 +426,19 @@ router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR), (req, res, 
     md.use(require('markdown-it-footnote'));
     md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
 
+    if (typeof req.body.title !== 'string'
+        || typeof req.body.image !== 'string'
+        || typeof req.body.blurb !== 'string'
+        || !req.body.image.startsWith('https://')
+        || typeof req.body.source !== 'string') {
+        res.status(400).render('error', {
+            page_title: req._("Almond - Error"),
+            message: req._("Missing or invalid fields.")
+        });
+        return;
+    }
+
+    const image = Url.resolve(Config.SERVER_ORIGIN, req.body.image);
     const rendered = md.render(req.body.source);
     const slug = slugify(req.body.title);
 
@@ -429,6 +446,7 @@ router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR), (req, res, 
         return blogModel.update(dbClient, req.body.id, {
             title: req.body.title,
             blurb: req.body.blurb,
+            image: image,
             source: req.body.source,
             slug: slug,
             body: rendered,
@@ -448,6 +466,18 @@ router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, 
     md.use(require('markdown-it-footnote'));
     md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
 
+    if (typeof req.body.title !== 'string'
+        || typeof req.body.image !== 'string'
+        || typeof req.body.blurb !== 'string'
+        || typeof req.body.source !== 'string') {
+        res.status(400).render('error', {
+            page_title: req._("Almond - Error"),
+            message: req._("Missing or invalid fields.")
+        });
+        return;
+    }
+
+    const image = Url.resolve(Config.SERVER_ORIGIN, req.body.image);
     const rendered = md.render(req.body.source);
     const slug = slugify(req.body.title);
 
@@ -455,6 +485,7 @@ router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, 
         return blogModel.create(dbClient, {
             author: req.user.id,
             title: req.body.title,
+            image: image,
             blurb: req.body.blurb,
             source: req.body.source,
             slug: slug,

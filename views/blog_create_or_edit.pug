@@ -25,6 +25,9 @@ block content
       label.control-label(for='blog-title')= _("Title")
       input(type='text',name='title',required=true, value=post.title).form-control#blog-title
     div.form-group
+      label.control-label(for='blog-image')= _("Image")
+      input(type='url',name='image',required=true, value=post.image).form-control#blog-image
+    div.form-group
       label.control-label(for='blog-blurb')= _("Blurb")
       textarea(name='blurb',required=true).form-control#blog-blurb= post.blurb
       span.help-block= _("A short text that will be shown in the front page and archive.")

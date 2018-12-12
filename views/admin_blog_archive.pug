@@ -12,7 +12,7 @@ block content
 
   div.list-group
   for post in posts.slice(0, 10)
-    div.list-group-item
+    div.list-group-item.blog-post
       div.pull-right.nowrap
         a(href='/admin/blog/update/' + post.id).btn.btn-default.btn-sm= _("Edit")
         |
@@ -34,13 +34,17 @@ block content
             input(type='hidden',name='_csrf',value=csrfToken)
             button(type='submit').btn.btn-danger.btn-sm= _("Delete")
 
-      h2
-        a(href='/blog/' + post.id + '-' + post.slug)= post.title
+      div.media
+        div.media-left
+          img(src=post.image, role='presentation')
+        div.media-body
+          h2.media-heading
+            a(href='/blog/' + post.id + '-' + post.slug)= post.title
 
-      if post.pub_date
-        p= _("Published %s.").format(post.pub_date.toLocaleString(locale, { timeZone: timezone }))
-      else
-        p= _("Not published yet.")
+          if post.pub_date
+            p= _("Published %s.").format(post.pub_date.toLocaleString(locale, { timeZone: timezone }))
+          else
+            p= _("Not published yet.")
 
   nav
     ul.pager

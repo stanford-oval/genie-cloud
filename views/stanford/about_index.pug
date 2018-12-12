@@ -6,6 +6,7 @@ block styles
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
+  script(src=Config.ASSET_CDN + '/javascripts/rotating-globe-bundle.js')
 
 block page_name
   - stdlayout = false;
@@ -22,6 +23,11 @@ block content
           div.col-lg-6
             h1#almond-title= _("Almond")
             h2#almond-subtitle= _("The Stanford Open Virtual Assistant Project")
+
+            img(src=Config.ASSET_CDN + '/images/logo.png')#almond-logo
+
+            p.text-center#almond-explanation-line
+              = _("Almond translates your commands into a personalized program.")
 
             div.row
               div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
@@ -43,18 +49,6 @@ block content
                 a(href='/about/get-almond').btn.btn-primary.btn-block= _("Get Almond")
               div.col-xs-6.col-lg-3.col-md-4
                 a(href='#why-almond').btn.btn-primary.btn-block= _("Learn More")
-
-            div.row#subscribe-row
-              div.col-xs-12.col-lg-6.col-lg-offset-3.col-md-6.col-md-offset-3
-                button.btn.btn-primary#subscribe-start= _("Would you like to contribute? Sign up to stay tuned!")
-                form(action='#', method='post', data-toggle='validator')#subscribe-form
-                  div.form-group
-                    div.input-group
-                      input(type='email', required=true, data-error=_("Please enter a valid email address."), placeholder=_("Your Email")).form-control#subscribe-email
-                      span.input-group-btn
-                        button(type='submit').btn.btn-primary#subscribe-submit= _("Subscribe")
-                    span.help-block.with-errors
-                p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
 
           div.col-lg-6
             div.carousel.slide(data-ride='carousel')#almond-index-carousel
@@ -111,96 +105,57 @@ block content
                 span.glyphicon.glyphicon-chevron-right(aria-hidden='true')
                 span.sr-only= _("Next")
 
-    div.sections
+            div.row#subscribe-row
+              div.col-xs-12.col-lg-6.col-lg-offset-3.col-md-6.col-md-offset-3
+                form(action='#', method='post', data-toggle='validator')#subscribe-form
+                  div.form-group
+                    div.input-group
+                      input(type='email', required=true, data-error=_("Please enter a valid email address."), placeholder=_("Your Email")).form-control#subscribe-email
+                      span.input-group-btn
+                        button(type='submit').btn.btn-primary#subscribe-submit= _("Subscribe For Updates")
+                    span.help-block.with-errors
+                p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
+
+    div.sections#home-page-sections
       section.divider
         //- for accessibility and for mobile devices (where hover is not available)
-        div.visible-sm.visible-xs.container
-          h3= _("Our Manifesto: an Open, Interoperable Web")
+        div.container#almond-manifesto
+          h3= _("Our Goal: an Open, Interoperable Web")
 
-          h4= _("Open Competition")
-          p=_("Any company should be able to participate and innovate, without privileging existing monopolies.")
+          //-img(src=Config.ASSET_CDN + '/images/icon-network-connection.svg')
+          canvas(width=400, height=400)#rotatingGlobe
 
-          h4= _("Programmability")
-          p=_("Users should be able to define their own tasks, without learning complex programming languages.")
+          p= _("We want the Internet to have:")
 
-          h4= _("Privacy")
-          p=_("Users should control who has access to their data, for what purpose, and with whom their data is shared.")
+          div.row
+            div.col-md-6
+              h4= _("Open Competition")
+              p=_("Any company should be able to participate and innovate, without privileging existing monopolies.")
 
-          h4= _("Extensibility")
-          p= _("New services, new devices should be easy to add, and by anyone. This supports technological innovation.")
+            div.col-md-6
+              h4= _("Programmability")
+              p=_("Users should be able to define their own tasks, without learning complex programming languages.")
 
-        div.visible-md.visible-lg
-          h3= _("The Almond Manifesto")
+          div.row
+            div.col-md-6
+              h4= _("Privacy")
+              p=_("Users should control who has access to their data, for what purpose, and with whom their data is shared.")
 
-          div#almond-manifesto
-            svg(xmlns='http://www.w3.org/2000/svg', width=900, height=280-150+150*2+40 + 80 + 10)
-              defs
-                filter#almond-manifesto-shadow
-                  //-feDropShadow(dx=0, dy=0, stdDeviation=8, flood-color="rgba(102, 175, 233, 0.6)")
-                  feDropShadow(dx=3, dy=3, stdDeviation=3, flood-color="darkgray")
-                filter#almond-manifesto-shadow-flipped
-                  //-feDropShadow(dx=0, dy=0, stdDeviation=8, flood-color="rgba(102, 175, 233, 0.6)")
-                  feDropShadow(dx=3, dy=-3, stdDeviation=3, flood-color="darkgray")
-                filter#almond-manifesto-shadow-hover
-                  //-feDropShadow(dx=0, dy=0, stdDeviation=8, flood-color="rgba(102, 175, 233, 0.6)")
-                  feDropShadow(dx=3, dy=3, stdDeviation=3, flood-color="rgba(102, 175, 233, 0.6)")
+            div.col-md-6
+              h4= _("Extensibility")
+              p= _("New services, new devices should be easy to add, and by anyone. This supports technological innovation.")
 
-              mixin arrow-box(x,y,width,height,text)
-                g(transform=`translate(${x} ${y})`).arrow-box
-                  path(d=`M 10 10 H ${width/2-10} L ${width/2} 0 L ${width/2+10} 10 H ${width-10} A 10 10 0 0 1 ${width} 20 V ${height} A 10 10 0 0 1 ${width-10} ${height+10} H 10 A 10 10 0 0 1 0 ${height} V 20 A 10 10 0 0 1 10 10`,stroke='black',fill='white')
-                  foreignObject(x=10,y=10,width=width-20,height=height)
-                    div= text
-              mixin arrow-box-flipped(x,y,width,height,text)
-                g(transform=`translate(${x} ${y})`).arrow-box-flipped
-                  path(d=`M 10 10 H ${width/2-10} L ${width/2} 0 L ${width/2+10} 10 H ${width-10} A 10 10 0 0 1 ${width} 20 V ${height} A 10 10 0 0 1 ${width-10} ${height+10} H 10 A 10 10 0 0 1 0 ${height} V 20 A 10 10 0 0 1 10 10`,stroke='black',fill='white',transform=`translate(0 ${height/2}) scale(1 -1) translate(0 -${height/2})`)
-                  foreignObject(x=10,y=-10,width=width-20,height=height)
-                    div= text
-
-              line(x1=10+250/2, y1=10+80, x2=900/2, y2=250)
-              line(x1=900-250-10+250/2, y1=10+80, x2=900/2, y2=250)
-              line(x1=10+250/2, y1=280-150+150*2+40, x2=900/2, y2=310)
-              line(x1=900-250-10+250/2, y1=280-150+150*2+40, x2=900/2, y2=310)
-
-              ellipse(cx=900/2, cy=280, rx=150, ry=150)#almond-manifesto-center
-              foreignObject(x=(900/2)-150, y=280-150, width=150*2, height=150*2)
-                div(xmlns="http://www.w3.org/1999/xhtml")
-                  h4= _("Open, Interoperable Web")
-
-              rect(ry=20, rx=20, x=10, y=10, width=250, height=80)
-              foreignObject(x=10, y=10, width=250, height=80).text-bubble
-                div(xmlns="http://www.w3.org/1999/xhtml")
-                  span= _("Open Competition")
-              +arrow-box(10,80+10+20,250,140,_("Any company should be able to participate and innovate, without privileging existing monopolies."))
-
-              rect(ry=20, rx=20, x=900-250-10, y=10, width=250, height=80)
-              foreignObject(x=900-250-10, y=10, width=250, height=80).text-bubble
-                div(xmlns="http://www.w3.org/1999/xhtml")
-                  span= _("Programmability")
-              +arrow-box(900-250-10,80+10+20,250,140,_("Users should be able to define their own tasks, without learning complex programming languages."))
-
-              rect(ry=20, rx=20, x=10, y=280-150+150*2+40, width=250, height=80)
-              foreignObject(x=10, y=280-150+150*2+40, width=250, height=80).text-bubble
-                div(xmlns="http://www.w3.org/1999/xhtml")
-                  span= _("Privacy")
-              +arrow-box-flipped(10, 280-150+150*2+40 - 140 - 20, 250, 140, _("Users should control who has access to their data, for what purpose, and with whom their data is shared."))
-
-              rect(ry=20, rx=20, x=900-250-10, y=280-150+150*2+40, width=250, height=80)
-              foreignObject(x=900-250-10, y=280-150+150*2+40, width=250, height=80).text-bubble
-                div(xmlns="http://www.w3.org/1999/xhtml")
-                  span= _("Extensibility")
-              +arrow-box-flipped(900-250-10, 280-150+150*2+40 - 140 - 20, 250, 140, _("New services, new devices should be easy to add, and by anyone. This supports technological innovation."))
-
-            p.text-center
-              a(href='/about/research')= _("Learn More")
-              |
-              |
-              | -
-              |
-              |
-              a(href='https://www.youtube.com/watch?v=R-BHyvli6c0')= _("Watch prof. Lam's keynote at Mobicom 2018")
+          p#almond-manifesto-learn-more
+            a(href='/about/research')= _("Learn More")
+            |
+            |
+            | -
+            |
+            |
+            a(href='https://www.youtube.com/watch?v=R-BHyvli6c0')= _("Watch prof. Lam's keynote at Mobicom 2018")
 
       section.divider#why-almond
-        h3= _("Why Almond?")
+        h3= _("What We Do")
 
         div.container
           div.row
@@ -238,7 +193,7 @@ block content
                 li!= _("Synchronization: <q><span class=when>when I post to Twitter</span>, <span class=do>copy the post to Facebook</span></q>.")
                 li!= _("Composition: <q><span class=get>get the Bitcoin price</span> and then <span class=do>send it to my colleague on Slack</span></q>.")
                 li= _("And many more!")
-              p!= _("If you have used <a href='https://ifttt.com'>IFTTT</a>, you'll love Almond.")
+              p= _("If you have used IFTTT, you'll love Almond.")
 
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')
               .example
@@ -263,7 +218,7 @@ block content
           div.row#why-almond-thingpedia-row
             div.col-md-6
               p
-                != _("Almond provides a uniform interface to your physical devices, your social network accounts, and many more services: if it is on the Internet, Almond wants to let you talk to it, from your assistant.")
+                != _("Almond provides a uniform interface to your physical devices, your social network accounts, and many more services. Almond wants to let you access anything on the Internet, from your assistant.")
               p
                 != _("Almond capabilities are defined in <em>Thingpedia</em>, a crowdsourced repository of commands and interfaces to online services and Internet of Things. Anyone can contribute new entries to Thingpedia, and with small amounts of training data, Almond will be immediately able to interact with the new device or service. ")
               p
@@ -287,25 +242,15 @@ block content
           div.row
             div.col-md-6.col-md-push-6
               p
-                = _("Almond uses a state-of-the-art natural language understanding model, based on sequence-to-sequence with attention. This allows Almond to understand you better, and understand more complex commands across more domains than any other assistant on the market. We collaborate with professors from Stanford Natural Language Processing research group, one of the world's leading hubs for NLP research, and we continuously study how to improve Almond.")
-              p
-                != _("In our experiments, we have found that Almond understands user's input with <strong>88%</strong> accuracy, provided that sufficient training data is provided. This is marked improvement over the previous best known result, which would achieve a mere 64%.")
+                = _("Almond uses a state-of-the-art natural language understanding model. Almond's deep learning model allows it to understand more complex commands across more domains than any other assistant on the market: just train Almond with pairs of sentences and programs, and Almond will learn.")
+              p!= _("We collaborate with professors from Stanford Natural Language Processing research group, one of the world's leading hubs for NLP research, to continuously improve Almond. In our experiments, we have found that Almond understands user's input with <strong>88%</strong> accuracy, provided that sufficient training data is provided. This is marked improvement over the previous best known result, which would achieve a mere 64%.")
               p
                 != _("As academics, our research is open-source, and all technology is freely available to the public. Anyone can leverage our algorithm in their product or in their own research. <a href='/about/research'>Learn more about our research</a> and <a href='/about/get-involved'>how you can use Almond's technology</a>.")
 
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')#seq-seq-animation
               include ../../art/seq-seq-animation-clean-svg.svg
 
-      section.divider#latest-news
-        h3= _("What's new in Almond")
-        div.container
-          div.row
-            for post in news
-              div.col-md-4
-                h4= post.title
-                p= post.blurb
-                p
-                  a(href='/blog/' + post.id + '-' + post.slug)= _("Read more")
+      include ../blog_home_page.pug
 
       section.divider#section-commandpedia
         h3= _("What can Almond do?")

@@ -18,3 +18,8 @@
 .nowrap .form-inline {
     display: inline-block;
 }
+
+.list-group-item.blog-post img {
+    width: 64px;
+    object-fit: contain;
+}

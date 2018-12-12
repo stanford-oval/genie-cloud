@@ -284,3 +284,25 @@ img.device-icon-tiny {
   padding-right: 1em;
   padding-top: 1em;
 }
+
+a.social-icon > img {
+  height: 24px;
+  width: 24px;
+  padding: 2px;
+  object-fit: contain;
+  background-color: transparent;
+}
+a.social-icon:link, a.social-icon:visited {
+  color: white;
+  background-color: transparent;
+}
+
+.social-icon-spacer {
+  display: inline-block;
+  width: 6px;
+}
+
+.blog-post-ref img {
+  width: 80px;
+  object-fit: contain;
+}

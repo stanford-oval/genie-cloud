@@ -752,7 +752,7 @@ v3.get('/devices/setup', (req, res, next) => {
     }).catch(next);
 });
 
-function validatePageAndSize(req, defaultValue) {
+function validatePageAndSize(req, defaultValue, maxValue) {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -767,13 +767,13 @@ function validatePageAndSize(req, defaultValue) {
         page_size = parseInt(page_size);
     if (!isFinite(page_size) || page_size < 0)
         page_size = defaultValue;
-    if (page_size > defaultValue)
-        page_size = defaultValue;
+    if (page_size > maxValue)
+        page_size = maxValue;
     return [page, page_size];
 }
 
 v1.get('/devices/all', (req, res, next) => {
-    const [page, page_size] = validatePageAndSize(req, 10);
+    const [page, page_size] = validatePageAndSize(req, 10, 50);
     if (!isValidDeviceClass(req, res))
         return;
 
@@ -795,7 +795,7 @@ v1.get('/devices/all', (req, res, next) => {
  *
  * @apiParam {String="physical","online","data"} [class] If provided, only devices of this category are returned
  * @apiParam {Number{0-}} [page=0] Page number (0-based); negative page numbers are ignored
- * @apiParam {Number{1-10}} [page_size=10] Number of results to return
+ * @apiParam {Number{1-50}} [page_size=10] Number of results to return
  * @apiParam {String} [developer_key] Developer key to use for this operation
  * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
  *
@@ -827,7 +827,7 @@ v1.get('/devices/all', (req, res, next) => {
  *  }
  */
 v3.get('/devices/all', (req, res, next) => {
-    const [page, page_size] = validatePageAndSize(req, 10);
+    const [page, page_size] = validatePageAndSize(req, 10, 50);
     if (!isValidDeviceClass(req, res))
         return;
 
@@ -954,7 +954,7 @@ function isOriginOk(req) {
  *   Results are paginated according to the `page` and `page_size` parameters.
  *
  * @apiParam {Number{0-}} [page=0] Page number (0-based); negative page numbers are ignored
- * @apiParam {Number{1-9}} [page_size=9] Number of results to return
+ * @apiParam {Number{1-50}} [page_size=9] Number of results to return
  * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
  *
  * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
@@ -993,7 +993,7 @@ function isOriginOk(req) {
  */
 v1.get('/commands/all', (req, res, next) => {
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
-    const [page, page_size] = validatePageAndSize(req, 9);
+    const [page, page_size] = validatePageAndSize(req, 9, 50);
 
     db.withTransaction(async (client) => {
         let commands;
