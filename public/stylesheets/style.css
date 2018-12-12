@@ -301,3 +301,8 @@ a.social-icon:link, a.social-icon:visited {
   display: inline-block;
   width: 6px;
 }
+
+.blog-post-ref img {
+  width: 80px;
+  object-fit: contain;
+}

@@ -34,16 +34,16 @@ module.exports = {
     },
 
     getAll(dbClient, start, end) {
-        return db.selectAll(dbClient, `select bp.id,author,title,slug,blurb,pub_date,upd_date,u.human_name as author_name
+        return db.selectAll(dbClient, `select bp.id,author,title,slug,blurb,image,pub_date,upd_date,u.human_name as author_name
             from blog_posts bp,users u where u.id = bp.author order by upd_date desc limit ?,?`, [start, end]);
     },
     getAllPublished(dbClient, start, end) {
-        return db.selectAll(dbClient, `select bp.id,author,title,slug,blurb,pub_date,upd_date,u.human_name as author_name
+        return db.selectAll(dbClient, `select bp.id,author,title,slug,blurb,image,pub_date,upd_date,u.human_name as author_name
             from blog_posts bp,users u where u.id = bp.author and pub_date is not null order by upd_date desc limit ?,?`, [start, end]);
     },
 
     getForView(dbClient, id) {
-        return db.selectOne(dbClient, `select bp.id,author,title,slug,pub_date,upd_date,body,u.human_name as author_name from blog_posts bp,users u where u.id = bp.author and bp.id = ?`, [id]);
+        return db.selectOne(dbClient, `select bp.id,author,title,slug,image,pub_date,upd_date,body,u.human_name as author_name from blog_posts bp,users u where u.id = bp.author and bp.id = ?`, [id]);
     },
 
     getForEdit(dbClient, id) {

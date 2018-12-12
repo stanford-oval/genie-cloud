@@ -400,6 +400,12 @@
   font-size: 28px;
 }
 
+#latest-news .img-responsive {
+  max-height: 200px;
+  width: 100%;
+  object-fit: contain;
+}
+
 .arrow-box div, .arrow-box-flipped div {
   font-size: 18px;
   margin: 18px 5px 0 5px;

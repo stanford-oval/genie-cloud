@@ -250,16 +250,7 @@ block content
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')#seq-seq-animation
               include ../../art/seq-seq-animation-clean-svg.svg
 
-      section.divider#latest-news
-        h3= _("What's new in Almond")
-        div.container
-          div.row
-            for post in news
-              div.col-md-4
-                h4= post.title
-                p= post.blurb
-                p
-                  a(href='/blog/' + post.id + '-' + post.slug)= _("Read more")
+      include ../blog_home_page.pug
 
       section.divider#section-commandpedia
         h3= _("What can Almond do?")

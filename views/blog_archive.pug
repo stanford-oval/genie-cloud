@@ -6,12 +6,16 @@ block page_name
 block content
   for post in posts.slice(0, 10)
     div.blog-post-ref
-      h2
-        a(href='/blog/' + post.id + '-' + post.slug)= post.title
-      p= post.blurb
+      div.media
+        div.media-left
+          img(src=post.image, role='presentation')
+        div.media-body
+          h2.media-heading
+            a(href='/blog/' + post.id + '-' + post.slug)= post.title
+          p= post.blurb
 
-      p
-        small= _("By %s. Published %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone }))
+          p
+            small= _("By %s. Published %s.").format(post.author_name, post.pub_date.toLocaleString(locale, { timeZone: timezone }))
 
   nav
     ul.pager

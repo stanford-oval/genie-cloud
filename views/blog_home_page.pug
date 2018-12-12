@@ -1,0 +1,11 @@
+section.divider#latest-news
+  h3= _("What's new in Almond")
+  div.container
+    div.row
+      for post in news
+        div.col-md-4
+          img(src=post.image, role='presentation').img-responsive
+          h4= post.title
+          p= post.blurb
+          p
+            a(href='/blog/' + post.id + '-' + post.slug)= _("Read more")

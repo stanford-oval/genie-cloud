@@ -747,6 +747,7 @@ CREATE TABLE `blog_posts` (
   `author` int(11) NOT NULL,
   `slug` varchar(255) COLLATE utf8_bin NOT NULL,
   `title` varchar(255) CHARACTER SET utf8 NOT NULL,
+  `image` varchar(255) CHARACTER SET utf8 NOT NULL,
   `blurb` text CHARACTER SET utf8mb4 NOT NULL,
   `source` mediumtext CHARACTER SET utf8mb4 NOT NULL,
   `body` mediumtext CHARACTER SET utf8mb4 NOT NULL,
