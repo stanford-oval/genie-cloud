@@ -278,6 +278,18 @@ img.device-icon-tiny {
 .blog-post h2, .blog-post h3 {
     clear: both;
 }
+.blog-post .byline {
+   margin: 1em 0;
+}
+.blog-post .cover-photo {
+   max-height: 300px;
+}
+.blog-post-ref {
+   margin-top: 2em;
+}
+.blog-post-ref:first-child {
+   margin-top: 0;
+}
 
 #user-authorized-oauth-panel img.device-icon-tiny {
   box-sizing: content-box;
@@ -303,6 +315,7 @@ a.social-icon:link, a.social-icon:visited {
 }
 
 .blog-post-ref img {
-  width: 80px;
+  width: 140px;
   object-fit: contain;
+  margin-top: 1em;
 }
