@@ -48,6 +48,7 @@
   bottom: 0px;
   left: 0px;
   width: 20%;
+  overflow-y: auto;
 }
 #device-editor-body {
   position: absolute;
@@ -55,11 +56,9 @@
   width: 80%;
   bottom: 0px;
   right: 0px;
-}
-
-#device-metadata {
   overflow-y: auto;
 }
+
 #device-code, #device-dataset {
   height: 100%;
   width: 100%;
