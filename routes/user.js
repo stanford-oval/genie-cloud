@@ -23,6 +23,8 @@ const SendMail = require('../util/sendmail');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
+const Config = require('../config');
+
 var router = express.Router();
 
 router.get('/oauth2/google', passport.authenticate('google', {
@@ -301,8 +303,8 @@ router.post('/request-developer', userUtils.requireLogIn, (req, res, next) => {
     }
 
     const mailOptions = {
-        from: 'Thingpedia <noreply@thingpedia.stanford.edu>',
-        to: 'thingpedia-admins@lists.stanford.edu',
+        from: Config.EMAIL_FROM_ADMIN,
+        to: Config.EMAIL_TO_ADMIN,
         subject: 'New Developer Access Requested',
         replyTo: {
             name: req.body.realname,

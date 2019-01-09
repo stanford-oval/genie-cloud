@@ -120,9 +120,18 @@ module.exports.LUINET_PATH = './luinet';
 // OAuth Client secret to support Login With Google
 module.exports.GOOGLE_CLIENT_SECRET = null;
 
-// Mailgun user/password to handle the "Request Developer Access" form
+// Mailgun user/password for emails sent from Almond
 module.exports.MAILGUN_USER = null;
 module.exports.MAILGUN_PASSWORD = null;
+
+// From: field of user emails (email verification, password reset, etc.)
+module.exports.EMAIL_FROM_USER = 'Almond <noreply@almond.stanford.edu>';
+// From: field of admin emails (review requests, developer requests, etc.)
+module.exports.EMAIL_FROM_ADMIN = 'Almond <root@almond.stanford.edu>';
+// From: field of admin-training notifications
+module.exports.EMAIL_FROM_TRAINING = 'Almond Training Service <almond-training@almond.stanford.edu>';
+// To: field of admin emails
+module.exports.EMAIL_TO_ADMIN = 'thingpedia-admins@lists.stanford.edu';
 
 // The device to use as the primary "messaging" device (for communicating
 // assistants

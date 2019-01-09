@@ -212,8 +212,8 @@ router.post('/train', (req, res) => {
 
 router.post('/request-approval', (req, res) => {
     var mailOptions = {
-        from: 'Thingpedia <noreply@thingpedia.stanford.edu>',
-        to: 'thingpedia-admins@lists.stanford.edu',
+        from: Config.EMAIL_FROM_ADMIN,
+        to: Config.EMAIL_TO_ADMIN,
         subject: `Review Request for ${req.body.kind}`,
         replyTo: {
             name: req.user.human_name,
