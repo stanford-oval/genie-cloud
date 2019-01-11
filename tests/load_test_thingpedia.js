@@ -224,6 +224,7 @@ async function main() {
             human_name: 'Bob Builder',
             password: '12345678',
             email: 'bob@localhost',
+            email_verified: true,
             locale: 'en-US',
             timezone: 'America/Los_Angeles',
             developer_org: newOrg.id,

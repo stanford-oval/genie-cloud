@@ -1,0 +1,9 @@
+extends layout
+
+block page_name
+  | Success
+
+block content
+  p= message
+  p
+    a(href='/').btn.btn-primary= _("Go to the home page")

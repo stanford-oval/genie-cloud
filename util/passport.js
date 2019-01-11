@@ -48,6 +48,9 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
             var username = profile.username || profile.emails[0].value;
             return model.create(dbClient, { username: username,
                                             email: profile.emails[0].value,
+                                            // we assume the email associated with a Google account is valid
+                                            // and we don't need extra validation
+                                            email_verified: true,
                                             locale: 'en-US',
                                             timezone: 'America/Los_Angeles',
                                             google_id: profile.id,

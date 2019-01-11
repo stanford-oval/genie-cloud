@@ -13,12 +13,15 @@ const Q = require('q');
 const Tp = require('thingpedia');
 const express = require('express');
 const passport = require('passport');
+const jwt = require('jsonwebtoken');
+const util = require('util');
 
 const userUtils = require('../util/user');
 const exampleModel = require('../model/example');
 const model = require('../model/user');
 const oauthModel = require('../model/oauth2');
 const db = require('../util/db');
+const secret = require('../util/secret_key');
 const SendMail = require('../util/sendmail');
 
 const EngineManager = require('../almond/enginemanagerclient');
@@ -81,6 +84,31 @@ router.get('/register', (req, res, next) => {
 });
 
 
+async function sendValidationEmail(cloudId, username, email) {
+    const token = await util.promisify(jwt.sign)({
+        sub: cloudId,
+        email: email
+    }, secret.getJWTSigningKey(), { expiresIn: 1200 /* seconds */ });
+
+    const mailOptions = {
+        from: Config.EMAIL_FROM_USER,
+        to: email,
+        subject: 'Welcome To Almond!',
+        text:
+`Welcome to Almond!
+
+To verify your email address, please click the following link:
+<${Config.SERVER_ORIGIN}/user/verify-email/${token}>
+
+----
+You're receiving this email because someone used your address to
+register an account on the Almond service at <${Config.SERVER_ORIGIN}>.
+`
+    };
+
+    return SendMail.send(mailOptions);
+}
+
 router.post('/register', (req, res, next) => {
     var options = {};
     try {
@@ -130,7 +158,10 @@ router.post('/register', (req, res, next) => {
             await Q.ninvoke(req, 'login', user);
             return user;
         });
-        await EngineManager.get().startUser(user.id);
+        await Promise.all([
+            EngineManager.get().startUser(user.id),
+            sendValidationEmail(user.cloud_id, user.username, user.email)
+        ]);
 
         res.locals.authenticated = true;
         res.locals.user = user;
@@ -156,6 +187,46 @@ router.post('/subscribe', (req, res, next) => {
         res.json({ result: 'ok' });
     }).catch((e) => {
         res.status(400).json({ error: e });
+    }).catch(next);
+});
+
+router.get('/verify-email/:token', userUtils.requireLogIn, (req, res, next) => {
+    db.withTransaction(async (dbClient) => {
+        let decoded;
+        try {
+            decoded = await util.promisify(jwt.verify)(req.params.token, secret.getJWTSigningKey(), {
+                algorithms: ['HS256'],
+                sub: req.user.cloud_id
+            });
+        } catch(e) {
+            res.status(400).render('error', {
+                page_title: req._("Almond - Error"),
+                message: req._("The verification link you have clicked is not valid. You might be logged-in as the wrong user, or the link might have expired.")
+            });
+            return;
+        }
+
+        await model.verifyEmail(dbClient, decoded.sub, decoded.email);
+        res.render('email_verified', {
+            page_title: req._("Almond - Verification Successful")
+        });
+    }).catch(next);
+});
+
+router.post('/resend-verification', userUtils.requireLogIn, (req, res, next) => {
+    if (req.user.email_verified) {
+        res.status(400).render('error', {
+            page_title: req._("Almond - Error"),
+            message: req._("Your email address was already verified.")
+        });
+        return;
+    }
+
+    sendValidationEmail(req.user.cloud_id, req.user.username, req.user.email).then(() => {
+        res.render('message', {
+            page_title: req._("Almond - Verification Sent"),
+            message: req._("A verification email was sent to %s. If you did not receive it, please check your Spam folder.").format(req.user.email)
+        });
     }).catch(next);
 });
 
@@ -220,16 +291,25 @@ router.post('/profile', userUtils.requireLogIn, (req, res, next) => {
         if (req.body.show_profile_picture)
             profile_flags |= userUtils.ProfileFlags.SHOW_PROFILE_PICTURE;
 
+        const mustSendEmail = req.body.email !== req.user.email;
+
         await model.update(dbClient, req.user.id,
                             { username: req.body.username,
                               email: req.body.email,
+                              email_verified: !mustSendEmail,
                               human_name: req.body.human_name,
                               profile_flags });
         req.user.username = req.body.username;
         req.user.email = req.body.email;
         req.user.human_name = req.body.human_name;
         req.user.profile_flags = profile_flags;
-        return getProfile(req, res, undefined, undefined);
+        if (mustSendEmail)
+            await sendValidationEmail(req.user.cloud_id, req.body.username, req.body.email);
+
+        return getProfile(req, res, undefined,
+            mustSendEmail ?
+            req._("A verification email was sent to your new email address. Account functionality will be limited until you verify your new address.")
+            : undefined);
     }).catch((error) => {
         return getProfile(req, res, undefined, error);
     }).catch(next);

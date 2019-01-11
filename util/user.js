@@ -78,6 +78,7 @@ module.exports = {
                     human_name: options.human_name || null,
                     password: hash,
                     email: options.email,
+                    email_verified: options.email_verified || false,
                     locale: options.locale,
                     timezone: options.timezone,
                     salt: salt,

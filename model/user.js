@@ -84,5 +84,9 @@ module.exports = {
 
     subscribe(client, email) {
         return db.query(client, "insert into subscribe (email) values (?)", email);
+    },
+
+    verifyEmail(client, cloudId, email) {
+        return db.query(client, "update users set email_verified = true where cloud_id = ? and email = ?", [cloudId, email]);
     }
 };
