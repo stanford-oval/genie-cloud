@@ -155,12 +155,26 @@ router.post('/register', (req, res, next) => {
 
     Promise.resolve().then(async () => {
         const user = await db.withTransaction(async (dbClient) => {
-            const user = await userUtils.register(dbClient, req, options);
+            let user;
+            try {
+                user = await userUtils.register(dbClient, req, options);
+            } catch(e) {
+                res.render('register', {
+                    csrfToken: req.csrfToken(),
+                    page_title: req._("Thingpedia - Register"),
+                    error: e
+                });
+                return null;
+            }
             await Q.ninvoke(req, 'login', user);
             return user;
         });
+        if (!user)
+            return;
         await Promise.all([
-            EngineManager.get().startUser(user.id),
+            EngineManager.get().startUser(user.id).catch((e) => {
+                console.error(`Failed to start engine of newly registered user: ${e.message}`);
+            }),
             sendValidationEmail(user.cloud_id, user.username, user.email)
         ]);
 
