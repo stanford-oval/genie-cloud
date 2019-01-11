@@ -110,6 +110,7 @@ exports.initialize = function() {
         try {
             const decoded = await util.promisify(jwt.verify)(accessToken, secret.getJWTSigningKey(), {
                 algorithms: ['HS256'],
+                audience: 'oauth2',
                 clockTolerance: 30,
             });
             const scope = decoded.scope || ['profile'];

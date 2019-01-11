@@ -112,6 +112,15 @@ module.exports = {
         user.password = newhash;
     },
 
+    async resetPassword(dbClient, user, password) {
+        const salt = makeRandom();
+        const newhash = await hashPassword(salt, password);
+        await model.update(dbClient, user.id, { salt: salt,
+                                                password: newhash });
+        user.salt = salt;
+        user.password = newhash;
+    },
+
     requireLogIn(req, res, next) {
         if (!req.user) {
             if (req.method === 'GET' || req.method === 'HEAD') {

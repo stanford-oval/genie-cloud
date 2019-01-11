@@ -87,6 +87,7 @@ router.get('/register', (req, res, next) => {
 async function sendValidationEmail(cloudId, username, email) {
     const token = await util.promisify(jwt.sign)({
         sub: cloudId,
+        aud: 'email-verify',
         email: email
     }, secret.getJWTSigningKey(), { expiresIn: 1200 /* seconds */ });
 
@@ -101,7 +102,7 @@ To verify your email address, please click the following link:
 <${Config.SERVER_ORIGIN}/user/verify-email/${token}>
 
 ----
-You're receiving this email because someone used your address to
+You are receiving this email because someone used your address to
 register an account on the Almond service at <${Config.SERVER_ORIGIN}>.
 `
     };
@@ -196,7 +197,8 @@ router.get('/verify-email/:token', userUtils.requireLogIn, (req, res, next) => {
         try {
             decoded = await util.promisify(jwt.verify)(req.params.token, secret.getJWTSigningKey(), {
                 algorithms: ['HS256'],
-                sub: req.user.cloud_id
+                audience: 'email-verify',
+                subject: req.user.cloud_id
             });
         } catch(e) {
             res.status(400).render('error', {
@@ -229,6 +231,143 @@ router.post('/resend-verification', userUtils.requireLogIn, (req, res, next) => 
         });
     }).catch(next);
 });
+
+router.get('/recovery/start', (req, res, next) => {
+    res.render('password_recovery_start', {
+        page_title: req._("Almond - Password Reset")
+    });
+});
+
+async function sendRecoveryEmail(cloudId, username, email) {
+    const token = await util.promisify(jwt.sign)({
+        sub: cloudId,
+        aud: 'pw-recovery',
+    }, secret.getJWTSigningKey(), { expiresIn: 1200 /* seconds */ });
+
+    const mailOptions = {
+        from: Config.EMAIL_FROM_USER,
+        to: email,
+        subject: 'Almond Password Reset',
+        text:
+`Hi ${username},
+
+We have been asked to reset your Almond password.
+To continue, please click the following link:
+<${Config.SERVER_ORIGIN}/user/recovery/continue/${token}>
+
+----
+You are receiving this email because someone tried to recover
+your Almond password. Not you? You can safely ignore this email.
+`
+    };
+
+    return SendMail.send(mailOptions);
+}
+
+router.post('/recovery/start', (req, res, next) => {
+    db.withClient(async (dbClient) => {
+        const users = await model.getByName(dbClient, req.body.username);
+
+        if (users.length === 0) {
+            // the username was not valid
+            // pretend that we sent an email, even though we did not
+            // this eliminates the ability to check for the existance of
+            // a username by initiating password recovery
+            res.render('message', {
+                page_title: req._("Almond - Password Reset Sent"),
+                message: req._("A recovery email was sent to the address on file for %s. If you did not receive it, please check the spelling of your username, and check your Spam folder.").format(req.body.username)
+            });
+            return;
+        }
+
+        if (!users[0].email_verified) {
+            res.render('error', {
+                page_title: req._("Almond - Error"),
+                message: req._("You did not verify your email address, hence you cannot recover your password automatically. Please contact the website adminstrators to recover your password.")
+            });
+            return;
+        }
+
+        // note: we must not reveal the email address in this message
+        await sendRecoveryEmail(users[0].cloud_id, users[0].username, users[0].email);
+        res.render('message', {
+            page_title: req._("Almond - Password Reset Sent"),
+            message: req._("A recovery email was sent to the address on file for %s. If you did not receive it, please check the spelling of your username, and check your Spam folder.").format(req.body.username)
+        });
+    }).catch(next);
+});
+
+router.get('/recovery/continue/:token', (req, res, next) => {
+    util.promisify(jwt.verify)(req.params.token, secret.getJWTSigningKey(), {
+        algorithms: ['HS256'],
+        audience: 'pw-recovery',
+    }).then((decoded) => {
+        res.render('password_recovery_continue', {
+            page_title: req._("Almond - Password Reset"),
+            token: req.params.token,
+            error: undefined
+        });
+    }, (err) => {
+        res.status(400).render('error', {
+            page_title: req._("Almond - Password Reset"),
+            message: req._("The verification link you have clicked is not valid.")
+        });
+    }).catch(next);
+});
+
+router.post('/recovery/continue', (req, res, next) => {
+    db.withTransaction(async (dbClient) => {
+        let decoded;
+        try {
+            decoded = await util.promisify(jwt.verify)(req.body.token, secret.getJWTSigningKey(), {
+                algorithms: ['HS256'],
+                audience: 'pw-recovery',
+            });
+        } catch(e) {
+            res.status(400).render('error', {
+                page_title: req._("Almond - Error"),
+                message: e
+            });
+            return;
+        }
+        try {
+            if (typeof req.body['password'] !== 'string' ||
+                req.body['password'].length < 8 ||
+                req.body['password'].length > 255)
+                throw new Error(req._("You must specifiy a valid password (of at least 8 characters)"));
+
+            if (req.body['confirm-password'] !== req.body['password'])
+                throw new Error(req._("The password and the confirmation do not match"));
+        } catch(e) {
+            res.render('password_recovery_continue', {
+                page_title: req._("Almond - Password Reset"),
+                token: req.body.token,
+                error: e
+            });
+        }
+
+        const users = await model.getByCloudId(dbClient, decoded.sub);
+        if (users.length === 0) {
+            res.status(404).render('error', {
+                page_title: req._("Almond - Error"),
+                message: req._("The user for which you're resetting the password no longer exists.")
+            });
+            return;
+        }
+
+        const user = users[0];
+        await userUtils.resetPassword(dbClient, user, req.body.password);
+        await Q.ninvoke(req, 'login', user);
+        await model.recordLogin(dbClient, user.id);
+        res.locals.authenticated = true;
+        res.locals.user = user;
+        res.render('message', {
+            page_title: req._("Almond - Password Reset"),
+            message: req._("Your password was reset successfully.")
+        });
+    }).catch(next);
+});
+
 
 async function getProfile(req, res, pw_error, profile_error) {
     const phone = {
