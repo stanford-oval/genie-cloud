@@ -146,8 +146,8 @@ class TrainingDaemon {
 
     _notifyFailure(job) {
         const mailOptions = {
-            from: 'Almond Training Service <almond-training@thingpedia.stanford.edu>',
-            to: 'thingpedia-admins@lists.stanford.edu',
+            from: Config.EMAIL_FROM_TRAINING,
+            to: Config.EMAIL_TO_ADMIN,
             subject: `Training Job ${job.id} failed`,
             text: `Training Job ${job.id}, of type ${job.jobType}, for devices [${job.forDevices.join(', ')}] (@${job.modelTag}/${job.language}), failed.
 

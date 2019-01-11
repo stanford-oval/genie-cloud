@@ -24,6 +24,9 @@ block content
           else
             p= String(profile_error)
 
+      form(action='/user/resend-verification',method='post')#form-resend-email
+        input(type='hidden',name='_csrf',value=csrfToken)
+
       form(action='/user/profile',method='post',data-toggle='validator')
         input(type='hidden',name='_csrf',value=csrfToken)
 
@@ -33,7 +36,15 @@ block content
 
         div.form-group
           label.control-label(for='email')= _("E-Mail")
-          input(type='text',name='email',value=user.email).form-control#email
+          div.input-group
+            input(type='text',name='email',value=user.email).form-control#email
+            if user.email_verified
+              span.input-group-addon
+                span.glyphicon.glyphicon-ok(title=_("Your email was verified."),aria-label=_("Your email was verified."))
+            else
+              span.input-group-btn
+                //-span.glyphicon.glyphicon-remove(title=_("You did not verify your email yet."),aria-label=_("You did not verify your email yet."))
+                button(type='submit', form='form-resend-email').btn.btn-default= _("Resend verification")
 
         div.form-group
           label.control-label(for='human-name')= _("Real name")

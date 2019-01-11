@@ -2,6 +2,10 @@ html, body {
   margin: 0;
 }
 
+.force-inline {
+  display: inline;
+}
+
 #page-body {
     margin-top: 45px;
     min-height: calc(100vh - 195px);

@@ -134,6 +134,7 @@ server.exchange(oauth2orize.exchange.code((client, code, redirectURI, done) => {
             // now issue the access token, valid for one hour
             const accessToken = await util.promisify(jwt.sign)({
                 sub: decoded.user_id,
+                aud: 'oauth2',
                 scope: decoded.scope
             }, secret.getJWTSigningKey(), { expiresIn: 3600 });
             done(null, accessToken, refreshToken, { expires_in: 3600 });

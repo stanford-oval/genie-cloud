@@ -1,0 +1,18 @@
+extends layout
+
+block page_name
+  - index = true;
+  | Almond
+
+block content
+  div.jumbotron.text-center
+    h1= _("Welcome to Almond, %s!").format(user.username)
+
+    p
+      = _("Thank you for verifying your email. You can now use the full functionality of your account.")
+
+    p
+      a(href='/me').btn.btn-primary= _("Go to My Almond")
+      //-|
+      //-a(href='https://play.google.com/store/apps/details?id=edu.stanford.thingengine.engine').btn.btn-primary= _("Download The Android App")
+      //-a(href='https://crowdie.stanford.edu/flatpak/edu.stanford.Almond.flatpakref').btn.btn-primary= _("Download Almond On Your PC")

@@ -30,7 +30,12 @@ function ensureTransporter() {
 }
 
 module.exports = {
-   send(mailOptions) {
-       return Q.ninvoke(ensureTransporter(), 'sendMail', mailOptions);
+    send(mailOptions) {
+        if (MAILGUN_USER === null || MAILGUN_PASSWORD === null) {
+            console.error(`Ignored email to ${mailOptions.to} with subject "${mailOptions.subject}"`);
+            return Promise.resolve();
+        }
+
+        return Q.ninvoke(ensureTransporter(), 'sendMail', mailOptions);
    }
 };

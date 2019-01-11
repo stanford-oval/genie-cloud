@@ -66,7 +66,7 @@ module.exports = {
     register(dbClient, req, options) {
         return model.getByName(dbClient, options.username).then((rows) => {
             if (rows.length > 0)
-                throw new Error(req._("An user with this name already exists"));
+                throw new Error(req._("A user with this name already exists"));
 
             var salt = makeRandom();
             var cloudId = makeRandom(8);
@@ -78,6 +78,7 @@ module.exports = {
                     human_name: options.human_name || null,
                     password: hash,
                     email: options.email,
+                    email_verified: options.email_verified || false,
                     locale: options.locale,
                     timezone: options.timezone,
                     salt: salt,
@@ -107,6 +108,15 @@ module.exports = {
         const newhash = await hashPassword(salt, password);
         await model.update(dbClient, user.id, { salt: salt,
                                                  password: newhash });
+        user.salt = salt;
+        user.password = newhash;
+    },
+
+    async resetPassword(dbClient, user, password) {
+        const salt = makeRandom();
+        const newhash = await hashPassword(salt, password);
+        await model.update(dbClient, user.id, { salt: salt,
+                                                password: newhash });
         user.salt = salt;
         user.password = newhash;
     },
