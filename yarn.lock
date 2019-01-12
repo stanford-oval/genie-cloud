@@ -4915,6 +4915,11 @@ normalize-package-data@^2.3.2:
     semver "2 || 3 || 4 || 5"
     validate-npm-package-license "^3.0.1"
 
+notp@2.0.x, notp@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/notp/-/notp-2.0.3.tgz#a9fd11e25cfe1ccb39fc6689544ee4c10ef9a577"
+  integrity sha1-qf0R4lz+HMs5/GaJVE7kwQ75pXc=
+
 npm-bundled@^1.0.1:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/npm-bundled/-/npm-bundled-1.0.5.tgz#3c1732b7ba936b3a10325aef616467c0ccbcc979"
@@ -5306,10 +5311,19 @@ passport-oauth@^1.0.0:
     passport-oauth1 "1.x.x"
     passport-oauth2 "1.x.x"
 
-passport-strategy@1.x.x:
+passport-strategy@1.0.0, passport-strategy@1.x.x:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/passport-strategy/-/passport-strategy-1.0.0.tgz#b5539aa8fc225a3d1ad179476ddf236b440f52e4"
   integrity sha1-tVOaqPwiWj0a0XlHbd8ja0QPUuQ=
+
+passport-totp@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/passport-totp/-/passport-totp-0.0.2.tgz#3173815af6b75186f969fd4256be7ffd4c1be59a"
+  integrity sha1-MXOBWva3UYb5af1CVr5//Uwb5Zo=
+  dependencies:
+    notp "2.0.x"
+    passport-strategy "1.0.0"
+    pkginfo "0.2.x"
 
 passport@^0.4.0:
   version "0.4.0"
@@ -5408,6 +5422,11 @@ pkg-dir@^3.0.0:
   integrity sha512-/E57AYkoeQ25qkxMj5PBOVgF8Kiu/h7cYS30Z5+R7WaiCCBfLq58ZI/dSeaEKb9WVJV5n/03QwrN3IeWIFllvw==
   dependencies:
     find-up "^3.0.0"
+
+pkginfo@0.2.x:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/pkginfo/-/pkginfo-0.2.3.tgz#7239c42a5ef6c30b8f328439d9b9ff71042490f8"
+  integrity sha1-cjnEKl72wwuPMoQ52bn/cQQkkPg=
 
 pkginfo@0.3.x:
   version "0.3.1"
@@ -6873,6 +6892,11 @@ thingtalk@^1.4.1, thingtalk@~1.4.0, thingtalk@~1.4.1:
     byline "^5.0.0"
     consumer-queue "^1.0.0"
     smtlib "^0.1.1"
+
+thirty-two@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/thirty-two/-/thirty-two-1.0.2.tgz#4ca2fffc02a51290d2744b9e3f557693ca6b627a"
+  integrity sha1-TKL//AKlEpDSdEueP1V2k8prYno=
 
 through2@^2.0.0, through2@^2.0.3, through2@~2.0.3:
   version "2.0.5"

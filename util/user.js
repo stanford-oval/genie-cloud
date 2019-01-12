@@ -36,6 +36,21 @@ const OAuthScopes = new Set([
     'developer-admin', // modify thingpedia organization settings, add/remove members
 ]);
 
+function isAuthenticated(req) {
+    if (!req.user)
+        return false;
+
+    // no need for 2fa when using OAuth tokens
+    if (req.authInfo && req.authInfo.authMethod === 'oauth2')
+        return true;
+
+    // no need for 2fa when 2fa is not setup
+    if (req.user.totp_key === null)
+        return true;
+
+    return req.session.completed2fa;
+}
+
 module.exports = {
     OAuthScopes,
 
@@ -121,17 +136,22 @@ module.exports = {
         user.password = newhash;
     },
 
+    isAuthenticated,
     requireLogIn(req, res, next) {
-        if (!req.user) {
-            if (req.method === 'GET' || req.method === 'HEAD') {
-                req.session.redirect_to = req.originalUrl;
-                res.redirect('/user/login');
-            } else {
-                res.status(401).render('login_required',
-                                       { page_title: req._("Thingpedia - Error") });
-            }
-        } else {
+        if (isAuthenticated(req)) {
             next();
+            return;
+        }
+
+        if (req.method === 'GET' || req.method === 'HEAD') {
+            req.session.redirect_to = req.originalUrl;
+            if (req.user)
+                res.redirect('/user/2fa/login');
+            else
+                res.redirect('/user/login');
+        } else {
+            res.status(401).render('login_required',
+                                   { page_title: req._("Thingpedia - Error") });
         }
     },
 

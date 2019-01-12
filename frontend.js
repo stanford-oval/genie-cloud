@@ -162,6 +162,11 @@ module.exports = class Frontend {
                     if (err)
                         res.status(401);
                     // eat the error
+
+                    // skip 2fa if successful
+                    if (!err && req.user)
+                        req.session.completed2fa = true;
+
                     next();
                 });
             } else {
@@ -169,13 +174,8 @@ module.exports = class Frontend {
             }
         });
         this._app.use((req, res, next) => {
-            if (req.user) {
-                res.locals.authenticated = true;
-                res.locals.user = req.user;
-            } else {
-                res.locals.authenticated = false;
-                res.locals.user = { isConfigured: true };
-            }
+            res.locals.user = req.user || { isConfigured: true };
+            res.locals.authenticated = userUtils.isAuthenticated(req);
             next();
         });
         this._app.use((req, res, next) => {

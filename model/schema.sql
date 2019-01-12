@@ -713,6 +713,7 @@ CREATE TABLE `users` (
   `omlet_id` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `password` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `salt` char(64) COLLATE utf8_bin DEFAULT NULL,
+  `totp_key` varchar(128) COLLATE utf8_bin DEFAULT NULL,
   `cloud_id` char(64) COLLATE utf8_bin NOT NULL,
   `auth_token` char(64) COLLATE utf8_bin NOT NULL,
   `storage_key` char(64) COLLATE utf8_bin NOT NULL,

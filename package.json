@@ -72,6 +72,7 @@
     "node-bing-api": "^3.2.2",
     "node-gettext": "^2.0.0",
     "nodemailer": "^4.7.0",
+    "notp": "^2.0.3",
     "oauth2orize": "^1.11.0",
     "passport": "^0.4.0",
     "passport-google-oauth": "~0.2.0",
@@ -79,6 +80,7 @@
     "passport-http-bearer": "~1.0.1",
     "passport-local": "~1.0.0",
     "passport-oauth2-client-password": "~0.1.2",
+    "passport-totp": "^0.0.2",
     "pug": "^2.0.3",
     "q": "^1.4.1",
     "rss": "^1.2.2",
@@ -91,6 +93,7 @@
     "thingpedia-client": "^0.2.0",
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "~1.4.1",
+    "thirty-two": "^1.0.2",
     "tmp": "0.0.33",
     "transparent-rpc": "^0.0.1",
     "xml2js": "^0.4.19"

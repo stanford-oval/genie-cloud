@@ -1,0 +1,35 @@
+extends layout
+
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/qrcode.js')
+  script(src=Config.ASSET_CDN + '/javascripts/2fa_setup.js')
+
+block page_name
+  span.visible-sm.visible-md.visible-lg= _("Two-Factor Authentication")
+  span.visible-xs= _("2-Factor Auth")
+
+block content
+  p= _("To set up two-factor authentication, open your Authenticator app (e.g. Google Authenticator, or Duo Mobile), then scan the following QR code. When you are ready, input one OTP code in the form, to verify that the configuration was correct.")
+
+  if user.totp_key
+    p
+      = _("It appears that you have configured two-factor authentication previously.")
+      |
+      |
+      strong= _("If you complete the form here, your previous configuration will become invalid.")
+      |
+      |
+      = _("Use this form only to transfer your two-factor configuration to a new phone or app.")
+
+  div#qrcode-target= qrUrl
+  div#qrcode-placeholder
+
+  form(action='/user/2fa/setup', method='post', data-toggle='validator')
+    input(type='hidden', name='_csrf', value=csrfToken)
+    input(type='hidden', name='encrypted_key', value=encryptedKey)
+
+    div.form-group
+      label.control-label(for='twofa-code')= _("OTP Code")
+      input(type='password', name='code', minlength=6, maxlength=6, required=true).form-control#twofa-code
+
+    button(type='submit').btn.btn-success= _("Enable Two-Factor Authentication")

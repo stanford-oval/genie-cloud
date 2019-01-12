@@ -1,0 +1,22 @@
+extends layout
+
+block page_name
+  = _("Login")
+
+block content
+  each error in errors
+    div.alert.alert-danger.alert-dismissible.fade.in(role='alert')
+      button(type='button', data-dismiss='alert', aria-label="Close").close
+        span(aria-hidden='true') ×
+
+      p= error
+  p= _("You have configured two-factor authentication for this user. Please enter the One Time Password generated from your Authenticator app.")
+  form(action='/user/2fa/login', method='post')
+    input(type='hidden',name='_csrf',value=csrfToken)
+    div.form-group
+      label(for='twofa-code').control-label= _("OTP")
+      input(type='password',name='code').form-control#twofa-code
+    div.form-group
+      button(type='submit').btn.btn-primary= _("Log in")
+
+  p= _("Having trouble? If you have lost access to your authenticator app, please contact us to regain access to your account.")
