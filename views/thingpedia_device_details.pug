@@ -19,14 +19,14 @@ block page_name
 block content
   if device.approved_version === null
     div.alert.alert-warning(role='alert')
-      if user && (user.developer_status >= Constants.DeveloperStatus.ADMIN || user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER && user.developer_org === device.owner)
+      if authenticated && (user.developer_status >= Constants.DeveloperStatus.ADMIN || user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER && user.developer_org === device.owner)
         form(action='/thingpedia/devices/approve', method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=device.primary_kind)
           p.form-group= _("This device is not yet approved.")
             | &#x20;
             button(type='submit').btn.btn-success= _("Approve it")
-      else if user && user.developer_org === device.owner
+      else if authenticated && user.developer_org === device.owner
         p= _("This device is not yet approved for general use.")
           | &#x20;
           a(href='#request-approval-container',data-toggle='collapse',aria-expanded='false',aria-controls='request-approval-container').btn.btn-default= _("Request approval")
@@ -34,7 +34,7 @@ block content
         p= _("This device is not yet approved for general use. You need a developer key to use it.")
   else if device.approved_version !== device.developer_version && user && user.developer_status >= Constants.DeveloperStatus.ADMIN
     div.alert.alert-warning(role='alert')
-      if user && user.developer_status >= Constants.DeveloperStatus.ADMIN
+      if authenticated && user.developer_status >= Constants.DeveloperStatus.ADMIN
         form(action='/thingpedia/devices/approve', method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=device.primary_kind)
@@ -76,7 +76,7 @@ block content
     div.alert.alert-info(role='alert')
       p
         = _("The natural language model for this device is being updated. Natural language support might be limited.")
-      if user && user.developer_org === device.owner
+      if authenticated && user.developer_org === device.owner
         p
           if device.current_jobs.train.status === 'queued'
              = _("Status: queued.")
@@ -133,7 +133,7 @@ block content
 
   p
     = _("Uploaded By: ")
-    if user && (user.roles & Constants.Role.ADMIN)
+    if authenticated && (user.roles & Constants.Role.ADMIN)
       a(href='/admin/organizations/details/' + device.owner)=device.owner_name
     else
       a(href='/profiles/organization/' + device.owner_id_hash)= device.owner_name

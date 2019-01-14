@@ -14,10 +14,10 @@ block content
     input(type='hidden',name='_csrf',value=csrfToken)
     div.form-group
       label(for='username').control-label= _("Username")
-      input(type='text',name='username',value=username,autocorrect='off',autocapitalize='none').form-control#username
+      input(type='text',name='username',autocorrect='off',autocapitalize='none').form-control#username
     div.form-group
       label(for='password').control-label= _("Password")
-      input(type='password',name='password',value=password).form-control#password
+      input(type='password',name='password').form-control#password
     div.form-group
       button(type='submit').btn.btn-primary= _("Log in")
 

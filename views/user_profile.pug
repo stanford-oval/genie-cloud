@@ -149,10 +149,30 @@ block content
         div.form-group
           button(type='submit').btn.btn-primary= _("Change password")
 
+      hr
+      p
+        if user.totp_key
+          span.glyphicon.glyphicon-ok(aria-hidden='true')
+          |
+          |
+          = _("Two-factor authentication is enabled.")
+          |
+          |
+          a(href='/user/2fa/setup?force=1')= _("Configure again.")
+        else
+          span.glyphicon.glyphicon-warning-sign(aria-hidden='true')
+          |
+          |
+          = _("Two-factor authentication is not enabled.")
+          |
+          |
+          a(href='/user/2fa/setup').btn.btn-primary.btn-sm= _("Enable")
+
       //-if !user.google_id
         p
           a.btn.btn-default(href='/devices/oauth2/com.google')= _("Configure login with Google")
 
+      hr
       p
         a.btn.btn-danger(data-toggle='modal', data-target='#delete-account-dialog')= _("Delete account")
 

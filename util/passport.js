@@ -23,12 +23,15 @@ const LocalStrategy = require('passport-local').Strategy;
 const GoogleOAuthStrategy = require('passport-google-oauth').OAuth2Strategy;
 const BearerStrategy = require('passport-http-bearer').Strategy;
 const BasicStrategy = require('passport-http').BasicStrategy;
+const TotpStrategy = require('passport-totp').Strategy;
 
 const EngineManager = require('../almond/enginemanagerclient');
 
 var GOOGLE_CLIENT_ID = '739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com';
 
 const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_SECRET } = require('../config');
+
+const TOTP_PERIOD = 30; // duration in second of TOTP code
 
 function hashPassword(salt, password) {
     return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
@@ -120,7 +123,7 @@ exports.initialize = function() {
                     return [false, null];
 
                 await model.recordLogin(dbClient, rows[0].id);
-                return [rows[0], { scope }];
+                return [rows[0], { scope, authMethod: 'oauth2' }];
             });
             done(null, user, options);
         } catch(err) {
@@ -175,5 +178,12 @@ exports.initialize = function() {
         } else {
             associateGoogle(req.user, accessToken, refreshToken, profile, done);
         }
+    }));
+
+    passport.use(new TotpStrategy((user, done) => {
+        if (user.totp_key === null)
+            done(new Error('2-factor authentication not setup'));
+        else
+            done(null, secret.decrypt(user.totp_key), TOTP_PERIOD);
     }));
 };

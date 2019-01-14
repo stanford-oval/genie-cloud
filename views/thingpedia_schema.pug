@@ -13,7 +13,7 @@ block page_name
 block content
   if schema.approved_version === null
     div.alert.alert-warning(role='alert')
-      if user && user.developer_status >= Constants.DeveloperStatus.ADMIN
+      if authenticated && user.developer_status >= Constants.DeveloperStatus.ADMIN
         if schema.kind_type === 'other'
           form(action='/thingpedia/devices/approve', method='post').form-inline
             input(type='hidden',name='_csrf',value=csrfToken)
@@ -27,7 +27,7 @@ block content
         p= _("This type is not yet approved for general use. You need a developer key to use it.")
   else if schema.approved_version !== schema.developer_version && user && user.developer_status >= Constants.DeveloperStatus.ADMIN
     div.alert.alert-warning(role='alert')
-      if user && user.developer_status >= Constants.DeveloperStatus.ADMIN
+      if authenticated && user.developer_status >= Constants.DeveloperStatus.ADMIN
         form(action='/thingpedia/devices/approve/' + schema.id, method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=schema.kind)
@@ -50,7 +50,7 @@ block content
       = _("It is used by a device to indicate a certain low-level capability, and has no actions of its own. ")
       != _("Most likely, you will find this type together with another more generic type, eg. <i>bluetooth-uuid-0000110b-0000-1000-8000-00805f9b34fb</i>, indicating the A2DP Speaker capability, would be accompanied by <i>speaker</i>.")
 
-  if user && user.developer_org !== null
+  if authenticated && user.developer_org !== null
     h2.device-subtitle#device-version
       if schema.approved_version === null
         = _("Version: none (approved), %d (developer)").format(schema.developer_version)

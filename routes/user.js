@@ -10,11 +10,15 @@
 "use strict";
 
 const Q = require('q');
+const Url = require('url');
 const Tp = require('thingpedia');
 const express = require('express');
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const util = require('util');
+const crypto = require('crypto');
+const thirtyTwo = require('thirty-two');
+const totp = require('notp').totp;
 
 const userUtils = require('../util/user');
 const exampleModel = require('../model/example');
@@ -28,58 +32,159 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 const Config = require('../config');
 
+const TOTP_PERIOD = 30; // duration in second of TOTP code
+
 var router = express.Router();
 
 router.get('/oauth2/google', passport.authenticate('google', {
     scope: userUtils.GOOGLE_SCOPES,
 }));
 router.get('/oauth2/google/callback', passport.authenticate('google'), (req, res, next) => {
-   if (req.user.newly_created) {
-       req.user.newly_created = false;
-       res.locals.authenticated = true;
-       res.locals.user = req.user;
-       res.render('register_success', {
-           page_title: req._("Thingpedia - Registration Successful"),
-           username: req.user.username,
-           cloudId: req.user.cloud_id,
-           authToken: req.user.auth_token });
-   } else {
-       // Redirection back to the original page
-       var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
-       delete req.session.redirect_to;
-       res.redirect(303, redirect_to);
-   }
+    // skip 2fa if logged in with Google
+    req.session.completed2fa = true;
+
+    if (req.user.newly_created) {
+        req.user.newly_created = false;
+        res.locals.authenticated = true;
+        res.locals.user = req.user;
+        res.render('register_success', {
+            page_title: req._("Almond - Registration Successful"),
+            username: req.user.username,
+            cloudId: req.user.cloud_id,
+            authToken: req.user.auth_token });
+    } else {
+        // Redirection back to the original page
+        var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+        delete req.session.redirect_to;
+        res.redirect(303, redirect_to);
+    }
 });
 
 router.get('/login', (req, res, next) => {
     if (req.user) {
-        res.redirect('/');
+        if (req.session.completed2fa || req.user.totp_key === null)
+            res.redirect('/');
+        else
+            res.redirect('/user/2fa/login');
         return;
     }
 
     res.render('login', {
         csrfToken: req.csrfToken(),
         errors: req.flash('error'),
-        page_title: req._("Thingpedia - Login")
+        page_title: req._("Almond - Login")
     });
 });
 
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/user/login',
-                                                       failureFlash: true }), (req, res, next) => {
+                                                       failureFlash: 'Invalid OTP code' }), (req, res, next) => {
+    req.session.completed2fa = false;
+    if (req.user.totp_key) {
+        // if 2fa is enabled, redirect to the 2fa login page
+        res.redirect(303, '/user/2fa/login');
+    } else {
+        // Redirection back to the original page
+        var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
+        delete req.session.redirect_to;
+        if (redirect_to.startsWith('/user/login'))
+            redirect_to = '/';
+        res.redirect(303, redirect_to);
+    }
+});
+
+router.get('/2fa/login', (req, res, next) => {
+    if (!req.user) {
+        // redirect to login page if we get here by accident
+        res.redirect('/user/login');
+        return;
+    }
+    if (req.session.completed2fa) {
+        res.redirect('/');
+        return;
+    }
+
+    res.render('2fa_login', {
+        page_title: req._("Almond - Login"),
+        errors: req.flash('error'),
+    });
+});
+
+router.post('/2fa/login', passport.authenticate('totp', { failureRedirect: '/user/2fa/login',
+                                                          failureFlash: true }), (req, res, next) => {
+    req.session.completed2fa = true;
+
     // Redirection back to the original page
     var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
     delete req.session.redirect_to;
-    if (redirect_to.startsWith('/user/login'))
+    if (redirect_to.startsWith('/user/login') || redirect_to.startsWith('/user/2fa/login'))
         redirect_to = '/';
     res.redirect(303, redirect_to);
 });
 
+router.get('/2fa/setup', userUtils.requireLogIn, (req, res, next) => {
+    if (req.user.totp_key !== null && req.query.force !== '1') {
+        res.status(400).render('error', {
+            page_title: req._("Almond - Error"),
+            message: req._("You already configured two-factor authentication.")
+        });
+        return;
+    }
+
+    // 128 bit key
+    const totpKey = crypto.randomBytes(16);
+
+    const encryptedKey = secret.encrypt(totpKey);
+    const encodedKey = thirtyTwo.encode(totpKey).toString().replace(/=/g, '');
+
+    // TRANSLATORS: this is the label used to represent Almond in 2-FA/MFA apps
+    // such as Google Authenticator or Duo Mobile; %s is the username
+
+    const hostname = Url.parse(Config.SERVER_ORIGIN).hostname;
+    const label = encodeURIComponent(req.user.username.replace(' ', '_')) + '@' + hostname;
+    const qrUrl = `otpauth://totp/${label}?secret=${encodedKey}`;
+
+    res.render('2fa_setup', {
+        page_title: req._("Almond - Two-Factor Authentication"),
+        encryptedKey,
+        qrUrl
+    });
+});
+
+router.post('/2fa/setup', userUtils.requireLogIn, (req, res, next) => {
+    db.withTransaction(async (dbClient) => {
+        // recover the key that was passed to the client
+        const encryptedKey = req.body.encrypted_key;
+        const totpKey = secret.decrypt(encryptedKey);
+
+        // check that the user provided a valid OTP token
+        // this ensures that they set up their Authenticator app correctly
+        const rv = totp.verify(req.body.code, totpKey, { window: 6, time: TOTP_PERIOD });
+        if (!rv) {
+            res.render('error', {
+                page_title: req._("Almond - Two-Factor Authentication"),
+                message: req._("Invalid OTP Code. Please check that your Authenticator app is properly configured.")
+            });
+            return;
+        }
+
+        // finally update the database, enabling 2fa
+        await model.update(dbClient, req.user.id, { totp_key: encryptedKey });
+
+        // mark that 2fa was successful for this session
+        req.session.completed2fa = true;
+
+        res.render('message', {
+            page_title: req._("Almond - Two-Factor Authentication"),
+            message: req._("Two-factor authentication was set up successfully. You will need to use your Authenticator app at the next login.")
+        });
+    }).catch(next);
+});
 
 router.get('/register', (req, res, next) => {
     res.render('register', {
         csrfToken: req.csrfToken(),
-        page_title: req._("Thingpedia - Register")
+        page_title: req._("Almond - Register")
     });
 });
 
@@ -147,7 +252,7 @@ router.post('/register', (req, res, next) => {
     } catch(e) {
         res.render('register', {
             csrfToken: req.csrfToken(),
-            page_title: req._("Thingpedia - Register"),
+            page_title: req._("Almond - Register"),
             error: e
         });
         return;
@@ -161,7 +266,7 @@ router.post('/register', (req, res, next) => {
             } catch(e) {
                 res.render('register', {
                     csrfToken: req.csrfToken(),
-                    page_title: req._("Thingpedia - Register"),
+                    page_title: req._("Almond - Register"),
                     error: e
                 });
                 return null;
@@ -178,10 +283,12 @@ router.post('/register', (req, res, next) => {
             sendValidationEmail(user.cloud_id, user.username, user.email)
         ]);
 
+        // skip login & 2fa for newly created users
+        req.session.completed2fa = true;
         res.locals.authenticated = true;
         res.locals.user = user;
         res.render('register_success', {
-            page_title: req._("Thingpedia - Registration Successful"),
+            page_title: req._("Almond - Registration Successful"),
             username: options.username,
             cloudId: user.cloud_id,
             authToken: user.auth_token });
@@ -191,6 +298,8 @@ router.post('/register', (req, res, next) => {
 
 router.get('/logout', (req, res, next) => {
     req.logout();
+    req.session.completed2fa = false;
+    res.locals.authenticated = false;
     res.redirect(303, '/');
 });
 
@@ -312,13 +421,24 @@ router.post('/recovery/start', (req, res, next) => {
 });
 
 router.get('/recovery/continue/:token', (req, res, next) => {
-    util.promisify(jwt.verify)(req.params.token, secret.getJWTSigningKey(), {
-        algorithms: ['HS256'],
-        audience: 'pw-recovery',
-    }).then((decoded) => {
+    db.withClient(async (dbClient) => {
+        const decoded = await util.promisify(jwt.verify)(req.params.token, secret.getJWTSigningKey(), {
+            algorithms: ['HS256'],
+            audience: 'pw-recovery',
+        });
+        const users = await model.getByCloudId(dbClient, decoded.sub);
+        if (users.length === 0) {
+            res.status(404).render('error', {
+                page_title: req._("Almond - Error"),
+                message: req._("The user for which you're resetting the password no longer exists.")
+            });
+            return;
+        }
+
         res.render('password_recovery_continue', {
             page_title: req._("Almond - Password Reset"),
             token: req.params.token,
+            recoveryUser: users[0],
             error: undefined
         });
     }, (err) => {
@@ -369,10 +489,25 @@ router.post('/recovery/continue', (req, res, next) => {
             return;
         }
 
+        if (user.totp_key !== null) {
+            const rv = totp.verify(req.body.code, secret.decrypt(user.totp_key), { window: 6, time: TOTP_PERIOD });
+            if (!rv) {
+                res.render('password_recovery_continue', {
+                    page_title: req._("Almond - Password Reset"),
+                    token: req.body.token,
+                    error: req._("Invalid OTP code")
+                });
+                return;
+            }
+        }
+
         const user = users[0];
         await userUtils.resetPassword(dbClient, user, req.body.password);
         await Q.ninvoke(req, 'login', user);
         await model.recordLogin(dbClient, user.id);
+
+        // we have completed 2fa above
+        req.session.completed2fa = true;
         res.locals.authenticated = true;
         res.locals.user = user;
         res.render('message', {

@@ -61,7 +61,7 @@ router.post('/', (req, res, next) => {
         !req.headers.authorization)
         req.headers.authorization = 'Bearer ' + req.body.originalDetectIntentRequest.payload.user.accessToken;
     if (req.headers.authorization) {
-        passport.authenticate('bearer', (err, user, info) => {
+        passport.authenticate('bearer', { session: false }, (err, user, info) => {
             // ignore auth failures and ignore sessions
             if (err) {
                 next(err);
