@@ -10,6 +10,7 @@
 "use strict";
 
 const Q = require('q');
+const Url = require('url');
 const Tp = require('thingpedia');
 const express = require('express');
 const passport = require('passport');
@@ -134,11 +135,13 @@ router.get('/2fa/setup', userUtils.requireLogIn, (req, res, next) => {
     const totpKey = crypto.randomBytes(16);
 
     const encryptedKey = secret.encrypt(totpKey);
-    const encodedKey = thirtyTwo.encode(totpKey);
+    const encodedKey = thirtyTwo.encode(totpKey).toString().replace(/=/g, '');
 
     // TRANSLATORS: this is the label used to represent Almond in 2-FA/MFA apps
     // such as Google Authenticator or Duo Mobile; %s is the username
-    const label = encodeURIComponent(req._("Almond (%s)").format(req.user.username));
+
+    const hostname = Url.parse(Config.SERVER_ORIGIN).hostname;
+    const label = encodeURIComponent(req.user.username.replace(' ', '_')) + '@' + hostname;
     const qrUrl = `otpauth://totp/${label}?secret=${encodedKey}`;
 
     res.render('2fa_setup', {
