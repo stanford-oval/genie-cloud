@@ -61,7 +61,7 @@ router.ws('/anonymous', (ws, req) => {
 });
 
 router.use((req, res, next) => {
-    if (req.user) {
+    if (user.isAuthenticated(req)) {
         next();
         return;
     }
