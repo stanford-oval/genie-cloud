@@ -28,8 +28,13 @@ module.exports = class AlmondApi {
 
     _sendWs(obj) {
         let str = JSON.stringify(obj);
-        for (let out of this._outputs)
-            out.send(str);
+        for (let out of this._outputs) {
+            try {
+                out.send(str);
+            } catch(e) {
+                // ignore errors if the connection was closed, while still sending to other connections
+            }
+        }
     }
     addOutput(out) {
         this._outputs.add(out);
@@ -189,7 +194,7 @@ module.exports = class AlmondApi {
                 return this._doParse(sentence);
             }
         }).then((analyzed) => {
-            return Promise.all(analyzed.candidates.slice(0, 3).map((candidate) => {
+            return Promise.all(analyzed.candidates.map((candidate) => {
                 return this._processCandidate(candidate, analyzed);
             })).then((programs) => {
                 return programs.filter((r) => r !== null);
@@ -197,7 +202,7 @@ module.exports = class AlmondApi {
                 return {
                     tokens: analyzed.tokens,
                     entities: analyzed.entities,
-                    candidates: programs
+                    candidates: programs.slice(0, 3)
                 };
             });
         });
