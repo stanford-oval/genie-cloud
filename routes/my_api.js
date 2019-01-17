@@ -13,12 +13,13 @@ const Q = require('q');
 const express = require('express');
 const crypto = require('crypto');
 const passport = require('passport');
-
-const Config = require('../config');
+const jwt = require('jsonwebtoken');
 
 const user = require('../util/user');
+const secret = require('../util/secret_key');
 const EngineManager = require('../almond/enginemanagerclient');
 
+const Config = require('../config');
 
 function makeRandom(bytes) {
     return crypto.randomBytes(bytes).toString('hex');
@@ -32,7 +33,7 @@ function isOriginOk(req) {
     if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer '))
         return true;
     if (typeof req.headers['origin'] !== 'string')
-        return false;
+        return true;
     return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
 }
 
@@ -60,8 +61,22 @@ router.ws('/anonymous', (ws, req) => {
     });
 });
 
+router.post('/token', user.requireLogIn, (req, res, next) => {
+    // issue an access token for valid for one month, with all scopes
+    jwt.sign({
+        sub: req.user.cloud_id,
+        aud: 'oauth2',
+        scope: Array.from(user.OAuthScopes)
+    }, secret.getJWTSigningKey(), { expiresIn: 30*24*3600 }, (err, token) => {
+        if (err)
+            next(err);
+        else
+            res.json({ result: 'ok', token });
+    });
+});
+
 router.use((req, res, next) => {
-    if (req.user) {
+    if (user.isAuthenticated(req)) {
         next();
         return;
     }
@@ -70,6 +85,19 @@ router.use((req, res, next) => {
 
 router.options('/.*', (req, res, next) => {
     res.send('');
+});
+
+router.get('/profile', user.requireScope('profile'), (req, res, next) => {
+    res.json({
+        id: req.user.cloud_id,
+        username: req.user.username,
+        full_name: req.user.human_name,
+        email: req.user.email,
+        email_verified: req.user.email_verified,
+        locale: req.user.locale,
+        timezone: req.user.timezone,
+        model_tag: req.user.model_tag
+    });
 });
 
 router.get('/parse', user.requireScope('user-read'), (req, res, next) => {

@@ -1,11 +1,22 @@
-(function() {
-    $(function() {
-        var text = $('#qrcode-target').text();
-        new QRCode('qrcode-placeholder', text);
+"use strict";
+$(function() {
+    var text = $('#qrcode-target').text();
+    new QRCode('qrcode-placeholder', text);
 
-        if (navigator.userAgent.match(/android/i)) {
-            $('#config-phone-desktop-browser').hide();
-            $('#config-phone-mobile-browser').show();
-        }
+    if (navigator.userAgent.match(/android/i)) {
+        $('#config-phone-desktop-browser').hide();
+        $('#config-phone-mobile-browser').show();
+    }
+
+    $('#issue-token-form').submit(function(event) {
+        event.preventDefault();
+
+        var csrfToken = document.body.dataset.csrfToken;
+        $.ajax('/me/api/token', { data: { _csrf: csrfToken }, method: 'POST' }).then(function(response) {
+            $('#issue-token-result').removeClass('hidden');
+            $('#issue-token-result-placeholder').text(response.token);
+        }, function (err) {
+            console.error(err);
+        });
     });
-})();
+});
