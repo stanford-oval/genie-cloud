@@ -82,7 +82,7 @@ Click on `dataset.tt` on the left panel.
 Copy the following code to the editor and replace `<your-name>.thecatapi` with the 
 actual device ID. 
 ```tt
-dataset @com.thecatapi {
+dataset @<your-name>.thecatapi {
   // the "utterances" annotation specifies different ways to express the command
   query  := @<your-name>.thecatapi.get()
   #_[utterances=["a cat picture","a random cat picture","cats"]];
