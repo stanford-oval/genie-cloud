@@ -87,6 +87,19 @@ router.options('/.*', (req, res, next) => {
     res.send('');
 });
 
+router.get('/profile', user.requireScope('profile'), (req, res, next) => {
+    res.json({
+        id: req.user.cloud_id,
+        username: req.user.username,
+        full_name: req.user.human_name,
+        email: req.user.email,
+        email_verified: req.user.email_verified,
+        locale: req.user.locale,
+        timezone: req.user.timezone,
+        model_tag: req.user.model_tag
+    });
+});
+
 router.get('/parse', user.requireScope('user-read'), (req, res, next) => {
     let query = req.query.q || null;
     let targetJson = req.query.target_json || null;
