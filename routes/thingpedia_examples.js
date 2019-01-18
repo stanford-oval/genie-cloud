@@ -37,7 +37,7 @@ router.post('/downvote/:id', user.requireLogIn, (req, res) => {
     }).done();
 });
 
-router.post('/hide/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.post('/hide/:id', user.requireLogIn, user.requireRole(user.Role.THINGPEDIA_ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return model.hide(dbClient, req.params.id);
     }).then(() => {
@@ -47,7 +47,7 @@ router.post('/hide/:id', user.requireLogIn, user.requireDeveloper(user.Developer
     }).done();
 });
 
-router.post('/delete/:id', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.post('/delete/:id', user.requireLogIn, user.requireRole(user.Role.THINGPEDIA_ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return model.deleteById(dbClient, req.params.id);
     }).then(() => {

@@ -52,7 +52,7 @@ function renderUserList(users) {
 
 router.use(user.requireLogIn);
 
-router.get('/', user.requireAnyRole, (req, res, next) => {
+router.get('/', user.requireAnyRole(user.Role.ALL_ADMIN), (req, res, next) => {
     res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
                                  csrfToken: req.csrfToken() });
 });
@@ -257,7 +257,7 @@ router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (r
     }).done();
 });
 
-router.get('/review-queue', user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;

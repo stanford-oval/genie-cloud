@@ -31,7 +31,7 @@ var router = express.Router();
 function getOrgId(req) {
     if (!req.user)
         return null;
-    if (req.user.developer_status >= user.DeveloperStatus.ADMIN)
+    if ((req.user.roles & user.DeveloperStatus.THINGPEDIA_ADMIN) !== 0)
         return -1;
     else
         return req.user.developer_org;

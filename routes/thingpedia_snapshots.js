@@ -16,7 +16,7 @@ const snapshot = require('../model/snapshot');
 const db = require('../util/db');
 
 const router = express.Router();
-router.use(user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN));
+router.use(user.requireLogIn, user.requireRole(user.Role.THINGPEDIA_ADMIN));
 
 router.get('/', (req, res) => {
     let page = req.query.page;

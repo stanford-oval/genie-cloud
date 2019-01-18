@@ -79,10 +79,7 @@ block content
 
           div.form-group
             label.control-label= _("Developer Access")
-            if user.developer_status >= Constants.DeveloperStatus.ADMIN
-              p.form-control-static= _("Administrator")
-              span.help-block= _("You know what to do.")
-            else if user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER
+            if user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER
               p.form-control-static= _("Trusted Developer")
               span.help-block= _("All code you submit can go live to all Almonds with no review. Be careful!")
             else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER

@@ -16,7 +16,7 @@ const user = require('../util/user');
 const model = require('../model/example');
 
 const router = express.Router();
-router.use(user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN));
+router.use(user.requireLogIn, user.requireRole(user.Role.THINGPEDIA_ADMIN));
 
 router.get('/', (req, res) => {
     db.withClient((dbClient) => {

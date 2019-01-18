@@ -57,7 +57,7 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
 
     return schemaModel.getByKind(dbClient, classDef.kind).then(async (existing) => {
         if (existing.owner !== req.user.developer_org &&
-            req.user.developer_status < user.DeveloperStatus.ADMIN)
+            (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
             throw new Error(req._("Not Authorized"));
 
         const existingMeta = (await schemaModel.getMetasByKindAtVersion(dbClient, classDef.kind, existing.developer_version, 'en'))[0];

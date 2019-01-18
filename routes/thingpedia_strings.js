@@ -47,7 +47,7 @@ async function doCreate(req, res) {
 
                 let [, prefix, /*suffix*/] = match;
 
-                if (req.user.developer_status < user.DeveloperStatus.ADMIN) {
+                if ((req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
                     let row;
                     try {
                         row = schemaModel.getByKind(dbClient, prefix);

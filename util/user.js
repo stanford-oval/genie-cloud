@@ -57,16 +57,19 @@ module.exports = {
     DeveloperStatus: {
         USER: 0,
         DEVELOPER: 1,
-        TRUSTED_DEVELOPER: 2,
-        ADMIN: 3,
+        TRUSTED_DEVELOPER: 2
     },
 
     Role: {
         ADMIN: 1,
         BLOG_EDITOR: 2,
+        THINGPEDIA_ADMIN: 4,
 
         // all privileges
-        ROOT: 3
+        ROOT: 7,
+
+        // all admin roles (access to /admin hierarchy)
+        ALL_ADMIN: 7,
     },
 
     ProfileFlags: {
@@ -156,6 +159,8 @@ module.exports = {
     },
 
     requireRole(role) {
+        if (role === undefined)
+            throw new Error(`invalid requireRole call`);
         return function(req, res, next) {
             if ((req.user.roles & role) !== role) {
                 res.status(403).render('error', {
@@ -168,15 +173,17 @@ module.exports = {
         };
     },
 
-    requireAnyRole(req, res, next) {
-        if (req.user.roles === 0 && req.user.developer_status < 3) {
-            res.status(403).render('error', {
-                page_title: req._("Thingpedia - Error"),
-                message: req._("You do not have permission to perform this operation.")
-            });
-        } else {
-            next();
-        }
+    requireAnyRole(roleset) {
+        return function(req, res, next) {
+            if ((req.user.roles & roleset) === 0) {
+                res.status(403).render('error', {
+                    page_title: req._("Thingpedia - Error"),
+                    message: req._("You do not have permission to perform this operation.")
+                });
+            } else {
+                next();
+            }
+        };
     },
 
     requireDeveloper(required) {

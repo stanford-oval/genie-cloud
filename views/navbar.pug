@@ -15,7 +15,7 @@ ul.nav.navbar-nav
     if authenticated && user.developer_org
       li
         a(href='/thingpedia/developers')= _("Console")
-  if authenticated && (user.developer_status >= Constants.DeveloperStatus.ADMIN || user.roles)
+  if authenticated && (user.roles & Constants.Role.ALL_ADMIN) !== 0
     li
       a(href="/admin")= _("Admin")
 
