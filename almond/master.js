@@ -22,53 +22,49 @@ const JsonDatagramSocket = require('../util/json_datagram_socket');
 
 const Config = require('../config');
 
-class DirectSocketServer {
-    constructor(engines, path) {
-        this._server = net.createServer();
-
-        this._server.on('connection', (socket) => {
-            const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
-
-            jsonSocket.on('data', (msg) => {
-                if (msg.control === 'init') {
-                    try {
-                        engines.sendSocket(msg.target, msg.replyId, socket);
-                    } catch(e) {
-                        jsonSocket.write({ error: e.message });
-                        jsonSocket.end();
-                    }
-                }
-            });
-        });
-    }
-
-    start() {
-        return Q.ninvoke(this._server, 'listen', sockaddr(Config.THINGENGINE_DIRECT_ADDRESS));
-    }
-
-    stop() {
-        return Q.ninvoke(this._server, 'close');
-    }
-}
-
 class ControlSocket extends events.EventEmitter {
     constructor(engines, socket) {
         super();
 
         this._socket = socket;
-        this._jsonDatagramSocket = new JsonDatagramSocket(socket, socket, 'utf8');
-        this._rpcSocket = new rpc.Socket(this._jsonDatagramSocket);
-        this._rpcSocket.on('close', () => this.emit('close'));
-        this._rpcSocket.on('error', () => {
-            // ignore the error, the connection will be closed soon
-        });
+        const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
 
-        const id = this._rpcSocket.addStub(engines);
-        this._jsonDatagramSocket.write({ control: 'ready', rpcId: id });
+        const initListener = (msg) => {
+            // ignore new-object messages that are sent during initialization
+            // of the rpc socket
+            if (msg.control === 'new-object')
+                return;
+
+            jsonSocket.removeListener('data', initListener);
+            if (msg.control === 'direct') {
+                try {
+                    engines.sendSocket(msg.target, msg.replyId, socket);
+                    this._socket = null;
+                } catch(e) {
+                    jsonSocket.write({ error: e.message });
+                    jsonSocket.end();
+                }
+            } else if (msg.control === 'master') {
+                this._rpcSocket = new rpc.Socket(jsonSocket);
+                this._rpcSocket.on('close', () => this.emit('close'));
+                this._rpcSocket.on('error', () => {
+                    // ignore the error, the connection will be closed soon
+                });
+
+                const id = this._rpcSocket.addStub(engines);
+                jsonSocket.write({ control: 'ready', rpcId: id });
+            } else {
+                console.log(msg);
+                jsonSocket.write({ error: 'invalid initialization message' });
+                jsonSocket.end();
+            }
+        };
+        jsonSocket.on('data', initListener);
     }
 
     end() {
-        this._socket.end();
+        if (this._socket)
+            this._socket.end();
     }
 }
 
@@ -104,9 +100,8 @@ function main() {
     const enginemanager = new EngineManager();
 
     const controlSocket = new ControlSocketServer(enginemanager);
-    const directSocket = new DirectSocketServer(enginemanager);
 
-    Promise.all([controlSocket.start(), directSocket.start()]).then(() => {
+    controlSocket.start().then(() => {
         return enginemanager.start();
     }).catch((e) => {
         console.error('Failed to start: ' + e.message);
@@ -122,7 +117,6 @@ function main() {
         try {
             await Promise.all([
                 enginemanager.stop(),
-                directSocket.stop(),
                 controlSocket.stop()
             ]);
         } catch(e) {

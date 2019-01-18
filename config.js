@@ -31,7 +31,6 @@ module.exports.CDN_HOST = '/download';
 module.exports.ASSET_CDN = '';
 
 module.exports.THINGENGINE_MANAGER_ADDRESS = './control';
-module.exports.THINGENGINE_DIRECT_ADDRESS = './direct';
 module.exports.BING_KEY = '';
 
 // set this to 'embedded' to enable the embedded Thingpedia,

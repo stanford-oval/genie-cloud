@@ -44,7 +44,7 @@ class EngineManagerClient extends events.EventEmitter {
         }
 
         var directSocket = new net.Socket();
-        directSocket.connect(sockaddr(Config.THINGENGINE_DIRECT_ADDRESS));
+        directSocket.connect(sockaddr(Config.THINGENGINE_MANAGER_ADDRESS));
 
         var jsonSocket = new JsonDatagramSocket(directSocket, directSocket, 'utf8');
         var rpcSocket = new rpc.Socket(jsonSocket);
@@ -95,7 +95,7 @@ class EngineManagerClient extends events.EventEmitter {
             $rpcMethods: ['ready', 'error']
         };
         var replyId = rpcSocket.addStub(stub);
-        jsonSocket.write({ control:'init', target: userId, replyId: replyId });
+        jsonSocket.write({ control:'direct', target: userId, replyId: replyId });
 
         this._cachedEngines.set(userId, {
             engine: defer.promise,
@@ -140,6 +140,7 @@ class EngineManagerClient extends events.EventEmitter {
             }
         };
         jsonSocket.on('data', ready);
+        jsonSocket.write({ control:'master' });
         this._rpcSocket.on('close', () => {
             if (this._expectClose)
                 return;
