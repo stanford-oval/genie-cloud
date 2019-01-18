@@ -21,6 +21,17 @@ const Config = require('../config');
 
 var _instance;
 
+function connectToMaster() {
+    const socket = new net.Socket();
+    socket.connect(sockaddr(Config.THINGENGINE_MANAGER_ADDRESS));
+
+    const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
+    if (Config.THINGENGINE_MANAGER_AUTHENTICATION !== null)
+        jsonSocket.write({ control: 'auth', token: Config.THINGENGINE_MANAGER_AUTHENTICATION });
+
+    return jsonSocket;
+}
+
 class EngineManagerClient extends events.EventEmitter {
     constructor() {
         super();
@@ -43,11 +54,8 @@ class EngineManagerClient extends events.EventEmitter {
             return cached.engine;
         }
 
-        var directSocket = new net.Socket();
-        directSocket.connect(sockaddr(Config.THINGENGINE_MANAGER_ADDRESS));
-
-        var jsonSocket = new JsonDatagramSocket(directSocket, directSocket, 'utf8');
-        var rpcSocket = new rpc.Socket(jsonSocket);
+        const jsonSocket = connectToMaster();
+        const rpcSocket = new rpc.Socket(jsonSocket);
 
         var deleted = false;
         rpcSocket.on('close', () => {
@@ -126,10 +134,7 @@ class EngineManagerClient extends events.EventEmitter {
         if (this._rpcControl)
             return;
 
-        this._controlSocket = new net.Socket();
-        this._controlSocket.connect(sockaddr(Config.THINGENGINE_MANAGER_ADDRESS));
-
-        let jsonSocket = new JsonDatagramSocket(this._controlSocket, this._controlSocket, 'utf8');
+        const jsonSocket = connectToMaster();
         this._rpcSocket = new rpc.Socket(jsonSocket);
 
         const ready = (msg) => {

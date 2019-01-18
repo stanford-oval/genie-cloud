@@ -29,7 +29,25 @@ class ControlSocket extends events.EventEmitter {
         this._socket = socket;
         const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
 
+        this._authenticated = Config.THINGENGINE_MANAGER_AUTHENTICATION === null;
         const initListener = (msg) => {
+            if (msg.control === 'auth') {
+                if (msg.token === Config.THINGENGINE_MANAGER_AUTHENTICATION) {
+                    this._authenticated = true;
+                } else {
+                    jsonSocket.write({ error: 'invalid authentication token' });
+                    jsonSocket.end();
+                    jsonSocket.removeListener('data', initListener);
+                }
+                return;
+            }
+            if (!this._authenticated) {
+                jsonSocket.write({ error: 'expected authentication' });
+                jsonSocket.end();
+                jsonSocket.removeListener('data', initListener);
+                return;
+            }
+
             // ignore new-object messages that are sent during initialization
             // of the rpc socket
             if (msg.control === 'new-object')
@@ -54,7 +72,6 @@ class ControlSocket extends events.EventEmitter {
                 const id = this._rpcSocket.addStub(engines);
                 jsonSocket.write({ control: 'ready', rpcId: id });
             } else {
-                console.log(msg);
                 jsonSocket.write({ error: 'invalid initialization message' });
                 jsonSocket.end();
             }
