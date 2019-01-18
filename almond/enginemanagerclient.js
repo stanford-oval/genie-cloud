@@ -82,19 +82,17 @@ class EngineManagerClient extends events.EventEmitter {
         jsonSocket.on('data', initError);
 
         var stub = {
-            ready(engine, websocket, webhook, assistant) {
+            ready(apps, devices, messaging, websocket, webhook, assistant) {
                 jsonSocket.removeListener('data', initError);
 
-                Promise.all([engine.apps, engine.devices, engine.messaging]).then(([apps, devices, messaging]) => {
-                    return {
-                        apps: apps,
-                        devices: devices,
-                        messaging: messaging,
-                        websocket: websocket,
-                        webhook: webhook,
-                        assistant: assistant
-                    };
-                }).then((obj) => defer.resolve(obj), (error) => defer.reject(error));
+                defer.resolve({
+                    apps,
+                    devices,
+                    messaging,
+                    websocket,
+                    webhook,
+                    assistant
+                });
             },
             error(message) {
                 defer.reject(new Error(message));
