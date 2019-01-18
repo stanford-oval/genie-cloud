@@ -21,20 +21,35 @@ The code depends on:
 - nodejs (>= 8.0)
 - cvc4 (any version, although >= 1.5 is recommended; only the binary is needed, not the library)
 - gm (provided by GraphicsMagic)
-- cairo (libcairo2-dev on Ubuntu, cairo-devel on Fedora)
-- Pango (libpango1.0-dev on Ubuntu, pango-devel on Fedora)
-- giflib (libgif-dev on Ubuntu, giflib-devel on Fedora)
+- cairo
+- Pango
+- giflib
 - libjpeg
-- libcap (libcap-dev on Ubuntu, libcap-devel on Fedora)
+- libcap
 
 Optionally, it depends on:
 
-- libsystemd (libsystemd-dev on Ubuntu, libsystemd-devel on Fedora)
+- libsystemd
 - bubblewrap
 
 These dependencies are used for sandboxing and journal integration.
 
-A working MySQL server is also required.
+A working MySQL server is also required. We recommend MariaDB >= 10.2 for best compatibility.
+
+For example, on Ubuntu (>= 18.04):
+```
+sudo apt install nodejs cvc4 graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev libjpeg-dev libcap-dev libsystemd-dev bubblewrap -y
+```
+On Fedora:
+```
+sudo dnf install nodejs cvc4 GraphicsMagick cairo-devel pango-devel giflib-devel libjpeg libcap-devel libsystemd-devel bubblewrap -y
+```
+
+
+If you would like to run the MySQL server locally:
+```
+sudo apt install mariadb-server
+```
 
 This repository uses yarn for dependency tracking.
 You should install yarn from [its website](https://yarnpkg.com/en/docs/install), and then run:
