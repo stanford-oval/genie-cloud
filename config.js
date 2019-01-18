@@ -30,7 +30,20 @@ module.exports.CDN_HOST = '/download';
 // be loaded directly from the almond-cloud website.
 module.exports.ASSET_CDN = '';
 
-module.exports.THINGENGINE_MANAGER_ADDRESS = './control';
+// Address of each master process
+// Each address must be specified in sockaddr form:
+// - absolute or relative path for Unix socket
+// - hostname:port for TCP
+//
+// Multiple addresses can be provided, in which case the users will be sharded across
+// multiple masters based on their ID (using a simple hashing scheme)
+//
+// The number of shards can be changed dynamically, provided all processes use
+// a consistent configuration (they must be all stopped when the configuration is changed),
+// and all shards have access to shared storage (eg NFS)
+// If the storage is not shared, use scripts/shard-users.js to compute which user is
+// assigned to which shard, and transfer the user's folder appropriately
+module.exports.THINGENGINE_MANAGER_ADDRESS = ['./control'];
 module.exports.THINGENGINE_MANAGER_AUTHENTICATION = null;
 module.exports.BING_KEY = '';
 

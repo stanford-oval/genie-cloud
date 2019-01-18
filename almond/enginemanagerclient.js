@@ -16,14 +16,17 @@ const rpc = require('transparent-rpc');
 const sockaddr = require('sockaddr');
 
 const JsonDatagramSocket = require('../util/json_datagram_socket');
+const userToShardId = require('./shard');
 
 const Config = require('../config');
 
 var _instance;
 
-function connectToMaster() {
+function connectToMaster(shardId) {
+    const shard = Config.THINGENGINE_MANAGER_ADDRESS[shardId];
+
     const socket = new net.Socket();
-    socket.connect(sockaddr(Config.THINGENGINE_MANAGER_ADDRESS));
+    socket.connect(sockaddr(shard));
 
     const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
     if (Config.THINGENGINE_MANAGER_AUTHENTICATION !== null)
@@ -42,6 +45,11 @@ class EngineManagerClient extends events.EventEmitter {
         this._reconnectTimeout = null;
 
         _instance = this;
+
+        // one control+socket per shard
+        this._nShards = Config.THINGENGINE_MANAGER_ADDRESS.length;
+        this._rpcControls = new Array(this._nShards);
+        this._rpcSockets = new Array(this._nShards);
     }
 
     static get() {
@@ -54,7 +62,7 @@ class EngineManagerClient extends events.EventEmitter {
             return cached.engine;
         }
 
-        const jsonSocket = connectToMaster();
+        const jsonSocket = connectToMaster(userToShardId(userId));
         const rpcSocket = new rpc.Socket(jsonSocket);
 
         var deleted = false;
@@ -128,100 +136,119 @@ class EngineManagerClient extends events.EventEmitter {
         });
     }
 
-    _connect() {
-        if (this._rpcControl)
+    _connect(shardId) {
+        if (this._rpcControls[shardId])
             return;
 
-        const jsonSocket = connectToMaster();
-        this._rpcSocket = new rpc.Socket(jsonSocket);
+        const jsonSocket = connectToMaster(shardId);
+        const rpcSocket = new rpc.Socket(jsonSocket);
+        this._rpcSockets[shardId] = rpcSocket;
 
         const ready = (msg) => {
             if (msg.control === 'ready') {
-                console.log('Control channel to EngineManager ready');
-                this._rpcControl = this._rpcSocket.getProxy(msg.rpcId);
+                console.log(`Control channel to EngineManager[${shardId}] ready`);
+                this._rpcControls[shardId] = rpcSocket.getProxy(msg.rpcId);
                 jsonSocket.removeListener('data', ready);
             }
         };
         jsonSocket.on('data', ready);
         jsonSocket.write({ control:'master' });
-        this._rpcSocket.on('close', () => {
+        rpcSocket.on('close', () => {
+            this._rpcSockets[shardId] = null;
+            this._rpcControls[shardId] = null;
+
             if (this._expectClose)
                 return;
 
-            this._rpcSocket = null;
-            this._rpcControl = null;
-            console.log('Control channel to EngineManager severed');
+            console.log(`Control channel to EngineManager[${shardId}] severed`);
             console.log('Reconnecting in 10s...');
             setTimeout(() => {
-                this._connect();
+                this._connect(shardId);
             }, 10000);
         });
-        this._rpcSocket.on('error', () => {
+        rpcSocket.on('error', () => {
             // ignore the error, the socket will be closed soon and we'll deal with it
         });
     }
 
     start() {
-        this._connect();
+        for (let i = 0; i < this._nShards; i++)
+            this._connect(i);
     }
 
     stop() {
-        if (!this._rpcSocket)
-            return;
-
         this._expectClose = true;
-        this._rpcSocket.end();
 
         for (let engine in this._cachedEngines.values())
             engine.socket.end();
+
+        for (let i = 0; i < this._nShards; i++) {
+            if (!this._rpcSockets[i])
+                continue;
+            this._rpcSockets[i].end();
+        }
     }
 
-    killAllUsers() {
-        if (!this._rpcControl)
-            return Q(false);
-        return this._rpcControl.killAllUsers();
+    async killAllUsers() {
+        let ok = true;
+        for (let i = 0; i < this._nShards; i++) {
+            if (!this._rpcControls[i]) {
+                ok = false;
+                continue;
+            }
+            if (!await this._rpcControls[i].killAllUsers())
+                ok = false;
+        }
+        return ok;
     }
 
     isRunning(userId) {
-        if (!this._rpcControl)
+        const shardId = userToShardId(userId);
+        if (!this._rpcControls[shardId])
              return Q(false);
-        return this._rpcControl.isRunning(userId);
+        return this._rpcControls[shardId].isRunning(userId);
     }
 
     getProcessId(userId) {
-        if (!this._rpcControl)
+        const shardId = userToShardId(userId);
+        if (!this._rpcControls[shardId])
             return Q(-1);
-        return this._rpcControl.getProcessId(userId);
+        return this._rpcControls[shardId].getProcessId(userId);
     }
 
     startUser(userId) {
-        if (!this._rpcControl)
+        const shardId = userToShardId(userId);
+        if (!this._rpcControls[shardId])
             return Q.reject(new Error('EngineManager died'));
-        return this._rpcControl.startUser(userId);
+        return this._rpcControls[shardId].startUser(userId);
     }
 
     killUser(userId) {
-        if (!this._rpcControl)
+        const shardId = userToShardId(userId);
+        if (!this._rpcControls[shardId])
             return Q.reject(new Error('EngineManager died'));
-        return this._rpcControl.killUser(userId);
+        return this._rpcControls[shardId].killUser(userId);
     }
 
     deleteUser(userId) {
-        if (!this._rpcControl)
+        const shardId = userToShardId(userId);
+        if (!this._rpcControls[shardId])
             return Q.reject(new Error('EngineManager died'));
-        return this._rpcControl.deleteUser(userId);
+        return this._rpcControls[shardId].deleteUser(userId);
     }
 
     clearCache(userId) {
-        if (!this._rpcControl)
+        const shardId = userToShardId(userId);
+        if (!this._rpcControls[shardId])
             return Q.reject(new Error('EngineManager died'));
-        return this._rpcControl.clearCache(userId);
+        return this._rpcControls[shardId].clearCache(userId);
     }
 
     restartUser(userId) {
-        if (!this._rpcControl)
+        const shardId = userToShardId(userId);
+        if (!this._rpcControls[shardId])
             return Q.reject(new Error('EngineManager died'));
-        return this._rpcControl.restartUser(userId);
+        return this._rpcControls[shardId].restartUser(userId);
     }
 }
 

@@ -12,15 +12,18 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
+const assert = require('assert');
 const events = require('events');
 const rpc = require('transparent-rpc');
 const net = require('net');
 const sockaddr = require('sockaddr');
+const argparse = require('argparse');
 
 const EngineManager = require('./enginemanager');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
 
 const Config = require('../config');
+assert(Array.isArray(Config.THINGENGINE_MANAGER_ADDRESS));
 
 class ControlSocket extends events.EventEmitter {
     constructor(engines, socket) {
@@ -86,8 +89,9 @@ class ControlSocket extends events.EventEmitter {
 }
 
 class ControlSocketServer {
-    constructor(engines) {
+    constructor(engines, shardId) {
         this._server = net.createServer();
+        this._address = sockaddr(Config.THINGENGINE_MANAGER_ADDRESS[shardId]);
 
         this._connections = new Set;
         this._server.on('connection', (socket) => {
@@ -98,7 +102,7 @@ class ControlSocketServer {
     }
 
     start() {
-        return Q.ninvoke(this._server, 'listen', sockaddr(Config.THINGENGINE_MANAGER_ADDRESS));
+        return Q.ninvoke(this._server, 'listen', this._address);
     }
 
     stop() {
@@ -114,9 +118,23 @@ class ControlSocketServer {
 }
 
 function main() {
-    const enginemanager = new EngineManager();
+    const parser = new argparse.ArgumentParser({
+        addHelp: true,
+        description: 'Master Almond process'
+    });
+    parser.addArgument(['-s', '--shard'], {
+        required: false,
+        type: Number,
+        help: 'Shard number for this process',
+        defaultValue: 0
+    });
+    const argv = parser.parseArgs();
+    if (argv.shard < 0 || argv.shard >= Config.THINGENGINE_MANAGER_ADDRESS.length)
+        throw new Error(`Invalid shard number ${argv.shard}, must be between 0 and ${Config.THINGENGINE_MANAGER_ADDRESS.length-1}`);
 
-    const controlSocket = new ControlSocketServer(enginemanager);
+    const enginemanager = new EngineManager(argv.shard);
+
+    const controlSocket = new ControlSocketServer(enginemanager, argv.shard);
 
     controlSocket.start().then(() => {
         return enginemanager.start();
