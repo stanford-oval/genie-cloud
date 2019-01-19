@@ -24,6 +24,7 @@ const userUtils = require('../util/user');
 const exampleModel = require('../model/example');
 const model = require('../model/user');
 const oauthModel = require('../model/oauth2');
+const organization = require('../model/organization');
 const db = require('../util/db');
 const secret = require('../util/secret_key');
 const SendMail = require('../util/sendmail');
@@ -542,8 +543,11 @@ async function getProfile(req, res, pw_error, profile_error) {
         // ignore the error if the engine is down
     }
 
-    const oauth_permissions = await db.withClient((dbClient) => {
-        return oauthModel.getAllPermissionsOfUser(dbClient, req.user.cloud_id);
+    const [oauth_permissions, org_invitations] = await db.withClient((dbClient) => {
+        return Promise.all([
+            oauthModel.getAllPermissionsOfUser(dbClient, req.user.cloud_id),
+            req.user.developer_org ? [] : organization.getInvitationsOfUser(dbClient, req.user.id)
+        ]);
     });
 
     res.render('user_profile', { page_title: req._("Thingpedia - User Profile"),
@@ -551,6 +555,7 @@ async function getProfile(req, res, pw_error, profile_error) {
                                  pw_error,
                                  profile_error,
                                  oauth_permissions,
+                                 org_invitations,
                                  phone,
                                  desktop });
 }

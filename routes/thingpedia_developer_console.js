@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 const path = require('path');
 const lunr = require('lunr');
@@ -21,6 +20,7 @@ const device = require('../model/device');
 const oauth2 = require('../model/oauth2');
 const userModel = require('../model/user');
 const user = require('../util/user');
+const SendMail = require('../util/sendmail');
 
 const Config = require('../config');
 
@@ -43,17 +43,19 @@ router.get('/', (req, res, next) => {
         return;
     }
 
-    db.withClient((dbClient) => {
-                return Q.all([
-                    organization.get(dbClient, req.user.developer_org),
-                    organization.getMembers(dbClient, req.user.developer_org),
-                    device.getByOwner(dbClient, req.user.developer_org)]);
-    }).then(([developer_org, developer_org_members, developer_devices]) => {
+    db.withTransaction((dbClient) => {
+        return Promise.all([
+            organization.get(dbClient, req.user.developer_org),
+            organization.getMembers(dbClient, req.user.developer_org),
+            organization.getInvitations(dbClient, req.user.developer_org),
+            device.getByOwner(dbClient, req.user.developer_org)]);
+    }).then(([developer_org, developer_org_members, developer_org_invitations, developer_devices]) => {
         res.render('thingpedia_dev_overview', { page_title: req._("Thingpedia - Developer Portal"),
                                                 csrfToken: req.csrfToken(),
                                                 developer_org,
-                                                developer_org_members: developer_org_members,
-                                                developer_devices: developer_devices,
+                                                developer_org_members,
+                                                developer_org_invitations,
+                                                developer_devices,
         });
     }).catch(next);
 });
@@ -77,11 +79,20 @@ router.post('/organization/add-member', user.requireLogIn, user.requireDeveloper
                 throw new Error(req._("No such user %s").format(req.body.username));
             if (row.developer_org !== null)
                 throw new Error(req._("%s is already a member of another developer organization.").format(req.body.username));
+            if (!row.email_verified)
+                throw new Error(req._("%s has not verified their email address yet.").format(req.body.username));
         } catch(e) {
             res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: e });
-            return null;
+            return false;
         }
+        // check if the user was already invited to this org
+        // if so, we do nothing, silently
+        const [invitation] = await organization.findInvitation(dbClient, req.user.developer_org, row.id);
+        if (invitation)
+            return true;
+
+        const org = await organization.get(dbClient, req.user.developer_org);
 
         let developerStatus = parseInt(req.body.developer_status);
         if (isNaN(developerStatus) || developerStatus < 0)
@@ -89,16 +100,88 @@ router.post('/organization/add-member', user.requireLogIn, user.requireDeveloper
         if (developerStatus > user.DeveloperStatus.ORG_ADMIN)
             developerStatus = user.DeveloperStatus.ORG_ADMIN;
 
-        await userModel.update(dbClient, row.id, {
-            developer_status: developerStatus,
-            developer_org: req.user.developer_org
+        await sendInvitationEmail(req.user, org, row);
+        await organization.inviteUser(dbClient, req.user.developer_org, row.id, developerStatus);
+        return true;
+    }).then((ok) => {
+        if (ok)
+            res.redirect(303, '/thingpedia/developers');
+    }).catch(next);
+});
+
+async function sendInvitationEmail(fromUser, org, toUser) {
+    const mailOptions = {
+        from: Config.EMAIL_FROM_USER,
+        to: toUser.email,
+        subject: 'You are invited to join a Thingpedia developer organization',
+        text:
+`Hello!
+
+${fromUser.human_name || fromUser.username} is inviting you to join the “${org.name}” developer organization.
+To accept, click here:
+<${Config.SERVER_ORIGIN}/thingpedia/developers/organization/accept-invitation/${org.id_hash}>
+
+----
+You are receiving this email because this address is associated
+with your Almond account.
+`
+    };
+
+    return SendMail.send(mailOptions);
+}
+
+router.get('/organization/accept-invitation/:id_hash', user.requireLogIn, (req, res, next) => {
+    db.withTransaction(async (dbClient) => {
+        let org, invitation;
+        try {
+            if (req.user.developer_org !== null)
+                throw new Error(req._("You are already a member of another developer organization."));
+
+            org = await organization.getByIdHash(dbClient, req.params.id_hash);
+
+            [invitation] = await organization.findInvitation(dbClient, org.id, req.user.id);
+            if (!invitation)
+                throw new Error(req._("The invitation is no longer valid. It might have expired or might have been rescinded by the organization administrator."));
+        } catch(e) {
+            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                              message: e });
+            return [null, null];
+        }
+
+        await userModel.update(dbClient, req.user.id, {
+            developer_status: invitation.developer_status,
+            developer_org: org.id
         });
-        return row.id;
-    }).then(async (userId) => {
+        await organization.rescindAllInvitations(dbClient, req.user.id);
+        return [req.user.id, org.name];
+    }).then(async ([userId, orgName]) => {
         if (userId !== null) {
             await EngineManager.get().restartUser(userId);
-            res.redirect(303, '/thingpedia/developers');
+            res.render('message', {
+                page_title: req._("Thingpedia - Developer Invitation"),
+                message: req._("You're now a member of the %s organization.").format(orgName)
+            });
         }
+    }).catch(next);
+});
+
+router.post('/organization/rescind-invitation', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ORG_ADMIN), (req, res, next) => {
+    db.withTransaction(async (dbClient) => {
+        const [row] = await userModel.getByCloudId(dbClient, req.body.user_id);
+        try {
+            if (!row)
+                throw new Error(req._("No such user"));
+        } catch(e) {
+            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                              message: e });
+            return false;
+        }
+
+        await organization.rescindInvitation(dbClient, req.user.developer_org, row.id);
+        return true;
+    }).then((ok) => {
+        if (ok)
+            res.redirect(303, '/thingpedia/developers');
     }).catch(next);
 });
 

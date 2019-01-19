@@ -39,6 +39,25 @@ module.exports = {
     getMembers(client, id) {
         return db.selectAll(client, "select id,cloud_id,username,developer_status,profile_flags,roles from users where developer_org = ?", [id]);
     },
+    getInvitations(client, id) {
+        return db.selectAll(client, `select id,cloud_id,username,-1 as developer_status,profile_flags,roles
+            from users, org_invitations where id = user_id and org_id = ?`, [id]);
+    },
+    getInvitationsOfUser(client, userId) {
+        return db.selectAll(client, `select * from organizations, org_invitations where id = org_id and user_id = ?`, [userId]);
+    },
+    findInvitation(client, orgId, userId) {
+        return db.selectAll(client, `select * from org_invitations where user_id = ? and org_id = ?`, [userId, orgId]);
+    },
+    inviteUser(client, orgId, userId, status) {
+        return db.query(client, `insert into org_invitations set user_id = ?, org_id = ?, developer_status = ?`, [userId, orgId, status]);
+    },
+    rescindInvitation(client, orgId, userId) {
+        return db.query(client, `delete from org_invitations where user_id = ? and org_id = ?`, [userId, orgId]);
+    },
+    rescindAllInvitations(client, userId) {
+        return db.query(client, `delete from org_invitations where user_id = ?`, [userId]);
+    },
 
     getByDeveloperKey(client, key) {
         return db.selectAll(client, "select id,is_admin from organizations where developer_key = ?", [key]);

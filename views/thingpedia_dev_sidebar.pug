@@ -10,6 +10,7 @@ nav#doc-sidebar
     if authenticated && user.developer_org !== null
       li(class = (section === 'status' ? 'current' : ''))
         a.doc-sidebar-subtitle(href='/thingpedia/developers/status') Almond Status and Logs
+    if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
       li(class=(section === 'oauth' ? 'current' : ''))
         a.doc-sidebar-subtitle(href='/thingpedia/developers/oauth') OAuth Applications
     if authenticated

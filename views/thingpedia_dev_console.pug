@@ -6,17 +6,24 @@ section.divider
       h4.panel-title= _("Profile")
 
     div.panel-body
-      form(action='/thingpedia/developers/organization/edit-profile',method='post',data-toggle='validator')
-        input(type='hidden',name='_csrf',value=csrfToken)
+      if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
+        form(action='/thingpedia/developers/organization/edit-profile',method='post',data-toggle='validator')
+          input(type='hidden',name='_csrf',value=csrfToken)
 
+          div.form-group
+            label.control-label(for='organization-name')= _("Name")
+            input(type='text',name='name',value=developer_org.name).form-control#organization-name
+
+          div.form-group
+            button(type='submit').btn.btn-primary= _("Update profile")
+            |
+            |
+            a(href='/profiles/organization/' + developer_org.id_hash).btn.btn-default= _("Show my organization's public profile")
+      else
         div.form-group
           label.control-label(for='organization-name')= _("Name")
-          input(type='text',name='name',value=developer_org.name).form-control#organization-name
-
+          p.form-control-status#organization-name= developer_org.name
         div.form-group
-          button(type='submit').btn.btn-primary= _("Update profile")
-          |
-          |
           a(href='/profiles/organization/' + developer_org.id_hash).btn.btn-default= _("Show my organization's public profile")
 
   div.panel.panel-primary.developer-org-panel
@@ -38,8 +45,6 @@ section.divider
 
           p
             if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
-              |
-              |
               if m.developer_status < Constants.DeveloperStatus.ORG_ADMIN
                 form(action='/thingpedia/developers/organization/promote', method='post').form-inline
                   input(type='hidden',name='_csrf',value=csrfToken)
@@ -56,37 +61,48 @@ section.divider
                     input(type='hidden',name='_csrf',value=csrfToken)
                     input(type='hidden',name='user_id',value=m.cloud_id)
                     button(type='submit').btn.btn-danger.btn-sm.form-control= _("Remove")
+      for m in developer_org_invitations
+        li.list-group-item.clearfix
+          h5= m.username
+          p= _("Invited (pending)")
+          p
+            if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
+              form(action='/thingpedia/developers/organization/rescind-invitation', method='post').form-inline
+                input(type='hidden',name='_csrf',value=csrfToken)
+                input(type='hidden',name='user_id',value=m.cloud_id)
+                button(type='submit').btn.btn-success.btn-sm.form-control= _("Rescind invitation")
 
-    div.panel-footer
-      div.row
-        div.col-sm-6.col-md-4
-          a(href='#new-org-member-dialog',data-toggle='modal').btn.btn-block.btn-sm.btn-default= _("Add a member")
-      div.modal.fade(role='dialog')#new-org-member-dialog
-        div.modal-dialog
-          div.modal-content
-            div.modal-header
-              a.close(data-dismiss='modal', aria-label="Close")
-                span(aria-hidden='true') ×
+    if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
+      div.panel-footer
+        div.row
+          div.col-sm-6.col-md-4
+            a(href='#new-org-member-dialog',data-toggle='modal').btn.btn-block.btn-sm.btn-default= _("Add a member")
+        div.modal.fade(role='dialog')#new-org-member-dialog
+          div.modal-dialog
+            div.modal-content
+              div.modal-header
+                a.close(data-dismiss='modal', aria-label="Close")
+                  span(aria-hidden='true') ×
 
-              h4.modal-title= _("Add a member to your organization")
-            form(action='/thingpedia/developers/organization/add-member', method='post', data-toggle='validator')
-              input(type='hidden',name='_csrf',value=csrfToken)
+                h4.modal-title= _("Invite a member to your organization")
+              form(action='/thingpedia/developers/organization/add-member', method='post', data-toggle='validator')
+                input(type='hidden',name='_csrf',value=csrfToken)
 
-              div.modal-body
-                div.form-group
-                  label(for='new-org-member-name').control-label= _("Username")
-                  input(type='text',name='username').form-control#new-org-member-name
+                div.modal-body
+                  div.form-group
+                    label(for='new-org-member-name').control-label= _("Username")
+                    input(type='text',name='username').form-control#new-org-member-name
 
-                div.form-group
-                  label(for='new-org-member-status').control-label= _("Role")
-                  select(name='developer_status').form-control#new-org-member-status
-                    option(value=Constants.DeveloperStatus.TESTER)= _("Tester")
-                    option(value=Constants.DeveloperStatus.DEVELOPER)= _("Developer")
-                    option(value=Constants.DeveloperStatus.ORG_ADMIN)= _("Administrator")
+                  div.form-group
+                    label(for='new-org-member-status').control-label= _("Role")
+                    select(name='developer_status').form-control#new-org-member-status
+                      option(value=Constants.DeveloperStatus.TESTER)= _("Tester")
+                      option(value=Constants.DeveloperStatus.DEVELOPER)= _("Developer")
+                      option(value=Constants.DeveloperStatus.ORG_ADMIN)= _("Administrator")
 
-              div.modal-footer
-                 div.form-group
-                    button(type='submit').btn.btn-primary= _("Add member")
+                div.modal-footer
+                   div.form-group
+                      button(type='submit').btn.btn-primary= _("Invite member")
 
   div.panel.panel-default
     div.panel-heading
