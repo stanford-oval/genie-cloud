@@ -249,7 +249,7 @@ router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (r
         return model.get(dbClient, req.params.id).then((user) => {
             return model.update(dbClient, user.id, { developer_status: 0, developer_org: null });
         });
-    }).then(() => EngineManager.get().restartUser(req.params.id)).then(() => {
+    }).then(() => EngineManager.get().restartUserWithoutCache(req.params.id)).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),

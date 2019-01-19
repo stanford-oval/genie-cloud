@@ -451,7 +451,22 @@ class EngineManager extends events.EventEmitter {
         return util.promisify(child_process.execFile)('/bin/rm',
             ['-rf', dir]);
     }
+
+    // restart a user with a clean cache folder
+    // this is useful if the user just lost their developer key,
+    // as after restart they will be placed in a shared process,
+    // and we don't want them having access to unapproved (and dangerous)
+    // devices through the cache
+    //
+    // FIXME: there is a race condition here if you restart the user at just
+    // the right time before the cache is cleared, because this whole method
+    // is run after the database has been updated
+    async restartUserWithoutCache(userId) {
+        await this.killUser(userId);
+        await this.clearCache(userId);
+        await this.startUser(userId);
+    }
 }
-EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers',  'restartUser', 'deleteUser', 'clearCache'];
+EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers',  'restartUser', 'deleteUser', 'clearCache', 'restartUserWithoutCache'];
 
 module.exports = EngineManager;

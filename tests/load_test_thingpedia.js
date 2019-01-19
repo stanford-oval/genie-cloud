@@ -232,7 +232,7 @@ async function main() {
 
             // must be a TRUSTED_DEVELOPER to self-approve the new device
             // w/o hacks
-            developer_status: user.DeveloperStatus.DEVELOPER,
+            developer_status: user.DeveloperStatus.ORG_ADMIN,
             roles: user.Role.TRUSTED_DEVELOPER
         });
 

@@ -109,12 +109,15 @@
   margin-top: 1em;
 }
 
-#developer-org-panel h5 {
+.developer-org-panel h5 {
   font-weight: bold;
   margin-top: 2em;
 }
-#developer-org-panel h5:first-child {
+.developer-org-panel h5:first-child {
   margin-top: 0;
+}
+.developer-org-panel form.form-inline {
+  display: inline;
 }
 
 .dev-example {
