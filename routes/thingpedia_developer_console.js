@@ -32,14 +32,10 @@ const HAS_ABOUT_GET_INVOLVED = Config.EXTRA_ABOUT_PAGES.some((p) => p.url === 'g
 
 router.get('/', (req, res, next) => {
     if (!req.user || !req.user.developer_org) {
-        if (HAS_ABOUT_GET_INVOLVED) {
+        if (HAS_ABOUT_GET_INVOLVED)
             res.redirect('/about/get-involved');
-        } else {
-            res.status(403).render('developer_access_required',
-                                   { page_title: req._("Thingpedia - Error"),
-                                     title: req._("Developer Access required"),
-                                     csrfToken: req.csrfToken() });
-        }
+        else
+            res.redirect('/user/request-developer');
         return;
     }
 
