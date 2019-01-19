@@ -17,7 +17,9 @@ block content
           a(href='/profiles/user/' + m.cloud_id).list-group-item.clearfix
             div.pull-left= m.username
             div.pull-right
-              if m.developer_status >= Constants.DeveloperStatus.DEVELOPER
+              if m.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
+                span= _("Administrator")
+              else if m.developer_status >= Constants.DeveloperStatus.DEVELOPER
                 span= _("Developer")
               else
                 span= _("Tester")

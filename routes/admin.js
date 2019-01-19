@@ -186,7 +186,7 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) 
 
     db.withTransaction((dbClient) => {
         return model.get(dbClient, req.params.id).then((user) => {
-            if (user.developer_status >= 3)
+            if (user.developer_status >= user.DeveloperStatus.ORG_ADMIN)
                 return Promise.resolve();
 
             if (user.developer_org === null) {
@@ -197,7 +197,7 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) 
                     id_hash: makeRandom(8),
                     developer_key: makeRandom()
                 }).then((org) => {
-                    return model.update(dbClient, user.id, { developer_status: 1,
+                    return model.update(dbClient, user.id, { developer_status: user.DeveloperStatus.DEVELOPER,
                                                              developer_org: org.id });
                 });
             } else {

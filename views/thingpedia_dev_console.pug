@@ -13,10 +13,12 @@ section.divider
         li.list-group-item.clearfix
           div.pull-left= m.username
           div.pull-right
-            if m.developer_status === Constants.DeveloperStatus.USER
-              = _("Tester")
-            else if m.developer_status === Constants.DeveloperStatus.DEVELOPER
+            if m.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
+              = _("Administrator")
+            else if m.developer_status >= Constants.DeveloperStatus.DEVELOPER
               = _("Developer")
+            else
+              = _("Tester")
 
   div.panel.panel-default
     div.panel-heading

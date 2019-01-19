@@ -57,6 +57,7 @@ module.exports = {
     DeveloperStatus: {
         USER: 0,
         DEVELOPER: 1,
+        ORG_ADMIN: 2,
     },
 
     Role: {

@@ -98,7 +98,7 @@ block content
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Start user")
               li
-                if user.developer_status < Constants.DeveloperStatus.DEVELOPER
+                if user.developer_status < Constants.DeveloperStatus.ORG_ADMIN
                   form(action='/admin/users/promote/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Promote user")
