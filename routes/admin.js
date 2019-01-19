@@ -197,7 +197,7 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) 
                     id_hash: makeRandom(8),
                     developer_key: makeRandom()
                 }).then((org) => {
-                    return model.update(dbClient, user.id, { developer_status: user.DeveloperStatus.DEVELOPER,
+                    return model.update(dbClient, user.id, { developer_status: user.DeveloperStatus.ORG_ADMIN,
                                                              developer_org: org.id });
                 });
             } else {
