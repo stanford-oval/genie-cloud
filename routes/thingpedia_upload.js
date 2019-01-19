@@ -75,8 +75,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
         kind = req.body.primary_kind;
     else
         req.body.primary_kind = kind;
-    const approve = req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER &&
-        !!req.body.approve;
+    const approve = (req.user.roles & user.Role.TRUSTED_DEVELOPER) !== 0 && !!req.body.approve;
 
     try {
         const ok = await db.withTransaction(async (dbClient) => {

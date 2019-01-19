@@ -82,7 +82,7 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
             kind_type: 'primary',
             owner: req.user.developer_org
         };
-        if (req.user.developer_status < user.DeveloperStatus.TRUSTED_DEVELOPER || !approve) {
+        if ((req.user.roles & user.Role.TRUSTED_DEVELOPER) === 0 || !approve) {
             obj.approved_version = null;
             obj.developer_version = 0;
         } else {

@@ -43,9 +43,7 @@ block content
         a(href='/admin/users/search?q=' + user.id).list-group-item.clearfix
           div.pull-left= user.username
           div.pull-right
-            if user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER
-              span= _("Trusted Developer")
-            else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
+            if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
               span= _("Developer")
             else
               span= _("Tester")

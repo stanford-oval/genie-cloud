@@ -57,16 +57,16 @@ module.exports = {
     DeveloperStatus: {
         USER: 0,
         DEVELOPER: 1,
-        TRUSTED_DEVELOPER: 2
     },
 
     Role: {
         ADMIN: 1,
         BLOG_EDITOR: 2,
         THINGPEDIA_ADMIN: 4,
+        TRUSTED_DEVELOPER: 8,
 
         // all privileges
-        ROOT: 7,
+        ROOT: 15,
 
         // all admin roles (access to /admin hierarchy)
         ALL_ADMIN: 7,

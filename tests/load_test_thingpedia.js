@@ -232,8 +232,8 @@ async function main() {
 
             // must be a TRUSTED_DEVELOPER to self-approve the new device
             // w/o hacks
-            developer_status: user.DeveloperStatus.TRUSTED_DEVELOPER,
-
+            developer_status: user.DeveloperStatus.DEVELOPER,
+            roles: user.Role.TRUSTED_DEVELOPER
         });
 
         const [root] = await userModel.getByName(dbClient, 'root');
