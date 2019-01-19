@@ -192,11 +192,11 @@ module.exports = {
             required = 1; // DEVELOPER
 
         return function(req, res, next) {
-            if (req.user.developer_status < required) {
-                res.status(403).render('developer_access_required',
-                                       { page_title: req._("Thingpedia - Error"),
-                                         title: req._("Developer Access required"),
-                                         csrfToken: req.csrfToken() });
+            if (req.user.developer_org === null || req.user.developer_status < required) {
+                res.status(403).render('error', {
+                    page_title: req._("Thingpedia - Error"),
+                    message: req._("You do not have permission to perform this operation.")
+                });
             } else {
                 next();
             }
