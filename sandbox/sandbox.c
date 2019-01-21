@@ -71,7 +71,7 @@ strv_init (struct strv* strv)
 {
   strv->argv = malloc (sizeof(const char*) * 8);
   if (strv->argv == NULL)
-      die_with_error ("Out of memory");
+      die_with_error ("Failed to create argument array");
   strv->argc = 0;
   strv->cap = 8;
 }
@@ -81,7 +81,7 @@ strv_enlarge (struct strv* strv)
 {
   char **argv = realloc (strv->argv, sizeof(char*) * strv->cap * 2);
   if (argv == NULL)
-      die_with_error ("Out of memory");
+      die_with_error ("Failed to extend argument array to size %llu", (unsigned long long)strv->cap*2);
 
   strv->argv = argv;
   strv->cap *= 2;
@@ -158,7 +158,7 @@ add_thingengine_dirs (struct strv *strv)
 {
   char *pwd;
   char *thingengine_prefix;
-  const char *p, *q;
+  char *p, *q;
 
   pwd = getcwd (NULL, 0);
 
@@ -167,18 +167,15 @@ add_thingengine_dirs (struct strv *strv)
             "--bind", pwd, "/app",
             NULL);
 
-  thingengine_prefix = getenv ("THINGENGINE_PREFIX");
+  thingengine_prefix = strdup (getenv ("THINGENGINE_PREFIX"));
+  if (thingengine_prefix == NULL)
+    die_with_error ("Failed to copy prefix environment variable");
+
   for (p = thingengine_prefix; *p; p = q) {
-    char *buffer;
-
     q = strchrnul (p, ':');
-    buffer = malloc (q - p + 1);
-    strncpy (buffer, p, q - p);
-    buffer[q - p] = 0;
+    *q = 0;
 
-    strv_add (strv,
-              "--ro-bind", buffer, buffer,
-              NULL);
+    strv_add (strv, "--ro-bind", p, p, NULL);
   }
 }
 
@@ -203,12 +200,22 @@ add_etc (struct strv *strv)
     size_t sz = strlen("/etc/") + strlen(whitelist[i]) + 1;
     char *buffer = malloc(sz);
     if (buffer == NULL)
-      die_with_error ("Out of memory");
+      die_with_error ("Failed to allocate buffer");
     snprintf (buffer, sz, "/etc/%s", whitelist[i]);
 
     if (access (buffer, F_OK) == 0)
       strv_add (strv, "--ro-bind", buffer, buffer, NULL);
   }
+}
+
+static void
+strv_dump (struct strv* strv)
+{
+  size_t i = 0;
+  fprintf (stderr, "%s", strv->argv[0]);
+  for (i = 1; strv->argv[i]; i++)
+    fprintf (stderr, " %s", strv->argv[i]);
+  fprintf (stderr, "\n");
 }
 
 int main(int argc, const char* const *argv)
@@ -250,6 +257,9 @@ int main(int argc, const char* const *argv)
   for (i = 1; i < argc; i++)
     strv_add_one (&args, argv[i]);
   strv_add_one (&args, NULL);
+
+  if (getenv ("CI") != NULL)
+    strv_dump (&args);
 
   execvp ("bwrap", args.argv);
 
