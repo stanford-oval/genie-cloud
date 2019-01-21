@@ -15,8 +15,7 @@ before_install:
   aes-256-cbc -K $encrypted_6dd165f04fd2_key -iv $encrypted_6dd165f04fd2_iv -in ./travis/id_rsa.autodeploy.enc
   -out ./travis/id_rsa.autodeploy -d && chmod 0600 ./travis/id_rsa.autodeploy)
 - mkdir cvc4/
-- wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt
-  -O cvc4/cvc4
+- wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -O cvc4/cvc4
 - chmod +x cvc4/cvc4
 - mkdir geckodriver/
 - wget https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz
@@ -41,3 +40,6 @@ deploy:
   on:
     branch: staging
     repo: Stanford-Mobisocial-IoT-Lab/almond-cloud
+notifications:
+  slack:
+    secure: zNEwjcyVP5Aim11FvIzxQFdw9cicG6SKLc6s4ZO7k9MWW932SGaub4+gsqmGrKGSEmBLIkRklliFS4/QZwJhTvaLbkgj2f65zi6oE/uRQD3TO8ImFUnGhGeBGZ3FLSks7ZLvRrV+8J+vXf1GXEz5ouu8DIOOFIwE0sJDDc1cRGL0Hh8L0dSfEUD0KFDIRNbrqdZDMqdK5yMVo86tbioicdWG8LodJbldwPlc5tUX5vu4stBE7sGyCo30jtPGm0QPhSQ7Ae9L9GzH2yutQ6f/KzXHS1xXSIKL4dlcLUUU7/k9pMEh5YSSGxuRk8k+yQadqtZD2/jP20yZUc7F40pbyCutvXcnwuBQIedxxqS0qw9Mb+gR5KJ5OG9DAhnb7RU6wMu0klugD2wXKsRJ5kpdpPXIFhped2jzu18S/kEDLJntwXbR15/AyCNqTAUajnDbfa+v1ECC5XUfEH2yv0FiNSab+co10SDcVOtCV80B3yqt3fzVHKuaTOxI3e4xTvs5sZfFqQMu9GPBxCAnpYkA3sGzlYTDFOqJM9NnVjJIS6S6ePNqMLevOX9M62R9Hs78FVaL/ycyTxHEzdbBefe+0HLSl9KE+bWn5oLFusE6gHccxcckgh5c9eSLekMQEunR5DIMdTjYqa2dxySXZzRTVF0aI5yh+l6IgYdNHXkXmX8=
