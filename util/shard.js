@@ -26,4 +26,4 @@ module.exports = function shard(userId, nShards) {
     userId *= 7;
 
     return userId % nShards;
-}
+};

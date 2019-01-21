@@ -21,4 +21,4 @@ module.exports = function userToShardId(userId) {
     // if that turns out to be a problem, we can switch to shard based
     // on cloud_id, which is a guaranteed unique number
     return userId % nShards;
-}
+};
