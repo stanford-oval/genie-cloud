@@ -46,7 +46,7 @@ cd $workdir
 
 node $srcdir/tests/load_test_webalmond.js
 
-export THINGENGINE_DISABLE_SYSTEMD=1
+export THINGENGINE_DISABLE_SANDBOX=1
 node $srcdir/almond/master.js --shard 0 &
 masterpid1=$!
 node $srcdir/almond/master.js --shard 1 &
