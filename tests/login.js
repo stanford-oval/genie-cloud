@@ -21,6 +21,8 @@ const Tp = require('thingpedia');
 const tough = require('tough-cookie');
 const minidom = require('./util/minidom');
 
+const Config = require('../config');
+
 function accumulateStream(stream) {
     return new Promise((resolve, reject) => {
         const buffers = [];
@@ -43,7 +45,7 @@ function getCsrfToken(htmlString) {
     throw new Error('Failed to find input[name=_csrf]');
 }
 
-const baseUrl = process.env.BASE_URL || 'http://127.0.0.1:8080';
+const baseUrl = process.env.BASE_URL || Config.SERVER_ORIGIN;
 
 async function main() {
     const loginStream = await Tp.Helpers.Http.getStream(baseUrl + '/user/login');

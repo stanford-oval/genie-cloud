@@ -13,7 +13,9 @@ srcdir=`realpath $srcdir`
 DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test"
 export DATABASE_URL
 
-cat > $srcdir/secret_config.js <<'EOF'
+PORT=${PORT:-8080}
+cat > $srcdir/secret_config.js <<EOF
+module.exports.SERVER_ORIGIN = 'http://127.0.0.1:${PORT}';
 module.exports.FILE_STORAGE_BACKEND = 'local';
 module.exports.CDN_HOST = '/download';
 module.exports.WITH_THINGPEDIA = 'embedded';
