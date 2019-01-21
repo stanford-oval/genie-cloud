@@ -234,7 +234,6 @@ int main(int argc, const char* const *argv)
   add_api_fs (&args);
   add_thingengine_dirs (&args);
   add_etc (&args);
-  strv_add (&args, "--", NULL);
   for (i = 1; i < argc; i++)
     strv_add_one (&args, argv[i]);
   strv_add_one (&args, NULL);
