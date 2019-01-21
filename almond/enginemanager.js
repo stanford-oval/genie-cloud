@@ -191,7 +191,7 @@ class EngineProcess extends events.EventEmitter {
                 processPath = path.resolve(managerPath, '../sandbox/sandbox');
                 args = [process.execPath].concat(process.execArgv);
                 args.push(enginePath);
-                stdio = ['ignore', 'ignore', 'ignore', 'ipc'];
+                stdio = ['ignore', 1, 2, 'ipc'];
             }
             child = child_process.spawn(processPath, args,
                                         { stdio: stdio,

@@ -217,16 +217,16 @@ int main(int argc, const char* const *argv)
   if (thingengine_user_id == NULL)
     die ("Missing THINGENGINE_USER_ID in the environment\n");
 
-  /* This has to be after acquire_caps so that we connect to journald as a
-     normal user */
-  snprintf (syslog_identifier, sizeof(syslog_identifier), "thingengine-child-%s",
-            thingengine_user_id);
-  stdout_fileno = sd_journal_stream_fd (syslog_identifier, LOG_INFO, 0);
-  if (stdout_fileno < 0 || dup2 (stdout_fileno, 1) < 0 || close (stdout_fileno) < 0)
-    die_with_error ("Failed to open stdout");
-  stderr_fileno = sd_journal_stream_fd (syslog_identifier, LOG_WARNING, 0);
-  if (stderr_fileno < 0 || dup2 (stderr_fileno, 2) < 0 || close (stderr_fileno) < 0)
-    die_with_error ("Failed to open stderr");
+  if (getenv ("THINGENGINE_DISABLE_SYSTEMD") != NULL) {
+    snprintf (syslog_identifier, sizeof(syslog_identifier), "thingengine-child-%s",
+              thingengine_user_id);
+    stdout_fileno = sd_journal_stream_fd (syslog_identifier, LOG_INFO, 0);
+    if (stdout_fileno < 0 || dup2 (stdout_fileno, 1) < 0 || close (stdout_fileno) < 0)
+      die_with_error ("Failed to open stdout");
+    stderr_fileno = sd_journal_stream_fd (syslog_identifier, LOG_WARNING, 0);
+    if (stderr_fileno < 0 || dup2 (stderr_fileno, 2) < 0 || close (stderr_fileno) < 0)
+      die_with_error ("Failed to open stderr");
+  }
 
   strv_init (&args);
   add_base_args (&args);
