@@ -166,8 +166,6 @@ class EngineProcess extends events.EventEmitter {
 
         const managerPath = path.dirname(module.filename);
         const enginePath = path.resolve(managerPath, './worker');
-        const prefix = path.resolve(path.dirname(managerPath));
-        env.THINGENGINE_PREFIX = prefix;
         let child;
 
         console.log('Spawning process with ID ' + this._id);
@@ -192,6 +190,13 @@ class EngineProcess extends events.EventEmitter {
                 args = [process.execPath].concat(process.execArgv);
                 args.push(enginePath);
                 stdio = ['ignore', 1, 2, 'ipc'];
+
+                const jsPrefix = path.resolve(path.dirname(managerPath));
+                const nodepath = path.resolve(process.execPath);
+                if (!nodepath.startsWith('/usr/'))
+                    env.THINGENGINE_PREFIX = jsPrefix + ':' + nodepath;
+                else
+                    env.THINGENGINE_PREFIX = jsPrefix;
             }
             child = child_process.spawn(processPath, args,
                                         { stdio: stdio,

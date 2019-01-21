@@ -158,15 +158,28 @@ add_thingengine_dirs (struct strv *strv)
 {
   char *pwd;
   char *thingengine_prefix;
+  const char *p, *q;
 
-  thingengine_prefix = getenv ("THINGENGINE_PREFIX");
   pwd = getcwd (NULL, 0);
 
   strv_add (strv,
             "--chdir", "/app",
             "--bind", pwd, "/app",
-            "--ro-bind", thingengine_prefix, thingengine_prefix,
             NULL);
+
+  thingengine_prefix = getenv ("THINGENGINE_PREFIX");
+  for (p = thingengine_prefix; *p; p = q) {
+    char *buffer;
+
+    q = strchrnul (p, ':');
+    buffer = malloc (q - p + 1);
+    strncpy (buffer, p, q - p);
+    buffer[q - p] = 0;
+
+    strv_add (strv,
+              "--ro-bind", buffer, buffer,
+              NULL);
+  }
 }
 
 static void
