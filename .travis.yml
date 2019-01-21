@@ -3,6 +3,7 @@ branches:
   - "/^wip/"
 language: node_js
 sudo: true
+dist: xenial
 addons:
   ssh_known_hosts:
   - almond-dev.stanford.edu
@@ -23,7 +24,7 @@ before_install:
 - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
 - sudo apt-get update -q -y
 install:
-- sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev
+- sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev libsystemd-dev
   realpath
 - yarn
 before_script:
