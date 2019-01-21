@@ -166,6 +166,8 @@ class EngineProcess extends events.EventEmitter {
 
         const managerPath = path.dirname(module.filename);
         const enginePath = path.resolve(managerPath, './worker');
+        const prefix = path.resolve(path.dirname(managerPath));
+        env.THINGENGINE_PREFIX = prefix;
         let child;
 
         console.log('Spawning process with ID ' + this._id);
@@ -187,7 +189,7 @@ class EngineProcess extends events.EventEmitter {
                 stdio = ['ignore', 1, 2, 'ipc'];
             } else {
                 processPath = path.resolve(managerPath, '../sandbox/sandbox');
-                args = ['-i', this._cloudId, process.execPath].concat(process.execArgv);
+                args = [process.execPath].concat(process.execArgv);
                 args.push(enginePath);
                 stdio = ['ignore', 'ignore', 'ignore', 'ipc'];
             }
