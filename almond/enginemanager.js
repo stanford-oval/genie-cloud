@@ -381,7 +381,6 @@ class EngineManager extends events.EventEmitter {
 
         await db.withClient(async (client) => {
             const rows = await user.getAllForShardId(client, this._shardId);
-            console.log(this._shardId, rows);
             return Promise.all(rows.map((r) => {
                 return this._runUser(r).catch((e) => {
                     console.error('User ' + r.id + ' failed to start: ' + e.message);
