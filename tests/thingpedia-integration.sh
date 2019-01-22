@@ -89,7 +89,7 @@ export THINGENGINE_DISABLE_SANDBOX=1
 node $srcdir/almond/master.js &
 masterpid=$!
 
-node $srcdir/main.js &
+node $srcdir/frontend.js &
 frontendpid=$!
 
 if test "$1" = "--webalmond-interactive" ; then

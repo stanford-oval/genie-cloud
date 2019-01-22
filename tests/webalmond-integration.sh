@@ -53,7 +53,7 @@ masterpid1=$!
 node $srcdir/almond/master.js --shard 1 &
 masterpid2=$!
 
-node $srcdir/main.js &
+node $srcdir/frontend.js &
 frontendpid=$!
 
 # in interactive mode, sleep forever

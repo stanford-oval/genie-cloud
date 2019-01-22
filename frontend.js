@@ -9,9 +9,12 @@
 // See COPYING for details
 "use strict";
 
-/**
- * Module dependencies.
- */
+// FIXME we should not punch through the abstraction
+require('thingengine-core/lib/polyfill');
+
+const Q = require('q');
+Q.longStackSupport = true;
+process.on('unhandledRejection', (up) => { throw up; });
 
 const express = require('express');
 const http = require('http');
@@ -36,10 +39,16 @@ const secretKey = require('./util/secret_key');
 const db = require('./util/db');
 const i18n = require('./util/i18n');
 const userUtils = require('./util/user');
+const platform = require('./util/platform');
+const EngineManager = require('./almond/enginemanagerclient');
 
 const Config = require('./config');
+if (Config.WITH_THINGPEDIA !== 'embedded' && Config.WITH_THINGPEDIA !== 'external')
+    throw new Error('Invalid configuration, WITH_THINGPEDIA must be either embeded or external');
+if (Config.WITH_THINGPEDIA === 'embedded') // ignore whatever setting is there
+    Config.THINGPEDIA_URL = '/thingpedia';
 
-module.exports = class Frontend {
+class Frontend {
     constructor() {
         // all environments
         this._app = express();
@@ -367,4 +376,26 @@ module.exports = class Frontend {
         this._sessionStore.close();
         return Promise.resolve();
     }
-};
+}
+
+function main() {
+    platform.init();
+
+    const frontend = new Frontend();
+    const enginemanager = new EngineManager();
+    enginemanager.start();
+
+    async function handleSignal() {
+        await frontend.close();
+        await enginemanager.stop();
+        await db.tearDown();
+        process.exit();
+    }
+
+    process.on('SIGINT', handleSignal);
+    process.on('SIGTERM', handleSignal);
+
+    // open the HTTP server
+    frontend.open();
+}
+main();
