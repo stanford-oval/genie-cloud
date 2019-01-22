@@ -12,6 +12,46 @@
 const mysql = require('mysql');
 const Q = require('q');
 
+const Prometheus = require('prom-client');
+
+const Config = require('../config');
+
+function getDBCommand(query) {
+    const match = /^\s*\(\*([a-z]+)\s/i.exec(query);
+    if (match === null)
+        return 'unknown';
+    else
+        return match[1].toLowerCase();
+}
+
+const dbQueryTotal = new Prometheus.Counter({
+    name: 'db_queries_total',
+    help: 'Count the number of DB queries (grouped by db command (select, insert, update, etc.), unfilled db query)',
+    labelNames: ['command', 'query'],
+});
+const dbFailuresTotal = new Prometheus.Counter({
+    name: 'db_query_error_total',
+    help: 'Count the number of DB errors (grouped by db command (select, insert, update, etc.), unfilled db query)',
+    labelNames: ['command', 'query', 'sqlState'],
+});
+
+const dbQueryDuration = new Prometheus.Histogram({
+    name: 'db_query_duration_ms',
+    help: 'Log db query duration (grouped by db command (select, insert, update, etc.), unfilled db query)',
+    labelNames: ['command', 'query'],
+    buckets: [0.10, 5, 15, 50, 100, 200, 300, 400, 500, 1000, 2000, 3000, 4000, 5000] // buckets for query duration time from 0.1ms to 5s
+});
+const dbTransactionTotal = new Prometheus.Counter({
+    name: 'db_transactions_total',
+    help: 'Count the number of DB transactions',
+    labelNames: [],
+});
+const dbRollbackTotal = new Prometheus.Counter({
+    name: 'db_transaction_rollback_total',
+    help: 'Count the number of DB rollbacks',
+    labelNames: [],
+});
+
 function getDB() {
     var url = process.env.DATABASE_URL;
     if (url === undefined)
@@ -20,11 +60,31 @@ function getDB() {
         return url;
 }
 
+function monitoredQuery(client, string, args) {
+    const queryStartTime = new Date;
+    const dbCommand = getDBCommand(string);
+    const labels = { command: dbCommand, query: string };
+    dbQueryTotal.inc(labels);
+
+    return Q.ninvoke(client, 'query', string, args).then((result) => {
+        dbQueryDuration.observe(labels, Date.now() - queryStartTime.getTime());
+        return result;
+    }, (err) => {
+        dbQueryDuration.observe(labels, Date.now() - queryStartTime.getTime());
+        dbFailuresTotal.inc({ command: dbCommand, query: string, sqlState: err.sqlState });
+        throw err;
+    });
+}
+
 function query(client, string, args) {
-    return Q.ninvoke(client, 'query', string, args);
+    if (Config.ENABLE_PROMETHEUS && !/^(commit$|rollback$|start transaction |set transaction |)/i.test(string))
+        return monitoredQuery(client, string, args);
+    else
+        return Q.ninvoke(client, 'query', string, args);
 }
 
 function rollback(client, err, done) {
+    dbRollbackTotal.inc();
     return query(client, 'rollback').then(() => {
         done();
     }, (rollerr) => {
@@ -111,6 +171,7 @@ module.exports = {
         // using async for callbacks is fine, as long as the first
         // returned promise is Q.Promise
 
+        dbTransactionTotal.inc();
         return connect().then(async ([client, done]) => {
             // danger! we're pasting strings into SQL
             // this is ok because the argument NEVER comes from user input

@@ -40,21 +40,23 @@ module.exports = function(app) {
     });
 
     app.use((req, res, next) => {
+        let path;
+        if (req.route === undefined) {
+            // handled by serve-static or one of the middlewares killed it prematurely
+            path = Url.parse(req.originalUrl).path;
+        } else {
+            path = req.route.path;
+        }
+        // ignore prometheus polls
+        if (path === '/metrics') {
+            next();
+            return;
+        }
+    
         // this code is inspired by how morgan tracks connection duration
         const reqStart = new Date;
         onFinished(res, () => {
             const resEnd = new Date;
-
-            let path;
-            if (req.route === undefined) {
-                // handled by serve-static or one of the middlewares killed it prematurely
-                path = Url.parse(req.originalUrl).path;
-            } else {
-                path = req.route.path;
-            }
-            // ignore prometheus polls
-            if (path === '/metrics')
-                return;
 
             const duration = resEnd.getTime() - reqStart.getTime();
             const size = res.getHeader('content-length');
