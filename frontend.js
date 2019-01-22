@@ -20,7 +20,7 @@ const express = require('express');
 const http = require('http');
 const url = require('url');
 const path = require('path');
-const logger = require('morgan');
+const morgan = require('morgan');
 const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -33,6 +33,7 @@ const connect_flash = require('connect-flash');
 const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
 const acceptLanguage = require('accept-language');
+const Prometheus = require('prom-client');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
@@ -40,6 +41,7 @@ const db = require('./util/db');
 const i18n = require('./util/i18n');
 const userUtils = require('./util/user');
 const platform = require('./util/platform');
+const Metrics = require('./util/metrics');
 const EngineManager = require('./almond/enginemanagerclient');
 
 const Config = require('./config');
@@ -75,10 +77,13 @@ class Frontend {
             next();
         });
 
-        this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
-
-        this._app.use(logger('dev'));
-
+        // logging and error handling
+        // set it up first
+        if ('development' === this._app.get('env'))
+            this._app.use(errorHandler());
+        this._app.use(morgan('dev'));
+        if (Config.ENABLE_PROMETHEUS)
+            Metrics(this._app);
 
         const IS_ALMOND_WEBSITE = Config.SERVER_ORIGIN === 'https://almond.stanford.edu';
 
@@ -152,13 +157,10 @@ class Frontend {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });
+        this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
         this._app.use(express.static(path.join(__dirname, 'public'),
                                      { maxAge: 86400000 }));
         this._app.use(cacheable());
-
-        // development only
-        if ('development' === this._app.get('env'))
-            this._app.use(errorHandler());
 
         this._app.use(passport.initialize());
         this._app.use(passport.session());
@@ -385,7 +387,13 @@ function main() {
     const enginemanager = new EngineManager();
     enginemanager.start();
 
+    let metricsInterval = null;
+    if (Config.ENABLE_PROMETHEUS)
+        metricsInterval = Prometheus.collectDefaultMetrics();
+
     async function handleSignal() {
+        if (metricsInterval)
+            clearInterval(metricsInterval);
         await frontend.close();
         await enginemanager.stop();
         await db.tearDown();

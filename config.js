@@ -150,6 +150,13 @@ module.exports.EMAIL_TO_ADMIN = 'thingpedia-admins@lists.stanford.edu';
 // assistants
 module.exports.MESSAGING_DEVICE = 'org.thingpedia.builtin.matrix';
 
+// Enable metric collection using Prometheus
+module.exports.ENABLE_PROMETHEUS = false;
+// Access token to use for /metrics endpoint
+// If null, the endpoint will have no authentication
+// This value should match the "bearer_token" prometheus configuration value
+module.exports.PROMETHEUS_ACCESS_TOKEN = null;
+
 // load more configuration that should not go in git (eg secret keys)
 try {
     Object.assign(module.exports, require('./secret_config.js'));
