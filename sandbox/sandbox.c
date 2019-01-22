@@ -171,7 +171,7 @@ add_thingengine_dirs (struct strv *strv)
   if (thingengine_prefix == NULL)
     die_with_error ("Failed to copy prefix environment variable");
 
-  for (p = thingengine_prefix; *p; p = q) {
+  for (p = thingengine_prefix; *p; p = q + 1) {
     q = strchrnul (p, ':');
     *q = 0;
 
