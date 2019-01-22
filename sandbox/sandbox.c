@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <syslog.h>
+#include <stdbool.h>
 
 #include <systemd/sd-journal.h>
 
@@ -171,11 +172,17 @@ add_thingengine_dirs (struct strv *strv)
   if (thingengine_prefix == NULL)
     die_with_error ("Failed to copy prefix environment variable");
 
-  for (p = thingengine_prefix; *p; p = q + 1) {
+  for (p = thingengine_prefix; ;) {
+    bool last;
     q = strchrnul (p, ':');
+    last = *q == 0;
     *q = 0;
 
     strv_add (strv, "--ro-bind", p, p, NULL);
+    if (last)
+      break;
+    else
+      p = q + 1;
   }
 }
 
