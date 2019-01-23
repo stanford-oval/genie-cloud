@@ -148,7 +148,8 @@ class EngineProcess extends events.EventEmitter {
 
     start() {
         const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
-                              'HOME', 'SHELL', 'THINGENGINE_PROXY'];
+                              'HOME', 'SHELL', 'THINGENGINE_PROXY',
+                              'CI'];
         function envIsAllowed(name) {
             if (name.startsWith('LC_'))
                 return true;
@@ -187,9 +188,16 @@ class EngineProcess extends events.EventEmitter {
                 stdio = ['ignore', 1, 2, 'ipc'];
             } else {
                 processPath = path.resolve(managerPath, '../sandbox/sandbox');
-                args = ['-i', this._cloudId, process.execPath].concat(process.execArgv);
+                args = [process.execPath].concat(process.execArgv);
                 args.push(enginePath);
-                stdio = ['ignore', 'ignore', 'ignore', 'ipc'];
+                stdio = ['ignore', 1, 2, 'ipc'];
+
+                const jsPrefix = path.resolve(path.dirname(managerPath));
+                const nodepath = path.resolve(process.execPath);
+                if (!nodepath.startsWith('/usr/'))
+                    env.THINGENGINE_PREFIX = jsPrefix + ':' + nodepath;
+                else
+                    env.THINGENGINE_PREFIX = jsPrefix;
             }
             child = child_process.spawn(processPath, args,
                                         { stdio: stdio,
@@ -247,8 +255,9 @@ class EngineProcess extends events.EventEmitter {
 }
 
 class EngineManager extends events.EventEmitter {
-    constructor() {
+    constructor(shardId) {
         super();
+        this._shardId = shardId;
         this._processes = {};
         this._rrproc = [];
         this._nextProcess = null;
@@ -307,7 +316,7 @@ class EngineManager extends events.EventEmitter {
         };
 
         return this._findProcessForUser(user).then((child) => {
-            console.log('Running engine for user ' + user.id);
+            console.log('Running engine for user ' + user.id + ' in shard ' + this._shardId);
 
             obj.process = child;
 
@@ -344,7 +353,8 @@ class EngineManager extends events.EventEmitter {
         this._rrproc = new Array(nprocesses);
         this._nextProcess = 0;
         for (let i = 0; i < nprocesses; i++) {
-            const proc = new EngineProcess('S' + i, null);
+            const procId = `${this._shardId}/S${i}`;
+            const proc = new EngineProcess(procId, null);
             proc.on('exit', () => {
                 if (this._stopped)
                     return;
@@ -353,7 +363,7 @@ class EngineManager extends events.EventEmitter {
 
             this._rrproc[i] = proc;
             promises[i] = proc.start();
-            this._processes['S' + i] = proc;
+            this._processes[procId] = proc;
         }
 
         return Promise.all(promises);
@@ -376,7 +386,7 @@ class EngineManager extends events.EventEmitter {
         await this._startSharedProcesses(this._getNProcesses());
 
         await db.withClient(async (client) => {
-            const rows = await user.getAll(client);
+            const rows = await user.getAllForShardId(client, this._shardId);
             return Promise.all(rows.map((r) => {
                 return this._runUser(r).catch((e) => {
                     console.error('User ' + r.id + ' failed to start: ' + e.message);
@@ -407,7 +417,7 @@ class EngineManager extends events.EventEmitter {
             proc.kill();
             promises.push(proc.waitDead());
         }
-        return Promise.all(promises);
+        return Promise.all(promises).then(() => true);
     }
 
     killUser(userId) {

@@ -16,5 +16,6 @@ async function seq(array) {
 seq([
     ('./test_tokenize'),
     ('./test_device_factories'),
-    ('./test_binary_search')
+    ('./test_binary_search'),
+    ('./test_input_validation'),
 ]);

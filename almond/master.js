@@ -12,69 +12,86 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
+const assert = require('assert');
 const events = require('events');
 const rpc = require('transparent-rpc');
 const net = require('net');
 const sockaddr = require('sockaddr');
+const argparse = require('argparse');
 
 const EngineManager = require('./enginemanager');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
 
 const Config = require('../config');
-
-class DirectSocketServer {
-    constructor(engines, path) {
-        this._server = net.createServer();
-
-        this._server.on('connection', (socket) => {
-            const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
-
-            jsonSocket.on('data', (msg) => {
-                if (msg.control === 'init') {
-                    try {
-                        engines.sendSocket(msg.target, msg.replyId, socket);
-                    } catch(e) {
-                        jsonSocket.write({ error: e.message });
-                        jsonSocket.end();
-                    }
-                }
-            });
-        });
-    }
-
-    start() {
-        return Q.ninvoke(this._server, 'listen', sockaddr(Config.THINGENGINE_DIRECT_ADDRESS));
-    }
-
-    stop() {
-        return Q.ninvoke(this._server, 'close');
-    }
-}
+assert(Array.isArray(Config.THINGENGINE_MANAGER_ADDRESS));
 
 class ControlSocket extends events.EventEmitter {
     constructor(engines, socket) {
         super();
 
         this._socket = socket;
-        this._jsonDatagramSocket = new JsonDatagramSocket(socket, socket, 'utf8');
-        this._rpcSocket = new rpc.Socket(this._jsonDatagramSocket);
-        this._rpcSocket.on('close', () => this.emit('close'));
-        this._rpcSocket.on('error', () => {
-            // ignore the error, the connection will be closed soon
-        });
+        const jsonSocket = new JsonDatagramSocket(socket, socket, 'utf8');
 
-        const id = this._rpcSocket.addStub(engines);
-        this._jsonDatagramSocket.write({ control: 'ready', rpcId: id });
+        this._authenticated = Config.THINGENGINE_MANAGER_AUTHENTICATION === null;
+        const initListener = (msg) => {
+            if (msg.control === 'auth') {
+                if (msg.token === Config.THINGENGINE_MANAGER_AUTHENTICATION) {
+                    this._authenticated = true;
+                } else {
+                    jsonSocket.write({ error: 'invalid authentication token' });
+                    jsonSocket.end();
+                    jsonSocket.removeListener('data', initListener);
+                }
+                return;
+            }
+            if (!this._authenticated) {
+                jsonSocket.write({ error: 'expected authentication' });
+                jsonSocket.end();
+                jsonSocket.removeListener('data', initListener);
+                return;
+            }
+
+            // ignore new-object messages that are sent during initialization
+            // of the rpc socket
+            if (msg.control === 'new-object')
+                return;
+
+            jsonSocket.removeListener('data', initListener);
+            if (msg.control === 'direct') {
+                try {
+                    engines.sendSocket(msg.target, msg.replyId, socket);
+                    this._socket = null;
+                } catch(e) {
+                    jsonSocket.write({ error: e.message });
+                    jsonSocket.end();
+                }
+            } else if (msg.control === 'master') {
+                this._rpcSocket = new rpc.Socket(jsonSocket);
+                this._rpcSocket.on('close', () => this.emit('close'));
+                this._rpcSocket.on('error', () => {
+                    // ignore the error, the connection will be closed soon
+                });
+
+                const id = this._rpcSocket.addStub(engines);
+                jsonSocket.write({ control: 'ready', rpcId: id });
+            } else {
+                jsonSocket.write({ error: 'invalid initialization message' });
+                jsonSocket.end();
+            }
+        };
+        jsonSocket.on('data', initListener);
     }
 
     end() {
-        this._socket.end();
+        if (this._socket)
+            this._socket.end();
     }
 }
 
 class ControlSocketServer {
-    constructor(engines) {
+    constructor(engines, shardId) {
         this._server = net.createServer();
+        this._address = sockaddr(Config.THINGENGINE_MANAGER_ADDRESS[shardId]);
 
         this._connections = new Set;
         this._server.on('connection', (socket) => {
@@ -85,7 +102,7 @@ class ControlSocketServer {
     }
 
     start() {
-        return Q.ninvoke(this._server, 'listen', sockaddr(Config.THINGENGINE_MANAGER_ADDRESS));
+        return Q.ninvoke(this._server, 'listen', this._address);
     }
 
     stop() {
@@ -101,12 +118,25 @@ class ControlSocketServer {
 }
 
 function main() {
-    const enginemanager = new EngineManager();
+    const parser = new argparse.ArgumentParser({
+        addHelp: true,
+        description: 'Master Almond process'
+    });
+    parser.addArgument(['-s', '--shard'], {
+        required: false,
+        type: Number,
+        help: 'Shard number for this process',
+        defaultValue: 0
+    });
+    const argv = parser.parseArgs();
+    if (argv.shard < 0 || argv.shard >= Config.THINGENGINE_MANAGER_ADDRESS.length)
+        throw new Error(`Invalid shard number ${argv.shard}, must be between 0 and ${Config.THINGENGINE_MANAGER_ADDRESS.length-1}`);
 
-    const controlSocket = new ControlSocketServer(enginemanager);
-    const directSocket = new DirectSocketServer(enginemanager);
+    const enginemanager = new EngineManager(argv.shard);
 
-    Promise.all([controlSocket.start(), directSocket.start()]).then(() => {
+    const controlSocket = new ControlSocketServer(enginemanager, argv.shard);
+
+    controlSocket.start().then(() => {
         return enginemanager.start();
     }).catch((e) => {
         console.error('Failed to start: ' + e.message);
@@ -122,7 +152,6 @@ function main() {
         try {
             await Promise.all([
                 enginemanager.stop(),
-                directSocket.stop(),
                 controlSocket.stop()
             ]);
         } catch(e) {

@@ -21,7 +21,7 @@ const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 assert.strictEqual(Config.THINGPEDIA_URL, '/thingpedia');
 
-const THINGPEDIA_URL = 'http://127.0.0.1:8080/thingpedia';
+const THINGPEDIA_URL = Config.SERVER_ORIGIN + '/thingpedia';
 async function request(url) {
     const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url);
     //console.log(result);

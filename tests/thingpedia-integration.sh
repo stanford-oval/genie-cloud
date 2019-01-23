@@ -13,11 +13,15 @@ srcdir=`realpath $srcdir`
 DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test"
 export DATABASE_URL
 
-cat > $srcdir/secret_config.js <<'EOF'
+PORT=${PORT:-8080}
+cat > $srcdir/secret_config.js <<EOF
+module.exports.SERVER_ORIGIN = 'http://127.0.0.1:${PORT}';
 module.exports.FILE_STORAGE_BACKEND = 'local';
 module.exports.CDN_HOST = '/download';
 module.exports.WITH_THINGPEDIA = 'embedded';
 module.exports.THINGPEDIA_URL = '/thingpedia';
+module.exports.ENABLE_PROMETHEUS = true;
+module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
 EOF
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
@@ -55,7 +59,7 @@ node $srcdir/scripts/bootstrap.js
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
 eval $(node $srcdir/tests/load_test_thingpedia.js)
 
-node $srcdir/main.js &
+node $srcdir/frontend.js &
 frontendpid=$!
 
 # in interactive mode, sleep forever
@@ -85,11 +89,11 @@ echo "Object.assign(module.exports, require('./stanford/config.js'));" >> $srcdi
 # the website crawler tests will touch the web almond pages
 # too, so make sure we don't die with 400 or 500 because Almond is off
 # we have just tested operation without web almond anyway
-export THINGENGINE_DISABLE_SANDBOX=1
+export THINGENGINE_DISABLE_SYSTEMD=1
 node $srcdir/almond/master.js &
 masterpid=$!
 
-node $srcdir/main.js &
+node $srcdir/frontend.js &
 frontendpid=$!
 
 if test "$1" = "--webalmond-interactive" ; then
@@ -114,7 +118,7 @@ else
     COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
 
     # test the website by making HTTP requests directly
-    node $srcdir/tests/test_website_basic.js
+    COOKIE="${bob_cookie}" node $srcdir/tests/test_website_basic.js
 
     # test the website in a browser
     SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js

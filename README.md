@@ -16,11 +16,24 @@ information at <https://almond.stanford.edu>.
 
 ### Step 1: Acquiring dependencies
 
-The code depends on nodejs (>= 8.0), cvc4 (any version, although >= 1.5 is recommended),
-gm (provided by GraphicsMagic), cairo (libcairo2-dev on Ubuntu, cairo-devel on Fedora) and
-Pango (libpango1.0-dev on Ubuntu, pango-devel on Fedora), giflib (libgif-dev on Ubuntu, giflib-devel
-on Fedora), libjpeg, libcap (libcap-dev on Ubuntu, libcap-devel on Fedora/RHEL).
-Optionally, it depends on libsystemd for journal integration.
+The code depends on:
+
+- nodejs (>= 8.0)
+- cvc4 (any version, although >= 1.5 is recommended; only the binary is needed, not the library)
+- gm (provided by GraphicsMagic)
+- cairo (libcairo2-dev on Ubuntu, cairo-devel on Fedora)
+- Pango (libpango1.0-dev on Ubuntu, pango-devel on Fedora)
+- giflib (libgif-dev on Ubuntu, giflib-devel on Fedora)
+- libjpeg
+- libcap (libcap-dev on Ubuntu, libcap-devel on Fedora)
+
+Optionally, it depends on:
+
+- libsystemd (libsystemd-dev on Ubuntu, libsystemd-devel on Fedora)
+- bubblewrap
+
+These dependencies are used for sandboxing and journal integration.
+
 A working MySQL server is also required.
 
 This repository uses yarn for dependency tracking.
@@ -30,8 +43,7 @@ You should install yarn from [its website](https://yarnpkg.com/en/docs/install),
 yarn install
 ```
 
-Note: due to strict version requirements between the different Almond components,
-which are hosted as git repositories and not published on the npm registry, using
+Note: due to strict version requirements between the different Almond components, using
 npm is not supported.
 
 #### Setting up database encryption
@@ -100,16 +112,13 @@ is necessary if you use an embedded Thingpedia (as the default one refers to the
 If you plan to deploy this as a web facing service, and you plan to allow developer users, you
 will want to set up the sandbox.
 
-To do so, you must create an empty directory called `/run/thingengine`;
-this directory will be the root file system for sandboxed processes.
-
-Inside the sandbox, the code will have access to `/usr`, `/etc` and `/opt`. Make sure
-that the installation of Web Almond is in one of these directory, and make sure that these
-directories do not contain any private data.
+Inside the sandbox, the code will have access to `/usr`, a whitelisted subset of `/etc`, and the
+directory containing the Web Almond installation. Make sure that these directories do not contain
+any private data.
 
 In particular, you must make sure that the current working directory for Web Almond
-processes is not under `/usr`, `/etc` or `/opt`. Common choices include `/srv/thingengine`
-and `/var/lib/thingengine`.
+processes is not under `/usr`, `/etc`, or in the subtree where you cloned Web Almond.
+Common correct choices include `/srv/thingengine` and `/var/lib/thingengine`.
 
 If you skip this step, set `THINGENGINE_DISABLE_SANDBOX=1` in your environment.
 

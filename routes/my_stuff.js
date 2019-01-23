@@ -15,6 +15,7 @@ const Config = require('../config');
 
 const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
+const iv = require('../util/input_validation');
 
 var router = express.Router();
 router.use(user.requireLogIn);
@@ -105,7 +106,7 @@ router.get('/', (req, res) => {
     }).done();
 });
 
-router.post('/', (req, res) => {
+router.post('/', iv.validatePOST({ command: 'string' }), (req, res) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
         res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
             messages: req.flash('app-message'),
@@ -123,7 +124,7 @@ router.post('/', (req, res) => {
     }).done();
 });
 
-router.post('/apps/delete', (req, res, next) => {
+router.post('/apps/delete', iv.validatePOST({ id: 'string' }), (req, res, next) => {
     EngineManager.get().getEngine(req.user.id).then((engine) => {
         const id = req.body.id;
         return Promise.all([engine, engine.apps.getApp(id)]);
@@ -148,7 +149,7 @@ router.get('/conversation', (req, res, next) => {
     res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond") });
 });
 
-router.post('/conversation', (req, res) => {
+router.post('/conversation', iv.validatePOST({ command: 'string' }), (req, res) => {
     res.render('my_conversation', { page_title: req._("Thingpedia - Web Almond"), command: req.body.command });
 });
 

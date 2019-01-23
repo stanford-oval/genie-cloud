@@ -32,6 +32,7 @@ const code_storage = require('../util/code_storage');
 const graphics = require('../almond/graphics');
 const platform = require('../util/platform');
 const secret = require('../util/secret_key');
+const iv = require('../util/input_validation');
 
 var router = express.Router();
 
@@ -276,7 +277,8 @@ function validateRedirectUrls(urls) {
 
 router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'icon', maxCount: 1 }
-]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
+]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(),
+    iv.validatePOST({ scope: ['array', '?string'], name: 'string', redirect_uri: 'string' }), (req, res, next) => {
     const name = req.body.name;
     let scopes, redirectUrls;
     try {

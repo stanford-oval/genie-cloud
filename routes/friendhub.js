@@ -24,6 +24,7 @@ const platform = require('../util/platform');
 const code_storage = require('../util/code_storage');
 const graphics = require('../almond/graphics');
 const background = require('../model/background');
+const iv = require('../util/input_validation');
 
 const colorThief = new ColorThief();
 
@@ -33,7 +34,7 @@ let router = express.Router();
 
 router.use(user.requireLogIn);
 
-router.get('/search', (req, res) => {
+router.get('/search', iv.validateGET({ tags: 'string' }), (req, res) => {
     let tags = req.query.tags.split(/[ ,]+/) || null;
     Q.try(() => {
         return tags ? db.withClient((dbClient) => background.getByTags(dbClient, tags)) : {};
@@ -60,8 +61,8 @@ router.get('/', (req, res) => {
     res.render('friendhub', { page_title: req._("Friend Hub") });
 });
 
-router.post('/delete', (req, res) => {
-    let id = req.query.id;
+router.post('/delete', iv.validatePOST({ id: 'integer' }), (req, res) => {
+    let id = req.body.id;
     Q.try(() => {
         return db.withTransaction((dbClient) => deleteBackground(dbClient, id));
     }).then(() => {

@@ -230,6 +230,17 @@ block content
       div.panel-body
         p= _("You have not authorized any third-party app.")
 
+    if user.developer_org !== null
+      div.panel-footer
+        p
+          form(action='/me/api/generate-token',method='post')#issue-token-form
+            input(type='hidden', name='_csrf', value=csrfToken)
+            button(type='submit').btn.btn-primary= _("Issue an Access Token")
+        div#issue-token-result.hidden
+          p= _("The following token is valid anywhere an access token is expected. It is valid for one month, and enables all scopes. Treat it like a password!")
+          pre
+            code#issue-token-result-placeholder
+
   div.panel.panel-default
     div.panel-heading
       h2.panel-title= _("Phone")

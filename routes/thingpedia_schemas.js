@@ -25,6 +25,7 @@ const SchemaUtils = require('../util/manifest_to_schema');
 const DatasetUtils = require('../util/dataset');
 const Importer = require('../util/import_device');
 const I18n = require('../util/i18n');
+const iv = require('../util/input_validation');
 
 var router = express.Router();
 
@@ -37,7 +38,7 @@ function getOrgId(req) {
         return req.user.developer_org;
 }
 
-router.get('/by-id/:kind', (req, res, next) => {
+router.get('/by-id/:kind', iv.validateGET({ language: '?string' }), (req, res, next) => {
     const language = req.query.language || (req.user ? I18n.localeToLanguage(req.user.locale) : 'en');
     db.withClient(async (dbClient) => {
         const orgId = getOrgId(req);

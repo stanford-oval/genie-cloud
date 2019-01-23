@@ -30,8 +30,21 @@ module.exports.CDN_HOST = '/download';
 // be loaded directly from the almond-cloud website.
 module.exports.ASSET_CDN = '';
 
-module.exports.THINGENGINE_MANAGER_ADDRESS = './control';
-module.exports.THINGENGINE_DIRECT_ADDRESS = './direct';
+// Address of each master process
+// Each address must be specified in sockaddr form:
+// - absolute or relative path for Unix socket
+// - hostname:port for TCP
+//
+// Multiple addresses can be provided, in which case the users will be sharded across
+// multiple masters based on their ID (using a simple hashing scheme)
+//
+// The number of shards can be changed dynamically, provided all processes use
+// a consistent configuration (they must be all stopped when the configuration is changed),
+// and all shards have access to shared storage (eg NFS)
+// If the storage is not shared, use scripts/shard-users.js to compute which user is
+// assigned to which shard, and transfer the user's folder appropriately
+module.exports.THINGENGINE_MANAGER_ADDRESS = ['./control'];
+module.exports.THINGENGINE_MANAGER_AUTHENTICATION = null;
 module.exports.BING_KEY = '';
 
 // set this to 'embedded' to enable the embedded Thingpedia,
@@ -136,6 +149,13 @@ module.exports.EMAIL_TO_ADMIN = 'thingpedia-admins@lists.stanford.edu';
 // The device to use as the primary "messaging" device (for communicating
 // assistants
 module.exports.MESSAGING_DEVICE = 'org.thingpedia.builtin.matrix';
+
+// Enable metric collection using Prometheus
+module.exports.ENABLE_PROMETHEUS = false;
+// Access token to use for /metrics endpoint
+// If null, the endpoint will have no authentication
+// This value should match the "bearer_token" prometheus configuration value
+module.exports.PROMETHEUS_ACCESS_TOKEN = null;
 
 // load more configuration that should not go in git (eg secret keys)
 try {

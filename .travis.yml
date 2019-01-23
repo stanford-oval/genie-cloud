@@ -3,6 +3,7 @@ branches:
   - "/^wip/"
 language: node_js
 sudo: true
+dist: xenial
 addons:
   ssh_known_hosts:
   - almond-dev.stanford.edu
@@ -15,17 +16,17 @@ before_install:
   aes-256-cbc -K $encrypted_6dd165f04fd2_key -iv $encrypted_6dd165f04fd2_iv -in ./travis/id_rsa.autodeploy.enc
   -out ./travis/id_rsa.autodeploy -d && chmod 0600 ./travis/id_rsa.autodeploy)
 - mkdir cvc4/
-- wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt
-  -O cvc4/cvc4
+- wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -O cvc4/cvc4
 - chmod +x cvc4/cvc4
 - mkdir geckodriver/
 - wget https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz
 - tar xvf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver/
 - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+- sudo add-apt-repository -y ppa:openstack-ci-core/bubblewrap
 - sudo apt-get update -q -y
 install:
-- sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev
-  realpath
+- sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev libsystemd-dev
+  realpath  bubblewrap
 - yarn
 before_script:
 - mysql -u root -e "create database if not exists thingengine_test; grant all privileges
@@ -41,3 +42,6 @@ deploy:
   on:
     branch: staging
     repo: Stanford-Mobisocial-IoT-Lab/almond-cloud
+notifications:
+  slack:
+    secure: fGrI1C4upQI+TvN5AFq5Ncm37tlIEIAq39mZzP259fxxTJZVDrLL9RezzI4o17elCgROnRhOeuK75muAlDWKUK1vvVlG02y6G1qOTfG2paklLpxdGSdJHWyGOoMqv822bSpYpz+Us2hbgIoyRIjzE4QTPtAwUm+aNbQUQX5GLucBrwdkJqTUQVUSEZKjB8i8bl0ORODX2RHLWO1zuLTi/vT39DrFo2fD2yuZHNvgqDZIiIyt+9vPJPF/i1xZdh0/0XZSicAGMBBUS4FuxPWYW0ouR2Joup9jZHMmKZzgTJcPsJKpGU2feeCJebol5SWmgB1nAapfIG1WjSNUtgGKKA4BRpuhq/iZUiBE8dQrcQT2NWBES8MmPkw01xzAAALlsvL2snfVNw37WDCSezv3Ls1aT7ISDFyx29rulan0kqkcWH4e5xFY5g2TZKUPAvNeV6QfhP4RP+L+Eh72Dhk67esVTtdE7S+MX+Czq/nFeMQINPbmf+VzznHJEvEDlGT1qjz+11FxRLgtv+qbEk5UdUs3b56twLQNg3NxCQX53bjI1KRxOmf66+fl4y1DXhH5ka4m9jLoULI2hvpKLyHFg0Cky/ilTrOdfSRtSmaeshnJ3mD58CZry4xscKODwnLFz+yQdu04drto3+5sCNTNZTbxbZPY+an273kUXhXyh4w=

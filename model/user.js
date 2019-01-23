@@ -11,6 +11,8 @@
 
 const db = require('../util/db');
 
+const nshards = require('../config').THINGENGINE_MANAGER_ADDRESS.length;
+
 function create(client, user) {
     return db.insertOne(client, `insert into users set ?`, [user]).then((id) => {
         user.id = id;
@@ -76,6 +78,11 @@ module.exports = {
             return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                                 + " on u.developer_org = o.id order by id");
         }
+    },
+
+    getAllForShardId(client, shardId) {
+        return db.selectAll(client, `select u.*, o.developer_key, o.name as developer_org_name
+            from users u left join organizations o on u.developer_org = o.id where u.id % ? = ? order by id`, [nshards, shardId]);
     },
 
     recordLogin(client, userId) {

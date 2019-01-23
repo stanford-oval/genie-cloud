@@ -29,6 +29,7 @@ const db = require('../util/db');
 const secret = require('../util/secret_key');
 const SendMail = require('../util/sendmail');
 const { makeRandom } = require('../util/random');
+const iv = require('../util/input_validation');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -80,7 +81,7 @@ router.get('/login', (req, res, next) => {
 
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/user/login',
-                                                       failureFlash: 'Invalid OTP code' }), (req, res, next) => {
+                                                       failureFlash: true }), (req, res, next) => {
     req.session.completed2fa = false;
     if (req.user.totp_key) {
         // if 2fa is enabled, redirect to the 2fa login page
@@ -113,7 +114,7 @@ router.get('/2fa/login', (req, res, next) => {
 });
 
 router.post('/2fa/login', passport.authenticate('totp', { failureRedirect: '/user/2fa/login',
-                                                          failureFlash: true }), (req, res, next) => {
+                                                          failureFlash: 'Invalid OTP code' }), (req, res, next) => {
     req.session.completed2fa = true;
 
     // Redirection back to the original page
@@ -124,7 +125,7 @@ router.post('/2fa/login', passport.authenticate('totp', { failureRedirect: '/use
     res.redirect(303, redirect_to);
 });
 
-router.get('/2fa/setup', userUtils.requireLogIn, (req, res, next) => {
+router.get('/2fa/setup', userUtils.requireLogIn, iv.validateGET({ force: 'boolean' }), (req, res, next) => {
     if (req.user.totp_key !== null && req.query.force !== '1') {
         res.status(400).render('error', {
             page_title: req._("Almond - Error"),
@@ -153,7 +154,7 @@ router.get('/2fa/setup', userUtils.requireLogIn, (req, res, next) => {
     });
 });
 
-router.post('/2fa/setup', userUtils.requireLogIn, (req, res, next) => {
+router.post('/2fa/setup', userUtils.requireLogIn, iv.validatePOST({ encrypted_key: 'string', code: 'string' }), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         // recover the key that was passed to the client
         const encryptedKey = req.body.encrypted_key;
@@ -217,23 +218,26 @@ register an account on the Almond service at <${Config.SERVER_ORIGIN}>.
     return SendMail.send(mailOptions);
 }
 
-router.post('/register', (req, res, next) => {
+const registerArguments = {
+    username: 'string',
+    email: 'string',
+    password: 'string',
+    'confirm-password': 'string',
+    timezone: '?string',
+    locale: 'string'
+};
+router.post('/register', iv.validatePOST(registerArguments), (req, res, next) => {
     var options = {};
     try {
-        if (typeof req.body['username'] !== 'string' ||
-            req.body['username'].length === 0 ||
-            req.body['username'].length > 255)
+        if (req.body['username'].length > 255)
             throw new Error(req._("You must specify a valid username"));
         options.username = req.body['username'];
-        if (typeof req.body['email'] !== 'string' ||
-            req.body['email'].length === 0 ||
-            req.body['email'].indexOf('@') < 0 ||
+        if (req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
             throw new Error(req._("You must specify a valid email"));
         options.email = req.body['email'];
 
-        if (typeof req.body['password'] !== 'string' ||
-            req.body['password'].length < 8 ||
+        if (req.body['password'].length < 8 ||
             req.body['password'].length > 255)
             throw new Error(req._("You must specifiy a valid password (of at least 8 characters)"));
 
@@ -243,9 +247,7 @@ router.post('/register', (req, res, next) => {
 
         if (!req.body['timezone'])
             req.body['timezone'] = 'America/Los_Angeles';
-        if (typeof req.body['timezone'] !== 'string' ||
-            typeof req.body['locale'] !== 'string' ||
-            !/^([a-z+\-0-9_]+\/[a-z+\-0-9_]+|[a-z+\-0-9_]+)$/i.test(req.body['timezone']) ||
+        if (!/^([a-z+\-0-9_]+\/[a-z+\-0-9_]+|[a-z+\-0-9_]+)$/i.test(req.body['timezone']) ||
             !/^[a-z]{2,}-[a-z]{2,}/i.test(req.body['locale']))
             throw new Error("Invalid localization data");
         options.timezone = req.body['timezone'];
@@ -305,7 +307,7 @@ router.get('/logout', (req, res, next) => {
     res.redirect(303, '/');
 });
 
-router.post('/subscribe', (req, res, next) => {
+router.post('/subscribe', iv.validatePOST({ email: 'string' }), (req, res, next) => {
     let email = req.body['email'];
     Tp.Helpers.Http.post('https://mailman.stanford.edu/mailman/subscribe/thingpedia-support',
                          `email=${encodeURIComponent(email)}&digest=0&email-button=Subscribe`,
@@ -389,7 +391,7 @@ your Almond password. Not you? You can safely ignore this email.
     return SendMail.send(mailOptions);
 }
 
-router.post('/recovery/start', (req, res, next) => {
+router.post('/recovery/start', iv.validatePOST({ username: 'string' }), (req, res, next) => {
     db.withClient(async (dbClient) => {
         const users = await model.getByName(dbClient, req.body.username);
 
@@ -451,7 +453,7 @@ router.get('/recovery/continue/:token', (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/recovery/continue', (req, res, next) => {
+router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: 'string', 'confirm-password': 'string', code: '?string', }), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         let decoded;
         try {
@@ -467,8 +469,7 @@ router.post('/recovery/continue', (req, res, next) => {
             return;
         }
         try {
-            if (typeof req.body['password'] !== 'string' ||
-                req.body['password'].length < 8 ||
+            if (req.body['password'].length < 8 ||
                 req.body['password'].length > 255)
                 throw new Error(req._("You must specifiy a valid password (of at least 8 characters)"));
 
@@ -565,15 +566,19 @@ router.get('/profile', userUtils.requireLogIn, (req, res, next) => {
     getProfile(req, res, undefined, undefined).catch(next);
 });
 
-router.post('/profile', userUtils.requireLogIn, (req, res, next) => {
+const profileArguments = {
+    username: 'string',
+    email: 'string',
+    human_name: '?string',
+    visible_organization_profile: 'boolean',
+    show_human_name: 'boolean',
+    show_profile_picture: 'boolean'
+};
+router.post('/profile', userUtils.requireLogIn, iv.validatePOST(profileArguments), (req, res, next) => {
     return db.withTransaction(async (dbClient) => {
-        if (typeof req.body.username !== 'string' ||
-            req.body.username.length === 0 ||
-            req.body.username.length > 255)
+        if (req.body.username.length > 255)
             req.body.username = req.user.username;
-        if (typeof req.body['email'] !== 'string' ||
-            req.body['email'].length === 0 ||
-            req.body['email'].indexOf('@') < 0 ||
+        if (req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
             req.body.email = req.user.email;
 
@@ -591,11 +596,11 @@ router.post('/profile', userUtils.requireLogIn, (req, res, next) => {
                             { username: req.body.username,
                               email: req.body.email,
                               email_verified: !mustSendEmail,
-                              human_name: req.body.human_name,
+                              human_name: req.body.human_name || '',
                               profile_flags });
         req.user.username = req.body.username;
         req.user.email = req.body.email;
-        req.user.human_name = req.body.human_name;
+        req.user.human_name = req.body.human_name || '';
         req.user.profile_flags = profile_flags;
         if (mustSendEmail)
             await sendValidationEmail(req.user.cloud_id, req.body.username, req.body.email);
@@ -609,7 +614,7 @@ router.post('/profile', userUtils.requireLogIn, (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/revoke-oauth2', userUtils.requireLogIn, (req, res, next) => {
+router.post('/revoke-oauth2', userUtils.requireLogIn, iv.validatePOST({ client_id: 'string' }), (req, res, next) => {
     return db.withTransaction((dbClient) => {
         return oauthModel.revokePermission(dbClient, req.body.client_id, req.user.cloud_id);
     }).then(() => {
@@ -617,11 +622,10 @@ router.post('/revoke-oauth2', userUtils.requireLogIn, (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/change-password', userUtils.requireLogIn, (req, res, next) => {
+router.post('/change-password', userUtils.requireLogIn, iv.validatePOST({ password: 'string', old_password: '?string', 'confirm-password': 'string' }), (req, res, next) => {
     var password, oldpassword;
     Promise.resolve().then(() => {
-        if (typeof req.body['password'] !== 'string' ||
-            req.body['password'].length < 8 ||
+        if (req.body['password'].length < 8 ||
             req.body['password'].length > 255)
             throw new Error(req._("You must specifiy a valid password (of at least 8 characters)"));
 
@@ -630,7 +634,7 @@ router.post('/change-password', userUtils.requireLogIn, (req, res, next) => {
         password = req.body['password'];
 
         if (req.user.password) {
-            if (typeof req.body['old_password'] !== 'string')
+            if (!req.body['old_password'])
                 throw new Error(req._("You must specifiy your old password"));
             oldpassword = req.body['old_password'];
         }
@@ -680,8 +684,8 @@ function sendNewOrgNotificationEmail(req) {
         to: Config.EMAIL_TO_ADMIN,
         subject: 'New Developer Access Requested',
         replyTo: {
-            name: req.body.realname,
-            address: req.body.email
+            name: req.user.human_name || req.user.username,
+            address: req.user.email
         },
         text:
 `${req.user.username} (${req.user.human_name} <${req.user.email}>), working for ${req.body.company},
@@ -698,7 +702,7 @@ ${(req.body.comments || '').trim()}
     return SendMail.send(mailOptions);
 }
 
-router.post('/request-developer', userUtils.requireLogIn, (req, res, next) => {
+router.post('/request-developer', userUtils.requireLogIn, iv.validatePOST({ name: 'string', company: '?string', reason: '?string', comments: '?string' }), (req, res, next) => {
     if (req.user.developer_org !== null) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("You are already an enrolled developer.") });

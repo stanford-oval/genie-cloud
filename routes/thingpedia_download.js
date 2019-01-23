@@ -11,10 +11,11 @@
 
 const express = require('express');
 const ThingpediaClient = require('../util/thingpedia-client');
+const iv = require('../util/input_validation');
 
 var router = express.Router();
 
-router.get('/devices/:device', (req, res, next) => {
+router.get('/devices/:device', iv.validateGET({ developer_key: '?string', version: '?integer' }), (req, res, next) => {
     var device = req.params.device;
     if (!device || device.length < 5) {
         res.status(400).send('Bad Request');

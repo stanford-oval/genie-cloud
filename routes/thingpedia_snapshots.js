@@ -14,11 +14,12 @@ const express = require('express');
 const user = require('../util/user');
 const snapshot = require('../model/snapshot');
 const db = require('../util/db');
+const iv = require('../util/input_validation');
 
 const router = express.Router();
 router.use(user.requireLogIn, user.requireRole(user.Role.THINGPEDIA_ADMIN));
 
-router.get('/', (req, res) => {
+router.get('/', iv.validateGET({ page: '?integer' }), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -39,7 +40,7 @@ router.get('/', (req, res) => {
     }).done();
 });
 
-router.post('/create', (req, res) => {
+router.post('/create', iv.validatePOST({ description: '?string' }), (req, res) => {
     db.withTransaction((dbClient) => {
         var obj = {
             description: req.body.description || '',

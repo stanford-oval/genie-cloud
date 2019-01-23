@@ -22,7 +22,7 @@ const firefox = require('selenium-webdriver/firefox');
 
 const Config = require('../config');
 
-const BASE_URL = process.env.THINGENGINE_URL || 'http://127.0.0.1:8080';
+const BASE_URL = process.env.THINGENGINE_URL || Config.SERVER_ORIGIN;
 
 async function withSelenium(test) {
     const builder = new WD.Builder()

@@ -9,15 +9,18 @@
 // See COPYING for details
 "use strict";
 
-/**
- * Module dependencies.
- */
+// FIXME we should not punch through the abstraction
+require('thingengine-core/lib/polyfill');
+
+const Q = require('q');
+Q.longStackSupport = true;
+process.on('unhandledRejection', (up) => { throw up; });
 
 const express = require('express');
 const http = require('http');
 const url = require('url');
 const path = require('path');
-const logger = require('morgan');
+const morgan = require('morgan');
 const favicon = require('serve-favicon');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
@@ -30,16 +33,24 @@ const connect_flash = require('connect-flash');
 const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
 const acceptLanguage = require('accept-language');
+const Prometheus = require('prom-client');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
 const db = require('./util/db');
 const i18n = require('./util/i18n');
 const userUtils = require('./util/user');
+const platform = require('./util/platform');
+const Metrics = require('./util/metrics');
+const EngineManager = require('./almond/enginemanagerclient');
 
 const Config = require('./config');
+if (Config.WITH_THINGPEDIA !== 'embedded' && Config.WITH_THINGPEDIA !== 'external')
+    throw new Error('Invalid configuration, WITH_THINGPEDIA must be either embeded or external');
+if (Config.WITH_THINGPEDIA === 'embedded') // ignore whatever setting is there
+    Config.THINGPEDIA_URL = '/thingpedia';
 
-module.exports = class Frontend {
+class Frontend {
     constructor() {
         // all environments
         this._app = express();
@@ -66,10 +77,13 @@ module.exports = class Frontend {
             next();
         });
 
-        this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
-
-        this._app.use(logger('dev'));
-
+        // logging and error handling
+        // set it up first
+        if ('development' === this._app.get('env'))
+            this._app.use(errorHandler());
+        this._app.use(morgan('dev'));
+        if (Config.ENABLE_PROMETHEUS)
+            Metrics(this._app);
 
         const IS_ALMOND_WEBSITE = Config.SERVER_ORIGIN === 'https://almond.stanford.edu';
 
@@ -143,13 +157,10 @@ module.exports = class Frontend {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });
+        this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
         this._app.use(express.static(path.join(__dirname, 'public'),
                                      { maxAge: 86400000 }));
         this._app.use(cacheable());
-
-        // development only
-        if ('development' === this._app.get('env'))
-            this._app.use(errorHandler());
 
         this._app.use(passport.initialize());
         this._app.use(passport.session());
@@ -310,7 +321,12 @@ module.exports = class Frontend {
         });
 
         this._app.use((err, req, res, next) => {
-            if (err.code === 'EBADCSRFTOKEN') {
+            if (typeof err.status === 'number') {
+                res.status(err.status).render('error', {
+                    page_title: req._("Almond - Error"),
+                    message: err.expose ? err : req._("Code: %d").foramt(err.status)
+                });
+            } else if (err.code === 'EBADCSRFTOKEN') {
                 res.status(403).render('error', {
                     page_title: req._("Almond - Forbidden"),
                     message: err,
@@ -367,4 +383,32 @@ module.exports = class Frontend {
         this._sessionStore.close();
         return Promise.resolve();
     }
-};
+}
+
+function main() {
+    platform.init();
+
+    const frontend = new Frontend();
+    const enginemanager = new EngineManager();
+    enginemanager.start();
+
+    let metricsInterval = null;
+    if (Config.ENABLE_PROMETHEUS)
+        metricsInterval = Prometheus.collectDefaultMetrics();
+
+    async function handleSignal() {
+        if (metricsInterval)
+            clearInterval(metricsInterval);
+        await frontend.close();
+        await enginemanager.stop();
+        await db.tearDown();
+        process.exit();
+    }
+
+    process.on('SIGINT', handleSignal);
+    process.on('SIGTERM', handleSignal);
+
+    // open the HTTP server
+    frontend.open();
+}
+main();

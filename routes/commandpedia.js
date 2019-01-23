@@ -11,10 +11,11 @@ const express = require('express');
 
 const db = require('../util/db');
 const commandModel = require('../model/example');
+const iv = require('../util/input_validation');
 
 let router = express.Router();
 
-router.post('/suggest', (req, res, next) => {
+router.post('/suggest', iv.validatePOST({ description: 'string' }), (req, res, next) => {
     let command = req.body['description'];
     db.withTransaction((dbClient) => {
         return commandModel.suggest(dbClient, command);

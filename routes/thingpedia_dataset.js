@@ -14,6 +14,7 @@ const express = require('express');
 const db = require('../util/db');
 const user = require('../util/user');
 const model = require('../model/example');
+const iv = require('../util/input_validation');
 
 const router = express.Router();
 router.use(user.requireLogIn, user.requireRole(user.Role.THINGPEDIA_ADMIN));
@@ -32,7 +33,7 @@ router.get('/', (req, res) => {
     });
 });
 
-router.get('/:language/:type', (req, res) => {
+router.get('/:language/:type', iv.validateGET({ page: '?integer' }), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;

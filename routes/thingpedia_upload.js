@@ -28,8 +28,9 @@ const Validation = require('../util/validation');
 const Importer = require('../util/import_device');
 const FactoryUtils = require('../util/device_factories');
 const DatasetUtils = require('../util/dataset');
-
+const iv = require('../util/input_validation');
 const user = require('../util/user');
+
 const EngineManager = require('../almond/enginemanagerclient');
 
 var router = express.Router();
@@ -203,7 +204,24 @@ async function doCreateOrUpdate(kind, create, req, res) {
     }
 }
 
-router.post('/create', (req, res, next) => {
+const updateArguments = {
+    name: 'string',
+    description: 'string',
+    license: 'string',
+    license_gplcompatible: 'boolean',
+    website: '?string',
+    repository: '?string',
+    issue_tracker: '?string',
+    subcategory: 'string',
+    code: 'string',
+    dataset: 'string',
+    approve: 'boolean'
+};
+const createArguments = {};
+Object.assign(createArguments, updateArguments);
+createArguments.primary_kind = 'string';
+
+router.post('/create', iv.validatePOST(createArguments), (req, res, next) => {
     doCreateOrUpdate(undefined, true, req, res).catch(next);
 });
 
@@ -245,7 +263,7 @@ router.get('/update/:kind', (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/update/:kind', (req, res, next) => {
+router.post('/update/:kind', iv.validatePOST(updateArguments), (req, res, next) => {
     doCreateOrUpdate(req.params.kind, false, req, res).catch(next);
 });
 
