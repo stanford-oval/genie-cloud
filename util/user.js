@@ -61,10 +61,10 @@ module.exports = {
     },
 
     Role: {
-        ADMIN: 1,
-        BLOG_EDITOR: 2,
-        THINGPEDIA_ADMIN: 4,
-        TRUSTED_DEVELOPER: 8,
+        ADMIN: 1,             // allows to view and manipulate users
+        BLOG_EDITOR: 2,       // allows to edit blogs
+        THINGPEDIA_ADMIN: 4,  // allows to view/edit/approve thingpedia entries (devices, datasets, strings, entities, examples, etc)
+        TRUSTED_DEVELOPER: 8, // allows to approve their own device
 
         // all privileges
         ROOT: 15,
