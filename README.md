@@ -48,7 +48,8 @@ sudo dnf install nodejs cvc4 GraphicsMagick cairo-devel pango-devel giflib-devel
 
 If you would like to run the MySQL server locally:
 ```
-sudo apt install mariadb-server
+sudo apt install mariadb-server //Ubuntu
+sudo dnf install mariadb-server //Fedora
 ```
 
 This repository uses yarn for dependency tracking.
