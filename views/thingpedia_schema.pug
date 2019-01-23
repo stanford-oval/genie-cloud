@@ -13,7 +13,7 @@ block page_name
 block content
   if schema.approved_version === null
     div.alert.alert-warning(role='alert')
-      if authenticated && user.developer_status >= Constants.DeveloperStatus.ADMIN
+      if authenticated && (user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0
         if schema.kind_type === 'other'
           form(action='/thingpedia/devices/approve', method='post').form-inline
             input(type='hidden',name='_csrf',value=csrfToken)
@@ -25,18 +25,17 @@ block content
           p= _("This type belongs to a device that was not yet approved.")
       else
         p= _("This type is not yet approved for general use. You need a developer key to use it.")
-  else if schema.approved_version !== schema.developer_version && user && user.developer_status >= Constants.DeveloperStatus.ADMIN
+  else if schema.approved_version !== schema.developer_version && authenticated && (user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0
     div.alert.alert-warning(role='alert')
-      if authenticated && user.developer_status >= Constants.DeveloperStatus.ADMIN
-        form(action='/thingpedia/devices/approve/' + schema.id, method='post').form-inline
-          input(type='hidden',name='_csrf',value=csrfToken)
-          input(type='hidden',name='kind',value=schema.kind)
-          p.form-group= _("A newer version of this schema was submitted.")
-            if schema.kind_type === 'other'
-              | &#x20;
-              button(type='submit').btn.btn-success= _("Approve it")
-            else
-              = _(" Go to the corresponding device page to approve it.")
+      form(action='/thingpedia/devices/approve/' + schema.id, method='post').form-inline
+        input(type='hidden',name='_csrf',value=csrfToken)
+        input(type='hidden',name='kind',value=schema.kind)
+        p.form-group= _("A newer version of this schema was submitted.")
+          if schema.kind_type === 'other'
+            | &#x20;
+            button(type='submit').btn.btn-success= _("Approve it")
+          else
+            = _(" Go to the corresponding device page to approve it.")
 
   if !schema.translated
     div.alert.alert-info(role='alert')
@@ -68,7 +67,7 @@ block content
     != schema.highlighedDataset
 
   div.row#device-details-actions
-    if schema.kind_type === 'other' && authenticated && (user.developer_status >= Constants.DeveloperStatus.ADMIN || schema.owner === user.developer_org)
+    if schema.kind_type === 'other' && authenticated && ((user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0 || schema.owner === user.developer_org)
       div.col-md-2
         a.btn.btn-warning.btn-block(href='/thingpedia/devices/update/' + schema.kind)= _("Edit")
       div.col-md-2

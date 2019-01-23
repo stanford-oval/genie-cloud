@@ -76,8 +76,8 @@ async function doCreateOrUpdate(kind, create, req, res) {
         kind = req.body.primary_kind;
     else
         req.body.primary_kind = kind;
-    const approve = req.user.developer_status >= user.DeveloperStatus.TRUSTED_DEVELOPER &&
-        !!req.body.approve;
+    const approve = (req.user.roles & (user.Role.TRUSTED_DEVELOPER | user.Role.THINGPEDIA_ADMIN)) !== 0
+        && !!req.body.approve;
 
     try {
         const ok = await db.withTransaction(async (dbClient) => {
@@ -97,7 +97,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
                         throw new Error(req._("Existing device not found"));
                     }
                     if (old.owner !== req.user.developer_org &&
-                        req.user.developer_status < user.DeveloperStatus.ADMIN)
+                        (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
                         throw new Error(req._("Existing device not found"));
                 }
             } catch(e) {
@@ -230,7 +230,7 @@ router.get('/update/:kind', (req, res, next) => {
         return db.withClient(async (dbClient) => {
             const d = await model.getByPrimaryKind(dbClient, req.params.kind, true);
             if (d.owner !== req.user.developer_org &&
-                req.user.developer < user.DeveloperStatus.ADMIN)
+                (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
                 throw new Error(req._("Not Authorized"));
 
             let [code, examples] = await Promise.all([

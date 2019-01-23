@@ -29,7 +29,7 @@ block content
             = create ? _("Create") : _("Save")
 
         div.col-lg-2.col-md-2
-          if user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER
+          if (user.roles & (Constants.Role.THINGPEDIA_ADMIN | Constants.Role.TRUSTED_DEVELOPER)) !== 0
             div.checkbox
               label(for='device-approve').control-label
                 input(type='checkbox',name='approve',value='1',checked=approve)#device-approve

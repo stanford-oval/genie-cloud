@@ -7,10 +7,8 @@ block content
     div.row
       div.col-xs-12
         p= _("Thanks for your interest in Thingpedia!")
-        p= _("At the moment, Thingpedia is still in closed beta. ")
-          = _("If you would like to request developer access, please fill the form below and we'll get back to you.")
-          if user.locale !== 'en-US'
-            = _(" Please use English only.")
+        p!= _("The process of becoming a contributor to Thingpedia involves creating a <i>developer organization</i>. This organization will be the public face of all your contributions, whether third-party services, integrations, or natural language models. After the organization is created, you can invite collaborators and testers.")
+        p= _("To create a new organization, fill the following form. If you instead would like to join an existing organization, you should contact an administrator and ask to be invited.")
 
     div.row
       div.col-xs-12
@@ -18,24 +16,28 @@ block content
           input(type='hidden',name='_csrf',value=csrfToken)
 
           div.form-group
-            label(for='realname').control-label= _("Full Name")
-            input(type='text',name='realname',required=true,maxlength=255,value=user.human_name).form-control#realname
+            label(for='name').control-label= _("Organization Name")
+            input(type='text',name='name',required=true,maxlength=255).form-control#organization
+            span.help-block= _("This will be visible to other users in your public profile and in all the devices you contribute to. You can change it label.")
+
+          p= _("The following is just for us, to know more about our users. You can leave all fields blank.")
+          div.form-group
+            label(for='company').control-label= _("Company Name")
+            input(type='text',name='company').form-control#company
 
           div.form-group
-            label(for='organization').control-label= _("Organization")
-            input(type='text',name='organization',maxlength=255).form-control#organization
-
-          div.form-group
-            label(for='email').control-label= _("E-mail")
-            input(type='email',name='email',required=true,value=user.email).form-control#email
-
-          div.form-group
-            label(for='reason').control-label= _("Reason to use Thingpedia (may leave blank)")
+            label(for='reason').control-label= _("Reason to use Thingpedia")
             textarea(name="reason").form-control#reason
 
           div.form-group
-            label(for='comments').control-label= _("Additional comments (may leave blank)")
+            label(for='comments').control-label= _("Additional comments")
             textarea(name="comments").form-control#comments
 
           div.form-group
-            button(type='submit').btn.btn-primary= _("Submit")
+            div.checkbox
+              label
+                input(type='checkbox',name='accept_tos',value='1',checked=false,required=true)
+                != _("I have read and accept the <a href='/about/tos'>Terms of Service</a>, including the additional sections pertaining to the Thingpedia Developer program.")
+
+          div.form-group
+            button(type='submit').btn.btn-primary= _("Create Organization")

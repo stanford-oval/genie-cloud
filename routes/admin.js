@@ -52,7 +52,7 @@ function renderUserList(users) {
 
 router.use(user.requireLogIn);
 
-router.get('/', user.requireAnyRole, (req, res, next) => {
+router.get('/', user.requireAnyRole(user.Role.ALL_ADMIN), (req, res, next) => {
     res.render('admin_portal', { page_title: req._("Thingpedia - Administration"),
                                  csrfToken: req.csrfToken() });
 });
@@ -186,7 +186,7 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) 
 
     db.withTransaction((dbClient) => {
         return model.get(dbClient, req.params.id).then((user) => {
-            if (user.developer_status >= 3)
+            if (user.developer_status >= user.DeveloperStatus.ORG_ADMIN)
                 return Promise.resolve();
 
             if (user.developer_org === null) {
@@ -197,7 +197,7 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) 
                     id_hash: makeRandom(8),
                     developer_key: makeRandom()
                 }).then((org) => {
-                    return model.update(dbClient, user.id, { developer_status: 1,
+                    return model.update(dbClient, user.id, { developer_status: user.DeveloperStatus.ORG_ADMIN,
                                                              developer_org: org.id });
                 });
             } else {
@@ -249,7 +249,7 @@ router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (r
         return model.get(dbClient, req.params.id).then((user) => {
             return model.update(dbClient, user.id, { developer_status: 0, developer_org: null });
         });
-    }).then(() => EngineManager.get().restartUser(req.params.id)).then(() => {
+    }).then(() => EngineManager.get().restartUserWithoutCache(req.params.id)).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
     }).catch((e) => {
         res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
@@ -257,7 +257,7 @@ router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (r
     }).done();
 });
 
-router.get('/review-queue', user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;

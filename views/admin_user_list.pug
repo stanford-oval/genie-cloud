@@ -60,17 +60,15 @@ block content
             if user.roles !== 0
               - let roles = []
               if user.roles & Constants.Role.ADMIN
-                - roles.push(_("Site Admin"))
+                - roles.push(_("Site Admin"));
               if user.roles & Constants.Role.BLOG_EDITOR
-                - roles.push(_("Blog Editor"))
+                - roles.push(_("Blog Editor"));
+              if user.roles & Constants.Role.THINGPEDIA_ADMIN
+                - roles.push(_("Thingpedia Admin"));
+              if user.roles & Constants.Role.TRUSTED_DEVELOPER
+                - roles.push(_("Trusted Developer"));
               span(title=user.developer_key)
                 a(href='/admin/organizations/details/' + user.developer_org)= roles.join(', ')
-            else if user.developer_status >= Constants.DeveloperStatus.ADMIN
-              span(title=user.developer_key)
-                a(href='/admin/organizations/details/' + user.developer_org)= _("Admin")
-            else if user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER
-              span(title=user.developer_key)
-                a(href='/admin/organizations/details/' + user.developer_org)= _("Trusted Dev")
             else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
               span(title=user.developer_key)
                 a(href='/admin/organizations/details/' + user.developer_org)= _("Developer")
@@ -100,7 +98,7 @@ block content
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Start user")
               li
-                if user.developer_status < Constants.DeveloperStatus.ADMIN
+                if user.developer_status < Constants.DeveloperStatus.ORG_ADMIN
                   form(action='/admin/users/promote/' + user.id, method='post')
                     input(type='hidden',name='_csrf',value=csrfToken)
                     button(type='submit').btn.btn-success.form-control= _("Promote user")

@@ -1,10 +1,8 @@
 extends layout
 
 block content
-  h1= _("Developer Access requested")
+  h1= _("Success")
 
-  div.container
-    div.row
-      div.col-xs-12
-        p= _("Thanks again for your interest in Thingpedia, we alerted the Thingpedia Team and they will get back to you as soon as possible.")
-        p= _("Hope to see you contributing soon!")
+  p= _("Your developer organization has been created. You can now start contributing!")
+  p
+    a(href='/thingpedia/developers').btn.btn-primary= _("Go to my developer console")

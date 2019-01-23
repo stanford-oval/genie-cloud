@@ -39,7 +39,7 @@ router.get('/', (req, res) => {
 function getOrgId(req) {
     if (!req.user)
         return null;
-    if (req.user.developer_status >= user.DeveloperStatus.ADMIN)
+    if ((req.user.roles & user.Role.THINGPEDIA_ADMIN) !== 0)
         return -1;
     else
         return req.user.developer_org;
@@ -52,10 +52,10 @@ function getDetails(fn, param, req, res) {
         const device = await fn(client, param);
 
         let version;
-        if ('version' in req.query && req.user && req.user.developer_status >= user.DeveloperStatus.ADMIN)
+        if ('version' in req.query && req.user && (req.user.roles & user.Role.THINGPEDIA_ADMIN) !== 0)
             version = parseInt(req.query.version);
-        else if (req.user && (req.user.developer_org === device.owner ||
-                 req.user.developer_status >= user.DeveloperStatus.ADMIN))
+        else if (req.user &&
+                 (req.user.developer_org === device.owner || (req.user.roles & user.Role.THINGPEDIA_ADMIN) !== 0))
             version = device.developer_version;
         else
             version = device.approved_version;
@@ -131,7 +131,7 @@ router.get('/by-id/:kind', iv.validateGET({ version: '?integer' }), (req, res, n
 
 router.use(user.requireLogIn);
 
-router.post('/approve', user.requireDeveloper(user.DeveloperStatus.ADMIN), iv.validatePOST({ kind: 'string' }), (req, res, next) => {
+router.post('/approve', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validatePOST({ kind: 'string' }), (req, res, next) => {
     db.withTransaction((dbClient) => {
         return Promise.all([
             model.approve(dbClient, req.body.kind),
@@ -145,7 +145,7 @@ router.post('/approve', user.requireDeveloper(user.DeveloperStatus.ADMIN), iv.va
     }).catch(next);
 });
 
-router.post('/unapprove', user.requireDeveloper(user.DeveloperStatus.ADMIN), iv.validatePOST({ kind: 'string' }), (req, res) => {
+router.post('/unapprove', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validatePOST({ kind: 'string' }), (req, res) => {
     db.withTransaction((dbClient) => {
         return Promise.all([
             model.unapprove(dbClient, req.body.kind),
@@ -165,7 +165,7 @@ router.post('/delete', iv.validatePOST({ kind: 'string' }), (req, res) => {
     db.withTransaction(async (dbClient) => {
         const row = await model.getByPrimaryKind(dbClient, req.body.kind);
         if (row.owner !== req.user.developer_org &&
-            req.user.developer < user.DeveloperStatus.ADMIN) {
+            (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
             // note that this must be exactly the same error used by util/db.js
             // so that a true not found is indistinguishable from not having permission
             const err = new Error("Not Found");
@@ -190,7 +190,7 @@ router.post('/train', iv.validatePOST({ kind: 'string' }), (req, res) => {
     db.withTransaction(async (dbClient) => {
         const row = await model.getByPrimaryKind(dbClient, req.body.kind);
         if (row.owner !== req.user.developer_org &&
-            req.user.developer < user.DeveloperStatus.ADMIN) {
+            (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
             // note that this must be exactly the same error used by util/db.js
             // so that a true not found is indistinguishable from not having permission
             const err = new Error("Not Found");

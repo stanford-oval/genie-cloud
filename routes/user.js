@@ -24,9 +24,11 @@ const userUtils = require('../util/user');
 const exampleModel = require('../model/example');
 const model = require('../model/user');
 const oauthModel = require('../model/oauth2');
+const organization = require('../model/organization');
 const db = require('../util/db');
 const secret = require('../util/secret_key');
 const SendMail = require('../util/sendmail');
+const { makeRandom } = require('../util/random');
 const iv = require('../util/input_validation');
 
 const EngineManager = require('../almond/enginemanagerclient');
@@ -543,8 +545,11 @@ async function getProfile(req, res, pw_error, profile_error) {
         // ignore the error if the engine is down
     }
 
-    const oauth_permissions = await db.withClient((dbClient) => {
-        return oauthModel.getAllPermissionsOfUser(dbClient, req.user.cloud_id);
+    const [oauth_permissions, org_invitations] = await db.withClient((dbClient) => {
+        return Promise.all([
+            oauthModel.getAllPermissionsOfUser(dbClient, req.user.cloud_id),
+            req.user.developer_org ? [] : organization.getInvitationsOfUser(dbClient, req.user.id)
+        ]);
     });
 
     res.render('user_profile', { page_title: req._("Thingpedia - User Profile"),
@@ -552,6 +557,7 @@ async function getProfile(req, res, pw_error, profile_error) {
                                  pw_error,
                                  profile_error,
                                  oauth_permissions,
+                                 org_invitations,
                                  phone,
                                  desktop });
 }
@@ -660,6 +666,11 @@ router.get('/request-developer', userUtils.requireLogIn, (req, res, next) => {
                               message: req._("You are already an enrolled developer.") });
         return;
     }
+    if (!req.user.email_verified) {
+        res.render('error', { page_title: req._("Thingpedia - Error"),
+                              message: req._("You must validate your email address before you can apply to be a Thingpedia developer.") });
+        return;
+    }
 
     res.render('developer_access_required',
                { page_title: req._("Thingpedia - Developer Program"),
@@ -667,26 +678,19 @@ router.get('/request-developer', userUtils.requireLogIn, (req, res, next) => {
                  csrfToken: req.csrfToken() });
 });
 
-router.post('/request-developer', userUtils.requireLogIn, iv.validatePOST({ realname: 'string', email: 'string', reason: '?string', comments: '?string' }), (req, res, next) => {
-    if (req.user.developer_status >= userUtils.DeveloperStatus.DEVELOPER) {
-        res.render('error', { page_title: req._("Thingpedia - Error"),
-                              message: req._("You are already an enrolled developer.") });
-        return;
-    }
-
+function sendNewOrgNotificationEmail(req) {
     const mailOptions = {
         from: Config.EMAIL_FROM_ADMIN,
         to: Config.EMAIL_TO_ADMIN,
         subject: 'New Developer Access Requested',
         replyTo: {
-            name: req.body.realname,
-            address: req.body.email
+            name: req.user.human_name || req.user.username,
+            address: req.user.email
         },
         text:
-`${req.body.realname} <${req.body.email}>, working for ${req.body.organization},
-requests developer access to Thingpedia.
+`${req.user.username} (${req.user.human_name} <${req.user.email}>), working for ${req.body.company},
+has created the organization ${req.body.name} in Thingpedia.
 
-Username: ${req.user.username} (${req.user.human_name} <${req.user.email}>)
 Reason:
 ${(req.body.reason || '').trim()}
 
@@ -695,12 +699,47 @@ ${(req.body.comments || '').trim()}
 `
     };
 
-    SendMail.send(mailOptions).then(() => {
-        res.render('developer_access_ok', { page_title: req._("Thingpedia - developer access required") });
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    });
+    return SendMail.send(mailOptions);
+}
+
+router.post('/request-developer', userUtils.requireLogIn, iv.validatePOST({ name: 'string', company: '?string', reason: '?string', comments: '?string' }), (req, res, next) => {
+    if (req.user.developer_org !== null) {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: req._("You are already an enrolled developer.") });
+        return;
+    }
+    if (typeof req.body.name !== 'string' || !req.body.name) {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: req._("Missing name.") });
+        return;
+    }
+    if (req.body.accept_tos !== '1') {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: req._("You must acknowledge that you read the Terms of Service.") });
+        return;
+    }
+
+    db.withTransaction(async (dbClient) => {
+        const org = await organization.create(dbClient, {
+            name: req.body.name,
+            comment: '',
+            id_hash: makeRandom(8),
+            developer_key: makeRandom(),
+        });
+        await model.update(dbClient, req.user.id, { developer_status: userUtils.DeveloperStatus.ORG_ADMIN,
+                                                    profile_flags: req.user.profile_flags | userUtils.ProfileFlags.VISIBLE_ORGANIZATION_PROFILE,
+                                                    developer_org: org.id });
+
+        await sendNewOrgNotificationEmail(req);
+        return org;
+    }).then(async (org) => {
+        await EngineManager.get().restartUser(req.user.id);
+        req.user.developer_org = org.id;
+        req.user.developer_org_name = org.name;
+        req.user.developer_key = org.developer_key;
+
+        res.render('developer_access_ok', { page_title: req._("Thingpedia - Developer Program") });
+    }).catch(next);
 });
 
 module.exports = router;

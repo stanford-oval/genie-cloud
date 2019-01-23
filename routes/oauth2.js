@@ -292,7 +292,7 @@ router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
             scopes.push('profile');
         scopes.sort();
 
-        if (req.user.developer_status < user.DeveloperStatus.ADMIN &&
+        if ((req.user.roles & user.Role.ADMIN) === 0 &&
             scopes.indexOf('user-sync') >= 0)
             throw new Error(req._("user-sync scope is valid only for administrators"));
 

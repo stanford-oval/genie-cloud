@@ -66,7 +66,19 @@ block content
         div.form-group
           label.control-label= _("Developer Organization")
           if user.developer_org !== null
-            p.form-control-static= _("Member of %s").format(user.developer_org_name)
+            if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
+              p.form-control-status= _("Administrator of %s").format(user.developer_org_name)
+            else
+              p.form-control-static= _("Member of %s").format(user.developer_org_name)
+          else if org_invitations.length > 0
+            p.from-control-static= _("None. You have been invited to the following organizations:")
+            ul
+              for org in org_invitations
+                li
+                  a(href='/profiles/organization/' + org.id_hash)= org.name
+                  |
+                  |
+                  a(href='/thingpedia/developers/organization/accept-invitation/' + org.id_hash).btn.btn-success.btn-sm= _("Accept")
           else
             p.form-control-static!= _("None (<a href='/user/request-developer'>apply to be a developer</a>)")
 
@@ -79,10 +91,7 @@ block content
 
           div.form-group
             label.control-label= _("Developer Access")
-            if user.developer_status >= Constants.DeveloperStatus.ADMIN
-              p.form-control-static= _("Administrator")
-              span.help-block= _("You know what to do.")
-            else if user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER
+            if user.developer_status >= Constants.DeveloperStatus.DEVELOPER && (user.roles & Constants.Role.TRUSTED_DEVELOPER) !== 0
               p.form-control-static= _("Trusted Developer")
               span.help-block= _("All code you submit can go live to all Almonds with no review. Be careful!")
             else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER

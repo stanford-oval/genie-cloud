@@ -77,7 +77,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
         let [, prefix, /*suffix*/] = match;
 
         return Promise.resolve().then(() => {
-            if (req.user.developer_status < user.DeveloperStatus.ADMIN) {
+            if ((req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
                 return schemaModel.getByKind(dbClient, prefix).then((row) => {
                     if (row.owner !== req.user.developer_org) throw new Error();
                 }).catch((e) => {

@@ -250,6 +250,12 @@ class EngineManagerClient extends events.EventEmitter {
             return Q.reject(new Error('EngineManager died'));
         return this._rpcControls[shardId].restartUser(userId);
     }
+
+    restartUserWithoutCache(userId) {
+        if (!this._rpcControl)
+            return Q.reject(new Error('EngineManager died'));
+        return this._rpcControl.restartUserWithoutCache(userId);
+    }
 }
 
 module.exports = EngineManagerClient;

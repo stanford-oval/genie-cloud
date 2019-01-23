@@ -57,16 +57,20 @@ module.exports = {
     DeveloperStatus: {
         USER: 0,
         DEVELOPER: 1,
-        TRUSTED_DEVELOPER: 2,
-        ADMIN: 3,
+        ORG_ADMIN: 2,
     },
 
     Role: {
-        ADMIN: 1,
-        BLOG_EDITOR: 2,
+        ADMIN: 1,             // allows to view and manipulate users
+        BLOG_EDITOR: 2,       // allows to edit blogs
+        THINGPEDIA_ADMIN: 4,  // allows to view/edit/approve thingpedia entries (devices, datasets, strings, entities, examples, etc)
+        TRUSTED_DEVELOPER: 8, // allows to approve their own device
 
         // all privileges
-        ROOT: 3
+        ROOT: 15,
+
+        // all admin roles (access to /admin hierarchy)
+        ALL_ADMIN: 7,
     },
 
     ProfileFlags: {
@@ -156,6 +160,8 @@ module.exports = {
     },
 
     requireRole(role) {
+        if (role === undefined)
+            throw new Error(`invalid requireRole call`);
         return function(req, res, next) {
             if ((req.user.roles & role) !== role) {
                 res.status(403).render('error', {
@@ -168,15 +174,17 @@ module.exports = {
         };
     },
 
-    requireAnyRole(req, res, next) {
-        if (req.user.roles === 0 && req.user.developer_status < 3) {
-            res.status(403).render('error', {
-                page_title: req._("Thingpedia - Error"),
-                message: req._("You do not have permission to perform this operation.")
-            });
-        } else {
-            next();
-        }
+    requireAnyRole(roleset) {
+        return function(req, res, next) {
+            if ((req.user.roles & roleset) === 0) {
+                res.status(403).render('error', {
+                    page_title: req._("Thingpedia - Error"),
+                    message: req._("You do not have permission to perform this operation.")
+                });
+            } else {
+                next();
+            }
+        };
     },
 
     requireDeveloper(required) {
@@ -184,11 +192,11 @@ module.exports = {
             required = 1; // DEVELOPER
 
         return function(req, res, next) {
-            if (req.user.developer_status < required) {
-                res.status(403).render('developer_access_required',
-                                       { page_title: req._("Thingpedia - Error"),
-                                         title: req._("Developer Access required"),
-                                         csrfToken: req.csrfToken() });
+            if (req.user.developer_org === null || req.user.developer_status < required) {
+                res.status(403).render('error', {
+                    page_title: req._("Thingpedia - Error"),
+                    message: req._("You do not have permission to perform this operation.")
+                });
             } else {
                 next();
             }

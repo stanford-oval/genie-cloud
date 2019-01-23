@@ -17,7 +17,7 @@ const model = require('../model/example');
 const iv = require('../util/input_validation');
 
 const router = express.Router();
-router.use(user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ADMIN));
+router.use(user.requireLogIn, user.requireRole(user.Role.THINGPEDIA_ADMIN));
 
 router.get('/', (req, res) => {
     db.withClient((dbClient) => {

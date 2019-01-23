@@ -19,7 +19,7 @@ block page_name
 block content
   if device.approved_version === null
     div.alert.alert-warning(role='alert')
-      if authenticated && (user.developer_status >= Constants.DeveloperStatus.ADMIN || user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER && user.developer_org === device.owner)
+      if authenticated && ((user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0 || ((user.roles & Constants.Role.TRUSTED_DEVELOPER) !== 0 && user.developer_org === device.owner))
         form(action='/thingpedia/devices/approve', method='post').form-inline
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=device.primary_kind)
@@ -32,15 +32,14 @@ block content
           a(href='#request-approval-container',data-toggle='collapse',aria-expanded='false',aria-controls='request-approval-container').btn.btn-default= _("Request approval")
       else
         p= _("This device is not yet approved for general use. You need a developer key to use it.")
-  else if device.approved_version !== device.developer_version && user && user.developer_status >= Constants.DeveloperStatus.ADMIN
+  else if device.approved_version !== device.developer_version && authenticated && (user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0
     div.alert.alert-warning(role='alert')
-      if authenticated && user.developer_status >= Constants.DeveloperStatus.ADMIN
-        form(action='/thingpedia/devices/approve', method='post').form-inline
-          input(type='hidden',name='_csrf',value=csrfToken)
-          input(type='hidden',name='kind',value=device.primary_kind)
-          p.form-group= _("A newer version of this device was submitted.")
-            | &#x20;
-            button(type='submit').btn.btn-success= _("Approve it")
+      form(action='/thingpedia/devices/approve', method='post').form-inline
+        input(type='hidden',name='_csrf',value=csrfToken)
+        input(type='hidden',name='kind',value=device.primary_kind)
+        p.form-group= _("A newer version of this device was submitted.")
+          | &#x20;
+          button(type='submit').btn.btn-success= _("Approve it")
 
   div#request-approval-container.collapse
     div.panel.panel-default
@@ -253,10 +252,10 @@ block content
         +invocation(inv, name, 'action')
 
   div.row.device-details-actions
-    if authenticated && (user.developer_status >= Constants.DeveloperStatus.ADMIN || device.owner === user.developer_org)
+    if authenticated && ((user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0 || device.owner === user.developer_org)
       div.col-md-3.col-sm-6
         a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + device.primary_kind)= _("Update")
-      if user.developer_status >= Constants.DeveloperStatus.TRUSTED_DEVELOPER && device.approved_version !== null
+      if device.approved_version !== null && (user.roles & (Constants.Role.THINGPEDIA_ADMIN | Constants.Role.TRUSTED_DEVELOPER)) !== 0
         div.col-md-3.col-sm-6
           form(action='/thingpedia/devices/unapprove', method='post').form-delete-device
             input(type='hidden',name='_csrf',value=csrfToken)
