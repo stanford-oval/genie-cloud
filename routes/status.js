@@ -13,6 +13,7 @@ const express = require('express');
 const child_process = require('child_process');
 
 const user = require('../util/user');
+const iv = require('../util/input_validation');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -68,7 +69,7 @@ router.get('/', (req, res) => {
     }).done();
 });
 
-router.get('/logs', user.requireDeveloper(), (req, res) => {
+router.get('/logs', user.requireDeveloper(), iv.validateGET({ startCursor: '?string' }), (req, res) => {
     var child = readLogs(req.user.id, req.query.startCursor);
     var stdout = child.stdout;
     res.set('Content-Type', 'text/event-stream');

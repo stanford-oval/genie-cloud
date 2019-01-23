@@ -310,7 +310,12 @@ module.exports = class Frontend {
         });
 
         this._app.use((err, req, res, next) => {
-            if (err.code === 'EBADCSRFTOKEN') {
+            if (typeof err.status === 'number') {
+                res.status(err.status).render('error', {
+                    page_title: req._("Almond - Error"),
+                    message: err.expose ? err : req._("Code: %d").foramt(err.status)
+                });
+            } else if (err.code === 'EBADCSRFTOKEN') {
                 res.status(403).render('error', {
                     page_title: req._("Almond - Forbidden"),
                     message: err,

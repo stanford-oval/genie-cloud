@@ -15,6 +15,7 @@ const db = require('../util/db');
 const user = require('../util/user');
 const model = require('../model/schema');
 const exampleModel = require('../model/example');
+const iv = require('../util/input_validation');
 
 var router = express.Router();
 
@@ -28,7 +29,7 @@ function localeToLanguage(locale) {
     return (locale || 'en').split(/[-_@.]/)[0];
 }
 
-router.get('/by-id/:kind', user.requireLogIn, (req, res) => {
+router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ language: '?string', fromVersion: '?integer',  }), (req, res) => {
     const language = req.query.language || localeToLanguage(req.user.locale);
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
@@ -165,13 +166,8 @@ function ensureExamples(dbClient, schemaId, ast, language) {
     });
 }
 
-router.post('/by-id/:kind', user.requireLogIn, (req, res) => {
+router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'string' }), (req, res) => {
     var language = req.body.language;
-    if (!language) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                              message: req._("Missing language.") });
-        return;
-    }
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Translations for English cannot be contributed.") });

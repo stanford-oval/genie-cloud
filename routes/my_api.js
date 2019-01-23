@@ -18,6 +18,7 @@ const jwt = require('jsonwebtoken');
 const user = require('../util/user');
 const secret = require('../util/secret_key');
 const EngineManager = require('../almond/enginemanagerclient');
+const iv = require('../util/input_validation');
 
 const Config = require('../config');
 
@@ -100,7 +101,7 @@ router.get('/profile', user.requireScope('profile'), (req, res, next) => {
     });
 });
 
-router.get('/parse', user.requireScope('user-read'), (req, res, next) => {
+router.get('/parse', user.requireScope('user-read'), iv.validateGET({ q: '?string', target_json: '?string' }, { json: true }), (req, res, next) => {
     let query = req.query.q || null;
     let targetJson = req.query.target_json || null;
     if (!query && !targetJson) {
@@ -128,7 +129,8 @@ function describeApp(app) {
         }));
 }
 
-router.post('/apps/create', user.requireScope('user-exec-command'), (req, res, next) => {
+router.post('/apps/create', user.requireScope('user-exec-command'),
+    iv.validatePOST({ code: 'string' }, { accept: 'json', json: true }), (req, res, next) => {
     Q.try(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {

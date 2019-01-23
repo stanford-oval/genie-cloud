@@ -28,6 +28,7 @@ const tokenize = require('../util/tokenize');
 const DatasetUtils = require('../util/dataset');
 const Importer = require('../util/import_device');
 const codeStorage = require('../util/code_storage');
+const iv = require('../util/input_validation');
 
 var router = express.Router();
 
@@ -124,13 +125,13 @@ function getDetails(fn, param, req, res) {
     });
 }
 
-router.get('/by-id/:kind', (req, res, next) => {
+router.get('/by-id/:kind', iv.validateGET({ version: '?integer' }), (req, res, next) => {
     getDetails(model.getByPrimaryKind, req.params.kind, req, res).catch(next);
 });
 
 router.use(user.requireLogIn);
 
-router.post('/approve', user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res, next) => {
+router.post('/approve', user.requireDeveloper(user.DeveloperStatus.ADMIN), iv.validatePOST({ kind: 'string' }), (req, res, next) => {
     db.withTransaction((dbClient) => {
         return Promise.all([
             model.approve(dbClient, req.body.kind),
@@ -144,7 +145,7 @@ router.post('/approve', user.requireDeveloper(user.DeveloperStatus.ADMIN), (req,
     }).catch(next);
 });
 
-router.post('/unapprove', user.requireDeveloper(user.DeveloperStatus.ADMIN), (req, res) => {
+router.post('/unapprove', user.requireDeveloper(user.DeveloperStatus.ADMIN), iv.validatePOST({ kind: 'string' }), (req, res) => {
     db.withTransaction((dbClient) => {
         return Promise.all([
             model.unapprove(dbClient, req.body.kind),
@@ -160,7 +161,7 @@ router.post('/unapprove', user.requireDeveloper(user.DeveloperStatus.ADMIN), (re
 
 router.use(user.requireDeveloper());
 
-router.post('/delete', (req, res) => {
+router.post('/delete', iv.validatePOST({ kind: 'string' }), (req, res) => {
     db.withTransaction(async (dbClient) => {
         const row = await model.getByPrimaryKind(dbClient, req.body.kind);
         if (row.owner !== req.user.developer_org &&
@@ -185,7 +186,7 @@ router.post('/delete', (req, res) => {
     }).done();
 });
 
-router.post('/train', (req, res) => {
+router.post('/train', iv.validatePOST({ kind: 'string' }), (req, res) => {
     db.withTransaction(async (dbClient) => {
         const row = await model.getByPrimaryKind(dbClient, req.body.kind);
         if (row.owner !== req.user.developer_org &&
@@ -210,7 +211,7 @@ router.post('/train', (req, res) => {
     }).done();
 });
 
-router.post('/request-approval', (req, res) => {
+router.post('/request-approval', iv.validatePOST({ kind: 'string', comments: '?string' }), (req, res) => {
     var mailOptions = {
         from: Config.EMAIL_FROM_ADMIN,
         to: Config.EMAIL_TO_ADMIN,

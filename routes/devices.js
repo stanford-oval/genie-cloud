@@ -13,12 +13,13 @@ const express = require('express');
 
 const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
+const iv = require('../util/input_validation');
 
 var router = express.Router();
 
 router.use(user.requireLogIn);
 
-router.get('/create', (req, res, next) => {
+router.get('/create', iv.validateGET({ class: '?string' }), (req, res, next) => {
     if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
         res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Invalid device class") });
@@ -33,15 +34,18 @@ router.get('/create', (req, res, next) => {
                                  });
 });
 
-router.post('/create', (req, res, next) => {
+router.post('/create', iv.validatePOST({ kind: 'string' }), (req, res, next) => {
+    delete req.body['_csrf'];
+    for (let key in req.body) {
+        if (typeof req.body[key] !== 'string') {
+            iv.failKey(req, res, key);
+            return;
+        }
+    }
+    
     EngineManager.get().getEngine(req.user.id).then((engine) => {
         const devices = engine.devices;
 
-        if (typeof req.body['kind'] !== 'string' ||
-            req.body['kind'].length === 0)
-            throw new Error(req._("You must choose one kind of device"));
-
-        delete req.body['_csrf'];
         return devices.loadOneDevice(req.body, true);
     }).then(() => {
         if (req.session['device-redirect-to']) {
@@ -56,7 +60,7 @@ router.post('/create', (req, res, next) => {
     }).done();
 });
 
-router.post('/delete', (req, res, next) => {
+router.post('/delete', iv.validatePOST({ id: 'string' }), (req, res, next) => {
     EngineManager.get().getEngine(req.user.id).then((engine) => {
         const id = req.body.id;
         if (!engine.devices.hasDevice(id)) {
