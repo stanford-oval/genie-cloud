@@ -144,7 +144,13 @@ If you skip this step, set `THINGENGINE_DISABLE_SANDBOX=1` in your environment.
 
 ### Step 3: Database
 
-Set up your database by executing the SQL in `model/schema.sql`. Then set `DATABASE_URL` in your environment:
+Set up your database by running 
+```sh
+node ./scripts/execute-sql-file.js ./model/schema.sql
+```
+
+
+Then set `DATABASE_URL` in your environment:
 
 ```sh
 DATABASE_URL=mysql://user:password@host:port/database?options
@@ -173,10 +179,10 @@ It goes without saying, you should change the password for both the `root` and `
 ### Step 4: Web Almond
 
 Web Almond is composed of a master process, and a number of worker processes.
-To start the master process, do:
+To start the master process, create a working directory, say `workdir`, then do:
 
 ```sh
-node ./almond/master.js
+cd workdir; node ../almond/master.js
 ```
 
 The master process listens on the two sockets indicated in `config.js`. You can use a path
@@ -188,10 +194,14 @@ the repository is located at `/opt/thingengine` and the local state directory is
 
 ### Step 5: the web frontend
 
-Finally, you can run the web frontend, by saying:
+Finally, you can run the web frontend in the same working directory, by saying:
 
 ```
-node ./main.js
+node ../main.js
 ```
 
 Again, a systemd unit file is provided, called `thingengine-website.service`.
+
+Note that most of web services require registered redirect URIs for the OAuth flow, 
+a local web almond won't be able to configure and use them. 
+
