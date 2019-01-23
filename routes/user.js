@@ -78,7 +78,7 @@ router.get('/login', (req, res, next) => {
 
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/user/login',
-                                                       failureFlash: 'Invalid OTP code' }), (req, res, next) => {
+                                                       failureFlash: true }), (req, res, next) => {
     req.session.completed2fa = false;
     if (req.user.totp_key) {
         // if 2fa is enabled, redirect to the 2fa login page
@@ -111,7 +111,7 @@ router.get('/2fa/login', (req, res, next) => {
 });
 
 router.post('/2fa/login', passport.authenticate('totp', { failureRedirect: '/user/2fa/login',
-                                                          failureFlash: true }), (req, res, next) => {
+                                                          failureFlash: 'Invalid OTP code' }), (req, res, next) => {
     req.session.completed2fa = true;
 
     // Redirection back to the original page
