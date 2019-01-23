@@ -20,6 +20,8 @@ module.exports.FILE_STORAGE_BACKEND = 'local';
 module.exports.CDN_HOST = '/download';
 module.exports.WITH_THINGPEDIA = 'embedded';
 module.exports.THINGPEDIA_URL = '/thingpedia';
+module.exports.ENABLE_PROMETHEUS = true;
+module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
 EOF
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
@@ -57,7 +59,7 @@ node $srcdir/scripts/bootstrap.js
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
 eval $(node $srcdir/tests/load_test_thingpedia.js)
 
-node $srcdir/main.js &
+node $srcdir/frontend.js &
 frontendpid=$!
 
 # in interactive mode, sleep forever
@@ -91,7 +93,7 @@ export THINGENGINE_DISABLE_SYSTEMD=1
 node $srcdir/almond/master.js &
 masterpid=$!
 
-node $srcdir/main.js &
+node $srcdir/frontend.js &
 frontendpid=$!
 
 if test "$1" = "--webalmond-interactive" ; then
