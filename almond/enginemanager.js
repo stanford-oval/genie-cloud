@@ -148,7 +148,8 @@ class EngineProcess extends events.EventEmitter {
 
     start() {
         const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
-                              'HOME', 'SHELL', 'THINGENGINE_PROXY'];
+                              'HOME', 'SHELL', 'THINGENGINE_PROXY',
+                              'CI'];
         function envIsAllowed(name) {
             if (name.startsWith('LC_'))
                 return true;
@@ -187,9 +188,16 @@ class EngineProcess extends events.EventEmitter {
                 stdio = ['ignore', 1, 2, 'ipc'];
             } else {
                 processPath = path.resolve(managerPath, '../sandbox/sandbox');
-                args = ['-i', this._cloudId, process.execPath].concat(process.execArgv);
+                args = [process.execPath].concat(process.execArgv);
                 args.push(enginePath);
-                stdio = ['ignore', 'ignore', 'ignore', 'ipc'];
+                stdio = ['ignore', 1, 2, 'ipc'];
+
+                const jsPrefix = path.resolve(path.dirname(managerPath));
+                const nodepath = path.resolve(process.execPath);
+                if (!nodepath.startsWith('/usr/'))
+                    env.THINGENGINE_PREFIX = jsPrefix + ':' + nodepath;
+                else
+                    env.THINGENGINE_PREFIX = jsPrefix;
             }
             child = child_process.spawn(processPath, args,
                                         { stdio: stdio,
@@ -379,7 +387,6 @@ class EngineManager extends events.EventEmitter {
 
         await db.withClient(async (client) => {
             const rows = await user.getAllForShardId(client, this._shardId);
-            console.log(this._shardId, rows);
             return Promise.all(rows.map((r) => {
                 return this._runUser(r).catch((e) => {
                     console.error('User ' + r.id + ' failed to start: ' + e.message);

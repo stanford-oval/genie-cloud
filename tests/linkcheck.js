@@ -30,6 +30,8 @@ const Tp = require('thingpedia');
 const Url = require('url');
 const minidom = require('./util/minidom');
 
+const Config = require('../config');
+
 // some pages are intentionally missing from the test
 // environment, but they exist in the real thing
 const IGNORED_404 = new Set([
@@ -43,7 +45,7 @@ const IGNORED_404 = new Set([
 
 class LinkChecker {
     constructor() {
-        this._baseUrl = process.env.BASE_URL || 'http://127.0.0.1:8080';
+        this._baseUrl = process.env.BASE_URL || Config.SERVER_ORIGIN;
 
         this._visited = new Set;
         this._stack = [];

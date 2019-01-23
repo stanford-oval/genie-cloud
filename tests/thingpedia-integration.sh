@@ -13,7 +13,9 @@ srcdir=`realpath $srcdir`
 DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test"
 export DATABASE_URL
 
-cat > $srcdir/secret_config.js <<'EOF'
+PORT=${PORT:-8080}
+cat > $srcdir/secret_config.js <<EOF
+module.exports.SERVER_ORIGIN = 'http://127.0.0.1:${PORT}';
 module.exports.FILE_STORAGE_BACKEND = 'local';
 module.exports.CDN_HOST = '/download';
 module.exports.WITH_THINGPEDIA = 'embedded';
@@ -85,7 +87,7 @@ echo "Object.assign(module.exports, require('./stanford/config.js'));" >> $srcdi
 # the website crawler tests will touch the web almond pages
 # too, so make sure we don't die with 400 or 500 because Almond is off
 # we have just tested operation without web almond anyway
-export THINGENGINE_DISABLE_SANDBOX=1
+export THINGENGINE_DISABLE_SYSTEMD=1
 node $srcdir/almond/master.js &
 masterpid=$!
 

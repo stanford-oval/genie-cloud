@@ -14,6 +14,7 @@ DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test"
 export DATABASE_URL
 
 cat > $srcdir/secret_config.js <<'EOF'
+module.exports.SERVER_ORIGIN = 'http://127.0.0.1:7070';
 module.exports.WITH_THINGPEDIA = 'external';
 module.exports.THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 module.exports.THINGENGINE_MANAGER_ADDRESS = ['./control1', './control2'];
@@ -46,14 +47,13 @@ cd $workdir
 
 node $srcdir/tests/load_test_webalmond.js
 
-# FIXME test with sandbox too...
 export THINGENGINE_DISABLE_SANDBOX=1
 node $srcdir/almond/master.js --shard 0 &
 masterpid1=$!
 node $srcdir/almond/master.js --shard 1 &
 masterpid2=$!
 
-node $srcdir/main.js &
+PORT=7070 node $srcdir/main.js &
 frontendpid=$!
 
 # in interactive mode, sleep forever

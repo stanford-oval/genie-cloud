@@ -3,6 +3,7 @@ branches:
   - "/^wip/"
 language: node_js
 sudo: true
+dist: xenial
 addons:
   ssh_known_hosts:
   - almond-dev.stanford.edu
@@ -21,10 +22,11 @@ before_install:
 - wget https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz
 - tar xvf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver/
 - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+- sudo add-apt-repository -y ppa:openstack-ci-core/bubblewrap
 - sudo apt-get update -q -y
 install:
-- sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev
-  realpath
+- sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev libsystemd-dev
+  realpath  bubblewrap
 - yarn
 before_script:
 - mysql -u root -e "create database if not exists thingengine_test; grant all privileges

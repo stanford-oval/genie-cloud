@@ -28,7 +28,7 @@ assert.strictEqual(Config.THINGPEDIA_URL, '/thingpedia');
     return array;
 }*/
 
-const THINGPEDIA_URL = 'http://127.0.0.1:8080/thingpedia/api/v3';
+const THINGPEDIA_URL = Config.SERVER_ORIGIN + '/thingpedia/api/v3';
 async function request(url, options = {}) {
     options.accept = 'application/json';
     const result = await Tp.Helpers.Http.get(THINGPEDIA_URL + url, options);
