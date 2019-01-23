@@ -20,6 +20,7 @@ const organization = require('../model/organization');
 const device = require('../model/device');
 const oauth2 = require('../model/oauth2');
 const user = require('../util/user');
+const iv = require('../util/input_validation');
 
 const Config = require('../config');
 
@@ -113,12 +114,7 @@ function highlightSearch(url, metadata) {
                                (w) => `<mark>${escape(w)}</mark>`);
 }
 
-router.get('/search', (req, res) => {
-    if (!req.query.q) {
-        res.status(400).json({ error: 'missing query' });
-        return;
-    }
-    
+router.get('/search', iv.validateGET({ q: 'string' }, { json: true }), (req, res) => {
     const results = searchIndex.index.search(req.query.q);
     const data = [];
     for (let i = 0; i < Math.min(5, results.length); i++) {

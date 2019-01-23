@@ -22,6 +22,7 @@ const schemaModel = require('../model/schema');
 const user = require('../util/user');
 const platform = require('../util/platform');
 const tokenizer = require('../util/tokenize');
+const iv = require('../util/input_validation');
 
 var router = express.Router();
 
@@ -61,7 +62,9 @@ var router = express.Router();
 
 router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'upload', maxCount: 1 }
-]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(), (req, res) => {
+]), csurf({ cookie: false }),
+    user.requireLogIn, user.requireDeveloper(),
+    iv.validatePOST({ entity_id: 'string', entity_name: 'string', no_ner_support: 'boolean' }), (req, res) => {
     const language = 'en';
 
     Q(db.withTransaction((dbClient) => {

@@ -24,6 +24,7 @@ const user = require('../util/user');
 const platform = require('../util/platform');
 const I18n = require('../util/i18n');
 const TokenizerService = require('../util/tokenizer_service');
+const iv = require('../util/input_validation');
 
 var router = express.Router();
 
@@ -71,7 +72,7 @@ async function doCreate(req, res) {
                 type_name: req.body.type_name,
                 name: req.body.name,
                 license: req.body.license,
-                attribution: req.body.attribution,
+                attribution: req.body.attribution || '',
             });
 
             const file = fs.createReadStream(req.files.upload[0].path);
@@ -125,7 +126,8 @@ async function doCreate(req, res) {
 
 router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'upload', maxCount: 1 }
-]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
+]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(),
+    iv.validatePOST({ type_name: 'string', name: 'string', license: 'string', attribution: '?string', preprocessed: 'boolean' }), (req, res, next) => {
     doCreate(req, res).catch(next);
 });
 

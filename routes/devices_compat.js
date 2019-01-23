@@ -31,7 +31,6 @@ router.get('/oauth2/callback/:kind', (req, res, next) => {
             rawHeaders: req.rawHeaders,
             method: req.method,
             query: req.query,
-            body: req.body,
             session: req.session,
         };
         return devFactory.runOAuth2(kind, saneReq);

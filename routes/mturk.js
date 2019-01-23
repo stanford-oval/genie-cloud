@@ -24,14 +24,17 @@ const model = require('../model/mturk');
 const example = require('../model/example');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const TokenizerService = require('../util/tokenizer_service');
+const iv = require('../util/input_validation');
 
 var router = express.Router();
 
 router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'upload', maxCount: 1 }
-]), csurf({ cookie: false }), user.requireLogIn, user.requireRole(user.Role.ADMIN), (req, res) => {
+]), csurf({ cookie: false }),
+    user.requireLogIn, user.requireRole(user.Role.ADMIN),
+    iv.validatePOST({ body: 'string', submissions_per_hit: 'integer' }), (req, res) => {
     if (!req.files.upload || !req.files.upload.length) {
-        res.render('error', { page_title: req._("Thingpedia - Error"),
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
             message: req._("Must upload the CSV file")
         });
         return;
@@ -187,7 +190,30 @@ function validateOne(dbClient, batchId, language, schemas, utterance, thingtalk)
     });
 }
 
-router.post('/submit', (req, res) => {
+function validateSubmission(req, res, next) {
+    for (let i = 1; i < 5; i++) {
+        let program_id = req.body[`program_id${i}`];
+        let thingtalk = req.body[`thingtalk${i}`];
+        if (!iv.checkKey(program_id, 'string')) {
+            iv.failKey(req, res, `program_id${i}`, {});
+            return;
+        }
+        if (!iv.checkKey(thingtalk, 'string')) {
+            iv.failKey(req, res, `thingtalk${i}`, {});
+            return;
+        }
+        for (let j = 1; j < 3; j ++) {
+            let paraphrase = req.body[`paraphrase${i}-${j}`];
+            if (!iv.checkKey(paraphrase, 'string')) {
+                iv.failKey(req, res, `paraphrase${i}-${j}`, {});
+                return;
+            }
+        }
+    }
+    next();
+}
+
+router.post('/submit', iv.validatePOST({ batch: 'string' }), validateSubmission, (req, res) => {
     let submissionId = (Math.random() + 1).toString(36).substring(2, 10) + (Math.random() + 1).toString(36).substring(2, 10);
     db.withTransaction((dbClient) => {
         let submissions = [];
