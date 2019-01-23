@@ -53,7 +53,13 @@ sudo dnf install mariadb-server //Fedora
 ```
 
 This repository uses yarn for dependency tracking.
-You should install yarn from [its website](https://yarnpkg.com/en/docs/install), and then run:
+You should install yarn from [its website](https://yarnpkg.com/en/docs/install).
+Then place the following `.yarnrc` in your home directory or in the root directory of `almond-cloud`:
+```
+build_from_source true
+```
+
+And then run:
 
 ```
 yarn install
@@ -65,11 +71,9 @@ npm is not supported.
 #### Setting up database encryption
 
 If you want to encrypt your user's data at rest, you should configure your Web Almond to link against
-[sqlcipher](https://www.zetetic.net/sqlcipher) instead of sqlite. To do so, place this in `.yarnrc` in your home directory or in the root
-directory of `thingengine-platform-cloud`:
+[sqlcipher](https://www.zetetic.net/sqlcipher) instead of sqlite. To do so, place this in your `.yarnrc`:
 
 ```
-build_from_source true
 sqlite "/opt/sqlcipher"
 sqlite_libname sqlcipher
 ```
