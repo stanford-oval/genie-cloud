@@ -21,23 +21,45 @@ The code depends on:
 - nodejs (>= 8.0)
 - cvc4 (any version, although >= 1.5 is recommended; only the binary is needed, not the library)
 - gm (provided by GraphicsMagic)
-- cairo (libcairo2-dev on Ubuntu, cairo-devel on Fedora)
-- Pango (libpango1.0-dev on Ubuntu, pango-devel on Fedora)
-- giflib (libgif-dev on Ubuntu, giflib-devel on Fedora)
+- cairo
+- Pango
+- giflib
 - libjpeg
-- libcap (libcap-dev on Ubuntu, libcap-devel on Fedora)
+- libcap
 
 Optionally, it depends on:
 
-- libsystemd (libsystemd-dev on Ubuntu, libsystemd-devel on Fedora)
+- libsystemd
 - bubblewrap
 
 These dependencies are used for sandboxing and journal integration.
 
-A working MySQL server is also required.
+A working MySQL server is also required. We recommend MariaDB >= 10.2 for best compatibility.
+
+For example, on Ubuntu (>= 18.04):
+```
+sudo apt install nodejs cvc4 graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev libjpeg-dev libcap-dev libsystemd-dev bubblewrap -y
+```
+On Fedora:
+```
+sudo dnf install nodejs cvc4 GraphicsMagick cairo-devel pango-devel giflib-devel libjpeg libcap-devel libsystemd-devel bubblewrap -y
+```
+
+
+If you would like to run the MySQL server locally:
+```
+sudo apt install mariadb-server //Ubuntu
+sudo dnf install mariadb-server //Fedora
+```
 
 This repository uses yarn for dependency tracking.
-You should install yarn from [its website](https://yarnpkg.com/en/docs/install), and then run:
+You should install yarn from [its website](https://yarnpkg.com/en/docs/install).
+Then place the following `.yarnrc` in your home directory or in the root directory of `almond-cloud`:
+```
+build_from_source true
+```
+
+And then run:
 
 ```
 yarn install
@@ -49,11 +71,9 @@ npm is not supported.
 #### Setting up database encryption
 
 If you want to encrypt your user's data at rest, you should configure your Web Almond to link against
-[sqlcipher](https://www.zetetic.net/sqlcipher) instead of sqlite. To do so, place this in `.yarnrc` in your home directory or in the root
-directory of `thingengine-platform-cloud`:
+[sqlcipher](https://www.zetetic.net/sqlcipher) instead of sqlite. To do so, place this in your `.yarnrc`:
 
 ```
-build_from_source true
 sqlite "/opt/sqlcipher"
 sqlite_libname sqlcipher
 ```
@@ -124,7 +144,13 @@ If you skip this step, set `THINGENGINE_DISABLE_SANDBOX=1` in your environment.
 
 ### Step 3: Database
 
-Set up your database by executing the SQL in `model/schema.sql`. Then set `DATABASE_URL` in your environment:
+Set up your database by running 
+```sh
+node ./scripts/execute-sql-file.js ./model/schema.sql
+```
+
+
+Then set `DATABASE_URL` in your environment:
 
 ```sh
 DATABASE_URL=mysql://user:password@host:port/database?options
@@ -153,10 +179,10 @@ It goes without saying, you should change the password for both the `root` and `
 ### Step 4: Web Almond
 
 Web Almond is composed of a master process, and a number of worker processes.
-To start the master process, do:
+To start the master process, create a working directory, say `workdir`, then do:
 
 ```sh
-node ./almond/master.js
+cd workdir; node ../almond/master.js
 ```
 
 The master process listens on the two sockets indicated in `config.js`. You can use a path
@@ -168,10 +194,14 @@ the repository is located at `/opt/thingengine` and the local state directory is
 
 ### Step 5: the web frontend
 
-Finally, you can run the web frontend, by saying:
+Finally, you can run the web frontend in the same working directory, by saying:
 
 ```
-node ./main.js
+node ../main.js
 ```
 
 Again, a systemd unit file is provided, called `thingengine-website.service`.
+
+Note that most of web services require registered redirect URIs for the OAuth flow, 
+a local web almond won't be able to configure and use them. 
+
