@@ -19,53 +19,121 @@ const assert = require('assert');
 const WebSocket = require('ws');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
+const qs = require('qs');
+const fs = require('fs');
+const Url = require('url');
 
 const Config = require('../config');
 
-const csrf = require('./util/csrf');
+const { login, startSession } = require('./login');
 
 const db = require('../util/db');
+const EngineManagerClient = require('../almond/enginemanagerclient');
+
+const DEBUG = false;
 
 function dbQuery(query, args) {
     return db.withClient((dbClient) => {
-        return db.selectOne(dbClient, query, args);
+        return db.selectAll(dbClient, query, args);
     });
 }
 
 function request(url, method, data, options = {}) {
     options['user-agent'] = 'Thingpedia-Cloud-Test/1.0.0';
+    options.debug = DEBUG;
 
     return Tp.Helpers.Http.request(Config.SERVER_ORIGIN + url, method, data, options);
 }
 
-function assertHttpError(request, httpStatus) {
+function sessionRequest(url, method, data, session, options = {}) {
+    if (method === 'POST') {
+        if (data !== null && typeof data !== 'string')
+            data = qs.stringify(data);
+        if (data)
+            data += '&_csrf=' + session.csrfToken;
+        else
+            data = '_csrf=' + session.csrfToken;
+        options.dataContentType = 'application/x-www-form-urlencoded';
+    } else {
+        if (data !== null && typeof data !== 'string') {
+            url += '?' + qs.stringify(data);
+            data = null;
+        }
+    }
+    if (!options.extraHeaders)
+        options.extraHeaders = {};
+    options.extraHeaders.Cookie = session.cookie;
+
+    return request(url, method, data, options);
+}
+
+function assertHttpError(request, httpStatus, expectedMessage) {
     return request.then(() => {
         assert.fail(new Error(`Expected HTTP error`));
     }, (err) => {
+        if (!err.detail)
+            throw err;
         if (typeof err.code === 'number')
             assert.deepStrictEqual(err.code, httpStatus);
         else
             throw err;
+        if (expectedMessage) {
+            let message;
+            if (err.detail.startsWith('<!DOCTYPE html>')) {
+                const match = /Sorry that did not work<\/p><p>([^<]+)<\/p>/.exec(err.detail);
+                if (!match)
+                    assert.fail(`cannot find error message`);
+                message = match[1];
+            } else if (err.detail.startsWith('{')) {
+                message = JSON.parse(err.detail).error;
+            } else {
+                message = err.detail;
+            }
+            assert.strictEqual(message, expectedMessage);
+        }
     });
 }
 
-async function getAccessToken() {
-    const csrfToken = csrf.getCsrfToken(await request('/', 'GET', null, {
-        extraHeaders: { 'Cookie': process.env.COOKIE }
-    }));
+function assertLoginRequired(request) {
+    return request.then(() => {
+        assert.fail(new Error(`Expected HTTP error`));
+    }, (err) => {
+        if (!err.detail || !err.code)
+            throw err;
+        assert.deepStrictEqual(err.code, 401);
+        assert(err.detail.indexOf('Sorry but you must log in before opening this page') >= 0);
+    });
+}
 
-    return JSON.parse(await request('/me/api/token', 'POST', '_csrf=' + csrfToken, {
+function assertRedirect(request, redirect) {
+    return request.then(() => {
+        assert.fail(new Error(`Expected HTTP redirect`));
+    }, (err) => {
+        if (!err.detail || !err.code)
+            throw err;
+        assert.strictEqual(err.redirect, Url.resolve(Config.SERVER_ORIGIN, redirect));
+    });
+}
+
+async function assertBanner(request, expected) {
+    const response = await request;
+
+    const match = /<div class="alert alert-[a-z]+ alert-dismissible fade in" role="alert">(?:(?!<\/div>).)*<p>([^<]+)<\/p><\/div>/.exec(response);
+    if (!match)
+        assert.fail(`cannot find banner`);
+    assert.strictEqual(match[1], expected);
+}
+
+async function getAccessToken(session) {
+    return JSON.parse(await sessionRequest('/me/api/token', 'POST', '', session, {
         accept: 'application/json',
-        extraHeaders: { 'Cookie': process.env.COOKIE }
     })).token;
 }
 
-async function testMyApiCookie() {
-    const result = JSON.parse(await request('/me/api/profile', 'GET', null, {
-        extraHeaders: { 'Cookie': process.env.COOKIE }
-    }));
+async function testMyApiCookie(bob, nobody) {
+    const result = JSON.parse(await sessionRequest('/me/api/profile', 'GET', null, bob));
 
-    const bobInfo = await dbQuery(`select * from users where username = ?`, ['bob']);
+    const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
 
     assert.deepStrictEqual(result, {
         id: bobInfo.cloud_id,
@@ -82,18 +150,17 @@ async function testMyApiCookie() {
         extraHeaders: {
             'Cookie': 'connect.sid=invalid',
         }
-    }), 401);
+    }), 401, 'Unauthorized');
+    await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, nobody), 401);
 
-    await assertHttpError(request('/me/api/profile', 'GET', null, {
+    await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, bob, {
         extraHeaders: {
-            'Cookie': process.env.COOKIE,
             'Origin': 'https://invalid.origin.example.com'
         }
-    }), 403);
+    }), 403, 'Forbidden Cross Origin Request');
 
-    await request('/me/api/profile', 'GET', null, {
+    await sessionRequest('/me/api/profile', 'GET', null, bob, {
         extraHeaders: {
-            'Cookie': process.env.COOKIE,
             'Origin': Config.SERVER_ORIGIN
         }
     });
@@ -102,7 +169,7 @@ async function testMyApiCookie() {
 async function testMyApiProfileOAuth(auth) {
     const result = JSON.parse(await request('/me/api/profile', 'GET', null, { auth }));
 
-    const bobInfo = await dbQuery(`select * from users where username = ?`, ['bob']);
+    const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
 
     assert.deepStrictEqual(result, {
         id: bobInfo.cloud_id,
@@ -260,13 +327,206 @@ async function testMyApiOAuth(accessToken) {
     await testMyApiDeleteApp(auth, uniqueId);
 }
 
+async function testCommandpediaSuggest(nobody) {
+    await assertHttpError(sessionRequest('/thingpedia/commands/suggest', 'POST', { description: '' }, nobody),
+        400, 'Missing or invalid parameter description');
+
+    await sessionRequest('/thingpedia/commands/suggest', 'POST', { description: 'lemme watch netflix' }, nobody);
+
+    const [suggestion] = await dbQuery(`select * from command_suggestions order by suggest_time desc limit 1`);
+
+    assert.strictEqual(suggestion.command, 'lemme watch netflix');
+}
+
+async function testRegister(charlie) {
+    await assertHttpError(sessionRequest('/user/register', 'POST', {}, charlie),
+        400, 'Missing or invalid parameter username');
+
+    await assertHttpError(sessionRequest('/user/register', 'POST', { username: { foo: 'bar' } }, charlie),
+        400, 'Missing or invalid parameter username');
+
+    await assertHttpError(sessionRequest('/user/register', 'POST', { username: 'charlie' }, charlie),
+        400, 'Missing or invalid parameter email');
+
+    await assertHttpError(sessionRequest('/user/register', 'POST', { username: 'charlie', email: 'foo' }, charlie),
+        400, 'Missing or invalid parameter password');
+
+    await assertHttpError(sessionRequest('/user/register', 'POST', { username: 'charlie', email: ['foo', 'bar'] }, charlie),
+        400, 'Missing or invalid parameter email');
+
+    await assertHttpError(sessionRequest('/user/register', 'POST', { username: 'charlie', email: 'foo', password: 'lol', 'confirm-password': 'lol' }, charlie),
+        400, 'Missing or invalid parameter locale');
+
+    await assertBanner(sessionRequest('/user/register', 'POST', {
+        username: 'charlie',
+        email: 'foo',
+        password: 'lol',
+        'confirm-password': 'lol',
+        locale: 'en-US',
+        timezone: 'America/Los_Angeles'
+    }, charlie), 'You must specify a valid email');
+
+    await assertBanner(sessionRequest('/user/register', 'POST', {
+        username: 'charlie',
+        email: 'foo@bar',
+        password: 'lol',
+        'confirm-password': 'lol',
+        locale: 'en-US',
+        timezone: 'America/Los_Angeles'
+    }, charlie), 'You must specifiy a valid password (of at least 8 characters)');
+
+    await assertBanner(sessionRequest('/user/register', 'POST', {
+        username: 'charlie',
+        email: 'foo@bar',
+        password: '12345678',
+        'confirm-password': 'lol',
+        locale: 'en-US',
+        timezone: 'America/Los_Angeles'
+    }, charlie), 'The password and the confirmation do not match');
+
+    await assertBanner(sessionRequest('/user/register', 'POST', {
+        username: 'bob', // <- NOTE
+        email: 'foo@bar',
+        password: '12345678',
+        'confirm-password': '12345678',
+        locale: 'en-US',
+        timezone: 'America/Los_Angeles'
+    }, charlie), 'A user with this name already exists');
+
+    await sessionRequest('/user/register', 'POST', {
+        username: 'charlie',
+        email: 'foo@bar',
+        password: '12345678',
+        'confirm-password': '12345678',
+        locale: 'en-US',
+        timezone: 'America/Los_Angeles'
+    }, charlie);
+
+    // check that now we're registered
+    const result = JSON.parse(await sessionRequest('/me/api/profile', 'GET', null, charlie));
+
+    delete result.id;
+    assert.deepStrictEqual(result, {
+        username: 'charlie',
+        email: 'foo@bar',
+        email_verified: 0,
+        full_name: null,
+        locale: 'en-US',
+        timezone: 'America/Los_Angeles',
+        model_tag: null
+    });
+}
+
+async function testDeleteUser(charlie, nobody) {
+    const [charlieInfo] = await dbQuery(`select * from users where username = ?`, ['charlie']);
+    assert(charlieInfo);
+    assert(fs.existsSync('./' + charlieInfo.cloud_id));
+    assert(await EngineManagerClient.get().isRunning(charlieInfo.id));
+    assert(await EngineManagerClient.get().getEngine(charlieInfo.id));
+
+    await assertLoginRequired(sessionRequest('/user/delete', 'POST', {}, nobody));
+
+    await sessionRequest('/user/delete', 'POST', {}, charlie);
+
+    // check that the user is gone from the database
+    const users = await dbQuery(`select * from users where username = ?`, ['charlie']);
+    assert.strictEqual(users.length, 0);
+
+    // check that the user is not running any more
+    assert(!await EngineManagerClient.get().isRunning(charlieInfo.id));
+    assert.rejects(EngineManagerClient.get().getEngine(charlieInfo.id));
+    assert(!fs.existsSync('./' + charlieInfo.cloud_id));
+}
+
+async function testMyStuff(bob, nobody) {
+}
+
+async function testMyDevices(bob, nobody) {
+    await assertRedirect(sessionRequest('/me/devices/create', 'GET', { class: ['foo', 'bar'] }, nobody, { followRedirects: false }), '/user/login');
+
+    await assertHttpError(sessionRequest('/me/devices/create', 'GET', { class: ['foo', 'bar'] }, bob),
+        400, 'Missing or invalid parameter class');
+    await assertHttpError(sessionRequest('/me/devices/create', 'GET', { class: 'foo' }, bob),
+        404, 'Invalid device class');
+
+    // no need to test the non-error case for /me/devices, linkchecker does that
+
+    await assertLoginRequired(sessionRequest('/me/devices/create', 'POST', { kind: 'com.nytimes' }, nobody));
+
+    await assertHttpError(sessionRequest('/me/devices/create', 'POST', { kind: '' }, bob),
+        400, 'Missing or invalid parameter kind');
+    await assertHttpError(sessionRequest('/me/devices/create', 'POST', { kind: '' }, bob),
+        400, 'Missing or invalid parameter kind');
+    await assertHttpError(sessionRequest('/me/devices/create', 'POST', { kind: 'com.foo', invalid: [1, 2] }, bob),
+        400, 'Missing or invalid parameter invalid');
+    await assertHttpError(sessionRequest('/me/devices/create', 'POST', { kind: 'com.foo' }, bob),
+        400, (Config.WITH_THINGPEDIA === 'external' ? 'Unexpected HTTP error 404' : 'Not Found'));
+
+    if (Config.WITH_THINGPEDIA === 'external') {
+        await assertRedirect(sessionRequest('/me/devices/create', 'POST', {
+            kind: 'org.thingpedia.rss',
+            url: 'https://almond.stanford.edu/blog/feed.rss'
+        }, bob, { followRedirects: false }), '/me');
+
+        // FIXME there should be a /me/api to list devices
+        const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
+        assert(bobInfo);
+        const engine = await EngineManagerClient.get().getEngine(bobInfo.id);
+        const device = await engine.devices.getDevice('org.thingpedia.rss-url-https://almond.stanford.edu/blog/feed.rss');
+        assert(device);
+        device.$free();
+
+        await assertLoginRequired(sessionRequest('/me/devices/delete', 'POST', { id: 'foo' }, nobody));
+
+        await assertHttpError(sessionRequest('/me/devices/delete', 'POST', { id: '' }, bob),
+            400, 'Missing or invalid parameter id');
+
+        await assertHttpError(sessionRequest('/me/devices/delete', 'POST', { id: 'com.foo' }, bob),
+            404, 'Not found.');
+
+        await sessionRequest('/me/devices/delete', 'POST', { id: 'org.thingpedia.rss-url-https://almond.stanford.edu/blog/feed.rss' }, bob);
+
+        assert(!await engine.devices.hasDevice('org.thingpedia.rss-url-https://almond.stanford.edu/blog/feed.rss'));
+
+
+        await assertLoginRequired(sessionRequest('/me/devices/oauth2/com.linkedin', 'POST', { id: 'foo' }, nobody));
+
+        await assertHttpError(sessionRequest('/me/devices/oauth2/com.foo', 'GET', null, bob),
+            400, 'Unexpected HTTP error 404');
+        await assertHttpError(sessionRequest('/me/devices/oauth2/com.thecatapi', 'GET', null, bob),
+            400, 'factory.runOAuth2 is not a function');
+
+        await assertRedirect(sessionRequest('/me/devices/oauth2/com.google', 'GET', null, bob, { followRedirects: false }),
+            'https://accounts.google.com/o/oauth2/auth?response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A8080%2Fdevices%2Foauth2%2Fcallback%2Fcom.google&access_type=offline&scope=openid%20profile%20email&client_id=739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com');
+    }
+}
+
 async function main() {
-    await testMyApiCookie();
+    const emc = new EngineManagerClient();
+    await emc.start();
 
-    const token = await getAccessToken();
+    const nobody = await startSession();
+    const bob = await login('bob', '12345678');
+    const charlie = await startSession();
 
+    // public endpoints
+    if (Config.WITH_THINGPEDIA === 'embedded')
+        await testCommandpediaSuggest(nobody);
+
+    // registration & user deletion
+    await testRegister(charlie);
+    await testDeleteUser(charlie, nobody);
+
+    // user pages
+    await testMyStuff(bob, nobody);
+    await testMyDevices(bob, nobody);
+
+    // user (web almond) api
+    await testMyApiCookie(bob, nobody);
+    const token = await getAccessToken(bob);
     await testMyApiOAuth(token);
 
     await db.tearDown();
+    await emc.stop();
 }
 main();

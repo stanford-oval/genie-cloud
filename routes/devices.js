@@ -61,20 +61,16 @@ router.post('/create', iv.validatePOST({ kind: 'string' }), (req, res, next) => 
 });
 
 router.post('/delete', iv.validatePOST({ id: 'string' }), (req, res, next) => {
-    EngineManager.get().getEngine(req.user.id).then((engine) => {
+    EngineManager.get().getEngine(req.user.id).then(async (engine) => {
         const id = req.body.id;
-        if (!engine.devices.hasDevice(id)) {
+        if (!await engine.devices.hasDevice(id)) {
             res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: req._("Not found.") });
-            return false;
+            return;
         }
 
-        return engine.devices.getDevice(id).then((device) => {
-            return engine.devices.removeDevice(device);
-        }).then(() => true);
-    }).then((ok) => {
-        if (!ok)
-            return;
+        const device = await engine.devices.getDevice(id);
+        await engine.devices.removeDevice(device);
         if (req.session['device-redirect-to']) {
             res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];
@@ -84,7 +80,7 @@ router.post('/delete', iv.validatePOST({ id: 'string' }), (req, res, next) => {
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
+    }).catch(next);
 });
 
 // special case google because we have login with google
@@ -100,11 +96,9 @@ router.post('/delete', iv.validatePOST({ id: 'string' }), (req, res, next) => {
 router.get('/oauth2/:kind', (req, res, next) => {
     const kind = req.params.kind;
 
-    EngineManager.get().getEngine(req.user.id).then((engine) => {
-        return engine.devices.factory;
-    }).then((devFactory) => {
-        return devFactory.runOAuth2(kind, null);
-    }).then((result) => {
+    EngineManager.get().getEngine(req.user.id).then(async (engine) => {
+        const devFactory = await engine.devices.factory;
+        const result = await devFactory.runOAuth2(kind, null);
         if (result !== null) {
             const redirect = result[0];
             const session = result[1];
@@ -117,7 +111,7 @@ router.get('/oauth2/:kind', (req, res, next) => {
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
+    }).catch(next);
 });
 
 module.exports = router;

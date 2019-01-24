@@ -449,6 +449,8 @@ class EngineManager extends events.EventEmitter {
     }
 
     async deleteUser(userId) {
+        await this.killUser(userId);
+
         console.log(`Deleting all data for ${userId}`);
         const dir = path.resolve('.', await this._getUserCloudIdForPath(userId));
         return util.promisify(child_process.execFile)('/bin/rm',

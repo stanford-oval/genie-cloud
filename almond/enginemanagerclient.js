@@ -179,8 +179,9 @@ class EngineManagerClient extends events.EventEmitter {
     stop() {
         this._expectClose = true;
 
-        for (let engine in this._cachedEngines.values())
+        for (let engine of this._cachedEngines.values())
             engine.socket.end();
+        this._cachedEngines.clear();
 
         for (let i = 0; i < this._nShards; i++) {
             if (!this._rpcSockets[i])
