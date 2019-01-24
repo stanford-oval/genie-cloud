@@ -125,7 +125,9 @@ class EngineProcess extends events.EventEmitter {
         // emit exit immediately so we close the channel
         // otherwise we could race and try to talk to the dying process
         this._hadExit = true;
-        this.emit('exit');
+        // mark that this was a manual kill (hence we don't want to
+        // autorestart any user until the admin does so manually)
+        this.emit('exit', true);
     }
 
     restart(delay) {
@@ -287,12 +289,12 @@ class EngineManager extends events.EventEmitter {
         var obj = { cloudId: user.cloud_id, process: null, engine: null };
         engines[user.id] = obj;
         var die = (manual) => {
-            if (engines[user.id] !== obj)
-                return;
             obj.process.removeListener('exit', die);
             obj.process.removeListener('engine-removed', onRemoved);
             if (obj.thingpediaClient)
                 obj.thingpediaClient.$free();
+            if (engines[user.id] !== obj)
+                return;
             delete engines[user.id];
 
             // if the EngineManager is being stopped, the user will die

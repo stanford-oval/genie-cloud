@@ -554,16 +554,32 @@ async function testAdminUsers(root, bob, nobody) {
     assert(rootUserPage2.indexOf('root@localhost') >= 0);
 }
 
+function delay(ms) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, ms);
+    });
+}
+
 async function testAdminKillRestart(root, bob, nobody) {
+    const emc = EngineManagerClient.get();
+    assert (await emc.isRunning(1)); // root
+    assert (await emc.isRunning(2)); // anonymous
+    assert (await emc.isRunning(3)); // bob
+    assert (await emc.isRunning(4)); // david
+
     // /kill/all is very aggressive, and kills also the shared processes (it's sort of a killswitch for
     // when things go awry, short of "systemctl stop thingengine-cloud@.service"
+    // hence, after we run it, we sleep for a couple seconds so that the shared processes restart
     await assertLoginRequired(sessionRequest('/admin/users/kill/all', 'POST', '', nobody));
     await assertRedirect(sessionRequest('/admin/users/kill/all', 'POST', '', root, { followRedirects: false }), '/admin/users');
 
-    const emc = EngineManagerClient.get();
     assert (!await emc.isRunning(1)); // root
     assert (!await emc.isRunning(2)); // anonymous
     assert (!await emc.isRunning(3)); // bob
+    assert (!await emc.isRunning(4)); // david
+
+    // the shared processes will be restarted in 5s
+    await delay(10000);
 
     await assertLoginRequired(sessionRequest('/admin/users/start/1', 'POST', '', nobody));
     await assertRedirect(sessionRequest('/admin/users/start/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');
@@ -573,9 +589,11 @@ async function testAdminKillRestart(root, bob, nobody) {
     // start everybody else too
     await sessionRequest('/admin/users/start/2', 'POST', '', root);
     await sessionRequest('/admin/users/start/3', 'POST', '', root);
+    await sessionRequest('/admin/users/start/4', 'POST', '', root);
 
     assert (await emc.isRunning(2)); // anonymous
     assert (await emc.isRunning(3)); // bob
+    assert (await emc.isRunning(4)); // david
 
     // kill root
     await assertLoginRequired(sessionRequest('/admin/users/kill/1', 'POST', '', nobody));
@@ -584,6 +602,8 @@ async function testAdminKillRestart(root, bob, nobody) {
     assert (!await emc.isRunning(1)); // root
     assert (await emc.isRunning(2)); // anonymous
     assert (await emc.isRunning(3)); // bob
+    assert (await emc.isRunning(4)); // david
+
 
     await sessionRequest('/admin/users/start/1', 'POST', '', root);
     assert (await emc.isRunning(1));

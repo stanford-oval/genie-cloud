@@ -34,6 +34,13 @@ async function main() {
             locale: 'en-US',
             timezone: 'America/Los_Angeles',
         });
+        await user.register(dbClient, req, {
+            username: 'david',
+            password: '12345678',
+            email: 'david@localhost',
+            locale: 'en-US',
+            timezone: 'America/Los_Angeles',
+        });
     });
 
     await db.tearDown();
