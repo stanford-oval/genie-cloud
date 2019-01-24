@@ -61,8 +61,9 @@ router.get('/users', user.requireRole(user.Role.ADMIN), iv.validateGET({ page: '
     let page = req.query.page;
     if (page === undefined)
         page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
+    else
+        page = parseInt(page);
+    if (page < 0)
         page = 0;
 
     db.withClient((dbClient) => {
@@ -120,13 +121,12 @@ router.post('/users/kill/:id', user.requireRole(user.Role.ADMIN), (req, res) => 
 router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
     const engineManager = EngineManager.get();
 
-    engineManager.isRunning(parseInt(req.params.id)).then((isRunning) => {
+    const id = parseInt(req.params.id);
+    engineManager.isRunning(id).then((isRunning) => {
         if (isRunning)
-            return engineManager.killUser(parseInt(req.params.id));
-        else
             return Promise.resolve();
-    }).then(() => {
-        return engineManager.startUser(parseInt(req.params.id));
+        else
+            return engineManager.startUser(id);
     }).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
     }).catch((e) => {
@@ -261,8 +261,9 @@ router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.val
     let page = req.query.page;
     if (page === undefined)
         page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
+    else
+        page = parseInt(page);
+    if (page < 0)
         page = 0;
 
     db.withClient((dbClient) => {
@@ -280,8 +281,9 @@ router.get('/organizations', user.requireRole(user.Role.ADMIN), iv.validateGET({
     let page = req.query.page;
     if (page === undefined)
         page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
+    else
+        page = parseInt(page);
+    if (page < 0)
         page = 0;
 
     db.withClient((dbClient) => {
@@ -373,8 +375,9 @@ router.get('/blog', user.requireRole(user.Role.BLOG_EDITOR), iv.validateGET({ pa
     let page = req.query.page;
     if (page === undefined)
         page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
+    else
+        page = parseInt(page);
+    if (page < 0)
         page = 0;
 
     db.withClient((dbClient) => {
