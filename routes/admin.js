@@ -20,7 +20,7 @@ const device = require('../model/device');
 const blogModel = require('../model/blog');
 const db = require('../util/db');
 const TrainingServer = require('../util/training_server');
-
+const iv = require('../util/input_validation');
 const { makeRandom } = require('../util/random');
 
 const EngineManager = require('../almond/enginemanagerclient');
@@ -57,7 +57,7 @@ router.get('/', user.requireAnyRole(user.Role.ALL_ADMIN), (req, res, next) => {
                                  csrfToken: req.csrfToken() });
 });
 
-router.get('/users', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/users', user.requireRole(user.Role.ADMIN), iv.validateGET({ page: '?integer' }), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -77,10 +77,10 @@ router.get('/users', user.requireRole(user.Role.ADMIN), (req, res) => {
     }).done();
 });
 
-router.get('/users/search', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/users/search', user.requireRole(user.Role.ADMIN), iv.validateGET({ q: 'string' }), (req, res) => {
     db.withClient((dbClient) => {
-        if (req.query.q !== '' && !isNaN(req.query.q))
-            return Promise.all([model.get(dbClient, Number(req.query.q))]);
+        if (Number.isInteger(+req.query.q))
+            return Promise.all([model.get(dbClient, +req.query.q)]);
         else
             return model.getSearch(dbClient, req.query.q);
     }).then(renderUserList).then((users) => {
@@ -150,13 +150,13 @@ router.get('/training', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     getTraining(req, res).catch(next);
 });
 
-router.post('/training', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.post('/training', user.requireRole(user.Role.ADMIN), iv.validatePOST({ language: 'string', job_type: 'string' }), (req, res, next) => {
     TrainingServer.get().queue(req.body.language, null, req.body.job_type).then(() => {
         return getTraining(req, res);
     }).catch(next);
 });
 
-router.post('/training/kill', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.post('/training/kill', user.requireRole(user.Role.ADMIN), iv.validatePOST({ job_id: 'integer' }), (req, res, next) => {
     TrainingServer.get().kill(parseInt(req.body.job_id)).then(() => {
         return res.redirect(303, '/admin/training');
     }).catch(next);
@@ -257,7 +257,7 @@ router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (r
     }).done();
 });
 
-router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), (req, res) => {
+router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validateGET({ page: '?integer' }), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -276,7 +276,7 @@ router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), (req, 
     }).done();
 });
 
-router.get('/organizations', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/organizations', user.requireRole(user.Role.ADMIN), iv.validateGET({ page: '?integer' }), (req, res) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -298,7 +298,7 @@ router.get('/organizations', user.requireRole(user.Role.ADMIN), (req, res) => {
     }).done();
 });
 
-router.get('/organizations/search', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/organizations/search', user.requireRole(user.Role.ADMIN), iv.validateGET({ q: 'string' }), (req, res) => {
     if (!req.query.q) {
         res.redirect(303, '/admin/organizations');
         return;
@@ -337,7 +337,7 @@ router.get('/organizations/details/:id', user.requireRole(user.Role.ADMIN), (req
     }).done();
 });
 
-router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), iv.validatePOST({ username: 'string' }), (req, res) => {
     db.withTransaction((dbClient) => {
         return model.getByName(dbClient, req.body.username).then(([user]) => {
             if (!user)
@@ -356,7 +356,7 @@ router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), (req
     }).done();
 });
 
-router.post('/organizations/set-name', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.post('/organizations/set-name', user.requireRole(user.Role.ADMIN), iv.validatePOST({ id: 'integer', name: 'string', comment: '?string' }), (req, res) => {
     db.withTransaction((dbClient) => {
         return organization.update(dbClient, req.body.id, { name: req.body.name, comment: req.body.comment });
     }).then(() => {
@@ -369,7 +369,7 @@ router.post('/organizations/set-name', user.requireRole(user.Role.ADMIN), (req, 
 
 const BLOG_POSTS_PER_PAGE = 10;
 
-router.get('/blog', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.get('/blog', user.requireRole(user.Role.BLOG_EDITOR), iv.validateGET({ page: '?integer' }), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -418,7 +418,8 @@ function slugify(s) {
     return encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-')).replace(/[^a-z0-9-]/g, '');
 }
 
-router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR),
+    iv.validatePOST({ id: 'integer', title: 'string', image: 'string', blurb: 'string', source: 'string' }), (req, res, next) => {
     const md = new markdown();
     md.use(require('markdown-it-anchor'));
     md.use(require('markdown-it-highlightjs'));
@@ -426,14 +427,10 @@ router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR), (req, res, 
     md.use(require('markdown-it-footnote'));
     md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
 
-    if (typeof req.body.title !== 'string'
-        || typeof req.body.image !== 'string'
-        || typeof req.body.blurb !== 'string'
-        || !req.body.image.startsWith('https://')
-        || typeof req.body.source !== 'string') {
+    if (!req.body.image.startsWith('https://')) {
         res.status(400).render('error', {
             page_title: req._("Almond - Error"),
-            message: req._("Missing or invalid fields.")
+            message: req._("Invalid image.")
         });
         return;
     }
@@ -458,7 +455,8 @@ router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR), (req, res, 
 });
 
 
-router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR),
+    iv.validatePOST({ title: 'string', image: 'string', blurb: 'string', source: 'string' }), (req, res, next) => {
     const md = new markdown();
     md.use(require('markdown-it-anchor'));
     md.use(require('markdown-it-highlightjs'));
@@ -466,13 +464,10 @@ router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, 
     md.use(require('markdown-it-footnote'));
     md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
 
-    if (typeof req.body.title !== 'string'
-        || typeof req.body.image !== 'string'
-        || typeof req.body.blurb !== 'string'
-        || typeof req.body.source !== 'string') {
+    if (!req.body.image.startsWith('https://')) {
         res.status(400).render('error', {
             page_title: req._("Almond - Error"),
-            message: req._("Missing or invalid fields.")
+            message: req._("Invalid image.")
         });
         return;
     }
@@ -497,7 +492,7 @@ router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, 
     }).catch(next);
 });
 
-router.post('/blog/publish', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.post('/blog/publish', user.requireRole(user.Role.BLOG_EDITOR), iv.validatePOST({ id: 'integer' }), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.publish(dbClient, req.body.id);
     }).then(() => {
@@ -505,7 +500,7 @@ router.post('/blog/publish', user.requireRole(user.Role.BLOG_EDITOR), (req, res,
     }).catch(next);
 });
 
-router.post('/blog/unpublish', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.post('/blog/unpublish', user.requireRole(user.Role.BLOG_EDITOR), iv.validatePOST({ id: 'integer' }), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.unpublish(dbClient, req.body.id);
     }).then(() => {
@@ -513,7 +508,7 @@ router.post('/blog/unpublish', user.requireRole(user.Role.BLOG_EDITOR), (req, re
     }).catch(next);
 });
 
-router.post('/blog/delete', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.post('/blog/delete', user.requireRole(user.Role.BLOG_EDITOR), iv.validatePOST({ id: 'integer' }), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.delete(dbClient, req.body.id);
     }).then(() => {
