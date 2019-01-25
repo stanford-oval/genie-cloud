@@ -18,6 +18,7 @@ const assert = require('assert');
 const Tp = require('thingpedia');
 const qs = require('qs');
 const Url = require('url');
+const FormData = require('form-data');
 
 const Config = require('../../config');
 
@@ -35,18 +36,26 @@ function request(url, method, data, options = {}) {
     options['user-agent'] = 'Thingpedia-Cloud-Test/1.0.0';
     options.debug = DEBUG;
 
-    return Tp.Helpers.Http.request(Config.SERVER_ORIGIN + url, method, data, options);
+    if (method === 'POST' && (typeof data !== 'string' && data !== null && !(data instanceof Buffer)))
+        return Tp.Helpers.Http.postStream(Config.SERVER_ORIGIN + url, data, options);
+    else
+        return Tp.Helpers.Http.request(Config.SERVER_ORIGIN + url, method, data, options);
 }
 
 function sessionRequest(url, method, data, session, options = {}) {
     if (method === 'POST') {
-        if (data !== null && typeof data !== 'string')
-            data = qs.stringify(data);
-        if (data)
-            data += '&_csrf=' + session.csrfToken;
-        else
-            data = '_csrf=' + session.csrfToken;
-        options.dataContentType = 'application/x-www-form-urlencoded';
+        if (data instanceof FormData) {
+            data.append('_csrf', session.csrfToken);
+            options.dataContentType = 'multipart/form-data; boundary=' + data.getBoundary();
+        } else {
+            if (data !== null && typeof data !== 'string')
+                data = qs.stringify(data);
+            if (data)
+                data += '&_csrf=' + session.csrfToken;
+            else
+                data = '_csrf=' + session.csrfToken;
+            options.dataContentType = 'application/x-www-form-urlencoded';
+        }
     } else {
         if (data !== null && typeof data !== 'string') {
             url += '?' + qs.stringify(data);

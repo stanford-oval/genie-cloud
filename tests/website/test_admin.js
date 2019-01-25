@@ -10,6 +10,7 @@
 "use strict";
 
 const assert = require('assert');
+const FormData = require('form-data');
 const { assertHttpError, assertRedirect, assertLoginRequired, assertBlocked, sessionRequest, dbQuery } = require('./scaffold');
 const { login, startSession } = require('../login');
 
@@ -185,6 +186,42 @@ async function testAdminBlog(root, bob, nobody) {
     await sessionRequest('/admin/blog/delete', 'POST', { id: 1 }, root);
 }
 
+async function testAdminFileUpload(root, bob) {
+    const fd1 = new FormData();
+    fd1.append('file', 'Test file\n', { filename: 'test.txt', contentType: 'text/plain;charset=utf8' });
+    await assertHttpError(sessionRequest('/admin/blog/upload', 'POST', fd1, bob),
+        403, 'You do not have permission to perform this operation.');
+
+    const fd2 = new FormData();
+    fd2.append('file', 'Test file\n', { filename: 'test.txt', contentType: 'text/plain;charset=utf8' });
+    const response = JSON.parse(await sessionRequest('/admin/blog/upload', 'POST', fd2, root));
+    assert.deepStrictEqual(response, {
+        result: 'ok',
+        filename: '377e7167ebfda22e89011fadc436fe5086ee98c3'
+    });
+
+    const fd3 = new FormData();
+    await assertHttpError(sessionRequest('/admin/blog/upload', 'POST', fd3, root),
+        400, 'missing file');
+
+    const fd4 = new FormData();
+    fd4.append('file', 'Not actually a file');
+    await assertHttpError(sessionRequest('/admin/blog/upload', 'POST', fd4, root),
+        400, 'missing file');
+
+    const fd5 = new FormData();
+    fd5.append('file', 'Test file\n', { filename: 'test.txt', contentType: 'text/plain;charset=utf8' });
+    fd5.append('file', 'Another file', { filename: 'test2.txt', contentType: 'text/plain;charset=utf8' });
+    await assertHttpError(sessionRequest('/admin/blog/upload', 'POST', fd5, root),
+        400, 'Unexpected field');
+
+    const fd6 = new FormData();
+    fd6.append('file', 'Test file\n', { filename: 'test.txt', contentType: 'text/plain;charset=utf8' });
+    fd6.append('file2', 'Another file', { filename: 'test2.txt', contentType: 'text/plain;charset=utf8' });
+    await assertHttpError(sessionRequest('/admin/blog/upload', 'POST', fd6, root),
+        400, 'Unexpected field');
+}
+
 async function main() {
     const emc = new EngineManagerClient();
     await emc.start();
@@ -202,6 +239,7 @@ async function main() {
     if (Config.WITH_THINGPEDIA === 'embedded')
         await testAdminOrgs(root, bob, nobody);
     await testAdminBlog(root, bob, nobody);
+    await testAdminFileUpload(root, bob);
 
     await db.tearDown();
     await emc.stop();

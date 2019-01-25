@@ -24,9 +24,7 @@ const user = require('../util/user');
 
 var router = express.Router();
 
-router.use(multer({ dest: platform.getTmpDir() }).fields([
-    { name: 'file', maxCount: 1 }
-]));
+router.use(multer({ dest: platform.getTmpDir() }).single('file'));
 router.use(csurf({ cookie: false }));
 router.use((req, res, next) => {
     res.locals.csrfToken = req.csrfToken();
@@ -50,24 +48,23 @@ function hashfile(filename) {
 }
 
 async function upload(req, res) {
-    try {
-        if (!req.files || !req.files.file || !req.files.file.length) {
-            res.status(400).json({ error: 'missing file' });
-            return;
-        }
+    if (!req.file) {
+        res.status(400).json({ error: 'missing file' });
+        return;
+    }
 
-        const filehash = await hashfile(req.files.file[0].path);
-        const extension = req.files.file[0].path.substring(0, req.files.file[0].path.lastIndexOf('.'));
+    try {
+        const filehash = await hashfile(req.file.path);
+        const extension = req.file.path.substring(0, req.file.path.lastIndexOf('.'));
         let filename = filehash;
         if (extension)
             filename += '.' + extension;
 
-        await code_storage.storeBlogAsset(fs.createReadStream(req.files.file[0].path), filename,
-                                          req.files.file[0].mimetype || 'application/octet-stream');
+        await code_storage.storeBlogAsset(fs.createReadStream(req.file.path), filename,
+                                          req.file.mimetype || 'application/octet-stream');
         res.json({ result: 'ok', filename });
     } finally {
-        if (req.files && req.files.file && req.files.file.length)
-            await util.promisify(fs.unlink)(req.files.file[0].path);
+        await util.promisify(fs.unlink)(req.file.path);
     }
 }
 

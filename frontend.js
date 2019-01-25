@@ -34,6 +34,7 @@ const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
 const acceptLanguage = require('accept-language');
 const Prometheus = require('prom-client');
+const multer = require('multer');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
@@ -321,7 +322,12 @@ class Frontend {
         });
 
         this._app.use((err, req, res, next) => {
-            if (typeof err.status === 'number') {
+            if (err instanceof multer.MulterError) {
+                res.status(400).render('error', {
+                    page_title: req._("Almond - Error"),
+                    message: err
+                });
+            } else if (typeof err.status === 'number') {
                 res.status(err.status).render('error', {
                     page_title: req._("Almond - Error"),
                     message: err.expose ? err : req._("Code: %d").foramt(err.status)
