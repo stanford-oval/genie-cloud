@@ -336,7 +336,7 @@ class Frontend {
                     // everywhere)
                     csrfToken: req.csrfToken()
                 });
-            } else if (err.errno === 'ENOENT') {
+            } else if (err.code === 'ENOENT' || err.errno === 'ENOENT') {
                 // if we get here, we have a 404 response
                 res.status(404).render('error', {
                     page_title: req._("Almond - Page Not Found"),

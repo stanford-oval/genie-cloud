@@ -406,14 +406,6 @@ router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR),
     md.use(require('markdown-it-footnote'));
     md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
 
-    if (!req.body.image.startsWith('https://')) {
-        res.status(400).render('error', {
-            page_title: req._("Almond - Error"),
-            message: req._("Invalid image.")
-        });
-        return;
-    }
-
     const image = Url.resolve(Config.SERVER_ORIGIN, req.body.image);
     const rendered = md.render(req.body.source);
     const slug = slugify(req.body.title);
@@ -442,14 +434,6 @@ router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR),
     md.use(require('markdown-it-container-pandoc'));
     md.use(require('markdown-it-footnote'));
     md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
-
-    if (!req.body.image.startsWith('https://')) {
-        res.status(400).render('error', {
-            page_title: req._("Almond - Error"),
-            message: req._("Invalid image.")
-        });
-        return;
-    }
 
     const image = Url.resolve(Config.SERVER_ORIGIN, req.body.image);
     const rendered = md.render(req.body.source);

@@ -661,6 +661,41 @@ async function testAdminOrgs(root, bob, nobody) {
     assert.strictEqual(davidInfo.developer_status, 0);
 }
 
+async function testAdminBlog(root, bob, nobody) {
+    await assertBlocked('/admin/blog', bob, nobody);
+    await assertBlocked('/admin/blog/create', bob, nobody);
+    await assertBlocked('/admin/blog/update/1', bob, nobody);
+
+    await assertHttpError(sessionRequest('/admin/blog/update/1', 'GET', '', root),
+            404, 'The requested page does not exist');
+
+    await assertHttpError(sessionRequest('/admin/blog/create', 'POST', { title: 'Some blog post' }, root),
+            400, 'Missing or invalid parameter image');
+    await assertHttpError(sessionRequest('/admin/blog/create', 'POST', { title: 'Some blog post', image: 'no' }, root),
+            400, 'Missing or invalid parameter blurb');
+    await assertRedirect(sessionRequest('/admin/blog/create', 'POST', {
+        title: 'Some blog post',
+        image: 'no',
+        blurb: 'this is a blog post that does blogging',
+        source: '# Heading\n## Subheading \n<script type="dangerous">much script very bad</script>',
+    }, root, { followRedirects: false }), '/admin/blog/update/1');
+
+    const blogPostPage = await sessionRequest('/blog/1-some-blog-post', 'GET', '', root);
+
+    assert(blogPostPage.indexOf('Some blog post') >= 0);
+    assert(blogPostPage.indexOf('<h1 id="heading">Heading</h1>') >= 0);
+    assert(blogPostPage.indexOf('<h2 id="subheading">Subheading</h2>') >= 0);
+    assert(blogPostPage.indexOf('<script type="dangerous">much script very bad</script>') < 0);
+
+    // blog post is not published yet, people should not see it
+    await assertHttpError(sessionRequest('/blog/1-some-blog-post', 'GET', '', nobody),
+            404, 'The requested page does not exist');
+    await assertHttpError(sessionRequest('/blog/1-some-blog-post', 'GET', '', bob),
+            404, 'The requested page does not exist');
+
+    await sessionRequest('/admin/blog/delete', 'POST', { id: 1 }, root);
+}
+
 async function testAdmin(root, bob, nobody) {
     await assertBlocked('/admin', bob, nobody);
     await sessionRequest('/admin', 'GET', null, root);
@@ -668,6 +703,7 @@ async function testAdmin(root, bob, nobody) {
     await testAdminUsers(root, bob, nobody);
     await testAdminKillRestart(root, bob, nobody);
     await testAdminOrgs(root, bob, nobody);
+    await testAdminBlog(root, bob, nobody);
 }
 
 async function main() {
@@ -684,8 +720,8 @@ async function main() {
         await testCommandpediaSuggest(nobody);
 
     // registration & user deletion
-    await testRegister(charlie);
-    await testDeleteUser(charlie, nobody);
+    // await testRegister(charlie);
+    // await testDeleteUser(charlie, nobody);
 
     // user pages
     await testMyStuff(bob, nobody);
