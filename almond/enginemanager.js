@@ -70,6 +70,8 @@ class EngineProcess extends events.EventEmitter {
         this._rpcSocket = null;
         this._rpcId = null;
 
+        this._sandboxed = !this.shared && process.env.THINGENGINE_DISABLE_SANDBOX !== '1';
+        this._sandboxedPid = null;
         this._hadExit = false;
         this._deadPromise = null;
         this._deadCallback = null;
@@ -115,12 +117,31 @@ class EngineProcess extends events.EventEmitter {
             this._deadCallback = resolve;
 
             setTimeout(() => {
+                if (this._sandboxedPid !== null) {
+                    process.kill(this._sandboxedPid, 'SIGKILL');
+                    this._sandboxedPid = null;
+                } else if (this._child !== null) {
+                    this._child.kill('SIGKILL');
+                }
+
                 reject(new Error(`Timeout waiting for child ${this._id} to die`));
             }, 30000);
         });
 
         console.log('Killing process with ID ' + this._id);
-        this._child.kill();
+        // in the sandbox, we cannot kill the process directly, due to signal
+        // restrictions in PID namespaces (the sandbox process is treated like PID 1
+        // and unkillable other than with SIGKILL)
+        // to try and terminate the process gracefully, send a message using the channel
+        //
+        // NOTE: if the child is not connected and we are sandboxed, we will send it
+        // SIGTERM, which does nothing
+        // later, we'll timeout and send it SIGKILL instead
+        // (same thing if sending fails)
+        if (this._sandboxed && this._child.connected)
+            this._child.send({ type: 'exit' });
+        else
+            this._child.kill();
 
         // emit exit immediately so we close the channel
         // otherwise we could race and try to talk to the dying process
@@ -146,6 +167,21 @@ class EngineProcess extends events.EventEmitter {
 
     send(msg, socket) {
         this._child.send(msg, socket);
+    }
+
+    _handleInfoFD(pipe) {
+        let buf = '';
+        pipe.setEncoding('utf8');
+        pipe.on('data', (data) => {
+            buf += data;
+        });
+        pipe.on('end', () => {
+            const parsed = JSON.parse(buf);
+            this._sandboxedPid = parsed['child-pid'];
+        });
+        pipe.on('error', (err) => {
+            console.error(`Failed to read from info-fd in process ${this._id}: ${err}`);
+        });
     }
 
     start() {
@@ -179,7 +215,7 @@ class EngineProcess extends events.EventEmitter {
             args.push(enginePath);
             args.push('--shared');
             child = child_process.spawn(process.execPath, args,
-                                        { stdio: ['ignore', 'ignore', 2, 'ipc'],
+                                        { stdio: ['ignore', 'ignore', 2, 'ignore', 'ipc'],
                                           detached: true, // ignore ^C
                                           cwd: this._cwd, env: env });
         } else {
@@ -187,12 +223,12 @@ class EngineProcess extends events.EventEmitter {
                 processPath = process.execPath;
                 args = process.execArgv.slice();
                 args.push(enginePath);
-                stdio = ['ignore', 1, 2, 'ipc'];
+                stdio = ['ignore', 1, 2, 'ignore', 'ipc'];
             } else {
                 processPath = path.resolve(managerPath, '../sandbox/sandbox');
                 args = [process.execPath].concat(process.execArgv);
                 args.push(enginePath);
-                stdio = ['ignore', 1, 2, 'ipc'];
+                stdio = ['ignore', 1, 2, 'pipe', 'ipc'];
 
                 const jsPrefix = path.resolve(path.dirname(managerPath));
                 const nodepath = path.resolve(process.execPath);
@@ -206,6 +242,8 @@ class EngineProcess extends events.EventEmitter {
                                           detached: true,
                                           cwd: this._cwd, env: env });
         }
+        if (this._sandboxed)
+            this._handleInfoFD(child.stdio[3]);
 
         // wrap child into something that looks like a Stream
         // (readable + writable)
@@ -224,6 +262,9 @@ class EngineProcess extends events.EventEmitter {
                 }
             });
             child.on('exit', (code, signal) => {
+                this._sandboxedPid = null;
+                this._child = null;
+            
                 if (this.shared || code !== 0)
                     console.error('Child with ID ' + this._id + ' exited with code ' + code);
                 reject(new Error('Exited with code ' + code));

@@ -140,6 +140,10 @@ function main() {
     var rpcSocket = new rpc.Socket(rpcWrapped);
     process.on('message', (message, socket) => {
         switch (message.type) {
+            case 'exit':
+                handleSignal();
+                break;
+        
             case 'direct':
                 handleDirectSocket(message.target, message.replyId, socket);
                 break;
