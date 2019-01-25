@@ -702,7 +702,8 @@ async function testAdmin(root, bob, nobody) {
 
     await testAdminUsers(root, bob, nobody);
     await testAdminKillRestart(root, bob, nobody);
-    await testAdminOrgs(root, bob, nobody);
+    if (Config.WITH_THINGPEDIA === 'embedded')
+        await testAdminOrgs(root, bob, nobody);
     await testAdminBlog(root, bob, nobody);
 }
 
