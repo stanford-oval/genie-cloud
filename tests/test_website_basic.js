@@ -721,8 +721,8 @@ async function main() {
         await testCommandpediaSuggest(nobody);
 
     // registration & user deletion
-    // await testRegister(charlie);
-    // await testDeleteUser(charlie, nobody);
+    await testRegister(charlie);
+    await testDeleteUser(charlie, nobody);
 
     // user pages
     await testMyStuff(bob, nobody);
