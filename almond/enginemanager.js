@@ -75,6 +75,7 @@ class EngineProcess extends events.EventEmitter {
         this._hadExit = false;
         this._deadPromise = null;
         this._deadCallback = null;
+        this._dyingTimeout = null;
     }
 
     get id() {
@@ -116,7 +117,7 @@ class EngineProcess extends events.EventEmitter {
         this._deadPromise = new Promise((resolve, reject) => {
             this._deadCallback = resolve;
 
-            setTimeout(() => {
+            this._dyingTimeout = setTimeout(() => {
                 if (this._sandboxedPid !== null) {
                     process.kill(this._sandboxedPid, 'SIGKILL');
                     this._sandboxedPid = null;
@@ -264,6 +265,10 @@ class EngineProcess extends events.EventEmitter {
             child.on('exit', (code, signal) => {
                 this._sandboxedPid = null;
                 this._child = null;
+                if (this._dyingTimeout !== null) {
+                    clearTimeout(this._dyingTimeout);
+                    this._dyingTimeout = null;
+                }
             
                 if (this.shared || code !== 0)
                     console.error('Child with ID ' + this._id + ' exited with code ' + code);
