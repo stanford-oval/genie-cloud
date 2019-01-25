@@ -653,7 +653,7 @@ async function testAdminOrgs(root, bob, nobody) {
     assert.strictEqual(davidInfo.developer_status, 0);
 
     // now undo the change (mostly so you can run the tests multiple times against the same database)
-    await sessionRequest('/admin/users/revoke-developer', 'POST', { id: 4 }, root);
+    await sessionRequest('/admin/users/revoke-developer/4', 'POST', '', root);
 
     [davidInfo] = await dbQuery(`select * from users where username = ?`, ['david']);
     assert(davidInfo);

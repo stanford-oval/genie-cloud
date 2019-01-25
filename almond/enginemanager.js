@@ -302,6 +302,42 @@ class EngineProcess extends events.EventEmitter {
     }
 }
 
+class Lock {
+    constructor() {
+        this._queue = Promise.resolve();
+    }
+
+    async acquire() {
+        // Promise-based lock
+        //
+        // this._queue is a promise that is fulfilled when the lock is unlocked
+        //
+        // ourTurn is a promise that will be pending while we hold the lock
+        // calling `unlockCallback` fulfills the promise, releasing the lock
+        //
+        // we put ourTurn at the back of the queue with
+        // this._queue = this._queue.then(ourTurn);
+        // this means, whoever wants the lock after us, will wait for the current
+        // holder of the lock, and for us too
+        // then we `await oldQueue`, which means we wait for the queue before
+        // us to drain, and for the lock to be unlocked
+        // finally, we return the unlockCallback to the caller
+        //
+        // when this function returns, the lock is owned by the calling promise
+        // chain (async-await pseudo-thread); concurrent calls to acquire()
+        // will block in `await oldQueue` until `unlockCallback` is called 
+
+        let unlockCallback;
+        const ourTurn = new Promise((resolve) => {
+            unlockCallback = resolve;
+        });
+        const oldQueue = this._queue;
+        this._queue = this._queue.then(ourTurn);
+        await oldQueue;
+        return unlockCallback;
+    }
+}
+
 class EngineManager extends events.EventEmitter {
     constructor(shardId) {
         super();
@@ -310,6 +346,7 @@ class EngineManager extends events.EventEmitter {
         this._rrproc = [];
         this._nextProcess = null;
         this._engines = {};
+        this._locks = {};
         this._stopped = false;
     }
 
@@ -330,7 +367,14 @@ class EngineManager extends events.EventEmitter {
         }
     }
 
-    _runUser(user) {
+    async _lockUser(userId) {
+        if (!this._locks[userId])
+            this._locks[userId] = new Lock();
+
+        return this._locks[userId].acquire();
+    }
+
+    async _runUser(user) {
         var engines = this._engines;
         var obj = { cloudId: user.cloud_id, process: null, engine: null };
         engines[user.id] = obj;
@@ -363,20 +407,20 @@ class EngineManager extends events.EventEmitter {
             die(true);
         };
 
-        return this._findProcessForUser(user).then((child) => {
-            console.log('Running engine for user ' + user.id + ' in shard ' + this._shardId);
+        const child = await this._findProcessForUser(user);
+        console.log('Running engine for user ' + user.id + ' in shard ' + this._shardId);
 
-            obj.process = child;
+        obj.process = child;
 
-            child.on('engine-removed', onRemoved);
-            child.on('exit', die);
+        child.on('engine-removed', onRemoved);
+        child.on('exit', die);
 
-            if (Config.WITH_THINGPEDIA === 'embedded')
-                obj.thingpediaClient = new ThingpediaClient(user.developer_key, user.locale);
-            else
-                obj.thingpediaClient = null;
-            return child.runEngine(user, obj.thingpediaClient);
-        });
+        if (Config.WITH_THINGPEDIA === 'embedded')
+            obj.thingpediaClient = new ThingpediaClient(user.developer_key, user.locale);
+        else
+            obj.thingpediaClient = null;
+
+        return child.runEngine(user, obj.thingpediaClient);
     }
 
     isRunning(userId) {
@@ -387,13 +431,18 @@ class EngineManager extends events.EventEmitter {
         return (this._engines[userId] !== undefined && this._engines[userId].process !== null) ? this._engines[userId].process.id : -1;
     }
 
-    sendSocket(userId, replyId, socket) {
+    async sendSocket(userId, replyId, socket) {
         if (this._engines[userId] === undefined)
             throw new Error('Invalid user ID');
         if (this._engines[userId].process === null)
             throw new Error('Engine dead');
 
-        this._engines[userId].process.send({ type: 'direct', target: userId, replyId: replyId }, socket);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            this._engines[userId].process.send({ type: 'direct', target: userId, replyId: replyId }, socket);
+        } finally {
+            releaseLock();
+        }
     }
 
     _startSharedProcesses(nprocesses) {
@@ -443,8 +492,17 @@ class EngineManager extends events.EventEmitter {
         });
     }
 
-    startUser(userId) {
+    async startUser(userId) {
         console.log('Requested start of user ' + userId);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._startUserLocked(userId);
+        } finally {
+            releaseLock();
+        }
+    }
+
+    async _startUserLocked(userId) {
         return db.withClient((dbClient) => {
             return user.get(dbClient, userId);
         }).then((user) => {
@@ -468,11 +526,21 @@ class EngineManager extends events.EventEmitter {
         return Promise.all(promises).then(() => true);
     }
 
-    killUser(userId) {
+    async _killUserLocked(userId) {
         let obj = this._engines[userId];
         if (!obj || obj.process === null)
-            return Promise.resolve();
-        return Promise.resolve(obj.process.killEngine(userId));
+            return;
+        await obj.process.killEngine(userId);
+    }
+
+    async killUser(userId) {
+        console.log('Requested killing user ' + userId);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._killUserLocked(userId);
+        } finally {
+            releaseLock();
+        }
     }
 
     _getUserCloudIdForPath(userId) {
@@ -490,26 +558,46 @@ class EngineManager extends events.EventEmitter {
         }
     }
 
-    restartUser(userId) {
-        return this.killUser(userId).then(() => {
-            return this.startUser(userId);
-        });
+    async restartUser(userId) {
+        console.log('Requested restart of user ' + userId);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._killUserLocked(userId);
+            await this._startUserLocked(userId);
+        } finally {
+            releaseLock();
+        }
     }
 
     async deleteUser(userId) {
-        await this.killUser(userId);
-
         console.log(`Deleting all data for ${userId}`);
-        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId));
-        return util.promisify(child_process.execFile)('/bin/rm',
-            ['-rf', dir]);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._killUserLocked(userId);
+
+            const dir = path.resolve('.', await this._getUserCloudIdForPath(userId));
+            await util.promisify(child_process.execFile)('/bin/rm',
+                ['-rf', dir]);
+        } finally {
+            releaseLock();
+            delete this._locks[userId];
+        }
     }
+
+    async _clearCacheLocked(userId) {
+        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId), 'cache');
+        await util.promisify(child_process.execFile)('/bin/rm',
+            ['-rf', dir]);
+    } 
 
     async clearCache(userId) {
         console.log(`Clearing cache for ${userId}`);
-        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId), 'cache');
-        return util.promisify(child_process.execFile)('/bin/rm',
-            ['-rf', dir]);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._clearCacheLocked(userId);
+        } finally {
+            releaseLock();
+        }
     }
 
     // restart a user with a clean cache folder
@@ -517,14 +605,16 @@ class EngineManager extends events.EventEmitter {
     // as after restart they will be placed in a shared process,
     // and we don't want them having access to unapproved (and dangerous)
     // devices through the cache
-    //
-    // FIXME: there is a race condition here if you restart the user at just
-    // the right time before the cache is cleared, because this whole method
-    // is run after the database has been updated
     async restartUserWithoutCache(userId) {
-        await this.killUser(userId);
-        await this.clearCache(userId);
-        await this.startUser(userId);
+        console.log(`Requested cache clear & restart of user ${userId}`);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._killUserLocked(userId);
+            await this._clearCacheLocked(userId);
+            await this._startUserLocked(userId);
+        } finally {
+            releaseLock();
+        }
     }
 }
 EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers',  'restartUser', 'deleteUser', 'clearCache', 'restartUserWithoutCache'];

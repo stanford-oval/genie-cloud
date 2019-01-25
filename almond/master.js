@@ -58,13 +58,11 @@ class ControlSocket extends events.EventEmitter {
 
             jsonSocket.removeListener('data', initListener);
             if (msg.control === 'direct') {
-                try {
-                    engines.sendSocket(msg.target, msg.replyId, socket);
-                    this._socket = null;
-                } catch(e) {
+                this._socket = null;
+                engines.sendSocket(msg.target, msg.replyId, socket).catch((e) => {
                     jsonSocket.write({ error: e.message });
                     jsonSocket.end();
-                }
+                });
             } else if (msg.control === 'master') {
                 this._rpcSocket = new rpc.Socket(jsonSocket);
                 this._rpcSocket.on('close', () => this.emit('close'));
