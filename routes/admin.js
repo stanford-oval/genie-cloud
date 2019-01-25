@@ -309,19 +309,31 @@ router.get('/organizations/details/:id', user.requireRole(user.Role.ADMIN), (req
     }).catch(next);
 });
 
-router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), iv.validatePOST({ username: 'string' }), (req, res, next) => {
-    db.withTransaction((dbClient) => {
-        return model.getByName(dbClient, req.body.username).then(([user]) => {
+router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN),
+    iv.validatePOST({ id: 'integer', as_developer: 'boolean', username: 'string' }), (req, res, next) => {
+    db.withTransaction(async (dbClient) => {
+        const [user] = await model.getByName(dbClient, req.body.username);
+        try {
             if (!user)
                 throw new Error(req._("No such user %s").format(req.body.username));
-            if (user.developer_org !== null)
+            if (user.developer_org !== null && user.developer_org !== parseInt(req.body.id))
                 throw new Error(req._("%s is already a member of another developer organization.").format(req.body.username));
+        } catch(e) {
+            res.status(400).render('error', {
+                page_title: req._("Thingpedia - Error"),
+                message: e
+            });
+            return null;
+        }
 
-            return model.update(dbClient, user.id, { developer_status: req.body.as_developer ? 1 : 0,
-                                                     developer_org: req.body.id }).then(() => user.id);
-        });
-    }).then((userId) => EngineManager.get().restartUser(userId)).then(() => {
-        res.redirect(303, '/admin/organizations/details/' + req.body.id);
+        await model.update(dbClient, user.id, { developer_status: req.body.as_developer ? 1 : 0,
+                                                developer_org: req.body.id });
+        return user.id;
+    }).then(async (userId) => {
+        if (userId !== null) {
+            await EngineManager.get().restartUser(userId);
+            res.redirect(303, '/admin/organizations/details/' + req.body.id);
+        }
     }).catch(next);
 });
 

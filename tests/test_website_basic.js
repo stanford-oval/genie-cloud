@@ -632,6 +632,33 @@ async function testAdminOrgs(root, bob, nobody) {
     const rootOrgPage = await sessionRequest('/admin/organizations/search', 'GET', { q: 'site' }, root);
     assert(rootOrgPage.indexOf('Test Org') < 0);
     assert(rootOrgPage.indexOf('Site Administration') >= 0);
+
+    await assertLoginRequired(sessionRequest('/admin/organizations/add-member', 'POST', '', nobody));
+    await assertHttpError(sessionRequest('/admin/organizations/add-member', 'POST', '', bob),
+            403, 'You do not have permission to perform this operation.');
+    await assertHttpError(sessionRequest('/admin/organizations/add-member', 'POST', { id: '1.5' }, root),
+            400, 'Missing or invalid parameter id');
+    await assertHttpError(sessionRequest('/admin/organizations/add-member', 'POST', { id: '2' }, root),
+            400, 'Missing or invalid parameter username');
+    await assertHttpError(sessionRequest('/admin/organizations/add-member', 'POST', { id: '2', username: 'non-existent' }, root),
+            400, 'No such user non-existent');
+    await assertHttpError(sessionRequest('/admin/organizations/add-member', 'POST', { id: '2', username: 'root' }, root),
+            400, 'root is already a member of another developer organization.');
+
+    await sessionRequest('/admin/organizations/add-member', 'POST', { id: '2', username: 'david' }, root);
+
+    let [davidInfo] = await dbQuery(`select * from users where username = ?`, ['david']);
+    assert(davidInfo);
+    assert.strictEqual(davidInfo.developer_org, 2);
+    assert.strictEqual(davidInfo.developer_status, 0);
+
+    // now undo the change (mostly so you can run the tests multiple times against the same database)
+    await sessionRequest('/admin/users/revoke-developer', 'POST', { id: 4 }, root);
+
+    [davidInfo] = await dbQuery(`select * from users where username = ?`, ['david']);
+    assert(davidInfo);
+    assert.strictEqual(davidInfo.developer_org, null);
+    assert.strictEqual(davidInfo.developer_status, 0);
 }
 
 async function testAdmin(root, bob, nobody) {
