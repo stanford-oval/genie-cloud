@@ -434,7 +434,7 @@ async function testDeleteUser(charlie, nobody) {
 
     // check that the user is not running any more
     assert(!await EngineManagerClient.get().isRunning(charlieInfo.id));
-    assert.rejects(EngineManagerClient.get().getEngine(charlieInfo.id));
+    await assert.rejects(() => EngineManagerClient.get().getEngine(charlieInfo.id));
     assert(!fs.existsSync('./' + charlieInfo.cloud_id));
 }
 
