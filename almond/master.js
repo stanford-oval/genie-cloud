@@ -12,6 +12,8 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
+process.on('unhandledRejection', (up) => { throw up; });
+
 const assert = require('assert');
 const events = require('events');
 const rpc = require('transparent-rpc');
@@ -38,6 +40,7 @@ class ControlSocket extends events.EventEmitter {
                 if (msg.token === Config.THINGENGINE_MANAGER_AUTHENTICATION) {
                     this._authenticated = true;
                 } else {
+                    this.emit('close');
                     jsonSocket.write({ error: 'invalid authentication token' });
                     jsonSocket.end();
                     jsonSocket.removeListener('data', initListener);
@@ -45,6 +48,7 @@ class ControlSocket extends events.EventEmitter {
                 return;
             }
             if (!this._authenticated) {
+                this.emit('close');
                 jsonSocket.write({ error: 'expected authentication' });
                 jsonSocket.end();
                 jsonSocket.removeListener('data', initListener);
@@ -58,6 +62,8 @@ class ControlSocket extends events.EventEmitter {
 
             jsonSocket.removeListener('data', initListener);
             if (msg.control === 'direct') {
+                socket.pause();
+                this.emit('close');
                 this._socket = null;
                 engines.sendSocket(msg.target, msg.replyId, socket).catch((e) => {
                     jsonSocket.write({ error: e.message });
@@ -73,6 +79,7 @@ class ControlSocket extends events.EventEmitter {
                 const id = this._rpcSocket.addStub(engines);
                 jsonSocket.write({ control: 'ready', rpcId: id });
             } else {
+                this.emit('close');
                 jsonSocket.write({ error: 'invalid initialization message' });
                 jsonSocket.end();
             }
@@ -81,8 +88,7 @@ class ControlSocket extends events.EventEmitter {
     }
 
     end() {
-        if (this._socket)
-            this._socket.end();
+        this._socket.end();
     }
 }
 
@@ -111,7 +117,7 @@ class ControlSocketServer {
                 console.error(`Failed to stop one connection: ${e.message}`);
             }
         }
-        return Q.ninvoke(this._server, 'close');
+        this._server.close();
     }
 }
 
