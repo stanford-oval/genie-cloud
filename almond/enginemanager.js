@@ -22,6 +22,7 @@ const util = require('util');
 const user = require('../model/user');
 const db = require('../util/db');
 const ThingpediaClient = require('../util/thingpedia-client');
+const Lock = require('../util/lock');
 const Config = require('../config');
 
 class ChildProcessSocket extends stream.Duplex {
@@ -299,42 +300,6 @@ class EngineProcess extends events.EventEmitter {
                 }
             });
         });
-    }
-}
-
-class Lock {
-    constructor() {
-        this._queue = Promise.resolve();
-    }
-
-    async acquire() {
-        // Promise-based lock
-        //
-        // this._queue is a promise that is fulfilled when the lock is unlocked
-        //
-        // ourTurn is a promise that will be pending while we hold the lock
-        // calling `unlockCallback` fulfills the promise, releasing the lock
-        //
-        // we put ourTurn at the back of the queue with
-        // this._queue = this._queue.then(ourTurn);
-        // this means, whoever wants the lock after us, will wait for the current
-        // holder of the lock, and for us too
-        // then we `await oldQueue`, which means we wait for the queue before
-        // us to drain, and for the lock to be unlocked
-        // finally, we return the unlockCallback to the caller
-        //
-        // when this function returns, the lock is owned by the calling promise
-        // chain (async-await pseudo-thread); concurrent calls to acquire()
-        // will block in `await oldQueue` until `unlockCallback` is called 
-
-        let unlockCallback;
-        const ourTurn = new Promise((resolve) => {
-            unlockCallback = resolve;
-        });
-        const oldQueue = this._queue;
-        this._queue = this._queue.then(ourTurn);
-        await oldQueue;
-        return unlockCallback;
     }
 }
 
