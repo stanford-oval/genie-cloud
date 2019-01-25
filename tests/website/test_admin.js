@@ -1,0 +1,211 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Almond Cloud
+//
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//
+// See COPYING for details
+"use strict";
+
+const assert = require('assert');
+const { assertHttpError, assertRedirect, assertLoginRequired, assertBlocked, sessionRequest, dbQuery } = require('./scaffold');
+const { login, startSession } = require('../login');
+
+const db = require('../../util/db');
+const EngineManagerClient = require('../../almond/enginemanagerclient');
+
+const Config = require('../../config');
+
+async function testAdminUsers(root, bob, nobody) {
+    await assertBlocked('/admin/users', bob, nobody);
+    const usersPage = await sessionRequest('/admin/users', 'GET', null, root);
+    assert(usersPage.indexOf('bob@localhost') >= 0);
+    assert(usersPage.indexOf('root@localhost') >= 0);
+    const usersPage2 = await sessionRequest('/admin/users', 'GET', { page: -1 }, root);
+    assert(usersPage2.indexOf('bob@localhost') >= 0);
+    assert(usersPage2.indexOf('root@localhost') >= 0);
+
+    const nextUserPage = await sessionRequest('/admin/users', 'GET', { page: 1 }, root);
+    assert(nextUserPage.indexOf('bob@localhost') < 0);
+    assert(nextUserPage.indexOf('root@localhost') < 0);
+
+    await assertBlocked('/admin/users/search', bob, nobody);
+    await assertHttpError(sessionRequest('/admin/users/search', 'GET', null, root),
+        400, 'Missing or invalid parameter q');
+    const rootUserPage = await sessionRequest('/admin/users/search', 'GET', { q: 'root' }, root);
+    assert(rootUserPage.indexOf('bob@localhost') < 0);
+    assert(rootUserPage.indexOf('root@localhost') >= 0);
+
+    const rootUserPage2 = await sessionRequest('/admin/users/search', 'GET', { q: '1' }, root);
+    assert(rootUserPage2.indexOf('bob@localhost') < 0);
+    assert(rootUserPage2.indexOf('root@localhost') >= 0);
+}
+
+function delay(ms) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, ms);
+    });
+}
+
+async function testAdminKillRestart(root, bob, nobody) {
+    const emc = EngineManagerClient.get();
+    assert (await emc.isRunning(1)); // root
+    assert (await emc.isRunning(2)); // anonymous
+    assert (await emc.isRunning(3)); // bob
+    assert (await emc.isRunning(4)); // david
+
+    // /kill/all is very aggressive, and kills also the shared processes (it's sort of a killswitch for
+    // when things go awry, short of "systemctl stop thingengine-cloud@.service"
+    // hence, after we run it, we sleep for a couple seconds so that the shared processes restart
+    await assertLoginRequired(sessionRequest('/admin/users/kill/all', 'POST', '', nobody));
+    await assertRedirect(sessionRequest('/admin/users/kill/all', 'POST', '', root, { followRedirects: false }), '/admin/users');
+
+    assert (!await emc.isRunning(1)); // root
+    assert (!await emc.isRunning(2)); // anonymous
+    assert (!await emc.isRunning(3)); // bob
+    assert (!await emc.isRunning(4)); // david
+
+    // the shared processes will be restarted in 5s
+    await delay(10000);
+
+    await assertLoginRequired(sessionRequest('/admin/users/start/1', 'POST', '', nobody));
+    await assertRedirect(sessionRequest('/admin/users/start/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');
+
+    assert (await emc.isRunning(1)); // root
+
+    // start everybody else too
+    await sessionRequest('/admin/users/start/2', 'POST', '', root);
+    await sessionRequest('/admin/users/start/3', 'POST', '', root);
+    await sessionRequest('/admin/users/start/4', 'POST', '', root);
+
+    assert (await emc.isRunning(2)); // anonymous
+    assert (await emc.isRunning(3)); // bob
+    assert (await emc.isRunning(4)); // david
+
+    // kill root
+    await assertLoginRequired(sessionRequest('/admin/users/kill/1', 'POST', '', nobody));
+    await assertRedirect(sessionRequest('/admin/users/kill/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');
+
+    assert (!await emc.isRunning(1)); // root
+    assert (await emc.isRunning(2)); // anonymous
+    assert (await emc.isRunning(3)); // bob
+    assert (await emc.isRunning(4)); // david
+
+
+    await sessionRequest('/admin/users/start/1', 'POST', '', root);
+    assert (await emc.isRunning(1));
+
+    // noop
+    await sessionRequest('/admin/users/start/1', 'POST', '', root);
+    assert (await emc.isRunning(1));
+}
+
+async function testAdminOrgs(root, bob, nobody) {
+    await assertBlocked('/admin/organizations', bob, nobody);
+    const orgsPage = await sessionRequest('/admin/organizations', 'GET', null, root);
+    assert(orgsPage.indexOf('Test Org') >= 0);
+    assert(orgsPage.indexOf('Site Administration') >= 0);
+    const orgsPage2 = await sessionRequest('/admin/organizations', 'GET', { page: -1 }, root);
+    assert(orgsPage2.indexOf('Test Org') >= 0);
+    assert(orgsPage2.indexOf('Site Administration') >= 0);
+
+    const nextOrgPage = await sessionRequest('/admin/organizations', 'GET', { page: 1 }, root);
+    assert(nextOrgPage.indexOf('Test Org') < 0);
+    assert(nextOrgPage.indexOf('Site Administration') < 0);
+
+    await assertBlocked('/admin/users/search', bob, nobody);
+    await assertHttpError(sessionRequest('/admin/organizations/search', 'GET', null, root),
+        400, 'Missing or invalid parameter q');
+    const rootOrgPage = await sessionRequest('/admin/organizations/search', 'GET', { q: 'site' }, root);
+    assert(rootOrgPage.indexOf('Test Org') < 0);
+    assert(rootOrgPage.indexOf('Site Administration') >= 0);
+
+    await assertLoginRequired(sessionRequest('/admin/organizations/add-member', 'POST', '', nobody));
+    await assertHttpError(sessionRequest('/admin/organizations/add-member', 'POST', '', bob),
+            403, 'You do not have permission to perform this operation.');
+    await assertHttpError(sessionRequest('/admin/organizations/add-member', 'POST', { id: '1.5' }, root),
+            400, 'Missing or invalid parameter id');
+    await assertHttpError(sessionRequest('/admin/organizations/add-member', 'POST', { id: '2' }, root),
+            400, 'Missing or invalid parameter username');
+    await assertHttpError(sessionRequest('/admin/organizations/add-member', 'POST', { id: '2', username: 'non-existent' }, root),
+            400, 'No such user non-existent');
+    await assertHttpError(sessionRequest('/admin/organizations/add-member', 'POST', { id: '2', username: 'root' }, root),
+            400, 'root is already a member of another developer organization.');
+
+    await sessionRequest('/admin/organizations/add-member', 'POST', { id: '2', username: 'david' }, root);
+
+    let [davidInfo] = await dbQuery(`select * from users where username = ?`, ['david']);
+    assert(davidInfo);
+    assert.strictEqual(davidInfo.developer_org, 2);
+    assert.strictEqual(davidInfo.developer_status, 0);
+
+    // now undo the change (mostly so you can run the tests multiple times against the same database)
+    await sessionRequest('/admin/users/revoke-developer/4', 'POST', '', root);
+
+    [davidInfo] = await dbQuery(`select * from users where username = ?`, ['david']);
+    assert(davidInfo);
+    assert.strictEqual(davidInfo.developer_org, null);
+    assert.strictEqual(davidInfo.developer_status, 0);
+}
+
+async function testAdminBlog(root, bob, nobody) {
+    await assertBlocked('/admin/blog', bob, nobody);
+    await assertBlocked('/admin/blog/create', bob, nobody);
+    await assertBlocked('/admin/blog/update/1', bob, nobody);
+
+    await assertHttpError(sessionRequest('/admin/blog/update/1', 'GET', '', root),
+            404, 'The requested page does not exist');
+
+    await assertHttpError(sessionRequest('/admin/blog/create', 'POST', { title: 'Some blog post' }, root),
+            400, 'Missing or invalid parameter image');
+    await assertHttpError(sessionRequest('/admin/blog/create', 'POST', { title: 'Some blog post', image: 'no' }, root),
+            400, 'Missing or invalid parameter blurb');
+    await assertRedirect(sessionRequest('/admin/blog/create', 'POST', {
+        title: 'Some blog post',
+        image: 'no',
+        blurb: 'this is a blog post that does blogging',
+        source: '# Heading\n## Subheading \n<script type="dangerous">much script very bad</script>',
+    }, root, { followRedirects: false }), '/admin/blog/update/1');
+
+    const blogPostPage = await sessionRequest('/blog/1-some-blog-post', 'GET', '', root);
+
+    assert(blogPostPage.indexOf('Some blog post') >= 0);
+    assert(blogPostPage.indexOf('<h1 id="heading">Heading</h1>') >= 0);
+    assert(blogPostPage.indexOf('<h2 id="subheading">Subheading</h2>') >= 0);
+    assert(blogPostPage.indexOf('<script type="dangerous">much script very bad</script>') < 0);
+
+    // blog post is not published yet, people should not see it
+    await assertHttpError(sessionRequest('/blog/1-some-blog-post', 'GET', '', nobody),
+            404, 'The requested page does not exist');
+    await assertHttpError(sessionRequest('/blog/1-some-blog-post', 'GET', '', bob),
+            404, 'The requested page does not exist');
+
+    await sessionRequest('/admin/blog/delete', 'POST', { id: 1 }, root);
+}
+
+async function main() {
+    const emc = new EngineManagerClient();
+    await emc.start();
+
+    const nobody = await startSession();
+    const bob = await login('bob', '12345678');
+    const root = await login('root', 'rootroot');
+
+    // admin pages
+    await assertBlocked('/admin', bob, nobody);
+    await sessionRequest('/admin', 'GET', null, root);
+
+    await testAdminUsers(root, bob, nobody);
+    await testAdminKillRestart(root, bob, nobody);
+    if (Config.WITH_THINGPEDIA === 'embedded')
+        await testAdminOrgs(root, bob, nobody);
+    await testAdminBlog(root, bob, nobody);
+
+    await db.tearDown();
+    await emc.stop();
+}
+module.exports = main;
+if (!module.parent)
+    main();

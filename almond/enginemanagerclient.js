@@ -177,6 +177,7 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     stop() {
+        _instance = null;
         this._expectClose = true;
 
         for (let engine of this._cachedEngines.values())

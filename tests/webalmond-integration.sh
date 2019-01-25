@@ -79,7 +79,7 @@ else
     COOKIE="${root_cookie}" node $srcdir/tests/linkcheck.js
 
     # test the website by making HTTP requests directly
-    node $srcdir/tests/test_website_basic.js
+    node $srcdir/tests/website
 
     # test the website in a browser
     SELENIUM_BROWSER=firefox node $srcdir/tests/test_website_selenium.js
