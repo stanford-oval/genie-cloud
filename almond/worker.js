@@ -12,7 +12,6 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
-process.on('unhandledRejection', (up) => { throw up; });
 
 const stream = require('stream');
 const rpc = require('transparent-rpc');
