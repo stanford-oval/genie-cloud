@@ -34,6 +34,8 @@ const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
 const acceptLanguage = require('accept-language');
 const Prometheus = require('prom-client');
+const multer = require('multer');
+const jwt = require('jsonwebtoken');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
@@ -321,12 +323,24 @@ class Frontend {
         });
 
         this._app.use((err, req, res, next) => {
-            if (typeof err.status === 'number') {
+            if (err instanceof multer.MulterError) {
+                res.status(400).render('error', {
+                    page_title: req._("Almond - Error"),
+                    message: err
+                });
+            } else if (err instanceof jwt.JsonWebTokenError) {
+                res.status(403).render('error', {
+                    page_title: req._("Almond - Error"),
+                    message: err
+                });
+            } else if (typeof err.status === 'number') {
+                // oauth2orize errors, bodyparser errors
                 res.status(err.status).render('error', {
                     page_title: req._("Almond - Error"),
-                    message: err.expose ? err : req._("Code: %d").foramt(err.status)
+                    message: err.expose === false ? req._("Code: %d").format(err.status) : err
                 });
             } else if (err.code === 'EBADCSRFTOKEN') {
+                // csurf errors
                 res.status(403).render('error', {
                     page_title: req._("Almond - Forbidden"),
                     message: err,
@@ -336,13 +350,15 @@ class Frontend {
                     // everywhere)
                     csrfToken: req.csrfToken()
                 });
-            } else if (err.errno === 'ENOENT') {
+            } else if (err.code === 'ENOENT' || err.errno === 'ENOENT') {
+                // util/db errors
                 // if we get here, we have a 404 response
                 res.status(404).render('error', {
                     page_title: req._("Almond - Page Not Found"),
                     message: req._("The requested page does not exist")
                 });
             } else {
+                // bugs
                 console.error(err);
                 res.status(500).render('error', {
                     page_title: req._("Almond - Internal Server Error"),

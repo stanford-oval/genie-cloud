@@ -235,6 +235,14 @@ async function main() {
             developer_status: user.DeveloperStatus.ORG_ADMIN,
             roles: user.Role.TRUSTED_DEVELOPER
         });
+        await user.register(dbClient, req, {
+            username: 'david',
+            password: '12345678',
+            email: 'david@localhost',
+            email_verified: true,
+            locale: 'en-US',
+            timezone: 'America/Los_Angeles',
+        });
 
         const [root] = await userModel.getByName(dbClient, 'root');
         await loadAllDevices(dbClient, bob, root);

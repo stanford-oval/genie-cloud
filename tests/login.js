@@ -47,7 +47,7 @@ function getCsrfToken(htmlString) {
 
 const baseUrl = process.env.BASE_URL || Config.SERVER_ORIGIN;
 
-async function main() {
+async function startSession() {
     const loginStream = await Tp.Helpers.Http.getStream(baseUrl + '/user/login');
     const cookieHeader = loginStream.headers['set-cookie'][0];
     assert(cookieHeader);
@@ -55,18 +55,33 @@ async function main() {
 
     const loginResponse = (await accumulateStream(loginStream)).toString();
     const csrfToken = getCsrfToken(loginResponse);
+    return { csrfToken, cookie: cookie.cookieString() };
+}
 
+async function login(username, password, session) {
+    if (!session)
+        session = await startSession();
+
+    await Tp.Helpers.Http.post(baseUrl + '/user/login',
+        `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&_csrf=${encodeURIComponent(session.csrfToken)}`, {
+        dataContentType: 'application/x-www-form-urlencoded',
+        extraHeaders: {
+            'Cookie': session.cookie
+        }
+    });
+    return session;
+}
+module.exports = {
+    login,
+    startSession
+};
+
+async function main() {
     const username = process.argv[2];
     const password = process.argv[3];
 
-    await Tp.Helpers.Http.post(baseUrl + '/user/login',
-        `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&_csrf=${encodeURIComponent(csrfToken)}`, {
-        dataContentType: 'application/x-www-form-urlencoded',
-        extraHeaders: {
-            'Cookie': cookie.cookieString()
-        }
-    });
-
-    console.log(cookie.cookieString());
+    const { cookie } = await login(username, password);
+    console.log(cookie);
 }
-main();
+if (!module.parent)
+    main();

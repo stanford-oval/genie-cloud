@@ -12,6 +12,7 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
+
 const stream = require('stream');
 const rpc = require('transparent-rpc');
 
@@ -140,6 +141,10 @@ function main() {
     var rpcSocket = new rpc.Socket(rpcWrapped);
     process.on('message', (message, socket) => {
         switch (message.type) {
+            case 'exit':
+                handleSignal();
+                break;
+        
             case 'direct':
                 handleDirectSocket(message.target, message.replyId, socket);
                 break;

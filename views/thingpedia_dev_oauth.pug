@@ -61,7 +61,7 @@ block content
                         input(type='hidden',name='_csrf',value=csrfToken)
                         div.form-group
                           label(for='new-oauth-name').control-label= _("Name")
-                          input(type='text',name='name').form-control#new-oauth-name
+                          input(type='text',name='name',required=true).form-control#new-oauth-name
                           span.help-block= _("This name will be shown on the authorization page")
 
                         div.form-group
@@ -70,7 +70,7 @@ block content
 
                         div.form-group
                           label(for='new-oauth-redirect-uri').control-label= _("Allowed Redirect URLs")
-                          input(type='text',name='redirect_uri').form-control#new-oauth-redirect-uri
+                          input(type='text',name='redirect_uri',required=true).form-control#new-oauth-redirect-uri
                           span.help-block= _("Multiple URLs can be separated by a space.")
 
                         div.form-group

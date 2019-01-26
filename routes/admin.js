@@ -20,7 +20,7 @@ const device = require('../model/device');
 const blogModel = require('../model/blog');
 const db = require('../util/db');
 const TrainingServer = require('../util/training_server');
-
+const iv = require('../util/input_validation');
 const { makeRandom } = require('../util/random');
 
 const EngineManager = require('../almond/enginemanagerclient');
@@ -57,12 +57,13 @@ router.get('/', user.requireAnyRole(user.Role.ALL_ADMIN), (req, res, next) => {
                                  csrfToken: req.csrfToken() });
 });
 
-router.get('/users', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/users', user.requireRole(user.Role.ADMIN), iv.validateGET({ page: '?integer' }), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
+    else
+        page = parseInt(page);
+    if (page < 0)
         page = 0;
 
     db.withClient((dbClient) => {
@@ -74,13 +75,13 @@ router.get('/users', user.requireRole(user.Role.ADMIN), (req, res) => {
                                         page_num: page,
                                         search: '',
                                         USERS_PER_PAGE });
-    }).done();
+    }).catch(next);
 });
 
-router.get('/users/search', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/users/search', user.requireRole(user.Role.ADMIN), iv.validateGET({ q: 'string' }), (req, res, next) => {
     db.withClient((dbClient) => {
-        if (req.query.q !== '' && !isNaN(req.query.q))
-            return Promise.all([model.get(dbClient, Number(req.query.q))]);
+        if (Number.isInteger(+req.query.q))
+            return Promise.all([model.get(dbClient, +req.query.q)]);
         else
             return model.getSearch(dbClient, req.query.q);
     }).then(renderUserList).then((users) => {
@@ -90,49 +91,39 @@ router.get('/users/search', user.requireRole(user.Role.ADMIN), (req, res) => {
                                         page_num: 0,
                                         search: req.query.search,
                                         USERS_PER_PAGE });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/users/kill/all', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.post('/users/kill/all', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     const engineManager = EngineManager.get();
 
     Promise.resolve().then(() => {
         return engineManager.killAllUsers();
     }).then(() => {
         res.redirect(303, '/admin/users');
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    });
+    }).catch(next);
 });
 
-router.post('/users/kill/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.post('/users/kill/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     const engineManager = EngineManager.get();
 
     engineManager.killUser(parseInt(req.params.id)).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     const engineManager = EngineManager.get();
 
-    engineManager.isRunning(parseInt(req.params.id)).then((isRunning) => {
+    const id = parseInt(req.params.id);
+    engineManager.isRunning(id).then((isRunning) => {
         if (isRunning)
-            return engineManager.killUser(parseInt(req.params.id));
-        else
             return Promise.resolve();
-    }).then(() => {
-        return engineManager.startUser(parseInt(req.params.id));
+        else
+            return engineManager.startUser(id);
     }).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 async function getTraining(req, res) {
@@ -150,19 +141,19 @@ router.get('/training', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     getTraining(req, res).catch(next);
 });
 
-router.post('/training', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.post('/training', user.requireRole(user.Role.ADMIN), iv.validatePOST({ language: 'string', job_type: 'string' }), (req, res, next) => {
     TrainingServer.get().queue(req.body.language, null, req.body.job_type).then(() => {
         return getTraining(req, res);
     }).catch(next);
 });
 
-router.post('/training/kill', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.post('/training/kill', user.requireRole(user.Role.ADMIN), iv.validatePOST({ job_id: 'integer' }), (req, res, next) => {
     TrainingServer.get().kill(parseInt(req.body.job_id)).then(() => {
         return res.redirect(303, '/admin/training');
     }).catch(next);
 });
 
-router.post('/users/delete/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.post('/users/delete/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     if (req.user.id === req.params.id) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You cannot delete yourself") });
@@ -175,13 +166,10 @@ router.post('/users/delete/:id', user.requireRole(user.Role.ADMIN), (req, res) =
         });
     }).then(() => {
         res.redirect(303, '/admin/users');
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     let needsRestart = false;
 
     db.withTransaction((dbClient) => {
@@ -211,13 +199,10 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res) 
             return Promise.resolve();
     }).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/users/demote/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.post('/users/demote/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     if (req.user.id === req.params.id) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You cannot demote yourself") });
@@ -232,13 +217,10 @@ router.post('/users/demote/:id', user.requireRole(user.Role.ADMIN), (req, res) =
         });
     }).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     if (req.user.id === req.params.id) {
         res.render('error', { page_title: req._("Thingpedia - Error"),
                               message: req._("You cannot revoke your own dev credentials yourself") });
@@ -251,18 +233,16 @@ router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (r
         });
     }).then(() => EngineManager.get().restartUserWithoutCache(req.params.id)).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), (req, res) => {
+router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validateGET({ page: '?integer' }), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
+    else
+        page = parseInt(page);
+    if (page < 0)
         page = 0;
 
     db.withClient((dbClient) => {
@@ -273,15 +253,16 @@ router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), (req, 
                                            devices: devices,
                                            page_num: page,
                                            DEVICES_PER_PAGE });
-    }).done();
+    }).catch(next);
 });
 
-router.get('/organizations', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/organizations', user.requireRole(user.Role.ADMIN), iv.validateGET({ page: '?integer' }), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
+    else
+        page = parseInt(page);
+    if (page < 0)
         page = 0;
 
     db.withClient((dbClient) => {
@@ -292,13 +273,10 @@ router.get('/organizations', user.requireRole(user.Role.ADMIN), (req, res) => {
                                        page_num: page,
                                        organizations: rows,
                                        search: '' });
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.get('/organizations/search', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/organizations/search', user.requireRole(user.Role.ADMIN), iv.validateGET({ q: 'string' }), (req, res, next) => {
     if (!req.query.q) {
         res.redirect(303, '/admin/organizations');
         return;
@@ -312,13 +290,10 @@ router.get('/organizations/search', user.requireRole(user.Role.ADMIN), (req, res
                                        page_num: -1,
                                        organizations: rows,
                                        search: req.query.q });
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.get('/organizations/details/:id', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/organizations/details/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     db.withClient((dbClient) => {
         return Promise.all([
             organization.get(dbClient, req.params.id),
@@ -331,50 +306,54 @@ router.get('/organizations/details/:id', user.requireRole(user.Role.ADMIN), (req
                                           org: org,
                                           members: users,
                                           devices: devices });
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN), (req, res) => {
-    db.withTransaction((dbClient) => {
-        return model.getByName(dbClient, req.body.username).then(([user]) => {
+router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN),
+    iv.validatePOST({ id: 'integer', as_developer: 'boolean', username: 'string' }), (req, res, next) => {
+    db.withTransaction(async (dbClient) => {
+        const [user] = await model.getByName(dbClient, req.body.username);
+        try {
             if (!user)
                 throw new Error(req._("No such user %s").format(req.body.username));
-            if (user.developer_org !== null)
+            if (user.developer_org !== null && user.developer_org !== parseInt(req.body.id))
                 throw new Error(req._("%s is already a member of another developer organization.").format(req.body.username));
+        } catch(e) {
+            res.status(400).render('error', {
+                page_title: req._("Thingpedia - Error"),
+                message: e
+            });
+            return null;
+        }
 
-            return model.update(dbClient, user.id, { developer_status: req.body.as_developer ? 1 : 0,
-                                                     developer_org: req.body.id }).then(() => user.id);
-        });
-    }).then((userId) => EngineManager.get().restartUser(userId)).then(() => {
-        res.redirect(303, '/admin/organizations/details/' + req.body.id);
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+        await model.update(dbClient, user.id, { developer_status: req.body.as_developer ? 1 : 0,
+                                                developer_org: req.body.id });
+        return user.id;
+    }).then(async (userId) => {
+        if (userId !== null) {
+            await EngineManager.get().restartUser(userId);
+            res.redirect(303, '/admin/organizations/details/' + req.body.id);
+        }
+    }).catch(next);
 });
 
-router.post('/organizations/set-name', user.requireRole(user.Role.ADMIN), (req, res) => {
+router.post('/organizations/set-name', user.requireRole(user.Role.ADMIN), iv.validatePOST({ id: 'integer', name: 'string', comment: '?string' }), (req, res, next) => {
     db.withTransaction((dbClient) => {
         return organization.update(dbClient, req.body.id, { name: req.body.name, comment: req.body.comment });
     }).then(() => {
         res.redirect(303, '/admin/organizations/details/' + req.body.id);
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 const BLOG_POSTS_PER_PAGE = 10;
 
-router.get('/blog', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.get('/blog', user.requireRole(user.Role.BLOG_EDITOR), iv.validateGET({ page: '?integer' }), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
-    page = parseInt(page);
-    if (isNaN(page) || page < 0)
+    else
+        page = parseInt(page);
+    if (page < 0)
         page = 0;
 
     db.withClient((dbClient) => {
@@ -418,25 +397,14 @@ function slugify(s) {
     return encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, '-')).replace(/[^a-z0-9-]/g, '');
 }
 
-router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR),
+    iv.validatePOST({ id: 'integer', title: 'string', image: 'string', blurb: 'string', source: 'string' }), (req, res, next) => {
     const md = new markdown();
     md.use(require('markdown-it-anchor'));
     md.use(require('markdown-it-highlightjs'));
     md.use(require('markdown-it-container-pandoc'));
     md.use(require('markdown-it-footnote'));
     md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
-
-    if (typeof req.body.title !== 'string'
-        || typeof req.body.image !== 'string'
-        || typeof req.body.blurb !== 'string'
-        || !req.body.image.startsWith('https://')
-        || typeof req.body.source !== 'string') {
-        res.status(400).render('error', {
-            page_title: req._("Almond - Error"),
-            message: req._("Missing or invalid fields.")
-        });
-        return;
-    }
 
     const image = Url.resolve(Config.SERVER_ORIGIN, req.body.image);
     const rendered = md.render(req.body.source);
@@ -458,24 +426,14 @@ router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR), (req, res, 
 });
 
 
-router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR),
+    iv.validatePOST({ title: 'string', image: 'string', blurb: 'string', source: 'string' }), (req, res, next) => {
     const md = new markdown();
     md.use(require('markdown-it-anchor'));
     md.use(require('markdown-it-highlightjs'));
     md.use(require('markdown-it-container-pandoc'));
     md.use(require('markdown-it-footnote'));
     md.use(require('markdown-it-table-of-contents'), { includeLevel: [2,3] });
-
-    if (typeof req.body.title !== 'string'
-        || typeof req.body.image !== 'string'
-        || typeof req.body.blurb !== 'string'
-        || typeof req.body.source !== 'string') {
-        res.status(400).render('error', {
-            page_title: req._("Almond - Error"),
-            message: req._("Missing or invalid fields.")
-        });
-        return;
-    }
 
     const image = Url.resolve(Config.SERVER_ORIGIN, req.body.image);
     const rendered = md.render(req.body.source);
@@ -497,7 +455,7 @@ router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR), (req, res, 
     }).catch(next);
 });
 
-router.post('/blog/publish', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.post('/blog/publish', user.requireRole(user.Role.BLOG_EDITOR), iv.validatePOST({ id: 'integer' }), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.publish(dbClient, req.body.id);
     }).then(() => {
@@ -505,7 +463,7 @@ router.post('/blog/publish', user.requireRole(user.Role.BLOG_EDITOR), (req, res,
     }).catch(next);
 });
 
-router.post('/blog/unpublish', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.post('/blog/unpublish', user.requireRole(user.Role.BLOG_EDITOR), iv.validatePOST({ id: 'integer' }), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.unpublish(dbClient, req.body.id);
     }).then(() => {
@@ -513,7 +471,7 @@ router.post('/blog/unpublish', user.requireRole(user.Role.BLOG_EDITOR), (req, re
     }).catch(next);
 });
 
-router.post('/blog/delete', user.requireRole(user.Role.BLOG_EDITOR), (req, res, next) => {
+router.post('/blog/delete', user.requireRole(user.Role.BLOG_EDITOR), iv.validatePOST({ id: 'integer' }), (req, res, next) => {
     db.withClient((dbClient) => {
         return blogModel.delete(dbClient, req.body.id);
     }).then(() => {

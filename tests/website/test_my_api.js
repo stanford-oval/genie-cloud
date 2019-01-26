@@ -2,70 +2,33 @@
 //
 // This file is part of Almond Cloud
 //
-// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
-require('thingengine-core/lib/polyfill');
-require('./polyfill');
-process.on('unhandledRejection', (up) => { throw up; });
-
 const assert = require('assert');
 const WebSocket = require('ws');
-const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
+const { assertHttpError, request, sessionRequest, dbQuery } = require('./scaffold');
+const { login, startSession } = require('../login');
 
-const Config = require('../config');
+const db = require('../../util/db');
 
-const csrf = require('./util/csrf');
+const Config = require('../../config');
 
-const db = require('../util/db');
-
-function dbQuery(query, args) {
-    return db.withClient((dbClient) => {
-        return db.selectOne(dbClient, query, args);
-    });
-}
-
-function request(url, method, data, options = {}) {
-    options['user-agent'] = 'Thingpedia-Cloud-Test/1.0.0';
-
-    return Tp.Helpers.Http.request(Config.SERVER_ORIGIN + url, method, data, options);
-}
-
-function assertHttpError(request, httpStatus) {
-    return request.then(() => {
-        assert.fail(new Error(`Expected HTTP error`));
-    }, (err) => {
-        if (typeof err.code === 'number')
-            assert.deepStrictEqual(err.code, httpStatus);
-        else
-            throw err;
-    });
-}
-
-async function getAccessToken() {
-    const csrfToken = csrf.getCsrfToken(await request('/', 'GET', null, {
-        extraHeaders: { 'Cookie': process.env.COOKIE }
-    }));
-
-    return JSON.parse(await request('/me/api/token', 'POST', '_csrf=' + csrfToken, {
+async function getAccessToken(session) {
+    return JSON.parse(await sessionRequest('/me/api/token', 'POST', '', session, {
         accept: 'application/json',
-        extraHeaders: { 'Cookie': process.env.COOKIE }
     })).token;
 }
 
-async function testMyApiCookie() {
-    const result = JSON.parse(await request('/me/api/profile', 'GET', null, {
-        extraHeaders: { 'Cookie': process.env.COOKIE }
-    }));
+async function testMyApiCookie(bob, nobody) {
+    const result = JSON.parse(await sessionRequest('/me/api/profile', 'GET', null, bob));
 
-    const bobInfo = await dbQuery(`select * from users where username = ?`, ['bob']);
+    const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
 
     assert.deepStrictEqual(result, {
         id: bobInfo.cloud_id,
@@ -82,18 +45,17 @@ async function testMyApiCookie() {
         extraHeaders: {
             'Cookie': 'connect.sid=invalid',
         }
-    }), 401);
+    }), 401, 'Unauthorized');
+    await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, nobody), 401);
 
-    await assertHttpError(request('/me/api/profile', 'GET', null, {
+    await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, bob, {
         extraHeaders: {
-            'Cookie': process.env.COOKIE,
             'Origin': 'https://invalid.origin.example.com'
         }
-    }), 403);
+    }), 403, 'Forbidden Cross Origin Request');
 
-    await request('/me/api/profile', 'GET', null, {
+    await sessionRequest('/me/api/profile', 'GET', null, bob, {
         extraHeaders: {
-            'Cookie': process.env.COOKIE,
             'Origin': Config.SERVER_ORIGIN
         }
     });
@@ -102,7 +64,7 @@ async function testMyApiCookie() {
 async function testMyApiProfileOAuth(auth) {
     const result = JSON.parse(await request('/me/api/profile', 'GET', null, { auth }));
 
-    const bobInfo = await dbQuery(`select * from users where username = ?`, ['bob']);
+    const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
 
     assert.deepStrictEqual(result, {
         id: bobInfo.cloud_id,
@@ -160,12 +122,19 @@ async function testMyApiCreateGetApp(auth) {
     }]);
 }
 
+function awaitConnect(ws) {
+    return new Promise((resolve, reject) => {
+        ws.on('open', resolve);
+    });
+}
+
 async function testMyApiCreateWhenApp(auth) {
     const ws = new WebSocket(Config.SERVER_ORIGIN + '/me/api/results', {
         headers: {
             'Authorization': auth
         }
     });
+    await awaitConnect(ws);
 
     const result = JSON.parse(await request('/me/api/apps/create', 'POST', JSON.stringify({
         code: `monitor @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte) => notify;`
@@ -261,12 +230,16 @@ async function testMyApiOAuth(accessToken) {
 }
 
 async function main() {
-    await testMyApiCookie();
+    const nobody = await startSession();
+    const bob = await login('bob', '12345678');
 
-    const token = await getAccessToken();
-
+    // user (web almond) api
+    await testMyApiCookie(bob, nobody);
+    const token = await getAccessToken(bob);
     await testMyApiOAuth(token);
 
     await db.tearDown();
 }
-main();
+module.exports = main;
+if (!module.parent)
+    main();

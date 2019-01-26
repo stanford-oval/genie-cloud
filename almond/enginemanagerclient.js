@@ -177,10 +177,12 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     stop() {
+        _instance = null;
         this._expectClose = true;
 
-        for (let engine in this._cachedEngines.values())
+        for (let engine of this._cachedEngines.values())
             engine.socket.end();
+        this._cachedEngines.clear();
 
         for (let i = 0; i < this._nShards; i++) {
             if (!this._rpcSockets[i])
@@ -224,6 +226,7 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     killUser(userId) {
+        this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
             return Q.reject(new Error('EngineManager died'));
@@ -231,6 +234,7 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     deleteUser(userId) {
+        this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
             return Q.reject(new Error('EngineManager died'));
@@ -238,6 +242,7 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     clearCache(userId) {
+        this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
             return Q.reject(new Error('EngineManager died'));
@@ -245,6 +250,7 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     restartUser(userId) {
+        this._cachedEngines.delete(userId);
         const shardId = userToShardId(userId);
         if (!this._rpcControls[shardId])
             return Q.reject(new Error('EngineManager died'));
@@ -252,9 +258,11 @@ class EngineManagerClient extends events.EventEmitter {
     }
 
     restartUserWithoutCache(userId) {
-        if (!this._rpcControl)
+        this._cachedEngines.delete(userId);
+        const shardId = userToShardId(userId);
+        if (!this._rpcControls[shardId])
             return Q.reject(new Error('EngineManager died'));
-        return this._rpcControl.restartUserWithoutCache(userId);
+        return this._rpcControls[shardId].restartUserWithoutCache(userId);
     }
 }
 

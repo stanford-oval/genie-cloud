@@ -121,6 +121,7 @@ add_base_args (struct strv *strv)
             "--unshare-ipc",
             "--unshare-pid",
             "--new-session",
+            "--info-fd", "3",
             NULL);
 }
 

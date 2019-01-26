@@ -65,6 +65,8 @@ const TEST_CASES = [
     ['foo[]=1&foo[key]=2', { foo: 'array' }, false],
 
     ['', { foo: 'string' }, false, { json: true }],
+
+    ['class%5B0%5D=foo&class%5B1%5D=bar', { class: '?string' }, false]
 ];
 
 function test(i) {

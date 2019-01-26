@@ -22,6 +22,7 @@ const util = require('util');
 const user = require('../model/user');
 const db = require('../util/db');
 const ThingpediaClient = require('../util/thingpedia-client');
+const Lock = require('../util/lock');
 const Config = require('../config');
 
 class ChildProcessSocket extends stream.Duplex {
@@ -70,9 +71,12 @@ class EngineProcess extends events.EventEmitter {
         this._rpcSocket = null;
         this._rpcId = null;
 
+        this._sandboxed = !this.shared && process.env.THINGENGINE_DISABLE_SANDBOX !== '1';
+        this._sandboxedPid = null;
         this._hadExit = false;
         this._deadPromise = null;
         this._deadCallback = null;
+        this._dyingTimeout = null;
     }
 
     get id() {
@@ -114,18 +118,39 @@ class EngineProcess extends events.EventEmitter {
         this._deadPromise = new Promise((resolve, reject) => {
             this._deadCallback = resolve;
 
-            setTimeout(() => {
+            this._dyingTimeout = setTimeout(() => {
+                if (this._sandboxedPid !== null) {
+                    process.kill(this._sandboxedPid, 'SIGKILL');
+                    this._sandboxedPid = null;
+                } else if (this._child !== null) {
+                    this._child.kill('SIGKILL');
+                }
+
                 reject(new Error(`Timeout waiting for child ${this._id} to die`));
             }, 30000);
         });
 
         console.log('Killing process with ID ' + this._id);
-        this._child.kill();
+        // in the sandbox, we cannot kill the process directly, due to signal
+        // restrictions in PID namespaces (the sandbox process is treated like PID 1
+        // and unkillable other than with SIGKILL)
+        // to try and terminate the process gracefully, send a message using the channel
+        //
+        // NOTE: if the child is not connected and we are sandboxed, we will send it
+        // SIGTERM, which does nothing
+        // later, we'll timeout and send it SIGKILL instead
+        // (same thing if sending fails)
+        if (this._sandboxed && this._child.connected)
+            this._child.send({ type: 'exit' });
+        else
+            this._child.kill();
 
         // emit exit immediately so we close the channel
         // otherwise we could race and try to talk to the dying process
         this._hadExit = true;
-        this.emit('exit');
+        // mark that this was a manual kill (hence we don't want to
+        // autorestart any user until the admin does so manually)
+        this.emit('exit', true);
     }
 
     restart(delay) {
@@ -144,6 +169,21 @@ class EngineProcess extends events.EventEmitter {
 
     send(msg, socket) {
         this._child.send(msg, socket);
+    }
+
+    _handleInfoFD(pipe) {
+        let buf = '';
+        pipe.setEncoding('utf8');
+        pipe.on('data', (data) => {
+            buf += data;
+        });
+        pipe.on('end', () => {
+            const parsed = JSON.parse(buf);
+            this._sandboxedPid = parsed['child-pid'];
+        });
+        pipe.on('error', (err) => {
+            console.error(`Failed to read from info-fd in process ${this._id}: ${err}`);
+        });
     }
 
     start() {
@@ -177,7 +217,7 @@ class EngineProcess extends events.EventEmitter {
             args.push(enginePath);
             args.push('--shared');
             child = child_process.spawn(process.execPath, args,
-                                        { stdio: ['ignore', 'ignore', 2, 'ipc'],
+                                        { stdio: ['ignore', 'ignore', 2, 'ignore', 'ipc'],
                                           detached: true, // ignore ^C
                                           cwd: this._cwd, env: env });
         } else {
@@ -185,12 +225,12 @@ class EngineProcess extends events.EventEmitter {
                 processPath = process.execPath;
                 args = process.execArgv.slice();
                 args.push(enginePath);
-                stdio = ['ignore', 1, 2, 'ipc'];
+                stdio = ['ignore', 1, 2, 'ignore', 'ipc'];
             } else {
                 processPath = path.resolve(managerPath, '../sandbox/sandbox');
                 args = [process.execPath].concat(process.execArgv);
                 args.push(enginePath);
-                stdio = ['ignore', 1, 2, 'ipc'];
+                stdio = ['ignore', 1, 2, 'pipe', 'ipc'];
 
                 const jsPrefix = path.resolve(path.dirname(managerPath));
                 const nodepath = path.resolve(process.execPath);
@@ -204,6 +244,8 @@ class EngineProcess extends events.EventEmitter {
                                           detached: true,
                                           cwd: this._cwd, env: env });
         }
+        if (this._sandboxed)
+            this._handleInfoFD(child.stdio[3]);
 
         // wrap child into something that looks like a Stream
         // (readable + writable)
@@ -222,6 +264,13 @@ class EngineProcess extends events.EventEmitter {
                 }
             });
             child.on('exit', (code, signal) => {
+                this._sandboxedPid = null;
+                this._child = null;
+                if (this._dyingTimeout !== null) {
+                    clearTimeout(this._dyingTimeout);
+                    this._dyingTimeout = null;
+                }
+            
                 if (this.shared || code !== 0)
                     console.error('Child with ID ' + this._id + ' exited with code ' + code);
                 reject(new Error('Exited with code ' + code));
@@ -262,6 +311,7 @@ class EngineManager extends events.EventEmitter {
         this._rrproc = [];
         this._nextProcess = null;
         this._engines = {};
+        this._locks = {};
         this._stopped = false;
     }
 
@@ -282,17 +332,24 @@ class EngineManager extends events.EventEmitter {
         }
     }
 
-    _runUser(user) {
+    async _lockUser(userId) {
+        if (!this._locks[userId])
+            this._locks[userId] = new Lock();
+
+        return this._locks[userId].acquire();
+    }
+
+    async _runUser(user) {
         var engines = this._engines;
         var obj = { cloudId: user.cloud_id, process: null, engine: null };
         engines[user.id] = obj;
         var die = (manual) => {
-            if (engines[user.id] !== obj)
-                return;
             obj.process.removeListener('exit', die);
             obj.process.removeListener('engine-removed', onRemoved);
             if (obj.thingpediaClient)
                 obj.thingpediaClient.$free();
+            if (engines[user.id] !== obj)
+                return;
             delete engines[user.id];
 
             // if the EngineManager is being stopped, the user will die
@@ -315,20 +372,20 @@ class EngineManager extends events.EventEmitter {
             die(true);
         };
 
-        return this._findProcessForUser(user).then((child) => {
-            console.log('Running engine for user ' + user.id + ' in shard ' + this._shardId);
+        const child = await this._findProcessForUser(user);
+        console.log('Running engine for user ' + user.id + ' in shard ' + this._shardId);
 
-            obj.process = child;
+        obj.process = child;
 
-            child.on('engine-removed', onRemoved);
-            child.on('exit', die);
+        child.on('engine-removed', onRemoved);
+        child.on('exit', die);
 
-            if (Config.WITH_THINGPEDIA === 'embedded')
-                obj.thingpediaClient = new ThingpediaClient(user.developer_key, user.locale);
-            else
-                obj.thingpediaClient = null;
-            return child.runEngine(user, obj.thingpediaClient);
-        });
+        if (Config.WITH_THINGPEDIA === 'embedded')
+            obj.thingpediaClient = new ThingpediaClient(user.developer_key, user.locale);
+        else
+            obj.thingpediaClient = null;
+
+        return child.runEngine(user, obj.thingpediaClient);
     }
 
     isRunning(userId) {
@@ -339,13 +396,18 @@ class EngineManager extends events.EventEmitter {
         return (this._engines[userId] !== undefined && this._engines[userId].process !== null) ? this._engines[userId].process.id : -1;
     }
 
-    sendSocket(userId, replyId, socket) {
+    async sendSocket(userId, replyId, socket) {
         if (this._engines[userId] === undefined)
             throw new Error('Invalid user ID');
         if (this._engines[userId].process === null)
             throw new Error('Engine dead');
 
-        this._engines[userId].process.send({ type: 'direct', target: userId, replyId: replyId }, socket);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            this._engines[userId].process.send({ type: 'direct', target: userId, replyId: replyId }, socket);
+        } finally {
+            releaseLock();
+        }
     }
 
     _startSharedProcesses(nprocesses) {
@@ -395,8 +457,17 @@ class EngineManager extends events.EventEmitter {
         });
     }
 
-    startUser(userId) {
+    async startUser(userId) {
         console.log('Requested start of user ' + userId);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._startUserLocked(userId);
+        } finally {
+            releaseLock();
+        }
+    }
+
+    async _startUserLocked(userId) {
         return db.withClient((dbClient) => {
             return user.get(dbClient, userId);
         }).then((user) => {
@@ -420,11 +491,21 @@ class EngineManager extends events.EventEmitter {
         return Promise.all(promises).then(() => true);
     }
 
-    killUser(userId) {
+    async _killUserLocked(userId) {
         let obj = this._engines[userId];
         if (!obj || obj.process === null)
-            return Promise.resolve();
-        return Promise.resolve(obj.process.killEngine(userId));
+            return;
+        await obj.process.killEngine(userId);
+    }
+
+    async killUser(userId) {
+        console.log('Requested killing user ' + userId);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._killUserLocked(userId);
+        } finally {
+            releaseLock();
+        }
     }
 
     _getUserCloudIdForPath(userId) {
@@ -442,24 +523,46 @@ class EngineManager extends events.EventEmitter {
         }
     }
 
-    restartUser(userId) {
-        return this.killUser(userId).then(() => {
-            return this.startUser(userId);
-        });
+    async restartUser(userId) {
+        console.log('Requested restart of user ' + userId);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._killUserLocked(userId);
+            await this._startUserLocked(userId);
+        } finally {
+            releaseLock();
+        }
     }
 
     async deleteUser(userId) {
         console.log(`Deleting all data for ${userId}`);
-        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId));
-        return util.promisify(child_process.execFile)('/bin/rm',
-            ['-rf', dir]);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._killUserLocked(userId);
+
+            const dir = path.resolve('.', await this._getUserCloudIdForPath(userId));
+            await util.promisify(child_process.execFile)('/bin/rm',
+                ['-rf', dir]);
+        } finally {
+            releaseLock();
+            delete this._locks[userId];
+        }
     }
+
+    async _clearCacheLocked(userId) {
+        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId), 'cache');
+        await util.promisify(child_process.execFile)('/bin/rm',
+            ['-rf', dir]);
+    } 
 
     async clearCache(userId) {
         console.log(`Clearing cache for ${userId}`);
-        const dir = path.resolve('.', await this._getUserCloudIdForPath(userId), 'cache');
-        return util.promisify(child_process.execFile)('/bin/rm',
-            ['-rf', dir]);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._clearCacheLocked(userId);
+        } finally {
+            releaseLock();
+        }
     }
 
     // restart a user with a clean cache folder
@@ -467,14 +570,16 @@ class EngineManager extends events.EventEmitter {
     // as after restart they will be placed in a shared process,
     // and we don't want them having access to unapproved (and dangerous)
     // devices through the cache
-    //
-    // FIXME: there is a race condition here if you restart the user at just
-    // the right time before the cache is cleared, because this whole method
-    // is run after the database has been updated
     async restartUserWithoutCache(userId) {
-        await this.killUser(userId);
-        await this.clearCache(userId);
-        await this.startUser(userId);
+        console.log(`Requested cache clear & restart of user ${userId}`);
+        const releaseLock = await this._lockUser(userId);
+        try {
+            await this._killUserLocked(userId);
+            await this._clearCacheLocked(userId);
+            await this._startUserLocked(userId);
+        } finally {
+            releaseLock();
+        }
     }
 }
 EngineManager.prototype.$rpcMethods = ['isRunning', 'getProcessId', 'startUser', 'killUser', 'killAllUsers',  'restartUser', 'deleteUser', 'clearCache', 'restartUserWithoutCache'];
