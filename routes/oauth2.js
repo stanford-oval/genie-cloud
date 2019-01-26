@@ -17,6 +17,7 @@ const oauth2orize = require('oauth2orize');
 const multer = require('multer');
 const csurf = require('csurf');
 const util = require('util');
+const fs = require('fs');
 const jwt = require('jsonwebtoken');
 
 const BasicStrategy = require('passport-http').BasicStrategy;
@@ -43,6 +44,10 @@ function makeRandom(size = 32) {
 // These strategies are used to authenticate oauth2 clients, not
 // to authenticate users
 function authOAuth2Client(clientId, clientSecret, done) {
+    if (typeof clientId !== 'string' || typeof clientSecret !== 'string') {
+        done(null, false);
+        return;
+    }
     db.withClient((dbClient) => {
         return model.getClients(dbClient, clientId).then((rows) => {
             if (rows.length < 1 || rows[0].secret !== clientSecret)
@@ -173,6 +178,7 @@ server.exchange(oauth2orize.exchange.refreshToken((client, refreshToken, scope, 
         // now issue the access token, valid for one hour
         const accessToken = await util.promisify(jwt.sign)({
             sub: decoded.user_id,
+            aud: 'oauth2',
             scope: decoded.scope
         }, secret.getJWTSigningKey(), { expiresIn: 3600 });
         done(null, accessToken, refreshToken, { expires_in: 3600 });
@@ -188,6 +194,8 @@ function verifyScope(client, scopes) {
 }
 
 function verifyRedirectUrl(client, redirectURI) {
+    if (!redirectURI)
+        throw new oauth2orize.AuthorizationError("invalid redirect_uri", 'unauthorized_client');
     for (let url of JSON.parse(client.allowed_redirect_uris)) {
         if (redirectURI.startsWith(url))
             return;
@@ -240,18 +248,18 @@ router.post('/token',
     passport.authenticate(['oauth2-client-basic', 'oauth2-client-password'], { session: false }),
     server.token(), server.errorHandler());
 
-function uploadIcon(clientId, req) {
-    if (req.files.icon && req.files.icon.length) {
-        // upload the icon asynchronously to avoid blocking the request
-        Promise.resolve().then(() => {
-            const image = graphics.createImageFromPath(req.files.icon[0].path);
+async function uploadIcon(clientId, file) {
+    try {
+        try {
+            const image = graphics.createImageFromPath(file.path);
             image.resizeFit(512, 512);
-            return image.stream('png');
-        }).then(([stdout, stderr]) => {
-            return code_storage.storeIcon(stdout, 'oauth:' + clientId);
-        }).catch((e) => {
-            console.error('Failed to upload icon to S3: ' + e);
-        });
+            const [stdout,] = await image.stream('png');
+            await code_storage.storeIcon(stdout, 'oauth:' + clientId);
+        } finally {
+            await util.promisify(fs.unlink)(file.path);
+        }
+    } catch(e)  {
+        console.error('Failed to upload icon to S3: ' + e);
     }
 }
 
@@ -275,16 +283,14 @@ function validateRedirectUrls(urls) {
     return urls;
 }
 
-router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
-    { name: 'icon', maxCount: 1 }
-]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(),
+router.post('/clients/create', multer({ dest: platform.getTmpDir() }).single('icon'), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(),
     iv.validatePOST({ scope: ['array', '?string'], name: 'string', redirect_uri: 'string' }), (req, res, next) => {
     const name = req.body.name;
     let scopes, redirectUrls;
     try {
         if (!name)
             throw new Error(req._("Name must be provided"));
-        if (!req.files.icon || !req.files.icon.length)
+        if (!req.file)
             throw new Error(req._("Must upload an icon"));
         scopes = validateScopes(req.body.scope);
 
@@ -314,7 +320,10 @@ router.post('/clients/create', multer({ dest: platform.getTmpDir() }).fields([
             allowed_scopes: scopes.join(' '),
             allowed_redirect_uris: JSON.stringify(redirectUrls)
         });
-        await uploadIcon(clientId, req);
+
+        // upload the icon asynchronously to avoid blocking the request
+        uploadIcon(clientId, req.file);
+    }).then(() => {
         res.redirect(303, '/thingpedia/developers/oauth');
     }).catch(next);
 });
