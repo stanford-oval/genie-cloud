@@ -325,7 +325,7 @@ Check the logs for further information.`
             next();
         });
 
-        app.get('/metrics', async (req, res, next) => {
+        app.get('/jobs/metrics', async (req, res, next) => {
             const queue = this._queues.train;
 
             const out = {};
