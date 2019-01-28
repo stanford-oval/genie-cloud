@@ -19,9 +19,11 @@ const path = require('path');
 const logger = require('morgan');
 const bodyParser = require('body-parser');
 const errorHandler = require('errorhandler');
+const Prometheus = require('prom-client');
 
 const SendMail = require('../util/sendmail');
 const db = require('../util/db');
+const Metrics = require('./util/metrics');
 
 const Job = require('./training_job');
 
@@ -312,6 +314,8 @@ Check the logs for further information.`
         app.use(logger('dev'));
         if ('development' === app.get('env'))
             app.use(errorHandler());
+        if (Config.ENABLE_PROMETHEUS)
+            Metrics(app);
 
         app.use((req, res, next) => {
             if (req.query.access_token === Config.TRAINING_ACCESS_TOKEN) {
