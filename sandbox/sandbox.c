@@ -245,7 +245,7 @@ int main(int argc, const char* const *argv)
   if (thingengine_user_id == NULL)
     die ("Missing THINGENGINE_USER_ID in the environment\n");
 
-  if (getenv ("THINGENGINE_DISABLE_SYSTEMD") != NULL) {
+  if (getenv ("THINGENGINE_DISABLE_SYSTEMD") == NULL) {
     snprintf (syslog_identifier, sizeof(syslog_identifier), "thingengine-child-%s",
               thingengine_user_id);
     stdout_fileno = sd_journal_stream_fd (syslog_identifier, LOG_INFO, 0);
