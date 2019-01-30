@@ -81,6 +81,10 @@ block content
                               = _("Read the list of active commands and configured devices")
                           div.checkbox
                             label
+                              input(type='checkbox',name='scope',value='user-read-results',checked=false)
+                              = _("Observe the results of executed commands and read notifications")
+                          div.checkbox
+                            label
                               input(type='checkbox',name='scope',value='user-exec-command',checked=false)
                               = _("Access Web Almond and execute ThingTalk code")
                           if Config.WITH_THINGPEDIA === 'embedded'
