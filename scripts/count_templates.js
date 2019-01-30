@@ -24,74 +24,27 @@ const _schemaRetriever = new SchemaRetriever(new AdminThingpediaClient(_language
 
 const _counts = new Map;
 
-function isUnaryTableToTableOp(table) {
-    return table.isFilter ||
-        table.isProjection ||
-        table.isCompute ||
-        table.isAlias ||
-        table.isAggregation ||
-        table.isArgMinMax ||
-        table.isSequence ||
-        table.isHistory;
-}
-function isUnaryStreamToTableOp(table) {
-    return table.isWindow || table.isTimeSeries;
-}
-function isUnaryStreamToStreamOp(stream) {
-    return stream.isEdgeNew ||
-        stream.isEdgeFilter ||
-        stream.isFilter ||
-        stream.isProjection ||
-        stream.isCompute ||
-        stream.isAlias;
-}
-function isUnaryTableToStreamOp(stream) {
-    return stream.isMonitor;
-}
-
-function findFunctionNameTable(table) {
-    if (table.isInvocation)
-        return table.invocation.selector.kind + ':' + table.invocation.channel;
-
-    if (isUnaryTableToTableOp(table))
-        return findFunctionNameTable(table.table);
-
-    if (isUnaryStreamToTableOp(table))
-        return findFunctionNameStream(table.stream);
-
-    throw new TypeError();
-}
-
-function findFunctionNameStream(stream) {
-    if (stream.isTimer || stream.isAtTimer)
-        return 'timer';
-
-    if (isUnaryStreamToStreamOp(stream))
-        return findFunctionNameStream(stream.stream);
-
-    if (isUnaryTableToStreamOp(stream))
-        return findFunctionNameTable(stream.table);
-
-    throw new TypeError();
-}
-
 function loadTemplateAsDeclaration(ex, decl) {
+    if (decl.type === 'program')
+        return;
+
     decl.name = 'ex_' + ex.id;
     //console.log(Ast.prettyprint(program));
 
     // ignore builtin actions:
     // debug_log is not interesting, say is special and we handle differently, configure/discover are not
     // composable
-    if (decl.type === 'action' && decl.value.selector.kind === 'org.thingpedia.builtin.thingengine.builtin')
+    if (decl.type === 'action' && decl.value.invocation.selector.kind === 'org.thingpedia.builtin.thingengine.builtin')
         return;
 
-    let functionName;
-    if (decl.type === 'action')
-        functionName = decl.value.selector.kind + ':' + decl.value.channel;
-    else if (decl.type === 'table')
-        functionName = findFunctionNameTable(decl.value);
-    else if (decl.type === 'stream')
-        functionName = findFunctionNameStream(decl.value);
+    let functionNames = [];
+
+    for (let [primType, prim] of decl.value.iteratePrimitives()) {
+        if (prim.selector.isBuiltin)
+            continue;
+        functionNames.push(prim.selector.kind + ':' + prim.channel);
+    }
+    const functionName = functionNames.join('+');
 
     let count = _counts.get(functionName);
     if (count === undefined)
@@ -101,16 +54,25 @@ function loadTemplateAsDeclaration(ex, decl) {
     _counts.set(functionName, count);
 }
 
+function targetCodeToTT(code) {
+    if (/^\s*(stream|query|action|program)\s*/.test(code))
+        return `dataset @ignored language "en" { ${code} }`;
+    else
+        return code;
+}
+
 function loadTemplate(ex) {
-    return Promise.resolve().then(() => ThingTalk.Grammar.parseAndTypecheck(ex.target_code, _schemaRetriever, true)).then((program) => {
-        if (program.rules.length === 1 && program.declarations.length === 0)
+    return Promise.resolve().then(() => ThingTalk.Grammar.parseAndTypecheck(targetCodeToTT(ex.target_code), _schemaRetriever, true)).then((program) => {
+        if (program.isMeta)
+            loadTemplateAsDeclaration(program.datasets[0].examples[0], program.datasets[0].examples[0]);
+        else if (program.rules.length === 1 && program.declarations.length === 0)
             ; // ignore examples that consist of a rule (they are just dataset)
         else if (program.declarations.length === 1 && program.declarations.length === 1)
             loadTemplateAsDeclaration(ex, program.declarations[0]);
         else
             console.log('Invalid template ' + ex.id + ' (wrong number of declarations)');
     }).catch((e) => {
-        console.error('Failed to load template ' + ex.id + ': ' + e.message);
+        console.error('Failed to load template ' + ex.id + ': ' + ex.target_code, e);
     });
 }
 
@@ -130,7 +92,7 @@ function loadMetadata(language) {
         list.sort(([aname, acount], [bname, bcount]) => bcount - acount);
         for (let [vname, vcount] of list)
             console.log(`${vname}: ${vcount}`);
-        console.log('total = ' + total);
+        console.log('total = ' + total + '/' + list.length);
     });
 }
 
