@@ -457,5 +457,8 @@ function main() {
 
     daemon.loadExistingJobs();
     daemon.initFrontend();
+
+    if (Config.ENABLE_PROMETHEUS)
+        Prometheus.collectDefaultMetrics();
 }
 main();
