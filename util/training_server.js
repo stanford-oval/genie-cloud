@@ -57,7 +57,7 @@ class TrainingServer {
         if (!Config.TRAINING_URL)
             return Promise.resolve({});
         let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
-        return Tp.Helpers.Http.get(Config.TRAINING_URL + '/metrics', { auth }).then((response) => {
+        return Tp.Helpers.Http.get(Config.TRAINING_URL + '/jobs/metrics', { auth }).then((response) => {
             let parsed = JSON.parse(response);
             return parsed;
         }).catch((e) => {

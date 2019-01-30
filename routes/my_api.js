@@ -58,7 +58,7 @@ router.ws('/anonymous', (ws, req) => {
     }
 
     user.getAnonymousUser().then((user) => {
-        return doConversation(user, true, ws);
+        return doConversation(user, true, ws, req.query);
     });
 });
 
@@ -286,7 +286,7 @@ class WebsocketAssistantDelegate {
 }
 WebsocketAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
 
-async function doConversation(user, anonymous, ws) {
+async function doConversation(user, anonymous, ws, query) {
     try {
         const engine = await EngineManager.get().getEngine(user.id);
         const onclosed = (userId) => {
@@ -298,7 +298,7 @@ async function doConversation(user, anonymous, ws) {
 
         // "isOwner" is a multi-user assistant thing, it has nothing to do with anonymous or not
         const assistantUser = { name: user.human_name || user.username, isOwner: true };
-        const options = { showWelcome: true, anonymous };
+        const options = { showWelcome: !query.hide_welcome, anonymous };
 
         const delegate = new WebsocketAssistantDelegate(ws);
 
@@ -361,7 +361,7 @@ async function doConversation(user, anonymous, ws) {
 }
 
 router.ws('/conversation', user.requireScope('user-exec-command'), (ws, req, next) => {
-    doConversation(req.user, false, ws);
+    doConversation(req.user, false, ws, req.query);
 });
 
 class WebsocketDelegate {

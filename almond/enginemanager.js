@@ -189,7 +189,7 @@ class EngineProcess extends events.EventEmitter {
     start() {
         const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
                               'HOME', 'SHELL', 'THINGENGINE_PROXY',
-                              'CI'];
+                              'CI', 'THINGENGINE_DISABLE_SYSTEMD'];
         function envIsAllowed(name) {
             if (name.startsWith('LC_'))
                 return true;

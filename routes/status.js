@@ -16,6 +16,7 @@ const user = require('../util/user');
 const iv = require('../util/input_validation');
 
 const EngineManager = require('../almond/enginemanagerclient');
+const userToShardId = require('../almond/shard');
 
 const router = express.Router();
 router.use(user.requireLogIn);
@@ -30,16 +31,9 @@ function readLogs(userId, startCursor) {
         args.push('1000');
     }
 
-    var unit;
-    if ('THINGENGINE_UNIT_NAME' in process.env)
-        unit = process.env.THINGENGINE_UNIT_NAME;
-    else
-        unit = 'thingengine-cloud';
-    if (unit) {
-        args.push('-u');
-        args.push(unit);
-    }
-
+    const unit = `thingengine-cloud@${userToShardId(userId)}.service`;
+    args.push('-u');
+    args.push(unit);
     args.push('SYSLOG_IDENTIFIER=thingengine-child-' + userId);
 
     var child = child_process.spawn('/bin/journalctl', args,
