@@ -59,6 +59,7 @@
 
 #conversation .message {
   display: block;
+  white-space: pre-line;
 }
 
 #conversation .message-picture {
