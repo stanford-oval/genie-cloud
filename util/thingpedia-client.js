@@ -374,10 +374,10 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         return this._withClient((dbClient) => {
             return Promise.all([entityModel.lookupWithType(dbClient, this.language, entityType, searchTerm),
                                 entityModel.get(dbClient, entityType, this.language)]);
-        }).then(([rows, meta]) => {
+        }).then(([rows, metarows]) => {
             const data = rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name }));
-            data.meta = { name: meta.name, has_ner_support: meta.has_ner_support, is_well_known: meta.is_well_known };
-            return data;
+            const meta = { name: metarows.name, has_ner_support: metarows.has_ner_support, is_well_known: metarows.is_well_known };
+            return { data, meta };
         });
     }
 
