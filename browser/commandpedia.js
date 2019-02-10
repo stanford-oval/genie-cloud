@@ -73,7 +73,7 @@ $(() => {
                 let count = $('#count' + this.id);
                 let current = Number(count.text());
 
-                if (!document.body.dataset.userId) {
+                if (!document.body.dataset.cloudId) {
                     // not logged in
                     location.href = '/user/login';
                     return;
