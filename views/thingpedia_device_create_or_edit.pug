@@ -99,7 +99,8 @@ block content
             div.form-group
               label(for='device-license').control-label= _("License")
               input(name='license',type='text',required=true,value=device.license).form-control#device-license
-              span.help-block!= _("The copyright license for the uploaded code, as a <a href='https://spdx.org/licenses/'>SPDX expression</a>")
+              span.help-block!= _("The copyright license for the uploaded code, as a <a href='https://spdx.org/licenses/'>SPDX expression</a>. We recommend <samp>MIT</samp> for open-source devices.")
+              //- Use <samp>Proprietary</samp> if your device is not open-source.")
             div.checkbox
               label
                 input(type='checkbox',name='license_gplcompatible',value='1',checked=device.license_gplcompatible)
@@ -118,7 +119,7 @@ block content
             div.form-group
               label(for='device-issue-tracker').control-label= _("Issue Tracker")
               input(name='issue_tracker',type='text',required=false,value=device.issue_tracker).form-control#device-issue-tracker
-              span.help-block!= _("Link to a public issue tracker where users can report problems with this device.")
+              span.help-block!= _("Link to a public issue tracker where users can report problems with this device (optional).")
 
             div.form-group
               label(for='device-icon').control-label= _("Icon")
