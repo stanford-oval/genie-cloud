@@ -22,6 +22,7 @@ const ThingpediaClient = require('../util/thingpedia-client');
 const ImageCacheManager = require('../util/cache_manager');
 const SchemaUtils = require('../util/manifest_to_schema');
 const { tokenize, PARAM_REGEX } = require('../util/tokenize');
+const userUtils = require('../util/user');
 
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
@@ -999,7 +1000,7 @@ v1.get('/commands/all', (req, res, next) => {
 
     db.withTransaction(async (client) => {
         let commands;
-        if (req.user && isOriginOk(req))
+        if (userUtils.isAuthenticated(req) && isOriginOk(req))
             commands = await commandModel.getCommandsForUser(client, language, req.user.id, page * page_size, page_size);
         else
             commands = await commandModel.getCommands(client, language, page * page_size, page_size);
@@ -1064,7 +1065,7 @@ v1.get('/commands/search', (req, res, next) => {
 
     db.withTransaction(async (client) => {
         let commands;
-        if (req.user && isOriginOk(req))
+        if (userUtils.isAuthenticated(req) && isOriginOk(req))
             commands = await commandModel.getCommandsByFuzzySearchForUser(client, language, req.user.id, q);
         else
             commands = await commandModel.getCommandsByFuzzySearch(client, language, q);
