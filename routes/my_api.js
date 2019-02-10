@@ -28,28 +28,13 @@ function makeRandom(bytes) {
 
 var router = express.Router();
 
-const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS, 'null'];
+const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS];
 
 function isOriginOk(req) {
-    if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer '))
-        return true;
     if (typeof req.headers['origin'] !== 'string')
-        return true;
+        return false;
     return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
 }
-
-router.use((req, res, next) => {
-    if (isOriginOk(req)) {
-        if (req.headers['origin']) {
-            res.set('Access-Control-Allow-Origin', req.headers['origin']);
-            res.set('Vary', 'Origin');
-        }
-        res.set('Access-Control-Allow-Credentials', 'true');
-        next();
-    } else {
-        res.status(403).send('Forbidden Cross Origin Request');
-    }
-});
 
 router.ws('/anonymous', (ws, req) => {
     if (req.user) {
@@ -77,12 +62,24 @@ router.post('/token', user.requireLogIn, (req, res, next) => {
 });
 
 router.use((req, res, next) => {
-    if (user.isAuthenticated(req)) {
+    if (isOriginOk(req) && user.isAuthenticated(req))
         next();
-        return;
-    }
-    passport.authenticate('bearer', { session: false })(req, res, next);
+    else if (typeof req.query.access_token === 'string' || (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer ')))
+        passport.authenticate('bearer', { session: false })(req, res, next);
+    else
+        res.status(403).send('Forbidden Cross Origin Request');
 });
+
+router.use((req, res, next) => {
+    if (req.headers['origin']) {
+        res.set('Access-Control-Allow-Origin', req.headers['origin']);
+        res.set('Vary', 'Origin');
+        res.set('Access-Control-Allow-Credentials', 'true');
+    }
+    next();
+});
+
+router.use(user.requireLogIn);
 
 router.options('/.*', (req, res, next) => {
     res.send('');
