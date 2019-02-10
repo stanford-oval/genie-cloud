@@ -913,14 +913,7 @@ function getCommandDetails(commands) {
             else if (command.target_code.startsWith('let table') || command.target_code.startsWith('query'))
                 command.utterance = 'show me ' + command.utterance;
 
-            const renames = {
-                'light-bulb': 'com.hue',
-                'car': 'com.tesla.car',
-                'thermostat': 'com.nest',
-                'security-camera': 'com.nest'
-            };
-
-            command.devices = [renames[command.kind] || command.kind];
+            command.devices = [command.kind];
         } else {
             // get device kinds from target_code
             let functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
@@ -933,6 +926,15 @@ function getCommandDetails(commands) {
             command.devices = Array.from(devices);
         }
         delete command.kind;
+
+        const renames = {
+             'light-bulb': 'com.hue',
+             'car': 'com.tesla.car',
+             'thermostat': 'com.nest',
+             'security-camera': 'com.nest'
+        };
+
+        command.devices = command.devices.map((d) => renames[d] || d);
     }
 }
 
