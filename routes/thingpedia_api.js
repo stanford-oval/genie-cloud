@@ -1175,7 +1175,7 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
  *
  * @apiParam {String[]} kinds Comma-separated list of device identifiers for which to return examples
  * @apiParam {String} [developer_key] Developer key to use for this operation
- * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
+ * @apiParam {String} [locale=en-US] Return examples in this language
  *
  * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
  * @apiSuccess {Object[]} data List of example commands
@@ -1185,7 +1185,8 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
  * @apiSuccess {String} data.utterance The original, unprocessed command
  * @apiSuccess {String} data.preprocessed The command in tokenized form, as a list of tokens separated by a space
  * @apiSuccess {String} data.target_code The stored code associated with this command, in preprocess NN-Syntax ThingTalk
- * @apiSuccess {Number} data.click_count How popular this command is (number of users who have used it)
+ * @apiSuccess {Number} data.click_count How popular this command is (number of users who have clicked it from suggestions)
+ * @apiSuccess {Number} data.like_count How popular this command is (number of users who have liked it on the front page)
  *
  * @apiSuccessExample {json} Example Response:
  *  {
@@ -1198,7 +1199,8 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
  *        "utterance": "when someone i follow replies to user ${p_in_reply_to} on twitter",
  *        "preprocessed": "when someone i follow replies to user ${p_in_reply_to} on twitter",
  *        "target_code": "let stream x := \\(p_in_reply_to :Entity(tt:username)) -> monitor ((@com.twitter.home_timeline()), in_reply_to == p_in_reply_to);",
- *        "click_count": 1
+ *        "click_count": 55,
+ *        "like_count": 1
  *      }
  *    ]
  *  }
@@ -1214,6 +1216,72 @@ v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
     }
 
     client.getExamplesByKinds(kinds, accept).then((result) => {
+        res.set('Vary', 'Accept');
+        res.cacheFor(300000);
+        res.status(200);
+        res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept);
+        if (typeof result === 'string')
+            res.send(result);
+        else
+            res.status(200).json({ result: 'ok', data: result });
+    }).catch(next);
+});
+
+/**
+ * @api {get} /v3/examples/all Get All Examples
+ * @apiName GetAllExamples
+ * @apiGroup Cheatsheet
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Retrieve all the example commands from Thingpedia. This corresponds
+ *   to the whole cheatsheet.
+ *
+ * This API performs content negotiation, based on the `Accept` header. If
+ * the `Accept` header is unset or set to `application/x-thingtalk`, then a ThingTalk
+ * dataset is returned. Otherwise, the accept header must be set to `application/json`,
+ * or a 405 Not Acceptable error occurs.
+ *
+ * @apiParam {String} [developer_key] Developer key to use for this operation
+ * @apiParam {String} [locale=en-US] Return examples in this language
+ *
+ * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
+ * @apiSuccess {Object[]} data List of example commands
+ * @apiSuccess {Number} data.id Command ID
+ * @apiSuccess {String} data.language 2 letter language code for this command
+ * @apiSuccess {String="thingpedia"} data.type The internal command type
+ * @apiSuccess {String} data.utterance The original, unprocessed command
+ * @apiSuccess {String} data.preprocessed The command in tokenized form, as a list of tokens separated by a space
+ * @apiSuccess {String} data.target_code The stored code associated with this command, in preprocess NN-Syntax ThingTalk
+ * @apiSuccess {Number} data.click_count How popular this command is (number of users who have clicked it from suggestions)
+ * @apiSuccess {Number} data.like_count How popular this command is (number of users who have liked it on the front page)
+ *
+ * @apiSuccessExample {json} Example Response:
+ *  {
+ *    "result": "ok",
+ *    "data": [
+ *      {
+ *        "id": 1688881,
+ *        "language": "en",
+ *        "type": "thingpedia",
+ *        "utterance": "when someone i follow replies to user ${p_in_reply_to} on twitter",
+ *        "preprocessed": "when someone i follow replies to user ${p_in_reply_to} on twitter",
+ *        "target_code": "let stream x := \\(p_in_reply_to :Entity(tt:username)) -> monitor ((@com.twitter.home_timeline()), in_reply_to == p_in_reply_to);",
+ *        "click_count": 55,
+ *        "like_count": 1
+ *      }
+ *    ]
+ *  }
+ *
+ */
+v3.get('/examples/all', (req, res, next) => {
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
+    if (!accept) {
+        res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
+        return;
+    }
+
+    client.getAllExamples(accept).then((result) => {
         res.set('Vary', 'Accept');
         res.cacheFor(300000);
         res.status(200);
@@ -1254,7 +1322,7 @@ v1.get('/examples', (req, res, next) => {
  *
  * @apiParam {String} q Query string
  * @apiParam {String} [developer_key] Developer key to use for this operation
- * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
+ * @apiParam {String} [locale=en-US] Return examples in this language
  *
  * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
  * @apiSuccess {Object[]} data List of example commands
@@ -1264,7 +1332,8 @@ v1.get('/examples', (req, res, next) => {
  * @apiSuccess {String} data.utterance The original, unprocessed command
  * @apiSuccess {String} data.preprocessed The command in tokenized form, as a list of tokens separated by a space
  * @apiSuccess {String} data.target_code The stored code associated with this command, in preprocess NN-Syntax ThingTalk
- * @apiSuccess {Number} data.click_count How popular this command is (number of users who have used it)
+ * @apiSuccess {Number} data.click_count How popular this command is (number of users who have clicked it from suggestions)
+ * @apiSuccess {Number} data.like_count How popular this command is (number of users who have liked it on the front page)
  *
  * @apiSuccessExample {json} Example Response:
  *  {
@@ -1277,7 +1346,8 @@ v1.get('/examples', (req, res, next) => {
  *        "utterance": "when someone i follow replies to user ${p_in_reply_to} on twitter",
  *        "preprocessed": "when someone i follow replies to user ${p_in_reply_to} on twitter",
  *        "target_code": "let stream x := \\(p_in_reply_to :Entity(tt:username)) -> monitor ((@com.twitter.home_timeline()), in_reply_to == p_in_reply_to);",
- *        "click_count": 1
+ *        "click_count": 55,
+ *        "like_count": 1
  *      }
  *    ]
  *  }
