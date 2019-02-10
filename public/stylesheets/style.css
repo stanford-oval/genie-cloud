@@ -320,6 +320,7 @@ a.social-icon:link, a.social-icon:visited {
 
 .blog-post-ref img {
   width: 140px;
-  object-fit: contain;
+  object-fit: cover;
   margin-top: 1em;
+  height: 100px;
 }
