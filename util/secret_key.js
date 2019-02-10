@@ -15,39 +15,27 @@ const AES_BLOCK_SIZE = 16;
 const CIPHER_NAME = 'id-aes128-GCM';
 
 function getAESKey() {
-    if (process.env.NODE_ENV !== 'production') {
-        return new Buffer('80bb23f93126074ba01410c8a2278c0c', 'hex');
-    } else {
-        var key = process.env.AES_SECRET_KEY;
-        if (key === undefined)
-            throw new Error("Configuration error: AES key missing!");
-        if (key.length !== 2*AES_BLOCK_SIZE) // AES-128
-            throw new Error("Configuration error: invalid AES key length!");
-        return new Buffer(key, 'hex');
-    }
+    var key = process.env.AES_SECRET_KEY;
+    if (key === undefined)
+        throw new Error("Configuration error: AES key missing!");
+    if (key.length !== 2*AES_BLOCK_SIZE) // AES-128
+        throw new Error("Configuration error: invalid AES key length!");
+    return new Buffer(key, 'hex');
 }
 
 module.exports = {
-    getSecretKey(app) {
-        if (app.get('env') === 'development') {
-            return 'not so secret key';
-        } else {
-            var key = process.env.SECRET_KEY;
-            if (key === undefined)
-                throw new Error("Configuration error: secret key missing!");
-            return key;
-        }
+    getSecretKey() {
+        var key = process.env.SECRET_KEY;
+        if (key === undefined)
+            throw new Error("Configuration error: secret key missing!");
+        return key;
     },
 
     getJWTSigningKey() {
-        if (process.env.NODE_ENV !== 'production') {
-            return 'not so secret key';
-        } else {
-            var key = process.env.JWT_SIGNING_KEY;
-            if (key === undefined)
-                throw new Error("Configuration error: secret key missing!");
-            return key;
-        }
+        var key = process.env.JWT_SIGNING_KEY;
+        if (key === undefined)
+            throw new Error("Configuration error: secret key missing!");
+        return key;
     },
 
     encrypt(data) {
