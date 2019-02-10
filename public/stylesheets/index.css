@@ -133,6 +133,10 @@
     background-image:url(../images/mehrad.png);
 }
 
+#team-profile-mid-jackiey {
+    background-image:url(../images/jackiey.jpg);
+}
+
 #team .profile-name {
     font-weight: bold;
 }
