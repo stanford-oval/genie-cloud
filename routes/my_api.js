@@ -71,17 +71,17 @@ router.use((req, res, next) => {
 });
 
 router.use((req, res, next) => {
-    if (req.headers['origin']) {
-        res.set('Access-Control-Allow-Origin', req.headers['origin']);
-        res.set('Vary', 'Origin');
-        res.set('Access-Control-Allow-Credentials', 'true');
-    }
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Vary', 'Origin');
     next();
 });
 
 router.use(user.requireLogIn);
 
 router.options('/.*', (req, res, next) => {
+    res.set('Access-Control-Max-Age', '86400');
+    res.set('Access-Control-Allow-Methods', 'GET, POST');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Accept, Content-Type');
     res.send('');
 });
 
