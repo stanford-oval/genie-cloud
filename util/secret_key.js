@@ -15,7 +15,7 @@ const AES_BLOCK_SIZE = 16;
 const CIPHER_NAME = 'id-aes128-GCM';
 
 function getAESKey() {
-    if (process.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== 'production') {
         return new Buffer('80bb23f93126074ba01410c8a2278c0c', 'hex');
     } else {
         var key = process.env.AES_SECRET_KEY;
@@ -40,7 +40,7 @@ module.exports = {
     },
 
     getJWTSigningKey() {
-        if (process.NODE_ENV !== 'production') {
+        if (process.env.NODE_ENV !== 'production') {
             return 'not so secret key';
         } else {
             var key = process.env.JWT_SIGNING_KEY;
