@@ -25,6 +25,7 @@ $(() => {
         container: '#thingpedia-devices',
         url: '/thingpedia/api/v3/devices/all',
         searchUrl: '/thingpedia/api/v3/devices/search',
+        autoScrollOnStart: true,
 
         render(dev) {
             const deviceContainer = $('<div>').addClass('col-lg-4 col-md-6 aligned-grid-item dev-template');

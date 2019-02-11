@@ -39,6 +39,7 @@ $(() => {
         container: '#commandpedia',
         url: '/thingpedia/api/v3/commands/all',
         searchUrl: '/thingpedia/api/v3/commands/search',
+        autoScrollOnStart: false,
 
         render(command) {
             let commandContainer = $('<div>').addClass('col-lg-4 col-md-6 aligned-grid-item dev-template');
@@ -73,7 +74,7 @@ $(() => {
                 let count = $('#count' + this.id);
                 let current = Number(count.text());
 
-                if (!document.body.dataset.userId) {
+                if (!document.body.dataset.cloudId) {
                     // not logged in
                     location.href = '/user/login';
                     return;

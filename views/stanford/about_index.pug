@@ -32,17 +32,13 @@ block content
             div.row
               div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
                 h4= _("Smart")
-                p= _("Interconnect your IoT devices, services, and accounts with flexibility.")
               div.col-xs-12.col-sm-6.col-md-4
                 h4= _("Privacy-preserving")
-                p= _("Almond is can be run on your own phone, PC or smart speaker.")
             div.row
               div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
                 h4= _("Extensible")
-                p= _("New devices can be supported with small developer effort.")
               div.col-xs-12.col-sm-6.col-md-4
                 h4= _("Open To All")
-                p= _("Almond is open source. Anyone can use it for any purpose or in any product.")
 
             div.row#subscribe
               div.col-xs-6.col-lg-3.col-md-4.col-lg-offset-3.col-md-offset-2
@@ -120,12 +116,15 @@ block content
       section.divider
         //- for accessibility and for mobile devices (where hover is not available)
         div.container#almond-manifesto
-          h3= _("Our Goal: an Open, Interoperable Web")
+          h3= _("Our Goal: an Open, Interoperable, Linguistic Web")
 
           //-img(src=Config.ASSET_CDN + '/images/icon-network-connection.svg')
           canvas(width=400, height=400)#rotatingGlobe
 
-          p= _("We want the Internet to have:")
+          p
+            = _("Virtual assistants are the new interface to the Web.")
+            br
+            = _("We want them to have:")
 
           div.row
             div.col-md-6
@@ -153,6 +152,10 @@ block content
             |
             |
             a(href='https://www.youtube.com/watch?v=R-BHyvli6c0')= _("Watch prof. Lam's keynote at Mobicom 2018")
+            |
+            | (
+            a(href='https://almond-static.stanford.edu/papers/slides-keynote-mobicom18.pdf') Slides
+            | )
 
       section.divider#why-almond
         h3= _("What We Do")

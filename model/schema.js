@@ -105,14 +105,9 @@ function processMetaRows(rows) {
     rows.forEach((row) => {
         if (current === null || current.kind !== row.kind) {
             current = {
-                id: row.id,
                 kind: row.kind,
                 kind_type: row.kind_type,
-                kind_canonical: row.kind_canonical,
-                owner: row.owner,
-                version: row.version,
-                developer_version: row.developer_version,
-                approved_version: row.approved_version
+                kind_canonical: row.kind_canonical
             };
             current.triggers = {};
             current.queries = {};
@@ -230,8 +225,8 @@ module.exports = {
 
     getCurrentSnapshotMeta(client, language) {
         return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, doc, types,"
-                            + " argnames, argcanonicals, required, is_input, is_list, is_monitorable, string_values, questions, ds.id, kind, kind_canonical, kind_type, owner, dsc.version, developer_version,"
-                            + " approved_version from device_schema ds"
+                            + " argnames, argcanonicals, required, is_input, is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type"
+                            + " from device_schema ds"
                             + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                             + " and dsc.version = ds.developer_version "
                             + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
@@ -248,8 +243,8 @@ module.exports = {
 
     getSnapshotMeta(client, snapshotId, language) {
         return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, doc, types,"
-                            + " argnames, argcanonicals, required, is_input, is_list, is_monitorable, string_values, questions, ds.schema_id, kind, kind_canonical, kind_type, owner, dsc.version, developer_version,"
-                            + " approved_version from device_schema_snapshot ds"
+                            + " argnames, argcanonicals, required, is_input, is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type"
+                            + " from device_schema_snapshot ds"
                             + " left join device_schema_channels dsc on ds.schema_id = dsc.schema_id"
                             + " and dsc.version = ds.developer_version "
                             + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
@@ -293,8 +288,8 @@ module.exports = {
             if (org === -1) {
                 return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                     confirmation_remote, doc, types, argnames, argcanonicals, required, is_input,
-                    string_values, is_list, is_monitorable, questions, id, kind, kind_type, owner, dsc.version,
-                    developer_version, approved_version from device_schema ds left join
+                    string_values, is_list, is_monitorable, questions, kind, kind_type
+                    from device_schema ds left join
                     device_schema_channels dsc on ds.id = dsc.schema_id and
                     dsc.version = ds.developer_version left join device_schema_channel_canonicals dscc
                     on dscc.schema_id = dsc.schema_id and dscc.version = dsc.version and
@@ -303,8 +298,8 @@ module.exports = {
             } if (org !== null) {
                 return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                     confirmation_remote, doc, types, argnames, argcanonicals, required, is_input,
-                    string_values, is_list, is_monitorable, questions, id, kind, kind_type, owner, dsc.version,
-                    developer_version, approved_version from device_schema ds left join
+                    string_values, is_list, is_monitorable, questions, kind, kind_type
+                    from device_schema ds left join
                     device_schema_channels dsc on ds.id = dsc.schema_id and
                     ((dsc.version = ds.developer_version and ds.owner = ?) or
                      (dsc.version = ds.approved_version and ds.owner <> ?))
@@ -315,8 +310,8 @@ module.exports = {
             } else {
                 return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                     confirmation_remote, doc, types, argnames, argcanonicals, required, is_input,
-                    string_values, is_list, is_monitorable, questions, id, kind, kind_type, owner, dsc.version,
-                    developer_version, approved_version from device_schema ds left join device_schema_channels
+                    string_values, is_list, is_monitorable, questions, kind, kind_type
+                    from device_schema ds left join device_schema_channels
                     dsc on ds.id = dsc.schema_id and dsc.version = ds.approved_version left join
                     device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and
                     dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ?
@@ -329,26 +324,13 @@ module.exports = {
     getMetasByKindAtVersion(client, kind, version, language) {
         return Q.try(() => {
             return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, doc, types,"
-                                + " argnames, argcanonicals, required, is_input, string_values, is_list, is_monitorable, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
-                                + " approved_version from device_schema ds"
+                                + " argnames, argcanonicals, required, is_input, string_values, is_list, is_monitorable, questions, kind, kind_type "
+                                + " from device_schema ds"
                                 + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                 + " and dsc.version = ? "
                                 + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
                                 + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.kind = ?",
                                 [version, language, kind]);
-        }).then(processMetaRows);
-    },
-
-    getDeveloperMetas(client, kinds, language) {
-        return Q.try(() => {
-            return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, doc, types,"
-                                + " argnames, argcanonicals, required, is_input, string_values, is_list, is_monitorable, questions, id, kind, kind_type, owner, dsc.version, developer_version,"
-                                + " approved_version from device_schema ds"
-                                + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
-                                + " and dsc.version = ds.developer_version "
-                                + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
-                                + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ? where ds.kind in (?) ",
-                                [language, kinds]);
         }).then(processMetaRows);
     },
 

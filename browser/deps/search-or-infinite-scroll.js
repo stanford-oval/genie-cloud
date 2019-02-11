@@ -27,6 +27,7 @@ module.exports = class SearchOrInfiniteScroll {
 
         this._insearch = false;
         this._infscroll = undefined;
+        this._autoscrollonstart = options.autoScrollOnStart || false;
 
         $(options.container + ' .search-button').click((event) => {
             event.preventDefault();
@@ -35,6 +36,7 @@ module.exports = class SearchOrInfiniteScroll {
                 this._infscroll.destroy();
                 this._infscroll = undefined;
             }
+            this._findmore.hide();
             $.ajax(this._searchUrl, { data: {
                 q: $(options.container + ' input[name=q]').val(),
                 developer_key: this._developerKey
@@ -102,7 +104,7 @@ module.exports = class SearchOrInfiniteScroll {
 
             append: false,
             history: false,
-            loadOnScroll: false,
+            loadOnScroll: this._autoscrollonstart,
 
             responseType: 'text'
         });

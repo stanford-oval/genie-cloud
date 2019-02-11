@@ -133,6 +133,10 @@
     background-image:url(../images/mehrad.png);
 }
 
+#team-profile-mid-jackiey {
+    background-image:url(../images/jackiey.jpg);
+}
+
 #team .profile-name {
     font-weight: bold;
 }
@@ -401,9 +405,10 @@
 }
 
 #latest-news .img-responsive {
-  max-height: 200px;
+  height: 200px;
   width: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  padding: 0 1.5em;
 }
 
 .arrow-box div, .arrow-box-flipped div {
@@ -704,6 +709,7 @@
   text-align: center;
   font-weight: normal;
 }
+
 #almond-manifesto h4 {
   font-size: 24px;
   color: #8c1515;
@@ -715,6 +721,7 @@
 #almond-manifesto-learn-more {
   margin-top: 2em;
   text-align: center;
+  font-size: 16px;
 }
 
 

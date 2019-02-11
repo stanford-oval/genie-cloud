@@ -2,7 +2,7 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2015-2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -19,6 +19,7 @@ const user = require('../util/user');
 const secret = require('../util/secret_key');
 const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
+const { isOriginOk } = require('../util/origin');
 
 const Config = require('../config');
 
@@ -27,29 +28,6 @@ function makeRandom(bytes) {
 }
 
 var router = express.Router();
-
-const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS, 'null'];
-
-function isOriginOk(req) {
-    if (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer '))
-        return true;
-    if (typeof req.headers['origin'] !== 'string')
-        return true;
-    return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
-}
-
-router.use((req, res, next) => {
-    if (isOriginOk(req)) {
-        if (req.headers['origin']) {
-            res.set('Access-Control-Allow-Origin', req.headers['origin']);
-            res.set('Vary', 'Origin');
-        }
-        res.set('Access-Control-Allow-Credentials', 'true');
-        next();
-    } else {
-        res.status(403).send('Forbidden Cross Origin Request');
-    }
-});
 
 router.ws('/anonymous', (ws, req) => {
     if (req.user) {
@@ -77,14 +55,26 @@ router.post('/token', user.requireLogIn, (req, res, next) => {
 });
 
 router.use((req, res, next) => {
-    if (user.isAuthenticated(req)) {
+    if (isOriginOk(req) && user.isAuthenticated(req))
         next();
-        return;
-    }
-    passport.authenticate('bearer', { session: false })(req, res, next);
+    else if (typeof req.query.access_token === 'string' || (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer ')))
+        passport.authenticate('bearer', { session: false })(req, res, next);
+    else
+        res.status(403).send('Forbidden Cross Origin Request');
 });
 
+router.use((req, res, next) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Vary', 'Origin');
+    next();
+});
+
+router.use(user.requireLogIn);
+
 router.options('/.*', (req, res, next) => {
+    res.set('Access-Control-Max-Age', '86400');
+    res.set('Access-Control-Allow-Methods', 'GET, POST');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Accept, Content-Type');
     res.send('');
 });
 
