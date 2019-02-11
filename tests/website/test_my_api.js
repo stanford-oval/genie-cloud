@@ -45,8 +45,8 @@ async function testMyApiCookie(bob, nobody) {
         extraHeaders: {
             'Cookie': 'connect.sid=invalid',
         }
-    }), 401, 'Unauthorized');
-    await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, nobody), 401);
+    }), 403, 'Forbidden Cross Origin Request');
+    await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, nobody), 403);
 
     await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, bob, {
         extraHeaders: {
