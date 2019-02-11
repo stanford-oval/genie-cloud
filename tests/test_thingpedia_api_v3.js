@@ -798,21 +798,6 @@ async function testGetCommands() {
         data: TEST_DATA
     });
 
-    // now with cookie and invalid origin (csrf attack)
-    assert.deepStrictEqual(await request('/commands/all', {
-        extraHeaders: {
-            'Cookie': process.env.COOKIE,
-        }
-    }), {
-        result: 'ok',
-        data: TEST_DATA.map((command) => {
-            const clone = {};
-            Object.assign(clone, command);
-            delete clone.liked;
-            return clone;
-        })
-    });
-
     assert.deepStrictEqual(await request('/commands/search?q=laptop'), {
         result: 'ok',
         data: [
