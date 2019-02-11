@@ -16,8 +16,10 @@ process.on('unhandledRejection', (up) => { throw up; });
 const stream = require('stream');
 const seedrandom = require('seedrandom');
 const argparse = require('argparse');
+const path = require('path');
 
 const ThingTalk = require('thingtalk');
+const Genie = require('genie-toolkit');
 
 const exampleModel = require('../model/example');
 
@@ -27,6 +29,9 @@ const ParameterReplacer = require('./replace_parameters');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 
 const db = require('../util/db');
+
+// FIXME
+const GENIE_FILE = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit/languages/en/thingtalk.genie');
 
 // NOTE: to ensure consistency wrt concurrent database modifications by other processes,
 // this script executes everything inside a single transaction
@@ -205,16 +210,21 @@ class DatasetUpdater {
 
     async _genSynthetic() {
         const options = {
-            rng: this._rng,
-            language: this._language,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
-            turkingMode: false,
+
+            templateFile: GENIE_FILE,
+
+            rng: this._rng,
+            locale: this._language,
+            flags: {
+                turking: false,
+            },
             maxDepth: this._options.maxDepth,
             debug: false
         };
 
-        const generator = new ThingTalk.SentenceGenerator(options);
+        const generator = new Genie.SentenceGenerator(options);
         const writer = new stream.Writable({
             objectMode: true,
             highWaterMark: 100,
