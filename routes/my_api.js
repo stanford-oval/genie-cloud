@@ -2,7 +2,7 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2015-2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -19,6 +19,7 @@ const user = require('../util/user');
 const secret = require('../util/secret_key');
 const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
+const { isOriginOk } = require('../util/origin');
 
 const Config = require('../config');
 
@@ -27,14 +28,6 @@ function makeRandom(bytes) {
 }
 
 var router = express.Router();
-
-const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS];
-
-function isOriginOk(req) {
-    if (typeof req.headers['origin'] !== 'string')
-        return false;
-    return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
-}
 
 router.ws('/anonymous', (ws, req) => {
     if (req.user) {

@@ -23,6 +23,7 @@ const ImageCacheManager = require('../util/cache_manager');
 const SchemaUtils = require('../util/manifest_to_schema');
 const { tokenize, PARAM_REGEX } = require('../util/tokenize');
 const userUtils = require('../util/user');
+const { isOriginOk } = require('../util/origin');
 
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
@@ -937,14 +938,6 @@ function getCommandDetails(commands) {
 
         command.devices = command.devices.map((d) => renames[d] || d);
     }
-}
-
-const ALLOWED_ORIGINS = [Config.SERVER_ORIGIN, ...Config.EXTRA_ORIGINS, 'null'];
-
-function isOriginOk(req) {
-    if (typeof req.headers['origin'] !== 'string')
-        return true;
-    return ALLOWED_ORIGINS.indexOf(req.headers['origin'].toLowerCase()) >= 0;
 }
 
 /**
