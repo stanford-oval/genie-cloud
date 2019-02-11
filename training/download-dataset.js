@@ -146,7 +146,7 @@ async function main() {
         help: 'Test file output path',
         defaultValue: null
     });
-    parser.addArgument(['--eval-prob'], {
+    parser.addArgument(['--eval-probability'], {
         type: Number,
         help: 'Eval probability',
         defaultValue: 0.1,
@@ -252,7 +252,7 @@ async function main() {
                     argv.eval.write(line);
             } else if (trainset.has(requoted)) {
                 argv.train.write(line);
-            } else if (coin(argv.eval_prob, rng)) {
+            } else if (coin(argv.eval_probability, rng)) {
                 if (argv.test && coin(0.5))
                     argv.test.write(line);
                 else

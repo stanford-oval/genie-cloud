@@ -13,7 +13,7 @@
 require('thingengine-core/lib/polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
 
-const stream = require('stream');
+const Stream = require('stream');
 const seedrandom = require('seedrandom');
 const argparse = require('argparse');
 const path = require('path');
@@ -22,11 +22,11 @@ const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
 
 const exampleModel = require('../model/example');
+const entityModel = require('../model/entity');
+const stringModel = require('../model/strings');
 
-const BinaryPPDB = require('../util/binary_ppdb');
-const PPDBUtils = require('../util/ppdb');
-const ParameterReplacer = require('./replace_parameters');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
+const { parseFlags, makeFlags } = require('./flag_utils');
 
 const db = require('../util/db');
 
@@ -62,6 +62,137 @@ const GENIE_FILE = path.resolve(path.dirname(module.filename), '../node_modules/
 //   don't do that
 
 
+class DatabaseParameterProvider {
+    constructor(language, dbClient) {
+        this._language = language;
+        this._dbClient = dbClient;
+    }
+
+    async _getStrings(stringType) {
+        return stringModel.getValues(this._dbClient, stringType, this._language);
+    }
+
+    async _getEntities(entityType) {
+        const rows = await entityModel.getValues(this._dbClient, entityType, this._language);
+        return rows.map((e) => {
+            return {
+                preprocessed: e.entity_canonical,
+                weight: 1.0
+            };
+        });
+    }
+
+    get(valueListType, valueListName) {
+        switch (valueListType) {
+        case 'string':
+            return this._getStrings(valueListName);
+        case 'entity':
+            return this._getEntities(valueListName);
+        default:
+            throw new TypeError(`Unexpected value list type ${valueListType}`);
+        }
+    }
+}
+
+class ForDevicesFilter extends Stream.Transform {
+    constructor(pattern) {
+        super({
+            readableObjectMode: true,
+            writableObjectMode: true,
+        });
+
+        this._pattern = pattern;
+    }
+
+    _transform(ex, encoding, callback) {
+        if (this._pattern.test(ex.target_code))
+            this.push(ex);
+        callback();
+    }
+
+    _flush(callback) {
+        process.nextTick(callback);
+    }
+}
+
+class DatabaseInserter extends Stream.Writable {
+    constructor(language, dbClient) {
+        super({
+            objectMode: true,
+            highWaterMark: 1000,
+        });
+
+        this._language = language;
+        this._dbClient = dbClient;
+        this._batch = [];
+        this._replacedBatch = [];
+    }
+
+    async _insertBatch(examples, isReplaced) {
+        if (isReplaced) {
+            return exampleModel.createManyReplaced(this._dbClient, examples.map((ex) => {
+                // remove replaced flag (it's implicit)
+                ex.flags.replaced = false;
+                return {
+                    preprocessed: ex.preprocessed,
+                    target_code: ex.target_code,
+                    type: ex.type,
+                    flags: makeFlags(ex.flags),
+                    language: this._language
+                };
+            }));
+        } else {
+            return exampleModel.createMany(this._dbClient, examples.map((ex) => {
+                return {
+                    utterance: ex.preprocessed,
+                    preprocessed: ex.preprocessed,
+                    target_code: ex.target_code,
+                    target_json: '',
+                    type: ex.type,
+                    flags: makeFlags(ex.flags),
+                    is_base: 0,
+                    language: this._language
+                };
+            }));
+        }
+    }
+
+    async _process(ex) {
+        // if ex is a pure paraphrase example (with no augmentation of any sort)
+        // then it is already in the dataset and we don't need to insert it again
+        //
+        // we get here because we pass "includeQuotedExample: true" to the augmenter
+        // which allows us to use the same augmenter for both synthetic and paraphrase data
+        if (!ex.flags.synthetic && !ex.flags.replaced && !ex.flags.augmented)
+            return;
+
+        if (ex.flags.replaced) {
+            this._replacedBatch.push(ex);
+            if (this._replacedBatch.length >= 1000) {
+                await this._insertBatch(this._replacedBatch, true);
+                this._replacedBatch.length = 0;
+            }
+        } else {
+            this._batch.push(ex);
+            if (this._batch.length >= 1000) {
+                await this._insertBatch(this._batch, false);
+                this._batch.length = 0;
+            }
+        }
+    }
+
+    _write(ex, encoding, callback) {
+        this._process(ex).then(() => callback(), (err) => callback(err));
+    }
+
+    _final(callback) {
+        Promise.all([
+            this._batch.length > 0 ? this._insertBatch(this._batch, false) : Promise.resolve(),
+            this._replacedBatch.length > 0 ? this._insertBatch(this._replacedBatch, true) : Promise.resolve(),
+        ]).then(() => callback(), (err) => callback(err));
+    }
+}
+
 class DatasetUpdater {
     constructor(language, forDevices, options) {
         this._language = language;
@@ -82,12 +213,10 @@ class DatasetUpdater {
             this._forDevicesRegexp = null;
         }
 
-        this._ppdb = null;
-        this._paramReplacer = null;
-
         this._dbClient = null;
         this._tpClient = null;
         this._schemas = null;
+        this._augmenter = null;
     }
 
     async _clearExistingDataset() {
@@ -114,101 +243,7 @@ class DatasetUpdater {
         console.log(`Dataset cleaned`);
     }
 
-    async _insertExampleBatch(examples, isReplaced) {
-        if (isReplaced) {
-            return exampleModel.createManyReplaced(this._dbClient, examples.map((ex) => {
-                return {
-                    preprocessed: ex.preprocessed,
-                    target_code: ex.target_code,
-                    type: ex.type,
-                    flags: ex.flags,
-                    language: this._language
-                };
-            }));
-        } else {
-            return exampleModel.createMany(this._dbClient, examples.map((ex) => {
-                return {
-                    utterance: ex.preprocessed,
-                    preprocessed: ex.preprocessed,
-                    target_code: ex.target_code,
-                    target_json: '',
-                    type: ex.type,
-                    flags: ex.flags,
-                    is_base: 0,
-                    language: this._language
-                };
-            }));
-        }
-    }
-
-    _applyPPDB(examples, prob) {
-        const output = [];
-
-        for (let ex of examples) {
-            const newex = PPDBUtils.apply(ex, this._ppdb, {
-                probability: prob,
-                debug: this._debug,
-                rng: this._rng
-            });
-            if (newex)
-                output.push(newex);
-        }
-
-        return output;
-    }
-
-    async _processMinibatch(syntheticExamples, flags, type, ppdbProb) {
-        if (syntheticExamples.length === 0)
-            return;
-
-        if (!this._options.regenerateAll && this._forDevicesPattern !== null) {
-            syntheticExamples = syntheticExamples.filter((o) => {
-                return this._forDevicesRegexp.test(o.target_code);
-            });
-        }
-        if (syntheticExamples.length === 0)
-            return;
-
-        syntheticExamples.forEach((o) => {
-            delete o.id;
-            if (type)
-                o.type = type;
-            if (flags)
-                o.flags = flags;
-            else
-                o.flags = o.flags.replace(/(^|,)exact/, '');
-            if (type === 'generated') {
-                if (o.depth <= 2)
-                    o.flags += ',exact';
-                o.preprocessed = o.utterance;
-            }
-        });
-
-        const ppdbExamples = this._applyPPDB(syntheticExamples, ppdbProb);
-
-        if (type === 'generated')
-            await this._insertExampleBatch(syntheticExamples, false);
-
-        await Promise.all([
-            this._insertExampleBatch(ppdbExamples, false),
-
-            this._replaceParameters(syntheticExamples),
-            this._replaceParameters(ppdbExamples)
-        ]);
-    }
-
-    async _replaceParameters(examples) {
-        const replaced = await Promise.all(examples.map((ex) => {
-            return this._paramReplacer.process(ex);
-        }));
-        const flattened = [];
-        for (let el of replaced)
-            flattened.push(...el);
-
-        return this._insertExampleBatch(flattened, true);
-    }
-
-    async _genSynthetic() {
+    _genSynthetic() {
         const options = {
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
@@ -225,41 +260,48 @@ class DatasetUpdater {
         };
 
         const generator = new Genie.SentenceGenerator(options);
-        const writer = new stream.Writable({
-            objectMode: true,
-            highWaterMark: 100,
+        const transform = new Stream.Transform({
+            readableObjectMode: true,
+            writableObjectMode: true,
 
-            write: (obj, encoding, callback) => {
-                this._processMinibatch([obj], 'synthetic,training', 'generated', this._options.ppdbProbabilitySynthetic).then(() => callback(null), (err) => callback(err));
+            transform(ex, encoding, callback) {
+                ex.type = 'generated';
+                ex.flags.training = true;
+                if (ex.depth <= 2)
+                    ex.flags.exact = true;
+                callback(null, ex);
             },
-            writev: (objs, callback) => {
-                this._processMinibatch(objs.map((o) => o.chunk), 'synthetic,training', 'generated', this._options.ppdbProbabilitySynthetic).then(() => callback(null), (err) => callback(err));
+
+            flush(callback) {
+                process.nextTick(callback);
             }
         });
-        generator.pipe(writer);
-        return new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
-            writer.on('error', reject);
-        });
+        generator.pipe(transform).pipe(this._augmenter);
     }
 
     async _regenerateReplacedParaphrases() {
         let rows;
         if (this._options.regenerateAll) {
-            rows = await db.selectAll(this._dbClient, `select id,flags,type,preprocessed,target_code from
+            rows = await db.selectAll(this._dbClient, `select flags,type,preprocessed,target_code from
                 example_utterances use index (language_flags) where language = ?
                 and type <> 'generated' and find_in_set('training', flags)`, [this._language]);
         } else {
-            rows = await db.selectAll(this._dbClient, `select id,flags,type,preprocessed,target_code from
+            rows = await db.selectAll(this._dbClient, `select flags,type,preprocessed,target_code from
                 example_utterances use index (language_type) where language = ?
                 and find_in_set('training', flags) and type in (?)`, [this._language, this._options.regenerateTypes]);
         }
 
+        // NOTE: we want to make sure we don't start too many transforms at once, as that will overwhelm
+        // the mysql socket with both reads and writes and cause very inefficient use of memory
+        // (in a process that is already straining the memory limits due to SentenceGenerator)
+        // luckily, the transform pressure is determined by the writer side, not the reader side
+        // hence, we won't be processing these rows until the writer is done with the previous mini-batch
+        // this means we can just dump into the transform and let node deal with it
+
         console.log(`Loaded ${rows.length} rows`);
-        for (let i = 0; i < rows.length; i += 1000) {
-            console.log(i);
-            const minibatch = rows.slice(i, i+1000);
-            await this._processMinibatch(minibatch, null, null, this._options.ppdbProbabilityParaphrase);
+        for (let row of rows) {
+            row.flags = parseFlags(row.flags);
+            this._augmenter.write(row);
         }
         console.log(`Completed paraphrase dataset`);
     }
@@ -268,22 +310,40 @@ class DatasetUpdater {
         this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
 
-        this._paramReplacer = new ParameterReplacer(this._language, this._schemas, this._dbClient, {
-            rng: this._rng,
-            addFlag: false,
+        const constProvider = new DatabaseParameterProvider(this._language, this._dbClient);
+        const ppdb = await Genie.BinaryPPDB.mapFile(this._options.ppdbFile);
+
+        this._augmenter = new Genie.DatasetAugmenter(this._schemas, constProvider, {
             quotedProbability: this._options.quotedProbability,
+            ppdbProbabilitySynthetic: this._options.ppdbProbabilitySynthetic,
+            ppdbProbabilityParaphrase: this._options.ppdbProbabilityParaphrase,
+
+            ppdbFile: ppdb,
+
+            locale: this._language,
+            rng: this._rng,
+            includeQuotedExample: true,
+            debug: false
         });
-        await this._paramReplacer.initialize();
+        this._writer = this._augmenter.pipe(new DatabaseInserter(this._language, this._dbClient));
+
+        if (this._forDevicesRegexp !== null)
+            this._augmenter = (new ForDevicesFilter(this._forDevicesRegexp)).pipe(this._augmenter);
 
         if (this._options.regenerateAll || this._options.regenerateTypes.length > 0)
             await this._regenerateReplacedParaphrases();
-        if (this._options.regenerateTypes.length === 0)
-            await this._genSynthetic();
+        if (this._options.regenerateAll || this._options.regenerateTypes.length === 0)
+            this._genSynthetic();
+        else
+            this._augmenter.end();
+
+        await new Promise((resolve, reject) => {
+            this._writer.on('finish', resolve);
+            this._writer.on('error', reject);
+        });
     }
 
     async run() {
-        this._ppdb = await BinaryPPDB.mapFile(this._options.ppdbFile);
-
         await db.withTransaction(async (dbClient) => {
             this._dbClient = dbClient;
             await this._clearExistingDataset();
