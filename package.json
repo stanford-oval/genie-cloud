@@ -43,6 +43,7 @@
     "deep-equal": "^1.0.1",
     "dialogflow": "^0.5.0",
     "dialogflow-fulfillment": "^0.5.0",
+    "discourse-sso": "^1.0.3",
     "errorhandler": "~1.4.2",
     "express": "^4.15.2",
     "express-mysql-session": "^2.0.0",

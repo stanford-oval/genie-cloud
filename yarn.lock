@@ -2418,6 +2418,11 @@ dir-glob@^2.0.0:
   dependencies:
     path-type "^3.0.0"
 
+discourse-sso@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/discourse-sso/-/discourse-sso-1.0.3.tgz#b5390353e949b2271a0761834303f89b3f7f24cc"
+  integrity sha1-tTkDU+lJsicaB2GDQwP4mz9/JMw=
+
 doctrine@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/doctrine/-/doctrine-2.1.0.tgz#5cd01fc101621b42c4cd7f5d1a66243716d3f39d"

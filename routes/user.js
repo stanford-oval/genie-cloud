@@ -19,6 +19,7 @@ const util = require('util');
 const crypto = require('crypto');
 const thirtyTwo = require('thirty-two');
 const totp = require('notp').totp;
+const DiscourseSSO = require('discourse-sso');
 
 const userUtils = require('../util/user');
 const exampleModel = require('../model/example');
@@ -741,5 +742,41 @@ router.post('/request-developer', userUtils.requireLogIn, iv.validatePOST({ name
         res.render('developer_access_ok', { page_title: req._("Thingpedia - Developer Program") });
     }).catch(next);
 });
+
+if (Config.DISCOURSE_SSO_SECRET && Config.DISCOURSE_SSO_REDIRECT) {
+    router.get('/sso/discourse', userUtils.requireLogIn, iv.validateGET({ sso: 'string', sig: 'string' }), (req, res, next) => {
+        const sso = new DiscourseSSO(Config.DISCOURSE_SSO_SECRET);
+
+        const hmac = sso.getHmac();
+        hmac.update(req.query.sso);
+        const expectedsig = hmac.digest();
+        const sigbuffer = Buffer.from(req.query.sig, 'hex');
+        if (expectedsig.length !== sigbuffer.length || !crypto.timingSafeEqual(expectedsig, sigbuffer)) {
+            res.status(403).render('error', {
+                page_title: req._("Almond - Error"),
+                message: "Invalid signature"
+            });
+            return;
+        }
+
+        if (!req.user.email_verified) {
+            res.status(400).render('error', {
+                page_title: req._("Almond - Error"),
+                message: req._("You must verify your email before accessing Almond's Discourse.")
+            });
+            return;
+        }
+
+        const payload = {
+            nonce: sso.getNonce(req.query.sso),
+            external_id: req.user.cloud_id,
+            email: req.user.email,
+            username: req.user.username,
+            name: req.user.human_name,
+            admin: (req.user.roles & (userUtils.Role.ADMIN | userUtils.Role.THINGPEDIA_ADMIN)) !== 0
+        };
+        res.redirect(302, Config.DISCOURSE_SSO_REDIRECT + '/session/sso_login?' + sso.buildLoginString(payload));
+    });
+}
 
 module.exports = router;

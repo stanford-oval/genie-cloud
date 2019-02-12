@@ -47,3 +47,5 @@ module.exports.EXTRA_ABOUT_PAGES = [
         navbar: _("Get Involved")
     }
 ];
+
+module.exports.DISCOURSE_SSO_REDIRECT = 'https://discourse.almond.stanford.edu';

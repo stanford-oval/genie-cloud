@@ -20,6 +20,7 @@ async function seq(array) {
 seq([
     ('./test_public_endpoints'),
     ('./test_register'),
+    ('./test_sso'),
     ('./test_me'),
     ('./test_my_api'),
     ('./test_admin'),
