@@ -267,7 +267,7 @@ class DatasetUpdater {
             transform(ex, encoding, callback) {
                 ex.type = 'generated';
                 ex.flags.training = true;
-                if (ex.depth <= 2)
+                if (ex.depth <= 3)
                     ex.flags.exact = true;
                 callback(null, ex);
             },
