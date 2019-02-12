@@ -28,6 +28,7 @@ module.exports.WITH_THINGPEDIA = 'embedded';
 module.exports.THINGPEDIA_URL = '/thingpedia';
 module.exports.ENABLE_PROMETHEUS = true;
 module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
+module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
 EOF
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`

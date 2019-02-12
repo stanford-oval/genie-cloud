@@ -115,7 +115,11 @@ function assertRedirect(request, redirect) {
             throw err;
         if (err.code < 300 || err.code >= 400)
             throw err;
-        assert.strictEqual(err.redirect, Url.resolve(Config.SERVER_ORIGIN, redirect));
+
+        if (typeof redirect === 'function')
+            redirect(err.redirect);
+        else
+            assert.strictEqual(err.redirect, Url.resolve(Config.SERVER_ORIGIN, redirect));
     });
 }
 

@@ -157,6 +157,18 @@ module.exports.ENABLE_PROMETHEUS = false;
 // This value should match the "bearer_token" prometheus configuration value
 module.exports.PROMETHEUS_ACCESS_TOKEN = null;
 
+// Single-Sign-On for discourse
+// See https://meta.discourse.org/t/official-single-sign-on-for-discourse-sso/13045
+// for the protocol
+//
+// SSO will be disabled (404 error) if SSO_SECRET or SSO_REDIRECT is null
+//
+// Unlike OAuth, there is no "confirm" step before user's data is sent to the
+// requesting service, hence this secret REALLY must be secret
+module.exports.DISCOURSE_SSO_SECRET = null;
+// this should be the origin only, /session/sso_login will be appended
+module.exports.DISCOURSE_SSO_REDIRECT = null;
+
 // load more configuration that should not go in git (eg secret keys)
 try {
     Object.assign(module.exports, require('./secret_config.js'));

@@ -19,12 +19,17 @@ export JWT_SIGNING_KEY
 SECRET_KEY="not so secret key"
 export SECRET_KEY
 
+# note: the discourse_sso_secret SHOULD NEVER be in plain text in secret_config.js
+# this is just for ease of testing
+# this secret is the one used by the discourse tutorial, which simplifies testing
 cat > $srcdir/secret_config.js <<'EOF'
 module.exports.SERVER_ORIGIN = 'http://127.0.0.1:7070';
 module.exports.WITH_THINGPEDIA = 'external';
 module.exports.THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 module.exports.THINGENGINE_MANAGER_ADDRESS = ['./control1', './control2'];
 module.exports.THINGENGINE_MANAGER_AUTHENTICATION = 'foo bar baz';
+module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
+module.exports.DISCOURSE_SSO_REDIRECT = 'https://discourse.almond.stanford.edu';
 EOF
 
 # clean the database and bootstrap

@@ -31,6 +31,7 @@ async function main() {
             username: 'bob',
             password: '12345678',
             email: 'bob@localhost',
+            email_verified: true,
             locale: 'en-US',
             timezone: 'America/Los_Angeles',
         });
