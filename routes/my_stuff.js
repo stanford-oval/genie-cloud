@@ -89,7 +89,7 @@ function getInfo(req) {
     });
 }
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
         res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
                                  messages: req.flash('app-message'),
@@ -99,14 +99,10 @@ router.get('/', (req, res) => {
                                  devices: devinfo,
                                  CDN_HOST: Config.CDN_HOST
                                 });
-    }).catch((e) => {
-        console.log(e.stack);
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/', iv.validatePOST({ command: 'string' }), (req, res) => {
+router.post('/', iv.validatePOST({ command: 'string' }), (req, res, next) => {
     getInfo(req).then(([isRunning, appinfo, devinfo]) => {
         res.render('my_stuff', { page_title: req._("Thingpedia - My Almond"),
             messages: req.flash('app-message'),
@@ -117,11 +113,7 @@ router.post('/', iv.validatePOST({ command: 'string' }), (req, res) => {
             CDN_HOST: Config.CDN_HOST,
             command: req.body.command
         });
-    }).catch((e) => {
-        console.log(e.stack);
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-            message: e });
-    }).done();
+    }).catch(next);
 });
 
 router.post('/apps/delete', iv.validatePOST({ id: 'string' }), (req, res, next) => {
@@ -139,10 +131,7 @@ router.post('/apps/delete', iv.validatePOST({ id: 'string' }), (req, res, next) 
     }).then(() => {
         req.flash('app-message', "Application successfully deleted");
         res.redirect(303, '/me');
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 router.get('/conversation', (req, res, next) => {

@@ -41,10 +41,7 @@ router.get('/oauth2/callback/:kind', (req, res, next) => {
         } else {
             res.redirect(303, '/me');
         }
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 module.exports = router;
