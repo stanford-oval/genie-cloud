@@ -127,8 +127,8 @@ module.exports.TRAINING_ACCESS_TOKEN = null;
 // Configuration file for training (to override the defaults in training/training_job.js)
 module.exports.TRAINING_CONFIG_FILE = null;
 
-// Path to the luinet package (to be used by the auto training daemon)
-module.exports.LUINET_PATH = './luinet';
+// Path to the genie-parser package (to be used by the auto training daemon)
+module.exports.GENIE_PARSER_PATH = '/opt/genie-parser';
 
 // OAuth Client secret to support Login With Google
 module.exports.GOOGLE_CLIENT_SECRET = null;

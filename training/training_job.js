@@ -15,25 +15,17 @@ const path = require('path');
 const util = require('util');
 
 const Tp = require('thingpedia');
+const Genie = require('genie');
 
 const child_process = require('child_process');
 const byline = require('byline');
 
 const Config = require('../config');
 
-const GLOVE = process.env.GLOVE || path.resolve('./glove.42B.300d.txt');
 const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 
 const DEFAULT_TRAINING_CONFIG = {
-    train_steps: 400000,
-    synthetic_depth: 4,
-    model: 'luinet_copy_seq2seq',
-    hparams_set: 'lstm_luinet',
-    hparams_overrides: '',
-    decode_hparams: "beam_size=20,return_beams=true",
-    problem: 'semparse_thingtalk_noquote',
-    eval_early_stopping_metric: 'metrics-semparse_thingtalk_noquote/accuracy',
-    eval_early_stopping_metric_minimize: false
+    synthetic_depth: 4
 };
 
 function delay(timeout) {
@@ -51,15 +43,10 @@ function addAll(array, add) {
 
 function execCommand(job, script, argv, handleStderr = null, extraEnv = {}) {
     return new Promise((resolve, reject) => {
-        const env = {};
-        Object.assign(env, process.env, extraEnv);
-        env.THINGPEDIA_URL = Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL);
-        env.GLOVE = GLOVE;
-
         const stdio = ['ignore', 'pipe', 'pipe'];
 
         console.log(`${script} ${argv.map((a) => "'" + a + "'").join(' ')}`);
-        const child = child_process.spawn(script, argv, { stdio, env });
+        const child = child_process.spawn(script, argv, { stdio });
         job.child = child;
         child.on('error', reject);
         child.on('exit', (code, signal) => {
@@ -193,90 +180,41 @@ async function taskReloadingExact(job) {
     }
 }
 
-async function taskDatagen(job) {
-    const workdir = path.resolve(job.jobDir, 'workdir');
-    const dataset = path.resolve(job.jobDir, 'dataset');
-
-    await execCommand(job, path.resolve(Config.LUINET_PATH, 'luinet-datagen'), [
-        '--data_dir', workdir,
-        '--src_data_dir', dataset,
-        '--problem', 'semparse_thingtalk_noquote',
-        '--thingpedia_snapshot', '-1'
-    ]);
-}
-
-async function extractEvalMetrics(job) {
-    const workdir = path.resolve(job.jobDir, 'workdir');
-
-    let { stdout, stderr } = await util.promisify(child_process.execFile)(path.resolve(Config.LUINET_PATH, 'luinet-print-metrics'), [
-        '--output_dir', path.resolve(workdir, 'model'),
-        '--eval_early_stopping_metric', job.config.eval_early_stopping_metric,
-        `--${job.config.eval_early_stopping_metric_minimize ? '' : 'no'}eval_early_stopping_metric_minimize`,
-    ]);
-
-    if (stderr)
-        throw new Error(stderr);
-
-    job.metrics = {};
-    stdout = stdout.trim();
-
-    const prefix = 'metrics-' + job.config.problem + '/';
-    for (let line of stdout.split('\n')) {
-        let [key, value] = line.split('=');
-        key = key.trim();
-        if (key.startsWith(prefix))
-            key = key.substring(prefix.length);
-        value = parseFloat(value.trim());
-        job.metrics[key] = value;
-    }
-}
-
-async function findBestModel(job) {
-    const workdir = path.resolve(job.jobDir, 'workdir');
-
-    const filenames = await util.promisify(fs.readdir)(path.resolve(workdir, 'model/export/best'));
-    filenames.sort((a, b) => {
-        // sort numerically, largest first
-        return parseInt(b) - parseInt(a);
-    });
-    if (filenames.length === 0)
-        throw new Error("Did not produce a trained model");
-
-    const bestModel = filenames[0];
-    job.bestModelDir = path.resolve(workdir, 'model/export/best', bestModel);
-
-    await util.promisify(fs.writeFile)(path.resolve(job.bestModelDir, 'model.json'), JSON.stringify({
-        "problem": job.config.problem,
-        "model": job.config.model,
-        "hparams_set": job.config.hparams_set,
-        "hparams_overrides": job.config.hparams_overrides,
-        "decode_hparams": job.config.decode_hparams
-    }));
-}
-
 async function taskTraining(job) {
     const workdir = path.resolve(job.jobDir, 'workdir');
+    const datadir = path.resolve(job.jobDir, 'dataset');
 
-    await execCommand(job, path.resolve(Config.LUINET_PATH, 'luinet-trainer'), [
-        '--data_dir', workdir,
-        '--problem', job.config.problem,
-        '--model', job.config.model,
-        '--hparams_set', job.config.hparams_set,
-        '--hparams', job.config.hparams_overrides,
-        '--output_dir', path.resolve(workdir, 'model'),
-        '--train_steps', job.config.train_steps,
-        '--export_saved_model',
-        '--eval_early_stopping_metric', job.config.eval_early_stopping_metric,
-        `--${job.config.eval_early_stopping_metric_minimize ? '' : 'no'}eval_early_stopping_metric_minimize`,
-        '--decode_hparams', job.config.decode_hparams
-    ], (line) => {
-        const match = / step = ([0-9]+) /.exec(line);
-        if (match !== null)
-            job.setProgress(parseFloat(match[1])/job.config.train_steps);
+    const genieJob = Genie.Training.createJob({
+        backend: 'tensorflow',
+        config: job.config,
+        thingpediaUrl: Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL),
+        debug: true,
+
+        workdir,
+        datadir
+    });
+    // mirror the configuration into job so whatever default we're using now
+    // is stored permanently for later analysis
+    Object.assign(job.config, genieJob.config);
+
+    genieJob.on('progress', (value) => {
+        job.setProgress(value);
     });
 
-    await findBestModel(job);
-    await extractEvalMetrics(job);
+
+    // set the genie job as child of this job
+    // this way, when the job is killed, we'll call .kill()
+    // on the genieJob as well (which in turn will
+    job.child = genieJob;
+
+    await genieJob.train();
+
+    job.child = null;
+
+    if (!job._killed) {
+        job.metrics = genieJob.metrics;
+        job.bestModelDir = genieJob.bestmodeldir;
+    }
 }
 
 async function taskTesting(job) {
@@ -290,7 +228,7 @@ ${job.language}=${job.bestModelDir}
 
     await new Promise(async (resolve, reject) => {
         try {
-            const server = child_process.spawn(path.resolve(Config.LUINET_PATH, 'luinet-server'), [
+            const server = child_process.spawn(path.resolve(Config.GENIE_PARSER_PATH, 'genie-server'), [
                 '--config_file', path.resolve(job.jobDir, 'server/server.conf')
             ], { stdio: ['ignore', 'inherit', 'inherit'] });
             try {
@@ -347,7 +285,7 @@ async function taskUploading(job) {
 
 const TASKS = {
     'update-dataset': [taskUpdatingDataset, taskReloadingExact],
-    'train': [taskPrepare, taskDownloadDataset, taskDatagen, taskTraining, taskTesting, taskUploading]
+    'train': [taskPrepare, taskDownloadDataset, taskTraining, taskTesting, taskUploading]
 };
 
 function taskName(task) {
