@@ -31,7 +31,7 @@ module.exports = function(hljs) {
       {
         className: 'symbol', 
         begin: /@/,
-        end: /[\s | ( ]/,
+        end: /[\s(]/,
         excludeEnd: true
       },
       {
