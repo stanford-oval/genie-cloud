@@ -99,7 +99,7 @@
     "thingtalk": "~1.4.1",
     "thirty-two": "^1.0.2",
     "tmp": "0.0.33",
-    "transparent-rpc": "^0.0.1",
+    "transparent-rpc": "^0.0.2",
     "type-is": "^1.6.16",
     "xml2js": "^0.4.19"
   },

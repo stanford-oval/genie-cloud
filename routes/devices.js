@@ -57,7 +57,7 @@ router.post('/create', iv.validatePOST({ kind: 'string' }), (req, res, next) => 
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });
-    }).done();
+    }).catch(next);
 });
 
 router.post('/delete', iv.validatePOST({ id: 'string' }), (req, res, next) => {
@@ -77,9 +77,6 @@ router.post('/delete', iv.validatePOST({ id: 'string' }), (req, res, next) => {
         } else {
             res.redirect(303, '/me');
         }
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
     }).catch(next);
 });
 

@@ -52,7 +52,7 @@ function getCachedModules(userId) {
     });
 }
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
     getCachedModules(req.user.id).then((modules) => {
         return EngineManager.get().isRunning(req.user.id).then((isRunning) => {
             res.render('status', { page_title: req._("Thingpedia - Status"),
@@ -60,7 +60,7 @@ router.get('/', (req, res) => {
                                    modules: modules,
                                    isRunning: isRunning });
         });
-    }).done();
+    }).catch(next);
 });
 
 router.get('/logs', user.requireDeveloper(), iv.validateGET({ startCursor: '?string' }), (req, res) => {
@@ -85,7 +85,7 @@ router.post('/kill', (req, res) => {
     res.redirect(303, '/me/status');
 });
 
-router.post('/start', (req, res) => {
+router.post('/start', (req, res, next) => {
     var engineManager = EngineManager.get();
 
     engineManager.isRunning(req.user.id).then((isRunning) => {
@@ -97,10 +97,7 @@ router.post('/start', (req, res) => {
         return engineManager.startUser(req.user.id);
     }).then(() => {
         res.redirect(303, '/me/status');
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 router.post('/recovery/clear-cache', (req, res, next) => {
@@ -134,15 +131,12 @@ router.post('/recovery/clear-data', (req, res, next) => {
 });
 
 
-router.post('/update-module/:kind', (req, res) => {
+router.post('/update-module/:kind', (req, res, next) => {
     return EngineManager.get().getEngine(req.user.id).then((engine) => {
         return engine.devices.updateDevicesOfKind(req.params.kind);
     }).then(() => {
         res.redirect(303, '/me/status');
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 module.exports = router; 
