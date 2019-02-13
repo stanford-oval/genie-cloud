@@ -12,7 +12,7 @@ $(function() {
         event.preventDefault();
 
         var csrfToken = document.body.dataset.csrfToken;
-        $.ajax('/me/api/token', { data: { _csrf: csrfToken }, method: 'POST' }).then(function(response) {
+        $.ajax('/user/token', { data: { _csrf: csrfToken }, method: 'POST' }).then(function(response) {
             $('#issue-token-result').removeClass('hidden');
             $('#issue-token-result-placeholder').text(response.token);
         }, function (err) {

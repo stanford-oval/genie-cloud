@@ -743,6 +743,20 @@ router.post('/request-developer', userUtils.requireLogIn, iv.validatePOST({ name
     }).catch(next);
 });
 
+router.post('/token', userUtils.requireLogIn, (req, res, next) => {
+    // issue an access token for valid for one month, with all scopes
+    jwt.sign({
+        sub: req.user.cloud_id,
+        aud: 'oauth2',
+        scope: Array.from(userUtils.OAuthScopes)
+    }, secret.getJWTSigningKey(), { expiresIn: 30*24*3600 }, (err, token) => {
+        if (err)
+            next(err);
+        else
+            res.json({ result: 'ok', token });
+    });
+});
+
 if (Config.DISCOURSE_SSO_SECRET && Config.DISCOURSE_SSO_REDIRECT) {
     router.get('/sso/discourse', userUtils.requireLogIn, iv.validateGET({ sso: 'string', sig: 'string' }), (req, res, next) => {
         const sso = new DiscourseSSO(Config.DISCOURSE_SSO_SECRET);
