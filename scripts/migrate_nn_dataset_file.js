@@ -12,21 +12,10 @@
 
 const stream = require('stream');
 const assert = require('assert');
-const fs = require('fs');
-const util = require('util');
 const byline = require('byline');
 const ThingTalk = require('thingtalk');
 
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
-
-function escape(name) {
-    return name.replace(/[:._]/g, (match) => {
-        if (match === '_')
-            return '__';
-        let code = match.charCodeAt(0);
-        return code < 16 ? '_0' + code.toString(16) : '_' + code.toString(16);
-    });
-}
 
 const ENTITIES = {
     DURATION_0: { value: 2, unit: 'ms' },

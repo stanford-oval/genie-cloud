@@ -493,6 +493,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
             return;
         }
 
+        const user = users[0];
         if (user.totp_key !== null) {
             const rv = totp.verify(req.body.code, secret.decrypt(user.totp_key), { window: 6, time: TOTP_PERIOD });
             if (!rv) {
@@ -505,7 +506,6 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
             }
         }
 
-        const user = users[0];
         await userUtils.resetPassword(dbClient, user, req.body.password);
         await Q.ninvoke(req, 'login', user);
         await model.recordLogin(dbClient, user.id);
@@ -741,6 +741,20 @@ router.post('/request-developer', userUtils.requireLogIn, iv.validatePOST({ name
 
         res.render('developer_access_ok', { page_title: req._("Thingpedia - Developer Program") });
     }).catch(next);
+});
+
+router.post('/token', userUtils.requireLogIn, (req, res, next) => {
+    // issue an access token for valid for one month, with all scopes
+    jwt.sign({
+        sub: req.user.cloud_id,
+        aud: 'oauth2',
+        scope: Array.from(userUtils.OAuthScopes)
+    }, secret.getJWTSigningKey(), { expiresIn: 30*24*3600 }, (err, token) => {
+        if (err)
+            next(err);
+        else
+            res.json({ result: 'ok', token });
+    });
 });
 
 if (Config.DISCOURSE_SSO_SECRET && Config.DISCOURSE_SSO_REDIRECT) {

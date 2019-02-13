@@ -432,13 +432,13 @@ class EngineManager extends events.EventEmitter {
     }
 
     _getNProcesses() {
-        let ncpus, nprocesses;
+        let nprocesses;
 
         if (ENABLE_SHARED_PROCESS) {
-            ncpus = os.cpus().length;
+            const ncpus = os.cpus().length;
             nprocesses = 2 * ncpus;
         } else {
-            ncpus = 0; nprocesses = 0;
+            nprocesses = 0;
         }
 
         return nprocesses;

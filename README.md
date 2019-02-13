@@ -1,5 +1,7 @@
 # Thingpedia & Web Almond
 
+[![Build Status](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/almond-cloud.svg?branch=master)](https://travis-ci.org/Stanford-Mobisocial-IoT-Lab/almond-cloud) [![Coverage Status](https://coveralls.io/repos/github/Stanford-Mobisocial-IoT-Lab/almond-cloud/badge.svg?branch=master)](https://coveralls.io/github/Stanford-Mobisocial-IoT-Lab/almond-cloud?branch=master) [![Dependency Status](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/almond-cloud/status.svg)](https://david-dm.org/Stanford-Mobisocial-IoT-Lab/almond-cloud) [![Language grade: JavaScript](https://img.shields.io/lgtm/grade/javascript/g/Stanford-Mobisocial-IoT-Lab/almond-cloud.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Stanford-Mobisocial-IoT-Lab/almond-cloud/context:javascript)
+
 ## Knowledge for your Virtual Assistant
 
 This repository contains Thingpedia, the open, crowdsourced knowledge base for the Almond

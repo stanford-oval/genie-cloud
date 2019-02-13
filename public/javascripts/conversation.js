@@ -95,7 +95,7 @@ $(function() {
     function rdl(rdl, icon) {
         var container = almondMessage(icon);
         var rdlMessage = $('<a>').addClass('message message-rdl')
-            .attr('href', rdl.webCallback).attr("target", "_blank");
+            .attr('href', rdl.webCallback).attr("target", "_blank").attr("rel", "noopener nofollow");
         rdlMessage.append($('<span>').addClass('message-rdl-title')
             .text(rdl.displayTitle));
         rdlMessage.append($('<span>').addClass('message-rdl-content')
@@ -150,7 +150,7 @@ $(function() {
 
         var holder = $('<div>').addClass('col-xs-12 col-sm-6');
         var btn = $('<a>').addClass('message message-button btn btn-default')
-            .attr('href', url).attr("target", "_blank").text(title);
+            .attr('href', url).attr("target", "_blank").attr("rel", "noopener").text(title);
         holder.append(btn);
         getGrid().append(holder);
         maybeScroll(holder);
@@ -256,8 +256,10 @@ $(function() {
             appendUserMessage(text);
         ws.send(JSON.stringify({ type: 'command', text: text }));
     }
-    function handleParsedCommand(json) {
+    function handleParsedCommand(json, title) {
         collapseButtons();
+        if (title)
+            appendUserMessage(title);
         ws.send(JSON.stringify({ type: 'parsed', json: json }));
     }
     function handleThingTalk(tt) {

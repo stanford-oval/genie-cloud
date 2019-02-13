@@ -13,10 +13,8 @@ const Q = require('q');
 const express = require('express');
 const crypto = require('crypto');
 const passport = require('passport');
-const jwt = require('jsonwebtoken');
 
 const user = require('../util/user');
-const secret = require('../util/secret_key');
 const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
 const { isOriginOk } = require('../util/origin');
@@ -37,20 +35,6 @@ router.ws('/anonymous', (ws, req) => {
 
     user.getAnonymousUser().then((user) => {
         return doConversation(user, true, ws, req.query);
-    });
-});
-
-router.post('/token', user.requireLogIn, (req, res, next) => {
-    // issue an access token for valid for one month, with all scopes
-    jwt.sign({
-        sub: req.user.cloud_id,
-        aud: 'oauth2',
-        scope: Array.from(user.OAuthScopes)
-    }, secret.getJWTSigningKey(), { expiresIn: 30*24*3600 }, (err, token) => {
-        if (err)
-            next(err);
-        else
-            res.json({ result: 'ok', token });
     });
 });
 

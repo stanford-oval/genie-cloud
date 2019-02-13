@@ -20,7 +20,7 @@ const db = require('../../util/db');
 const Config = require('../../config');
 
 async function getAccessToken(session) {
-    return JSON.parse(await sessionRequest('/me/api/token', 'POST', '', session, {
+    return JSON.parse(await sessionRequest('/user/token', 'POST', '', session, {
         accept: 'application/json',
     })).token;
 }

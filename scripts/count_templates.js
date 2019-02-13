@@ -39,7 +39,7 @@ function loadTemplateAsDeclaration(ex, decl) {
 
     let functionNames = [];
 
-    for (let [primType, prim] of decl.value.iteratePrimitives()) {
+    for (let [, prim] of decl.value.iteratePrimitives()) {
         if (prim.selector.isBuiltin)
             continue;
         functionNames.push(prim.selector.kind + ':' + prim.channel);
@@ -67,7 +67,7 @@ function loadTemplate(ex) {
             loadTemplateAsDeclaration(program.datasets[0].examples[0], program.datasets[0].examples[0]);
         else if (program.rules.length === 1 && program.declarations.length === 0)
             ; // ignore examples that consist of a rule (they are just dataset)
-        else if (program.declarations.length === 1 && program.declarations.length === 1)
+        else if (program.declarations.length === 1 && program.rules.length === 0)
             loadTemplateAsDeclaration(ex, program.declarations[0]);
         else
             console.log('Invalid template ' + ex.id + ' (wrong number of declarations)');

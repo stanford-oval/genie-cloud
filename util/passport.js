@@ -20,7 +20,7 @@ const secret = require('./secret_key');
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const GoogleOAuthStrategy = require('passport-google-oauth').OAuth2Strategy;
+const GoogleOAuthStrategy = require('passport-google-oauth20').Strategy;
 const BearerStrategy = require('passport-http-bearer').Strategy;
 const BasicStrategy = require('passport-http').BasicStrategy;
 const TotpStrategy = require('passport-totp').Strategy;
