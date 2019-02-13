@@ -256,8 +256,10 @@ $(function() {
             appendUserMessage(text);
         ws.send(JSON.stringify({ type: 'command', text: text }));
     }
-    function handleParsedCommand(json) {
+    function handleParsedCommand(json, title) {
         collapseButtons();
+        if (title)
+            appendUserMessage(title);
         ws.send(JSON.stringify({ type: 'parsed', json: json }));
     }
     function handleThingTalk(tt) {
