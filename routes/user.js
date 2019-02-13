@@ -493,6 +493,7 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
             return;
         }
 
+        const user = users[0];
         if (user.totp_key !== null) {
             const rv = totp.verify(req.body.code, secret.decrypt(user.totp_key), { window: 6, time: TOTP_PERIOD });
             if (!rv) {
@@ -505,7 +506,6 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
             }
         }
 
-        const user = users[0];
         await userUtils.resetPassword(dbClient, user, req.body.password);
         await Q.ninvoke(req, 'login', user);
         await model.recordLogin(dbClient, user.id);
