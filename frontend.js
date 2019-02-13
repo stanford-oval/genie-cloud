@@ -286,8 +286,8 @@ class Frontend {
 
         this._app.use('/', require('./routes/about'));
         this._app.use('/', require('./routes/qrcode'));
-        this._app.use('/doc', (req, res) => {
-            res.redirect(301, req.originalUrl.replace('/doc', '/thingpedia/developers'));
+        this._app.get('/doc/:page', (req, res) => {
+            res.redirect(301, '/thingpedia/developers/' + req.params.page);
         });
         this._app.use('/blog', require('./routes/blog'));
 
