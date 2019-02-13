@@ -39,7 +39,7 @@ function loadTemplateAsDeclaration(ex, decl) {
 
     let functionNames = [];
 
-    for (let [primType, prim] of decl.value.iteratePrimitives()) {
+    for (let [, prim] of decl.value.iteratePrimitives()) {
         if (prim.selector.isBuiltin)
             continue;
         functionNames.push(prim.selector.kind + ':' + prim.channel);

@@ -49,7 +49,7 @@ async function main() {
         let current_heading_slug = '';
         let document = [];
         let prev_block = null;
-        function addDoc() {
+        const addDoc = () => {
             const url = current_uri + current_heading_slug;
             const doc = {
                 url,
@@ -59,7 +59,7 @@ async function main() {
             };
             documents[url] = doc;
             builder.add(doc);
-        }
+        };
         
         for (let block of md.parse(content, {})) {
             if (block.type === 'inline') {

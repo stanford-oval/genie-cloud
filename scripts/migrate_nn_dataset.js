@@ -16,15 +16,6 @@ const ThingTalk = require('thingtalk');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const db = require('../util/db');
 
-function escape(name) {
-    return name.replace(/[:._]/g, (match) => {
-        if (match === '_')
-            return '__';
-        let code = match.charCodeAt(0);
-        return code < 16 ? '_0' + code.toString(16) : '_' + code.toString(16);
-    });
-}
-
 const ENTITIES = {
     DURATION_0: { value: 2, unit: 'ms' },
     DURATION_1: { value: 3, unit: 'ms' },
