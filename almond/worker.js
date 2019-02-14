@@ -115,7 +115,6 @@ function handleDirectSocket(userId, replyId, socket) {
     rpcSocket.call(replyId, 'ready', [
         obj.engine.apps,
         obj.engine.devices,
-        obj.engine.messaging,
         platform.getCapability('websocket-api'),
         platform.getCapability('webhook-api'),
         platform.getCapability('assistant')]);
