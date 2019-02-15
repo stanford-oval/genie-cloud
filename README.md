@@ -44,7 +44,7 @@ sudo apt install nodejs cvc4 graphicsmagick libcairo2-dev libpango1.0-dev libgif
 ```
 On Fedora:
 ```
-sudo dnf install nodejs cvc4 GraphicsMagick cairo-devel pango-devel giflib-devel libjpeg libcap-devel libsystemd-devel bubblewrap -y
+sudo dnf install nodejs cvc4 GraphicsMagick cairo-devel pango-devel giflib-devel libjpeg-devel libcap-devel systemd-devel bubblewrap -y
 ```
 
 
