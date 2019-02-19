@@ -56,11 +56,6 @@ sudo dnf install mariadb-server //Fedora
 
 This repository uses yarn for dependency tracking.
 You should install yarn from [its website](https://yarnpkg.com/en/docs/install).
-Then place the following `.yarnrc` in your home directory or in the root directory of `almond-cloud`:
-```
-build_from_source true
-```
-
 And then run:
 
 ```
