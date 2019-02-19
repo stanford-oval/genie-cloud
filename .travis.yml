@@ -31,6 +31,7 @@ install:
   realpath  bubblewrap
 - yarn
 - (cd node_modules/thingengine-core ; yarn prepare)
+- (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules/thingtalk )
 before_script:
 - mysql -u root -e "create database if not exists thingengine_test; grant all privileges
   on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
