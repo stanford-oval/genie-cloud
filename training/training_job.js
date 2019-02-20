@@ -15,7 +15,7 @@ const path = require('path');
 const util = require('util');
 
 const Tp = require('thingpedia');
-const Genie = require('genie');
+const Genie = require('genie-toolkit');
 
 const child_process = require('child_process');
 const byline = require('byline');

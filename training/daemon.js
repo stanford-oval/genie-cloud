@@ -23,7 +23,7 @@ const Prometheus = require('prom-client');
 
 const SendMail = require('../util/sendmail');
 const db = require('../util/db');
-const Metrics = require('./util/metrics');
+const Metrics = require('../util/metrics');
 
 const Job = require('./training_job');
 
