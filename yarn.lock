@@ -397,14 +397,15 @@ align-text@^0.1.1, align-text@^0.1.3:
     longest "^1.0.1"
     repeat-string "^1.5.2"
 
-"almond-dialog-agent@github:Stanford-Mobisocial-IoT-Lab/almond-dialog-agent":
-  version "1.2.2"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/almond-dialog-agent/tar.gz/8b1158ce5081c4a19ace63ba06fe5e302ffa5aa9"
+almond-dialog-agent@~1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/almond-dialog-agent/-/almond-dialog-agent-1.3.0.tgz#3e116cc72d04d3d521e42288a5d0a9873f749d8a"
+  integrity sha512-JuXWArFOs98vAJpFE8SgkyeoKdZj3Zz6ylZ79mzezOCLKqKqT1vJP5ntAmQ4R5lPCZxbLCOAI+WEYJobPB9b0Q==
   dependencies:
     adt "~0.7.2"
     consumer-queue "^1.0.0"
     thingpedia "^2.3.0"
-    thingtalk "~1.4.0"
+    thingtalk "~1.5.0"
     uuid "^3.1.0"
 
 another-json@^0.2.0:
@@ -4403,9 +4404,9 @@ npm-bundled@^1.0.1:
   integrity sha512-8/JCaftHwbd//k6y2rEWp6k1wxVfpFzB6t1p825+cUb7Ym2XQfhwIC5KwhrvzZRJu+LtDE585zVaS32+CGtf0g==
 
 npm-packlist@^1.1.6:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/npm-packlist/-/npm-packlist-1.3.0.tgz#7f01e8e44408341379ca98cfd756e7b29bd2626c"
-  integrity sha512-qPBc6CnxEzpOcc4bjoIBJbYdy0D/LFFPUdxvfwor4/w3vxeE0h6TiOVurCEPpQ6trjN77u/ShyfeJGsbAfB3dA==
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/npm-packlist/-/npm-packlist-1.4.0.tgz#b2c0867af2a396e0734343d2b6b3f7934db935f2"
+  integrity sha512-zCAmKshsFx2MhOsXdYmZd1DO2d8ts80kVASSWX6lv8654i0edCnNCoEqwVsMygl1BSroCPW6Zh5Dcw+ann775g==
   dependencies:
     ignore-walk "^3.0.1"
     npm-bundled "^1.0.1"
@@ -6221,9 +6222,10 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-"thingengine-core@github:Stanford-Mobisocial-IoT-Lab/thingengine-core":
-  version "1.2.1"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/tar.gz/5856ee9ab535b762ef86c977080f1d8eb7a4b348"
+thingengine-core@~1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/thingengine-core/-/thingengine-core-1.3.0.tgz#20a23c16e111ea08d37a1291070c877173cfcdd1"
+  integrity sha512-wbqkg2GpvIsUBSVgxYmqpOEeoaCqZG7qwp9LLUSbmkD0YMjLl98d5WXftSXBF91CG9X+y0EgBClbD10g/sSnbg==
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.1"
@@ -6236,17 +6238,17 @@ text-table@^0.2.0:
     thingpedia "^2.2.1"
     thingpedia-client "^0.2.0"
     thingpedia-discovery "^1.0.0"
-    thingtalk "~1.4.1"
+    thingtalk "~1.5.0"
     uuid "^3.1.0"
     ws "^6.0.0"
 
 thingpedia-client@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/thingpedia-client/-/thingpedia-client-0.2.0.tgz#259d8e64c6cb3e3fc8baacf025f2c1ff68d2dc66"
-  integrity sha512-E/1V61kTlSp6GmXV7fK3yTgBD4MLvF1EV7PrFAOqknQ6NlZIwSpxiYswwuqjv5zctTj2yuqscJLDA6HIVFYqEQ==
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/thingpedia-client/-/thingpedia-client-0.2.1.tgz#6fe1dd4629fe5ffa426593bf558553cb0a5a9ce7"
+  integrity sha512-j7UeoWYi2M81YPbv0hszJ7bgyLl8+dpPUD6A5j51UBS6WJ4kHTRjF08Ww0Fh460B/c/2tf/c+7o4oGl9xhXkFA==
   dependencies:
     thingpedia "^2.3.0"
-    thingtalk "~1.4.1"
+    thingtalk "~1.5.0"
     tmp "0.0.33"
 
 thingpedia-discovery@^1.0.0:
@@ -6269,10 +6271,10 @@ thingpedia@^2.2.1, thingpedia@^2.2.2, thingpedia@^2.3.0, thingpedia@^2.3.3:
     tmp "0.0.33"
     xml2js "^0.4.17"
 
-thingtalk@^1.4.1, thingtalk@^1.4.2, thingtalk@~1.4.0, thingtalk@~1.4.1:
-  version "1.4.2"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.4.2.tgz#deab7fb65ccc06c53f978c84f2689bfe646edfde"
-  integrity sha512-xtNx8sOdit1oMr5Ej4RxcwAq1fdG/CxRlmh8/WMl9CI1nF9WDFD6/Jg17zkhORp4xoq61mnfOLmdMR4T5rdXAw==
+thingtalk@^1.4.1, thingtalk@^1.4.2, thingtalk@~1.5.0:
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.5.2.tgz#9a1e6114e064678dec0ebb32c972c6e92d79faa2"
+  integrity sha512-IX1wEfK2nUbJiV69ioDyP+k2j6V1YXQWEfmuDZoWz4n9Ej3/NQz/CuBzU53m5kby12Wj+xmYVMROZNorjCbKMg==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
