@@ -89,7 +89,7 @@ async function loadEntityValues(dbClient) {
 }
 
 async function loadStringValues(dbClient) {
-    for (let type of ['tt:search_query', 'tt:long_free_text']) {
+    for (let type of ['tt:search_query', 'tt:long_free_text', 'tt:short_free_text']) {
         const filename = path.resolve(path.dirname(module.filename), './data/' + type + '.txt');
         const data = (await util.promisify(fs.readFile)(filename)).toString().trim().split('\n');
 
@@ -201,6 +201,33 @@ async function loadExamples(dbClient, bob) {
         click_count: 0,
         flags: 'template'
     },
+
+    {
+        id: 1006,
+        schema_id: null,
+        is_base: false,
+        language: 'en',
+        utterance: 'dial USERNAME_0',
+        preprocessed: 'dial USERNAME_0',
+        target_json: '',
+        target_code: 'now => @org.thingpedia.builtin.thingengine.phone.call param:number:Entity(tt:phone_number) = USERNAME_0',
+        type: 'online',
+        click_count: 0,
+        flags: 'training'
+    },
+    {
+        id: 1007,
+        schema_id: null,
+        is_base: false,
+        language: 'en',
+        utterance: 'make a call to USERNAME_0',
+        preprocessed: 'make a call to USERNAME_0',
+        target_json: '',
+        target_code: 'now => @org.thingpedia.builtin.thingengine.phone.call param:number:Entity(tt:phone_number) = USERNAME_0',
+        type: 'online',
+        click_count: 0,
+        flags: 'training'
+    }
 
     ]);
 

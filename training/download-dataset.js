@@ -3,7 +3,7 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2018-2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
@@ -15,111 +15,16 @@ const fs = require('fs');
 const argparse = require('argparse');
 const seedrandom = require('seedrandom');
 
+const Genie = require('genie-toolkit');
+
 const db = require('../util/db');
-const { coin } = require('../util/random');
+const { parseFlags } = require('./flag_utils');
 
-function parseFlags(flags) {
-    const parsed = {};
-    for (let flag of flags.split(','))
-        parsed[flag] = true;
-    return parsed;
-}
-
-function makeId(id, flags, argv) {
-    let prefix = '';
-    if (argv.quote_free)
-        prefix += 'R';
-    if (flags.augmented)
-        prefix += 'P';
-    if (flags.synthetic)
-        prefix += 'S';
-    return prefix + id;
-}
-
-function findSubstring(sequence, substring) {
-    for (let i = 0; i < sequence.length - substring.length + 1; i++) {
-        let found = true;
-        for (let j = 0; j < substring.length; j++) {
-            if (sequence[i+j] !== substring[j]) {
-                found = false;
-                break;
-            }
-        }
-        if (found)
-            return i;
-    }
-    return -1;
-}
-
-function* requote(id, sentence, program) {
-    sentence = sentence.split(' ');
-    program = program.split(' ');
-
-    const spans = [];
-    let in_string = false;
-    let begin_index = null;
-    let end_index = null;
-    for (let i = 0; i < program.length; i++) {
-        let token = program[i];
-        if (token === '"') {
-            in_string = !in_string;
-            if (in_string) {
-                begin_index = i+1;
-            } else {
-                end_index = i;
-                const substring = program.slice(begin_index, end_index);
-                const idx = findSubstring(sentence, substring);
-                if (idx < 0)
-                    throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
-                spans.push([idx, idx+end_index-begin_index]);
-            }
-        }
-    }
-
-    if (spans.length === 0) {
-        yield* sentence;
-        return;
-    }
-
-    spans.sort((a, b) => {
-        const [abegin, aend] = a;
-        const [bbegin, bend] = b;
-        if (abegin < bbegin)
-            return -1;
-        if (bbegin < abegin)
-            return +1;
-        if (aend < bend)
-            return -1;
-        if (bend < aend)
-            return +1;
-        return 0;
+function waitFinish(stream) {
+    return new Promise((resolve, reject) => {
+        stream.once('finish', resolve);
+        stream.on('error', reject);
     });
-    let current_span_idx = 0;
-    let current_span = spans[0];
-    for (let i = 0; i < sentence.length; i++) {
-        let word = sentence[i];
-        if (current_span === null || i < current_span[0]) {
-            yield word;
-        } else if (i === current_span[0]) {
-            yield 'QUOTED_STRING';
-        } else if (i >= current_span[1]) {
-            yield word;
-            current_span_idx += 1;
-            current_span = current_span_idx < spans.length ? spans[current_span_idx] : null;
-        }
-    }
-}
-
-function filterForDevices(set, code) {
-    for (let token of code.split(' ')) {
-        if (token.startsWith('@')) {
-            let split = token.substring(1).split('.');
-            let kind = split.slice(0, split.length-1).join('.');
-            if (!set.has(kind))
-                return false;
-        }
-    }
-    return true;
 }
 
 async function main() {
@@ -146,10 +51,15 @@ async function main() {
         help: 'Test file output path',
         defaultValue: null
     });
-    parser.addArgument(['--eval-prob'], {
+    parser.addArgument(['--eval-probability'], {
         type: Number,
         help: 'Eval probability',
         defaultValue: 0.1,
+    });
+    parser.addArgument(['--split-strategy'], {
+        help: 'Method to use to choose training and evaluation sentences',
+        defaultValue: 'sentence',
+        choices: ['id', 'raw-sentence', 'sentence', 'program', 'combination']
     });
     parser.addArgument(['--random-seed'], {
         help: 'Random seed',
@@ -182,8 +92,6 @@ async function main() {
     const language = argv.language;
     const forDevices = argv.forDevices || [];
     const types = argv.types || [];
-
-    const rng = seedrandom(argv.random_seed);
 
     const [dbClient, dbDone] = await db.connect();
 
@@ -230,48 +138,43 @@ async function main() {
     if (argv.test)
         argv.eval_prob *= 2;
 
-    const forDeviceSet = new Set(forDevices);
-    const devtestset = new Set;
-    const trainset = new Set;
+    const train = new Genie.DatasetStringifier();
+    const eval_ = new Genie.DatasetStringifier();
+    const promises = [];
+    promises.push(waitFinish(train.pipe(argv.train)));
+    promises.push(waitFinish(eval_.pipe(argv.eval)));
+    let test = null;
+    if (argv.test) {
+        test = new Genie.DatasetStringifier();
+        promises.push(waitFinish(test.pipe(argv.test)));
+    }
+
+    const splitter = new Genie.DatasetSplitter({
+        rng: seedrandom.alea(argv.random_seed),
+        locale: argv.language,
+        debug: false,
+
+        train,
+        eval: eval_,
+        test,
+
+        evalProbability: argv.eval_probability,
+        forDevices: argv.forDevices,
+        splitStrategy: argv.split_strategy,
+    });
+
     query.on('result', (row) => {
-        if (forDevices.length > 0 && !filterForDevices(forDeviceSet, row.target_code))
-            return;
-
-        const flags = parseFlags(row.flags);
-        const line = makeId(row.id, flags, argv) + '\t' + row.preprocessed + '\t' + row.target_code + '\n';
-
-        if (flags.synthetic || flags.augmented) {
-            argv.train.write(line);
-        } else {
-            const requoted = Array.from(requote(row.id, row.preprocessed, row.target_code)).join(' ');
-
-            if (devtestset.has(requoted)) {
-                if (argv.test && coin(0.5))
-                    argv.test.write(line);
-                else
-                    argv.eval.write(line);
-            } else if (trainset.has(requoted)) {
-                argv.train.write(line);
-            } else if (coin(argv.eval_prob, rng)) {
-                if (argv.test && coin(0.5))
-                    argv.test.write(line);
-                else
-                    argv.eval.write(line);
-                devtestset.add(requoted);
-            } else {
-                argv.train.write(line);
-                trainset.add(requoted);
-            }
-        }
+        row.flags = parseFlags(row.flags);
+        row.flags.replaced = !!argv.quote_free;
+        splitter.write(row);
     });
     query.on('end', () => {
-        argv.train.end();
-        argv.eval.end();
-        if (argv.test)
-            argv.test.end();
+        splitter.end();
         dbDone();
-        db.tearDown();
     });
+
+    await Promise.all(promises);
+    await db.tearDown();
 }
 
 main();
