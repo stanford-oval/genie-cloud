@@ -266,8 +266,13 @@ async function taskUploading(job) {
 
     for (let what of ['saved-model', 'tensorboard', 'dataset']) {
         const current = path.resolve(`./${what}/${job.modelTag}/${job.language}/current`);
-        if (fs.existsSync(current))
+        try {
             fs.renameSync(current, path.resolve(`./${what}/${job.modelTag}/${job.language}/previous`));
+        } catch(e) {
+            // eat the error if the current path does not exist
+            if (e.code !== 'ENOENT')
+                throw e;
+        }
     }
 
     fs.symlinkSync(job.bestModelDir, path.resolve(`./saved-model/${job.modelTag}/${job.language}/current`));
