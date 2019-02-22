@@ -2647,9 +2647,10 @@ gcp-metadata@^0.6.1, gcp-metadata@^0.6.3:
     extend "^3.0.1"
     retry-axios "0.3.2"
 
-"genie-toolkit@github:Stanford-Mobisocial-IoT-Lab/genie-toolkit":
-  version "0.1.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit/tar.gz/59062e058e092a36bdadaf9495d266be0f3023c8"
+genie-toolkit@^0.1.0:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.1.1.tgz#df4055167c5b5dcf1739e4ef796d2a819c59294d"
+  integrity sha512-KzO/Mpan4wKySHlVuqe/frbDPsQ4OmTTCE5WuXC8VLESwTdxPCx0x5lvS9oHZeT2PIn7gKc69iUGm5o3oLYfng==
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
