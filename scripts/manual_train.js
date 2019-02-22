@@ -235,7 +235,12 @@ class Trainer extends events.EventEmitter {
 async function main() {
     const argparser = new argparse.ArgumentParser({
         addHelp: true,
-        description: 'Import a manually annotated dataset'
+        description: `Import a manually annotated dataset. For each command use ` +
+        `"$number": to select from the candidates, ` +
+        `"e $number": to edit on top of the selected thingtalk code, ` +
+        `"n": show more candidates, ` +
+        `"t": to type in the thingtalk directly, ` +
+        `"d": drop the example.`
     });
     argparser.addArgument('--learned', {
         required: false,
@@ -246,12 +251,14 @@ async function main() {
         defaultValue: './dropped.txt',
     });
     argparser.addArgument('input', {
-        type: fs.createReadStream
+        type: fs.createReadStream,
+        help: `The script expects a tsv input file with columns: id, utterance, preprocessed, target_code`
     });
     argparser.addArgument('--offset', {
         required: false,
         type: parseInt,
         defaultValue: 1,
+        help: `Start from the nth line of the input tsv file.`
     });
     argparser.addArgument(['-l', '--locale'], {
         required: false,
@@ -261,6 +268,7 @@ async function main() {
     argparser.addArgument('--thingpedia', {
         required: false,
         defaultValue: 'thingpedia.json',
+        help: `The path to the thingpedia.json file.`
     });
     const args = argparser.parseArgs();
 
