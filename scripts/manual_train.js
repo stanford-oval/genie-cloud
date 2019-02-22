@@ -14,7 +14,6 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 const fs = require('fs');
 const events = require('events');
-const byline = require('byline');
 const csv = require('csv');
 const readline = require('readline');
 const argparse = require('argparse');
