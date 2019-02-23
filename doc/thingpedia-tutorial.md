@@ -11,19 +11,22 @@ To avoid getting into the details of the OAuth authentication or configuration f
 we recommend to try a public web service which requires no authentication or only needs an API key. 
 You can find a collective list of public APIs from [toddmotto/public-apis](https://github.com/toddmotto/public-apis).
 
+We also recommend that you visit our [community forum](https://community.almond.stanford.edu),
+as you will find important information discovered by other developers like you, and you'll
+be able to connect with other developers working on similar devices; or who knows, maybe someone
+already has built what you need?
+
 ## Get started
 A developer account is required to make contributions to Thingpedia. 
 You can request a developer account from [here](/user/request-developer).
-Once you are approved by the Thingpedia administrators
-(you can check your status from [your profile page](/user/profile)),
-you will be able to upload your own devices to Thingpedia and
-enable users to use it through Almond. 
+Once you have done that, you will be able to upload your own devices to Thingpedia and
+enable users to use it through Almond.
 
 The device creation page lives 
 [here](https://almond.stanford.edu/thingpedia/upload/create).
 It can be reached from the "Upload a new device" button 
 at the bottom of [Thingpedia Portal](https://almond.stanford.edu/thingpedia)
-or [Thingpedia Developer Portal](https://almond.stanford.edu/thingpedia/developers).
+or [Thingpedia Developer Console](https://almond.stanford.edu/thingpedia/developers).
 It looks like this: 
 
 ![screenshot](/images/docs/metadata_page.png)
@@ -155,3 +158,4 @@ an interface for LinkedIn which shows how authentication works.
 + LG TV [[Thingpedia]](https://almond.stanford.edu/thingpedia/classes/by-id/com.lg.tv.webos2) 
 [[Github]](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.lg.tv.webos2):
 a more complicated example which involves a physical device.
+
