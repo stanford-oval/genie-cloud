@@ -337,36 +337,35 @@ module.exports = class AlmondApi {
         }
     }
 
-    _toProgram(code, entities) {
-        if (code[0] === 'bookkeeping')
-            return Promise.reject(new Error('Not a ThingTalk program'));
-        return Promise.resolve(ThingTalk.NNSyntax.fromNN(code, entities));
-    }
+    async _processCandidate(candidate, analyzed) {
+        if (candidate.code[0] === 'bookkeeping')
+            throw new Error('Not a ThingTalk program');
 
-    _processCandidate(candidate, analyzed) {
-        return this._toProgram(candidate.code, analyzed.entities).then((program) => program.typecheck(this._engine.schemas, true)).catch((e) => {
+        let program;
+        try {
+            program = ThingTalk.NNSyntax.fromNN(candidate.code, analyzed.entities);
+            await program.typecheck(this._engine.schemas, true);
+        } catch(e) {
             console.error('Failed to analyze ' + candidate.code.join(' ') + ' : ' + e.message);
             return null;
-        }).then((program) => {
-            if (!program || !program.isProgram)
-                return null;
+        }
+        if (!program || !program.isProgram)
+            return null;
 
-            const primitives = new Map;
+        const primitives = new Map;
 
-            const result = {
-                score: candidate.score,
-                code: null,
-                commandClass: 'rule',
-                devices: {},
-                locations: {},
-            };
-            return this._processPrimitives(program, primitives, result).then((ok) => {
-                if (!ok)
-                    return null;
-                this._slotFill(program, primitives, result);
-                result.code = program.prettyprint(true);
-                return result;
-            });
-        });
+        const result = {
+            score: candidate.score,
+            code: null,
+            commandClass: 'rule',
+            devices: {},
+            locations: {},
+        };
+        const ok = await this._processPrimitives(program, primitives, result);
+        if (!ok)
+            return null;
+        this._slotFill(program, primitives, result);
+        result.code = program.prettyprint(true);
+        return result;
     }
 };
