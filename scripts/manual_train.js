@@ -135,9 +135,9 @@ class Trainer extends events.EventEmitter {
         }
         i -= 1;
         const program = ThingTalk.NNSyntax.fromNN(this._candidates[i].code, this._entities);
-        console.log('Code: ' + program.prettyprint(true));
         this._state = 'code';
         this._rl.setPrompt('TT: ');
+        this._rl.write(program.prettyprint(true));
         this._rl.prompt();
     }
 
