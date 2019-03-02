@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
@@ -9,6 +10,8 @@
 // See COPYING for details
 "use strict";
 
+process.on('unhandledRejection', (up) => { throw up; });
+
 const express = require('express');
 const path = require('path');
 
@@ -19,7 +22,7 @@ const cacheable = require('cacheable-middleware');
 const Prometheus = require('prom-client');
 
 const db = require('../util/db');
-const Metrics = require('./util/metrics');
+const Metrics = require('../util/metrics');
 const I18n = require('../util/i18n');
 const LocalTokenizerService = require('../util/local_tokenizer_service');
 const modelsModel = require('../model/nlp_models');
@@ -51,27 +54,31 @@ class NLPInferenceServer {
         return undefined;
     }
 
-    loadAllLanguages() {
-        return db.withTransaction(async (dbClient) => {
+    async loadAllLanguages() {
+        await db.withTransaction(async (dbClient) => {
             const modelspecs = await modelsModel.getAll(dbClient);
             for (let modelspec of modelspecs) {
                 const model = new NLPModel(modelspec.language, modelspec.tag, modelspec.owner, modelspec.access_token);
                 await model.load();
+                this._models.set(model.id, model);
             }
 
             for (let locale of I18n.LANGS) {
                 let language = locale.split('-')[0];
                 const model = new NLPModel(language, 'default', null, null);
                 await model.load();
+                this._models.set(model.id, model);
             }
         });
+
+        console.log(`Loaded ${this._models.size} models`);
     }
 
     initFrontend() {
         const app = express();
 
         app.service = this;
-        app.set('port', process.env.PORT || 8090);
+        app.set('port', process.env.PORT || 8400);
         app.set('views', path.join(__dirname, 'views'));
         app.set('view engine', 'pug');
         app.enable('trust proxy');
@@ -79,9 +86,13 @@ class NLPInferenceServer {
         app.use(bodyParser.urlencoded({ extended: true }));
         app.use(cacheable());
 
-        app.use(logger('dev'));
-        if ('development' === app.get('env'))
+        // no logger in production!
+        // otherwise all the mess with IRB to log what
+        // people say goes down the drain...
+        if ('development' === app.get('env')) {
+            app.use(logger('dev'));
             app.use(errorHandler());
+        }
         if (Config.ENABLE_PROMETHEUS)
             Metrics(app);
 

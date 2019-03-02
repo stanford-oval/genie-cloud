@@ -14,9 +14,9 @@ const ThingTalk = require('thingtalk');
 
 const router = express.Router();
 
-const db = require('../utils/db');
-const iv = require('../utils/input_validation');
-const I18n = require('../utils/i18n');
+const db = require('../util/db');
+const iv = require('../util/input_validation');
+const I18n = require('../util/i18n');
 const userModel = require('../model/user');
 const exampleModel = require('../model/example');
 

@@ -61,11 +61,12 @@ class Worker extends events.EventEmitter {
             this.emit('error', e);
         });
         this._child.on('exit', () => {
+            this._failAll(new Error(`Worker died`));
             this._child = null;
             this.emit('exit');
         });
 
-        this._stream = new JsonDatagramSocket(this._child.stdin, this._child.stdout, 'utf8');
+        this._stream = new JsonDatagramSocket(this._child.stdout, this._child.stdin, 'utf8');
 
         this._stream.on('error', (e) => {
             this._failAll(e);
@@ -93,7 +94,7 @@ class Worker extends events.EventEmitter {
         });
     }
 
-    _fallAll(error) {
+    _failAll(error) {
         for (let { reject } of this._requests.values())
             reject(error);
         this._requests.clear();
@@ -133,7 +134,7 @@ module.exports = class Predictor {
     }
 
     start() {
-        console.log(`Spawning ${this._nWorkers} for predictor ${this.id}`);
+        console.log(`Spawning ${this._nWorkers} workers for predictor ${this.id}`);
         for (let i = 0; i < this._nWorkers; i++)
             this._startWorker();
     }
@@ -158,7 +159,7 @@ module.exports = class Predictor {
     }
 
     _startWorker() {
-        const worker = new Worker(`@${this.id}/${this._nextId}++`, this._modeldir);
+        const worker = new Worker(`${this.id}/${this._nextId++}`, this._modeldir);
         worker.on('error', (err) => {
             console.error(`Worker ${worker.id} had an error: ${err.message}`);
             worker.stop();
@@ -175,10 +176,11 @@ module.exports = class Predictor {
                 setTimeout(() => {
                     if (this._workers.size < this._nWorkers)
                         this._startWorker();
-                });
+                }, 30000);
             }
         });
 
+        worker.start();
         this._workers.add(worker);
         return worker;
     }

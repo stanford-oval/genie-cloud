@@ -12,9 +12,9 @@
 const express = require('express');
 const ThingTalk = require('thingtalk');
 
-const db = require('../utils/db');
-const iv = require('../utils/input_validation');
-const I18n = require('../utils/i18n');
+const db = require('../util/db');
+const iv = require('../util/input_validation');
+const I18n = require('../util/i18n');
 const exampleModel = require('../model/example');
 
 const applyCompatibility = require('./compat');
@@ -33,10 +33,12 @@ async function tokenize(req, res) {
     res.json(tokenized);
 }
 
-async function runPrediction(model, tokens, entities, limit) {
+async function runPrediction(model, tokens, entities, limit, skipTypechecking) {
     const schemas = new ThingTalk.SchemaRetriever(model.tpClient, null, true);
 
     let candidates = await model.predictor.predict(tokens);
+    if (skipTypechecking)
+        return candidates;
 
     candidates = await Promise.all(candidates.map(async (c) => {
         try {
@@ -111,8 +113,11 @@ async function query(req, res) {
         exact = model.exact.get(tokens);
     }
 
-    if (result === null)
-        result = await runPrediction(model, tokens, req.query.limit ? parseInt(req.query.limit) : 5);
+    if (result === null) {
+        result = await runPrediction(model, tokens, tokenized.entities,
+            req.query.limit ? parseInt(req.query.limit) : 5,
+            !!req.query.skip_typechecking);
+    }
 
     if (store !== 'no' && expect !== 'MultipleChoice' && tokens.length > 0) {
         await db.withClient((dbClient) => {
@@ -136,19 +141,28 @@ async function query(req, res) {
     });
 }
 
-router.get('/@:model_tag/:locale/query',
-    iv.validateGET({ q: 'string', store: '?string', access_token: '?string', thingtalk_version: '?string', limit: '?integer', choices: '?array', tokenized: 'boolean' }),
-    (req, res, next) => { query(req, res).catch(next); });
+const QUERY_PARAMS = {
+    q: 'string',
+    store: '?string',
+    access_token: '?string',
+    thingtalk_version: '?string',
+    limit: '?integer',
+    choices: '?array',
+    tokenized: 'boolean',
+    skip_typechecking: 'boolean'
+};
 
-
+router.get('/@:model_tag/:locale/query', iv.validateGET(QUERY_PARAMS), (req, res, next) => {
+    query(req, res).catch(next);
+});
 
 router.get('/@:model_tag/:locale/tokenize', iv.validateGET({ q: 'string' }), (req, res, next) => {
     tokenize(req, res).catch(next);
 });
 
-router.get('/:locale/query',
-    iv.validateGET({ q: 'string', store: '?string', access_token: '?string', thingtalk_version: '?string', limit: '?integer', choices: '?array', tokenized: 'boolean' }),
-    (req, res, next) => { query(req, res).catch(next); });
+router.get('/:locale/query', iv.validateGET(QUERY_PARAMS), (req, res, next) => {
+    query(req, res).catch(next);
+});
 
 router.get('/:locale/tokenize', iv.validateGET({ q: 'string' }), (req, res, next) => {
     tokenize(req, res).catch(next);
