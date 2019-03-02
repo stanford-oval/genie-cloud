@@ -704,8 +704,11 @@ DROP TABLE IF EXISTS `models`;
 CREATE TABLE `models` (
   `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `tag` varchar(64) COLLATE utf8_bin,
+  `owner` int(11) NOT NULL,
   `for_devices` mediumtext COLLATE utf8_bin NOT NULL,
-  PRIMARY KEY (`language`, `tag`)
+  PRIMARY KEY (`language`, `tag`),
+  KEY `owner` (`owner`),
+  CONSTRAINT `models_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE,
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
