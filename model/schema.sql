@@ -759,6 +759,23 @@ CREATE TABLE `users` (
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 --
+-- Table structure for table `utterance_log`
+--
+
+DROP TABLE IF EXISTS `utterance_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `utterance_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `language` char(15) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT 'en',
+  `preprocessed` text NOT NULL,
+  `target_code` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+--
 -- Table structure for table `blog_posts`
 --
 

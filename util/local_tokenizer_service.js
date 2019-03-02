@@ -12,6 +12,15 @@
 const net = require('net');
 const JsonDatagramSocket = require('./json_datagram_socket');
 
+function *cleanTokens(tokens) {
+    for (let token  of tokens) {
+        if (/^A-Z.*\*/.test(token))
+            yield token.split('*')[0];
+        else
+            yield token;
+    }
+}
+
 module.exports = class LocalTokenizerService {
     constructor() {
         const socket = new net.Socket();
@@ -30,8 +39,11 @@ module.exports = class LocalTokenizerService {
                 req.reject(new Error(msg.error));
             } else {
                 req.resolve({
-                    tokens: msg.tokens,
-                    entities: msg.values
+                    tokens: Array.from(cleanTokens(msg.tokens)),
+                    entities: msg.values,
+                    raw_tokens: msg.rawTokens,
+                    pos_tags: msg.pos,
+                    sentiment: msg.sentiment
                 });
             }
         });

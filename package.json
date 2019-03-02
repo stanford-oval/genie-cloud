@@ -90,6 +90,7 @@
     "q": "^1.4.1",
     "rss": "^1.2.2",
     "seedrandom": "^2.4.3",
+    "semver": "^5.6.0",
     "serve-favicon": "^2.3.0",
     "smtlib": "^0.1.1",
     "sockaddr": "^1.0.0",
