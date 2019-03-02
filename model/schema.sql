@@ -702,9 +702,10 @@ DROP TABLE IF EXISTS `models`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `models` (
+  `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `tag` varchar(64) COLLATE utf8_bin,
   `for_devices` mediumtext COLLATE utf8_bin NOT NULL,
-  PRIMARY KEY (`tag`)
+  PRIMARY KEY (`language`, `tag`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
