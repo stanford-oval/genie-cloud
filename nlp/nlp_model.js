@@ -10,10 +10,11 @@
 "use strict";
 
 const path = require('path');
+const Genie = require('genie-toolkit');
+const os = require('os');
 
 const BaseThingpediaClient = require('../util/thingpedia-client');
 
-const Predictor = require('./predictor');
 const ExactMatcher = require('./exact');
 
 const db = require('../util/db');
@@ -46,14 +47,15 @@ module.exports = class NLPModel {
         this.id = `@${modelTag}/${locale}`;
         this.locale = locale;
 
-        if (modelTag === 'default')
+        const isDefault = modelTag === 'default';
+        if (isDefault)
             this.exact = new ExactMatcher(locale, modelTag);
         else
             this.exact = new DummyExactMatcher(); // non default models don't get any exact match
 
         const modeldir = path.resolve(`./${modelTag}:${locale}`);
 
-        this.predictor = new Predictor(this.id, modeldir, { isDefault: modelTag === 'default' });
+        this.predictor = new Genie.Predictor(this.id, modeldir, isDefault ? os.cpus().length : 1);
 
         const org = owner === null ? { is_admin: true, id: 1 } : { is_admin: false, id: owner };
         this.tpClient = new OrgThingpediaClient(locale, org);
