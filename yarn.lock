@@ -5603,10 +5603,15 @@ sax@>=0.6.0, sax@^1.2.4:
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
 
-seedrandom@^2.4.3, seedrandom@^2.4.4:
+seedrandom@^2.4.4:
   version "2.4.4"
   resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.4.tgz#b25ea98632c73e45f58b77cfaa931678df01f9ba"
   integrity sha512-9A+PDmgm+2du77B5i0Ip2cxOqqHjgNxnBgglxLcX78A2D6c2rTo61z4jnVABpF4cKeDMDG+cmXXvdnqse2VqMA==
+
+seedrandom@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-3.0.0.tgz#3b5e740429a85517d7b5718472093a2a08452ca0"
+  integrity sha512-+PS8kPqxEhdx0ALu9m7/nSF7M5rNmeCBMCFc+xLh9tRdM4WAeTEl/qGqoMlU9MU8azfOh/asYAgrhphLbpobFQ==
 
 selenium-webdriver@^4.0.0-alpha.1:
   version "4.0.0-alpha.1"
