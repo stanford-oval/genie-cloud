@@ -10,10 +10,7 @@
 "use strict";
 
 const Tp = require('thingpedia');
-
-const net = require('net');
-const JsonDatagramSocket = require('./json_datagram_socket');
-const LocalTokenizerService = require('./local_tokenizer_service');
+const Genie = require('genie-toolkit');
 
 const Config = require('../config');
 
@@ -26,7 +23,7 @@ let _localTokenizer = null;
 function getLocalTokenizer() {
     if (_localTokenizer)
         return _localTokenizer;
-    return _localTokenizer = new LocalTokenizerService();
+    return _localTokenizer = new Genie.LocalTokenizerService();
 }
 
 function tokenizeLocal(language, sentence) {

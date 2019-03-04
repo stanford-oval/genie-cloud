@@ -20,11 +20,11 @@ const bodyParser = require('body-parser');
 const errorHandler = require('errorhandler');
 const cacheable = require('cacheable-middleware');
 const Prometheus = require('prom-client');
+const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const Metrics = require('../util/metrics');
 const I18n = require('../util/i18n');
-const LocalTokenizerService = require('../util/local_tokenizer_service');
 const modelsModel = require('../model/nlp_models');
 
 const NLPModel = require('./nlp_model');
@@ -34,7 +34,7 @@ const Config = require('../config');
 class NLPInferenceServer {
     constructor() {
         this._models = new Map;
-        this._tokenizer = new LocalTokenizerService();
+        this._tokenizer = new Genie.LocalTokenizerService();
     }
 
     get tokenizer() {
