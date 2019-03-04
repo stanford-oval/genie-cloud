@@ -108,7 +108,7 @@ class TrainingDaemon {
                     if (queue.last && queue.last.id === jobData.id)
                         this._queues[jobType].lastSuccess[key] = this._queues[jobType].last;
                     else
-                        this._queues[jobType].lastSuccess[key] = Job.load(jobData);
+                        this._queues[jobType].lastSuccess[key] = Job.load(this, jobData);
                 }
                 if (queue.current)
                     this._queues[jobType].current = Job.load(this, queue.current);
