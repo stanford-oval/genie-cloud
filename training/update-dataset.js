@@ -327,8 +327,11 @@ class DatasetUpdater {
         });
         this._writer = this._augmenter.pipe(new DatabaseInserter(this._language, this._dbClient));
 
-        if (this._forDevicesRegexp !== null)
-            this._augmenter = (new ForDevicesFilter(this._forDevicesRegexp)).pipe(this._augmenter);
+        if (this._forDevicesRegexp !== null) {
+            let filter = new ForDevicesFilter(this._forDevicesRegexp);
+            filter.pipe(this._augmenter);
+            this._augmenter = filter;
+        }
 
         if (this._options.regenerateAll || this._options.regenerateTypes.length > 0)
             await this._regenerateReplacedParaphrases();
