@@ -32,10 +32,11 @@ before_install:
 install:
 - sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev libsystemd-dev
   realpath bubblewrap python3
-- travis_wait ./tests/install-nlp-deps.sh
-- export DECANLP_EMBEDDINGS=`pwd`/tests/embeddings
 - yarn
 - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules/thingtalk )
+- pyenv global 3.6.7
+- travis_wait ./tests/install-nlp-deps.sh
+- export DECANLP_EMBEDDINGS=`pwd`/tests/embeddings
 before_script:
 - mysql -u root -e "create database if not exists thingengine_test; grant all privileges
   on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"

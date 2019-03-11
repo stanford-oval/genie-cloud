@@ -11,7 +11,6 @@
 
 const path = require('path');
 const Genie = require('genie-toolkit');
-const os = require('os');
 
 const BaseThingpediaClient = require('../util/thingpedia-client');
 
