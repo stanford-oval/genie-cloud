@@ -2647,10 +2647,9 @@ gcp-metadata@^0.6.1, gcp-metadata@^0.6.3:
     extend "^3.0.1"
     retry-axios "0.3.2"
 
-genie-toolkit@^0.1.0:
+"genie-toolkit@github:Stanford-Mobisocial-IoT-Lab/genie-toolkit#wip/evaluate-server":
   version "0.1.1"
-  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.1.1.tgz#df4055167c5b5dcf1739e4ef796d2a819c59294d"
-  integrity sha512-KzO/Mpan4wKySHlVuqe/frbDPsQ4OmTTCE5WuXC8VLESwTdxPCx0x5lvS9oHZeT2PIn7gKc69iUGm5o3oLYfng==
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit/tar.gz/c5a3e91347e8ad2301f4285b3f161db47c0d4f89"
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
@@ -2658,6 +2657,7 @@ genie-toolkit@^0.1.0:
     mmap-io "^1.0.0"
     seedrandom "^2.4.4"
     shuffle-array "^1.0.1"
+    sockaddr "^1.0.1"
     thingpedia "^2.3.3"
     thingtalk "^1.4.2"
 
@@ -5833,7 +5833,7 @@ snapdragon@^0.8.1:
     source-map-resolve "^0.5.0"
     use "^3.1.0"
 
-sockaddr@^1.0.0:
+sockaddr@^1.0.0, sockaddr@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/sockaddr/-/sockaddr-1.0.1.tgz#6dd525c9122641ff2a083fdc09dfd56e9d1b1854"
   integrity sha512-dWExeYQghPJLBI9w7G802J++g+d/9PscIMxzlIbTKsLrgrW8nZPV68z+D3JjOSVkqjc8hVm0oAyt3XUI1g/yqg==
