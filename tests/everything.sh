@@ -17,3 +17,4 @@ node $srcdir/tests/unit
 
 $srcdir/tests/webalmond-integration.sh
 $srcdir/tests/thingpedia-integration.sh
+$srcdir/tests/nlp-integration.sh
