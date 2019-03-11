@@ -24,7 +24,7 @@ const Prometheus = require('prom-client');
 const SendMail = require('../util/sendmail');
 const db = require('../util/db');
 const Metrics = require('../util/metrics');
-const modelsModel = require('../models/nlp_model');
+const modelsModel = require('../model/nlp_models');
 
 const Job = require('./training_job');
 
@@ -71,9 +71,9 @@ class TrainingDaemon {
     }
 
     async _reloadModels(languageTag) {
-        const rows = await db.withClient((dbClient) => {
+        const rows = [];/* await db.withClient((dbClient) => {
             return modelsModel.getForLanguage(dbClient, languageTag);
-        });
+        });*/
         const result = {};
         for (let row of rows)
             result[row.tag] = JSON.parse(row.for_devices);

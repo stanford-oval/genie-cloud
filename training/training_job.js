@@ -183,15 +183,18 @@ async function taskReloadingExact(job) {
 async function taskTraining(job) {
     const workdir = path.resolve(job.jobDir, 'workdir');
     const datadir = path.resolve(job.jobDir, 'dataset');
+    const outputdir = path.resolve(job.jobDir, 'output');
 
     const genieJob = Genie.Training.createJob({
-        backend: 'tensorflow',
+        id: job.id,
+        backend: 'decanlp',
         config: job.config,
         thingpediaUrl: Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL),
         debug: true,
 
         workdir,
-        datadir
+        datadir,
+        outputdir
     });
     // mirror the configuration into job so whatever default we're using now
     // is stored permanently for later analysis
@@ -211,56 +214,17 @@ async function taskTraining(job) {
 
     job.child = null;
 
-    if (!job._killed) {
+    if (!job._killed)
         job.metrics = genieJob.metrics;
-        job.bestModelDir = genieJob.bestmodeldir;
-    }
-}
-
-async function taskTesting(job) {
-    const port = Math.floor(1024+Math.random()*10000);
-    await util.promisify(fs.writeFile)(path.resolve(job.jobDir, 'server/server.conf'), `[server]
-port=${port}
-
-[models]
-${job.language}=${job.bestModelDir}
-`);
-
-    await new Promise(async (resolve, reject) => {
-        try {
-            const server = child_process.spawn(path.resolve(Config.GENIE_PARSER_PATH, 'genie-server'), [
-                '--config_file', path.resolve(job.jobDir, 'server/server.conf')
-            ], { stdio: ['ignore', 'inherit', 'inherit'] });
-            try {
-                server.on('error', reject);
-
-                // wait 30 seconds for the server to start...
-                await delay(30000);
-
-                const env = {
-                    TEST_MODE: 1,
-                    SEMPRE_URL: `http://127.0.0.1:${port}`,
-                };
-                await execCommand(job, process.execPath, process.execArgv.concat([
-                    '-e',
-                    `process.on("unhandledRejection", (up) => { throw up; }); require("${require.resolve('almond-dialog-agent/test/test_parser')}")();`
-                ]), null, env);
-            } finally {
-                server.kill();
-            }
-            resolve();
-        } catch(e) {
-            reject(e);
-        }
-    });
 }
 
 async function taskUploading(job) {
     const modelLangDir = `${job.modelTag}:${job.language}`;
+    const outputdir = path.resolve(job.jobDir, 'output');
 
     const INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
     await execCommand(job, 'rsync', ['-rv',
-        path.resolve(job.bestModelDir) + '/',
+        path.resolve(outputdir) + '/',
         INFERENCE_SERVER + `:${modelLangDir}/`
     ]);
 
@@ -275,7 +239,7 @@ async function taskUploading(job) {
         }
     }
 
-    fs.symlinkSync(job.bestModelDir, path.resolve(`./saved-model/${job.modelTag}/${job.language}/current`));
+    fs.symlinkSync(outputdir, path.resolve(`./saved-model/${job.modelTag}/${job.language}/current`));
 
     fs.symlinkSync(path.resolve(job.jobDir, 'workdir/model'), path.resolve(`./tensorboard/${job.modelTag}/${job.language}/current`));
     safeUnlinkSync(path.resolve(`./tensorboard/${job.modelTag}/${job.language}/in-progress`));
@@ -283,14 +247,14 @@ async function taskUploading(job) {
     fs.symlinkSync(path.resolve(job.jobDir, 'dataset'), path.resolve(`./dataset/${job.modelTag}/${job.language}/current`));
     safeUnlinkSync(path.resolve(`./dataset/${job.modelTag}/${job.language}/in-progress`));
 
-    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/@${job.modelTag}/${job.language}/admin/reload?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
+    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.modelTag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
         dataContentType: 'application/x-www-form-urlencoded'
     });
 }
 
 const TASKS = {
     'update-dataset': [taskUpdatingDataset, taskReloadingExact],
-    'train': [taskPrepare, taskDownloadDataset, taskTraining, taskTesting, taskUploading]
+    'train': [taskPrepare, taskDownloadDataset, taskTraining, taskUploading]
 };
 
 function taskName(task) {
