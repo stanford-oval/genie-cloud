@@ -34,7 +34,7 @@ const Config = require('../config');
 class NLPInferenceServer {
     constructor() {
         this._models = new Map;
-        this._tokenizer = new Genie.LocalTokenizerService();
+        this._tokenizer = new Genie.LocalTokenizer();
     }
 
     get tokenizer() {

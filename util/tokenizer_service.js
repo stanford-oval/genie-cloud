@@ -23,7 +23,7 @@ let _localTokenizer = null;
 function getLocalTokenizer() {
     if (_localTokenizer)
         return _localTokenizer;
-    return _localTokenizer = new Genie.LocalTokenizerService();
+    return _localTokenizer = new Genie.LocalTokenizer();
 }
 
 function tokenizeLocal(language, sentence) {

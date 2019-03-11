@@ -55,7 +55,12 @@ module.exports = class NLPModel {
 
         const modeldir = path.resolve(`./${modelTag}:${locale}`);
 
-        this.predictor = new Genie.Predictor(this.id, modeldir, isDefault ? os.cpus().length : 1);
+        let nprocesses;
+        if (isDefault && process.env.THINGENGINE_NUM_NLP_WORKERS)
+            nprocesses = parseInt(process.env.THINGENGINE_NUM_NLP_WORKERS);
+        else
+            nprocesses = 1;
+        this.predictor = new Genie.Predictor(this.id, modeldir, nprocesses);
 
         const org = owner === null ? { is_admin: true, id: 1 } : { is_admin: false, id: owner };
         this.tpClient = new OrgThingpediaClient(locale, org);
