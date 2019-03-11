@@ -71,9 +71,9 @@ class TrainingDaemon {
     }
 
     async _reloadModels(languageTag) {
-        const rows = [];/* await db.withClient((dbClient) => {
+        const rows = await db.withClient((dbClient) => {
             return modelsModel.getForLanguage(dbClient, languageTag);
-        });*/
+        });
         const result = {};
         for (let row of rows)
             result[row.tag] = JSON.parse(row.for_devices);
