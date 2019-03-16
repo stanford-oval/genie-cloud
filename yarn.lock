@@ -1102,7 +1102,15 @@ camelcase@^5.0.0:
   resolved "https://registry.yarnpkg.com/camelcase/-/camelcase-5.0.0.tgz#03295527d58bd3cd4aa75363f35b2e8d97be2f42"
   integrity sha512-faqwZqnWxbxn+F1d399ygeamQNy3lPp/H9H6rNrqYh4FSVCtcY+3cub1MxA8o9mDd55mM8Aghuu/kuyYA6VTsA==
 
-canvas@^1.6.10, canvas@~1.6.11:
+canvas@^2.4.0:
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/canvas/-/canvas-2.4.0.tgz#987c090c56b6d122e666ab9f471dcab62ae9bff3"
+  integrity sha512-+xxeaKwQJyXHBdMhVhqFoGqNAAUW5vr2DbhQEusER2RR4H2m+Zn2QLKiwp43BabNhQBITQ3bp54+DYrGrI+wmA==
+  dependencies:
+    nan "^2.12.1"
+    node-pre-gyp "^0.11.0"
+
+canvas@~1.6.11:
   version "1.6.13"
   resolved "https://registry.yarnpkg.com/canvas/-/canvas-1.6.13.tgz#8cb4e9abbea9e615a377890ffac50277a1167c73"
   integrity sha512-XAfzfEOHZ3JIPjEV+WSI6PpISgUta3dgmndWbsajotz+0TQOX/jDpp2kawjRERatOGv9sMMzk5auB3GKEKA6hg==
@@ -4260,6 +4268,11 @@ nan@^2.0.0, nan@^2.10.0, nan@^2.8.0:
   version "2.12.1"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.12.1.tgz#7b1aa193e9aa86057e3c7bbd0ac448e770925552"
   integrity sha512-JY7V6lRkStKcKTvHO5NVSQRv+RV+FIL5pvDoLiAtSL9pKlC5x9PKQcZDsq7m4FO4d57mkhC6Z+QhAh3Jdk5JFw==
+
+nan@^2.12.1:
+  version "2.13.1"
+  resolved "https://registry.yarnpkg.com/nan/-/nan-2.13.1.tgz#a15bee3790bde247e8f38f1d446edcdaeb05f2dd"
+  integrity sha512-I6YB/YEuDeUZMmhscXKxGgZlFnhsn5y0hgOZBadkzfTRrZBtJDZeg6eQf7PYMIEclwmorTKK8GztsyOUSVBREA==
 
 nan@~2.10.0:
   version "2.10.0"
