@@ -33,7 +33,7 @@
     "argparse": "^1.0.10",
     "body-parser": "^1.18.3",
     "cacheable-middleware": "^1.0.0",
-    "canvas": "^1.6.10",
+    "canvas": "^2.4.0",
     "color-scheme": "^1.0.0",
     "color-thief": "^2.2.2",
     "connect-flash": "~0.1.1",
