@@ -23,13 +23,18 @@ const DatasetUtils = require('../util/dataset');
 const { clean } = require('../util/tokenize');
 
 const Config = require('../config');
+const texOptions = [
+    { height: 17, width: 22, ncols: 6 }, // dense landscape mode
+    { height: 46, width: 9,  ncols: 3 }  // sparse portrait mode
+];
 
-async function genTex(devices, path) {
+async function genTex(devices, path, suffix='') {
     let tex;
+    let options = texOptions[1];
     tex = '\\documentclass[10pt]{article}\n'
         // we want the base font to be 5pt, but \documentclass{article}
         // does not like that, so we just double the paper size
-        + '\\usepackage[paperheight=17in,paperwidth=22in,margin=25px]{geometry}\n'
+        + `\\usepackage[paperheight=${options.height}in,paperwidth=${options.width}in,margin=25px]{geometry}\n`
         + '\\usepackage{graphicx}\n'
         + '\\usepackage[default]{lato}\n'
         + '\\usepackage{multicol}\n'
@@ -41,14 +46,11 @@ async function genTex(devices, path) {
         + '\\newcommand{\\DO}[0]{\\textcolor[rgb]{0.05, 0.5, 0.06}{\\textsc{do: }}}\n'
         + '\\begin{document}\n'
         + '\\pagestyle{empty}\n'
-        + '\\begin{multicols}{6}\n';
+        + `\\begin{multicols}{${options.ncols}}\n`;
 
-    const icons = [];
     devices.forEach((d) => {
         if (d.examples.length === 0)
             return;
-
-        icons.push(d.primary_kind);
         tex += formatDeviceName(d);
         for (let ex of d.examples)
             tex += formatExample(ex);
@@ -58,9 +60,7 @@ async function genTex(devices, path) {
 
     tex += '\\end{multicols}\n' + '\\end{document}\n';
 
-    await util.promisify(fs.writeFile)(path + '/cheatsheet.tex', tex);
-
-    return icons;
+    await util.promisify(fs.writeFile)(path + `/cheatsheet${suffix}.tex`, tex);
 }
 
 function formatDeviceName(d) {
@@ -160,14 +160,20 @@ async function main() {
             required: false,
             help: 'Path to file containing primitive templates, in ThingTalk syntax.'
         });
+        parser.addArgument(['--count'], {
+            required: false,
+            defaultValue: 1,
+            type: 'int',
+            help: 'The number of cheatsheet to generate (when generating from files, the ' +
+                'cheatsheet will randomly pick an utterance for each example).'
+        });
         const args = parser.parseArgs();
         const locale = args.locale;
         const outputpath = path.resolve(args.output);
         await safeMkdir(outputpath);
 
         const devices = await DatasetUtils.getCheatsheet(locale, args.thingpedia, args.dataset);
-        const icons = await genTex(devices, outputpath);
-
+        const icons = devices.filter((d) => d.examples.length > 0).map((d) => d.primary_kind);
         await safeMkdir(`${outputpath}/icons`);
 
         const baseUrl = Url.resolve(Config.SERVER_ORIGIN, Config.CDN_HOST);
@@ -183,11 +189,14 @@ async function main() {
             }
         }
 
-        await execCommand('latexmk',
-            ['-pdf', 'cheatsheet.tex'], {
-            cwd: outputpath,
-            stdio: ['ignore', 'inherit', 'inherit'],
-        });
+        for (let i = 0; i < args.count; i++) {
+            await genTex(devices, outputpath, i);
+            await execCommand('latexmk',
+                ['-pdf', `cheatsheet${i}.tex`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit'],
+            });
+        }
     } finally {
         await db.tearDown();
     }
