@@ -24,10 +24,11 @@ const kindMap = {
     'light-bulb': 'com.hue',
     'security-camera': 'com.nest.security_camera',
     'car': 'com.tesla.car',
+    'com.tumblr.blog': 'com.tumblr'
 };
 
-function getCheatsheet(language, thingpedia, dataset) {
-    return loadThingpedia(language, thingpedia, dataset).then(([devices, examples]) => {
+function getCheatsheet(language, thingpedia, dataset, rng = Math.random) {
+    return loadThingpedia(language, thingpedia, dataset, rng).then(([devices, examples]) => {
         const deviceMap = new Map;
         devices.forEach((d, i) => {
             d.examples = [];
@@ -58,10 +59,10 @@ function getCheatsheet(language, thingpedia, dataset) {
     });
 }
 
-function loadThingpedia(language, thingpedia, dataset) {
+function loadThingpedia(language, thingpedia, dataset, rng) {
     if (thingpedia && dataset) {
         const tpClient = new TpClient(language, thingpedia, dataset);
-        return tpClient.genCheatsheet();
+        return tpClient.genCheatsheet(true, { rng });
     } else {
         return db.withClient((dbClient) => {
             return Promise.all([

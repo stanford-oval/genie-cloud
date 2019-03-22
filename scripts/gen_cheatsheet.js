@@ -17,16 +17,43 @@ const Url = require('url');
 const child_process = require('child_process');
 const argparse = require('argparse');
 const Tp = require('thingpedia');
+const seedrandom = require('seedrandom');
 
 const db = require('../util/db');
 const DatasetUtils = require('../util/dataset');
 const { clean } = require('../util/tokenize');
+const { choose } = require('../util/random');
 
 const Config = require('../config');
 const texOptions = [
     { height: 17, width: 22, ncols: 6 }, // dense landscape mode
     { height: 46, width: 9,  ncols: 3 }  // sparse portrait mode
 ];
+const blackList = [
+    'org.thingpedia.builtin.thingengine.builtin',
+    'com.xkcd',
+    'com.phdcomics',
+    'com.github',
+    'org.thingpedia.rss',
+    'org.thingpedia.demo.coffee'
+];
+const nameMap = {
+    'com.yandex.translate': 'Translate',
+    'org.thingpedia.weather': 'Weather',
+    'gov.nasa': 'NASA',
+    'com.lg.tv.webos2': 'LG TV',
+    'org.thingpedia.icalendar': 'Calendar',
+    'com.fitbit': 'Fitbit'
+};
+
+async function getDevices(locale, thingpedia, dataset, sample, rng) {
+    const devices = await DatasetUtils.getCheatsheet(locale, thingpedia, dataset, rng);
+    const filteredDevices = devices.filter((d) => !blackList.includes(d.primary_kind) && d.examples.length > 0);
+    const sampledDevices = choose(filteredDevices, sample || filteredDevices.length, rng);
+    return sampledDevices.sort((a, b) => {
+        return a.name.localeCompare(b.name);
+    });
+}
 
 async function genTex(devices, path, suffix='') {
     let tex;
@@ -64,6 +91,10 @@ async function genTex(devices, path, suffix='') {
 }
 
 function formatDeviceName(d) {
+    d.name = nameMap[d.primary_kind] || d.name;
+    d.name = d.name.replace('account', '');
+    d.name = d.name.split(' ').map((s) => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
+
     let tex = `\\includegraphics[height=12px]{icons/{${d.primary_kind}}.png} `;
     tex += '{\\bf\\large ' + d.name + '}\n\n';
     tex += '\\vspace{0.1em}';
@@ -84,10 +115,19 @@ function formatExample(ex) {
             buf += chunk;
         } else {
             const [match, param1, param2, ] = chunk;
+
+            let param = param1 || param2 ;
+            if (param === 'p_picture_url')
+                param = 'picture';
+            else if (param.endsWith('_id'))
+                param = param.substring(0, param.length-3);
+            else if (param === 'p_to')
+                param = 'recipient';
+
             if (match === '$$')
               buf += '\\$';
             else
-              buf += '\\_\\_\\_\\_ {\\small (' + clean(param1||param2) + ')}';
+              buf += '\\_\\_\\_\\_ {\\small (' + clean(param) + ')}';
         }
     }
 
@@ -167,29 +207,40 @@ async function main() {
             help: 'The number of cheatsheet to generate (when generating from files, the ' +
                 'cheatsheet will randomly pick an utterance for each example).'
         });
+        parser.addArgument(['--sample'], {
+            required: false,
+            type: 'int',
+            help: 'The number of devices on the cheatsheet.'
+        });
+        parser.addArgument('--random-seed', {
+            defaultValue: 'almond is awesome',
+            help: 'Random seed'
+        });
         const args = parser.parseArgs();
         const locale = args.locale;
         const outputpath = path.resolve(args.output);
         await safeMkdir(outputpath);
 
-        const devices = await DatasetUtils.getCheatsheet(locale, args.thingpedia, args.dataset);
-        const icons = devices.filter((d) => d.examples.length > 0).map((d) => d.primary_kind);
-        await safeMkdir(`${outputpath}/icons`);
-
-        const baseUrl = Url.resolve(Config.SERVER_ORIGIN, Config.CDN_HOST);
-        for (let icon of icons) {
-            const iconfile = `${outputpath}/icons/${icon}.png`;
-            if (fs.existsSync(iconfile))
-                continue;
-            const url = Url.resolve(baseUrl, `/icons/${icon}.png`);
-            try {
-                await saveFile(url, iconfile);
-            } catch(e) {
-                console.error(`Failed to download icon for ${icon}`);
-            }
-        }
+        const rng = seedrandom(args.random_seed);
 
         for (let i = 0; i < args.count; i++) {
+            const devices = await getDevices(locale, args.thingpedia, args.dataset, args.sample, rng);
+            const icons = devices.map((d) => d.primary_kind);
+            await safeMkdir(`${outputpath}/icons`);
+
+            const baseUrl = Url.resolve(Config.SERVER_ORIGIN, Config.CDN_HOST);
+            for (let icon of icons) {
+                const iconfile = `${outputpath}/icons/${icon}.png`;
+                if (fs.existsSync(iconfile))
+                    continue;
+                const url = Url.resolve(baseUrl, `/icons/${icon}.png`);
+                try {
+                    await saveFile(url, iconfile);
+                } catch(e) {
+                    console.error(`Failed to download icon for ${icon}`);
+                }
+            }
+
             await genTex(devices, outputpath, i);
             await execCommand('latexmk',
                 ['-pdf', `cheatsheet${i}.tex`], {
