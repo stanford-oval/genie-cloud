@@ -15,6 +15,7 @@ const util = require('util');
 const path = require('path');
 const Url = require('url');
 const child_process = require('child_process');
+const argparse = require('argparse');
 const Tp = require('thingpedia');
 
 const db = require('../util/db');
@@ -137,11 +138,34 @@ async function execCommand(command, argv, options) {
 
 async function main() {
     try {
-        const language = process.argv[2] || 'en';
-        const outputpath = path.resolve(process.argv[3] || './cheatsheet');
+        const parser = new argparse.ArgumentParser({
+            addHelp: true,
+            description: 'A tool to generate cheatsheet in pdf format.'
+        });
+        parser.addArgument(['-l', '--locale'], {
+            required: false,
+            defaultValue: 'en',
+            help: 'The language to generate (defaults to \'en\', English)'
+        });
+        parser.addArgument(['-o', '--output'], {
+            required: false,
+            defaultValue: './cheatsheet',
+            help: 'The output directory for the tex file.'
+        });
+        parser.addArgument(['--thingpedia'], {
+            required: false,
+            help: 'Path to JSON file containing signature, type and mixin definitions.'
+        });
+        parser.addArgument(['--dataset'], {
+            required: false,
+            help: 'Path to file containing primitive templates, in ThingTalk syntax.'
+        });
+        const args = parser.parseArgs();
+        const locale = args.locale;
+        const outputpath = path.resolve(args.output);
         await safeMkdir(outputpath);
 
-        const devices = await DatasetUtils.getCheatsheet(language);
+        const devices = await DatasetUtils.getCheatsheet(locale, args.thingpedia, args.dataset);
         const icons = await genTex(devices, outputpath);
 
         await safeMkdir(`${outputpath}/icons`);

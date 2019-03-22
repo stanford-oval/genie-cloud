@@ -17,6 +17,8 @@ const db = require('./db');
 const exampleModel = require('../model/example');
 const deviceModel = require('../model/device');
 
+const TpClient = require('genie-toolkit/tool/lib/file_thingpedia_client');
+
 const kindMap = {
     'thermostat': 'com.nest.thermostat',
     'light-bulb': 'com.hue',
@@ -24,20 +26,15 @@ const kindMap = {
     'car': 'com.tesla.car',
 };
 
-function getCheatsheet(language) {
-    return db.withClient(async (dbClient) => {
-        const [devices, examples] = await Promise.all([
-            deviceModel.getAllApproved(dbClient, null),
-            exampleModel.getCheatsheet(dbClient, language)
-        ]);
-
+function getCheatsheet(language, thingpedia, dataset) {
+    return loadThingpedia(language, thingpedia, dataset).then(([devices, examples]) => {
         const deviceMap = new Map;
         devices.forEach((d, i) => {
             d.examples = [];
             deviceMap.set(d.primary_kind, i);
         });
 
-        var dupes = new Set;
+        const dupes = new Set;
         examples.forEach((ex) => {
             if (dupes.has(ex.target_code) || !ex.target_code)
                 return;
@@ -59,6 +56,20 @@ function getCheatsheet(language) {
 
         return devices;
     });
+}
+
+function loadThingpedia(language, thingpedia, dataset) {
+    if (thingpedia && dataset) {
+        const tpClient = new TpClient(language, thingpedia, dataset);
+        return tpClient.genCheatsheet();
+    } else {
+        return db.withClient((dbClient) => {
+            return Promise.all([
+                deviceModel.getAllApproved(dbClient, null),
+                exampleModel.getCheatsheet(dbClient, language)
+            ]);
+        });
+    }
 }
 
 function rowsToExamples(rows, { editMode = false}) {
