@@ -24,10 +24,13 @@ const DatasetUtils = require('../util/dataset');
 const { clean } = require('../util/tokenize');
 const { choose } = require('../util/random');
 
+const { detokenize } = require('genie-toolkit/lib/i18n/american-english');
+
 const Config = require('../config');
 const texOptions = [
-    { height: 17, width: 22, ncols: 6 }, // dense landscape mode
-    { height: 46, width: 9,  ncols: 3 }  // sparse portrait mode
+    // height is set to a large number since the whitespace will be trimmed afterwards
+    { height: 50, width: 22, ncols: 6 }, // dense landscape mode
+    { height: 50, width: 9,  ncols: 3 }  // sparse portrait mode
 ];
 const blackList = [
     'org.thingpedia.builtin.thingengine.builtin',
@@ -110,9 +113,10 @@ function formatExample(ex) {
     else if (ex.type === 'action')
         buf += '\\DO ';
 
+    let utterance = '';
     for (let chunk of ex.utterance_chunks) {
         if (typeof chunk === 'string') {
-            buf += chunk;
+            utterance += chunk;
         } else {
             const [match, param1, param2, ] = chunk;
 
@@ -125,11 +129,18 @@ function formatExample(ex) {
                 param = 'recipient';
 
             if (match === '$$')
-              buf += '\\$';
+              utterance += '\\$';
             else
-              buf += '\\_\\_\\_\\_ {\\small (' + clean(param) + ')}';
+              utterance += '\\_\\_\\_\\_ {\\small (' + clean(param) + ')}';
         }
     }
+    let sentence = '';
+    let prevtoken = null;
+    for (let token of utterance.split(' ')) {
+        sentence = detokenize(sentence, prevtoken, token);
+        prevtoken = token;
+    }
+    buf += sentence;
 
     buf += '\n\n';
     return buf;
@@ -246,6 +257,21 @@ async function main() {
                 ['-pdf', `cheatsheet${i}.tex`], {
                 cwd: outputpath,
                 stdio: ['ignore', 'inherit', 'inherit'],
+            });
+            await execCommand('pdfcrop',
+                ['--margins', '25', `cheatsheet${i}.pdf`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit']
+            });
+            await execCommand('convert',
+                ['-density', '100', `cheatsheet${i}-crop.pdf`, `cheatsheet${i}.png`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit']
+            });
+            await execCommand('rm',
+                [`cheatsheet${i}.pdf`, `cheatsheet${i}.aux`, `cheatsheet${i}.fdb_latexmk`, `cheatsheet${i}.fls`, `cheatsheet${i}.log`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit']
             });
         }
     } finally {
