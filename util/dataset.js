@@ -164,6 +164,12 @@ function sortAndChunkExamples(rows) {
         ex.target_code = ex.target_code.replace(/^\s*let\s+table/, 'query')
             .replace(/^\s*let\s+(stream|query|action)/, '$1');
 
+        if (ex.utterance.startsWith(','))
+            ex.utterance = ex.utterance.substring(1);
+        else if (ex.type === 'query')
+            ex.utterance = 'get ' + ex.utterance;
+        ex.utterance_chunks = splitParams(ex.utterance.trim());
+
         const match = /^\s*(stream|query|action|program)/.exec(ex.target_code);
         if (match === null) {
             ex.type = 'program';
@@ -171,12 +177,6 @@ function sortAndChunkExamples(rows) {
             continue;
         }
         ex.type = match[1];
-
-        if (ex.utterance.startsWith(','))
-            ex.utterance = ex.utterance.substring(1);
-        else if (ex.type === 'query')
-            ex.utterance = 'get ' + ex.utterance;
-        ex.utterance_chunks = splitParams(ex.utterance.trim());
 
         switch (match[1]) {
         case 'stream':
