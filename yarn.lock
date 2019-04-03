@@ -4372,10 +4372,10 @@ node-ssdp@^2.7.2:
     debug "^2.2.0"
     ip "^1.0.1"
 
-nodemailer@^5.1.1:
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-5.1.1.tgz#0c48d1ecab02e86d9ff6c620ee75ed944b763505"
-  integrity sha512-hKGCoeNdFL2W7S76J/Oucbw0/qRlfG815tENdhzcqTpSjKgAN91mFOqU2lQUflRRxFM7iZvCyaFcAR9noc/CqQ==
+nodemailer@^6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.0.0.tgz#d9761128771739dc87c1fdd747f569b7f135cb02"
+  integrity sha512-PMQJyLhoNAMoBU1hEh5aaUkpa/tcDNwzS7s7zow/myKfoEoZewMxUuWZqQ5yjYsAnvE484KSkYH5s6iPvcjhCg==
 
 nopt@^4.0.1:
   version "4.0.1"
