@@ -1,0 +1,10 @@
+desktop	desktop	1000.0
+my documents	my documents	1000.0
+my network	my network	1000.0
+pictures	pictures	1000.0
+android	android	1000.0
+ios	ios	1000.0
+files	files	1000.0
+downloads	downloads	1000.0
+music	music	1000.0
+videos	videos	1000.0
