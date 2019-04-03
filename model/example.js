@@ -393,6 +393,11 @@ module.exports = {
              and not find_in_set('augmented', flags) order by id desc limit ?,?`,
             [language, type, start, end]);
     },
+    getExact(client, language) {
+        return db.selectAll(client, `select preprocessed,target_code from example_utterances use index (language_flags)
+            where language = ? and find_in_set('exact', flags) and not is_base and preprocessed <> ''
+            order by type asc, id asc`, [language]);
+    },
 
     suggest(client, command) {
         return db.query(client, "insert into command_suggestions (command) values (?)", command);

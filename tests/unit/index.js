@@ -19,5 +19,6 @@ seq([
     ('./test_device_factories'),
     ('./test_binary_search'),
     ('./test_input_validation'),
-    ('./test_trie')
+    ('./test_trie'),
+    ('./test_exact_matcher'),
 ]);
