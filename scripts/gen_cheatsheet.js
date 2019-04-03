@@ -32,6 +32,7 @@ const texOptions = [
     { height: 50, width: 22, ncols: 6 }, // dense landscape mode
     { height: 50, width: 9,  ncols: 3 }  // sparse portrait mode
 ];
+
 const blackList = [
     'org.thingpedia.builtin.thingengine.builtin',
     'com.xkcd',
@@ -51,7 +52,9 @@ const nameMap = {
 
 async function getDevices(locale, thingpedia, dataset, sample, rng) {
     const devices = await DatasetUtils.getCheatsheet(locale, thingpedia, dataset, rng);
-    const filteredDevices = devices.filter((d) => !blackList.includes(d.primary_kind) && d.examples.length > 0);
+    const filteredDevices = devices.filter((d) =>
+        thingpedia && dataset ? !blackList.includes(d.primary_kind) && d.examples.length > 0 : d.examples.length > 0
+    );
     const sampledDevices = choose(filteredDevices, sample || filteredDevices.length, rng);
     return sampledDevices.sort((a, b) => {
         return a.name.localeCompare(b.name);
