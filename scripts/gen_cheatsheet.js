@@ -227,6 +227,10 @@ async function main() {
             defaultValue: 'almond is awesome',
             help: 'Random seed'
         });
+        parser.addArgument('--suffix', {
+            required: false,
+            help: 'The suffix of generated files (for generating domain-specific cheatsheet).'
+        });
         const args = parser.parseArgs();
         const locale = args.locale;
         const outputpath = path.resolve(args.output);
@@ -252,24 +256,25 @@ async function main() {
                 }
             }
 
-            await genTex(devices, outputpath, i);
+            const suffix = '-' + (args.suffix ? args.suffix : '') + i;
+            await genTex(devices, outputpath, suffix);
             await execCommand('latexmk',
-                ['-pdf', `cheatsheet${i}.tex`], {
+                ['-pdf', `cheatsheet${suffix}.tex`], {
                 cwd: outputpath,
                 stdio: ['ignore', 'inherit', 'inherit'],
             });
             await execCommand('pdfcrop',
-                ['--margins', '25', `cheatsheet${i}.pdf`], {
+                ['--margins', '25', `cheatsheet${suffix}.pdf`], {
                 cwd: outputpath,
                 stdio: ['ignore', 'inherit', 'inherit']
             });
             await execCommand('convert',
-                ['-density', '100', `cheatsheet${i}-crop.pdf`, `cheatsheet${i}.png`], {
+                ['-density', '100', `cheatsheet${suffix}-crop.pdf`, `cheatsheet${suffix}.png`], {
                 cwd: outputpath,
                 stdio: ['ignore', 'inherit', 'inherit']
             });
             await execCommand('rm',
-                [`cheatsheet${i}.pdf`, `cheatsheet${i}.aux`, `cheatsheet${i}.fdb_latexmk`, `cheatsheet${i}.fls`, `cheatsheet${i}.log`], {
+                [`cheatsheet${suffix}.pdf`, `cheatsheet${suffix}.aux`, `cheatsheet${suffix}.fdb_latexmk`, `cheatsheet${suffix}.fls`, `cheatsheet${suffix}.log`], {
                 cwd: outputpath,
                 stdio: ['ignore', 'inherit', 'inherit']
             });
