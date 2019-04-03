@@ -17,28 +17,37 @@ const db = require('./db');
 const exampleModel = require('../model/example');
 const deviceModel = require('../model/device');
 
+const TpClient = require('genie-toolkit/tool/lib/file_thingpedia_client');
+
 const kindMap = {
     'thermostat': 'com.nest.thermostat',
     'light-bulb': 'com.hue',
     'security-camera': 'com.nest.security_camera',
     'car': 'com.tesla.car',
+    'com.tumblr.blog': 'com.tumblr'
 };
 
-function getCheatsheet(language) {
-    return db.withClient(async (dbClient) => {
-        const [devices, examples] = await Promise.all([
-            deviceModel.getAllApproved(dbClient, null),
-            exampleModel.getCheatsheet(dbClient, language)
-        ]);
+const useWhiteList = false;
 
+const whiteList = [
+    'com.google.drive',
+    'com.dropbox',
+    'com.live.onedrive'
+];
+
+function getCheatsheet(language, thingpedia, dataset, rng = Math.random) {
+    return loadThingpedia(language, thingpedia, dataset, rng).then(([devices, examples]) => {
         const deviceMap = new Map;
+        devices = devices.filter((d) => { return !(useWhiteList && !whiteList.includes(d.primary_kind)); });
         devices.forEach((d, i) => {
             d.examples = [];
             deviceMap.set(d.primary_kind, i);
         });
 
-        var dupes = new Set;
+        const dupes = new Set;
         examples.forEach((ex) => {
+            if (useWhiteList && whiteList.includes(ex.kind))
+                return;
             if (dupes.has(ex.target_code) || !ex.target_code)
                 return;
             dupes.add(ex.target_code);
@@ -54,11 +63,26 @@ function getCheatsheet(language) {
             }
         });
 
+
         for (let device of devices)
             device.examples = sortAndChunkExamples(device.examples);
 
         return devices;
     });
+}
+
+function loadThingpedia(language, thingpedia, dataset, rng) {
+    if (thingpedia && dataset) {
+        const tpClient = new TpClient(language, thingpedia, dataset);
+        return tpClient.genCheatsheet(true, { rng });
+    } else {
+        return db.withClient((dbClient) => {
+            return Promise.all([
+                deviceModel.getAllApproved(dbClient, null),
+                exampleModel.getCheatsheet(dbClient, language)
+            ]);
+        });
+    }
 }
 
 function rowsToExamples(rows, { editMode = false}) {
@@ -142,6 +166,8 @@ function sortAndChunkExamples(rows) {
 
         if (ex.utterance.startsWith(','))
             ex.utterance = ex.utterance.substring(1);
+        else if (ex.type === 'query')
+            ex.utterance = 'get ' + ex.utterance;
         ex.utterance_chunks = splitParams(ex.utterance.trim());
 
         const match = /^\s*(stream|query|action|program)/.exec(ex.target_code);
@@ -151,6 +177,7 @@ function sortAndChunkExamples(rows) {
             continue;
         }
         ex.type = match[1];
+
         switch (match[1]) {
         case 'stream':
             trigger_ex.push(ex);

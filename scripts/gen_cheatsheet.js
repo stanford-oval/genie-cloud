@@ -15,20 +15,59 @@ const util = require('util');
 const path = require('path');
 const Url = require('url');
 const child_process = require('child_process');
+const argparse = require('argparse');
 const Tp = require('thingpedia');
+const seedrandom = require('seedrandom');
 
 const db = require('../util/db');
 const DatasetUtils = require('../util/dataset');
 const { clean } = require('../util/tokenize');
+const { choose } = require('../util/random');
+
+const { detokenize } = require('genie-toolkit/lib/i18n/american-english');
 
 const Config = require('../config');
+const texOptions = [
+    // height is set to a large number since the whitespace will be trimmed afterwards
+    { height: 50, width: 22, ncols: 6 }, // dense landscape mode
+    { height: 50, width: 9,  ncols: 3 }  // sparse portrait mode
+];
 
-async function genTex(devices, path) {
+const blackList = [
+    'org.thingpedia.builtin.thingengine.builtin',
+    'com.xkcd',
+    'com.phdcomics',
+    'com.github',
+    'org.thingpedia.rss',
+    'org.thingpedia.demo.coffee'
+];
+const nameMap = {
+    'com.yandex.translate': 'Translate',
+    'org.thingpedia.weather': 'Weather',
+    'gov.nasa': 'NASA',
+    'com.lg.tv.webos2': 'LG TV',
+    'org.thingpedia.icalendar': 'Calendar',
+    'com.fitbit': 'Fitbit'
+};
+
+async function getDevices(locale, thingpedia, dataset, sample, rng) {
+    const devices = await DatasetUtils.getCheatsheet(locale, thingpedia, dataset, rng);
+    const filteredDevices = devices.filter((d) =>
+        thingpedia && dataset ? !blackList.includes(d.primary_kind) && d.examples.length > 0 : d.examples.length > 0
+    );
+    const sampledDevices = choose(filteredDevices, sample || filteredDevices.length, rng);
+    return sampledDevices.sort((a, b) => {
+        return a.name.localeCompare(b.name);
+    });
+}
+
+async function genTex(devices, path, suffix='') {
     let tex;
+    let options = texOptions[1];
     tex = '\\documentclass[10pt]{article}\n'
         // we want the base font to be 5pt, but \documentclass{article}
         // does not like that, so we just double the paper size
-        + '\\usepackage[paperheight=17in,paperwidth=22in,margin=25px]{geometry}\n'
+        + `\\usepackage[paperheight=${options.height}in,paperwidth=${options.width}in,margin=25px]{geometry}\n`
         + '\\usepackage{graphicx}\n'
         + '\\usepackage[default]{lato}\n'
         + '\\usepackage{multicol}\n'
@@ -40,14 +79,11 @@ async function genTex(devices, path) {
         + '\\newcommand{\\DO}[0]{\\textcolor[rgb]{0.05, 0.5, 0.06}{\\textsc{do: }}}\n'
         + '\\begin{document}\n'
         + '\\pagestyle{empty}\n'
-        + '\\begin{multicols}{6}\n';
+        + `\\begin{multicols}{${options.ncols}}\n`;
 
-    const icons = [];
     devices.forEach((d) => {
         if (d.examples.length === 0)
             return;
-
-        icons.push(d.primary_kind);
         tex += formatDeviceName(d);
         for (let ex of d.examples)
             tex += formatExample(ex);
@@ -57,12 +93,14 @@ async function genTex(devices, path) {
 
     tex += '\\end{multicols}\n' + '\\end{document}\n';
 
-    await util.promisify(fs.writeFile)(path + '/cheatsheet.tex', tex);
-
-    return icons;
+    await util.promisify(fs.writeFile)(path + `/cheatsheet${suffix}.tex`, tex);
 }
 
 function formatDeviceName(d) {
+    d.name = nameMap[d.primary_kind] || d.name;
+    d.name = d.name.replace('account', '');
+    d.name = d.name.split(' ').map((s) => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
+
     let tex = `\\includegraphics[height=12px]{icons/{${d.primary_kind}}.png} `;
     tex += '{\\bf\\large ' + d.name + '}\n\n';
     tex += '\\vspace{0.1em}';
@@ -78,17 +116,34 @@ function formatExample(ex) {
     else if (ex.type === 'action')
         buf += '\\DO ';
 
+    let utterance = '';
     for (let chunk of ex.utterance_chunks) {
         if (typeof chunk === 'string') {
-            buf += chunk;
+            utterance += chunk;
         } else {
             const [match, param1, param2, ] = chunk;
+
+            let param = param1 || param2 ;
+            if (param === 'p_picture_url')
+                param = 'picture';
+            else if (param.endsWith('_id'))
+                param = param.substring(0, param.length-3);
+            else if (param === 'p_to')
+                param = 'recipient';
+
             if (match === '$$')
-              buf += '\\$';
+              utterance += '\\$';
             else
-              buf += '\\_\\_\\_\\_ {\\small (' + clean(param1||param2) + ')}';
+              utterance += '\\_\\_\\_\\_ {\\small (' + clean(param) + ')}';
         }
     }
+    let sentence = '';
+    let prevtoken = null;
+    for (let token of utterance.split(' ')) {
+        sentence = detokenize(sentence, prevtoken, token);
+        prevtoken = token;
+    }
+    buf += sentence;
 
     buf += '\n\n';
     return buf;
@@ -137,33 +192,96 @@ async function execCommand(command, argv, options) {
 
 async function main() {
     try {
-        const language = process.argv[2] || 'en';
-        const outputpath = path.resolve(process.argv[3] || './cheatsheet');
+        const parser = new argparse.ArgumentParser({
+            addHelp: true,
+            description: 'A tool to generate cheatsheet in pdf format.'
+        });
+        parser.addArgument(['-l', '--locale'], {
+            required: false,
+            defaultValue: 'en',
+            help: 'The language to generate (defaults to \'en\', English)'
+        });
+        parser.addArgument(['-o', '--output'], {
+            required: false,
+            defaultValue: './cheatsheet',
+            help: 'The output directory for the tex file.'
+        });
+        parser.addArgument(['--thingpedia'], {
+            required: false,
+            help: 'Path to JSON file containing signature, type and mixin definitions.'
+        });
+        parser.addArgument(['--dataset'], {
+            required: false,
+            help: 'Path to file containing primitive templates, in ThingTalk syntax.'
+        });
+        parser.addArgument(['--count'], {
+            required: false,
+            defaultValue: 1,
+            type: 'int',
+            help: 'The number of cheatsheet to generate (when generating from files, the ' +
+                'cheatsheet will randomly pick an utterance for each example).'
+        });
+        parser.addArgument(['--sample'], {
+            required: false,
+            type: 'int',
+            help: 'The number of devices on the cheatsheet.'
+        });
+        parser.addArgument('--random-seed', {
+            defaultValue: 'almond is awesome',
+            help: 'Random seed'
+        });
+        parser.addArgument('--suffix', {
+            required: false,
+            help: 'The suffix of generated files (for generating domain-specific cheatsheet).'
+        });
+        const args = parser.parseArgs();
+        const locale = args.locale;
+        const outputpath = path.resolve(args.output);
         await safeMkdir(outputpath);
 
-        const devices = await DatasetUtils.getCheatsheet(language);
-        const icons = await genTex(devices, outputpath);
+        const rng = seedrandom(args.random_seed);
 
-        await safeMkdir(`${outputpath}/icons`);
+        for (let i = 0; i < args.count; i++) {
+            const devices = await getDevices(locale, args.thingpedia, args.dataset, args.sample, rng);
+            const icons = devices.map((d) => d.primary_kind);
+            await safeMkdir(`${outputpath}/icons`);
 
-        const baseUrl = Url.resolve(Config.SERVER_ORIGIN, Config.CDN_HOST);
-        for (let icon of icons) {
-            const iconfile = `${outputpath}/icons/${icon}.png`;
-            if (fs.existsSync(iconfile))
-                continue;
-            const url = Url.resolve(baseUrl, `/icons/${icon}.png`);
-            try {
-                await saveFile(url, iconfile);
-            } catch(e) {
-                console.error(`Failed to download icon for ${icon}`);
+            const baseUrl = Url.resolve(Config.SERVER_ORIGIN, Config.CDN_HOST);
+            for (let icon of icons) {
+                const iconfile = `${outputpath}/icons/${icon}.png`;
+                if (fs.existsSync(iconfile))
+                    continue;
+                const url = Url.resolve(baseUrl, `/icons/${icon}.png`);
+                try {
+                    await saveFile(url, iconfile);
+                } catch(e) {
+                    console.error(`Failed to download icon for ${icon}`);
+                }
             }
-        }
 
-        await execCommand('latexmk',
-            ['-pdf', 'cheatsheet.tex'], {
-            cwd: outputpath,
-            stdio: ['ignore', 'inherit', 'inherit'],
-        });
+            const suffix = '-' + (args.suffix ? args.suffix : '') + i;
+            await genTex(devices, outputpath, suffix);
+            await execCommand('latexmk',
+                ['-pdf', `cheatsheet${suffix}.tex`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit'],
+            });
+            await execCommand('pdfcrop',
+                ['--margins', '25', `cheatsheet${suffix}.pdf`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit']
+            });
+            await execCommand('convert',
+                ['-density', '100', `cheatsheet${suffix}-crop.pdf`, `cheatsheet${suffix}.png`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit']
+            });
+            await execCommand('rm',
+                [`cheatsheet${suffix}.pdf`, `cheatsheet${suffix}.aux`, `cheatsheet${suffix}.fdb_latexmk`, `cheatsheet${suffix}.fls`, `cheatsheet${suffix}.log`], {
+                cwd: outputpath,
+                stdio: ['ignore', 'inherit', 'inherit']
+            });
+        }
     } finally {
         await db.tearDown();
     }
