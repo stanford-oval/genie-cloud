@@ -88,7 +88,7 @@ else
     # sleep until the process is settled
     sleep 30
 
-    # TODO run some tests here
+    node $srcdir/tests/nlp
 fi
 
 kill $inferpid
