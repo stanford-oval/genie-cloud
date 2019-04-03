@@ -16,6 +16,7 @@ const db = require('../util/db');
 const iv = require('../util/input_validation');
 const I18n = require('../util/i18n');
 const exampleModel = require('../model/example');
+const editDistance = require('../util/edit_distance');
 
 const applyCompatibility = require('./compat');
 
@@ -104,11 +105,12 @@ async function query(req, res) {
             score: 'Infinity'
         }];
     } else if (expect === 'MultipleChoice') {
-        // FINISHME MultipleChoice queries
-        result = [{
-            code: ['bookkeeping', 'special', 'special:failed'],
-            score: 'Infinity'
-        }];
+        result = (req.query.choices || []).map((choice, i) => {
+            return {
+                code: ['bookkeeping', 'choice', String(i)],
+                score: -editDistance(tokens, choice.split(' '))
+            };
+        });
     } else {
         exact = model.exact.get(tokens);
     }
