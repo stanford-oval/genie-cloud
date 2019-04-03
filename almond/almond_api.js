@@ -125,7 +125,7 @@ module.exports = class AlmondApi {
                 $icon: icon
             };
 
-            let code = program.prettyprint();
+            let code = program.prettyprint(false);
             return this._engine.apps.loadOneApp(code, appMeta, undefined, undefined,
                                                 name, description, true);
         }).then((app) => {
