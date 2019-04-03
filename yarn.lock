@@ -6224,7 +6224,7 @@ text-table@^0.2.0:
 
 "thingengine-core@github:Stanford-Mobisocial-IoT-Lab/thingengine-core":
   version "1.3.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/tar.gz/c38fad45e09a6e1f56bff874bb0598b8a9fcef19"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/tar.gz/9c64aa737a6f453999c43dd3f00219d89abc91ab"
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.1"
@@ -6237,7 +6237,7 @@ text-table@^0.2.0:
     thingpedia "^2.2.1"
     thingpedia-client "^0.2.0"
     thingpedia-discovery "^1.0.0"
-    thingtalk "~1.5.0"
+    thingtalk "github:Stanford-Mobisocial-IoT-Lab/thingtalk"
     uuid "^3.1.0"
     ws "^6.0.0"
 
