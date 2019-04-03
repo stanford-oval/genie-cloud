@@ -652,9 +652,9 @@ atob@^2.1.1:
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
 aws-sdk@^2.2.48:
-  version "2.434.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.434.0.tgz#8df8634335a8ba197e2d08448c33bc884fe0d2ab"
-  integrity sha512-RoMEKsY5XHxdJCyYC80OPPNRJHfnaNGxAD8fsRpbRmkzhBncK8ukHrw3qPZFALrMlp+QTO5Wx/RaAI217QNNSw==
+  version "2.435.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.435.0.tgz#f1f10a9776ad3ac4e658f7d9834aa56fcac93f51"
+  integrity sha512-cXHe3V7Syv2JT/0xMO2xPO9T0Y1LZ5ccXeb7ZB/q54xzP1JIv0d7KIVIAoRx8gGn8VZTAd/6UV/D+r/dKTo9+g==
   dependencies:
     buffer "4.9.1"
     events "1.1.1"
@@ -2647,15 +2647,15 @@ gcp-metadata@^0.6.1, gcp-metadata@^0.6.3:
     extend "^3.0.1"
     retry-axios "0.3.2"
 
-"genie-toolkit@github:Stanford-Mobisocial-IoT-Lab/genie-toolkit#wip/evaluate-server":
+"genie-toolkit@github:Stanford-Mobisocial-IoT-Lab/genie-toolkit":
   version "0.1.1"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit/tar.gz/f22901a185649879aae28a6bea3757b9b3eca080"
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit/tar.gz/dd7f38339da019145e76bc165a2a2d8ac0a623bf"
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
     csv "^5.0.0"
     mmap-io "^1.0.0"
-    seedrandom "^2.4.4"
+    seedrandom "^3.0.0"
     shuffle-array "^1.0.1"
     sockaddr "^1.0.1"
     thingpedia "^2.3.3"
@@ -4094,9 +4094,9 @@ mime@1.4.1:
   integrity sha512-KI1+qOZu5DcW6wayYHSzR/tXKCDC5Om4s1z2QJjDULzLcmf3DvzS7oluY4HCTrc+9FiKmWUgeNLg7W3uIQvxtQ==
 
 mime@^2.2.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/mime/-/mime-2.4.0.tgz#e051fd881358585f3279df333fe694da0bcffdd6"
-  integrity sha512-ikBcWwyqXQSHKtciCcctu9YfPbFYZ4+gbHEmE0Q8jzcTYQg5dHCr3g2wwAZjPoJfQVXZq6KXAjpXOTf5/cjT7w==
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/mime/-/mime-2.4.1.tgz#19eb7357bebbda37df585b14038347721558c715"
+  integrity sha512-VRUfmQO0rCd3hKwBymAn3kxYzBHr3I/wdVMywgG3HhXOwrCQgN84ZagpdTm2tZ4TNtwsSmyJWYO88mb5XvzGqQ==
 
 mimic-fn@^1.0.0:
   version "1.2.0"
@@ -5596,11 +5596,6 @@ sax@>=0.6.0, sax@^1.2.4:
   resolved "https://registry.yarnpkg.com/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
 
-seedrandom@^2.4.4:
-  version "2.4.4"
-  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.4.tgz#b25ea98632c73e45f58b77cfaa931678df01f9ba"
-  integrity sha512-9A+PDmgm+2du77B5i0Ip2cxOqqHjgNxnBgglxLcX78A2D6c2rTo61z4jnVABpF4cKeDMDG+cmXXvdnqse2VqMA==
-
 seedrandom@^3.0.0:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-3.0.1.tgz#eb3dde015bcf55df05a233514e5df44ef9dce083"
@@ -6227,10 +6222,9 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-thingengine-core@~1.3.0:
+"thingengine-core@github:Stanford-Mobisocial-IoT-Lab/thingengine-core":
   version "1.3.0"
-  resolved "https://registry.yarnpkg.com/thingengine-core/-/thingengine-core-1.3.0.tgz#20a23c16e111ea08d37a1291070c877173cfcdd1"
-  integrity sha512-wbqkg2GpvIsUBSVgxYmqpOEeoaCqZG7qwp9LLUSbmkD0YMjLl98d5WXftSXBF91CG9X+y0EgBClbD10g/sSnbg==
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/tar.gz/c38fad45e09a6e1f56bff874bb0598b8a9fcef19"
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.1"
@@ -6276,10 +6270,9 @@ thingpedia@^2.2.1, thingpedia@^2.2.2, thingpedia@^2.3.0, thingpedia@^2.3.3:
     tmp "0.0.33"
     xml2js "^0.4.17"
 
-thingtalk@^1.4.1, thingtalk@^1.4.2, thingtalk@~1.5.0:
+thingtalk@^1.4.1, thingtalk@^1.4.2, "thingtalk@github:Stanford-Mobisocial-IoT-Lab/thingtalk", thingtalk@~1.5.0:
   version "1.5.2"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.5.2.tgz#9a1e6114e064678dec0ebb32c972c6e92d79faa2"
-  integrity sha512-IX1wEfK2nUbJiV69ioDyP+k2j6V1YXQWEfmuDZoWz4n9Ej3/NQz/CuBzU53m5kby12Wj+xmYVMROZNorjCbKMg==
+  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingtalk/tar.gz/3104ffe8f88dfdf1858b766af94f76fcd7632207"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
