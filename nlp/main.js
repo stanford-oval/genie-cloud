@@ -10,6 +10,8 @@
 // See COPYING for details
 "use strict";
 
+const Q = require('q');
+Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
 
 const express = require('express');
@@ -59,14 +61,14 @@ class NLPInferenceServer {
             const modelspecs = await modelsModel.getAll(dbClient);
             for (let modelspec of modelspecs) {
                 const model = new NLPModel(modelspec.language, modelspec.tag, modelspec.owner, modelspec.access_token);
-                await model.load();
+                await model.load(dbClient);
                 this._models.set(model.id, model);
             }
 
             for (let locale of I18n.LANGS) {
                 let language = locale.split('-')[0];
                 const model = new NLPModel(language, 'default', null, null);
-                await model.load();
+                await model.load(dbClient);
                 this._models.set(model.id, model);
             }
         });

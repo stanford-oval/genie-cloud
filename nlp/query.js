@@ -111,6 +111,7 @@ async function query(req, res) {
                 score: -editDistance(tokens, choice.split(' '))
             };
         });
+        result.sort((a, b) => b.score - a.score);
     } else {
         exact = model.exact.get(tokens);
     }
@@ -132,7 +133,7 @@ async function query(req, res) {
     }
 
     if (exact !== null)
-        result = exact.concat(result);
+        result = exact.map((code) => ({ code, score: 'Infinity' })).concat(result);
 
     applyCompatibility(result, thingtalk_version);
     res.set("Cache-Control", "no-store,must-revalidate");

@@ -9,7 +9,9 @@
 // See COPYING for details
 "use strict";
 
-require('./polyfill');
+require('../polyfill');
+process.on('unhandledRejection', (up) => { throw up; });
+process.env.TEST_MODE = '1';
 
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
@@ -17,32 +19,17 @@ const Gettext = require('node-gettext');
 
 const Almond = require('almond-dialog-agent');
 const Intent = Almond.Intent;
-const ValueCategory = Almond.ValueCategory;
-const ParserClient = Almond.ParserClient;
+// FIXME
+const ValueCategory = require('almond-dialog-agent/lib/semantic').ValueCategory;
+const ParserClient = require('./parserclient');
 
 const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
+const db = require('../../util/db');
 const Config = require('../../config');
 
 const gettext = new Gettext();
 gettext.setLocale('en-US');
 
-class MockPreferences {
-    constructor() {
-        this._store = {};
-    }
-
-    get(name) {
-        return this._store[name];
-    }
-
-    set(name, value) {
-        console.log(`preferences set ${name} = ${value}`);
-        this._store[name] = value;
-    }
-}
-
-const mockPrefs = new MockPreferences();
-mockPrefs.set('sabrina-store-log', 'no');
 const schemas = new ThingTalk.SchemaRetriever(new AdminThingpediaClient(), null, true);
 
 function candidateToString(cand) {
@@ -58,20 +45,16 @@ function candidateToString(cand) {
 
 async function testEverything() {
     const TEST_CASES = require('./parser_test_cases');
-    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US', mockPrefs);
+    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
 
     for (let i = 0; i < TEST_CASES.length; i++) {
         const test = TEST_CASES[i];
         const analyzed = await parser.sendUtterance(test);
         assert(Array.isArray(analyzed.candidates));
-        assert(analyzed.candidates.length > 0);
 
+        // everything should typecheck because the server filters server side
         let candidates = await Promise.all(analyzed.candidates.map(async (candidate, beamposition) => {
-            try {
-                return await Intent.parse({ code: candidate.code, entities: analyzed.entities }, schemas, analyzed, null, null);
-            } catch (e) {
-                return null;
-            }
+            return Intent.parse({ code: candidate.code, entities: analyzed.entities }, schemas, analyzed, null, null);
         }));
 
         candidates = candidates.filter((c) => c !== null);
@@ -84,7 +67,7 @@ async function testEverything() {
 }
 
 function testExpect() {
-    const parser = new ParserClient(process.env.SEMPRE_URL, 'en-US', mockPrefs);
+    const parser = new ParserClient(process.env.SEMPRE_URL, 'en-US');
 
     return Promise.all([
         parser.sendUtterance('42', ValueCategory.Number),
@@ -95,7 +78,7 @@ function testExpect() {
 }
 
 async function testMultipleChoice(text, expected) {
-    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US', mockPrefs);
+    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
 
     const analyzed = await parser.sendUtterance(text, ValueCategory.MultipleChoice,
         [{ title: 'choice number one' }, { title: 'choice number two' }]);
@@ -105,16 +88,16 @@ async function testMultipleChoice(text, expected) {
 }
 
 async function testOnlineLearn() {
-    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US', mockPrefs);
+    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
 
-    await parser.onlineLearn('get a cat', ['now', '=>', '@com.thecatapi.get', '=>', 'notify'], 'no');
+    await parser.onlineLearn('send sms', ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms'], 'no');
 
-    await parser.onlineLearn('abcdef', ['now', '=>', '@com.thecatapi.get', '=>', 'notify'], 'online');
+    await parser.onlineLearn('abcdef', ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms'], 'online');
     const analyzed = await parser.sendUtterance('abcdef');
 
     assert.deepStrictEqual(analyzed.candidates[0], {
         score: 'Infinity',
-        code: ['now', '=>', '@com.thecatapi.get', '=>', 'notify']
+        code: ['now', '=>', '@org.thingpedia.builtin.thingengine.phone.send_sms']
     });
 }
 
@@ -124,6 +107,8 @@ async function main() {
     await testMultipleChoice('choice number one', '0');
     await testMultipleChoice('choice number two', '1');
     await testOnlineLearn();
+
+    await db.tearDown();
 }
 module.exports = main;
 if (!module.parent)

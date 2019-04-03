@@ -75,7 +75,8 @@ module.exports = class ExactMatcher {
     }
 
     get(utterance) {
-        utterance = utterance.split(' ');
+        if (typeof utterance === 'string')
+            utterance = utterance.split(' ');
 
         let results = this._trie.search(utterance);
         if (results === null)

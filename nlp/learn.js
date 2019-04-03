@@ -74,7 +74,7 @@ async function learn(req, res) {
         res.status(400).json({ error: 'Invalid ThingTalk', detail: e.message });
         return;
     }
-
+    const target_code = sequence.join(' ');
     const preprocessed = tokenized.tokens.join(' ');
 
     if (store === 'no') {
@@ -114,7 +114,8 @@ async function learn(req, res) {
             preprocessed: preprocessed,
             type: store,
             flags: (trainable ? 'training,exact' : ''),
-            target_code: sequence,
+            target_code: target_code,
+            target_json: '',
             owner: ownerId,
             like_count: 0
         });
@@ -128,7 +129,7 @@ async function learn(req, res) {
                 type: store,
                 flags: 'training,exact',
                 preprocessed: preprocessed,
-                target_code: sequence,
+                target_code: target_code,
             });
         }
         return ex.id;
@@ -137,7 +138,7 @@ async function learn(req, res) {
         return;
 
     if (trainable)
-        model.exact.add(preprocessed, sequence);
+        model.exact.add(preprocessed, target_code);
 
     res.status(200).json({ result: 'Learnt successfully', example_id: exampleId });
 }
