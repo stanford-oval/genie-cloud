@@ -1,4 +1,4 @@
-# Tutorial 3: LinkedIn
+# Tutorial 3: Class Website Monitor
 
 In this tutorial, we will create a device which monitor the changes of a class website. 
 We use Stanford CS294S website as an example and allow student to use this device to monitor updates 
