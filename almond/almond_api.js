@@ -364,7 +364,7 @@ module.exports = class AlmondApi {
         const ok = await this._processPrimitives(program, primitives, result);
         if (!ok)
             return null;
-        this._slotFill(program, primitives, result);
+        this._slotFill(program, result);
         result.code = program.prettyprint(true);
         return result;
     }
