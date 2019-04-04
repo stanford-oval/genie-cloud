@@ -30,6 +30,8 @@ const { parseFlags, makeFlags } = require('./flag_utils');
 
 const db = require('../util/db');
 
+const MAX_SPAN_LENGTH = 10;
+
 // FIXME
 const GENIE_FILE = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit/languages/en/thingtalk.genie');
 
@@ -254,6 +256,9 @@ class DatasetUpdater {
             locale: this._language,
             flags: {
                 turking: false,
+                policies: true,
+                remote_programs: true,
+                aggregation: true,
             },
             maxDepth: this._options.maxDepth,
             debug: false
@@ -315,6 +320,8 @@ class DatasetUpdater {
 
         this._augmenter = new Genie.DatasetAugmenter(this._schemas, constProvider, {
             quotedProbability: this._options.quotedProbability,
+            untypedStringProbability: 0,
+            maxSpanLength: MAX_SPAN_LENGTH,
             ppdbProbabilitySynthetic: this._options.ppdbProbabilitySynthetic,
             ppdbProbabilityParaphrase: this._options.ppdbProbabilityParaphrase,
 
