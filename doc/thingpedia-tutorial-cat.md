@@ -109,5 +109,6 @@ Once the banner disappears,
 you can go to [My Almond](/me) and type in `get a cat picture` to try out your device.
 
 Note that at this point, the natural language support is very limited. 
+You can only use the exact sentence you have put in `dataset.tt` (queries need a `get` in front as in `get a cat picture`). 
 If you want to train the full model, click on the `Start training` button at the bottom 
-of the details page of your device to start a new training job. The training will take up to 15 hours.   
+of the details page of your device to start a new training job. The training will take up to 27 hours.   

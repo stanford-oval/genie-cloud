@@ -1,6 +1,6 @@
 # Tutorial 3: LinkedIn
 
-In the last two tutorials, we have worked on two public services, New York Times and The Cat API.
+In the last three tutorials, we have worked on public services and websites.
 In this tutorial, we will create a personal device: LinkedIn.
 It allows users to link their own LinkedIn accounts by OAuth, query their own LinkedIn
 profiles, and publish posts on LinkedIn.
@@ -194,4 +194,4 @@ Then try commands such as `get my LinkedIn profile`, `update my LinkedIn`.
 
 Note that at this point, the natural language support is very limited. 
 If you want to train the full model, click on the `Start training` button at the bottom 
-of the details page of your device to start a new training job. The training will take up to 15 hours.   
+of the details page of your device to start a new training job. The training will take up to 27 hours.   
