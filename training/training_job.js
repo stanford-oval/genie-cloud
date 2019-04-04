@@ -172,7 +172,7 @@ async function taskUpdatingDataset(job) {
 async function taskReloadingExact(job) {
     // reload the exact matches now that the synthetic set has been updated
     try {
-        await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/@${job.modelTag}/${job.language}/admin/exact/reload?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
+        await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/exact/@${job.modelTag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
             dataContentType: 'application/x-www-form-urlencoded'
         });
     } catch(e) {
