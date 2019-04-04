@@ -100,7 +100,7 @@ module.exports = {
         const classes = [];
         for (let row of rows)
             classes.push(makeSchemaClassDef(row.kind, row, isMeta));
-        return Ast.Input.Meta(classes, []);
+        return new Ast.Input.Library(classes, []);
     },
 
     classDefToSchema(classDef) {
