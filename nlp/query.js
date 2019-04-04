@@ -124,7 +124,7 @@ async function query(req, res) {
 
     if (store !== 'no' && expect !== 'MultipleChoice' && tokens.length > 0) {
         await db.withClient((dbClient) => {
-            exampleModel.logUtterance({
+            return exampleModel.logUtterance(dbClient, {
                 language: model.locale,
                 preprocessed: tokens.join(' '),
                 target_code: result.length > 0 ? (result[0]['code'].join(' ')) : ''
