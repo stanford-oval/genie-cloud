@@ -24,6 +24,7 @@ const Prometheus = require('prom-client');
 const SendMail = require('../util/sendmail');
 const db = require('../util/db');
 const Metrics = require('../util/metrics');
+const modelsModel = require('../model/nlp_models');
 
 const Job = require('./training_job');
 
@@ -58,8 +59,6 @@ class TrainingDaemon {
             };
         }
         this._dependencies = new Map;
-
-        this._models = {};
     }
 
     _addDependency(job) {
@@ -71,14 +70,13 @@ class TrainingDaemon {
             this._dependencies.set(job.dependsOn, [job]);
     }
 
-    async _reloadModels() {
+    async _reloadModels(languageTag) {
         const rows = await db.withClient((dbClient) => {
-            return db.selectAll(dbClient, `select * from models`);
+            return modelsModel.getForLanguage(dbClient, languageTag);
         });
         const result = {};
         for (let row of rows)
             result[row.tag] = JSON.parse(row.for_devices);
-        this._models = result;
         return result;
     }
 
@@ -90,8 +88,6 @@ class TrainingDaemon {
     }
 
     async loadExistingJobs() {
-        await this._reloadModels();
-
         try {
             let data = fs.readFileSync('jobs.json');
             let parsed = JSON.parse(data);
@@ -264,7 +260,7 @@ Check the logs for further information.`
         let language = jobTemplate.language || 'en';
         let jobType = jobTemplate.jobType || 'train';
 
-        const models = await this._reloadModels();
+        const models = await this._reloadModels(language);
 
         if (jobType === 'train' || jobType === 'train-only') {
             let dependsOn = null;

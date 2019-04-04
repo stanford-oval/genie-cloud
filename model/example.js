@@ -67,6 +67,12 @@ function create(client, ex) {
 
     return db.insertOne(client, 'insert into example_utterances set ?', [ex]);
 }
+function createReplaced(client, ex) {
+    if (!ex.type)
+        ex.type = 'thingpedia';
+
+    return db.insertOne(client, 'insert into replaced_example_utterances set ?', [ex]);
+}
 
 module.exports = {
     getAll(client) {
@@ -326,6 +332,10 @@ module.exports = {
     createMany,
     createManyReplaced,
     create,
+    createReplaced,
+    logUtterance(client, data) {
+        return db.insertOne(client, `insert into utterance_log set ?`, [data]);
+    },
 
     deleteMany(client, ids) {
         if (ids.length === 0)
@@ -382,6 +392,11 @@ module.exports = {
             language = ? and type = ? and not find_in_set('replaced', flags)
              and not find_in_set('augmented', flags) order by id desc limit ?,?`,
             [language, type, start, end]);
+    },
+    getExact(client, language) {
+        return db.selectAll(client, `select preprocessed,target_code from example_utterances use index (language_flags)
+            where language = ? and find_in_set('exact', flags) and not is_base and preprocessed <> ''
+            order by type asc, id asc`, [language]);
     },
 
     suggest(client, command) {

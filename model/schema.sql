@@ -702,9 +702,14 @@ DROP TABLE IF EXISTS `models`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `models` (
+  `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `tag` varchar(64) COLLATE utf8_bin,
+  `owner` int(11) NOT NULL,
+  `access_token` char(64) COLLATE utf8_bin NULL,
   `for_devices` mediumtext COLLATE utf8_bin NOT NULL,
-  PRIMARY KEY (`tag`)
+  PRIMARY KEY (`language`, `tag`),
+  KEY `owner` (`owner`),
+  CONSTRAINT `models_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -750,6 +755,23 @@ CREATE TABLE `users` (
   KEY `developer_org` (`developer_org`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`developer_org`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+--
+-- Table structure for table `utterance_log`
+--
+
+DROP TABLE IF EXISTS `utterance_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `utterance_log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `language` char(15) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL DEFAULT 'en',
+  `preprocessed` text NOT NULL,
+  `target_code` text CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

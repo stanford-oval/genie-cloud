@@ -189,7 +189,6 @@ async function testMyApiListApps(auth, uniqueId) {
         error: null,
         code:
          '{\n  monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;\n}',
-        slots: { '$icon': 'org.thingpedia.builtin.test' },
         icon: '/download/icons/org.thingpedia.builtin.test.png'
     }]);
 
@@ -200,7 +199,6 @@ async function testMyApiListApps(auth, uniqueId) {
         error: null,
         code:
          '{\n  monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;\n}',
-        slots: { '$icon': 'org.thingpedia.builtin.test' },
         icon: '/download/icons/org.thingpedia.builtin.test.png'
     });
 

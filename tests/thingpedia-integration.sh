@@ -143,7 +143,7 @@ wait
 node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
 
 # now generate the dataset (which will be saved to mysql)
-node $srcdir/training/update-dataset.js -l en -a --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin
+node $srcdir/training/update-dataset.js -l en -a --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin --debug
 
 # download and check
 node $srcdir/training/download-dataset.js -l en --no-quote-free --train train-quoted.tsv --eval eval-quoted.tsv --eval-probability 1.0
@@ -151,13 +151,13 @@ node $srcdir/training/download-dataset.js -l en --quote-free --train train-quote
 
 sha256sum train-quoted.tsv eval-quoted.tsv train-quote-free.tsv eval-quote-free.tsv
 sha256sum -c <<EOF
-6269c4ac8078f60d1d80d553e0cba1a95fc6aa3bd5455b7c1439c4f3cc363832  train-quoted.tsv
+270be18af07f97e4a35cc831b2a10938919a829be093f6ddbea820199b8ad5b3  train-quoted.tsv
 5e8070f97c52581c51ab58736d126e2d8e11adaf8b5737d03b672ac8cec38285  eval-quoted.tsv
-8bad5412afb6da8d610575a38441cac0ed2a4ae8debbacecc035408c33287340  train-quote-free.tsv
-f605df61d8d7f6e86ec9080f3137423de30d2ed3b261a246ae08976a81daa862  eval-quote-free.tsv
+1bc15f8e1347a1ccfdecf2f28185a842ae0a0c6cbba52af7151e076c0861ac4d  train-quote-free.tsv
+f921f152ad30fe768de300d0ec2a796ebccc24775f567e97e6783185fcacac46  eval-quote-free.tsv
 EOF
 
 # now regenerate the dataset incrementally
-node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin
+node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin --debug
 
 rm -rf $workdir

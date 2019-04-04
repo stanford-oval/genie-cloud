@@ -3,6 +3,8 @@
 *.zip
 *.bak
 *-bundle.js
+*.txt.pt
+*.pth
 
 home/
 

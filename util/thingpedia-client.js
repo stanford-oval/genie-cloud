@@ -308,7 +308,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         return Promise.resolve().then(() => _discoveryServer.decode(body));
     }
 
-    _datasetBackwardCompat(rows, convertLetQuery = false) {
+    _datasetBackwardCompat(rows, applyCompat = false) {
         for (let row of rows) {
             if (/^[ \r\n\t\v]*(stream|query|action)[ \r\n\t\v]*(:=|\()/.test(row.target_code)) {
                 // backward compatibility: convert to a declaration
@@ -323,8 +323,12 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
             } else {
                 row.target_code = row.target_code.replace(/^[ \r\n\t\v]*program[ \r\n\t\v]*:=/, '');
             }
-            if (convertLetQuery)
+            if (applyCompat) {
                 row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+query[ \r\n\t\v]/, 'let table ');
+
+                row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+(table|action|stream)[ \r\n\t\v]+x[ \r\n\t\v]*(\(.+\))[ \r\n\t\v]+:=[ \r\n\t\v]+/,
+                    'let $1 x := \\$2 -> ');
+            }
         }
         return rows;
     }

@@ -15,7 +15,6 @@ process.on('unhandledRejection', (up) => { throw up; });
 
 const assert = require('assert');
 const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
 
 const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
@@ -240,12 +239,12 @@ function checkExamples(generated, expected) {
         uniqueIds.add(gen.id);
 
         delete gen.id;
-        // the resulting code should parse as a program correctly
-        // this is a necessary but insufficient condition because
-        // we're linking against the newer thingtalk library,
-        // which means we will succeed even if the compat code
-        // does not kick in
-        ThingTalk.Grammar.parse(gen.target_code);
+
+        // we cannot parse backward compatible code...
+        assert(gen.target_code.startsWith('let table x :=') ||
+               gen.target_code.startsWith('let action x :=') ||
+               gen.target_code.startsWith('let stream x :='));
+
         //assert.deepStrictEqual(gen.target_code,
         //    expectMap.get(gen.utterance).program);
 
@@ -266,7 +265,10 @@ function checkExamplesByKey(generated, key) {
         assert.strictEqual(typeof gen.preprocessed, 'string');
         assert.strictEqual(typeof gen.utterance, 'string');
         assert.strictEqual(typeof gen.target_code, 'string');
-        ThingTalk.Grammar.parse(gen.target_code);
+        // we cannot parse backward compatible code...
+        assert(gen.target_code.startsWith('let table x :=') ||
+               gen.target_code.startsWith('let action x :=') ||
+               gen.target_code.startsWith('let stream x :='));
         assert.strictEqual(typeof gen.click_count, 'number');
         assert(gen.click_count >= 0);
     }
