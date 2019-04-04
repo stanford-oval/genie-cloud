@@ -234,8 +234,6 @@ function checkExamples(generated, expected) {
         expectMap.set(exp.utterance, exp);
     }
 
-    console.log(generated);
-
     for (let gen of generated) {
         assert(!uniqueIds.has(gen.id), `duplicate id ${gen.id}`);
         uniqueIds.add(gen.id);
