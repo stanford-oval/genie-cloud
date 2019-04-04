@@ -40,8 +40,8 @@ workdir=`realpath $workdir`
 on_error() {
     test -n "$inferpid" && kill $inferpid
     inferpid=
-    test -n "$trainpid" && kill $trainpid
-    trainpid=
+    test -n "$tokenizerpid" && kill $tokenizerpid
+    tokenizerpid=
     wait
 
     cd $oldpwd
@@ -51,6 +51,9 @@ trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
+
+node $srcdir/tests/mock-tokenizer.js &
+tokenizerpid=$!
 
 # set up download directories
 mkdir -p $srcdir/public/download
@@ -93,6 +96,8 @@ fi
 
 kill $inferpid
 inferpid=
+kill $tokenizerpid
+tokenizerpid=
 wait
 
 cd $oldpwd

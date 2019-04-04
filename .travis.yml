@@ -44,7 +44,6 @@ install:
 before_script:
 - mysql -u root -e "create database if not exists thingengine_test; grant all privileges
   on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
-- tests/mock-tokenizer.js &
 script:
 - yarn lint
 - yarn test
