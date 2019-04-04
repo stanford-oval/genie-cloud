@@ -143,7 +143,7 @@ wait
 node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
 
 # now generate the dataset (which will be saved to mysql)
-node $srcdir/training/update-dataset.js -l en -a --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin
+node $srcdir/training/update-dataset.js -l en -a --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin --debug
 
 # download and check
 node $srcdir/training/download-dataset.js -l en --no-quote-free --train train-quoted.tsv --eval eval-quoted.tsv --eval-probability 1.0
@@ -158,6 +158,6 @@ f605df61d8d7f6e86ec9080f3137423de30d2ed3b261a246ae08976a81daa862  eval-quote-fre
 EOF
 
 # now regenerate the dataset incrementally
-node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin
+node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin --debug
 
 rm -rf $workdir

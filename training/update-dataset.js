@@ -261,7 +261,7 @@ class DatasetUpdater {
                 aggregation: true,
             },
             maxDepth: this._options.maxDepth,
-            debug: false
+            debug: this._options.debug,
         };
 
         const generator = new Genie.SentenceGenerator(options);
@@ -324,13 +324,16 @@ class DatasetUpdater {
             maxSpanLength: MAX_SPAN_LENGTH,
             ppdbProbabilitySynthetic: this._options.ppdbProbabilitySynthetic,
             ppdbProbabilityParaphrase: this._options.ppdbProbabilityParaphrase,
+            syntheticExpandFactor: 1,
+            paraphrasingExpandFactor: 30,
+            noQuoteExpandFactor: 10,
 
             ppdbFile: ppdb,
 
             locale: this._language,
             rng: this._rng,
             includeQuotedExample: true,
-            debug: false
+            debug: this._options.debug,
         });
         this._writer = this._augmenter.pipe(new DatabaseInserter(this._language, this._dbClient));
 
@@ -419,7 +422,18 @@ async function main() {
         metavar: 'FRACTION',
         help: 'Fraction of sentences that will not have their quoted parameters replaced',
     });
-
+    parser.addArgument('--debug', {
+        nargs: 0,
+        action: 'storeTrue',
+        help: 'Enable debugging.',
+        defaultValue: false
+    });
+    parser.addArgument('--no-debug', {
+        nargs: 0,
+        action: 'storeFalse',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
     const args = parser.parseArgs();
 
     const updater = new DatasetUpdater(args.language, args.forDevices, {
@@ -430,7 +444,9 @@ async function main() {
         ppdbFile: args.ppdb,
         ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
         ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
-        quotedProbability: args.quoted_fraction
+        quotedProbability: args.quoted_fraction,
+        
+        debug: args.debug
     });
     await updater.run();
 
