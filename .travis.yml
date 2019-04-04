@@ -16,6 +16,7 @@ node_js:
 cache:
   timeout: 900
   directories:
+  - $HOME/.cache/pip
   - tests/embeddings
 before_install:
 - test "$TRAVIS_REPO_SLUG" != "Stanford-Mobisocial-IoT-Lab/almond-cloud" || (openssl
