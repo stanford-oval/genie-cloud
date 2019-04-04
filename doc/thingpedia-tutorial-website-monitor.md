@@ -80,7 +80,7 @@ class @<your-name>.edu.stanford.cs294s {
 
 ## Step 3: provide some natural language examples
 Click on `dataset.tt` on the left panel. 
-Copy the following code to the editor and replace `<your-name>.linkedin` with the 
+Copy the following code to the editor and replace `<your-name>.edu.stanford.cs294s` with the 
 actual device ID:
 ```tt
 dataset @<your-name>.edu.stanford.cs294s language "en" {
