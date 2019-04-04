@@ -96,9 +96,9 @@ router.get('/parse', user.requireScope('user-read'), iv.validateGET({ q: '?strin
 });
 
 function describeApp(app) {
-    return Promise.all([app.uniqueId, app.description, app.error, app.code, app.state, app.icon])
-        .then(([uniqueId, description, error, code, state, icon]) => ({
-            uniqueId, description, error: error, code, slots: state,
+    return Promise.all([app.uniqueId, app.description, app.error, app.code, app.icon])
+        .then(([uniqueId, description, error, code, icon]) => ({
+            uniqueId, description, error: error, code,
             icon: icon ? Config.CDN_HOST + '/icons/' + icon + '.png' : null
         }));
 }
