@@ -13,5 +13,6 @@ which decanlp
 mkdir -p $srcdir/tests/embeddings
 cd $srcdir/tests/embeddings
 
+wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/thingtalk-lm2.pth
 wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/glove.840B.300d.txt.pt
 wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/charNgram.txt.pt
