@@ -447,9 +447,9 @@ module.exports = class Job {
 
         const now = new Date;
         this._progressUpdates.push([now, value]);
-        if (this._progressUpdates.length > 10)
+        if (this._progressUpdates.length > 3)
             this._progressUpdates.shift();
-        if (this._progressUpdates.length === 10) {
+        if (this._progressUpdates.length === 3) {
             let speedSum = 0;
             for (let i = 1; i < this._progressUpdates.length; i++) {
                 const timeDelta = this._progressUpdates[i][0].getTime() - this._progressUpdates[i-1][0].getTime();
@@ -457,7 +457,7 @@ module.exports = class Job {
                 const speed = stepDelta / timeDelta;
                 speedSum += speed;
             }
-            const avgSpeed = speedSum / 9;
+            const avgSpeed = speedSum / 2;
 
             let eta = Math.ceil(now.getTime() + (1 - value) / avgSpeed);
 
