@@ -76,7 +76,7 @@ eval $(node $srcdir/tests/load_test_thingpedia.js)
 
 mkdir -p 'default:en'
 
-wget https://parmesan.stanford.edu/test-models/default/en/current.tar.gz
+wget --no-verbose https://parmesan.stanford.edu/test-models/default/en/current.tar.gz
 tar xvf current.tar.gz -C 'default:en'
 
 PORT=$NLP_PORT node $srcdir/nlp/main.js &
