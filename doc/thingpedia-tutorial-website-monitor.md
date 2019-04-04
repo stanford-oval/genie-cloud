@@ -1,4 +1,4 @@
-# Tutorial 3: Class Website Monitor
+# Tutorial 4: Class Website Monitor
 
 In this tutorial, we will create a device which monitor the changes of a class website. 
 We will use the Stanford CS294S website as an example and allow student to use this device to monitor updates 
@@ -54,8 +54,10 @@ Once the `package.json` is created, you can run `npm install cheerio --save` or 
 install the dependencies, and this will create the `node_modules` folder. 
 
 Now you can create the zip file.
-We recommend to use command line to compress the folder
-`zip -r xx.zip your-folder-name`. 
+We recommend to use command line to compress the folder:
+```bash
+zip -r xx.zip your-folder-name
+```
 Compressing from the right-click menu in Mac will create a new folder which 
 makes the system fail to find the files in the root directory.
 
@@ -68,7 +70,7 @@ class @<your-name>.edu.stanford.cs294s {
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
-  monitorable query slides(out link: Entity(tt:url))
+  monitorable list query slides(out link: Entity(tt:url))
   #_[canonical="cs294s slides"]
   #_[confirmation="cs294s sides"]
   #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${link}"}]]

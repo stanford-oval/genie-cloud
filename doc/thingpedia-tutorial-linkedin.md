@@ -1,6 +1,6 @@
 # Tutorial 3: LinkedIn
 
-In the last three tutorials, we have worked on public services and websites.
+In the last two tutorials, we have worked on two public services.
 In this tutorial, we will create a personal device: LinkedIn.
 It allows users to link their own LinkedIn accounts by OAuth, query their own LinkedIn
 profiles, and publish posts on LinkedIn.
