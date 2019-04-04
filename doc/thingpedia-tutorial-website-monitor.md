@@ -16,7 +16,8 @@ in the device name to make sure it won't conflict with others)
 - Description: `Retrieve class materials and get notification for updates`
 - Category: `Media`
 - Icon: choose a PNG file you like (512x512 resolution is recommended)
-- JS code: upload a file named `index.js` with the following code.
+- JS code: upload a zip file containing `index.js` with the following code.
+
 ```javascript
 "use strict";
 
@@ -40,6 +41,23 @@ module.exports = class CS294S extends Tp.BaseDevice {
     }
 };
 ```
+
+Note that in this example, we use the `cheerio` library to extract the elements we need from the html file. 
+Thus, we need to upload a zip file containing all the required dependencies, instead of a single JavaScript file. 
+
+The zip file should include `index.js`, a `package.json` and a folder `node_modules` which contains the dependencies. 
+To create `package.json`, you can use either `npm` or `yarn`. 
+You can find how to create it from 
+[here](https://docs.npmjs.com/creating-a-package-json-file) (with `npm`) 
+and [here](https://yarnpkg.com/lang/en/docs/creating-a-package/) (with `yarn`).
+Once the `package.json` is created, you can run `npm install cheerio --save` or `yarn add cheerio` to 
+install the dependencies, and this will create the `node_modules` folder. 
+
+Now you can create the zip file.
+We recommend to use command line to compress the folder
+`zip -r xx.zip your-folder-name`. 
+Compressing from the right-click menu in Mac will create a new folder which 
+makes the system fail to find the files in the root directory.
 
 ## Step 2: describe what your device does
 Click on `manifest.tt` on the left panel. 
