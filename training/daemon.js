@@ -245,7 +245,7 @@ Check the logs for further information.`
         } else {
             queue.next.push(newjob);
         }
-        console.log(`Queued ${jobType} job ${newjob.id} for model @${modelTag}/${language}`);
+        console.log(`Queued ${jobType} job ${newjob.id} for model @${modelTag}/${language} [${modelDevices ? modelDevices.join(', ') : ''}]`);
 
         setImmediate(() => {
             this._startNextJob(jobType);
@@ -275,7 +275,7 @@ Check the logs for further information.`
                 // queue all models
                 this._queueOrMergeJob([], 'train', language, 'default', dependsOn, null);
                 for (let modelTag in models)
-                    this._queueOrMergeJob([], 'train', language, modelTag, dependsOn, null);
+                    this._queueOrMergeJob([], 'train', language, modelTag, dependsOn, models[modelTag]);
             } else {
                 // queue the default job always
                 this._queueOrMergeJob(forDevices, 'train', language, 'default', dependsOn, null);
