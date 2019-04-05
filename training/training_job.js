@@ -139,8 +139,8 @@ async function taskDownloadDataset(job) {
         '--train', path.resolve(dataset, 'train.tsv'),
         '--eval', path.resolve(dataset, 'eval.tsv')
     ]);
-    if (job.modelTag !== 'default') {
-        for (let d of job._daemon._models[job.modelTag])
+    if (job.modelDevices !== null) {
+        for (let d of job.modelDevices)
             args.push('--device', d);
     }
     await execCommand(job, script, args);
@@ -268,7 +268,7 @@ function taskName(task) {
 }
 
 module.exports = class Job {
-    constructor(daemon, id, jobType, forDevices, language, modelTag, dependsOn) {
+    constructor(daemon, id, jobType, forDevices, language, modelTag, dependsOn, modelDevices) {
         this._daemon = daemon;
         this.data = {
             id: id,
@@ -283,6 +283,7 @@ module.exports = class Job {
             progress: 0,
             eta: null,
             dependsOn: dependsOn,
+            modelDevices: modelDevices,
 
             taskStats: {}
         };
@@ -406,6 +407,9 @@ module.exports = class Job {
     }
     get modelTag() {
         return this.data.modelTag;
+    }
+    get modelDevices() {
+        return this.data.modelDevices;
     }
 
     addDevices(forDevices) {

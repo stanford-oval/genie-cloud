@@ -218,7 +218,7 @@ Check the logs for further information.`
         next.start();
     }
 
-    _queueOrMergeJob(forDevices, jobType, language, modelTag, dependsOn) {
+    _queueOrMergeJob(forDevices, jobType, language, modelTag, dependsOn, modelDevices) {
         const queue = this._queues[jobType];
         for (let candidate of queue.next) {
             if (candidate.language === language &&
@@ -238,7 +238,7 @@ Check the logs for further information.`
         }
 
         let newjob = new Job(this, this._next_id++,
-            jobType, forDevices, language, modelTag, dependsOn);
+            jobType, forDevices, language, modelTag, dependsOn, modelDevices);
         if (dependsOn !== null) {
             queue.waiting.push(newjob);
             this._addDependency(newjob);
@@ -268,24 +268,24 @@ Check the logs for further information.`
                 // there is only one dataset (per language) for all models, so we only queue
                 // one update-dataset job
                 dependsOn = this._queueOrMergeJob(forDevices || [], 'update-dataset',
-                    language, 'default', null);
+                    language, 'default', null, null);
             }
 
             if (forDevices === null) {
                 // queue all models
-                this._queueOrMergeJob([], 'train', language, 'default', dependsOn);
+                this._queueOrMergeJob([], 'train', language, 'default', dependsOn, null);
                 for (let modelTag in models)
-                    this._queueOrMergeJob([], 'train', language, modelTag, dependsOn);
+                    this._queueOrMergeJob([], 'train', language, modelTag, dependsOn, null);
             } else {
                 // queue the default job always
-                this._queueOrMergeJob(forDevices, 'train', language, 'default', dependsOn);
+                this._queueOrMergeJob(forDevices, 'train', language, 'default', dependsOn, null);
 
                 // check if any of the other models are impacted
                 // by this device
                 for (let modelTag in models) {
                     let modelDevices = models[modelTag];
                     if (nonEmptyIntersection(modelDevices, forDevices))
-                        this._queueOrMergeJob(forDevices, 'train', language, modelTag, dependsOn);
+                        this._queueOrMergeJob(forDevices, 'train', language, modelTag, dependsOn, modelDevices);
                 }
             }
         } else if (jobType === 'update-dataset') {
