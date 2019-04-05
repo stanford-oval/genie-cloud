@@ -72,7 +72,7 @@ function runEngine(thingpediaClient, options) {
         obj.running = true;
 
         if (_stopped)
-            return;
+            return Promise.resolve();
         return engine.run();
     }).then(() => {
         return engine.close();
