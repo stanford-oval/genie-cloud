@@ -1,7 +1,9 @@
 "use strict";
 $(function() {
     var text = $('#qrcode-target').text();
-    new QRCode('qrcode-placeholder', text);
+    try {
+        new QRCode('qrcode-placeholder', text);
+    } catch(e) {}
 
     if (navigator.userAgent.match(/android/i)) {
         $('#config-phone-desktop-browser').hide();

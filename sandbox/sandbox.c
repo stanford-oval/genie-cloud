@@ -134,6 +134,7 @@ add_usr_dirs (struct strv *strv)
             "--ro-bind", "/lib64", "/lib64",
             "--ro-bind", "/bin", "/bin",
             "--ro-bind", "/sbin", "/sbin",
+            "--ro-bind", "/opt", "/opt",
             NULL);
 }
 

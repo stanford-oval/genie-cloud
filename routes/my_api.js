@@ -38,6 +38,15 @@ router.ws('/anonymous', (ws, req) => {
     });
 });
 
+router.options('/[^]{0,}', (req, res, next) => {
+    res.set('Access-Control-Max-Age', '86400');
+    res.set('Access-Control-Allow-Methods', 'GET, POST');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Accept, Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Vary', 'Origin');
+    res.send('');
+});
+
 router.use((req, res, next) => {
     if (isOriginOk(req) && user.isAuthenticated(req))
         next();
@@ -54,13 +63,6 @@ router.use((req, res, next) => {
 });
 
 router.use(user.requireLogIn);
-
-router.options('/.*', (req, res, next) => {
-    res.set('Access-Control-Max-Age', '86400');
-    res.set('Access-Control-Allow-Methods', 'GET, POST');
-    res.set('Access-Control-Allow-Headers', 'Authorization, Accept, Content-Type');
-    res.send('');
-});
 
 router.get('/profile', user.requireScope('profile'), (req, res, next) => {
     res.json({

@@ -16,6 +16,7 @@ node_js:
 cache:
   timeout: 900
   directories:
+  - $HOME/.cache/pip
   - tests/embeddings
 before_install:
 - test "$TRAVIS_REPO_SLUG" != "Stanford-Mobisocial-IoT-Lab/almond-cloud" || (openssl
@@ -33,7 +34,7 @@ before_install:
 install:
 - sudo apt-get install -y graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev libsystemd-dev
   realpath bubblewrap python3
-- yarn
+- travis_retry yarn
 - (cd node_modules/thingtalk ; yarn )
 - (cd node_modules/thingengine-core ; yarn ; rm -fr node_modules/thingtalk )
 - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules/thingtalk )

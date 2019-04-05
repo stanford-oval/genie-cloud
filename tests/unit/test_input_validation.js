@@ -66,7 +66,28 @@ const TEST_CASES = [
 
     ['', { foo: 'string' }, false, { json: true }],
 
-    ['class%5B0%5D=foo&class%5B1%5D=bar', { class: '?string' }, false]
+    ['class%5B0%5D=foo&class%5B1%5D=bar', { class: '?string' }, false],
+
+    // test that control characters are rejected
+    ['foo=\x00', { foo: 'string' }, false],
+    ['foo=\x00', { foo: '?string' }, false],
+    ['foo=abc\x00def', { foo: 'string' }, false],
+    ['foo=abcdef\x00', { foo: 'string' }, false],
+    ['foo=\x00abcdef', { foo: 'string' }, false],
+    ['foo=\x08', { foo: 'string' }, false],
+    ['foo=\x9d', { foo: 'string' }, false],
+    ['foo=\x1f', { foo: 'string' }, false],
+    ['foo=\x7f', { foo: 'string' }, false],
+    ['foo=\x9f', { foo: 'string' }, false],
+    // but whitespace is allowed
+    ['foo=\n', { foo: 'string' }, true],
+    ['foo=\r', { foo: 'string' }, true],
+    ['foo=\v', { foo: 'string' }, true],
+    ['foo=\f', { foo: 'string' }, true],
+    ['foo=\t', { foo: 'string' }, true],
+    ['foo=%20', { foo: 'string' }, true],
+    ['foo= ', { foo: 'string' }, true],
+    ['foo=%0A', { foo: 'string' }, true],
 ];
 
 function test(i) {

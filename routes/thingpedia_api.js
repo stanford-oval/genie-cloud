@@ -1661,6 +1661,12 @@ v3.get('/entities/list/:type', (req, res, next) => {
 });
 
 function getEntityIcon(res, next, entityValue, entityType, entityDisplay) {
+    if (entityType.endsWith(':id') ||
+        (entityType.endsWith('_id') && entityType !== 'tt:stock_id')) {
+       res.status(404).send('No icon for this type of entity');
+       return;
+    }
+
     const cacheManager = ImageCacheManager.get();
     if (entityType === 'tt:email_address' || entityType === 'tt:phone_number') {
         let cacheKey = 'contact:' + (entityType === 'tt:phone_number' ? 'phone' : 'email') + ':' + entityValue;

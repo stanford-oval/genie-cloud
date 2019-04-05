@@ -203,7 +203,7 @@ class DatasetUpdater {
 
         this._forDevices = forDevices;
         if (forDevices !== null && forDevices.length > 0) {
-            const escapedDevices = forDevices.map((d) => d.replace('.', '\\.')).join('|');
+            const escapedDevices = forDevices.map((d) => d.replace(/\./g, '\\.')).join('|');
             const pat1 = ' @(' + escapedDevices + ')\\.[A-Za-z0-9_]+( |$)';
             const pat2 = ' device:(' + escapedDevices + ')( |$)';
 
