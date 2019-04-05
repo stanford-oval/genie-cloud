@@ -1,3 +1,4 @@
+SET FOREIGN_KEY_CHECKS=0;
 ALTER TABLE `models`
     ADD `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en' FIRST,
     DROP PRIMARY KEY,
