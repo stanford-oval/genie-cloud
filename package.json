@@ -20,7 +20,7 @@
     "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
     "lint": "eslint almond/ browser/ model/ routes/ util/ stanford/ training/ nlp/ scripts/ config.js frontend.js",
     "test": "nyc ./tests/everything.sh",
-    "prepare2": "make prepare",
+    "prepare": "make prepare",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "install": "make install"
   },
