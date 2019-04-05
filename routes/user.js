@@ -250,9 +250,9 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
 
         if (!req.body['timezone'])
             req.body['timezone'] = 'America/Los_Angeles';
-        if (!!moment.tz.zone(req.body.timezone) ||
+        if (!moment.tz.zone(req.body.timezone) ||
             !/^[a-z]{2,}-[a-z]{2,}/i.test(req.body['locale']))
-            throw new Error("Invalid localization data");
+            throw new Error("Invalid localization data.");
         options.timezone = req.body['timezone'];
         options.locale = req.body['locale'];
 
