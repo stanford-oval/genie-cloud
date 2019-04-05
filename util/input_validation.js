@@ -34,7 +34,12 @@ function checkKey(value, type) {
         return Array.isArray(value) && value.length > 0;
 
     case 'string':
-        return typeof value === 'string' && !!value;
+        // NOTE: the character ranges U+0000-U+001F and U+007F-U+009F are control
+        // characters (NUL, BACKSPACE, DEL, etc.) that have special meaning in many
+        // contexts
+        // there is no reason to allow them, anywhere
+        /* eslint no-control-regex: "off" */
+        return typeof value === 'string' && !!value && !/[\x00-\x08\x0e-\x1f\x7f-\x9f]/.test(value);
 
     case 'boolean':
         // a checkbox is either present (== 1) or absent (== undefined)

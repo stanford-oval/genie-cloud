@@ -231,20 +231,21 @@ const registerArguments = {
 router.post('/register', iv.validatePOST(registerArguments), (req, res, next) => {
     var options = {};
     try {
-        if (req.body['username'].length > 255)
-            throw new Error(req._("You must specify a valid username"));
+        if (req.body.username.length > 64 ||
+            /[\\'"()\n\r\v\f/]/.test(req.body.username))
+            throw new Error(req._("You must specify a valid username of at most 64 characters. Special characters are not allowed."));
         options.username = req.body['username'];
         if (req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
-            throw new Error(req._("You must specify a valid email"));
+            throw new Error(req._("You must specify a valid email."));
         options.email = req.body['email'];
 
         if (req.body['password'].length < 8 ||
             req.body['password'].length > 255)
-            throw new Error(req._("You must specifiy a valid password (of at least 8 characters)"));
+            throw new Error(req._("You must specifiy a valid password, of at least 8 characters."));
 
         if (req.body['confirm-password'] !== req.body['password'])
-            throw new Error(req._("The password and the confirmation do not match"));
+            throw new Error(req._("The password and the confirmation do not match."));
         options.password = req.body['password'];
 
         if (!req.body['timezone'])
