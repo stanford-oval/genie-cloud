@@ -398,14 +398,14 @@ align-text@^0.1.1, align-text@^0.1.3:
     repeat-string "^1.5.2"
 
 almond-dialog-agent@~1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/almond-dialog-agent/-/almond-dialog-agent-1.3.0.tgz#3e116cc72d04d3d521e42288a5d0a9873f749d8a"
-  integrity sha512-JuXWArFOs98vAJpFE8SgkyeoKdZj3Zz6ylZ79mzezOCLKqKqT1vJP5ntAmQ4R5lPCZxbLCOAI+WEYJobPB9b0Q==
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/almond-dialog-agent/-/almond-dialog-agent-1.3.1.tgz#c92d0358a5b88a9b97d45a7dc93eb602acd6b4b0"
+  integrity sha512-cyfEzbb19DiRnRbSU1QpKxuJqOc8b/CFZQDJUpCgzUyFui9Ad/EAWWXi/jGnIVAQm7Oc2qqS6GZLqvl1jlTWqA==
   dependencies:
     adt "~0.7.2"
     consumer-queue "^1.0.0"
     thingpedia "^2.3.0"
-    thingtalk "~1.5.0"
+    thingtalk "~1.6.0"
     uuid "^3.1.0"
 
 another-json@^0.2.0:
@@ -652,9 +652,9 @@ atob@^2.1.1:
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
 aws-sdk@^2.2.48:
-  version "2.435.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.435.0.tgz#f1f10a9776ad3ac4e658f7d9834aa56fcac93f51"
-  integrity sha512-cXHe3V7Syv2JT/0xMO2xPO9T0Y1LZ5ccXeb7ZB/q54xzP1JIv0d7KIVIAoRx8gGn8VZTAd/6UV/D+r/dKTo9+g==
+  version "2.436.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.436.0.tgz#8882b823818cdb593cdc5540e6261ed7d7357be3"
+  integrity sha512-ncUefjtddjums7B4j8JGChwArc48is5SKFKxmf3UEixLvRW509SaiC+Di2NfO5YpUnYHGTbpcgCF+DFtxJXChA==
   dependencies:
     buffer "4.9.1"
     events "1.1.1"
@@ -2647,9 +2647,10 @@ gcp-metadata@^0.6.1, gcp-metadata@^0.6.3:
     extend "^3.0.1"
     retry-axios "0.3.2"
 
-"genie-toolkit@github:Stanford-Mobisocial-IoT-Lab/genie-toolkit":
-  version "0.1.1"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/genie-toolkit/tar.gz/dd7f38339da019145e76bc165a2a2d8ac0a623bf"
+genie-toolkit@~0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.2.0.tgz#9b9e4f9197ed5392b9b418bab4339a210b455a02"
+  integrity sha512-CWCkGCKqt7tb64M7ncjjvX8LU/m8iClLrUczIWrBHCo2BDQ0Y3d5JqRVJ3xjH+j3aKIquQzyL9IbVav9vDz7Dw==
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
@@ -2659,7 +2660,7 @@ gcp-metadata@^0.6.1, gcp-metadata@^0.6.3:
     shuffle-array "^1.0.1"
     sockaddr "^1.0.1"
     thingpedia "^2.3.3"
-    thingtalk "^1.4.2"
+    thingtalk "~1.6.0"
 
 get-assigned-identifiers@^1.2.0:
   version "1.2.0"
@@ -3469,9 +3470,9 @@ js-tokens@^4.0.0:
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
 
 js-yaml@^3.11.0, js-yaml@^3.12.0, js-yaml@^3.13.0:
-  version "3.13.0"
-  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.13.0.tgz#38ee7178ac0eea2c97ff6d96fff4b18c7d8cf98e"
-  integrity sha512-pZZoSxcCYco+DIKBTimr67J6Hy+EYGZDY/HCWC+iAEA9h1ByhMXAIVUXMcMFpOCxQ/xjXmPI2MkDL5HRm5eFrQ==
+  version "3.13.1"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.13.1.tgz#aff151b30bfdfa8e49e05da22e7415e9dfa37847"
+  integrity sha512-YfbcO7jXDdyj0DGxYVSlSeQNHbD7XPWvrVWeVUujrQEoZzWJIRrCPoyk6kL6IAjAG2IolMK4T0hNUe0HOUs5Jw==
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
@@ -6229,9 +6230,10 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-"thingengine-core@github:Stanford-Mobisocial-IoT-Lab/thingengine-core":
-  version "1.3.0"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/tar.gz/9c64aa737a6f453999c43dd3f00219d89abc91ab"
+thingengine-core@~1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/thingengine-core/-/thingengine-core-1.4.0.tgz#cc64ce107f9d3bc8cc008610a5d5d90b65b074df"
+  integrity sha512-PPdm7UVrtHeBan/WWa8igV9WfsZug/0V4G6HFPANJQTnQSLlE9XU0p4aOd29YQrcU5b8NsXbkz+F9AnUSFb6CA==
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.1"
@@ -6244,18 +6246,18 @@ text-table@^0.2.0:
     thingpedia "^2.2.1"
     thingpedia-client "^0.2.0"
     thingpedia-discovery "^1.0.0"
-    thingtalk "github:Stanford-Mobisocial-IoT-Lab/thingtalk"
+    thingtalk "~1.6.0"
     uuid "^3.1.0"
     ws "^6.0.0"
 
 thingpedia-client@^0.2.0:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/thingpedia-client/-/thingpedia-client-0.2.1.tgz#6fe1dd4629fe5ffa426593bf558553cb0a5a9ce7"
-  integrity sha512-j7UeoWYi2M81YPbv0hszJ7bgyLl8+dpPUD6A5j51UBS6WJ4kHTRjF08Ww0Fh460B/c/2tf/c+7o4oGl9xhXkFA==
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/thingpedia-client/-/thingpedia-client-0.2.2.tgz#0ae332f6240b5ee0380c54a9d6c02750711d2f89"
+  integrity sha512-qi/zxsFeIfyX5vOBxJxyASTsd3KyEv1YcmMtHA0WlylYMKNNfkQWl78qQc2E92l8+aC5q6MvS1/YrBcrZOfocQ==
   dependencies:
     thingpedia "^2.3.0"
-    thingtalk "~1.5.0"
-    tmp "0.0.33"
+    thingtalk "~1.6.0"
+    tmp "^0.1.0"
 
 thingpedia-discovery@^1.0.0:
   version "1.0.0"
@@ -6265,21 +6267,21 @@ thingpedia-discovery@^1.0.0:
     node-ssdp "^2.7.2"
 
 thingpedia@^2.2.1, thingpedia@^2.2.2, thingpedia@^2.3.0, thingpedia@^2.3.3:
-  version "2.3.3"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.3.3.tgz#075dce993fa34d68699bd6eb525b41d657055d24"
-  integrity sha512-m/ee/iT/1WgnU75eRlUUeR/qT6QFY4XpCxQJuiCdNtGNb9VXdTBsEppcscOnDV3Ou/NQEJwiWLevOhwSZqprAA==
+  version "2.3.4"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.3.4.tgz#57829d9c66b8b8cf8e6a4a68896e9c4bf89f7cb6"
+  integrity sha512-BJussrwsckckSWAPAqf1y5DZy6+9PGMlNcPENmXGKbYKkReFeb0pxiIojatjSMKrdKq9XxdRukLcBXq6cwRrhg==
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
     oauth "~0.9.14"
     p-finally "^1.0.0"
     thingtalk "^1.4.1"
-    tmp "0.0.33"
     xml2js "^0.4.17"
 
-thingtalk@^1.4.1, thingtalk@^1.4.2, "thingtalk@github:Stanford-Mobisocial-IoT-Lab/thingtalk", thingtalk@~1.5.0:
-  version "1.5.2"
-  resolved "https://codeload.github.com/Stanford-Mobisocial-IoT-Lab/thingtalk/tar.gz/3104ffe8f88dfdf1858b766af94f76fcd7632207"
+thingtalk@^1.4.1, thingtalk@~1.6.0:
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.6.0.tgz#6fc3f0aa366e8363ce6df5a5093535589e3e180b"
+  integrity sha512-qscKk+ZLSzhRpQiSkE5khfpW5R8ZbqzNW62HtDC9GJ6GlSIAcBSY0FFs5DWV/vYcDRnQHYVlo2r9r8Vt9AozQA==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
@@ -6318,19 +6320,19 @@ tmp@0.0.30:
   dependencies:
     os-tmpdir "~1.0.1"
 
-tmp@0.0.33, tmp@^0.0.33:
-  version "0.0.33"
-  resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.33.tgz#6d34335889768d21b2bcda0aa277ced3b1bfadf9"
-  integrity sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==
-  dependencies:
-    os-tmpdir "~1.0.2"
-
-tmp@0.1.0:
+tmp@0.1.0, tmp@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.1.0.tgz#ee434a4e22543082e294ba6201dcc6eafefa2877"
   integrity sha512-J7Z2K08jbGcdA1kkQpJSqLF6T0tdQqpR2pnSUXsIchbPdTI9v3e85cLW0d6WDhwuAleOV71j2xWs8qMPfK7nKw==
   dependencies:
     rimraf "^2.6.3"
+
+tmp@^0.0.33:
+  version "0.0.33"
+  resolved "https://registry.yarnpkg.com/tmp/-/tmp-0.0.33.tgz#6d34335889768d21b2bcda0aa277ced3b1bfadf9"
+  integrity sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==
+  dependencies:
+    os-tmpdir "~1.0.2"
 
 to-arraybuffer@^1.0.0:
   version "1.0.1"

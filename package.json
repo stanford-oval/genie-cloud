@@ -24,10 +24,7 @@
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "install": "make install"
   },
-  "resolutions": {
-    "thingengine-core": "github:Stanford-Mobisocial-IoT-Lab/thingengine-core",
-    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/thingtalk"
-  },
+  "resolutions": {},
   "dependencies": {
     "accept-language": "^3.0.18",
     "accepts": "^1.3.5",
@@ -53,7 +50,7 @@
     "express-session": "^1.14.0",
     "express-ws": "^4.0.0",
     "express-xml-bodyparser": "^0.3.0",
-    "genie-toolkit": "github:Stanford-Mobisocial-IoT-Lab/genie-toolkit",
+    "genie-toolkit": "~0.2.0",
     "gettext-parser": "^3.1.0",
     "gm": "^1.23.1",
     "highlight.js": "^9.13.1",
@@ -98,11 +95,11 @@
     "serve-favicon": "^2.3.0",
     "smtlib": "^0.1.1",
     "sockaddr": "^1.0.0",
-    "thingengine-core": "github:Stanford-Mobisocial-IoT-Lab/thingengine-core",
+    "thingengine-core": "~1.4.0",
     "thingpedia": "^2.2.2",
     "thingpedia-client": "^0.2.0",
     "thingpedia-discovery": "^1.0.0",
-    "thingtalk": "github:Stanford-Mobisocial-IoT-Lab/thingtalk",
+    "thingtalk": "~1.6.0",
     "thirty-two": "^1.0.2",
     "tmp": "0.1.0",
     "transparent-rpc": "^0.0.2",
