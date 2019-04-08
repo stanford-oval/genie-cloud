@@ -10,7 +10,7 @@
 "use strict";
 
 const db = require('../util/db');
-const { tokenize } = require('../util/tokenize');
+const { tokenize, stripUnsafeTokens } = require('../util/tokenize');
 
 function createMany(client, examples) {
     if (examples.length === 0)
@@ -108,7 +108,7 @@ module.exports = {
     },
 
     getCommandsByFuzzySearchForUser(client, language, userId, query) {
-        const regexp = '(^| )(' + tokenize(query).join('|') + ')( |$)';
+        const regexp = '(^| )(' + stripUnsafeTokens(tokenize(query)).join('|') + ')( |$)';
         return db.selectAll(client, `
             (select eu.id,eu.language,eu.type,eu.utterance,
              eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,null as kind,u.username as owner_name,
@@ -156,7 +156,7 @@ module.exports = {
     },
 
     getCommandsByFuzzySearch(client, language, query) {
-        const regexp = '(^| )(' + tokenize(query).join('|') + ')( |$)';
+        const regexp = '(^| )(' + stripUnsafeTokens(tokenize(query)).join('|') + ')( |$)';
         return db.selectAll(client, `
             (select eu.id,eu.language,eu.type,eu.utterance,
              eu.preprocessed,eu.target_code,eu.click_count,eu.like_count,eu.is_base,null as kind,u.username as owner_name
@@ -211,7 +211,7 @@ module.exports = {
     },
 
     getByKey(client, key, org, language) {
-        const regexp = '(^| )(' + tokenize(key).join('|') + ')( |$)';
+        const regexp = '(^| )(' + stripUnsafeTokens(tokenize(key)).join('|') + ')( |$)';
         if (org === -1) { // admin
             return db.selectAll(client,
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
