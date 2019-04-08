@@ -11,7 +11,7 @@
 
 const assert = require('assert');
 
-const { tokenize, rejoin } = require('../../util/tokenize');
+const { tokenize, rejoin, stripUnsafeTokens } = require('../../util/tokenize');
 
 function testTokenize() {
     assert.deepStrictEqual(tokenize('a b c'), ['a', 'b', 'c']);
@@ -31,9 +31,24 @@ function testRejoin() {
     assert.strictEqual(rejoin(['', 'b', 'c']), ' b c');
 }
 
+function testStripUnsafeTokens() {
+    assert.deepStrictEqual(stripUnsafeTokens(['a', 'b', 'c']), ['a', 'b', 'c']);
+    assert.deepStrictEqual(stripUnsafeTokens(['a', 'b', '?']), ['a', 'b']);
+    assert.deepStrictEqual(stripUnsafeTokens(['a', '?', 'c']), ['a', 'c']);
+    assert.deepStrictEqual(stripUnsafeTokens(['a', '.', 'c']), ['a', 'c']);
+    assert.deepStrictEqual(stripUnsafeTokens(['a', '*', 'c']), ['a', 'c']);
+    assert.deepStrictEqual(stripUnsafeTokens(['a', '+', 'c']), ['a', 'c']);
+    assert.deepStrictEqual(stripUnsafeTokens(['a', '\\', 'c']), ['a', 'c']);
+    assert.deepStrictEqual(stripUnsafeTokens(['a', '\\b', 'c']), ['a', 'c']);
+    assert.deepStrictEqual(stripUnsafeTokens(['a', 'b\\', 'c']), ['a', 'c']);
+    assert.deepStrictEqual(stripUnsafeTokens(['a', '?b', 'c']), ['a', 'c']);
+    assert.deepStrictEqual(stripUnsafeTokens(['a', 'b?', 'c']), ['a', 'c']);
+}
+
 function main() {
     testTokenize();
     testRejoin();
+    testStripUnsafeTokens();
 }
 module.exports = main;
 if (!module.parent)

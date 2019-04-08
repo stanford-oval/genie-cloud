@@ -29,6 +29,25 @@ function* split(pattern, regexp) {
         yield pattern.substring(i, pattern.length);
 }
 
+function stripUnsafeTokens(tokens) {
+    const cleaned = [];
+
+    for (let tok of tokens) {
+        let safe = true;
+        for (let char of ['?', '*', '.', '(', ')', '+', '\\']) {
+            if (tok.indexOf(char) >= 0) {
+                safe = false;
+                break;
+            }
+        }
+
+        if (safe)
+            cleaned.push(tok);
+    }
+
+    return cleaned;
+}
+
 module.exports = {
     PARAM_REGEX,
 
@@ -51,5 +70,7 @@ module.exports = {
     rejoin(tokens) {
         // FIXME: do something sensible wrt , and .
         return tokens.join(' ');
-    }
+    },
+
+    stripUnsafeTokens,
 };
