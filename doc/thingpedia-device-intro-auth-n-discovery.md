@@ -12,7 +12,7 @@ by import `config` module from the following supported mixins:
 - `@org.thingpedia.config.none`: for devices with no authentication at all
 - `@org.thingpedia.config.form`: for devices with no authentication but require extra information from the user to configure
 - `@org.thingpedia.config.basic_auth`: for devices that use traditional username and password
-- `@org.thingpedia.oauth2`: for OAuth 1.0 and 2.0 style authentication
+- `@org.thingpedia.config.oauth2`: for OAuth 1.0 and 2.0 style authentication
 - `@org.thingpedia.config.discovery.upnp`: for authentication by discovery and local interactive pairing via UPnP protocol 
 - `@org.thingpedia.config.discovery.bluetooth`: for authentication by discovery and local interactive pairing via Bluetooth protocol 
 
