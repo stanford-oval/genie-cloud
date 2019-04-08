@@ -100,6 +100,8 @@ async function doCreateOrUpdate(kind, create, req, res) {
                         (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
                         throw new Error(req._("Existing device not found"));
                 }
+
+                await Validation.tokenizeAllExamples('en', dataset.examples);
             } catch(e) {
                 console.error(e.stack);
                 res.render('thingpedia_device_create_or_edit', { page_title:

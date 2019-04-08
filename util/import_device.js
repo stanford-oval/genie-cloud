@@ -140,7 +140,8 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
                 toDelete.delete(example.id);
                 if (existing.utterance !== example.utterances[0]) {
                     toUpdate.push({ id: example.id,
-                                    utterance: example.utterances[0] });
+                                    utterance: example.utterances[0],
+                                    preprocessed: example.preprocessed[0] });
                 }
             } else {
                 example.id = -1;
@@ -149,6 +150,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
         if (example.id < 0) {
             toCreate.push({
                 utterance: example.utterances[0],
+                preprocessed: example.preprocessed[0],
                 target_code: code
             });
         }
@@ -156,6 +158,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
         for (let i = 1; i < example.utterances.length; i++) {
             toCreate.push({
                 utterance: example.utterances[i],
+                preprocessed: example.preprocessed[i],
                 target_code: code
             });
         }
@@ -163,11 +166,6 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
 
     if (toDelete.length === 0 && toCreate.length === 0 && toUpdate.length === 0)
         return false;
-
-    await Promise.all([
-        Validation.tokenizeAllExamples('en', toUpdate),
-        Validation.tokenizeAllExamples('en', toCreate)
-    ]);
 
     await Promise.all([
         exampleModel.deleteMany(dbClient, Array.from(toDelete)),
@@ -362,6 +360,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
         json.examples, { editMode: true });
 
     const [classDef, dataset] = await Validation.validateDevice(dbClient, req, device, classCode, datasetCode);
+    await Validation.tokenizeAllExamples('en', dataset.examples);
     device.category = getCategory(classDef);
 
     const [schemaId,] = await ensurePrimarySchema(dbClient, device.name,
