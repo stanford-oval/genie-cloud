@@ -270,6 +270,59 @@ function cleanKind(kind) {
     return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
+async function tokenizeOneExample(example, id, i, language) {
+    let replaced = '';
+    let params = [];
+
+    for (let chunk of splitParams(example.utterances[i].trim())) {
+        if (chunk === '')
+            continue;
+        if (typeof chunk === 'string') {
+            replaced += chunk;
+            continue;
+        }
+
+        let [match, param1, param2, opt] = chunk;
+        if (match === '$$') {
+            replaced += '$';
+            continue;
+        }
+        let param = param1 || param2;
+        replaced += '____ ';
+        params.push([param, opt]);
+    }
+
+    const {tokens, entities} = await TokenizerService.tokenize(language, replaced);
+    if (Object.keys(entities).length > 0)
+        throw new Error(`Error in Example ${id}: Cannot have entities in the utterance`);
+
+    let preprocessed = '';
+    let first = true;
+    for (let token of tokens) {
+        if (token === '____') {
+            let [param, opt] = params.shift();
+            if (opt)
+                token = '${' + param + ':' + opt + '}';
+            else
+                token = '${' + param + '}';
+        } else if (token === '$') {
+            token = '$$';
+        }
+        if (!first)
+            preprocessed += ' ';
+        preprocessed += token;
+        first = false;
+    }
+
+    example.preprocessed[i] = preprocessed;
+}
+
+async function tokenizeAllExamples(language, examples) {
+    return Promise.all(examples.map(async (ex, i) => {
+        await Promise.all(ex.utterances.map((_, j) => tokenizeOneExample(ex, i+1, j, language)));
+    }));
+}
+
 module.exports = {
     JAVASCRIPT_MODULE_TYPES,
     cleanKind,
@@ -277,52 +330,5 @@ module.exports = {
     validateDevice,
     validateDataset,
 
-    tokenizeAllExamples(language, examples) {
-        return Promise.all(examples.map(async (ex, i) => {
-            let replaced = '';
-            let params = [];
-
-            for (let chunk of splitParams(ex.utterance.trim())) {
-                if (chunk === '')
-                    continue;
-                if (typeof chunk === 'string') {
-                    replaced += chunk;
-                    continue;
-                }
-
-                let [match, param1, param2, opt] = chunk;
-                if (match === '$$') {
-                    replaced += '$';
-                    continue;
-                }
-                let param = param1 || param2;
-                replaced += '____ ';
-                params.push([param, opt]);
-            }
-
-            const {tokens, entities} = await TokenizerService.tokenize(language, replaced);
-            if (Object.keys(entities).length > 0)
-                throw new Error(`Error in Example ${i+1}: Cannot have entities in the utterance`);
-
-            let preprocessed = '';
-            let first = true;
-            for (let token of tokens) {
-                if (token === '____') {
-                    let [param, opt] = params.shift();
-                    if (opt)
-                        token = '${' + param + ':' + opt + '}';
-                    else
-                        token = '${' + param + '}';
-                } else if (token === '$') {
-                    token = '$$';
-                }
-                if (!first)
-                    preprocessed += ' ';
-                preprocessed += token;
-                first = false;
-            }
-
-            ex.preprocessed = preprocessed ;
-        }));
-    }
+    tokenizeAllExamples,
 };
