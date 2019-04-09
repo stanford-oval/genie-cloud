@@ -71,14 +71,14 @@ module.exports = {
         return (locale || 'en').split(/[-_@.]/)[0];
     },
 
-    get(locale) {
+    get(locale, fallback = true) {
         locale = locale.split(/[-_@.,]/);
         let lang = languages[locale.join('-')];
         while (!lang && locale.length > 0) {
             locale.pop();
             lang = languages[locale.join('-')];
         }
-        if (!lang)
+        if (!lang && fallback)
             lang = languages['en-US'];
         return lang;
     }
