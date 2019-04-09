@@ -169,6 +169,14 @@ module.exports.DISCOURSE_SSO_SECRET = null;
 // this should be the origin only, /session/sso_login will be appended
 module.exports.DISCOURSE_SSO_REDIRECT = null;
 
+// What natural languages are enabled, as locale tags
+//
+// Defaults to American English only
+//
+// Note that this must contain at least one language, or the server will fail
+// to operate.
+module.exports.SUPPORTED_LANGUAGES = ['en-US'];
+
 // load more configuration that should not go in git (eg secret keys)
 try {
     Object.assign(module.exports, require('./secret_config.js'));

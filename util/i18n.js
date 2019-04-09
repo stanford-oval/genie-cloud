@@ -14,7 +14,9 @@ const Gettext = require('node-gettext');
 const gettextParser = require('gettext-parser');
 const fs = require('fs');
 
-const LANGS = ['en-US'];
+const Config = require('../config');
+
+const LANGS = Config.SUPPORTED_LANGUAGES;
 const languages = {};
 
 function loadTextdomainDirectory(gt, locale, domain, modir) {
