@@ -11,9 +11,10 @@
 
 const express = require('express');
 
-const router = express.Router();
-
+const db = require('../util/db');
 const Config = require('../config');
+
+const router = express.Router();
 
 router.use((req, res, next) => {
     if (req.query.admin_token !== Config.NL_SERVER_ADMIN_TOKEN) {
@@ -30,7 +31,9 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
         return;
     }
 
-    model.exact.load().then(() => {
+    db.withClient((dbClient) => {
+        return model.exact.load(dbClient);
+    }).then(() => {
         res.json({ result: 'ok' });
     }).catch(next);
 });
