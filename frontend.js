@@ -362,7 +362,7 @@ class Frontend {
                 console.error(err);
                 res.status(500).render('error', {
                     page_title: req._("Almond - Internal Server Error"),
-                    message: req._("Code: %s").format(err.code || err.sqlState || err.errno)
+                    message: req._("Code: %s").format(err.code || err.sqlState || err.errno || err.name)
                 });
             }
         });
