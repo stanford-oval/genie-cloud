@@ -63,6 +63,9 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
         const existingMeta = (await schemaModel.getMetasByKindAtVersion(dbClient, classDef.kind, existing.developer_version, 'en'))[0];
         if (areMetaIdentical(existingMeta, metas)) {
             console.log('Skipped updating of schema: identical to previous version');
+            if (existing.approved_version === null && approve)
+                await schemaModel.approveByKind(dbClient, classDef.kind);
+
             return [existing.id, false];
         }
 
