@@ -34,6 +34,11 @@ async function learn(req, res) {
         return;
     }
 
+    if (!I18n.get(req.params.locale, false)) {
+        res.status(404).json({ error: 'Unsupported language' });
+        return;
+    }
+
     const service = req.app.service;
     const model = service.getModel(req.params.model_tag, req.params.locale);
     if (!model) {

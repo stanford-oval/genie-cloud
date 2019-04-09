@@ -27,6 +27,11 @@ const DEFAULT_THINGTALK_VERSION = '1.0.0';
 var router = express.Router();
 
 async function tokenize(req, res) {
+    if (!I18n.get(req.params.locale, false)) {
+        res.status(404).json({ error: 'Unsupported language' });
+        return;
+    }
+
     const languageTag = I18n.localeToLanguage(req.params.locale);
     const tokenized = await req.app.service.tokenizer.tokenize(languageTag, req.query.q);
 
@@ -66,6 +71,11 @@ async function query(req, res) {
     const thingtalk_version = req.query.thingtalk_version || DEFAULT_THINGTALK_VERSION;
     const expect = req.query.expect || null;
     const isTokenized = !!req.query.tokenized;
+
+    if (!I18n.get(req.params.locale, false)) {
+        res.status(404).json({ error: 'Unsupported language' });
+        return;
+    }
 
     const service = req.app.service;
     const model = service.getModel(req.params.model_tag, req.params.locale);

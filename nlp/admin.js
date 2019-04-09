@@ -12,6 +12,7 @@
 const express = require('express');
 
 const db = require('../util/db');
+const i18n = require('../util/i18n');
 const Config = require('../config');
 
 const router = express.Router();
@@ -25,6 +26,11 @@ router.use((req, res, next) => {
 });
 
 router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
+    if (!i18n.get(req.params.locale, false)) {
+        res.status(404).json({ error: 'Unsupported language' });
+        return;
+    }
+
     const model = req.app.service.getModel(req.params.model_tag, req.params.locale);
     if (!model) {
         res.status(404).json({ error: 'No such model' });
@@ -39,6 +45,11 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
 });
 
 router.post('/reload/@:model_tag/:locale', (req, res, next) => {
+    if (!i18n.get(req.params.locale, false)) {
+        res.status(404).json({ error: 'Unsupported language' });
+        return;
+    }
+
     const model = req.app.service.getModel(req.params.model_tag, req.params.locale);
     if (!model) {
         res.status(404).json({ error: 'No such model' });
