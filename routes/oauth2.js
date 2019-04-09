@@ -185,9 +185,12 @@ server.exchange(oauth2orize.exchange.refreshToken((client, refreshToken, scope, 
     }).catch(done);
 }));
 
-function verifyScope(client, scopes) {
+function verifyScope(client, requestedScopes) {
+    if (!requestedScopes)
+        throw new oauth2orize.AuthorizationError("missing scope query parameter", 'invalid_scope');
+
     const allowed = client.allowed_scopes.split(' ');
-    for (let scope of scopes) {
+    for (let scope of requestedScopes) {
         if (allowed.indexOf(scope) < 0)
             throw new oauth2orize.AuthorizationError("invalid scope", 'invalid_scope');
     }
