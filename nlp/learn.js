@@ -144,11 +144,11 @@ async function learn(req, res) {
 }
 
 router.post('/@:model_tag/:locale/learn',
-    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }),
+    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }, { json: true }),
     (req, res, next) => { learn(req, res).catch(next); });
 
 router.post('/:locale/learn',
-    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }),
+    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }, { json: true }),
     (req, res, next) => { learn(req, res).catch(next); });
 
 module.exports = router;

@@ -155,19 +155,19 @@ const QUERY_PARAMS = {
     skip_typechecking: 'boolean'
 };
 
-router.get('/@:model_tag/:locale/query', iv.validateGET(QUERY_PARAMS), (req, res, next) => {
+router.get('/@:model_tag/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req, res, next) => {
     query(req, res).catch(next);
 });
 
-router.get('/@:model_tag/:locale/tokenize', iv.validateGET({ q: 'string' }), (req, res, next) => {
+router.get('/@:model_tag/:locale/tokenize', iv.validateGET({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req, res).catch(next);
 });
 
-router.get('/:locale/query', iv.validateGET(QUERY_PARAMS), (req, res, next) => {
+router.get('/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req, res, next) => {
     query(req, res).catch(next);
 });
 
-router.get('/:locale/tokenize', iv.validateGET({ q: 'string' }), (req, res, next) => {
+router.get('/:locale/tokenize', iv.validateGET({ q: 'string' }, { json: true }), (req, res, next) => {
     tokenize(req, res).catch(next);
 });
 
