@@ -71,7 +71,7 @@ class NLPInferenceServer {
                 await model.load(dbClient);
                 this._models.set(model.id, model);
             }
-        });
+        }, 'repeatable read');
 
         console.log(`Loaded ${this._models.size} models`);
     }
