@@ -98,6 +98,11 @@ class NLPInferenceServer {
         if (Config.ENABLE_PROMETHEUS)
             Metrics(app);
 
+        app.use((req, res, next) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
+
         app.use('/admin', require('./admin'));
         app.use(require('./query'));
         app.use(require('./learn'));
