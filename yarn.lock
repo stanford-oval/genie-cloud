@@ -1437,7 +1437,7 @@ content-disposition@0.5.2:
   resolved "https://registry.yarnpkg.com/content-disposition/-/content-disposition-0.5.2.tgz#0cf68bb9ddf5f2be7961c3a85178cb85dba78cb4"
   integrity sha1-DPaLud318r55YcOoUXjLhdunjLQ=
 
-content-type@^1.0.2, content-type@~1.0.4:
+content-type@^1.0.2, content-type@^1.0.4, content-type@~1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/content-type/-/content-type-1.0.4.tgz#e138cc75e040c727b1966fe5e5f8c9aee256fe3b"
   integrity sha512-hIP3EEPs8tB9AT1L+NUqtwOAps4mk2Zob89MWXMHjHWg9milF/j4osnnQLXBCBFBk/tvIG/tUc9mOUJiPBhPXA==
@@ -2700,13 +2700,14 @@ gettext-parser@^2.0.0:
     readable-stream "^2.0.0"
     safe-buffer "^5.1.2"
 
-gettext-parser@^3.1.0:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/gettext-parser/-/gettext-parser-3.1.1.tgz#f2455f7cc402087a0ee5289fcca204702b7fe240"
-  integrity sha512-vNhWcqXEtZPs5Ft1ReA34g7ByWotpcOIeJvXVy2jF3/G2U9v6W0wG4Z4hXzcU8R//jArqkgHcVCGgGqa4vxVlQ==
+gettext-parser@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/gettext-parser/-/gettext-parser-4.0.0.tgz#0d16f43aa708994411a66c8653785bd7f387f731"
+  integrity sha512-uYT3grq7jtl+cuFlLdJ4ttYiSb48H1XjAlepuJLW8hpugDE/K4cbHS5z7AnEemPNhuavPzbe96YvYgReh2ccTw==
   dependencies:
+    content-type "^1.0.4"
     encoding "^0.1.12"
-    readable-stream "^3.2.0"
+    readable-stream "^3.3.0"
     safe-buffer "^5.1.2"
 
 glob-parent@^3.1.0:
@@ -5398,7 +5399,7 @@ readable-stream@2.3.6, readable-stream@^2.0.0, readable-stream@^2.0.2, readable-
     string_decoder "~1.1.1"
     util-deprecate "~1.0.1"
 
-readable-stream@^3.1.1, readable-stream@^3.2.0:
+readable-stream@^3.1.1, readable-stream@^3.3.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.3.0.tgz#cb8011aad002eb717bf040291feba8569c986fb9"
   integrity sha512-EsI+s3k3XsW+fU8fQACLN59ky34AZ14LoeVZpYwmZvldCFo0r0gnelwF2TcMjLor/BTL5aDJVBMkss0dthToPw==
