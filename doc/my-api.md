@@ -243,7 +243,9 @@ Content-Type: application/json
 
 You can execute a single ThingTalk command and retrieve the results using the `/apps/create` endpoint.
 You should pass a single JSON object as the request body, containing the ThingTalk code as the `code`
-property.
+property. You should make sure that the code does not contain unfilled slots, including both `$?` values
+and primitives without a selected device; to select a device, you should use the `/devices/list` API
+or direct the user to configure the device in Almond.
 
 The API will return the unique ID of the program; if the program is long-running, you can use this ID
 to stop it at a later time. The API will also return the description and icon of the program. 
@@ -254,9 +256,42 @@ are the input and output parameters of the APIs in the program. `formatted` cont
 a list of Almond messages, suitable for display in a conversation. See the [Almond Dialog API Reference](/doc/almond-dialog-api-reference.md)
 for details of the content of the `formatted` field.
 
+## Endpoint: /devices/list
+
+Get the list of configured Thingpedia devices.
+
+Method: GET  
+Scope: `user-read`
+
+```
+GET /me/api/devices/list
+Authorization: Bearer XYZIEOSKLQOW9283472KLW
+
+HTTP/1.1 200 Ok
+Content-Type: application/json
+
+[{
+  "uniqueId": "com.imgur-...",
+  "name": "Imgur Account of ...",
+  "description": "Your Imgur Account, to browse and upload pictures",
+  "kind": "com.imgur",
+  "ownerTier": "global",
+}, {
+  "uniqueId": "com.bing",
+  "name": "Bing Search",
+  "description": "Search the web, using Bing",
+  "kind": "com.bing",
+  "ownerTier": "global"
+}]
+```
+
+Use this API to retrieve the unique ID, name, description, and kind of the configured Thingpedia devices.
+The API returns a list of JSON objects, one for each device. You should not assume that the list
+is sorted in any particular order.
+
 ## Endpoint: /apps/list
 
-Execute list active long-running ThingTalk commands.
+List active long-running ThingTalk commands.
 
 Method: GET  
 Scope: `user-read`
@@ -276,7 +311,7 @@ Content-Type: application/json
 }]
 ```
 
-Use this API to retrieve the unique ID, description, code and icon of active long-running programs.
+Use this API to retrieve the unique ID, description, code, and icon of active long-running programs.
 The API returns a list of JSON objects, one for each command. If the command had an error, the object
 will contain an `error` field with the error description.
 

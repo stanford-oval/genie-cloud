@@ -215,6 +215,34 @@ async function testMyApiDeleteApp(auth, uniqueId) {
     await assertHttpError(request('/me/api/apps/delete/uuid-invalid', 'POST', '', { auth }), 404);
 }
 
+async function testMyApiListDevices(auth) {
+    const listResult = JSON.parse(await request('/me/api/devices/list', 'GET', null, { auth }));
+    console.log(listResult);
+    assert.deepStrictEqual(listResult, [
+      { uniqueId: 'thingengine-own-global',
+        name: 'Miscellaneous Interfaces',
+        description: 'Time, randomness and other non-device specific things.',
+        kind: 'org.thingpedia.builtin.thingengine.builtin',
+        ownerTier: 'global' },
+      { uniqueId: 'org.thingpedia.builtin.thingengine.remote',
+        name: 'Remote ThingSystem',
+        description:
+         'This service allows you to interact with devices and accounts that belong to other people (with their permission).',
+        kind: 'org.thingpedia.builtin.thingengine.remote',
+        ownerTier: 'global' },
+      { uniqueId: 'org.thingpedia.builtin.test',
+        name: 'Test Device',
+        description: 'Test Device, does nothing but generate fake data',
+        kind: 'org.thingpedia.builtin.test',
+        ownerTier: 'global' },
+      { uniqueId: 'thingengine-own-cloud',
+        name: 'ThingSystem cloud',
+        description: 'This is your own ThingSystem.',
+        kind: 'org.thingpedia.builtin.thingengine',
+        ownerTier: 'cloud' }
+    ]);
+}
+
 async function testMyApiOAuth(accessToken) {
     const auth = 'Bearer ' + accessToken;
 
@@ -225,6 +253,7 @@ async function testMyApiOAuth(accessToken) {
     const uniqueId = await testMyApiCreateWhenApp(auth);
     await testMyApiListApps(auth, uniqueId);
     await testMyApiDeleteApp(auth, uniqueId);
+    await testMyApiListDevices(auth);
 }
 
 async function main() {
