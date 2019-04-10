@@ -33,6 +33,7 @@ const SendMail = require('../util/sendmail');
 const { makeRandom } = require('../util/random');
 const iv = require('../util/input_validation');
 const i18n = require('../util/i18n');
+const { tokenize } = require('../util/tokenize');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -713,10 +714,12 @@ router.post('/request-developer', userUtils.requireLogIn, iv.validatePOST({ name
                                           message: req._("You are already an enrolled developer.") });
         return;
     }
-    if (typeof req.body.name !== 'string' || !req.body.name) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: req._("Missing name.") });
-        return;
+    for (let token of tokenize(req.body.name)) {
+        if (['stanford', 'almond'].indexOf(token) >= 0) {
+            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                              message: req._("You cannot use the word “%s” in your organization name.").format(token) });
+            return;
+        }
     }
     if (req.body.accept_tos !== '1') {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),

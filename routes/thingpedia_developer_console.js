@@ -22,6 +22,7 @@ const userModel = require('../model/user');
 const user = require('../util/user');
 const SendMail = require('../util/sendmail');
 const iv = require('../util/input_validation');
+const { tokenize } = require('../util/tokenize');
 
 const Config = require('../config');
 
@@ -265,7 +266,16 @@ router.post('/organization/demote', user.requireLogIn, user.requireDeveloper(use
     }).catch(next);
 });
 
-router.post('/organization/edit-profile', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ORG_ADMIN), (req, res, next) => {
+router.post('/organization/edit-profile', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ORG_ADMIN),
+    iv.validatePOST({ name: 'string' }), (req, res, next) => {
+    for (let token of tokenize(req.body.name)) {
+        if (['stanford', 'almond'].indexOf(token) >= 0) {
+            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                              message: req._("You cannot use the word “%s” in your organization name.").format(token) });
+            return;
+        }
+    }
+
     db.withTransaction((dbClient) => {
         return organization.update(dbClient, req.user.developer_org, { name: req.body.name });
     }).then(() => {
