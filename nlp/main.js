@@ -71,7 +71,7 @@ class NLPInferenceServer {
                 await model.load(dbClient);
                 this._models.set(model.id, model);
             }
-        });
+        }, 'repeatable read');
 
         console.log(`Loaded ${this._models.size} models`);
     }
@@ -98,13 +98,41 @@ class NLPInferenceServer {
         if (Config.ENABLE_PROMETHEUS)
             Metrics(app);
 
+        app.use((req, res, next) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
+
         app.use('/admin', require('./admin'));
         app.use(require('./query'));
         app.use(require('./learn'));
 
+        // if we get here, we have a 404 error
+        app.use((req, res, next) => {
+            res.status(404).json({
+                error: 'Not Found'
+            });
+        });
+
         app.use((err, req, res, next) => {
-            console.error(err);
-            res.status(500).json({ error: err.message });
+            if (typeof err.status === 'number') {
+                // oauth2orize errors, bodyparser errors
+                res.status(err.status).json({
+                    error: err.expose === false ? err.status : err.message
+                });
+            } else if (err.code === 'ENOENT' || err.errno === 'ENOENT') {
+                // util/db errors
+                res.status(404).json({
+                    error: 'Not Found'
+                });
+            } else {
+                // bugs
+                console.error(err);
+                res.status(500).json({
+                    error: 'Internal Server Error',
+                    detail: err.code || err.sqlState || err.errno || err.name
+                });
+            }
         });
 
         app.listen(app.get('port'));

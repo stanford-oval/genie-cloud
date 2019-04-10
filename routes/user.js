@@ -32,6 +32,7 @@ const secret = require('../util/secret_key');
 const SendMail = require('../util/sendmail');
 const { makeRandom } = require('../util/random');
 const iv = require('../util/input_validation');
+const i18n = require('../util/i18n');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -251,7 +252,8 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
         if (!req.body['timezone'])
             req.body['timezone'] = 'America/Los_Angeles';
         if (!moment.tz.zone(req.body.timezone) ||
-            !/^[a-z]{2,}-[a-z]{2,}/i.test(req.body['locale']))
+            !/^[a-z]{2,}-[a-z]{2,}/i.test(req.body.locale) ||
+            !i18n.get(req.body.locale, false))
             throw new Error("Invalid localization data.");
         options.timezone = req.body['timezone'];
         options.locale = req.body['locale'];

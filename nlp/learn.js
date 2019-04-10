@@ -34,6 +34,11 @@ async function learn(req, res) {
         return;
     }
 
+    if (!I18n.get(req.params.locale, false)) {
+        res.status(404).json({ error: 'Unsupported language' });
+        return;
+    }
+
     const service = req.app.service;
     const model = service.getModel(req.params.model_tag, req.params.locale);
     if (!model) {
@@ -144,11 +149,11 @@ async function learn(req, res) {
 }
 
 router.post('/@:model_tag/:locale/learn',
-    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }),
+    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }, { json: true }),
     (req, res, next) => { learn(req, res).catch(next); });
 
 router.post('/:locale/learn',
-    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }),
+    iv.validatePOST({ q: 'string', store: 'string', access_token: '?string', thingtalk_version: 'string', target: 'string', owner: '?string' }, { json: true }),
     (req, res, next) => { learn(req, res).catch(next); });
 
 module.exports = router;
