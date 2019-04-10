@@ -145,17 +145,17 @@ away!).
 
 
 ## Need more examples?
-You can go to our [Github repository](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices)
+You can go to our [Github repository](https://github.com/stanford-oval/thingpedia-common-devices)
 to see more device packages we developed, and observe these concepts we introduced in action. 
 
 We recommend to look at the following devices as examples: 
 + Giphy [[Thingpedia]](https://almond.stanford.edu/thingpedia/classes/by-id/com.giphy) 
-[[Github]](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.giphy):
+[[Github]](https://github.com/stanford-oval/thingpedia-common-devices/tree/master/com.giphy):
 a very simple device which returns GIFs
 + LinkedIn [[Thingpedia]](https://almond.stanford.edu/thingpedia/classes/by-id/com.linkedin) 
-[[Github]](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.linkedin):
+[[Github]](https://github.com/stanford-oval/thingpedia-common-devices/tree/master/com.linkedin):
 an interface for LinkedIn which shows how authentication works. 
 + LG TV [[Thingpedia]](https://almond.stanford.edu/thingpedia/classes/by-id/com.lg.tv.webos2) 
-[[Github]](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/tree/master/com.lg.tv.webos2):
+[[Github]](https://github.com/stanford-oval/thingpedia-common-devices/tree/master/com.lg.tv.webos2):
 a more complicated example which involves a physical device.
 

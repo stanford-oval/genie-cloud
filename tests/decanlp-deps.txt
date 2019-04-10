@@ -26,4 +26,4 @@ tabulate
 -e git+git://github.com/salesforce/cove.git#egg=cove
 allennlp
 
--e git+git://github.com/Stanford-Mobisocial-IoT-Lab/decaNLP.git#egg=decanlp
+-e git+git://github.com/stanford-oval/decaNLP.git#egg=decanlp

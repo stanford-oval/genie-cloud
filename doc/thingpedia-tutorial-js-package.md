@@ -68,7 +68,7 @@ module.exports = class CatAPIDevice extends Tp.BaseDevice {
 ## The `BaseDevice` API
 
 When you create a device class, you declare
-a subclass of [`Tp.BaseDevice`](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-api/blob/master/lib/base_device.js),
+a subclass of [`Tp.BaseDevice`](https://github.com/stanford-oval/thingpedia-api/blob/master/lib/base_device.js),
 the base class of all device classes.
 
 To construct the subclass, three properties are required: `uniqueId`, `name`, and `description`
