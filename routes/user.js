@@ -791,7 +791,7 @@ if (Config.DISCOURSE_SSO_SECRET && Config.DISCOURSE_SSO_REDIRECT) {
             email: req.user.email,
             username: req.user.username,
             name: req.user.human_name,
-            admin: (req.user.roles & (userUtils.Role.ADMIN | userUtils.Role.THINGPEDIA_ADMIN)) !== 0
+            admin: (req.user.roles & userUtils.Role.DISCOURSE_ADMIN) !== userUtils.Role.DISCOURSE_ADMIN
         };
         res.redirect(302, Config.DISCOURSE_SSO_REDIRECT + '/session/sso_login?' + sso.buildLoginString(payload));
     });
