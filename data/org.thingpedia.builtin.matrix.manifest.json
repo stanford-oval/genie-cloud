@@ -1,7 +1,7 @@
 {
     "thingpedia_name": "Matrix",
     "thingpedia_description": "The Matrix.org federated chat service",
-    "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core",
+    "repository": "https://github.com/stanford-oval/thingengine-core",
     "module_type": "org.thingpedia.builtin",
     "params": {},
     "category": "online",

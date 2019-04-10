@@ -550,8 +550,8 @@ async function testDeviceSearch() {
             category: 'data',
             subcategory: 'service',
             website: 'https://www.bing.com',
-            repository: 'https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices',
-            issue_tracker: 'https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-common-devices/issues',
+            repository: 'https://github.com/stanford-oval/thingpedia-common-devices',
+            issue_tracker: 'https://github.com/stanford-oval/thingpedia-common-devices/issues',
             license: 'GPL-3.0'
         }]
     });

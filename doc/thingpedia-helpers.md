@@ -1,9 +1,9 @@
 # Thingpedia Device API Reference
 
 This documents details the APIs available to Thingpedia devices (JS packages uploaded to Thingpedia).
-Most APIs are part of the [thingpedia](https://github.com/Stanford-Mobisocial-IoT-Lab/thingpedia-api) JS package,
+Most APIs are part of the [thingpedia](https://github.com/stanford-oval/thingpedia-api) JS package,
 with the exception of the [Engine class](#class-engine) and the [Platform class](#class-platform), which
-are part of [thingengine-core](https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core).
+are part of [thingengine-core](https://github.com/stanford-oval/thingengine-core).
 
 [[toc]]
 
@@ -688,7 +688,7 @@ If `callback` fails (throws or returns a rejected promise), the stream will emit
 ## Class Engine
 
 `this.engine` on a device gives you access to the
-[`Engine`](https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/blob/master/lib/engine.js)
+[`Engine`](https://github.com/stanford-oval/thingengine-core/blob/master/lib/engine.js)
 object, which is shared among all device instances, but private to a specific user.
 
 The API on the `Engine` object is less stable than `Tp.BaseDevice`, but it is
@@ -718,7 +718,7 @@ The currently running tier of Almond, ie `cloud` or `phone`
 get devices() : DeviceDatabase
 ```
 
-The database of all devices. The resulting object is a [`DeviceDatabase`](https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/blob/master/lib/devices/database.js).
+The database of all devices. The resulting object is a [`DeviceDatabase`](https://github.com/stanford-oval/thingengine-core/blob/master/lib/devices/database.js).
 
 ### getter apps
 
@@ -726,7 +726,7 @@ The database of all devices. The resulting object is a [`DeviceDatabase`](https:
 get devices() : AppDatabase
 ```
 
-The database of all long-running ThingTalk programs for the current user. The resulting object is a [`AppDatabase`](https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/blob/master/lib/apps/database.js).
+The database of all long-running ThingTalk programs for the current user. The resulting object is a [`AppDatabase`](https://github.com/stanford-oval/thingengine-core/blob/master/lib/apps/database.js).
 
 Use this object to run ThingTalk code.
 
@@ -833,7 +833,7 @@ Returns the interface associated with the given capability. Will return `null` i
 function getSharedPreferences() : Preferences
 ```
 
-Access an instance of [`Preferences`](https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core/blob/master/lib/util/prefs.js),
+Access an instance of [`Preferences`](https://github.com/stanford-oval/thingengine-core/blob/master/lib/util/prefs.js),
 which is a Almond-wide store of key-value pairs backed to disk.
 
 ### method getWritableDir

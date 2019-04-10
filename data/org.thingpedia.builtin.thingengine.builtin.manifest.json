@@ -1,7 +1,7 @@
 {
     "thingpedia_name": "Miscellaneous Interfaces",
     "thingpedia_description": "Triggers and actions that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging.",
-    "repository": "https://github.com/Stanford-Mobisocial-IoT-Lab/thingengine-core",
+    "repository": "https://github.com/stanford-oval/thingengine-core",
     "module_type": "org.thingpedia.builtin",
     "params": {},
     "category": "data",
