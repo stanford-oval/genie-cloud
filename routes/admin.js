@@ -256,7 +256,7 @@ router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.val
     }).catch(next);
 });
 
-router.get('/organizations', user.requireRole(user.Role.ADMIN), iv.validateGET({ page: '?integer' }), (req, res, next) => {
+router.get('/organizations', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validateGET({ page: '?integer' }), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -276,7 +276,7 @@ router.get('/organizations', user.requireRole(user.Role.ADMIN), iv.validateGET({
     }).catch(next);
 });
 
-router.get('/organizations/search', user.requireRole(user.Role.ADMIN), iv.validateGET({ q: 'string' }), (req, res, next) => {
+router.get('/organizations/search', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validateGET({ q: 'string' }), (req, res, next) => {
     if (!req.query.q) {
         res.redirect(303, '/admin/organizations');
         return;
@@ -293,7 +293,7 @@ router.get('/organizations/search', user.requireRole(user.Role.ADMIN), iv.valida
     }).catch(next);
 });
 
-router.get('/organizations/details/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.get('/organizations/details/:id', user.requireRole(user.Role.THINGPEDIA_ADMIN), (req, res, next) => {
     db.withClient((dbClient) => {
         return Promise.all([
             organization.get(dbClient, req.params.id),
@@ -309,7 +309,7 @@ router.get('/organizations/details/:id', user.requireRole(user.Role.ADMIN), (req
     }).catch(next);
 });
 
-router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN),
+router.post('/organizations/add-member', user.requireRole(user.Role.THINGPEDIA_ADMIN),
     iv.validatePOST({ id: 'integer', as_developer: 'boolean', username: 'string' }), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         const [user] = await model.getByName(dbClient, req.body.username);
@@ -337,7 +337,7 @@ router.post('/organizations/add-member', user.requireRole(user.Role.ADMIN),
     }).catch(next);
 });
 
-router.post('/organizations/set-name', user.requireRole(user.Role.ADMIN), iv.validatePOST({ id: 'integer', name: 'string', comment: '?string' }), (req, res, next) => {
+router.post('/organizations/set-name', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validatePOST({ id: 'integer', name: 'string', comment: '?string' }), (req, res, next) => {
     db.withTransaction((dbClient) => {
         return organization.update(dbClient, req.body.id, { name: req.body.name, comment: req.body.comment });
     }).then(() => {

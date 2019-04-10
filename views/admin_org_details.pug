@@ -38,17 +38,30 @@ block content
     div.panel-heading
       h3.panel-title=_("Members")
 
-    div.list-group
-      each user in members
-        a(href='/admin/users/search?q=' + user.id).list-group-item.clearfix
-          div.pull-left= user.username
-          div.pull-right
-            if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
-              span= _("Administrator")
-            else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
-              span= _("Developer")
-            else
-              span= _("Tester")
+    if user.roles & Constants.Role.ADMIN
+      div.list-group
+        each user in members
+          a(href='/admin/users/search?q=' + user.id).list-group-item.clearfix
+            div.pull-left= user.username
+            div.pull-right
+              if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
+                span= _("Administrator")
+              else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
+                span= _("Developer")
+              else
+                span= _("Tester")
+    else
+      ul.list-group
+        each user in members
+          li.list-group-item.clearfix
+            div.pull-left= user.username
+            div.pull-right
+              if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
+                span= _("Administrator")
+              else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
+                span= _("Developer")
+              else
+                span= _("Tester")
 
     div.panel-footer
       a(href='#add-member-dialog',data-toggle='modal').btn.btn-primary.btn-sm= _("Add a member")

@@ -21,6 +21,7 @@ block content
                 if user.roles & Constants.Role.ADMIN
                   li
                     a(href='/admin/users') Users
+                if user.roles & Constants.Role.THINGPEDIA_ADMIN
                   li
                     a(href='/admin/organizations') Developer Organizations
                 if user.roles & Constants.Role.BLOG_EDITOR
