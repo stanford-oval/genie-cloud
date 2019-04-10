@@ -137,17 +137,17 @@ async function getTraining(req, res) {
                                  jobs });
 }
 
-router.get('/training', user.requireRole(user.Role.ADMIN), (req, res, next) => {
+router.get('/training', user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
     getTraining(req, res).catch(next);
 });
 
-router.post('/training', user.requireRole(user.Role.ADMIN), iv.validatePOST({ language: 'string', job_type: 'string' }), (req, res, next) => {
+router.post('/training', user.requireRole(user.Role.NLP_ADMIN), iv.validatePOST({ language: 'string', job_type: 'string' }), (req, res, next) => {
     TrainingServer.get().queue(req.body.language, null, req.body.job_type).then(() => {
         return getTraining(req, res);
     }).catch(next);
 });
 
-router.post('/training/kill', user.requireRole(user.Role.ADMIN), iv.validatePOST({ job_id: 'integer' }), (req, res, next) => {
+router.post('/training/kill', user.requireRole(user.Role.NLP_ADMIN), iv.validatePOST({ job_id: 'integer' }), (req, res, next) => {
     TrainingServer.get().kill(parseInt(req.body.job_id)).then(() => {
         return res.redirect(303, '/admin/training');
     }).catch(next);

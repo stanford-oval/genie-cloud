@@ -65,12 +65,14 @@ module.exports = {
         BLOG_EDITOR: 2,       // allows to edit blogs
         THINGPEDIA_ADMIN: 4,  // allows to view/edit/approve thingpedia entries (devices, datasets, strings, entities, examples, etc)
         TRUSTED_DEVELOPER: 8, // allows to approve their own device
+        DISCOURSE_ADMIN: 16,  // admin of the community forum (through SSO)
+        NLP_ADMIN: 32,        // admin of datasets, mturk, and training
 
         // all privileges
-        ROOT: 15,
+        ROOT: 63,
 
-        // all admin roles (access to /admin hierarchy)
-        ALL_ADMIN: 7,
+        // all roles that grant access to /admin hierarchy
+        ALL_ADMIN: 1+2+4+32,
     },
 
     ProfileFlags: {
