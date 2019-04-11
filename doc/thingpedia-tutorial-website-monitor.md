@@ -56,7 +56,8 @@ install the dependencies, and this will create the `node_modules` folder.
 Now you can create the zip file.
 We recommend to use command line to compress the folder:
 ```bash
-zip -r xx.zip your-folder-name
+cd your-folder-name
+zip -r ../xx.zip *
 ```
 Compressing from the right-click menu in Mac will create a new folder which 
 makes the system fail to find the files in the root directory.
