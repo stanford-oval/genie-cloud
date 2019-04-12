@@ -19,6 +19,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
 const { isOriginOk } = require('../util/origin');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('../util/errors');
+const errorHandling = require('../util/error_handling');
 
 const Config = require('../config');
 
@@ -444,21 +445,6 @@ router.ws('/sync', user.requireScope('user-sync'), async (ws, req) => {
 });
 
 // if something failed, return a 500 in json form, or the appropriate status code
-router.use('/', (err, req, res, next) => {
-    if (typeof err.code === 'number') {
-        res.status(err.code);
-    } else if (err.code === 'ENOENT') {
-        res.status(404);
-    } else if (err.code === 'EPERM') {
-        res.status(403);
-    } else if (err.code === 'EINVAL') {
-        res.status(400);
-    } else {
-        res.status(500);
-        console.error(err);
-    }
-
-    res.json({ error: err.message, code: err.code });
-});
+router.use(errorHandling.json);
 
 module.exports = router;

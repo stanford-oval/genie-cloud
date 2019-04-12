@@ -24,6 +24,7 @@ const SchemaUtils = require('../util/manifest_to_schema');
 const { tokenize, PARAM_REGEX } = require('../util/tokenize');
 const userUtils = require('../util/user');
 const { isOriginOk } = require('../util/origin');
+const errorHandling = require('../util/error_handling');
 
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
@@ -1833,21 +1834,6 @@ everything.use('/', (req, res) => {
 });
 
 // if something failed, return a 500 in json form, or the appropriate status code
-everything.use('/', (err, req, res, next) => {
-    if (typeof err.code === 'number') {
-        res.status(err.code);
-    } else if (err.code === 'ENOENT') {
-        res.status(404);
-    } else if (err.code === 'EPERM') {
-        res.status(403);
-    } else if (err.code === 'EINVAL') {
-        res.status(400);
-    } else {
-        res.status(500);
-        console.error(err);
-    }
-
-    res.json({ error: err.message, code: err.code });
-});
+everything.use(errorHandling.json);
 
 module.exports = everything;
