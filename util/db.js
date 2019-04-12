@@ -151,8 +151,8 @@ module.exports = {
     },
 
     withClient(callback) {
-        return connect().then(([client, done]) => {
-            return callback(client).then((result) => {
+        return connect().then(async ([client, done]) => {
+            return Promise.resolve(callback(client)).then((result) => {
                 done();
                 return result;
             }, (err) => {
