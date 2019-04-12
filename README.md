@@ -23,11 +23,6 @@ The code depends on:
 - nodejs (>= 8.0)
 - cvc4 (any version, although >= 1.5 is recommended; only the binary is needed, not the library)
 - gm (provided by GraphicsMagic)
-- cairo
-- Pango
-- giflib
-- libjpeg
-- libcap
 
 Optionally, it depends on:
 
@@ -40,18 +35,18 @@ A working MySQL server is also required. We recommend MariaDB >= 10.2 for best c
 
 For example, on Ubuntu (>= 18.04):
 ```
-sudo apt install nodejs cvc4 graphicsmagick libcairo2-dev libpango1.0-dev libgif-dev libjpeg-dev libcap-dev libsystemd-dev bubblewrap -y
+sudo apt install nodejs cvc4 graphicsmagick libsystemd-dev bubblewrap -y
 ```
 On Fedora:
 ```
-sudo dnf install nodejs cvc4 GraphicsMagick cairo-devel pango-devel giflib-devel libjpeg-devel libcap-devel systemd-devel bubblewrap -y
+sudo dnf install nodejs cvc4 GraphicsMagick systemd-devel bubblewrap -y
 ```
 
 
 If you would like to run the MySQL server locally:
 ```
-sudo apt install mariadb-server //Ubuntu
-sudo dnf install mariadb-server //Fedora
+sudo apt install mariadb-server # Ubuntu
+sudo dnf install mariadb-server # Fedora
 ```
 
 This repository uses yarn for dependency tracking.
