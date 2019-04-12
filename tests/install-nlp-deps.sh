@@ -14,5 +14,9 @@ mkdir -p $srcdir/tests/embeddings
 cd $srcdir/tests/embeddings
 
 wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/thingtalk-lm2.pth
-wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/glove.840B.300d.txt.pt
-wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/charNgram.txt.pt
+
+for v in charNgram glove.840B.300d ; do
+	for f in vectors table itos ; do
+		wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/${v}.txt.${f}.npy
+	done
+done
