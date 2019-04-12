@@ -21,13 +21,14 @@ block content
                 if user.roles & Constants.Role.ADMIN
                   li
                     a(href='/admin/users') Users
+                if user.roles & Constants.Role.THINGPEDIA_ADMIN
                   li
                     a(href='/admin/organizations') Developer Organizations
                 if user.roles & Constants.Role.BLOG_EDITOR
                   li
                     a(href='/admin/blog') Blog Archive
                 if WITH_THINGPEDIA === 'embedded'
-                  if user.roles & Constants.Role.ADMIN
+                  if user.roles & Constants.Role.NLP_ADMIN
                     li
                       a(href='/admin/training') Natural Language Training
                   if user.roles & Constants.Role.THINGPEDIA_ADMIN
@@ -39,9 +40,9 @@ block content
                       a(href='/thingpedia/strings') Thingpedia String Datasets
                     li
                       a(href='/thingpedia/snapshots') Thingpedia Snapshots
+                  if user.roles & Constants.Role.NLP_ADMIN
                     li
                       a(href='/thingpedia/datasets') Thingpedia Datasets
-                  if user.roles & Constants.Role.ADMIN
                     li
                       a(href='/mturk') MTurk Batches
 

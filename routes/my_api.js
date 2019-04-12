@@ -97,6 +97,36 @@ router.get('/parse', user.requireScope('user-read'), iv.validateGET({ q: '?strin
     });
 });
 
+async function describeDevice(d, req) {
+    const [uniqueId, name, description, kind, ownerTier] = await Promise.all([
+        d.uniqueId, d.name, d.description, d.kind, d.ownerTier]);
+
+    return {
+        uniqueId: uniqueId,
+        name: name || req._("Unknown device"),
+        description: description || req._("Description not available"),
+        kind: kind,
+        ownerTier: ownerTier
+    };
+}
+
+router.get('/devices/list', user.requireScope('user-read'), (req, res, next) => {
+    Q.try(() => {
+        return EngineManager.get().getEngine(req.user.id);
+    }).then((engine) => {
+        return engine.devices.getAllDevices().then((devices) => {
+            return Promise.all(devices.map((d) => describeDevice(d, req)));
+        });
+    }).then((result) => {
+        // sort by name to provide a deterministic result
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        res.json(result);
+    }).catch((e) => {
+        console.error(e.stack);
+        res.status(500).json({error:e.message});
+    });
+});
+
 function describeApp(app) {
     return Promise.all([app.uniqueId, app.description, app.error, app.code, app.icon])
         .then(([uniqueId, description, error, code, icon]) => ({

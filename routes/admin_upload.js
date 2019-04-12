@@ -68,7 +68,7 @@ async function upload(req, res) {
     }
 }
 
-router.post('/blog/upload', (req, res, next) => {
+router.post('/', (req, res, next) => {
     upload(req, res).catch(next);
 });
 

@@ -31,7 +31,7 @@ var router = express.Router();
 router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'upload', maxCount: 1 }
 ]), csurf({ cookie: false }),
-    user.requireLogIn, user.requireRole(user.Role.ADMIN),
+    user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN),
     iv.validatePOST({ body: 'string', submissions_per_hit: 'integer' }), (req, res) => {
     if (!req.files.upload || !req.files.upload.length) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
@@ -105,7 +105,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
 
 router.use(csurf({ cookie: false }));
 
-router.get('/', user.requireLogIn, user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return model.getBatches(dbClient);
     }).then((batches) => {
@@ -117,7 +117,7 @@ router.get('/', user.requireLogIn, user.requireRole(user.Role.ADMIN), (req, res)
     });
 });
 
-router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return new Promise((resolve, reject) => {
             res.set('Content-disposition', 'attachment; filename=mturk.csv');
@@ -143,7 +143,7 @@ router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.ADMIN), 
     }).done();
 });
 
-router.get('/validation/csv/:batch', user.requireLogIn, user.requireRole(user.Role.ADMIN), (req, res) => {
+router.get('/validation/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res) => {
     db.withClient((dbClient) => {
         return new Promise((resolve, reject) => {
             res.set('Content-disposition', 'attachment; filename=validate.csv');

@@ -67,6 +67,10 @@ block content
                 - roles.push(_("Thingpedia Admin"));
               if user.roles & Constants.Role.TRUSTED_DEVELOPER
                 - roles.push(_("Trusted Developer"));
+              if user.roles & Constants.Role.DISCOURSE_ADMIN
+                - roles.push(_("Discourse Admin"));
+              if user.roles & Constants.Role.NLP_ADMIN
+                - roles.push(_("NLP Admin"));
               span(title=user.developer_key)
                 a(href='/admin/organizations/details/' + user.developer_org)= roles.join(', ')
             else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
