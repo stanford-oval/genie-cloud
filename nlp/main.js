@@ -19,7 +19,6 @@ const path = require('path');
 
 const logger = require('morgan');
 const bodyParser = require('body-parser');
-const errorHandler = require('errorhandler');
 const cacheable = require('cacheable-middleware');
 const Prometheus = require('prom-client');
 const Genie = require('genie-toolkit');
@@ -27,6 +26,7 @@ const Genie = require('genie-toolkit');
 const db = require('../util/db');
 const Metrics = require('../util/metrics');
 const I18n = require('../util/i18n');
+const errorHandling = require('../util/error_handling');
 const modelsModel = require('../model/nlp_models');
 
 const NLPModel = require('./nlp_model');
@@ -91,10 +91,8 @@ class NLPInferenceServer {
         // no logger in production!
         // otherwise all the mess with IRB to log what
         // people say goes down the drain...
-        if ('development' === app.get('env')) {
+        if ('development' === app.get('env'))
             app.use(logger('dev'));
-            app.use(errorHandler());
-        }
         if (Config.ENABLE_PROMETHEUS)
             Metrics(app);
 
@@ -108,32 +106,10 @@ class NLPInferenceServer {
         app.use(require('./learn'));
 
         // if we get here, we have a 404 error
-        app.use((req, res, next) => {
-            res.status(404).json({
-                error: 'Not Found'
-            });
+        app.use('/', (req, res) => {
+            res.status(404).json({ error: 'Invalid endpoint' });
         });
-
-        app.use((err, req, res, next) => {
-            if (typeof err.status === 'number') {
-                // oauth2orize errors, bodyparser errors
-                res.status(err.status).json({
-                    error: err.expose === false ? err.status : err.message
-                });
-            } else if (err.code === 'ENOENT' || err.errno === 'ENOENT') {
-                // util/db errors
-                res.status(404).json({
-                    error: 'Not Found'
-                });
-            } else {
-                // bugs
-                console.error(err);
-                res.status(500).json({
-                    error: 'Internal Server Error',
-                    detail: err.code || err.sqlState || err.errno || err.name
-                });
-            }
-        });
+        app.use(errorHandling.json);
 
         app.listen(app.get('port'));
     }
