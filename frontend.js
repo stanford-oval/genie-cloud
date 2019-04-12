@@ -147,14 +147,6 @@ class Frontend {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });
-        this._app.use('/friendhub/backgrounds', (req, res, next) => {
-            res.set('Access-Control-Allow-Origin', '*');
-            next();
-        });
-        this._app.use('/friendhub/search', (req, res, next) => {
-            res.set('Access-Control-Allow-Origin', '*');
-            next();
-        });
         this._app.use('/cache', (req, res, next) => {
             res.set('Access-Control-Allow-Origin', '*');
             next();
@@ -275,7 +267,6 @@ class Frontend {
 
         // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
         this._app.use('/mturk', require('./routes/mturk'));
-        this._app.use('/friendhub', require('./routes/friendhub'));
         this._app.use('/admin/blog/upload', require('./routes/admin_upload'));
 
         this._app.use(csurf({ cookie: false }));
