@@ -22,6 +22,7 @@ const db = require('../util/db');
 const TrainingServer = require('../util/training_server');
 const iv = require('../util/input_validation');
 const { makeRandom } = require('../util/random');
+const { BadRequestError } = require('../util/errors');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -313,18 +314,10 @@ router.post('/organizations/add-member', user.requireRole(user.Role.THINGPEDIA_A
     iv.validatePOST({ id: 'integer', as_developer: 'boolean', username: 'string' }), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         const [user] = await model.getByName(dbClient, req.body.username);
-        try {
-            if (!user)
-                throw new Error(req._("No such user %s").format(req.body.username));
-            if (user.developer_org !== null && user.developer_org !== parseInt(req.body.id))
-                throw new Error(req._("%s is already a member of another developer organization.").format(req.body.username));
-        } catch(e) {
-            res.status(400).render('error', {
-                page_title: req._("Thingpedia - Error"),
-                message: e
-            });
-            return null;
-        }
+        if (!user)
+            throw new BadRequestError(req._("No such user %s").format(req.body.username));
+        if (user.developer_org !== null && user.developer_org !== parseInt(req.body.id))
+            throw new BadRequestError(req._("%s is already a member of another developer organization.").format(req.body.username));
 
         await model.update(dbClient, user.id, { developer_status: req.body.as_developer ? 1 : 0,
                                                 developer_org: req.body.id });

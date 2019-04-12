@@ -34,6 +34,7 @@ const { makeRandom } = require('../util/random');
 const iv = require('../util/input_validation');
 const i18n = require('../util/i18n');
 const { tokenize } = require('../util/tokenize');
+const { BadRequestError } = require('../util/errors');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -235,19 +236,19 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
     try {
         if (req.body.username.length > 64 ||
             /[\\'"()\n\r\v\f/]/.test(req.body.username))
-            throw new Error(req._("You must specify a valid username of at most 64 characters. Special characters are not allowed."));
+            throw new BadRequestError(req._("You must specify a valid username of at most 64 characters. Special characters are not allowed."));
         options.username = req.body['username'];
         if (req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
-            throw new Error(req._("You must specify a valid email."));
+            throw new BadRequestError(req._("You must specify a valid email."));
         options.email = req.body['email'];
 
         if (req.body['password'].length < 8 ||
             req.body['password'].length > 255)
-            throw new Error(req._("You must specifiy a valid password, of at least 8 characters."));
+            throw new BadRequestError(req._("You must specifiy a valid password, of at least 8 characters."));
 
         if (req.body['confirm-password'] !== req.body['password'])
-            throw new Error(req._("The password and the confirmation do not match."));
+            throw new BadRequestError(req._("The password and the confirmation do not match."));
         options.password = req.body['password'];
 
         if (!req.body['timezone'])
@@ -255,7 +256,7 @@ router.post('/register', iv.validatePOST(registerArguments), (req, res, next) =>
         if (!moment.tz.zone(req.body.timezone) ||
             !/^[a-z]{2,}-[a-z]{2,}/i.test(req.body.locale) ||
             !i18n.get(req.body.locale, false))
-            throw new Error("Invalid localization data.");
+            throw new BadRequestError("Invalid localization data.");
         options.timezone = req.body['timezone'];
         options.locale = req.body['locale'];
 
@@ -477,10 +478,10 @@ router.post('/recovery/continue', iv.validatePOST({ token: 'string', password: '
         try {
             if (req.body['password'].length < 8 ||
                 req.body['password'].length > 255)
-                throw new Error(req._("You must specifiy a valid password (of at least 8 characters)"));
+                throw new BadRequestError(req._("You must specifiy a valid password (of at least 8 characters)"));
 
             if (req.body['confirm-password'] !== req.body['password'])
-                throw new Error(req._("The password and the confirmation do not match"));
+                throw new BadRequestError(req._("The password and the confirmation do not match"));
         } catch(e) {
             res.render('password_recovery_continue', {
                 page_title: req._("Almond - Password Reset"),
@@ -633,15 +634,15 @@ router.post('/change-password', userUtils.requireLogIn, iv.validatePOST({ passwo
     Promise.resolve().then(() => {
         if (req.body['password'].length < 8 ||
             req.body['password'].length > 255)
-            throw new Error(req._("You must specifiy a valid password (of at least 8 characters)"));
+            throw new BadRequestError(req._("You must specifiy a valid password (of at least 8 characters)"));
 
         if (req.body['confirm-password'] !== req.body['password'])
-            throw new Error(req._("The password and the confirmation do not match"));
+            throw new BadRequestError(req._("The password and the confirmation do not match"));
         password = req.body['password'];
 
         if (req.user.password) {
             if (!req.body['old_password'])
-                throw new Error(req._("You must specifiy your old password"));
+                throw new BadRequestError(req._("You must specifiy your old password"));
             oldpassword = req.body['old_password'];
         }
 

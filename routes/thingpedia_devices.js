@@ -29,6 +29,7 @@ const DatasetUtils = require('../util/dataset');
 const Importer = require('../util/import_device');
 const codeStorage = require('../util/code_storage');
 const iv = require('../util/input_validation');
+const { NotFoundError } = require('../util/errors');
 
 var router = express.Router();
 
@@ -139,13 +140,10 @@ router.post('/approve', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validat
         ]);
     }).then(() => {
         res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
     }).catch(next);
 });
 
-router.post('/unapprove', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validatePOST({ kind: 'string' }), (req, res) => {
+router.post('/unapprove', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validatePOST({ kind: 'string' }), (req, res, next) => {
     db.withTransaction((dbClient) => {
         return Promise.all([
             model.unapprove(dbClient, req.body.kind),
@@ -153,65 +151,44 @@ router.post('/unapprove', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.valid
         ]);
     }).then(() => {
         res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
-    }).catch((e) => {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 router.use(user.requireDeveloper());
 
-router.post('/delete', iv.validatePOST({ kind: 'string' }), (req, res) => {
+router.post('/delete', iv.validatePOST({ kind: 'string' }), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         const row = await model.getByPrimaryKind(dbClient, req.body.kind);
         if (row.owner !== req.user.developer_org &&
             (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
             // note that this must be exactly the same error used by util/db.js
             // so that a true not found is indistinguishable from not having permission
-            const err = new Error("Not Found");
-            err.code = 'ENOENT';
-            throw err;
+            throw new NotFoundError();
         }
 
         return model.delete(dbClient, row.id);
     }).then(() => {
         res.redirect(303, '/thingpedia/devices');
-    }).catch((e) => {
-        if (e.code === 'ENOENT')
-            res.status(404);
-        else
-            res.status(400);
-        res.render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e.message });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/train', iv.validatePOST({ kind: 'string' }), (req, res) => {
+router.post('/train', iv.validatePOST({ kind: 'string' }), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         const row = await model.getByPrimaryKind(dbClient, req.body.kind);
         if (row.owner !== req.user.developer_org &&
             (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
             // note that this must be exactly the same error used by util/db.js
             // so that a true not found is indistinguishable from not having permission
-            const err = new Error("Not Found");
-            err.code = 'ENOENT';
-            throw err;
+            throw new NotFoundError();
         }
 
         return TrainingServer.get().queue('en', [req.body.kind], 'train');
     }).then(() => {
         res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
-    }).catch((e) => {
-        if (e.code === 'ENOENT')
-            res.status(404);
-        else
-            res.status(400);
-        res.render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e.message });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/request-approval', iv.validatePOST({ kind: 'string', comments: '?string' }), (req, res) => {
+router.post('/request-approval', iv.validatePOST({ kind: 'string', comments: '?string' }), (req, res, next) => {
     var mailOptions = {
         from: Config.EMAIL_FROM_ADMIN,
         to: Config.EMAIL_TO_ADMIN,
@@ -231,10 +208,7 @@ ${(req.body.comments || '').trim()}
 
     SendMail.send(mailOptions).then(() => {
         res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    });
+    }).catch(next);
 });
 
 module.exports = router;

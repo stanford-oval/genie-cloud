@@ -10,6 +10,7 @@
 "use strict";
 
 const tokenizer = require('./tokenize');
+const { InternalError } = require('./errors');
 
 function entityTypeToHTMLType(type) {
     switch (type) {
@@ -124,7 +125,7 @@ function makeDeviceFactory(classDef, device) {
         };
 
     default:
-        throw new Error(`Unrecognized config mixin ${config.module}`);
+        throw new InternalError('E_INVALID_DEVICE_AFTER_VALIDATION', `Unrecognized config mixin ${config.module}`);
     }
 }
 

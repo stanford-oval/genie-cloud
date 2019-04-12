@@ -27,15 +27,12 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
 const csurf = require('csurf');
-const errorHandler = require('errorhandler');
 const passport = require('passport');
 const connect_flash = require('connect-flash');
 const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
 const acceptLanguage = require('accept-language');
 const Prometheus = require('prom-client');
-const multer = require('multer');
-const jwt = require('jsonwebtoken');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
@@ -44,6 +41,7 @@ const i18n = require('./util/i18n');
 const userUtils = require('./util/user');
 const platform = require('./util/platform');
 const Metrics = require('./util/metrics');
+const errorHandling = require('./util/error_handling');
 const EngineManager = require('./almond/enginemanagerclient');
 
 const Config = require('./config');
@@ -79,10 +77,7 @@ class Frontend {
             next();
         });
 
-        // logging and error handling
-        // set it up first
-        if ('development' === this._app.get('env'))
-            this._app.use(errorHandler());
+        // set up logging first
         this._app.use(morgan('dev'));
         if (Config.ENABLE_PROMETHEUS)
             Metrics(this._app);
@@ -309,54 +304,10 @@ class Frontend {
             // if we get here, we have a 404 response
             res.status(404).render('error', {
                 page_title: req._("Almond - Page Not Found"),
-                message: req._("The requested page does not exist")
+                message: req._("The requested page does not exist.")
             });
         });
-
-        this._app.use((err, req, res, next) => {
-            if (err instanceof multer.MulterError) {
-                res.status(400).render('error', {
-                    page_title: req._("Almond - Error"),
-                    message: err
-                });
-            } else if (err instanceof jwt.JsonWebTokenError) {
-                res.status(403).render('error', {
-                    page_title: req._("Almond - Error"),
-                    message: err
-                });
-            } else if (typeof err.status === 'number') {
-                // oauth2orize errors, bodyparser errors
-                res.status(err.status).render('error', {
-                    page_title: req._("Almond - Error"),
-                    message: err.expose === false ? req._("Code: %d").format(err.status) : err
-                });
-            } else if (err.code === 'EBADCSRFTOKEN') {
-                // csurf errors
-                res.status(403).render('error', {
-                    page_title: req._("Almond - Forbidden"),
-                    message: err,
-
-                    // make sure we have a csrf token in the page
-                    // (this error could be raised before we hit the general code that sets it
-                    // everywhere)
-                    csrfToken: req.csrfToken()
-                });
-            } else if (err.code === 'ENOENT' || err.errno === 'ENOENT') {
-                // util/db errors
-                // if we get here, we have a 404 response
-                res.status(404).render('error', {
-                    page_title: req._("Almond - Page Not Found"),
-                    message: req._("The requested page does not exist")
-                });
-            } else {
-                // bugs
-                console.error(err);
-                res.status(500).render('error', {
-                    page_title: req._("Almond - Internal Server Error"),
-                    message: req._("Code: %s").format(err.code || err.sqlState || err.errno || err.name)
-                });
-            }
-        });
+        this._app.use(errorHandling.html);
 
         this._websocketEndpoints = {};
     }

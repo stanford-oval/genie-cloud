@@ -14,6 +14,7 @@ const express = require('express');
 const db = require('../util/db');
 const userModel = require('../model/user');
 const EngineManager = require('../almond/enginemanagerclient');
+const { NotFoundError } = require('../util/errors');
 
 var router = express.Router();
 
@@ -82,7 +83,7 @@ router.ws('/:cloud_id', (ws, req) => {
         return userModel.getByCloudId(dbClient, req.params.cloud_id);
     }).then((rows) => {
         if (rows.length === 0)
-            throw new Error('Invalid user');
+            throw new NotFoundError();
 
         return Promise.all([rows[0].id, EngineManager.get().getEngine(rows[0].id)]);
     }).then(([id, engine]) => {

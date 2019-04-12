@@ -15,6 +15,7 @@ const crypto = require('crypto');
 const db = require('./db');
 const model = require('../model/user');
 const { makeRandom } = require('./random');
+const { ForbiddenError, BadRequestError, InternalError } = require('./errors');
 
 const Config = require('../config');
 
@@ -87,7 +88,7 @@ module.exports = {
     register(dbClient, req, options) {
         return model.getByName(dbClient, options.username).then((rows) => {
             if (rows.length > 0)
-                throw new Error(req._("A user with this name already exists"));
+                throw new BadRequestError(req._("A user with this name already exists."));
 
             var salt = makeRandom();
             var cloudId = makeRandom(8);
@@ -123,7 +124,7 @@ module.exports = {
         if (user.salt && user.password) {
             const providedHash = await hashPassword(user.salt, oldpassword);
             if (user.password !== providedHash)
-                throw new Error('Invalid old password');
+                throw new ForbiddenError('Invalid old password');
         }
         const salt = makeRandom();
         const newhash = await hashPassword(salt, password);
@@ -163,7 +164,7 @@ module.exports = {
 
     requireRole(role) {
         if (role === undefined)
-            throw new Error(`invalid requireRole call`);
+            throw new TypeError(`invalid requireRole call`);
         return function(req, res, next) {
             if ((req.user.roles & role) !== role) {
                 res.status(403).render('error', {
@@ -242,7 +243,7 @@ module.exports = {
 
         this.getAnonymousUser().then((user) => {
             if (!user)
-                throw new Error('Invalid configuration (missing anonymous user)');
+                throw new InternalError('E_INVALID_CONFIG', 'Invalid configuration (missing anonymous user)');
             req.login(user, next);
         }).catch((e) => next(e));
     }

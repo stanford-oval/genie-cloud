@@ -16,6 +16,7 @@ const user = require('../util/user');
 const model = require('../model/schema');
 const exampleModel = require('../model/example');
 const iv = require('../util/input_validation');
+const { NotFoundError } = require('../util/errors');
 
 var router = express.Router();
 
@@ -29,7 +30,7 @@ function localeToLanguage(locale) {
     return (locale || 'en').split(/[-_@.]/)[0];
 }
 
-router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ language: '?string', fromVersion: '?integer',  }), (req, res) => {
+router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ language: '?string', fromVersion: '?integer',  }), (req, res, next) => {
     const language = req.query.language || localeToLanguage(req.user.locale);
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
@@ -46,7 +47,7 @@ router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ language: '?strin
               : model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, language)
         ]).then(([englishrows, translatedrows]) => {
             if (englishrows.length === 0 || translatedrows.length === 0)
-                throw new Error(req._("Not Found."));
+                throw new NotFoundError();
 
             var english = englishrows[0];
             var translated = translatedrows[0];
@@ -140,11 +141,7 @@ router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ language: '?strin
             queries: out.queries,
             csrfToken: req.csrfToken(),
         });
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 function ensureExamples(dbClient, schemaId, ast, language) {
@@ -166,7 +163,7 @@ function ensureExamples(dbClient, schemaId, ast, language) {
     });
 }
 
-router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'string' }), (req, res) => {
+router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'string' }), (req, res, next) => {
     var language = req.body.language;
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
@@ -177,7 +174,7 @@ router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'stri
     db.withTransaction((dbClient) => {
         return model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en').then((englishrows) => {
             if (englishrows.length === 0)
-                throw new Error(req._("Not Found."));
+                throw new NotFoundError();
 
             const english = englishrows[0];
             const translations = {};
@@ -227,11 +224,7 @@ router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'stri
         });
     }).then(() => {
         res.redirect(303, '/thingpedia/classes/by-id/' + req.params.kind);
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 module.exports = router;

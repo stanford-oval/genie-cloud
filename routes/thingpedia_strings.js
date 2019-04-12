@@ -25,6 +25,7 @@ const platform = require('../util/platform');
 const I18n = require('../util/i18n');
 const TokenizerService = require('../util/tokenizer_service');
 const iv = require('../util/input_validation');
+const { BadRequestError, ForbiddenError } = require('../util/errors');
 
 var router = express.Router();
 
@@ -40,11 +41,11 @@ async function doCreate(req, res) {
             try {
                 match = NAME_REGEX.exec(req.body.type_name);
                 if (match === null)
-                    throw new Error('Invalid string type ID');
+                    throw new BadRequestError('Invalid string type ID');
                 if (!req.body.name)
-                    throw new Error('Missing name');
+                    throw new BadRequestError('Missing name');
                 if (['public-domain', 'free-permissive', 'free-copyleft', 'non-commercial', 'proprietary'].indexOf(req.body.license) < 0)
-                    throw new Error('Invalid license');
+                    throw new BadRequestError('Invalid license');
 
                 let [, prefix, /*suffix*/] = match;
 
@@ -56,11 +57,11 @@ async function doCreate(req, res) {
                         /**/
                     }
                     if (!row || row.owner !== req.user.developer_org)
-                        throw new Error('The prefix of the dataset ID must correspond to the ID of a Thingpedia device owned by your organization');
+                        throw new BadRequestError('The prefix of the dataset ID must correspond to the ID of a Thingpedia device owned by your organization');
                 }
 
                 if (!req.files.upload || !req.files.upload.length)
-                    throw new Error(req._("You must upload a CSV file with the entity values."));
+                    throw new BadRequestError(req._("You must upload a CSV file with the entity values."));
             } catch(e) {
                 res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                                   message: e });
@@ -149,16 +150,9 @@ router.get('/download/:id', user.requireLogIn, (req, res, next) => {
     const language = I18n.localeToLanguage(req.locale);
 
     db.withClient(async (dbClient) => {
-        try {
-            const stringType = await stringModel.getByTypeName(dbClient, req.params.id, language);
-            if (stringType.license === 'proprietary')
-                throw new Error("This dataset is proprietary and cannot be downloaded directly. Contact the Thingpedia administrators directly to obtain it.");
-        } catch(e) {
-            res.status(e.code === 'ENOENT' ? 404 : 403);
-            res.render('error', { page_title: req._("Thingpedia - Error"),
-                                              message: e });
-            return;
-        }
+        const stringType = await stringModel.getByTypeName(dbClient, req.params.id, language);
+        if (stringType.license === 'proprietary')
+            throw new ForbiddenError("This dataset is proprietary and cannot be downloaded directly. Contact the Thingpedia administrators directly to obtain it.");
 
         await new Promise((resolve, reject) => {
             const query = stringModel.streamValues(dbClient, req.params.id, language);

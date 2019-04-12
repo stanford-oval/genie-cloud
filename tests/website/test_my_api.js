@@ -78,6 +78,10 @@ async function testMyApiProfileOAuth(auth) {
     });
 }
 
+async function testMyApiInvalid(auth) {
+    await assertHttpError(request('/me/api/invalid', 'GET', null, { auth }), 404);
+}
+
 async function testMyApiParse(auth) {
     const result = JSON.parse(await request('/me/api/parse?q=what+time+is+it', 'GET', null, { auth }));
 
@@ -254,6 +258,7 @@ async function testMyApiOAuth(accessToken) {
     await testMyApiListApps(auth, uniqueId);
     await testMyApiDeleteApp(auth, uniqueId);
     await testMyApiListDevices(auth);
+    await testMyApiInvalid(auth);
 }
 
 async function main() {

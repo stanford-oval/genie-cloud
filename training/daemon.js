@@ -18,13 +18,13 @@ const path = require('path');
 
 const logger = require('morgan');
 const bodyParser = require('body-parser');
-const errorHandler = require('errorhandler');
 const Prometheus = require('prom-client');
 
 const SendMail = require('../util/sendmail');
 const db = require('../util/db');
 const Metrics = require('../util/metrics');
 const modelsModel = require('../model/nlp_models');
+const errorHandling = require('../util/error_handling');
 
 const Job = require('./training_job');
 
@@ -308,8 +308,6 @@ Check the logs for further information.`
         app.use(bodyParser.urlencoded({ extended: true }));
 
         app.use(logger('dev'));
-        if ('development' === app.get('env'))
-            app.use(errorHandler());
         if (Config.ENABLE_PROMETHEUS)
             Metrics(app);
 
@@ -439,10 +437,11 @@ Check the logs for further information.`
             }
             res.json(jobs);
         });
-        app.use((err, req, res, next) => {
-            console.error(err);
-            res.status(500).json({ error: err.message });
+
+        app.use('/', (req, res) => {
+            res.status(404).json({ error: 'Invalid endpoint' });
         });
+        app.use(errorHandling.json);
 
         app.listen(app.get('port'));
     }

@@ -79,7 +79,7 @@ async function testRegister(charlie) {
         'confirm-password': '12345678',
         locale: 'en-US',
         timezone: 'America/Los_Angeles'
-    }, charlie), 'A user with this name already exists');
+    }, charlie), 'A user with this name already exists.');
 
     await sessionRequest('/user/register', 'POST', {
         username: 'charlie',

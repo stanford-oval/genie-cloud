@@ -18,6 +18,8 @@ const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
 const { isOriginOk } = require('../util/origin');
+const { NotFoundError, ForbiddenError, BadRequestError } = require('../util/errors');
+const errorHandling = require('../util/error_handling');
 
 const Config = require('../config');
 
@@ -53,7 +55,7 @@ router.use((req, res, next) => {
     else if (typeof req.query.access_token === 'string' || (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer ')))
         passport.authenticate('bearer', { session: false })(req, res, next);
     else
-        res.status(403).send('Forbidden Cross Origin Request');
+        next(new ForbiddenError('Forbidden Cross Origin Request'));
 });
 
 router.use((req, res, next) => {
@@ -81,7 +83,7 @@ router.get('/parse', user.requireScope('user-read'), iv.validateGET({ q: '?strin
     let query = req.query.q || null;
     let targetJson = req.query.target_json || null;
     if (!query && !targetJson) {
-        res.status(400).json({error:'Missing query'});
+        next(new BadRequestError('Missing query'));
         return;
     }
 
@@ -91,10 +93,7 @@ router.get('/parse', user.requireScope('user-read'), iv.validateGET({ q: '?strin
         return engine.assistant.parse(query, targetJson);
     }).then((result) => {
         res.json(result);
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(500).json({error:e.message});
-    });
+    }).catch(next);
 });
 
 async function describeDevice(d, req) {
@@ -121,10 +120,7 @@ router.get('/devices/list', user.requireScope('user-read'), (req, res, next) => 
         // sort by name to provide a deterministic result
         result.sort((a, b) => a.name.localeCompare(b.name));
         res.json(result);
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(500).json({error:e.message});
-    });
+    }).catch(next);
 });
 
 function describeApp(app) {
@@ -145,10 +141,7 @@ router.post('/apps/create', user.requireScope('user-exec-command'),
         if (result.error)
             res.status(400);
         res.json(result);
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(500).json({error:e.message});
-    });
+    }).catch(next);
 });
 
 router.get('/apps/list', user.requireScope('user-read'), (req, res, next) => {
@@ -160,10 +153,7 @@ router.get('/apps/list', user.requireScope('user-read'), (req, res, next) => {
         });
     }).then((result) => {
         res.json(result);
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(500).json({error:e.message});
-    });
+    }).catch(next);
 });
 
 router.get('/apps/get/:appId', user.requireScope('user-read'), (req, res, next) => {
@@ -171,19 +161,13 @@ router.get('/apps/get/:appId', user.requireScope('user-read'), (req, res, next) 
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
         return engine.apps.getApp(req.params.appId).then((app) => {
-            if (!app) {
-                res.status(404);
-                return { error: 'No such app' };
-            } else {
-                return describeApp(app);
-            }
+            if (!app)
+                throw new NotFoundError();
+            return describeApp(app);
         });
     }).then((result) => {
         res.json(result);
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(500).json({error:e.message});
-    });
+    }).catch(next);
 });
 
 router.post('/apps/delete/:appId', user.requireScope('user-exec-command'), (req, res, next) => {
@@ -191,19 +175,13 @@ router.post('/apps/delete/:appId', user.requireScope('user-exec-command'), (req,
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
         return engine.apps.getApp(req.params.appId).then((app) => {
-            if (!app) {
-                res.status(404);
-                return { error: 'No such app' };
-            } else {
-                return engine.apps.removeApp(app).then(() => ({status:'ok'}));
-            }
+            if (!app)
+                throw new NotFoundError();
+            return engine.apps.removeApp(app).then(() => ({status:'ok'}));
         });
     }).then((result) => {
         res.json(result);
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(500).json({error:e.message});
-    });
+    }).catch(next);
 });
 
 class WebsocketApiDelegate {
@@ -253,7 +231,11 @@ router.ws('/results', user.requireScope('user-read-results'), (ws, req, next) =>
         return engine.assistant.addOutput(delegate);
     }).catch((error) => {
         console.error('Error in API websocket: ' + error.message);
-        ws.close();
+
+        // ignore "Not Opened" error in closing
+        try {
+            ws.close();
+        } catch(e) {/**/}
     });
 });
 
@@ -338,11 +320,11 @@ async function doConversation(user, anonymous, ws, query) {
                 case 'tt':
                     return conversation.handleThingTalk(parsed.code);
                 default:
-                    throw new Error('Invalid command type ' + parsed.type);
+                    throw new BadRequestError('Invalid command type ' + parsed.type);
                 }
             }).catch((e) => {
                 console.error(e.stack);
-                ws.send(JSON.stringify({ type: 'error', error:e.message }));
+                ws.send(JSON.stringify({ type: 'error', error: e.message, code: e.code }));
             }).catch((e) => {
                 // likely, the websocket is busted
                 console.error(`Failed to send error on conversation websocket: ${e.message}`);
@@ -461,5 +443,13 @@ router.ws('/sync', user.requireScope('user-sync'), async (ws, req) => {
         } catch(e) {/**/}
     }
 });
+
+// if nothing handled the route, return a 404
+router.use('/', (req, res) => {
+    res.status(404).json({ error: 'Invalid endpoint' });
+});
+
+// if something failed, return a 500 in json form, or the appropriate status code
+router.use(errorHandling.json);
 
 module.exports = router;

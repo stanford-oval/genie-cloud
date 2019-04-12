@@ -11,15 +11,17 @@
 
 const crypto = require('crypto');
 
+const { InternalError, BadRequestError } = require('./errors');
+
 const AES_BLOCK_SIZE = 16;
 const CIPHER_NAME = 'id-aes128-GCM';
 
 function getAESKey() {
     var key = process.env.AES_SECRET_KEY;
     if (key === undefined)
-        throw new Error("Configuration error: AES key missing!");
+        throw new InternalError('E_INVALID_CONFIG', "Configuration error: AES key missing!");
     if (key.length !== 2*AES_BLOCK_SIZE) // AES-128
-        throw new Error("Configuration error: invalid AES key length!");
+        throw new InternalError('E_INVALID_CONFIG', "Configuration error: invalid AES key length!");
     return new Buffer(key, 'hex');
 }
 
@@ -27,14 +29,14 @@ module.exports = {
     getSecretKey() {
         var key = process.env.SECRET_KEY;
         if (key === undefined)
-            throw new Error("Configuration error: secret key missing!");
+            throw new InternalError('E_INVALID_CONFIG', "Configuration error: secret key missing!");
         return key;
     },
 
     getJWTSigningKey() {
         var key = process.env.JWT_SIGNING_KEY;
         if (key === undefined)
-            throw new Error("Configuration error: secret key missing!");
+            throw new InternalError('E_INVALID_CONFIG', "Configuration error: secret key missing!");
         return key;
     },
 
@@ -52,7 +54,7 @@ module.exports = {
     decrypt(data) {
         let [iv, ciphertext, authTag] = data.split('$');
         if (!iv || !ciphertext || !authTag)
-            throw new Error('Invalid encrypted data (wrong format)');
+            throw new BadRequestError('Invalid encrypted data (wrong format)');
         const decipher = crypto.createDecipheriv(CIPHER_NAME, getAESKey(), new Buffer(iv, 'base64'));
         decipher.setAuthTag(new Buffer(authTag, 'base64'));
         const buffers = [ decipher.update(new Buffer(ciphertext, 'base64')), decipher.final() ];

@@ -31,6 +31,7 @@ const code_storage = require('./code_storage');
 const SchemaUtils = require('./manifest_to_schema');
 const DatasetUtils = require('./dataset');
 const FactoryUtils = require('./device_factories');
+const { ForbiddenError, BadRequestError } = require('./errors');
 
 function areMetaIdentical(one, two) {
     for (let what of ['queries', 'actions']) {
@@ -58,7 +59,7 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
     return schemaModel.getByKind(dbClient, classDef.kind).then(async (existing) => {
         if (existing.owner !== req.user.developer_org &&
             (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
-            throw new Error(req._("Not Authorized"));
+            throw new ForbiddenError();
 
         const existingMeta = (await schemaModel.getMetasByKindAtVersion(dbClient, classDef.kind, existing.developer_version, 'en'))[0];
         if (areMetaIdentical(existingMeta, metas)) {
@@ -218,17 +219,17 @@ function uploadZipFile(req, obj, stream) {
     }).then(() => {
         var packageJson = zipFile.file('package.json');
         if (!packageJson)
-            throw new Error(req._("package.json missing from device zip file"));
+            throw new BadRequestError(req._("package.json missing from device zip file"));
 
         return packageJson.async('string');
     }).then((text) => {
         try {
             var parsed = JSON.parse(text);
         } catch(e) {
-            throw new Error("Invalid package.json: SyntaxError at line " + e.lineNumber + ": " + e.message);
+            throw new BadRequestError("Invalid package.json: SyntaxError at line " + e.lineNumber + ": " + e.message);
         }
         if (!parsed.name || !parsed.main)
-            throw new Error(req._("Invalid package.json (missing name or main)"));
+            throw new BadRequestError(req._("Invalid package.json (missing name or main)"));
 
         parsed['thingpedia-version'] = obj.developer_version;
 

@@ -23,6 +23,7 @@ const user = require('../util/user');
 const SendMail = require('../util/sendmail');
 const iv = require('../util/input_validation');
 const { tokenize } = require('../util/tokenize');
+const { BadRequestError } = require('../util/errors');
 
 const Config = require('../config');
 
@@ -74,11 +75,11 @@ router.post('/organization/add-member', user.requireLogIn, user.requireDeveloper
         const [row] = await userModel.getByName(dbClient, req.body.username);
         try {
             if (!row)
-                throw new Error(req._("No such user %s").format(req.body.username));
+                throw new BadRequestError(req._("No such user %s").format(req.body.username));
             if (row.developer_org !== null)
-                throw new Error(req._("%s is already a member of another developer organization.").format(req.body.username));
+                throw new BadRequestError(req._("%s is already a member of another developer organization.").format(req.body.username));
             if (!row.email_verified)
-                throw new Error(req._("%s has not verified their email address yet.").format(req.body.username));
+                throw new BadRequestError(req._("%s has not verified their email address yet.").format(req.body.username));
         } catch(e) {
             res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: e });
@@ -133,13 +134,13 @@ router.get('/organization/accept-invitation/:id_hash', user.requireLogIn, (req, 
         let org, invitation;
         try {
             if (req.user.developer_org !== null)
-                throw new Error(req._("You are already a member of another developer organization."));
+                throw new BadRequestError(req._("You are already a member of another developer organization."));
 
             org = await organization.getByIdHash(dbClient, req.params.id_hash);
 
             [invitation] = await organization.findInvitation(dbClient, org.id, req.user.id);
             if (!invitation)
-                throw new Error(req._("The invitation is no longer valid. It might have expired or might have been rescinded by the organization administrator."));
+                throw new BadRequestError(req._("The invitation is no longer valid. It might have expired or might have been rescinded by the organization administrator."));
         } catch(e) {
             res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: e });
@@ -166,103 +167,70 @@ router.get('/organization/accept-invitation/:id_hash', user.requireLogIn, (req, 
 router.post('/organization/rescind-invitation', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ORG_ADMIN), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         const [row] = await userModel.getByCloudId(dbClient, req.body.user_id);
-        try {
-            if (!row)
-                throw new Error(req._("No such user"));
-        } catch(e) {
-            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                              message: e });
-            return false;
-        }
+        if (!row)
+            throw new BadRequestError(req._("No such user"));
 
         await organization.rescindInvitation(dbClient, req.user.developer_org, row.id);
-        return true;
-    }).then((ok) => {
-        if (ok)
-            res.redirect(303, '/thingpedia/developers');
+    }).then(() => {
+        res.redirect(303, '/thingpedia/developers');
     }).catch(next);
 });
 
 router.post('/organization/remove-member', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ORG_ADMIN), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         const users = await userModel.getByCloudId(dbClient, req.body.user_id);
-        try {
-            if (users[0].cloud_id === req.user.cloud_id)
-                throw new Error(req._("You cannot remove yourself from your developer organization."));
-            if (users.length === 0)
-                throw new Error(req._("No such user"));
-            if (users[0].developer_org !== req.user.developer_org)
-                throw new Error(req._("The user is not a member of your developer organization."));
-        } catch(e) {
-            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                              message: e });
-            return null;
-        }
+        if (users[0].cloud_id === req.user.cloud_id)
+            throw new BadRequestError(req._("You cannot remove yourself from your developer organization."));
+        if (users.length === 0)
+            throw new BadRequestError(req._("No such user"));
+        if (users[0].developer_org !== req.user.developer_org)
+            throw new BadRequestError(req._("The user is not a member of your developer organization."));
 
         await userModel.update(dbClient, users[0].id, {
             developer_status: 0,
             developer_org: null
         });
-        return users[0].id;
-    }).then(async (userId) => {
-        if (userId !== null) {
-            await EngineManager.get().restartUserWithoutCache(userId);
-            res.redirect(303, '/thingpedia/developers');
-        }
+        const userId = users[0].id;
+        await EngineManager.get().restartUserWithoutCache(userId);
+        res.redirect(303, '/thingpedia/developers');
     }).catch(next);
 });
 
 router.post('/organization/promote', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ORG_ADMIN), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         const users = await userModel.getByCloudId(dbClient, req.body.user_id);
-        try {
-            if (users.length === 0)
-                throw new Error(req._("No such user"));
-            if (users[0].developer_org !== req.user.developer_org)
-                throw new Error(req._("The user is not a member of your developer organization."));
-        } catch(e) {
-            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                              message: e });
-            return false;
-        }
+        if (users.length === 0)
+            throw new BadRequestError(req._("No such user"));
+        if (users[0].developer_org !== req.user.developer_org)
+            throw new BadRequestError(req._("The user is not a member of your developer organization."));
         if (users[0].developer_status >= user.DeveloperStatus.ORG_ADMIN)
-            return true;
+            return;
 
         await userModel.update(dbClient, users[0].id, {
             developer_status: users[0].developer_status + 1,
         });
-        return true;
-    }).then((ok) => {
-        if (ok)
-            res.redirect(303, '/thingpedia/developers');
+    }).then(() => {
+        res.redirect(303, '/thingpedia/developers');
     }).catch(next);
 });
 
 router.post('/organization/demote', user.requireLogIn, user.requireDeveloper(user.DeveloperStatus.ORG_ADMIN), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         const users = await userModel.getByCloudId(dbClient, req.body.user_id);
-        try {
-            if (users[0].cloud_id === req.user.cloud_id)
-                throw new Error(req._("You cannot demote yourself."));
-            if (users.length === 0)
-                throw new Error(req._("No such user"));
-            if (users[0].developer_org !== req.user.developer_org)
-                throw new Error(req._("The user is not a member of your developer organization."));
-        } catch(e) {
-            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                              message: e });
-            return false;
-        }
+        if (users[0].cloud_id === req.user.cloud_id)
+            throw new BadRequestError(req._("You cannot demote yourself."));
+        if (users.length === 0)
+            throw new BadRequestError(req._("No such user"));
+        if (users[0].developer_org !== req.user.developer_org)
+            throw new BadRequestError(req._("The user is not a member of your developer organization."));
         if (users[0].developer_status <= 0)
-            return true;
+            return;
 
         await userModel.update(dbClient, users[0].id, {
             developer_status: users[0].developer_status - 1,
         });
-        return true;
-    }).then((ok) => {
-        if (ok)
-            res.redirect(303, '/thingpedia/developers');
+    }).then(() => {
+        res.redirect(303, '/thingpedia/developers');
     }).catch(next);
 });
 

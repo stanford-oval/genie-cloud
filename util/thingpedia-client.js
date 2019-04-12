@@ -29,7 +29,7 @@ const SchemaUtils = require('./manifest_to_schema');
 const FactoryUtils = require('./device_factories');
 const I18n = require('./i18n');
 const codeStorage = require('./code_storage');
-
+const { NotFoundError, ForbiddenError, BadRequestError } = require('./errors');
 
 class ThingpediaDiscoveryDatabase {
     getByDiscoveryService(discoveryType, service) {
@@ -115,11 +115,11 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
             const org = await this._getOrg(dbClient);
             const dev = await device.getDownloadVersion(dbClient, kind, org);
             if (!dev.downloadable)
-                throw new Error('No Code Available');
+                throw new BadRequestError('No Code Available');
             return [dev.approved_version, dev.version];
         });
         if (maxVersion === null || version > maxVersion)
-            throw new Error('Not Authorized');
+            throw new ForbiddenError('Not Authorized');
         if (version === undefined || version === '')
             version = maxVersion;
 
@@ -131,11 +131,8 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     getDeviceCode(kind, accept) {
         return this._withClient(async (dbClient) => {
             const devs = await device.getFullCodeByPrimaryKind(dbClient, kind, await this._getOrgId(dbClient));
-            if (devs.length < 1) {
-                const err = new Error('Not Found');
-                err.code = 'ENOENT';
-                throw err;
-            }
+            if (devs.length < 1)
+                throw new NotFoundError();
 
             const dev = devs[0];
             const isJSON = /^\s*\{/.test(dev.code);
@@ -215,7 +212,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
                 else if (CATEGORIES.has(klass))
                     return device.getBySubcategory(dbClient, klass, org, page*page_size, page_size+1);
                 else
-                    throw new Error("Invalid class parameter");
+                    throw new BadRequestError("Invalid class parameter");
             } else {
                 return device.getAllApproved(dbClient, org, page*page_size, page_size+1);
             }
@@ -242,7 +239,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
                 else if (CATEGORIES.has(klass))
                     devices = await device.getBySubcategoryWithCode(dbClient, klass, org);
                 else
-                    throw new Error("Invalid class parameter");
+                    throw new BadRequestError("Invalid class parameter");
             } else {
                 devices = await device.getAllApprovedWithCode(dbClient, org);
             }

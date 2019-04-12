@@ -24,6 +24,7 @@ const SchemaUtils = require('../util/manifest_to_schema');
 const { tokenize, PARAM_REGEX } = require('../util/tokenize');
 const userUtils = require('../util/user');
 const { isOriginOk } = require('../util/origin');
+const errorHandling = require('../util/error_handling');
 
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
@@ -33,18 +34,6 @@ const everything = express.Router();
 const v1 = express.Router();
 const v2 = express.Router();
 const v3 = express.Router();
-
-function errorWrap(req, res, next, promise) {
-    Promise.resolve().then(() => promise).catch((e) => {
-        if (typeof e.code === 'number')
-            res.status(e.code);
-        else if (e.code === 'ENOENT')
-            res.status(404);
-        else
-            res.status(400);
-        res.json({ error: e.message, code: e.code });
-    }).catch(next);
-}
 
 // NOTES on versioning
 //
@@ -157,12 +146,12 @@ function errorWrap(req, res, next, promise) {
 v1.get('/schema/:schemas', (req, res, next) => {
     var schemas = req.params.schemas.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getSchemas(schemas, false, 'application/json').then((obj) => {
+    client.getSchemas(schemas, false, 'application/json').then((obj) => {
         // don't cache if the user is a developer
         if (!req.query.developer_key)
             res.cacheFor(86400000);
         res.json(obj);
-    }));
+    }).catch(next);
 });
 
 /**
@@ -285,7 +274,7 @@ v3.get('/schema/:schemas', (req, res, next) => {
     const withMetadata = req.query.meta === '1';
 
     const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getSchemas(schemas, withMetadata, accept).then((obj) => {
+    client.getSchemas(schemas, withMetadata, accept).then((obj) => {
         res.set('Vary', 'Accept');
 
         // don't cache if the user is a developer
@@ -295,7 +284,7 @@ v3.get('/schema/:schemas', (req, res, next) => {
             res.set('Content-Type', accept === 'text/html' ? 'text/plain' : accept).send(obj);
         else
             res.json({ result: 'ok', data: obj });
-    }));
+    }).catch(next);
 });
 
 /**
@@ -433,7 +422,7 @@ v3.get('/schema/:schemas', (req, res, next) => {
 v1.get('/schema-metadata/:schemas', (req, res, next) => {
     var schemas = req.params.schemas.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getSchemas(schemas, true, 'application/json').then((obj) => {
+    client.getSchemas(schemas, true, 'application/json').then((obj) => {
         // don't cache if the user is a developer
         if (!req.query.developer_key)
             res.cacheFor(86400000);
@@ -449,7 +438,7 @@ v1.get('/schema-metadata/:schemas', (req, res, next) => {
             }
         }
         res.json(obj);
-    }));
+    }).catch(next);
 });
 
 // in v3, /schema-metadata/ was merged with /schema, as in snapshot
@@ -471,13 +460,13 @@ v3.get('/schema-metadata/:schemas', (req, res, next) => next('router'));
  */
 v1.get('/code/devices/:kind', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getDeviceCode(req.params.kind, 'application/json').then((code) => {
+    client.getDeviceCode(req.params.kind, 'application/json').then((code) => {
         if (code.developer)
             res.cacheFor(3600000);
         else
             res.cacheFor(86400000);
         res.json(code);
-    }));
+    }).catch(next);
 });
 
 /**
@@ -513,7 +502,7 @@ v3.get('/devices/code/:kind', (req, res, next) => {
     }
 
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getDeviceCode(req.params.kind, accept).then((code) => {
+    client.getDeviceCode(req.params.kind, accept).then((code) => {
         res.set('Vary', 'Accept');
         if (typeof code === 'string') {
             const match = /#\[version=([0-9]+)\]/.exec(code);
@@ -532,7 +521,7 @@ v3.get('/devices/code/:kind', (req, res, next) => {
             res.cacheFor(86400000);
             res.json({ result: 'ok', data: code });
         }
-    }));
+    }).catch(next);
 });
 
 v1.get('/devices/setup/:kinds', (req, res, next) => {
@@ -658,10 +647,10 @@ v1.get('/devices/icon/:kind', (req, res) => {
 v3.get('/devices/package/:kind', (req, res, next) => {
     const kind = req.params.kind;
     const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    errorWrap(req, res, next, client.getModuleLocation(kind, req.query.version).then((location) => {
+    client.getModuleLocation(kind, req.query.version).then((location) => {
         res.cacheFor(60000);
         res.redirect(302, location);
-    }));
+    }).catch(next);
 });
 
 function isValidDeviceClass(req, res) {
@@ -1085,7 +1074,7 @@ v2.get('/code/apps/:app_id', (req, res, next) => next('router'));
 v1.post('/discovery', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
-    errorWrap(req, res, next, client.getKindByDiscovery(req.body).then((result) => {
+    client.getKindByDiscovery(req.body).then((result) => {
         if (result === null) {
             res.status(404).json({ error: 'Not Found' });
             return;
@@ -1098,7 +1087,7 @@ v1.post('/discovery', (req, res, next) => {
             res.status(404).json({ error: 'Not Found' });
         else
             throw e;
-    }));
+    }).catch(next);
 });
 
 /**
@@ -1126,7 +1115,7 @@ v3.post('/discovery', (req, res, next) => next('router'));
 v3.post('/devices/discovery', (req, res, next) => {
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
 
-    errorWrap(req, res, next, client.getKindByDiscovery(req.body).then((result) => {
+    client.getKindByDiscovery(req.body).then((result) => {
         if (result === null) {
             res.status(404).json({ error: 'Not Found' });
             return;
@@ -1139,7 +1128,7 @@ v3.post('/devices/discovery', (req, res, next) => {
             res.status(404).json({ error: 'Not Found' });
         else
             throw e;
-    }));
+    }).catch(next);
 });
 
 v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
@@ -1586,7 +1575,7 @@ v1.get('/entities/lookup/:type', (req, res, next) => {
         return;
     }
     
-    errorWrap(req, res, next, db.withClient((dbClient) => {
+    db.withClient((dbClient) => {
         return Promise.all([entityModel.lookupWithType(dbClient, language, req.params.type, token),
                             entityModel.get(dbClient, req.params.type, language)]);
     }).then(([rows, meta]) => {
@@ -1596,7 +1585,7 @@ v1.get('/entities/lookup/:type', (req, res, next) => {
             meta: { name: meta.name, has_ner_support: meta.has_ner_support, is_well_known: meta.is_well_known },
             data: rows.map((r) => ({ type: r.entity_id, value: r.entity_value, canonical: r.entity_canonical, name: r.entity_name }))
         });
-    }));
+    }).catch(next);
 });
 
 v1.get('/entities/list/:type', (req, res, next) => {
@@ -1844,10 +1833,7 @@ everything.use('/', (req, res) => {
     res.status(404).json({ error: 'Invalid endpoint' });
 });
 
-// if something failed, return a 500 in json form
-everything.use('/', (err, req, res, next) => {
-    console.error(err);
-    res.status(500).json({ error: err.message, code: err.code });
-});
+// if something failed, return a 500 in json form, or the appropriate status code
+everything.use(errorHandling.json);
 
 module.exports = everything;

@@ -65,20 +65,19 @@ module.exports = {
             where type_id = id and type_name = ? and language = ?`, [typeName, language]);
     },
 
-    checkAllExist(client, ids) {
+    findNonExisting(client, ids) {
         if (ids.length === 0)
-            return Promise.resolve();
+            return Promise.resolve([]);
         return db.selectAll(client, "select type_name from string_types where language='en' and type_name in (?)", [ids]).then((rows) => {
             if (rows.length === ids.length)
-                return;
+                return [];
             let existing = new Set(rows.map((r) => r.type_name));
             let missing = [];
             for (let id of ids) {
                 if (!existing.has(id))
                     missing.push(id);
             }
-            if (missing.length > 0)
-                throw new Error('Invalid string types: ' + missing.join(', '));
+            return missing;
         });
     }
 };

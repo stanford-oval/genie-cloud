@@ -157,7 +157,7 @@ async function testAdminBlog(root, bob, nobody) {
     await assertBlocked('/admin/blog/update/1', bob, nobody);
 
     await assertHttpError(sessionRequest('/admin/blog/update/1', 'GET', '', root),
-            404, 'The requested page does not exist');
+            404, 'The requested page does not exist.');
 
     await assertHttpError(sessionRequest('/admin/blog/create', 'POST', { title: 'Some blog post' }, root),
             400, 'Missing or invalid parameter image');
@@ -179,9 +179,9 @@ async function testAdminBlog(root, bob, nobody) {
 
     // blog post is not published yet, people should not see it
     await assertHttpError(sessionRequest('/blog/1-some-blog-post', 'GET', '', nobody),
-            404, 'The requested page does not exist');
+            404, 'The requested page does not exist.');
     await assertHttpError(sessionRequest('/blog/1-some-blog-post', 'GET', '', bob),
-            404, 'The requested page does not exist');
+            404, 'The requested page does not exist.');
 
     await sessionRequest('/admin/blog/delete', 'POST', { id: 1 }, root);
 }

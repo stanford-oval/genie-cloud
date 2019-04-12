@@ -19,7 +19,7 @@ const iv = require('../util/input_validation');
 const router = express.Router();
 router.use(user.requireLogIn, user.requireRole(user.Role.THINGPEDIA_ADMIN));
 
-router.get('/', iv.validateGET({ page: '?integer' }), (req, res) => {
+router.get('/', iv.validateGET({ page: '?integer' }), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -34,13 +34,10 @@ router.get('/', iv.validateGET({ page: '?integer' }), (req, res) => {
                                                  csrfToken: req.csrfToken(),
                                                  page_num: page,
                                                  snapshots: rows });
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.post('/create', iv.validatePOST({ description: '?string' }), (req, res) => {
+router.post('/create', iv.validatePOST({ description: '?string' }), (req, res, next) => {
     db.withTransaction((dbClient) => {
         var obj = {
             description: req.body.description || '',
@@ -48,10 +45,7 @@ router.post('/create', iv.validatePOST({ description: '?string' }), (req, res) =
         return snapshot.create(dbClient, obj);
     }).then(() => {
         res.redirect(303, '/thingpedia/snapshots');
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 module.exports = router;
