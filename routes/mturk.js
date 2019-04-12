@@ -33,7 +33,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'upload', maxCount: 1 }
 ]), csurf({ cookie: false }),
     user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN),
-    iv.validatePOST({ body: 'string', submissions_per_hit: 'integer' }), (req, res) => {
+    iv.validatePOST({ body: 'string', submissions_per_hit: 'integer' }), (req, res, next) => {
     if (!req.files.upload || !req.files.upload.length) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
             message: req._("Must upload the CSV file")
@@ -97,16 +97,12 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
         return Q.nfcall(fs.unlink, req.files.upload[0].path);
     }).then(() => {
         res.redirect(303, '/mturk');
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-            message: e.message });
-    }).done();
+    }).catch(next);
 });
 
 router.use(csurf({ cookie: false }));
 
-router.get('/', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res) => {
+router.get('/', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
     db.withClient((dbClient) => {
         return model.getBatches(dbClient);
     }).then((batches) => {
@@ -115,10 +111,10 @@ router.get('/', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, 
             batches: batches,
             csrfToken: req.csrfToken()
         });
-    });
+    }).catch(next);
 });
 
-router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res) => {
+router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
     db.withClient((dbClient) => {
         return new Promise((resolve, reject) => {
             res.set('Content-disposition', 'attachment; filename=mturk.csv');
@@ -137,14 +133,10 @@ router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMI
             output.on('error', reject);
             res.on('finish', resolve);
         });
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-            message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.get('/validation/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res) => {
+router.get('/validation/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
     db.withClient((dbClient) => {
         return new Promise((resolve, reject) => {
             res.set('Content-disposition', 'attachment; filename=validate.csv');
@@ -163,11 +155,7 @@ router.get('/validation/csv/:batch', user.requireLogIn, user.requireRole(user.Ro
             output.on('error', reject);
             res.on('finish', resolve);
         });
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-            message: e });
-    }).done();
+    }).catch(next);
 });
 
 function validateOne(dbClient, batchId, language, schemas, utterance, thingtalk) {
@@ -214,7 +202,7 @@ function validateSubmission(req, res, next) {
     next();
 }
 
-router.post('/submit', iv.validatePOST({ batch: 'string' }), validateSubmission, (req, res) => {
+router.post('/submit', iv.validatePOST({ batch: 'string' }), validateSubmission, (req, res, next) => {
     let submissionId = (Math.random() + 1).toString(36).substring(2, 10) + (Math.random() + 1).toString(36).substring(2, 10);
     db.withTransaction((dbClient) => {
         let submissions = [];
@@ -254,14 +242,10 @@ router.post('/submit', iv.validatePOST({ batch: 'string' }), validateSubmission,
         });
     }).then(() => {
         res.render('mturk-submit', { page_title: req._('Thank you'), token: submissionId });
-    }).catch((e) => {
-        console.error(e.stack);
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-            message: 'Submission failed. Please contact the HIT requestor for further instructions.' });
-    }).done();
+    }).catch(next);
 });
 
-router.get(`/submit/:batch/:hit`, (req, res) => {
+router.get(`/submit/:batch/:hit`, (req, res, next) => {
     const batch = req.params.batch;
     const id = req.params.hit;
 
@@ -283,9 +267,7 @@ router.get(`/submit/:batch/:hit`, (req, res) => {
                               code: code,
                               sentences: sentences, 
                               csrfToken: req.csrfToken() });
-    }).catch((e) => {
-        res.render('error', { message: 'Page does not exist.'});
-    }).done();
+    }).catch(next);
 });
 
 module.exports = router;

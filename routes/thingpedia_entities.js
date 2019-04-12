@@ -65,7 +65,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'upload', maxCount: 1 }
 ]), csurf({ cookie: false }),
     user.requireLogIn, user.requireDeveloper(),
-    iv.validatePOST({ entity_id: 'string', entity_name: 'string', no_ner_support: 'boolean' }), (req, res) => {
+    iv.validatePOST({ entity_id: 'string', entity_name: 'string', no_ner_support: 'boolean' }), (req, res, next) => {
     const language = 'en';
 
     Q(db.withTransaction((dbClient) => {
@@ -147,11 +147,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
         return Q.nfcall(fs.unlink, req.files.upload[0].path);
     }).then(() => {
         res.redirect(303, '/thingpedia/entities');
-    }).catch((e) => {
-        console.log(e.stack);
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 router.use(csurf({ cookie: false }));

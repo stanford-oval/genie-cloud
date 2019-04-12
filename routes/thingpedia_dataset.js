@@ -19,7 +19,7 @@ const iv = require('../util/input_validation');
 const router = express.Router();
 router.use(user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN));
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
     db.withClient((dbClient) => {
         return model.getTypes(dbClient);
     }).then((rows) => {
@@ -27,13 +27,10 @@ router.get('/', (req, res) => {
             page_name: req._("Thingpedia - Datasets"),
             datasets: rows
         });
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    });
+    }).catch(next);
 });
 
-router.get('/:language/:type', iv.validateGET({ page: '?integer' }), (req, res) => {
+router.get('/:language/:type', iv.validateGET({ page: '?integer' }), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -55,10 +52,7 @@ router.get('/:language/:type', iv.validateGET({ page: '?integer' }), (req, res) 
             csrfToken: req.csrfToken(),
             RESULTS_PER_PAGE,
         });
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    });
+    }).catch(next);
 });
 
 module.exports = router;
