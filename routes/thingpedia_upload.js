@@ -169,12 +169,15 @@ async function doCreateOrUpdate(kind, create, req, res) {
                     req.files.zipfile[0] : null;
 
                 let stream;
-                if (zipFile !== null)
+                if (zipFile !== null) {
                     stream = fs.createReadStream(zipFile.path);
-                else if (old !== null)
+                } else if (old !== null) {
                     stream = code_storage.downloadZipFile(kind, old.developer_version);
-                else
-                    throw new Error(req._("Invalid zip file"));
+                } else {
+                    const e = new Error(req._("Invalid zip file"));
+                    e.status = 400;
+                    throw e;
+                }
 
                 if (zipFile && isJavaScript(zipFile))
                     await Importer.uploadJavaScript(req, generalInfo, stream);
