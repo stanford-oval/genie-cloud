@@ -20,7 +20,10 @@ If there is no dependency needed and all your code is in one file, you can
 also upload the file directly, and we will generate the package.json and zip file for you.
 
 If you are using a Mac, please use command line to compress the folder: 
-`zip -r xx.zip your-folder-name`. 
+```
+cd your-folder-name
+zip -r ../xx.zip *
+```
 Compressing from the right-click menu in Mac will create a new folder which 
 makes the system fail to find the files in the root directory.
 
