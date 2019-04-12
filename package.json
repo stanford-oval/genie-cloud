@@ -44,7 +44,6 @@
     "dialogflow": "^0.5.0",
     "dialogflow-fulfillment": "^0.5.0",
     "discourse-sso": "^1.0.3",
-    "errorhandler": "~1.5.0",
     "express": "^4.15.2",
     "express-mysql-session": "^2.0.0",
     "express-session": "^1.14.0",
