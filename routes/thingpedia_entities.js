@@ -155,30 +155,24 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
 
 router.use(csurf({ cookie: false }));
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
     db.withClient((dbClient) => {
         return model.getAll(dbClient);
     }).then((rows) => {
         res.render('thingpedia_entity_list', { page_title: req._("Thingpedia - Entity Types"),
                                                csrfToken: req.csrfToken(),
                                                entities: rows });
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
-router.get('/by-id/:id', (req, res) => {
+router.get('/by-id/:id', (req, res, next) => {
     db.withClient((dbClient) => {
         return Q.all([model.get(dbClient, req.params.id), model.getValues(dbClient, req.params.id)]);
     }).then(([entity, values]) => {
         res.render('thingpedia_entity_values', { page_title: req._("Thingpedia - Entity Values"),
                                                  entity: entity,
                                                  values: values });
-    }).catch((e) => {
-        res.status(500).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
-    }).done();
+    }).catch(next);
 });
 
 const NAME_REGEX = /([A-Za-z_][A-Za-z0-9_.-]*):([A-Za-z_][A-Za-z0-9_]*)/;
