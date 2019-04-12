@@ -23,6 +23,7 @@ const argparse = require('argparse');
 
 const EngineManager = require('./enginemanager');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
+const { InternalError } = require('../util/errors');
 
 const Config = require('../config');
 assert(Array.isArray(Config.THINGENGINE_MANAGER_ADDRESS));
@@ -134,7 +135,7 @@ function main() {
     });
     const argv = parser.parseArgs();
     if (argv.shard < 0 || argv.shard >= Config.THINGENGINE_MANAGER_ADDRESS.length)
-        throw new Error(`Invalid shard number ${argv.shard}, must be between 0 and ${Config.THINGENGINE_MANAGER_ADDRESS.length-1}`);
+        throw new InternalError('E_INVALID_CONFIG', `Invalid shard number ${argv.shard}, must be between 0 and ${Config.THINGENGINE_MANAGER_ADDRESS.length-1}`);
 
     const enginemanager = new EngineManager(argv.shard);
 

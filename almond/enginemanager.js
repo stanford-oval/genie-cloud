@@ -24,6 +24,7 @@ const db = require('../util/db');
 const ThingpediaClient = require('../util/thingpedia-client');
 const Lock = require('../util/lock');
 const Config = require('../config');
+const { InternalError } = require('../util/errors');
 
 class ChildProcessSocket extends stream.Duplex {
     constructor(child) {
@@ -126,7 +127,7 @@ class EngineProcess extends events.EventEmitter {
                     this._child.kill('SIGKILL');
                 }
 
-                reject(new Error(`Timeout waiting for child ${this._id} to die`));
+                reject(new InternalError('ETIMEDOUT', `Timeout waiting for child ${this._id} to die`));
             }, 30000);
         });
 
@@ -255,7 +256,7 @@ class EngineProcess extends events.EventEmitter {
         return this._starting = new Promise((resolve, reject) => {
             child.on('error', (error) => {
                 console.error('Child with ID ' + this._id + ' reported an error: ' + error);
-                reject(new Error('Reported error ' + error));
+                reject(new InternalError('E_WORKER_ERROR', 'Reported error ' + error));
             });
             child.on('disconnect', () => {
                 if (!this._hadExit) {
@@ -273,7 +274,7 @@ class EngineProcess extends events.EventEmitter {
             
                 if (this.shared || code !== 0)
                     console.error('Child with ID ' + this._id + ' exited with code ' + code);
-                reject(new Error('Exited with code ' + code));
+                reject(new InternalError('E_WORKER_ERROR', 'Exited with code ' + code));
 
                 if (this._deadCallback)
                     this._deadCallback(code);
@@ -398,9 +399,9 @@ class EngineManager extends events.EventEmitter {
 
     async sendSocket(userId, replyId, socket) {
         if (this._engines[userId] === undefined)
-            throw new Error('Invalid user ID');
+            throw new InternalError('E_INVALID_USER', 'Invalid user ID');
         if (this._engines[userId].process === null)
-            throw new Error('Engine dead');
+            throw new InternalError('E_ENGINE_DEAD', 'Engine dead');
 
         const releaseLock = await this._lockUser(userId);
         try {

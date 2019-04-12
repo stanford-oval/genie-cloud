@@ -17,6 +17,7 @@ const blogModel = require('../model/blog');
 
 const db = require('../util/db');
 const user = require('../util/user');
+const { NotFoundError } = require('../util/errors');
 
 const Config = require('../config');
 
@@ -76,11 +77,8 @@ router.get('/:id_slug', (req, res, next) => {
         return blogModel.getForView(dbClient, id);
     }).then((post) => {
         if (post.pub_date === null) {
-            if (!req.user || !(req.user.roles & user.Role.BLOG_EDITOR)) {
-                const e = new Error("Not Found");
-                e.errno = 'ENOENT';
-                throw e;
-            }
+            if (!req.user || !(req.user.roles & user.Role.BLOG_EDITOR))
+                throw new NotFoundError();
         }
 
         return res.render('blog_post', {

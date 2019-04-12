@@ -10,7 +10,6 @@
 "use strict";
 
 const db = require('../util/db');
-const Q = require('q');
 
 module.exports = {
     create(client, entity) {
@@ -55,20 +54,19 @@ module.exports = {
                                      entity_value = ?`, [language, type, token, language, type, token]);
     },
 
-    checkAllExist(client, ids) {
+    findNonExisting(client, ids) {
         if (ids.length === 0)
-            return Q();
+            return Promise.resolve([]);
         return db.selectAll(client, "select id from entity_names where language='en' and id in (?)", [ids]).then((rows) => {
             if (rows.length === ids.length)
-                return;
+                return [];
             let existing = new Set(rows.map((r) => r.id));
             let missing = [];
             for (let id of ids) {
                 if (!existing.has(id))
                     missing.push(id);
             }
-            if (missing.length > 0)
-                throw new Error('Invalid entity types: ' + missing.join(', '));
+            return missing;
         });
     }
 };

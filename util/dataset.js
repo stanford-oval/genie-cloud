@@ -16,6 +16,7 @@ const { splitParams } = require('./tokenize');
 const db = require('./db');
 const exampleModel = require('../model/example');
 const deviceModel = require('../model/device');
+const { InternalError } = require('./errors');
 
 const TpClient = require('genie-toolkit/tool/lib/file_thingpedia_client');
 
@@ -95,7 +96,7 @@ function rowsToExamples(rows, { editMode = false}) {
     for (let row of rows) {
         let targetCode = row.target_code || row.program;
         if (!targetCode)
-            throw new Error(`Invalid example ${row.id}, missing program`);
+            throw new InternalError('E_DATASET_CORRUPT', `Invalid example ${row.id}, missing program`);
 
         if (/^[ \r\n\t\v]*let[ \r\n\t\v]/.test(targetCode)) {
             // forward compatibility: convert the declaration to example syntax

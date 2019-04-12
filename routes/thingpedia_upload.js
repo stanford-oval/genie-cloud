@@ -30,6 +30,7 @@ const FactoryUtils = require('../util/device_factories');
 const DatasetUtils = require('../util/dataset');
 const iv = require('../util/input_validation');
 const user = require('../util/user');
+const { BadRequestError, ForbiddenError } = require('../util/errors');
 
 const EngineManager = require('../almond/enginemanagerclient');
 
@@ -89,16 +90,16 @@ async function doCreateOrUpdate(kind, create, req, res) {
                                                                       req.body.code, req.body.dataset);
                 if (create) {
                     if (!req.files.icon || !req.files.icon.length)
-                        throw new Error(req._("An icon must be specified for new devices"));
+                        throw new BadRequestError(req._("An icon must be specified for new devices"));
                 } else {
                     try {
                         old = await model.getByPrimaryKind(dbClient, kind);
                     } catch(e) {
-                        throw new Error(req._("Existing device not found"));
+                        throw new BadRequestError(req._("Existing device not found"));
                     }
                     if (old.owner !== req.user.developer_org &&
                         (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
-                        throw new Error(req._("Existing device not found"));
+                        throw new BadRequestError(req._("Existing device not found"));
                 }
 
                 await Validation.tokenizeAllExamples('en', dataset.examples);
@@ -169,15 +170,12 @@ async function doCreateOrUpdate(kind, create, req, res) {
                     req.files.zipfile[0] : null;
 
                 let stream;
-                if (zipFile !== null) {
+                if (zipFile !== null)
                     stream = fs.createReadStream(zipFile.path);
-                } else if (old !== null) {
+                else if (old !== null)
                     stream = code_storage.downloadZipFile(kind, old.developer_version);
-                } else {
-                    const e = new Error(req._("Invalid zip file"));
-                    e.status = 400;
-                    throw e;
-                }
+                else
+                    throw new BadRequestError(req._("Invalid zip file"));
 
                 if (zipFile && isJavaScript(zipFile))
                     await Importer.uploadJavaScript(req, generalInfo, stream);
@@ -236,7 +234,7 @@ router.get('/update/:kind', (req, res, next) => {
             const d = await model.getByPrimaryKind(dbClient, req.params.kind, true);
             if (d.owner !== req.user.developer_org &&
                 (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
-                throw new Error(req._("Not Authorized"));
+                throw new ForbiddenError();
 
             let [code, examples] = await Promise.all([
                 d.source_code || model.getCodeByVersion(dbClient, d.id, d.developer_version),

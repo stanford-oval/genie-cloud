@@ -23,6 +23,7 @@ const user = require('../util/user');
 const platform = require('../util/platform');
 const tokenizer = require('../util/tokenize');
 const iv = require('../util/input_validation');
+const { BadRequestError } = require('../util/errors');
 
 var router = express.Router();
 
@@ -70,9 +71,9 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     Q(db.withTransaction((dbClient) => {
         let match = NAME_REGEX.exec(req.body.entity_id);
         if (match === null)
-            throw new Error('Invalid entity type ID');
+            throw new BadRequestError('Invalid entity type ID');
         if (!req.body.entity_name)
-            throw new Error('Invalid entity name');
+            throw new BadRequestError('Invalid entity name');
 
         let [, prefix, /*suffix*/] = match;
 
@@ -82,7 +83,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
                     if (row.owner !== req.user.developer_org) throw new Error();
                 }).catch((e) => {
                     console.log('err', e.message);
-                    throw new Error('The prefix of the entity ID must correspond to the ID of a Thingpedia device owned by your organization');
+                    throw new BadRequestError('The prefix of the entity ID must correspond to the ID of a Thingpedia device owned by your organization');
                 });
             } else {
                 return Promise.resolve();
@@ -99,7 +100,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
                 return Q();
 
             if (!req.files.upload || !req.files.upload.length)
-                throw new Error(req._("You must upload a CSV file with the entity values."));
+                throw new BadRequestError(req._("You must upload a CSV file with the entity values."));
 
             let insertBatch = [];
 

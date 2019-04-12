@@ -25,6 +25,7 @@ const example = require('../model/example');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const TokenizerService = require('../util/tokenizer_service');
 const iv = require('../util/input_validation');
+const { BadRequestError } = require('../util/errors');
 
 var router = express.Router();
 
@@ -176,7 +177,7 @@ function validateOne(dbClient, batchId, language, schemas, utterance, thingtalk)
         let target_code = ThingTalk.NNSyntax.toNN(program, entities);
         for (let name in entities) {
             if (name === '$used') continue;
-            throw new Error('Unused entity ' + name);
+            throw new BadRequestError('Unused entity ' + name);
         }
         return example.create(dbClient, {
             utterance: utterance,

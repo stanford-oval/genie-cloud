@@ -36,16 +36,23 @@ const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
 const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
 const ALLOWED_CLASS_METADATA = new Set(['name', 'description']);
 
+class ValidationError extends Error {
+    constructor(message) {
+        super(message);
+        this.code = 'EINVAL';
+    }
+}
+
 async function validateAnnotations(annotations) {
     for (let name of Object.getOwnPropertyNames(annotations)) {
         if (FORBIDDEN_NAMES.has(name))
-            throw new Error(`Invalid annotation ${name}`);
+            throw new ValidationError(`Invalid annotation ${name}`);
     }
 }
 async function validateMetadata(metadata, allowed) {
     for (let name of Object.getOwnPropertyNames(metadata)) {
         if (!allowed.has(name))
-            throw new Error(`Invalid annotation ${name}`);
+            throw new ValidationError(`Invalid annotation ${name}`);
     }
 }
 
@@ -71,11 +78,11 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
 
     if (!parsed.isMeta || parsed.classes.length !== 1 ||
         (kind !== null && parsed.classes[0].kind !== kind))
-        throw new Error("Invalid manifest file: must contain exactly one class, with the same identifier as the device");
+        throw new ValidationError("Invalid manifest file: must contain exactly one class, with the same identifier as the device");
     const classDef = parsed.classes[0];
 
     if (parsed.datasets.length > 1 || (parsed.datasets.length > 0 && parsed.datasets[0].name !== '@' + kind))
-        throw new Error("Invalid dataset file: must contain exactly one dataset, with the same identifier as the class");
+        throw new ValidationError("Invalid dataset file: must contain exactly one dataset, with the same identifier as the class");
     const dataset = parsed.datasets.length > 0 ? parsed.datasets[0] :
         new ThingTalk.Ast.Dataset('@' + kind, 'en', [], {});
 
@@ -91,19 +98,19 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     const license = options.license;
 
     if (!name || !description || !kind || !license)
-        throw new Error("Not all required fields were present");
+        throw new ValidationError("Not all required fields were present");
     if (!SUBCATEGORIES.has(options.subcategory))
-        throw new Error(req._("Invalid device category %s").format(options.subcategory));
+        throw new ValidationError(req._("Invalid device category %s").format(options.subcategory));
     const [classDef, dataset] = await loadClassDef(dbClient, req, kind, classCode, datasetCode);
     validateMetadata(classDef.metadata, ALLOWED_CLASS_METADATA);
     validateAnnotations(classDef.annotations);
 
     if (kind.indexOf('.') < 0 && LEGACY_KINDS.indexOf(kind) < 0)
-        throw new Error(`Invalid device ID ${kind}: must contain at least one period`);
+        throw new ValidationError(`Invalid device ID ${kind}: must contain at least one period`);
 
     if (!classDef.is_abstract) {
         if (!classDef.loader)
-            throw new Error("loader mixin missing from class declaration");
+            throw new ValidationError("loader mixin missing from class declaration");
         if (!classDef.config)
             classDef.imports.push(new ThingTalk.Ast.ImportStmt.Mixin(['config'], 'org.thingpedia.config.none', []));
     }
@@ -116,8 +123,14 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         checkUrl: fullcode,
         deviceName: name
     });
-    await entityModel.checkAllExist(dbClient, entities);
-    await stringModel.checkAllExist(dbClient, stringTypes);
+    const missingEntities = await entityModel.findNonExisting(dbClient, entities);
+    if (missingEntities.length > 0)
+        throw new ValidationError('Invalid entity types: ' + missingEntities.join(', '));
+
+    const missingStrings = await stringModel.findNonExisting(dbClient, stringTypes);
+    if (missingStrings.length > 0)
+        throw new ValidationError('Invalid string types: ' + missingStrings.join(', '));
+
     if (!classDef.metadata.name)
         classDef.metadata.name = name;
     if (!classDef.metadata.description)
@@ -139,21 +152,21 @@ function validateDataset(dataset) {
             validateAnnotations(ex.annotations);
             if (ex.utterances.length === 0) {
                 if (ex.annotations.hasOwnProperty('utterances'))
-                    throw new Error(`utterances must be a natural language annotation (with #_[]), not an implementation annotation`);
+                    throw new ValidationError(`utterances must be a natural language annotation (with #_[]), not an implementation annotation`);
                 else
-                    throw new Error(`missing utterances annotation`);
+                    throw new ValidationError(`missing utterances annotation`);
             }
             for (let utterance of ex.utterances)
                 validateUtterance(ex.args, utterance);
         } catch(e) {
-            throw new Error(`Error in example ${i+1}: ${e.message}`);
+            throw new ValidationError(`Error in example ${i+1}: ${e.message}`);
         }
     });
 }
 
 function validateUtterance(args, utterance) {
     if (/_{4}/.test(utterance))
-        throw new Error('Do not use blanks (4 underscores or more) in utterance, use placeholders');
+        throw new ValidationError('Do not use blanks (4 underscores or more) in utterance, use placeholders');
 
     let placeholders = new Set;
     for (let chunk of splitParams(utterance.trim())) {
@@ -167,21 +180,21 @@ function validateUtterance(args, utterance) {
             continue;
         let param = param1 || param2;
         if (!(param in args))
-            throw new Error(`Invalid placeholder ${param}`);
+            throw new ValidationError(`Invalid placeholder ${param}`);
         if (opt && opt !== 'const')
-            throw new Error(`Invalid placeholder option ${opt} for ${param}`);
+            throw new ValidationError(`Invalid placeholder option ${opt} for ${param}`);
         placeholders.add(param);
     }
 
     for (let arg in args) {
         if (!placeholders.has(arg))
-            throw new Error(`Missing placeholder for argument ${arg}`);
+            throw new ValidationError(`Missing placeholder for argument ${arg}`);
     }
 }
 
 function validateAllInvocations(classDef, options = {}) {
     if (FORBIDDEN_NAMES.has(classDef.kind))
-        throw new Error(`${classDef.kind} is not allowed as a device ID`);
+        throw new ValidationError(`${classDef.kind} is not allowed as a device ID`);
 
     let entities = new Set;
     let stringTypes = new Set;
@@ -197,30 +210,30 @@ function autogenCanonical(name, kind, deviceName) {
 function validateInvocation(kind, where, what, entities, stringTypes, options = {}) {
     for (const name in where) {
         if (FORBIDDEN_NAMES.has(name))
-            throw new Error(`${name} is not allowed as a function name`);
+            throw new ValidationError(`${name} is not allowed as a function name`);
         validateMetadata(where[name].metadata, ALLOWED_FUNCTION_METADATA);
         validateAnnotations(where[name].annotations);
 
         if (!where[name].metadata.canonical)
             where[name].metadata.canonical = autogenCanonical(name, kind, options.deviceName);
         if (where[name].metadata.canonical.indexOf('$') >= 0)
-            throw new Error(`Detected placeholder in canonical form for ${name}: this is incorrect, the canonical form must not contain parameters`);
+            throw new ValidationError(`Detected placeholder in canonical form for ${name}: this is incorrect, the canonical form must not contain parameters`);
         if (!where[name].metadata.confirmation)
-            throw new Error(`Missing confirmation for ${name}`);
+            throw new ValidationError(`Missing confirmation for ${name}`);
         if (options.checkPollInterval && what === 'query' && where[name].is_monitorable) {
             if (!where[name].annotations.poll_interval)
-                throw new Error(`Missing poll interval for monitorable query ${name}`);
+                throw new ValidationError(`Missing poll interval for monitorable query ${name}`);
             if (where[name].annotations.poll_interval.toJS() < 0)
-                throw new Error(`Invalid negative poll interval for monitorable query ${name}`);
+                throw new ValidationError(`Invalid negative poll interval for monitorable query ${name}`);
         }
         if (options.checkUrl) {
             if (!where[name].annotations.url)
-                throw new Error(`Missing ${what} url for ${name}`);
+                throw new ValidationError(`Missing ${what} url for ${name}`);
         }
 
         for (const argname of where[name].args) {
             if (FORBIDDEN_NAMES.has(argname))
-                throw new Error(`${argname} is not allowed as argument name in ${name}`);
+                throw new ValidationError(`${argname} is not allowed as argument name in ${name}`);
             let type = where[name].getArgType(argname);
             while (type.isArray)
                 type = type.elem;
@@ -237,7 +250,7 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
                     stringTypes.add(arg.annotations['string_values'].toJS());
             } else {
                 if (arg.annotations['string_values'])
-                    throw new Error('The string_values annotation is valid only for String-typed parameters');
+                    throw new ValidationError('The string_values annotation is valid only for String-typed parameters');
             }
             if (!arg.metadata.canonical)
                 arg.metadata.canonical = clean(argname);
@@ -294,7 +307,7 @@ async function tokenizeOneExample(example, id, i, language) {
 
     const {tokens, entities} = await TokenizerService.tokenize(language, replaced);
     if (Object.keys(entities).length > 0)
-        throw new Error(`Error in Example ${id}: Cannot have entities in the utterance`);
+        throw new ValidationError(`Error in Example ${id}: Cannot have entities in the utterance`);
 
     let preprocessed = '';
     let first = true;
@@ -324,6 +337,8 @@ async function tokenizeAllExamples(language, examples) {
 }
 
 module.exports = {
+    ValidationError,
+
     JAVASCRIPT_MODULE_TYPES,
     cleanKind,
 

@@ -34,6 +34,7 @@ const graphics = require('../almond/graphics');
 const platform = require('../util/platform');
 const secret = require('../util/secret_key');
 const iv = require('../util/input_validation');
+const { BadRequestError, ForbiddenError } = require('../util/errors');
 
 var router = express.Router();
 
@@ -266,22 +267,22 @@ async function uploadIcon(clientId, file) {
     }
 }
 
-function validateScopes(allowedScopes) {
+function validateScopes(req, allowedScopes) {
     if (!Array.isArray(allowedScopes))
         allowedScopes = [allowedScopes];
     for (let scope of allowedScopes) {
         if (typeof scope !== 'string' || !user.OAuthScopes.has(scope))
-            throw new Error(`Invalid scope`);
+            throw new BadRequestError(req._("Invalid scope"));
     }
     return allowedScopes;
 }
 
-function validateRedirectUrls(urls) {
+function validateRedirectUrls(req, urls) {
     for (let url of urls) {
         const parsed = Url.parse(url);
         if (parsed.protocol === null || parsed.hostname === null ||
             (parsed.protocol !== 'https:' && parsed.hostname !== '127.0.0.1'))
-            throw new Error(`Invalid redirect URI (must be an absolute https: URL)`);
+            throw new BadRequestError(req._("Invalid redirect URI (must be an absolute https: URL)"));
     }
     return urls;
 }
@@ -292,10 +293,10 @@ router.post('/clients/create', multer({ dest: platform.getTmpDir() }).single('ic
     let scopes, redirectUrls;
     try {
         if (!name)
-            throw new Error(req._("Name must be provided"));
+            throw new BadRequestError(req._("Name must be provided"));
         if (!req.file)
-            throw new Error(req._("Must upload an icon"));
-        scopes = validateScopes(req.body.scope);
+            throw new BadRequestError(req._("Must upload an icon"));
+        scopes = validateScopes(req, req.body.scope);
 
         if (scopes.indexOf('profile') < 0)
             scopes.push('profile');
@@ -303,9 +304,9 @@ router.post('/clients/create', multer({ dest: platform.getTmpDir() }).single('ic
 
         if ((req.user.roles & user.Role.ADMIN) === 0 &&
             scopes.indexOf('user-sync') >= 0)
-            throw new Error(req._("user-sync scope is valid only for administrators"));
+            throw new ForbiddenError(req._("user-sync scope is valid only for administrators"));
 
-        redirectUrls = validateRedirectUrls(req.body.redirect_uri.split(/ +/));
+        redirectUrls = validateRedirectUrls(req, req.body.redirect_uri.split(/ +/));
     } catch(e) {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: e });

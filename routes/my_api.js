@@ -18,6 +18,7 @@ const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
 const { isOriginOk } = require('../util/origin');
+const { BadRequestError } = require('../util/errors');
 
 const Config = require('../config');
 
@@ -338,11 +339,11 @@ async function doConversation(user, anonymous, ws, query) {
                 case 'tt':
                     return conversation.handleThingTalk(parsed.code);
                 default:
-                    throw new Error('Invalid command type ' + parsed.type);
+                    throw new BadRequestError('Invalid command type ' + parsed.type);
                 }
             }).catch((e) => {
                 console.error(e.stack);
-                ws.send(JSON.stringify({ type: 'error', error:e.message }));
+                ws.send(JSON.stringify({ type: 'error', error: e.message, code: e.code, status: e.status }));
             }).catch((e) => {
                 // likely, the websocket is busted
                 console.error(`Failed to send error on conversation websocket: ${e.message}`);

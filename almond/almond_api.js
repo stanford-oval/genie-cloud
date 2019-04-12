@@ -338,8 +338,8 @@ module.exports = class AlmondApi {
     }
 
     async _processCandidate(candidate, analyzed) {
-        if (candidate.code[0] === 'bookkeeping')
-            throw new Error('Not a ThingTalk program');
+        if (candidate.code[0] === 'bookkeeping') // not a thingtalk program
+            return null;
 
         let program;
         try {

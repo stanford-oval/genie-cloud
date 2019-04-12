@@ -11,8 +11,9 @@
 
 const mysql = require('mysql');
 const Q = require('q');
-
 const Prometheus = require('prom-client');
+
+const { NotFoundError, InternalError } = require('../util/errors');
 
 const Config = require('../config');
 
@@ -100,13 +101,10 @@ function selectAll(client, string, args) {
 function selectOne(client, string, args) {
     return selectAll(client, string, args).then((rows) => {
         if (rows.length !== 1) {
-            if (rows.length === 0) {
-                const err = new Error("Not Found");
-                err.code = 'ENOENT';
-                throw err;
-            } else {
-                throw new Error("Wrong number of rows returned, expected 1, got " + rows.length);
-            }
+            if (rows.length === 0)
+                throw new NotFoundError();
+            else
+                throw new InternalError('E_TOO_MANY_ROWS', "Wrong number of rows returned, expected 1, got " + rows.length);
         }
 
         return rows[0];
@@ -197,7 +195,7 @@ module.exports = {
     insertOne(client, string, args) {
         return query(client, string, args).then(([result, fields]) => {
             if (result.insertId === undefined)
-                throw new Error("Row does not have ID");
+                throw new InternalError('E_NO_ID', "Row does not have ID");
 
             return result.insertId;
         });

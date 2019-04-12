@@ -16,6 +16,7 @@ const user = require('../util/user');
 const model = require('../model/schema');
 const exampleModel = require('../model/example');
 const iv = require('../util/input_validation');
+const { NotFoundError } = require('../util/errors');
 
 var router = express.Router();
 
@@ -46,7 +47,7 @@ router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ language: '?strin
               : model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, language)
         ]).then(([englishrows, translatedrows]) => {
             if (englishrows.length === 0 || translatedrows.length === 0)
-                throw new Error(req._("Not Found."));
+                throw new NotFoundError();
 
             var english = englishrows[0];
             var translated = translatedrows[0];
@@ -177,7 +178,7 @@ router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'stri
     db.withTransaction((dbClient) => {
         return model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en').then((englishrows) => {
             if (englishrows.length === 0)
-                throw new Error(req._("Not Found."));
+                throw new NotFoundError();
 
             const english = englishrows[0];
             const translations = {};

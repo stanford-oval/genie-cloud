@@ -15,6 +15,7 @@ const Url = require('url');
 
 const Config = require('../config');
 const platform = require('./platform');
+const { InternalError } = require('./errors');
 
 let _backend;
 
@@ -117,7 +118,7 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
         getDownloadLocation
     };
 } else {
-    throw new Error('Invalid configuration CDN_HOST');
+    throw new InternalError('E_INVALID_CONFIG', 'Invalid configuration CDN_HOST');
 }
 
 module.exports = _backend;
