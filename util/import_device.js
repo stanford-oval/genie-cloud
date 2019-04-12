@@ -240,7 +240,7 @@ function uploadZipFile(req, obj, stream) {
                                          obj.primary_kind, obj.developer_version);
     }).catch((e) => {
         console.error('Failed to upload zip file to S3: ' + e);
-        console.error(e.stack);
+        e.status = 400;
         throw e;
     });
 }
