@@ -6404,10 +6404,10 @@ tough-cookie@~2.4.3:
     psl "^1.1.24"
     punycode "^1.4.1"
 
-transparent-rpc@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/transparent-rpc/-/transparent-rpc-0.0.2.tgz#500c6e0e57ee4ce77530203866f6d5f9c6ff4865"
-  integrity sha512-d3J063tqv0HizoCW5abxzKXOBJnN8W4vy+xsRE2uGT4rwS3KZDbelfDLEp303jUPyAfEsQLCBt9qNYvzBkXPiQ==
+transparent-rpc@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/transparent-rpc/-/transparent-rpc-1.0.0.tgz#62478b2e556e3eb0f45d6bc982f0c1996f10961e"
+  integrity sha512-2LHL2DbkvO5A+Df+tWYrh3IMvqhtx7yG78B99ixhmNfvJI8kscabn4e/WZtFaJklCVfGbxAsMKfcHCxZrCQq5w==
 
 traverse@^0.6.6:
   version "0.6.6"
