@@ -87,7 +87,7 @@ edit the file in git, you can also create a file called `secret_config.js`, in t
 where you can override any configuration. The format of `config.js` and `secret_config.js` is
 the same.
 
-**NOTE**: despite the name, values in `secret_config.js` are not secret (they are accessible
+**NOTE:** despite the name, values in `secret_config.js` are not secret (they are accessible
 inside the individual user sandboxes). Use environment variables if you need true secret tokens,
 and store them in a root-only (0600) file.
 
@@ -132,20 +132,19 @@ In particular, you must make sure that the current working directory for Web Alm
 processes is not under `/usr`, `/etc`, or in the subtree where you cloned Web Almond.
 Common correct choices include `/srv/thingengine` and `/var/lib/thingengine`.
 
-If you skip this step, set `THINGENGINE_DISABLE_SANDBOX=1` in your environment.
+**NOTE:** If you skip this step, set `THINGENGINE_DISABLE_SANDBOX=1` in your environment.
 
 ### Step 3: Database
 
-Set up your database by running 
-```sh
-node ./scripts/execute-sql-file.js ./model/schema.sql
-```
-
-
-Then set `DATABASE_URL` in your environment:
+First set `DATABASE_URL` in your environment:
 
 ```sh
 DATABASE_URL=mysql://user:password@host:port/database?options
+```
+
+Then set up your database by running
+```sh
+node ./scripts/execute-sql-file.js ./model/schema.sql
 ```
 
 See the documentation of node-mysql for options. If you use Amazon RDS, you should say so with `ssl=Amazon%20RDS`.
@@ -186,14 +185,33 @@ the repository is located at `/opt/thingengine` and the local state directory is
 
 ### Step 5: the web frontend
 
+First set the following variables in your environment:
+
+```sh
+SECRET_KEY=SECRET
+```
+
+`SECRET_KEY` is used to hash the session. Choose a secure secret to prevent session hijaking.
+
+```sh
+JWT_SECRET_KEY=JWT_SECRET
+```
+
+`JWT_SECRET_KEY` is used in the exchange of client authorization codes for OAuth access tokens.
+
+```sh
+AES_SECRET_KEY=AES_SECRET
+```
+`AES_SECRET_KEY` is used during Two Factor Authentication. This secret must be exactly 32 hex characters.
+
+
 Finally, you can run the web frontend in the same working directory, by saying:
 
 ```
-node ../main.js
+node ../frontend.js
 ```
 
 Again, a systemd unit file is provided, called `thingengine-website.service`.
 
-Note that most of web services require registered redirect URIs for the OAuth flow, 
-a local web almond won't be able to configure and use them. 
-
+Note that most of web services require registered redirect URIs for the OAuth flow,
+a local web almond won't be able to configure and use them.
