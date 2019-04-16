@@ -147,9 +147,6 @@ Then set up your database by running
 node ./scripts/execute-sql-file.js ./model/schema.sql
 ```
 
-
-
-
 See the documentation of node-mysql for options. If you use Amazon RDS, you should say so with `ssl=Amazon%20RDS`.
 It is recommended you set `timezone=Z` in the options (telling the database to store dates and times in UTC timezone).
 
@@ -188,12 +185,24 @@ the repository is located at `/opt/thingengine` and the local state directory is
 
 ### Step 5: the web frontend
 
-First set `SECRET_KEY` in your environment:
+First set the following variables in your environment:
 
 ```sh
-SECRET_KEY=secret
+SECRET_KEY=SECRET
 ```
+
 `SECRET_KEY` is used to hash the session. Choose a secure secret to prevent session hijaking.
+
+```sh
+JWT_SECRET_KEY=JWT_SECRET
+```
+
+`JWT_SECRET_KEY` is used in the exchange of client authorization codes for OAuth access tokens.
+
+```sh
+AES_SECRET_KEY=AES_SECRET
+```
+`AES_SECRET_KEY` is used during Two Factor Authentication. This secret must be exactly 32 hex characters.
 
 
 Finally, you can run the web frontend in the same working directory, by saying:
