@@ -7,7 +7,7 @@ set -o pipefail
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
 
-which decanlp >/dev/null 2>&1 || pip3 install --user -r $srcdir/tests/decanlp-deps.txt
+which decanlp >/dev/null 2>&1 || pip3 install --user 'git+https://github.com/stanford-oval/decaNLP.git#egg=decanlp'
 which decanlp
 
 mkdir -p $srcdir/tests/embeddings
