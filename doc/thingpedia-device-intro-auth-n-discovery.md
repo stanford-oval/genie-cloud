@@ -23,7 +23,7 @@ and the one from `@org.thingpedia.config.none` will be automatically used.
 
 If an API key is required, you can specify it as follows 
 ```tt
-import config from @org.thingpedia.config.cone(api_key=<your-api-key>);
+import config from @org.thingpedia.config.none(api_key=<your-api-key>);
 ```
 
 If some other information is required from the user, you can use the `config`
