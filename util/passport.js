@@ -30,9 +30,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 var GOOGLE_CLIENT_ID = '739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com';
 
-var GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
-
-const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET} = require('../config');
+const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, GITHUB_CLIENT_ID} = require('../config');
 
 const TOTP_PERIOD = 30; // duration in second of TOTP code
 
@@ -134,10 +132,11 @@ function authenticateGithub(accessToken, refreshToken, profile, done) {
         // still inside the transaction, and the master process (which uses a different
         // database connection) will not see the new user in the database
         return EngineManager.get().startUser(user.id).then(() => {
-            // asynchronously inject google-account device
+            // asynchronously inject github-account device
             EngineManager.get().getEngine(user.id).then((engine) => {
                 return engine.devices.loadOneDevice({ kind: 'com.github',
-                                                      profileId: profile.id,
+                                                      userId: profile.id,
+                                                      userName: profile.username,
                                                       accessToken: accessToken,
                                                       refreshToken: refreshToken }, true);
             }).done();
@@ -153,7 +152,8 @@ function associateGithub(user, accessToken, refreshToken, profile, done) {
 
             EngineManager.get().getEngine(user.id).then((engine) => {
                 return engine.devices.loadOneDevice({ kind: 'com.github',
-                                                      profileId: profile.id,
+                                                      userId: profile.id,
+                                                      userName: profile.username,
                                                       accessToken: accessToken,
                                                       refreshToken: refreshToken }, true);
             }).done();

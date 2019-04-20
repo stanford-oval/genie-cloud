@@ -69,7 +69,10 @@ router.get('/oauth2/google/callback', passport.authenticate('google'), (req, res
 });
 
 //oauth login with github
-router.get('/oauth2/github', passport.authenticate('github'));
+router.get('/oauth2/github', passport.authenticate('github', {
+    scope: userUtils.GITHUB_SCOPES,
+}));
+
 router.get('/oauth2/github/callback', passport.authenticate('github'), (req, res, next) => {
     // skip 2fa if logged in with Github
     req.session.completed2fa = true;
