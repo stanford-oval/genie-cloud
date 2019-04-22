@@ -137,7 +137,7 @@ module.exports.GOOGLE_CLIENT_SECRET = null;
 module.exports.GITHUB_CLIENT_SECRET = null;
 
 // OAuth Client ID to support Login With Github
-module.exports.GITHUB_CLIENT_ID = null;
+module.exports.GITHUB_CLIENT_ID = '';
 
 // Mailgun user/password for emails sent from Almond
 module.exports.MAILGUN_USER = null;
