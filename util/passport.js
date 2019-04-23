@@ -21,6 +21,7 @@ const secret = require('./secret_key');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const GoogleOAuthStrategy = require('passport-google-oauth20').Strategy;
+const GitHubStrategy = require('passport-github').Strategy;
 const BearerStrategy = require('passport-http-bearer').Strategy;
 const BasicStrategy = require('passport-http').BasicStrategy;
 const TotpStrategy = require('passport-totp').Strategy;
@@ -29,7 +30,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 
 var GOOGLE_CLIENT_ID = '739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com';
 
-const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_SECRET } = require('../config');
+const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, GITHUB_CLIENT_ID} = require('../config');
 
 const TOTP_PERIOD = 30; // duration in second of TOTP code
 
@@ -92,6 +93,67 @@ function associateGoogle(user, accessToken, refreshToken, profile, done) {
             EngineManager.get().getEngine(user.id).then((engine) => {
                 return engine.devices.loadOneDevice({ kind: 'com.google',
                                                       profileId: profile.id,
+                                                      accessToken: accessToken,
+                                                      refreshToken: refreshToken }, true);
+            }).done();
+            return user;
+        });
+    }).nodeify(done);
+}
+
+function authenticateGithub(accessToken, refreshToken, profile, done) {
+    db.withTransaction((dbClient) => {
+        return model.getByGithubAccount(dbClient, profile.id).then((rows) => {
+            if (rows.length > 0)
+                return model.recordLogin(dbClient, rows[0].id).then(() => rows[0]);
+
+            var username = profile.username || profile.email;
+            return model.create(dbClient, { username: username,
+                                            email: profile.email,
+                                            // we assume the email associated with a Github account is valid
+                                            // and we don't need extra validation
+                                            email_verified: true,
+                                            locale: 'en-US',
+                                            timezone: 'America/Los_Angeles',
+                                            github_id: profile.id,
+                                            human_name: profile.displayName,
+                                            cloud_id: makeRandom(8),
+                                            auth_token: makeRandom(),
+                                            storage_key: makeRandom() }).then((user) => {
+                user.newly_created = true;
+                return user;
+            });
+        });
+    }).then((user) => {
+        if (!user.newly_created)
+            return user;
+
+        // NOTE: we must start the user here because if we do it earlier we're
+        // still inside the transaction, and the master process (which uses a different
+        // database connection) will not see the new user in the database
+        return EngineManager.get().startUser(user.id).then(() => {
+            // asynchronously inject github-account device
+            EngineManager.get().getEngine(user.id).then((engine) => {
+                return engine.devices.loadOneDevice({ kind: 'com.github',
+                                                      userId: profile.id,
+                                                      userName: profile.username,
+                                                      accessToken: accessToken,
+                                                      refreshToken: refreshToken }, true);
+            }).done();
+            return user;
+        });
+    }).nodeify(done);
+}
+
+function associateGithub(user, accessToken, refreshToken, profile, done) {
+    db.withTransaction((dbClient) => {
+        return model.update(dbClient, user.id, { github_id: profile.id }).then(() => {
+            // asynchronously inject github-account device
+
+            EngineManager.get().getEngine(user.id).then((engine) => {
+                return engine.devices.loadOneDevice({ kind: 'com.github',
+                                                      userId: profile.id,
+                                                      userName: profile.username,
                                                       accessToken: accessToken,
                                                       refreshToken: refreshToken }, true);
             }).done();
@@ -177,6 +239,21 @@ exports.initialize = function() {
             authenticateGoogle(accessToken, refreshToken, profile, done);
         } else {
             associateGoogle(req.user, accessToken, refreshToken, profile, done);
+        }
+    }));
+
+    passport.use(new GitHubStrategy({
+        clientID: GITHUB_CLIENT_ID,
+        clientSecret: GITHUB_CLIENT_SECRET,
+        callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/github/callback',
+        passReqToCallback: true,
+  },   (req, accessToken, refreshToken, profile, done) => {
+        if (!req.user) {
+
+            // authenticate the user
+            authenticateGithub(accessToken, refreshToken, profile, done);
+        } else {
+            associateGithub(req.user, accessToken, refreshToken, profile, done);
         }
     }));
 

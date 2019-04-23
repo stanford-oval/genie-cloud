@@ -43,6 +43,11 @@ module.exports = {
                             + " on u.developer_org = o.id where google_id = ?", [googleId]);
     },
 
+    getByGithubAccount(client, githubId) {
+        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
+                            + " on u.developer_org = o.id where github_id = ?", [githubId]);
+    },
+
     getByCloudId(client, cloudId) {
         return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                             + " on u.developer_org = o.id where cloud_id = ?", [cloudId]);

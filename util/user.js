@@ -85,6 +85,9 @@ module.exports = {
 
     GOOGLE_SCOPES: ['openid','profile','email'].join(' '),
 
+    GITHUB_SCOPES: ['user', 'public_repo', 'repo', 'repo:status',
+                'gist', 'notifications'].join(' '),
+
     register(dbClient, req, options) {
         return model.getByName(dbClient, options.username).then((rows) => {
             if (rows.length > 0)
