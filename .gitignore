@@ -23,6 +23,7 @@ doc/fts.json
 doc/thingpedia-api
 views/doc_*.pug
 !views/doc_base.pug
+views/thingpedia_doc_index.pug
 
 node_modules/
 

@@ -22,78 +22,7 @@ nav#doc-sidebar
         div.text-right#doc-search
           span(role='button')#doc-search-icon.glyphicon.glyphicon-search
       ul#thingpedia-doc-list(class=(!!currentPage ? 'collapse in' : 'collapse'))
-        li(class=(['thingtalk-intro', 'thingpedia-intro'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          a.doc-sidebar-subtitle Overview
-          ul
-            li(class=(currentPage === 'thingpedia-intro' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-intro.md') Introduction to Almond and Thingpedia
-
-            li(class=(currentPage === 'thingtalk-intro' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingtalk-intro.md') Introduction to ThingTalk
-
-        li(class=(!!currentPage && currentPage.startsWith('thingpedia-tutorial') ? 'current' : ''))
-          a.doc-sidebar-subtitle Tutorials
-          ul
-            li(class=(currentPage === 'thingpedia-tutorial-nyt' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-tutorial-nyt.md') Tutorial 1: NY Times RSS Feed
-
-            li(class=(currentPage === 'thingpedia-tutorial-cat' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-tutorial-cat.md') Tutorial 2: The Cat API
-
-            li(class=(currentPage === 'thingpedia-tutorial-linkedin' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-tutorial-linkedin.md') Tutorial 3: LinkedIn
-
-            li(class=(currentPage === 'thingpedia-tutorial-website-monitor' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-tutorial-website-monitor.md') Tutorial 4: Class Website Monitor
-
-            li(class=(currentPage === 'thingpedia-tutorial' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-tutorial.md') Tutorial 5: Write Your Own Device
-
-              ul
-                li(class=(currentPage === 'thingpedia-tutorial-manifest.md' ? 'current' : ''))
-                  a(href='/thingpedia/developers/thingpedia-tutorial-manifest.md') Write Device Classes
-
-                li(class=(currentPage === 'thingpedia-tutorial-dataset.md' ? 'current' : ''))
-                  a(href='/thingpedia/developers/thingpedia-tutorial-dataset.md') Write Example Commands
-
-                li(class=(currentPage === 'thingpedia-tutorial-js-package.md' ? 'current' : ''))
-                  a(href='/thingpedia/developers/thingpedia-tutorial-js-package.md') Write Javascript Device Packages
-
-        li(class=(['thingpedia-device-intro-auth-n-discovery', 'thingpedia-device-with-zero-code', 'thingpedia-nl-support'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          a.doc-sidebar-subtitle Topic Guides
-          ul
-            li(class=(currentPage === 'thingpedia-nl-support' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-nl-support.md') Natural Language Support for Devices
-
-            li(class=(currentPage === 'thingpedia-device-intro-auth-n-discovery' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-device-intro-auth-n-discovery.md') Authentication & Discovery
-
-            li(class=(currentPage === 'thingpedia-device-with-zero-code' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-device-with-zero-code.md') Declarative Thingpedia Devices
-
-        li(class=(['my-api', 'almond-dialog-api-reference'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          a.doc-sidebar-subtitle Almond Integration APIs
-          ul
-            li(class=(currentPage === 'my-api' ? 'current' : ''))
-              a(href='/thingpedia/developers/my-api.md') Web Almond API
-            li(class=(currentPage === 'almond-dialog-api-reference' ? 'current' : ''))
-              a(href='/thingpedia/developers/almond-dialog-api-reference.md') Almond Dialog API
-
-        li(class=(['thingtalk-reference', 'thingpedia-helpers', 'thingpedia-annotations', 'thingpedia-entity-list', 'thingpedia-string-type-list'].indexOf(currentPage) >= 0 ? 'current' : ''))
-          a.doc-sidebar-subtitle Reference Manuals
-          ul
-            li(class=(currentPage === 'thingtalk-reference' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingtalk-reference.md') ThingTalk Reference
-            li(class=(currentPage === 'thingpedia-entity-list' ? 'current' : ''))
-              a(href='/thingpedia/entities') ThingTalk Entity Types
-            li(class=(currentPage === 'thingpedia-string-type-list' ? 'current' : ''))
-              a(href='/thingpedia/strings') Available String Datasets
-            li(class=(currentPage === 'thingpedia-annotations' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-annotations.md') Thingpedia Annotation Reference
-            li(class=(currentPage === 'thingpedia-helpers' ? 'current' : ''))
-              a(href='/thingpedia/developers/thingpedia-helpers.md') Thingpedia Device API Reference
-            li
-              a(href='/thingpedia/developers/thingpedia-api') Thingpedia API Reference
+        include ./thingpedia_doc_index.pug
 
 div.modal.fade#doc-search-modal(role='dialog')
   div.modal-dialog
