@@ -10,7 +10,7 @@ var common_words = common_text.split("\n")
 var common_punctuation = [',', '.', '!', '?', '#', "^", "*", "+", "-", "="]
 
 function isSpam(sentence){
-  sentence_words = sentence.split(" ")
+  var sentence_words = sentence.split(" ")
   var temp_counter = 0
   for (var j = 0; j < sentence_words.length; j++){
     if (sentence_words[j] != "" && !words.includes(sentence_words[j]) && !common_words.includes(sentence_words[j]) && !common_punctuation.includes(sentence_words[j]) && isNaN(sentence_words[j])){
@@ -27,9 +27,6 @@ function isSpam(sentence){
 }
 
 function getPercentages(text, classifier){
-
-  var maxProbability = -Infinity
-  var chosenCategory = null
 
   var tokens = classifier.tokenizer(text)
 
@@ -59,12 +56,12 @@ function getPercentages(text, classifier){
 
   var total = 0;
   for(var i = 0; i < 3; i++) {
-      total += parseFloat(probabilities[i], 10)
+      total += parseFloat(probabilities[i])
   }
 
   var percentages = []
   for(var i = 0; i < 3; i++) {
-      percentages.push(parseFloat(probabilities[i], 10)/total)
+      percentages.push(parseFloat(probabilities[i])/total)
   }
 
   return percentages
@@ -76,11 +73,11 @@ function classify (text, classifier){
       return "spam"
     }
 
-    percentages = getPercentages(text, classifier)
-    largest = 0
+    var percentages = getPercentages(text, classifier)
+    var largest = 0
     for(var i = 0; i < 3; i++) {
-        if (parseFloat(percentages[i], 10) > largest){
-          largest = parseFloat(percentages[i], 10)
+        if (parseFloat(percentages[i]) > largest){
+          largest = parseFloat(percentages[i])
         }
     }
     if (largest > 0.6){
