@@ -1,0 +1,17 @@
+[Unit]
+Description=Almond Cloud master process
+
+[Service]
+User=thingengine
+WorkingDirectory=/srv/almond-cloud
+EnvironmentFile=/etc/sysconfig/almond-cloud
+ExecStartPre=/usr/bin/rm -f /srv/almond-cloud/control /srv/almond-cloud/direct
+ExecStart=/usr/bin/node /opt/almond-cloud/almond/master.js --shard %I
+SyslogIdentifier=almond-cloud-master-%I
+CapabilityBoundingSet=CAP_SYS_ADMIN
+KillMode=mixed
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target

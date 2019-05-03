@@ -1,4 +1,4 @@
-# Web Almond API
+# Using Web Almond As A Service
 
 Web Almond is the convenient web interface for the Almond assistant provided on this website.
 Web Almond can also be used from third-party applications using the following

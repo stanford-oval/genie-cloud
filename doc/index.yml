@@ -28,6 +28,8 @@ sections:
   pages:
     - my-api
     - almond-dialog-api-reference
+    - thingpedia-api
+    - installing-almond-cloud
 -
   title: Reference Manuals
   pages:
@@ -36,7 +38,6 @@ sections:
     - thingpedia-string-type-list
     - thingpedia-annotations
     - thingpedia-helpers
-    - thingpedia-api
 
 links:
   thingpedia-api:
@@ -66,8 +67,10 @@ pages:
   thingpedia-device-intro-auth-n-discovery: Authentication & Discovery
   thingpedia-device-with-zero-code: Declarative Thingpedia Devices
 
-  my-api: Web Almond API
+  my-api: Web Almond As A Service
   almond-dialog-api-reference: Almond Dialog API
+  installing-almond-cloud: Deploy Your Own Web Almond
+
   thingtalk-reference: ThingTalk Reference
   thingpedia-annotations: Thingpedia Annotation Reference
   thingpedia-helpers: Thingpedia Device API Reference
