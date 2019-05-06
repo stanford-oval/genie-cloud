@@ -54,7 +54,7 @@ const dbRollbackTotal = new Prometheus.Counter({
 });
 
 function getDB() {
-    var url = process.env.DATABASE_URL;
+    var url = Config.DATABASE_URL;
     if (url === undefined)
         return "mysql://thingengine:thingengine@localhost/thingengine?charset=utf8mb4_bin";
     else

@@ -122,16 +122,15 @@ for data that is not secret and must be visible to sandboxed users (such as Thin
 Conversely, `/etc/almond-cloud` is not accessible in the sandboxes, and hence it is suitable
 for secret data like access tokens and keys.
 
-You must first change the `SERVER_ORIGIN` field to point to the correct location (scheme-host-port) of
-your Web Almond server. This is the user reachable URL.
-Then change the `EMAIL_` fields to indicate that emails are sent from your website, and set `MAILGUN_USER`
-and `MAILGUN_PASSWORD` appropriately. 
+You must first set the `DATABASE_URL` to point to your MySQL server. The format is:
+```
+mysql://<user>:<password>@<hostname>/<db_name>?<options>
+```
+See the documentation of node-mysql for options.
 
-You can customize the website, by overriding the content of the index and about pages to use different
-pug files, using `ABOUT_OVERRIDE`. If you plan to serve Web Almond to users and allow registration,
-at the minimum you must override the terms of service page and the privacy policy page, as they
-are empty in the default installation. See `stanford/config.js` and `views/stanford` for examples
-of how to do so.
+You must also set `SECRET_KEY`, `JWT_SECRET_KEY` and `AES_SECRET_KEY` appropriately. The server will
+refuse to start otherwise. See the [configuration option reference](/doc/almond-config-file-reference.md)
+for the format.
 
 Further configuration depends on which mode of Cloud Almond you would like to use.
 If you're deploying Web Almond only, leave `NL_SERVER_URL`, `THINGPEDIA_URL` and `TRAINING_URL`
@@ -143,7 +142,7 @@ used to authenticate administrative operations on the NLP inference server, such
 newly trained models. It is also recommended to deploy a training server, in which case you should
 set `TRAINING_URL` and `TRAINING_ACCESS_TOKEN`.
 
-If you're deploying custom Thingpedia, set `WITH_THINGPEDIA` to `embedded`, and `THINGPEDIA_URL`
+If you're deploying a custom Thingpedia, set `WITH_THINGPEDIA` to `embedded`, and `THINGPEDIA_URL`
 to `/thingpedia`. 
 
 If you use the embedded Thingpedia, it is expected you use a CloudFront+S3 to deliver code zip files, icons and other large user generated
@@ -153,8 +152,10 @@ If you do not use CloudFront, zip files and icons will be stored in the public/d
 which must be writable.
 
 Additional configuration options are also available. Consult [the full reference](/doc/almond-config-file-reference.md)
-for how to set the CDN used for website assets, OAuth redirection URLs, HTTP-to-HTTPs redirects, and other
-customization to the website. 
+for how to set the CDN used for website assets, OAuth redirection URLs, HTTP-to-HTTPs redirects, how to customize
+the website, and how to set emails appropriately. At the very least, it is expected you will change the `SERVER_ORIGIN`
+field to point to the correct location (scheme-host-port) of your Web Almond server, and change the `EMAIL_` fields to
+indicate that emails are sent from your website.
 
 ### Step 2.5 (optional): Enable the sandbox
 
@@ -175,19 +176,10 @@ Common correct choices include `/srv/almond-cloud` and `/var/lib/almond-cloud`.
 
 ### Step 3: Database
 
-First set `DATABASE_URL` in your environment:
-
-```sh
-DATABASE_URL=mysql://user:password@host:port/database?options
-```
-
-Then set up your database by running
+Set up your database by running
 ```sh
 node ./scripts/execute-sql-file.js ./model/schema.sql
 ```
-
-See the documentation of node-mysql for options. If you use Amazon RDS, you should say so with `ssl=Amazon%20RDS`.
-It is recommended you set `timezone=Z` in the options (telling the database to store dates and times in UTC timezone).
 
 After that, execute:
 ```sh
@@ -232,26 +224,7 @@ the repository is located at `/opt/almond-cloud` and the local state directory i
 
 ### Step 5: the web frontend
 
-First set the following variables in your environment:
-
-```sh
-SECRET_KEY=SECRET
-```
-
-`SECRET_KEY` is used to hash the session. Choose a secure secret to prevent session hijaking.
-
-```sh
-JWT_SECRET_KEY=JWT_SECRET
-```
-
-`JWT_SECRET_KEY` is used in the exchange of client authorization codes for OAuth access tokens.
-
-```sh
-AES_SECRET_KEY=AES_SECRET
-```
-`AES_SECRET_KEY` is used during Two Factor Authentication. This secret must be exactly 32 hex characters.
-
-Then you can run the web frontend in the same working directory as the master process, by saying:
+You can run the web frontend in the same working directory as the master process, by saying:
 
 ```
 PORT=... node <path-to-almond-cloud>/frontend.js
@@ -260,6 +233,9 @@ PORT=... node <path-to-almond-cloud>/frontend.js
 If PORT is unspecified, it defaults to 8080. Multiple frontend web services can be run on different
 ports, for load balancing. It is recommended to run at least two.
 An example systemd unit file is provided, called `almond-website@.service`.
+
+If you run the frontend and master processes in different directories, make sure to use
+absolute paths in `THINGENGINE_MANAGER_ADDRESS`, or use TCP for communication.
 
 ### Step 6 (optional): the NLP inference server
 

@@ -10,17 +10,9 @@ set -o pipefail
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
 
-DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test"
-export DATABASE_URL
-AES_SECRET_KEY=80bb23f93126074ba01410c8a2278c0c
-export AES_SECRET_KEY
-JWT_SIGNING_KEY="not so secret key"
-export JWT_SIGNING_KEY
-SECRET_KEY="not so secret key"
-export SECRET_KEY
-
 PORT=${PORT:-8080}
 cat > $srcdir/secret_config.js <<EOF
+module.exports.DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test";
 module.exports.SERVER_ORIGIN = 'http://127.0.0.1:${PORT}';
 module.exports.FILE_STORAGE_BACKEND = 'local';
 module.exports.CDN_HOST = '/download';
@@ -29,6 +21,9 @@ module.exports.THINGPEDIA_URL = '/thingpedia';
 module.exports.ENABLE_PROMETHEUS = true;
 module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
 module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
+module.exports.AES_SECRET_KEY = '80bb23f93126074ba01410c8a2278c0c';
+module.exports.JWT_SIGNING_KEY = "not so secret key" ;
+module.exports.SECRET_KEY = "not so secret key";
 EOF
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`

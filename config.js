@@ -10,6 +10,65 @@
 "use strict";
 
 /**
+  Database URL.
+
+  This must be the URL of the MySQL server shared by all almond-cloud components.
+
+  The format is:
+  ```
+  mysql://<user>:<password>@<hostname>/<db_name>?<options>
+  ```
+  See the documentation of node-mysql for options.
+  If you use Amazon RDS, you should say so with `ssl=Amazon%20RDS`.
+  It is recommended you set `timezone=Z` in the options (telling the database to store dates and times in UTC timezone).
+
+  For legacy reasons, this defaults to the `DATABASE_URL` environment variable.
+  Using environment variables is currently secure but deprecated (because it can lead to security bugs).
+
+  Note: do not set this in `custom_config.js`, only in `/etc/almond-cloud/config.js`.
+*/
+module.exports.DATABASE_URL = process.env.DATABASE_URL;
+
+/**
+  Secret key for cookie signing.
+
+  This can be an arbitrary secret string. It is recommended to choose 64 random HEX characters (256 bit security).
+  Choose a secure secret to prevent session hijacking.
+
+  For legacy reasons, this defaults to the `SECRET_KEY` environment variable.
+  Using environment variables is currently secure but deprecated (because it can lead to security bugs).
+  The server will refuse to start if this option is not set.
+*/
+module.exports.SECRET_KEY = process.env.SECRET_KEY;
+
+/**
+  Secret key for JsonWebToken signing (OAuth 2.0 tokens)
+
+  This can be an arbitrary secret string. It is recommended to choose 64 random HEX characters (256 bit security).
+  Choose a secure secret to prevent forging OAuth access tokens.
+
+  For legacy reasons, this defaults to the `JWT_SECRET_KEY` environment variable.
+  Using environment variables is currently secure but deprecated (because it can lead to security bugs).
+  The server will refuse to start if this option is not set.
+*/
+module.exports.JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+
+/**
+  Symmetric encryption key for user authentication material
+
+  This key is used whenever user-authentication-related secret material must be encrypted symmetrically,
+  rather than simply hashed. In particular, it is used to encrypt and decrypt per-user 2-factor keys.
+
+  This secret must be exactly 32 hex characters (128 bits).
+
+  For legacy reasons, this defaults to the `AES_SECRET_KEY` environment variable.
+  Using environment variables is currently secure but deprecated (because it can lead to security bugs).
+  The server will refuse to start if this option is not set.
+*/
+module.exports.AES_SECRET_KEY = process.env.AES_SECRET_KEY;
+
+
+/**
   Address of each master process.
 
   Each address must be specified in sockaddr form:
@@ -114,7 +173,11 @@ module.exports.ENABLE_SECURITY_HEADERS = false;
   extension.
 
   If unspecified, defaults to "about_" + page_name, eg. for `privacy`
-  it defaults to showing `about_privacy.pug` (which is empty).
+  it defaults to showing `about_privacy.pug`.
+
+  If you plan to serve Web Almond to users and allow registration,
+  at the minimum you must override the `tos` page (terms of service) and the
+  `privacy` page (privacy policy), as they are empty in the default installation.
 
   Use ABOUT_OVERRIDE['index'] to override the whole website index.
   Note that "/about" with no page unconditionally redirects to "/",
