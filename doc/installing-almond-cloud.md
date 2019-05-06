@@ -41,7 +41,12 @@ be compatible. Use this setup only if you absolutely need custom Thingpedia
 interfaces, and cannot provide these interfaces on Thingpedia. This setup
 is also suitable for developing Thingpedia itself. 
 
-### Step 1: Acquiring dependencies
+### Step 1: Installing web almond and acquiring dependencies
+The code for web almond is located at our [almond-cloud Github repository](https://github.com/stanford-oval/almond-cloud).
+Clone the repository with the following command:
+```bash
+git clone git@github.com:stanford-oval/almond-cloud.git
+```
 
 The code depends on:
 
