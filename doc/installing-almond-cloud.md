@@ -126,20 +126,11 @@ your Web Almond server. This is the user reachable URL.
 Then change the `EMAIL_` fields to indicate that emails are sent from your website, and set `MAILGUN_USER`
 and `MAILGUN_PASSWORD` appropriately. 
 
-If you set `ENABLE_REDIRECT` is true, any request with a hostname or scheme that is not that of `SERVER_ORIGIN` will
-be redirected to the correct origin. This is support seamless migration between domains, and
-transparent upgrade to HTTPS. Once you have set up TLS, you should also set `ENABLE_SECURITY_HEADERS` to true,
-which will enable Strict Transport Security, X-Frame-Options and other important security-related HTTP headers.
-
 You can customize the website, by overriding the content of the index and about pages to use different
 pug files, using `ABOUT_OVERRIDE`. If you plan to serve Web Almond to users and allow registration,
 at the minimum you must override the terms of service page and the privacy policy page, as they
 are empty in the default installation. See `stanford/config.js` and `views/stanford` for examples
 of how to do so.
-
-If needed, you can also change `OAUTH_REDIRECT_ORIGIN` to set the origin for your OAuth redirects.
-The latter is used to support Login With Google, and to configure OAuth-based accounts in Web Almond,
-so it must be the same origin that you will configure for OAuth redirect URLs.
 
 Further configuration depends on which mode of Cloud Almond you would like to use.
 If you're deploying Web Almond only, leave `NL_SERVER_URL`, `THINGPEDIA_URL` and `TRAINING_URL`
@@ -160,9 +151,9 @@ content. Set the URL of the CloudFront deployment for user-uploaded content as `
 If you do not use CloudFront, zip files and icons will be stored in the public/download folder of your code checkout,
 which must be writable.
 
-You can also use a CDN for assets (images, CSS, javascript code included with Cloud Almond).
-To do so, set `ASSET_CDN` to a value other than the empty string.
-There is no requirement that the asset CDN is on CloudFront, or that it is the same as the user-content CDN.
+Additional configuration options are also available. Consult [the full reference](/doc/almond-config-file-reference.md)
+for how to set the CDN used for website assets, OAuth redirection URLs, HTTP-to-HTTPs redirects, and other
+customization to the website. 
 
 ### Step 2.5 (optional): Enable the sandbox
 

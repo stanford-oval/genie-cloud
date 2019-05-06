@@ -44,6 +44,9 @@ views/doc_%.pug: doc/%.md views/doc_base.pug
 doc/thingpedia-api : routes/thingpedia_api.js
 	apidoc -i routes/ -f thingpedia_api.js -o doc/thingpedia-api/
 
+doc/almond-config-file-reference.md: config.js ./scripts/make-config-file-reference.js
+	./scripts/make-config-file-reference.js $< $@
+
 prepare-docs: doc/doc-list.json doc/fts.json $(alldocpug) doc/thingpedia-api views/thingpedia_doc_index.pug
 
 install:
