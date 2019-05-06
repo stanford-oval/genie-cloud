@@ -112,14 +112,15 @@ Database encryption uses a randomly generated key that is different from each us
 
 ### Step 2: Configuration
 
-You must choose which mode to operate as by editing the `config.js` file. If you don't want to
-edit the file in git, you can also create a file called `secret_config.js`, in the same folder,
-where you can override any configuration. The format of `config.js` and `secret_config.js` is
-the same.
+You must choose which mode to operate as by editing the `config.js` file.
+You should create a copy and name it `custom_config.js` (in the same directory as the code checkout),
+or `/etc/almond-cloud/config.js`. You can use both `custom_config.js` and `/etc/almond-cloud/config.js`
+if needed.
 
-**NOTE:** despite the name, values in `secret_config.js` are **not secret** on the Web Almond machine:
-they are accessible inside the individual user sandboxes. Use environment variables if you need true secret tokens,
-and store them in a root-only (0600 or 0000) file.
+**Note**: any data in `custom_config.js` will be visible to sandboxed users. Use this only
+for data that is not secret and must be visible to sandboxed users (such as Thingpedia and NLP inference URLs).
+Conversely, `/etc/almond-cloud` is not accessible in the sandboxes, and hence it is suitable
+for secret data like access tokens and keys.
 
 You must first change the `SERVER_ORIGIN` field to point to the correct location (scheme-host-port) of
 your Web Almond server. This is the user reachable URL.
@@ -164,6 +165,7 @@ Inside the sandbox, the code will have access to `/usr`, a whitelisted subset of
 directory containing the Web Almond installation. Make sure that these directories do not contain
 any private data. In particular, any sensitive data should be stored in `/etc` (including database
 passwords or access token), not in the current directory where you installed Web Almond. 
+It is safe to store such data in `/etc/almond-cloud`, as that is excluded from the sandbox on purpose.
 
 You must also make sure that the current working directory for Web Almond
 processes is not under `/usr`, `/etc`, or in the subtree where you cloned Web Almond.

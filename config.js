@@ -318,10 +318,3 @@ module.exports.DISCOURSE_SSO_REDIRECT = null;
   to start.
 */
 module.exports.SUPPORTED_LANGUAGES = ['en-US'];
-
-// load more configuration that should not go in git (eg secret keys)
-try {
-    Object.assign(module.exports, require('./secret_config.js'));
-} catch(e) {
-    // ignore if there is no file
-}
