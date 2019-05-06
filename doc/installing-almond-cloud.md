@@ -45,7 +45,7 @@ is also suitable for developing Thingpedia itself.
 The code for web almond is located at our [almond-cloud Github repository](https://github.com/stanford-oval/almond-cloud).
 Clone the repository with the following command:
 ```bash
-git clone git@github.com:stanford-oval/almond-cloud.git
+git clone https://github.com/stanford-oval/almond-cloud.git
 ```
 
 The code depends on:
