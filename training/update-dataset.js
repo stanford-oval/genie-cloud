@@ -260,6 +260,9 @@ class DatasetUpdater {
                 policies: true,
                 remote_programs: true,
                 aggregation: true,
+                bookkeeping: true,
+                triple_commands: true,
+                configure_actions: true
             },
             maxDepth: this._options.maxDepth,
             debug: this._options.debug,
