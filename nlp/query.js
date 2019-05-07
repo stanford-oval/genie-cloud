@@ -108,7 +108,7 @@ async function query(req, res) {
             code: ['bookkeeping', 'special', 'special:failed'],
             score: 'Infinity'
         }];
-    } else if (tokens.length === 1 && (/^A-Z/.test(tokens[0]) || tokens[0] === '1' || tokens[0] === '0')) {
+    } else if (tokens.length === 1 && (/^[A-Z]/.test(tokens[0]) || tokens[0] === '1' || tokens[0] === '0')) {
         // if the whole input is just an entity, return that as an answer
         result = [{
             code: ['bookkeeping', 'answer', tokens[0]],
