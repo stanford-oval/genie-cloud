@@ -160,6 +160,7 @@ const QUERY_PARAMS = {
     access_token: '?string',
     thingtalk_version: '?string',
     limit: '?integer',
+    expect: '?string',
     choices: '?array',
     tokenized: 'boolean',
     skip_typechecking: 'boolean'
