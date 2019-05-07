@@ -32,17 +32,17 @@ The server will refuse to start if this option is not set.
 
 Default value: `process.env.SECRET_KEY`
 
-## JWT_SECRET_KEY
+## JWT_SIGNING_KEY
 Secret key for JsonWebToken signing (OAuth 2.0 tokens)
 
 This can be an arbitrary secret string. It is recommended to choose 64 random HEX characters (256 bit security).
 Choose a secure secret to prevent forging OAuth access tokens.
 
-For legacy reasons, this defaults to the `JWT_SECRET_KEY` environment variable.
+For legacy reasons, this defaults to the `JWT_SIGNING_KEY` environment variable.
 Using environment variables is currently secure but deprecated (because it can lead to security bugs).
 The server will refuse to start if this option is not set.
 
-Default value: `process.env.JWT_SECRET_KEY`
+Default value: `process.env.JWT_SIGNING_KEY`
 
 ## AES_SECRET_KEY
 Symmetric encryption key for user authentication material
@@ -270,6 +270,19 @@ Default value: `''`
 
 ## GOOGLE_CLIENT_SECRET
 OAuth Client secret to support Login With Google
+
+Default value: `null`
+
+## GITHUB_CLIENT_ID
+OAuth Client ID to support Login With Github
+
+This cannot be the value `null`, use the string `'null'` to disable
+Login with Github instead.
+
+Default value: `'null'`
+
+## GITHUB_CLIENT_SECRET
+OAuth Client secret to support Login With Github
 
 Default value: `null`
 

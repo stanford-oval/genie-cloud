@@ -47,11 +47,11 @@ module.exports.SECRET_KEY = process.env.SECRET_KEY;
   This can be an arbitrary secret string. It is recommended to choose 64 random HEX characters (256 bit security).
   Choose a secure secret to prevent forging OAuth access tokens.
 
-  For legacy reasons, this defaults to the `JWT_SECRET_KEY` environment variable.
+  For legacy reasons, this defaults to the `JWT_SIGNING_KEY` environment variable.
   Using environment variables is currently secure but deprecated (because it can lead to security bugs).
   The server will refuse to start if this option is not set.
 */
-module.exports.JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
+module.exports.JWT_SIGNING_KEY = process.env.JWT_SIGNING_KEY;
 
 /**
   Symmetric encryption key for user authentication material

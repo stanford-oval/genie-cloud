@@ -128,7 +128,7 @@ mysql://<user>:<password>@<hostname>/<db_name>?<options>
 ```
 See the documentation of node-mysql for options.
 
-You must also set `SECRET_KEY`, `JWT_SECRET_KEY` and `AES_SECRET_KEY` appropriately. The server will
+You must also set `SECRET_KEY`, `JWT_SIGNING_KEY` and `AES_SECRET_KEY` appropriately. The server will
 refuse to start otherwise. See the [configuration option reference](/doc/almond-config-file-reference.md)
 for the format.
 
