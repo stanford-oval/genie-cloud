@@ -113,8 +113,13 @@ router.get('/login', (req, res, next) => {
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/user/login',
                                                        failureFlash: true }), (req, res, next) => {
+
+
     req.session.completed2fa = false;
-    if (req.user.totp_key) {
+    if (req.signedCookies['almond.skip2fa'] === 'yes')
+        req.session.completed2fa = true;
+
+    if (req.user.totp_key && !req.session.completed2fa) {
         // if 2fa is enabled, redirect to the 2fa login page
         res.redirect(303, '/user/2fa/login');
     } else {
@@ -147,6 +152,13 @@ router.get('/2fa/login', (req, res, next) => {
 router.post('/2fa/login', passport.authenticate('totp', { failureRedirect: '/user/2fa/login',
                                                           failureFlash: 'Invalid OTP code' }), (req, res, next) => {
     req.session.completed2fa = true;
+
+    if (req.body.remember_me) {
+        res.cookie('almond.skip2fa', 'yes', {
+            maxAge: 1 * 365 * 86400 * 1000, // 1 year, in milliseconds
+            signed: true
+        });
+    }
 
     // Redirection back to the original page
     var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
