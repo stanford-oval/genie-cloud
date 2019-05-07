@@ -11,9 +11,16 @@
 
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
+const Tp = require('thingpedia');
+const TpClient = require('thingpedia-client');
 
 function html(err, req, res, next) {
-    if (err instanceof multer.MulterError) {
+    if (err instanceof Tp.OAuthError || err instanceof TpClient.ImplementationError) {
+        res.status(500).render('error', {
+            page_title: req._("Almond - Error"),
+            message: req._("There is a problem with the Thingpedia account or device you are trying to configure: %s. Please report this issue to the developer of Thingpedia device.").format(err.message)
+        });
+    } else if (err instanceof multer.MulterError) {
         res.status(400).render('error', {
             page_title: req._("Almond - Error"),
             message: err
