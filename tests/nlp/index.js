@@ -21,7 +21,6 @@ const Gettext = require('node-gettext');
 const Almond = require('almond-dialog-agent');
 const Intent = Almond.Intent;
 // FIXME
-const ValueCategory = require('almond-dialog-agent/lib/semantic').ValueCategory;
 const ParserClient = require('./parserclient');
 
 const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
@@ -67,21 +66,30 @@ async function testEverything() {
     }
 }
 
+async function expectAnswer(parser, input, context, expectedCode, expectedEntities) {
+    const analyzed = await parser.sendUtterance(input, context);
+    assert(Array.isArray(analyzed.candidates));
+    assert(analyzed.length > 0);
+
+    assert.strictEqual(analyzed.candidates[0].code.join(' '), expectedCode);
+    assert.deepStrictEqual(analyzed.entities, expectedEntities);
+}
+
 function testExpect() {
     const parser = new ParserClient(process.env.SEMPRE_URL, 'en-US');
 
     return Promise.all([
-        parser.sendUtterance('42', ValueCategory.Number),
-        parser.sendUtterance('yes', ValueCategory.YesNo),
-        parser.sendUtterance('21 C', ValueCategory.Measure('C')),
-        parser.sendUtterance('69 F', ValueCategory.Measure('C')),
+        expectAnswer(parser, '42', 'Number', 'bookkeeping answer NUMBER_0', { NUMBER_0: 42 }),
+        parser.sendUtterance('yes', 'YesNo'),
+        parser.sendUtterance('21 C', 'Measure(C)'),
+        parser.sendUtterance('69 F', 'Measure(C)'),
     ]);
 }
 
 async function testMultipleChoice(text, expected) {
     const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
 
-    const analyzed = await parser.sendUtterance(text, ValueCategory.MultipleChoice,
+    const analyzed = await parser.sendUtterance(text, 'MultipleChoice',
         [{ title: 'choice number one' }, { title: 'choice number two' }]);
 
     assert.deepStrictEqual(analyzed.entities, {});
