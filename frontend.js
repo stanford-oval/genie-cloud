@@ -132,7 +132,9 @@ class Frontend {
         this._app.use(xmlBodyParser({ explicitArray: true, trim: false }));
         this._app.use(cookieParser());
 
-        this._sessionStore = new MySQLStore({}, db.getPool());
+        this._sessionStore = new MySQLStore({
+            expiration: 86400000 // 1 day, in ms
+        }, db.getPool());
         this._app.use(session({ resave: false,
                                 saveUninitialized: false,
                                 store: this._sessionStore,
