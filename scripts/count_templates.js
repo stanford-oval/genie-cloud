@@ -11,6 +11,7 @@
 "use strict";
 
 require('thingengine-core/lib/polyfill');
+require('../util/config_init');
 
 const ThingTalk = require('thingtalk');
 const SchemaRetriever = ThingTalk.SchemaRetriever;

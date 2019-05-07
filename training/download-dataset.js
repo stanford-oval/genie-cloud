@@ -11,6 +11,9 @@
 // See COPYING for details
 "use strict";
 
+process.on('unhandledRejection', (up) => { throw up; });
+require('../util/config_init');
+
 const fs = require('fs');
 const argparse = require('argparse');
 const seedrandom = require('seedrandom');

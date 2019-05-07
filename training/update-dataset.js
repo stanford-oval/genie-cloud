@@ -12,6 +12,7 @@
 
 require('thingengine-core/lib/polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
+require('../util/config_init');
 
 const Stream = require('stream');
 const seedrandom = require('seedrandom');

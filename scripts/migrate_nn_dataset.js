@@ -10,6 +10,7 @@
 // See COPYING for details
 "use strict";
 
+require('../util/config_init');
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
 
