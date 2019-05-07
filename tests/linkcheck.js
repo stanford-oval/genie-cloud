@@ -12,6 +12,7 @@
 require('thingengine-core/lib/polyfill');
 require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
+require('../util/config_init');
 
 // Recursive link-checker
 //

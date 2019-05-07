@@ -10,14 +10,18 @@
 // See COPYING for details
 "use strict";
 
+require('../util/config_init');
+
 const child_process = require('child_process');
 const Url = require('url');
 const util = require('util');
 const fs = require('fs');
 
+const Config = require('../config');
+
 async function main() {
     try {
-        const parsed = Url.parse(process.env.DATABASE_URL);
+        const parsed = Url.parse(Config.DATABASE_URL);
         const [user, pass] = parsed.auth.split(':');
 
         const argv = [

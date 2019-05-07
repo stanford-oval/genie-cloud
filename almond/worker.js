@@ -12,6 +12,7 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
+require('../util/config_init');
 
 const stream = require('stream');
 const rpc = require('transparent-rpc');

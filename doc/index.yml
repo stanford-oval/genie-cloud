@@ -1,0 +1,76 @@
+sections:
+-
+  title: Overview
+  pages:
+    - thingpedia-intro
+    - thingtalk-intro
+-
+  title: Tutorials
+  pages:
+    - thingpedia-tutorial-nyt
+    - thingpedia-tutorial-cat
+    - thingpedia-tutorial-linkedin
+    - thingpedia-tutorial-website-monitor
+    - thingpedia-tutorial
+  subpages:
+    thingpedia-tutorial:
+      - thingpedia-tutorial-manifest
+      - thingpedia-tutorial-dataset
+      - thingpedia-tutorial-js-package
+-
+  title: Topic Guides
+  pages:
+    - thingpedia-nl-support
+    - thingpedia-device-intro-auth-n-discovery
+    - thingpedia-device-with-zero-code
+-
+  title: Almond Integration APIs
+  pages:
+    - my-api
+    - almond-dialog-api-reference
+    - thingpedia-api
+    - installing-almond-cloud
+-
+  title: Reference Manuals
+  pages:
+    - thingtalk-reference
+    - thingpedia-entity-list
+    - thingpedia-string-type-list
+    - thingpedia-annotations
+    - thingpedia-helpers
+
+links:
+  thingpedia-api:
+    url: /thingpedia/developers/thingpedia-api
+    title: Thingpedia API Reference
+  thingpedia-entity-list:
+    url: /thingpedia/entities
+    title: ThingTalk Entity Types
+  thingpedia-string-type-list:
+    url: /thingpedia/strings
+    title: Available String Datasets
+
+pages:
+  thingpedia-intro: Introduction to Almond and Thingpedia
+  thingtalk-intro: Introduction to ThingTalk
+
+  thingpedia-tutorial-nyt: "Tutorial 1: NY Times RSS Feed"
+  thingpedia-tutorial-cat: "Tutorial 2: The Cat API"
+  thingpedia-tutorial-linkedin: "Tutorial 3: LinkedIn"
+  thingpedia-tutorial-website-monitor: "Tutorial 4: Class Website Monitor"
+  thingpedia-tutorial: "Tutorial 5: Write Your Own Device"
+  thingpedia-tutorial-manifest: "Write Device Classes"
+  thingpedia-tutorial-dataset: "Write Example Commands"
+  thingpedia-tutorial-js-package: "Write Javascript Device Packages"
+
+  thingpedia-nl-support: Natural Language Support for Devices
+  thingpedia-device-intro-auth-n-discovery: Authentication & Discovery
+  thingpedia-device-with-zero-code: Declarative Thingpedia Devices
+
+  my-api: Web Almond As A Service
+  almond-dialog-api-reference: Almond Dialog API
+  installing-almond-cloud: Deploy Your Own Web Almond
+
+  thingtalk-reference: ThingTalk Reference
+  thingpedia-annotations: Thingpedia Annotation Reference
+  thingpedia-helpers: Thingpedia Device API Reference

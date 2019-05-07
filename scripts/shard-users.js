@@ -10,6 +10,8 @@
 // See COPYING for details
 "use strict";
 
+require('../util/config_init');
+
 const db = require('../util/db');
 const userToShardId = require('../almond/shard');
 

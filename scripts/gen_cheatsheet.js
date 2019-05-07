@@ -10,6 +10,8 @@
 // See COPYING for details
 "use strict";
 
+require('../util/config_init');
+
 const fs = require('fs');
 const util = require('util');
 const path = require('path');

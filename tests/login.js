@@ -12,6 +12,7 @@
 require('thingengine-core/lib/polyfill');
 require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
+require('../util/config_init');
 
 // Login to Web Almond with username and password
 // returns a Cookie header that can be used in subsequent requests

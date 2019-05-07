@@ -11,6 +11,9 @@
 // See COPYING for details
 "use strict";
 
+process.on('unhandledRejection', (up) => { throw up; });
+require('../util/config_init');
+
 const assert = require('assert');
 const express = require('express');
 const fs = require('fs');
