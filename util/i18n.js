@@ -14,7 +14,17 @@ const Gettext = require('node-gettext');
 const gettextParser = require('gettext-parser');
 const fs = require('fs');
 
+const { InternalError } = require('./errors');
 const Config = require('../config');
+
+function N_(x) { return x; }
+const ALLOWED_LANGUAGES = {
+    'en-US': N_("English (United States)"),
+    'en-GB': N_("English (United Kingdom)"),
+    'it-IT': N_("Italian"),
+    'zh-CN': N_("Chinese (Simplified)"),
+    'zh-TW': N_("Chinese (Traditional)"),
+};
 
 const LANGS = Config.SUPPORTED_LANGUAGES;
 const languages = {};
@@ -38,7 +48,13 @@ function loadTextdomainDirectory(gt, locale, domain, modir) {
 }
 
 function load() {
+    if (LANGS.length === 0)
+        throw new InternalError('E_INVALID_CONFIG', `Configuration error: must enable at least one language`);
+
     for (let l of LANGS) {
+        if (!(l in ALLOWED_LANGUAGES))
+            throw new InternalError('E_INVALID_CONFIG', `Configuration error: locale ${l} is enabled but is not supported`);
+
         let gt = new Gettext();
         if (l !== 'en-US') {
             let modir = path.resolve(path.dirname(module.filename), '../po');//'
@@ -64,6 +80,10 @@ load();
 
 module.exports = {
     LANGS,
+
+    getLangName(_, lang) {
+        return _(ALLOWED_LANGUAGES[lang]);
+    },
 
     localeToLanguage(locale) {
         // only keep the language part of the locale, we don't

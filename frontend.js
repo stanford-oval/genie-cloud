@@ -215,6 +215,7 @@ class Frontend {
             req.pgettext = lang.pgettext.bind(lang);
             req.ngettext = lang.ngettext.bind(lang);
 
+            res.locals.I18n = i18n;
             res.locals.locale = locale;
             res.locals.gettext = req.gettext;
             res.locals._ = req._;
