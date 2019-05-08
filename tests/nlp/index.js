@@ -68,15 +68,16 @@ async function testEverything() {
 
 async function expectAnswer(parser, input, context, expectedCode, expectedEntities) {
     const analyzed = await parser.sendUtterance(input, context);
+
     assert(Array.isArray(analyzed.candidates));
-    assert(analyzed.length > 0);
+    assert(analyzed.candidates.length > 0);
 
     assert.strictEqual(analyzed.candidates[0].code.join(' '), expectedCode);
     assert.deepStrictEqual(analyzed.entities, expectedEntities);
 }
 
 function testExpect() {
-    const parser = new ParserClient(process.env.SEMPRE_URL, 'en-US');
+    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
 
     return Promise.all([
         expectAnswer(parser, '42', 'Number', 'bookkeeping answer NUMBER_0', { NUMBER_0: 42 }),
