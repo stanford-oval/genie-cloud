@@ -10,6 +10,7 @@
 "use strict";
 
 const express = require('express');
+const ThingTalk = require('thingtalk');
 
 const db = require('../util/db');
 const user = require('../util/user');
@@ -17,6 +18,12 @@ const model = require('../model/schema');
 const exampleModel = require('../model/example');
 const iv = require('../util/input_validation');
 const { NotFoundError } = require('../util/errors');
+const I18n = require('../util/i18n');
+const ThingpediaClient = require('../util/thingpedia-client');
+const DatasetUtils = require('../util/dataset');
+const Validation = require('../util/validation');
+const Importer = require('../util/import_device');
+const { BadRequestError } = require('../util/errors');
 
 var router = express.Router();
 
@@ -24,205 +31,227 @@ router.get('/', (req, res) => {
     res.render('thingpedia_translate_portal', { page_title: req._("Translate Thingpedia") });
 });
 
-function localeToLanguage(locale) {
-    // only keep the language part of the locale, we don't
-    // yet distinguish en_US from en_GB
-    return (locale || 'en').split(/[-_@.]/)[0];
+function makeTranslationPairs(english, translated) {
+    // we need to translate canonicals, confirmations, slot-filling questions,
+    // argument names (in canonical form) and
+
+    const out = {
+        actions: {},
+        queries: {}
+    };
+    for (let what of ['actions', 'queries']) {
+        if (!translated[what])
+            translated[what] = {};
+        for (let name in english[what]) {
+            if (!translated[what][name]) {
+                translated[what][name] = {
+                    canonical: '',
+                    confirmation: '',
+                    questions: [],
+                    argcanonicals: []
+                };
+            }
+            out[what][name] = {
+                canonical: {
+                    english: english[what][name].canonical,
+                    translated: translated[what][name].canonical
+                },
+                confirmation: {
+                    english: english[what][name].confirmation,
+                    translated: translated[what][name].confirmation
+                },
+                args: [],
+            };
+
+            english[what][name].args.forEach((argname, i) => {
+                out[what][name].args.push({
+                    name: argname,
+                    argcanonical: {
+                        english: english[what][name].argcanonicals[i],
+                        translated: translated[what][name].argcanonicals[i]
+                    },
+                    question: {
+                        english: english[what][name].questions[i],
+                        translated: translated[what][name].questions[i]
+                    }
+                });
+            });
+        }
+    }
+
+    return out;
 }
 
-router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ language: '?string', fromVersion: '?integer',  }), (req, res, next) => {
-    const language = req.query.language || localeToLanguage(req.user.locale);
+router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ locale: '?string', fromVersion: '?integer',  }), (req, res, next) => {
+    const locale = req.query.locale || req.user.locale;
+    const language = I18n.localeToLanguage(locale);
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Translations for English cannot be contributed.") });
         return;
     }
-    const fromVersion = req.query.fromVersion || null;
 
-    db.withTransaction((dbClient) => {
-        return Promise.all([
-            model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en'),
-            fromVersion !== null ?
-                model.getMetasByKindAtVersion(dbClient, req.params.kind, fromVersion, language)
-              : model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, language)
-        ]).then(([englishrows, translatedrows]) => {
-            if (englishrows.length === 0 || translatedrows.length === 0)
-                throw new NotFoundError();
+    db.withTransaction(async (dbClient) => {
+        let fromVersion = parseInt(req.query.fromVersion) || null;
 
-            var english = englishrows[0];
-            var translated = translatedrows[0];
+        const englishinfo = await model.getByKind(dbClient, req.params.kind);
+        const englishrows = await model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en');
 
-            return Promise.all([
-                exampleModel.getBaseBySchema(dbClient, english.id, 'en').then((examples) => {
-                    english.examples = examples;
-                    return english;
-                }),
-                exampleModel.getBaseBySchema(dbClient, translated.id, language).then((examples) => {
-                    translated.examples = examples;
-                    return translated;
-                })
-            ]);
-        });
-    }).then(([english, translated]) => {
-        // we need to translate canonicals, confirmations, slot-filling questions,
-        // argument names (in canonical form) and
+        let maxVersion;
+        if (englishinfo.owner === req.user.developer_org ||
+            (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
+            maxVersion = englishinfo.developer_version;
+        else
+            maxVersion = englishinfo.approved_version;
 
-        const out = {
-            triggers: {},
-            actions: {},
-            queries: {}
-        };
-        for (let what of ['triggers', 'actions', 'queries']) {
-            if (!translated[what])
-                translated[what] = {};
-            for (let name in english[what]) {
-                if (!translated[what][name]) {
-                    translated[what][name] = {
-                        canonical: '',
-                        confirmation: '',
-                        questions: [],
-                        argcanonicals: []
-                    };
-                }
-                if (!translated[what][name].questions)
-                    translated[what][name].questions = [];
-                if (!translated[what][name].examples)
-                    translated[what][name].examples = [];
-                if (!english[what][name].examples)
-                    english[what][name].examples = [];
-                // undo the fallback that schema.js does
-                if (translated[what][name].confirmation === english[what][name].doc)
-                    translated[what][name].confirmation = '';
-                if (translated[what][name].confirmation_remote === english[what][name].confirmation)
-                    translated[what][name].confirmation_remote = '';
+        if (maxVersion === null) // pretend the device does not exist if it is not visible
+            throw new NotFoundError();
 
-                out[what][name] = {
-                    canonical: {
-                        english: english[what][name].canonical,
-                        translated: translated[what][name].canonical
-                    },
-                    confirmation: {
-                        english: english[what][name].confirmation,
-                        translated: translated[what][name].confirmation
-                    },
-                    confirmation_remote: {
-                        english: english[what][name].confirmation_remote,
-                        translated: translated[what][name].confirmation_remote
-                    },
-                    args: [],
-                };
+        if (fromVersion !== null)
+            fromVersion = Math.min(fromVersion, maxVersion);
+        else
+            fromVersion = maxVersion;
 
-                english[what][name].args.forEach((argname, i) => {
-                    out[what][name].args.push({
-                        id: argname,
-                        name: {
-                            english: english[what][name].argcanonicals[i],
-                            translated: translated[what][name].argcanonicals[i]
-                        },
-                        question: {
-                            english: english[what][name].questions[i],
-                            translated: translated[what][name].questions[i]
-                        }
-                    });
-                });
-            }
+        const translatedrows = await model.getMetasByKindAtVersion(dbClient, req.params.kind, fromVersion, language);
+
+        const english = englishrows[0];
+        const translated = translatedrows[0] || {};
+
+        const translatedExamples = await exampleModel.getBaseBySchema(dbClient, englishinfo.id, language);
+        let dataset;
+        if (translatedExamples.length > 0) {
+            dataset = DatasetUtils.examplesToDataset(req.params.kind, language, translatedExamples, { editMode: true });
+        } else {
+            const englishExamples = await exampleModel.getBaseBySchema(dbClient, englishinfo.id, 'en');
+            dataset = DatasetUtils.examplesToDataset(req.params.kind, language, englishExamples, { editMode: true, skipId: true });
         }
-        out.examples = english.examples.map((e, i) => {
-            return { english: e, translated: translated.examples[i] };
-        });
+
+        const { actions, queries } = makeTranslationPairs(english, translated);
 
         res.render('thingpedia_translate_schema', {
-            page_title: req._("Thingpedia - Translate Type"),
-            language: language,
-            english: english,
-            fromVersion: translated.version !== null ? translated.version : fromVersion,
-            triggers: out.triggers,
-            actions: out.actions,
-            queries: out.queries,
-            csrfToken: req.csrfToken(),
+            page_title: req._("Thingpedia - Translate Device"),
+            kind: req.params.kind,
+            locale,
+            language,
+            fromVersion,
+            actions,
+            queries,
+            dataset,
         });
-    }).catch(next);
+
+    }, 'serializable', 'read only').catch(next);
 });
 
-function ensureExamples(dbClient, schemaId, ast, language) {
-    return exampleModel.deleteBySchema(dbClient, schemaId, language).then(() => {
-        let examples = ast.examples.map((ex) => {
-            return ({
-                schema_id: schemaId,
-                utterance: ex.utterance,
-                preprocessed: ex.utterance,
-                target_code: ex.program,
-                target_json: '', // FIXME
-                type: 'thingpedia',
-                language: 'en',
-                is_base: 1,
-                flags: 'template'
-            });
-        });
-        return exampleModel.createMany(dbClient, examples);
-    });
+async function validateDataset(req, dbClient) {
+    const tpClient = new ThingpediaClient(req.user.developer_key, req.user.locale, dbClient);
+    const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
+
+    const parsed = await ThingTalk.Grammar.parseAndTypecheck(req.body.dataset, schemaRetriever, false);
+
+    if (parsed.datasets.length !== 1 ||
+        parsed.datasets[0].name !== '@' + req.params.kind ||
+        parsed.datasets[0].language !== req.body.language)
+        throw new Validation.ValidationError("Invalid dataset file: must contain exactly one dataset, with the same identifier as the class and the correct language");
+
+    const dataset = parsed.datasets[0];
+    await Validation.tokenizeDataset(dataset);
+    await Validation.validateDataset(dataset);
+
+    return dataset;
 }
 
-router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'string' }), (req, res, next) => {
+function safeGet(obj, ...args) {
+    for (let i = 0; i < args.length - 1; i++) {
+        const key = args[i];
+        if (typeof obj[key] !== 'object')
+            throw new BadRequestError(`Invalid type for parameter [${args.join('][')}]`);
+        obj = obj[key];
+    }
+    const lastKey = args[args.length-1];
+    if (typeof obj[lastKey] !== 'string')
+        throw new BadRequestError(`Invalid type for parameter [${args.join('][')}]`);
+    return obj[lastKey];
+}
+
+function computeTranslations(req, english) {
+    const translations = {};
+
+    for (let what of ['actions', 'queries']) {
+        for (let name in english[what]) {
+            const canonical = safeGet(req.body, 'canonical', name);
+            if (!canonical)
+                throw new Validation.ValidationError(`Missing canonical for ${what} ${name}`);
+            const confirmation = safeGet(req.body, 'confirmation', name);
+            if (!confirmation)
+                throw new Validation.ValidationError(`Missing confirmation for ${what} ${name}`);
+
+            const questions = [];
+            const argcanonicals = [];
+            for (let i = 0; i < english[what][name].args.length; i++) {
+                const argname = english[what][name].args[i];
+                const argcanonical = safeGet(req.body, 'argcanonical', name, argname);
+                if (!argcanonical)
+                    throw new Validation.ValidationError(`Missing argument name for ${argname} in ${what} ${name}`);
+                argcanonicals.push(argcanonical);
+
+                if (english[what][name].questions[i]) {
+                    const question = safeGet(req.body, 'question', name, argname);
+                    if (!question)
+                        throw new Validation.ValidationError(`Missing slot-filling question for ${argname} in ${what} ${name}`);
+                    questions.push(question);
+                } else {
+                    questions.push('');
+                }
+            }
+
+            translations[name] = {
+                canonical,
+                confirmation,
+                questions,
+                argcanonicals,
+            };
+        }
+    }
+    return translations;
+}
+
+router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'string', dataset: 'string' }), (req, res, next) => {
     var language = req.body.language;
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Translations for English cannot be contributed.") });
         return;
     }
+    if (!I18n.get(language, false)) {
+        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+                                          message: req._("Invalid language identifier %s.").format(language) });
+        return;
+    }
 
-    db.withTransaction((dbClient) => {
-        return model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en').then((englishrows) => {
-            if (englishrows.length === 0)
-                throw new NotFoundError();
+    db.withTransaction(async (dbClient) => {
+        const englishinfo = await model.getByKind(dbClient, req.params.kind);
+        const englishrows = await model.getMetasByKinds(dbClient, [req.params.kind], req.user.developer_org, 'en');
+        if (englishrows.length === 0)
+            throw new NotFoundError();
 
-            const english = englishrows[0];
-            const translations = {};
+        const english = englishrows[0];
+        let dataset, translations;
+        try {
+            dataset = await validateDataset(req, dbClient);
+            translations = computeTranslations(req, english);
+        } catch(e) {
+            if (!(e instanceof Validation.ValidationError))
+                throw e;
 
-            for (let what of ['triggers', 'actions', 'queries']) {
-                for (let name in english[what]) {
-                    const canonical = req.body[what + '_canonical_' + name] || english[what][name].canonical;
-                    const confirmation = req.body[what + '_confirmation_' + name] || english[what][name].confirmation;
-                    const confirmation_remote = req.body[what + '_confirmation_remote_' + name] || english[what].confirmation_remote;
-
-                    const questions = [];
-                    english[what][name].questions.forEach((q, i) => {
-                        if (!q)
-                            questions[i] = '';
-                        else
-                            questions[i] = req.body[what + '_question_' + english[what][name].args[i] + '_' + name] || q;
-                    });
-                    const argcanonicals = [];
-                    english[what][name].args.forEach((argname, i) => {
-                        argcanonicals[i] = req.body[what + '_argname_' + argname + '_' + name] ||
-                            english[what][name].argcanonicals[i] || argname;
-                    });
-
-                    translations[name] = {
-                        args: english[what][name].args,
-                        canonical: canonical,
-                        confirmation: confirmation,
-                        confirmation_remote: confirmation_remote,
-                        questions: questions,
-                        argcanonicals: argcanonicals,
-                        types: english[what][name].types,
-                        required: english[what][name].required,
-                    };
-                    english[what][name].args = english[what][name].args.map((arg, i) => {
-                        return { name: arg, type: english[what][name].types[i], argcanonical: argcanonicals[i], required: english[what][name].required[i], question: questions[i] };
-                    });
-                }
-            }
-
-            return model.insertTranslations(dbClient,
-                                            english.id,
-                                            english.developer_version,
-                                            language,
-                                            translations).then(() => {
-                return ensureExamples(dbClient, english.kind, english, language);
+            res.status(400).render('error', {
+                page_title: req._("Thingpedia - Error"),
+                message: req._("Translations for English cannot be contributed.")
             });
-        });
-    }).then(() => {
+            return;
+        }
+
+        await model.insertTranslations(dbClient, englishinfo.id, englishinfo.developer_version, language, translations);
+        await Importer.ensureDataset(dbClient, englishinfo.id, dataset, req.body.dataset);
         res.redirect(303, '/thingpedia/classes/by-id/' + req.params.kind);
     }).catch(next);
 });

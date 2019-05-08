@@ -160,7 +160,7 @@ module.exports = {
         });
     },
 
-    withTransaction(transaction, isolationLevel = 'serializable') {
+    withTransaction(transaction, isolationLevel = 'serializable', readOnly = 'read write') {
         // NOTE: some part of the code still rely on db.withClient
         // and db.withTransaction returning a Q.Promise rather than
         // a native Promise (eg they use .done() or .finally())
@@ -175,7 +175,7 @@ module.exports = {
             // this is ok because the argument NEVER comes from user input
             try {
                 await query(client, `set transaction isolation level ${isolationLevel}`);
-                await query(client, 'start transaction');
+                await query(client, `start transaction ${readOnly}`);
                 try {
                     const result = await transaction(client);
                     await query(client, 'commit');

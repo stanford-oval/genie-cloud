@@ -64,7 +64,7 @@ block content
           = _("The translation for this account in your language is incomplete. ")
         else
           = _("The translation for this device in your language is incomplete. ")
-        a(href='/thingpedia/translate/by-id/' + device.primary_kind).btn.btn-default= _("Contribute translation")
+        a(href='/thingpedia/translate/by-id/' + device.primary_kind + '?locale=' + locale).btn.btn-default= _("Contribute translation")
 
   if device.current_jobs['update-dataset'] && user && user.developer_org === device.owner
     div.alert.alert-info(role='alert')
@@ -279,9 +279,9 @@ block content
     if device.repository
       div.col-md-3.col-sm-6
         a.btn.btn-default.btn-block(href=device.repository)= _("Source Code Repository")
-    if authenticated && user.locale !== 'en-US'
+    if authenticated && locale !== 'en-US'
       div.col-md-3.col-sm-6
-        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind)= _("Translate")
+        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind + '?locale=' + locale)= _("Translate")
     if device.issue_tracker
       div.col-md-3.col-sm-6
         a.btn.btn-default.btn-block(href=device.issue_tracker)= _("Report a bug")

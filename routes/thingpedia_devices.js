@@ -19,12 +19,14 @@ const Config = require('../config');
 const db = require('../util/db');
 const model = require('../model/device');
 const user = require('../util/user');
-const schema = require('../model/schema');
+const schemaModel = require('../model/schema');
 const exampleModel = require('../model/example');
 const TrainingServer = require('../util/training_server');
 const SendMail = require('../util/sendmail');
 const I18n = require('../util/i18n');
 const tokenize = require('../util/tokenize');
+
+const SchemaUtils = require('../util/manifest_to_schema');
 const DatasetUtils = require('../util/dataset');
 const Importer = require('../util/import_device');
 const codeStorage = require('../util/code_storage');
@@ -47,7 +49,8 @@ function getOrgId(req) {
 }
 
 function getDetails(fn, param, req, res) {
-    const language = req.user ? I18n.localeToLanguage(req.user.locale) : 'en';
+    const locale = req.query.locale || (req.user ? req.user.locale : 'en');
+    const language = I18n.localeToLanguage(locale);
 
     return db.withClient(async (client) => {
         const device = await fn(client, param);
@@ -63,19 +66,18 @@ function getDetails(fn, param, req, res) {
 
         device.version = version;
 
-        let [code, translated, examples, current_jobs] = await Promise.all([
-            version !== null ? await model.getCodeByVersion(client, device.id, version) :
-            `class @${device.primary_kind} {}`,
+        let code;
+        if (version !== null)
+            code = model.getCodeByVersion(client, device.id, version);
+        else
+            code = `class @${device.primary_kind} {}`;
 
-            language === 'en' ? true : schema.isKindTranslated(client, device.primary_kind, language),
-
+        let examples, current_jobs;
+        [code, examples, current_jobs] = await Promise.all([
+            code,
             exampleModel.getByKinds(client, [device.primary_kind], getOrgId(req), language),
             TrainingServer.get().check(language, device.primary_kind)
         ]);
-        device.translated = translated;
-        device.current_jobs = current_jobs;
-
-        var online = false;
 
         let migrated;
         try {
@@ -96,9 +98,25 @@ function getDetails(fn, param, req, res) {
         assert(parsed.isMeta && parsed.classes.length > 0);
         const classDef = parsed.classes[0];
 
+        let translated;
+        if (language === 'en') {
+            translated = true;
+        } else {
+            const schemas = await schemaModel.getMetasByKinds(client, [req.params.kind], getOrgId(req), language);
+            if (schemas.length !== 0) {
+                translated = true;
+                SchemaUtils.mergeClassDefAndSchema(classDef, schemas[0]);
+            } else {
+                translated = false;
+            }
+        }
+        device.translated = translated;
+        device.current_jobs = current_jobs;
+
+        let online = false;
         examples = DatasetUtils.sortAndChunkExamples(examples);
 
-        var title;
+        let title;
         if (online)
             title = req._("Thingpedia - Account details");
         else
@@ -111,8 +129,7 @@ function getDetails(fn, param, req, res) {
         }
 
         res.render('thingpedia_device_details', { page_title: title,
-                                                  CDN_HOST: Config.CDN_HOST,
-                                                  csrfToken: req.csrfToken(),
+                                                  locale: locale,
                                                   device: device,
                                                   classDef: classDef,
                                                   examples: examples,
@@ -136,7 +153,7 @@ router.post('/approve', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validat
     db.withTransaction((dbClient) => {
         return Promise.all([
             model.approve(dbClient, req.body.kind),
-            schema.approveByKind(dbClient, req.body.kind)
+            schemaModel.approveByKind(dbClient, req.body.kind)
         ]);
     }).then(() => {
         res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
@@ -147,7 +164,7 @@ router.post('/unapprove', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.valid
     db.withTransaction((dbClient) => {
         return Promise.all([
             model.unapprove(dbClient, req.body.kind),
-            schema.unapproveByKind(dbClient, req.body.kind)
+            schemaModel.unapproveByKind(dbClient, req.body.kind)
         ]);
     }).then(() => {
         res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);

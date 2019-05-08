@@ -38,8 +38,9 @@ function getOrgId(req) {
         return req.user.developer_org;
 }
 
-router.get('/by-id/:kind', iv.validateGET({ language: '?string' }), (req, res, next) => {
-    const language = req.query.language || (req.user ? I18n.localeToLanguage(req.user.locale) : 'en');
+router.get('/by-id/:kind', iv.validateGET({ locale: '?string' }), (req, res, next) => {
+    const locale = req.query.locale || (req.user ? req.user.locale : 'en');
+    const language = I18n.localeToLanguage(locale);
     db.withClient(async (dbClient) => {
         const orgId = getOrgId(req);
         const [devices, schemas] = await Promise.all([
@@ -51,10 +52,11 @@ router.get('/by-id/:kind', iv.validateGET({ language: '?string' }), (req, res, n
                                               message: req._("Not Found.") });
             return;
         }
-        const classDef = ThingTalk.Grammar.parse(Importer.migrateManifest(devices[0].code, devices[0]));
+        const parsed = ThingTalk.Grammar.parse(Importer.migrateManifest(devices[0].code, devices[0]));
+        const classDef = parsed.classes[0];
         const schema = schemas[0];
         SchemaUtils.mergeClassDefAndSchema(classDef, schema);
-        const config = classDef.classes[0].config;
+        const config = classDef.config;
         if (config) {
             config.in_params.forEach((p) => {
                 if ((p.name.endsWith('_secret') || p.name.endsWith('_key')) && p.value.isString)
@@ -67,7 +69,7 @@ router.get('/by-id/:kind', iv.validateGET({ language: '?string' }), (req, res, n
             exampleModel.getByKinds(dbClient, [req.params.kind], getOrgId(req), language),
         ]);
 
-        const code = classDef.prettyprint();
+        const code = parsed.prettyprint();
 
         const highlightedCode = highlightjs.highlight('tt', code).value;
         const dataset = DatasetUtils.examplesToDataset(req.params.kind, 'en', examples,
@@ -80,6 +82,7 @@ router.get('/by-id/:kind', iv.validateGET({ language: '?string' }), (req, res, n
             developer_version: devices[0].developer_version,
             kind: req.params.kind,
             translated: translated,
+            locale: locale,
             code: code,
             highlightedCode: highlightedCode,
             dataset: dataset,

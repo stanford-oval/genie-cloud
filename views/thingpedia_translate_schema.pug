@@ -1,10 +1,16 @@
 extends layout
 
 block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/codemirror.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/lint.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
 
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/jsonlint.js')
+  script(src=Config.ASSET_CDN + '/javascripts/thingpedia-device-translate-bundle.js')
+
 block page_name
-  = _("Translate %s").format(english.kind)
+  = _("Translate %s").format(kind)
   - var uniqueId = 0;
 
 mixin do_one(id, obj)
@@ -12,41 +18,43 @@ mixin do_one(id, obj)
     td
       label(for='control_' + (++uniqueId))= obj.english
     td
-      input(name=id, id='control_' + uniqueId, type='text', value=obj.translated).form-control
+      div.form-group
+        input(name=id, id='control_' + uniqueId, type='text', value=obj.translated, required=true).form-control
 
-mixin translate_channel(prefix, channelType, name, channel)
+mixin translate_function(prefix, name, func)
   tr
     th(colspan=2)
       = prefix
       code= name
-  +do_one(channelType + '_canonical_' + name, channel.canonical)
-  +do_one(channelType + '_confirmation_' + name, channel.confirmation)
-  +do_one(channelType + '_confirmation_remote_' + name, channel.confirmation_remote)
-  for arg in channel.args
-    +do_one(channelType + '_argname_' + arg.id + '_' + name, arg.name)
+  +do_one(`canonical[${name}]`, func.canonical)
+  +do_one(`confirmation[${name}]`, func.confirmation)
+  for arg in func.args
+    +do_one(`argcanonical[${name}][${arg.name}]`, arg.argcanonical)
     if arg.question.english
-      +do_one(channelType + '_question_' + arg.id + '_' + name, arg.question)
-  for ex in channel.examples
-    +do_one(channelType + '_examples_' + name + '[]', ex)
+      +do_one(`question[${name}][${arg.name}]`, arg.question)
 
 block content
   if fromVersion > 0
-    a(href='/thingpedia/translate/by-id/' + english.kind + '?fromVersion=' + (fromVersion-1)).btn.btn-default= _("Import from previous version")
+    a(href=`/thingpedia/translate/by-id/${kind}?locale=${locale}&fromVersion=${fromVersion-1}`).btn.btn-default= _("Import from previous version")
 
-  form(action='/thingpedia/translate/by-id/' + english.kind, method='post')
+  form(action='/thingpedia/translate/by-id/' + kind, method='post', data-toggle='validator')
     input(type='hidden', name='language', value=language)
     input(type='hidden',name='_csrf',value=csrfToken)
-    table.table
+
+    h3=_("Class Metadata")
+    table.table#device-metadata-translate
       thead
         tr
           th= _("English")
           th= _("Translated")
       tbody
-        for trigger, name in triggers
-          +translate_channel(_("Trigger: "), 'triggers', name, trigger)
-        for action, name in actions
-          +translate_channel(_("Action: "), 'actions', name, action)
         for query, name in queries
-          +translate_channel(_("Query: "), 'queries', name, query)
+          +translate_function(_("Query: "), name, query)
+        for action, name in actions
+          +translate_function(_("Action: "), name, action)
+
+    h3#dataset-heading= _("Dataset")
+    textarea(name='dataset', required=true, aria-labelledby="dataset-heading").enable-codemirror.form-control#device-dataset= dataset
+
     div.form-group
       button(type='submit').btn.btn-primary= _("Save")
