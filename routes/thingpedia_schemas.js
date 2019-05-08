@@ -43,9 +43,10 @@ router.get('/by-id/:kind', iv.validateGET({ locale: '?string' }), (req, res, nex
     const language = I18n.localeToLanguage(locale);
     db.withClient(async (dbClient) => {
         const orgId = getOrgId(req);
-        const [devices, schemas] = await Promise.all([
+        const [devices, schemas, examples] = await Promise.all([
             deviceModel.getFullCodeByPrimaryKind(dbClient, req.params.kind, orgId),
             schemaModel.getMetasByKinds(dbClient, [req.params.kind], orgId, language),
+            exampleModel.getByKinds(dbClient, [req.params.kind], getOrgId(req), language),
         ]);
         if (devices.length === 0 || schemas.length === 0) {
             res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
@@ -55,7 +56,7 @@ router.get('/by-id/:kind', iv.validateGET({ locale: '?string' }), (req, res, nex
         const parsed = ThingTalk.Grammar.parse(Importer.migrateManifest(devices[0].code, devices[0]));
         const classDef = parsed.classes[0];
         const schema = schemas[0];
-        SchemaUtils.mergeClassDefAndSchema(classDef, schema);
+        const translated = SchemaUtils.mergeClassDefAndSchema(classDef, schema);
         const config = classDef.config;
         if (config) {
             config.in_params.forEach((p) => {
@@ -63,12 +64,6 @@ router.get('/by-id/:kind', iv.validateGET({ locale: '?string' }), (req, res, nex
                     p.value.value = '<hidden>';
             });
         }
-
-        let [translated, examples] = await Promise.all([
-            language === 'en' ? true : schemaModel.isKindTranslated(dbClient, req.params.kind, language),
-            exampleModel.getByKinds(dbClient, [req.params.kind], getOrgId(req), language),
-        ]);
-
         const code = parsed.prettyprint();
 
         const highlightedCode = highlightjs.highlight('tt', code).value;
@@ -82,7 +77,6 @@ router.get('/by-id/:kind', iv.validateGET({ locale: '?string' }), (req, res, nex
             developer_version: devices[0].developer_version,
             kind: req.params.kind,
             translated: translated,
-            locale: locale,
             code: code,
             highlightedCode: highlightedCode,
             dataset: dataset,
@@ -91,7 +85,8 @@ router.get('/by-id/:kind', iv.validateGET({ locale: '?string' }), (req, res, nex
 
         res.render('thingpedia_schema', { page_title: req._("Thingpedia - Type detail"),
                                           csrfToken: req.csrfToken(),
-                                          schema: row });
+                                          schema: row,
+                                          uselocale: locale });
     }).catch(next);
 });
 

@@ -32,8 +32,12 @@ const Importer = require('../util/import_device');
 const codeStorage = require('../util/code_storage');
 const iv = require('../util/input_validation');
 const { NotFoundError } = require('../util/errors');
+const stringModel = require('../model/strings');
+const entityModel = require('../model/entity');
 
 var router = express.Router();
+
+function N_(x) { return x; }
 
 router.get('/', (req, res) => {
     res.redirect(301, '/thingpedia');
@@ -46,6 +50,121 @@ function getOrgId(req) {
         return -1;
     else
         return req.user.developer_org;
+}
+
+const MEASURE_NAMES = {
+    ms: N_("duration"),
+    C: N_("temperature"),
+    m: N_("length"),
+    mps: N_("speed"),
+    kg: N_("weight"),
+    Pa: N_("pressure"),
+    kcal: N_("energy"),
+    byte: N_("size")
+};
+
+async function getHumanReadableType(req, language, dbClient, arg, type) {
+    if (type.isArray)
+        return req._("list of %s").format(await getHumanReadableType(req, language, dbClient, arg, type.elem));
+
+    if (arg.annotations.string_values) {
+        let stringType;
+        try {
+            stringType = await stringModel.getByTypeName(dbClient, arg.annotations.string_values.toJS(), language);
+        } catch(e) {
+            if (language === 'en' || !(e instanceof NotFoundError))
+                throw e;
+            stringType = await stringModel.getByTypeName(dbClient, arg.annotations.string_values.toJS(), 'en');
+        }
+        return stringType.name.toLowerCase();
+    } else if (type.isEntity) {
+        let entityType;
+        try {
+            entityType = await entityModel.get(dbClient, arg.type.type, language);
+        } catch(e) {
+            if (language === 'en' || !(e instanceof NotFoundError))
+                throw e;
+            entityType = await entityModel.get(dbClient, arg.type.type, 'en');
+        }
+        return entityType.name.toLowerCase();
+    } else if (type.isString) {
+        return req._("free-form text");
+    } else if (type.isNumber) {
+        return req._("number");
+    } else if (type.isBoolean) {
+        return req._("true or false");
+    } else if (type.isCurrency) {
+        return req._("currency amount");
+    } else if (type.isMeasure) {
+        return req._(MEASURE_NAMES[arg.type.unit]);
+    } else if (type.isEnum) {
+        return req._("one of %s").format(arg.type.entries.map(tokenize.clean).join(", "));
+    } else if (type.isTime) {
+        return req._("time of day");
+    } else if (type.isDate) {
+        return req._("point in time");
+    } else if (type.isLocation) {
+        return req._("location");
+    } else {
+        // ignore weird/internal types return nothing
+        return String(type);
+    }
+}
+
+async function loadHumanReadableType(req, language, dbClient, arg) {
+    arg.metadata.human_readable_type = await getHumanReadableType(req, language, dbClient, arg, arg.type);
+}
+
+function loadHumanReadableTypes(req, language, dbClient, classDef) {
+    const promises = [];
+
+    for (let what of ['actions', 'queries']) {
+        for (let name in classDef[what]) {
+            for (let argname of classDef[what][name].args) {
+                const arg = classDef[what][name].getArgument(argname);
+                promises.push(loadHumanReadableType(req, language, dbClient, arg));
+            }
+        }
+    }
+
+    return promises;
+}
+
+function durationToString(_, ngettext, poll_interval) {
+    if (poll_interval < 1000)
+        return _("%d milliseconds").format(poll_interval);
+
+    poll_interval = Math.round(poll_interval / 1000);
+
+    const poll_interval_sec = poll_interval % 60;
+
+    poll_interval = Math.floor(poll_interval / 60);
+    const poll_interval_min = poll_interval % 60;
+
+    const poll_interval_h = Math.floor(poll_interval / 60);
+
+    if (poll_interval_sec !== 0) {
+        if (poll_interval_min !== 0) {
+            if (poll_interval_h !== 0)
+                return _("%d hours %d minutes %d seconds").format(poll_interval_h, poll_interval_min, poll_interval_sec);
+            else
+                return _("%d minutes %d seconds").format(poll_interval_min, poll_interval_sec);
+        } else {
+            if (poll_interval_h !== 0)
+                return _("%d hours %d seconds").format(poll_interval_h, poll_interval_sec);
+            else
+                return ngettext("second", "%d seconds", poll_interval_sec).format(poll_interval_sec);
+        }
+    } else {
+        if (poll_interval_min !== 0) {
+            if (poll_interval_h !== 0)
+                return _("%d hours %d minutes").format(poll_interval_h, poll_interval_min);
+            else
+                return ngettext("minute", "%d minutes", poll_interval_min).format(poll_interval_min);
+        } else {
+            return ngettext("hour", "%d hours", poll_interval_h).format(poll_interval_h);
+        }
+    }
 }
 
 function getDetails(fn, param, req, res) {
@@ -103,13 +222,13 @@ function getDetails(fn, param, req, res) {
             translated = true;
         } else {
             const schemas = await schemaModel.getMetasByKinds(client, [req.params.kind], getOrgId(req), language);
-            if (schemas.length !== 0) {
-                translated = true;
-                SchemaUtils.mergeClassDefAndSchema(classDef, schemas[0]);
-            } else {
+            if (schemas.length !== 0)
+                translated = SchemaUtils.mergeClassDefAndSchema(classDef, schemas[0]);
+            else
                 translated = false;
-            }
         }
+
+        await Promise.all(loadHumanReadableTypes(req, language, client, classDef));
         device.translated = translated;
         device.current_jobs = current_jobs;
 
@@ -129,11 +248,12 @@ function getDetails(fn, param, req, res) {
         }
 
         res.render('thingpedia_device_details', { page_title: title,
-                                                  locale: locale,
+                                                  uselocale: locale,
                                                   device: device,
                                                   classDef: classDef,
                                                   examples: examples,
-                                                  clean: tokenize.clean });
+                                                  clean: tokenize.clean,
+                                                  durationToString });
     }).catch((e) => {
         if (e.code !== 'ENOENT')
             throw e;

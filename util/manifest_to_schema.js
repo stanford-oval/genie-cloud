@@ -78,22 +78,33 @@ function makeSchemaClassDef(kind, schema, isMeta) {
 }
 
 function mergeFunctionDefAndSchema(fnDef, schema) {
-    for (let key of ['confirmation', 'confirmation_remote', 'canonical'])
-        fnDef.metadata[key] = schema[key];
+    let complete = true;
+    for (let key of ['confirmation', 'confirmation_remote', 'canonical']) {
+        if (schema[key])
+            fnDef.metadata[key] = schema[key];
+        else
+            complete = false;
+    }
     for (let i = 0; i < fnDef.args.length; i++) {
         const arg = fnDef.getArgument(fnDef.args[i]);
-        arg.metadata.canonical = schema.argcanonicals[i];
+        if (schema.argcanonicals[i])
+            arg.metadata.canonical = schema.argcanonicals[i];
+        else
+            complete = false;
         if (schema.questions[i])
             arg.metadata.prompt = schema.questions[i];
     }
+    return complete;
 }
 
 module.exports = {
     mergeClassDefAndSchema(classDef, schema) {
+        let complete = true;
         for (let name in classDef.queries)
-            mergeFunctionDefAndSchema(classDef.queries[name], schema.queries[name]);
+            complete = mergeFunctionDefAndSchema(classDef.queries[name], schema.queries[name]) && complete;
         for (let name in classDef.actions)
-            mergeFunctionDefAndSchema(classDef.actions[name], schema.actions[name]);
+            complete = mergeFunctionDefAndSchema(classDef.actions[name], schema.actions[name]) && complete;
+        return complete;
     },
 
     schemaListToClassDefs(rows, isMeta) {
