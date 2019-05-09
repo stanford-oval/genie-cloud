@@ -196,7 +196,12 @@ block content
   div.clearfix
 
   mixin invocation(inv, name, inv_type)
-    h3= inv.canonical
+    h3
+      if inv_type ==='query'
+        span.query= _("GET: ")
+      else
+        span.action= _("DO: ")
+      = inv.canonical
     p= inv.annotations.doc ? inv.annotations.doc.toJS() : ''
 
     if inv.args.filter((argname) => inv.isArgInput(argname)).length > 0
@@ -236,14 +241,16 @@ block content
         else
           = _("The result can be monitored for changes, and updates every %s.").format(durationToString(_, ngettext, poll_interval))
 
-
-  h2= _("Available Operations")
-  for inv, name in classDef.queries
-    +invocation(inv, name, 'query')
-  for inv, name in classDef.actions
-    +invocation(inv, name, 'action')
-
-  hr
+  if Object.keys(classDef.queries).length + Object.keys(classDef.actions).length > 0
+    h2= _("Available Operations")
+    for inv, name in classDef.queries
+      +invocation(inv, name, 'query')
+      hr
+    for inv, name in classDef.actions
+      +invocation(inv, name, 'action')
+      hr
+  else
+    hr
   div.row.device-details-actions
     if authenticated && ((user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0 || device.owner === user.developer_org)
       div.col-md-3.col-sm-6
