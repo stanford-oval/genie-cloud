@@ -22,6 +22,7 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
                                 meta.canonical,
                                 meta.confirmation,
                                 meta.confirmation_remote || meta.confirmation,
+                                JSON.stringify(meta.formatted),
                                 JSON.stringify(meta.argcanonicals),
                                 JSON.stringify(meta.questions)]);
     }
@@ -30,7 +31,7 @@ function insertTranslations(dbClient, schemaId, version, language, translations)
         return Q();
 
     return db.insertOne(dbClient, 'replace into device_schema_channel_canonicals(schema_id, version, language, name, '
-            + 'canonical, confirmation, confirmation_remote, argcanonicals, questions) values ?', [channelCanonicals]);
+            + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions) values ?', [channelCanonicals]);
 }
 
 function insertChannels(dbClient, schemaId, schemaKind, kindType, version, language, metas) {
@@ -53,6 +54,7 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
                                     meta.canonical,
                                     meta.confirmation,
                                     meta.confirmation_remote,
+                                    JSON.stringify(meta.formatted),
                                     JSON.stringify(meta.argcanonicals),
                                     JSON.stringify(meta.questions)]);
         }
@@ -69,7 +71,7 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
         + 'channel_type, doc, types, argnames, required, is_input, string_values, is_list, is_monitorable) values ?', [channels])
         .then(() => {
             return db.insertOne(dbClient, 'insert into device_schema_channel_canonicals(schema_id, version, language, name, '
-            + 'canonical, confirmation, confirmation_remote, argcanonicals, questions) values ?', [channelCanonicals]);
+            + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions) values ?', [channelCanonicals]);
         });
 }
 
@@ -126,6 +128,7 @@ function processMetaRows(rows) {
             is_monitorable: !!row.is_monitorable,
             confirmation: row.confirmation,
             confirmation_remote: row.confirmation_remote || row.confirmation, // for compatibility
+            formatted: JSON.parse(row.formatted || '[]'),
             doc: row.doc,
             canonical: row.canonical,
             argcanonicals: JSON.parse(row.argcanonicals) || [],
@@ -224,7 +227,7 @@ module.exports = {
     },
 
     getCurrentSnapshotMeta(client, language) {
-        return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, doc, types,"
+        return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
                             + " argnames, argcanonicals, required, is_input, is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type"
                             + " from device_schema ds"
                             + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
@@ -242,7 +245,7 @@ module.exports = {
     },
 
     getSnapshotMeta(client, snapshotId, language) {
-        return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, doc, types,"
+        return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
                             + " argnames, argcanonicals, required, is_input, is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type"
                             + " from device_schema_snapshot ds"
                             + " left join device_schema_channels dsc on ds.schema_id = dsc.schema_id"
@@ -287,7 +290,7 @@ module.exports = {
         return Q.try(() => {
             if (org === -1) {
                 return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
-                    confirmation_remote, doc, types, argnames, argcanonicals, required, is_input,
+                    confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
                     string_values, is_list, is_monitorable, questions, kind, kind_type
                     from device_schema ds left join
                     device_schema_channels dsc on ds.id = dsc.schema_id and
@@ -297,7 +300,7 @@ module.exports = {
                     [language, kinds]);
             } if (org !== null) {
                 return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
-                    confirmation_remote, doc, types, argnames, argcanonicals, required, is_input,
+                    confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
                     string_values, is_list, is_monitorable, questions, kind, kind_type
                     from device_schema ds left join
                     device_schema_channels dsc on ds.id = dsc.schema_id and
@@ -309,7 +312,7 @@ module.exports = {
                     [org, org, language, kinds, org]);
             } else {
                 return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
-                    confirmation_remote, doc, types, argnames, argcanonicals, required, is_input,
+                    confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
                     string_values, is_list, is_monitorable, questions, kind, kind_type
                     from device_schema ds left join device_schema_channels
                     dsc on ds.id = dsc.schema_id and dsc.version = ds.approved_version left join
@@ -323,7 +326,7 @@ module.exports = {
 
     getMetasByKindAtVersion(client, kind, version, language) {
         return Q.try(() => {
-            return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, doc, types,"
+            return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
                                 + " argnames, argcanonicals, required, is_input, string_values, is_list, is_monitorable, questions, kind, kind_type "
                                 + " from device_schema ds"
                                 + " left join device_schema_channels dsc on ds.id = dsc.schema_id"

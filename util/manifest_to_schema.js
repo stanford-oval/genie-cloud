@@ -50,6 +50,9 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
     if (isMeta) {
         metadata.canonical = schema.canonical || '';
         metadata.confirmation = schema.confirmation || '';
+
+        if (schema.formatted && schema.formatted.length > 0)
+            metadata.formatted = schema.formatted;
     }
     const annotations = {};
 
@@ -85,6 +88,12 @@ function mergeFunctionDefAndSchema(fnDef, schema) {
         else
             complete = false;
     }
+    // the formatted story is... messy
+    // because we have had the field for a long time
+    // but it was never properly filled or filled
+    if (schema.formatted && schema.formatted.length > 0)
+        fnDef.metadata.formatted = schema.formatted;
+
     for (let i = 0; i < fnDef.args.length; i++) {
         const arg = fnDef.getArgument(fnDef.args[i]);
         if (schema.argcanonicals[i])
@@ -130,6 +139,7 @@ module.exports = {
                     confirmation: fnDef.metadata.confirmation,
                     confirmation_remote: fnDef.metadata.confirmation_remote || '',
                     canonical: fnDef.metadata.canonical,
+                    formatted: fnDef.metadata.formatted || [],
                     is_list: fnDef.is_list,
                     is_monitorable: fnDef.is_monitorable,
                     types: [],
@@ -161,47 +171,5 @@ module.exports = {
         }
 
         return result;
-    },
-
-    toSchema(ast) {
-        var triggers = {};
-        var actions = {};
-        var queries = {};
-
-        function handleOne(ast, out) {
-            for (var name in ast) {
-                out[name] = {
-                    doc: ast[name].doc,
-                    confirmation: ast[name].confirmation,
-                    confirmation_remote: ast[name].confirmation_remote,
-                    canonical: ast[name].canonical,
-                    is_list: !!ast[name].is_list,
-                    is_monitorable: ('poll_interval' in ast[name] ? ast[name].poll_interval >= 0 : !!ast[name].is_monitorable), 
-                    schema: [],
-                    args: [],
-                    argcanonicals: [],
-                    questions: [],
-                    required: [],
-                    is_input: [],
-                    string_values: [],
-                };
-                for (var arg of ast[name].args) {
-                    out[name].schema.push(arg.type);
-                    out[name].args.push(arg.name);
-                    // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
-                    out[name].argcanonicals.push(arg.name.replace(/_/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase());
-                    out[name].questions.push(arg.question);
-                    out[name].required.push(!!arg.required);
-                    out[name].is_input.push(!!arg.is_input);
-                    out[name].string_values.push(arg.string_values || null);
-                }
-            }
-        }
-
-        handleOne(ast.triggers, triggers);
-        handleOne(ast.actions, actions);
-        handleOne(ast.queries, queries);
-
-        return { triggers, actions, queries };
     }
 };
