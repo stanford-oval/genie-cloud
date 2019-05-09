@@ -14,12 +14,15 @@ block page_name
   - var uniqueId = 0;
 
 mixin do_one(id, obj)
-  tr
-    td
-      label(for='control_' + (++uniqueId))= obj.english
-    td
-      div.form-group
-        input(name=id, id='control_' + uniqueId, type='text', value=obj.translated, required=true).form-control
+  if /^\$\{([A-Za-z0-9_-]+)\}$/.test(obj.english)
+    input(name=id, type='hidden', value=obj.english)
+  else
+    tr
+      td
+        label(for='control_' + (++uniqueId))= obj.english
+      td
+        div.form-group
+          input(name=id, id='control_' + uniqueId, type='text', value=obj.translated, required=true).form-control
 
 mixin translate_function(prefix, name, func)
   tr
@@ -61,5 +64,6 @@ block content
     h3#dataset-heading= _("Dataset")
     textarea(name='dataset', required=true, aria-labelledby="dataset-heading").enable-codemirror.form-control#device-dataset= dataset
 
-    div.form-group
+
+    div.form-group.device-translate-actions
       button(type='submit').btn.btn-primary= _("Save")

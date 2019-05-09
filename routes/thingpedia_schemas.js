@@ -67,7 +67,7 @@ router.get('/by-id/:kind', iv.validateGET({ locale: '?string' }), (req, res, nex
         const code = parsed.prettyprint();
 
         const highlightedCode = highlightjs.highlight('tt', code).value;
-        const dataset = DatasetUtils.examplesToDataset(req.params.kind, 'en', examples,
+        const dataset = DatasetUtils.examplesToDataset(req.params.kind, language, examples,
             { editMode: true });
         const highlighedDataset = highlightjs.highlight('tt', dataset).value;
 
