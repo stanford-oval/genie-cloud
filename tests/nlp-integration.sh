@@ -79,6 +79,9 @@ mkdir -p 'default:en'
 wget --no-verbose https://parmesan.stanford.edu/test-models/default/en/current.tar.gz
 tar xvf current.tar.gz -C 'default:en'
 
+wget --no-verbose https://parmesan.stanford.edu/test-models/default/en/current-contextual.tar.gz
+tar xvf current.tar.gz -C 'contextual:en'
+
 PORT=$NLP_PORT node $srcdir/nlp/main.js &
 inferpid=$!
 

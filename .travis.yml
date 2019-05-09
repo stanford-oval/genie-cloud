@@ -35,6 +35,8 @@ install:
 - pyenv global 3.6.7
 - travis_wait ./tests/install-nlp-deps.sh
 - export DECANLP_EMBEDDINGS=`pwd`/tests/embeddings
+- (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules/ ); 
+- (cd node_modules/thingengine-core ; yarn prepare ); 
 before_script:
 - mysql -u root -e "create database if not exists thingengine_test; grant all privileges
   on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
