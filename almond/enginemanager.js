@@ -542,8 +542,7 @@ class EngineManager extends events.EventEmitter {
             await this._killUserLocked(userId);
 
             const dir = path.resolve('.', await this._getUserCloudIdForPath(userId));
-            await util.promisify(child_process.execFile)('/bin/rm',
-                ['-rf', dir]);
+            await util.promisify(child_process.execFile)('/bin/rm', ['-rf', dir]); //'
         } finally {
             releaseLock();
             delete this._locks[userId];
