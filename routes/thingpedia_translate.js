@@ -47,6 +47,7 @@ function makeTranslationPairs(english, translated) {
                 translated[what][name] = {
                     canonical: '',
                     confirmation: '',
+                    formatted: [],
                     questions: [],
                     argcanonicals: []
                 };
@@ -60,8 +61,32 @@ function makeTranslationPairs(english, translated) {
                     english: english[what][name].confirmation,
                     translated: translated[what][name].confirmation
                 },
+                formatted: [],
                 args: [],
             };
+
+            for (let i = 0; i < english[what][name].formatted.length; i++) {
+                let englishformat = english[what][name].formatted[i];
+                let translatedformat = translated[what][name].formatted[i] || {};
+
+                if (typeof englishformat === 'string')
+                    englishformat = { type: 'text', text: englishformat };
+                if (typeof translatedformat === 'string')
+                    translatedformat = { type: 'text', text: translatedformat };
+
+                const doubleformat = {
+                    type: englishformat.type,
+                };
+                for (let key in englishformat) {
+                    if (key === 'type')
+                        continue;
+                    doubleformat[key] = {
+                        english: englishformat[key],
+                        translated: translatedformat[key]
+                    };
+                }
+                out[what][name].formatted.push(doubleformat);
+            }
 
             english[what][name].args.forEach((argname, i) => {
                 out[what][name].args.push({
@@ -160,7 +185,7 @@ async function validateDataset(req, dbClient) {
     return dataset;
 }
 
-function safeGet(obj, ...args) {
+function safeGet(obj, expect, ...args) {
     for (let i = 0; i < args.length - 1; i++) {
         const key = args[i];
         if (typeof obj[key] !== 'object')
@@ -168,7 +193,7 @@ function safeGet(obj, ...args) {
         obj = obj[key];
     }
     const lastKey = args[args.length-1];
-    if (typeof obj[lastKey] !== 'string')
+    if (expect !== undefined && typeof obj[lastKey] !== expect)
         throw new BadRequestError(`Invalid type for parameter [${args.join('][')}]`);
     return obj[lastKey];
 }
@@ -178,24 +203,40 @@ function computeTranslations(req, english) {
 
     for (let what of ['actions', 'queries']) {
         for (let name in english[what]) {
-            const canonical = safeGet(req.body, 'canonical', name);
+            const canonical = safeGet(req.body, 'string', 'canonical', name);
             if (!canonical)
                 throw new Validation.ValidationError(`Missing canonical for ${what} ${name}`);
-            const confirmation = safeGet(req.body, 'confirmation', name);
+            const confirmation = safeGet(req.body, 'string', 'confirmation', name);
             if (!confirmation)
                 throw new Validation.ValidationError(`Missing confirmation for ${what} ${name}`);
+
+            let formatted = safeGet(req.body, undefined, 'formatted', name);
+            if (formatted !== undefined && !Array.isArray(formatted))
+                throw new BadRequestError(`Invalid type for parameter [formatted][${name}]`);
+            if (formatted === undefined)
+                formatted = [];
+            for (let i = 0; i < formatted.length; i++) {
+                const formatel = formatted[i];
+                if (typeof formatel !== 'object' ||
+                    typeof formatel.type !== 'string' ||
+                    !(formatel.type !== 'text' || typeof formatel.text === 'string'))
+                    throw new BadRequestError(`Invalid type for parameter [formatted][${name}]`);
+
+                if (formatel.type === 'text')
+                    formatted[i] = formatel.text;
+            }
 
             const questions = [];
             const argcanonicals = [];
             for (let i = 0; i < english[what][name].args.length; i++) {
                 const argname = english[what][name].args[i];
-                const argcanonical = safeGet(req.body, 'argcanonical', name, argname);
+                const argcanonical = safeGet(req.body, 'string', 'argcanonical', name, argname);
                 if (!argcanonical)
                     throw new Validation.ValidationError(`Missing argument name for ${argname} in ${what} ${name}`);
                 argcanonicals.push(argcanonical);
 
                 if (english[what][name].questions[i]) {
-                    const question = safeGet(req.body, 'question', name, argname);
+                    const question = safeGet(req.body, 'string', 'question', name, argname);
                     if (!question)
                         throw new Validation.ValidationError(`Missing slot-filling question for ${argname} in ${what} ${name}`);
                     questions.push(question);
@@ -207,6 +248,7 @@ function computeTranslations(req, english) {
             translations[name] = {
                 canonical,
                 confirmation,
+                formatted,
                 questions,
                 argcanonicals,
             };

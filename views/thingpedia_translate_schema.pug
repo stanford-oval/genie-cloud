@@ -28,6 +28,11 @@ mixin translate_function(prefix, name, func)
       code= name
   +do_one(`canonical[${name}]`, func.canonical)
   +do_one(`confirmation[${name}]`, func.confirmation)
+  for fmtel, i in func.formatted
+    input(type='hidden', name=`formatted[${name}][${i}][type]`, value=fmtel.type)
+    for value, key in fmtel
+      - if (key === 'type') continue;
+      +do_one(`formatted[${name}][${i}][${key}]`, value)
   for arg in func.args
     +do_one(`argcanonical[${name}][${arg.name}]`, arg.argcanonical)
     if arg.question.english
