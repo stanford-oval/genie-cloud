@@ -70,7 +70,7 @@ block content
   div.row#device-details-actions
     if authenticated && ((user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0 || schema.owner === user.developer_org)
       div.col-md-2
-        a.btn.btn-warning.btn-block(href='/thingpedia/devices/update/' + schema.kind)= _("Edit")
+        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + schema.kind)= _("Edit")
       div.col-md-2
         form(action='/thingpedia/devices/delete', method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
