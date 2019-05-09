@@ -24,6 +24,8 @@ module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
 module.exports.AES_SECRET_KEY = '80bb23f93126074ba01410c8a2278c0c';
 module.exports.JWT_SIGNING_KEY = "not so secret key" ;
 module.exports.SECRET_KEY = "not so secret key";
+module.exports.NL_SERVER_URL = "https://almond-dev.stanford.edu/nnparser/@default";
+module.exports.SUPPORTED_LANGUAGES = ['en-US', 'it-IT', 'zh-CN', 'zh-TW'];
 EOF
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`

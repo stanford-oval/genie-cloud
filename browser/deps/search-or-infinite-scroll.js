@@ -15,12 +15,13 @@ const InfiniteScroll = require('infinite-scroll');
 module.exports = class SearchOrInfiniteScroll {
     constructor(options) {
         this._developerKey = document.body.dataset.developerKey || '';
+        this._locale = document.body.dataset.locale || 'en-US';
         this._containerKey = options.container;
         this._container = document.querySelector(options.container + ' .aligned-grid');
         this._render = options.render;
 
         this._pageSize = options.pageSize || 18;
-        this._getUrl = options.url + '?page_size=' + this._pageSize + '&developer_key=' + this._developerKey;
+        this._getUrl = options.url + '?page_size=' + this._pageSize + '&developer_key=' + this._developerKey + '&locale=' + this._locale;
         this._searchUrl = options.searchUrl;
 
         this._reset = $(options.container + ' .reset-button');
@@ -39,7 +40,8 @@ module.exports = class SearchOrInfiniteScroll {
             this._findmore.hide();
             $.ajax(this._searchUrl, { data: {
                 q: $(options.container + ' input[name=q]').val(),
-                developer_key: this._developerKey
+                developer_key: this._developerKey,
+                locale: this._locale
             }, method: 'GET' }).then((response) => {
                 $(this._container).empty();
                 $(this._container).append(this._renderCommands(response));

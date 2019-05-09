@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: thingengine-platform-cloud 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-09 00:52+0000\n"
+"POT-Creation-Date: 2019-05-09 04:31+0000\n"
 "PO-Revision-Date: 2019-05-09 17:53-0700\n"
 "Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Italian\n"
@@ -193,6 +193,16 @@ msgstr "Thingpedia - Stato"
 #: routes/status.js:109 routes/status.js:124
 msgid "Your engine is running, kill it before attempting recovery"
 msgstr "Il tuo motore è in funzione, fermalo prima di provare il recupero"
+
+#: routes/thingpedia_api.js:904
+#, javascript-format
+msgid "notify me %s"
+msgstr "notificami %s"
+
+#: routes/thingpedia_api.js:906
+#, javascript-format
+msgid "show me %s"
+msgstr "mostrami %s"
 
 #: routes/thingpedia_cheatsheet.js:26
 msgid "Thingpedia - Supported Operations"
@@ -2533,8 +2543,8 @@ msgstr ""
 "Almond è il primo assistente virtuale che ti consente di specificare comandi "
 "che combinano due o più servizi in uno. Puoi specificare <em "
 "class=when>quando</em> eseguire un comando, quale data <em "
-"class=get>recuperare</em>, e cosa <em class=do>fare>. Ogni parte può essere "
-"qualunque dei comandi supportati di Almond."
+"class=get>recuperare</em>, e cosa <em class=do>fare</em>. Ogni parte può "
+"essere qualunque dei comandi supportati di Almond."
 
 #: views/stanford/about_index.pug:193
 msgid "You can use compound commands for:"

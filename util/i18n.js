@@ -69,9 +69,20 @@ function load() {
         gt.textdomain('thingengine-platform-cloud');
         gt.setLocale(l);
 
+        // prebind the gt for ease of use, because the usual gettext API is not object-oriented
+        const prebound = {
+            gettext: gt.gettext.bind(gt),
+            ngettext: gt.ngettext.bind(gt),
+            pgettext: gt.pgettext.bind(gt),
+
+            dgettext: gt.dgettext.bind(gt),
+            dngettext: gt.dngettext.bind(gt),
+            dpgettext: gt.dpgettext.bind(gt),
+        };
+
         let split = l.split('-');
         while (split.length > 0) {
-            languages[split.join('-')] = gt;
+            languages[split.join('-')] = prebound;
             split.pop();
         }
     }
