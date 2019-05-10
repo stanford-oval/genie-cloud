@@ -9,6 +9,7 @@ bundles := \
 	admin-nl-training \
 	commandpedia \
 	thingpedia-device-create \
+	thingpedia-device-translate \
 	thingpedia-portal \
 	trainer \
 	blog-editor \

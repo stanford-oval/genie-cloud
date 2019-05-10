@@ -23,10 +23,6 @@
     font-size: 25px;
 }
 
-#device-details-actions {
-    margin-top: 1em;
-}
-
 #json-manifest-placeholder .well h3 {
     margin-top: 10.5px;
     margin-bottom: 0px;
@@ -132,6 +128,10 @@
   margin-bottom: 1em;
 }
 
+.device-translate-actions {
+    margin-top: 2em;
+}
+
 .dev-template > a {
   color: inherit;
 }
@@ -139,4 +139,8 @@
 .dev-template > a:hover, .dev-template > a:focus {
   text-decoration: none;
   box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+}
+
+#device-metadata-translate .form-group {
+  margin: 0;
 }

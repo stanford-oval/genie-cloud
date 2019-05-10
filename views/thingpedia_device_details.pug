@@ -64,7 +64,7 @@ block content
           = _("The translation for this account in your language is incomplete. ")
         else
           = _("The translation for this device in your language is incomplete. ")
-        a(href='/thingpedia/translate/by-id/' + device.primary_kind).btn.btn-default= _("Contribute translation")
+        a(href='/thingpedia/translate/by-id/' + device.primary_kind + '?locale=' + uselocale).btn.btn-default= _("Contribute translation")
 
   if device.current_jobs['update-dataset'] && user && user.developer_org === device.owner
     div.alert.alert-info(role='alert')
@@ -112,25 +112,28 @@ block content
     p
       i= _("This is a builtin device in certain versions of Almond. It may not be available in the Almond you are using.")
 
-  if authenticated && user.developer_org !== null
-    h2.device-subtitle#device-version= _("Class: ")
-      a(href='/thingpedia/classes/by-id/' + device.primary_kind)= '@' + device.primary_kind
-      if device.version !== device.approved_version && device.version !== device.developer_version
-        if device.approved_version === null
-          = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
-        else if device.approved_version !== device.developer_version
-          = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
-        else
-          = _(", version %d; this version: %d").format(device.approved_version, device.version)
-      else
-        if device.approved_version === null
-          = _(", version none (approved), %d (developer)").format(device.developer_version)
-        else if device.approved_version !== device.developer_version
-          = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
-        else
-          = _(", version %d").format(device.approved_version)
+  if classDef.extends !== null
+    p!= _("This device extends the functionality of %s.").format(classDef.extends.map((k) => '<a href="/thingpedia/classes/by-id/' + k + '">@' + k + '</a>').join(', '))
 
   p
+    = _("Class: ")
+    a(href='/thingpedia/classes/by-id/' + device.primary_kind)= '@' + device.primary_kind
+    if device.version !== device.approved_version && device.version !== device.developer_version
+      if device.approved_version === null
+        = _(", version none (approved), %d (developer); this version: %d").format(device.developer_version, device.version)
+      else if device.approved_version !== device.developer_version
+        = _(", version %d (approved), %d (developer); this version: %d").format(device.approved_version, device.developer_version, device.version)
+      else
+        = _(", version %d; this version: %d").format(device.approved_version, device.version)
+    else
+      if device.approved_version === null
+        = _(", version none (approved), %d (developer)").format(device.developer_version)
+      else if device.approved_version !== device.developer_version
+        = _(", version %d (approved), %d (developer)").format(device.approved_version, device.developer_version)
+      else
+        = _(", version %d").format(device.approved_version)
+    br
+
     = _("Uploaded By: ")
     if authenticated && (user.roles & Constants.Role.ADMIN)
       a(href='/admin/organizations/details/' + device.owner)=device.owner_name
@@ -148,17 +151,10 @@ block content
     else
       span.label.label-warning= _("Unknown")
 
-  if classDef.extends !== null
-    h2.device-subtitle= _("Extends: ")
-      for k in classDef.extends
-        = " "
-        a(href='/thingpedia/classes/by-id/' + k)
-          span.label.label-default= '@' + k
-
   div.clearfix
 
   if classDef.annotations.child_types && classDef.annotations.child_types.value.length > 0
-    h2.device-subtitle= _("Configures:")
+    h2= _("Configures:")
     p.help-block= _("Configuring this device will also configure one or more of the following")
 
     ul.device-child-types
@@ -171,7 +167,7 @@ block content
             a(href='/thingpedia/classes/by-id/' + k)
               span= '@' + k
 
-  h2.device-subtitle= _("Commands")
+  h2= _("Commands")
   if examples.length > 0
     ul.device-examples
       for e in examples
@@ -200,57 +196,61 @@ block content
   div.clearfix
 
   mixin invocation(inv, name, inv_type)
-    li
-      code.cm-s-default #[span.cm-variable= name](
-        for argname, i in inv.args
-          - let a = inv.getArgument(argname)
-          if i !== 0
-            br
-            span.indent= ' '.repeat(name.length+1)
-          span.cm-keyword
-            if a.is_input
-              = 'in '
-              if a.required
-                = 'req '
+    h3
+      if inv_type ==='query'
+        span.query= _("GET: ")
+      else
+        span.action= _("DO: ")
+      = inv.canonical
+    p= inv.annotations.doc ? inv.annotations.doc.toJS() : ''
+
+    if inv.args.filter((argname) => inv.isArgInput(argname)).length > 0
+      section
+        h4= _("Inputs:")
+        ul
+          for argname, i in inv.args
+            - let a = inv.getArgument(argname)
+            - if (!a.is_input) continue;
+            li
+              if a.metadata.prompt
+                = _("%s [%s]: %s").format(a.metadata.canonical || clean(argname), a.metadata.human_readable_type, a.metadata.prompt)
               else
-                = 'opt '
-            else
-                = 'out '
-          |  #[span.cm-variable= a.name] :
-          span.cm-variable-3
-            if a.type.isEntity
-              a(href=`/thingpedia/entities/by-id/${a.type.type}`)= String(a.type)
-            else if a.type.isArray && a.type.elem.isEntity
-              | Array(#[a(href=`/thingpedia/entities/by-id/${a.type.elem.type}`)= String(a.type.elem)])
-            else
-              = String(a.type)
-          if i !== inv.args.length-1
-            = ', '
-        = ')'
-      | #{inv.annotations.doc ? inv.annotations.doc.toJS() : ''}
-      br
-      //-
-        = _("Polling Interval: ")
+                = _("%s [%s]").format(a.metadata.canonical || clean(argname), a.metadata.human_readable_type)
+
+    if inv_type === 'query'
+      section
+        h4= _("Results:")
+        ul
+          for argname, i in inv.args
+            - let a = inv.getArgument(argname)
+            - if (a.is_input) continue;
+            li
+              = _("%s [%s]").format(a.metadata.canonical || clean(argname), a.metadata.human_readable_type)
+
+      p
+      if inv.is_list
+        = _("This operation returns a list of results.")
+      else
+        = _("This operation returns a single result.")
+      |
+      |
+      if inv.is_monitorable
         - let poll_interval = inv.annotations.poll_interval ? inv.annotations.poll_interval.toJS () : -1;
-        span.poll_interval= poll_interval === 0 ? _("Push-based") : (poll_interval < 0 ? _("Non-deterministic") : _("%d ms").format(poll_interval))
-        br
-        if inv.is_list
-          = _("This function returns a list of results.")
+        if poll_interval === 0
+          = _("The result can be monitored for changes, and will update in real-time.")
         else
-          = _("This function returns a single result.")
+          = _("The result can be monitored for changes, and updates every %s.").format(durationToString(_, ngettext, poll_interval))
 
-  if Object.keys(classDef.queries).length > 0
-    h2.device-subtitle= _("Queries")
-    ul.device-channels
-      for inv, name in classDef.queries
-        +invocation(inv, name, 'query')
-
-  if Object.keys(classDef.actions).length > 0
-    h2.device-subtitle= _("Actions")
-    ul.device-channels
-      for inv, name in classDef.actions
-        +invocation(inv, name, 'action')
-
+  if Object.keys(classDef.queries).length + Object.keys(classDef.actions).length > 0
+    h2= _("Available Operations")
+    for inv, name in classDef.queries
+      +invocation(inv, name, 'query')
+      hr
+    for inv, name in classDef.actions
+      +invocation(inv, name, 'action')
+      hr
+  else
+    hr
   div.row.device-details-actions
     if authenticated && ((user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0 || device.owner === user.developer_org)
       div.col-md-3.col-sm-6
@@ -279,9 +279,9 @@ block content
     if device.repository
       div.col-md-3.col-sm-6
         a.btn.btn-default.btn-block(href=device.repository)= _("Source Code Repository")
-    if authenticated && user.locale !== 'en-US'
+    if authenticated && uselocale !== 'en-US'
       div.col-md-3.col-sm-6
-        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind)= _("Translate")
+        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind + '?locale=' + uselocale)= _("Translate")
     if device.issue_tracker
       div.col-md-3.col-sm-6
         a.btn.btn-default.btn-block(href=device.issue_tracker)= _("Report a bug")

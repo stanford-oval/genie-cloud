@@ -210,11 +210,12 @@ class Frontend {
             let lang = i18n.get(locale);
 
             req.locale = locale;
-            req.gettext = lang.gettext.bind(lang);
+            req.gettext = lang.gettext;
             req._ = req.gettext;
-            req.pgettext = lang.pgettext.bind(lang);
-            req.ngettext = lang.ngettext.bind(lang);
+            req.pgettext = lang.pgettext;
+            req.ngettext = lang.ngettext;
 
+            res.locals.I18n = i18n;
             res.locals.locale = locale;
             res.locals.gettext = req.gettext;
             res.locals._ = req._;

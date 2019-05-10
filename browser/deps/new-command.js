@@ -20,9 +20,8 @@ module.exports = class ThingTalkTrainer {
     constructor(options) {
         this._container = options.container;
 
-        this.parser = new ParserClient(options.sempreUrl, 'en-US');
-
-        this._locale = document.body.dataset.locale;
+        this._locale = document.body.dataset.locale || 'en-US';
+        this.parser = new ParserClient(options.sempreUrl, this._locale);
         this._developerKey = document.body.dataset.developerKey || null;
         this._user = document.body.dataset.cloudId || null;
 

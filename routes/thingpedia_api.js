@@ -25,6 +25,7 @@ const { tokenize, PARAM_REGEX } = require('../util/tokenize');
 const userUtils = require('../util/user');
 const { isOriginOk } = require('../util/origin');
 const errorHandling = require('../util/error_handling');
+const I18n = require('../util/i18n');
 
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
@@ -891,7 +892,7 @@ v3.get('/devices/search', (req, res, next) => {
     }).catch(next);
 });
 
-function getCommandDetails(commands) {
+function getCommandDetails(_, commands) {
     for (let command of commands) {
         if (command.liked !== undefined)
             command.liked = !!command.liked;
@@ -900,9 +901,9 @@ function getCommandDetails(commands) {
             if (command.utterance.startsWith(', '))
                 command.utterance = command.utterance.substring(2);
             else if (command.target_code.startsWith('let stream') || command.target_code.startsWith('stream'))
-                command.utterance = 'notify me ' + command.utterance;
+                command.utterance = _("notify me %s").format(command.utterance);
             else if (command.target_code.startsWith('let table') || command.target_code.startsWith('query'))
-                command.utterance = 'show me ' + command.utterance;
+                command.utterance = _("show me %s").format(command.utterance);
 
             command.devices = [command.kind];
         } else {
@@ -977,7 +978,9 @@ function getCommandDetails(commands) {
  *  }
  */
 v1.get('/commands/all', (req, res, next) => {
-    const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
+    const locale = req.query.locale || 'en-US';
+    const language = I18n.localeToLanguage(locale);
+    const gettext = I18n.get(locale).gettext;
     const [page, page_size] = validatePageAndSize(req, 9, 50);
 
     db.withTransaction(async (client) => {
@@ -987,7 +990,7 @@ v1.get('/commands/all', (req, res, next) => {
         else
             commands = await commandModel.getCommands(client, language, page * page_size, page_size);
 
-        getCommandDetails(commands);
+        getCommandDetails(gettext, commands);
         res.cacheFor(30 * 1000);
         res.json({ result: 'ok', data: commands });
     }).catch(next);
@@ -1038,12 +1041,14 @@ v1.get('/commands/all', (req, res, next) => {
  *  }
  */
 v1.get('/commands/search', (req, res, next) => {
-    const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     let q = req.query.q;
     if (!q) {
         res.status(400).json({ error: 'missing query' });
         return;
     }
+    const locale = req.query.locale || 'en-US';
+    const language = I18n.localeToLanguage(locale);
+    const gettext = I18n.get(locale).gettext;
 
     db.withTransaction(async (client) => {
         let commands;
@@ -1052,7 +1057,7 @@ v1.get('/commands/search', (req, res, next) => {
         else
             commands = await commandModel.getCommandsByFuzzySearch(client, language, q);
 
-        getCommandDetails(commands);
+        getCommandDetails(gettext, commands);
         res.cacheFor(30 * 1000);
         res.json({ result: 'ok', data: commands });
     }).catch(next);

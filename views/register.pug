@@ -37,15 +37,14 @@ block content
       input(type='password',name='confirm-password',value='',required=true,data-match='#password',data-match-error=_("The password and the confirmation must match")).form-control#confirm-password
       span.help-block.with-errors
 
-    input(type='hidden',name='locale',value='en-US')
-    //-div.form-group
-      label(for='locale').control-label= _("Language")
-      select(name='locale').form-control#locale
-        option(value='en-US',selected=true)= _("English (United States)")
-        option(value='en-GB')= _("English (United Kingdom)")
-        option(value='it-IT')= _("Italian")
-        option(value='zh-CN')= _("Chinese (simplified)")
-        //option(value='es-ES')= _("Spanish")
+    if Config.SUPPORTED_LANGUAGES.length > 1
+      div.form-group
+        label(for='locale').control-label= _("Language")
+        select(name='locale').form-control#locale
+          for lang, i in Config.SUPPORTED_LANGUAGES
+            option(value=lang,selected=(i===0))= I18n.getLangName(_, lang)
+    else
+      input(type='hidden',name='locale',value=Config.SUPPORTED_LANGUAGES[0])
 
     div.form-group
       button(type='submit').btn.btn-primary= _("Register")

@@ -86,6 +86,14 @@ const BING_METADATA = {
             doc: "search for `query` on Bing Images",
             canonical: "image search on bing",
             argcanonicals: ["query", "title", "picture url", "link", "width", "height"],
+            formatted: [{
+                type: "rdl",
+                webCallback: "${link}",
+                displayTitle: "${title}",
+            }, {
+                type: "picture",
+                url: "${picture_url}"
+            }],
             questions: [
               "What do you want to search?",
               "",
@@ -115,6 +123,12 @@ const BING_METADATA = {
             doc: "search for `query` on Bing",
             canonical: "web search on bing",
             argcanonicals: ["query", "title", "description", "link"],
+            formatted: [{
+                type: "rdl",
+                webCallback: "${link}",
+                displayTitle: "${title}",
+                displayText: "${description}"
+            }],
             questions: [
               "What do you want to search?",
               "",
@@ -153,14 +167,16 @@ const BING_CLASS_WITH_METADATA = `class @com.bing {
                                       out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
                                       out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
   #_[canonical="image search on bing"]
-  #_[confirmation="images matching $query from Bing"];
+  #_[confirmation="images matching $query from Bing"]
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]];
 
   monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                     out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
                                     out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
                                     out link: Entity(tt:url) #_[canonical="link"])
   #_[canonical="web search on bing"]
-  #_[confirmation="websites matching $query on Bing"];
+  #_[confirmation="websites matching $query on Bing"]
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]];
 }
 `;
 const BING_CLASS_FULL = `class @com.bing
@@ -378,6 +394,7 @@ async function testGetMetadata() {
                         doc: "consume some data, do nothing",
                         confirmation: "consume $data",
                         confirmation_remote: "consume $data on $__person's Almond",
+                        formatted: [],
                         canonical: "eat data on test",
                         is_list: false,
                         is_monitorable: false,
@@ -412,6 +429,7 @@ async function testGetMetadata() {
                         doc: "consume some data, do nothing",
                         confirmation: "consume $data",
                         confirmation_remote: "consume $data on $__person's Almond",
+                        formatted: [],
                         canonical: "eat data on test",
                         is_list: false,
                         is_monitorable: false,
@@ -458,6 +476,7 @@ async function testGetMetadata() {
                         doc: "consume some data, do nothing",
                         confirmation: "consume $data",
                         confirmation_remote: "consume $data on $__person's Almond",
+                        formatted: [],
                         canonical: "eat data on test",
                         is_list: false,
                         is_monitorable: false,

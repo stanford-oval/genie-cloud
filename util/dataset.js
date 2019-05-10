@@ -86,7 +86,7 @@ function loadThingpedia(language, thingpedia, dataset, rng) {
     }
 }
 
-function rowsToExamples(rows, { editMode = false}) {
+function rowsToExamples(rows, { editMode = false, skipId = false }) {
     // coalesce by target code
 
     // note: this code is designed to be fast, and avoid parsing the examples in the common
@@ -135,7 +135,7 @@ function rowsToExamples(rows, { editMode = false}) {
         targetCode = targetCode.replace(/[ \r\n\t\v]*;[ \r\n\t\v]*$/, '');
 
         if (editMode) {
-            if (ex.id !== undefined) {
+            if (!skipId && ex.id !== undefined) {
                 buffer.push(`    ${targetCode}
     #_[utterances=[${ex.utterances.map(stringEscape)}]]
     #[id=${ex.id}];

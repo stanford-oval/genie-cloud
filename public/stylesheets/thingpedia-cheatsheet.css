@@ -30,6 +30,10 @@
   color: rgb(34,139,34);
 }
 
+h3 > .trigger, h3 > .query, h3 > .action {
+  font-weight: normal;
+}
+
 #cheatsheet .grid-item {
   width: 100%;
 }

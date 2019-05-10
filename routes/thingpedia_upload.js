@@ -48,7 +48,7 @@ router.use((req, res, next) => {
 router.use(user.requireLogIn, user.requireDeveloper());
 
 router.get('/create', (req, res) => {
-    res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - create new device"),
+    res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - Create New Device"),
                                                      device: { code: '',
                                                                dataset: '' },
                                                      create: true });
@@ -102,13 +102,13 @@ async function doCreateOrUpdate(kind, create, req, res) {
                         throw new BadRequestError(req._("Existing device not found"));
                 }
 
-                await Validation.tokenizeAllExamples('en', dataset.examples);
+                await Validation.tokenizeDataset(dataset);
             } catch(e) {
                 console.error(e.stack);
                 res.render('thingpedia_device_create_or_edit', { page_title:
                                                                  (create ?
-                                                                  req._("Thingpedia - create new device") :
-                                                                  req._("Thingpedia - edit device")),
+                                                                  req._("Thingpedia - Create New Device") :
+                                                                  req._("Thingpedia - Edit Device")),
                                                                  error: e,
                                                                  device: req.body,
                                                                  create: create });
@@ -245,7 +245,7 @@ router.get('/update/:kind', (req, res, next) => {
             const dataset = DatasetUtils.examplesToDataset(d.primary_kind, 'en', examples,
                                                            { editMode: true });
 
-            res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - edit device"),
+            res.render('thingpedia_device_create_or_edit', { page_title: req._("Thingpedia - Edit Device"),
                                                              id: d.id,
                                                              device: { name: d.name,
                                                                        primary_kind: d.primary_kind,

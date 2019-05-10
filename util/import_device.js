@@ -140,7 +140,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
         const code = exampleToCode(example);
 
         if (example.id >= 0) {
-            if (existing.has(example.id) && existing.target_code === code) {
+            if (existing.has(example.id) && existing.target_code === code && existing.language === dataset.language) {
                 toDelete.delete(example.id);
                 if (existing.utterance !== example.utterances[0]) {
                     toUpdate.push({ id: example.id,
@@ -364,7 +364,7 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
         json.examples, { editMode: true });
 
     const [classDef, dataset] = await Validation.validateDevice(dbClient, req, device, classCode, datasetCode);
-    await Validation.tokenizeAllExamples('en', dataset.examples);
+    await Validation.tokenizeDataset(dataset);
     device.category = getCategory(classDef);
 
     const [schemaId,] = await ensurePrimarySchema(dbClient, device.name,

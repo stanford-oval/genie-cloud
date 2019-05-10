@@ -69,6 +69,14 @@ const BING_METADATA = {
             doc: "search for `query` on Bing Images",
             canonical: "image search on bing",
             argcanonicals: ["query", "title", "picture url", "link", "width", "height"],
+            formatted: [{
+                type: "rdl",
+                webCallback: "${link}",
+                displayTitle: "${title}",
+            }, {
+                type: "picture",
+                url: "${picture_url}"
+            }],
             questions: [
               "What do you want to search?",
               "",
@@ -98,6 +106,12 @@ const BING_METADATA = {
             doc: "search for `query` on Bing",
             canonical: "web search on bing",
             argcanonicals: ["query", "title", "description", "link"],
+            formatted: [{
+                type: "rdl",
+                webCallback: "${link}",
+                displayTitle: "${title}",
+                displayText: "${description}"
+            }],
             questions: [
               "What do you want to search?",
               "",
@@ -183,6 +197,7 @@ async function testGetMetadata() {
                     doc: "consume some data, do nothing",
                     confirmation: "consume $data",
                     confirmation_remote: "consume $data on $__person's Almond",
+                    formatted: [],
                     canonical: "eat data on test",
                     is_list: false,
                     is_monitorable: false,
@@ -210,6 +225,7 @@ async function testGetMetadata() {
                     doc: "consume some data, do nothing",
                     confirmation: "consume $data",
                     confirmation_remote: "consume $data on $__person's Almond",
+                    formatted: [],
                     canonical: "eat data on test",
                     is_list: false,
                     is_monitorable: false,
