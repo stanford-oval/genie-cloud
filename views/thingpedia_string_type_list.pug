@@ -42,10 +42,10 @@ block content
                       label(for='new-string-type-name').control-label= _("Dataset ID")
                       input(type='text',name='type_name').form-control#new-string-type-name
                       span.help-block
-                        | The ID is used to refer to the dataset in a <code>\#[string_values=""]</code> annotation.
+                        != _("The ID is used to refer to the dataset in a <code>#[string_values='']</code> annotation.")
                         if (user.roles & Constants.Role.THINGPEDIA_ADMIN) === 0
                           |
-                          | It must be of the form <var>prefix</var>:<var>suffix</var>, where <var>prefix</var> is the ID of a device you control, and <var>suffix</var> is an identifier.
+                          != _("It must be of the form <var>prefix</var>:<var>suffix</var>, where <var>prefix</var> is the ID of a device you control, and <var>suffix</var> is an identifier.")
                     div.form-group
                       label(for='new-string-name').control-label= _("Description")
                       input(type='text',name='name').form-control#new-string-name
@@ -54,12 +54,7 @@ block content
                       label(for='new-string-upload').control-label= _("List of values")
                       input(type='file',name='upload',accept='text/tab-separated-value')#new-string-upload
                       span.help-block
-                        | Upload a TSV (tab separated) file with all the values for this entity, one per line.
-                        |  The file should be formatted as <code><var>value</var>&lt;tab&gt;<var>weight</var></code>,
-                        |  where <var>value</var> is the string value and <var>weight</var> is the unnormalized sampling probability for this value.
-                        |  Including weights in the file is optional. If the weights are provided, the dataset
-                        |  used for training will reflect the given distribution. If weights are omitted for any row, they
-                        |  default to 1.0.
+                        != _("Upload a TSV (tab separated) file with all the values for this entity, one per line. The file should be formatted as <code><var>value</var>&lt;tab&gt;<var>weight</var></code>, where <var>value</var> is the string value and <var>weight</var> is the unnormalized sampling probability for this value. Including weights in the file is optional. If the weights are provided, the dataset used for training will reflect the given distribution. If weights are omitted for any row, they default to 1.0.")
                     div.form-group
                       div.checkbox
                         label(for='new-string-preprocessed').control-label
@@ -74,10 +69,7 @@ block content
                         option(value='non-commercial')= _("Non Commercial (incl. academic licenses)")
                         option(value='proprietary')= _("Proprietary")
                       span.help-block
-                        | By submitting this dataset, you agree to license it with the above choice of license,
-                        |  in accordance with the #[a(href='/about/tos') Terms of Service]. You must not upload datasets
-                        |  for which you do not have the relevant licenses. Proprietary datasets will not be downloadable,
-                        |  and will only be used to train the natural language model for Almond.
+                        != _("By submitting this dataset, you agree to license it with the above choice of license, in accordance with the <a href='/about/tos'>Terms of Service</a>. You must not upload datasets for which you do not have the relevant licenses. Proprietary datasets will not be downloadable, and will only be used to train the natural language model for Almond.")
                     div.form-group
                       label(for='new-string-attribution').control-label= _("Attribution")
                       textarea(name='attribution').form-control#new-string-attribution

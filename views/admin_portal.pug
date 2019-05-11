@@ -20,31 +20,31 @@ block content
               ul
                 if user.roles & Constants.Role.ADMIN
                   li
-                    a(href='/admin/users') Users
+                    a(href='/admin/users')= _("Users")
                 if user.roles & Constants.Role.THINGPEDIA_ADMIN
                   li
-                    a(href='/admin/organizations') Developer Organizations
+                    a(href='/admin/organizations')= _("Developer Organizations")
                 if user.roles & Constants.Role.BLOG_EDITOR
                   li
-                    a(href='/admin/blog') Blog Archive
+                    a(href='/admin/blog')= _("Blog Archive")
                 if WITH_THINGPEDIA === 'embedded'
                   if user.roles & Constants.Role.NLP_ADMIN
                     li
-                      a(href='/admin/training') Natural Language Training
+                      a(href='/admin/training')= _("Natural Language Training")
                   if user.roles & Constants.Role.THINGPEDIA_ADMIN
                     li
-                      a(href='/admin/review-queue') Unreviewed Devices
+                      a(href='/admin/review-queue')= _("Unreviewed Devices")
                     li
-                      a(href='/thingpedia/entities') Thingpedia Entities
+                      a(href='/thingpedia/entities')= _("Thingpedia Entities")
                     li
-                      a(href='/thingpedia/strings') Thingpedia String Datasets
+                      a(href='/thingpedia/strings')= _("Thingpedia String Datasets")
                     li
-                      a(href='/thingpedia/snapshots') Thingpedia Snapshots
+                      a(href='/thingpedia/snapshots')= _("Thingpedia Snapshots")
                   if user.roles & Constants.Role.NLP_ADMIN
                     li
-                      a(href='/thingpedia/datasets') Thingpedia Datasets
+                      a(href='/thingpedia/datasets')= _("Thingpedia Datasets")
                     li
-                      a(href='/mturk') MTurk Batches
+                      a(href='/mturk')= _("MTurk Batches")
 
       section.divider
         div.container

@@ -200,19 +200,7 @@ block content
 
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')
               .example
-                span.when
-                  | when the New York Times has an article about China,
-                  |
-                br
-                span.get
-                  | translate the headline to Chinese,
-                  |
-                br
-                span then
-                  |
-                  |
-                span.do
-                  | email it to my Friend
+                != _("<span class=when>when the New York Times has an article about China</span>,<br><span class=get>translate the headline to Chinese</span>,<br>then<span class=do>email it to my friend</span>")
 
           div.row
             div.col-xs-12
@@ -225,11 +213,7 @@ block content
               p
                 != _("Almond capabilities are defined in <em>Thingpedia</em>, a crowdsourced repository of commands and interfaces to online services and Internet of Things. Anyone can contribute new entries to Thingpedia, and with small amounts of training data, Almond will be immediately able to interact with the new device or service. ")
               p
-                a(href='/thingpedia')= _("Learn more about Thingpedia")
-                |  and
-                |
-                a(href='/about/get-involved')= _("how you can help Almond learn new services and skills")
-                | .
+                != _("<a href='/thingpedia'>Learn more about Thingpedia</a> and <a href='/about/get-involved>how you can help Almond learn new services and skills</a>.")
 
             div.col-md-6
               div.row
