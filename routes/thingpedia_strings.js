@@ -31,42 +31,77 @@ var router = express.Router();
 
 const NAME_REGEX = /([A-Za-z_][A-Za-z0-9_.-]*):([A-Za-z_][A-Za-z0-9_]*)/;
 
+class StreamTokenizer extends stream.Transform {
+    constructor(options) {
+        super({ objectMode: true });
+
+        this._language = options.language;
+        this._preprocessed = options.preprocessed;
+        this._typeId = options.typeId;
+    }
+
+    _transform(row, encoding, callback) {
+        const value = row[0];
+        let weight = parseFloat(row[1]) || 1.0;
+        if (!(weight > 0.0))
+            weight = 1.0;
+
+        if (this._preprocessed) {
+            callback(null, {
+                type_id: this._typeId,
+                value: value,
+                preprocessed: value,
+                weight: weight
+            });
+        } else {
+            TokenizerService.tokenize(this._language, value).then((result) => {
+                // ignore lines with uppercase (entity) tokens
+                if (result.tokens.some((t) => /[A-Z]/.test(t))) {
+                    callback(null);
+                } else {
+                    callback(null, {
+                        type_id: this._typeId,
+                        value: value,
+                        preprocessed: result.tokens.join(' '),
+                        weight: weight
+                    });
+                }
+            }, (err) => callback(err));
+        }
+    }
+
+    _flush(callback) {
+        process.nextTick(callback);
+    }
+}
+
 async function doCreate(req, res) {
     const language = I18n.localeToLanguage(req.locale);
 
     try {
         await db.withTransaction(async (dbClient) => {
-            let match;
+            const match = NAME_REGEX.exec(req.body.type_name);
+            if (match === null)
+                throw new BadRequestError(req._("Invalid string type ID."));
+            if (['public-domain', 'free-permissive', 'free-copyleft', 'non-commercial', 'proprietary'].indexOf(req.body.license) < 0)
+                throw new BadRequestError(req._("Invalid license."));
 
-            try {
-                match = NAME_REGEX.exec(req.body.type_name);
-                if (match === null)
-                    throw new BadRequestError('Invalid string type ID');
-                if (!req.body.name)
-                    throw new BadRequestError('Missing name');
-                if (['public-domain', 'free-permissive', 'free-copyleft', 'non-commercial', 'proprietary'].indexOf(req.body.license) < 0)
-                    throw new BadRequestError('Invalid license');
+            let [, prefix, /*suffix*/] = match;
 
-                let [, prefix, /*suffix*/] = match;
-
-                if ((req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
-                    let row;
-                    try {
-                        row = schemaModel.getByKind(dbClient, prefix);
-                    } catch(e) {
-                        /**/
-                    }
-                    if (!row || row.owner !== req.user.developer_org)
-                        throw new BadRequestError('The prefix of the dataset ID must correspond to the ID of a Thingpedia device owned by your organization');
+            if ((req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
+                let row;
+                try {
+                    row = await schemaModel.getByKind(dbClient, prefix);
+                } catch(e) {
+                    if (e.code !== 'ENOENT')
+                        throw e;
                 }
-
-                if (!req.files.upload || !req.files.upload.length)
-                    throw new BadRequestError(req._("You must upload a CSV file with the entity values."));
-            } catch(e) {
-                res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                                  message: e });
-                return;
+                if (!row || row.owner !== req.user.developer_org)
+                    throw new ForbiddenError(req._("The prefix of the dataset ID must correspond to the ID of a Thingpedia device owned by your organization."));
             }
+
+            if (!req.files.upload || !req.files.upload.length)
+                throw new BadRequestError(req._("You must upload a TSV file with the string values."));
 
             const stringType = await stringModel.create(dbClient, {
                 language: language,
@@ -79,43 +114,36 @@ async function doCreate(req, res) {
             const file = fs.createReadStream(req.files.upload[0].path);
             file.setEncoding('utf8');
             const parser = file.pipe(csv.parse({ delimiter: '\t', relax: true }));
-
-            const transformer = new stream.Transform({
-                readableObjectMode: true,
-                writableObjectMode: true,
-
-                transform(row, encoding, callback) {
-                    const value = row[0];
-                    let weight = parseFloat(row[1]) || 1.0;
-                    if (!(weight > 0.0))
-                        weight = 1.0;
-
-                    if (req.body.preprocessed) {
-                        callback(null, {
-                            type_id: stringType.id,
-                            value: value,
-                            preprocessed: value,
-                            weight: weight
-                        });
-                    } else {
-                        TokenizerService.tokenize(language, value).then((result) => {
-                            // ignore lines with uppercase (entity) tokens
-                            if (result.tokens.some((t) => /[A-Z]/.test(t))) {
-                                callback(null);
-                            } else {
-                                callback(null, {
-                                    type_id: stringType.id,
-                                    value: value,
-                                    preprocessed: result.tokens.join(' '),
-                                    weight: weight
-                                });
-                            }
-                        }, (err) => callback(err));
-                    }
-                }
+            const transformer = new StreamTokenizer({
+                preprocessed: !!req.body.preprocessed,
+                language,
+                typeId: stringType.id,
             });
+            const writer = stringModel.insertValueStream(dbClient);
+            parser.pipe(transformer).pipe(writer);
 
-            await stringModel.insertValueStream(dbClient, parser.pipe(transformer));
+            // we need to do a somewhat complex error handling dance to ensure
+            // that we don't have any inflight requests by the time we terminate
+            // the transaction, otherwise we might run SQL queries on the wrong
+            // connection/transaction and that would be bad
+            await new Promise((resolve, reject) => {
+                let error;
+                parser.on('error', (e) => {
+                    error = new BadRequestError(e.message);
+                    transformer.end();
+                });
+                transformer.on('error', (e) => {
+                    error = e;
+                    writer.end();
+                });
+                writer.on('error', reject);
+                writer.on('finish', () => {
+                    if (error)
+                        reject(error);
+                    else
+                        resolve();
+                });
+            });
         });
 
         res.redirect(303, '/thingpedia/strings');

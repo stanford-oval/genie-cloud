@@ -23,8 +23,8 @@ module.exports = {
             [stringTypes.map((st) => [st.language, st.type_name, st.name, st.license, st.attribution])]);
     },
 
-    insertValueStream(client, readable) {
-        const writable = new stream.Writable({
+    insertValueStream(client) {
+        return new stream.Writable({
             objectMode: true,
             write(obj, encoding, callback) {
                 client.query(`insert into string_values set ?`, [obj], callback);
@@ -33,11 +33,6 @@ module.exports = {
                 client.query(`insert into string_values(type_id, value, preprocessed, weight) values ?`,
                 [objs.map((o) => [o.chunk.type_id, o.chunk.value, o.chunk.preprocessed, o.chunk.weight])], callback);
             }
-        });
-        return new Promise((resolve, reject) => {
-            writable.on('error', reject);
-            writable.on('finish', resolve);
-            readable.pipe(writable);
         });
     },
 
@@ -48,6 +43,10 @@ module.exports = {
     getByTypeName(client, typeName, language = 'en') {
         return db.selectOne(client, `select * from string_types where type_name = ? and language = ?`,
                             [typeName, language]);
+    },
+
+    deleteByTypeName(client, typeName) {
+        return db.query(client, `delete from string_types where type_name = ?`, [typeName]);
     },
 
     getAll(client, language = 'en') {
