@@ -7,7 +7,7 @@
   float: right;
   display: block;
   font-size: 24px;
-  padding-top: 8px;
+  padding-top: 5px;
   padding-left: 12px;
   cursor: pointer;
 }
@@ -99,4 +99,10 @@
 
 #input-form-group {
   margin-bottom: 0;
+}
+
+#input-form-group .spinner-container {
+  display: block;
+  padding: 12px 12px;
+  overflow: hidden;
 }

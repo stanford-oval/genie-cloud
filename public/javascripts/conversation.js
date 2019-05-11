@@ -4,30 +4,45 @@ $(function() {
         + $('#conversation').attr('data-target');
 
     var ws;
+    var open = false;
+    function updateFeedback(thinking) {
+        if (!ws || !open) {
+            $('#input-form-group').addClass('has-warning');
+            $('#input-form-group .spinner-container').addClass('hidden');
+-           $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').removeClass('hidden');
+            return;
+        }
+
+        $('#input-form-group').removeClass('has-warning');
+        $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
+        if (thinking)
+            $('#input-form-group .spinner-container').removeClass('hidden');
+        else
+            $('#input-form-group .spinner-container').addClass('hidden');
+    }
+
     (function() {
-        var wasOpen = false;
         var reconnectTimeout = 100;
 
         function connect() {
             ws = new WebSocket(url);
             ws.onmessage = function(event) {
-                if (!wasOpen) {
-                    wasOpen = true;
+                if (!open) {
+                    open = true;
                     reconnectTimeout = 100;
-                    $('#input-form-group').removeClass('has-warning');
-                    $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
+                    updateFeedback(false);
                 }
                 onWebsocketMessage(event);
             };
 
             ws.onclose = function() {
                 console.error('Web socket closed');
-                $('#input-form-group').addClass('has-warning');
-                $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').removeClass('hidden');
+                ws = undefined;
+                updateFeedback(false);
 
-                // reconnect immediately if the connection succeeded, otherwise
+                // reconnect immediately if the connection previously succeeded, otherwise
                 // try again in a little bit
-                if (wasOpen) {
+                if (open) {
                     setTimeout(connect, 100);
                 } else {
                     reconnectTimeout = 1.5 * reconnectTimeout;
@@ -229,6 +244,8 @@ $(function() {
                 yesnoMessage();
             break;
         }
+
+        updateFeedback(false);
     }
 
     function handleSlashR(line) {
@@ -240,7 +257,6 @@ $(function() {
     }
 
     function handleCommand(text) {
-        collapseButtons();
         if (text.startsWith('\\r')) {
             handleSlashR(text.substring(3));
             return;
@@ -248,7 +264,10 @@ $(function() {
         if (text.startsWith('\\t')) {
             handleThingTalk(text.substring(3));
             return;
-           }
+        }
+
+        collapseButtons();
+        updateFeedback(true);
 
         if ($('#input').attr('type') === 'password')
             appendUserMessage("••••••••");
@@ -258,11 +277,16 @@ $(function() {
     }
     function handleParsedCommand(json, title) {
         collapseButtons();
+        updateFeedback(true);
+
         if (title)
             appendUserMessage(title);
         ws.send(JSON.stringify({ type: 'parsed', json: json }));
     }
     function handleThingTalk(tt) {
+        collapseButtons();
+        updateFeedback(true);
+
         appendUserMessage('\\t ' + tt);
         ws.send(JSON.stringify({ type: 'tt', code: tt }));
     }
