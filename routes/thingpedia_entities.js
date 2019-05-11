@@ -137,7 +137,9 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
                     const canonical = tokens.join(' ');
                     promises.push(insert(req.body.entity_id, value, canonical, name));
                 });
-                parser.on('error', reject);
+                parser.on('error', (e) => {
+                    reject(new BadRequestError(e.message));
+                });
                 parser.on('end', resolve);
             }).then(() => Promise.all(promises)).then(() => finish());
         });
