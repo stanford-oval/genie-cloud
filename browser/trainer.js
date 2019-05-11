@@ -23,9 +23,11 @@ const ThingpediaClient = require('./deps/thingpediaclient');
 const reconstructCanonical = require('./deps/reconstruct_canonical');
 
 class ThingTalkTrainer {
-    constructor(sempreUrl) {
+    constructor() {
         this._locale = document.body.dataset.locale || 'en-US';
-        this.parser = new ParserClient(sempreUrl, this._locale);
+
+        this._parserUrl = document.body.dataset.nlServerUrl;
+        this.parser = new ParserClient(this._parserUrl, this._locale);
 
         this._developerKey = document.body.dataset.developerKey || null;
         this._user = document.body.dataset.cloudId || null;
