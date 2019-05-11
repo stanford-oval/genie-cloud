@@ -27,40 +27,6 @@ const { BadRequestError, ForbiddenError } = require('../util/errors');
 
 var router = express.Router();
 
-/**
-    frequently appearing tokens in the company stock dataset
-     41 bancshares
-     41 index
-     41 technology
-     43 ishares
-     47 trust
-     48 energy
-     49 incorporated
-     51 capital
-     52 limited
-     58 systems
-     64 fund
-     66 first
-     69 pharmaceuticals
-     78 technologies
-     79 company
-     83 holdings
-     87 international
-    120 ltd
-    125 group
-    137 financial
-    144 corp
-    159 bancorp
-    471 corporation
-*/
-/*const IGNORED_WORDS = new Set(["in", "is", "of", "or", "not", "at", "as", "by", "my", "i", "from", "for", "an",
-    "on", "a", "to", "with", "and", "when", "notify", "monitor", "it",
-    "me", "the", "if", "abc", "def", "ghi", "jkl", "mno", "pqr", "stu", "vwz",
-
-    "bancshares", "index", "technology", "ishares", "trust", "energy", "incorporated", "capital",
-    "limited", "systems", "fund", "first", "pharmaceuticals", "technologies", "company", "holdings",
-    "international", "ltd", "group", "financial", "corp", "bancorp", "corporation"]);*/
-
 async function doCreate(req, res) {
     const language = 'en';
 
