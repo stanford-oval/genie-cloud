@@ -80,11 +80,11 @@ async function getHumanReadableType(req, language, dbClient, arg, type) {
     } else if (type.isEntity) {
         let entityType;
         try {
-            entityType = await entityModel.get(dbClient, arg.type.type, language);
+            entityType = await entityModel.get(dbClient, type.type, language);
         } catch(e) {
             if (language === 'en' || !(e instanceof NotFoundError))
                 throw e;
-            entityType = await entityModel.get(dbClient, arg.type.type, 'en');
+            entityType = await entityModel.get(dbClient, type.type, 'en');
         }
         return entityType.name.toLowerCase();
     } else if (type.isString) {
