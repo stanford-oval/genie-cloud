@@ -15,9 +15,10 @@ const multer = require('multer');
 const csurf = require('csurf');
 const csv = require('csv');
 const fs = require('fs');
+const Stream = require('stream');
 
 const db = require('../util/db');
-const model = require('../model/entity');
+const entityModel = require('../model/entity');
 const schemaModel = require('../model/schema');
 const user = require('../util/user');
 const platform = require('../util/platform');
@@ -39,15 +40,18 @@ async function doCreate(req, res) {
             let [, prefix, /*suffix*/] = match;
 
             if ((req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0) {
+                let row;
                 try {
-                    const row = await schemaModel.getByKind(dbClient, prefix);
-                    if (row.owner !== req.user.developer_org) throw new Error();
-                } catch (e) {
-                    throw new ForbiddenError(req._("The prefix of the entity ID must correspond to the ID of a Thingpedia device owned by your organization."));
+                    row = await schemaModel.getByKind(dbClient, prefix);
+                } catch(e) {
+                    if (e.code !== 'ENOENT')
+                        throw e;
                 }
+                if (!row || row.owner !== req.user.developer_org)
+                    throw new ForbiddenError(req._("The prefix of the entity ID must correspond to the ID of a Thingpedia device owned by your organization."));
             }
 
-            await model.create(dbClient, {
+            await entityModel.create(dbClient, {
                 name: req.body.entity_name,
                 id: req.body.entity_id,
                 is_well_known: false,
@@ -60,48 +64,62 @@ async function doCreate(req, res) {
             if (!req.files.upload || !req.files.upload.length)
                 throw new BadRequestError(req._("You must upload a CSV file with the entity values."));
 
-            let insertBatch = [];
-
-            function insert(entityId, entityValue, entityCanonical, entityName) {
-                insertBatch.push([language, entityId, entityValue, entityCanonical, entityName]);
-                if (insertBatch.length < 100)
-                    return Promise.resolve();
-
-                let batch = insertBatch;
-                insertBatch = [];
-                return db.insertOne(dbClient,
-                    "insert ignore into entity_lexicon(language,entity_id,entity_value,entity_canonical,entity_name) values ?", [batch]);
-            }
-            function finish() {
-                if (insertBatch.length === 0)
-                    return Promise.resolve();
-                return db.insertOne(dbClient,
-                    "insert ignore into entity_lexicon(language,entity_id,entity_value,entity_canonical,entity_name) values ?", [insertBatch]);
-            }
-
             const parser = csv.parse({ delimiter: ',' });
             fs.createReadStream(req.files.upload[0].path).pipe(parser);
 
-            const promises = [];
-            await new Promise((resolve, reject) => {
-                parser.on('data', (row) => {
-                    if (row.length !== 2)
+            const transformer = new Stream.Transform({
+                objectMode: true,
+
+                transform(row, encoding, callback) {
+                    if (row.length !== 2) {
+                        callback();
                         return;
+                    }
 
                     const value = row[0].trim();
                     const name = row[1];
 
                     const tokens = tokenizer.tokenize(name);
                     const canonical = tokens.join(' ');
-                    promises.push(insert(req.body.entity_id, value, canonical, name));
-                });
-                parser.on('error', (e) => {
-                    reject(new BadRequestError(e.message));
-                });
-                parser.on('end', resolve);
+                    callback(null, {
+                        language,
+                        entity_id: req.body.entity_id,
+                        entity_value: value,
+                        entity_canonical: canonical,
+                        entity_name: name
+                    });
+                },
+
+                flush(callback) {
+                    process.nextTick(callback);
+                }
             });
-            await Promise.all(promises);
-            await finish();
+
+            const writer = entityModel.insertValueStream(dbClient);
+            parser.pipe(transformer).pipe(writer);
+
+            // we need to do a somewhat complex error handling dance to ensure
+            // that we don't have any inflight requests by the time we terminate
+            // the transaction, otherwise we might run SQL queries on the wrong
+            // connection/transaction and that would be bad
+            await new Promise((resolve, reject) => {
+                let error;
+                parser.on('error', (e) => {
+                    error = new BadRequestError(e.message);
+                    transformer.end();
+                });
+                transformer.on('error', (e) => {
+                    error = e;
+                    writer.end();
+                });
+                writer.on('error', reject);
+                writer.on('finish', () => {
+                    if (error)
+                        reject(error);
+                    else
+                        resolve();
+                });
+            });
         });
 
         res.redirect(303, '/thingpedia/entities');
@@ -123,7 +141,7 @@ router.use(csurf({ cookie: false }));
 
 router.get('/', (req, res, next) => {
     db.withClient((dbClient) => {
-        return model.getAll(dbClient);
+        return entityModel.getAll(dbClient);
     }).then((rows) => {
         res.render('thingpedia_entity_list', { page_title: req._("Thingpedia - Entity Types"),
                                                csrfToken: req.csrfToken(),
@@ -133,7 +151,10 @@ router.get('/', (req, res, next) => {
 
 router.get('/by-id/:id', (req, res, next) => {
     db.withClient((dbClient) => {
-        return Q.all([model.get(dbClient, req.params.id), model.getValues(dbClient, req.params.id)]);
+        return Promise.all([
+            entityModel.get(dbClient, req.params.id),
+            entityModel.getValues(dbClient, req.params.id)
+        ]);
     }).then(([entity, values]) => {
         res.render('thingpedia_entity_values', { page_title: req._("Thingpedia - Entity Values"),
                                                  entity: entity,
