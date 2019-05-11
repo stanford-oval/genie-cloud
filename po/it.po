@@ -1,21 +1,22 @@
 # Italian translations for thingengine-platform-cloud package.
 # Copyright (C) 2016 THE thingengine-platform-cloud'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the thingengine-platform-cloud package.
-# Giovanni Campagna <gcampagn@cs.stanford.edu>, 2016.
+# Giovanni Campagna <scampa.giovanni@gmail.com>, 2016-2019.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: thingengine-platform-cloud 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-11 03:54+0000\n"
-"PO-Revision-Date: 2019-05-09 17:53-0700\n"
-"Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
-"Language-Team: Italian\n"
+"POT-Creation-Date: 2019-05-11 22:21+0000\n"
+"PO-Revision-Date: 2019-05-11 15:23-0700\n"
+"Last-Translator: Giovanni Campagna <scampa.giovanni@gmail.com>\n"
+"Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Gtranslator 3.32.0\n"
 
 #: frontend.js:308 util/error_handling.js:47
 msgid "Almond - Page Not Found"
@@ -26,7 +27,7 @@ msgid "The requested page does not exist."
 msgstr "La pagina richiesta non esiste."
 
 #: routes/about.js:28 views/about_index.pug:13 views/about_index.pug:21
-#: views/layout.pug:37 views/register_success.pug:8
+#: views/layout.pug:40 views/register_success.pug:8
 #: views/stanford/about_index.pug:13 views/stanford/about_index.pug:24
 msgid "Almond"
 msgstr "Almond"
@@ -62,12 +63,12 @@ msgstr "Thingpedia - Amministrazione - Training Linguaggio Naturale"
 #: routes/thingpedia_developer_console.js:84
 #: routes/thingpedia_developer_console.js:145
 #: routes/thingpedia_developer_console.js:241 routes/thingpedia_devices.js:261
-#: routes/thingpedia_schemas.js:52 routes/thingpedia_strings.js:66
-#: routes/thingpedia_translate.js:114 routes/thingpedia_translate.js:263
-#: routes/thingpedia_translate.js:268 routes/thingpedia_translate.js:289
-#: routes/thingpedia_upload.js:264 routes/user.js:709 routes/user.js:714
-#: routes/user.js:751 routes/user.js:757 routes/user.js:763 util/user.js:164
-#: util/user.js:174 util/user.js:187 util/user.js:203 util/user.js:243
+#: routes/thingpedia_schemas.js:52 routes/thingpedia_translate.js:114
+#: routes/thingpedia_translate.js:263 routes/thingpedia_translate.js:268
+#: routes/thingpedia_translate.js:289 routes/thingpedia_upload.js:264
+#: routes/user.js:709 routes/user.js:714 routes/user.js:751 routes/user.js:757
+#: routes/user.js:763 util/user.js:164 util/user.js:174 util/user.js:187
+#: util/user.js:203 util/user.js:243
 msgid "Thingpedia - Error"
 msgstr "Thingpedia - Errore"
 
@@ -386,15 +387,27 @@ msgstr "Thingpedia - Dettagli dell'account"
 msgid "Thingpedia - Device details"
 msgstr "Thingpedia - Dettagli del dispositivo"
 
-#: routes/thingpedia_entities.js:103 routes/thingpedia_strings.js:64
-msgid "You must upload a CSV file with the entity values."
-msgstr ""
+#: routes/thingpedia_entities.js:38
+msgid "Invalid entity type ID."
+msgstr "ID di tipo entità non valido."
 
-#: routes/thingpedia_entities.js:159
+#: routes/thingpedia_entities.js:51
+msgid ""
+"The prefix of the entity ID must correspond to the ID of a Thingpedia device "
+"owned by your organization."
+msgstr ""
+"Il prefisso dell'ID di entità deve corrispondere all'ID di un dispositivo in "
+"Thingpedia di proprietà della tua organizzazione."
+
+#: routes/thingpedia_entities.js:65
+msgid "You must upload a CSV file with the entity values."
+msgstr "Devi caricare un file CSV con i valori di entità."
+
+#: routes/thingpedia_entities.js:146
 msgid "Thingpedia - Entity Types"
 msgstr "Thingpedia - Tipi di entità"
 
-#: routes/thingpedia_entities.js:169
+#: routes/thingpedia_entities.js:159
 msgid "Thingpedia - Entity Values"
 msgstr "Thingpedia - Valori di entità"
 
@@ -431,7 +444,27 @@ msgstr "Thingpedia - Dettagli del tipo"
 msgid "Thingpedia - List of Snapshots"
 msgstr "Thingpedia - Lista di Snapshot"
 
-#: routes/thingpedia_strings.js:143
+#: routes/thingpedia_strings.js:85
+msgid "Invalid string type ID."
+msgstr "ID di tipo di stringa non valido."
+
+#: routes/thingpedia_strings.js:87
+msgid "Invalid license."
+msgstr "Licenza non valida."
+
+#: routes/thingpedia_strings.js:100
+msgid ""
+"The prefix of the dataset ID must correspond to the ID of a Thingpedia "
+"device owned by your organization."
+msgstr ""
+"Il prefisso dell'ID di dataset deve corrispondere all'ID di un dispositivo "
+"in Thingpedia di proprietà della tua organizzazione."
+
+#: routes/thingpedia_strings.js:104
+msgid "You must upload a TSV file with the string values."
+msgstr "Devi caricare un file TSV con i valori di stringa."
+
+#: routes/thingpedia_strings.js:171
 msgid "Thingpedia - String Types"
 msgstr "Thingpedia - Tipi di stringhe"
 
@@ -484,8 +517,9 @@ msgstr "Almond - Entra"
 #: routes/user.js:162 routes/user.js:365 routes/user.js:381 routes/user.js:445
 #: routes/user.js:469 routes/user.js:499 routes/user.js:522 routes/user.js:815
 #: routes/user.js:823 util/error_handling.js:18 util/error_handling.js:23
-#: util/error_handling.js:29 util/error_handling.js:68
-#: util/input_validation.js:71 util/input_validation.js:83
+#: util/error_handling.js:29 util/error_handling.js:53
+#: util/error_handling.js:74 util/input_validation.js:71
+#: util/input_validation.js:83
 msgid "Almond - Error"
 msgstr "Almond - Errore"
 
@@ -667,27 +701,24 @@ msgstr ""
 "Devi verificare la tua email prima di accedere alla community di Almond."
 
 #: stanford/config.js:34
-#, fuzzy
 msgid "Almond - The Open Virtual Assistant"
-msgstr "Il Progetto Aperto di Assistente Virtuale di Stanford."
+msgstr "Almond - Assistente Virtuale Aperto"
 
 #: stanford/config.js:35
-#, fuzzy
 msgid "Research"
-msgstr "Cerca"
+msgstr "Ricerca"
 
 #: stanford/config.js:40 views/stanford/about_get_almond.pug:11
 msgid "Getting Almond"
 msgstr "Ottenere Almond"
 
 #: stanford/config.js:46
-#, fuzzy
 msgid "Get Involved With Almond"
-msgstr "Costruisci con Almond"
+msgstr "Partecipa ad Almond"
 
 #: stanford/config.js:47
 msgid "Get Involved"
-msgstr ""
+msgstr "Partecipa"
 
 #: util/error_handling.js:30
 #, javascript-format
@@ -698,15 +729,19 @@ msgstr "Codice: %d"
 msgid "Almond - Forbidden"
 msgstr "Almond - Vietato"
 
-#: util/error_handling.js:69
+#: util/error_handling.js:54
+msgid "The identifier you selected is already in use."
+msgstr "L'identificativo scelto è già in uso."
+
+#: util/error_handling.js:75
 msgid "You do not have permission to perform the requested operation."
 msgstr "Non sei autorizzato a eseguire l'operazione richiesta."
 
-#: util/error_handling.js:75
+#: util/error_handling.js:81
 msgid "Almond - Internal Server Error"
 msgstr "Almond - Errore interno al server"
 
-#: util/error_handling.js:76
+#: util/error_handling.js:82
 #, javascript-format
 msgid "Code: %s"
 msgstr "Codice: %s"
@@ -819,9 +854,8 @@ msgid "Enable Two-Factor Authentication"
 msgstr "Abilita autenticazione a due fattori"
 
 #: views/about_index.pug:22
-#, fuzzy
 msgid "The Open Virtual Assistant"
-msgstr "Il Progetto Aperto di Assistente Virtuale di Stanford."
+msgstr "L'Assistente Virtuale Aperto"
 
 #: views/about_index.pug:29
 msgid "Popular Commands"
@@ -995,19 +1029,16 @@ msgid "Administration"
 msgstr "Amministrazione"
 
 #: views/admin_portal.pug:23
-#, fuzzy
 msgid "Users"
-msgstr "Utente"
+msgstr "Utenti"
 
 #: views/admin_portal.pug:26
-#, fuzzy
 msgid "Developer Organizations"
-msgstr "Organizzazione di sviluppatore"
+msgstr "Organizzazioni di sviluppatori"
 
 #: views/admin_portal.pug:29
-#, fuzzy
 msgid "Blog Archive"
-msgstr "Almond - Archivio Blog"
+msgstr "Archivio Blog"
 
 #: views/admin_portal.pug:33 views/admin_training.pug:10
 msgid "Natural Language Training"
@@ -1018,23 +1049,20 @@ msgid "Unreviewed Devices"
 msgstr "Dispositivi non revisionati"
 
 #: views/admin_portal.pug:38
-#, fuzzy
 msgid "Thingpedia Entities"
-msgstr "Thingpedia - Tipi di entità"
+msgstr "Tipi di entità di Thingpedia"
 
 #: views/admin_portal.pug:40
-#, fuzzy
 msgid "Thingpedia String Datasets"
-msgstr "Thingpedia - Dataset"
+msgstr "Dataset di stringhe di Thingpedia"
 
 #: views/admin_portal.pug:42 views/thingpedia_snapshot_list.pug:4
 msgid "Thingpedia Snapshots"
 msgstr "Snapshot di Thingpedia"
 
 #: views/admin_portal.pug:45
-#, fuzzy
 msgid "Thingpedia Datasets"
-msgstr "Thingpedia - Dataset"
+msgstr "Dataset di Thingpedia"
 
 #: views/admin_portal.pug:47 views/mturk_batch_list.pug:4
 msgid "MTurk Batches"
@@ -1537,28 +1565,7 @@ msgstr "Che tipo di dispositivo stai cercando di configurare?"
 msgid "Select one device..."
 msgstr "Scegli un dispositivo..."
 
-#: views/doc_almond-config-file-reference.pug:14
-#: views/doc_almond-dialog-api-reference.pug:14 views/doc_base.pug:14
-#: views/doc_getting-started.pug:14 views/doc_installing-almond-cloud.pug:14
-#: views/doc_my-api.pug:14 views/doc_.pug:11
-#: views/doc_thingpedia-annotations.pug:14 views/doc_thingpedia-api.pug:10
-#: views/doc_thingpedia-device-class.pug:11
-#: views/doc_thingpedia-device-intro-auth-n-discovery.pug:14
-#: views/doc_thingpedia-device-intro-example-commands.pug:11
-#: views/doc_thingpedia-device-intro.pug:11
-#: views/doc_thingpedia-device-with-zero-code.pug:14
-#: views/doc_thingpedia-error-handling.pug:11
-#: views/doc_thingpedia-helpers.pug:14 views/doc_thingpedia-intro.pug:14
-#: views/doc_thingpedia-nl-support.pug:14
-#: views/doc_thingpedia-tutorial-cat.pug:14
-#: views/doc_thingpedia-tutorial-dataset.pug:14
-#: views/doc_thingpedia-tutorial-js-package.pug:14
-#: views/doc_thingpedia-tutorial-linkedin.pug:14
-#: views/doc_thingpedia-tutorial-manifest.pug:14
-#: views/doc_thingpedia-tutorial-nyt.pug:14
-#: views/doc_thingpedia-tutorial.pug:14
-#: views/doc_thingpedia-tutorial-website-monitor.pug:14
-#: views/doc_thingtalk-intro.pug:14 views/doc_thingtalk-reference.pug:14
+#: views/doc_base.pug:14
 msgid "Documentation"
 msgstr "Documentazione"
 
@@ -1611,9 +1618,9 @@ msgstr ""
 "Almond è software libero, distribuito secondo la <a href='https://www.gnu."
 "org/licenses/gpl-3.0-standalone.html'>licenza GPLv3</a>. "
 
-#: views/layout.pug:30
+#: views/layout.pug:33
 msgid "Toggle navigation"
-msgstr ""
+msgstr "Mostra/nascondi navigazione"
 
 #: views/login.pug:19 views/register.pug:32 views/user_profile.pug:147
 #: views/user_profile.pug:159
@@ -2267,6 +2274,8 @@ msgid ""
 "Almond is a community project, and we welcome anyone to use it, contribute "
 "to it, and help us make it the best virtual assistant."
 msgstr ""
+"Almond è un progetto di comunità, e tutti quandi sono i benvenuti ad usarlo, "
+"a contribuire e ad aiutarci a creare il miglior assistente virtuale."
 
 #: views/stanford/about_get_involved.pug:27
 msgid ""
@@ -2276,10 +2285,15 @@ msgid ""
 "underlying technology. You can use, remix, and rebrand Almond in your own "
 "project."
 msgstr ""
+"Puoi contribuire a Thingpedia, la nostra collezione crowdsourced, non "
+"proprietaria, di interfacce digitali e delle loro rappresentazioni "
+"linguistiche. Puoi migliorare il nostro sito web, le nostre applicazioni "
+"client, i nostri agenti di dialogo, o persino la tecnologia sottostante. "
+"Puoi usare, remixare, e cambiare l'immagine di Almond nel tuo progetto."
 
 #: views/stanford/about_get_involved.pug:29
 msgid "We welcome everyone to contribute to Almond!"
-msgstr ""
+msgstr "Tutti quanti sono i benvenuti a contribuire a Almond!"
 
 #: views/stanford/about_get_involved.pug:32
 msgid "Build with Almond"
@@ -2290,6 +2304,9 @@ msgid ""
 "All sorts of projects can be made using the Almond platform. Here are two "
 "that we think are cool. Yours could be next!"
 msgstr ""
+"Ogni genere di progetto può essere costruito con la piattaforma Almond. "
+"Eccone due che secondo noi sono interessanti. Il tuo potrebbe essere il "
+"prossimo!"
 
 #: views/stanford/about_get_involved.pug:36
 msgid ""
@@ -2297,6 +2314,10 @@ msgid ""
 "a> and our <a href='/blog'>blog</a> to see what else the Almond project is "
 "cooking."
 msgstr ""
+"In aggiunta, visita la nostra <a href='/about/research#projects-in-"
+"progress'>pagina di ricerca</a> e il nostro <a href='/about/"
+"research#projects-in-progress'>blog</a> per scoprire cos'altro sta "
+"preparando il progetto di Almond."
 
 #: views/stanford/about_get_involved.pug:40
 msgid "Almond Music with Alexa & Google Home support"
@@ -2332,32 +2353,31 @@ msgstr "Contattaci"
 
 #: views/stanford/about_get_involved.pug:134
 msgid "Twitter"
-msgstr ""
+msgstr "Twitter"
 
 #: views/stanford/about_get_involved.pug:141
-#, fuzzy
 msgid "Community Forum"
-msgstr "Comunicazione"
+msgstr "Forum della comunità"
 
 #: views/stanford/about_get_involved.pug:148
 msgid "RSS Feed"
-msgstr ""
+msgstr "Feed RSS"
 
 #: views/stanford/about_get_involved.pug:155
 msgid "Gitter Chat"
-msgstr ""
+msgstr "Chat su Gitter"
 
 #: views/stanford/about_get_involved.pug:162
 msgid "GitHub"
-msgstr ""
+msgstr "GitHub"
 
 #: views/stanford/about_get_involved.pug:169
 msgid "Email Us"
-msgstr ""
+msgstr "Scrivici una Email"
 
 #: views/stanford/about_get_involved.pug:176
 msgid "Slack (by invitation only)"
-msgstr ""
+msgstr "Slack (solo su invito)"
 
 #: views/stanford/about_index.pug:25
 msgid "The Stanford Open Virtual Assistant Project"
@@ -2701,6 +2721,9 @@ msgid ""
 "<br><span class=get>translate the headline to Chinese</span>,<br>then<span "
 "class=do>email it to my friend</span>"
 msgstr ""
+"<span class=when>quando il New York Times ha un articolo riguardante la "
+"Cina</span>,<br><span class=get>traduci il titolo in cinese</span>,<br>e "
+"poi<span class=do>mandalo a un mio amico via email</span>"
 
 #: views/stanford/about_index.pug:207
 msgid "A Growing, Crowdsourced, Library of Services"
@@ -2733,8 +2756,10 @@ msgstr ""
 #: views/stanford/about_index.pug:216
 msgid ""
 "<a href='/thingpedia'>Learn more about Thingpedia</a> and <a href='/about/"
-"get-involved>how you can help Almond learn new services and skills</a>."
+"get-involved'>how you can help Almond learn new services and skills</a>."
 msgstr ""
+"<a href='/thingpedia'>Scopri di più su Thingpedia</a> e <a href='/about/get-"
+"involved'>come puoi aiutare Almond a scoprire nuovi servizi e abilità</a>."
 
 #: views/stanford/about_index.pug:223
 msgid "Icon for %s"
@@ -3537,23 +3562,20 @@ msgid "Developer Console"
 msgstr "Console sviluppatore"
 
 #: views/thingpedia_dev_sidebar.pug:9
-#, fuzzy
 msgid "Overview"
-msgstr "Anteprima"
+msgstr "Panoramica"
 
 #: views/thingpedia_dev_sidebar.pug:15
-#, fuzzy
 msgid "OAuth Applications"
-msgstr "Le tue applicazioni OAuth 2.0"
+msgstr "Applicazioni OAuth"
 
 #: views/thingpedia_dev_sidebar.pug:18 views/thingpedia_dev_train_almond.pug:24
 msgid "Train Almond"
 msgstr "Allena Almond"
 
 #: views/thingpedia_dev_sidebar.pug:21
-#, fuzzy
 msgid "Thingpedia Documentation"
-msgstr "Thingpedia - Documentazione"
+msgstr "Documentazione di Thingpedia"
 
 #: views/thingpedia_dev_sidebar.pug:31
 msgid "Thingpedia Documentation Search"
@@ -3612,7 +3634,7 @@ msgstr "La tua scelta"
 #: views/thingpedia_dev_train_almond.pug:54
 msgid ""
 "You have trained Almond with <span id=counter></span> sentences. Thank you!"
-msgstr ""
+msgstr "Hai allenato Almond con <span id=counter></span> frasi. Grazie!"
 
 #: views/thingpedia_entity_list.pug:23
 msgid "Entity Types"
@@ -3636,6 +3658,9 @@ msgid ""
 "<i>prefix</i>:<i>suffix</i>, where <i>prefix</i> is the ID of a device entry "
 "you control, and <i>suffix</i> is an identifier."
 msgstr ""
+"ID di entità, usato per formare referenze nei tipi di ThingTalk. Dev'essere "
+"della forma <i>prefisso</i>:<i>suffisso</i>, dove <i>prefisso</i> è l'ID di "
+"un dispositivo controllato da te, e <i>suffisso</i> è un identificatore."
 
 #: views/thingpedia_entity_list.pug:48 views/thingpedia_string_type_list.pug:52
 msgid "This description will be shown on the documentation"
@@ -3662,6 +3687,12 @@ msgid ""
 "the stock ticker symbol ‘goog’ can be recalled as Google or Alphabet), use "
 "multiple lines with different names and same value."
 msgstr ""
+"Carica un file con tutti i valori di questa entità, uno per linea. Il file "
+"deve essere formatto come <samp><i>valore</i>,<i>nome</i></samp>, dove "
+"<i>valore</i> è l'identificativo API e <i>nome</i> è il nome che sarà "
+"disponibile in linguaggio naturale. Se un entità ha più nomi (ad esempio il "
+"simbolo di borsa ‘goog’ può essere chiamato Google o Alphabet), usa più "
+"linee con nomi diversi e valore uguale."
 
 #: views/thingpedia_entity_list.pug:71
 msgid "This is a builtin entity with special natural language support."
@@ -3709,6 +3740,9 @@ msgid ""
 "<i>classname</i>:<i>functionname</i>, e.g. <code>com.twitter:post</code>. "
 "This entity type is not accessible from natural language."
 msgstr ""
+"Questo tipo di entità si riferisce a una funzione in Thingpedia, usando la "
+"sintassi <i>nomeclasse</i>:<i>nomefunzione</i>, ad esempio <code>com.twitter:"
+"post</code>. Questa entità non è accessibile dal linguaggio naturale."
 
 #: views/thingpedia_entity_values.pug:36
 msgid ""
@@ -3718,6 +3752,11 @@ msgid ""
 "to return the example commands. This entity type is not accessible from "
 "natural language."
 msgstr ""
+"Questo tipo di entità si riferisce a un programma ThingTalk completo. È "
+"usato da <code>@<a href='/thingpedia/devices/by-id/org.thingpedia.builtin."
+"thingengine.builtin'>org.thingpedia.builtin.thingengine.builtin</a>."
+"get_commands</code> per restituire i comandi di esempio. Questa entità non è "
+"accessibile dal linguaggio naturale."
 
 #: views/thingpedia_entity_values.pug:38
 msgid ""
@@ -3725,15 +3764,17 @@ msgid ""
 "two communicating ThingTalk programs. It is used by Communicating Almond, "
 "and is not accessible from natural language."
 msgstr ""
+"Questo tipo di entità si riferisce all'identificativo di un <i>flusso</i>, "
+"che collega due programmi ThingTalk in comunicazione. È usato da Almond "
+"Comunicante, e non è accessibile dal linguaggio naturale."
 
 #: views/thingpedia_entity_values.pug:40
-#, fuzzy
 msgid ""
 "This entity type refers to the URL of a picture. Constants of this entity "
 "type cannot be expressed in natural language."
 msgstr ""
-" Questà entità è un identificatore opaco e non può essere usata in "
-"linguaggio naturale."
+"Questo tipo di entità si riferisce alla URL di un'immagine. Costanti di "
+"questo tipo di entità non possono essere espresse in linguaggio naturale."
 
 #: views/thingpedia_entity_values.pug:42
 msgid "This entity type uses special syntax in the semantic parser."
@@ -3752,15 +3793,16 @@ msgid "Value"
 msgstr "Valore"
 
 #: views/thingpedia_portal.pug:17
-#, fuzzy
 msgid "The Open API Repository"
-msgstr "Repository codice sorgente"
+msgstr "La Collezione API Aperta"
 
 #: views/thingpedia_portal.pug:19
 msgid ""
 "<big>%d</big> devices &amp; services, <big>%d</big> functions supported, and "
 "growing!"
 msgstr ""
+"<big>%d</big> dispositivi e servizi, <big>%d</big> funzioni supportate, e in "
+"crescita!"
 
 #: views/thingpedia_portal.pug:23
 msgid "What is Thingpedia?"
@@ -3774,6 +3816,11 @@ msgid ""
 "articles; Thingpedia is organized around <i>devices</i>, such as Twitter, a "
 "light bulb, or a thermostat."
 msgstr ""
+"Thingpedia è un'enciclopedia di applicazioni per l'Internet of Things. "
+"Proprio come Wikipedia raccoglie il sapere riguardo al mondo, Thingpedia "
+"raccoglie il sapere dei dispositivi nel mondo. Wikipedia è organizzata in "
+"articoli; Thingpedia è organizzata in <i>dispositivi</i>, come Twitter, una "
+"lampadina, o un termostato."
 
 #: views/thingpedia_portal.pug:30
 msgid ""
@@ -3781,6 +3828,10 @@ msgid ""
 "language interface that represent how humans refer to and interact with the "
 "device, and the executable specification corresponding to the device API."
 msgstr ""
+"Ogni dispositivo ha una voce in Thingpedia. Una voce in Thingpedia memorizza "
+"l'interfaccia in linguaggio naturale che rappresenta come gli umani si "
+"riferiscono e interagiscono con il dispositivo, e la specifica eseguibile "
+"corrispondente all'API del dispositivo."
 
 #: views/thingpedia_portal.pug:33
 msgid "Supported Devices & Services"
@@ -3907,6 +3958,8 @@ msgid ""
 "The ID is used to refer to the dataset in a <code>#[string_values='']</code> "
 "annotation."
 msgstr ""
+"Questo ID è usato per riferirsi al dataset in una annotazione "
+"<code>#[string_values='']</code>."
 
 #: views/thingpedia_string_type_list.pug:48
 msgid ""
@@ -3914,6 +3967,9 @@ msgid ""
 "<var>prefix</var> is the ID of a device you control, and <var>suffix</var> "
 "is an identifier."
 msgstr ""
+"Deve essere della forma <var>prefisso</var>:<var>suffisso</var>, dove "
+"<var>prefisso</var> è l'ID di un dispositivo che tu controlli, e "
+"<var>suffisso</var> è un identificatore."
 
 #: views/thingpedia_string_type_list.pug:57
 msgid ""
@@ -3925,6 +3981,14 @@ msgid ""
 "dataset used for training will reflect the given distribution. If weights "
 "are omitted for any row, they default to 1.0."
 msgstr ""
+"Carica un file TSV (separato da tab) con tutti i valori di questà entità, "
+"uno per linea. Il file deve essere formattato come <code><var>valore</"
+"var>&lt;tab&gt;<var>peso</var></code>, dove <var>valore</var> è il valore "
+"della stringa e <var>peso</var> è la probabilità di estrazione non "
+"normalizzata per questo valore. Includere i pesi nel file è opzionale. Se i "
+"pesi sono inclusi, il dataset usato per il training rifletterà la "
+"distribuzione fornita. Se i pesi sono omessi in una certa linea, di default "
+"hanno valore 1.0."
 
 #: views/thingpedia_string_type_list.pug:62
 msgid " The input file is already tokenized."
@@ -3954,6 +4018,11 @@ msgid ""
 "licenses. Proprietary datasets will not be downloadable, and will only be "
 "used to train the natural language model for Almond."
 msgstr ""
+"Inviando questo dataset, accetti di rilasciarlo con la scelta di licenza di "
+"cui sopra, in accordo con i <a href='/about/tos'>Termini di Servizio</a>. "
+"Non caricare dataset di cui non possiedi le licenze necessarie. Dataset "
+"proprietari non saranno scaricabili, e saranno usati solamente per allenare "
+"il modello di linguaggio naturale di Almond."
 
 #: views/thingpedia_string_type_list.pug:74
 msgid "Attribution"
