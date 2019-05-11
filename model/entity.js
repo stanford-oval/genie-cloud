@@ -25,6 +25,10 @@ module.exports = {
                             [id, language]);
     },
 
+    delete(client, id) {
+        return db.query(client, `delete from entity_names where id = ?`, [id]);
+    },
+
     getAll(client) {
         return db.selectAll(client, "select * from entity_names where language = 'en' order by is_well_known asc, id asc");
     },

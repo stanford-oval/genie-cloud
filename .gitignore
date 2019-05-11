@@ -26,6 +26,8 @@ views/doc_*.pug
 !views/doc_base.pug
 views/thingpedia_doc_index.pug
 
+tests/embeddings
+
 node_modules/
 
 yarn-error.log
