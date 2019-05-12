@@ -31,7 +31,7 @@ async function tokenize(req, res) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
-a
+
     const languageTag = I18n.localeToLanguage(req.params.locale);
     const tokenized = await req.app.service.tokenizer.tokenize(languageTag, req.query.q);
 
