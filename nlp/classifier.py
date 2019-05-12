@@ -1,9 +1,8 @@
-from keras.models import model_from_json, load_model
+from keras.models import load_model
 
-import numpy, math, pickle
+import numpy, math
 
-filehandler = open('bert_embedding.obj', 'rb')
-bert_embedding = pickle.load(filehandler)
+bert_embedding = BertEmbedding()
 
 model = load_model('classifier.h5')
 
