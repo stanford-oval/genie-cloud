@@ -11,6 +11,7 @@
 
 const express = require('express');
 const ThingTalk = require('thingtalk');
+const spawn = require('child_process').spawn;
 
 const db = require('../util/db');
 const iv = require('../util/input_validation');
@@ -19,7 +20,6 @@ const exampleModel = require('../model/example');
 const editDistance = require('../util/edit_distance');
 
 const applyCompatibility = require('./compat');
-
 // thingtalk version from before we started passing it to the API
 const DEFAULT_THINGTALK_VERSION = '1.0.0';
 
@@ -31,7 +31,7 @@ async function tokenize(req, res) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
-
+a
     const languageTag = I18n.localeToLanguage(req.params.locale);
     const tokenized = await req.app.service.tokenizer.tokenize(languageTag, req.query.q);
 
@@ -62,7 +62,12 @@ async function runPrediction(model, tokens, entities, limit, skipTypechecking) {
 }
 
 async function query(req, res) {
+    
     const query = req.query.q;
+
+    const pythonProcess = spawn('python3',["classifier.py"]);
+    pythonProcesses.stdin.write(query);
+
     const store = req.query.store || 'no';
     if (store !== 'yes' && store !== 'no') {
         res.status(400).json({ error: 'Invalid store parameter' });
@@ -102,6 +107,7 @@ async function query(req, res) {
 
     let result = null;
     let exact = null;
+    
     const tokens = tokenized.tokens;
     if (tokens.length === 0) {
         result = [{
@@ -145,13 +151,26 @@ async function query(req, res) {
     if (exact !== null)
         result = exact.map((code) => ({ code, score: 'Infinity' })).concat(result);
 
+    
     applyCompatibility(result, thingtalk_version);
     res.set("Cache-Control", "no-store,must-revalidate");
-    res.json({
-        candidates: result,
-        tokens: tokens,
-        entities: tokenized.entities
+    pythonProcess.stdout.on('data', (data) => {
+           var dict = {};
+           const probabilities = data.toString().split("\n")
+           dict["questions"] = parseFloat(probabilities[0])
+           dict["thingtalk"] = parseFloat(probabilities[1])
+           dict["chatty"] = parseFloat(probabilities[2])
+           dict["other"] = parseFloat(probabilities[3])
+
+           res.json({
+                candidates: result,
+                tokens: tokens,
+                entities: tokenized.entities,
+                intent: dict
+           });
+            
     });
+
 }
 
 const QUERY_PARAMS = {
