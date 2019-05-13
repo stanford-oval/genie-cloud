@@ -130,13 +130,15 @@ class Frontend {
         this._app.use(bodyParser.json());
         this._app.use(bodyParser.urlencoded({ extended: true }));
         this._app.use(xmlBodyParser({ explicitArray: true, trim: false }));
-        this._app.use(cookieParser());
+        this._app.use(cookieParser(secretKey.getSecretKey()));
 
-        this._sessionStore = new MySQLStore({}, db.getPool());
+        this._sessionStore = new MySQLStore({
+            expiration: 86400000 // 1 day, in ms
+        }, db.getPool());
         this._app.use(session({ resave: false,
                                 saveUninitialized: false,
                                 store: this._sessionStore,
-                                secret: secretKey.getSecretKey(this._app) }));
+                                secret: secretKey.getSecretKey() }));
         this._app.use(connect_flash());
 
         this._app.use('/brassau/backgrounds', (req, res, next) => {
