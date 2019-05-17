@@ -1879,23 +1879,23 @@ v3.post('/entities/create',
  *
  * @apiDescription Upload a new string dataset
  *
- * @apiParam {String} dataset_id The ID of the dataset
- * @apiParam {String} dataset_name The name of the dataset
+ * @apiParam {String} type_name The ID of the dataset
+ * @apiParam {String} name The name of the dataset
  * @apiParam {File} upload A TSV file with all the value for this entity,
  *    one per line, formatted as "value<tab>weight", where value is the string value and
  *    weight is the unnormalized sampling probability for this value.
  *    Including weights in the file is optional.
  *    If the weights are provided, the dataset used for training will reflect the given distribution.
  *    If weights are omitted for any row, they default to 1.0.
- * @apiParam {Boolean} tokenized If this value in the file is tokenized
+ * @apiParam {Boolean} preprocessed If this value in the file is tokenized
  * @apiParam {String} license The license of the dataset
- * @apiParam {String} [Attribution] Use this field to provide details of the copyright and attribution,
+ * @apiParam {String} [attribution] Use this field to provide details of the copyright and attribution,
  *    including any citations of relevant papers.
  *
  * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
  *
  */
-v3.post('/strings/create',
+v3.post('/strings/upload',
     userUtils.requireScope('developer-upload'),
     multer({ dest: platform.getTmpDir() }).fields([
         { name: 'upload', maxCount: 1 }
