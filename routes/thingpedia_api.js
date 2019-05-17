@@ -1826,6 +1826,13 @@ v3.get('/snapshot/:id', (req, res, next) => {
     getSnapshot(req, res, next, accept);
 });
 
+
+// all endpoints that have not been overridden in v2 use the v1 version
+v2.use('/', v1);
+
+// all endpoints that have not been overridden in v3 use the v2 version
+v3.use('/', v2);
+
 // the POST apis below require OAuth
 v3.use((req, res, next) => {
     if (typeof req.query.access_token === 'string' || (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer ')))
@@ -1899,13 +1906,6 @@ v3.post('/strings/create',
         res.json({ success: true });
     }).catch(next);
 });
-
-
-// all endpoints that have not been overridden in v2 use the v1 version
-v2.use('/', v1);
-
-// all endpoints that have not been overridden in v3 use the v2 version
-v3.use('/', v2);
 
 everything.use('/v1', v1);
 everything.use('/v2', v2);
