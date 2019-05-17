@@ -1866,7 +1866,7 @@ v3.post('/entities/create',
     iv.validatePOST({ entity_id: 'string', entity_name: 'string', no_ner_support: 'boolean' }, { json: true }),
     (req, res, next) => {
     uploadEntities(req).then(() => {
-        res.json({ success: true });
+        res.json({ result: 'ok' });
     }).catch(next);
 });
 
@@ -1903,7 +1903,7 @@ v3.post('/strings/create',
     iv.validatePOST({ type_name: 'string', name: 'string', license: 'string', attribution: '?string', preprocessed: 'boolean' }, { json: true }),
     (req, res, next) => {
     uploadStringDataset(req).then(() => {
-        res.json({ success: true });
+        res.json({ result: 'ok' });
     }).catch(next);
 });
 
