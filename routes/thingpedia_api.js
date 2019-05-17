@@ -27,7 +27,7 @@ const { tokenize, PARAM_REGEX } = require('../util/tokenize');
 const userUtils = require('../util/user');
 const iv = require('../util/input_validation');
 const { isOriginOk } = require('../util/origin');
-const { ForbiddenError } = require('../util/errors');
+const { AuthenticationError } = require('../util/errors');
 const errorHandling = require('../util/error_handling');
 const I18n = require('../util/i18n');
 const platform = require('../util/platform');
@@ -1831,7 +1831,7 @@ v3.use((req, res, next) => {
     if (typeof req.query.access_token === 'string' || (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer ')))
         passport.authenticate('bearer', {session: false})(req, res, next);
     else
-        next(new ForbiddenError('Authentication required.'));
+        next(new AuthenticationError());
 });
 
 /**
@@ -1913,6 +1913,8 @@ everything.use('/v3', v3);
 
 // for compatibility with the existing code, v1 is also exposed unversioned
 everything.use('/', v1);
+
+
 
 // if nothing handled the route, return a 404
 everything.use('/', (req, res) => {
