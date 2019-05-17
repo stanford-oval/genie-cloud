@@ -47,6 +47,12 @@ function html(err, req, res, next) {
             page_title: req._("Almond - Page Not Found"),
             message: req._("The requested page does not exist.")
         });
+    } else if (err.sqlState === '23000') {
+        // duplicate value for UNIQUE or PRIMARY KEY
+        res.status(400).render('error', {
+            page_title: req._("Almond - Error"),
+            message: req._("The identifier you selected is already in use.")
+        });
     } else if (err.code === 'EPERM' || err.code === 'EACCESS' ||
                err.sqlState === '42000') {
         // NOTE: there are two cases of permission errors:

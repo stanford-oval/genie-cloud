@@ -7,6 +7,7 @@ almond/master.js
 almond/platform.js
 almond/shard.js
 almond/worker.js
+frontend.js
 routes/about.js
 routes/admin.js
 routes/admin_upload.js
@@ -40,6 +41,7 @@ routes/thingpedia_translate.js
 routes/thingpedia_upload.js
 routes/user.js
 routes/webhook.js
+stanford/config.js
 util/admin-thingpedia-client.js
 util/binary_search.js
 util/cache_manager.js

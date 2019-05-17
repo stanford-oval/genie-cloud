@@ -100,7 +100,7 @@ block content
     = device.description
     if device.website
       br
-      a(href=device.website) Website
+      a(href=device.website)= _("Website")
 
   if device.primary_kind === 'org.thingpedia.builtin.thingengine.builtin'
     p
