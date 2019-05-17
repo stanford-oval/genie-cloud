@@ -1,20 +1,20 @@
 from keras.models import load_model
 from bert_embedding import BertEmbedding
-#Import BERT Embedding from PyPi
+
+# Import BERT Embedding from PyPi
 
 import numpy, math, sys
 
 bert_embedding = BertEmbedding()
 
-model = load_model('python_classifier/classifier.h5')
+model = load_model("python_classifier/classifier.h5")
 
 
 def encode_sentence(sentence):
 
-    #Takes input of list of sentences and returns numpy array of length 20 with the BERT Embedding
+    # Takes input of list of sentences and returns numpy array of length 20 with the BERT Embedding
 
     encoded_sentence = numpy.zeros(15360)
-
 
     result = bert_embedding([sentence])
     index = 0
@@ -25,8 +25,8 @@ def encode_sentence(sentence):
                 encoded_sentence[index] = result[0][1][j][k]
                 index += 1
 
-
     return encoded_sentence
+
 
 def output_prediction(sentence):
 
@@ -36,7 +36,6 @@ def output_prediction(sentence):
 
         test_data = numpy.zeros([1, 15360])
         test_data[0] = encoded
-
 
         percentages = model.predict(test_data)
 
@@ -49,26 +48,24 @@ def output_prediction(sentence):
             adjusted_percentages.append(adjustedValue)
             total = total + adjustedValue
 
-
         final_percentages = []
         for j in range(4):
-            final_percentages.append(adjusted_percentages[j]/total)
-
+            final_percentages.append(adjusted_percentages[j] / total)
 
         return final_percentages
     else:
-        return (0.25,0.25,0.25,0.25)
+        return (0.25, 0.25, 0.25, 0.25)
+
 
 def main():
 
-    #print probabilities based on user input
-    probabilities = (output_prediction(sys.stdin.readlines()[0]))
+    # print probabilities based on user input
+    probabilities = output_prediction(sys.stdin.readlines()[0])
     print(probabilities[0])
     print(probabilities[1])
     print(probabilities[2])
     print(probabilities[3])
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
