@@ -1707,7 +1707,7 @@ async function testEntityUpload() {
     );
 
     const fd0 = createUpload(ENTITY_FILE, {
-        entity_id: 'org.thingpedia.test:api_test1' + Math.random().toString(36).substring(8),
+        entity_id: 'org.thingpedia.test:api_entity_test1',
         entity_name: 'Test Entity',
         no_ner_support: '',
     });
@@ -1724,7 +1724,7 @@ async function testEntityUpload() {
     );
 
     const fd1 = createUpload(ENTITY_FILE, {
-        entity_id: 'org.thingpedia.test:api_test1',
+        entity_id: 'org.thingpedia.test:api_entity_test1',
         entity_name: 'Test Entity',
         no_ner_support: '1'
     });
@@ -1738,7 +1738,7 @@ async function testEntityUpload() {
     assert.deepStrictEqual(JSON.parse(r1), { result: 'ok' });
 
     const fd2 = createUpload(ENTITY_FILE, {
-        entity_id: 'org.thingpedia.test:api_test2',
+        entity_id: 'org.thingpedia.test:api_entity_test2',
         entity_name: 'Test Entity'
     });
     const r2 = await Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/entities/create', fd2, {
@@ -1772,7 +1772,7 @@ async function testStringUpload() {
     );
 
     const fd0 = createUpload(STRING_FILE, {
-        type_name: 'org.thingpedia.test:string_test1',
+        type_name: 'org.thingpedia.test:api_string_test1',
         name: 'Test String Three',
         license: 'proprietary',
         preprocessed:'1'
@@ -1790,7 +1790,7 @@ async function testStringUpload() {
     );
 
     const fd1 = createUpload(STRING_FILE, {
-        type_name: 'org.thingpedia.test:string_test1',
+        type_name: 'org.thingpedia.test:api_string_test1',
         name: 'Test String Three',
         license: 'proprietary',
         preprocessed:'1'
@@ -1805,7 +1805,7 @@ async function testStringUpload() {
     assert.deepStrictEqual(JSON.parse(r1), { result: 'ok' });
 
     const fd2 = createUpload(STRING_FILE, {
-        type_name: 'org.thingpedia.test:string_test2',
+        type_name: 'org.thingpedia.test:api_string_test2',
         name: 'Test String Three',
         license: 'proprietary',
         preprocessed:'1'
