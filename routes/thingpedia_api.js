@@ -12,6 +12,8 @@
 const Q = require('q');
 const express = require('express');
 const accepts = require('accepts');
+const passport = require('passport');
+const multer = require('multer');
 
 const db = require('../util/db');
 const schemaModel = require('../model/schema');
@@ -23,9 +25,13 @@ const ImageCacheManager = require('../util/cache_manager');
 const SchemaUtils = require('../util/manifest_to_schema');
 const { tokenize, PARAM_REGEX } = require('../util/tokenize');
 const userUtils = require('../util/user');
+const iv = require('../util/input_validation');
 const { isOriginOk } = require('../util/origin');
+const { AuthenticationError } = require('../util/errors');
 const errorHandling = require('../util/error_handling');
 const I18n = require('../util/i18n');
+const platform = require('../util/platform');
+const { uploadEntities, uploadStringDataset } = require('../util/upload_dataset');
 
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
@@ -1820,11 +1826,86 @@ v3.get('/snapshot/:id', (req, res, next) => {
     getSnapshot(req, res, next, accept);
 });
 
+
 // all endpoints that have not been overridden in v2 use the v1 version
 v2.use('/', v1);
 
 // all endpoints that have not been overridden in v3 use the v2 version
 v3.use('/', v2);
+
+// the POST apis below require OAuth
+v3.use((req, res, next) => {
+    if (typeof req.query.access_token === 'string' || (req.headers['authorization'] && req.headers['authorization'].startsWith('Bearer ')))
+        passport.authenticate('bearer', {session: false})(req, res, next);
+    else
+        next(new AuthenticationError());
+});
+
+/**
+ * @api {post} /v3/entities/create Create a new entity type
+ * @apiName NewEntity
+ * @apiGroup Entities
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Create a new entity type.
+ *
+ * @apiParam {String} entity_id The ID of the entity to create
+ * @apiParam {String} entity_name The name of the entity
+ * @apiParam {Boolean} no_ner_support If this entity is an opaque identifier that cannot be used from natural language
+ * @apiParam {File} [upload] A CSV file with all the values of this entity,
+ *   one per line, formatted as "value, name"
+ *
+ * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
+ *
+ */
+v3.post('/entities/create',
+    userUtils.requireScope('developer-upload'),
+    multer({ dest: platform.getTmpDir() }).fields([
+        { name: 'upload', maxCount: 1 }
+    ]),
+    iv.validatePOST({ entity_id: 'string', entity_name: 'string', no_ner_support: 'boolean' }, { json: true }),
+    (req, res, next) => {
+    uploadEntities(req).then(() => {
+        res.json({ result: 'ok' });
+    }).catch(next);
+});
+
+
+/**
+ * @api {post} /v3/strings/upload Upload a new string dataset
+ * @apiName NewStringDataset
+ * @apiGroup String Dataset
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Upload a new string dataset
+ *
+ * @apiParam {String} type_name The ID of the dataset
+ * @apiParam {String} name The name of the dataset
+ * @apiParam {File} upload A TSV file with all the value for this entity,
+ *    one per line, formatted as "value<tab>weight", where value is the string value and
+ *    weight is the unnormalized sampling probability for this value.
+ *    Including weights in the file is optional.
+ *    If the weights are provided, the dataset used for training will reflect the given distribution.
+ *    If weights are omitted for any row, they default to 1.0.
+ * @apiParam {Boolean} preprocessed If this value in the file is tokenized
+ * @apiParam {String} license The license of the dataset
+ * @apiParam {String} [attribution] Use this field to provide details of the copyright and attribution,
+ *    including any citations of relevant papers.
+ *
+ * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
+ *
+ */
+v3.post('/strings/upload',
+    userUtils.requireScope('developer-upload'),
+    multer({ dest: platform.getTmpDir() }).fields([
+        { name: 'upload', maxCount: 1 }
+    ]),
+    iv.validatePOST({ type_name: 'string', name: 'string', license: 'string', attribution: '?string', preprocessed: 'boolean' }, { json: true }),
+    (req, res, next) => {
+    uploadStringDataset(req).then(() => {
+        res.json({ result: 'ok' });
+    }).catch(next);
+});
 
 everything.use('/v1', v1);
 everything.use('/v2', v2);
@@ -1832,6 +1913,8 @@ everything.use('/v3', v3);
 
 // for compatibility with the existing code, v1 is also exposed unversioned
 everything.use('/', v1);
+
+
 
 // if nothing handled the route, return a 404
 everything.use('/', (req, res) => {

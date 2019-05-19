@@ -17,6 +17,10 @@ require('../util/config_init');
 const assert = require('assert');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
+const FormData = require('form-data');
+
+const { sessionRequest, assertHttpError } = require('./website/scaffold');
+const { login, startSession } = require('./login');
 
 const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
@@ -1665,6 +1669,157 @@ async function testLookupEntity() {
 
 }
 
+async function getAccessToken(session) {
+    return JSON.parse(await sessionRequest('/user/token', 'POST', '', session, {
+        accept: 'application/json',
+    })).token;
+}
+
+function createUpload(file, data) {
+    const fd = new FormData();
+
+    if (file)
+        fd.append('upload', file, { filename: 'entity.csv', contentType: 'text/csv;charset=utf8' });
+    for (let key in data)
+        fd.append(key, data[key]);
+    return fd;
+}
+
+const ENTITY_FILE = `one,The First Entity
+two,The Second Entity
+three,The Third Entity
+`;
+
+
+async function testEntityUpload() {
+    await startSession();
+    const bob = await login('bob', '12345678');
+    const bob_token = await getAccessToken(bob);
+    const root = await login('root', 'rootroot');
+    const root_token = await getAccessToken(root);
+
+    await assertHttpError(
+        Tp.Helpers.Http.post(THINGPEDIA_URL + '/entities/create', '', {
+            'Content-Type': 'multipart/form-data'
+        }),
+        401,
+        'Authentication required.'
+    );
+
+    const fd0 = createUpload(ENTITY_FILE, {
+        entity_id: 'org.thingpedia.test:api_entity_test1',
+        entity_name: 'Test Entity',
+        no_ner_support: '',
+    });
+    await assertHttpError(
+        Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/entities/create', fd0, {
+            dataContentType:  'multipart/form-data; boundary=' + fd0.getBoundary(),
+            extraHeaders: {
+                Authorization: 'Bearer ' + bob_token
+            },
+            useOAuth2: true
+        }),
+        403,
+        'The prefix of the entity ID must correspond to the ID of a Thingpedia device owned by your organization.'
+    );
+
+    const fd1 = createUpload(ENTITY_FILE, {
+        entity_id: 'org.thingpedia.test:api_entity_test1',
+        entity_name: 'Test Entity',
+        no_ner_support: '1'
+    });
+    const r1 = await Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/entities/create', fd1, {
+        dataContentType: 'multipart/form-data; boundary=' + fd1.getBoundary(),
+        extraHeaders: {
+            Authorization: 'Bearer ' + root_token
+        },
+        useOAuth2: true,
+    });
+    assert.deepStrictEqual(JSON.parse(r1), { result: 'ok' });
+
+    const fd2 = createUpload(ENTITY_FILE, {
+        entity_id: 'org.thingpedia.test:api_entity_test2',
+        entity_name: 'Test Entity'
+    });
+    const r2 = await Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/entities/create', fd2, {
+        dataContentType: 'multipart/form-data; boundary=' + fd2.getBoundary(),
+        extraHeaders: {
+            Authorization: 'Bearer ' + root_token
+        },
+        useOAuth2: true,
+    });
+    assert.deepStrictEqual(JSON.parse(r2), { result: 'ok' });
+}
+
+const STRING_FILE = `aaaa\t1.0
+bbbb\t5.0
+cccc\t
+dddd\t1.0`;
+
+async function testStringUpload() {
+    await startSession();
+    const bob = await login('bob', '12345678');
+    const bob_token = await getAccessToken(bob);
+    const root = await login('root', 'rootroot');
+    const root_token = await getAccessToken(root);
+
+    await assertHttpError(
+        Tp.Helpers.Http.post(THINGPEDIA_URL + '/strings/upload', '', {
+            'Content-Type': 'multipart/form-data'
+        }),
+        401,
+        'Authentication required.'
+    );
+
+    const fd0 = createUpload(STRING_FILE, {
+        type_name: 'org.thingpedia.test:api_string_test1',
+        name: 'Test String Three',
+        license: 'proprietary',
+        preprocessed:'1'
+    });
+    await assertHttpError(
+        Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/strings/upload', fd0, {
+            dataContentType:  'multipart/form-data; boundary=' + fd0.getBoundary(),
+            extraHeaders: {
+                Authorization: 'Bearer ' + bob_token
+            },
+            useOAuth2: true
+        }),
+        403,
+        'The prefix of the dataset ID must correspond to the ID of a Thingpedia device owned by your organization.'
+    );
+
+    const fd1 = createUpload(STRING_FILE, {
+        type_name: 'org.thingpedia.test:api_string_test1',
+        name: 'Test String Three',
+        license: 'proprietary',
+        preprocessed:'1'
+    });
+    const r1 = await Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/strings/upload', fd1, {
+        dataContentType: 'multipart/form-data; boundary=' + fd1.getBoundary(),
+        extraHeaders: {
+            Authorization: 'Bearer ' + root_token
+        },
+        useOAuth2: true,
+    });
+    assert.deepStrictEqual(JSON.parse(r1), { result: 'ok' });
+
+    const fd2 = createUpload(STRING_FILE, {
+        type_name: 'org.thingpedia.test:api_string_test2',
+        name: 'Test String Three',
+        license: 'proprietary',
+        preprocessed:'1'
+    });
+    const r2 = await Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/strings/upload', fd2, {
+        dataContentType: 'multipart/form-data; boundary=' + fd2.getBoundary(),
+        extraHeaders: {
+            Authorization: 'Bearer ' + root_token
+        },
+        useOAuth2: true,
+    });
+    assert.deepStrictEqual(JSON.parse(r2), { result: 'ok' });
+}
+
 async function main() {
     await testGetSchemas();
     await testGetMetadata();
@@ -1690,5 +1845,7 @@ async function main() {
     await testGetEntityList();
     await testGetEntityValues();
     await testLookupEntity();
+    await testEntityUpload();
+    await testStringUpload();
 }
 main();

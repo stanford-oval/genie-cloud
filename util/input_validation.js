@@ -43,7 +43,8 @@ function checkKey(value, type) {
 
     case 'boolean':
         // a checkbox is either present (== 1) or absent (== undefined)
-        return value === undefined || value === '1' || value === '';
+        // for api compatibility, also allow true/false
+        return value === undefined || value === '1' || value === '' || value === true || value === false;
 
     // NOTE: parseInt/parseFloat have weird behavior with trailing garbage
     // we don't want to accept that, so we use the unary "+" operator to
