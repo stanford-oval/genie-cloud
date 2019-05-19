@@ -24,10 +24,22 @@ class NLPClassifier {
 		});
 
 		process.stdin.write(input);
-		process.stdin.end();
 
 		return promise;
+
 
 	}
 
 }
+
+function main() {
+	const classifier = new NLPClassifier();
+	classification = (classifier.classify("test"));
+	classification.then(function(value) {
+
+		console.log(value);
+
+	});
+
+}
+main();

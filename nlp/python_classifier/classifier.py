@@ -60,11 +60,20 @@ def output_prediction(sentence):
 def main():
 
     # print probabilities based on user input
-    probabilities = output_prediction(sys.stdin.readlines()[0])
-    print(probabilities[0])
-    print(probabilities[1])
-    print(probabilities[2])
-    print(probabilities[3])
+
+    try:
+        while True:
+            line = sys.stdin.readline()
+
+            if not line:
+                break
+
+            probabilities = output_prediction(line)
+            sys.stdout.write(str(probabilities))
+            sys.stdout.flush()
+
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":
