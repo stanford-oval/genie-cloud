@@ -11,14 +11,13 @@
 
 const express = require('express');
 const ThingTalk = require('thingtalk');
-const spawn = require('child_process').spawn;
 
 const db = require('../util/db');
 const iv = require('../util/input_validation');
 const I18n = require('../util/i18n');
 const exampleModel = require('../model/example');
 const editDistance = require('../util/edit_distance');
-const classifier = require('classifier.js')
+const classifier = require('./classifier.js');
 
 const applyCompatibility = require('./compat');
 // thingtalk version from before we started passing it to the API
@@ -151,14 +150,14 @@ async function query(req, res) {
 
     applyCompatibility(result, thingtalk_version);
     res.set("Cache-Control", "no-store,must-revalidate");
-    classifier.classify(query).then(function(value) {
+    classifier.classify(query).then((value) => {
 
       var dict = {};
       const probabilities = value.split(" ");
-      dict["questions"] = parseFloat(probabilities[0])
-      dict["thingtalk"] = parseFloat(probabilities[1])
-      dict["chatty"] = parseFloat(probabilities[2])
-      dict["other"] = parseFloat(probabilities[3])
+      dict["questions"] = parseFloat(probabilities[0]);
+      dict["thingtalk"] = parseFloat(probabilities[1]);
+      dict["chatty"] = parseFloat(probabilities[2]);
+      dict["other"] = parseFloat(probabilities[3]);
 
       res.json({
            candidates: result,
@@ -167,7 +166,7 @@ async function query(req, res) {
            intent: dict
       });
 
-  	});
+    });
 
 }
 

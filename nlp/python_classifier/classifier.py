@@ -3,7 +3,7 @@ from bert_embedding import BertEmbedding
 
 # Import BERT Embedding from PyPi
 
-import numpy, math, sys
+import numpy, math, sys, json
 
 bert_embedding = BertEmbedding()
 
@@ -69,7 +69,7 @@ def main():
                 break
 
             probabilities = output_prediction(line)
-            sys.stdout.write(str(probabilities))
+            sys.stdout.write(str(probabilities[0]) + " " + str(probabilities[1]) + " " + str(probabilities[2]) + " " + str(probabilities[3]))
             sys.stdout.flush()
 
     except KeyboardInterrupt:
