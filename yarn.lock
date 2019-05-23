@@ -6346,6 +6346,16 @@ thingtalk@^1.4.1, thingtalk@~1.6.0, thingtalk@~1.6.1:
     consumer-queue "^1.0.0"
     smtlib "^0.1.1"
 
+thingtalk@~1.7.0:
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.7.0.tgz#dcc403d00c8fb68d9c2e4eafdb2fcdab632d3293"
+  integrity sha512-xOtGizCQi00PScBJ4QUv/vqj5Lo6vG2rU+NLatCrYT13ra5ROgZe+GYabSWXKDJi90Sh3P9K6gKQWT2ghFwxmA==
+  dependencies:
+    adt "~0.7.2"
+    byline "^5.0.0"
+    consumer-queue "^1.0.0"
+    smtlib "^0.1.1"
+
 thirty-two@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/thirty-two/-/thirty-two-1.0.2.tgz#4ca2fffc02a51290d2744b9e3f557693ca6b627a"
