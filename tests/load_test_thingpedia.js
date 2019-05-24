@@ -17,6 +17,7 @@ const assert = require('assert');
 const path = require('path');
 const util = require('util');
 const fs = require('fs');
+const yaml = require('js-yaml');
 
 const db = require('../util/db');
 const userModel = require('../model/user');
@@ -36,18 +37,23 @@ assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 
 const req = { _(x) { return x; } };
 
+async function loadManifest(primaryKind) {
+    const filename = path.resolve(path.dirname(module.filename), './data/' + primaryKind + '.yaml');
+    return yaml.safeLoad((await util.promisify(fs.readFile)(filename)).toString(), { filename });
+}
+
 async function loadAllDevices(dbClient, bob, root) {
     // "login" as bob
     req.user = bob;
 
-    const invisible = require('./data/org.thingpedia.builtin.test.invisible.manifest.json');
+    const invisible = await loadManifest('org.thingpedia.builtin.test.invisible');
     await Importer.importDevice(dbClient, req, 'org.thingpedia.builtin.test.invisible', invisible, {
         owner: req.user.developer_org,
         iconPath: path.resolve(path.dirname(module.filename), '../data/org.thingpedia.builtin.thingengine.builtin.png'),
         approve: false
     });
 
-    const bing = require('./data/com.bing.manifest.json');
+    const bing = await loadManifest('com.bing');
     await Importer.importDevice(dbClient, req, 'com.bing', bing, {
         owner: req.user.developer_org,
         zipFilePath: path.resolve(path.dirname(module.filename), './data/com.bing.zip'),
@@ -58,7 +64,7 @@ async function loadAllDevices(dbClient, bob, root) {
     // now "login" as root
     req.user = root;
 
-    const adminonly = require('./data/org.thingpedia.builtin.test.adminonly.manifest.json');
+    const adminonly = await loadManifest('org.thingpedia.builtin.test.adminonly');
     await Importer.importDevice(dbClient, req, 'org.thingpedia.builtin.test.adminonly', adminonly, {
         owner: req.user.developer_org,
         iconPath: path.resolve(path.dirname(module.filename), '../data/org.thingpedia.builtin.thingengine.builtin.png'),

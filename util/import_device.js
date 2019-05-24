@@ -347,29 +347,27 @@ async function importDevice(dbClient, req, primary_kind, json, { owner = 0, zipF
         owner: owner,
         name: json.thingpedia_name,
         description: json.thingpedia_description,
+
         license: json.license || 'GPL-3.0',
         license_gplcompatible: json.license_gplcompatible || true,
         website: json.website || '',
         repository: json.repository || '',
         issue_tracker: json.issue_tracker || (json.repository ? json.repository + '/issues' : ''),
         subcategory: json.subcategory,
+
         approved_version: (approve ? 0 : null),
-        developer_version: 0
+        developer_version: 0,
+
+        source_code: json.class
     };
 
-    const classCode = json.class || migrateManifest(json, device);
-    device.source_code = classCode;
-
-    const datasetCode = json.dataset || DatasetUtils.examplesToDataset(primary_kind, 'en',
-        json.examples, { editMode: true });
-
-    const [classDef, dataset] = await Validation.validateDevice(dbClient, req, device, classCode, datasetCode);
+    const [classDef, dataset] = await Validation.validateDevice(dbClient, req, device, json.class, json.dataset);
     await Validation.tokenizeDataset(dataset);
     device.category = getCategory(classDef);
 
     const [schemaId,] = await ensurePrimarySchema(dbClient, device.name,
                                                   classDef, req, approve);
-    await ensureDataset(dbClient, schemaId, dataset, datasetCode);
+    await ensureDataset(dbClient, schemaId, dataset, json.dataset);
     const factory = FactoryUtils.makeDeviceFactory(classDef, device);
 
     classDef.annotations.version = ThingTalk.Ast.Value.Number(device.developer_version);

@@ -185,13 +185,8 @@ async function importBuiltinDevices(dbClient, rootOrg) {
     for (let primaryKind of BUILTIN_DEVICES) {
         console.log(`Loading builtin device ${primaryKind}`);
 
-        let manifest;
-        try {
-            manifest = require('../data/' + primaryKind + '.manifest.json');
-        } catch(e) {
-            const filename = path.resolve(path.dirname(module.filename), '../data/' + primaryKind + '.yaml');
-            manifest = yaml.safeLoad((await util.promisify(fs.readFile)(filename)).toString(), { filename });
-        }
+        const filename = path.resolve(path.dirname(module.filename), '../data/' + primaryKind + '.yaml');
+        const manifest = yaml.safeLoad((await util.promisify(fs.readFile)(filename)).toString(), { filename });
 
         const iconPath = path.resolve(path.dirname(module.filename),
                                       '../data/' + getBuiltinIcon(primaryKind) + '.png');

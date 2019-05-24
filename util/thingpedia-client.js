@@ -334,7 +334,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
                     [], null);
                 row.target_code = declaration.prettyprint(true);
             } else {
-                row.target_code = row.target_code.replace(/^[ \r\n\t\v]*program[ \r\n\t\v]*:=/, '');
+                row.target_code = row.target_code.replace(/^[ \r\n\t\v]*program[ \r\n\t\v]*:=/, '').replace(/\};\s*$/, '}');
             }
             if (applyCompat) {
                 row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+query[ \r\n\t\v]/, 'let table ');

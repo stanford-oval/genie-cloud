@@ -1,0 +1,66 @@
+thingpedia_name: Bing Search
+thingpedia_description: Search the web with Bing
+website: https://www.bing.com
+repository: https://github.com/stanford-oval/thingpedia-common-devices
+subcategory: service
+
+class: |
+  class @com.bing {
+    import loader from @org.thingpedia.v2();
+    import config from @org.thingpedia.config.none(subscription_key="12345");
+
+    monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                      out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
+                                      out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
+                                      out link: Entity(tt:url) #_[canonical="link"])
+    #_[canonical="web search on bing"]
+    #_[confirmation="websites matching $query on Bing"]
+    #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}",displayText="${description}"}]]
+    #[poll_interval=3600000ms]
+    #[doc="search for `query` on Bing"];
+
+    monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                        out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
+                                        out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                        out link: Entity(tt:url) #_[canonical="link"],
+                                        out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
+                                        out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
+    #_[canonical="image search on bing"]
+    #_[confirmation="images matching $query from Bing"]
+    #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}, {type="picture",url="${picture_url}"}]]
+    #[poll_interval=3600000ms]
+    #[doc="search for `query` on Bing Images"];
+  }
+
+dataset: |
+  dataset @com.bing language "en" {
+    query (p_query :String)  := @com.bing.web_search(query=p_query)
+    #_[utterances=["${p_query:const} on bing","bing $p_query","websites matching $p_query","web sites matching $p_query"]];
+
+    query  := @com.bing.web_search(query=$?)
+    #_[utterances=[", search on bing",", bing search",", web search"]];
+
+    query (p_query :String)  := @com.bing.image_search(query=p_query)
+    #_[utterances=["${p_query:const} images on bing","images matching $p_query from bing"]];
+
+    query  := @com.bing.image_search(query=$?)
+    #_[utterances=[", search images on bing",", bing image search",", image search"]];
+
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width == p_width && height == p_height)
+    #_[utterances=["images from bing matching $p_query with size $p_width x $p_height"]];
+
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width >= p_width && height >= p_height)
+    #_[utterances=["images from bing matching $p_query larger than $p_width x $p_height"]];
+
+    query (p_query :String, p_width :Number)  := (@com.bing.image_search(query=p_query)), width >= p_width
+    #_[utterances=["images from bing matching $p_query wider than $p_width"]];
+
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width >= p_width || height >= p_height)
+    #_[utterances=["images from bing matching $p_query larger than $p_width x $p_height in either dimension"]];
+
+    query (p_query :String, p_height :Number)  := (@com.bing.image_search(query=p_query)), height >= p_height
+    #_[utterances=["images from bing matching $p_query taller than $p_height"]];
+
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width <= p_width && height <= p_height)
+    #_[utterances=["images from bing matching $p_query smaller than $p_width x $p_height"]];
+  }
