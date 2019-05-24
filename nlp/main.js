@@ -17,6 +17,8 @@ require('../util/config_init');
 
 const express = require('express');
 const path = require('path');
+const util = require('util');
+const fs = require('fs');
 
 const logger = require('morgan');
 const bodyParser = require('body-parser');
@@ -71,6 +73,14 @@ class NLPInferenceServer {
                 const model = new NLPModel(language, 'default', null, null);
                 await model.load(dbClient);
                 this._models.set(model.id, model);
+
+                if (await util.promisify(fs.exists)('./contextual:' + language)) {
+                    const contextual = new NLPModel(language, 'contextual', null, null);
+                    await contextual.load(dbClient);
+                    this._models.set(contextual.id, contextual);
+                } else {
+                    console.error(`WARNING: missing contextual model for ${language}`);
+                }
             }
         }, 'repeatable read');
 

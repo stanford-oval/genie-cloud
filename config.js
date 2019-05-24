@@ -243,6 +243,13 @@ module.exports.NL_SERVER_URL = 'https://almond-nl.stanford.edu';
   be shared between the NLP training server and NLP inference server.
 */
 module.exports.NL_SERVER_ADMIN_TOKEN = null;
+/**
+  Developer key to use from the NLP server to access Thingpedia.
+
+  Set this key to your Thingpedia developer key if you're configuring a custom
+  NLP server but you want to use the public Thingpedia.
+*/
+module.exports.NL_THINGPEDIA_DEVELOPER_KEY = null;
 
 /**
   Training server URL.

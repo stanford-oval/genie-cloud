@@ -11,6 +11,7 @@
 
 const express = require('express');
 const ThingTalk = require('thingtalk');
+const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const iv = require('../util/input_validation');
@@ -26,25 +27,27 @@ const DEFAULT_THINGTALK_VERSION = '1.0.0';
 
 var router = express.Router();
 
-async function tokenize(req, res) {
-    if (!I18n.get(req.params.locale, false)) {
+async function tokenize(params, data, service, res) {
+    if (!I18n.get(params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
 
-    const languageTag = I18n.localeToLanguage(req.params.locale);
-    const tokenized = await req.app.service.tokenizer.tokenize(languageTag, req.query.q);
+    const languageTag = I18n.localeToLanguage(params.locale);
+    const tokenized = await service.tokenizer.tokenize(languageTag, data.q);
+    if (data.entities)
+        Genie.Utils.renumberEntities(tokenized, data.entities);
 
     res.cacheFor(3600);
     res.json(tokenized);
 }
 
-async function runPrediction(model, tokens, entities, limit, skipTypechecking) {
+async function runPrediction(model, tokens, entities, context, limit, skipTypechecking) {
     const schemas = new ThingTalk.SchemaRetriever(model.tpClient, null, true);
 
-    let candidates = await model.predictor.predict(tokens);
+    let candidates = await model.predictor.predict(tokens, context);
     if (skipTypechecking)
-        return candidates;
+        return candidates.slice(0, limit);
 
     candidates = await Promise.all(candidates.map(async (c) => {
         try {
@@ -58,46 +61,62 @@ async function runPrediction(model, tokens, entities, limit, skipTypechecking) {
 
     candidates = candidates.filter((c) => c !== null);
 
-    return candidates;
+    return candidates.slice(0, limit);
 }
 
-async function query(req, res) {
-    const query = req.query.q;
-    const store = req.query.store || 'no';
+async function query(params, data, service, res) {
+    const query = data.q;
+    const store = data.store || 'no';
     if (store !== 'yes' && store !== 'no') {
         res.status(400).json({ error: 'Invalid store parameter' });
         return;
     }
-    const thingtalk_version = req.query.thingtalk_version || DEFAULT_THINGTALK_VERSION;
-    const expect = req.query.expect || null;
-    const isTokenized = !!req.query.tokenized;
+    const thingtalk_version = data.thingtalk_version || DEFAULT_THINGTALK_VERSION;
+    const expect = data.expect || null;
+    const isTokenized = !!data.tokenized;
 
-    if (!I18n.get(req.params.locale, false)) {
+    if (!I18n.get(params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
 
-    const service = req.app.service;
-    const model = service.getModel(req.params.model_tag, req.params.locale);
+    let modelTag = params.model_tag;
+    if (!modelTag) {
+        if (data.context)
+            modelTag = 'contextual';
+        else
+            modelTag = 'default';
+    }
+
+    const model = service.getModel(modelTag, params.locale);
     if (!model) {
         res.status(404).json({ error: 'No such model' });
         return;
     }
 
-    if (model.accessToken !== null && model.accessToken !== req.query.access_token) {
+    if (model.accessToken !== null && model.accessToken !== data.access_token) {
         res.status(404).json({ error: 'No such model' });
         return;
     }
 
-    const languageTag = I18n.localeToLanguage(req.params.locale);
+    const languageTag = I18n.localeToLanguage(params.locale);
     let tokenized;
     if (isTokenized) {
         tokenized = {
             tokens: query.split(' '),
             entities: {},
         };
+        if (data.entities) {
+            // safety against weird properties
+            for (let key of Object.getOwnPropertyNames(data.entities)) {
+                if (/^(.+)_([0-9]+)$/.test(key))
+                    tokenized[key] = data.entities[key];
+            }
+        }
     } else {
         tokenized = await service.tokenizer.tokenize(languageTag, query);
+        if (data.entities)
+            Genie.Utils.renumberEntities(tokenized, data.entities);
     }
 
     let result = null;
@@ -115,7 +134,7 @@ async function query(req, res) {
             score: 'Infinity'
         }];
     } else if (expect === 'MultipleChoice') {
-        result = (req.query.choices || []).map((choice, i) => {
+        result = (data.choices || []).map((choice, i) => {
             return {
                 code: ['bookkeeping', 'choice', String(i)],
                 score: -editDistance(tokens, choice.split(' '))
@@ -128,8 +147,9 @@ async function query(req, res) {
 
     if (result === null) {
         result = await runPrediction(model, tokens, tokenized.entities,
-            req.query.limit ? parseInt(req.query.limit) : 5,
-            !!req.query.skip_typechecking);
+                                     data.context ? data.context.split(' ') : undefined,
+                                     data.limit ? parseInt(data.limit) : 5,
+                                     !!data.skip_typechecking);
     }
 
     if (store !== 'no' && expect !== 'MultipleChoice' && tokens.length > 0) {
@@ -162,24 +182,42 @@ const QUERY_PARAMS = {
     limit: '?integer',
     expect: '?string',
     choices: '?array',
+    context: '?string',
+    entities: '?object',
     tokenized: 'boolean',
     skip_typechecking: 'boolean'
 };
 
 router.get('/@:model_tag/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req, res, next) => {
-    query(req, res).catch(next);
+    query(req.params, req.query, req.app.service, res).catch(next);
 });
 
-router.get('/@:model_tag/:locale/tokenize', iv.validateGET({ q: 'string' }, { json: true }), (req, res, next) => {
-    tokenize(req, res).catch(next);
+router.get('/@:model_tag/:locale/tokenize', iv.validateGET({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
+    tokenize(req.params, req.query, req.app.service, res).catch(next);
 });
 
 router.get('/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req, res, next) => {
-    query(req, res).catch(next);
+    query(req.params, req.query, req.app.service, res).catch(next);
 });
 
-router.get('/:locale/tokenize', iv.validateGET({ q: 'string' }, { json: true }), (req, res, next) => {
-    tokenize(req, res).catch(next);
+router.get('/:locale/tokenize', iv.validateGET({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
+    tokenize(req.params, req.query, req.app.service, res).catch(next);
+});
+
+router.post('/@:model_tag/:locale/query', iv.validatePOST(QUERY_PARAMS, { json: true }), (req, res, next) => {
+    query(req.params, req.body, req.app.service, res).catch(next);
+});
+
+router.post('/@:model_tag/:locale/tokenize', iv.validatePOST({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
+    tokenize(req.params, req.body, req.app.service, res).catch(next);
+});
+
+router.post('/:locale/query', iv.validatePOST(QUERY_PARAMS, { json: true }), (req, res, next) => {
+    query(req.params, req.body, req.app.service, res).catch(next);
+});
+
+router.post('/:locale/tokenize', iv.validatePOST({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
+    tokenize(req.params, req.body, req.app.service, res).catch(next);
 });
 
 module.exports = router;

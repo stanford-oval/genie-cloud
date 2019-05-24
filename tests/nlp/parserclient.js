@@ -11,14 +11,14 @@
 
 const ThingTalk = require('thingtalk');
 const Tp = require('thingpedia');
-const qs = require('querystring');
-
-const URL = 'https://almond-nl.stanford.edu';
+const qs = require('qs');
 
 module.exports = class ParserClient {
     constructor(baseUrl, locale) {
         this._locale = locale || 'en_US';
-        this._baseUrl = (baseUrl || URL) + '/' + this._locale;
+        if (!baseUrl)
+            throw new Error('wat');
+        this._baseUrl = baseUrl + '/' + this._locale;
 
         console.log('Using Almond-NNParser at ' + this._baseUrl);
     }
@@ -35,7 +35,32 @@ module.exports = class ParserClient {
         });
     }
 
-    sendUtterance(utterance, expecting, choices) {
+    async tokenize(utterance, contextEntities) {
+        const data = {
+            q: utterance,
+        };
+
+        let response;
+        if (contextEntities !== undefined) {
+            data.entities = contextEntities;
+
+            response = await Tp.Helpers.Http.post(`${this._baseUrl}/tokenize`, JSON.stringify(data), {
+                dataContentType: 'application/json' //'
+            });
+        } else {
+            let url = `${this._baseUrl}/tokenize?${qs.stringify(data)}`;
+
+            response = await Tp.Helpers.Http.get(url);
+        }
+        const parsed = JSON.parse(response);
+
+        if (parsed.error)
+            throw new Error('Error received from Genie-Parser server: ' + parsed.error);
+
+        return parsed;
+    }
+
+    async sendUtterance(utterance, context, expecting, choices) {
         const store = 'no';
         const data = {
             q: utterance,
@@ -45,24 +70,28 @@ module.exports = class ParserClient {
         if (expecting)
             data.expect = String(expecting);
 
-        let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
+        if (choices)
+            data.choices = choices.map((c) => c.title);
 
-        // we need to do this one by hand because of the peculiar encoding
-        // of the keys (we must not escape [ and ])
-        if (choices) {
-            choices.forEach((c, i) => {
-                if (c)
-                    url += `&choices[${i}]=${encodeURIComponent(c.title)}`;
+        let response;
+        if (context) {
+            data.context = context.code;
+            data.entities = context.entities;
+
+            response = await Tp.Helpers.Http.post(`${this._baseUrl}/query`, JSON.stringify(data), {
+                dataContentType: 'application/json' //'
             });
+        } else {
+            let url = `${this._baseUrl}/query?${qs.stringify(data)}`;
+
+            response = await Tp.Helpers.Http.get(url);
         }
 
-        return Tp.Helpers.Http.get(url).then((data) => {
-            var parsed = JSON.parse(data);
+        const  parsed = JSON.parse(response);
 
-            if (parsed.error)
-                throw new Error('Error received from Almond-NNParser server: ' + parsed.error);
+        if (parsed.error)
+            throw new Error('Error received from Almond-NNParser server: ' + parsed.error);
 
-            return parsed;
-        });
+        return parsed;
     }
 };
