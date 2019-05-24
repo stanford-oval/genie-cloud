@@ -66,4 +66,3 @@ module.exports = class ParserClient {
         });
     }
 };
-
