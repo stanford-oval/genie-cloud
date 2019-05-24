@@ -17,20 +17,25 @@ process.env.TEST_MODE = '1';
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Gettext = require('node-gettext');
+const TpClient = require('thingpedia-client');
 
 const Almond = require('almond-dialog-agent');
 const Intent = Almond.Intent;
-// FIXME
 const ParserClient = require('./parserclient');
 
-const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
 const db = require('../../util/db');
 const Config = require('../../config');
+assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
 const gettext = new Gettext();
 gettext.setLocale('en-US');
 
-const schemas = new ThingTalk.SchemaRetriever(new AdminThingpediaClient(), null, true);
+const schemas = new ThingTalk.SchemaRetriever(new TpClient.HttpClient({
+    getDeveloperKey() {
+        return null;
+    },
+    locale: 'en-US',
+}, Config.THINGPEDIA_URL), null, true);
 
 function candidateToString(cand) {
     if (cand.isProgram)
