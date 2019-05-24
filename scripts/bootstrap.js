@@ -174,7 +174,6 @@ async function importBuiltinDevices(dbClient, rootOrg) {
         'org.thingpedia.builtin.thingengine',
         'org.thingpedia.builtin.thingengine.builtin',
         'org.thingpedia.builtin.thingengine.gnome',
-        'org.thingpedia.builtin.thingengine.home',
         'org.thingpedia.builtin.thingengine.phone',
         'org.thingpedia.builtin.thingengine.remote',
         'org.thingpedia.builtin.test',

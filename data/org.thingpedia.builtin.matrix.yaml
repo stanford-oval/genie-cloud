@@ -1,0 +1,14 @@
+thingpedia_name: Matrix
+thingpedia_description: The Matrix.org federated chat service.
+repository: https://github.com/stanford-oval/thingengine-core
+subcategory: social-network
+
+class: |
+  class @org.thingpedia.builtin.matrix extends @messaging {
+    import loader from @org.thingpedia.builtin();
+    import config from @org.thingpedia.config.interactive();
+  }
+
+dataset: |
+  dataset @org.thingpedia.builtin.matrix language "en" {
+  }
