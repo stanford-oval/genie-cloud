@@ -16,8 +16,8 @@
     }
   ],
   "scripts": {
-    "update-pot": "xgettext -f po/POTFILES -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}; xargs -a po/POTFILES.jade jsxgettext -k _,gettext,ngettext,pgettext -L jade -o po/${npm_package_name}.pot -j",
-    "update-po": "for i in po/*.po ; do msgmerge -U $i po/${npm_package_name}.pot ; done",
+    "update-pot": "xgettext -f po/POTFILES -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}; xargs -a po/POTFILES.jade jsxgettext -k _,N_,gettext,ngettext,pgettext -L pug -o po/${npm_package_name}.pot -j",
+    "update-po": "./scripts/update-po.sh",
     "lint": "eslint almond/ browser/ model/ routes/ util/ stanford/ training/ nlp/ scripts/ config.js frontend.js",
     "test": "nyc ./tests/everything.sh",
     "prepare": "make prepare",
@@ -88,7 +88,7 @@
     "q": "^1.4.1",
     "rss": "^1.2.2",
     "seedrandom": "^3.0.0",
-    "semver": "^5.6.0",
+    "semver": "^6.1.0",
     "serve-favicon": "^2.3.0",
     "smtlib": "^0.1.1",
     "sockaddr": "^1.0.0",
@@ -100,7 +100,8 @@
     "thirty-two": "^1.0.2",
     "tmp": "0.1.0",
     "transparent-rpc": "^1.0.0",
-    "type-is": "^1.6.16"
+    "type-is": "^1.6.16",
+    "uniqid": "^5.0.3"
   },
   "devDependencies": {
     "apidoc": "^0.17.6",

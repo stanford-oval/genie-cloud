@@ -1,14 +1,12 @@
-from keras.models import load_model
-from bert_embedding import BertEmbedding
-
-# Import BERT Embedding from PyPi
-
-import numpy, math, sys, json
-
-bert_embedding = BertEmbedding()
-
-model = load_model("python_classifier/classifier.h5")
-
+try:
+    from keras.models import load_model
+    # Import BERT Embedding from PyPi
+    from bert_embedding import BertEmbedding
+    import numpy, math, sys, json
+    bert_embedding = BertEmbedding()
+    model = load_model("python_classifier/classifier.h5")
+except:
+    print("couldn't import modules")
 
 def encode_sentence(sentence):
 
@@ -62,14 +60,29 @@ def main():
     # print probabilities based on user input
 
     try:
+
         while True:
             line = sys.stdin.readline()
 
             if not line:
                 break
 
-            probabilities = output_prediction(line)
-            sys.stdout.write(str(probabilities[0]) + " " + str(probabilities[1]) + " " + str(probabilities[2]) + " " + str(probabilities[3]))
+            inputs = json.loads(line)
+
+            unique_id = inputs['id']
+            sentence = inputs['sentence']
+
+            probabilities = output_prediction(sentence)
+            class_probabilities = {
+                "questions": str(probabilities[0]),
+                "commands": str(probabilities[1]),
+                "chatty": str(probabilities[2]),
+                "other": str(probabilities[3]),
+                "sentence": str(sentence),
+                "id": str(unique_id)
+            }
+
+            sys.stdout.write(str(json.dumps(class_probabilities)))
             sys.stdout.flush()
 
     except KeyboardInterrupt:
