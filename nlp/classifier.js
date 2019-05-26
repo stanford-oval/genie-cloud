@@ -11,7 +11,7 @@ const child_process = require('child_process');
 
 const JsonDatagramSocket = require('../util/json_datagram_socket');
 
-class NLPClassifier {
+module.exports = class FrontendClassifier {
     constructor() {
         // spawn python process
         this.pythonProcess = child_process.spawn('python3', ['-u',
@@ -77,6 +77,4 @@ class NLPClassifier {
         }
         return new_promise.promise;
     }
-}
-
-module.exports = new NLPClassifier();
+};

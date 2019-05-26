@@ -18,7 +18,6 @@ const iv = require('../util/input_validation');
 const I18n = require('../util/i18n');
 const exampleModel = require('../model/example');
 const editDistance = require('../util/edit_distance');
-const classifier = require('./classifier.js');
 
 const applyCompatibility = require('./compat');
 // thingtalk version from before we started passing it to the API
@@ -74,6 +73,8 @@ async function query(params, data, service, res) {
     const thingtalk_version = data.thingtalk_version || DEFAULT_THINGTALK_VERSION;
     const expect = data.expect || null;
     const isTokenized = !!data.tokenized;
+
+    const intent = await service.frontendClassifier.classify(query);
 
     if (!I18n.get(params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
@@ -168,14 +169,13 @@ async function query(params, data, service, res) {
 
 
     applyCompatibility(result, thingtalk_version);
-    res.set("Cache-Control", "no-store,must-revalidate");
-    const classifier_output = await classifier.classify(query).catch((e) => {console.log(e);});
 
+    res.set("Cache-Control", "no-store,must-revalidate");
     res.json({
          candidates: result,
          tokens: tokens,
          entities: tokenized.entities,
-         intent: classifier_output
+         intent
     });
 
 }

@@ -33,6 +33,7 @@ const errorHandling = require('../util/error_handling');
 const modelsModel = require('../model/nlp_models');
 
 const NLPModel = require('./nlp_model');
+const FrontendClassifier = require('./classifier');
 
 const Config = require('../config');
 
@@ -40,10 +41,15 @@ class NLPInferenceServer {
     constructor() {
         this._models = new Map;
         this._tokenizer = new Genie.LocalTokenizer();
+        this._classifier = new FrontendClassifier();
     }
 
     get tokenizer() {
         return this._tokenizer;
+    }
+
+    get frontendClassifier() {
+        return this._classifier;
     }
 
     getModel(modelTag = 'default', locale) {
