@@ -18,7 +18,6 @@ const I18n = require('../util/i18n');
 const exampleModel = require('../model/example');
 const editDistance = require('../util/edit_distance');
 const classifier = require('./classifier.js');
-const uniqid = require('uniqid');
 
 const applyCompatibility = require('./compat');
 // thingtalk version from before we started passing it to the API
@@ -151,7 +150,7 @@ async function query(req, res) {
 
     applyCompatibility(result, thingtalk_version);
     res.set("Cache-Control", "no-store,must-revalidate");
-    const classifier_output = await classifier.classify(query, uniqid()).catch((e) => {console.log(e);});
+    const classifier_output = await classifier.classify(query).catch((e) => {console.log(e);});
 
     res.json({
          candidates: result,

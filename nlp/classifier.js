@@ -7,28 +7,25 @@ class NLPClassifier{
 
 	constructor() {
 		//spawn python process
-		this.pythonProcess = spawn('python3',['-u', "python_classifier/classifier.py"]);
+		this.pythonProcess = spawn('python3',['-u', "./nlp/python_classifier/classifier.py"]);
 
-		this.concurrentRequests = [];
+		this.concurrentRequests = new Map();
 		this.isLive = true;
+		this.counter = 0;
 
 		this._stream = new JsonDatagramSocket(this.pythonProcess.stdout, this.pythonProcess.stdin, 'utf8');
 		this._stream.on('data', (msg) => {
 
-			const id = msg.id;
+			const id = parseInt(msg.id);
 			//matches id of request to handle concurrent requests
-			for (var i = 0; i < this.concurrentRequests.length; i++ ){
-				if (id === this.concurrentRequests[i].uniqueid){
-					if (msg.error) {
-						this.concurrentRequests[i].reject(msg);
-						this.concurrentRequests.splice(i, 1);
-					}else {
-						this.concurrentRequests[i].resolve(msg);
-						this.concurrentRequests.splice(i, 1);
-				}
-
-				}
+			if (msg.error) {
+				this.concurrentRequests.get(id).reject(msg);
+				this.concurrentRequests.delete(id);
+			}else {
+				this.concurrentRequests.get(id).resolve(msg);
+				this.concurrentRequests.delete(id);
 			}
+
 		});
 
 		//error handling
@@ -41,36 +38,35 @@ class NLPClassifier{
 		this._stream.on('close', (hadError) => {
 			console.log("Closing Python Process");
 			this.isLive = false;
-			for (var i = 0; i < this.concurrentRequests.length; i++){
-				this.concurrentRequests[i].reject("Request Rejected");
-				this.concurrentRequests.splice(i, 1);
-			}
+			for (let { reject } of this.concurrentRequests.values())
+			reject(Error("Python Process Closed"));
 		});
 	}
 
 	newPromise(id){
-		var process = {
+		var new_promise = {
 			promise: null,
 			resolve: null,
 			reject: null,
 			uniqueid: id
 		};
-		process.promise = new Promise((resolve, reject) => {
-			process.resolve = resolve;
-			process.reject = reject;
+		new_promise.promise = new Promise((resolve, reject) => {
+			new_promise.resolve = resolve;
+			new_promise.reject = reject;
 		});
-		return process;
+		return new_promise;
 	}
 
-	classify(id, input){
-		const new_promise = this.newPromise(id);
-		this.concurrentRequests.push(new_promise);
+	classify(input){
+		const new_promise = this.newPromise(this.counter);
+		this.concurrentRequests.set(this.counter, new_promise);
 		if (!this.isLive){
-			new_promise.reject("Python Process Dead");
+			new_promise.reject(Error("Python Process Dead"));
 		}else{
 			this._stream.write(
-				{id: id, sentence: input }
+				{id: this.counter, sentence: input }
 			);
+			this.counter += 1;
 		}
 		return new_promise.promise;
 	}

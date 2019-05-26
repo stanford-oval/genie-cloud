@@ -4,7 +4,7 @@ try:
     from bert_embedding import BertEmbedding
     import numpy, math, sys, json
     bert_embedding = BertEmbedding()
-    model = load_model("python_classifier/classifier.h5")
+    model = load_model("./nlp/python_classifier/classifier.h5")
 except:
     print("couldn't import modules")
 
