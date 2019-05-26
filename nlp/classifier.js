@@ -2,7 +2,6 @@
 
 const spawn = require('child_process').spawn;
 const JsonDatagramSocket = require('../util/json_datagram_socket');
-var path = require("path");
 
 class NLPClassifier{
 
