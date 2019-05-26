@@ -18,9 +18,9 @@ const iv = require('../util/input_validation');
 const I18n = require('../util/i18n');
 const exampleModel = require('../model/example');
 const editDistance = require('../util/edit_distance');
+const classifier = require('./classifier.js');
 
 const applyCompatibility = require('./compat');
-
 // thingtalk version from before we started passing it to the API
 const DEFAULT_THINGTALK_VERSION = '1.0.0';
 
@@ -121,6 +121,7 @@ async function query(params, data, service, res) {
 
     let result = null;
     let exact = null;
+
     const tokens = tokenized.tokens;
     if (tokens.length === 0) {
         result = [{
@@ -165,13 +166,18 @@ async function query(params, data, service, res) {
     if (exact !== null)
         result = exact.map((code) => ({ code, score: 'Infinity' })).concat(result);
 
+
     applyCompatibility(result, thingtalk_version);
     res.set("Cache-Control", "no-store,must-revalidate");
+    const classifier_output = await classifier.classify(query).catch((e) => {console.log(e);});
+
     res.json({
-        candidates: result,
-        tokens: tokens,
-        entities: tokenized.entities
+         candidates: result,
+         tokens: tokens,
+         entities: tokenized.entities,
+         intent: classifier_output
     });
+
 }
 
 const QUERY_PARAMS = {
