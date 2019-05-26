@@ -2,11 +2,12 @@ try:
     from keras.models import load_model
     # Import BERT Embedding from PyPi
     from bert_embedding import BertEmbedding
-    import numpy, math, sys, json
+    import numpy, math, sys, json, os
     bert_embedding = BertEmbedding()
-    model = load_model("./nlp/python_classifier/classifier.h5")
+    file_path = os.path.realpath(__file__)
+    model = load_model(os.path.dirname(file_path) + "/classifier.h5")
 except:
-    print("couldn't import modules")
+    pass
 
 def encode_sentence(sentence):
 

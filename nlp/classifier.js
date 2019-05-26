@@ -2,12 +2,13 @@
 
 const spawn = require('child_process').spawn;
 const JsonDatagramSocket = require('../util/json_datagram_socket');
+var path = require("path");
 
 class NLPClassifier{
 
 	constructor() {
 		//spawn python process
-		this.pythonProcess = spawn('python3',['-u', "./nlp/python_classifier/classifier.py"]);
+		this.pythonProcess = spawn('python3',['-u', __dirname + "/python_classifier/classifier.py"]);
 
 		this.concurrentRequests = new Map();
 		this.isLive = true;
