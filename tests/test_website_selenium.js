@@ -173,17 +173,17 @@ async function testMyConversation(driver) {
     assert.strictEqual(messages.length, 1);
     assert.strictEqual(await messages[0].getText(), `Welcome back!`);
 
-    await inputEntry.sendKeys('hello', WD.Key.ENTER);
+    await inputEntry.sendKeys('no', WD.Key.ENTER);
 
     const ourInput = await driver.wait(
         WD.until.elementLocated(WD.By.css('.message.from-user:nth-child(2)')),
         10000);
-    assert.strictEqual(await ourInput.getText(), 'hello');
+    assert.strictEqual(await ourInput.getText(), 'no');
 
     const response = await driver.wait(
         WD.until.elementLocated(WD.By.css('.from-almond:nth-child(3) .message')),
         10000);
-    assert.strictEqual(await response.getText(), 'Hi!');
+    assert.strictEqual(await response.getText(), 'No way!');
 }
 
 async function assertHasClass(element, className) {

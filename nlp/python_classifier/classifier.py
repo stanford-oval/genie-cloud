@@ -1,13 +1,10 @@
-try:
-    from keras.models import load_model
-    # Import BERT Embedding from PyPi
-    from bert_embedding import BertEmbedding
-    import numpy, math, sys, json, os
-    bert_embedding = BertEmbedding()
-    file_path = os.path.realpath(__file__)
-    model = load_model(os.path.dirname(file_path) + "/classifier.h5")
-except:
-    pass
+from keras.models import load_model
+# Import BERT Embedding from PyPi
+from bert_embedding import BertEmbedding
+import numpy, math, sys, json
+
+bert_embedding = BertEmbedding()
+model = load_model(sys.argv[1])
 
 def encode_sentence(sentence):
 
@@ -75,12 +72,11 @@ def main():
 
             probabilities = output_prediction(sentence)
             class_probabilities = {
-                "questions": str(probabilities[0]),
-                "commands": str(probabilities[1]),
-                "chatty": str(probabilities[2]),
-                "other": str(probabilities[3]),
-                "sentence": str(sentence),
-                "id": str(unique_id)
+                "question": probabilities[0],
+                "command": probabilities[1],
+                "chatty": probabilities[2],
+                "other": probabilities[3],
+                "id": unique_id
             }
 
             sys.stdout.write(str(json.dumps(class_probabilities)))

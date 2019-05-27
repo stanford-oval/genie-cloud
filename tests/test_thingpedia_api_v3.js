@@ -189,7 +189,7 @@ const BING_CLASS_FULL = `class @com.bing
 #[version=0]
 #[package_version=0] {
   import loader from @org.thingpedia.v2();
-  import config from @org.thingpedia.config.none();
+  import config from @org.thingpedia.config.none(subscription_key="12345");
 
   monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                     out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
@@ -500,13 +500,7 @@ function checkExamples(generated, expected) {
     assert.strictEqual(generated.result, 'ok');
     generated = generated.data;
     const uniqueIds = new Set;
-    const expectMap = new Map;
-    assert.strictEqual(generated.length, expected.length);
-
-    for (let exp of expected) {
-        delete exp.id;
-        expectMap.set(exp.utterance, exp);
-    }
+    assert.strictEqual(generated.length, expected);
 
     for (let gen of generated) {
         assert(!uniqueIds.has(gen.id), `duplicate id ${gen.id}`);
@@ -549,19 +543,18 @@ function checkExamplesByKey(generated, key) {
 const TEST_EXAMPLES = { result: 'ok', data: require('./data/test-examples-v3.json') };
 
 async function testGetExamplesByDevice() {
-    // mind the . vs .. here: there's two different data/ folders
-    const BING_EXAMPLES = require('./data/com.bing.manifest.json').examples;
-    const BUILTIN_EXAMPLES = require('../data/org.thingpedia.builtin.thingengine.builtin.manifest.json').examples;
-    const INVISIBLE_EXAMPLES = require('./data/org.thingpedia.builtin.test.invisible.manifest.json').examples;
+    const BING_EXAMPLES = 18;
+    const BUILTIN_EXAMPLES = 52;
+    const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await request('/examples/by-kinds/com.bing'), BING_EXAMPLES);
     checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin'),
         BUILTIN_EXAMPLES);
     checkExamples(await request(
         '/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin,com.bing'),
-        BUILTIN_EXAMPLES.concat(BING_EXAMPLES));
+        BUILTIN_EXAMPLES + BING_EXAMPLES);
 
-    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.invisible'), []);
+    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.invisible'), 0);
 
     checkExamples(await request(
         `/examples/by-kinds/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
@@ -571,7 +564,7 @@ async function testGetExamplesByDevice() {
         `/examples/by-kinds/org.thingpedia.builtin.test.invisible,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
 
-    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), []);
+    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), 0);
 
     assert.deepStrictEqual(await request('/examples/by-kinds/org.thingpedia.builtin.test'), TEST_EXAMPLES);
 
@@ -600,16 +593,15 @@ async function testGetExamplesByDevice() {
 }
 
 async function testGetExamplesByKey() {
-    // mind the . vs .. here: there's two different data/ folders
-    const BING_EXAMPLES = require('./data/com.bing.manifest.json').examples;
-    const PHONE_EXAMPLES = require('../data/org.thingpedia.builtin.thingengine.phone.manifest.json').examples;
-    const INVISIBLE_EXAMPLES = require('./data/org.thingpedia.builtin.test.invisible.manifest.json').examples;
+    const BING_EXAMPLES = 18;
+    const PHONE_EXAMPLES = 41;
+    const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await request('/examples/search?q=bing'), BING_EXAMPLES);
     checkExamples(await request('/examples/search?q=phone'), PHONE_EXAMPLES);
     checkExamplesByKey(await request('/examples/search?q=matching'), 'matching');
 
-    checkExamples(await request('/examples/search?q=invisible'), []);
+    checkExamples(await request('/examples/search?q=invisible'), 0);
     checkExamples(await request(`/examples/search?q=invisible&developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
 
@@ -671,7 +663,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 113,
+      "id": 131,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me images from bing matching ____ larger than ____ x ____",
@@ -703,7 +695,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 95,
+      "id": 106,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me texts i received in the last hour",
@@ -719,7 +711,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 102,
+      "id": 113,
       "language": "en",
       "type": "thingpedia",
       "utterance": "call somebody",
@@ -751,7 +743,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 53,
+      "id": 73,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
@@ -767,12 +759,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 12,
+      "id": 37,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "generate a random number between ____ and ____",
-      "preprocessed": ", generate a random number between ${p_low:const} and ${p_high:const}",
-      "target_code": "query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
+      "utterance": "howdy",
+      "preprocessed": "howdy",
+      "target_code": "program  := {\n  now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(hello)) => notify;\n};\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -783,12 +775,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 17,
+      "id": 12,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "setup ____",
-      "preprocessed": "setup ${p_device}",
-      "target_code": "action (p_device :Entity(tt:device))  := @org.thingpedia.builtin.thingengine.builtin.configure(device=p_device);\n",
+      "utterance": "generate a random number between ____ and ____",
+      "preprocessed": ", generate a random number between ${p_low:const} and ${p_high:const}",
+      "target_code": "query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -842,7 +834,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 53,
+      "id": 73,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
@@ -857,7 +849,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 45,
+      "id": 65,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop",
@@ -872,7 +864,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 44,
+      "id": 64,
       "language": "en",
       "type": "thingpedia",
       "utterance": "turn ____ my laptop",
@@ -887,7 +879,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 52,
+      "id": 72,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete a file from my laptop",
@@ -902,7 +894,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 51,
+      "id": 71,
       "language": "en",
       "type": "thingpedia",
       "utterance": "use ____ as the background of my laptop",
@@ -917,7 +909,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 55,
+      "id": 75,
       "language": "en",
       "type": "thingpedia",
       "utterance": "save a screenshot of my laptop",
@@ -932,7 +924,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 41,
+      "id": 61,
       "language": "en",
       "type": "thingpedia",
       "utterance": "lock my laptop",
@@ -947,7 +939,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 50,
+      "id": 70,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set the background of my laptop to ____",
@@ -962,7 +954,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 49,
+      "id": 69,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the background on my laptop",
@@ -977,7 +969,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 46,
+      "id": 66,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop containing ____",
@@ -992,7 +984,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 34,
+      "id": 54,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ on my laptop",
@@ -1007,7 +999,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 48,
+      "id": 68,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete the file named ____ from my laptop",
@@ -1022,7 +1014,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 54,
+      "id": 74,
       "language": "en",
       "type": "thingpedia",
       "utterance": "take a screenshot of my laptop",
@@ -1037,7 +1029,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 38,
+      "id": 58,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ with ____ on my laptop",
@@ -1052,7 +1044,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 47,
+      "id": 67,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete ____ from my laptop",
@@ -1067,7 +1059,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 42,
+      "id": 62,
       "language": "en",
       "type": "thingpedia",
       "utterance": "activate the lock screen on my laptop",
@@ -1102,18 +1094,9 @@ async function testGetDeviceIcon() {
     assert(!failed);
 }
 
-function deepClone(x) {
-    // stupid algorithm but it does the job
-    return JSON.parse(JSON.stringify(x));
-}
-
 function checkManifest(obtained, expected) {
     assert.strictEqual(obtained.result, 'ok');
     obtained = obtained.data;
-
-    delete expected.thingpedia_name;
-    delete expected.thingpedia_description;
-    delete expected.examples;
 
     assert.strictEqual(typeof obtained.version, 'number');
     assert.strictEqual(typeof obtained.developer, 'boolean');
@@ -1125,11 +1108,7 @@ function checkManifest(obtained, expected) {
 }
 
 async function testGetDeviceManifest() {
-    const BING = deepClone(require('./data/com.bing.manifest.json'));
-    const INVISIBLE = deepClone(require('./data/org.thingpedia.builtin.test.invisible.manifest.json'));
-    const ADMINONLY = deepClone(require('./data/org.thingpedia.builtin.test.adminonly.manifest.json'));
-
-    checkManifest(await request('/devices/code/com.bing'), BING);
+    checkManifest(await request('/devices/code/com.bing'));
 
     //console.log(String(toCharArray(BING_CLASS_FULL)));
     assert.strictEqual(await ttRequest('/devices/code/com.bing'), BING_CLASS_FULL);
@@ -1139,15 +1118,13 @@ async function testGetDeviceManifest() {
     await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.invisible'));
     await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.nonexistent'));
     checkManifest(await request(
-        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
-        INVISIBLE);
+        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`));
 
     await assert.rejects(() => request(
         `/devices/code/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`));
 
     checkManifest(await request(
-        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
-        ADMINONLY);
+        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`));
 }
 
 async function testGetDevicePackage() {

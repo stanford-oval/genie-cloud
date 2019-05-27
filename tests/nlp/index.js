@@ -17,20 +17,25 @@ process.env.TEST_MODE = '1';
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Gettext = require('node-gettext');
+const TpClient = require('thingpedia-client');
 
 const Almond = require('almond-dialog-agent');
 const Intent = Almond.Intent;
-// FIXME
 const ParserClient = require('./parserclient');
 
-const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
 const db = require('../../util/db');
 const Config = require('../../config');
+assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 
 const gettext = new Gettext();
 gettext.setLocale('en-US');
 
-const schemas = new ThingTalk.SchemaRetriever(new AdminThingpediaClient(), null, true);
+const schemas = new ThingTalk.SchemaRetriever(new TpClient.HttpClient({
+    getDeveloperKey() {
+        return null;
+    },
+    locale: 'en-US',
+}, Config.THINGPEDIA_URL), null, true);
 
 function candidateToString(cand) {
     if (cand.isProgram)
@@ -50,6 +55,13 @@ async function testEverything() {
     for (let i = 0; i < TEST_CASES.length; i++) {
         const test = TEST_CASES[i];
         const analyzed = await parser.sendUtterance(test);
+
+        assert.strictEqual(typeof analyzed.intent, 'object');
+        assert.strictEqual(typeof analyzed.intent.question, 'number');
+        assert.strictEqual(typeof analyzed.intent.command, 'number');
+        assert.strictEqual(typeof analyzed.intent.chatty, 'number');
+        assert.strictEqual(typeof analyzed.intent.other, 'number');
+
         assert(Array.isArray(analyzed.candidates));
 
         // everything should typecheck because the server filters server side
@@ -66,8 +78,104 @@ async function testEverything() {
     }
 }
 
-async function expectAnswer(parser, input, context, expectedCode, expectedEntities) {
-    const analyzed = await parser.sendUtterance(input, context);
+async function testContextual() {
+    const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
+
+    const tok1 = await parser.tokenize('1234');
+    assert.deepStrictEqual(tok1, {
+        tokens: ['NUMBER_0'],
+        pos_tags: ['NN'],
+        raw_tokens: ['1234'],
+        sentiment: 'neutral',
+        entities: {
+            NUMBER_0: 1234
+        }
+    });
+
+    const tok2 = await parser.tokenize('1234', { NUMBER_0: 1234 });
+    assert.deepStrictEqual(tok2, {
+        tokens: ['NUMBER_0'],
+        pos_tags: ['NN'],
+        raw_tokens: ['1234'],
+        sentiment: 'neutral',
+        entities: {
+            NUMBER_0: 1234
+        }
+    });
+
+    const tok3 = await parser.tokenize('1235', { NUMBER_0: 1234 });
+    assert.deepStrictEqual(tok3, {
+        tokens: ['NUMBER_1'],
+        pos_tags: ['NN'],
+        raw_tokens: ['1235'],
+        sentiment: 'neutral',
+        entities: {
+            NUMBER_0: 1234,
+            NUMBER_1: 1235
+        }
+    });
+
+    const tok4 = await parser.tokenize('foo', { NUMBER_0: 1234 });
+    assert.deepStrictEqual(tok4, {
+        tokens: ['foo'],
+        pos_tags: ['NN'],
+        raw_tokens: ['foo'],
+        sentiment: 'neutral',
+        entities: {
+            NUMBER_0: 1234,
+        }
+    });
+
+    const q1 = await parser.sendUtterance('another one', {
+        code: 'now => @com.thecatapi.get => notify',
+        entities: {}
+    });
+    delete q1.intent;
+    assert.deepStrictEqual(q1, {
+        tokens: ['another', 'one'],
+        entities: {},
+        candidates: [{
+            code: [ 'now', '=>', '@com.thecatapi.get', '=>', 'notify' ],
+            score: 1
+        }]
+    });
+
+    const q2 = await parser.sendUtterance('another one', {
+        code: 'now => @uk.co.thedogapi.get => notify',
+        entities: {}
+    });
+    delete q2.intent;
+    assert.deepStrictEqual(q2, {
+        tokens: ['another', 'one'],
+        entities: {},
+        candidates: [{
+            code: [ 'now', '=>', '@uk.co.thedogapi.get', '=>', 'notify' ],
+            score: 1
+        }]
+    });
+
+    const q3 = await parser.sendUtterance('another one', {
+        code: 'now => @com.thecatapi.get param:count:Number = NUMBER_0 => notify',
+        entities: {
+            NUMBER_0: 2
+        }
+    });
+    delete q3.intent;
+    assert.deepStrictEqual(q3, {
+        tokens: ['another', 'one'],
+        entities: {
+            NUMBER_0: 2
+        },
+        candidates: [{
+            // this is actually not the right answer, but this is what the model says, and the server code is correct this way
+            code: [ 'now', '=>', '@com.thecatapi.get', 'param:count:Number', '=', '1', '=>', 'notify' ],
+            score: 1
+        }]
+    });
+}
+
+async function expectAnswer(parser, input, expecting, expectedCode, expectedEntities) {
+    const analyzed = await parser.sendUtterance(input, '', expecting);
 
     assert(Array.isArray(analyzed.candidates));
     assert(analyzed.candidates.length > 0);
@@ -81,16 +189,16 @@ function testExpect() {
 
     return Promise.all([
         expectAnswer(parser, '42', 'Number', 'bookkeeping answer NUMBER_0', { NUMBER_0: 42 }),
-        parser.sendUtterance('yes', 'YesNo'),
-        parser.sendUtterance('21 C', 'Measure(C)'),
-        parser.sendUtterance('69 F', 'Measure(C)'),
+        parser.sendUtterance('yes',  '','YesNo'),
+        parser.sendUtterance('21 C', '', 'Measure(C)'),
+        parser.sendUtterance('69 F', '', 'Measure(C)'),
     ]);
 }
 
 async function testMultipleChoice(text, expected) {
     const parser = new ParserClient(Config.NL_SERVER_URL, 'en-US');
 
-    const analyzed = await parser.sendUtterance(text, 'MultipleChoice',
+    const analyzed = await parser.sendUtterance(text, '', 'MultipleChoice',
         [{ title: 'choice number one' }, { title: 'choice number two' }]);
 
     assert.deepStrictEqual(analyzed.entities, {});
@@ -112,6 +220,7 @@ async function testOnlineLearn() {
 }
 
 async function main() {
+    await testContextual();
     await testEverything();
     await testExpect();
     await testMultipleChoice('choice number one', '0');

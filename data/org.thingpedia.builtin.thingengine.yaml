@@ -1,0 +1,16 @@
+thingpedia_name: Almond Configuration
+thingpedia_description: A placeholder for configuration parameters of Almond. This device is created and loaded automatically by the system.
+repository: https://github.com/stanford-oval/thingengine-core
+subcategory: service
+
+class: |
+  class @org.thingpedia.builtin.thingengine
+  #[system=true]
+  {
+    import loader from @org.thingpedia.builtin();
+    import config from @org.thingpedia.config.builtin();
+  }
+
+dataset: |
+  dataset @org.thingpedia.builtin.thingengine language "en" {
+  }
