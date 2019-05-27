@@ -43,16 +43,16 @@ class ValidationError extends Error {
     }
 }
 
-async function validateAnnotations(annotations) {
+function validateAnnotations(annotations) {
     for (let name of Object.getOwnPropertyNames(annotations)) {
         if (FORBIDDEN_NAMES.has(name))
-            throw new ValidationError(`Invalid annotation ${name}`);
+            throw new ValidationError(`Invalid implementation annotation ${name}`);
     }
 }
-async function validateMetadata(metadata, allowed) {
+function validateMetadata(metadata, allowed) {
     for (let name of Object.getOwnPropertyNames(metadata)) {
         if (!allowed.has(name))
-            throw new ValidationError(`Invalid annotation ${name}`);
+            throw new ValidationError(`Invalid natural language annotation ${name}`);
     }
 }
 
