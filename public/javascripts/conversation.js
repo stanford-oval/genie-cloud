@@ -333,8 +333,8 @@ $(function() {
         event.preventDefault();
     });
 
-    $('#input-form').on('keydown', function(event) { // up button is pressed (For issue #172)
-      if (event.keyCode == 38) {  //Up
+    $('#input-form').on('keydown', function(event) { // button is pressed
+      if (event.keyCode === 38) {  // Up
         // removes last item from array pastCommandsUp, displays it as currCommand, adds current input text to pastCommandsDown
         currCommand = pastCommandsUp.pop();
         if ($('#input').val() !== "") {
@@ -342,10 +342,8 @@ $(function() {
         }
         $('#input').val(currCommand);
       }
-    });
 
-    $('#input-form').on('keydown', function(event) { // down button is pressed (For issue #172)
-      if (event.keyCode == 40) {  //Down
+      if (event.keyCode === 40) {  // Down
         // removes last item from array pastCommandsDown, displays it as currCommand, adds current input text to pastCommandsUp
         currCommand = pastCommandsDown.pop();
         if ($('#input').val() !== "") {
