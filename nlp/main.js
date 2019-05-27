@@ -40,16 +40,16 @@ const Config = require('../config');
 class NLPInferenceServer {
     constructor() {
         this._models = new Map;
+        this._classifiers = new Map;
         this._tokenizer = new Genie.LocalTokenizer();
-        this._classifier = new FrontendClassifier();
     }
 
     get tokenizer() {
         return this._tokenizer;
     }
 
-    get frontendClassifier() {
-        return this._classifier;
+    getFrontendClassifier(languageTag) {
+        return this._classifiers.get(languageTag);
     }
 
     getModel(modelTag = 'default', locale) {
@@ -76,9 +76,13 @@ class NLPInferenceServer {
 
             for (let locale of I18n.LANGS) {
                 let language = locale.split('-')[0];
+
+                this._classifiers.set(language, new FrontendClassifier(language));
+
                 const model = new NLPModel(language, 'default', null, null);
                 await model.load(dbClient);
                 this._models.set(model.id, model);
+
 
                 if (await util.promisify(fs.exists)('./contextual:' + language)) {
                     const contextual = new NLPModel(language, 'contextual', null, null);

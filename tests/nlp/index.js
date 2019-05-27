@@ -55,6 +55,13 @@ async function testEverything() {
     for (let i = 0; i < TEST_CASES.length; i++) {
         const test = TEST_CASES[i];
         const analyzed = await parser.sendUtterance(test);
+
+        assert.strictEqual(typeof analyzed.intent, 'object');
+        assert.strictEqual(typeof analyzed.intent.question, 'number');
+        assert.strictEqual(typeof analyzed.intent.command, 'number');
+        assert.strictEqual(typeof analyzed.intent.chatty, 'number');
+        assert.strictEqual(typeof analyzed.intent.other, 'number');
+
         assert(Array.isArray(analyzed.candidates));
 
         // everything should typecheck because the server filters server side
@@ -123,6 +130,7 @@ async function testContextual() {
         code: 'now => @com.thecatapi.get => notify',
         entities: {}
     });
+    delete q1.intent;
     assert.deepStrictEqual(q1, {
         tokens: ['another', 'one'],
         entities: {},
@@ -136,6 +144,7 @@ async function testContextual() {
         code: 'now => @uk.co.thedogapi.get => notify',
         entities: {}
     });
+    delete q2.intent;
     assert.deepStrictEqual(q2, {
         tokens: ['another', 'one'],
         entities: {},
@@ -151,6 +160,7 @@ async function testContextual() {
             NUMBER_0: 2
         }
     });
+    delete q3.intent;
     assert.deepStrictEqual(q3, {
         tokens: ['another', 'one'],
         entities: {

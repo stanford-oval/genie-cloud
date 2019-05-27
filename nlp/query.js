@@ -74,8 +74,6 @@ async function query(params, data, service, res) {
     const expect = data.expect || null;
     const isTokenized = !!data.tokenized;
 
-    const intent = await service.frontendClassifier.classify(query);
-
     if (!I18n.get(params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
@@ -101,6 +99,9 @@ async function query(params, data, service, res) {
     }
 
     const languageTag = I18n.localeToLanguage(params.locale);
+
+    const intent = await service.getFrontendClassifier(languageTag).classify(query);
+
     let tokenized;
     if (isTokenized) {
         tokenized = {

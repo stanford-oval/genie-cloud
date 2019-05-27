@@ -8,49 +8,57 @@
 "use strict";
 
 const child_process = require('child_process');
+const path = require('path');
 
 const JsonDatagramSocket = require('../util/json_datagram_socket');
 
 module.exports = class FrontendClassifier {
-    constructor() {
-        // spawn python process
-        this.pythonProcess = child_process.spawn('python3', ['-u',
-            __dirname + "/python_classifier/classifier.py"]);
-
+    constructor(languageTag) {
         this.concurrentRequests = new Map();
         this.isLive = true;
         this.counter = 0;
 
-        this._stream = new JsonDatagramSocket(this.pythonProcess.stdout, this.pythonProcess.stdin, 'utf8');
+        // spawn python process
+        this._pythonProcess = child_process.spawn('python3', [
+            path.resolve(path.dirname(module.filename), './python_classifier/classifier.py'),
+            `./${languageTag}.classifier.h5`
+        ], {
+            stdio: ['pipe', 'pipe', 'inherit']
+        });
+        this._pythonProcess.on('exit', () => {
+            for (let { reject } of this.concurrentRequests.values())
+                reject(new Error('Classifier worker died'));
+            this.concurrentRequests.clear();
+
+            // FIXME autorespawn...
+        });
+
+        this._stream = new JsonDatagramSocket(this._pythonProcess.stdout, this._pythonProcess.stdin, 'utf8');
         this._stream.on('data', (msg) => {
             const id = msg.id;
 
             // matches id of request to handle concurrent requests
-            if (msg.error) {
-                this.concurrentRequests.get(id).reject(msg);
-                this.concurrentRequests.delete(id);
-            } else {
+            if (msg.error)
+                this.concurrentRequests.get(id).reject(new Error(msg.error));
+            else
                 this.concurrentRequests.get(id).resolve(msg);
-                this.concurrentRequests.delete(id);
-            }
+            this.concurrentRequests.delete(id);
         });
 
         // error handling
-        this._stream.on('error', (msg) => {
-            console.log("error occured");
-        });
-        this._stream.on('end', (error) => {
-            console.log("Ending Python Process");
-        });
-        this._stream.on('close', (hadError) => {
-            console.log("Closing Python Process");
-            this.isLive = false;
+        this._stream.on('error', (err) => {
+            // if we incur any error in communicating with the process, fail all requests
+
             for (let { reject } of this.concurrentRequests.values())
-                reject(new Error("Python Process Closed"));
+                reject(err);
+            this.concurrentRequests.clear();
+        });
+        this._stream.on('close', () => {
+            this.isLive = false;
         });
     }
 
-    _newPromise(id){
+    _newPromise(id) {
         var new_promise = {
             promise: null,
             resolve: null,
@@ -67,7 +75,7 @@ module.exports = class FrontendClassifier {
     classify(input){
         const new_promise = this._newPromise(this.counter);
         if (!this.isLive) {
-            new_promise.reject(Error("Python Process Dead"));
+            new_promise.reject(new Error('Classifier worker died'));
         } else {
             this._stream.write(
                 { id: this.counter, sentence: input }

@@ -68,6 +68,8 @@ tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'default:en'
 wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current-contextual.tar.gz -O $srcdir/tests/embeddings/current-contextual.tar.gz
 tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'contextual:en'
 
+wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/classifier.h5 -O en.classifier.h5
+
 PORT=$NLP_PORT node $srcdir/nlp/main.js &
 inferpid=$!
 
