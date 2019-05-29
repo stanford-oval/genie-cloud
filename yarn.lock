@@ -4322,10 +4322,10 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
-node-bing-api@^3.2.2:
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/node-bing-api/-/node-bing-api-3.2.2.tgz#4f831cbc17f8e42b0083893163563405d61482fb"
-  integrity sha512-N7huCGv1MNYxGRWsG/NyYXkgTxZlxqesIplkd1r6yAW5cMXJ1BO6gIcBxljLsGKGIJ5jstBoslh0RhdPjYBh1Q==
+node-bing-api@^4.0.1:
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/node-bing-api/-/node-bing-api-4.0.1.tgz#4e87f1b182344a3fc98a5c9c9d838c8ca10d0ab5"
+  integrity sha512-SX8PH6FwdrlF2yTM1MzpdAlX0xJTScPdZ7pL4OadKPRLeMrY5PlrG3sRMXR56rjBZPu1r9SWSi2Kvxt7m5Z1pQ==
   dependencies:
     request "^2.44.0"
     underscore "^1.6.0"
