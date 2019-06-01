@@ -1,0 +1,31 @@
+1.5.0
+=====
+
+* The Thingpedia pages have been made more user friendly, with less code
+  and more explanation of each device function [#259].
+* 2-factor authentication now offers a "Remember Me" options [#289, #301].
+* Users can now change their locale from the Settings, choosing from the
+  enabled languages [#44].
+* Added "Login With Github" option [#274, #290].
+* The configuration format was changed, and no longer requires environment
+  variables for security.
+* Web Almond now offers Readline-like history [#172, #318].
+* Translation support for refreshed and is now fully functional [#16, #17, #134, #302].
+* New Thingpedia API: /entities/create and /strings/create to upload
+  new entities or string datasets (useful for scripts) [#311].
+* Updated documentation, with a particular focus on deploying a custom
+  version of Almond Cloud [#283, #248, #277, #295, #296].
+* Added experimental support for contextual predictions in the NLP server.
+  This relies on an appropriately trained contextual Genie model; there is
+  no automatic training support yet. The API might change in the future [#317].
+* Added an experimental frontend classifier to the NLP server. This classifier
+  determines a confidence level that the user input is a supported ThingTalk
+  command, a general-knowledge question (suitable for a search engine) or a chatbot
+  command. The API is experimental and the dialog agent does not make use of this
+  information yet [#286, #294].
+* Misc bug fixes [#22, #28, #272, #281, #288, #291, #292, #298, #299, #300, #303,
+  #305, #307, #308, #315].
+
+Contributors in this release:
+- Ryan Cheng
+- Tanay Sonthalia
