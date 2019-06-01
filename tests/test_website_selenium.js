@@ -141,6 +141,9 @@ async function skipDataCollectionConfirmation(driver) {
         30000);
     await checkAllImages(driver);
 
+    // wait some extra time for the almond thread to respond
+    await driver.sleep(5000);
+
     let messages = await driver.findElements(WD.By.css('.message'));
     assert.strictEqual(await messages[0].getText(), `Hello! I'm Almond, your virtual assistant.`); //'
 
@@ -171,6 +174,9 @@ async function testMyConversation(driver) {
         WD.until.elementLocated(WD.By.id('input')),
         30000);
     await checkAllImages(driver);
+
+    // wait some extra time for the almond thread to respond
+    await driver.sleep(5000);
 
     let messages = await driver.findElements(WD.By.css('.message'));
     assert.strictEqual(messages.length, 1);
