@@ -64,11 +64,9 @@ function colorScale(from, length) {
 }
 
 const LABELS = {
-    'accuracy': "Program",
-    'function_accuracy': "Function",
-    'device_accuracy': "Device",
-    'num_function_accuracy': "Prim/Compound",
-    'grammar_accuracy': "Syntax"
+    'em': "Program",
+    'fm': "Function",
+    'dm': "Device",
 };
 $(() => {
     const ctx = document.getElementById('chart-accuracy-combined');
@@ -87,7 +85,7 @@ $(() => {
                     const value = metrics[modelTag][metricKey] || 0;
                     const prevValue = i === 0 ? 0 :
                         (metrics[modelTag][metricKeys[i-1]] || 0);
-                    return 100* (value - prevValue);
+                    return (value - prevValue);
                 }),
                 backgroundColor: colors[i],
                 borderColor: 'black',
