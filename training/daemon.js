@@ -425,6 +425,7 @@ Check the logs for further information.`
 
                 if (queue.current !== null &&
                     queue.current.language === req.params.language &&
+                    (!queue.current.modelDevices || queue.current.modelDevices.indexOf(req.params.forDevice) >= 0) &&
                     (queue.current.forDevices.length === 0 || queue.current.forDevices.some((d) => d === req.params.forDevice))) {
                     jobs[jobType] = queue.current;
                     continue;
@@ -432,6 +433,7 @@ Check the logs for further information.`
 
                 for (let candidate of queue.next.concat(queue.waiting)) {
                     if (candidate.language === req.params.language &&
+                        (!candidate.modelDevices || candidate.modelDevices.indexOf(req.params.forDevice) >= 0) &&
                         (candidate.forDevices.length === 0 || candidate.forDevices.some((d) => d === req.params.forDevice))) {
                         jobs[jobType] = candidate;
                         break;
