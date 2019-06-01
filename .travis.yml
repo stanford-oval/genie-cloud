@@ -32,8 +32,6 @@ before_install:
 install:
 - sudo apt-get install -y graphicsmagick libsystemd-dev realpath bubblewrap python3
 - travis_retry yarn
-- (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules/ ); 
-- (cd node_modules/thingengine-core ; yarn prepare ); 
 - pyenv global 3.6.7
 - travis_wait ./tests/install-nlp-deps.sh
 - export DECANLP_EMBEDDINGS=`pwd`/tests/embeddings
