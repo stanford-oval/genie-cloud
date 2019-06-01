@@ -393,7 +393,10 @@ function slugify(s) {
 
 router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR),
     iv.validatePOST({ id: 'integer', title: 'string', image: 'string', blurb: 'string', source: 'string' }), (req, res, next) => {
-    const md = new markdown();
+    const md = new markdown({ html: true });
+    md.renderer.rules.table_open = (tokens, idx) => {
+        return '<table class="table">';
+    };
     md.use(require('markdown-it-anchor'));
     md.use(require('markdown-it-highlightjs'));
     md.use(require('markdown-it-container-pandoc'));
@@ -422,7 +425,10 @@ router.post('/blog/update', user.requireRole(user.Role.BLOG_EDITOR),
 
 router.post('/blog/create', user.requireRole(user.Role.BLOG_EDITOR),
     iv.validatePOST({ title: 'string', image: 'string', blurb: 'string', source: 'string' }), (req, res, next) => {
-    const md = new markdown();
+    const md = new markdown({ html: true });
+    md.renderer.rules.table_open = (tokens, idx) => {
+        return '<table class="table">';
+    };
     md.use(require('markdown-it-anchor'));
     md.use(require('markdown-it-highlightjs'));
     md.use(require('markdown-it-container-pandoc'));

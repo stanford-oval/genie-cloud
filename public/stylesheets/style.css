@@ -294,6 +294,9 @@ img.device-icon-tiny {
 .blog-post-ref:first-child {
    margin-top: 0;
 }
+.blog-post img {
+   max-width: 100%;
+}
 
 #user-authorized-oauth-panel img.device-icon-tiny {
   box-sizing: content-box;
