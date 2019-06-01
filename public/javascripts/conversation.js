@@ -315,9 +315,8 @@ $(function() {
 
     $('#input-form').submit(function(event) {
         var text = $('#input').val();
-        if (currCommand !== "") {
+        if (currCommand !== "")
           pastCommandsUp.push(currCommand);
-        }
         if (pastCommandsDown.length !== 0) {
           pastCommandsUp = pastCommandsUp.concat(pastCommandsDown);
           pastCommandsDown = [];
@@ -343,18 +342,16 @@ $(function() {
       if (event.keyCode === 38) {  // Up
         // removes last item from array pastCommandsUp, displays it as currCommand, adds current input text to pastCommandsDown
         currCommand = pastCommandsUp.pop();
-        if ($('#input').val() !== "") {
+        if ($('#input').val() !== "")
           pastCommandsDown.push($('#input').val());
-        }
         $('#input').val(currCommand);
       }
 
       if (event.keyCode === 40) {  // Down
         // removes last item from array pastCommandsDown, displays it as currCommand, adds current input text to pastCommandsUp
         currCommand = pastCommandsDown.pop();
-        if ($('#input').val() !== "") {
+        if ($('#input').val() !== "")
           pastCommandsUp.push($('#input').val());
-        }
         $('#input').val(currCommand);
       }
     });
