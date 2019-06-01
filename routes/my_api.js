@@ -256,6 +256,17 @@ class WebsocketAssistantDelegate {
         return this._ws.send(JSON.stringify({ type: 'rdl', rdl: rdl, icon: icon }));
     }
 
+    sendResult(message, icon) {
+        return this._ws.send(JSON.stringify({
+            type: 'result',
+            result: message,
+
+            // FIXME pass the right locale here...
+            fallback: message.toLocaleString(),
+            icon: icon
+        }));
+    }
+
     sendChoice(idx, what, title, text) {
         return this._ws.send(JSON.stringify({ type: 'choice', idx: idx, title: title, text: text }));
     }
@@ -272,7 +283,7 @@ class WebsocketAssistantDelegate {
         return this._ws.send(JSON.stringify({ type: 'askSpecial', ask: what }));
     }
 }
-WebsocketAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
+WebsocketAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
 
 async function doConversation(user, anonymous, ws, query) {
     try {

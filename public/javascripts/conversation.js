@@ -230,6 +230,12 @@ $(function() {
             currentGrid = null;
             break;
 
+        case 'result':
+            // FIXME: support more type of results
+            textMessage(parsed.fallback, parsed.icon);
+            currentGrid = null;
+            break;
+
         case 'choice':
             choice(parsed.idx, parsed.title);
             break;
