@@ -38,39 +38,36 @@ function getOrgId(req) {
         return req.user.developer_org;
 }
 
-router.get('/by-id/:kind', iv.validateGET({ language: '?string' }), (req, res, next) => {
-    const language = req.query.language || (req.user ? I18n.localeToLanguage(req.user.locale) : 'en');
+router.get('/by-id/:kind', iv.validateGET({ locale: '?string' }), (req, res, next) => {
+    const locale = req.query.locale || (req.user ? req.user.locale : 'en');
+    const language = I18n.localeToLanguage(locale);
     db.withClient(async (dbClient) => {
         const orgId = getOrgId(req);
-        const [devices, schemas] = await Promise.all([
+        const [devices, schemas, examples] = await Promise.all([
             deviceModel.getFullCodeByPrimaryKind(dbClient, req.params.kind, orgId),
             schemaModel.getMetasByKinds(dbClient, [req.params.kind], orgId, language),
+            exampleModel.getByKinds(dbClient, [req.params.kind], getOrgId(req), language),
         ]);
         if (devices.length === 0 || schemas.length === 0) {
             res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
                                               message: req._("Not Found.") });
             return;
         }
-        const classDef = ThingTalk.Grammar.parse(Importer.migrateManifest(devices[0].code, devices[0]));
+        const parsed = ThingTalk.Grammar.parse(Importer.migrateManifest(devices[0].code, devices[0]));
+        const classDef = parsed.classes[0];
         const schema = schemas[0];
-        SchemaUtils.mergeClassDefAndSchema(classDef, schema);
-        const config = classDef.classes[0].config;
+        const translated = SchemaUtils.mergeClassDefAndSchema(classDef, schema);
+        const config = classDef.config;
         if (config) {
             config.in_params.forEach((p) => {
                 if ((p.name.endsWith('_secret') || p.name.endsWith('_key')) && p.value.isString)
                     p.value.value = '<hidden>';
             });
         }
-
-        let [translated, examples] = await Promise.all([
-            language === 'en' ? true : schemaModel.isKindTranslated(dbClient, req.params.kind, language),
-            exampleModel.getByKinds(dbClient, [req.params.kind], getOrgId(req), language),
-        ]);
-
-        const code = classDef.prettyprint();
+        const code = parsed.prettyprint();
 
         const highlightedCode = highlightjs.highlight('tt', code).value;
-        const dataset = DatasetUtils.examplesToDataset(req.params.kind, 'en', examples,
+        const dataset = DatasetUtils.examplesToDataset(req.params.kind, language, examples,
             { editMode: true });
         const highlighedDataset = highlightjs.highlight('tt', dataset).value;
 
@@ -88,7 +85,8 @@ router.get('/by-id/:kind', iv.validateGET({ language: '?string' }), (req, res, n
 
         res.render('thingpedia_schema', { page_title: req._("Thingpedia - Type detail"),
                                           csrfToken: req.csrfToken(),
-                                          schema: row });
+                                          schema: row,
+                                          uselocale: locale });
     }).catch(next);
 });
 

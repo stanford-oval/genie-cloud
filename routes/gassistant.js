@@ -49,11 +49,15 @@ class GoogleAssistantDelegate {
         // FIXME
     }
 
+    sendResult(message, icon) {
+        // FIXME
+    }
+
     sendAskSpecial(what) {
         this._askSpecial = what;
     }
 }
-GoogleAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
+GoogleAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
 
 
 router.post('/', (req, res, next) => {

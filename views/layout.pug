@@ -22,19 +22,22 @@ html
   - var stdlayout = true;
   - var includefooter = true;
   body(data-icon-cdn=CDN_HOST, data-developer-key=authenticated ? user.developer_key : false,
-       data-locale=locale, data-thingpedia-url=THINGPEDIA_URL, data-cloud-id=user.cloud_id,
+       data-locale=locale,
+       data-thingpedia-url=THINGPEDIA_URL,
+       data-nl-server-url=Config.NL_SERVER_URL,
+       data-cloud-id=user.cloud_id,
        data-csrf-token=csrfToken)
     nav.navbar-inverse.navbar.navbar-fixed-top(role="banner")
       div.navbar-header
         button(class="navbar-toggle collapsed", data-toggle="collapse", data-target="#page-nav")
-          span.sr-only Toggle navigation
+          span.sr-only= _("Toggle navigation")
           span.icon-bar
           span.icon-bar
           span.icon-bar
         a.navbar-brand.scroller.hidden-xs.hidden-sm(href='/')
           //-if Config.USE_STANFORD_BRAND
             img(src=Config.ASSET_CDN + '/images/stanford-logo.png', aria-hidden='true')#stanford-logo
-          span Almond
+          span= _("Almond")
         span.navbar-brand.scroller.hidden-md.hidden-lg(aria-hidden='true')
           block page_name
 

@@ -9,6 +9,7 @@
 // See COPYING for details
 "use strict";
 
+const stream = require('stream');
 const db = require('../util/db');
 
 module.exports = {
@@ -25,6 +26,10 @@ module.exports = {
                             [id, language]);
     },
 
+    delete(client, id) {
+        return db.query(client, `delete from entity_names where id = ?`, [id]);
+    },
+
     getAll(client) {
         return db.selectAll(client, "select * from entity_names where language = 'en' order by is_well_known asc, id asc");
     },
@@ -35,6 +40,19 @@ module.exports = {
 
     getValues(client, id) {
         return db.selectAll(client, "select distinct entity_value, entity_name, entity_canonical from entity_lexicon where entity_id = ? and language = 'en'", [id]);
+    },
+    insertValueStream(client) {
+        return new stream.Writable({
+            objectMode: true,
+            write(obj, encoding, callback) {
+                client.query(`insert into entity_lexicon set ?`, [obj], callback);
+            },
+            writev(objs, callback) {
+                client.query(`insert into entity_lexicon(language,entity_id,entity_value,entity_canonical,entity_name) values ?`,
+                [objs.map((o) => [o.chunk.language, o.chunk.entity_id, o.chunk.entity_value, o.chunk.entity_canonical, o.chunk.entity_name])],
+                callback);
+            }
+        });
     },
 
     lookup(client, language, token) {

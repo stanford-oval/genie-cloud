@@ -4,30 +4,50 @@ $(function() {
         + $('#conversation').attr('data-target');
 
     var ws;
+    var open = false;
+
+    var pastCommandsUp = []; // array accessed by pressing up arrow
+    var pastCommandsDown = []; // array accessed by pressing down arrow
+    var currCommand = ""; // current command between pastCommandsUp and pastCommandsDown
+
+    function updateFeedback(thinking) {
+        if (!ws || !open) {
+            $('#input-form-group').addClass('has-warning');
+            $('#input-form-group .spinner-container').addClass('hidden');
+-           $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').removeClass('hidden');
+            return;
+        }
+
+        $('#input-form-group').removeClass('has-warning');
+        $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
+        if (thinking)
+            $('#input-form-group .spinner-container').removeClass('hidden');
+        else
+            $('#input-form-group .spinner-container').addClass('hidden');
+    }
+
     (function() {
-        var wasOpen = false;
         var reconnectTimeout = 100;
 
         function connect() {
             ws = new WebSocket(url);
             ws.onmessage = function(event) {
-                if (!wasOpen) {
-                    wasOpen = true;
+                if (!open) {
+                    open = true;
                     reconnectTimeout = 100;
-                    $('#input-form-group').removeClass('has-warning');
-                    $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').addClass('hidden');
+                    updateFeedback(false);
                 }
                 onWebsocketMessage(event);
             };
 
             ws.onclose = function() {
                 console.error('Web socket closed');
-                $('#input-form-group').addClass('has-warning');
-                $('#input-form-group .glyphicon-warning-sign, #input-form-group .help-block').removeClass('hidden');
+                ws = undefined;
+                updateFeedback(false);
 
-                // reconnect immediately if the connection succeeded, otherwise
+                // reconnect immediately if the connection previously succeeded, otherwise
                 // try again in a little bit
-                if (wasOpen) {
+                if (open) {
                     setTimeout(connect, 100);
                 } else {
                     reconnectTimeout = 1.5 * reconnectTimeout;
@@ -210,6 +230,12 @@ $(function() {
             currentGrid = null;
             break;
 
+        case 'result':
+            // FIXME: support more type of results
+            textMessage(parsed.fallback, parsed.icon);
+            currentGrid = null;
+            break;
+
         case 'choice':
             choice(parsed.idx, parsed.title);
             break;
@@ -229,6 +255,8 @@ $(function() {
                 yesnoMessage();
             break;
         }
+
+        updateFeedback(false);
     }
 
     function handleSlashR(line) {
@@ -240,7 +268,6 @@ $(function() {
     }
 
     function handleCommand(text) {
-        collapseButtons();
         if (text.startsWith('\\r')) {
             handleSlashR(text.substring(3));
             return;
@@ -248,7 +275,10 @@ $(function() {
         if (text.startsWith('\\t')) {
             handleThingTalk(text.substring(3));
             return;
-           }
+        }
+
+        collapseButtons();
+        updateFeedback(true);
 
         if ($('#input').attr('type') === 'password')
             appendUserMessage("••••••••");
@@ -258,11 +288,16 @@ $(function() {
     }
     function handleParsedCommand(json, title) {
         collapseButtons();
+        updateFeedback(true);
+
         if (title)
             appendUserMessage(title);
         ws.send(JSON.stringify({ type: 'parsed', json: json }));
     }
     function handleThingTalk(tt) {
+        collapseButtons();
+        updateFeedback(true);
+
         appendUserMessage('\\t ' + tt);
         ws.send(JSON.stringify({ type: 'tt', code: tt }));
     }
@@ -280,6 +315,14 @@ $(function() {
 
     $('#input-form').submit(function(event) {
         var text = $('#input').val();
+        if (currCommand !== "")
+          pastCommandsUp.push(currCommand);
+        if (pastCommandsDown.length !== 0) {
+          pastCommandsUp = pastCommandsUp.concat(pastCommandsDown);
+          pastCommandsDown = [];
+        }
+        pastCommandsUp.push(text);
+
         $('#input').val('');
 
         handleCommand(text);
@@ -293,5 +336,23 @@ $(function() {
         $(this).hide();
         $('#conversation').collapse('show');
         event.preventDefault();
+    });
+
+    $('#input-form').on('keydown', function(event) { // button is pressed
+      if (event.keyCode === 38) {  // Up
+        // removes last item from array pastCommandsUp, displays it as currCommand, adds current input text to pastCommandsDown
+        currCommand = pastCommandsUp.pop();
+        if ($('#input').val() !== "")
+          pastCommandsDown.push($('#input').val());
+        $('#input').val(currCommand);
+      }
+
+      if (event.keyCode === 40) {  // Down
+        // removes last item from array pastCommandsDown, displays it as currCommand, adds current input text to pastCommandsUp
+        currCommand = pastCommandsDown.pop();
+        if ($('#input').val() !== "")
+          pastCommandsUp.push($('#input').val());
+        $('#input').val(currCommand);
+      }
     });
 });

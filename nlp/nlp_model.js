@@ -11,12 +11,15 @@
 
 const path = require('path');
 const Genie = require('genie-toolkit');
+const TpClient = require('thingpedia-client');
 
 const BaseThingpediaClient = require('../util/thingpedia-client');
 
 const ExactMatcher = require('./exact');
 
 const db = require('../util/db');
+
+const Config = require('../config');
 
 // A ThingpediaClient that operates under the credentials of a specific organization
 class OrgThingpediaClient extends BaseThingpediaClient {
@@ -46,7 +49,7 @@ module.exports = class NLPModel {
         this.id = `@${modelTag}/${locale}`;
         this.locale = locale;
 
-        const isDefault = modelTag === 'default';
+        const isDefault = modelTag === 'default' || modelTag === 'contextual';
         if (isDefault)
             this.exact = new ExactMatcher(locale, modelTag);
         else
@@ -61,8 +64,17 @@ module.exports = class NLPModel {
             nprocesses = 1;
         this.predictor = new Genie.Predictor(this.id, modeldir, nprocesses);
 
-        const org = owner === null ? { is_admin: true, id: 1 } : { is_admin: false, id: owner };
-        this.tpClient = new OrgThingpediaClient(locale, org);
+        if (Config.WITH_THINGPEDIA === 'embedded') {
+            const org = owner === null ? { is_admin: true, id: 1 } : { is_admin: false, id: owner };
+            this.tpClient = new OrgThingpediaClient(locale, org);
+        } else {
+            this.tpClient = new TpClient.HttpClient({
+                getDeveloperKey() {
+                    return Config.NL_THINGPEDIA_DEVELOPER_KEY;
+                },
+                locale: locale,
+            }, Config.THINGPEDIA_URL);
+        }
     }
 
     destroy() {

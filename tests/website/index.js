@@ -26,4 +26,5 @@ seq([
     ('./test_my_api'),
     ('./test_admin'),
     Config.WITH_THINGPEDIA === 'embedded' ? ('./test_oauth') : null,
+    Config.WITH_THINGPEDIA === 'embedded' ? ('./test_string_entities') : null,
 ]);

@@ -268,7 +268,7 @@ class DatasetUpdater {
             debug: this._options.debug,
         };
 
-        const generator = new Genie.SentenceGenerator(options);
+        const generator = new Genie.BasicSentenceGenerator(options);
         const transform = new Stream.Transform({
             readableObjectMode: true,
             writableObjectMode: true,

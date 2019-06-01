@@ -1,0 +1,128 @@
+thingpedia_name: Miscellaneous Interfaces
+thingpedia_description: Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging.
+repository: https://github.com/stanford-oval/thingengine-core
+subcategory: service
+
+class: |
+  class @org.thingpedia.builtin.thingengine.builtin {
+    import loader from @org.thingpedia.builtin();
+    import config from @org.thingpedia.config.builtin();
+
+    query get_time(out time: Date)
+    #_[canonical="get time"]
+    #_[confirmation="the current time"]
+    #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
+    #[doc="get the current time; this is equivalent to $now() and exists mostly so that Sabrina can codegen it"];
+
+    query get_date(out date: Date)
+    #_[canonical="get date"]
+    #_[confirmation="today's date"]
+    #_[formatted=[{type="text",text="Today is ${date:date}."}]]
+    #[doc="get the current date; this is equivalent to $now() and exists mostly so that Sabrina can codegen it; also equivalent to get_time() but the default formatting is different"];
+
+    query get_random_between(in req low: Number #_[prompt="What should be the lower bound?"],
+                             in req high: Number #_[prompt="What should be the upper bound?"],
+                             out random: Number)
+    #_[canonical="get random integer"]
+    #_[confirmation="a random integer between $low and $high"]
+    #_[formatted=[{type="text",text="${random}"}]]
+    #[doc="get a uniform random integer between `low` and `high`; this is equivalent to $random() and some rounding/mod operation"];
+
+    list query get_commands(in req device: Entity(tt:device) #_[prompt="What device do you want help for?"],
+                            out program: Entity(tt:program))
+    #_[canonical="list commands"]
+    #_[confirmation="the list of commands of $device"]
+    #_[formatted=[{type="text",text="${program}"}]]
+    #[doc="retrieve the list of supported commands for the given device"];
+
+    query canned_reply(in req intent: Enum(hello,cool,sorry,thank_you),
+                     out text : String)
+    #_[canonical="get canned reply"]
+    #_[confirmation="a reply to ${intent}"]
+    #_[formatted=["${text}"]]
+    #[doc="provide a canned reply to some common intents"];
+
+    action debug_log(in req message: String #_[prompt="What should I write in the logs?"])
+    #_[canonical="log"]
+    #_[confirmation="write $message in the developer logs"]
+    #_[confirmation_remote="write $message in the developer logs on $__person's phone"]
+    #[doc="log a message in the developer logs"];
+
+    action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"])
+    #_[canonical="configure"]
+    #_[confirmation="configure a new $device"]
+    #_[confirmation_remote="configure a new $device on $__person's Almond"]
+    #[doc="configure a specific device by type"];
+
+    action say(in req message: String #_[prompt="What do you want me to say?"])
+    #_[canonical="say"]
+    #_[confirmation="send me a message $message"]
+    #_[confirmation_remote="send $__person message $message"]
+    #[doc="makes Almond say something; this is the codegennable version of @$notify"];
+
+    action discover()
+    #_[canonical="discover"]
+    #_[confirmation="search for new devices"]
+    #_[confirmation_remote="search for new devices on $__person's Almond"]
+    #[doc="start interactive discovery for new devices"];
+
+    action open_url(in req url: Entity(tt:url) #_[prompt="What URL do you want to open?"])
+    #_[canonical="open url on builtin"]
+    #_[confirmation="open $url"]
+    #_[confirmation_remote="open $url in $__person's PC"]
+    #[doc="open a file/link"];
+  }
+
+dataset: |
+  dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
+      query  := @org.thingpedia.builtin.thingengine.builtin.get_time()
+      #_[utterances=["the current time","what time is it"]];
+
+      query  := @org.thingpedia.builtin.thingengine.builtin.get_date()
+      #_[utterances=["the current date","what day is today","what day is it","today 's date"]];
+
+      query  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=$?, high=$?)
+      #_[utterances=["a random number",", choose a random number"]];
+
+      query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high)
+      #_[utterances=["a random number between ${p_low:const} and ${p_high:const}","a random integer between ${p_low:const} and ${p_high:const}",", throw a dice between ${p_low:const} and ${p_high:const}",", generate a random number between ${p_low:const} and ${p_high:const}",", choose a number between ${p_low:const} and ${p_high:const}"]];
+
+      action  := @org.thingpedia.builtin.thingengine.builtin.discover()
+      #_[utterances=["discover new devices","search devices nearby"]];
+
+      action (p_device :Entity(tt:device))  := @org.thingpedia.builtin.thingengine.builtin.configure(device=p_device)
+      #_[utterances=["configure $p_device","setup $p_device","enable $p_device","install $p_device"]];
+
+      action (p_message :String)  := @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
+      #_[utterances=["send me a message ${p_message:const}","tell me $p_message","say $p_message"]];
+
+      query  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=0, high=1)
+      #_[utterances=["a random coin"]];
+
+      query (p_device :Entity(tt:device))  := @org.thingpedia.builtin.thingengine.builtin.get_commands(device=p_device)
+      #_[utterances=["the commands in $p_device",", help $p_device","commands that $p_device supports","commands supported by $p_device","what $p_device can do"]];
+
+      action (p_url :Entity(tt:url))  := @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url)
+      #_[utterances=["open $p_url","open the file at $p_url","open $p_url in the browser","browse to $p_url"]];
+
+      program  := {
+    now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(hello)) => notify;
+  }
+      #_[utterances=["hello","hello!","hi","hi!","howdy","good morning","good afternoon","good evening"]];
+
+      program  := {
+    now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(cool)) => notify;
+  }
+      #_[utterances=["cool","awesome","you're cool","i like you","i like this"]];
+
+      program  := {
+    now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(thank_you)) => notify;
+  }
+      #_[utterances=["thank you","thanks","good job"]];
+
+      program  := {
+    now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(sorry)) => notify;
+  }
+      #_[utterances=["sorry","i'm sorry","my bad","my mistake"]];
+
+  }

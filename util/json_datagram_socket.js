@@ -81,7 +81,7 @@ module.exports = class JsonDatagramSocket extends events.EventEmitter {
             try {
                 msg = JSON.parse(split[i]);
             } catch(e) {
-                console.log('Message does not parse as JSON: '+ msg);
+                console.log('Message does not parse as JSON: '+ split[i]);
                 continue;
             }
 

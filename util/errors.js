@@ -30,6 +30,13 @@ class ForbiddenError extends HTTPError {
     }
 }
 
+class AuthenticationError extends HTTPError {
+    constructor(message = "Authentication required.") {
+        super(401, message);
+        this.code = 'EACCESS';
+    }
+}
+
 class NotFoundError extends Error {
     constructor() {
         super("Not Found");
@@ -48,6 +55,7 @@ module.exports = {
     HTTPError,
     BadRequestError,
     ForbiddenError,
+    AuthenticationError,
 
     NotFoundError,
 

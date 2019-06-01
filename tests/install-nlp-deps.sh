@@ -7,6 +7,8 @@ set -o pipefail
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
 
+pip3 install -r nlp/python_classifier/requirements.txt
+
 which decanlp >/dev/null 2>&1 || pip3 install --user 'git+https://github.com/stanford-oval/decaNLP.git#egg=decanlp'
 which decanlp
 

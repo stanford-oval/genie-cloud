@@ -1,0 +1,45 @@
+thingpedia_name: Test Device
+thingpedia_description: Test Almond in various ways.
+repository: https://github.com/stanford-oval/thingengine-core
+subcategory: service
+
+class: |
+  class @org.thingpedia.builtin.test
+  #[system=true]
+  {
+    import loader from @org.thingpedia.builtin();
+    import config from @org.thingpedia.config.builtin();
+
+    monitorable list query get_data(in req size: Measure(byte) #_[prompt="How much fake data do you want?"],
+                                    in opt count: Number,
+                                    out data: String)
+    #_[canonical="get data on test"]
+    #_[confirmation="generate $size of fake data"]
+    #_[confirmation_remote="generate $size of fake data on $__person's Almond"]
+    #_[formatted=[{type="text",text="${data}"}]]
+    #[poll_interval=0ms]
+    #[doc="generate `size` amount of fake data"];
+
+    query next_sequence(out number: Number)
+    #_[canonical="get sequence number on test"]
+    #_[confirmation="return the next test number"]
+    #_[formatted=[{type="text",text="${number}"}]]
+    #[doc="return the next number in a global sequence; used to test that the queries are invoked the correct number of times; this query is an abuse (it has side effects!), don't copy it in your own devices"];
+
+    query dup_data(in req data_in: String #_[prompt="What data do you want to duplicate?"],
+                   out data_out: String)
+    #_[canonical="duplicate data on test"]
+    #_[confirmation="duplicate ${data_in} data"]
+    #_[formatted=[{type="text",text="${data_out}"}]]
+    #[doc="duplicate the data (concatenate two copies); this is a simple deterministic get that depends on the input and is used to test param passing into a get"];
+
+    action eat_data(in req data: String #_[prompt="What do you want me to consume?"])
+    #_[canonical="eat data on test"]
+    #_[confirmation="consume $data"]
+    #_[confirmation_remote="consume $data on $__person's Almond"]
+    #[doc="consume some data, do nothing"];
+  }
+
+dataset: |
+  dataset @org.thingpedia.builtin.test language "en" {
+  }

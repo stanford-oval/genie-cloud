@@ -18,19 +18,37 @@ const assert = require('assert');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
 const { tokenize } = require('../util/tokenize');
 
+function mockTokenize(string) {
+    const entities = {};
+    let num = 0;
+
+    const rawTokens = tokenize(string);
+    const tokens = rawTokens.map((token) => {
+        if (/^[0-9]+$/.test(token) && token !== '1' && token !== '0' && token !== '911') {
+            const tok = `NUMBER_${num}`;
+            num++;
+            entities[tok] = parseInt(token);
+            return tok;
+        } else {
+            return token;
+        }
+    });
+    return [rawTokens, tokens, entities];
+}
+
 function handleConnection(socket) {
     const wrapped = new JsonDatagramSocket(socket, socket, 'utf8');
 
     wrapped.on('data', (msg) => {
         try {
             assert.strictEqual(msg.languageTag, 'en');
-            const tokens = tokenize(msg.utterance);
+            const [rawTokens, tokens, values] = mockTokenize(msg.utterance);
             wrapped.write({
                 req: msg.req,
-                tokens: tokens,
-                values: {},
-                rawTokens: tokens,
-                pos: tokens.map(() => 'NN'),
+                tokens,
+                values,
+                rawTokens,
+                pos: rawTokens.map(() => 'NN'),
                 sentiment: 'neutral'
             });
         } catch(e) {

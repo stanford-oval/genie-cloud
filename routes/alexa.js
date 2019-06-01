@@ -75,11 +75,15 @@ class AlexaDelegate {
         // FIXME
     }
 
+    sendResult(message, icon) {
+        // FIXME
+    }
+
     sendAskSpecial(what) {
         this._askSpecial = what;
     }
 }
-AlexaDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL'];
+AlexaDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
 
 router.post('/', (req, res, next) => {
     if (req.body && req.body.session && req.body.session.user && req.body.session.user.accessToken &&

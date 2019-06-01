@@ -41,7 +41,7 @@ block content
     div.alert.alert-info(role='alert')
       p
         = _("The translation for this type in your language is incomplete. ")
-        a(href='/thingpedia/translate/by-id/' + schema.kind).btn.btn-default= _("Contribute translation")
+        a(href='/thingpedia/translate/by-id/' + schema.kind + '?locale=' + uselocale).btn.btn-default= _("Contribute translation")
 
   if schema.kind_type === 'discovery'
     p
@@ -66,15 +66,16 @@ block content
   code.hljs.schema-code-block#schema-dataset
     != schema.highlighedDataset
 
+  hr
   div.row#device-details-actions
-    if schema.kind_type === 'other' && authenticated && ((user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0 || schema.owner === user.developer_org)
+    if authenticated && ((user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0 || schema.owner === user.developer_org)
       div.col-md-2
-        a.btn.btn-warning.btn-block(href='/thingpedia/devices/update/' + schema.kind)= _("Edit")
+        a.btn.btn-warning.btn-block(href='/thingpedia/upload/update/' + schema.kind)= _("Edit")
       div.col-md-2
         form(action='/thingpedia/devices/delete', method='post').form-delete-device
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=schema.kind)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
-    if authenticated && user.locale !== 'en-US'
+    if authenticated && uselocale !== 'en-US'
       div.col-md-2
-        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + schema.kind)= _("Translate")
+        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + schema.kind + '?locale=' + uselocale)= _("Translate")
