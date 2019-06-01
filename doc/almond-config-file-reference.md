@@ -237,6 +237,14 @@ be shared between the NLP training server and NLP inference server.
 
 Default value: `null`
 
+## NL_THINGPEDIA_DEVELOPER_KEY
+Developer key to use from the NLP server to access Thingpedia.
+
+Set this key to your Thingpedia developer key if you're configuring a custom
+NLP server but you want to use the public Thingpedia.
+
+Default value: `null`
+
 ## TRAINING_URL
 Training server URL.
 
