@@ -14,6 +14,7 @@ const markdown = require('markdown-it');
 const Url = require('url');
 
 const user = require('../util/user');
+const userUtils = require('../util/user');
 const model = require('../model/user');
 const organization = require('../model/organization');
 const device = require('../model/device');
@@ -175,7 +176,7 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res, 
 
     db.withTransaction((dbClient) => {
         return model.get(dbClient, req.params.id).then((user) => {
-            if (user.developer_status >= user.DeveloperStatus.ORG_ADMIN)
+            if (user.developer_status >= userUtils.DeveloperStatus.ORG_ADMIN)
                 return Promise.resolve();
 
             if (user.developer_org === null) {
@@ -186,7 +187,7 @@ router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res, 
                     id_hash: makeRandom(8),
                     developer_key: makeRandom()
                 }).then((org) => {
-                    return model.update(dbClient, user.id, { developer_status: user.DeveloperStatus.ORG_ADMIN,
+                    return model.update(dbClient, user.id, { developer_status: userUtils.DeveloperStatus.ORG_ADMIN,
                                                              developer_org: org.id });
                 });
             } else {
