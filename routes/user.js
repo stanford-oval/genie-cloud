@@ -113,8 +113,13 @@ router.get('/login', (req, res, next) => {
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/user/login',
                                                        failureFlash: true }), (req, res, next) => {
+
+
     req.session.completed2fa = false;
-    if (req.user.totp_key) {
+    if (req.signedCookies['almond.skip2fa'] === 'yes')
+        req.session.completed2fa = true;
+
+    if (req.user.totp_key && !req.session.completed2fa) {
         // if 2fa is enabled, redirect to the 2fa login page
         res.redirect(303, '/user/2fa/login');
     } else {
@@ -147,6 +152,13 @@ router.get('/2fa/login', (req, res, next) => {
 router.post('/2fa/login', passport.authenticate('totp', { failureRedirect: '/user/2fa/login',
                                                           failureFlash: 'Invalid OTP code' }), (req, res, next) => {
     req.session.completed2fa = true;
+
+    if (req.body.remember_me) {
+        res.cookie('almond.skip2fa', 'yes', {
+            maxAge: 1 * 365 * 86400 * 1000, // 1 year, in milliseconds
+            signed: true
+        });
+    }
 
     // Redirection back to the original page
     var redirect_to = req.session.redirect_to ? req.session.redirect_to : '/';
@@ -603,12 +615,14 @@ const profileArguments = {
     username: 'string',
     email: 'string',
     human_name: '?string',
+    locale: 'string',
     visible_organization_profile: 'boolean',
     show_human_name: 'boolean',
     show_profile_picture: 'boolean'
 };
 router.post('/profile', userUtils.requireLogIn, iv.validatePOST(profileArguments), (req, res, next) => {
-    return db.withTransaction(async (dbClient) => {
+    let mustRestartEngine = false;
+    db.withTransaction(async (dbClient) => {
         if (req.body.username.length > 255)
             req.body.username = req.user.username;
         if (req.body['email'].indexOf('@') < 0 ||
@@ -623,12 +637,17 @@ router.post('/profile', userUtils.requireLogIn, iv.validatePOST(profileArguments
         if (req.body.show_profile_picture)
             profile_flags |= userUtils.ProfileFlags.SHOW_PROFILE_PICTURE;
 
+        if (!i18n.get(req.body.locale, false))
+            req.body.locale = req.user.locale;
+
+        mustRestartEngine = req.body.locale !== req.user.locale;
         const mustSendEmail = req.body.email !== req.user.email;
 
         await model.update(dbClient, req.user.id,
                             { username: req.body.username,
                               email: req.body.email,
                               email_verified: !mustSendEmail,
+                              locale: req.body.locale,
                               human_name: req.body.human_name || '',
                               profile_flags });
         req.user.username = req.body.username;
@@ -644,6 +663,10 @@ router.post('/profile', userUtils.requireLogIn, iv.validatePOST(profileArguments
             : undefined);
     }).catch((error) => {
         return getProfile(req, res, undefined, error);
+    }).then(async () => {
+        // this must happen outside of the transaction, or the restarted engine will not see the new locale data
+        if (mustRestartEngine)
+            await EngineManager.get().restartUser(req.user.id);
     }).catch(next);
 });
 

@@ -3,22 +3,22 @@ nav#doc-sidebar
 
     if authenticated && user.developer_org !== null
       li(class=(section === 'overview' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/thingpedia/developers') Home
+        a.doc-sidebar-subtitle(href='/thingpedia/developers')= _("Home")
     else
       li(class=(section === 'overview' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/thingpedia/developers') Overview
+        a.doc-sidebar-subtitle(href='/thingpedia/developers')= _("Overview")
     if authenticated && user.developer_org !== null
       li(class = (section === 'status' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/thingpedia/developers/status') Almond Status and Logs
+        a.doc-sidebar-subtitle(href='/thingpedia/developers/status')= _("Almond Status and Logs")
     if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
       li(class=(section === 'oauth' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/thingpedia/developers/oauth') OAuth Applications
+        a.doc-sidebar-subtitle(href='/thingpedia/developers/oauth')= _("OAuth Applications")
     if authenticated
       li(class=(section === 'train-almond' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/thingpedia/developers/train') Train Almond
+        a.doc-sidebar-subtitle(href='/thingpedia/developers/train')= _("Train Almond")
     li.thingpedia-docs
       a.doc-sidebar-subtitle(href='#thingpedia-doc-list',data-toggle='collapse')
-        div.pull-left Thingpedia Documentation
+        div.pull-left= _("Thingpedia Documentation")
         div.text-right#doc-search
           span(role='button')#doc-search-icon.glyphicon.glyphicon-search
       ul#thingpedia-doc-list(class=(!!currentPage ? 'collapse in' : 'collapse'))

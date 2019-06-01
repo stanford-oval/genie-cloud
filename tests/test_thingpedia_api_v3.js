@@ -17,6 +17,10 @@ require('../util/config_init');
 const assert = require('assert');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
+const FormData = require('form-data');
+
+const { sessionRequest, assertHttpError } = require('./website/scaffold');
+const { login, startSession } = require('./login');
 
 const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
@@ -86,6 +90,14 @@ const BING_METADATA = {
             doc: "search for `query` on Bing Images",
             canonical: "image search on bing",
             argcanonicals: ["query", "title", "picture url", "link", "width", "height"],
+            formatted: [{
+                type: "rdl",
+                webCallback: "${link}",
+                displayTitle: "${title}",
+            }, {
+                type: "picture",
+                url: "${picture_url}"
+            }],
             questions: [
               "What do you want to search?",
               "",
@@ -115,6 +127,12 @@ const BING_METADATA = {
             doc: "search for `query` on Bing",
             canonical: "web search on bing",
             argcanonicals: ["query", "title", "description", "link"],
+            formatted: [{
+                type: "rdl",
+                webCallback: "${link}",
+                displayTitle: "${title}",
+                displayText: "${description}"
+            }],
             questions: [
               "What do you want to search?",
               "",
@@ -153,14 +171,16 @@ const BING_CLASS_WITH_METADATA = `class @com.bing {
                                       out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
                                       out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
   #_[canonical="image search on bing"]
-  #_[confirmation="images matching $query from Bing"];
+  #_[confirmation="images matching $query from Bing"]
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]];
 
   monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                     out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
                                     out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
                                     out link: Entity(tt:url) #_[canonical="link"])
   #_[canonical="web search on bing"]
-  #_[confirmation="websites matching $query on Bing"];
+  #_[confirmation="websites matching $query on Bing"]
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]];
 }
 `;
 const BING_CLASS_FULL = `class @com.bing
@@ -169,7 +189,7 @@ const BING_CLASS_FULL = `class @com.bing
 #[version=0]
 #[package_version=0] {
   import loader from @org.thingpedia.v2();
-  import config from @org.thingpedia.config.none();
+  import config from @org.thingpedia.config.none(subscription_key="12345");
 
   monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                     out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
@@ -378,6 +398,7 @@ async function testGetMetadata() {
                         doc: "consume some data, do nothing",
                         confirmation: "consume $data",
                         confirmation_remote: "consume $data on $__person's Almond",
+                        formatted: [],
                         canonical: "eat data on test",
                         is_list: false,
                         is_monitorable: false,
@@ -412,6 +433,7 @@ async function testGetMetadata() {
                         doc: "consume some data, do nothing",
                         confirmation: "consume $data",
                         confirmation_remote: "consume $data on $__person's Almond",
+                        formatted: [],
                         canonical: "eat data on test",
                         is_list: false,
                         is_monitorable: false,
@@ -458,6 +480,7 @@ async function testGetMetadata() {
                         doc: "consume some data, do nothing",
                         confirmation: "consume $data",
                         confirmation_remote: "consume $data on $__person's Almond",
+                        formatted: [],
                         canonical: "eat data on test",
                         is_list: false,
                         is_monitorable: false,
@@ -477,13 +500,7 @@ function checkExamples(generated, expected) {
     assert.strictEqual(generated.result, 'ok');
     generated = generated.data;
     const uniqueIds = new Set;
-    const expectMap = new Map;
-    assert.strictEqual(generated.length, expected.length);
-
-    for (let exp of expected) {
-        delete exp.id;
-        expectMap.set(exp.utterance, exp);
-    }
+    assert.strictEqual(generated.length, expected);
 
     for (let gen of generated) {
         assert(!uniqueIds.has(gen.id), `duplicate id ${gen.id}`);
@@ -526,19 +543,18 @@ function checkExamplesByKey(generated, key) {
 const TEST_EXAMPLES = { result: 'ok', data: require('./data/test-examples-v3.json') };
 
 async function testGetExamplesByDevice() {
-    // mind the . vs .. here: there's two different data/ folders
-    const BING_EXAMPLES = require('./data/com.bing.manifest.json').examples;
-    const BUILTIN_EXAMPLES = require('../data/org.thingpedia.builtin.thingengine.builtin.manifest.json').examples;
-    const INVISIBLE_EXAMPLES = require('./data/org.thingpedia.builtin.test.invisible.manifest.json').examples;
+    const BING_EXAMPLES = 18;
+    const BUILTIN_EXAMPLES = 52;
+    const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await request('/examples/by-kinds/com.bing'), BING_EXAMPLES);
     checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin'),
         BUILTIN_EXAMPLES);
     checkExamples(await request(
         '/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin,com.bing'),
-        BUILTIN_EXAMPLES.concat(BING_EXAMPLES));
+        BUILTIN_EXAMPLES + BING_EXAMPLES);
 
-    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.invisible'), []);
+    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.invisible'), 0);
 
     checkExamples(await request(
         `/examples/by-kinds/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
@@ -548,7 +564,7 @@ async function testGetExamplesByDevice() {
         `/examples/by-kinds/org.thingpedia.builtin.test.invisible,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
 
-    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), []);
+    checkExamples(await request('/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), 0);
 
     assert.deepStrictEqual(await request('/examples/by-kinds/org.thingpedia.builtin.test'), TEST_EXAMPLES);
 
@@ -577,16 +593,15 @@ async function testGetExamplesByDevice() {
 }
 
 async function testGetExamplesByKey() {
-    // mind the . vs .. here: there's two different data/ folders
-    const BING_EXAMPLES = require('./data/com.bing.manifest.json').examples;
-    const PHONE_EXAMPLES = require('../data/org.thingpedia.builtin.thingengine.phone.manifest.json').examples;
-    const INVISIBLE_EXAMPLES = require('./data/org.thingpedia.builtin.test.invisible.manifest.json').examples;
+    const BING_EXAMPLES = 18;
+    const PHONE_EXAMPLES = 41;
+    const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await request('/examples/search?q=bing'), BING_EXAMPLES);
     checkExamples(await request('/examples/search?q=phone'), PHONE_EXAMPLES);
     checkExamplesByKey(await request('/examples/search?q=matching'), 'matching');
 
-    checkExamples(await request('/examples/search?q=invisible'), []);
+    checkExamples(await request('/examples/search?q=invisible'), 0);
     checkExamples(await request(`/examples/search?q=invisible&developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
 
@@ -648,7 +663,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 113,
+      "id": 131,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me images from bing matching ____ larger than ____ x ____",
@@ -680,7 +695,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 95,
+      "id": 106,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me texts i received in the last hour",
@@ -696,7 +711,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 102,
+      "id": 113,
       "language": "en",
       "type": "thingpedia",
       "utterance": "call somebody",
@@ -728,7 +743,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 53,
+      "id": 73,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
@@ -744,12 +759,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 12,
+      "id": 37,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "generate a random number between ____ and ____",
-      "preprocessed": ", generate a random number between ${p_low:const} and ${p_high:const}",
-      "target_code": "query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
+      "utterance": "howdy",
+      "preprocessed": "howdy",
+      "target_code": "program  := {\n  now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(hello)) => notify;\n};\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -760,12 +775,12 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 17,
+      "id": 12,
       "language": "en",
       "type": "thingpedia",
-      "utterance": "setup ____",
-      "preprocessed": "setup ${p_device}",
-      "target_code": "action (p_device :Entity(tt:device))  := @org.thingpedia.builtin.thingengine.builtin.configure(device=p_device);\n",
+      "utterance": "generate a random number between ____ and ____",
+      "preprocessed": ", generate a random number between ${p_low:const} and ${p_high:const}",
+      "target_code": "query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -819,7 +834,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 53,
+      "id": 73,
       "language": "en",
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
@@ -834,7 +849,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 45,
+      "id": 65,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop",
@@ -849,7 +864,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 44,
+      "id": 64,
       "language": "en",
       "type": "thingpedia",
       "utterance": "turn ____ my laptop",
@@ -864,7 +879,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 52,
+      "id": 72,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete a file from my laptop",
@@ -879,7 +894,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 51,
+      "id": 71,
       "language": "en",
       "type": "thingpedia",
       "utterance": "use ____ as the background of my laptop",
@@ -894,7 +909,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 55,
+      "id": 75,
       "language": "en",
       "type": "thingpedia",
       "utterance": "save a screenshot of my laptop",
@@ -909,7 +924,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 41,
+      "id": 61,
       "language": "en",
       "type": "thingpedia",
       "utterance": "lock my laptop",
@@ -924,7 +939,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 50,
+      "id": 70,
       "language": "en",
       "type": "thingpedia",
       "utterance": "set the background of my laptop to ____",
@@ -939,7 +954,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 49,
+      "id": 69,
       "language": "en",
       "type": "thingpedia",
       "utterance": "change the background on my laptop",
@@ -954,7 +969,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 46,
+      "id": 66,
       "language": "en",
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop containing ____",
@@ -969,7 +984,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 34,
+      "id": 54,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ on my laptop",
@@ -984,7 +999,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 48,
+      "id": 68,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete the file named ____ from my laptop",
@@ -999,7 +1014,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 54,
+      "id": 74,
       "language": "en",
       "type": "thingpedia",
       "utterance": "take a screenshot of my laptop",
@@ -1014,7 +1029,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 38,
+      "id": 58,
       "language": "en",
       "type": "thingpedia",
       "utterance": "open ____ with ____ on my laptop",
@@ -1029,7 +1044,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 47,
+      "id": 67,
       "language": "en",
       "type": "thingpedia",
       "utterance": "delete ____ from my laptop",
@@ -1044,7 +1059,7 @@ async function testGetCommands() {
       ]
     },
     {
-      "id": 42,
+      "id": 62,
       "language": "en",
       "type": "thingpedia",
       "utterance": "activate the lock screen on my laptop",
@@ -1079,18 +1094,9 @@ async function testGetDeviceIcon() {
     assert(!failed);
 }
 
-function deepClone(x) {
-    // stupid algorithm but it does the job
-    return JSON.parse(JSON.stringify(x));
-}
-
 function checkManifest(obtained, expected) {
     assert.strictEqual(obtained.result, 'ok');
     obtained = obtained.data;
-
-    delete expected.thingpedia_name;
-    delete expected.thingpedia_description;
-    delete expected.examples;
 
     assert.strictEqual(typeof obtained.version, 'number');
     assert.strictEqual(typeof obtained.developer, 'boolean');
@@ -1102,11 +1108,7 @@ function checkManifest(obtained, expected) {
 }
 
 async function testGetDeviceManifest() {
-    const BING = deepClone(require('./data/com.bing.manifest.json'));
-    const INVISIBLE = deepClone(require('./data/org.thingpedia.builtin.test.invisible.manifest.json'));
-    const ADMINONLY = deepClone(require('./data/org.thingpedia.builtin.test.adminonly.manifest.json'));
-
-    checkManifest(await request('/devices/code/com.bing'), BING);
+    checkManifest(await request('/devices/code/com.bing'));
 
     //console.log(String(toCharArray(BING_CLASS_FULL)));
     assert.strictEqual(await ttRequest('/devices/code/com.bing'), BING_CLASS_FULL);
@@ -1116,15 +1118,13 @@ async function testGetDeviceManifest() {
     await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.invisible'));
     await assert.rejects(() => request('/devices/code/org.thingpedia.builtin.test.nonexistent'));
     checkManifest(await request(
-        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
-        INVISIBLE);
+        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`));
 
     await assert.rejects(() => request(
         `/devices/code/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`));
 
     checkManifest(await request(
-        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`),
-        ADMINONLY);
+        `/devices/code/org.thingpedia.builtin.test.invisible?developer_key=${process.env.ROOT_DEVELOPER_KEY}`));
 }
 
 async function testGetDevicePackage() {
@@ -1646,6 +1646,157 @@ async function testLookupEntity() {
 
 }
 
+async function getAccessToken(session) {
+    return JSON.parse(await sessionRequest('/user/token', 'POST', '', session, {
+        accept: 'application/json',
+    })).token;
+}
+
+function createUpload(file, data) {
+    const fd = new FormData();
+
+    if (file)
+        fd.append('upload', file, { filename: 'entity.csv', contentType: 'text/csv;charset=utf8' });
+    for (let key in data)
+        fd.append(key, data[key]);
+    return fd;
+}
+
+const ENTITY_FILE = `one,The First Entity
+two,The Second Entity
+three,The Third Entity
+`;
+
+
+async function testEntityUpload() {
+    await startSession();
+    const bob = await login('bob', '12345678');
+    const bob_token = await getAccessToken(bob);
+    const root = await login('root', 'rootroot');
+    const root_token = await getAccessToken(root);
+
+    await assertHttpError(
+        Tp.Helpers.Http.post(THINGPEDIA_URL + '/entities/create', '', {
+            'Content-Type': 'multipart/form-data'
+        }),
+        401,
+        'Authentication required.'
+    );
+
+    const fd0 = createUpload(ENTITY_FILE, {
+        entity_id: 'org.thingpedia.test:api_entity_test1',
+        entity_name: 'Test Entity',
+        no_ner_support: '',
+    });
+    await assertHttpError(
+        Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/entities/create', fd0, {
+            dataContentType:  'multipart/form-data; boundary=' + fd0.getBoundary(),
+            extraHeaders: {
+                Authorization: 'Bearer ' + bob_token
+            },
+            useOAuth2: true
+        }),
+        403,
+        'The prefix of the entity ID must correspond to the ID of a Thingpedia device owned by your organization.'
+    );
+
+    const fd1 = createUpload(ENTITY_FILE, {
+        entity_id: 'org.thingpedia.test:api_entity_test1',
+        entity_name: 'Test Entity',
+        no_ner_support: '1'
+    });
+    const r1 = await Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/entities/create', fd1, {
+        dataContentType: 'multipart/form-data; boundary=' + fd1.getBoundary(),
+        extraHeaders: {
+            Authorization: 'Bearer ' + root_token
+        },
+        useOAuth2: true,
+    });
+    assert.deepStrictEqual(JSON.parse(r1), { result: 'ok' });
+
+    const fd2 = createUpload(ENTITY_FILE, {
+        entity_id: 'org.thingpedia.test:api_entity_test2',
+        entity_name: 'Test Entity'
+    });
+    const r2 = await Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/entities/create', fd2, {
+        dataContentType: 'multipart/form-data; boundary=' + fd2.getBoundary(),
+        extraHeaders: {
+            Authorization: 'Bearer ' + root_token
+        },
+        useOAuth2: true,
+    });
+    assert.deepStrictEqual(JSON.parse(r2), { result: 'ok' });
+}
+
+const STRING_FILE = `aaaa\t1.0
+bbbb\t5.0
+cccc\t
+dddd\t1.0`;
+
+async function testStringUpload() {
+    await startSession();
+    const bob = await login('bob', '12345678');
+    const bob_token = await getAccessToken(bob);
+    const root = await login('root', 'rootroot');
+    const root_token = await getAccessToken(root);
+
+    await assertHttpError(
+        Tp.Helpers.Http.post(THINGPEDIA_URL + '/strings/upload', '', {
+            'Content-Type': 'multipart/form-data'
+        }),
+        401,
+        'Authentication required.'
+    );
+
+    const fd0 = createUpload(STRING_FILE, {
+        type_name: 'org.thingpedia.test:api_string_test1',
+        name: 'Test String Three',
+        license: 'proprietary',
+        preprocessed:'1'
+    });
+    await assertHttpError(
+        Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/strings/upload', fd0, {
+            dataContentType:  'multipart/form-data; boundary=' + fd0.getBoundary(),
+            extraHeaders: {
+                Authorization: 'Bearer ' + bob_token
+            },
+            useOAuth2: true
+        }),
+        403,
+        'The prefix of the dataset ID must correspond to the ID of a Thingpedia device owned by your organization.'
+    );
+
+    const fd1 = createUpload(STRING_FILE, {
+        type_name: 'org.thingpedia.test:api_string_test1',
+        name: 'Test String Three',
+        license: 'proprietary',
+        preprocessed:'1'
+    });
+    const r1 = await Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/strings/upload', fd1, {
+        dataContentType: 'multipart/form-data; boundary=' + fd1.getBoundary(),
+        extraHeaders: {
+            Authorization: 'Bearer ' + root_token
+        },
+        useOAuth2: true,
+    });
+    assert.deepStrictEqual(JSON.parse(r1), { result: 'ok' });
+
+    const fd2 = createUpload(STRING_FILE, {
+        type_name: 'org.thingpedia.test:api_string_test2',
+        name: 'Test String Three',
+        license: 'proprietary',
+        preprocessed:'1'
+    });
+    const r2 = await Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/strings/upload', fd2, {
+        dataContentType: 'multipart/form-data; boundary=' + fd2.getBoundary(),
+        extraHeaders: {
+            Authorization: 'Bearer ' + root_token
+        },
+        useOAuth2: true,
+    });
+    assert.deepStrictEqual(JSON.parse(r2), { result: 'ok' });
+}
+
 async function main() {
     await testGetSchemas();
     await testGetMetadata();
@@ -1671,5 +1822,7 @@ async function main() {
     await testGetEntityList();
     await testGetEntityValues();
     await testLookupEntity();
+    await testEntityUpload();
+    await testStringUpload();
 }
 main();

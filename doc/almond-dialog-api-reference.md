@@ -112,6 +112,18 @@ An RDL message has the following properties:
   - `rdl.displayText : string`: the longer description of the link (optional)
 - `icon : string`: the device identifier to use as icon for the message
 
+### Result Message
+
+This is a catch-all message type for future extensions of results, or "cards"
+that could be displayed in response to the user's query.
+A result message has the following properties:
+
+- `type : string = "result"`
+- `result : object`: the result object, as specified in the `#_[formatted]` annotation of the query
+- `fallback : string`: a fallback text message, suitable for a voice interface or a client that
+   does not support the specific result object
+- `icon : string`: the device identifier to use as icon for the message
+
 ### Button Message
 
 A "button" message is a message that allows the user to click on a pre-parsed command, for example as a suggestion for a ThingTalk program.
@@ -157,11 +169,11 @@ A link message has the following properties:
 The following are valid `link` URLs:
 
 - `/user/register`: the user must register before completing the action (only valid in the anonymous API)
-- `/apps`: go to My Almond
+- `/apps`: go to My Almond (a.k.a. My Skills, or a similar page containing all the user's devices)
 - `/devices/oauth2/$kind?name=$name`: perform OAuth configuration for a device of type `$kind`; `$name` is the name of the device and is provided to avoid a Thingpedia lookup
 - `/devices/configure/$kind?name=$name&controls=$controls`: perform form-based configuration for a device of type `$kind`; `$name` is name of the device and `$controls` is the JSON serialization of the device factory (see the [Thingpedia API](/doc/thingpedia-api) for details)
 
-Apps are encouraged to ignore unexpected link URLs, or to redirect the user to the corresponding page at `https://almond.stanford.edu`.
+Apps are encouraged to ignore unexpected link URLs, or to redirect the user to the corresponding page at <https://almond.stanford.edu>.
 
 ### Ask Special Message
 
@@ -198,14 +210,3 @@ An Almond parsed command is a JSON object, with the following properties:
 - `example_id : number`: (optional) the ID of the example command in the database corresponding to this button; used for tracking which commands are more popular
 - `slots : Array<string>`: the parameters which have been replaced by `SLOT` specifications in the ThingTalk code
 - `slotTypes : object`: a map from parameter name to ThingTalk type, for all unspecified parameters which have been replaced by the `SLOT` syntax
-
-### Useful special commands
-
-The follow pre-parsed commands can be issued at any time to exhance the Almond UI:
-
- * `{"special":{"id":"tt:root.special.yes"}}`: yes (when Almond expects a yes/no)
- * `{"special":{"id":"tt:root.special.no"}}`: no (when Almond expects a yes/no)
- * `{"special":{"id":"tt:root.special.nevermind"}}`: cancel and reset Almond
- * `{"special":{"id":"tt:root.special.train"}}`: enter training mode, letting the user override the interpretation of a command
- * `{"special":{"id":"tt:root.special.help"}}`: show help; when Almond expects an answer, this will tell the user what Almond expects
- * `{"special":{"id":"tt:root.special.debug"}}`: show debug statistics

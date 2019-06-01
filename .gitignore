@@ -16,6 +16,7 @@ home/
 /public/download/devices
 /public/download/backgrounds
 /public/download/icons
+/public/download/blog-assets
 /workdir
 
 doc/doc-list.json
@@ -24,6 +25,8 @@ doc/thingpedia-api
 views/doc_*.pug
 !views/doc_base.pug
 views/thingpedia_doc_index.pug
+
+tests/embeddings
 
 node_modules/
 

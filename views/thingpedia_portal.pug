@@ -13,10 +13,10 @@ block page_name
 block content
   div#page-body
     section.divider#section-heading
-        h1 Thingpedia
-        h2 The Open API Repository
+        h1= _("Thingpedia")
+        h2= _("The Open API Repository")
 
-        p #[big= device_count] devices & services, #[big= function_count] functions supported, and growing!
+        p!= _("<big>%d</big> devices &amp; services, <big>%d</big> functions supported, and growing!").format(device_count, function_count)
     div.sections
       if !authenticated
         section.divider
@@ -25,19 +25,9 @@ block content
           div.container
             div.row
               div.col-xs-12.col-md-6.col-md-offset-3
-                p
-                  | Thingpedia is an encyclopedia of applications for the
-                  |  Internet of Things. Just like how Wikipedia stores knowledge
-                  |  about the world, Thingpedia stores knowledge about devices
-                  |  in the world. Wikipedia is organized around articles;
-                  |  Thingpedia is organized around <i>devices</i>, such as Twitter, a light
-                  |  bulb, or a thermostat.
+                p!= _("Thingpedia is an encyclopedia of applications for the Internet of Things. Just like how Wikipedia stores knowledge about the world, Thingpedia stores knowledge about devices in the world. Wikipedia is organized around articles; Thingpedia is organized around <i>devices</i>, such as Twitter, a light bulb, or a thermostat.")
 
-                p
-                  | Each device has a entry on Thingpedia. A Thingpedia entry
-                  |  stores the natural language interface that represent how
-                  |  humans refer to and interact with the device, and the
-                  |  executable specification corresponding to the device API.
+                p!= _("Each device has a entry on Thingpedia. A Thingpedia entry stores the natural language interface that represent how humans refer to and interact with the device, and the executable specification corresponding to the device API.")
 
       section.divider
         h3= _("Supported Devices & Services")

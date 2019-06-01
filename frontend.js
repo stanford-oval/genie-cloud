@@ -64,6 +64,43 @@ class Frontend {
         this._app.set('view engine', 'pug');
         this._app.enable('trust proxy');
 
+        // provide a very-eary version of req._ in case something
+        // early in the request stack fails and we hit the error handler
+        this._app.use((req, res, next) => {
+            req.locale = 'en-US';
+            req.gettext = (x) => x;
+            req._ = (x) => x;
+            req.pgettext = (c, x) => x;
+            req.ngettext = (x, x2, n) => n === 1 ? x : x2;
+
+            res.locals.I18n = i18n;
+            res.locals.locale = 'en-US';
+            res.locals.gettext = req.gettext;
+            res.locals._ = req._;
+            res.locals.pgettext = req.pgettext;
+            res.locals.ngettext = req.ngettext;
+
+            res.locals.timezone = 'America/Los_Angeles';
+            next();
+        });
+        this._app.use((req, res, next) => {
+            // Capital C so we don't conflict with other parameters
+            // set by various pages
+            res.locals.Config = Config;
+            res.locals.Constants = {
+                Role: userUtils.Role,
+                DeveloperStatus: userUtils.DeveloperStatus,
+                ProfileFlags: userUtils.ProfileFlags
+            };
+
+            // the old way of doing things - eventually should be refactored
+            res.locals.CDN_HOST = Config.CDN_HOST;
+            res.locals.THINGPEDIA_URL = Config.THINGPEDIA_URL;
+            res.locals.WITH_THINGPEDIA = Config.WITH_THINGPEDIA;
+            res.locals.ENABLE_ANONYMOUS_USER = Config.ENABLE_ANONYMOUS_USER;
+            next();
+        });
+
         // work around a crash in expressWs if a WebSocket route fails with an error
         // code and express-session tries to save the session
         this._app.use((req, res, next) => {
@@ -130,13 +167,15 @@ class Frontend {
         this._app.use(bodyParser.json());
         this._app.use(bodyParser.urlencoded({ extended: true }));
         this._app.use(xmlBodyParser({ explicitArray: true, trim: false }));
-        this._app.use(cookieParser());
+        this._app.use(cookieParser(secretKey.getSecretKey()));
 
-        this._sessionStore = new MySQLStore({}, db.getPool());
+        this._sessionStore = new MySQLStore({
+            expiration: 86400000 // 1 day, in ms
+        }, db.getPool());
         this._app.use(session({ resave: false,
                                 saveUninitialized: false,
                                 store: this._sessionStore,
-                                secret: secretKey.getSecretKey(this._app) }));
+                                secret: secretKey.getSecretKey() }));
         this._app.use(connect_flash());
 
         this._app.use('/brassau/backgrounds', (req, res, next) => {
@@ -179,23 +218,6 @@ class Frontend {
             res.locals.authenticated = userUtils.isAuthenticated(req);
             next();
         });
-        this._app.use((req, res, next) => {
-            // Capital C so we don't conflict with other parameters
-            // set by various pages
-            res.locals.Config = Config;
-            res.locals.Constants = {
-                Role: userUtils.Role,
-                DeveloperStatus: userUtils.DeveloperStatus,
-                ProfileFlags: userUtils.ProfileFlags
-            };
-
-            // the old way of doing things - eventually should be refactored
-            res.locals.CDN_HOST = Config.CDN_HOST;
-            res.locals.THINGPEDIA_URL = Config.THINGPEDIA_URL;
-            res.locals.WITH_THINGPEDIA = Config.WITH_THINGPEDIA;
-            res.locals.ENABLE_ANONYMOUS_USER = Config.ENABLE_ANONYMOUS_USER;
-            next();
-        });
 
         // i18n support
         acceptLanguage.languages(i18n.LANGS);
@@ -210,11 +232,12 @@ class Frontend {
             let lang = i18n.get(locale);
 
             req.locale = locale;
-            req.gettext = lang.gettext.bind(lang);
+            req.gettext = lang.gettext;
             req._ = req.gettext;
-            req.pgettext = lang.pgettext.bind(lang);
-            req.ngettext = lang.ngettext.bind(lang);
+            req.pgettext = lang.pgettext;
+            req.ngettext = lang.ngettext;
 
+            res.locals.I18n = i18n;
             res.locals.locale = locale;
             res.locals.gettext = req.gettext;
             res.locals._ = req._;

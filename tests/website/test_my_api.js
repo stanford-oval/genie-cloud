@@ -223,27 +223,27 @@ async function testMyApiListDevices(auth) {
     const listResult = JSON.parse(await request('/me/api/devices/list', 'GET', null, { auth }));
     console.log(listResult);
     assert.deepStrictEqual(listResult, [
+      { uniqueId: 'thingengine-own-cloud',
+        name: 'Almond cloud ()',
+        description: 'This is one of your own Almond apps.',
+        kind: 'org.thingpedia.builtin.thingengine',
+        ownerTier: 'cloud' },
       { uniqueId: 'thingengine-own-global',
         name: 'Miscellaneous Interfaces',
         description: 'Time, randomness and other non-device specific things.',
         kind: 'org.thingpedia.builtin.thingengine.builtin',
         ownerTier: 'global' },
       { uniqueId: 'org.thingpedia.builtin.thingengine.remote',
-        name: 'Remote ThingSystem',
+        name: 'Remote Almond',
         description:
-         'This service allows you to interact with devices and accounts that belong to other people (with their permission).',
+         'A proxy device for a Almond owned by a different user. This device is created and managed automatically by the system.',
         kind: 'org.thingpedia.builtin.thingengine.remote',
         ownerTier: 'global' },
       { uniqueId: 'org.thingpedia.builtin.test',
         name: 'Test Device',
-        description: 'Test Device, does nothing but generate fake data',
+        description: 'Test Almond in various ways',
         kind: 'org.thingpedia.builtin.test',
         ownerTier: 'global' },
-      { uniqueId: 'thingengine-own-cloud',
-        name: 'ThingSystem cloud',
-        description: 'This is your own ThingSystem.',
-        kind: 'org.thingpedia.builtin.thingengine',
-        ownerTier: 'cloud' }
     ]);
 }
 

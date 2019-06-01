@@ -177,6 +177,14 @@ class Platform {
         engine.assistant = this._assistant;
     }
 
+    // Return the platform device for this platform, accessing platform-specific
+    // functionality from natural language.
+    //
+    // Cloud has no platform device.
+    getPlatformDevice() {
+        return null;
+    }
+
     // Obtain a shared preference store
     // Preferences are simple key/value store which is shared across all apps
     // but private to this instance (tier) of the platform

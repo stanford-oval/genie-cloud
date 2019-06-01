@@ -28,8 +28,8 @@ module.exports.NL_SERVER_URL = 'http://127.0.0.1:${NLP_PORT}';
 module.exports.TRAINING_URL = 'http://127.0.0.1:${TRAINING_PORT}';
 module.exports.FILE_STORAGE_BACKEND = 'local';
 module.exports.CDN_HOST = '/download';
-module.exports.WITH_THINGPEDIA = 'embedded';
-module.exports.THINGPEDIA_URL = '/thingpedia';
+module.exports.WITH_THINGPEDIA = 'external';
+module.exports.THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 module.exports.ENABLE_PROMETHEUS = true;
 module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
 module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
@@ -55,29 +55,20 @@ cd $workdir
 node $srcdir/tests/mock-tokenizer.js &
 tokenizerpid=$!
 
-# set up download directories
-mkdir -p $srcdir/public/download
-for x in devices icons backgrounds blog-assets ; do
-    mkdir -p $workdir/shared/$x
-    ln -sf -T $workdir/shared/$x $srcdir/public/download/$x
-done
-mkdir -p $workdir/shared/cache
-echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
-
 # clean the database and bootstrap
-# (this has to occur after setting up the download
-# directories because it copies the icon png files)
 $srcdir/scripts/execute-sql-file.js $srcdir/model/schema.sql
 node $srcdir/scripts/bootstrap.js
 
-# load some more data into Thingpedia
-test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
-eval $(node $srcdir/tests/load_test_thingpedia.js)
-
 mkdir -p 'default:en'
+mkdir -p 'contextual:en'
 
-wget --no-verbose https://parmesan.stanford.edu/test-models/default/en/current.tar.gz
-tar xvf current.tar.gz -C 'default:en'
+wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current.tar.gz -O $srcdir/tests/embeddings/current.tar.gz
+tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'default:en'
+
+wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current-contextual.tar.gz -O $srcdir/tests/embeddings/current-contextual.tar.gz
+tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'contextual:en'
+
+wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/classifier.h5 -O en.classifier.h5
 
 PORT=$NLP_PORT node $srcdir/nlp/main.js &
 inferpid=$!

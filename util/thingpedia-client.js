@@ -130,7 +130,8 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
 
     getDeviceCode(kind, accept) {
         return this._withClient(async (dbClient) => {
-            const devs = await device.getFullCodeByPrimaryKind(dbClient, kind, await this._getOrgId(dbClient));
+            const orgId = await this._getOrgId(dbClient);
+            const devs = await device.getFullCodeByPrimaryKind(dbClient, kind, orgId);
             if (devs.length < 1)
                 throw new NotFoundError();
 
@@ -143,10 +144,28 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
                 manifest.version = dev.version;
             }
 
+            let code;
+            if (isJSON)
+                code = ThingTalk.Ast.fromManifest(kind, manifest).prettyprint();
+            else
+                code = dev.code;
+
+            // fast path without parsing the code
+            if (this.language === 'en' && accept === 'application/x-thingtalk')
+                return code;
+
+            const parsed = ThingTalk.Grammar.parse(code);
+            const classDef = parsed.classes[0];
+
+            if (this.language !== 'en') {
+                const schema = await schemaModel.getMetasByKinds(dbClient, [kind], orgId, this.language);
+                SchemaUtils.mergeClassDefAndSchema(classDef, schema[0]);
+            }
+
             switch (accept) {
             case 'application/json':
                 if (!isJSON)
-                    manifest = ThingTalk.Ast.toManifest(ThingTalk.Grammar.parse(dev.code));
+                    manifest = ThingTalk.Ast.toManifest(parsed);
                 if (dev.version !== dev.approved_version)
                     manifest.developer = true;
                 else
@@ -154,10 +173,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
                 return manifest;
             case 'application/x-thingtalk':
             default:
-                if (isJSON)
-                    return ThingTalk.Ast.fromManifest(kind, manifest).prettyprint();
-                else
-                    return dev.code;
+                return parsed.prettyprint();
             }
         });
     }
@@ -318,7 +334,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
                     [], null);
                 row.target_code = declaration.prettyprint(true);
             } else {
-                row.target_code = row.target_code.replace(/^[ \r\n\t\v]*program[ \r\n\t\v]*:=/, '');
+                row.target_code = row.target_code.replace(/^[ \r\n\t\v]*program[ \r\n\t\v]*:=/, '').replace(/\};\s*$/, '}');
             }
             if (applyCompat) {
                 row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+query[ \r\n\t\v]/, 'let table ');

@@ -43,16 +43,16 @@ class ValidationError extends Error {
     }
 }
 
-async function validateAnnotations(annotations) {
+function validateAnnotations(annotations) {
     for (let name of Object.getOwnPropertyNames(annotations)) {
         if (FORBIDDEN_NAMES.has(name))
-            throw new ValidationError(`Invalid annotation ${name}`);
+            throw new ValidationError(`Invalid implementation annotation ${name}`);
     }
 }
-async function validateMetadata(metadata, allowed) {
+function validateMetadata(metadata, allowed) {
     for (let name of Object.getOwnPropertyNames(metadata)) {
         if (!allowed.has(name))
-            throw new ValidationError(`Invalid annotation ${name}`);
+            throw new ValidationError(`Invalid natural language annotation ${name}`);
     }
 }
 
@@ -83,6 +83,8 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
 
     if (parsed.datasets.length > 1 || (parsed.datasets.length > 0 && parsed.datasets[0].name !== '@' + kind))
         throw new ValidationError("Invalid dataset file: must contain exactly one dataset, with the same identifier as the class");
+    if (parsed.datasets.length > 0 && parsed.datasets[0].language !== 'en')
+        throw new ValidationError("The dataset must be for English: use `en` as the language tag.");
     const dataset = parsed.datasets.length > 0 ? parsed.datasets[0] :
         new ThingTalk.Ast.Dataset('@' + kind, 'en', [], {});
 
@@ -283,11 +285,11 @@ function cleanKind(kind) {
     return kind.replace(/[_\-.]/g, ' ').replace(/([^A-Z])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
-async function tokenizeOneExample(example, id, i, language) {
+async function tokenizeOneExample(id, utterance, language) {
     let replaced = '';
     let params = [];
 
-    for (let chunk of splitParams(example.utterances[i].trim())) {
+    for (let chunk of splitParams(utterance.trim())) {
         if (chunk === '')
             continue;
         if (typeof chunk === 'string') {
@@ -327,12 +329,14 @@ async function tokenizeOneExample(example, id, i, language) {
         first = false;
     }
 
-    example.preprocessed[i] = preprocessed;
+    return preprocessed;
 }
 
-async function tokenizeAllExamples(language, examples) {
-    return Promise.all(examples.map(async (ex, i) => {
-        await Promise.all(ex.utterances.map((_, j) => tokenizeOneExample(ex, i+1, j, language)));
+async function tokenizeDataset(dataset) {
+    return Promise.all(dataset.examples.map(async (ex, i) => {
+        await Promise.all(ex.utterances.map(async (_, j) => {
+            ex.preprocessed[j] = await tokenizeOneExample(i+1, ex.utterances[j], dataset.language);
+        }));
     }));
 }
 
@@ -345,5 +349,5 @@ module.exports = {
     validateDevice,
     validateDataset,
 
-    tokenizeAllExamples,
+    tokenizeDataset,
 };

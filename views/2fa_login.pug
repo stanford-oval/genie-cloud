@@ -17,6 +17,11 @@ block content
       label(for='twofa-code').control-label= _("OTP")
       input(type='password',name='code').form-control#twofa-code
     div.form-group
+      div.checkbox
+        label
+          input(type='checkbox',name='remember_me',value='1',checked=false)
+          = _("Remember me on this computer.")
+    div.form-group
       button(type='submit').btn.btn-primary= _("Log in")
 
   p= _("Having trouble? If you have lost access to your authenticator app, please contact us to regain access to your account.")

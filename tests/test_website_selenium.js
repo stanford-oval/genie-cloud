@@ -133,6 +133,7 @@ async function testHomepage(driver) {
     }
 }
 
+const HAS_DATA_COLLECTION_CONFIRMATION = false;
 async function skipDataCollectionConfirmation(driver) {
     await driver.get(BASE_URL + '/me');
     await driver.wait(
@@ -140,20 +141,25 @@ async function skipDataCollectionConfirmation(driver) {
         30000);
     await checkAllImages(driver);
 
+    // wait some extra time for the almond thread to respond
+    await driver.sleep(5000);
+
     let messages = await driver.findElements(WD.By.css('.message'));
     assert.strictEqual(await messages[0].getText(), `Hello! I'm Almond, your virtual assistant.`); //'
 
-    // ignore the blurb about data collection, skip to the yes/no question
-    // at the end
-    await driver.wait(
-        WD.until.elementLocated(WD.By.css('.message.message-yesno.btn')),
-        30000);
-    const yesNo = await driver.findElements(WD.By.css('.message.message-yesno.btn'));
-    assert.strictEqual(yesNo.length, 2);
-    assert.strictEqual(await yesNo[0].getText(), 'Yes');
-    assert.strictEqual(await yesNo[1].getText(), 'No');
-    // click no
-    await yesNo[1].click();
+    if (HAS_DATA_COLLECTION_CONFIRMATION) {
+        // ignore the blurb about data collection, skip to the yes/no question
+        // at the end
+        await driver.wait(
+            WD.until.elementLocated(WD.By.css('.message.message-yesno.btn')),
+            30000);
+        const yesNo = await driver.findElements(WD.By.css('.message.message-yesno.btn'));
+        assert.strictEqual(yesNo.length, 2);
+        assert.strictEqual(await yesNo[0].getText(), 'Yes');
+        assert.strictEqual(await yesNo[1].getText(), 'No');
+        // click no
+        await yesNo[1].click();
+    }
 }
 
 async function testMyConversation(driver) {
@@ -169,21 +175,24 @@ async function testMyConversation(driver) {
         30000);
     await checkAllImages(driver);
 
+    // wait some extra time for the almond thread to respond
+    await driver.sleep(5000);
+
     let messages = await driver.findElements(WD.By.css('.message'));
     assert.strictEqual(messages.length, 1);
     assert.strictEqual(await messages[0].getText(), `Welcome back!`);
 
-    await inputEntry.sendKeys('hello', WD.Key.ENTER);
+    await inputEntry.sendKeys('no', WD.Key.ENTER);
 
     const ourInput = await driver.wait(
         WD.until.elementLocated(WD.By.css('.message.from-user:nth-child(2)')),
         10000);
-    assert.strictEqual(await ourInput.getText(), 'hello');
+    assert.strictEqual(await ourInput.getText(), 'no');
 
     const response = await driver.wait(
         WD.until.elementLocated(WD.By.css('.from-almond:nth-child(3) .message')),
         10000);
-    assert.strictEqual(await response.getText(), 'Hi!');
+    assert.strictEqual(await response.getText(), 'No way!');
 }
 
 async function assertHasClass(element, className) {

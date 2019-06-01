@@ -1,6 +1,7 @@
 extends ../layout
 
 block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/spinner.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/conversation.css')
 
 block scripts
@@ -36,6 +37,9 @@ block content
                   div.form-group.has-feedback#input-form-group
                     label(for='#chat-input').sr-only= _("Command:")
                     input(type='text',placeholder=_("Write your command or answer here")).form-control#input
+                    span.spinner-container.form-control-feedback.hidden
+                      span.spinner
+                      span.sr-only= _("Almond is thinking…")
                     span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden(title=_("Lost connection to the server."))
                     span.help-block.hidden= _("Lost connection to the server.")
 

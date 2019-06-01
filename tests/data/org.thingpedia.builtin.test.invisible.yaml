@@ -1,0 +1,23 @@
+thingpedia_name: "Invisible Device"
+thingpedia_description: "This device is owned by Bob. It was not approved."
+subcategory: service
+
+class: |
+  class @org.thingpedia.builtin.test.invisible
+  #[system=true]
+  {
+    import loader from @org.thingpedia.builtin();
+    import config from @org.thingpedia.config.custom_oauth();
+
+    action eat_data(in req data : String #_[prompt="What do you want me to consume?"])
+    #[doc="consume some data, do nothing"]
+    #_[confirmation="consume $data"]
+    #_[confirmation_remote="consume $data on $__person's Almond"]
+    #_[canonical="eat data on test"];
+  }
+
+dataset: |
+  dataset @org.thingpedia.builtin.test.invisible language "en" {
+    action := @org.thingpedia.builtin.test.invisible.eat_data()
+    #_[utterances=["test admin-only example"]];
+  }

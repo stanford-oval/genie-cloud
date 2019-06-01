@@ -51,6 +51,4 @@ block content
             ul#results
 
           div#counter-box
-            = _("You have trained Almond with ")
-            span#counter
-            = _(" sentences. Thank you!")
+            != _("You have trained Almond with <span id=counter></span> sentences. Thank you!")

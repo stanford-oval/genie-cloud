@@ -63,6 +63,15 @@ block content
               = _("Show my profile picture in my public profile.")
           span.help-block!=_("Your profile picture is automatically retrieved from <a href='https://en.gravatar.com'>Gravatar</a> using a secure hash of your email.</a>")
 
+        if Config.SUPPORTED_LANGUAGES.length > 1
+          div.form-group
+            label(for='locale').control-label= _("Language")
+            select(name='locale').form-control#locale
+              for lang, i in Config.SUPPORTED_LANGUAGES
+                option(value=lang,selected=(lang === user.locale))= I18n.getLangName(_, lang)
+        else
+          input(type='hidden',name='locale',value=user.locale)
+
         div.form-group
           label.control-label= _("Developer Organization")
           if user.developer_org !== null

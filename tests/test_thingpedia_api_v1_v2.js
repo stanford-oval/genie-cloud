@@ -69,6 +69,14 @@ const BING_METADATA = {
             doc: "search for `query` on Bing Images",
             canonical: "image search on bing",
             argcanonicals: ["query", "title", "picture url", "link", "width", "height"],
+            formatted: [{
+                type: "rdl",
+                webCallback: "${link}",
+                displayTitle: "${title}",
+            }, {
+                type: "picture",
+                url: "${picture_url}"
+            }],
             questions: [
               "What do you want to search?",
               "",
@@ -98,6 +106,12 @@ const BING_METADATA = {
             doc: "search for `query` on Bing",
             canonical: "web search on bing",
             argcanonicals: ["query", "title", "description", "link"],
+            formatted: [{
+                type: "rdl",
+                webCallback: "${link}",
+                displayTitle: "${title}",
+                displayText: "${description}"
+            }],
             questions: [
               "What do you want to search?",
               "",
@@ -183,6 +197,7 @@ async function testGetMetadata() {
                     doc: "consume some data, do nothing",
                     confirmation: "consume $data",
                     confirmation_remote: "consume $data on $__person's Almond",
+                    formatted: [],
                     canonical: "eat data on test",
                     is_list: false,
                     is_monitorable: false,
@@ -210,6 +225,7 @@ async function testGetMetadata() {
                     doc: "consume some data, do nothing",
                     confirmation: "consume $data",
                     confirmation_remote: "consume $data on $__person's Almond",
+                    formatted: [],
                     canonical: "eat data on test",
                     is_list: false,
                     is_monitorable: false,
@@ -227,27 +243,13 @@ async function testGetMetadata() {
 
 function checkExamples(generated, expected) {
     const uniqueIds = new Set;
-    const expectMap = new Map;
-    assert.strictEqual(generated.length, expected.length);
-
-    for (let exp of expected) {
-        delete exp.id;
-        expectMap.set(exp.utterance, exp);
-    }
+    assert.strictEqual(generated.length, expected);
 
     for (let gen of generated) {
         assert(!uniqueIds.has(gen.id), `duplicate id ${gen.id}`);
         uniqueIds.add(gen.id);
 
         delete gen.id;
-
-        // we cannot parse backward compatible code...
-        assert(gen.target_code.startsWith('let table x :=') ||
-               gen.target_code.startsWith('let action x :=') ||
-               gen.target_code.startsWith('let stream x :='));
-
-        //assert.deepStrictEqual(gen.target_code,
-        //    expectMap.get(gen.utterance).program);
 
         assert.strictEqual(typeof gen.preprocessed, 'string');
         assert.strictEqual(typeof gen.click_count, 'number');
@@ -266,10 +268,6 @@ function checkExamplesByKey(generated, key) {
         assert.strictEqual(typeof gen.preprocessed, 'string');
         assert.strictEqual(typeof gen.utterance, 'string');
         assert.strictEqual(typeof gen.target_code, 'string');
-        // we cannot parse backward compatible code...
-        assert(gen.target_code.startsWith('let table x :=') ||
-               gen.target_code.startsWith('let action x :=') ||
-               gen.target_code.startsWith('let stream x :='));
         assert.strictEqual(typeof gen.click_count, 'number');
         assert(gen.click_count >= 0);
     }
@@ -278,19 +276,18 @@ function checkExamplesByKey(generated, key) {
 const TEST_EXAMPLES = require('./data/test-examples-v1.json');
 
 async function testGetExamplesByDevice() {
-    // mind the . vs .. here: there's two different data/ folders
-    const BING_EXAMPLES = require('./data/com.bing.manifest.json').examples;
-    const BUILTIN_EXAMPLES = require('../data/org.thingpedia.builtin.thingengine.builtin.manifest.json').examples;
-    const INVISIBLE_EXAMPLES = require('./data/org.thingpedia.builtin.test.invisible.manifest.json').examples;
+    const BING_EXAMPLES = 18;
+    const BUILTIN_EXAMPLES = 52;
+    const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await request('/api/examples/by-kinds/com.bing'), BING_EXAMPLES);
     checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin'),
         BUILTIN_EXAMPLES);
     checkExamples(await request(
         '/api/examples/by-kinds/org.thingpedia.builtin.thingengine.builtin,com.bing'),
-        BUILTIN_EXAMPLES.concat(BING_EXAMPLES));
+        BUILTIN_EXAMPLES + BING_EXAMPLES);
 
-    checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.test.invisible'), []);
+    checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.test.invisible'), 0);
 
     checkExamples(await request(
         `/api/examples/by-kinds/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
@@ -300,22 +297,21 @@ async function testGetExamplesByDevice() {
         `/api/examples/by-kinds/org.thingpedia.builtin.test.invisible,org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
 
-    checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), []);
+    checkExamples(await request('/api/examples/by-kinds/org.thingpedia.builtin.test.nonexistent'), 0);
 
     assert.deepStrictEqual(await request('/api/examples/by-kinds/org.thingpedia.builtin.test'), TEST_EXAMPLES);
 }
 
 async function testGetExamplesByKey() {
-    // mind the . vs .. here: there's two different data/ folders
-    const BING_EXAMPLES = require('./data/com.bing.manifest.json').examples;
-    const PHONE_EXAMPLES = require('../data/org.thingpedia.builtin.thingengine.phone.manifest.json').examples;
-    const INVISIBLE_EXAMPLES = require('./data/org.thingpedia.builtin.test.invisible.manifest.json').examples;
+    const BING_EXAMPLES = 18;
+    const PHONE_EXAMPLES = 41;
+    const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await request('/api/examples?key=bing'), BING_EXAMPLES);
     checkExamples(await request('/api/examples?key=phone'), PHONE_EXAMPLES);
     checkExamplesByKey(await request('/api/examples?key=matching'), 'matching');
 
-    checkExamples(await request('/api/examples?key=invisible'), []);
+    checkExamples(await request('/api/examples?key=invisible'), 0);
     checkExamples(await request(`/api/examples?key=invisible&developer_key=${process.env.DEVELOPER_KEY}`),
         INVISIBLE_EXAMPLES);
 
@@ -335,16 +331,7 @@ async function testGetDeviceIcon() {
     assert(!failed);
 }
 
-function deepClone(x) {
-    // stupid algorithm but it does the job
-    return JSON.parse(JSON.stringify(x));
-}
-
-function checkManifest(obtained, expected) {
-    delete expected.thingpedia_name;
-    delete expected.thingpedia_description;
-    delete expected.examples;
-
+function checkManifest(obtained) {
     assert.strictEqual(typeof obtained.version, 'number');
     assert.strictEqual(typeof obtained.developer, 'boolean');
     assert(!obtained.examples || Array.isArray(obtained.examples));
@@ -355,15 +342,11 @@ function checkManifest(obtained, expected) {
 }
 
 async function testGetDeviceManifest() {
-    const BING = deepClone(require('./data/com.bing.manifest.json'));
-    const INVISIBLE = deepClone(require('./data/org.thingpedia.builtin.test.invisible.manifest.json'));
-
-    checkManifest(await request('/api/code/devices/com.bing'), BING);
+    checkManifest(await request('/api/code/devices/com.bing'));
 
     await assert.rejects(() => request('/api/code/devices/org.thingpedia.builtin.test.invisible'));
     checkManifest(await request(
-        `/api/code/devices/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`),
-        INVISIBLE);
+        `/api/code/devices/org.thingpedia.builtin.test.invisible?developer_key=${process.env.DEVELOPER_KEY}`));
 
     await assert.rejects(() => request(
         `/api/code/devices/org.thingpedia.builtin.test.adminonly?developer_key=${process.env.DEVELOPER_KEY}`));

@@ -41,10 +41,7 @@ block content
                     div.form-group
                       label(for='new-entity-id').control-label= _("Entity ID")
                       input(type='text',name='entity_id').form-control#new-entity-id
-                      span.help-block
-                        | Entity ID, used to form type references in ThingTalk.
-                        |
-                        | Must be of the form <i>prefix</i>:<i>suffix</i>, where <i>prefix</i> is the ID of a device entry you control, and <i>suffix</i> is an identifier
+                      span.help-block!= _("Entity ID, used to form type references in ThingTalk. Must be of the form <i>prefix</i>:<i>suffix</i>, where <i>prefix</i> is the ID of a device entry you control, and <i>suffix</i> is an identifier.")
                     div.form-group
                       label(for='new-entity-name').control-label= _("Description")
                       input(type='text',name='entity_name').form-control#new-entity-name
@@ -57,12 +54,7 @@ block content
                     div.form-group
                       label(for='new-entity-upload').control-label= _("List of values")
                       input(type='file',name='upload',accept='text/csv')#new-entity-upload
-                      span.help-block
-                        | Upload a CSV file with all the values for this entity, one per line.
-                        |  The file should be formatted as <code><i>value</i>,<i>name</i></code>,
-                        |  where <i>value</i> is the API identifier and <i>name</i> is the name that will be available in natural language.
-                        |  If an entity can have multiple names (e.g. the stock ticker symbol "goog" can be recalled as Google or Alphabet),
-                        |  use multiple lines with different names and same value.
+                      span.help-block!= _("Upload a CSV file with all the values for this entity, one per line. The file should be formatted as <samp><i>value</i>,<i>name</i></samp>, where <i>value</i> is the API identifier and <i>name</i> is the name that will be available in natural language. If an entity can have multiple names (e.g. the stock ticker symbol ‘goog’ can be recalled as Google or Alphabet), use multiple lines with different names and same value.")
 
                   div.modal-footer
                     div.form-group
