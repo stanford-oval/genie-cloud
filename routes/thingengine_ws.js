@@ -53,7 +53,7 @@ class WebsocketDelegate {
         });
         this._ws.on('close', (data) => {
             try {
-                remote.onClode(data);
+                remote.onClose(data);
             } catch(e) {
                 // ignore
             }
