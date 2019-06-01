@@ -34,7 +34,7 @@ class OrgThingpediaClient extends BaseThingpediaClient {
 }
 
 class DummyExactMatcher {
-    load() {}
+    async load() {}
 
     get() {
         return null;
