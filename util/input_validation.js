@@ -31,7 +31,7 @@ function checkKey(value, type) {
         return value === null;
 
     case 'array':
-        return Array.isArray(value) && value.length > 0;
+        return Array.isArray(value);
 
     case 'string':
         // NOTE: the character ranges U+0000-U+001F and U+007F-U+009F are control
