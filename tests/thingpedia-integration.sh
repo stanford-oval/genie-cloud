@@ -148,9 +148,9 @@ node $srcdir/training/download-dataset.js -l en --quote-free --train train-quote
 
 sha256sum train-quoted.tsv eval-quoted.tsv train-quote-free.tsv eval-quote-free.tsv
 sha256sum -c <<EOF
-478b98d61a37142174a4f6d55761f5cbbd9d2553aebd0fcdcd3d359642026aa2  train-quoted.tsv
+8ae54595ab0bd2553c95ecc49be93fa783c08d561fb28c75bd0a465bb9a06c89  train-quoted.tsv
 5e8070f97c52581c51ab58736d126e2d8e11adaf8b5737d03b672ac8cec38285  eval-quoted.tsv
-615c9b6ffeaa50510f60020c87e649e56e3bc9530df45f5803231b63c8a9c40d  train-quote-free.tsv
+73b151e9fc1303bcd259ca17396928a3dc1d0991e625868f344b80c2082cb68f  train-quote-free.tsv
 f921f152ad30fe768de300d0ec2a796ebccc24775f567e97e6783185fcacac46  eval-quote-free.tsv
 EOF
 

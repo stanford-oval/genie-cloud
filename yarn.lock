@@ -2670,10 +2670,10 @@ gcp-metadata@^0.6.1, gcp-metadata@^0.6.3:
     extend "^3.0.1"
     retry-axios "0.3.2"
 
-genie-toolkit@~0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.3.0.tgz#e168bca3afac0b22d866dc8d9b55892e95e86093"
-  integrity sha512-8TMuYpvFsdRQyOG5bubrb0Y0O2C/v1K03CBbGQUbsEDCOo04B42tidjVvPS7vE0/YFU1SFxEBendWgraJe60qg==
+genie-toolkit@~0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.3.1.tgz#9e0306c4062b466126c2ef96f3bd5c0d1fd5be80"
+  integrity sha512-JeKCn1ImWk0BqQsorN41XOvy1JkbOH8vsRF7phrRKQqfH59kdDvwfVVjdNTM2pLasQIcf6I3C8/sd7g+4gAJlw==
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
