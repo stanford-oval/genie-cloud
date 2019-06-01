@@ -98,12 +98,17 @@ async function learn(req, res) {
         if (!owner) {
             ownerId = null;
         } else if (owner.length === 8 || owner.length === 16 || owner.length === 64) {
-            const result = userModel.getByCloudId(dbClient, owner);
-            if (result.length === 0) {
-                res.status(400).json({ error: 'Invalid command owner' });
-                return null;
+            try {
+                const result = await userModel.getIdByCloudId(dbClient, owner);
+                ownerId = result.id;
+            } catch(e) {
+                if (e.code === 'ENOENT') {
+                    res.status(400).json({ error: 'Invalid command owner' });
+                    return null;
+                } else {
+                    throw e;
+                }
             }
-            ownerId = result[0].id;
         } else {
             ownerId = parseInt(owner);
             if (isNaN(ownerId)) {
