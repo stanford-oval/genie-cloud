@@ -133,6 +133,7 @@ async function testHomepage(driver) {
     }
 }
 
+const HAS_DATA_COLLECTION_CONFIRMATION = false;
 async function skipDataCollectionConfirmation(driver) {
     await driver.get(BASE_URL + '/me');
     await driver.wait(
@@ -140,20 +141,25 @@ async function skipDataCollectionConfirmation(driver) {
         30000);
     await checkAllImages(driver);
 
+    // wait some extra time for the almond thread to respond
+    await driver.sleep(5000);
+
     let messages = await driver.findElements(WD.By.css('.message'));
     assert.strictEqual(await messages[0].getText(), `Hello! I'm Almond, your virtual assistant.`); //'
 
-    // ignore the blurb about data collection, skip to the yes/no question
-    // at the end
-    await driver.wait(
-        WD.until.elementLocated(WD.By.css('.message.message-yesno.btn')),
-        30000);
-    const yesNo = await driver.findElements(WD.By.css('.message.message-yesno.btn'));
-    assert.strictEqual(yesNo.length, 2);
-    assert.strictEqual(await yesNo[0].getText(), 'Yes');
-    assert.strictEqual(await yesNo[1].getText(), 'No');
-    // click no
-    await yesNo[1].click();
+    if (HAS_DATA_COLLECTION_CONFIRMATION) {
+        // ignore the blurb about data collection, skip to the yes/no question
+        // at the end
+        await driver.wait(
+            WD.until.elementLocated(WD.By.css('.message.message-yesno.btn')),
+            30000);
+        const yesNo = await driver.findElements(WD.By.css('.message.message-yesno.btn'));
+        assert.strictEqual(yesNo.length, 2);
+        assert.strictEqual(await yesNo[0].getText(), 'Yes');
+        assert.strictEqual(await yesNo[1].getText(), 'No');
+        // click no
+        await yesNo[1].click();
+    }
 }
 
 async function testMyConversation(driver) {
@@ -168,6 +174,9 @@ async function testMyConversation(driver) {
         WD.until.elementLocated(WD.By.id('input')),
         30000);
     await checkAllImages(driver);
+
+    // wait some extra time for the almond thread to respond
+    await driver.sleep(5000);
 
     let messages = await driver.findElements(WD.By.css('.message'));
     assert.strictEqual(messages.length, 1);

@@ -223,6 +223,11 @@ async function testMyApiListDevices(auth) {
     const listResult = JSON.parse(await request('/me/api/devices/list', 'GET', null, { auth }));
     console.log(listResult);
     assert.deepStrictEqual(listResult, [
+      { uniqueId: 'thingengine-own-cloud',
+        name: 'Almond cloud ()',
+        description: 'This is one of your own Almond apps.',
+        kind: 'org.thingpedia.builtin.thingengine',
+        ownerTier: 'cloud' },
       { uniqueId: 'thingengine-own-global',
         name: 'Miscellaneous Interfaces',
         description: 'Time, randomness and other non-device specific things.',
@@ -239,11 +244,6 @@ async function testMyApiListDevices(auth) {
         description: 'Test Almond in various ways',
         kind: 'org.thingpedia.builtin.test',
         ownerTier: 'global' },
-      { uniqueId: 'thingengine-own-cloud',
-        name: 'ThingSystem cloud',
-        description: 'This is your own ThingSystem.',
-        kind: 'org.thingpedia.builtin.thingengine',
-        ownerTier: 'cloud' }
     ]);
 }
 
