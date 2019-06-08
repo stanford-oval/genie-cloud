@@ -1,0 +1,96 @@
+extends ../layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/index.css')
+
+block page_name
+  - stdlayout = false;
+  = _("Use Almond In Your Project")
+
+block content
+  div#page-body
+    div.sections
+      section.divider
+        h3= _("Use Almond In Your Project")
+
+        div.container
+          div.row
+            div.col-xs-12.col-md-8.col-md-offset-2
+              p.
+                Almond is open source, and anybody can use it for any purpose. Are you building a smart
+                speaker, or an app that needs a natural language interface? Then Almond is for you.
+
+      section.divider
+        h3= _("How to build with Almond")
+
+        div.container
+          div.row
+            div.col-md-6.hanging-icon-block#almond-tech-app
+              h4= _("Apps")
+              p.
+                The Almond app is open-source, and can be branded and customized for your application.
+                The app is available for #[a(href='https://github.com/stanford-oval/almond-android') Android],
+                #[a(href='https://github.com/stanford-oval/almond-gnome') Linux desktops],
+                #[a(href='https://github.com/stanford-oval/almond-server') embedded devices] (for
+                smart-speaker devices), and
+                #[a(href='https://github.com/stanford-oval/almond-cloud') cloud servers] (for multi-user
+                deployments).
+
+            div.col-md-6.hanging-icon-block#almond-tech-open-api
+              h4= _("API")
+              p.
+                Almond provides an #[a(href='/thingpedia/developers/my-api.md') open API] that you can
+                use from your service or device directly. This allows you to integrate with Almond's natural
+                language technology without deploying Almond on your own server.
+
+          div.row
+            div.col-md-6.col-md-offset-3.hanging-icon-block#almond-tech-luinet
+              h4= _("LUINet")
+              p.
+                Almond's natural language model, called #[i LUInet], is freely available to anybody to use.
+                Additionally, you can train your own natural language understanding model using Almond's technology,
+                dataset and resource. Check out our #[a(href='/thingpedia/developers/genie-intro.md') documentation]
+                to learn more.
+
+
+      section.divider
+        h3= _("Project Showcase")
+        div.container
+          div.row
+            div.col-lg-offset-2.col-lg-8.col-md-offset-1.col-md-10
+              p.text-center= _("All sorts of projects can be made using the Almond platform. Here are two that we think are cool. Yours could be next!")
+              p.text-center!= _("Also, see our <a href='https://oval.cs.stanford.edu'>research group page</a> and our <a href='/blog'>blog</a> to see what else the Almond project is cooking.")
+
+            div.col-md-6
+              div.dev-example
+                h4.dev-example-title= _("Almond Music with Alexa & Google Home support")
+                div.dev-example-video
+                  iframe(src="https://www.youtube.com/embed/M4HG-QDGmBI", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true, cc_load_policy=1)
+                p.dev-example-description
+                  | Gabby and Hemanth are both music enthusiasts.
+                  | They love music and want to control their music with voice through any device around them.
+                  | However, the Spotify skill on Alexa or Google Home does not do what they want such as
+                  | changing their playlist.
+                  | They built Almond Music together as a quarter-long class project with the goal
+                  | of creating the best music virtual assistant. We collaborate with them to integrate
+                  | the service with both Alexa and Google Home.
+                  | The integration layer is still under development. In the future, it will be fully automated
+                  | once a device is added to Thingpedia.
+            div.col-md-6
+              div.dev-example
+                h4.dev-example-title= _("Multi-user Almond")
+                div.dev-example-video
+                  iframe(src="https://www.youtube.com/embed/LFOB_AUmreE", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true, cc_load_policy=1)
+                p.dev-example-description
+                  | Sharing a smart speaker among multiple people in the household is useful
+                  | but at the same time raises privacy and parental control issues.
+                  | In this video, we demo how Almond can be used to identify users with their voice
+                  | and provide fine-grained access control based on the detected identity.
+                  | In our design, users are allowed to share any of their digital personal information
+                  | they have access to,
+                  | and control who, what, when, where, and how the data are to be shared.
+                  | The infrastructure of Almond also supports remote access control,
+                  | where each user talks to their own Almond and Almonds communicate with each other to
+                  | manage the sharing and access control.
+                  | See our <a href='https://almond-static.stanford.edu/papers/ubicomp18.pdf'>latest paper presented at Ubicomp'18</a> for more details.

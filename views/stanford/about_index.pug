@@ -22,7 +22,7 @@ block content
         div.row
           div.col-lg-6
             h1#almond-title= _("Almond")
-            h2#almond-subtitle= _("The Stanford Open Virtual Assistant Project")
+            h2#almond-subtitle!= _("By <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>")
 
             img(src=Config.ASSET_CDN + '/images/logo.png')#almond-logo
 
@@ -41,10 +41,13 @@ block content
                 h4= _("Open To All")
 
             div.row#subscribe
-              div.col-xs-6.col-lg-3.col-md-4.col-lg-offset-3.col-md-offset-2
+              div.col-xs-6.col-md-4
                 a(href='/about/get-almond').btn.btn-primary.btn-block= _("Get Almond")
-              div.col-xs-6.col-lg-3.col-md-4
-                a(href='#why-almond').btn.btn-primary.btn-block= _("Learn More")
+              div.col-xs-6.col-md-4
+                a(href='/about/use-almond').btn.btn-primary.btn-block= _("Build with Almond")
+              div.col-xs-6.col-md-4
+                a(href='/about/get-involved').btn.btn-primary.btn-block= _("Contribute to Almond")
+
 
           div.col-lg-6
             div.carousel.slide(data-ride='carousel')#almond-index-carousel
@@ -101,17 +104,6 @@ block content
                 span.glyphicon.glyphicon-chevron-right(aria-hidden='true')
                 span.sr-only= _("Next")
 
-            div.row#subscribe-row
-              div.col-xs-12.col-lg-6.col-lg-offset-3.col-md-6.col-md-offset-3
-                form(action='#', method='post', data-toggle='validator')#subscribe-form
-                  div.form-group
-                    div.input-group
-                      input(type='email', required=true, data-error=_("Please enter a valid email address."), placeholder=_("Your Email")).form-control#subscribe-email
-                      span.input-group-btn
-                        button(type='submit').btn.btn-primary#subscribe-submit= _("Subscribe For Updates")
-                    span.help-block.with-errors
-                p#subscribe-done(hidden=true)= _("Subscribed. Thank you!")
-
     div.sections#home-page-sections
       section.divider
         //- for accessibility and for mobile devices (where hover is not available)
@@ -145,7 +137,7 @@ block content
               p= _("New services, new devices should be easy to add, and by anyone. This supports technological innovation.")
 
           p#almond-manifesto-learn-more
-            a(href='/about/research')= _("Learn More")
+            a(href='https://oval.cs.stanford.edu')= _("Learn More")
             |
             |
             | -
@@ -230,7 +222,8 @@ block content
             div.col-md-6.col-md-push-6
               p
                 = _("Almond uses a state-of-the-art natural language understanding model. Almond's deep learning model allows it to understand more complex commands across more domains than any other assistant on the market: just train Almond with pairs of sentences and programs, and Almond will learn.")
-              p!= _("We collaborate with professors from Stanford Natural Language Processing research group, one of the world's leading hubs for NLP research, to continuously improve Almond. In our experiments, we have found that Almond understands user's input with <strong>88%</strong> accuracy, provided that sufficient training data is provided. This is marked improvement over the previous best known result, which would achieve a mere 64%.")
+              p
+                != _("We are continuously improving Almond, and building tools to allow others to extend Almond. We have developed a tool called <a href='/thingpedia/developers/genie-intro.md'>Genie</a> that allows to generate training data in new domains from scratch. Using Genie, we have found that Almond understands user's input with 68% accuracy - a marked improvement over the previous best known result. Furthermore, with little effort we were able to build a specialized skill for <a href='https://almond.stanford.edu/thingpedia/devices/by-id/com.spotify'>Spotify</a>, add natural language to access control, and extend Almond with aggregates (sum, count, average, etc.).")
               p
                 != _("As academics, our research is open-source, and all technology is freely available to the public. Anyone can leverage our algorithm in their product or in their own research. <a href='/about/research'>Learn more about our research</a> and <a href='/about/get-involved'>how you can use Almond's technology</a>.")
 

@@ -2,8 +2,10 @@ sections:
 -
   title: Overview
   pages:
+    - getting-started
     - thingpedia-intro
     - thingtalk-intro
+    - genie-intro
 -
   title: Tutorials
   pages:
@@ -51,8 +53,10 @@ links:
     title: Available String Datasets
 
 pages:
-  thingpedia-intro: Introduction to Almond and Thingpedia
+  getting-started: Getting Started with Almond
+  thingpedia-intro: Introduction to Thingpedia
   thingtalk-intro: Introduction to ThingTalk
+  genie-intro: Introduction to LUInet & Genie
 
   thingpedia-tutorial-nyt: "Tutorial 1: NY Times RSS Feed"
   thingpedia-tutorial-cat: "Tutorial 2: The Cat API"
