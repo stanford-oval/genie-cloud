@@ -8,4 +8,4 @@ section.divider#latest-news
           h4= post.title
           p= post.blurb
           p
-            a(href='/blog/' + post.id + '-' + post.slug)= _("Read more")
+            a(href=post.link)= _("Read more")
