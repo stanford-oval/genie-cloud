@@ -42,6 +42,8 @@ function makeDeviceFactory(classDef, device) {
     const config = classDef.config;
 
     function toFields(argMap) {
+        if (!argMap)
+            return [];
         return Object.keys(argMap).map((k) => {
             const type = argMap[k];
             let htmlType;

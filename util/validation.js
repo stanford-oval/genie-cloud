@@ -183,7 +183,7 @@ function validateUtterance(args, utterance) {
         let param = param1 || param2;
         if (!(param in args))
             throw new ValidationError(`Invalid placeholder ${param}`);
-        if (opt && opt !== 'const')
+        if (opt && opt !== 'const' && opt !== 'no-undefined')
             throw new ValidationError(`Invalid placeholder option ${opt} for ${param}`);
         placeholders.add(param);
     }

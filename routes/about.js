@@ -23,7 +23,7 @@ let router = express.Router();
 router.get('/', (req, res, next) => {
     db.withClient(async (dbClient) => {
         const featuredDevices = await deviceModel.getFeatured(dbClient);
-        const news = await blogModel.getAllPublished(dbClient, 0, 3);
+        const news = await blogModel.getHomePage(dbClient);
         res.render(Config.ABOUT_OVERRIDE['index'] || 'about_index', {
             page_title: req._('Almond'),
             csrfToken: req.csrfToken(),

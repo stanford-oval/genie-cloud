@@ -42,6 +42,16 @@ module.exports = {
             from blog_posts bp,users u where u.id = bp.author and pub_date is not null order by upd_date desc limit ?,?`, [start, end]);
     },
 
+    getHomePage(dbClient) {
+        return db.selectAll(dbClient,
+            `(select image,title,blurb,link,upd_date from homepage_links)
+            union
+             (select image,title,blurb, concat('/blog/', bp.id, '-', slug) as link,upd_date
+              from blog_posts bp,users u where u.id = bp.author and pub_date is not null
+              and in_homepage)
+            order by upd_date desc limit 3`);
+    },
+
     getForView(dbClient, id) {
         return db.selectOne(dbClient, `select bp.id,author,title,slug,image,pub_date,upd_date,body,u.human_name as author_name from blog_posts bp,users u where u.id = bp.author and bp.id = ?`, [id]);
     },

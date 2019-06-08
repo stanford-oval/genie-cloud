@@ -53,6 +53,8 @@ block content
               - methods.push("Facebook");
             - if (user.google_id !== null)
               - methods.push("Google")
+            - if (user.github_id !== null)
+              - methods.push("GitHub")
             | #{methods.join(', ')}
           td= user.locale
           td= user.timezone

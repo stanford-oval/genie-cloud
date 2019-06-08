@@ -66,13 +66,15 @@ block content
                   div.carousel-caption
                     h4= _("Notifications That Matter To You")
                     p= _("Say: “Monitor the New York Times”")
+                    p
+                      em= _("Coming soon!")
                 div.item
                   h3= _("On The Web")
-                  img(src=Config.ASSET_CDN + '/images/carousel-teardrop.png',
-                      alt=_("Screenshot of Web Almond. The user asks: “plot x^4 = 0.5^2 (x^2 - y^2)”. Almond produces a plot, shaped like a teardrop."))
+                  img(src=Config.ASSET_CDN + '/images/carousel-nest.png',
+                      alt=_("Screenshot of Web Almond. The user asks, in sequence, “Turn on my security camera”, “Get a snapshot” and “Send an email to my neighbor if my camera detects motion when I am not home”."))
                   div.carousel-caption
                     h4= _("Graphical and Voice is the Best Combination")
-                    p= _("Say: “plot an equation”")
+                    p= _("Say: “Show me a security camera snapshot”")
                 div.item
                   h3= _("On Your Laptop")
                   img(src=Config.ASSET_CDN + '/images/carousel-nasa.png',
@@ -192,7 +194,7 @@ block content
 
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')
               .example
-                != _("<span class=when>when the New York Times has an article about China</span>,<br><span class=get>translate the headline to Chinese</span>,<br>then<span class=do>email it to my friend</span>")
+                != _("<span class=when>when the New York Times has an article about China</span>,<br><span class=get>translate the headline to Chinese</span>,<br>then <span class=do>email it to my friend</span>")
 
           div.row
             div.col-xs-12
