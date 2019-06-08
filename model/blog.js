@@ -44,12 +44,12 @@ module.exports = {
 
     getHomePage(dbClient) {
         return db.selectAll(dbClient,
-            `(select image,title,blurb,link,upd_date from homepage_links)
+            `(select image,title,blurb,link,upd_date as sort_key from homepage_links)
             union
-             (select image,title,blurb, concat('/blog/', bp.id, '-', slug) as link,upd_date
+             (select image,title,blurb, concat('/blog/', bp.id, '-', slug) as link,pub_date as sort_key
               from blog_posts bp,users u where u.id = bp.author and pub_date is not null
               and in_homepage)
-            order by upd_date desc limit 3`);
+            order by sort_key desc limit 3`);
     },
 
     getForView(dbClient, id) {
