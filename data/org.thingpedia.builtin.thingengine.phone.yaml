@@ -8,17 +8,6 @@ class: |
     import loader from @org.thingpedia.builtin();
     import config from @org.thingpedia.config.builtin();
 
-    monitorable query get_gps(out location: Location #_[prompt="What location are you interested in?"] #_[canonical="location"],
-                              out altitude: Measure(m) #_[canonical="altitude"],
-                              out bearing: Number #_[canonical="bearing"],
-                              out speed: Measure(mps) #_[canonical="speed"])
-    #_[canonical="get current location on phone"]
-    #_[confirmation="your location"]
-    #_[confirmation_remote="$__person's location"]
-    #_[formatted=[{type="text",text="Current Location: ${location}"}]]
-    #[poll_interval=0ms]
-    #[doc="get last known GPS location"];
-
     monitorable list query sms(out sender: Entity(tt:phone_number) #_[prompt="What number do you want to monitor?"] #_[canonical="sender"],
                                out message: String #_[canonical="message"] #[string_values="tt:long_free_text"],
                                out date: Date #_[canonical="date"])
@@ -57,20 +46,12 @@ class: |
 
 dataset: |
   dataset @org.thingpedia.builtin.thingengine.phone language "en" {
-    stream  := monitor (@org.thingpedia.builtin.thingengine.phone.get_gps())
-    #_[utterances=["when my location changes","when i move"]];
-
-    stream (p_location :Location)  := edge (monitor (@org.thingpedia.builtin.thingengine.phone.get_gps())) on location == p_location
-    #_[utterances=["when my location changes to $p_location","when i reach $p_location"]];
 
     stream  := monitor (@org.thingpedia.builtin.thingengine.phone.sms())
     #_[utterances=["when i receive a sms"]];
 
     stream (p_sender :Entity(tt:phone_number))  := monitor ((@org.thingpedia.builtin.thingengine.phone.sms()), sender == p_sender)
     #_[utterances=["when i receive a sms from $p_sender"]];
-
-    query  := @org.thingpedia.builtin.thingengine.phone.get_gps()
-    #_[utterances=["my current location"]];
 
     action (p_to :Entity(tt:phone_number), p_message :String)  := @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to, message=p_message)
     #_[utterances=["send an sms to $p_to saying $p_message","send an sms message to $p_to saying $p_message","send a text to $p_to saying $p_message","text $p_to saying $p_message","send a text to $p_to containing $p_message","send a message to $p_to containing $p_message"]];
@@ -86,9 +67,6 @@ dataset: |
 
     action (p_to :Entity(tt:phone_number))  := @org.thingpedia.builtin.thingengine.phone.send_sms(to=p_to, message=$undefined)
     #_[utterances=["send a text to $p_to","send a message to $p_to"]];
-
-    stream (p_location :Location)  := edge (monitor (@org.thingpedia.builtin.thingengine.phone.get_gps())) on !(location == p_location)
-    #_[utterances=["when i move away from $p_location","when i leave $p_location"]];
 
     query  := @org.thingpedia.builtin.thingengine.phone.sms()
     #_[utterances=["my sms inbox","sms in my phone","texts i received"]];
