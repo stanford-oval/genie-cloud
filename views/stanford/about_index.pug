@@ -106,48 +106,31 @@ block content
 
     div.sections#home-page-sections
       section.divider
-        //- for accessibility and for mobile devices (where hover is not available)
         div.container#almond-manifesto
-          h3= _("Our Goal: an Open, Interoperable, Linguistic Web")
+          h3= _("Our Goal: Open Virtual Assistants for the Open Web")
 
-          //-img(src=Config.ASSET_CDN + '/images/icon-network-connection.svg')
           canvas(width=400, height=400)#rotatingGlobe
 
           p
             = _("Virtual assistants are the new interface to the Web.")
             br
-            = _("We want them to have:")
+            = _("Our vision for virtual assistants includes:")
 
           div.row
             div.col-md-6
-              h4= _("Open Competition")
-              p=_("Any company should be able to participate and innovate, without privileging existing monopolies.")
+              h4 Democratize AI for linguistic user interfaces
+              p We should have open, collaborative research to put open-source linguistic technology in the hands of all businesses.
+              p Learn more about #[a(href='/doc/genie-intro.md') our technology] and #[a(href='/about/use-almond')  how you can use it in your product].
 
             div.col-md-6
-              h4= _("Programmability")
-              p=_("Users should be able to define their own tasks, without learning complex programming languages.")
+              h4 An open non-proprietary linguistic web
+              p All skills, or linguistic user interfaces, should be made available to any virtual assistant.
+              p Learn more about our #[a(href='/thingpedia') open repository] and #[a(href='/about/get-involved') how you can contribute].
 
-          div.row
-            div.col-md-6
-              h4= _("Privacy")
-              p=_("Users should control who has access to their data, for what purpose, and with whom their data is shared.")
-
-            div.col-md-6
-              h4= _("Extensibility")
-              p= _("New services, new devices should be easy to add, and by anyone. This supports technological innovation.")
-
-          p#almond-manifesto-learn-more
-            a(href='https://oval.cs.stanford.edu')= _("Learn More")
-            |
-            |
-            | -
-            |
-            |
-            a(href='https://www.youtube.com/watch?v=R-BHyvli6c0')= _("Watch prof. Lam's keynote at Mobicom 2018")
-            |
-            | (
-            a(href='https://almond-static.stanford.edu/papers/slides-keynote-mobicom18.pdf') Slides
-            | )
+            div.col-md-6.col-md-offset-3
+              h4 Sharing with individual data ownership
+              p We as users should have a choice in virtual assistant services and the ability to control how we share our data.
+              p Learn more about #[a(href='/about/get-almond') how you can run Almond with maximum privacy].
 
       section.divider#why-almond
         h3= _("What We Do")
