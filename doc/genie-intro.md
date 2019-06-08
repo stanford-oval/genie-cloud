@@ -5,7 +5,7 @@
 ## What is LUInet?
 
 LUInet (Linguistic User Interface network) is Almond's natural language understanding component.
-It is a large neural network that translates from natural language into executable [ThingTalk](thingtalk-intro.md) code.
+It is a large neural network that translates from natural language into executable [ThingTalk](/doc/thingtalk-intro.md) code.
 
 Anyone can use LUInet to build new language user interfaces in their domains.
 By making the LUInet open, we enable companies to build their own linguistic interfaces at a low cost, without in-house machine-learning expertise.
@@ -43,20 +43,20 @@ the amount of customization desired.
 The first, and simplest option is to _subset_ Thingpedia
 to build a natural language interface taylored to your domain. In this setting, Thingpedia will automatically
 train and maintain a natural language model using only the skills you enable. This model will be available
-over [the same API](my-api.md) as the regular shared LUInet, and will take advantage of all the improvements to LUInet.
+over [the same API](/doc/my-api.md) as the regular shared LUInet, and will take advantage of all the improvements to LUInet.
 At this stage, you must ask us (over email or in the community forum) to enable a customized model for you.
 We are planning to make this available from the website in the future.
 
 The other option is to deploy a customized natural language stack using your own infrastructure.
 This will allow you to use a customized version of Genie (including new construct templates for your domain),
-as well as a customized version of the Almond engine, if needed. Please refer to the [Guide To Deploying Almond](installing-almond-cloud.md)
+as well as a customized version of the Almond engine, if needed. Please refer to the [Guide To Deploying Almond](/doc/installing-almond-cloud.md)
 to learn more.
 
 ## How to Use Genie?
 
 To customize Genie, and train a custom natural language model, you should install the [Genie Toolkit](https://github.com/stanford-oval/genie-toolkit),
 and follow the instructions in its [README](https://github.com/stanford-oval/genie-toolkit/blob/master/README.md).
-Once you have a trained model, use the [Guide To Deploying Almond](installing-almond-cloud.md) to deploy the model
+Once you have a trained model, use the [Guide To Deploying Almond](/doc/installing-almond-cloud.md) to deploy the model
 to your users.
 
 ## Pretrained Models and Datasets
@@ -70,6 +70,6 @@ To download the continuously updated, live version of the main Almond natural la
 The files can be downloaded and saved in a Genie model directory.
 
 Additional resources, such as string and entity datasets, are available for download. Follow the links in the sidebar for more information.
-Thingpedia metadata can also be downloaded using the [Thingpedia API](thingpedia-api). 
+Thingpedia metadata can also be downloaded using the [Thingpedia API](/doc/thingpedia-api). 
 
 You can also find our research models and published datasets on our [research group page](https://oval.cs.stanford.edu/releases/).
