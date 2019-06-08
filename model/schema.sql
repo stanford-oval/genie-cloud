@@ -724,6 +724,7 @@ CREATE TABLE `blog_posts` (
   `body` mediumtext CHARACTER SET utf8mb4 NOT NULL,
   `pub_date` datetime NULL,
   `upd_date` datetime NOT NULL DEFAULT current_timestamp(),
+  `in_homepage` boolean NOT NULL DEFAULT true,
   PRIMARY KEY (`id`),
   KEY `author` (`author`),
   KEY `upd_date` (`upd_date`),
