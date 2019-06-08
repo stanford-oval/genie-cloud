@@ -277,7 +277,7 @@ const TEST_EXAMPLES = require('./data/test-examples-v1.json');
 
 async function testGetExamplesByDevice() {
     const BING_EXAMPLES = 18;
-    const BUILTIN_EXAMPLES = 52;
+    const BUILTIN_EXAMPLES = 59;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await request('/api/examples/by-kinds/com.bing'), BING_EXAMPLES);
@@ -304,7 +304,7 @@ async function testGetExamplesByDevice() {
 
 async function testGetExamplesByKey() {
     const BING_EXAMPLES = 18;
-    const PHONE_EXAMPLES = 41;
+    const PHONE_EXAMPLES = 34;
     const INVISIBLE_EXAMPLES = 1;
 
     checkExamples(await request('/api/examples?key=bing'), BING_EXAMPLES);
