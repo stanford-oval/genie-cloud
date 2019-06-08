@@ -137,13 +137,13 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
         if (editMode) {
             if (!skipId && ex.id !== undefined) {
                 buffer.push(`    ${targetCode}
-    #_[utterances=[${ex.utterances.map(stringEscape)}]]
+    #_[utterances=[${ex.utterances.map(stringEscape).join(',\n' + ' '.repeat(19))}]]
     #[id=${ex.id}];
 
 `);
             } else {
                 buffer.push(`    ${targetCode}
-    #_[utterances=[${ex.utterances.map(stringEscape)}]];
+    #_[utterances=[${ex.utterances.map(stringEscape).join(',\n' + ' '.repeat(19))}]];
 
 `);
             }
