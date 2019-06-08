@@ -2,25 +2,17 @@ extends ../layout
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
-  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia_dev_sidebar.css')
-
-block scripts
-  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
 
 block page_name
   - stdlayout = false;
-  - var section = 'overview';
   = _("Contribute To Almond")
 
 block content
-  div.container-fluid#page-body
-    div.row
-      div.col-lg-3.col-md-4
-        include ../thingpedia_dev_sidebar
-
-      div.col-xs-12.col-md-8.col-lg-9#get-involved-container
-        section.divider
-          h3= _("Contribute to Almond")
+  div#page-body
+    div.sections
+      section.divider
+        h3= _("Contribute to Almond")
+        div.container
           div.row#dev-program-intro
             div.col-xs-12.col-md-8.col-md-offset-2
               p= _("Almond is a community project, and we welcome anyone to use it, contribute to it, and help us make it the best virtual assistant.")
@@ -28,49 +20,10 @@ block content
               p
                 strong= _("We welcome everyone to contribute to Almond!")
 
-        section.divider
-          h3= _("Build with Almond")
-          div.row
-            div.col-lg-offset-2.col-lg-8.col-md-offset-1.col-md-10
-              p.text-center= _("All sorts of projects can be made using the Almond platform. Here are two that we think are cool. Yours could be next!")
-              p.text-center!= _("Also, see our <a href='/about/research#projects-in-progress'>research page</a> and our <a href='/blog'>blog</a> to see what else the Almond project is cooking.")
+      section.divider#section-what-can-i-do-for-almond
+        h3= _("What can I do for Almond?")
 
-            div.col-md-6
-              div.dev-example
-                h4.dev-example-title= _("Almond Music with Alexa & Google Home support")
-                div.dev-example-video
-                  iframe(src="https://www.youtube.com/embed/M4HG-QDGmBI", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true, cc_load_policy=1)
-                p.dev-example-description
-                  | Gabby and Hemanth are both music enthusiasts.
-                  | They love music and want to control their music with voice through any device around them.
-                  | However, the Spotify skill on Alexa or Google Home does not do what they want such as
-                  | changing their playlist.
-                  | They built Almond Music together as a quarter-long class project with the goal
-                  | of creating the best music virtual assistant. We collaborate with them to integrate
-                  | the service with both Alexa and Google Home.
-                  | The integration layer is still under development. In the future, it will be fully automated
-                  | once a device is added to Thingpedia.
-            div.col-md-6
-              div.dev-example
-                h4.dev-example-title= _("Multi-user Almond")
-                div.dev-example-video
-                  iframe(src="https://www.youtube.com/embed/LFOB_AUmreE", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true, cc_load_policy=1)
-                p.dev-example-description
-                  | Sharing a smart speaker among multiple people in the household is useful
-                  | but at the same time raises privacy and parental control issues.
-                  | In this video, we demo how Almond can be used to identify users with their voice
-                  | and provide fine-grained access control based on the detected identity.
-                  | In our design, users are allowed to share any of their digital personal information
-                  | they have access to,
-                  | and control who, what, when, where, and how the data are to be shared.
-                  | The infrastructure of Almond also supports remote access control,
-                  | where each user talks to their own Almond and Almonds communicate with each other to
-                  | manage the sharing and access control.
-                  | See our <a href='https://almond-static.stanford.edu/papers/ubicomp18.pdf'>latest paper presented at Ubicomp'18</a> for more details.
-
-        section.divider#section-what-can-i-do-for-almond
-          h3= _("What can I do for Almond?")
-
+        div.container
           div.row
             div.col-lg-offset-2.col-lg-offset-8
               blockquote
@@ -86,16 +39,6 @@ block content
               p.
                 Check out our #[a(href='/thingpedia/developers/thingpedia-intro.md') developer documentation],
                 and when you're ready, #[a(href='/user/request-developer') apply to our developer program].
-
-            div.col-md-6
-              h4= _("Use Almond in your research or product")
-              p.
-                Almond is open source, and anybody can use it for any purpose. Are you building a smart
-                speaker, or an app that needs a natural language interface? Then Almond is for you.
-              p.
-                Almond provides an #[a(href='/thingpedia/developers/my-api.md') open API] that you can
-                use from your service or device directly. You can also download Almond sources and customize
-                them.
 
             div.col-md-6
               h4= _("Develop Almond")
@@ -122,9 +65,10 @@ block content
                 Smaller donations can also be provided #[a(href='https://engineering.stanford.edu/get-involved/give') to the university].
                 All contributions to Stanford are tax deductible in the United States.
 
-        section.divider#section-get-in-touch
-          h3= _("Get In Touch")
+      section.divider#section-get-in-touch
+        h3= _("Get In Touch")
 
+        div.container
           div.row
             div.col-lg-4.col-md-6
               a(href='https://twitter.com/AlmondStanford').media
@@ -132,7 +76,7 @@ block content
                   img(src=Config.ASSET_CDN + '/images/logo-twitter.png').media-object
                 div.media-body.media-middle
                   h4.media-heading= _("Twitter")
-            
+
             div.col-lg-4.col-md-6
               a(href='https://community.almond.stanford.edu').media
                 div.media-left.media-middle

@@ -29,23 +29,27 @@ module.exports.ABOUT_OVERRIDE = {
 
 module.exports.EXTRA_ABOUT_PAGES = [
     {
-        url: 'research',
-        view: 'stanford/about_research.pug',
-        title: _("Almond - The Open Virtual Assistant"),
-        navbar: _("Research")
-    },
-    {
         url: 'get-almond',
         view: 'stanford/about_get_almond.pug',
-        title: _("Getting Almond"),
-        navbar: null
+        title: _("Get Almond")
     },
     {
         url: 'get-involved',
         view: 'stanford/about_get_involved.pug',
-        title: _("Get Involved With Almond"),
-        navbar: _("Get Involved")
+        title: _("Get Involved With Almond")
+    },
+    {
+        url: 'use-almond',
+        view: 'stanford/about_use_almond.pug',
+        title: _("Use Almond In Your Product")
     }
+];
+
+module.exports.EXTRA_NAVBAR = [
+    {
+        url: 'https://oval.cs.stanford.edu',
+        title: _("OVAL Lab"),
+    },
 ];
 
 module.exports.DISCOURSE_SSO_REDIRECT = 'https://discourse.almond.stanford.edu';

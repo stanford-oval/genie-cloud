@@ -227,18 +227,18 @@
     display: block;
 }
 .hanging-icon-block::before {
-    background-size: 80px 80px;
+    background-size: 64px 64px;
     background-repeat: no-repeat;
     background-position: center;
     background-color: white;
     border-radius: 50%;
 
     content: " ";
-    margin-right: 2em;
+    margin-right: 1em;
     display: block;
     float: left;
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
 }
 .hanging-icon-block > * {
     overflow: auto;
@@ -250,24 +250,15 @@
     margin-bottom: 0px;
 }
 
-#agenda-thingpedia::before {
-    background-image: url(../images/icon-thingpedia.png);
+#almond-tech-app::before {
+    background-image: url(../images/icon-phone.svg);
+    background-size: 56px 56px;
 }
-#agenda-thingtalk::before, #agenda-dtp::before {
-    background-image: url(../images/icon-tt.png);
-}
-#agenda-luinet::before, #agenda-guinet::before {
-    background-image: url(../images/icon-nn.png);
-}
-#project-server::before {
+#almond-tech-open-api::before {
     background-image: url(../images/icon-cloud.png);
-    background-size: 90px 90px;
 }
-#project-compound::before {
+#almond-tech-luinet::before {
     background-image: url(../images/icon-compound.png);
-}
-#project-email::before {
-    background-image: url(../images/icon-email.png);
 }
 
 /* the double ID selector is needed to have the correct CSS specificity */
@@ -757,8 +748,9 @@
   border-radius: 10px;*/
 }
 
-#almond-subtitle {
+h2#almond-subtitle {
   margin-bottom: 0.5em !important;
+  font-size: 30px;
 }
 
 #almond-logo {

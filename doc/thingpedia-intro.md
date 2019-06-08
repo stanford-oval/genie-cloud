@@ -1,11 +1,6 @@
-# Introduction to Almond and Thingpedia
+# Introduction to Thingpedia
 
 [[toc]]
-
-## What is Almond?
-Almond is a smart virtual assistant that you can access through 
-your phone and the [web](/about/get-almond). It helps you configure your devices, accounts, 
-and public services, retrieve data from them, and execute actions on them.
 
 ## What is Thingpedia?
 Almond builds on top of [Thingpedia](https://thingpedia.stanford.edu/), 
@@ -25,9 +20,8 @@ Users can connect different queries and actions to accomplish
 complicated tasks with a single command, such as 
 "Get my latest Instagram picture and post it on Twitter".
 
-
-## How Almond works? 
-Almond virtual assistant has two major components:
+## How does Almond use Thingpedia? 
+Any Almond virtual assistant has two major components:
 the _Almond agent_ communicates with the users in natural language, and
 the _Almond engine_ runs the commands issued by the users. 
 The following diagram illustrates how Almond works internally:

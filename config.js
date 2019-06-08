@@ -193,11 +193,23 @@ module.exports.ABOUT_OVERRIDE = {};
     url: path name, excluding /about part
     title: page title
     view: name of pug file
-    navbar: link label in navbar, or null to exclude from the navbar
   }
   ```
 */
 module.exports.EXTRA_ABOUT_PAGES = [];
+
+/**
+  Adds new links to the navbar
+
+  This option is an array of objects. The format should be:
+  ```
+  {
+    url: link URL
+    title: link title
+  }
+  ```
+*/
+module.exports.EXTRA_NAVBAR = [];
 
 /**
   Additional origins that should be allowed to make Cookie-authenticated

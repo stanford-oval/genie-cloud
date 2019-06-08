@@ -185,7 +185,19 @@ This option is an array of objects. The format should be:
   url: path name, excluding /about part
   title: page title
   view: name of pug file
-  navbar: link label in navbar, or null to exclude from the navbar
+}
+```
+
+Default value: `[]`
+
+## EXTRA_NAVBAR
+Adds new links to the navbar
+
+This option is an array of objects. The format should be:
+```
+{
+  url: link URL
+  title: link title
 }
 ```
 

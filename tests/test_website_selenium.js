@@ -118,7 +118,7 @@ async function testHomepage(driver) {
 
     const subtitle = await driver.findElement(WD.By.id('almond-subtitle'));
     if (Config.ABOUT_OVERRIDE['index'] === 'stanford/about_index.pug')
-        assert.strictEqual(await subtitle.getText(), 'The Stanford Open Virtual Assistant Project');
+        assert.strictEqual(await subtitle.getText(), 'By Stanford Open Virtual Assistant Lab');
     else
         assert.strictEqual(await subtitle.getText(), 'The Open Virtual Assistant');
 
