@@ -66,6 +66,8 @@ block content
                   div.carousel-caption
                     h4= _("Notifications That Matter To You")
                     p= _("Say: “Monitor the New York Times”")
+                    p
+                      em= _("Coming soon!")
                 div.item
                   h3= _("On The Web")
                   img(src=Config.ASSET_CDN + '/images/carousel-teardrop.png',
@@ -192,7 +194,7 @@ block content
 
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')
               .example
-                != _("<span class=when>when the New York Times has an article about China</span>,<br><span class=get>translate the headline to Chinese</span>,<br>then<span class=do>email it to my friend</span>")
+                != _("<span class=when>when the New York Times has an article about China</span>,<br><span class=get>translate the headline to Chinese</span>,<br>then <span class=do>email it to my friend</span>")
 
           div.row
             div.col-xs-12
