@@ -367,20 +367,12 @@
 }
 
 #subscribe {
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
-
-#subscribe-row {
-    margin-bottom: 20px;
-}
-
-#subscribe-start {
-    white-space: normal;
-}
-
-#subscribe-done {
-    padding: 10px;
+#subscribe > div {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 #section-commandpedia > div > div > div > p {
