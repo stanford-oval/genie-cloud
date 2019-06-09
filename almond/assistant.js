@@ -25,7 +25,9 @@ module.exports = class Assistant extends events.EventEmitter {
     constructor(engine, options) {
         super();
 
-        this._url = Config.NL_SERVER_URL + '/@' + options.modelTag;
+        this._url = Config.NL_SERVER_URL;
+        if (options.modelTag !== null && options.modelTag !== 'default')
+            this._url += '/@' + options.modelTag;
         this._engine = engine;
         this._conversations = {};
         this._lastConversation = null;
