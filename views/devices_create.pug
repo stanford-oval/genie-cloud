@@ -4,30 +4,8 @@ block scripts
   script(src=Config.ASSET_CDN + '/javascripts/devices-create.js')
 
 block page_name
-  if klass === 'online'
-    = _("New Account")
-  else if klass === 'data'
-    = _("New Data Source")
-  else
-    = _("New Device")
+  = _("New Skill")
 
 block content
-  if klass === 'online' || klass === 'data'
-    if klass === 'online'
-      p= _("What account do you want to set up?")
-      div#online-account-selector.container(data-csrf-token=csrfToken)
-    else
-      p= _("What data source do you want to set up?")
-      div#data-source-selector.container(data-csrf-token=csrfToken)
-  else
-    form(action="/me/devices/create", method="post")
-      input(type='hidden',name='_csrf',value=csrfToken)
-
-      div.form-group
-        label(for="device-kind").control-label= _("What kind of device are you trying to configure?")
-        select#device-kind(name="kind").form-control
-          option(value='',selected=true)= _("Select one device...")
-
-      div.well#device-placeholder
-
-  span.hidden#developer-key= developerKey
+  p= _("What skill do you want to set up?")
+  div#online-account-selector.container
