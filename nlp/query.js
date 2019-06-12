@@ -101,6 +101,7 @@ async function query(params, data, service, res) {
     const languageTag = I18n.localeToLanguage(params.locale);
 
     const intent = await service.getFrontendClassifier(languageTag).classify(query);
+    delete intent.id;
 
     let tokenized;
     if (isTokenized) {
