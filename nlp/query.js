@@ -60,7 +60,10 @@ async function runPrediction(model, tokens, entities, context, limit, skipTypech
 
     candidates = candidates.filter((c) => c !== null);
 
-    return candidates.slice(0, limit);
+    if (limit >= 0)
+        return candidates.slice(0, limit);
+    else
+        return candidates;
 }
 
 async function query(params, data, service, res) {
