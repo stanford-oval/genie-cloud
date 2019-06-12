@@ -33,7 +33,7 @@ async function tokenize(params, data, service, res) {
     }
 
     const languageTag = I18n.localeToLanguage(params.locale);
-    const tokenized = await service.tokenizer.tokenize(languageTag, data.q);
+    const tokenized = await service.tokenizer.tokenize(languageTag, data.q, data.expect || null);
     if (data.entities)
         Genie.Utils.renumberEntities(tokenized, data.entities);
 
@@ -116,7 +116,7 @@ async function query(params, data, service, res) {
             }
         }
     } else {
-        tokenized = await service.tokenizer.tokenize(languageTag, query);
+        tokenized = await service.tokenizer.tokenize(languageTag, query, expect);
         if (data.entities)
             Genie.Utils.renumberEntities(tokenized, data.entities);
     }
@@ -207,7 +207,7 @@ router.get('/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req,
     query(req.params, req.query, req.app.service, res).catch(next);
 });
 
-router.get('/:locale/tokenize', iv.validateGET({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
+router.get('/:locale/tokenize', iv.validateGET({ q: 'string', expect: '?string', entities: '?object' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.query, req.app.service, res).catch(next);
 });
 
@@ -215,7 +215,7 @@ router.post('/@:model_tag/:locale/query', iv.validatePOST(QUERY_PARAMS, { json: 
     query(req.params, req.body, req.app.service, res).catch(next);
 });
 
-router.post('/@:model_tag/:locale/tokenize', iv.validatePOST({ q: 'string', entities: '?object' }, { json: true }), (req, res, next) => {
+router.post('/@:model_tag/:locale/tokenize', iv.validatePOST({ q: 'string', expect: '?string', entities: '?object' }, { json: true }), (req, res, next) => {
     tokenize(req.params, req.body, req.app.service, res).catch(next);
 });
 
