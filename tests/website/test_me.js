@@ -45,12 +45,7 @@ async function testMyStuff(bob, nobody) {
 }
 
 async function testMyDevices(bob, nobody) {
-    await assertRedirect(sessionRequest('/me/devices/create', 'GET', { class: ['foo', 'bar'] }, nobody, { followRedirects: false }), '/user/login');
-
-    await assertHttpError(sessionRequest('/me/devices/create', 'GET', { class: ['foo', 'bar'] }, bob),
-        400, 'Missing or invalid parameter class');
-    await assertHttpError(sessionRequest('/me/devices/create', 'GET', { class: 'foo' }, bob),
-        404, 'Invalid device class');
+    await assertRedirect(sessionRequest('/me/devices/create', 'GET', {}, nobody, { followRedirects: false }), '/user/login');
 
     // no need to test the non-error case for /me/devices, linkchecker does that
 
