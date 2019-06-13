@@ -128,26 +128,6 @@ async function taskPrepare(job) {
     fs.symlinkSync(path.resolve(job.jobDir, 'workdir/model'), path.resolve(`./tensorboard/${job.modelTag}/${job.language}/in-progress`));
 }
 
-async function taskDownloadDataset(job) {
-    const script = process.execPath;
-
-    const dataset = path.resolve(job.jobDir, 'dataset');
-    const args = process.execArgv.concat([
-        path.resolve(path.dirname(module.filename), './download-dataset.js'),
-        '--language', job.language,
-        '--quote-free',
-        '--train', path.resolve(dataset, 'train.tsv'),
-        '--eval', path.resolve(dataset, 'eval.tsv')
-    ]);
-    if (job.modelDevices !== null) {
-        for (let d of job.modelDevices)
-            args.push('--device', d);
-    }
-    await execCommand(job, script, args);
-
-    await util.promisify(fs.writeFile)(path.resolve(dataset, 'test.tsv'), '');
-}
-
 async function taskUpdatingDataset(job) {
     const script = process.execPath;
 
@@ -155,14 +135,9 @@ async function taskUpdatingDataset(job) {
         '--max_old_space_size=24000',
         path.resolve(path.dirname(module.filename), './update-dataset.js'),
         '--language', job.language,
-        '--maxdepth', job.config.synthetic_depth,
-        '--ppdb', PPDB
     ]);
     if (job.forDevices !== null) {
         for (let d of job.forDevices)
-            args.push('--device', d);
-    } else if (job.modelTag !== 'default') {
-        for (let d of job._daemon._models[job.modelTag])
             args.push('--device', d);
     }
 
@@ -178,6 +153,27 @@ async function taskReloadingExact(job) {
     } catch(e) {
         console.error(`Failed to ask server to reload exact matches: ${e.message}`);
     }
+}
+
+async function taskGenerateTrainingSet(job) {
+    const script = process.execPath;
+
+    const dataset = path.resolve(job.jobDir, 'dataset');
+    const args = process.execArgv.concat([
+        path.resolve(path.dirname(module.filename), './prepare-training-set.js'),
+        '--language', job.language,
+        '--train', path.resolve(dataset, 'train.tsv'),
+        '--eval', path.resolve(dataset, 'eval.tsv'),
+        '--maxdepth', job.config.synthetic_depth,
+        '--ppdb', PPDB,
+    ]);
+    if (job.modelDevices !== null) {
+        for (let d of job.modelDevices)
+            args.push('--device', d);
+    }
+    await execCommand(job, script, args);
+
+    await util.promisify(fs.writeFile)(path.resolve(dataset, 'test.tsv'), '');
 }
 
 async function taskTraining(job) {
@@ -254,7 +250,7 @@ async function taskUploading(job) {
 
 const TASKS = {
     'update-dataset': [taskUpdatingDataset, taskReloadingExact],
-    'train': [taskPrepare, taskDownloadDataset, taskTraining, taskUploading]
+    'train': [taskPrepare, taskGenerateTrainingSet, taskTraining, taskUploading]
 };
 
 function taskName(task) {

@@ -33,7 +33,7 @@ function waitFinish(stream) {
 async function main() {
     const parser = new argparse.ArgumentParser({
         addHelp: true,
-        description: 'Update Thingpedia Dataset'
+        description: 'Download Thingpedia Dataset'
     });
     parser.addArgument(['-l', '--language'], {
         required: true,
