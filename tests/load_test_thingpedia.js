@@ -126,7 +126,7 @@ async function loadExamples(dbClient, bob) {
         type: 'commandpedia',
         owner: bob.id,
         click_count: 8,
-        flags: '',
+        flags: 'exact',
     },
 
     // thingpedia
@@ -220,7 +220,7 @@ async function loadExamples(dbClient, bob) {
         target_code: 'now => @org.thingpedia.builtin.thingengine.phone.call param:number:Entity(tt:phone_number) = USERNAME_0',
         type: 'online',
         click_count: 0,
-        flags: 'training'
+        flags: 'training,exact'
     },
     {
         id: 1007,
@@ -233,7 +233,7 @@ async function loadExamples(dbClient, bob) {
         target_code: 'now => @org.thingpedia.builtin.thingengine.phone.call param:number:Entity(tt:phone_number) = USERNAME_0',
         type: 'online',
         click_count: 0,
-        flags: 'training'
+        flags: 'training,exact'
     }
 
     ]);

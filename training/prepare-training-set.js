@@ -139,12 +139,12 @@ class DatasetGenerator {
         let query;
         if (this._forDevicesPattern !== null) {
             query = this._dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags)
+                use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('obsolete',flags)
                 and target_code<>'' and preprocessed<>'' and type <> 'generated' and target_code rlike ?`,
                 [this._language, this._forDevicesPattern]);
         } else {
             query = this._dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags)
+                use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('obsolete',flags)
                 and target_code<>'' and preprocessed<>'' and type <> 'generated'`,
                 [this._language]);
         }
@@ -192,7 +192,6 @@ class DatasetGenerator {
         const splitter = new Genie.DatasetSplitter({
             rng: this._rng,
             locale: this._language,
-            debug: false,
 
             train,
             eval: eval_,

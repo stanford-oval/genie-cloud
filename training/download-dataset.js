@@ -60,17 +60,17 @@ async function main() {
         const regexp = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
 
         query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-            use index (language_flags) where language = ? and find_in_set('training',flags)
+            where language = ? and not find_in_set('obsolete',flags)
             and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
             [language, regexp]);
     } else if (types.length > 0) {
-        query = dbClient.query(`select id,flags,preprocessed,target_code from replaced_example_utterances
-            use index (language_type) where language = ? and find_in_set('training',flags)
+        query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+            where language = ? and not find_in_set('obsolete',flags)
             and target_code<>'' and preprocessed<>'' and type in (?)`,
             [language, types]);
     } else {
-        query = dbClient.query(`select id,flags,preprocessed,target_code from replaced_example_utterances
-            use index (language_flags) where language = ? and find_in_set('training',flags)
+        query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+            where language = ? and not find_in_set('obsolete',flags)
             and target_code<>'' and preprocessed<>''`,
             [language]);
     }

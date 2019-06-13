@@ -140,21 +140,22 @@ wait
 node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
 
 # now update the exact match dataset (which will be saved to mysql)
-node $srcdir/training/update-dataset.js -l en -a --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin --debug
+node $srcdir/training/update-dataset.js -l en --maxdepth 3 --debug
 # download
 node $srcdir/training/download-dataset.js -l en --output exact.tsv
 
 # generate a training set
-node $srcdir/training/prepare-training-set.js -l en --maxdepth 3 --train train.tsv --eval eval.tsv --eval-probability 1.0
+node $srcdir/training/prepare-training-set.js -l en --maxdepth 3 --train train.tsv --eval eval.tsv --eval-probability 1.0 \
+    --ppdb $workdir/ppdb-2.0-xs-lexical.bin
 
 sha256sum exact.tsv eval.tsv train.tsv
 sha256sum -c <<EOF
-36c6135f449e4ba99bf9667570e7865fe0e7db038ef30c269859509761fd42d5  exact.tsv
-5e8070f97c52581c51ab58736d126e2d8e11adaf8b5737d03b672ac8cec38285  eval.tsv
-9ca1c765af18eab6e0f022d2207bf7008e7121ae65a6f7e48d30020d690a0067  train.tsv
+8d73044c4360393a00436b90b48d9b31a338985d93341feb17d202af675c33c6  exact.tsv
+72bccb2f8b7d4c6b6556eb5c998374c0b10b1e78c56f3ba7f72ea08cd5a8f240  eval.tsv
+77b80036e57e5337d3b51c23d9a2c086d5f5006953c80adfd85125932e4d4dab  train.tsv
 EOF
 
 # now update the exact match dataset incrementally
-node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin --debug
+node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --debug
 
 rm -rf $workdir
