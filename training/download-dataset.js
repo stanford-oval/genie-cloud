@@ -21,6 +21,7 @@ const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const { parseFlags } = require('./flag_utils');
+const StreamUtils = require('./stream-utils');
 
 async function main() {
     const parser = new argparse.ArgumentParser({
@@ -89,7 +90,7 @@ async function main() {
         dbDone();
     });
 
-    await Genie.StreamUtils.waitFinish(argv.output);
+    await StreamUtils.waitFinish(argv.output);
     await db.tearDown();
 }
 

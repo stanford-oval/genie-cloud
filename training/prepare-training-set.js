@@ -26,6 +26,7 @@ const Genie = require('genie-toolkit');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const { parseFlags } = require('./flag_utils');
 const DatabaseParameterProvider = require('./param_provider');
+const StreamUtils = require('./stream-utils');
 
 const db = require('../util/db');
 
@@ -158,7 +159,7 @@ class DatasetGenerator {
         const synthetic = this._genSynthetic();
         const paraphrase = this._downloadParaphrase();
 
-        const source = Genie.StreamUtils.chain([paraphrase, synthetic], {
+        const source = StreamUtils.chain([paraphrase, synthetic], {
             objectMode: true
         });
 
@@ -185,8 +186,8 @@ class DatasetGenerator {
         const train = new Genie.DatasetStringifier();
         const eval_ = new Genie.DatasetStringifier();
         const promises = [];
-        promises.push(Genie.StreamUtils.waitFinish(train.pipe(this._options.train)));
-        promises.push(Genie.StreamUtils.waitFinish(eval_.pipe(this._options.eval)));
+        promises.push(StreamUtils.waitFinish(train.pipe(this._options.train)));
+        promises.push(StreamUtils.waitFinish(eval_.pipe(this._options.eval)));
 
         const splitter = new Genie.DatasetSplitter({
             rng: this._rng,

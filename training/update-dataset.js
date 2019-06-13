@@ -26,6 +26,7 @@ const exampleModel = require('../model/example');
 
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const { makeFlags } = require('./flag_utils');
+const StreamUtils = require('./stream-utils');
 
 const db = require('../util/db');
 
@@ -184,7 +185,7 @@ class DatasetUpdater {
             .pipe(transform)
             .pipe(new DatabaseInserter(this._language, this._dbClient));
 
-        await Genie.StreamUtils.waitFinish(writer);
+        await StreamUtils.waitFinish(writer);
     }
 
     async run() {
