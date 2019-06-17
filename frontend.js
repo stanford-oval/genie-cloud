@@ -311,10 +311,11 @@ class Frontend {
             this._app.use('/thingpedia/classes', require('./routes/thingpedia_schemas'));
             this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
-            this._app.use('/thingpedia/datasets', require('./routes/thingpedia_dataset'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
             this._app.use('/thingpedia/developers', require('./routes/thingpedia_developer_console'));
         }
+        if (Config.WITH_LUINET === 'embedded')
+            this._app.use('/luinet/datasets', require('./routes/luinet_dataset'));
 
         this._app.use('/profiles', require('./routes/thingpedia_profiles'));
         this._app.use('/user', require('./routes/user'));
