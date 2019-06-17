@@ -301,6 +301,14 @@ module.exports.TRAINING_ACCESS_TOKEN = null;
 module.exports.TRAINING_CONFIG_FILE = null;
 
 /**
+  URL of documentation.
+
+  Set this to a string starting with `/doc` to enable the embedded documentation site. Alternatively,
+  point to a public website hosting your documentation.
+*/
+module.exports.DOCUMENTATION_URL = 'https://almond.stanford.edu/doc/getting-started.md';
+
+/**
   Access key for Bing Image API
 
   This is used to retrieve icons for entities.

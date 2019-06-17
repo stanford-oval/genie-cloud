@@ -19,6 +19,7 @@ module.exports.CDN_HOST = '/download';
 module.exports.WITH_THINGPEDIA = 'embedded';
 module.exports.WITH_LUINET = 'embedded';
 module.exports.THINGPEDIA_URL = '/thingpedia';
+module.exports.DOCUMENTATION_URL = '/doc/getting-started.md';
 module.exports.ENABLE_PROMETHEUS = true;
 module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
 module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';

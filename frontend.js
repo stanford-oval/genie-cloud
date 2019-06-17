@@ -292,15 +292,15 @@ class Frontend {
 
         this._app.use('/', require('./routes/about'));
         this._app.use('/', require('./routes/qrcode'));
-        this._app.get('/doc/:page', (req, res) => {
-            res.redirect(301, '/thingpedia/developers/' + req.params.page);
-        });
         this._app.use('/blog', require('./routes/blog'));
 
         this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));
         this._app.use('/devices', require('./routes/devices_compat'));
+
+        if (Config.DOCUMENTATION_URL.startsWith('/doc'))
+            this._app.use('/doc', require('./routes/doc'));
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia', require('./routes/thingpedia_portal'));

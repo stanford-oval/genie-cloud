@@ -294,6 +294,14 @@ without restarting the training server (which would stop all running jobs).
 
 Default value: `null`
 
+## DOCUMENTATION_URL
+URL of documentation.
+
+Set this to a string starting with `/doc` to enable the embedded documentation site. Alternatively,
+point to a public website hosting your documentation.
+
+Default value: `'https://almond.stanford.edu/doc/getting-started.md'`
+
 ## BING_KEY
 Access key for Bing Image API
 

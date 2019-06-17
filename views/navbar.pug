@@ -9,8 +9,9 @@ ul.nav.navbar-nav
   if WITH_THINGPEDIA === 'embedded'
     li
       a(href='/thingpedia')= _("Thingpedia")
-    li
-      a(href='/thingpedia/developers/getting-started.md')= _("Documentation")
+  li
+    a(href=Config.DOCUMENTATION_URL)= _("Documentation")
+  if WITH_THINGPEDIA === 'embedded'
     if authenticated && user.developer_org
       li
         a(href='/thingpedia/developers')= _("Console")

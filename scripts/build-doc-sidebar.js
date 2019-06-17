@@ -42,7 +42,7 @@ class Index {
         } else if (page in this._index.pages) {
             const title = this._index.pages[page];
             this._buffer.push(prefix + `li(class=(currentPage === ${stringEscape(page)} ? 'current' : ''))`);
-            this._buffer.push(prefix + `  a(href='/thingpedia/developers/${page}.md') ${title}`);
+            this._buffer.push(prefix + `  a(href='/doc/${page}.md') ${title}`);
         } else {
             throw new Error(`Invalid page ${page}`);
         }
