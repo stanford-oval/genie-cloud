@@ -233,6 +233,17 @@ They will operate as the user "anonymous".
 
 Default value: `false`
 
+## WITH_LUINET
+LUInet (Natural Language model/server) configuration
+
+Set this to 'external' for a configuration using a public Natural Language
+server, and 'embedded' if you manage your own NLP server.
+
+Setting this to 'embedded' enables the configuration UI to manage models
+and train.
+
+Default value: `'external'`
+
 ## NL_SERVER_URL
 The URL of a genie-compatible Natural Language inference server.
 
@@ -246,6 +257,8 @@ Access token for administrative operations in the NLP inference server.
 
 This tokens controls the ability to reload models from disk. It should
 be shared between the NLP training server and NLP inference server.
+
+This must be not null if `WITH_LUINET` is set to 'embedded'.
 
 Default value: `null`
 

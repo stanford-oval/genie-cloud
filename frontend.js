@@ -46,10 +46,6 @@ const errorHandling = require('./util/error_handling');
 const EngineManager = require('./almond/enginemanagerclient');
 
 const Config = require('./config');
-if (Config.WITH_THINGPEDIA !== 'embedded' && Config.WITH_THINGPEDIA !== 'external')
-    throw new Error('Invalid configuration, WITH_THINGPEDIA must be either embeded or external');
-if (Config.WITH_THINGPEDIA === 'embedded') // ignore whatever setting is there
-    Config.THINGPEDIA_URL = '/thingpedia';
 
 class Frontend {
     constructor() {

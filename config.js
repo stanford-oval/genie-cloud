@@ -242,6 +242,17 @@ module.exports.OAUTH_REDIRECT_ORIGIN = module.exports.SERVER_ORIGIN;
 module.exports.ENABLE_ANONYMOUS_USER = false;
 
 /**
+  LUInet (Natural Language model/server) configuration
+
+  Set this to 'external' for a configuration using a public Natural Language
+  server, and 'embedded' if you manage your own NLP server.
+
+  Setting this to 'embedded' enables the configuration UI to manage models
+  and train.
+*/
+module.exports.WITH_LUINET = 'external';
+
+/**
   The URL of a genie-compatible Natural Language inference server.
 
   This must be set to the full URL both if you use the public NL inference
@@ -253,6 +264,8 @@ module.exports.NL_SERVER_URL = 'https://almond-nl.stanford.edu';
 
   This tokens controls the ability to reload models from disk. It should
   be shared between the NLP training server and NLP inference server.
+
+  This must be not null if `WITH_LUINET` is set to 'embedded'.
 */
 module.exports.NL_SERVER_ADMIN_TOKEN = null;
 /**

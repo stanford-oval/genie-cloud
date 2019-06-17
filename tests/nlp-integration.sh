@@ -29,6 +29,7 @@ module.exports.TRAINING_URL = 'http://127.0.0.1:${TRAINING_PORT}';
 module.exports.FILE_STORAGE_BACKEND = 'local';
 module.exports.CDN_HOST = '/download';
 module.exports.WITH_THINGPEDIA = 'external';
+module.exports.WITH_LUINET = 'embedded';
 module.exports.THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 module.exports.ENABLE_PROMETHEUS = true;
 module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
