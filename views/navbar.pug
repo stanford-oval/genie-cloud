@@ -11,10 +11,10 @@ ul.nav.navbar-nav
       a(href='/thingpedia')= _("Thingpedia")
   li
     a(href=Config.DOCUMENTATION_URL)= _("Documentation")
-  if WITH_THINGPEDIA === 'embedded'
+  if Config.ENABLE_DEVELOPER_PROGRAM
     if authenticated && user.developer_org
       li
-        a(href='/thingpedia/developers')= _("Console")
+        a(href='/developers')= _("Console")
   if authenticated && (user.roles & Constants.Role.ALL_ADMIN) !== 0
     li
       a(href="/admin")= _("Admin")

@@ -308,7 +308,7 @@ router.post('/clients/create', multer({ dest: platform.getTmpDir() }).single('ic
 
         redirectUrls = validateRedirectUrls(req, req.body.redirect_uri.split(/ +/));
     } catch(e) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+        res.status(400).render('error', { page_title: req._("Almond - Error"),
                                           message: e });
         return;
     }
@@ -328,7 +328,7 @@ router.post('/clients/create', multer({ dest: platform.getTmpDir() }).single('ic
         // upload the icon asynchronously to avoid blocking the request
         uploadIcon(clientId, req.file);
     }).then(() => {
-        res.redirect(303, '/thingpedia/developers/oauth');
+        res.redirect(303, '/developers/oauth');
     }).catch(next);
 });
 

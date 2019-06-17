@@ -302,6 +302,9 @@ class Frontend {
         if (Config.DOCUMENTATION_URL.startsWith('/doc'))
             this._app.use('/doc', require('./routes/doc'));
 
+        if (Config.ENABLE_DEVELOPER_PROGRAM)
+            this._app.use('/developers', require('./routes/developer_console'));
+
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia', require('./routes/thingpedia_portal'));
             this._app.use('/thingpedia/commands', require('./routes/commandpedia'));
@@ -312,7 +315,6 @@ class Frontend {
             this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
-            this._app.use('/thingpedia/developers', require('./routes/thingpedia_developer_console'));
         }
         if (Config.WITH_LUINET === 'embedded')
             this._app.use('/luinet/datasets', require('./routes/luinet_dataset'));

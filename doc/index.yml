@@ -43,7 +43,7 @@ sections:
 
 links:
   thingpedia-api:
-    url: /thingpedia/developers/thingpedia-api
+    url: /doc/thingpedia-api
     title: Thingpedia API Reference
   thingpedia-entity-list:
     url: /thingpedia/entities

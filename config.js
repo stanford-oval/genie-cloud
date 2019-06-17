@@ -242,6 +242,15 @@ module.exports.OAUTH_REDIRECT_ORIGIN = module.exports.SERVER_ORIGIN;
 module.exports.ENABLE_ANONYMOUS_USER = false;
 
 /**
+  Enable developer program.
+
+  Set this option to allow users to become Almond developers, and create
+  OAuth apps that access the Web Almond APIs, as well as new Thingpedia
+  devices or LUInet models.
+*/
+module.exports.ENABLE_DEVELOPER_PROGRAM = false;
+
+/**
   LUInet (Natural Language model/server) configuration
 
   Set this to 'external' for a configuration using a public Natural Language

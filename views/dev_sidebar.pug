@@ -3,18 +3,18 @@ nav#doc-sidebar
 
     if authenticated && user.developer_org !== null
       li(class=(section === 'overview' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/thingpedia/developers')= _("Home")
+        a.doc-sidebar-subtitle(href='/developers')= _("Home")
     else
       li(class=(section === 'overview' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/thingpedia/developers')= _("Overview")
+        a.doc-sidebar-subtitle(href='/developers')= _("Overview")
     if authenticated && user.developer_org !== null
       li(class = (section === 'status' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/thingpedia/developers/status')= _("Almond Status and Logs")
+        a.doc-sidebar-subtitle(href='/me/status')= _("Almond Status and Logs")
     if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
       li(class=(section === 'oauth' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/thingpedia/developers/oauth')= _("OAuth Applications")
+        a.doc-sidebar-subtitle(href='/developers/oauth')= _("OAuth Applications")
     if authenticated
       li(class=(section === 'train-almond' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/thingpedia/developers/train')= _("Train Almond")
+        a.doc-sidebar-subtitle(href='/developers/train')= _("Train Almond")
 
 
