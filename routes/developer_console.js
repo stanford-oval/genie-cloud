@@ -16,6 +16,8 @@ const organization = require('../model/organization');
 const device = require('../model/device');
 const oauth2 = require('../model/oauth2');
 const userModel = require('../model/user');
+const nlpModelsModel = require('../model/nlp_models');
+const templatePackModel = require('../model/template_files');
 const user = require('../util/user');
 const SendMail = require('../util/sendmail');
 const iv = require('../util/input_validation');
@@ -256,5 +258,20 @@ router.get('/train', (req, res) => {
 router.get('/status', (req, res) => {
     res.redirect('/me/status');
 });
+
+if (Config.WITH_LUINET === 'embedded') {
+    router.get('/models', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
+        db.withClient(async (dbClient) => {
+            const [models, templatePacks] = await Promise.all([
+                nlpModelsModel.getByOwner(dbClient, req.user.developer_org),
+                templatePackModel.getByOwner(dbClient, req.user.developer_org)
+            ]);
+            res.render('dev_nlp_models', {
+                page_title: req._("LUInet - Models"),
+                models, templatePacks
+            });
+        }).catch(next);
+    });
+}
 
 module.exports = router;

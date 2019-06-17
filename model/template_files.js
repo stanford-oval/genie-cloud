@@ -13,18 +13,18 @@ const db = require('../util/db');
 
 module.exports = {
     getAll(client) {
-        return db.selectAll(client, "select * from models");
+        return db.selectAll(client, "select * from template_files");
     },
 
     getByOwner(client, owner) {
-        return db.selectAll(client, "select * from models where owner = ?", [owner]);
+        return db.selectAll(client, "select * from template_files where owner = ?", [owner]);
     },
 
     getForLanguage(client, language) {
-        return db.selectAll(client, "select * from models where language = ?", [language]);
+        return db.selectAll(client, "select * from template_files where language = ?", [language]);
     },
 
-    create(client, model) {
-        return db.insertOne(client, "insert into models set ?", [model]);
+    create(client, tmpl) {
+        return db.insertOne(client, "insert into template_files set ?", [tmpl]);
     }
 };

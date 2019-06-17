@@ -1,0 +1,79 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
+
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
+
+block page_name
+  - stdlayout = false;
+  - var section = 'oauth';
+  = _("Developer Console")
+
+block content
+  div.container-fluid#page-body
+    div.row
+      div.col-lg-3.col-md-4
+        include dev_sidebar
+
+      div.col-xs-12.col-md-8.col-lg-9
+        section.divider
+          h3= _("Your LUInet Models")
+
+          if models.length > 0
+            ul.list-group
+              each m in models
+                li.list-group-item
+                  h4= _("%s (%s)").format(m.tag, m.language)
+
+                  p= _("Template Pack: %s").format(m.template_file)
+
+                  if m.for_devices === 'null'
+                    if m.use_approved
+                      p!= _("Devices: <i>all</i> (approved only)")
+                    else
+                      p!= _("Devices: <i>all</i>")
+                  else
+                    p
+                      = _("Devices: ")
+                      - var first = true;
+                      each d in JSON.parse(m.for_devices)
+                        if !first
+                          | ,
+                          |
+                          |
+                        - first = false;
+                        a(href=Config.THINGPEDIA_URL + '/devices/by-id/' + d)= d
+
+                  if user.developer_status > Constants.DeveloperStatus.USER && m.access_token
+                    p
+                      b= _("Access Token: ")
+                      a(href='#',data-toggle='collapse',data-target='#secret-' + m.tag + '-' m.language)= _("Show/Hide")
+                      div.collapse(id='secret-' + m.tag + '-' m.language)= m.access_token
+
+          else
+            div.row
+              div.col-xs-12
+                p= _("Your organization does not own any LUInet model yet.")
+
+        section.divider
+          h3= _("Your LUInet Template Packs")
+
+          if templatePacks.length > 0
+            ul.list-group
+              each m in templatePacks
+                li.list-group-item
+                  h4= _("%s (%s)").format(m.tag, m.language)
+                  p= m.description
+                  p= _("Version: %d").format(m.version)
+                  if m.public
+                    p.text-muted= _("Public")
+                  else
+                    p.text-muted= _("Private")
+
+          else
+            div.row
+              div.col-xs-12
+                p= _("Your organization does not own any LUInet template pack yet.")

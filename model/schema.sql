@@ -624,6 +624,27 @@ CREATE TABLE `subscribe` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `template_files`
+--
+
+DROP TABLE IF EXISTS `template_files`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `template_files` (
+  `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
+  `tag` varchar(64) COLLATE utf8_bin,
+  `owner` int(11) NOT NULL,
+  `description` text CHARACTER SET utf8 NOT NULL,
+  `flags` text COLLATE utf8_bin NOT NULL,
+  `public` boolean NOT NULL DEFAULT true,
+  `version` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`language`, `tag`),
+  KEY `owner` (`owner`),
+  CONSTRAINT `template_files_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `models`
 --
 
@@ -635,10 +656,14 @@ CREATE TABLE `models` (
   `tag` varchar(64) COLLATE utf8_bin,
   `owner` int(11) NOT NULL,
   `access_token` char(64) COLLATE utf8_bin NULL,
+  `template_file` varchar(64) COLLATE utf8_bin,
+  `flags` text COLLATE utf8_bin NOT NULL,
   `for_devices` mediumtext COLLATE utf8_bin NOT NULL,
+  `use_approved` boolean NOT NULL DEFAULT false,
   PRIMARY KEY (`language`, `tag`),
   KEY `owner` (`owner`),
-  CONSTRAINT `models_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE
+  CONSTRAINT `models_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT `models_ibfk_2` FOREIGN KEY (`language`, `template_file`) REFERENCES `template_files` (`language`, `template_file`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -684,7 +709,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `facebook_id` (`facebook_id`),
   UNIQUE KEY `omlet_id` (`omlet_id`),
   KEY `developer_org` (`developer_org`),
-  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`developer_org`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`developer_org`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
