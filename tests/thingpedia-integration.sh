@@ -156,7 +156,7 @@ sha256sum exact.tsv jobdir/eval.tsv jobdir/train.tsv
 sha256sum -c <<EOF
 8d73044c4360393a00436b90b48d9b31a338985d93341feb17d202af675c33c6  exact.tsv
 72bccb2f8b7d4c6b6556eb5c998374c0b10b1e78c56f3ba7f72ea08cd5a8f240  jobdir/eval.tsv
-c5e359afe8ccf2f3e75cc074503410bd3552d0ecea7f4e79b1f079179ea166e5  jobdir/train.tsv
+ef125403ed0ba1e0b8af7191a16d3ad2d12726f1c6a7f3f1b06e1d1add3af6c3  jobdir/train.tsv
 EOF
 
 # now update the exact match dataset incrementally
