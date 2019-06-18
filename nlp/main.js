@@ -17,8 +17,6 @@ require('../util/config_init');
 
 const express = require('express');
 const path = require('path');
-const util = require('util');
-const fs = require('fs');
 
 const logger = require('morgan');
 const bodyParser = require('body-parser');
