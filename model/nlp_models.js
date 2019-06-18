@@ -17,14 +17,17 @@ module.exports = {
     },
 
     getByOwner(client, owner) {
-        return db.selectAll(client, "select * from models where owner = ?", [owner]);
+        return db.selectAll(client, `select m.*, tpl.tag as template_file_name
+            from models m, template_files tpl where tpl.id = m.template_file
+            and m.owner = ?`, [owner]);
     },
 
     getForLanguage(client, language) {
         return db.selectAll(client, "select * from models where language = ?", [language]);
     },
 
-    create(client, model) {
-        return db.insertOne(client, "insert into models set ?", [model]);
+    async create(client, model) {
+        await db.insertOne(client, "insert into models set ?", [model]);
+        return model;
     }
 };

@@ -139,13 +139,17 @@ class DatasetGenerator {
         let query;
         if (this._forDevicesPattern !== null) {
             query = this._dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('obsolete',flags)
-                and target_code<>'' and preprocessed<>'' and type <> 'generated' and target_code rlike ?`,
+                use index (language_flags) where language = ?
+                and find_in_set('training',flags) and not find_in_set('obsolete',flags)
+                and target_code<>'' and preprocessed<>'' and type <> 'generated' and target_code rlike ?
+                order by id`,
                 [this._language, this._forDevicesPattern]);
         } else {
             query = this._dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags) and not find_in_set('obsolete',flags)
-                and target_code<>'' and preprocessed<>'' and type <> 'generated'`,
+                use index (language_flags) where language = ?
+                and find_in_set('training',flags) and not find_in_set('obsolete',flags)
+                and target_code<>'' and preprocessed<>'' and type <> 'generated'
+                order by id`,
                 [this._language]);
         }
 

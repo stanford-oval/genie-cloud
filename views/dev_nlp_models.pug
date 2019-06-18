@@ -9,7 +9,7 @@ block scripts
 
 block page_name
   - stdlayout = false;
-  - var section = 'oauth';
+  - var section = 'models';
   = _("Developer Console")
 
 block content
@@ -28,7 +28,7 @@ block content
                 li.list-group-item
                   h4= _("%s (%s)").format(m.tag, m.language)
 
-                  p= _("Template Pack: %s").format(m.template_file)
+                  p= _("Template Pack: %s").format(m.template_file_name)
 
                   if m.for_devices === 'null'
                     if m.use_approved

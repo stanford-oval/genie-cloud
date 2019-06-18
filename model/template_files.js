@@ -24,7 +24,9 @@ module.exports = {
         return db.selectAll(client, "select * from template_files where language = ?", [language]);
     },
 
-    create(client, tmpl) {
-        return db.insertOne(client, "insert into template_files set ?", [tmpl]);
+    async create(client, tmpl) {
+        const id = await db.insertOne(client, "insert into template_files set ?", [tmpl]);
+        tmpl.id = id;
+        return tmpl;
     }
 };

@@ -1,20 +1,16 @@
 nav#doc-sidebar
   ul
 
-    if authenticated && user.developer_org !== null
-      li(class=(section === 'overview' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/developers')= _("Home")
-    else
-      li(class=(section === 'overview' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/developers')= _("Overview")
-    if authenticated && user.developer_org !== null
-      li(class = (section === 'status' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/me/status')= _("Almond Status and Logs")
-    if authenticated && user.developer_status >= Constants.DeveloperStatus.DEVELOPER
-      li(class=(section === 'oauth' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/developers/oauth')= _("OAuth Applications")
-    if authenticated
-      li(class=(section === 'train-almond' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/developers/train')= _("Train Almond")
+    li(class=(section === 'overview' ? 'current' : ''))
+      a.doc-sidebar-subtitle(href='/developers')= _("Overview")
+    li(class=(section === 'train-almond' ? 'current' : ''))
+      a.doc-sidebar-subtitle(href='/developers/train')= _("Train Almond")
+    li(class = (section === 'status' ? 'current' : ''))
+      a.doc-sidebar-subtitle(href='/me/status')= _("Almond Status and Logs")
+    li(class=(section === 'oauth' ? 'current' : ''))
+      a.doc-sidebar-subtitle(href='/developers/oauth')= _("OAuth Applications")
+    if Config.WITH_LUINET === 'embedded'
+      li(class=(section === 'models' ? 'current' : ''))
+        a.doc-sidebar-subtitle(href='/developers/models')= _("LUInet Models")
 
 
