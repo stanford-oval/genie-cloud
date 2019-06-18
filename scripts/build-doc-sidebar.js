@@ -37,6 +37,15 @@ class Index {
     _doPage(page, prefix) {
         if (page in this._index.links) {
             const tgt = this._index.links[page];
+            if (tgt.url.startsWith('/thingpedia')) {
+                this._buffer.push(prefix + `if Config.WITH_THINGPEDIA === 'embedded'`);
+                prefix += '  ';
+            }
+            if (tgt.url.startsWith('/luinet')) {
+                this._buffer.push(prefix + `if Config.WITH_LUINET === 'embedded'`);
+                prefix += '  ';
+            }
+
             this._buffer.push(prefix + `li(class=(currentPage === ${stringEscape(page)} ? 'current' : ''))`);
             this._buffer.push(prefix + `  a(href=${stringEscape(tgt.url)}) ${tgt.title}`);
         } else if (page in this._index.pages) {

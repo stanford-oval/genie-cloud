@@ -2,7 +2,7 @@ extends layout
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/docs.css')
-  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia_dev_sidebar.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
   link(rel="stylesheet"
       href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css")
 
@@ -17,30 +17,8 @@ block content
   div.container-fluid#page-body
     div.row
       div.col-lg-3.col-md-4
-        nav#doc-sidebar
-          ul
-            li.thingpedia-docs
-              a.doc-sidebar-subtitle(href='#thingpedia-doc-list',data-toggle='collapse')
-                div.pull-left= _("Almond Documentation")
-                div.text-right#doc-search
-                  span(role='button')#doc-search-icon.glyphicon.glyphicon-search
-              ul#thingpedia-doc-list(class=(!!currentPage ? 'collapse in' : 'collapse'))
-                include ./thingpedia_doc_index.pug
+        include doc_sidebar.pug
 
       div.col-xs-12.col-md-8.col-lg-9
         div.documentation
           include:markdown-it(html=true, plugins=['markdown-it-anchor', 'markdown-it-highlightjs', 'markdown-it-container-pandoc', ['markdown-it-table-of-contents', { includeLevel: [2,3] }]]) ../@@DOC@@
-
-  div.modal.fade#doc-search-modal(role='dialog')
-    div.modal-dialog
-      div.modal-content
-        div.modal-header.text-center
-          h4.modal-title= _("Documentation Search")
-        div.modal-body
-          form(action='#', autocomplete='off')
-            div.input-group#docsearch-container
-              input(required=true, placeholder=_("Type to search..."), aria-label=_("Search documentation")).form-control#docsearch-input
-              div.input-group-addon(aria-hidden='true')
-                span.glyphicon.glyphicon-search
-            div#docsearch-results.list-group
-        div.modal-footer

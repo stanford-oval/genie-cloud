@@ -2,7 +2,7 @@ extends layout
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
-  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia_dev_sidebar.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
 
 block scripts
@@ -11,13 +11,13 @@ block scripts
 block page_name
   - stdlayout = false;
   - var currentPage = 'thingpedia-entity-list';
-  = _("Thingpedia Developer Portal")
+  = _("Documentation")
 
 block content
   div.container-fluid#page-body
     div.row
       div.col-lg-3.col-md-4
-        include thingpedia_dev_sidebar
+        include doc_sidebar
 
       div.col-xs-12.col-md-8.col-lg-9
         h3= _("Entity Types")

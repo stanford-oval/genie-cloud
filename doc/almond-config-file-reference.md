@@ -233,6 +233,15 @@ They will operate as the user "anonymous".
 
 Default value: `false`
 
+## ENABLE_DEVELOPER_PROGRAM
+Enable developer program.
+
+Set this option to allow users to become Almond developers, and create
+OAuth apps that access the Web Almond APIs, as well as new Thingpedia
+devices or LUInet models.
+
+Default value: `false`
+
 ## WITH_LUINET
 LUInet (Natural Language model/server) configuration
 

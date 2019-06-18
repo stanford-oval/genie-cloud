@@ -7,10 +7,11 @@ nav#doc-sidebar
       a.doc-sidebar-subtitle(href='/developers/train')= _("Train Almond")
     li(class = (section === 'status' ? 'current' : ''))
       a.doc-sidebar-subtitle(href='/me/status')= _("Almond Status and Logs")
-    li(class=(section === 'oauth' ? 'current' : ''))
-      a.doc-sidebar-subtitle(href='/developers/oauth')= _("OAuth Applications")
-    if Config.WITH_LUINET === 'embedded'
-      li(class=(section === 'models' ? 'current' : ''))
-        a.doc-sidebar-subtitle(href='/developers/models')= _("LUInet Models")
+    if user.developer_org !== null
+      li(class=(section === 'oauth' ? 'current' : ''))
+        a.doc-sidebar-subtitle(href='/developers/oauth')= _("OAuth Applications")
+      if Config.WITH_LUINET === 'embedded'
+        li(class=(section === 'models' ? 'current' : ''))
+          a.doc-sidebar-subtitle(href='/developers/models')= _("LUInet Models")
 
 
