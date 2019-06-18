@@ -76,6 +76,9 @@ function makeSchemaClassDef(kind, schema, isMeta) {
     const imports = [];
     const metadata = {};
     const annotations = {};
+
+    if (isMeta && schema.kind_canonical)
+        metadata.canonical = schema.kind_canonical;
     return new Ast.ClassDef(kind, null, queries, actions,
                             imports, metadata, annotations);
 }

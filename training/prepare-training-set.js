@@ -17,7 +17,6 @@ require('../util/config_init');
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
 const argparse = require('argparse');
-const path = require('path');
 const fs = require('fs');
 
 const ThingTalk = require('thingtalk');
@@ -27,13 +26,12 @@ const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const { parseFlags } = require('./flag_utils');
 const DatabaseParameterProvider = require('./param_provider');
 const StreamUtils = require('./stream-utils');
+const genSynthetic = require('./sandboxed_synthetic_gen');
 
+const platform = require('../util/platform');
 const db = require('../util/db');
 
 const MAX_SPAN_LENGTH = 10;
-
-// FIXME
-const GENIE_FILE = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit/languages/en/thingtalk.genie');
 
 class ForDevicesFilter extends Stream.Transform {
     constructor(pattern) {
@@ -105,29 +103,26 @@ class DatasetGenerator {
         this._augmenter = null;
     }
 
-    _genSynthetic() {
+    async _genSynthetic() {
         const options = {
-            thingpediaClient: this._tpClient,
-            schemaRetriever: this._schemas,
+            dbClient: this._dbClient,
+            language: this._language,
+            orgId: -1,
+            templatePack: 'org.thingpedia.genie.thingtalk',
 
-            templateFile: GENIE_FILE,
-
-            rng: this._rng,
-            locale: this._language,
-            flags: {
-                turking: false,
-                policies: true,
-                remote_programs: true,
-                aggregation: true,
-                bookkeeping: true,
-                triple_commands: true,
-                configure_actions: true
-            },
+            flags: [
+                'policies',
+                'remote_programs',
+                'aggregation',
+                'bookkeeping',
+                'triple_commands',
+                'configure_actions'
+            ],
             maxDepth: this._options.maxDepth,
             debug: this._options.debug,
         };
 
-        let generator = new Genie.BasicSentenceGenerator(options);
+        let generator = await genSynthetic(options);
         if (this._forDevicesRegexp !== null) {
             let filter = new ForDevicesFilter(this._forDevicesRegexp);
             generator = generator.pipe(filter);
@@ -160,7 +155,7 @@ class DatasetGenerator {
         this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
 
-        const synthetic = this._genSynthetic();
+        const synthetic = await this._genSynthetic();
         const paraphrase = this._downloadParaphrase();
 
         const source = StreamUtils.chain([paraphrase, synthetic], {
@@ -293,6 +288,8 @@ async function main() {
         help: 'Disable debugging.',
     });
     const args = parser.parseArgs();
+
+    await platform.init();
 
     const generator = new DatasetGenerator(args.language, args.forDevices, {
         train: args.train,

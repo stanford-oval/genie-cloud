@@ -20,8 +20,7 @@ require('../util/config_init');
 const path = require('path');
 const fs = require('fs');
 const util = require('util');
-
-const JSZip = require('jszip');
+const Tp = require('thingpedia');
 const yaml = require('js-yaml');
 
 const db = require('../util/db');
@@ -203,25 +202,6 @@ async function importBuiltinDevices(dbClient, rootOrg) {
 }
 
 async function importStandardTemplatePack(dbClient, rootOrg) {
-    const geniePath = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit/languages');
-    const zipFile = new JSZip();
-
-    async function fswalk(prefix) {
-        for (let filename of await util.promisify(fs.readdir)(prefix)) {
-            const fullpath = path.join(prefix, filename);
-            const stat = await util.promisify(fs.lstat)(fullpath);
-            if (stat.isDirectory()) {
-                await fswalk(path.join(prefix, filename));
-            } else {
-                zipFile.file(path.relative(geniePath, fullpath),
-                             fs.createReadStream(fullpath), { date: stat.mtime });
-            }
-        }
-    }
-    await fswalk(geniePath);
-
-    zipFile.file('index.genie', "import './en/thingtalk.genie'");
-
     const tmpl = await templatePackModel.create(dbClient, {
         language: 'en',
         tag: 'org.thingpedia.genie.thingtalk',
@@ -242,10 +222,8 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
         version: 0
     });
 
-    await codeStorage.storeZipFile(zipFile.generateNodeStream({
-        platform: process.platform,
-        compression: 'DEFLATE'
-    }), 'org.thingpedia.genie.thingtalk', 0, 'template-files');
+    await codeStorage.storeZipFile(await Tp.Helpers.Http.getStream('https://almond-static.stanford.edu/test-data/en-thingtalk.zip'),
+        'org.thingpedia.genie.thingtalk', 0, 'template-files');
 
     return tmpl.id;
 }

@@ -46,7 +46,7 @@ function execCommand(job, script, argv, handleStderr = null, extraEnv = {}) {
         const stdio = ['ignore', 'pipe', 'pipe'];
 
         console.log(`${script} ${argv.map((a) => "'" + a + "'").join(' ')}`);
-        const child = child_process.spawn(script, argv, { stdio });
+        const child = child_process.spawn(script, argv, { stdio, cwd: job.jobDir });
         job.child = child;
         child.on('error', reject);
         child.on('exit', (code, signal) => {
@@ -165,7 +165,7 @@ async function taskGenerateTrainingSet(job) {
         '--train', path.resolve(dataset, 'train.tsv'),
         '--eval', path.resolve(dataset, 'eval.tsv'),
         '--maxdepth', job.config.synthetic_depth,
-        '--ppdb', PPDB,
+        '--ppdb', path.resolve(PPDB),
     ]);
     if (job.modelDevices !== null) {
         for (let d of job.modelDevices)

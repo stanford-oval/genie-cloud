@@ -28,7 +28,10 @@ function safeMkdirSync(dir) {
 
 module.exports = {
     init() {
-        _writabledir = process.cwd() + '/shared';
+        const rootdir = process.env.THINGENGINE_ROOTDIR || process.cwd();
+        process.env.THINGENGINE_ROOTDIR = rootdir;
+
+        _writabledir = rootdir + '/shared';
         safeMkdirSync(_writabledir);
         _cachedir = _writabledir + '/cache';
         safeMkdirSync(_cachedir);
