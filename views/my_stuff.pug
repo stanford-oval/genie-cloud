@@ -68,9 +68,7 @@ mixin device_list(devices)
                         button(type='submit').btn.btn-danger.btn-sm.btn-block= _("Forget")
     div.row
       div.col-sm-6.col-md-3
-        a(href='/me/devices/create?class=physical').btn.btn-primary.btn-block= _("Configure new device")
-      div.col-sm-6.col-md-3
-        a(href='/me/devices/create?class=online').btn.btn-primary.btn-block= _("Add new account")
+        a(href='/me/devices/create').btn.btn-primary.btn-block= _("Configure new skill")
 
 block content
   for message in messages
@@ -98,7 +96,7 @@ block content
           if app.error
             p= _("This rule had an error: %s").format(app.error)
 
-  button.collapsible= _("Devices and Accounts")
+  button.collapsible= _("Enabled Skills")
   +device_list(devices)
 
   br

@@ -19,17 +19,10 @@ var router = express.Router();
 
 router.use(user.requireLogIn);
 
-router.get('/create', iv.validateGET({ class: '?string' }), (req, res, next) => {
-    if (req.query.class && ['online', 'physical', 'data'].indexOf(req.query.class) < 0) {
-        res.status(404).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: req._("Invalid device class") });
-        return;
-    }
-
+router.get('/create', (req, res, next) => {
     res.render('devices_create', { page_title: req._("Thingpedia - Configure device"),
                                    csrfToken: req.csrfToken(),
                                    developerKey: req.user.developer_key,
-                                   klass: req.query.class,
                                    ownTier: 'cloud',
                                  });
 });
