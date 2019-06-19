@@ -26,7 +26,9 @@ module.exports = class Assistant extends events.EventEmitter {
         super();
 
         this._url = Config.NL_SERVER_URL;
-        if (options.modelTag !== null && options.modelTag !== 'default')
+        if (options.modelTag !== null &&
+            options.modelTag !== 'default' &&
+            options.modelTag !== 'org.thingpedia.models.default')
             this._url += '/@' + options.modelTag;
         this._engine = engine;
         this._conversations = {};
