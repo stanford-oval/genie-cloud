@@ -149,7 +149,10 @@ node $srcdir/training/download-dataset.js -l en --output exact.tsv
 
 # generate a training set
 mkdir jobdir
-(cd jobdir; THINGENGINE_ROOTDIR=.. node $srcdir/training/prepare-training-set.js -l en --maxdepth 3 --train train.tsv --eval eval.tsv --eval-probability 1.0 \
+(cd jobdir; THINGENGINE_ROOTDIR=.. node $srcdir/training/prepare-training-set.js -l en \
+    --owner 1 --template-file org.thingpedia.genie.thingtalk \
+    --flag policies --flag remote_programs --flag aggregation --flag bookkeeping --flag triple_commands --flag configure_actions \
+    --maxdepth 3 --train train.tsv --eval eval.tsv --eval-probability 1.0 \
     --ppdb $workdir/ppdb-2.0-xs-lexical.bin )
 
 sha256sum exact.tsv jobdir/eval.tsv jobdir/train.tsv

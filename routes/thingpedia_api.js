@@ -1783,17 +1783,19 @@ function getSnapshot(req, res, next, accept) {
         return;
     }
 
-    db.withClient((dbClient) => {
+    db.withClient(async (dbClient) => {
         if (snapshotId >= 0) {
             if (getMeta)
                 return schemaModel.getSnapshotMeta(dbClient, snapshotId, language);
             else
                 return schemaModel.getSnapshotTypes(dbClient, snapshotId);
         } else {
+            const tpClient = new ThingpediaClient(req.query.developer_key, req.query.locale);
+            const orgId = await tpClient._getOrgId(dbClient);
             if (getMeta)
-                return schemaModel.getCurrentSnapshotMeta(dbClient, language);
+                return schemaModel.getCurrentSnapshotMeta(dbClient, language, orgId);
             else
-                return schemaModel.getCurrentSnapshotTypes(dbClient);
+                return schemaModel.getCurrentSnapshotTypes(dbClient, orgId);
         }
     }).then((rows) => {
         if (rows.length > 0 && snapshotId >= 0) {

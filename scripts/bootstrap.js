@@ -233,7 +233,6 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         language: 'en',
         tag: 'org.thingpedia.models.default',
         owner: rootOrg.id,
-        for_devices: 'null',
         template_file: templatePack,
         flags: JSON.stringify([
             'policies',
@@ -243,6 +242,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'triple_commands',
             'configure_actions'
         ]),
+        all_devices: true,
         use_approved: true
     });
 
@@ -250,7 +250,6 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         language: 'en',
         tag: 'org.thingpedia.models.contextual',
         owner: rootOrg.id,
-        for_devices: 'null',
         template_file: templatePack,
         flags: JSON.stringify([
             'policies',
@@ -260,6 +259,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'triple_commands',
             'configure_actions'
         ]),
+        all_devices: true,
         use_approved: true
     });
 
@@ -267,7 +267,6 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         language: 'en',
         tag: 'org.thingpedia.models.developer',
         owner: rootOrg.id,
-        for_devices: 'null',
         template_file: templatePack,
         flags: JSON.stringify([
             'policies',
@@ -277,6 +276,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'triple_commands',
             'configure_actions'
         ]),
+        all_devices: true,
         use_approved: false
     });
 
@@ -284,7 +284,6 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         language: 'en',
         tag: 'org.thingpedia.models.developer.contextual',
         owner: rootOrg.id,
-        for_devices: 'null',
         template_file: templatePack,
         flags: JSON.stringify([
             'policies',
@@ -294,6 +293,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'triple_commands',
             'configure_actions'
         ]),
+        all_devices: true,
         use_approved: false
     });
 }

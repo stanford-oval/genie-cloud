@@ -162,15 +162,20 @@ async function taskGenerateTrainingSet(job) {
     const args = process.execArgv.concat([
         path.resolve(path.dirname(module.filename), './prepare-training-set.js'),
         '--language', job.language,
+        '--owner', job.modelInfo.owner,
+        '--template-file', job.modelInfo.template_file_name,
         '--train', path.resolve(dataset, 'train.tsv'),
         '--eval', path.resolve(dataset, 'eval.tsv'),
         '--maxdepth', job.config.synthetic_depth,
         '--ppdb', path.resolve(PPDB),
     ]);
-    if (job.modelDevices !== null) {
-        for (let d of job.modelDevices)
-            args.push('--device', d);
-    }
+    for (let d of job.modelInfo.for_devices)
+        args.push('--device', d);
+    for (let f of job.modelInfo.flags)
+        args.push('--flag', f);
+    if (job.modelInfo.use_approved)
+        args.push('--approved-only');
+
     await execCommand(job, script, args);
 
     await util.promisify(fs.writeFile)(path.resolve(dataset, 'test.tsv'), '');
@@ -264,7 +269,7 @@ function taskName(task) {
 }
 
 module.exports = class Job {
-    constructor(daemon, id, jobType, forDevices, language, modelTag, dependsOn, modelDevices) {
+    constructor(daemon, id, jobType, forDevices, language, modelTag, dependsOn, modelInfo) {
         this._daemon = daemon;
         this.data = {
             id: id,
@@ -279,7 +284,7 @@ module.exports = class Job {
             progress: 0,
             eta: null,
             dependsOn: dependsOn,
-            modelDevices: modelDevices,
+            modelInfo: modelInfo,
 
             taskStats: {}
         };

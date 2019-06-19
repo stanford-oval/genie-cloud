@@ -25,7 +25,7 @@ const DatasetUtils = require('../util/dataset');
 const codeStorage = require('../util/code_storage');
 
 async function downloadThingpedia(dbClient, orgId, language) {
-    const snapshot = await schemaModel.getCurrentSnapshotMeta(dbClient, language);
+    const snapshot = await schemaModel.getCurrentSnapshotMeta(dbClient, language, orgId);
 
     await util.promisify(fs.writeFile)('./thingpedia.tt',
         SchemaUtils.schemaListToClassDefs(snapshot, true).prettyprint());

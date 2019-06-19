@@ -28,31 +28,12 @@ const DatabaseParameterProvider = require('./param_provider');
 const StreamUtils = require('./stream-utils');
 const genSynthetic = require('./sandboxed_synthetic_gen');
 
+const schemaModel = require('../model/schema');
+const orgModel = require('../model/organization');
 const platform = require('../util/platform');
 const db = require('../util/db');
 
 const MAX_SPAN_LENGTH = 10;
-
-class ForDevicesFilter extends Stream.Transform {
-    constructor(pattern) {
-        super({
-            readableObjectMode: true,
-            writableObjectMode: true,
-        });
-
-        this._pattern = pattern;
-    }
-
-    _transform(ex, encoding, callback) {
-        if (this._pattern.test(ex.target_code))
-            this.push(ex);
-        callback();
-    }
-
-    _flush(callback) {
-        process.nextTick(callback);
-    }
-}
 
 class QueryReadableAdapter extends Stream.Readable {
     constructor(query) {
@@ -84,50 +65,11 @@ class DatasetGenerator {
         this._rng = seedrandom.alea('almond is awesome');
 
         this._forDevices = forDevices;
-        if (forDevices !== null && forDevices.length > 0) {
-            const escapedDevices = forDevices.map((d) => d.replace(/\./g, '\\.')).join('|');
-            const pat1 = ' @(' + escapedDevices + ')\\.[A-Za-z0-9_]+( |$)';
-            const pat2 = ' device:(' + escapedDevices + ')( |$)';
-
-            this._forDevicesPattern = '(' + pat1 + '|' + pat2 + ')';
-            console.log(this._forDevicesPattern);
-            this._forDevicesRegexp = new RegExp(this._forDevicesPattern);
-        } else {
-            this._forDevicesPattern = null;
-            this._forDevicesRegexp = null;
-        }
 
         this._dbClient = null;
         this._tpClient = null;
         this._schemas = null;
         this._augmenter = null;
-    }
-
-    async _genSynthetic() {
-        const options = {
-            dbClient: this._dbClient,
-            language: this._language,
-            orgId: -1,
-            templatePack: 'org.thingpedia.genie.thingtalk',
-
-            flags: [
-                'policies',
-                'remote_programs',
-                'aggregation',
-                'bookkeeping',
-                'triple_commands',
-                'configure_actions'
-            ],
-            maxDepth: this._options.maxDepth,
-            debug: this._options.debug,
-        };
-
-        let generator = await genSynthetic(options);
-        if (this._forDevicesRegexp !== null) {
-            let filter = new ForDevicesFilter(this._forDevicesRegexp);
-            generator = generator.pipe(filter);
-        }
-        return generator;
     }
 
     _downloadParaphrase() {
@@ -152,10 +94,48 @@ class DatasetGenerator {
     }
 
     async _transaction() {
+        let orgId;
+        if (this._options.approvedOnly) {
+            orgId = null;
+
+            const approvedKinds = (await schemaModel.getAllApproved(this._dbClient)).map((d) => d.kind);
+            if (this._forDevices === null) {
+                this._forDevices = approvedKinds;
+            } else {
+                const set = new Set(approvedKinds);
+                this._forDevices = this._forDevices.filter((k) => set.has(k));
+            }
+        } else {
+            const org = await orgModel.get(this._dbClient, this._options.owner);
+            orgId = org.is_admin ? -1 : org.id;
+        }
+
+        if (this._forDevices !== null && this._forDevices.length > 0) {
+            const escapedDevices = this._forDevices.map((d) => d.replace(/[.\\]/g, '\\$&')).join('|');
+            const pat1 = ' @(' + escapedDevices + ')\\.[A-Za-z0-9_]+( |$)';
+            const pat2 = ' device:(' + escapedDevices + ')( |$)';
+
+            this._forDevicesPattern = '(' + pat1 + '|' + pat2 + ')';
+            console.log(this._forDevicesPattern);
+            this._forDevicesRegexp = new RegExp(this._forDevicesPattern);
+        } else {
+            this._forDevicesPattern = null;
+            this._forDevicesRegexp = null;
+        }
+
         this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
 
-        const synthetic = await this._genSynthetic();
+        const synthetic = await genSynthetic({
+            dbClient: this._dbClient,
+            language: this._language,
+            orgId: orgId,
+            templatePack: this._options.templatePack,
+
+            flags: this._options.flags,
+            maxDepth: this._options.maxDepth,
+            debug: this._options.debug,
+        });
         const paraphrase = this._downloadParaphrase();
 
         const source = StreamUtils.chain([paraphrase, synthetic], {
@@ -208,7 +188,7 @@ class DatasetGenerator {
         await db.withTransaction(async (dbClient) => {
             this._dbClient = dbClient;
             return this._transaction();
-        }, 'serializable', 'read only');
+        }, 'repeatable read', 'read only');
     }
 }
 
@@ -219,6 +199,15 @@ async function main() {
         description: 'Update Thingpedia Dataset'
     });
     parser.addArgument(['-l', '--language'], {
+        required: true,
+    });
+    parser.addArgument('--owner', {
+        type: Number,
+        help: 'Organization ID of the model owner',
+        required: true,
+    });
+    parser.addArgument('--template-file', {
+        help: 'Template file to use',
         required: true,
     });
     parser.addArgument(['--train'], {
@@ -234,7 +223,7 @@ async function main() {
     parser.addArgument(['--eval-probability'], {
         type: Number,
         help: 'Eval probability',
-        defaultValue: 0.1,
+        defaultValue: 0.5,
     });
     parser.addArgument(['--split-strategy'], {
         help: 'Method to use to choose training and evaluation sentences',
@@ -247,9 +236,21 @@ async function main() {
         help: 'Restrict generation to command of the given device. This option can be passed multiple times to specify multiple devices',
         dest: 'forDevices',
     });
+    parser.addArgument('--approved-only', {
+        nargs: 0,
+        action: 'storeTrue',
+        help: 'Only consider approved devices.',
+        defaultValue: false
+    });
+    parser.addArgument('--flag', {
+        action: 'append',
+        metavar: 'FLAG',
+        help: 'Set a flag for the construct template file.',
+        dest: 'flags',
+        defaultValue: [],
+    });
     parser.addArgument('--maxdepth', {
         type: Number,
-        defaultValue: 4,
         help: 'Maximum depth of synthetic sentence generation',
     });
     parser.addArgument('--ppdb', {
@@ -295,13 +296,20 @@ async function main() {
         train: args.train,
         eval: args.eval,
 
+        // generation flags
+        owner: args.owner,
+        approvedOnly: args.approved_only,
+        flags: args.flags,
         maxDepth: args.maxdepth,
+        templatePack: args.template_file,
 
+        // augmentation flags
         ppdbFile: args.ppdb,
         ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
         ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
         quotedProbability: args.quoted_fraction,
 
+        // train/eval split flags
         evalProbability: args.eval_probability,
         splitStrategy: args.split_strategy,
 

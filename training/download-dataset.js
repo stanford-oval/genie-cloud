@@ -57,7 +57,7 @@ async function main() {
 
     let query;
     if (forDevices.length > 0) {
-        const regexp = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
+        const regexp = ' @(' + forDevices.map((d) => d.replace(/[.\\]/g, '\\$&')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
 
         query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
             where language = ? and not find_in_set('obsolete',flags)

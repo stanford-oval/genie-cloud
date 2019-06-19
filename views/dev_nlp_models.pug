@@ -30,7 +30,7 @@ block content
 
                   p= _("Template Pack: %s").format(m.template_file_name)
 
-                  if m.for_devices === 'null'
+                  if m.all_devices
                     if m.use_approved
                       p!= _("Devices: <i>all</i> (approved only)")
                     else
@@ -39,7 +39,7 @@ block content
                     p
                       = _("Devices: ")
                       - var first = true;
-                      each d in JSON.parse(m.for_devices)
+                      each d in m.for_devices
                         if !first
                           | ,
                           |

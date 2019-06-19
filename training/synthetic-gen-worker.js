@@ -20,15 +20,7 @@ const Genie = require('genie-toolkit');
 
 const FileThingpediaClient = require('../util/file_thingpedia_client');
 const StreamUtils = require('./stream-utils');
-
-class ActionSetFlag extends argparse.Action {
-    call(parser, namespace, values) {
-        if (!namespace.flags)
-            namespace.set('flags', {});
-        for (let value of values)
-            namespace.flags[value] = this.constant;
-    }
-}
+const ActionSetFlag = require('./action_set_flag');
 
 async function main() {
     const parser = new argparse.ArgumentParser({
