@@ -233,6 +233,26 @@ They will operate as the user "anonymous".
 
 Default value: `false`
 
+## ENABLE_DEVELOPER_PROGRAM
+Enable developer program.
+
+Set this option to allow users to become Almond developers, and create
+OAuth apps that access the Web Almond APIs, as well as new Thingpedia
+devices or LUInet models.
+
+Default value: `false`
+
+## WITH_LUINET
+LUInet (Natural Language model/server) configuration
+
+Set this to 'external' for a configuration using a public Natural Language
+server, and 'embedded' if you manage your own NLP server.
+
+Setting this to 'embedded' enables the configuration UI to manage models
+and train.
+
+Default value: `'external'`
+
 ## NL_SERVER_URL
 The URL of a genie-compatible Natural Language inference server.
 
@@ -246,6 +266,8 @@ Access token for administrative operations in the NLP inference server.
 
 This tokens controls the ability to reload models from disk. It should
 be shared between the NLP training server and NLP inference server.
+
+This must be not null if `WITH_LUINET` is set to 'embedded'.
 
 Default value: `null`
 
@@ -280,6 +302,14 @@ to `decanlp`. Configuration lives in a separate file so it can be changed
 without restarting the training server (which would stop all running jobs).
 
 Default value: `null`
+
+## DOCUMENTATION_URL
+URL of documentation.
+
+Set this to a string starting with `/doc` to enable the embedded documentation site. Alternatively,
+point to a public website hosting your documentation.
+
+Default value: `'https://almond.stanford.edu/doc/getting-started.md'`
 
 ## BING_KEY
 Access key for Bing Image API

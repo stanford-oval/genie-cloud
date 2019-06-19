@@ -17,8 +17,6 @@ require('../util/config_init');
 
 const express = require('express');
 const path = require('path');
-const util = require('util');
-const fs = require('fs');
 
 const logger = require('morgan');
 const bodyParser = require('body-parser');
@@ -52,8 +50,12 @@ class NLPInferenceServer {
         return this._classifiers.get(languageTag);
     }
 
-    getModel(modelTag = 'default', locale) {
+    getModel(modelTag = 'org.thingpedia.models.default', locale) {
         const splitTag = locale.split(/[_.-]/g);
+
+        // API compat
+        if (modelTag === 'default')
+            modelTag = 'org.thingpedia.models.default';
 
         while (splitTag.length > 0) {
             const key = `@${modelTag}/${splitTag.join('-')}`;
@@ -66,31 +68,17 @@ class NLPInferenceServer {
     }
 
     async loadAllLanguages() {
+        for (let locale of I18n.LANGS) {
+            let language = locale.split('-')[0];
+            this._classifiers.set(language, new FrontendClassifier(language));
+        }
+
         await db.withTransaction(async (dbClient) => {
             const modelspecs = await modelsModel.getAll(dbClient);
             for (let modelspec of modelspecs) {
                 const model = new NLPModel(modelspec.language, modelspec.tag, modelspec.owner, modelspec.access_token);
                 await model.load(dbClient);
                 this._models.set(model.id, model);
-            }
-
-            for (let locale of I18n.LANGS) {
-                let language = locale.split('-')[0];
-
-                this._classifiers.set(language, new FrontendClassifier(language));
-
-                const model = new NLPModel(language, 'default', null, null);
-                await model.load(dbClient);
-                this._models.set(model.id, model);
-
-
-                if (await util.promisify(fs.exists)('./contextual:' + language)) {
-                    const contextual = new NLPModel(language, 'contextual', null, null);
-                    await contextual.load(dbClient);
-                    this._models.set(contextual.id, contextual);
-                } else {
-                    console.error(`WARNING: missing contextual model for ${language}`);
-                }
             }
         }, 'repeatable read');
 

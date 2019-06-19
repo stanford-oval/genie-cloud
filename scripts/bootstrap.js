@@ -20,7 +20,7 @@ require('../util/config_init');
 const path = require('path');
 const fs = require('fs');
 const util = require('util');
-
+const Tp = require('thingpedia');
 const yaml = require('js-yaml');
 
 const db = require('../util/db');
@@ -28,12 +28,15 @@ const user = require('../util/user');
 const organization = require('../model/organization');
 const entityModel = require('../model/entity');
 const stringModel = require('../model/strings');
+const nlpModelsModel = require('../model/nlp_models');
+const templatePackModel = require('../model/template_files');
 const { makeRandom } = require('../util/random');
 
 const Importer = require('../util/import_device');
 const { clean } = require('../util/tokenize');
 const TokenizerService = require('../util/tokenizer_service');
 const platform = require('../util/platform');
+const codeStorage = require('../util/code_storage');
 
 const Config = require('../config');
 
@@ -198,12 +201,114 @@ async function importBuiltinDevices(dbClient, rootOrg) {
     }
 }
 
+async function importStandardTemplatePack(dbClient, rootOrg) {
+    const tmpl = await templatePackModel.create(dbClient, {
+        language: 'en',
+        tag: 'org.thingpedia.genie.thingtalk',
+        owner: rootOrg.id,
+        description: 'Templates for the ThingTalk language',
+        flags: JSON.stringify([
+            'turking',
+            'nofilter',
+            'primonly',
+            'policies',
+            'remote_programs',
+            'aggregation',
+            'bookkeeping',
+            'triple_commands',
+            'configure_actions'
+        ]),
+        public: true,
+        version: 0
+    });
+
+    await codeStorage.storeZipFile(await Tp.Helpers.Http.getStream('https://almond-static.stanford.edu/test-data/en-thingtalk.zip'),
+        'org.thingpedia.genie.thingtalk', 0, 'template-files');
+
+    return tmpl.id;
+}
+
+async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
+    await nlpModelsModel.create(dbClient, {
+        language: 'en',
+        tag: 'org.thingpedia.models.default',
+        owner: rootOrg.id,
+        template_file: templatePack,
+        flags: JSON.stringify([
+            'policies',
+            'remote_programs',
+            'aggregation',
+            'bookkeeping',
+            'triple_commands',
+            'configure_actions'
+        ]),
+        all_devices: true,
+        use_approved: true
+    });
+
+    await nlpModelsModel.create(dbClient, {
+        language: 'en',
+        tag: 'org.thingpedia.models.contextual',
+        owner: rootOrg.id,
+        template_file: templatePack,
+        flags: JSON.stringify([
+            'policies',
+            'remote_programs',
+            'aggregation',
+            'bookkeeping',
+            'triple_commands',
+            'configure_actions'
+        ]),
+        all_devices: true,
+        use_approved: true
+    });
+
+    await nlpModelsModel.create(dbClient, {
+        language: 'en',
+        tag: 'org.thingpedia.models.developer',
+        owner: rootOrg.id,
+        template_file: templatePack,
+        flags: JSON.stringify([
+            'policies',
+            'remote_programs',
+            'aggregation',
+            'bookkeeping',
+            'triple_commands',
+            'configure_actions'
+        ]),
+        all_devices: true,
+        use_approved: false
+    });
+
+    await nlpModelsModel.create(dbClient, {
+        language: 'en',
+        tag: 'org.thingpedia.models.developer.contextual',
+        owner: rootOrg.id,
+        template_file: templatePack,
+        flags: JSON.stringify([
+            'policies',
+            'remote_programs',
+            'aggregation',
+            'bookkeeping',
+            'triple_commands',
+            'configure_actions'
+        ]),
+        all_devices: true,
+        use_approved: false
+    });
+}
+
 async function main() {
     platform.init();
 
     await db.withTransaction(async (dbClient) => {
         const rootOrg = await createRootOrg(dbClient);
         await createDefaultUsers(dbClient, rootOrg);
+
+        if (Config.WITH_LUINET === 'embedded') {
+            const templatePack = await importStandardTemplatePack(dbClient, rootOrg);
+            await importDefaultNLPModels(dbClient, rootOrg, templatePack);
+        }
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             await importStandardEntities(dbClient, rootOrg);

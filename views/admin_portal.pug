@@ -27,10 +27,11 @@ block content
                 if user.roles & Constants.Role.BLOG_EDITOR
                   li
                     a(href='/admin/blog')= _("Blog Archive")
-                if WITH_THINGPEDIA === 'embedded'
+                if WITH_LUINET === 'embedded'
                   if user.roles & Constants.Role.NLP_ADMIN
                     li
                       a(href='/admin/training')= _("Natural Language Training")
+                if WITH_THINGPEDIA === 'embedded'
                   if user.roles & Constants.Role.THINGPEDIA_ADMIN
                     li
                       a(href='/admin/review-queue')= _("Unreviewed Devices")
@@ -40,6 +41,7 @@ block content
                       a(href='/thingpedia/strings')= _("Thingpedia String Datasets")
                     li
                       a(href='/thingpedia/snapshots')= _("Thingpedia Snapshots")
+                if WITH_LUINET === 'embedded'
                   if user.roles & Constants.Role.NLP_ADMIN
                     li
                       a(href='/thingpedia/datasets')= _("Thingpedia Datasets")

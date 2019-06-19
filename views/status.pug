@@ -16,9 +16,8 @@ block page_name
 block content
   div(class=WITH_THINGPEDIA === 'embedded' ? 'container-fluid' : 'container')#page-body
     div.row
-      if WITH_THINGPEDIA === 'embedded'
-        div.col-lg-3.col-md-4
-          include thingpedia_dev_sidebar
+      div.col-lg-3.col-md-4
+        include dev_sidebar
 
       div.col-xs-12.col-md-8.col-lg-9
         section.divider

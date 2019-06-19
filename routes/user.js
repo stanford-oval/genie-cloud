@@ -349,7 +349,9 @@ router.get('/logout', (req, res, next) => {
     req.logout();
     req.session.completed2fa = false;
     res.locals.authenticated = false;
-    res.redirect(303, '/');
+    req.session.save(() => {
+        res.redirect(303, '/');
+    });
 });
 
 router.post('/subscribe', iv.validatePOST({ email: 'string' }), (req, res, next) => {
@@ -712,7 +714,9 @@ router.post('/delete', userUtils.requireLogIn, (req, res, next) => {
         await model.delete(dbClient, req.user.id);
     }).then(() => {
         req.logout();
-        res.redirect(303, '/');
+        req.session.save(() => {
+            res.redirect(303, '/');
+        });
     }).catch(next);
 });
 

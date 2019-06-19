@@ -7,7 +7,7 @@ section.divider
 
     div.panel-body
       if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
-        form(action='/thingpedia/developers/organization/edit-profile',method='post',data-toggle='validator')
+        form(action='/developers/organization/edit-profile',method='post',data-toggle='validator')
           input(type='hidden',name='_csrf',value=csrfToken)
 
           div.form-group
@@ -46,18 +46,18 @@ section.divider
           p
             if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
               if m.developer_status < Constants.DeveloperStatus.ORG_ADMIN
-                form(action='/thingpedia/developers/organization/promote', method='post').form-inline
+                form(action='/developers/organization/promote', method='post').form-inline
                   input(type='hidden',name='_csrf',value=csrfToken)
                   input(type='hidden',name='user_id',value=m.cloud_id)
                   button(type='submit').btn.btn-success.btn-sm.form-control= _("Promote")
               if user.cloud_id !== m.cloud_id
                 if m.developer_status > Constants.DeveloperStatus.USER
-                  form(action='/thingpedia/developers/organization/demote', method='post').form-inline
+                  form(action='/developers/organization/demote', method='post').form-inline
                     input(type='hidden',name='_csrf',value=csrfToken)
                     input(type='hidden',name='user_id',value=m.cloud_id)
                     button(type='submit').btn.btn-danger.btn-sm.form-control= _("Demote")
                 else
-                  form(action='/thingpedia/developers/organization/remove-member', method='post').form-inline.form-delete-device
+                  form(action='/developers/organization/remove-member', method='post').form-inline.form-delete-device
                     input(type='hidden',name='_csrf',value=csrfToken)
                     input(type='hidden',name='user_id',value=m.cloud_id)
                     button(type='submit').btn.btn-danger.btn-sm.form-control= _("Remove")
@@ -67,7 +67,7 @@ section.divider
           p= _("Invited (pending)")
           p
             if user.developer_status >= Constants.DeveloperStatus.ORG_ADMIN
-              form(action='/thingpedia/developers/organization/rescind-invitation', method='post').form-inline
+              form(action='/developers/organization/rescind-invitation', method='post').form-inline
                 input(type='hidden',name='_csrf',value=csrfToken)
                 input(type='hidden',name='user_id',value=m.cloud_id)
                 button(type='submit').btn.btn-success.btn-sm.form-control= _("Rescind invitation")
@@ -85,7 +85,7 @@ section.divider
                   span(aria-hidden='true') ×
 
                 h4.modal-title= _("Invite a member to your organization")
-              form(action='/thingpedia/developers/organization/add-member', method='post', data-toggle='validator')
+              form(action='/developers/organization/add-member', method='post', data-toggle='validator')
                 input(type='hidden',name='_csrf',value=csrfToken)
 
                 div.modal-body
@@ -104,30 +104,31 @@ section.divider
                    div.form-group
                       button(type='submit').btn.btn-primary= _("Invite member")
 
-  div.panel.panel-default
-    div.panel-heading
-      h4.panel-title= _("Devices")
+  if Config.WITH_THINGPEDIA === 'embedded'
+    div.panel.panel-default
+      div.panel-heading
+        h4.panel-title= _("Devices")
 
-    if developer_devices.length > 0
-      ul#developer-device-list
-        for dev in developer_devices
-          li
-            span.image
-              img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name).device-icon-tiny
-            a(href='/thingpedia/devices/by-id/' + dev.primary_kind)
-              = dev.name
-            span.action.hidden-xs
-              a.btn.btn-sm.btn-warning(href='/thingpedia/upload/update/' + dev.primary_kind)= _("Update")
-            form(action='/thingpedia/devices/delete/', method='post').form-inline.form-delete-device.hidden-xs
-              input(type='hidden',name='_csrf',value=csrfToken)
-              input(type='hidden',name='kind',value=dev.primary_kind)
-              button(type='submit').btn.btn-sm.btn-danger= _("Delete")
-    else
-      div.panel-body
-        p= _("Your organization does not own any device yet.")
+      if developer_devices.length > 0
+        ul#developer-device-list
+          for dev in developer_devices
+            li
+              span.image
+                img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name).device-icon-tiny
+              a(href='/thingpedia/devices/by-id/' + dev.primary_kind)
+                = dev.name
+              span.action.hidden-xs
+                a.btn.btn-sm.btn-warning(href='/thingpedia/upload/update/' + dev.primary_kind)= _("Update")
+              form(action='/thingpedia/devices/delete/', method='post').form-inline.form-delete-device.hidden-xs
+                input(type='hidden',name='_csrf',value=csrfToken)
+                input(type='hidden',name='kind',value=dev.primary_kind)
+                button(type='submit').btn.btn-sm.btn-danger= _("Delete")
+      else
+        div.panel-body
+          p= _("Your organization does not own any device yet.")
 
-    if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
-      div.panel-footer
-        div.row
-          div.col-sm-6.col-md-4
-            a(href='/thingpedia/upload/create').btn.btn-primary.btn-sm.btn-block= _("Upload a new device")
+      if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
+        div.panel-footer
+          div.row
+            div.col-sm-6.col-md-4
+              a(href='/thingpedia/upload/create').btn.btn-primary.btn-sm.btn-block= _("Upload a new device")

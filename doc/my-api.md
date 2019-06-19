@@ -20,7 +20,7 @@ page to the user asking to grant access to Web Almond. After the user confirms t
 with a query parameter `code` set to the temporary authorization code.
 
 You must have a client ID to access this page. You can obtain both the client ID
-and the client secret from the [developer portal](/thingpedia/developers).
+and the client secret from the [developer portal](/developers).
 
 ```
 GET /me/api/oauth2/authorize

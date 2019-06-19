@@ -40,7 +40,7 @@ async function testCreateOAuthClient(bob, david, nobody) {
     fd1.append('redirect_uri', 'https://example.com/oauth https://dev.example.com/oauth http://127.0.0.1:1010/oauth');
 
     await assertRedirect(sessionRequest('/me/api/oauth2/clients/create', 'POST', fd1, bob, { followRedirects: false }),
-        '/thingpedia/developers/oauth');
+        '/developers/oauth');
 
     const clients = await dbQuery(`select * from oauth2_clients where name = ?`, ['Test OAuth Client']);
     assert.strictEqual(clients.length, 1);

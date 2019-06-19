@@ -29,6 +29,7 @@ module.exports.TRAINING_URL = 'http://127.0.0.1:${TRAINING_PORT}';
 module.exports.FILE_STORAGE_BACKEND = 'local';
 module.exports.CDN_HOST = '/download';
 module.exports.WITH_THINGPEDIA = 'external';
+module.exports.WITH_LUINET = 'embedded';
 module.exports.THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 module.exports.ENABLE_PROMETHEUS = true;
 module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
@@ -55,18 +56,31 @@ cd $workdir
 node $srcdir/tests/mock-tokenizer.js &
 tokenizerpid=$!
 
+# set up download directories
+mkdir -p $srcdir/public/download
+for x in blog-assets template-files ; do
+    mkdir -p $workdir/shared/$x
+    ln -sf -T $workdir/shared/$x $srcdir/public/download/$x
+done
+mkdir -p $workdir/shared/cache
+echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
+
 # clean the database and bootstrap
 $srcdir/scripts/execute-sql-file.js $srcdir/model/schema.sql
 node $srcdir/scripts/bootstrap.js
 
-mkdir -p 'default:en'
-mkdir -p 'contextual:en'
+mkdir -p 'org.thingpedia.models.default:en'
+mkdir -p 'org.thingpedia.models.developer:en'
+mkdir -p 'org.thingpedia.models.contextual:en'
+mkdir -p 'org.thingpedia.models.developer.contextual:en'
 
 wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current.tar.gz -O $srcdir/tests/embeddings/current.tar.gz
-tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'default:en'
+tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'org.thingpedia.models.default:en'
+tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'org.thingpedia.models.developer:en'
 
 wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current-contextual.tar.gz -O $srcdir/tests/embeddings/current-contextual.tar.gz
-tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'contextual:en'
+tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'org.thingpedia.models.contextual:en'
+tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'org.thingpedia.models.developer.contextual:en'
 
 wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/classifier.h5 -O en.classifier.h5
 

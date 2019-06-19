@@ -139,21 +139,23 @@ async function getTraining(req, res) {
                                  jobs });
 }
 
-router.get('/training', user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
-    getTraining(req, res).catch(next);
-});
+if (Config.WITH_LUINET === 'embedded') {
+    router.get('/training', user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
+        getTraining(req, res).catch(next);
+    });
 
-router.post('/training', user.requireRole(user.Role.NLP_ADMIN), iv.validatePOST({ language: 'string', job_type: 'string' }), (req, res, next) => {
-    TrainingServer.get().queue(req.body.language, null, req.body.job_type).then(() => {
-        return getTraining(req, res);
-    }).catch(next);
-});
+    router.post('/training', user.requireRole(user.Role.NLP_ADMIN), iv.validatePOST({ language: 'string', job_type: 'string' }), (req, res, next) => {
+        TrainingServer.get().queue(req.body.language, null, req.body.job_type).then(() => {
+            return getTraining(req, res);
+        }).catch(next);
+    });
 
-router.post('/training/kill', user.requireRole(user.Role.NLP_ADMIN), iv.validatePOST({ job_id: 'integer' }), (req, res, next) => {
-    TrainingServer.get().kill(parseInt(req.body.job_id)).then(() => {
-        return res.redirect(303, '/admin/training');
-    }).catch(next);
-});
+    router.post('/training/kill', user.requireRole(user.Role.NLP_ADMIN), iv.validatePOST({ job_id: 'integer' }), (req, res, next) => {
+        TrainingServer.get().kill(parseInt(req.body.job_id)).then(() => {
+            return res.redirect(303, '/admin/training');
+        }).catch(next);
+    });
+}
 
 router.post('/users/delete/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
     if (req.user.id === req.params.id) {
@@ -238,25 +240,27 @@ router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (r
     }).catch(next);
 });
 
-router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validateGET({ page: '?integer' }), (req, res, next) => {
-    let page = req.query.page;
-    if (page === undefined)
-        page = 0;
-    else
-        page = parseInt(page);
-    if (page < 0)
-        page = 0;
+if (Config.WITH_THINGPEDIA === 'embedded') {
+    router.get('/review-queue', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validateGET({ page: '?integer' }), (req, res, next) => {
+        let page = req.query.page;
+        if (page === undefined)
+            page = 0;
+        else
+            page = parseInt(page);
+        if (page < 0)
+            page = 0;
 
-    db.withClient((dbClient) => {
-        return device.getReviewQueue(dbClient, page * DEVICES_PER_PAGE, DEVICES_PER_PAGE + 1);
-    }).then((devices) => {
-        res.render('admin_review_queue', { page_title: req._("Almond - Administration"),
-                                           csrfToken: req.csrfToken(),
-                                           devices: devices,
-                                           page_num: page,
-                                           DEVICES_PER_PAGE });
-    }).catch(next);
-});
+        db.withClient((dbClient) => {
+            return device.getReviewQueue(dbClient, page * DEVICES_PER_PAGE, DEVICES_PER_PAGE + 1);
+        }).then((devices) => {
+            res.render('admin_review_queue', { page_title: req._("Almond - Administration"),
+                                               csrfToken: req.csrfToken(),
+                                               devices: devices,
+                                               page_num: page,
+                                               DEVICES_PER_PAGE });
+        }).catch(next);
+    });
+}
 
 router.get('/organizations', user.requireRole(user.Role.THINGPEDIA_ADMIN), iv.validateGET({ page: '?integer' }), (req, res, next) => {
     let page = req.query.page;

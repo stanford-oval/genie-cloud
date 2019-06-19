@@ -77,16 +77,16 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
 
             return Q.ninvoke(upload, 'send');
         },
-        downloadZipFile(name, version) {
+        downloadZipFile(name, version, directory = 'devices') {
             var s3 = new AWS.S3();
             var download = s3.getObject({ Bucket: 'thingpedia2',
-                                          Key: 'devices/' + name + '-v' + version + '.zip' });
+                                          Key: directory + '/' + name + '-v' + version + '.zip' });
             return download.createReadStream();
         },
-        storeZipFile(blob, name, version) {
+        storeZipFile(blob, name, version, directory = 'devices') {
             var s3 = new AWS.S3();
             var upload = s3.upload({ Bucket: 'thingpedia2',
-                                     Key: 'devices/' + name + '-v' + version + '.zip',
+                                     Key: directory + '/' + name + '-v' + version + '.zip',
                                      Body: blob,
                                      ContentType: 'application/zip' });
             return Q.ninvoke(upload, 'send').then(() => {
@@ -107,12 +107,12 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
         storeBlogAsset(blob, name, contentType = 'application/octet-stream') {
             return writeFile(blob, platform.getWritableDir() + '/blog-assets/' + name);
         },
-        downloadZipFile(name, version) {
-            let filename = platform.getWritableDir() + '/devices/' + name + '-v' + version + '.zip';
+        downloadZipFile(name, version, directory = 'devices') {
+            let filename = platform.getWritableDir() + '/' + directory + '/' + name + '-v' + version + '.zip';
             return fs.createReadStream(filename);
         },
-        storeZipFile(blob, name, version) {
-            let filename = platform.getWritableDir() + '/devices/' + name + '-v' + version + '.zip';
+        storeZipFile(blob, name, version, directory = 'devices') {
+            let filename = platform.getWritableDir() + '/' + directory + '/' + name + '-v' + version + '.zip';
             return writeFile(blob, filename);
         },
         getDownloadLocation

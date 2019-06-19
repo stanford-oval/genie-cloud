@@ -10,15 +10,14 @@
 "use strict";
 
 const express = require('express');
-const path = require('path');
-const lunr = require('lunr');
-require("lunr-languages/lunr.stemmer.support")(lunr);
 
 const db = require('../util/db');
 const organization = require('../model/organization');
 const device = require('../model/device');
 const oauth2 = require('../model/oauth2');
 const userModel = require('../model/user');
+const nlpModelsModel = require('../model/nlp_models');
+const templatePackModel = require('../model/template_files');
 const user = require('../util/user');
 const SendMail = require('../util/sendmail');
 const iv = require('../util/input_validation');
@@ -49,7 +48,7 @@ router.get('/', (req, res, next) => {
             organization.getInvitations(dbClient, req.user.developer_org),
             device.getByOwner(dbClient, req.user.developer_org)]);
     }).then(([developer_org, developer_org_members, developer_org_invitations, developer_devices]) => {
-        res.render('thingpedia_dev_overview', { page_title: req._("Thingpedia - Developer Portal"),
+        res.render('dev_overview', { page_title: req._("Almond Developer Console"),
                                                 csrfToken: req.csrfToken(),
                                                 developer_org,
                                                 developer_org_members,
@@ -63,7 +62,7 @@ router.get('/oauth', user.requireLogIn, user.requireDeveloper(), (req, res, next
     db.withClient((dbClient) => {
         return oauth2.getClientsByOwner(dbClient, req.user.developer_org);
     }).then((developer_oauth2_clients) => {
-        res.render('thingpedia_dev_oauth', { page_title: req._("Thingpedia - OAuth 2.0 Applications"),
+        res.render('dev_oauth', { page_title: req._("Almond Developer Console - OAuth 2.0 Applications"),
                                              csrfToken: req.csrfToken(),
                                              developer_oauth2_clients: developer_oauth2_clients
         });
@@ -81,7 +80,7 @@ router.post('/organization/add-member', user.requireLogIn, user.requireDeveloper
             if (!row.email_verified)
                 throw new BadRequestError(req._("%s has not verified their email address yet.").format(req.body.username));
         } catch(e) {
-            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+            res.status(400).render('error', { page_title: req._("Almond - Error"),
                                               message: e });
             return false;
         }
@@ -104,7 +103,7 @@ router.post('/organization/add-member', user.requireLogIn, user.requireDeveloper
         return true;
     }).then((ok) => {
         if (ok)
-            res.redirect(303, '/thingpedia/developers');
+            res.redirect(303, '/developers');
     }).catch(next);
 });
 
@@ -118,7 +117,7 @@ async function sendInvitationEmail(fromUser, org, toUser) {
 
 ${fromUser.human_name || fromUser.username} is inviting you to join the “${org.name}” developer organization.
 To accept, click here:
-<${Config.SERVER_ORIGIN}/thingpedia/developers/organization/accept-invitation/${org.id_hash}>
+<${Config.SERVER_ORIGIN}/developers/organization/accept-invitation/${org.id_hash}>
 
 ----
 You are receiving this email because this address is associated
@@ -142,7 +141,7 @@ router.get('/organization/accept-invitation/:id_hash', user.requireLogIn, (req, 
             if (!invitation)
                 throw new BadRequestError(req._("The invitation is no longer valid. It might have expired or might have been rescinded by the organization administrator."));
         } catch(e) {
-            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+            res.status(400).render('error', { page_title: req._("Almond - Error"),
                                               message: e });
             return [null, null];
         }
@@ -157,7 +156,7 @@ router.get('/organization/accept-invitation/:id_hash', user.requireLogIn, (req, 
         if (userId !== null) {
             await EngineManager.get().restartUser(userId);
             res.render('message', {
-                page_title: req._("Thingpedia - Developer Invitation"),
+                page_title: req._("Almond - Developer Invitation"),
                 message: req._("You're now a member of the %s organization.").format(orgName)
             });
         }
@@ -172,7 +171,7 @@ router.post('/organization/rescind-invitation', user.requireLogIn, user.requireD
 
         await organization.rescindInvitation(dbClient, req.user.developer_org, row.id);
     }).then(() => {
-        res.redirect(303, '/thingpedia/developers');
+        res.redirect(303, '/developers');
     }).catch(next);
 });
 
@@ -192,7 +191,7 @@ router.post('/organization/remove-member', user.requireLogIn, user.requireDevelo
         });
         const userId = users[0].id;
         await EngineManager.get().restartUserWithoutCache(userId);
-        res.redirect(303, '/thingpedia/developers');
+        res.redirect(303, '/developers');
     }).catch(next);
 });
 
@@ -210,7 +209,7 @@ router.post('/organization/promote', user.requireLogIn, user.requireDeveloper(us
             developer_status: users[0].developer_status + 1,
         });
     }).then(() => {
-        res.redirect(303, '/thingpedia/developers');
+        res.redirect(303, '/developers');
     }).catch(next);
 });
 
@@ -230,7 +229,7 @@ router.post('/organization/demote', user.requireLogIn, user.requireDeveloper(use
             developer_status: users[0].developer_status - 1,
         });
     }).then(() => {
-        res.redirect(303, '/thingpedia/developers');
+        res.redirect(303, '/developers');
     }).catch(next);
 });
 
@@ -238,7 +237,7 @@ router.post('/organization/edit-profile', user.requireLogIn, user.requireDevelop
     iv.validatePOST({ name: 'string' }), (req, res, next) => {
     for (let token of tokenize(req.body.name)) {
         if (['stanford', 'almond'].indexOf(token) >= 0) {
-            res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
+            res.status(400).render('error', { page_title: req._("Almond - Error"),
                                               message: req._("You cannot use the word “%s” in your organization name.").format(token) });
             return;
         }
@@ -247,76 +246,32 @@ router.post('/organization/edit-profile', user.requireLogIn, user.requireDevelop
     db.withTransaction((dbClient) => {
         return organization.update(dbClient, req.user.developer_org, { name: req.body.name });
     }).then(() => {
-        res.redirect(303, '/thingpedia/developers');
+        res.redirect(303, '/developers');
     }).catch(next);
 });
 
 
 router.get('/train', (req, res) => {
-    res.render('thingpedia_dev_train_almond', { page_title: req._("Thingpedia - Train Almond"), csrfToken: req.csrfToken() });
+    res.render('dev_train_almond', { page_title: req._("Almond - Train Almond"), csrfToken: req.csrfToken() });
 });
 
 router.get('/status', (req, res) => {
     res.redirect('/me/status');
 });
 
-for (let doc of require('../doc/doc-list.json')) {
-    router.get('/' + doc + '.md', (req, res, next) => {
-        res.render('doc_' + doc, {
-            page_title: req._("Thingpedia - Documentation"),
-            currentPage: doc
-        });
+if (Config.WITH_LUINET === 'embedded') {
+    router.get('/models', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
+        db.withClient(async (dbClient) => {
+            const [models, templatePacks] = await Promise.all([
+                nlpModelsModel.getByOwner(dbClient, req.user.developer_org),
+                templatePackModel.getByOwner(dbClient, req.user.developer_org)
+            ]);
+            res.render('dev_nlp_models', {
+                page_title: req._("LUInet - Models"),
+                models, templatePacks
+            });
+        }).catch(next);
     });
 }
-
-const searchIndex = require('../doc/fts.json');
-searchIndex.index = lunr.Index.load(searchIndex.index);
-function highlightSearch(url, metadata) {
-    const terms = [];
-    let minIndex = Infinity;
-    let maxIndex = -Infinity;
-    for (let term in metadata) {
-        if (metadata[term].content) {
-            terms.push(term);
-            for (let pos of metadata[term].content.position) {
-                minIndex = Math.min(pos[0], minIndex);
-                maxIndex = Math.max(pos[1]+pos[0], maxIndex);
-            }
-        }
-    }
-    
-    const content = searchIndex.documents[url].content;
-    if (!terms.length)
-        return content;
-    
-    const trimLeft = minIndex > 10;
-    
-    const trimmedText = (trimLeft ? '...' : '') +
-        content.substring(minIndex-10);
-        
-    return trimmedText.replace(new RegExp('\\b(?:' + terms.join('|') + ')\\b', 'ig'),
-                               (w) => `<mark>${escape(w)}</mark>`);
-}
-
-router.get('/search', iv.validateGET({ q: 'string' }, { json: true }), (req, res) => {
-    const results = searchIndex.index.search(req.query.q);
-    const data = [];
-    for (let i = 0; i < Math.min(5, results.length); i++) {
-        const result = results[i];
-        data.push({
-            url: result.ref,
-            score: result.score,
-            highlight: highlightSearch(result.ref, result.matchData.metadata)
-        });
-    }
-    
-    res.cacheFor(86400);
-    res.json({
-        result: 'ok',
-        data
-    });
-});
-
-router.use('/thingpedia-api', express.static(path.join(__dirname, '../doc/thingpedia-api')));
 
 module.exports = router;

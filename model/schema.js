@@ -219,22 +219,65 @@ module.exports = {
         }
     },
 
-    getCurrentSnapshotTypes(client) {
-        return db.selectAll(client, "select name, types, argnames, required, is_input, is_list, is_monitorable, channel_type, kind, kind_type from device_schema ds"
-                             + " left join device_schema_channels dsc on ds.id = dsc.schema_id "
-                             + " and dsc.version = ds.developer_version",
-                             []).then(processTypeRows);
+    getCurrentSnapshotTypes(client, org) {
+        if (org === -1) {
+            return db.selectAll(client, `select name, types, argnames, required, is_input,
+                is_list, is_monitorable, channel_type, kind, kind_type from device_schema ds
+                left join device_schema_channels dsc on ds.id = dsc.schema_id
+                and dsc.version = ds.developer_version`,
+                []).then(processTypeRows);
+        } else if (org !== null) {
+            return db.selectAll(client, `select name, types, argnames, required, is_input,
+                is_list, is_monitorable, channel_type, kind, kind_type from device_schema ds
+                left join device_schema_channels dsc on ds.id = dsc.schema_id
+                and ((dsc.version = ds.developer_version and ds.owner = ?) or
+                    (dsc.version = ds.approved_version and ds.owner <> ?))
+                where (ds.approved_version is not null or ds.owner = ?)`,
+                []).then(processTypeRows);
+        } else {
+            return db.selectAll(client, `select name, types, argnames, required, is_input,
+                is_list, is_monitorable, channel_type, kind, kind_type from device_schema ds
+                left join device_schema_channels dsc on ds.id = dsc.schema_id
+                and dsc.version = ds.approved_version where ds.approved_version is not null`,
+                []).then(processTypeRows);
+        }
     },
 
-    getCurrentSnapshotMeta(client, language) {
-        return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
-                            + " argnames, argcanonicals, required, is_input, is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type"
-                            + " from device_schema ds"
-                            + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
-                            + " and dsc.version = ds.developer_version "
-                            + " left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and "
-                            + " dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ?",
-                            [language]).then(processMetaRows);
+    getCurrentSnapshotMeta(client, language, org) {
+        if (org === -1) {
+            return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
+                confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
+                is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type
+                from device_schema ds
+                left join device_schema_channels dsc on ds.id = dsc.schema_id
+                and dsc.version = ds.developer_version
+                left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and
+                dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ?`,
+                [language]).then(processMetaRows);
+        } else if (org !== null) {
+            return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
+                confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
+                is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type
+                from device_schema ds
+                left join device_schema_channels dsc on ds.id = dsc.schema_id
+                and ((dsc.version = ds.developer_version and ds.owner = ?) or
+                     (dsc.version = ds.approved_version and ds.owner <> ?))
+                left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and
+                dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ?
+                where (ds.approved_version is not null or ds.owner = ?)`,
+                [org, org, language, org]).then(processMetaRows);
+        } else {
+            return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
+                confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
+                is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type
+                from device_schema ds
+                left join device_schema_channels dsc on ds.id = dsc.schema_id
+                and dsc.version = ds.approved_version
+                left join device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and
+                dscc.version = dsc.version and dscc.name = dsc.name and dscc.language = ?
+                where ds.approved_version is not null`,
+                [language]).then(processMetaRows);
+        }
     },
 
     getSnapshotTypes(client, snapshotId) {

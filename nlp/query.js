@@ -85,9 +85,9 @@ async function query(params, data, service, res) {
     let modelTag = params.model_tag;
     if (!modelTag) {
         if (data.context)
-            modelTag = 'contextual';
+            modelTag = 'org.thingpedia.models.contextual';
         else
-            modelTag = 'default';
+            modelTag = 'org.thingpedia.models.default';
     }
 
     const model = service.getModel(modelTag, params.locale);

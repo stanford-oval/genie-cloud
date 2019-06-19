@@ -33,14 +33,6 @@ const Job = require('./training_job');
 
 const Config = require('../config');
 
-function nonEmptyIntersection(one, two) {
-    for (let el of one) {
-        if (two.indexOf(el) >= 0)
-            return true;
-    }
-    return false;
-}
-
 const JOB_TYPES = ['update-dataset', 'train'];
 
 class TrainingDaemon {
@@ -71,16 +63,6 @@ class TrainingDaemon {
             this._dependencies.get(job.dependsOn).push(job);
         else
             this._dependencies.set(job.dependsOn, [job]);
-    }
-
-    async _reloadModels(languageTag) {
-        const rows = await db.withClient((dbClient) => {
-            return modelsModel.getForLanguage(dbClient, languageTag);
-        });
-        const result = {};
-        for (let row of rows)
-            result[row.tag] = JSON.parse(row.for_devices);
-        return result;
     }
 
     save() {
@@ -258,12 +240,17 @@ Check the logs for further information.`
 
     async scheduleJob(jobTemplate) {
         let forDevices = jobTemplate.forDevices;
-        if (forDevices !== null && !Array.isArray(forDevices))
+        if (forDevices !== null && (!Array.isArray(forDevices) || forDevices.length === 0))
             throw new Error('forDevices must be an array of strings');
         let language = jobTemplate.language || 'en';
         let jobType = jobTemplate.jobType || 'train';
 
-        const models = await this._reloadModels(language);
+        const affectedModels = db.withClient((dbClient) => {
+            if (forDevices !== null)
+                return modelsModel.getForLanguage(dbClient, language);
+            else
+                return modelsModel.getForDevices(dbClient, language, forDevices);
+        });
 
         if (jobType === 'train' || jobType === 'train-only') {
             let dependsOn = null;
@@ -274,23 +261,8 @@ Check the logs for further information.`
                     language, 'default', null, null);
             }
 
-            if (forDevices === null) {
-                // queue all models
-                this._queueOrMergeJob([], 'train', language, 'default', dependsOn, null);
-                for (let modelTag in models)
-                    this._queueOrMergeJob([], 'train', language, modelTag, dependsOn, models[modelTag]);
-            } else {
-                // queue the default job always
-                this._queueOrMergeJob(forDevices, 'train', language, 'default', dependsOn, null);
-
-                // check if any of the other models are impacted
-                // by this device
-                for (let modelTag in models) {
-                    let modelDevices = models[modelTag];
-                    if (nonEmptyIntersection(modelDevices, forDevices))
-                        this._queueOrMergeJob(forDevices, 'train', language, modelTag, dependsOn, modelDevices);
-                }
-            }
+            for (let modelInfo of affectedModels)
+                this._queueOrMergeJob([], 'train', language, modelInfo.tag, dependsOn, modelInfo);
         } else if (jobType === 'update-dataset') {
             await this._queueOrMergeJob(forDevices || [], 'update-dataset', language, 'default', null);
         } else {

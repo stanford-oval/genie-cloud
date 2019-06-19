@@ -43,7 +43,7 @@ async function main() {
 
         const content = (await util.promisify(fs.readFile)(path.resolve('./doc', file))).toString();
 
-        const current_uri = '/thingpedia/developers/' + file;
+        const current_uri = '/doc/' + file;
         let page_title = '';
         let current_heading = '';
         let current_heading_slug = '';

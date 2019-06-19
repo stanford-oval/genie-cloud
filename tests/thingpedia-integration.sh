@@ -17,7 +17,10 @@ module.exports.SERVER_ORIGIN = 'http://127.0.0.1:${PORT}';
 module.exports.FILE_STORAGE_BACKEND = 'local';
 module.exports.CDN_HOST = '/download';
 module.exports.WITH_THINGPEDIA = 'embedded';
+module.exports.WITH_LUINET = 'embedded';
 module.exports.THINGPEDIA_URL = '/thingpedia';
+module.exports.DOCUMENTATION_URL = '/doc/getting-started.md';
+module.exports.ENABLE_DEVELOPER_PROGRAM = true;
 module.exports.ENABLE_PROMETHEUS = true;
 module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
 module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
@@ -46,7 +49,7 @@ cd $workdir
 
 # set up download directories
 mkdir -p $srcdir/public/download
-for x in devices icons backgrounds blog-assets ; do
+for x in devices icons backgrounds blog-assets template-files ; do
     mkdir -p $workdir/shared/$x
     ln -sf -T $workdir/shared/$x $srcdir/public/download/$x
 done
@@ -139,22 +142,27 @@ wait
 # first compile the PPDB
 node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
 
-# now generate the dataset (which will be saved to mysql)
-node $srcdir/training/update-dataset.js -l en -a --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin --debug
+# now update the exact match dataset (which will be saved to mysql)
+node $srcdir/training/update-dataset.js -l en --maxdepth 3 --debug
+# download
+node $srcdir/training/download-dataset.js -l en --output exact.tsv
 
-# download and check
-node $srcdir/training/download-dataset.js -l en --no-quote-free --train train-quoted.tsv --eval eval-quoted.tsv --eval-probability 1.0
-node $srcdir/training/download-dataset.js -l en --quote-free --train train-quote-free.tsv --eval eval-quote-free.tsv --eval-probability 1.0
+# generate a training set
+mkdir jobdir
+(cd jobdir; THINGENGINE_ROOTDIR=.. node $srcdir/training/prepare-training-set.js -l en \
+    --owner 1 --template-file org.thingpedia.genie.thingtalk \
+    --flag policies --flag remote_programs --flag aggregation --flag bookkeeping --flag triple_commands --flag configure_actions \
+    --maxdepth 3 --train train.tsv --eval eval.tsv --eval-probability 1.0 \
+    --ppdb $workdir/ppdb-2.0-xs-lexical.bin )
 
-sha256sum train-quoted.tsv eval-quoted.tsv train-quote-free.tsv eval-quote-free.tsv
+sha256sum exact.tsv jobdir/eval.tsv jobdir/train.tsv
 sha256sum -c <<EOF
-36c6135f449e4ba99bf9667570e7865fe0e7db038ef30c269859509761fd42d5  train-quoted.tsv
-5e8070f97c52581c51ab58736d126e2d8e11adaf8b5737d03b672ac8cec38285  eval-quoted.tsv
-9ca1c765af18eab6e0f022d2207bf7008e7121ae65a6f7e48d30020d690a0067  train-quote-free.tsv
-f921f152ad30fe768de300d0ec2a796ebccc24775f567e97e6783185fcacac46  eval-quote-free.tsv
+8d73044c4360393a00436b90b48d9b31a338985d93341feb17d202af675c33c6  exact.tsv
+72bccb2f8b7d4c6b6556eb5c998374c0b10b1e78c56f3ba7f72ea08cd5a8f240  jobdir/eval.tsv
+ef125403ed0ba1e0b8af7191a16d3ad2d12726f1c6a7f3f1b06e1d1add3af6c3  jobdir/train.tsv
 EOF
 
-# now regenerate the dataset incrementally
-node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --ppdb $workdir/ppdb-2.0-xs-lexical.bin --debug
+# now update the exact match dataset incrementally
+node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --debug
 
 rm -rf $workdir

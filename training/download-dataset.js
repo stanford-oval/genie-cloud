@@ -16,68 +16,25 @@ require('../util/config_init');
 
 const fs = require('fs');
 const argparse = require('argparse');
-const seedrandom = require('seedrandom');
 
 const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const { parseFlags } = require('./flag_utils');
-
-function waitFinish(stream) {
-    return new Promise((resolve, reject) => {
-        stream.once('finish', resolve);
-        stream.on('error', reject);
-    });
-}
+const StreamUtils = require('./stream-utils');
 
 async function main() {
     const parser = new argparse.ArgumentParser({
         addHelp: true,
-        description: 'Update Thingpedia Dataset'
+        description: 'Download Thingpedia Dataset'
     });
     parser.addArgument(['-l', '--language'], {
         required: true,
     });
-    parser.addArgument(['--train'], {
+    parser.addArgument(['-o', '--output'], {
         required: true,
         type: fs.createWriteStream,
-        help: 'Train file output path',
-    });
-    parser.addArgument(['--eval'], {
-        required: true,
-        type: fs.createWriteStream,
-        help: 'Eval file output path',
-    });
-    parser.addArgument(['--test'], {
-        required: false,
-        type: fs.createWriteStream,
-        help: 'Test file output path',
-        defaultValue: null
-    });
-    parser.addArgument(['--eval-probability'], {
-        type: Number,
-        help: 'Eval probability',
-        defaultValue: 0.1,
-    });
-    parser.addArgument(['--split-strategy'], {
-        help: 'Method to use to choose training and evaluation sentences',
-        defaultValue: 'sentence',
-        choices: ['id', 'raw-sentence', 'sentence', 'program', 'combination']
-    });
-    parser.addArgument(['--random-seed'], {
-        help: 'Random seed',
-        defaultValue: 'abcdefghi',
-    });
-    parser.addArgument(['--quote-free'], {
-        nargs: 0,
-        action: 'storeTrue',
-        help: 'Download quote-free dataset',
-    });
-    parser.addArgument(['--no-quote-free'], {
-        nargs: 0,
-        action: 'storeFalse',
-        dest: 'quote_free',
-        help: argparse.SUPPRESS,
+        help: 'Output path',
     });
     parser.addArgument(['-d', '--device'], {
         action: 'append',
@@ -100,83 +57,40 @@ async function main() {
 
     let query;
     if (forDevices.length > 0) {
-        const regexp = ' @(' + forDevices.map((d) => d.replace('.', '\\.')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
+        const regexp = ' @(' + forDevices.map((d) => d.replace(/[.\\]/g, '\\$&')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
 
-        if (argv.quote_free) {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from replaced_example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags)
-                and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
-                [language, regexp]);
-        } else {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags)
-                and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
-                [language, regexp]);
-        }
+        query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+            where language = ? and not find_in_set('obsolete',flags)
+            and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
+            [language, regexp]);
     } else if (types.length > 0) {
-        if (argv.quote_free) {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from replaced_example_utterances
-                use index (language_type) where language = ? and find_in_set('training',flags)
-                and target_code<>'' and preprocessed<>'' and type in (?)`,
-                [language, types]);
-        } else {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_type) where language = ? and find_in_set('training',flags)
-                and target_code<>'' and preprocessed<>'' and type in (?)`,
-                [language, types]);
-        }
+        query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+            where language = ? and not find_in_set('obsolete',flags)
+            and target_code<>'' and preprocessed<>'' and type in (?)`,
+            [language, types]);
     } else {
-        if (argv.quote_free) {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from replaced_example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags)
-                and target_code<>'' and preprocessed<>''`,
-                [language]);
-        } else {
-            query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ? and find_in_set('training',flags)
-                and target_code<>'' and preprocessed<>''`,
-                [language]);
-        }
+        query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
+            where language = ? and not find_in_set('obsolete',flags)
+            and target_code<>'' and preprocessed<>''`,
+            [language]);
     }
     if (argv.test)
         argv.eval_prob *= 2;
 
-    const train = new Genie.DatasetStringifier();
-    const eval_ = new Genie.DatasetStringifier();
-    const promises = [];
-    promises.push(waitFinish(train.pipe(argv.train)));
-    promises.push(waitFinish(eval_.pipe(argv.eval)));
-    let test = null;
-    if (argv.test) {
-        test = new Genie.DatasetStringifier();
-        promises.push(waitFinish(test.pipe(argv.test)));
-    }
-
-    const splitter = new Genie.DatasetSplitter({
-        rng: seedrandom.alea(argv.random_seed),
-        locale: argv.language,
-        debug: false,
-
-        train,
-        eval: eval_,
-        test,
-
-        evalProbability: argv.eval_probability,
-        forDevices: argv.forDevices,
-        splitStrategy: argv.split_strategy,
-    });
+    const writer = new Genie.DatasetStringifier();
+    writer.pipe(argv.output);
 
     query.on('result', (row) => {
         row.flags = parseFlags(row.flags);
-        row.flags.replaced = !!argv.quote_free;
-        splitter.write(row);
+        row.flags.replaced = false;
+        writer.write(row);
     });
     query.on('end', () => {
-        splitter.end();
+        writer.end();
         dbDone();
     });
 
-    await Promise.all(promises);
+    await StreamUtils.waitFinish(argv.output);
     await db.tearDown();
 }
 

@@ -40,3 +40,10 @@ try {
         throw e;
     // ignore if there is no file
 }
+
+if (Config.WITH_THINGPEDIA !== 'embedded' && Config.WITH_THINGPEDIA !== 'external')
+    throw new Error('Invalid configuration, WITH_THINGPEDIA must be either embedded or external');
+if (Config.WITH_THINGPEDIA === 'embedded') // ignore whatever setting is there
+    Config.THINGPEDIA_URL = '/thingpedia';
+if (Config.WITH_LUINET !== 'embedded' && Config.WITH_LUINET !== 'external')
+    throw new Error('Invalid configuration, WITH_LUINET must be either embedded or external');

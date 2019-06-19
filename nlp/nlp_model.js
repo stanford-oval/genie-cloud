@@ -49,7 +49,7 @@ module.exports = class NLPModel {
         this.id = `@${modelTag}/${locale}`;
         this.locale = locale;
 
-        const isDefault = modelTag === 'default' || modelTag === 'contextual';
+        const isDefault = modelTag === 'org.thingpedia.models.default' || modelTag === 'org.thingpedia.models.contextual';
         if (isDefault)
             this.exact = new ExactMatcher(locale, modelTag);
         else

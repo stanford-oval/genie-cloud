@@ -46,10 +46,6 @@ const errorHandling = require('./util/error_handling');
 const EngineManager = require('./almond/enginemanagerclient');
 
 const Config = require('./config');
-if (Config.WITH_THINGPEDIA !== 'embedded' && Config.WITH_THINGPEDIA !== 'external')
-    throw new Error('Invalid configuration, WITH_THINGPEDIA must be either embeded or external');
-if (Config.WITH_THINGPEDIA === 'embedded') // ignore whatever setting is there
-    Config.THINGPEDIA_URL = '/thingpedia';
 
 class Frontend {
     constructor() {
@@ -296,15 +292,18 @@ class Frontend {
 
         this._app.use('/', require('./routes/about'));
         this._app.use('/', require('./routes/qrcode'));
-        this._app.get('/doc/:page', (req, res) => {
-            res.redirect(301, '/thingpedia/developers/' + req.params.page);
-        });
         this._app.use('/blog', require('./routes/blog'));
 
         this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));
         this._app.use('/devices', require('./routes/devices_compat'));
+
+        if (Config.DOCUMENTATION_URL.startsWith('/doc'))
+            this._app.use('/doc', require('./routes/doc'));
+
+        if (Config.ENABLE_DEVELOPER_PROGRAM)
+            this._app.use('/developers', require('./routes/developer_console'));
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia', require('./routes/thingpedia_portal'));
@@ -315,10 +314,10 @@ class Frontend {
             this._app.use('/thingpedia/classes', require('./routes/thingpedia_schemas'));
             this._app.use('/thingpedia/translate', require('./routes/thingpedia_translate'));
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
-            this._app.use('/thingpedia/datasets', require('./routes/thingpedia_dataset'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
-            this._app.use('/thingpedia/developers', require('./routes/thingpedia_developer_console'));
         }
+        if (Config.WITH_LUINET === 'embedded')
+            this._app.use('/luinet/datasets', require('./routes/luinet_dataset'));
 
         this._app.use('/profiles', require('./routes/thingpedia_profiles'));
         this._app.use('/user', require('./routes/user'));

@@ -1,0 +1,105 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
+
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
+
+block page_name
+  - stdlayout = false;
+  - var section = 'oauth';
+  = _("Developer Console")
+
+block content
+  div.container-fluid#page-body
+    div.row
+      div.col-lg-3.col-md-4
+        include dev_sidebar
+
+      div.col-xs-12.col-md-8.col-lg-9
+        section.divider
+          h3= _("Your OAuth Applications")
+
+          p!= _("OAuth apps allow you to develop software that accesses Almond as a service, for example in a smart speaker. For further information, see the <a href='/doc/my-api.md'>Web Almond API Guide</a>.")
+          if developer_oauth2_clients.length > 0
+            ul#developer-oauth-list
+              each client, i in developer_oauth2_clients
+                li
+                  div
+                    img(role='presentation',src=CDN_HOST + '/icons/oauth:' + client.id + '.png')
+                  div
+                    h4= client.name
+                    p
+                      b= _("Client ID: ")
+                      span= client.id
+                    if user.developer_status > Constants.DeveloperStatus.USER
+                      p
+                        b= _("Client Secret: ")
+                        a(href='#',data-toggle='collapse',data-target='#secret-' + client.id)= _("Show/Hide")
+                        div.collapse(id='secret-' + client.id)= client.secret
+          else
+            div.row
+              div.col-xs-12
+                p= _("Your organization does not have any OAuth apps yet.")
+
+          if user.developer_status > Constants.DeveloperStatus.USER
+            div.row
+              div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+                a(href='#new-oauth-dialog',data-toggle='modal').btn.btn-block.btn-primary= _("Register a new OAuth app")
+            div.modal.fade(role='dialog')#new-oauth-dialog
+              div.modal-dialog
+                div.modal-content
+                  div.modal-header
+                    a.close(data-dismiss='modal', aria-label="Close")
+                      span(aria-hidden='true') ×
+                    h4.modal-title= _("New OAuth App")
+                  form(action='/me/api/oauth2/clients/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+                    div.modal-body
+                      input(type='hidden',name='_csrf',value=csrfToken)
+                      div.form-group
+                        label(for='new-oauth-name').control-label= _("Name")
+                        input(type='text',name='name',required=true).form-control#new-oauth-name
+                        span.help-block= _("This name will be shown on the authorization page")
+
+                      div.form-group
+                        label(for='new-oauth-icon').control-label= _("Icon")
+                        input(type='file',name='icon',accept='image/png,image/gif,image/jpeg')#new-oauth-icon
+
+                      div.form-group
+                        label(for='new-oauth-redirect-uri').control-label= _("Allowed Redirect URLs")
+                        input(type='text',name='redirect_uri',required=true).form-control#new-oauth-redirect-uri
+                        span.help-block= _("Multiple URLs can be separated by a space.")
+
+                      div.form-group
+                        label.control-label= _("Additional Permissions")
+                        div.checkbox
+                          label
+                            input(type='checkbox',name='scope',value='user-read',checked=false)
+                            = _("Read the list of active commands and configured devices")
+                        div.checkbox
+                          label
+                            input(type='checkbox',name='scope',value='user-read-results',checked=false)
+                            = _("Observe the results of executed commands and read notifications")
+                        div.checkbox
+                          label
+                            input(type='checkbox',name='scope',value='user-exec-command',checked=false)
+                            = _("Access Web Almond and execute ThingTalk code")
+                        if Config.WITH_THINGPEDIA === 'embedded'
+                          div.checkbox
+                            label
+                              input(type='checkbox',name='scope',value='developer-read',checked=false)
+                              = _("Read the user's Thingpedia devices.")
+                          div.checkbox
+                            label
+                              input(type='checkbox',name='scope',value='developer-upload',checked=false)
+                              = _("Modify the user's Thingpedia devices and upload new ones.")
+                          div.checkbox
+                            label
+                              input(type='checkbox',name='scope',value='developer-admin',checked=false)
+                              = _("Modify the user's Thingpedia organization settings (name, members).")
+
+                    div.modal-footer
+                      div.form-group
+                        button(type='submit').btn.btn-primary= _("Create")

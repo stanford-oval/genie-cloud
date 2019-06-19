@@ -23,8 +23,8 @@ router.get('/', (req, res, next) => {
     db.withClient((dbClient) => {
         return model.getTypes(dbClient);
     }).then((rows) => {
-        res.render('thingpedia_dataset_list', {
-            page_name: req._("Thingpedia - Datasets"),
+        res.render('luinet_dataset_list', {
+            page_name: req._("LUInet - Datasets"),
             datasets: rows
         });
     }).catch(next);
@@ -43,8 +43,8 @@ router.get('/:language/:type', iv.validateGET({ page: '?integer' }), (req, res, 
     db.withClient((dbClient) => {
         return model.getByType(dbClient, req.params.language, req.params.type, page * RESULTS_PER_PAGE, RESULTS_PER_PAGE+1);
     }).then((rows) => {
-        res.render('thingpedia_dataset', {
-            page_name: req._("Thingpedia - Dataset: %s/%s").format(req.params.language, req.params.type),
+        res.render('luinet_dataset', {
+            page_name: req._("LUInet - Dataset: %s/%s").format(req.params.language, req.params.type),
             language: req.params.language,
             type: req.params.type,
             dataset: rows,
