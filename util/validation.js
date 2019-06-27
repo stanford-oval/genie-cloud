@@ -153,7 +153,7 @@ function validateDataset(dataset) {
             // validate placeholders in all utterances
             validateAnnotations(ex.annotations);
             if (ex.utterances.length === 0) {
-                if (ex.annotations.hasOwnProperty('utterances'))
+                if (Object.prototype.hasOwnProperty.call(ex.annotations, 'utterances'))
                     throw new ValidationError(`utterances must be a natural language annotation (with #_[]), not an implementation annotation`);
                 else
                     throw new ValidationError(`missing utterances annotation`);
