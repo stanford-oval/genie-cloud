@@ -48,3 +48,4 @@ rules:
     - always
   prefer-arrow-callback: warn
   prefer-numeric-literals: error
+  require-atomic-updates: off

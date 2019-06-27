@@ -49,3 +49,4 @@ rules:
     - always
   prefer-arrow-callback: error
   prefer-numeric-literals: error
+  require-atomic-updates: off
