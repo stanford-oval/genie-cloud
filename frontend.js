@@ -318,8 +318,10 @@ class Frontend {
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
         }
-        if (Config.WITH_LUINET === 'embedded')
+        if (Config.WITH_LUINET === 'embedded') {
             this._app.use('/luinet/datasets', require('./routes/luinet_dataset'));
+            this._app.use('/luinet/models', require('./routes/luinet_models'));
+        }
 
         this._app.use('/profiles', require('./routes/thingpedia_profiles'));
         this._app.use('/user', require('./routes/user'));

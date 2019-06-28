@@ -683,7 +683,7 @@ CREATE TABLE `model_devices` (
   `schema_id` int(11) NOT NULL,
   PRIMARY KEY (`model_id`, `schema_id`),
   KEY `schema_id` (`schema_id`),
-  CONSTRAINT `model_devices_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schemas` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
+  CONSTRAINT `model_devices_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

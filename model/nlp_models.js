@@ -38,6 +38,20 @@ module.exports = {
         return db.selectAll(client, "select * from models");
     },
 
+    getPublic(client, owner) {
+        return db.selectAll(client,
+            `(select m.*, tpl.tag as template_file_name, null as kind
+              from models m, template_files tpl where tpl.id = m.template_file
+              and all_devices and (m.access_token is null or m.owner = ?)
+             union
+             (select m.*, tpl.tag as template_file_name, ds.kind
+              from models m, template_files tpl, model_devices md, device_schema ds
+              where tpl.id = m.template_file
+              and not m.all_devices and (m.access_token is null or m.owner = ?)
+              and md.schema_id = ds.id and md.model_id = m.id)
+             order by id`, [owner, owner]).then(loadModels);
+    },
+
     getByOwner(client, owner) {
         return db.selectAll(client,
             `(select m.*, tpl.tag as template_file_name, null as kind
@@ -79,8 +93,11 @@ module.exports = {
             [language, devices, language, devices, language, devices]).then(loadModels);
     },
 
-    async create(client, model) {
-        await db.insertOne(client, "insert into models set ?", [model]);
+    async create(client, model, for_devices = []) {
+        const id = await db.insertOne(client, "insert into models set ?", [model]);
+        if (for_devices.length > 0)
+            await db.insertOne(client, "insert into model_devices(model_id, schema_id) select ?,id from device_schema where kind in (?)", [id, for_devices]);
+        model.id = id;
         return model;
     }
 };
