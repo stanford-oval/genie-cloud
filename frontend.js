@@ -274,11 +274,13 @@ class Frontend {
             // initialize csurf after /upload and /entities too
             // because upload uses multer, which is incompatible
             // with csurf
-            // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
+            // MAKE SURE ALL ROUTES HAVE CSURF
             this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
             this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
             this._app.use('/thingpedia/strings', require('./routes/thingpedia_strings'));
         }
+        if (Config.WITH_LUINET === 'embedded')
+            this._app.use('/luinet/templates', require('./routes/luinet_templates'));
 
         // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
         this._app.use('/mturk', require('./routes/mturk'));

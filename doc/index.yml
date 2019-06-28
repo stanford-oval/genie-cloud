@@ -38,6 +38,7 @@ sections:
     - thingtalk-reference
     - thingpedia-entity-list
     - thingpedia-string-type-list
+    - luinet-template-list
     - thingpedia-annotations
     - thingpedia-helpers
 
@@ -51,6 +52,9 @@ links:
   thingpedia-string-type-list:
     url: /thingpedia/strings
     title: Available String Datasets
+  luinet-template-list:
+    url: /luinet/templates
+    title: Available Genie Templates
 
 pages:
   getting-started: Getting Started with Almond

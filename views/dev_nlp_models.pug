@@ -77,3 +77,53 @@ block content
             div.row
               div.col-xs-12
                 p= _("Your organization does not own any LUInet template pack yet.")
+
+          if user.developer_status > Constants.DeveloperStatus.USER
+            div.row
+              div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+                a(href='#new-template-dialog',data-toggle='modal').btn.btn-block.btn-primary= _("Upload a new template pack")
+            div.modal.fade(role='dialog')#new-template-dialog
+              div.modal-dialog
+                div.modal-content
+                  div.modal-header
+                    a.close(data-dismiss='modal', aria-label="Close")
+                      span(aria-hidden='true') ×
+                    h4.modal-title= _("New LUInet Template Pack")
+                  form(action='/luinet/templates/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+                    div.modal-body
+                      input(type='hidden',name='_csrf',value=csrfToken)
+                      div.form-group
+                        label(for='new-template-name').control-label= _("ID")
+                        input(type='text',name='tag',required=true).form-control#new-template-name
+                        span.help-block= _("The unique name of your template pack. This should be a namespaced name like “org.example” or “com.mything”.")
+
+                      div.form-group
+                        label(for='new-template-description').control-label= _("Description")
+                        input(type='text',name='description',required=true).form-control#new-template-description
+                        span.help-block= _("This description will be shown on the documentation")
+
+                      div.form-group
+                        label(for='new-template-locale').control-label= _("Language")
+                        select(name='language',required=true).form-control#new-template-locale
+                          for lang, i in Config.SUPPORTED_LANGUAGES
+                            option(value=lang,selected=(i===0))= I18n.getLangName(_, lang)
+
+                      div.form-group
+                        label(for='new-template-flags').control-label= _("Flags")
+                        input(type='text',name='flags').form-control#new-template-flags
+                        span.help-block= _("Multiple flags can be separated by a comma or space.")
+
+                      div.form-group
+                        label(for='new-template-upload').control-label= _("Template pack")
+                        input(type='file',name='upload',accept='application/zip',required=true)#new-template-upload
+                        span.help-block= _("The zip file containing the Genie templates and all necessary support code. The primary template module should be called index.genie.")
+
+                      div.form-group
+                        div.checkbox
+                          label(for='new-template-public').control-label
+                            input(type='checkbox',name='public',value='1',checked=false)#new-template-public
+                            = _(" This template is public for everyone to use.")
+
+                    div.modal-footer
+                      div.form-group
+                        button(type='submit').btn.btn-primary= _("Upload")

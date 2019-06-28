@@ -1,0 +1,35 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
+
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
+
+block page_name
+  - stdlayout = false;
+  - var currentPage = 'luinet-template-list';
+  = _("Documentation")
+
+block content
+  div.container-fluid#page-body
+    div.row
+      div.col-lg-3.col-md-4
+        include doc_sidebar
+
+      div.col-xs-12.col-md-8.col-lg-9
+        h3= _("Available LUInet Templates")
+
+        ul.list-group#luinet-template-list
+          for t in templates
+            li.list-group-item
+              h4= _("%s (%s)").format(t.tag, t.language)
+              p= t.description
+              p= _("Available flags: %s").format(JSON.parse(t.flags).join(_(", ")))
+              p= _("Version: %d").format(t.version)
+              if t.public
+                p.text-muted= _("Public")
+              else
+                p.text-muted= _("Private")
