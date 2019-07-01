@@ -72,6 +72,12 @@ module.exports = {
               and m.language = ?`, [language]);
     },
 
+    getByTag(client, language, tag) {
+        return db.selectAll(client, `select m.*, tpl.tag as template_file_name
+              from models m, template_files tpl where tpl.id = m.template_file
+              and m.language = ? and m.tag = ?`, [language, tag]);
+    },
+
     getForDevices(client, language, devices) {
         return db.selectAll(client,
             `(select m.*, tpl.tag as template_file_name, null as kind

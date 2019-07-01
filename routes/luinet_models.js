@@ -17,10 +17,11 @@ const nlpModelsModel = require('../model/nlp_models');
 const templateModel = require('../model/template_files');
 const schemaModel = require('../model/schema');
 const iv = require('../util/input_validation');
-const { BadRequestError } = require('../util/errors');
+const { NotFoundError, BadRequestError } = require('../util/errors');
 const I18n = require('../util/i18n');
 const { makeRandom } = require('../util/random');
 const creditSystem = require('../util/credit_system');
+const TrainingServer = require('../util/training_server');
 
 const router = express.Router();
 
@@ -89,6 +90,22 @@ router.get('/', (req, res, next) => {
             page_title: req._("LUInet - Available Models"),
             models
         });
+    }).catch(next);
+});
+
+router.post('/train', user.requireLogIn, user.requireDeveloper(), iv.validatePOST({ language: 'string', tag: 'string' }), (req, res, next) => {
+    db.withTransaction(async (dbClient) => {
+        const [model] = await nlpModelsModel.getByTag(dbClient, req.body.language, req.body.tag);
+        if (!model || model.owner !== req.user.developer_org) {
+            // note that this must be exactly the same error used by util/db.js
+            // so that a true not found is indistinguishable from not having permission
+            throw new NotFoundError();
+        }
+
+        await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
+        await TrainingServer.get().queueModel(req.body.language, req.body.tag, 'train-only');
+    }).then(() => {
+        res.redirect(303, '/developer/models' + req.body.kind);
     }).catch(next);
 });
 

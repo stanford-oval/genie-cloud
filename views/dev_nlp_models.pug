@@ -26,7 +26,31 @@ block content
             ul.list-group
               each m in models
                 li.list-group-item
-                  h4= _("%s (%s)").format(m.tag, m.language)
+                  h4= _("%s (%s)").format(m.tag, I18n.getLangName(_, m.language))
+
+                  p.pull-right
+                    a(href='#train-dialog-' + m.tag.replace(/\./g, '-') + '-' + m.language,data-toggle='modal').btn.btn-sm.btn-default= _("Train")
+                    div.modal.fade(role='dialog',id='train-dialog-'+ m.tag.replace(/\./g, '-') + '-' + m.language)
+                      div.modal-dialog
+                        div.modal-content
+                          div.modal-header
+                            a.close(data-dismiss='modal', aria-label="Close")
+                              span(aria-hidden='true') ×
+                            h4.modal-title= _("Train Model")
+                          form(action='/luinet/models/train', method='post', data-toggle='validator')
+                            div.modal-body
+                              input(type='hidden',name='_csrf',value=csrfToken)
+                              input(type='hidden',name='language',value=m.language)
+                              input(type='hidden',name='tag',value=m.tag)
+                              p
+                                =_("Would you like to train the model %s on the current %s dataset?").format(m.tag, I18n.getLangName(_, m.language))
+                                if m.access_token
+                                  = ngettext(" Training will cost you %d credit.", " Training will cost you %d credits.", trainPrivateCost).format(trainPrivateCost)
+                                else
+                                  = ngettext(" Training will cost you %d credit.", " Training will cost you %d credits.", trainPublicCost).format(trainPublicCost)
+                            div.modal-footer
+                              div.form-group
+                                button(type='submit').btn.btn-primary= _("Train")
 
                   p= _("Template Pack: %s").format(m.template_file_name)
 
@@ -52,6 +76,7 @@ block content
                       = _("Access Token: ")
                       a(href='#',data-toggle='collapse',data-target='#secret-' + m.tag.replace(/\./g, '-') + '-' + m.language)= _("Show/Hide")
                       div.collapse(id='secret-' + m.tag.replace(/\./g, '-') + '-' + m.language)= m.access_token
+
 
           else
             div.row
@@ -112,7 +137,7 @@ block content
 
                     div.modal-footer
                       div.form-group
-                        button(type='submit').btn.btn-primary= _("Upload")
+                        button(type='submit').btn.btn-primary= _("Create")
 
         section.divider
           h3= _("Your LUInet Template Packs")

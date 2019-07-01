@@ -268,11 +268,13 @@ if (Config.WITH_LUINET === 'embedded') {
         db.withClient(async (dbClient) => {
             const [models, templatePacks] = await Promise.all([
                 nlpModelsModel.getByOwner(dbClient, req.user.developer_org),
-                templatePackModel.getByOwner(dbClient, req.user.developer_org)
+                templatePackModel.getByOwner(dbClient, req.user.developer_org),
             ]);
             res.render('dev_nlp_models', {
                 page_title: req._("Almond Developer Console - Models"),
-                models, templatePacks
+                models, templatePacks,
+                trainPublicCost: creditSystem.TRAIN_LUINET_PUBLIC_COST,
+                trainPrivateCost: creditSystem.TRAIN_LUINET_PRIVATE_COST,
             });
         }).catch(next);
     });

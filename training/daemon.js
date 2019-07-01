@@ -246,7 +246,9 @@ Check the logs for further information.`
         let jobType = jobTemplate.jobType || 'train';
 
         const affectedModels = db.withClient((dbClient) => {
-            if (forDevices !== null)
+            if (jobTemplate.modelTag)
+                return modelsModel.getByTag(dbClient, language, jobTemplate.modelTag);
+            else if (forDevices !== null)
                 return modelsModel.getForLanguage(dbClient, language);
             else
                 return modelsModel.getForDevices(dbClient, language, forDevices);
