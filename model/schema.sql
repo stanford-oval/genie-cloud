@@ -556,6 +556,7 @@ CREATE TABLE `organizations` (
   `comment` text COLLATE utf8_bin NOT NULL,
   `developer_key` char(64) COLLATE utf8_bin NOT NULL,
   `is_admin` tinyint(1) NOT NULL DEFAULT 0,
+  `credits` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id_hash` (`id_hash`),
   UNIQUE KEY `developer_key` (`developer_key`)
