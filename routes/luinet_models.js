@@ -20,6 +20,7 @@ const iv = require('../util/input_validation');
 const { BadRequestError } = require('../util/errors');
 const I18n = require('../util/i18n');
 const { makeRandom } = require('../util/random');
+const creditSystem = require('../util/credit_system');
 
 const router = express.Router();
 
@@ -31,6 +32,8 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
     const language = I18n.localeToLanguage(req.body.language);
 
     db.withTransaction(async (dbClient) => {
+        await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.CREATE_MODEL_COST);
+
         let template;
         try {
             template = await templateModel.getByTag(dbClient, language, req.body.template);

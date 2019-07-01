@@ -21,6 +21,11 @@ module.exports = {
         return db.selectOne(client, "select * from organizations where id_hash = ?",
                             [idHash]);
     },
+    async getCredits(client, id) {
+        // lock in exclusive mode so we can check the credit count
+        const row = await db.selectOne(client, "select credits from organizations where id = ? for update", [id]);
+        return row.credits;
+    },
 
     getAll(client, start, end) {
         if (start !== undefined && end !== undefined)

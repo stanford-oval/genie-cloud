@@ -9,6 +9,11 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
+
+const orgModel = require('../model/organization');
+const { ForbiddenError } = require('../util/errors');
+
 module.exports = {
     CREATE_MODEL_COST: 50,
     TRAIN_THINGPEDIA_COST: 20,
@@ -21,6 +26,23 @@ module.exports = {
     WEEKLY_OSS_THINGPEDIA_UPDATE: 50,
     WEEKLY_APPROVED_THINGPEDIA_UPDATE: 100,
     WEEKLY_OSS_TEMPLATE_PACK_UPDATE: 100,
+
+    async payCredits(dbClient, req, orgId, cost) {
+        assert(cost !== undefined);
+
+        // check this so we can change the numbers without changing the calling code
+        if (cost === 0)
+            return;
+
+        const credits = await orgModel.getCredits(dbClient, orgId);
+        if (!(credits >= cost)) {
+            throw new ForbiddenError(req.ngettext(
+                "You do not have enough credits to complete this operation, you need at least %d.",
+                "You do not have enough credits to complete this operation, you need at least %d.", cost)
+                .format(cost));
+        }
+        await orgModel.updateCredits(dbClient, orgId, -cost);
+    },
 
     getCreditUpdate(stats) {
         let update = 0;
