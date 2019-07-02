@@ -6,7 +6,7 @@ block styles
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
-  script(src=Config.ASSET_CDN + '/javascripts/rotating-globe-bundle.js')
+  //-script(src=Config.ASSET_CDN + '/javascripts/rotating-globe-bundle.js')
 
 block page_name
   - stdlayout = false;
@@ -21,32 +21,50 @@ block content
       div.container-fluid#almond-index-container
         div.row
           div.col-lg-6
-            h1#almond-title= _("Almond")
-            h2#almond-subtitle!= _("By <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>")
+            //-img(src=Config.ASSET_CDN + '/images/logo.png')#almond-logo
 
-            img(src=Config.ASSET_CDN + '/images/logo.png')#almond-logo
+            h1#almond-title
+              img(src=Config.ASSET_CDN + '/images/logo.png',style='display:inline-block;padding-right:12px;height:1em;vertical-align:bottom')
+              = _("Almond")
+            //-h2#almond-subtitle!= _("By <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>")
+            h2#almond-subtitle= _("The Open, Privacy-Preserving Virtual Assistant")
 
             p.text-center#almond-explanation-line
               = _("Almond translates your commands into a personalized program.")
 
-            div.row
+            //-div.row
               div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
                 h4= _("Smart")
               div.col-xs-12.col-sm-6.col-md-4
                 h4= _("Privacy-preserving")
-            div.row
+            //-div.row
               div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
                 h4= _("Extensible")
               div.col-xs-12.col-sm-6.col-md-4
                 h4= _("Open To All")
 
             div.row#subscribe
-              div.col-xs-6.col-md-4
-                a(href='/about/get-almond').btn.btn-primary.btn-block= _("Get Almond")
-              div.col-xs-6.col-md-4
-                a(href='/about/use-almond').btn.btn-primary.btn-block= _("Build with Almond")
-              div.col-xs-8.col-md-4.col-xs-offset-2.col-md-offset-0
-                a(href='/about/get-involved').btn.btn-primary.btn-block= _("Contribute to Almond")
+              div.col-lg-8.col-lg-offset-2
+                a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7',rel='noopener').btn.btn-primary.btn-block.call-to-action= _("I'm Interested")
+
+            p(style='margin-top:1em;font-size:24px').text-center
+              a(href='/about/get-almond')= _("Try Almond")
+              |  &mdash; 
+              a(href='/about/use-almond')= _("Build with Almond")
+              |  &mdash; 
+              a(href='/about/get-involved')= _("Get Involved")
+              |  &mdash; 
+              a(href='https://community.almond.stanford.edu')= _("Join Our Community")
+
+            //-div.row#subscribe
+              div.col-lg-8.col-lg-offset-2
+                a(href='/about/get-almond').btn.btn-primary.btn-block.call-to-action= _("Try Almond")
+              div.col-lg-8.col-lg-offset-2
+                a(href='/about/use-almond').btn.btn-primary.btn-block.call-to-action= _("Build with Almond")
+              div.col-lg-8.col-lg-offset-2
+                a(href='/about/get-involved').btn.btn-primary.btn-block.call-to-action= _("Get Involved")
+
+            p(style='margin-top:1em;font-size:24px').text-center!= _("Brought to you by the <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>.")
 
 
           div.col-lg-6
@@ -60,40 +78,35 @@ block content
                 li(data-target='#almond-index-carousel',data-slide-to='5')
               div.carousel-inner(role='listbox')
                 div.item.active
-                  h3= _("On Your Phone")
+                  h3= _("Notifications That Matter To You")
                   img(src=Config.ASSET_CDN + '/images/carousel-nyt.png',
                       alt=_("Screenshot of Almond for Android. The user asks: “Show me the New York Times”. Almond replies with news articles."))
                   div.carousel-caption
-                    h4= _("Notifications That Matter To You")
-                    p= _("Say: “Monitor the New York Times”")
+                    h4= _("Say: “Monitor the New York Times”")
                 div.item
-                  h3= _("On The Web")
+                  h3= _("Graphical and Voice is the Best Combination")
                   img(src=Config.ASSET_CDN + '/images/carousel-nest.png',
                       alt=_("Screenshot of Web Almond. The user asks, in sequence, “Turn on my security camera”, “Get a snapshot” and “Send an email to my neighbor if my camera detects motion when I am not home”."))
                   div.carousel-caption
-                    h4= _("Graphical and Voice is the Best Combination")
-                    p= _("Say: “Show me a security camera snapshot”")
+                    h4= _("Say: “Show me a security camera snapshot”")
                 div.item
-                  h3= _("On Your Laptop")
+                  h3= _("Enhance Your Life With All The Internet's Resources")
                   img(src=Config.ASSET_CDN + '/images/carousel-nasa.png',
                       alt=_("Screenshot of Almond for PC. The list of enabled rules is shown, which includes: “Set your laptop's background to the NASA Astronomy Picture of the Day”. In the background, a NASA picture is shown."))
                   div.carousel-caption
-                    h4= _("Enhance Your Life With All The Internet's Resources")
-                    p= _("Say: “Change my laptop background to the NASA Picture of the Day”")
+                    h4= _("Say: “Change my laptop background to the NASA Picture of the Day”")
                 div.item
-                  h3= _("On Alexa")
+                  h3= _("Automate Your Tasks, Across All Your Services")
                   img(src=Config.ASSET_CDN + '/images/carousel-alexa.png', alt="Picture of Amazon Echo device")#alexa
                   div.carousel-caption
-                    h4= _("Automate Your Tasks, Across All Your Services")
-                    p= _("Say: “Tweet the post when my Facebook updates”")
+                    h4= _("Say: “Tweet the post when my Facebook updates”")
                     p
                       em= _("Coming soon!")
                 //-div.item
-                  h3= _("In Your Living Room")
+                  h3= _("The Best Way To Control Your Home")
                   img(src=Config.ASSET_CDN + '/images/carousel-livingroom.png', alt="Picture of Almond Home device")
                   div.carousel-caption
-                    h4= _("The Best Way To Control Your Home")
-                    p= _("Say: “Turn off my TV if there is nobody in the room”")
+                    h4= _("Say: “Turn off my TV if there is nobody in the room”")
                     p
                       em= _("Coming soon!")
 
@@ -106,10 +119,26 @@ block content
 
     div.sections#home-page-sections
       section.divider
+        h3= _("How Almond Works")
+
+        div.container
+          div.row
+            div.col-lg-5.col-lg-offset-1.marketing-video
+              iframe(style='max-width:100%;height: 270px;width: 100%;', src="https://www.youtube.com/embed/5JUtTe00yGc", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true)
+
+              p.text-center= _("See how Almond helps Kimmy babysit.")
+
+            div.col-lg-5.marketing-video
+              iframe(style='max-width:100%;height: 270px;width: 100%;', src="https://www.youtube.com/embed/IUtURMngJr8", frameborder="0", allow="autoplay;encrypted-media", allowfullscreen=true)
+
+              p.text-center= _("Learn how you can use Almond for your tasks.")
+
+
+      section.divider
         div.container#almond-manifesto
           h3= _("Our Goal: Open Virtual Assistants for the Open Web")
 
-          canvas(width=400, height=400)#rotatingGlobe
+          //-canvas(width=400, height=400)#rotatingGlobe
 
           p
             = _("Virtual assistants are the new interface to the Web.")
