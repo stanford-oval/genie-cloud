@@ -88,34 +88,35 @@ module.exports = {
     GITHUB_SCOPES: ['user', 'public_repo', 'repo', 'repo:status',
                 'gist', 'notifications'].join(' '),
 
-    register(dbClient, req, options) {
-        return model.getByName(dbClient, options.username).then((rows) => {
-            if (rows.length > 0)
-                throw new BadRequestError(req._("A user with this name already exists."));
+    async register(dbClient, req, options) {
+        const usernameRows = await model.getByName(dbClient, options.username);
+        if (usernameRows.length > 0)
+            throw new BadRequestError(req._("A user with this name already exists."));
+        const emailRows = await model.getByEmail(dbClient, options.email);
+        if (emailRows.length > 0)
+            throw new BadRequestError(req._("A user with this email already exists."));
 
-            var salt = makeRandom();
-            var cloudId = makeRandom(8);
-            var authToken = makeRandom();
-            var storageKey = makeRandom();
-            return hashPassword(salt, options.password).then((hash) => {
-                return model.create(dbClient, {
-                    username: options.username,
-                    human_name: options.human_name || null,
-                    password: hash,
-                    email: options.email,
-                    email_verified: options.email_verified || false,
-                    locale: options.locale,
-                    timezone: options.timezone,
-                    salt: salt,
-                    cloud_id: cloudId,
-                    auth_token: authToken,
-                    storage_key: storageKey,
-                    developer_org: options.developer_org || null,
-                    developer_status: options.developer_status || 0,
-                    roles: options.roles || 0,
-                    profile_flags: options.profile_flags || 0,
-                });
-            });
+        const salt = makeRandom();
+        const cloudId = makeRandom(8);
+        const authToken = makeRandom();
+        const storageKey = makeRandom();
+        const hash = await hashPassword(salt, options.password);
+        return model.create(dbClient, {
+            username: options.username,
+            human_name: options.human_name || null,
+            password: hash,
+            email: options.email,
+            email_verified: options.email_verified || false,
+            locale: options.locale,
+            timezone: options.timezone,
+            salt: salt,
+            cloud_id: cloudId,
+            auth_token: authToken,
+            storage_key: storageKey,
+            developer_org: options.developer_org || null,
+            developer_status: options.developer_status || 0,
+            roles: options.roles || 0,
+            profile_flags: options.profile_flags || 0,
         });
     },
 

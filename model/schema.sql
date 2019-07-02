@@ -653,7 +653,7 @@ CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(60) COLLATE utf8mb4_unicode_ci NOT NULL,
   `human_name` tinytext CHARACTER SET utf8 DEFAULT NULL,
-  `email` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email_verified` tinyint(1) NOT NULL DEFAULT 0,
   `locale` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en-US',
   `timezone` varchar(64) COLLATE utf8_bin NOT NULL DEFAULT 'America/Los_Angeles',
