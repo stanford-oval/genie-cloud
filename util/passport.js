@@ -13,11 +13,13 @@ const Q = require('q');
 const crypto = require('crypto');
 const util = require('util');
 const jwt = require('jsonwebtoken');
+const assert = require('assert');
 
 const db = require('./db');
 const model = require('../model/user');
 const secret = require('./secret_key');
 const { ForbiddenError } = require('./errors');
+const userUtils = require('./user');
 
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -52,6 +54,41 @@ function makeUsername(email) {
     return username;
 }
 
+async function autoAdjustUsername(dbClient, username) {
+    if (username.length > userUtils.MAX_USERNAME_LENGTH)
+        username = username.substring(0, userUtils.MAX_USERNAME_LENGTH);
+
+    username = username.replace(/[^\w.-]/g, '_');
+
+    if (!userUtils.validateUsername(username))
+        username = username + '_';
+    assert(userUtils.validateUsername(username));
+
+    // check if this username is already being used
+    // if not, we're good to go
+    let rows = await model.getByName(dbClient, username);
+    if (rows.length === 0)
+        return username;
+
+    let attempts = 5;
+    let addednumber = false;
+    while (attempts > 0) {
+        if (addednumber)
+            username = username.substring(0, username.length - 1) + (5-attempts+1);
+        else
+            username = username + (5-attempts+1);
+        addednumber = true;
+
+        rows = await model.getByName(dbClient, username);
+        if (rows.length === 0)
+            return username;
+
+        attempts --;
+    }
+
+    return username;
+}
+
 function authenticateGoogle(accessToken, refreshToken, profile, done) {
     db.withTransaction(async (dbClient) => {
         const rows = await model.getByGoogleAccount(dbClient, profile.id);
@@ -75,7 +112,7 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
             return byEmail[0];
         }
 
-        const username = profile.username || makeUsername(profile.emails[0].value);
+        const username = await autoAdjustUsername(profile.username || makeUsername(profile.emails[0].value));
 
         const user = await model.create(dbClient, {
             username: username,
@@ -153,7 +190,7 @@ function authenticateGithub(accessToken, refreshToken, profile, done) {
         }
 
         const user = await model.create(dbClient, {
-            username: profile.username,
+            username: await autoAdjustUsername(profile.username),
             email: email,
             // we assume the email associated with a Github account is valid
             // and we don't need extra validation

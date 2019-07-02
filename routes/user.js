@@ -270,21 +270,12 @@ const registerArguments = {
     locale: 'string'
 };
 
-const INVALID_USERNAMES = new Set('admin,moderator,administrator,mod,sys,system,community,info,you,name,username,user,nickname,discourse,discourseorg,discourseforum,support,hp,account-created,password-reset,admin-login,confirm-admin,account-created,activate-account,confirm-email-token,authorize-email'.split(','));
 
-function validateUsername(req) {
-    if (req.body.username.length > 60 ||
-        INVALID_USERNAMES.has(req.body.username) ||
-        /[^\w.@+-]/.test(req.body.username) ||
-        /\.(js|json|css|htm|html|xml|jpg|jpeg|png|gif|bmp|ico|tif|tiff|woff)$/i.test(req.body.username))
-        return false;
-    return true;
-}
 
 router.post('/register', iv.validatePOST(registerArguments), (req, res, next) => {
     var options = {};
     try {
-        if (!validateUsername(req))
+        if (!userUtils.validateUsername(req.body.username))
             throw new BadRequestError(req._("You must specify a valid username of at most 60 characters. Special characters or spaces are not allowed."));
         options.username = req.body['username'];
         if (req.body['email'].indexOf('@') < 0 ||
@@ -634,7 +625,7 @@ const profileArguments = {
 router.post('/profile', userUtils.requireLogIn, iv.validatePOST(profileArguments), (req, res, next) => {
     let mustRestartEngine = false;
     db.withTransaction(async (dbClient) => {
-        if (!validateUsername(req))
+        if (!userUtils.validateUsername(req.body.username))
             req.body.username = req.user.username;
         if (req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)

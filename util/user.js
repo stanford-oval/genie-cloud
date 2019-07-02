@@ -52,6 +52,19 @@ function isAuthenticated(req) {
     return req.session.completed2fa;
 }
 
+const INVALID_USERNAMES = new Set('admin,moderator,administrator,mod,sys,system,community,info,you,name,username,user,nickname,discourse,discourseorg,discourseforum,support,hp,account-created,password-reset,admin-login,confirm-admin,account-created,activate-account,confirm-email-token,authorize-email,stanfordalmond,almondstanford'.split(','));
+
+const MAX_USERNAME_LENGTH = 60;
+
+function validateUsername(username) {
+    if (username.length > MAX_USERNAME_LENGTH ||
+        INVALID_USERNAMES.has(username.toLowerCase()) ||
+        /[^\w.-]/.test(username) ||
+        /\.(js|json|css|htm|html|xml|jpg|jpeg|png|gif|bmp|ico|tif|tiff|woff)$/i.test(username))
+        return false;
+    return true;
+}
+
 module.exports = {
     OAuthScopes,
 
@@ -86,7 +99,10 @@ module.exports = {
     GOOGLE_SCOPES: ['openid','profile','email'].join(' '),
 
     GITHUB_SCOPES: ['user', 'public_repo', 'repo', 'repo:status',
-                'gist', 'notifications'].join(' '),
+                    'gist', 'notifications'].join(' '),
+
+    MAX_USERNAME_LENGTH,
+    validateUsername,
 
     async register(dbClient, req, options) {
         const usernameRows = await model.getByName(dbClient, options.username);
