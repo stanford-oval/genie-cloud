@@ -112,7 +112,7 @@ function authenticateGithub(accessToken, refreshToken, profile, done) {
                                             email: profile.email,
                                             // we assume the email associated with a Github account is valid
                                             // and we don't need extra validation
-                                            email_verified: true,
+                                            email_verified: !!profile.email,
                                             locale: 'en-US',
                                             timezone: 'America/Los_Angeles',
                                             github_id: profile.id,
