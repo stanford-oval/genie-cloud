@@ -113,8 +113,6 @@ router.get('/login', (req, res, next) => {
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/user/login',
                                                        failureFlash: true }), (req, res, next) => {
-
-
     req.session.completed2fa = false;
     if (req.signedCookies['almond.skip2fa'] === 'yes')
         req.session.completed2fa = true;

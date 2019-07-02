@@ -89,7 +89,7 @@ async function autoAdjustUsername(dbClient, username) {
     return username;
 }
 
-function authenticateGoogle(accessToken, refreshToken, profile, done) {
+function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
     db.withTransaction(async (dbClient) => {
         const rows = await model.getByGoogleAccount(dbClient, profile.id);
         if (rows.length > 0) {
@@ -104,7 +104,7 @@ function authenticateGoogle(accessToken, refreshToken, profile, done) {
         const byEmail = await model.getByEmail(dbClient, profile.emails[0].value);
         if (byEmail.length > 0) {
             if (!byEmail[0].email_verified)
-                throw new ForbiddenError(`A user with this email already exist, but the email was not verified before.`);
+                throw new ForbiddenError(req._("A user with this email already exist, but the email was not verified before."));
 
             await model.update(dbClient, byEmail[0].id, { google_id: profile.id });
             await model.recordLogin(dbClient, byEmail[0].id);
@@ -164,7 +164,7 @@ function associateGoogle(user, accessToken, refreshToken, profile, done) {
     }).nodeify(done);
 }
 
-function authenticateGithub(accessToken, refreshToken, profile, done) {
+function authenticateGithub(req, accessToken, refreshToken, profile, done) {
     db.withTransaction(async (dbClient) => {
         const rows = await model.getByGithubAccount(dbClient, profile.id);
         if (rows.length > 0) {
@@ -181,7 +181,7 @@ function authenticateGithub(accessToken, refreshToken, profile, done) {
         const byEmail = await model.getByEmail(dbClient, email);
         if (byEmail.length > 0) {
             if (!byEmail[0].email_verified)
-                throw new ForbiddenError(`A user with this email already exist, but the email was not verified before.`);
+                throw new ForbiddenError(req._("A user with this email already exist, but the email was not verified before."));
 
             await model.update(dbClient, byEmail[0].id, { github_id: profile.id });
             await model.recordLogin(dbClient, byEmail[0].id);
@@ -316,7 +316,7 @@ exports.initialize = function() {
     }, (req, accessToken, refreshToken, profile, done) => {
         if (!req.user) {
             // authenticate the user
-            authenticateGoogle(accessToken, refreshToken, profile, done);
+            authenticateGoogle(req, accessToken, refreshToken, profile, done);
         } else {
             associateGoogle(req.user, accessToken, refreshToken, profile, done);
         }
@@ -329,7 +329,6 @@ exports.initialize = function() {
         passReqToCallback: true,
   },   (req, accessToken, refreshToken, profile, done) => {
         if (!req.user) {
-
             // authenticate the user
             authenticateGithub(accessToken, refreshToken, profile, done);
         } else {
