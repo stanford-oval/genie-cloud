@@ -59,7 +59,7 @@ module.exports.EXTRA_NAVBAR = [
     },
     {
         url: '/blog',
-        title: _("Blog"),
+        title: _("News"),
     },
 ];
 
