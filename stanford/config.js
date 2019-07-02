@@ -18,7 +18,14 @@
 function _(x) { return x; }
 
 module.exports.USE_STANFORD_BRAND = true;
-
+module.exports.WITH_THINGPEDIA = 'embedded';
+module.exports.THINGPEDIA_URL = '/thingpedia';
+module.exports.SERVER_ORIGIN = 'https://almond.stanford.edu';
+module.exports.ENABLE_REDIRECT = true;
+module.exports.ENABLE_SECURITY_HEADERS = true;
+module.exports.EXTRA_ORIGINS = [];
+module.exports.IS_PRODUCTION_THINGPEDIA = true;
+module.exports.OAUTH_REDIRECT_ORIGIN = 'https://thingengine.stanford.edu';
 module.exports.ENABLE_ANONYMOUS_USER = true;
 
 module.exports.ABOUT_OVERRIDE = {
