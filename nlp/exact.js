@@ -70,6 +70,8 @@ module.exports = class ExactMatcher {
                     target_code[j] = beginIndex + j - spanBegin;
             }
         }
+        if (utterance[utterance.length-1] === '.')
+            utterance.pop();
 
         this._trie.insert(utterance, target_code, LIMIT);
     }
@@ -77,6 +79,8 @@ module.exports = class ExactMatcher {
     get(utterance) {
         if (typeof utterance === 'string')
             utterance = utterance.split(' ');
+        if (utterance[utterance.length-1] === '.')
+            utterance.pop();
 
         let results = this._trie.search(utterance);
         if (results === null)
