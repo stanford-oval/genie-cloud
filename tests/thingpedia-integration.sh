@@ -91,7 +91,24 @@ frontendpid=
 wait
 
 # now enable the Stanford pages and run the website again
-echo "Object.assign(module.exports, require('./stanford/config.js'));" >> $srcdir/secret_config.js
+cat > $srcdir/secret_config.js <<EOF
+Object.assign(module.exports, require('./stanford/config.js'));
+module.exports.DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test";
+module.exports.SERVER_ORIGIN = 'http://127.0.0.1:${PORT}';
+module.exports.OAUTH_REDIRECT_ORIGIN = module.exports.SERVER_ORIGIN;
+module.exports.FILE_STORAGE_BACKEND = 'local';
+module.exports.CDN_HOST = '/download';
+module.exports.WITH_THINGPEDIA = 'embedded';
+module.exports.THINGPEDIA_URL = '/thingpedia';
+module.exports.ENABLE_PROMETHEUS = true;
+module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
+module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
+module.exports.AES_SECRET_KEY = '80bb23f93126074ba01410c8a2278c0c';
+module.exports.JWT_SIGNING_KEY = "not so secret key" ;
+module.exports.SECRET_KEY = "not so secret key";
+module.exports.NL_SERVER_URL = "https://almond-dev.stanford.edu/nnparser";
+module.exports.SUPPORTED_LANGUAGES = ['en-US', 'it-IT', 'zh-CN', 'zh-TW'];
+EOF
 
 # the website crawler tests will touch the web almond pages
 # too, so make sure we don't die with 400 or 500 because Almond is off

@@ -18,8 +18,10 @@
 function _(x) { return x; }
 
 module.exports.USE_STANFORD_BRAND = true;
-
-module.exports.ENABLE_ANONYMOUS_USER = true;
+module.exports.WITH_THINGPEDIA = 'embedded';
+module.exports.THINGPEDIA_URL = '/thingpedia';
+module.exports.SERVER_ORIGIN = 'https://almond.stanford.edu';
+module.exports.OAUTH_REDIRECT_ORIGIN = 'https://thingengine.stanford.edu';
 
 module.exports.ABOUT_OVERRIDE = {
     index: 'stanford/about_index.pug',
@@ -52,7 +54,7 @@ module.exports.EXTRA_NAVBAR = [
     },
     {
         url: '/blog',
-        title: _("Blog"),
+        title: _("News"),
     },
 ];
 

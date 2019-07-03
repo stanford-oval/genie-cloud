@@ -151,7 +151,7 @@ class Frontend {
         if (Config.ENABLE_SECURITY_HEADERS) {
             // security headers
             this._app.use((req, res, next) => {
-                res.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+                res.set('Strict-Transport-Security', 'max-age=31536000');
                 //res.set('Content-Security-Policy', `default-src 'self'; connect-src 'self' https://*.stanford.edu ; font-src 'self' https://maxcdn.bootstrapcdn.com https://fonts.googleapis.com ; img-src * ; script-src 'self' https://code.jquery.com https://maxcdn.bootstrapcdn.com 'unsafe-inline' ; style-src 'self' https://fonts.googleapis.com https://maxcdn.bootstrapcdn.com 'unsafe-inline'`);
                 res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
                 res.set('X-Frame-Options', 'DENY');

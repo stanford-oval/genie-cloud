@@ -1,3 +1,18 @@
+1.5.1
+=====
+
+* The website has been redesigned and has now clearer calls to action [#328].
+* The /about/research page has been removed, and replaced with a link
+  the OVAL website.
+* The blog code has been expanded in functionality to support external
+  news links [#329].
+* The "Configure a new device" & "Add a new account" pages in My Almond
+  have been merged [#326, #336].
+* Rules for usernames and emails have been tightened, preventing duplicate
+  users with similar usernames, invalid or dangerous usernames, or duplicate
+  emails. This improved the compatibility with Discourse SSO [#350]
+* Misc bug fixes [#336, #338, #339, #350]
+
 1.5.0
 =====
 

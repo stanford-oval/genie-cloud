@@ -113,8 +113,6 @@ router.get('/login', (req, res, next) => {
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/user/login',
                                                        failureFlash: true }), (req, res, next) => {
-
-
     req.session.completed2fa = false;
     if (req.signedCookies['almond.skip2fa'] === 'yes')
         req.session.completed2fa = true;
@@ -269,12 +267,14 @@ const registerArguments = {
     timezone: '?string',
     locale: 'string'
 };
+
+
+
 router.post('/register', iv.validatePOST(registerArguments), (req, res, next) => {
     var options = {};
     try {
-        if (req.body.username.length > 64 ||
-            /[\\'"()\n\r\v\f/]/.test(req.body.username))
-            throw new BadRequestError(req._("You must specify a valid username of at most 64 characters. Special characters are not allowed."));
+        if (!userUtils.validateUsername(req.body.username))
+            throw new BadRequestError(req._("You must specify a valid username of at most 60 characters. Special characters or spaces are not allowed."));
         options.username = req.body['username'];
         if (req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
@@ -625,7 +625,7 @@ const profileArguments = {
 router.post('/profile', userUtils.requireLogIn, iv.validatePOST(profileArguments), (req, res, next) => {
     let mustRestartEngine = false;
     db.withTransaction(async (dbClient) => {
-        if (req.body.username.length > 255)
+        if (!userUtils.validateUsername(req.body.username))
             req.body.username = req.user.username;
         if (req.body['email'].indexOf('@') < 0 ||
             req.body['email'].length > 255)
