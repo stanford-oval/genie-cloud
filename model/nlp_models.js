@@ -25,7 +25,10 @@ function loadModels(rows) {
         } else {
             current = row;
             current.flags = JSON.parse(row.flags);
-            current.for_devices = [row.kind];
+            if (row.kind)
+                current.for_devices = [row.kind];
+            else
+                current.for_devices = [];
             models.push(current);
         }
     }
@@ -67,9 +70,17 @@ module.exports = {
     },
 
     getForLanguage(client, language) {
-        return db.selectAll(client, `select m.*, tpl.tag as template_file_name
+        return db.selectAll(client,
+            `(select m.*, tpl.tag as template_file_name, null as kind
               from models m, template_files tpl where tpl.id = m.template_file
-              and m.language = ?`, [language]);
+              and all_devices and m.language = ?)
+             union
+             (select m.*, tpl.tag as template_file_name, ds.kind
+              from models m, template_files tpl, model_devices md, device_schema ds
+              where tpl.id = m.template_file
+              and not m.all_devices and m.language = ?
+              and md.schema_id = ds.id and md.model_id = m.id)
+             order by id`, [language, language]).then(loadModels);
     },
 
     getByTag(client, language, tag) {

@@ -410,8 +410,8 @@ module.exports = class Job {
     get modelTag() {
         return this.data.modelTag;
     }
-    get modelDevices() {
-        return this.data.modelDevices;
+    get modelInfo() {
+        return this.data.modelInfo;
     }
 
     addDevices(forDevices) {
