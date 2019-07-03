@@ -310,6 +310,13 @@ module.exports.TRAINING_ACCESS_TOKEN = null;
 module.exports.TRAINING_CONFIG_FILE = null;
 
 /**
+  Maximum memory usage for training processes.
+
+  In megabytes.
+*/
+module.exports.TRAINING_MEMORY_USAGE = 24000;
+
+/**
   URL of documentation.
 
   Set this to a string starting with `/doc` to enable the embedded documentation site. Alternatively,

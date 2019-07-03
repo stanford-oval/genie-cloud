@@ -303,6 +303,13 @@ without restarting the training server (which would stop all running jobs).
 
 Default value: `null`
 
+## TRAINING_MEMORY_USAGE
+Maximum memory usage for training processes.
+
+In megabytes.
+
+Default value: `24000`
+
 ## DOCUMENTATION_URL
 URL of documentation.
 

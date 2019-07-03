@@ -132,7 +132,7 @@ async function taskUpdatingDataset(job) {
     const script = process.execPath;
 
     const args = process.execArgv.concat([
-        '--max_old_space_size=24000',
+        '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
         path.resolve(path.dirname(module.filename), './update-dataset.js'),
         '--language', job.language,
     ]);
@@ -160,6 +160,7 @@ async function taskGenerateTrainingSet(job) {
 
     const dataset = path.resolve(job.jobDir, 'dataset');
     const args = process.execArgv.concat([
+        '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
         path.resolve(path.dirname(module.filename), './prepare-training-set.js'),
         '--language', job.language,
         '--owner', job.modelInfo.owner,
