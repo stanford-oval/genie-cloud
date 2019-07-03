@@ -11,7 +11,7 @@ block content
   div#page-body
     div.sections
       section.divider
-        h3= _("Contribute to Almond")
+        h3= _("Get Involved")
         div.container
           div.row#dev-program-intro
             div.col-xs-12.col-md-8.col-md-offset-2
@@ -20,50 +20,8 @@ block content
               p
                 strong= _("We welcome everyone to contribute to Almond!")
 
-      section.divider#section-what-can-i-do-for-almond
-        h3= _("What can I do for Almond?")
-
-        div.container
-          div.row
-            div.col-lg-offset-2.col-lg-offset-8
-              blockquote
-                p Ask not what Almond can do for you — ask what you can do for Almond.
-                footer J. F. K., potentially.
-
-          div.row
-            div.col-md-6
-              h4= _("Contribute To Thingpedia")
-              p.
-                Do you own a device, or know of a service that you want to control through Almond?
-                You can add it to Thingpedia, and have Almond immediately learn about it!
-              p.
-                Check out our #[a(href='/thingpedia/developers/thingpedia-intro.md') developer documentation],
-                and when you're ready, #[a(href='/user/request-developer') apply to our developer program].
-
-            div.col-md-6
-              h4= _("Develop Almond")
-              p.
-                Have you found a bug? Or a feature that you really want? Head to our
-                #[a(href='https://github.com/stanford-oval') Github page] to find our
-                code base. Fork it, patch it, grow it.
-              p.
-                Also, don't hesitate to get in touch through our
-                #[a(href='https://community.almond.stanford.edu') support forum]
-                for help with larger projects, access to internal documentation,
-                and details of the Almond architecture.
-
-            //-div.col-md-6
-              h4= _("Donate to Almond")
-              p.
-                Almond is generously funded by the
-                #[a(href='https://mobisocial.stanford.edu') Mobile and Social Computing Lab], an industrial affiliates
-                program within Stanford University's #[a(href='https://engineering.stanford.edu/') School of Engineering].
-              p.
-                The #[a(href='https://mobisocial.stanford.edu/index.php?page=affiliates') affiliates program]
-                provides an opportunity for industry and other organization to collaborate and interact
-                with our research team, through a recurrent sponsorship agreement.
-                Smaller donations can also be provided #[a(href='https://engineering.stanford.edu/get-involved/give') to the university].
-                All contributions to Stanford are tax deductible in the United States.
+              p.text-center
+               a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7',rel='noopener').btn.btn-primary= _("Sign up to be part of our community")
 
       section.divider#section-get-in-touch
         h3= _("Get In Touch")
@@ -118,3 +76,49 @@ block content
                   img(src=Config.ASSET_CDN + '/images/logo-slack.png').media-object
                 div.media-body.media-middle
                   h4.media-heading= _("Slack (by invitation only)")
+
+      section.divider#section-what-can-i-do-for-almond
+        h3= _("What can I do for Almond?")
+
+        div.container
+          //-div.row
+            div.col-lg-offset-2.col-lg-offset-8
+              blockquote
+                p Ask not what Almond can do for you — ask what you can do for Almond.
+                footer J. F. K., potentially.
+
+          div.row
+            div.col-md-6
+              h4= _("Contribute To Thingpedia")
+              p.
+                Do you own a device, or know of a service that you want to control through Almond?
+                You can add it to Thingpedia, and have Almond immediately learn about it!
+              p.
+                Check out our #[a(href='/thingpedia/developers/thingpedia-intro.md') developer documentation],
+                and when you're ready, #[a(href='/user/request-developer') apply to our developer program].
+
+            div.col-md-6
+              h4= _("Develop Almond")
+              p.
+                Have you found a bug? Or a feature that you really want? Head to our
+                #[a(href='https://github.com/stanford-oval') Github page] to find our
+                code base. Fork it, patch it, grow it.
+              p.
+                Also, don't hesitate to get in touch through our
+                #[a(href='https://community.almond.stanford.edu') support forum]
+                for help with larger projects, access to internal documentation,
+                and details of the Almond architecture.
+
+            //-div.col-md-6
+              h4= _("Donate to Almond")
+              p.
+                Almond is generously funded by the
+                #[a(href='https://mobisocial.stanford.edu') Mobile and Social Computing Lab], an industrial affiliates
+                program within Stanford University's #[a(href='https://engineering.stanford.edu/') School of Engineering].
+              p.
+                The #[a(href='https://mobisocial.stanford.edu/index.php?page=affiliates') affiliates program]
+                provides an opportunity for industry and other organization to collaborate and interact
+                with our research team, through a recurrent sponsorship agreement.
+                Smaller donations can also be provided #[a(href='https://engineering.stanford.edu/get-involved/give') to the university].
+                All contributions to Stanford are tax deductible in the United States.
+

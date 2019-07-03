@@ -302,7 +302,7 @@ async function doConversation(user, anonymous, ws, query) {
         const delegate = new WebsocketAssistantDelegate(ws);
 
         let opened = false, earlyClose = false;
-        const id = 'web-' + makeRandom(4);
+        const id = query.id || 'web-' + makeRandom(4);
         ws.on('error', (err) => {
             ws.close();
         });

@@ -38,6 +38,11 @@ module.exports = {
                             + " on u.developer_org = o.id where username = ?", [username]);
     },
 
+    getByEmail(client, email) {
+        return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
+                            + " on u.developer_org = o.id where email = ?", [email]);
+    },
+
     getByGoogleAccount(client, googleId) {
         return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
                             + " on u.developer_org = o.id where google_id = ?", [googleId]);

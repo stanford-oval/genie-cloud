@@ -118,7 +118,7 @@ async function testHomepage(driver) {
 
     const subtitle = await driver.findElement(WD.By.id('almond-subtitle'));
     if (Config.ABOUT_OVERRIDE['index'] === 'stanford/about_index.pug')
-        assert.strictEqual(await subtitle.getText(), 'By Stanford Open Virtual Assistant Lab');
+        assert.strictEqual(await subtitle.getText(), 'The Open, Privacy-Preserving Virtual Assistant');
     else
         assert.strictEqual(await subtitle.getText(), 'The Open Virtual Assistant');
 
@@ -214,9 +214,9 @@ async function testRegister(driver) {
     await driver.get(BASE_URL + '/');
 
     if (Config.EXTRA_ABOUT_PAGES.find((x) => x.url === 'get-almond')) {
-        // in Stanford mode, we click on Get Almond, and from there to Create An Account
+        // in Stanford mode, we click on Try Almond, and from there to Create An Account
         const getAlmond = await driver.wait(
-            WD.until.elementLocated(WD.By.linkText('Get Almond')),
+            WD.until.elementLocated(WD.By.linkText('Try Almond')),
             30000);
         await checkAllImages(driver);
 
