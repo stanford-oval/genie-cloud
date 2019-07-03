@@ -119,7 +119,7 @@
     "planetary.js": "^1.1.3",
     "pug-lint": "^2.4.0",
     "qs": "^6.7.0",
-    "selenium-webdriver": "4.0.0-alpha.1",
+    "selenium-webdriver": "^4.0.0-alpha.3",
     "tough-cookie": "^3.0.1"
   },
   "optionalDependencies": {
