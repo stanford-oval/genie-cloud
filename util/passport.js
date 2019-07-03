@@ -112,7 +112,7 @@ function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
             return byEmail[0];
         }
 
-        const username = await autoAdjustUsername(profile.username || makeUsername(profile.emails[0].value));
+        const username = await autoAdjustUsername(dbClient, profile.username || makeUsername(profile.emails[0].value));
 
         const user = await model.create(dbClient, {
             username: username,
@@ -190,7 +190,7 @@ function authenticateGithub(req, accessToken, refreshToken, profile, done) {
         }
 
         const user = await model.create(dbClient, {
-            username: await autoAdjustUsername(profile.username),
+            username: await autoAdjustUsername(dbClient, profile.username),
             email: email,
             // we assume the email associated with a Github account is valid
             // and we don't need extra validation
@@ -330,7 +330,7 @@ exports.initialize = function() {
   },   (req, accessToken, refreshToken, profile, done) => {
         if (!req.user) {
             // authenticate the user
-            authenticateGithub(accessToken, refreshToken, profile, done);
+            authenticateGithub(req, accessToken, refreshToken, profile, done);
         } else {
             associateGithub(req.user, accessToken, refreshToken, profile, done);
         }
