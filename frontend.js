@@ -267,6 +267,8 @@ class Frontend {
         this._app.use('/me/api/gassistant', require('./routes/gassistant'));
         this._app.use('/me/api', require('./routes/my_api'));
         this._app.use('/ws', require('./routes/thingengine_ws'));
+
+        // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
             this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
@@ -279,11 +281,10 @@ class Frontend {
             this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
             this._app.use('/thingpedia/strings', require('./routes/thingpedia_strings'));
         }
-        if (Config.WITH_LUINET === 'embedded')
+        if (Config.WITH_LUINET === 'embedded') {
             this._app.use('/luinet/templates', require('./routes/luinet_templates'));
-
-        // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
-        this._app.use('/mturk', require('./routes/mturk'));
+            this._app.use('/mturk', require('./routes/mturk'));
+        }
         this._app.use('/admin/blog/upload', require('./routes/admin_upload'));
 
         this._app.use(csurf({ cookie: false }));
