@@ -1731,6 +1731,55 @@ v3.get('/entities/icon', (req, res, next) => {
 });
 
 /**
+ * @api {get} /v3/locations/lookup Lookup Location By Name
+ * @apiName LookupLocation
+ * @apiGroup Entities
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Lookup a location given its name (also known as "geocoding").
+ *   Use this endpoint to perform Entity Linking after identifying an span corresponding to a locationn.
+ *
+ * @apiParam {String} q Query String
+ * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
+ *
+ * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
+ * @apiSuccess {Object[]} data List of candidate locations values; the list is sorted by importance
+ * @apiSuccess {Number{-90,90}} data.lat Latitude
+ * @apiSuccess {Number{-180,180}} data.lon Longitude
+ * @apiSuccess {String} data.display User-visible name of this location
+ * @apiSuccess {Number} data.canonical Preprocessed (tokenized and lower-cased) version of the user-visible name
+ *
+ * @apiSuccessExample {json} Example Response:
+ *  {
+ *    "result": "ok",
+ *    "data": [
+ *      {
+ *        "type": "tt:stock_id",
+ *        "value": "wmt",
+ *        "canonical": "walmart inc.",
+ *        "name": "Walmart Inc."
+ *      }
+ *    ]
+ *  }
+ *
+ */
+v3.get('/locations/lookup', (req, res, next) => {
+    const searchKey = req.query.q;
+
+    if (!searchKey) {
+        res.status(400).json({ error: 'missing query' });
+        return;
+    }
+
+    var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+
+    client.lookupLocation(searchKey).then((data) => {
+        res.cacheFor(300000);
+        res.status(200).json({ result: 'ok', data });
+    }).catch(next);
+});
+
+/**
  * @api {get} /v3/snapshot/:snapshot Get Thingpedia Snapshot
  * @apiName GetSnapshot
  * @apiGroup Schemas

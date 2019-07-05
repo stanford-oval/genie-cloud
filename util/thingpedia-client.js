@@ -30,6 +30,7 @@ const FactoryUtils = require('./device_factories');
 const I18n = require('./i18n');
 const codeStorage = require('./code_storage');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('./errors');
+const resolveLocation = require('./location-linking');
 
 class ThingpediaDiscoveryDatabase {
     getByDiscoveryService(discoveryType, service) {
@@ -398,6 +399,10 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         });
     }
 
+    lookupLocation(searchTerm) {
+        return resolveLocation(this.locale, searchTerm);
+    }
+
     getAllExamples(accept = 'application/x-thingtalk') {
         return this._withClient(async (dbClient) => {
             const rows = await exampleModel.getBaseByLanguage(dbClient, await this._getOrgId(dbClient), this.language);
@@ -442,4 +447,4 @@ module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getDeviceSearch',
                                         'getKindByDiscovery',
                                         'getExamplesByKinds', 'getExamplesByKey',
-                                        'clickExample', 'lookupEntity'];
+                                        'clickExample', 'lookupEntity', 'lookupLocation'];

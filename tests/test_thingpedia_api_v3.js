@@ -1643,7 +1643,32 @@ async function testLookupEntity() {
         },
         data: []
     });
+}
 
+async function testLookupLocation() {
+    const result = await request('/locations/lookup?q=seattle');
+
+    assert.strictEqual(result.result, 'ok');
+    assert(Array.isArray(result.data));
+
+    let found = false;
+    for (let loc of result.data) {
+        assert.strictEqual(typeof loc.latitude, 'number');
+        assert.strictEqual(typeof loc.longitude, 'number');
+        assert.strictEqual(typeof loc.display, 'string');
+        assert.strictEqual(typeof loc.canonical, 'string');
+        assert.strictEqual(typeof loc.rank, 'number');
+        assert.strictEqual(typeof loc.importance, 'number');
+
+        if (loc.display === 'Seattle, King County, Washington, USA') {
+            assert(Math.abs(loc.latitude - 47.6038321) < 1e-6);
+            assert(Math.abs(loc.longitude - -122.3300624) < 1e-6);
+            assert.strictEqual(loc.canonical, 'seattle king county washington usa');
+            assert.strictEqual(loc.rank, 16);
+            found = true;
+        }
+    }
+    assert(found);
 }
 
 async function getAccessToken(session) {
@@ -1822,6 +1847,7 @@ async function main() {
     await testGetEntityList();
     await testGetEntityValues();
     await testLookupEntity();
+    await testLookupLocation();
     await testEntityUpload();
     await testStringUpload();
 }
