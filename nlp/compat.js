@@ -10,10 +10,12 @@
 "use strict";
 
 const semver = require('semver');
+const resolveLocation = require('../util/location-linking');
 
-function streamJoinArrow(code) {
+async function streamJoinArrow(locale, result, entities) {
     // convert stream-join "=>" to "join"
 
+    const code = result.code;
     if (code.length === 0 || code[0] === 'policy')
         return;
 
@@ -46,15 +48,57 @@ function streamJoinArrow(code) {
     }
 }
 
+async function unresolvedLocations(locale, result, entities) {
+    // convert unresolved locations to old-style LOCATION_ tokens
+
+    const newCode = [];
+    let entityCounter = 0;
+    for (let entity in entities) {
+        if (entity.startsWith('LOCATION_'))
+            entityCounter = Math.max(entityCounter, parseInt(entity.substring('LOCATION_'.length)));
+    }
+
+    for (let i = 0; i < result.code.length; i++) {
+        const token = result.code[i];
+        if (token === 'location:') {
+            // skip location:
+            i++;
+
+            // skip "
+            i++;
+
+            const begin = i;
+            while (result.code[i] !== '"')
+                i++;
+            const end = i;
+
+            const searchKey = result.code.slice(begin, end).join(' ');
+            const locations = (await resolveLocation(locale, searchKey))
+                // ignore locations larger than a city
+                .filter((c) => c.rank <= 16);
+
+            const entity = 'LOCATION_' + (entityCounter++);
+            newCode.push(entity);
+            if (locations !== null)
+                entities[entity] = locations[0];
+        } else {
+            newCode.push(token);
+        }
+    }
+
+    result.code = newCode;
+}
+
 const COMPATIBILITY_FIXES = [
-    ['<1.3.0', streamJoinArrow]
+    ['<1.3.0', streamJoinArrow],
+    ['<1.7.3', unresolvedLocations],
 ];
 
-module.exports = function applyCompatibility(results, thingtalk_version) {
+module.exports = async function applyCompatibility(locale, results, entities, thingtalk_version) {
     for (let [range, fix] of COMPATIBILITY_FIXES) {
         if (semver.satisfies(thingtalk_version, range)) {
             for (let result of results)
-                fix(result.code);
+                await fix(locale, result, entities);
         }
     }
 };
