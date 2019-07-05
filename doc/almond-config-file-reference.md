@@ -390,7 +390,7 @@ Set this to the URL of your Discourse installation. This should be the origin
 Default value: `null`
 
 ## SUPPORTED_LANGUAGES
- What natural languages are enabled, as BCP47 locale tags.
+What natural languages are enabled, as BCP47 locale tags.
 
 Defaults to American English only
 
@@ -398,4 +398,12 @@ Note that this must contain at least one language, or the server will fail
 to start.
 
 Default value: `['en-US']`
+
+## MAPQUEST_KEY
+MapQuest API key.
+
+This is key is used to provide the location querying API. If unset, it will
+fallback to the public Nominatim API, which has a low API quota.
+
+Default value: `null`
 
