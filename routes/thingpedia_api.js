@@ -16,7 +16,6 @@ const passport = require('passport');
 const multer = require('multer');
 
 const db = require('../util/db');
-const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
 const commandModel = require('../model/example');
 
@@ -1825,28 +1824,17 @@ function getSnapshot(req, res, next, accept) {
     const getMeta = req.query.meta === '1';
     const language = (req.query.locale || 'en').split(/[-_@.]/)[0];
     const snapshotId = parseInt(req.params.id);
-    const etag = `"snapshot-${snapshotId}-meta:${getMeta}-lang:${language}"`;
+    const developerKey = req.query.developer_key;
+    const etag = `"snapshot-${snapshotId}-meta:${getMeta}-lang:${language}-developerKey:${developerKey}"`;
     if (snapshotId >= 0 && req.headers['if-none-match'] === etag) {
         res.set('ETag', etag);
         res.status(304).send('');
         return;
     }
 
-    db.withClient(async (dbClient) => {
-        if (snapshotId >= 0) {
-            if (getMeta)
-                return schemaModel.getSnapshotMeta(dbClient, snapshotId, language);
-            else
-                return schemaModel.getSnapshotTypes(dbClient, snapshotId);
-        } else {
-            const tpClient = new ThingpediaClient(req.query.developer_key, req.query.locale);
-            const orgId = await tpClient._getOrgId(dbClient);
-            if (getMeta)
-                return schemaModel.getCurrentSnapshotMeta(dbClient, language, orgId);
-            else
-                return schemaModel.getCurrentSnapshotTypes(dbClient, orgId);
-        }
-    }).then((rows) => {
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+
+    client.getThingpediaSnapshot(getMeta, snapshotId).then((rows) => {
         if (rows.length > 0 && snapshotId >= 0) {
             res.cacheFor(6, 'months');
             res.set('ETag', etag);

@@ -1822,6 +1822,60 @@ async function testStringUpload() {
     assert.deepStrictEqual(JSON.parse(r2), { result: 'ok' });
 }
 
+async function testGetSnapshot() {
+    let code = await ttRequest('/snapshot/-1');
+    let parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary && parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') === undefined);
+
+    code = await ttRequest('/snapshot/-1?meta=1');
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary && parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') === undefined);
+
+    code = await ttRequest(`/snapshot/-1?developer_key=${process.env.ROOT_DEVELOPER_KEY}`);
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') !== undefined &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.adminonly') !== undefined);
+
+    code = await ttRequest(`/snapshot/-1?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`);
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') !== undefined &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.adminonly') !== undefined);
+
+    code = await ttRequest(`/snapshot/-1?developer_key=${process.env.DEVELOPER_KEY}`);
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') !== undefined &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.adminonly') === undefined);
+
+    code = await ttRequest(`/snapshot/-1?meta=1&developer_key=${process.env.DEVELOPER_KEY}`);
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') !== undefined &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.adminonly') === undefined);
+
+    code = await ttRequest('/snapshot/1');
+    ThingTalk.Grammar.parse(code);
+
+    code = await ttRequest('/snapshot/1?meta=1');
+    ThingTalk.Grammar.parse(code);
+
+    code = await ttRequest(`/snapshot/1?developer_key=${process.env.ROOT_DEVELOPER_KEY}`);
+    ThingTalk.Grammar.parse(code);
+
+    code = await ttRequest(`/snapshot/1?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`);
+    ThingTalk.Grammar.parse(code);
+
+    code = await ttRequest(`/snapshot/1?developer_key=${process.env.DEVELOPER_KEY}`);
+    ThingTalk.Grammar.parse(code);
+
+    code = await ttRequest(`/snapshot/1?meta=1&developer_key=${process.env.DEVELOPER_KEY}`);
+    ThingTalk.Grammar.parse(code);
+
+    assert.strictEqual(await ttRequest('/snapshot/2'), '');
+}
+
 async function main() {
     await testGetSchemas();
     await testGetMetadata();
@@ -1841,6 +1895,7 @@ async function main() {
     await testGetDeviceList('data');
     await testGetDeviceList('physical');
     await testGetDeviceList('system');
+    await testGetSnapshot();
     await testDiscovery();
     await testDeviceSearch();
     await testGetEntityIcon();
