@@ -98,14 +98,14 @@ module.exports = {
              union
              (select m.*, tpl.tag as template_file_name, null as kind
               from models m, template_files tpl where tpl.id = m.template_file
-              and all_devices and not use_approved and m.language = ?
-                 exists (select 1 from device_schema where kind in (?))
+              and all_devices and not use_approved and m.language = ? and
+                 exists (select 1 from device_schema where kind in (?) ))
              union
              (select m.*, tpl.tag as template_file_name, ds.kind
               from models m, template_files tpl, model_devices md, device_schema ds
               where tpl.id = m.template_file
               and not m.all_devices and m.language = ?
-              and md.schema_id = ds.id and md.model_id = m.id and ds.kind in (?))
+              and md.schema_id = ds.id and md.model_id = m.id and ds.kind in (?) )
              order by id`,
             [language, devices, language, devices, language, devices]).then(loadModels);
     },
