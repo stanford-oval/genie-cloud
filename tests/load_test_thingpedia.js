@@ -24,6 +24,7 @@ const userModel = require('../model/user');
 const organization = require('../model/organization');
 const entityModel = require('../model/entity');
 const exampleModel = require('../model/example');
+const snapshotModel = require('../model/snapshot');
 
 const user = require('../util/user');
 const Importer = require('../util/import_device');
@@ -45,6 +46,11 @@ async function loadManifest(primaryKind) {
 async function loadAllDevices(dbClient, bob, root) {
     // "login" as bob
     req.user = bob;
+
+    // create a snapshot without the new stuff
+    await snapshotModel.create(dbClient, {
+        description: 'Test snapshot'
+    });
 
     const invisible = await loadManifest('org.thingpedia.builtin.test.invisible');
     await Importer.importDevice(dbClient, req, 'org.thingpedia.builtin.test.invisible', invisible, {

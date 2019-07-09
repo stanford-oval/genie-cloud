@@ -421,6 +421,22 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         });
     }
 
+    async getThingpediaSnapshot(getMeta, snapshotId = -1) {
+        return this._withClient(async (dbClient) => {
+            if (snapshotId >= 0) {
+                if (getMeta)
+                    return schemaModel.getSnapshotMeta(dbClient, snapshotId, this.language, await this._getOrgId(dbClient));
+                else
+                    return schemaModel.getSnapshotTypes(dbClient, snapshotId, await this._getOrgId(dbClient));
+            } else {
+                if (getMeta)
+                    return schemaModel.getCurrentSnapshotMeta(dbClient, this.language, await this._getOrgId(dbClient));
+                else
+                    return schemaModel.getCurrentSnapshotTypes(dbClient, await this._getOrgId(dbClient));
+            }
+        });
+    }
+
     getAllEntityTypes(snapshotId = -1) {
         return this._withClient((dbClient) => {
             if (snapshotId >= 0)

@@ -17,7 +17,6 @@ const db = require('../util/db');
 const iv = require('../util/input_validation');
 
 const router = express.Router();
-router.use(user.requireLogIn, user.requireRole(user.Role.THINGPEDIA_ADMIN));
 
 router.get('/', iv.validateGET({ page: '?integer' }), (req, res, next) => {
     let page = req.query.page;
@@ -37,7 +36,10 @@ router.get('/', iv.validateGET({ page: '?integer' }), (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/create', iv.validatePOST({ description: '?string' }), (req, res, next) => {
+router.post('/create',
+    user.requireLogIn, user.requireRole(user.Role.THINGPEDIA_ADMIN),
+    iv.validatePOST({ description: '?string' }),
+    (req, res, next) => {
     db.withTransaction((dbClient) => {
         var obj = {
             description: req.body.description || '',

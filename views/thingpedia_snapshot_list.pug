@@ -1,46 +1,58 @@
 extends layout
 
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia-devices.css')
+
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
+
 block page_name
-  = _("Thingpedia Snapshots")
+  - stdlayout = false;
+  - var currentPage = 'thingpedia-snapshot-list';
+  = _("Documentation")
 
 block content
-  table.table
-    thead
-      tr
-        th= _("ID")
-        th= _("Description")
-        th= _("Creation Date")
-        th(colspan=2)= _("Actions")
-    tbody
-      for s in snapshots.slice(0, 20)
-        tr
-          td= s.snapshot_id
-          td= s.description
-          td= s.date.toLocaleString()
-          td
-            a.btn.btn-default.btn-small(href='/thingpedia/api/snapshot/' + s.snapshot_id)
-              = _("Download types")
-          td
-            a.btn.btn-default.btn-small(href='/thingpedia/api/snapshot/' + s.snapshot_id + '?meta=1')
-              = _("Download metadata")
+  div.container-fluid#page-body
+    div.row
+      div.col-lg-3.col-md-4
+        include doc_sidebar
 
-  nav
-    ul.pager
-      if page_num > 0
-        li
-          a(href='/thingpedia/devices?page=' + (page_num-1))= _("Previous")
-      if snapshots.length > 20
-        li
-          a(href='/thingpedia/devices?page=' + (page_num+1))= _("Next")
+      div.col-xs-12.col-md-8.col-lg-9
+        h3= _("Thingpedia Snapshots")
 
-  div.panel.panel-default
-    p.panel-heading= _("Create a new snapshot")
-    div.panel-body
-      form(action='/thingpedia/snapshots/create', method='post', data-toggle='validator')
-        input(type='hidden',name='_csrf',value=csrfToken)
-        div.form-group
-          label(for='new-description').control-label= _("Description")
-          input(type='text',name='description').form-control#new-description
+        ul.list-group#thingpedia-snapshot-list
+          for s in snapshots.slice(0, 20)
+            li.list-group-item
+              h4= _("[%d] %s").format(s.snapshot_id, s.description)
+              p= _("Created on %s").format(s.date.toLocaleString(user ? user.locale : undefined, { timeZone: user ? user.timezone : undefined }))
+              p
+                a.btn.btn-default.btn-small(href='/thingpedia/api/v3/snapshot/' + s.snapshot_id)
+                  = _("Download types")
+                |
+                |
+                a.btn.btn-default.btn-small(href='/thingpedia/api/v3/snapshot/' + s.snapshot_id + '?meta=1')
+                  = _("Download metadata")
 
-        div.form-group
-          button(type='submit').btn.btn-primary= _("Create")
+        nav
+          ul.pager
+            if page_num > 0
+              li
+                a(href='/thingpedia/devices?page=' + (page_num-1))= _("Previous")
+            if snapshots.length > 20
+              li
+                a(href='/thingpedia/devices?page=' + (page_num+1))= _("Next")
+
+        if authenticated && (user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0
+          div.panel.panel-default
+            p.panel-heading= _("Create a new snapshot")
+            div.panel-body
+              form(action='/thingpedia/snapshots/create', method='post', data-toggle='validator')
+                input(type='hidden',name='_csrf',value=csrfToken)
+                div.form-group
+                  label(for='new-description').control-label= _("Description")
+                  input(type='text',name='description').form-control#new-description
+
+                div.form-group
+                  button(type='submit').btn.btn-primary= _("Create")
