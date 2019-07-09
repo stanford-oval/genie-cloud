@@ -153,10 +153,17 @@ async function query(params, data, service, res) {
     }
 
     if (result === null) {
-        result = await runPrediction(model, tokens, tokenized.entities,
-                                     data.context ? data.context.split(' ') : undefined,
-                                     data.limit ? parseInt(data.limit) : 5,
-                                     !!data.skip_typechecking);
+        if (expect === 'Location') {
+            result = [{
+                code: ['bookkeeping', 'answer', 'location:', '"', ...tokens, '"'],
+                score: 1
+            }];
+        } else {
+            result = await runPrediction(model, tokens, tokenized.entities,
+                                         data.context ? data.context.split(' ') : undefined,
+                                         data.limit ? parseInt(data.limit) : 5,
+                                         !!data.skip_typechecking);
+        }
     }
 
     if (store !== 'no' && expect !== 'MultipleChoice' && tokens.length > 0) {
@@ -172,8 +179,7 @@ async function query(params, data, service, res) {
     if (exact !== null)
         result = exact.map((code) => ({ code, score: 'Infinity' })).concat(result);
 
-
-    applyCompatibility(result, thingtalk_version);
+    await applyCompatibility(params.locale, result, tokenized.entities, thingtalk_version);
 
     res.set("Cache-Control", "no-store,must-revalidate");
     res.json({
