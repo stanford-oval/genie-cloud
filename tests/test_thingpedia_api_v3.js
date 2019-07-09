@@ -1643,7 +1643,32 @@ async function testLookupEntity() {
         },
         data: []
     });
+}
 
+async function testLookupLocation() {
+    const result = await request('/locations/lookup?q=seattle');
+
+    assert.strictEqual(result.result, 'ok');
+    assert(Array.isArray(result.data));
+
+    let found = false;
+    for (let loc of result.data) {
+        assert.strictEqual(typeof loc.latitude, 'number');
+        assert.strictEqual(typeof loc.longitude, 'number');
+        assert.strictEqual(typeof loc.display, 'string');
+        assert.strictEqual(typeof loc.canonical, 'string');
+        assert.strictEqual(typeof loc.rank, 'number');
+        assert.strictEqual(typeof loc.importance, 'number');
+
+        if (loc.display === 'Seattle, King County, Washington, USA') {
+            assert(Math.abs(loc.latitude - 47.6038321) < 1e-6);
+            assert(Math.abs(loc.longitude - -122.3300624) < 1e-6);
+            assert.strictEqual(loc.canonical, 'seattle king county washington usa');
+            assert.strictEqual(loc.rank, 16);
+            found = true;
+        }
+    }
+    assert(found);
 }
 
 async function getAccessToken(session) {
@@ -1797,6 +1822,60 @@ async function testStringUpload() {
     assert.deepStrictEqual(JSON.parse(r2), { result: 'ok' });
 }
 
+async function testGetSnapshot() {
+    let code = await ttRequest('/snapshot/-1');
+    let parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary && parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') === undefined);
+
+    code = await ttRequest('/snapshot/-1?meta=1');
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary && parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') === undefined);
+
+    code = await ttRequest(`/snapshot/-1?developer_key=${process.env.ROOT_DEVELOPER_KEY}`);
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') !== undefined &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.adminonly') !== undefined);
+
+    code = await ttRequest(`/snapshot/-1?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`);
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') !== undefined &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.adminonly') !== undefined);
+
+    code = await ttRequest(`/snapshot/-1?developer_key=${process.env.DEVELOPER_KEY}`);
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') !== undefined &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.adminonly') === undefined);
+
+    code = await ttRequest(`/snapshot/-1?meta=1&developer_key=${process.env.DEVELOPER_KEY}`);
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.invisible') !== undefined &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.adminonly') === undefined);
+
+    code = await ttRequest('/snapshot/1');
+    ThingTalk.Grammar.parse(code);
+
+    code = await ttRequest('/snapshot/1?meta=1');
+    ThingTalk.Grammar.parse(code);
+
+    code = await ttRequest(`/snapshot/1?developer_key=${process.env.ROOT_DEVELOPER_KEY}`);
+    ThingTalk.Grammar.parse(code);
+
+    code = await ttRequest(`/snapshot/1?meta=1&developer_key=${process.env.ROOT_DEVELOPER_KEY}`);
+    ThingTalk.Grammar.parse(code);
+
+    code = await ttRequest(`/snapshot/1?developer_key=${process.env.DEVELOPER_KEY}`);
+    ThingTalk.Grammar.parse(code);
+
+    code = await ttRequest(`/snapshot/1?meta=1&developer_key=${process.env.DEVELOPER_KEY}`);
+    ThingTalk.Grammar.parse(code);
+
+    assert.strictEqual(await ttRequest('/snapshot/2'), '');
+}
+
 async function main() {
     await testGetSchemas();
     await testGetMetadata();
@@ -1816,12 +1895,14 @@ async function main() {
     await testGetDeviceList('data');
     await testGetDeviceList('physical');
     await testGetDeviceList('system');
+    await testGetSnapshot();
     await testDiscovery();
     await testDeviceSearch();
     await testGetEntityIcon();
     await testGetEntityList();
     await testGetEntityValues();
     await testLookupEntity();
+    await testLookupLocation();
     await testEntityUpload();
     await testStringUpload();
 }

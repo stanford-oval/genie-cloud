@@ -30,6 +30,7 @@ const FactoryUtils = require('./device_factories');
 const I18n = require('./i18n');
 const codeStorage = require('./code_storage');
 const { NotFoundError, ForbiddenError, BadRequestError } = require('./errors');
+const resolveLocation = require('./location-linking');
 
 class ThingpediaDiscoveryDatabase {
     getByDiscoveryService(discoveryType, service) {
@@ -398,6 +399,10 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
         });
     }
 
+    lookupLocation(searchTerm) {
+        return resolveLocation(this.locale, searchTerm);
+    }
+
     getAllExamples(accept = 'application/x-thingtalk') {
         return this._withClient(async (dbClient) => {
             const rows = await exampleModel.getBaseByLanguage(dbClient, await this._getOrgId(dbClient), this.language);
@@ -413,6 +418,22 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
     getAllDeviceNames() {
         return this._withClient(async (dbClient) => {
             return schemaModel.getAllApproved(dbClient, await this._getOrgId(dbClient));
+        });
+    }
+
+    async getThingpediaSnapshot(getMeta, snapshotId = -1) {
+        return this._withClient(async (dbClient) => {
+            if (snapshotId >= 0) {
+                if (getMeta)
+                    return schemaModel.getSnapshotMeta(dbClient, snapshotId, this.language, await this._getOrgId(dbClient));
+                else
+                    return schemaModel.getSnapshotTypes(dbClient, snapshotId, await this._getOrgId(dbClient));
+            } else {
+                if (getMeta)
+                    return schemaModel.getCurrentSnapshotMeta(dbClient, this.language, await this._getOrgId(dbClient));
+                else
+                    return schemaModel.getCurrentSnapshotTypes(dbClient, await this._getOrgId(dbClient));
+            }
         });
     }
 
@@ -442,4 +463,4 @@ module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getDeviceSearch',
                                         'getKindByDiscovery',
                                         'getExamplesByKinds', 'getExamplesByKey',
-                                        'clickExample', 'lookupEntity'];
+                                        'clickExample', 'lookupEntity', 'lookupLocation'];

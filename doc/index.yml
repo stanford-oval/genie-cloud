@@ -36,11 +36,12 @@ sections:
   title: Reference Manuals
   pages:
     - thingtalk-reference
+    - thingpedia-annotations
+    - thingpedia-helpers
     - thingpedia-entity-list
     - thingpedia-string-type-list
     - luinet-template-list
-    - thingpedia-annotations
-    - thingpedia-helpers
+    - thingpedia-snapshot-list
 
 links:
   thingpedia-api:
@@ -55,6 +56,9 @@ links:
   luinet-template-list:
     url: /luinet/templates
     title: Available Genie Templates
+  thingpedia-snapshot-list:
+    url: /thingpedia/snapshots
+    title: Thingpedia Snapshots
 
 pages:
   getting-started: Getting Started with Almond

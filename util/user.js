@@ -52,6 +52,19 @@ function isAuthenticated(req) {
     return req.session.completed2fa;
 }
 
+const INVALID_USERNAMES = new Set('admin,moderator,administrator,mod,sys,system,community,info,you,name,username,user,nickname,discourse,discourseorg,discourseforum,support,hp,account-created,password-reset,admin-login,confirm-admin,account-created,activate-account,confirm-email-token,authorize-email,stanfordalmond,almondstanford'.split(','));
+
+const MAX_USERNAME_LENGTH = 60;
+
+function validateUsername(username) {
+    if (username.length > MAX_USERNAME_LENGTH ||
+        INVALID_USERNAMES.has(username.toLowerCase()) ||
+        /[^\w.-]/.test(username) ||
+        /\.(js|json|css|htm|html|xml|jpg|jpeg|png|gif|bmp|ico|tif|tiff|woff)$/i.test(username))
+        return false;
+    return true;
+}
+
 module.exports = {
     OAuthScopes,
 
@@ -86,36 +99,40 @@ module.exports = {
     GOOGLE_SCOPES: ['openid','profile','email'].join(' '),
 
     GITHUB_SCOPES: ['user', 'public_repo', 'repo', 'repo:status',
-                'gist', 'notifications'].join(' '),
+                    'gist', 'notifications'].join(' '),
 
-    register(dbClient, req, options) {
-        return model.getByName(dbClient, options.username).then((rows) => {
-            if (rows.length > 0)
-                throw new BadRequestError(req._("A user with this name already exists."));
+    MAX_USERNAME_LENGTH,
+    validateUsername,
 
-            var salt = makeRandom();
-            var cloudId = makeRandom(8);
-            var authToken = makeRandom();
-            var storageKey = makeRandom();
-            return hashPassword(salt, options.password).then((hash) => {
-                return model.create(dbClient, {
-                    username: options.username,
-                    human_name: options.human_name || null,
-                    password: hash,
-                    email: options.email,
-                    email_verified: options.email_verified || false,
-                    locale: options.locale,
-                    timezone: options.timezone,
-                    salt: salt,
-                    cloud_id: cloudId,
-                    auth_token: authToken,
-                    storage_key: storageKey,
-                    developer_org: options.developer_org || null,
-                    developer_status: options.developer_status || 0,
-                    roles: options.roles || 0,
-                    profile_flags: options.profile_flags || 0,
-                });
-            });
+    async register(dbClient, req, options) {
+        const usernameRows = await model.getByName(dbClient, options.username);
+        if (usernameRows.length > 0)
+            throw new BadRequestError(req._("A user with this name already exists."));
+        const emailRows = await model.getByEmail(dbClient, options.email);
+        if (emailRows.length > 0)
+            throw new BadRequestError(req._("A user with this email already exists."));
+
+        const salt = makeRandom();
+        const cloudId = makeRandom(8);
+        const authToken = makeRandom();
+        const storageKey = makeRandom();
+        const hash = await hashPassword(salt, options.password);
+        return model.create(dbClient, {
+            username: options.username,
+            human_name: options.human_name || null,
+            password: hash,
+            email: options.email,
+            email_verified: options.email_verified || false,
+            locale: options.locale,
+            timezone: options.timezone,
+            salt: salt,
+            cloud_id: cloudId,
+            auth_token: authToken,
+            storage_key: storageKey,
+            developer_org: options.developer_org || null,
+            developer_status: options.developer_status || 0,
+            roles: options.roles || 0,
+            profile_flags: options.profile_flags || 0,
         });
     },
 

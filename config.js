@@ -429,7 +429,7 @@ module.exports.DISCOURSE_SSO_SECRET = null;
 module.exports.DISCOURSE_SSO_REDIRECT = null;
 
 /**
-   What natural languages are enabled, as BCP47 locale tags.
+  What natural languages are enabled, as BCP47 locale tags.
 
   Defaults to American English only
 
@@ -437,3 +437,12 @@ module.exports.DISCOURSE_SSO_REDIRECT = null;
   to start.
 */
 module.exports.SUPPORTED_LANGUAGES = ['en-US'];
+
+/**
+  MapQuest API key.
+
+  This is key is used to provide the location querying API. If unset, it will
+  fallback to the public Nominatim API, which has a low API quota.
+*/
+module.exports.MAPQUEST_KEY = null;
+ 
