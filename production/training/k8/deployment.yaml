@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "training-deployment"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "training"
+    spec:
+      containers:
+      - name: "training"
+        image: 373474209952.dkr.ecr.us-west-2.amazonaws.com/almond/training:v1.5.1
+        imagePullPolicy: Always
+        env:
+        - name: "PORT"
+          value: "9999"
+        resources:
+          limits:
+            nvidia.com/gpu: 1 # requesting 1 GPU
+        ports:
+        - containerPort: 9999
