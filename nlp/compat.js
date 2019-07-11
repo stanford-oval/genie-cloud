@@ -91,7 +91,7 @@ async function unresolvedLocations(locale, result, entities) {
 
 const COMPATIBILITY_FIXES = [
     ['<1.3.0', streamJoinArrow],
-    ['<1.7.3', unresolvedLocations],
+    ['<1.8.0', unresolvedLocations],
 ];
 
 module.exports = async function applyCompatibility(locale, results, entities, thingtalk_version) {

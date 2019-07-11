@@ -31,9 +31,14 @@ const TEST_CASES = [
     'now => @org.thingpedia.weather.current param:location:Location = location: " seattle " => notify',
     'now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify',
     ],
-
     [
     '1.7.3', {},
+    'now => @org.thingpedia.weather.current param:location:Location = location: " seattle " => notify',
+    'now => @org.thingpedia.weather.current param:location:Location = LOCATION_0 => notify',
+    ],
+
+    [
+    '1.8.0', {},
     'now => @org.thingpedia.weather.current param:location:Location = location: " seattle " => notify',
     'now => @org.thingpedia.weather.current param:location:Location = location: " seattle " => notify',
     ],
