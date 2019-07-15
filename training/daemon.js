@@ -28,6 +28,7 @@ const db = require('../util/db');
 const Metrics = require('../util/metrics');
 const modelsModel = require('../model/nlp_models');
 const errorHandling = require('../util/error_handling');
+const platform = require('../util/platform');
 
 const Job = require('./training_job');
 
@@ -203,7 +204,7 @@ Check the logs for further information.`
         next.start();
     }
 
-    _queueOrMergeJob(forDevices, jobType, language, modelTag, dependsOn, modelDevices) {
+    _queueOrMergeJob(forDevices, jobType, language, modelTag, dependsOn, modelInfo) {
         const queue = this._queues[jobType];
         for (let candidate of queue.next) {
             if (candidate.language === language &&
@@ -223,14 +224,14 @@ Check the logs for further information.`
         }
 
         let newjob = new Job(this, this._next_id++,
-            jobType, forDevices, language, modelTag, dependsOn, modelDevices);
+            jobType, forDevices, language, modelTag, dependsOn, modelInfo);
         if (dependsOn !== null) {
             queue.waiting.push(newjob);
             this._addDependency(newjob);
         } else {
             queue.next.push(newjob);
         }
-        console.log(`Queued ${jobType} job ${newjob.id} for model @${modelTag}/${language} [${modelDevices ? modelDevices.join(', ') : ''}]`);
+        console.log(`Queued ${jobType} job ${newjob.id} for model @${modelTag}/${language}`);
 
         setImmediate(() => {
             this._startNextJob(jobType);
@@ -245,8 +246,10 @@ Check the logs for further information.`
         let language = jobTemplate.language || 'en';
         let jobType = jobTemplate.jobType || 'train';
 
-        const affectedModels = db.withClient((dbClient) => {
-            if (forDevices !== null)
+        const affectedModels = await db.withClient((dbClient) => {
+            if (jobTemplate.modelTag)
+                return modelsModel.getByTag(dbClient, language, jobTemplate.modelTag);
+            else if (forDevices !== null)
                 return modelsModel.getForLanguage(dbClient, language);
             else
                 return modelsModel.getForDevices(dbClient, language, forDevices);
@@ -425,6 +428,7 @@ Check the logs for further information.`
 }
 
 function main() {
+    platform.init();
     const daemon = new TrainingDaemon();
 
     daemon.loadExistingJobs();

@@ -267,6 +267,8 @@ class Frontend {
         this._app.use('/me/api/gassistant', require('./routes/gassistant'));
         this._app.use('/me/api', require('./routes/my_api'));
         this._app.use('/ws', require('./routes/thingengine_ws'));
+
+        // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
             this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
@@ -274,14 +276,15 @@ class Frontend {
             // initialize csurf after /upload and /entities too
             // because upload uses multer, which is incompatible
             // with csurf
-            // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
+            // MAKE SURE ALL ROUTES HAVE CSURF
             this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
             this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
             this._app.use('/thingpedia/strings', require('./routes/thingpedia_strings'));
         }
-
-        // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
-        this._app.use('/mturk', require('./routes/mturk'));
+        if (Config.WITH_LUINET === 'embedded') {
+            this._app.use('/luinet/templates', require('./routes/luinet_templates'));
+            this._app.use('/mturk', require('./routes/mturk'));
+        }
         this._app.use('/admin/blog/upload', require('./routes/admin_upload'));
 
         this._app.use(csurf({ cookie: false }));
@@ -316,8 +319,10 @@ class Frontend {
             this._app.use('/thingpedia/cheatsheet', require('./routes/thingpedia_cheatsheet'));
             this._app.use('/thingpedia/snapshots', require('./routes/thingpedia_snapshots'));
         }
-        if (Config.WITH_LUINET === 'embedded')
+        if (Config.WITH_LUINET === 'embedded') {
             this._app.use('/luinet/datasets', require('./routes/luinet_dataset'));
+            this._app.use('/luinet/models', require('./routes/luinet_models'));
+        }
 
         this._app.use('/profiles', require('./routes/thingpedia_profiles'));
         this._app.use('/user', require('./routes/user'));

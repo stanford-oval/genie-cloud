@@ -25,6 +25,7 @@ const TrainingServer = require('../util/training_server');
 const SendMail = require('../util/sendmail');
 const I18n = require('../util/i18n');
 const tokenize = require('../util/tokenize');
+const creditSystem = require('../util/credit_system');
 
 const SchemaUtils = require('../util/manifest_to_schema');
 const DatasetUtils = require('../util/dataset');
@@ -318,6 +319,7 @@ router.post('/train', iv.validatePOST({ kind: 'string' }), (req, res, next) => {
             // so that a true not found is indistinguishable from not having permission
             throw new NotFoundError();
         }
+        await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
 
         return TrainingServer.get().queue('en', [req.body.kind], 'train');
     }).then(() => {

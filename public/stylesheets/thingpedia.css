@@ -53,7 +53,7 @@
   border-collapse: collapse;
 }
 #developer-device-list {
-  margin-bottom: 0;
+  margin-bottom: 20px;
 }
 #developer-device-list > li, #developer-oauth-list > li {
   display: table-row;

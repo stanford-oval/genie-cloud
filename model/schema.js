@@ -202,6 +202,24 @@ module.exports = {
         return db.selectOne(client, "select * from device_schema where id = ?", [id]);
     },
 
+    async findNonExisting(client, ids, org) {
+        if (ids.length === 0)
+            return Promise.resolve([]);
+
+        const rows = await db.selectAll(client, `select kind from device_schema where kind in (?)
+            and (owner = ? or approved_version is not null or exists (select 1 from organizations where organizations.id = ? and is_admin))`,
+            [ids, org, org]);
+        if (rows.length === ids.length)
+            return [];
+        let existing = new Set(rows.map((r) => r.id));
+        let missing = [];
+        for (let id of ids) {
+            if (!existing.has(id))
+                missing.push(id);
+        }
+        return missing;
+    },
+
     getAllApproved(client, org) {
         if (org === -1) {
             return db.selectAll(client, `select kind, kind_canonical from device_schema

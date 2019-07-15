@@ -23,6 +23,7 @@ const SendMail = require('../util/sendmail');
 const iv = require('../util/input_validation');
 const { tokenize } = require('../util/tokenize');
 const { BadRequestError } = require('../util/errors');
+const creditSystem = require('../util/credit_system');
 
 const Config = require('../config');
 
@@ -46,14 +47,17 @@ router.get('/', (req, res, next) => {
             organization.get(dbClient, req.user.developer_org),
             organization.getMembers(dbClient, req.user.developer_org),
             organization.getInvitations(dbClient, req.user.developer_org),
-            device.getByOwner(dbClient, req.user.developer_org)]);
-    }).then(([developer_org, developer_org_members, developer_org_invitations, developer_devices]) => {
+            organization.getStatistics(dbClient, req.user.developer_org)
+        ]);
+    }).then(([developer_org, developer_org_members, developer_org_invitations, developer_org_stats]) => {
         res.render('dev_overview', { page_title: req._("Almond Developer Console"),
                                                 csrfToken: req.csrfToken(),
                                                 developer_org,
                                                 developer_org_members,
                                                 developer_org_invitations,
-                                                developer_devices,
+                                                developer_org_stats,
+                                                credit_update_value: creditSystem.getCreditUpdate(developer_org_stats),
+                                                credit_update_time: creditSystem.getNextUpdate(),
         });
     }).catch(next);
 });
@@ -264,12 +268,25 @@ if (Config.WITH_LUINET === 'embedded') {
         db.withClient(async (dbClient) => {
             const [models, templatePacks] = await Promise.all([
                 nlpModelsModel.getByOwner(dbClient, req.user.developer_org),
-                templatePackModel.getByOwner(dbClient, req.user.developer_org)
+                templatePackModel.getByOwner(dbClient, req.user.developer_org),
             ]);
             res.render('dev_nlp_models', {
-                page_title: req._("LUInet - Models"),
-                models, templatePacks
+                page_title: req._("Almond Developer Console - Models"),
+                models, templatePacks,
+                trainPublicCost: creditSystem.TRAIN_LUINET_PUBLIC_COST,
+                trainPrivateCost: creditSystem.TRAIN_LUINET_PRIVATE_COST,
             });
+        }).catch(next);
+    });
+}
+
+if (Config.WITH_THINGPEDIA === 'embedded') {
+    router.get('/devices', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
+        db.withTransaction((dbClient) => {
+            return device.getByOwner(dbClient, req.user.developer_org);
+        }).then((developer_devices) => {
+            res.render('dev_devices', { page_title: req._("Almond Developer Console = Devices"),
+                                        developer_devices });
         }).catch(next);
     });
 }

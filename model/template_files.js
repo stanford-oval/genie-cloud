@@ -16,6 +16,10 @@ module.exports = {
         return db.selectAll(client, "select * from template_files");
     },
 
+    getPublic(client, owner) {
+        return db.selectAll(client, "select * from template_files where public or owner = ?", [owner]);
+    },
+
     getByOwner(client, owner) {
         return db.selectAll(client, "select * from template_files where owner = ?", [owner]);
     },
