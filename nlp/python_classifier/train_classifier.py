@@ -181,7 +181,7 @@ def create_training_data():
     simple phrases such as "hi", "hey", "ok", "whats up", etc. If we train the NN on too much chatty text
     it'll return too many false positives.
     """
-    train_data = parsed_data("train/chatty1.json", chattyDataLength, cutoff)
+    train_data = parsed_data("train/chatty.json", chattyDataLength, cutoff)
     input_data3 = numpy.zeros([chattyDataLength, 15360])
 
     for i in range(chattyDataLength):
