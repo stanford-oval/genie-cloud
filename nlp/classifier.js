@@ -21,7 +21,7 @@ module.exports = class FrontendClassifier {
         // spawn python process
         this._pythonProcess = child_process.spawn('python3', [
             path.resolve(path.dirname(module.filename), './python_classifier/classifier.py'),
-            `./${languageTag}.classifier.h5`
+            `./${languageTag}.classifier`
         ], {
             stdio: ['pipe', 'pipe', 'inherit']
         });
