@@ -1,3 +1,9 @@
+# This file is part of Almond
+#
+# Copyright 2019 Ryan Cheng <ryachen@nuevaschool.org>
+#
+# See COPYING for details
+
 from bert_embedding import BertEmbedding
 from keras.models import load_model
 import json, numpy, math, random

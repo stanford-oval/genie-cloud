@@ -1,3 +1,9 @@
+# This file is part of Almond
+#
+# Copyright 2019 Ryan Cheng <ryachen@nuevaschool.org>
+#
+# See COPYING for details
+
 from keras.models import load_model
 # Import BERT Embedding from PyPi
 from bert_embedding import BertEmbedding
