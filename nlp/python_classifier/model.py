@@ -16,6 +16,43 @@ CLASSES = {
     'other': 3
 }
 
+MAX_SEQ_LENGTH = 128
+
+def convert_examples_to_features(examples,
+                                 tokenizer,
+                                 cls_token='[CLS]',
+                                 sep_token='[SEP]',
+                                 pad_token=0):
+
+    input_id_batch = []
+    input_mask_batch = []
+    for text in examples:
+        tokens = tokenizer.tokenize(text)
+        # Account for [CLS] and [SEP] with "- 2"
+        if len(tokens) > MAX_SEQ_LENGTH - 2:
+            tokens = tokens[:(MAX_SEQ_LENGTH - 2)]
+
+        tokens = [cls_token] + tokens + [sep_token]
+
+        input_ids = tokenizer.convert_tokens_to_ids(tokens)
+
+        # The mask has 1 for real tokens and 0 for padding tokens. Only real
+        # tokens are attended to.
+        input_mask = [1] * len(input_ids)
+
+        # Zero-pad up to the sequence length.
+        padding_length = MAX_SEQ_LENGTH - len(input_ids)
+        input_ids = input_ids + ([pad_token] * padding_length)
+        input_mask = input_mask + ([0] * padding_length)
+
+        assert len(input_ids) == MAX_SEQ_LENGTH
+        assert len(input_mask) == MAX_SEQ_LENGTH
+
+        input_id_batch.append(input_ids)
+        input_mask_batch.append(input_mask)
+    return torch.tensor(input_id_batch), torch.tensor(input_mask_batch)
+
+
 class BertClassifierModel:
     def __init__(self, model_path = 'bert-base-multilingual-uncased'):
 
@@ -24,8 +61,7 @@ class BertClassifierModel:
         self.model = BertForSequenceClassification.from_pretrained(model_path)
 
     def infer(self, data):
-        sentence_batch = [self.tokenizer.encode(sentence) for sentence in data]
-        sentence_batch = torch.tensor(sentence_batch)
+        input_id_batch, input_mask_batch = convert_examples_to_features(data, self.tokenizer)
 
-        logits, = self.model(sentence_batch)
+        logits, = self.model(input_id_batch, attention_mask=input_mask_batch)
         return torch.nn.functional.softmax(logits, dim=1)

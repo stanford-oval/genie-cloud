@@ -5,6 +5,7 @@
 # See COPYING for details
 
 import sys
+import json
 from model import BertClassifierModel, CLASSES
 
 def main():
@@ -25,14 +26,14 @@ def main():
             unique_id = inputs['id']
             sentence = inputs['sentence']
 
-            probabilities = model.infer([sentence])
+            probabilities = model.infer([sentence])[0]
             class_probabilities = {
                 "id": unique_id
             }
             for cls, cls_id in CLASSES.items():
-                class_probabilities[cls] = probabilities[cls_id]
+                class_probabilities[cls] = probabilities[cls_id].item()
 
-            sys.stdout.write(str(json.dumps(class_probabilities)))
+            sys.stdout.write(str(json.dumps(class_probabilities)) + '\n')
             sys.stdout.flush()
 
     except KeyboardInterrupt:
