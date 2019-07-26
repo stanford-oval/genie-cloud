@@ -1,4 +1,9 @@
 torch >= 1.0.0
-pytorch_transformers
+
+# the released version of pytorch_transformers has a bug in BertTokenizer
+# that causes corrupt vocabulary files
+#pytorch_transformers
+git+https://github.com/huggingface/pytorch-transformers#egg=pytorch_transformers
+
 tensorboardX
 tqdm
