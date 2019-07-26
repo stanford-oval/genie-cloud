@@ -13,15 +13,17 @@ const path = require('path');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
 
 module.exports = class FrontendClassifier {
-    constructor(languageTag) {
+    constructor() {
         this.concurrentRequests = new Map();
         this.isLive = true;
         this.counter = 0;
+    }
 
+    start() {
         // spawn python process
         this._pythonProcess = child_process.spawn('python3', [
             path.resolve(path.dirname(module.filename), './python_classifier/classifier.py'),
-            `./${languageTag}.classifier`
+            `./classifier`
         ], {
             stdio: ['pipe', 'pipe', 'inherit']
         });
@@ -56,6 +58,10 @@ module.exports = class FrontendClassifier {
         this._stream.on('close', () => {
             this.isLive = false;
         });
+    }
+
+    stop() {
+        this._pythonProcess.kill();
     }
 
     _newPromise(id) {
