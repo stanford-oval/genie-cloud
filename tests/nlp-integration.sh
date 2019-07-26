@@ -82,7 +82,9 @@ wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/curren
 tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'org.thingpedia.models.contextual:en'
 tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'org.thingpedia.models.developer.contextual:en'
 
-wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/classifier.h5 -O en.classifier.h5
+mkdir -p 'classifier'
+wget --no-verbose -c https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
+tar xvf $srcdir/tests/embeddings/classifier1.tar.gz -C 'classifier'
 
 PORT=$NLP_PORT node $srcdir/nlp/main.js &
 inferpid=$!

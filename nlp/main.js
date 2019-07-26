@@ -26,7 +26,6 @@ const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const Metrics = require('../util/metrics');
-const I18n = require('../util/i18n');
 const errorHandling = require('../util/error_handling');
 const modelsModel = require('../model/nlp_models');
 
@@ -38,7 +37,7 @@ const Config = require('../config');
 class NLPInferenceServer {
     constructor() {
         this._models = new Map;
-        this._classifiers = new Map;
+        this._classifier = new FrontendClassifier();
         this._tokenizer = new Genie.LocalTokenizer();
     }
 
@@ -46,8 +45,8 @@ class NLPInferenceServer {
         return this._tokenizer;
     }
 
-    getFrontendClassifier(languageTag) {
-        return this._classifiers.get(languageTag);
+    get frontendClassifier() {
+        return this._classifier;
     }
 
     getModel(modelTag = 'org.thingpedia.models.default', locale) {
@@ -68,10 +67,7 @@ class NLPInferenceServer {
     }
 
     async loadAllLanguages() {
-        for (let locale of I18n.LANGS) {
-            let language = locale.split('-')[0];
-            this._classifiers.set(language, new FrontendClassifier(language));
-        }
+        await this._classifier.start();
 
         await db.withTransaction(async (dbClient) => {
             const modelspecs = await modelsModel.getAll(dbClient);
