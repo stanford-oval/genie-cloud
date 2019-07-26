@@ -25,14 +25,12 @@ def main():
             unique_id = inputs['id']
             sentence = inputs['sentence']
 
-            probabilities = output_prediction(sentence)
+            probabilities = model.infer([sentence])
             class_probabilities = {
-                "question": probabilities[0],
-                "command": probabilities[1],
-                "chatty": probabilities[2],
-                "other": probabilities[3],
                 "id": unique_id
             }
+            for cls, cls_id in CLASSES.items():
+                class_probabilities[cls] = probabilities[cls_id]
 
             sys.stdout.write(str(json.dumps(class_probabilities)))
             sys.stdout.flush()
