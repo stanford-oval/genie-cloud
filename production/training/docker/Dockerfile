@@ -89,7 +89,7 @@ WORKDIR /var/lib/almond-training
 # embeddings will be downloaded form S3 at startup to reduce the size of this image.
 ENV S3_DECANLP_EMBEDDINGS=s3://almond-training/embeddings.tar.gz
 ENV DECANLP_EMBEDDINGS=/var/lib/almond-training/share/embeddings
-RUN mkdir -p /var/lib/almond-training/share/embeddings
+RUN mkdir -p ${DECANLP_EMBEDDINGS}
 
 # entry point
 CMD ["/bin/bash", "-c", "/var/lib/almond-training/startup.sh"]
