@@ -38,6 +38,22 @@ const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
 
 const everything = express.Router();
 
+// apis are CORS enabled always
+everything.use('/thingpedia/api', (req, res, next) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Vary', 'Origin');
+    next();
+});
+
+everything.options('/[^]{0,}', (req, res, next) => {
+    res.set('Access-Control-Max-Age', '86400');
+    res.set('Access-Control-Allow-Methods', 'GET, POST');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Accept, Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Vary', 'Origin');
+    res.send('');
+});
+
 const v1 = express.Router();
 const v2 = express.Router();
 const v3 = express.Router();
