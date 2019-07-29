@@ -32,13 +32,12 @@ const passport = require('passport');
 const connect_flash = require('connect-flash');
 const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
-const acceptLanguage = require('accept-language');
 const Prometheus = require('prom-client');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
 const db = require('./util/db');
-const i18n = require('./util/i18n');
+const I18n = require('./util/i18n');
 const userUtils = require('./util/user');
 const platform = require('./util/platform');
 const Metrics = require('./util/metrics');
@@ -69,7 +68,7 @@ class Frontend {
             req.pgettext = (c, x) => x;
             req.ngettext = (x, x2, n) => n === 1 ? x : x2;
 
-            res.locals.I18n = i18n;
+            res.locals.I18n = I18n;
             res.locals.locale = 'en-US';
             res.locals.gettext = req.gettext;
             res.locals._ = req._;
@@ -244,35 +243,7 @@ class Frontend {
             res.locals.authenticated = userUtils.isAuthenticated(req);
             next();
         });
-
-        // i18n support
-        acceptLanguage.languages(i18n.LANGS);
-        this._app.use((req, res, next) => {
-            let locale = req.session.locale;
-            if (!locale && req.user)
-                locale = req.user.locale;
-            if (!locale && req.headers['accept-language'])
-                locale = acceptLanguage.get(req.headers['accept-language']);
-            if (!locale)
-                locale = 'en-US';
-            let lang = i18n.get(locale);
-
-            req.locale = locale;
-            req.gettext = lang.gettext;
-            req._ = req.gettext;
-            req.pgettext = lang.pgettext;
-            req.ngettext = lang.ngettext;
-
-            res.locals.I18n = i18n;
-            res.locals.locale = locale;
-            res.locals.gettext = req.gettext;
-            res.locals._ = req._;
-            res.locals.pgettext = req.pgettext;
-            res.locals.ngettext = req.ngettext;
-
-            res.locals.timezone = req.user ? req.user.timezone : 'America/Los_Angeles';
-            next();
-        });
+        this._app.use(I18n.handler);
 
         // /me/api/oauth2 uses session-auth and is susceptible to CSRF, but oauth2orize has
         // built-in CSRF protection (transaction IDs) so we don't need csurf

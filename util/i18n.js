@@ -13,9 +13,11 @@ const path = require('path');
 const Gettext = require('node-gettext');
 const gettextParser = require('gettext-parser');
 const fs = require('fs');
+const acceptLanguage = require('accept-language');
 
 const { InternalError } = require('./errors');
 const Config = require('../config');
+const userUtils = require('./user');
 
 function N_(x) { return x; }
 const ALLOWED_LANGUAGES = {
@@ -89,10 +91,12 @@ function load() {
             split.pop();
         }
     }
+
+    acceptLanguage.languages(LANGS);
 }
 load();
 
-module.exports = {
+const self = {
     LANGS,
 
     getLangName(_, lang) {
@@ -115,5 +119,33 @@ module.exports = {
         if (!lang && fallback)
             lang = languages['en-US'];
         return lang;
+    },
+
+    handler(req, res, next) {
+        let locale = typeof req.query.locale === 'string' ? req.query.locale : undefined;
+        if (!locale && userUtils.isAuthenticated(req))
+            locale = req.user.locale;
+        if (!locale && req.headers['accept-language'])
+            locale = acceptLanguage.get(req.headers['accept-language']);
+        if (!locale)
+            locale = LANGS[0];
+        let lang = self.get(locale);
+
+        req.locale = locale;
+        req.gettext = lang.gettext;
+        req._ = req.gettext;
+        req.pgettext = lang.pgettext;
+        req.ngettext = lang.ngettext;
+
+        res.locals.I18n = self;
+        res.locals.locale = locale;
+        res.locals.gettext = req.gettext;
+        res.locals._ = req._;
+        res.locals.pgettext = req.pgettext;
+        res.locals.ngettext = req.ngettext;
+
+        res.locals.timezone = req.user ? req.user.timezone : 'America/Los_Angeles';
+        next();
     }
 };
+module.exports = self;
