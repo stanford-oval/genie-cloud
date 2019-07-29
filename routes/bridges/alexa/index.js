@@ -2,7 +2,7 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2015 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2017-2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -13,7 +13,10 @@ const Q = require('q');
 const express = require('express');
 const passport = require('passport');
 
-const EngineManager = require('../almond/enginemanagerclient');
+const I18n = require('../../util/i18n');
+const errorHandling = require('../../util/error_handling');
+
+const EngineManager = require('../../almond/enginemanagerclient');
 
 var router = express.Router();
 
@@ -85,58 +88,20 @@ class AlexaDelegate {
 }
 AlexaDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
 
-router.post('/', (req, res, next) => {
+function authenticate(req, res, next) {
     if (req.body && req.body.session && req.body.session.user && req.body.session.user.accessToken &&
         !req.headers.authorization)
         req.headers.authorization = 'Bearer ' + req.body.session.user.accessToken;
-    if (req.headers.authorization) {
-        passport.authenticate('bearer', { session: false }, (err, user, info) => {
-            // ignore auth failures and ignore sessions
-            if (err) {
-                next(err);
-                return;
-            }
+    if (req.headers.authorization)
+        passport.authenticate('bearer', { session: false })(req, res, next);
+    else
+        next();
+}
 
-            if (!user) {
-                //res.status(401).json({error: 'invalid access token'});
+router.use(authenticate);
+router.use(I18n.handle);
 
-                res.json({
-                    version: '1.0',
-                    sessionAttributes: {
-                    },
-                    response: {
-                        outputSpeech: {
-                            type: 'PlainText',
-                            text: 'You must link your Web Almond account to use Almond with Alexa'
-                        },
-                        card: {
-                            type: 'LinkAccount'
-                        },
-                        shouldEndSession: true
-                    }
-                });
-                return;
-            }
-            req.login(user, next);
-        })(req, res, next);
-    } else {
-        res.json({
-            version: '1.0',
-            sessionAttributes: {
-            },
-            response: {
-                outputSpeech: {
-                    type: 'PlainText',
-                    text: 'You must link your Web Almond account to use Almond with Alexa'
-                },
-                card: {
-                    type: 'LinkAccount'
-                },
-                shouldEndSession: true
-            }
-        });
-    }
-}, (req, res) => {
+router.post('/', (req, res, next) => {
     console.log('body', req.body);
 
     if (req.body.request.type === 'SessionEndedRequest') {
@@ -252,5 +217,11 @@ router.post('/', (req, res, next) => {
         return delegate.flush();
     });
 });
+
+router.use((req, res) => {
+    // if we get here, we have a 404 response
+    res.status(404).json({ error: "Invalid endpoint", code: 'ENOENT' });
+});
+router.use(errorHandling.json);
 
 module.exports = router;
