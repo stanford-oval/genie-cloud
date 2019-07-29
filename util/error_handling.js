@@ -55,6 +55,7 @@ function html(err, req, res, next) {
             message: req._("The requested page does not exist.")
         });
     } else if (err.sqlState === '23000') {
+        console.log(err);
         // duplicate value for UNIQUE or PRIMARY KEY
         res.status(400).render('error', {
             page_title: req._("Almond - Error"),

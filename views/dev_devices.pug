@@ -1,0 +1,42 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
+
+block page_name
+  - stdlayout = false;
+  - var section = 'devices';
+  = _("Developer Console")
+
+block content
+  div.container-fluid#page-body
+    div.row
+      div.col-lg-3.col-md-4
+        include dev_sidebar
+
+      div.col-xs-12.col-md-8.col-lg-9
+        section.divider
+          h3= _("Your Thingpedia Devices")
+
+          if developer_devices.length > 0
+            ul#developer-device-list
+              for dev in developer_devices
+                li
+                  span.image
+                    img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name).device-icon-tiny
+                  a(href='/thingpedia/devices/by-id/' + dev.primary_kind)
+                    = dev.name
+                  span.action.hidden-xs
+                    a.btn.btn-sm.btn-warning(href='/thingpedia/upload/update/' + dev.primary_kind)= _("Update")
+                  form(action='/thingpedia/devices/delete/', method='post').form-inline.form-delete-device.hidden-xs
+                    input(type='hidden',name='_csrf',value=csrfToken)
+                    input(type='hidden',name='kind',value=dev.primary_kind)
+                    button(type='submit').btn.btn-sm.btn-danger= _("Delete")
+          else
+            p= _("Your organization does not own any device yet.")
+
+          if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
+            div.row
+              div.col-sm-6.col-md-4.col-sm-offset-3.col-md-offset-4
+                a(href='/thingpedia/upload/create').btn.btn-primary.btn-block= _("Upload a new device")

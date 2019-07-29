@@ -40,6 +40,7 @@ sections:
     - thingpedia-helpers
     - thingpedia-entity-list
     - thingpedia-string-type-list
+    - luinet-template-list
     - thingpedia-snapshot-list
 
 links:
@@ -52,6 +53,9 @@ links:
   thingpedia-string-type-list:
     url: /thingpedia/strings
     title: Available String Datasets
+  luinet-template-list:
+    url: /luinet/templates
+    title: Available Genie Templates
   thingpedia-snapshot-list:
     url: /thingpedia/snapshots
     title: Thingpedia Snapshots

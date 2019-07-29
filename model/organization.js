@@ -10,6 +10,7 @@
 "use strict";
 
 const db = require('../util/db');
+const { InternalError } = require('../util/errors');
 
 module.exports = {
     get(client, id) {
@@ -19,6 +20,11 @@ module.exports = {
     getByIdHash(client, idHash) {
         return db.selectOne(client, "select * from organizations where id_hash = ?",
                             [idHash]);
+    },
+    async getCredits(client, id) {
+        // lock in exclusive mode so we can check the credit count
+        const row = await db.selectOne(client, "select credits from organizations where id = ? for update", [id]);
+        return row.credits;
     },
 
     getAll(client, start, end) {
@@ -74,5 +80,25 @@ module.exports = {
     },
     delete(client, id) {
         return db.query(client, "delete from organizations where id = ?", [id]);
+    },
+    async updateCredits(client, id, credits) {
+        await db.query(client, `update organizations set credits = credits + (?) where id = ?`, [credits, id]);
+        const row = await db.selectOne(client, `select credits from organizations where id = ?`, [id]);
+        if (row.credits < 0)
+            throw new InternalError('EOVERFLOW', `Credit count became negative`);
+    },
+
+    async getStatistics(client, id) {
+        const rows = await Promise.all([
+            db.selectOne(client, `select count(*) as device_count from device_class where owner = ?`, [id]),
+            db.selectOne(client, `select count(*) as oss_device_count from device_class where license_gplcompatible and owner = ?`, [id]),
+            db.selectOne(client, `select count(*) as approved_device_count from device_class where approved_version is not null and owner = ?`, [id]),
+            db.selectOne(client, `select count(*) as oss_approved_device_count from device_class where license_gplcompatible and approved_version is not null and owner = ?`, [id]),
+            db.selectOne(client, `select count(*) as oss_template_file_count from template_files where public and owner = ?`, [id]),
+        ]);
+
+        const obj = {};
+        Object.assign(obj, ...rows);
+        return obj;
     }
 };

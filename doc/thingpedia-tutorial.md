@@ -26,7 +26,7 @@ The device creation page lives
 [here](https://almond.stanford.edu/thingpedia/upload/create).
 It can be reached from the "Upload a new device" button 
 at the bottom of the [Thingpedia Portal](https://almond.stanford.edu/thingpedia)
-or the [Almond Developer Console](https://almond.stanford.edu/developers).
+or the [Almond Developer Console](https://almond.stanford.edu/developers/devices).
 It looks like this: 
 
 ![screenshot](/images/docs/metadata_page.png)

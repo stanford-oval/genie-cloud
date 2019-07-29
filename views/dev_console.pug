@@ -28,6 +28,19 @@ section.divider
 
   div.panel.panel-primary.developer-org-panel
     div.panel-heading
+      h4.panel-title= _("Statistics")
+
+    div.panel-body
+      p
+        != ngettext("Your organization owns <strong>%d</strong> Thingpedia device.", "Your organization owns <strong>%d</strong> Thingpedia devices.", developer_org_stats.device_count).format(developer_org_stats.device_count)
+        != ngettext(" Of these, <strong>%d</strong> is approved.", " Of these, <strong>%d</strong> are approved.", developer_org_stats.approved_device_count).format(developer_org_stats.approved_device_count)
+
+      p
+        != ngettext("You have <strong>%d</strong> credit.", "You have <strong>%d</strong> credits.", developer_org.credits).format(developer_org.credits)
+        != ngettext(" You will receive <strong>%d</strong> credit on %s.", " You will receive <strong>%d</strong> credits on %s.", credit_update_value).format(credit_update_value, credit_update_time.toLocaleString(user.locale, { timeZone: user.timezone }))
+
+  div.panel.panel-primary.developer-org-panel
+    div.panel-heading
       h4.panel-title= _("Members")
 
     ul.list-group
@@ -103,32 +116,3 @@ section.divider
                 div.modal-footer
                    div.form-group
                       button(type='submit').btn.btn-primary= _("Invite member")
-
-  if Config.WITH_THINGPEDIA === 'embedded'
-    div.panel.panel-default
-      div.panel-heading
-        h4.panel-title= _("Devices")
-
-      if developer_devices.length > 0
-        ul#developer-device-list
-          for dev in developer_devices
-            li
-              span.image
-                img(src=CDN_HOST + '/icons/' + dev.primary_kind + '.png', alt="Icon for " + dev.name).device-icon-tiny
-              a(href='/thingpedia/devices/by-id/' + dev.primary_kind)
-                = dev.name
-              span.action.hidden-xs
-                a.btn.btn-sm.btn-warning(href='/thingpedia/upload/update/' + dev.primary_kind)= _("Update")
-              form(action='/thingpedia/devices/delete/', method='post').form-inline.form-delete-device.hidden-xs
-                input(type='hidden',name='_csrf',value=csrfToken)
-                input(type='hidden',name='kind',value=dev.primary_kind)
-                button(type='submit').btn.btn-sm.btn-danger= _("Delete")
-      else
-        div.panel-body
-          p= _("Your organization does not own any device yet.")
-
-      if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
-        div.panel-footer
-          div.row
-            div.col-sm-6.col-md-4
-              a(href='/thingpedia/upload/create').btn.btn-primary.btn-sm.btn-block= _("Upload a new device")

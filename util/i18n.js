@@ -19,9 +19,12 @@ const Config = require('../config');
 
 function N_(x) { return x; }
 const ALLOWED_LANGUAGES = {
+    'en': N_("English"),
     'en-US': N_("English (United States)"),
     'en-GB': N_("English (United Kingdom)"),
+    'it': N_("Italian"),
     'it-IT': N_("Italian"),
+    'zh': N_("Chinese"),
     'zh-CN': N_("Chinese (Simplified)"),
     'zh-TW': N_("Chinese (Traditional)"),
 };
