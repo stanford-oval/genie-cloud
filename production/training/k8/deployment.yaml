@@ -11,13 +11,27 @@ spec:
     spec:
       containers:
       - name: "training"
-        image: 373474209952.dkr.ecr.us-west-2.amazonaws.com/almond/training:v1.5.1
+        image: 373474209952.dkr.ecr.us-west-2.amazonaws.com/almond/training:v0.4
         imagePullPolicy: Always
         env:
         - name: "PORT"
           value: "9999"
         resources:
           limits:
-            nvidia.com/gpu: 1 # requesting 1 GPU
+              nvidia.com/gpu: 1
         ports:
         - containerPort: 9999
+        volumeMounts:
+        - name: config
+          mountPath: "/etc/almond-cloud"
+          readOnly: true
+        - name: aws
+          mountPath: "/home/almond-training/.aws"
+          readOnly: true
+      volumes:
+      - name: config
+        secret:
+          secretName: almond-config
+      - name: aws
+        secret:
+          secretName: aws-config

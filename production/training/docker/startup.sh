@@ -1,17 +1,9 @@
-set -x
+set -exuo pipefail
 
-onEnd() {
-  kill -SIGTERM "$TOKENIZER_PID"
-  exit 0
-}
+# Download embeddings from s3
+EMBEDDINGS_TAR_FILE=$(basename $S3_DECANLP_EMBEDDINGS)
+aws s3 cp $S3_DECANLP_EMBEDDINGS $EMBEDDINGS_TAR_FILE
+tar -xvzf $EMBEDDINGS_TAR_FILE -C $DECANLP_EMBEDDINGS
+rm -f $EMBEDDINGS_TAR_FILE
 
-# Run tokenizer in background
-cd /home/source/almond-tokenizer
-PORT=8888 LANGUAGES=en ./run.sh &
-TOKENIZER_PID=$!
-trap onEnd SIGTERM SIGINT
-sleep 5
-
-# Run daemon server
-cd /home/workdir
-/usr/bin/node /home/source/almond-cloud/training/daemon.js
+/usr/bin/node /home/almond-training/almond-cloud/training/daemon.js

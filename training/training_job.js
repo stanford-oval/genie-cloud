@@ -225,10 +225,20 @@ async function taskUploading(job) {
     const outputdir = path.resolve(job.jobDir, 'output');
 
     const INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
-    await execCommand(job, 'rsync', ['-rv',
-        path.resolve(outputdir) + '/',
-        INFERENCE_SERVER + `:${modelLangDir}/`
-    ]);
+    if (Config.INFERENCE_DIR) {
+        if (!Config.INFERENCE_DIR.startsWith("s3://"))
+            throw new Error(`Uploading to non-S3 storage (${Config.INFERENCE_DIR}) is not implemented.`);
+        await execCommand(job, 'aws', ['s3',
+            'sync',
+            path.resolve(outputdir) + '/',
+            `${Config.INFERENCE_DIR}/${modelLangDir}/`
+        ]);
+    } else {
+        await execCommand(job, 'rsync', ['-rv',
+            path.resolve(outputdir) + '/',
+            INFERENCE_SERVER + `:${modelLangDir}/`
+        ]);
+    }
 
     for (let what of ['saved-model', 'tensorboard', 'dataset']) {
         const current = path.resolve(`./${what}/${job.modelTag}/${job.language}/current`);
@@ -249,9 +259,13 @@ async function taskUploading(job) {
     fs.symlinkSync(path.resolve(job.jobDir, 'dataset'), path.resolve(`./dataset/${job.modelTag}/${job.language}/current`));
     safeUnlinkSync(path.resolve(`./dataset/${job.modelTag}/${job.language}/in-progress`));
 
-    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.modelTag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
-        dataContentType: 'application/x-www-form-urlencoded'
-    });
+    if (Config.INFERENCE_DIR) {
+        // TODO: update NL_SERVER to sync and reload from INFERENCE_DIR
+    } else {
+        await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.modelTag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
+            dataContentType: 'application/x-www-form-urlencoded'
+        });
+    }
 }
 
 const TASKS = {
