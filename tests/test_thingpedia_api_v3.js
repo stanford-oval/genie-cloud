@@ -792,7 +792,7 @@ async function testGetCommands() {
     }
   ];
 
-    // first test with no cookie: there should be no `liked` field
+    // first test /thingpedia/api/commands/all: there should be no `liked` field
     assert.deepStrictEqual(await request('/commands/all'), {
         result: 'ok',
         data: TEST_DATA.map((command) => {
@@ -803,13 +803,13 @@ async function testGetCommands() {
         })
     });
 
-    // now test with cookie and valid origin
-    assert.deepStrictEqual(await request('/commands/all', {
+    // now test /thingpedia/commands/all with valid cookie
+    assert.deepStrictEqual(JSON.parse(await Tp.Helpers.Http.get(Config.SERVER_ORIGIN + '/thingpedia/commands/all', {
+        accept: 'application/json',
         extraHeaders: {
             'Cookie': process.env.COOKIE,
-            'Origin': Config.SERVER_ORIGIN,
         }
-    }), {
+    })), {
         result: 'ok',
         data: TEST_DATA
     });
