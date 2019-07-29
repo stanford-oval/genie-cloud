@@ -9,22 +9,21 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 const passport = require('passport');
 
-const I18n = require('../../util/i18n');
-const errorHandling = require('../../util/error_handling');
+const I18n = require('../../../util/i18n');
+const errorHandling = require('../../../util/error_handling');
+const userUtils = require('../../../util/user');
 
-const EngineManager = require('../../almond/enginemanagerclient');
+const EngineManager = require('../../../almond/enginemanagerclient');
 
 var router = express.Router();
 
 class AlexaDelegate {
-    constructor(res, slot) {
+    constructor(res) {
         this._buffer = '';
         this._res = res;
-        this._slot = slot;
         this._done = false;
 
         this._askSpecial = null;
@@ -44,12 +43,6 @@ class AlexaDelegate {
                    text: this._buffer // + (this._askSpecial === null ? '. Now what do you want me to do?' : '')
                },
                shouldEndSession: this._askSpecial === null,
-               directives: (this._askSpecial ? [
-                   {
-                       type: 'Dialog.ElicitSlot',
-                       slotToElicit: this._slot
-                   }
-               ] : [])
            }
         });
     }
@@ -99,123 +92,52 @@ function authenticate(req, res, next) {
 }
 
 router.use(authenticate);
-router.use(I18n.handle);
+router.use(I18n.handler);
 
-router.post('/', (req, res, next) => {
+function extractThingTalkCode(req) {
+    if (req.body.request.type === 'SessionEndedRequest')
+        return { program: 'bookkeeping(special(nevermind))' };
+    else if (req.body.request.type === 'LaunchRequest')
+        return { program: 'bookkeeping(special(wakeup))' };
+    else if (req.body.request.type === 'IntentRequest')
+        throw new Error('Invalid request type ' + req.body.request.type);
+
+    const intent = req.body.request.intent;
+
+    switch (intent.name) {
+    case 'AMAZON.StopIntent':
+        return { program: 'bookkeeping(special(nevermind))' };
+
+    case 'ALMOND.org.thingpedia.command':
+        return { text: intent.slots.command };
+
+    default:
+        // TODO look up the intent in the database
+        throw new Error('Invalid intent name ' + intent.name);
+    }
+}
+
+async function handle(req, res) {
     console.log('body', req.body);
 
-    if (req.body.request.type === 'SessionEndedRequest') {
-        res.json({
-            version: '1.0',
-            sessionAttributes: {
-            },
-            response: {
-                outputSpeech: {
-                    type: 'PlainText',
-                    text: "Sorry I couldn't help you with that."
-                },
-                shouldEndSession: true
-            }
-        });
-        return;
-    }
-
-    if (req.body.request.type === 'LaunchRequest') {
-        res.json({
-            version: '1.0',
-            sessionAttributes: {
-            },
-            response: {
-                outputSpeech: {
-                    type: 'PlainText',
-                    text: "Hi, I am Almond. Try \"ask almond to play a song\"."
-                },
-                shouldEndSession: true,
-                /*directives: ([
-                    {
-                        type: 'Dialog.ElicitSlot',
-                        slotToElicit: 'command'
-                    }
-                ])*/
-            }
-       });
-       return;
-    }
-
-    if (req.body.request.intent.name === 'AMAZON.StopIntent') {
-        res.json({
-            version: '1.0',
-            sessionAttributes: {
-            },
-            response: {
-                outputSpeech: {
-                    type: 'PlainText',
-                    text: "Thank you for using Almond, and good bye."
-                },
-                shouldEndSession: true
-            }
-        });
-        return;
-    }
-
-    const user = req.user;
+    const user = userUtils.isAuthenticated(req) ? req.user : (await userUtils.getAnonymousUser());
     const assistantUser = { name: user.human_name || user.username };
-    let text = '';
+    const input = extractThingTalkCode(req);
+    const delegate = new AlexaDelegate(res);
 
-    if (req.body.request.type === 'LaunchRequest') {
-        text = 'hello';
-    } else if (req.body.request.intent.name === 'resume') {
-        text = 'resume';
-    } else if (req.body.request.intent.name === 'skip') {
-        text = 'skip the current song';
-    } else if (req.body.request.intent.name === 'pause') {
-        text = 'pause';
-    } else {
-        text = req.body.request.intent.slots.command ? req.body.request.intent.slots.command.value :
-            (req.body.request.intent.slots.spotify_command ? req.body.request.intent.slots.spotify_command.value : '');
-        text = text.replace('dance boy', 'danceable').replace('dance bowet', 'danceable').replace('decibel day', 'danceability').replace('decibel', 'danceability').replace('danceables', 'danceable');
-        text = text.replace(' temple of ', ' tempo of ').replace(' temp of ', 'tempo of ').replace('with temp ', 'with tempo ').replace('with temple ', 'with tempo ');
-        if (req.body.request.dialogState === 'STARTED' && req.body.request.intent.name !== 'wake_me_up' && req.body.request.intent.name !== 'almondify')
-            text = req.body.request.intent.name + ' ' + text;
-    }
+    const engine = await EngineManager.get().getEngine(user.id);
+    const conversation = await engine.assistant.getOrOpenConversation('alexa:' + req.body.session.sessionId,
+        assistantUser, delegate, { showWelcome: false, debug: true });
 
-    console.log(text);
-    if (!text) {
-        res.json({
-            version: '1.0',
-            sessionAttributes: {
-            },
-            response: {
-                outputSpeech: {
-                    type: 'PlainText',
-                    text: "Hi, I am Almond. How can I help you?"
-                },
-                shouldEndSession: false,
-                directives: ([
-                    {
-                        type: 'Dialog.ElicitSlot',
-                        slotToElicit: 'command'
-                    }
-                ])
-            }
-       });
-       return;
-    }
+    if (input.program)
+        await conversation.handleThingTalk(input.program);
+    else
+        await conversation.handleCommand(input.text);
+    await delegate.flush();
+}
 
-    let slots = req.body.request.intent.slots;
-    let slot = slots? (slots.spotify_command ? 'spotify_command' : 'command') : text;
-    const delegate = new AlexaDelegate(res, slot);
-
-    Q.try(() => {
-        return EngineManager.get().getEngine(req.user.id);
-    }).then((engine) => {
-        return engine.assistant.getOrOpenConversation('alexa:' + req.body.session.sessionId,
-            assistantUser, delegate, { showWelcome: false, debug: true });
-    }).then((conversation) => {
-        return conversation.handleCommand(text);
-    }).then(() => {
-        return delegate.flush();
-    });
+router.post('/', (req, res, next) => {
+    handle(req, res).catch(next);
 });
 
 router.use((req, res) => {
