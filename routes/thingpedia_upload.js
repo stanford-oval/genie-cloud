@@ -153,7 +153,7 @@ async function doCreateOrUpdate(kind, create, req, res) {
             const versionedInfo = {
                 code: classDef.prettyprint(),
                 factory: JSON.stringify(factory),
-                module_type: classDef.loader.module,
+                module_type: classDef.is_abstract ? 'org.thingpedia.abstract' : classDef.loader.module,
                 downloadable: downloadable
             };
 
