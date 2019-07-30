@@ -17,7 +17,7 @@ function createMany(client, examples) {
         return Promise.resolve();
 
     const KEYS = ['id', 'schema_id', 'is_base', 'flags', 'language', 'utterance', 'preprocessed',
-                  'target_json', 'target_code', 'type', 'click_count', 'like_count', 'owner'];
+                  'target_json', 'target_code', 'type', 'click_count', 'like_count', 'owner', 'name'];
     const arrays = [];
     examples.forEach((ex) => {
         if (!ex.type)
@@ -162,13 +162,13 @@ module.exports = {
     getBaseByLanguage(client, org, language) {
         if (org === -1) { // admin
             return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,
-                eu.click_count,eu.like_count from example_utterances eu
+                eu.click_count,eu.like_count,eu.name from example_utterances eu
                 where eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
                 order by id asc`,
                 [language]);
         } else if (org !== null) {
             return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,
-                eu.click_count,eu.like_count from example_utterances eu, device_schema ds
+                eu.click_count,eu.like_count,eu.name from example_utterances eu, device_schema ds
                 where eu.schema_id = ds.id and
                 eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
                 and (ds.approved_version is not null or ds.owner = ?)
@@ -176,7 +176,7 @@ module.exports = {
                 [language, org]);
         } else {
             return db.selectAll(client, `select eu.id,eu.utterance,eu.preprocessed,eu.target_code,
-                eu.click_count,eu.like_count from example_utterances eu, device_schema ds
+                eu.click_count,eu.like_count,eu.name from example_utterances eu, device_schema ds
                 where eu.schema_id = ds.id and eu.is_base = 1 and eu.type = 'thingpedia' and language = ?
                 and ds.approved_version is not null
                 order by id asc`,
@@ -189,50 +189,53 @@ module.exports = {
         if (org === -1) { // admin
             return db.selectAll(client,
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and preprocessed rlike (?) and target_code <> '')
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and match kind_canonical against (?) and target_code <> '')
+                order by id asc
                limit 50`,
             [language, regexp, language, key]);
         } else if (org !== null) {
             return db.selectAll(client,
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and preprocessed rlike (?) and target_code <> ''
                 and (ds.approved_version is not null or ds.owner = ?))
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and match kind_canonical against (?) and target_code <> ''
                 and (ds.approved_version is not null or ds.owner = ?))
+                order by id asc
                limit 50`,
             [language, regexp, org, language, key, org]);
         } else {
             return db.selectAll(client,
               `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and preprocessed rlike (?) and target_code <> ''
                 and ds.approved_version is not null)
                union distinct
                (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                 device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                 and eu.type = 'thingpedia' and language = ?
                 and match kind_canonical against (?) and target_code <> ''
                 and ds.approved_version is not null)
+                order by id asc
                limit 50`,
             [language, regexp, language, key]);
         }
@@ -242,52 +245,55 @@ module.exports = {
         if (org === -1) { // admin
             return db.selectAll(client,
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                  eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                  eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                   and eu.type = 'thingpedia' and language = ?
                   and ds.kind in (?) and target_code <> '')
                 union distinct
                 (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                 eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                 eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
                  and not dck.is_child and dc.primary_kind in (?) and language = ?
-                 and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1)`,
+                 and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1)
+                 order by id asc`,
                 [language, kinds, kinds, language]);
         } else if (org !== null) {
             return db.selectAll(client,
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                  eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                  eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                   and eu.type = 'thingpedia' and language = ?
                   and ds.kind in (?) and target_code <> ''
                   and (ds.approved_version is not null or ds.owner = ?))
                 union distinct
                 (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                 eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                 eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
                  and not dck.is_child and dc.primary_kind in (?) and language = ?
                  and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1
                  and (ds.approved_version is not null or ds.owner = ?)
-                 and (dc.approved_version is not null or dc.owner = ?))`,
+                 and (dc.approved_version is not null or dc.owner = ?))
+                 order by id asc`,
                 [language, kinds, org, kinds, language, org, org]);
         } else {
             return db.selectAll(client,
                 `(select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                  eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                  eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                   device_schema ds where eu.schema_id = ds.id and eu.is_base = 1
                   and eu.type = 'thingpedia' and language = ?
                   and ds.kind in (?) and target_code <> ''
                   and ds.approved_version is not null)
                 union distinct
                 (select eu.id,eu.language,eu.type,eu.utterance,eu.preprocessed,
-                 eu.target_code,eu.click_count,eu.like_count from example_utterances eu,
+                 eu.target_code,eu.click_count,eu.like_count,eu.name from example_utterances eu,
                  device_schema ds, device_class dc, device_class_kind dck where
                  eu.schema_id = ds.id and ds.kind = dck.kind and dck.device_id = dc.id
                  and not dck.is_child and dc.primary_kind in (?) and language = ?
                  and target_code <> '' and eu.type = 'thingpedia' and eu.is_base = 1
-                 and ds.approved_version is not null and dc.approved_version is not null)`,
+                 and ds.approved_version is not null and dc.approved_version is not null)
+                 order by id asc`,
                 [language, kinds, kinds, language]);
         }
     },
@@ -365,6 +371,13 @@ module.exports = {
              and not find_in_set('augmented', flags) order by id desc limit ?,?`,
             [language, type, start, end]);
     },
+
+    getByIntentName(client, language, kind, name) {
+        return db.selectOne(client, `select ex.* from example_utterances ex, device_schema ds
+            where ds.id = ex.schema_id and ds.kind = ? and ex.language = ? and ex.name = ?`,
+            [language, kind, name]);
+    },
+
     getExact(client, language) {
         return db.selectAll(client, `select preprocessed,target_code from example_utterances use index (language_flags)
             where language = ? and find_in_set('exact', flags) and not is_base and preprocessed <> ''

@@ -373,11 +373,13 @@ CREATE TABLE `example_utterances` (
   `click_count` int(11) NOT NULL DEFAULT 0,
   `like_count` int(11) NOT NULL DEFAULT 0,
   `owner` int(11) DEFAULT NULL,
+  `name` varchar(128) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `schema_id` (`schema_id`),
   KEY `language_type` (`language`,`type`),
   KEY `language_flags` (`language`,`flags`),
   KEY `owner` (`owner`),
+  UNIQUE KEY `intent_name` (`language`, `schema_id`, `name`),
   CONSTRAINT `example_utterances_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `example_utterances_ibfk_2` FOREIGN KEY (`owner`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

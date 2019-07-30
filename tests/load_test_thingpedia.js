@@ -147,7 +147,8 @@ async function loadExamples(dbClient, bob) {
         target_code: 'let action x := @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
         click_count: 0,
-        flags: 'template'
+        flags: 'template',
+        name: 'EatData',
     },
     {
         id: 1001,
@@ -160,7 +161,8 @@ async function loadExamples(dbClient, bob) {
         target_code: 'let query x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);',
         type: 'thingpedia',
         click_count: 7,
-        flags: 'template'
+        flags: 'template',
+        name: 'GenDataWithSize',
     },
     {
         id: 1002,
@@ -173,7 +175,8 @@ async function loadExamples(dbClient, bob) {
         target_code: 'monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
         click_count: 0,
-        flags: 'template'
+        flags: 'template',
+        name: 'GenDataThenEatData',
     },
     {
         id: 1003,
@@ -186,7 +189,8 @@ async function loadExamples(dbClient, bob) {
         target_code: 'program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
         click_count: 0,
-        flags: 'template'
+        flags: 'template',
+        name: null,
     },
     {
         id: 1004,
@@ -196,10 +200,11 @@ async function loadExamples(dbClient, bob) {
         utterance: 'more data eating...',
         preprocessed: 'more data eating ...',
         target_json: '',
-        target_code: 'action () := @org.thingpedia.builtin.test.eat_data();',
+        target_code: 'action  := @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
         click_count: 0,
-        flags: 'template'
+        flags: 'template',
+        name: null,
     },
     {
         id: 1005,
@@ -212,9 +217,11 @@ async function loadExamples(dbClient, bob) {
         target_code: 'let table _ := @org.thingpedia.builtin.test.get_data();',
         type: 'thingpedia',
         click_count: 0,
-        flags: 'template'
+        flags: 'template',
+        name: 'GenData'
     },
 
+    // online
     {
         id: 1006,
         schema_id: null,
@@ -226,7 +233,7 @@ async function loadExamples(dbClient, bob) {
         target_code: 'now => @org.thingpedia.builtin.thingengine.phone.call param:number:Entity(tt:phone_number) = USERNAME_0',
         type: 'online',
         click_count: 0,
-        flags: 'training,exact'
+        flags: 'training,exact',
     },
     {
         id: 1007,

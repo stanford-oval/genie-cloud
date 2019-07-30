@@ -24,4 +24,5 @@ seq([
     ('./test_edit_distance'),
     ('./test_exact_matcher'),
     ('./test_nlp_compat'),
+    ('./test_example_names')
 ]);

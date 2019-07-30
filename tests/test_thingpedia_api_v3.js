@@ -570,25 +570,25 @@ async function testGetExamplesByDevice() {
 
     assert.deepStrictEqual((await ttRequest('/examples/by-kinds/org.thingpedia.builtin.test')).trim(), `dataset @org.thingpedia.dynamic.by_kinds.org_thingpedia_builtin_test language "en" {
     action  := @org.thingpedia.builtin.test.eat_data()
-    #_[utterances=["eat some data"]]
-    #_[preprocessed=["eat some data"]]
-    #[id=1000] #[click_count=0] #[like_count=0];
+    #_[utterances=["eat some data","more data eating..."]]
+    #_[preprocessed=["eat some data","more data eating ..."]]
+    #[id=1000] #[click_count=0] #[like_count=0]
+    #[name="EatData"];
     query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
     #_[utterances=["get ${'${p_size}'} of data"]]
     #_[preprocessed=["get ${'${p_size}'} of data"]]
-    #[id=1001] #[click_count=7] #[like_count=0];
+    #[id=1001] #[click_count=7] #[like_count=0]
+    #[name="GenDataWithSize"];
     program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["keep eating data!","keep eating data! (v2)"]]
     #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
-    #[id=1002] #[click_count=0] #[like_count=0];
-    action () := @org.thingpedia.builtin.test.eat_data()
-    #_[utterances=["more data eating..."]]
-    #_[preprocessed=["more data eating ..."]]
-    #[id=1004] #[click_count=0] #[like_count=0];
+    #[id=1002] #[click_count=0] #[like_count=0]
+    #[name="GenDataThenEatData"];
     query  := @org.thingpedia.builtin.test.get_data()
     #_[utterances=["more data genning..."]]
     #_[preprocessed=["more data genning ..."]]
-    #[id=1005] #[click_count=0] #[like_count=0];
+    #[id=1005] #[click_count=0] #[like_count=0]
+    #[name="GenData"];
 }`);
 }
 
@@ -609,25 +609,25 @@ async function testGetExamplesByKey() {
 
     assert.deepStrictEqual(await ttRequest('/examples/search?q=data'), `dataset @org.thingpedia.dynamic.by_key.data language "en" {
     action  := @org.thingpedia.builtin.test.eat_data()
-    #_[utterances=["eat some data"]]
-    #_[preprocessed=["eat some data"]]
-    #[id=1000] #[click_count=0] #[like_count=0];
+    #_[utterances=["eat some data","more data eating..."]]
+    #_[preprocessed=["eat some data","more data eating ..."]]
+    #[id=1000] #[click_count=0] #[like_count=0]
+    #[name="EatData"];
     query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
     #_[utterances=["get ${'${p_size}'} of data"]]
     #_[preprocessed=["get ${'${p_size}'} of data"]]
-    #[id=1001] #[click_count=7] #[like_count=0];
+    #[id=1001] #[click_count=7] #[like_count=0]
+    #[name="GenDataWithSize"];
     program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["keep eating data!","keep eating data! (v2)"]]
     #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
-    #[id=1002] #[click_count=0] #[like_count=0];
-    action () := @org.thingpedia.builtin.test.eat_data()
-    #_[utterances=["more data eating..."]]
-    #_[preprocessed=["more data eating ..."]]
-    #[id=1004] #[click_count=0] #[like_count=0];
+    #[id=1002] #[click_count=0] #[like_count=0]
+    #[name="GenDataThenEatData"];
     query  := @org.thingpedia.builtin.test.get_data()
     #_[utterances=["more data genning..."]]
     #_[preprocessed=["more data genning ..."]]
-    #[id=1005] #[click_count=0] #[like_count=0];
+    #[id=1005] #[click_count=0] #[like_count=0]
+    #[name="GenData"];
 }`);
 }
 
