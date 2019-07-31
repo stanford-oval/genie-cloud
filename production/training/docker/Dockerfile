@@ -84,9 +84,8 @@ RUN pip3 install --user "git+https://github.com/stanford-oval/decaNLP.git@${DECA
 WORKDIR /home/almond-training
 RUN git clone --branch=${ALMOND_CLOUD_VERSION} https://github.com/stanford-oval/almond-cloud.git
 WORKDIR /home/almond-training/almond-cloud/
+ENV X=1
 RUN yarn install
-WORKDIR /home/almond-training/almond-cloud/sandbox
-RUN make
 
 WORKDIR /var/lib/almond-training
 # embeddings will be downloaded form S3 at startup to reduce the size of this image.
