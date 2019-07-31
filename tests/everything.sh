@@ -5,6 +5,9 @@ set -x
 
 srcdir=`dirname $0`/..
 
+TZ="America/Los_Angeles"
+export TZ
+
 # build tests
 $srcdir/tests/check-migrations.sh
 
