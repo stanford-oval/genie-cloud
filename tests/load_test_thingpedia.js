@@ -25,6 +25,7 @@ const organization = require('../model/organization');
 const entityModel = require('../model/entity');
 const exampleModel = require('../model/example');
 const snapshotModel = require('../model/snapshot');
+const alexaModelsModel = require('../model/alexa_model');
 
 const user = require('../util/user');
 const Importer = require('../util/import_device');
@@ -254,6 +255,16 @@ async function loadExamples(dbClient, bob) {
     await exampleModel.like(dbClient, bob.id, 999);
 }
 
+async function loadAlexaModel(dbClient, bob) {
+    await alexaModelsModel.create(dbClient, {
+        language: 'en',
+        tag: 'org.thingpedia.alexa.test',
+        owner: bob.developer_org,
+        access_token: null,
+        anonymous_user: bob.id
+    });
+}
+
 async function main() {
     platform.init();
 
@@ -296,6 +307,7 @@ async function main() {
         await loadEntityValues(dbClient);
         await loadStringValues(dbClient);
         await loadExamples(dbClient, bob);
+        await loadAlexaModel(dbClient, bob);
 
         console.log(`export DEVELOPER_KEY="${newOrg.developer_key}" ROOT_DEVELOPER_KEY="${root.developer_key}"`);
     });

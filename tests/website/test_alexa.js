@@ -21,12 +21,12 @@ async function getAccessToken(session) {
     })).token;
 }
 
-function makeAlexaRequest(accessToken, request) {
+function makeAlexaRequest(session, accessToken, request) {
     return JSON.stringify({
         version: "1.0",
         session: {
             new: true,
-            sessionId: "amzn1.echo-api.session.123456789",
+            sessionId: "amzn1.echo-api.session." + session,
             application: {
                 applicationId: "amzn1.ask.skill.123456789"
             },
@@ -46,9 +46,8 @@ function makeAlexaRequest(accessToken, request) {
 }
 
 async function testAlexa(accessToken) {
-    const auth = 'Bearer ' + accessToken;
-
-    const response = JSON.parse(await request('/me/api/alexa', 'POST', makeAlexaRequest(accessToken, {
+    const session1 = '1';
+    const response = JSON.parse(await request('/me/api/alexa', 'POST', makeAlexaRequest(session1, accessToken, {
         type: 'IntentRequest',
         requestId: '123456789',
         timestamp: '2019-07-31T19:20:29.876Z',
@@ -62,7 +61,6 @@ async function testAlexa(accessToken) {
 
     }), {
         dataContentType: 'application/json',
-        auth
     }));
     assert.deepStrictEqual(response, {
        response: {
@@ -76,7 +74,7 @@ async function testAlexa(accessToken) {
        version: '1.0'
      });
 
-     const response2 = JSON.parse(await request('/me/api/alexa', 'POST', makeAlexaRequest(accessToken, {
+     const response2 = JSON.parse(await request('/me/api/alexa', 'POST', makeAlexaRequest(session1, accessToken, {
         type: 'IntentRequest',
         requestId: '123456789',
         timestamp: '2019-07-31T19:20:29.876Z',
@@ -90,7 +88,6 @@ async function testAlexa(accessToken) {
 
     }), {
         dataContentType: 'application/json',
-        auth
     }));
     assert.deepStrictEqual(response2, {
        response: {
@@ -102,9 +99,9 @@ async function testAlexa(accessToken) {
        },
        sessionAttributes: {},
        version: '1.0'
-     });
+    });
 
-     const response3 = JSON.parse(await request('/me/api/alexa', 'POST', makeAlexaRequest(accessToken, {
+    const response3 = JSON.parse(await request('/me/api/alexa', 'POST', makeAlexaRequest(session1, accessToken, {
         type: 'IntentRequest',
         requestId: '123456789',
         timestamp: '2019-07-31T19:20:29.876Z',
@@ -124,7 +121,6 @@ async function testAlexa(accessToken) {
 
     }), {
         dataContentType: 'application/json',
-        auth
     }));
     assert.deepStrictEqual(response3, {
        response: {
@@ -136,7 +132,66 @@ async function testAlexa(accessToken) {
        },
        sessionAttributes: {},
        version: '1.0'
-     });
+    });
+
+    const session2 = '2';
+    const response4 = JSON.parse(await request('/me/api/alexa/@org.thingpedia.alexa.test', 'POST', makeAlexaRequest(session2, accessToken, {
+        type: 'IntentRequest',
+        requestId: '123456789',
+        timestamp: '2019-07-31T19:20:29.876Z',
+        dialogState: 'STARTED',
+        locale: 'en-US',
+        intent: {
+            name: 'org.thingpedia.builtin.thingengine.builtin.OpenUrl',
+            confirmationStatus: 'NONE',
+            slots: {}
+        }
+
+    }), {
+        dataContentType: 'application/json',
+    }));
+    assert.deepStrictEqual(response4, {
+       response: {
+         outputSpeech: {
+           text: 'What URL do you want to open?\n',
+           type: 'PlainText'
+         },
+         shouldEndSession: false
+       },
+       sessionAttributes: {},
+       version: '1.0'
+    });
+
+    const session3 = '3';
+    const response5 = JSON.parse(await request('/me/api/alexa/@org.thingpedia.alexa.test', 'POST', makeAlexaRequest(session3, null, {
+        type: 'IntentRequest',
+        requestId: '123456789',
+        timestamp: '2019-07-31T19:20:29.876Z',
+        dialogState: 'STARTED',
+        locale: 'en-US',
+        intent: {
+            name: 'org.thingpedia.builtin.thingengine.builtin.MonitorCurrentLocation',
+            confirmationStatus: 'NONE',
+            slots: {}
+        }
+
+    }), {
+        dataContentType: 'application/json',
+    }));
+    assert.deepStrictEqual(response5, {
+       response: {
+         outputSpeech: {
+           text: 'This user is a demo only, and cannot enable long-running commands. To execute this command, you must register an account for yourself.\n',
+           type: 'PlainText'
+         },
+         card: {
+            type: 'LinkAccount',
+         },
+         shouldEndSession: true
+       },
+       sessionAttributes: {},
+       version: '1.0'
+    });
 }
 
 async function main() {

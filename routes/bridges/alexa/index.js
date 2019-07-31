@@ -14,6 +14,10 @@ const passport = require('passport');
 
 const errorHandling = require('../../../util/error_handling');
 const userUtils = require('../../../util/user');
+const userModel = require('../../../model/user');
+const alexaModelsModel = require('../../../model/alexa_model');
+const I18n = require('../../../util/i18n');
+const db = require('../../../util/db');
 
 const EngineManager = require('../../../almond/enginemanagerclient');
 
@@ -103,17 +107,40 @@ function authenticate(req, res, next) {
 router.use(authenticate);
 router.use(userUtils.requireScope('user-exec-command'));
 
-async function handle(req, res) {
+async function handle(modelTag, req, res) {
     console.log('body', req.body);
 
-    const user = userUtils.isAuthenticated(req) ? req.user : (await userUtils.getAnonymousUser());
-    const assistantUser = { name: user.human_name || user.username };
-    const input = await requestToThingTalk(user.locale, req.body);
+    const language = I18n.localeToLanguage(req.body.locale);
+    const [user, anonymous, input] = await db.withTransaction(async (dbClient) => {
+        let alexaModel = null;
+        if (modelTag !== null)
+            alexaModel = await alexaModelsModel.getByTag(dbClient, language, modelTag);
+
+        let user, anonymous;
+        if (userUtils.isAuthenticated(req)) {
+            user = req.user;
+            anonymous = false;
+        } else if (alexaModel !== null) {
+            user = await userModel.get(dbClient, alexaModel.anonymous_user);
+            anonymous = true;
+        } else {
+            user = await userUtils.getAnonymousUser();
+            anonymous = true;
+        }
+
+        const input = await requestToThingTalk(dbClient, user.locale, req.body);
+
+        console.log(user.username, anonymous);
+        return [user, anonymous, input];
+    });
+
     const delegate = new AlexaDelegate(user.locale, res);
 
+     // "isOwner" is a multi-user assistant thing, it has nothing to do with anonymous or not
+    const assistantUser = { name: user.human_name || user.username, isOwner: true };
     const engine = await EngineManager.get().getEngine(user.id);
     const conversation = await engine.assistant.getOrOpenConversation('alexa:' + req.body.session.sessionId,
-        assistantUser, delegate, { showWelcome: false, debug: true });
+        assistantUser, delegate, { anonymous, showWelcome: false, debug: true });
 
     if (input.program)
         await conversation.handleThingTalk(input.program);
@@ -125,7 +152,11 @@ async function handle(req, res) {
 }
 
 router.post('/', (req, res, next) => {
-    handle(req, res).catch(next);
+    handle(null, req, res).catch(next);
+});
+
+router.post('/@:model_tag', (req, res, next) => {
+    handle(req.params.model_tag, req, res).catch(next);
 });
 
 router.use((req, res) => {

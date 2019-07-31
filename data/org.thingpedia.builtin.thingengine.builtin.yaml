@@ -12,7 +12,7 @@ class: |
                               out altitude: Measure(m) #_[canonical="altitude"],
                               out bearing: Number #_[canonical="bearing"],
                               out speed: Measure(mps) #_[canonical="speed"])
-    #_[canonical="get current location on phone"]
+    #_[canonical="current location"]
     #_[confirmation="your location"]
     #_[confirmation_remote="$__person's location"]
     #_[formatted=[{type="text",text="Current Location: ${location}"}]]

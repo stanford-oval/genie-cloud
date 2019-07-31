@@ -13,7 +13,6 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 
 const I18n = require('../../../util/i18n');
-const db = require('../../../util/db');
 const exampleModel = require('../../../model/example');
 
 function parseDate(form) {
@@ -149,20 +148,18 @@ function applySlotsToProgram(locale, exampleCode, alexaSlots) {
     return program.prettyprint();
 }
 
-async function getIntentFromDB(locale, intent, alexaSlots) {
+async function getIntentFromDB(dbClient, locale, intent, alexaSlots) {
     const language = I18n.localeToLanguage(locale);
 
     const dot = intent.lastIndexOf('.');
     const device = intent.substring(0, dot);
     const name = intent.substring(dot+1);
 
-    return db.withTransaction(async (dbClient) => {
-        const row = await exampleModel.getByIntentName(dbClient, language, device, name);
-        return { program: applySlotsToProgram(locale, row.target_code, alexaSlots) };
-    });
+    const row = await exampleModel.getByIntentName(dbClient, language, device, name);
+    return { program: applySlotsToProgram(locale, row.target_code, alexaSlots) };
 }
 
-async function requestToThingTalk(locale, body) {
+async function requestToThingTalk(dbClient, locale, body) {
     if (body.request.type === 'SessionEndedRequest')
         return { program: 'bookkeeping(special(nevermind))' };
     else if (body.request.type === 'LaunchRequest')
@@ -180,7 +177,7 @@ async function requestToThingTalk(locale, body) {
         return { text: intent.slots.command };
 
     default:
-        return getIntentFromDB(locale, intent.name, intent.slots);
+        return getIntentFromDB(dbClient, locale, intent.name, intent.slots);
     }
 }
 
