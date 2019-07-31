@@ -20,12 +20,13 @@
     "update-po": "./scripts/update-po.sh",
     "lint": "eslint almond/ browser/ model/ routes/ util/ stanford/ training/ nlp/ scripts/ config.js frontend.js",
     "test": "nyc ./tests/everything.sh",
-    "prepare": "(cd node_modules/thingtalk ; yarn ) ; make prepare",
+    "prepare": "(cd node_modules/thingtalk; yarn); (cd node_modules/genie-toolkit; yarn; rm -fr node_modules); make prepare",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "install": "make install"
   },
   "resolutions": {
-    "thingtalk": "github:stanford-oval/thingtalk"
+    "thingtalk": "github:stanford-oval/thingtalk",
+    "genie-toolkit": "github:stanford-oval/genie-toolkit"
   },
   "dependencies": {
     "accept-language": "^3.0.18",
@@ -49,7 +50,7 @@
     "express-session": "^1.14.0",
     "express-ws": "^4.0.0",
     "express-xml-bodyparser": "^0.3.0",
-    "genie-toolkit": "~0.3.1",
+    "genie-toolkit": "github:stanford-oval/genie-toolkit",
     "gettext-parser": "^4.0.0",
     "gm": "^1.23.1",
     "highlight.js": "^9.13.1",
