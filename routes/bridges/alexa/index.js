@@ -101,6 +101,7 @@ function authenticate(req, res, next) {
 }
 
 router.use(authenticate);
+router.use(userUtils.requireScope('user-exec-command'));
 
 async function handle(req, res) {
     console.log('body', req.body);
