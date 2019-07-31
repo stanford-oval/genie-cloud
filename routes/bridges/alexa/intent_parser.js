@@ -15,42 +15,65 @@ const Ast = ThingTalk.Ast;
 const I18n = require('../../../util/i18n');
 const db = require('../../../util/db');
 const exampleModel = require('../../../model/example');
-const TokenizerService = require('../../../util/tokenizer_service');
-const resolveLocation = require('../../../util/location-linking');
 
 const ThingpediaClient = require('../../../util/thingpedia-client');
 
 function parseDate(form) {
-    if (form instanceof Date)
-        return form;
+    let match = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(form);
+    if (match !== null) {
+        const [, year, month, day] = match;
+        return new Date(parseInt(year), parseInt(month)-1, parseInt(day));
+    }
 
-    let now = new Date;
-    let year = form.year;
-    if (year < 0 || year === undefined)
-        year = now.getFullYear();
-    let month = form.month;
-    if (month < 0 || month === undefined)
-        month = now.getMonth() + 1;
-    let day = form.day;
-    if (day < 0 || day === undefined)
-        day = now.getDate();
-    let hour = form.hour;
-    if (hour < 0 || hour === undefined)
-        hour = 0;
-    let minute = form.minute;
-    if (minute < 0 || minute === undefined)
-        minute = 0;
-    let second = form.second;
-    if (second < 0 || second === undefined)
-        second = 0;
-    let millisecond = (second - Math.floor(second))*1000;
-    second = Math.floor(second);
+    match = /^([0-9]{4})-W([0-9]{1,2})(-WE)?$/.exec(form);
+    if (match !== null) // FIXME
+        throw new Error(`week numbers and week dates are not implemented`);
 
-    return new Date(year, month-1, day, hour, minute, second, millisecond);
+    match = /^([0-9]{4})-([0-9]{2})(-XX)?$/.exec(form);
+    if (match !== null) {
+        const [, year, month] = match;
+        return new Date(parseInt(year), parseInt(month)-1, 1);
+    }
+
+    match = /^([0-9]{4})(-XX-XX)?$/.exec(form);
+    if (match !== null) {
+        const [, year] = match;
+        return new Date(parseInt(year), 0, 1);
+    }
+
+    throw new Error(`unsupported date value ${form}`);
 }
 
-// Alexa's builtin entity resolution/linking is a total joke
-// so we need to emulate pretty much everything here...
+function parseDuration(form) {
+    const match = /^P([0-9]+Y)?([0-9]+M)?([0-9]+D)?T?([0-9]+H)?([0-9]+M)?([0-9]+S)?/.exec(form);
+
+    const [, year, month, day, hour, minute, second] = match;
+
+    const measures = [];
+    if (year)
+        measures.push(new Ast.Value.Measure(parseInt(year), 'year'));
+    if (month)
+        measures.push(new Ast.Value.Measure(parseInt(month), 'mon'));
+    if (day)
+        measures.push(new Ast.Value.Measure(parseInt(day), 'day'));
+    if (hour)
+        measures.push(new Ast.Value.Measure(parseInt(hour), 'hour'));
+    if (minute)
+        measures.push(new Ast.Value.Measure(parseInt(minute), 'min'));
+    if (second)
+        measures.push(new Ast.Value.Measure(parseInt(second), 's'));
+
+    if (measures.length === 0)
+        throw new Error(`invalid duration value ${form}`);
+
+    if (measures.length > 1)
+        return new Ast.Value.CompoundMeasure(measures);
+    else
+        return measures[0];
+}
+
+// Alexa's builtin entity resolution/linking is very limited
+// so we need to emulate a couple things here...
 async function alexaSlotsToEntities(language, slotNames, slotTypes, alexaSlots) {
     const entities = {};
 
@@ -71,73 +94,53 @@ async function alexaSlotsToEntities(language, slotNames, slotTypes, alexaSlots) 
                 continue;
             }
             entities[entityName] =
-                new Ast.Value.Boolean(resolutions[0].values[0].value.id === 'true');
+                new Ast.Value.Boolean(resolutions.values[0].value.id === 'true');
         } else if (type.isString) {
             entities[entityName] =
                 new Ast.Value.String(alexaSlot.value);
-        } else if (type.isNumber || type.isMeasure) {
-            const tokenized = await TokenizerService.tokenize(language, alexaSlot.value);
+        } else if (type.isEntity) {
+            switch (type.type) {
+            case 'tt:url':
+            case 'tt:picture':
+            case 'tt:hashtag':
+            case 'tt:username':
+                entities[entityName] =
+                    new Ast.Value.Entity(alexaSlot.value, type.type, null);
+                break;
+            case 'tt:phone_number':
+            case 'tt:email_address':
+            case 'tt:contact':
+                // assume that phone/emails have to be resolved against the user's contact book
+                // so map these to a username
+                entities[entityName] =
+                    new Ast.Value.Entity(alexaSlot.value, 'tt:username', null);
+                break;
 
-            if (type.isNumber) {
-                if (!('NUMBER_0' in tokenized.entities)) {
-                    entities[entityName] = undefined;
-                    continue;
-                }
-                entities[entityName] = new Ast.Value.Number(tokenized.entities.NUMBER_0);
-            } else {
-                // guess the unit, hope for the best...
-                let unit = undefined;
-                for (let i = 0; i < tokenized.tokens.length-1; i++) {
-                    if (tokenized.tokens[i] === 'NUMBER_0') {
-                        unit = tokenized.tokens[i+1];
-                        break;
-                    }
-                }
-                if (unit === undefined) {
-                    entities[entityName] = undefined;
-                    continue;
-                }
-                entities[entityName] = new Ast.Value.Measure(tokenized.entities.NUMBER_0, unit);
+            default:
+                // everything else goes through entity resolution in the dialog agent
+                entities[entityName] =
+                    new Ast.Value.Entity(null, type.type, alexaSlot.value);
+                break;
             }
+        } else if (type.isNumber) {
+            // the number comes normalized from Alexa
+            entities[entityName] = new Ast.Value.Number(parseFloat(alexaSlot.value));
+        } else if (type.isMeasure && type.unit === 'ms') {
+            entities[entityName] = parseDuration(alexaSlot.value);
         } else if (type.isEnum) {
             const resolutions = alexaSlot.resolutions.resolutionsPerAuthority[0];
             if (!resolutions || resolutions.length === 0) {
                 entities[entityName] = undefined;
                 continue;
             }
-            entities[entityName] = new Ast.Value.Enum(resolutions[0].values[0].value.id);
+            entities[entityName] = new Ast.Value.Enum(resolutions.values[0].value.id);
         } else if (type.isTime) {
-            const tokenized = await TokenizerService.tokenize(language, alexaSlot.value);
-            if (!('TIME_0' in tokenized.entities)) {
-                entities[entityName] = undefined;
-                continue;
-            }
-            const time = tokenized.entities.TIME_0;
-            entities[entityName] = new Ast.Value.Time(time.hour, time.minute, time.second||0);
-        } else if (type.isCurrency) {
-            const tokenized = await TokenizerService.tokenize(language, alexaSlot.value);
-            if (!('CURRENCY_0' in tokenized.entities)) {
-                entities[entityName] = undefined;
-                continue;
-            }
-            const value = tokenized.entities.CURRENCY_0;
-            entities[entityName] = new Ast.Value.Currency(value.value, value.unit);
+            const [, hour, minute, second] = /^([0-9]{2}):([0-9]{2})(?::([0-9]{2}))?$/.exec(alexaSlot.value);
+            entities[entityName] = new Ast.Value.Time(parseInt(hour), parseInt(minute), parseInt(second)||0);
         } else if (type.isDate) {
-            const tokenized = await TokenizerService.tokenize(language, alexaSlot.value);
-            if (!('DATE_0' in tokenized.entities)) {
-                entities[entityName] = undefined;
-                continue;
-            }
-            entities[entityName] = new Ast.Value.Date(parseDate(tokenized.entities.DATE_0, '+', null));
+            entities[entityName] = new Ast.Value.Date(parseDate(alexaSlot.value), '+', null);
         } else if (type.isLocation) {
-            const locations = (await resolveLocation(language, alexaSlot.value))
-                // ignore locations larger than a city
-                .filter((c) => c.rank <= 16);
-
-            if (locations.length > 0)
-                entities[entityName] = new Ast.Value.Location(new Ast.Location.Absolute(locations[0].latitude, locations[0].latitude, locations[0].display));
-            else
-                entities[entityName] = undefined;
+            entities[entityName] = new Ast.Value.Location(new Ast.Location.Unresolved(alexaSlot.value));
         } else {
             throw new Error(`Unsupported slot type ${type}`);
         }
