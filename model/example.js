@@ -375,7 +375,7 @@ module.exports = {
     getByIntentName(client, language, kind, name) {
         return db.selectOne(client, `select ex.* from example_utterances ex, device_schema ds
             where ds.id = ex.schema_id and ds.kind = ? and ex.language = ? and ex.name = ?`,
-            [language, kind, name]);
+            [kind, language, name]);
     },
 
     getExact(client, language) {
