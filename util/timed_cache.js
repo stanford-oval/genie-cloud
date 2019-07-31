@@ -77,7 +77,7 @@ module.exports = class TimedCache {
             if (timeout !== null) {
                 existing.timeout = setTimeout(() => {
                     this.delete(key);
-                });
+                }, timeout);
             } else {
                 existing.timeout = null;
             }
@@ -88,7 +88,7 @@ module.exports = class TimedCache {
 
                 timeout: timeout !== null ? setTimeout(() => {
                     this.delete(key);
-                }) : null,
+                }, timeout) : null,
             });
         }
         return this;

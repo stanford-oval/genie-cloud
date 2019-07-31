@@ -108,8 +108,8 @@ async function handle(req, res) {
 
     const user = userUtils.isAuthenticated(req) ? req.user : (await userUtils.getAnonymousUser());
     const assistantUser = { name: user.human_name || user.username };
-    const input = await requestToThingTalk(user.developer_key, user.locale, req.body);
-    const delegate = new AlexaDelegate(res);
+    const input = await requestToThingTalk(user.locale, req.body);
+    const delegate = new AlexaDelegate(user.locale, res);
 
     const engine = await EngineManager.get().getEngine(user.id);
     const conversation = await engine.assistant.getOrOpenConversation('alexa:' + req.body.session.sessionId,
@@ -125,7 +125,7 @@ async function handle(req, res) {
 }
 
 router.post('/', (req, res, next) => {
-    handle(null, req, res).catch(next);
+    handle(req, res).catch(next);
 });
 
 router.use((req, res) => {

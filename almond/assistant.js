@@ -76,7 +76,6 @@ module.exports = class Assistant extends events.EventEmitter {
     }
 
     _freeConversation(conv) {
-        conv.$free();
         if (conv === this._lastConversation)
             this._lastConversation = null;
     }

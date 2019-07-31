@@ -126,26 +126,31 @@ dataset: |
       #_[utterances=["the commands in $p_device",", help $p_device","commands that $p_device supports","commands supported by $p_device","what $p_device can do"]];
 
       action (p_url :Entity(tt:url))  := @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url)
-      #_[utterances=["open $p_url","open the file at $p_url","open $p_url in the browser","browse to $p_url"]];
+      #_[utterances=["open $p_url","open the file at $p_url","open $p_url in the browser","browse to $p_url"]]
+      #[name="OpenUrl"];
 
       program  := {
     now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(hello)) => notify;
   }
-      #_[utterances=["hello","hello!","hi","hi!","howdy","good morning","good afternoon","good evening"]];
+      #_[utterances=["hello","hello!","hi","hi!","howdy","good morning","good afternoon","good evening"]]
+      #[name="Hello"];
 
       program  := {
     now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(cool)) => notify;
   }
-      #_[utterances=["cool","awesome","you're cool","i like you","i like this"]];
+      #_[utterances=["cool","awesome","you're cool","i like you","i like this"]]
+      #[name="Cool"];
 
       program  := {
     now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(thank_you)) => notify;
   }
-      #_[utterances=["thank you","thanks","good job"]];
+      #_[utterances=["thank you","thanks","good job"]]
+      #[name="ThankYou"];
 
       program  := {
     now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(sorry)) => notify;
   }
-      #_[utterances=["sorry","i'm sorry","my bad","my mistake"]];
+      #_[utterances=["sorry","i'm sorry","my bad","my mistake"]]
+      #[name="Sorry"];
 
   }
