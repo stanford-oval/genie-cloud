@@ -39,7 +39,9 @@ RUN yum -y install nodejs yarn
 RUN yum -y install \
 	GraphicsMagick \
 	java-1.8.0-openjdk-devel ant \
-	hunspell-devel
+	hunspell-devel \
+        systemd-devel \
+        bubblewrap
 
 # install cuda
 RUN wget http://developer.download.nvidia.com/compute/cuda/repos/rhel7/x86_64/cuda-repo-rhel7-10.1.168-1.x86_64.rpm
@@ -81,9 +83,10 @@ RUN pip3 install --user "git+https://github.com/stanford-oval/decaNLP.git@${DECA
 # downlod source and install packages
 WORKDIR /home/almond-training
 RUN git clone --branch=${ALMOND_CLOUD_VERSION} https://github.com/stanford-oval/almond-cloud.git
-
 WORKDIR /home/almond-training/almond-cloud/
 RUN yarn install
+WORKDIR /home/almond-training/almond-cloud/sandbox
+RUN make
 
 WORKDIR /var/lib/almond-training
 # embeddings will be downloaded form S3 at startup to reduce the size of this image.
