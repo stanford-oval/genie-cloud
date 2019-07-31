@@ -27,10 +27,12 @@ const EngineManager = require('../../../almond/enginemanagerclient');
 var router = express.Router();
 
 class AlexaDelegate {
-    constructor(res) {
+    constructor(locale, res) {
+        this._locale = locale;
         this._buffer = '';
         this._res = res;
         this._done = false;
+        this._card = undefined;
 
         this._askSpecial = null;
     }
@@ -48,6 +50,7 @@ class AlexaDelegate {
                    type: 'PlainText',
                    text: this._buffer // + (this._askSpecial === null ? '. Now what do you want me to do?' : '')
                },
+               card: this._card,
                shouldEndSession: this._askSpecial === null,
            }
         });
@@ -62,11 +65,11 @@ class AlexaDelegate {
     }
 
     sendRDL(rdl, icon) {
-        // FIXME
+        this._buffer += rdl.displayTitle + '\n';
     }
 
     sendChoice(idx, what, title, text) {
-        // FIXME
+        this._buffer += title + '\n';
     }
 
     sendButton(title, json) {
@@ -74,11 +77,16 @@ class AlexaDelegate {
     }
 
     sendLink(title, url) {
-        // FIXME
+        if (url === '/user/register') {
+            this._card = {
+                type: 'LinkAccount'
+            };
+        }
+        // FIXME handle other URL types
     }
 
     sendResult(message, icon) {
-        // FIXME
+        this._buffer += message.toLocaleString(this._locale) + '\n';
     }
 
     sendAskSpecial(what) {
