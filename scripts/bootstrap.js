@@ -121,7 +121,8 @@ async function importStandardStringTypes(dbClient, rootOrg) {
         'tt:short_free_text': 'General Text (short phrase)',
         'tt:long_free_text': 'General Text (paragraph)',
         'tt:person_first_name': 'First names of people',
-        'tt:path_name': 'File and directory names'
+        'tt:path_name': 'File and directory names',
+        'tt:location': 'Cities, points on interest and addresses',
     };
 
     await stringModel.createMany(dbClient, Object.keys(STRING_TYPES).map((id) => {

@@ -101,8 +101,17 @@ async function loadEntityValues(dbClient) {
          ]]);
 }
 
+const STRING_VALUES = [
+    'tt:search_query',
+    'tt:long_free_text',
+    'tt:short_free_text',
+    'tt:person_first_name',
+    'tt:path_name',
+    'tt:location',
+];
+
 async function loadStringValues(dbClient) {
-    for (let type of ['tt:search_query', 'tt:long_free_text', 'tt:short_free_text', 'tt:person_first_name', 'tt:path_name']) {
+    for (let type of STRING_VALUES) {
         const filename = path.resolve(path.dirname(module.filename), './data/' + type + '.txt');
         const data = (await util.promisify(fs.readFile)(filename)).toString().trim().split('\n');
 
