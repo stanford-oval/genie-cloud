@@ -14,6 +14,7 @@ const Gettext = require('node-gettext');
 const gettextParser = require('gettext-parser');
 const fs = require('fs');
 const acceptLanguage = require('accept-language');
+const ThingTalk = require('thingtalk');
 
 const { InternalError } = require('./errors');
 const Config = require('../config');
@@ -56,23 +57,23 @@ function load() {
     if (LANGS.length === 0)
         throw new InternalError('E_INVALID_CONFIG', `Configuration error: must enable at least one language`);
 
-    for (let l of LANGS) {
-        if (!(l in ALLOWED_LANGUAGES))
-            throw new InternalError('E_INVALID_CONFIG', `Configuration error: locale ${l} is enabled but is not supported`);
+    for (let locale of LANGS) {
+        if (!(locale in ALLOWED_LANGUAGES))
+            throw new InternalError('E_INVALID_CONFIG', `Configuration error: locale ${locale} is enabled but is not supported`);
 
         let gt = new Gettext();
-        if (l !== 'en-US') {
+        if (locale !== 'en-US') {
             let modir = path.resolve(path.dirname(module.filename), '../po');//'
-            loadTextdomainDirectory(gt, l, 'thingengine-platform-cloud', modir);
+            loadTextdomainDirectory(gt, locale, 'thingengine-platform-cloud', modir);
             modir = path.resolve(path.dirname(module.filename), '../node_modules/thingtalk/po');
-            loadTextdomainDirectory(gt, l, 'thingtalk', modir);
+            loadTextdomainDirectory(gt, locale, 'thingtalk', modir);
             modir = path.resolve(path.dirname(module.filename), '../node_modules/almond/po');
-            loadTextdomainDirectory(gt, l, 'almond', modir);
+            loadTextdomainDirectory(gt, locale, 'almond', modir);
             modir = path.resolve(path.dirname(module.filename), '../node_modules/thingengine-core/po');
-            loadTextdomainDirectory(gt, l, 'thingengine-core', modir);
+            loadTextdomainDirectory(gt, locale, 'thingengine-core', modir);
         }
         gt.textdomain('thingengine-platform-cloud');
-        gt.setLocale(l);
+        gt.setLocale(locale);
 
         // prebind the gt for ease of use, because the usual gettext API is not object-oriented
         const prebound = {
@@ -84,8 +85,9 @@ function load() {
             dngettext: gt.dngettext.bind(gt),
             dpgettext: gt.dpgettext.bind(gt),
         };
+        ThingTalk.I18n.init(locale, prebound);
 
-        let split = l.split('-');
+        let split = locale.split('-');
         while (split.length > 0) {
             languages[split.join('-')] = prebound;
             split.pop();
