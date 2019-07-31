@@ -6268,10 +6268,10 @@ thingpedia@^2.2.1, thingpedia@^2.2.2, thingpedia@^2.3.0, thingpedia@^2.3.3:
     thingtalk "^1.7.0"
     xml2js "^0.4.17"
 
-thingtalk@^1.7.0, thingtalk@~1.7.0, thingtalk@~1.7.2:
+thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk", thingtalk@~1.7.0, thingtalk@~1.7.2:
   version "1.7.3"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.7.3.tgz#3eae5f8f73e43a9b11dc49b79a15fa56710f27b8"
-  integrity sha512-4T7Ijm/LzL+LIEhWTmK5N3iypYdt3WsppDe8XZkpg0TcAbUnSKSqZ6teg1iyrtXc04CeLysBQ9iTnXuIln2aFg==
+  uid dc64314055de6b9de15d2262cf491db4b5822135
+  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/dc64314055de6b9de15d2262cf491db4b5822135"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
