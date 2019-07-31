@@ -46,8 +46,8 @@ function makeAlexaRequest(session, accessToken, request) {
 }
 
 async function testAlexa(accessToken) {
-    const session1 = '1';
-    const response = JSON.parse(await request('/me/api/alexa', 'POST', makeAlexaRequest(session1, accessToken, {
+    const session0 = '1';
+    const response0 = JSON.parse(await request('/me/api/alexa', 'POST', makeAlexaRequest(session0, accessToken, {
         type: 'IntentRequest',
         requestId: '123456789',
         timestamp: '2019-07-31T19:20:29.876Z',
@@ -62,7 +62,35 @@ async function testAlexa(accessToken) {
     }), {
         dataContentType: 'application/json',
     }));
-    assert.deepStrictEqual(response, {
+    assert.deepStrictEqual(response0, {
+       response: {
+         outputSpeech: {
+           text: 'Hello! I\'m Almond, your virtual assistant.\nI am part of a research project of Stanford University. I am capable of understanding actions and events over web services.\nPlease keep in mind: I do not chat, and I do not understand questions very well. Please check out the Thingpedia to find out what I understand, or type ‘help’.\nTo start, how about you try one of these examples:\nHi!\n',
+           type: 'PlainText'
+         },
+         shouldEndSession: true
+       },
+       sessionAttributes: {},
+       version: '1.0'
+     });
+
+    const session1 = '1';
+    const response1 = JSON.parse(await request('/me/api/alexa', 'POST', makeAlexaRequest(session1, accessToken, {
+        type: 'IntentRequest',
+        requestId: '123456789',
+        timestamp: '2019-07-31T19:20:29.876Z',
+        dialogState: 'STARTED',
+        locale: 'en-US',
+        intent: {
+            name: 'org.thingpedia.builtin.thingengine.builtin.Hello',
+            confirmationStatus: 'NONE',
+            slots: {}
+        }
+
+    }), {
+        dataContentType: 'application/json',
+    }));
+    assert.deepStrictEqual(response1, {
        response: {
          outputSpeech: {
            text: 'Hi!\n',
@@ -195,7 +223,7 @@ async function testAlexa(accessToken) {
 }
 
 async function main() {
-    const bob = await login('bob', '12345678');
+    const bob = await login('alexa_user', '12345678');
 
     // user (web almond) api
     const token = await getAccessToken(bob);

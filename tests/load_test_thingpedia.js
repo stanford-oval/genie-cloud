@@ -255,13 +255,13 @@ async function loadExamples(dbClient, bob) {
     await exampleModel.like(dbClient, bob.id, 999);
 }
 
-async function loadAlexaModel(dbClient, bob) {
+async function loadAlexaModel(dbClient, bob, alexaUser) {
     await alexaModelsModel.create(dbClient, {
         language: 'en',
         tag: 'org.thingpedia.alexa.test',
         owner: bob.developer_org,
         access_token: null,
-        anonymous_user: bob.id
+        anonymous_user: alexaUser.id
     });
 }
 
@@ -301,13 +301,21 @@ async function main() {
             locale: 'en-US',
             timezone: 'America/Los_Angeles',
         });
+        const alexaUser = await user.register(dbClient, req, {
+            username: 'alexa_user',
+            password: '12345678',
+            email: 'alexa_user@localhost',
+            email_verified: true,
+            locale: 'en-US',
+            timezone: 'America/Los_Angeles',
+        });
 
         const [root] = await userModel.getByName(dbClient, 'root');
         await loadAllDevices(dbClient, bob, root);
         await loadEntityValues(dbClient);
         await loadStringValues(dbClient);
         await loadExamples(dbClient, bob);
-        await loadAlexaModel(dbClient, bob);
+        await loadAlexaModel(dbClient, bob, alexaUser);
 
         console.log(`export DEVELOPER_KEY="${newOrg.developer_key}" ROOT_DEVELOPER_KEY="${root.developer_key}"`);
     });
