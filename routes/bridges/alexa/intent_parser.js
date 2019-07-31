@@ -16,8 +16,6 @@ const I18n = require('../../../util/i18n');
 const db = require('../../../util/db');
 const exampleModel = require('../../../model/example');
 
-const ThingpediaClient = require('../../../util/thingpedia-client');
-
 function parseDate(form) {
     let match = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(form);
     if (match !== null) {
@@ -74,100 +72,84 @@ function parseDuration(form) {
 
 // Alexa's builtin entity resolution/linking is very limited
 // so we need to emulate a couple things here...
-async function alexaSlotsToEntities(language, slotNames, slotTypes, alexaSlots) {
-    const entities = {};
+function alexaSlotToThingTalk(type, alexaSlot) {
+    if (alexaSlot === undefined)
+        return new Ast.Value.Undefined(true);
 
-    for (let slotId = 0; slotId < slotNames.length; slotId ++) {
-        const slotName = slotNames[slotId];
-        const type = slotTypes[slotName];
-        const alexaSlot = alexaSlots[slotName];
-        const entityName = `SLOT_${slotId}`;
-        if (alexaSlot === undefined) {
-            entities[entityName] = undefined;
+    if (type.isBoolean) {
+        const resolutions = alexaSlot.resolutions.resolutionsPerAuthority[0];
+        if (!resolutions || resolutions.length === 0)
+            return new Ast.Value.Undefined(true);
+        return new Ast.Value.Boolean(resolutions.values[0].value.id === 'true');
+    } else if (type.isString) {
+        return new Ast.Value.String(alexaSlot.value);
+    } else if (type.isEntity) {
+        switch (type.type) {
+        case 'tt:url':
+        case 'tt:picture':
+        case 'tt:hashtag':
+        case 'tt:username':
+            return new Ast.Value.Entity(alexaSlot.value, type.type, null);
+
+        case 'tt:phone_number':
+        case 'tt:email_address':
+        case 'tt:contact':
+            // assume that phone/emails have to be resolved against the user's contact book
+            // so map these to a username
+            return new Ast.Value.Entity(alexaSlot.value, 'tt:username', null);
+
+        default:
+            // everything else goes through entity resolution in the dialog agent
+            return new Ast.Value.Entity(null, type.type, alexaSlot.value);
+        }
+    } else if (type.isNumber) {
+        // the number comes normalized from Alexa
+        return new Ast.Value.Number(parseFloat(alexaSlot.value));
+    } else if (type.isMeasure && type.unit === 'ms') {
+        return parseDuration(alexaSlot.value);
+    } else if (type.isEnum) {
+        const resolutions = alexaSlot.resolutions.resolutionsPerAuthority[0];
+        if (!resolutions || resolutions.length === 0)
+            return new Ast.Value.Undefined(true);
+        return new Ast.Value.Enum(resolutions.values[0].value.id);
+    } else if (type.isTime) {
+        const [, hour, minute, second] = /^([0-9]{2}):([0-9]{2})(?::([0-9]{2}))?$/.exec(alexaSlot.value);
+        return new Ast.Value.Time(parseInt(hour), parseInt(minute), parseInt(second)||0);
+    } else if (type.isDate) {
+        return new Ast.Value.Date(parseDate(alexaSlot.value), '+', null);
+    } else if (type.isLocation) {
+        return new Ast.Value.Location(new Ast.Location.Unresolved(alexaSlot.value));
+    } else {
+        throw new Error(`Unsupported slot type ${type}`);
+    }
+}
+
+function applySlotsToProgram(locale, exampleCode, alexaSlots) {
+    const language = I18n.localeToLanguage(locale);
+    const dataset = `dataset @org.thingpedia language "${language}" { ${exampleCode} }`;
+    const parsed = ThingTalk.Grammar.parse(dataset).datasets[0].examples[0];
+
+    const program = parsed.toProgram();
+    const slotNames = Object.keys(parsed.args);
+
+    for (let slot of program.iterateSlots2()) {
+        if (slot instanceof Ast.Selector)
             continue;
-        }
 
-        if (type.isBoolean) {
-            const resolutions = alexaSlot.resolutions.resolutionsPerAuthority[0];
-            if (!resolutions || resolutions.length === 0) {
-                entities[entityName] = undefined;
-                continue;
-            }
-            entities[entityName] =
-                new Ast.Value.Boolean(resolutions.values[0].value.id === 'true');
-        } else if (type.isString) {
-            entities[entityName] =
-                new Ast.Value.String(alexaSlot.value);
-        } else if (type.isEntity) {
-            switch (type.type) {
-            case 'tt:url':
-            case 'tt:picture':
-            case 'tt:hashtag':
-            case 'tt:username':
-                entities[entityName] =
-                    new Ast.Value.Entity(alexaSlot.value, type.type, null);
-                break;
-            case 'tt:phone_number':
-            case 'tt:email_address':
-            case 'tt:contact':
-                // assume that phone/emails have to be resolved against the user's contact book
-                // so map these to a username
-                entities[entityName] =
-                    new Ast.Value.Entity(alexaSlot.value, 'tt:username', null);
-                break;
+        const value = slot.get();
+        if (!value.isVarRef || !value.name.startsWith('__const_SLOT_'))
+            continue;
 
-            default:
-                // everything else goes through entity resolution in the dialog agent
-                entities[entityName] =
-                    new Ast.Value.Entity(null, type.type, alexaSlot.value);
-                break;
-            }
-        } else if (type.isNumber) {
-            // the number comes normalized from Alexa
-            entities[entityName] = new Ast.Value.Number(parseFloat(alexaSlot.value));
-        } else if (type.isMeasure && type.unit === 'ms') {
-            entities[entityName] = parseDuration(alexaSlot.value);
-        } else if (type.isEnum) {
-            const resolutions = alexaSlot.resolutions.resolutionsPerAuthority[0];
-            if (!resolutions || resolutions.length === 0) {
-                entities[entityName] = undefined;
-                continue;
-            }
-            entities[entityName] = new Ast.Value.Enum(resolutions.values[0].value.id);
-        } else if (type.isTime) {
-            const [, hour, minute, second] = /^([0-9]{2}):([0-9]{2})(?::([0-9]{2}))?$/.exec(alexaSlot.value);
-            entities[entityName] = new Ast.Value.Time(parseInt(hour), parseInt(minute), parseInt(second)||0);
-        } else if (type.isDate) {
-            entities[entityName] = new Ast.Value.Date(parseDate(alexaSlot.value), '+', null);
-        } else if (type.isLocation) {
-            entities[entityName] = new Ast.Value.Location(new Ast.Location.Unresolved(alexaSlot.value));
-        } else {
-            throw new Error(`Unsupported slot type ${type}`);
-        }
+        const slotIndex = parseInt(value.name.substring('__const_SLOT_'.length));
+        const name = slotNames[slotIndex];
+        const type = parsed.args[name];
+        slot.set(alexaSlotToThingTalk(type, alexaSlots[name]));
     }
 
-    return entities;
+    return program.prettyprint();
 }
 
-async function applySlotsToProgram(schemaRetriever, locale, exampleRow, alexaSlots) {
-    const language = I18n.localeToLanguage(locale);
-    const dataset = `dataset @org.thingpedia language "${language}" { ${exampleRow.target_code} }`;
-    const parsed = (await ThingTalk.Grammar.parseAndTypecheck(dataset, schemaRetriever, false)).datasets[0].examples[0];
-
-    let slotNames = Object.keys(parsed.args);
-    const program = parsed.toProgram();
-
-    const entities = await alexaSlotsToEntities(locale, slotNames, parsed.args, alexaSlots);
-
-    let code = ThingTalk.NNSyntax.toNN(program, {});
-    return {
-        example_id: exampleRow.id,
-        code: code,
-        entities: entities,
-    };
-}
-
-async function getIntentFromDB(developerKey, locale, intent, alexaSlots) {
+async function getIntentFromDB(locale, intent, alexaSlots) {
     const language = I18n.localeToLanguage(locale);
 
     const dot = intent.lastIndexOf('.');
@@ -175,15 +157,12 @@ async function getIntentFromDB(developerKey, locale, intent, alexaSlots) {
     const name = intent.substring(dot+1);
 
     return db.withTransaction(async (dbClient) => {
-        const tpClient = new ThingpediaClient(developerKey, locale, dbClient);
-        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
-
         const row = await exampleModel.getByIntentName(dbClient, language, device, name);
-        return applySlotsToProgram(schemaRetriever, locale, row, alexaSlots);
+        return { program: applySlotsToProgram(locale, row.target_code, alexaSlots) };
     });
 }
 
-async function requestToThingTalk(developerKey, locale, body) {
+async function requestToThingTalk(locale, body) {
     if (body.request.type === 'SessionEndedRequest')
         return { program: 'bookkeeping(special(nevermind))' };
     else if (body.request.type === 'LaunchRequest')
@@ -201,7 +180,7 @@ async function requestToThingTalk(developerKey, locale, body) {
         return { text: intent.slots.command };
 
     default:
-        return getIntentFromDB(developerKey, locale, intent.name, intent.slots);
+        return getIntentFromDB(locale, intent.name, intent.slots);
     }
 }
 

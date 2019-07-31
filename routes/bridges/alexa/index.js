@@ -102,7 +102,7 @@ function authenticate(req, res, next) {
 
 router.use(authenticate);
 
-async function handle(developerKey, req, res) {
+async function handle(req, res) {
     console.log('body', req.body);
 
     const user = userUtils.isAuthenticated(req) ? req.user : (await userUtils.getAnonymousUser());
