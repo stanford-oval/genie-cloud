@@ -6234,7 +6234,7 @@ text-table@^0.2.0:
 
 "thingpedia-client@github:stanford-oval/thingpedia-client":
   version "0.2.5"
-  resolved "https://codeload.github.com/stanford-oval/thingpedia-client/tar.gz/ac65f1bd326d5892548471c14abfd9bea9488c27"
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-client/tar.gz/8bdea6a9b05d42f349ec7ffce54917f68ebdfcdd"
   dependencies:
     thingpedia "^2.3.0"
     thingtalk "~1.7.0"
