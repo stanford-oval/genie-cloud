@@ -221,9 +221,9 @@
   integrity sha512-FwI9gX75FgVBJ7ywgnq/P7tw+/o1GUbtP0KzbtusLigAOgIgNISRK0ZPl4qertvXSIE8YbsVJueQ90cDt9YYyw==
 
 "@types/node@*":
-  version "12.6.8"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.6.8.tgz#e469b4bf9d1c9832aee4907ba8a051494357c12c"
-  integrity sha512-aX+gFgA5GHcDi89KG5keey2zf0WfZk/HAQotEamsK2kbey+8yGKcson0hbK8E+v0NArlCJQCqMP161YhV6ZXLg==
+  version "12.6.9"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.6.9.tgz#ffeee23afdc19ab16e979338e7b536fdebbbaeaf"
+  integrity sha512-+YB9FtyxXGyD54p8rXwWaN1EWEyar5L58GlGWgtH2I9rGmLGBQcw63+0jw+ujqVavNuO47S1ByAjm9zdHMnskw==
 
 "@types/node@^10.1.0":
   version "10.14.14"
@@ -349,9 +349,9 @@ acorn@^6.0.7, acorn@^6.1.1:
   integrity sha512-JD0xT5FCRDNyjDda3Lrg/IxFscp9q4tiYtxE1/nOzlKCk7hIRuYjhq1kCNkbPjMRMZuFq20HNQn1I9k8Oj0E+Q==
 
 actions-on-google@^2.2.0:
-  version "2.9.1"
-  resolved "https://registry.yarnpkg.com/actions-on-google/-/actions-on-google-2.9.1.tgz#6ac2ab976ae24b03f8dbc7f91e35f5b9598601e0"
-  integrity sha512-gCbm2WaE0qGaweTVcifv/HpvFTBPnv9BcKYk6LUB5ddUgH2EpURwwzB9EjC/YCYF43jQJZkXw7yKfCTtSLhk9Q==
+  version "2.10.0"
+  resolved "https://registry.yarnpkg.com/actions-on-google/-/actions-on-google-2.10.0.tgz#fea7d4f157ea82505e6c04bdd7c05b4465759eb3"
+  integrity sha512-/DKED/TvbOXUPpH+D2DZfhIoudUGUGNosygb3wLNojmyZfdff/cVGQD29xHHNjKEshe3WeXgNNii6lra9DDMwA==
   dependencies:
     "@types/aws-lambda" "^0.0.33"
     "@types/debug" "^0.0.30"
@@ -631,9 +631,9 @@ astral-regex@^1.0.0:
   integrity sha512-+Ryf6g3BKoRc7jfp7ad8tM4TtMiaWvbF/1/sQcZPkkS7ag3D5nMBCe2UfOTONtAkaG0tO0ij3C5Lwmf1EiyjHg==
 
 async-limiter@^1.0.0, async-limiter@~1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/async-limiter/-/async-limiter-1.0.0.tgz#78faed8c3d074ab81f22b4e985d79e8738f720f8"
-  integrity sha512-jp/uFnooOiO+L211eZOoSyzpOITMXx1rBITauYykG3BRYPu8h0UcxsPNB04RR5vo4Tyz3+ay17tR6JVf9qzYWg==
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/async-limiter/-/async-limiter-1.0.1.tgz#dd379e94f0db8310b08291f9d64c3209766617fd"
+  integrity sha512-csOlWGAcRFJaI6m+F2WKdnMKr4HhdhFVBk0H/QbJFMCr+uO2kwohwXQPxw/9OCxp05r5ghVBFSyioixx3gfkNQ==
 
 async@^2.3.0, async@^2.6.1:
   version "2.6.3"
@@ -2691,7 +2691,7 @@ gcp-metadata@^1.0.0:
 
 "genie-toolkit@github:stanford-oval/genie-toolkit":
   version "0.3.3"
-  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/bc9b4f23998a611c52c65c341fb1a1b482d19a27"
+  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/1a0716f0f53d2554d6de7cadb78dc114e40ae00d"
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
@@ -5501,9 +5501,9 @@ resolve@1.1.7:
   integrity sha1-IDEU2CrSxe2ejgQRs5ModeiJ6Xs=
 
 resolve@^1.1.4, resolve@^1.1.5, resolve@^1.1.6, resolve@^1.1.7, resolve@^1.10.0, resolve@^1.4.0:
-  version "1.11.1"
-  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.11.1.tgz#ea10d8110376982fef578df8fc30b9ac30a07a3e"
-  integrity sha512-vIpgF6wfuJOZI7KKKSP+HmiKggadPQAdsp5HiC1mvqnfp0gF1vdwgBWZIdrVft9pgqoMFQN+R7BSWZiBxx+BBw==
+  version "1.12.0"
+  resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.12.0.tgz#3fc644a35c84a48554609ff26ec52b66fa577df6"
+  integrity sha512-B/dOmuoAik5bKcD6s6nXDCjzUKnaDvdkRyAk6rsmsKLipWj4797iothd7jmmUhWTfinVMU+wc56rYKsit2Qy4w==
   dependencies:
     path-parse "^1.0.6"
 
@@ -6263,8 +6263,8 @@ thingpedia@^2.2.1, thingpedia@^2.2.2, thingpedia@^2.3.0, thingpedia@^2.3.3:
 
 thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk", thingtalk@~1.7.0, thingtalk@~1.7.2:
   version "1.7.3"
-  uid "586e24db9a8d50c268b3b4127a200a326e2789e1"
-  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/586e24db9a8d50c268b3b4127a200a326e2789e1"
+  uid "9e5fddf38388756bad99c0be263f0a057019043d"
+  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/9e5fddf38388756bad99c0be263f0a057019043d"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
