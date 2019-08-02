@@ -20,7 +20,6 @@ require('../util/config_init');
 const path = require('path');
 const fs = require('fs');
 const util = require('util');
-const Tp = require('thingpedia');
 const yaml = require('js-yaml');
 const child_process = require('child_process');
 
