@@ -70,7 +70,7 @@ async function testMyDevices(bob, nobody) {
         const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
         assert(bobInfo);
         const engine = await EngineManagerClient.get().getEngine(bobInfo.id);
-        const device = await engine.devices.getDevice('org.thingpedia.rss-url-https://almond.stanford.edu/blog/feed.rss');
+        const device = await engine.devices.getDevice('org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss');
         assert(device);
 
         await assertLoginRequired(sessionRequest('/me/devices/delete', 'POST', { id: 'foo' }, nobody));
@@ -81,9 +81,9 @@ async function testMyDevices(bob, nobody) {
         await assertHttpError(sessionRequest('/me/devices/delete', 'POST', { id: 'com.foo' }, bob),
             404, 'Not found.');
 
-        await sessionRequest('/me/devices/delete', 'POST', { id: 'org.thingpedia.rss-url-https://almond.stanford.edu/blog/feed.rss' }, bob);
+        await sessionRequest('/me/devices/delete', 'POST', { id: 'org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss' }, bob);
 
-        assert(!await engine.devices.hasDevice('org.thingpedia.rss-url-https://almond.stanford.edu/blog/feed.rss'));
+        assert(!await engine.devices.hasDevice('org.thingpedia.rss-url:https://almond.stanford.edu/blog/feed.rss'));
 
 
         await assertLoginRequired(sessionRequest('/me/devices/oauth2/com.linkedin', 'POST', { id: 'foo' }, nobody));
@@ -91,7 +91,7 @@ async function testMyDevices(bob, nobody) {
         await assertHttpError(sessionRequest('/me/devices/oauth2/com.foo', 'GET', null, bob),
             400, 'Unexpected HTTP error 404');
         await assertHttpError(sessionRequest('/me/devices/oauth2/com.thecatapi', 'GET', null, bob),
-            400, 'factory.runOAuth2 is not a function');
+            400, 'deviceClass.runOAuth2 is not a function');
 
         await assertRedirect(sessionRequest('/me/devices/oauth2/com.google', 'GET', null, bob, { followRedirects: false }),
             'https://accounts.google.com/o/oauth2/auth?response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A8080%2Fdevices%2Foauth2%2Fcallback%2Fcom.google&access_type=offline&scope=openid%20profile%20email&client_id=739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com');

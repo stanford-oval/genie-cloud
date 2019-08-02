@@ -20,8 +20,8 @@ require('../util/config_init');
 const path = require('path');
 const fs = require('fs');
 const util = require('util');
-const Tp = require('thingpedia');
 const yaml = require('js-yaml');
+const child_process = require('child_process');
 
 const db = require('../util/db');
 const user = require('../util/user');
@@ -121,7 +121,8 @@ async function importStandardStringTypes(dbClient, rootOrg) {
         'tt:short_free_text': 'General Text (short phrase)',
         'tt:long_free_text': 'General Text (paragraph)',
         'tt:person_first_name': 'First names of people',
-        'tt:path_name': 'File and directory names'
+        'tt:path_name': 'File and directory names',
+        'tt:location': 'Cities, points on interest and addresses',
     };
 
     await stringModel.createMany(dbClient, Object.keys(STRING_TYPES).map((id) => {
@@ -222,7 +223,13 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
         version: 0
     });
 
-    await codeStorage.storeZipFile(await Tp.Helpers.Http.getStream('https://almond-static.stanford.edu/test-data/en-thingtalk.zip'),
+    const geniedir = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit');
+    const { stdout, stderr } = await util.promisify(child_process.execFile)(
+        'make', ['-C', geniedir, 'bundle/en.zip'], { maxBuffer: 1024 * 1024 });
+    process.stdout.write(stdout);
+    process.stderr.write(stderr);
+
+    await codeStorage.storeZipFile(fs.createReadStream(path.resolve(geniedir, 'bundle/en.zip')),
         'org.thingpedia.genie.thingtalk', 0, 'template-files');
 
     return tmpl.id;
