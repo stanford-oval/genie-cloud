@@ -6214,10 +6214,9 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-thingengine-core@~1.5.0:
+"thingengine-core@github:stanford-oval/thingengine-core":
   version "1.5.0"
-  resolved "https://registry.yarnpkg.com/thingengine-core/-/thingengine-core-1.5.0.tgz#9230ca7e5e3103f90ea0dfb7068f3335e6a3a079"
-  integrity sha512-ktZmMhXSFWMYkA/BjWCD8PrtElJBVwLgqFTIjcj820LymqW9sDOxrmuLglyoP/7iy7xue0wNyNjfOtx06KkUag==
+  resolved "https://codeload.github.com/stanford-oval/thingengine-core/tar.gz/0bd12bffd34b0bea40b61a4663815f1a73d897c1"
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.1"
@@ -6227,16 +6226,15 @@ thingengine-core@~1.5.0:
     q "^1.5.0"
     sqlite3 "^4.0.2"
     thingpedia "^2.2.1"
-    thingpedia-client "^0.2.4"
+    thingpedia-client "github:stanford-oval/thingpedia-client"
     thingpedia-discovery "^1.0.0"
     thingtalk "~1.7.0"
     uuid "^3.1.0"
     ws "^7.0.0"
 
-thingpedia-client@^0.2.4:
+"thingpedia-client@github:stanford-oval/thingpedia-client":
   version "0.2.5"
-  resolved "https://registry.yarnpkg.com/thingpedia-client/-/thingpedia-client-0.2.5.tgz#f7b68a60fa5b6a4f44f310d88b5d66aa32752c4f"
-  integrity sha512-ExJznZ6BUsu+Y5qRmJv8yuhjgJt8LtMq6UQ9/7+sZVJpOUkKWKvB0SVq9WTR5INGdj2OWqvSwG954/+gmk4yhg==
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-client/tar.gz/fbbf84e66ff2a3114fbbe815df5c6a6165d495b0"
   dependencies:
     thingpedia "^2.3.0"
     thingtalk "~1.7.0"
