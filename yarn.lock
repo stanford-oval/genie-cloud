@@ -2691,7 +2691,7 @@ gcp-metadata@^1.0.0:
 
 "genie-toolkit@github:stanford-oval/genie-toolkit":
   version "0.3.3"
-  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/1a0716f0f53d2554d6de7cadb78dc114e40ae00d"
+  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/83521c48c7ee3d14e161aa9d6fcc2dcb43569102"
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
@@ -6234,7 +6234,7 @@ text-table@^0.2.0:
 
 "thingpedia-client@github:stanford-oval/thingpedia-client":
   version "0.2.5"
-  resolved "https://codeload.github.com/stanford-oval/thingpedia-client/tar.gz/fbbf84e66ff2a3114fbbe815df5c6a6165d495b0"
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-client/tar.gz/ac65f1bd326d5892548471c14abfd9bea9488c27"
   dependencies:
     thingpedia "^2.3.0"
     thingtalk "~1.7.0"
