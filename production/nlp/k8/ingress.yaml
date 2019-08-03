@@ -1,18 +1,18 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: "training-ingress"
+  name: "nlp-ingress"
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
-    external-dns.alpha.kubernetes.io/hostname: training-staging.almond.stanford.edu
+    external-dns.alpha.kubernetes.io/hostname: nlp-staging.almond.stanford.edu
   labels:
-    app: training-ingress
+    app: nlp-ingress
 spec:
   rules:
     - http:
         paths:
           - path: /*
             backend:
-              serviceName: "training-service"
+              serviceName: "nlp-service"
               servicePort: 80

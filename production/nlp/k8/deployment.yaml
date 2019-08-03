@@ -1,24 +1,22 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: "training-deployment"
+  name: "nlp-deployment"
 spec:
   replicas: 1
   template:
     metadata:
       labels:
-        app: "training"
+        app: "nlp"
     spec:
       containers:
-      - name: "training"
-        image: ${REPO}/almond/training:v0.5
+      # main container
+      - name: "nlp"
+        image: ${REPO}/almond/nlp:v0.5
         imagePullPolicy: Always
         env:
         - name: "PORT"
           value: "9999"
-#        resources:
-#          limits:
-#              nvidia.com/gpu: 1
         ports:
         - containerPort: 9999
         volumeMounts:
@@ -28,11 +26,15 @@ spec:
         - name: aws
           mountPath: "/home/almond-prod/.aws"
           readOnly: true
-        securityContext:
-          capabilities:
-            add:
-              - SYS_ADMIN
-              - NET_ADMIN
+      # sidecar container
+      - name: "tokenizer"
+        image: ${REPO}/almond/tokenizer:v0.5
+        imagePullPolicy: Always
+        env:
+        - name: "PORT"
+          value: "8888"
+        ports:
+        - containerPort: 8888
       volumes:
       - name: config
         secret:

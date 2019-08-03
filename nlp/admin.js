@@ -11,8 +11,11 @@
 
 const express = require('express');
 
+const byline = require('byline');
+const child_process = require('child_process');
 const db = require('../util/db');
 const i18n = require('../util/i18n');
+const path = require('path');
 const Config = require('../config');
 
 const router = express.Router();
@@ -44,11 +47,55 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/reload/@:model_tag/:locale', (req, res, next) => {
+
+function execCommand(script, argv) {
+    return new Promise((resolve, reject) => {
+        const stdio = ['ignore', 'pipe', 'pipe'];
+        console.log(`${script} ${argv.map((a) => "'" + a + "'").join(' ')}`);
+        const child = child_process.spawn(script, argv, { stdio });
+        child.on('error', reject);
+        child.on('exit', (code, signal) => {
+            if (signal) {
+                if (signal === 'SIGINT' || signal === 'SIGTERM')
+                    reject(new Error(`Killed`));
+                else
+                    reject(new Error(`Command crashed with signal ${signal}`));
+            } else {
+                if (code !== 0)
+                    reject(new Error(`Command exited with code ${code}`));
+                else
+                    resolve();
+            }
+        });
+        child.stdio[1].setEncoding('utf-8');
+        let stdout = byline(child.stdio[1]);
+        stdout.on('data', (line) => {
+            process.stdout.write(`${line}\n`);
+        });
+        child.stdio[2].setEncoding('utf-8');
+        let stderr = byline(child.stdio[2]);
+        stderr.on('data', (line) => {
+            process.stderr.write(`${line}\n`);
+        });
+    });
+}
+
+router.post('/reload/@:model_tag/:locale', async (req, res, next) => {
     if (!i18n.get(req.params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
+
+    if (Config.NL_MODEL_DIR) {
+        const modelLangDir = `${req.params.model_tag}:${req.params.locale}`;
+        await execCommand('aws', ['s3',
+            'sync',
+            `${Config.NL_MODEL_DIR}/${modelLangDir}/`,
+            path.resolve('.') + '/' + modelLangDir + '/'
+        ]);
+	
+    }
+
 
     const model = req.app.service.getModel(req.params.model_tag, req.params.locale);
     if (!model) {

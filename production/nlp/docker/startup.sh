@@ -6,4 +6,8 @@ aws s3 cp $S3_DECANLP_EMBEDDINGS $EMBEDDINGS_TAR_FILE
 tar -xvzf $EMBEDDINGS_TAR_FILE -C $DECANLP_EMBEDDINGS
 rm -f $EMBEDDINGS_TAR_FILE
 
-/usr/bin/node /home/almond-prod/src/almond-cloud/training/daemon.js
+# Download models
+S3_INFERENCE_DIR=`node config_get.js /etc/almond-cloud/config.js INFERENCE_DIR`
+aws s3 sync $S3_INFERENCE_DIR .
+
+/usr/bin/node /home/almond-prod/src/almond-cloud/nlp/main.js

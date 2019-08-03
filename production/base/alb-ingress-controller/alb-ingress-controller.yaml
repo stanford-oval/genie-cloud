@@ -17,6 +17,8 @@ spec:
       app.kubernetes.io/name: alb-ingress-controller
   template:
     metadata:
+      annotations:
+        iam.amazonaws.com/role: almond-ingress-controller
       labels:
         app.kubernetes.io/name: alb-ingress-controller
     spec:
@@ -36,7 +38,7 @@ spec:
             # Name of your cluster. Used when naming resources created
             # by the ALB Ingress Controller, providing distinction between
             # clusters.
-            - --cluster-name=training-prod
+            - --cluster-name=almond-prod
 
             # AWS VPC ID this ingress controller will use to create AWS resources.
             # If unspecified, it will be discovered from ec2metadata.
