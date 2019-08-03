@@ -1,6 +1,14 @@
-# One time setup
 
-See the README in subdirectories on how to install other module.
+# Base installation
+
+The production kubernetes cluster uses ecr for containe repository, kube2aim
+for AIM role assignments, external-dns to configure route53, and ingress to
+manage external traffic using ALB.  See the README in the subdirectories on how
+to install these components.
+
+The base Dockfile setups a base Redhat7 image with required dependencies and
+creates `almond-prod` user for production. Because RH7 docker is an older version,
+you will have to manually update ${REPO} for all the depdent docker files.
 
 
 #### Create aws cluster
