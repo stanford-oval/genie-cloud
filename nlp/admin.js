@@ -50,7 +50,7 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
 
 function execCommand(script, argv) {
     return new Promise((resolve, reject) => {
-        const stdio = ['ignore', 'pipe', 'pipe'];
+        const stdio = ['ignore', 'inherit', 'inherit'];
         console.log(`${script} ${argv.map((a) => "'" + a + "'").join(' ')}`);
         const child = child_process.spawn(script, argv, { stdio });
         child.on('error', reject);
@@ -66,16 +66,6 @@ function execCommand(script, argv) {
                 else
                     resolve();
             }
-        });
-        child.stdio[1].setEncoding('utf-8');
-        let stdout = byline(child.stdio[1]);
-        stdout.on('data', (line) => {
-            process.stdout.write(`${line}\n`);
-        });
-        child.stdio[2].setEncoding('utf-8');
-        let stderr = byline(child.stdio[2]);
-        stderr.on('data', (line) => {
-            process.stderr.write(`${line}\n`);
         });
     });
 }
