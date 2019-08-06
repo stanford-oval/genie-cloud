@@ -217,7 +217,7 @@ module.exports = class AlmondApi {
             }
 
             if (factory.type === 'none') {
-                return this._engine.devices.loadOneDevice({ kind: factory.kind }, true).then((device) => {
+                return this._engine.devices.addSerialized({ kind: factory.kind }).then((device) => {
                     return [device, null];
                 });
             } else {
