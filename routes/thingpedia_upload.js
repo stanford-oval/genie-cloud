@@ -9,30 +9,20 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
-const fs = require('fs');
 const multer = require('multer');
 const csurf = require('csurf');
-
-const ThingTalk = require('thingtalk');
 
 const platform = require('../util/platform');
 const db = require('../util/db');
 const model = require('../model/device');
 const exampleModel = require('../model/example');
 
-const code_storage = require('../util/code_storage');
-const TrainingServer = require('../util/training_server');
-const Validation = require('../util/validation');
 const Importer = require('../util/import_device');
-const FactoryUtils = require('../util/device_factories');
 const DatasetUtils = require('../util/dataset');
 const iv = require('../util/input_validation');
 const user = require('../util/user');
-const { BadRequestError, ForbiddenError } = require('../util/errors');
-
-const EngineManager = require('../almond/enginemanagerclient');
+const { ValidationError, BadRequestError, ForbiddenError } = require('../util/errors');
 
 var router = express.Router();
 
@@ -54,157 +44,30 @@ router.get('/create', (req, res) => {
                                                      create: true });
 });
 
-function tryUpdateDevice(primaryKind, userId) {
-    // do the update asynchronously - if the update fails, the user will
-    // have another chance from the status page
-    EngineManager.get().getEngine(userId).then((engine) => {
-        return engine.devices.updateDevicesOfKind(primaryKind);
-    }).catch((e) => {
-        console.error(`Failed to auto-update device ${primaryKind} for user ${userId}: ${e.message}`);
-    });
-
-    return Promise.resolve();
-}
-
-function isJavaScript(file) {
-    return file.mimetype === 'application/javascript' ||
-        file.mimetype === 'text/javascript' ||
-        (file.originalname && file.originalname.endsWith('.js'));
-}
-
 async function doCreateOrUpdate(kind, create, req, res) {
     if (create)
         kind = req.body.primary_kind;
     else
         req.body.primary_kind = kind;
-    const approve = (req.user.roles & (user.Role.TRUSTED_DEVELOPER | user.Role.THINGPEDIA_ADMIN)) !== 0
-        && !!req.body.approve;
 
     try {
-        const ok = await db.withTransaction(async (dbClient) => {
-            let classDef;
-            let dataset;
-            let old = null;
-            try {
-                [classDef, dataset] = await Validation.validateDevice(dbClient, req, req.body,
-                                                                      req.body.code, req.body.dataset);
-                if (create) {
-                    if (!req.files.icon || !req.files.icon.length)
-                        throw new BadRequestError(req._("An icon must be specified for new devices"));
-                } else {
-                    try {
-                        old = await model.getByPrimaryKind(dbClient, kind);
-                    } catch(e) {
-                        throw new BadRequestError(req._("Existing device not found"));
-                    }
-                    if (old.owner !== req.user.developer_org &&
-                        (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
-                        throw new BadRequestError(req._("Existing device not found"));
-                }
+        await Importer.uploadDevice(req);
+    } catch(e) {
+        if (!(e instanceof ValidationError) && !(e instanceof BadRequestError))
+            throw e;
 
-                await Validation.tokenizeDataset(dataset);
-            } catch(e) {
-                console.error(e.stack);
-                res.render('thingpedia_device_create_or_edit', { page_title:
-                                                                 (create ?
-                                                                  req._("Thingpedia - Create New Device") :
-                                                                  req._("Thingpedia - Edit Device")),
-                                                                 error: e,
-                                                                 device: req.body,
-                                                                 create: create });
-                return false;
-            }
-
-            const [schemaId, schemaChanged] = await Importer.ensurePrimarySchema(dbClient, req.body.name,
-                                                                                 classDef, req, approve);
-            const datasetChanged = await Importer.ensureDataset(dbClient, schemaId, dataset, req.body.dataset);
-
-            const extraKinds = classDef.extends || [];
-            const extraChildKinds = classDef.annotations.child_types ?
-                classDef.annotations.child_types.toJS() : [];
-
-            const downloadable = Importer.isDownloadable(classDef);
-
-            const developer_version = create ? 0 : old.developer_version + 1;
-            classDef.annotations.version = ThingTalk.Ast.Value.Number(developer_version);
-            classDef.annotations.package_version = ThingTalk.Ast.Value.Number(developer_version);
-
-            const generalInfo = {
-                primary_kind: kind,
-                name: req.body.name,
-                description: req.body.description,
-                license: req.body.license,
-                license_gplcompatible: !!req.body.license_gplcompatible,
-                website: req.body.website || '',
-                repository: req.body.repository || '',
-                issue_tracker: req.body.issue_tracker || '',
-                category: Importer.getCategory(classDef),
-                subcategory: req.body.subcategory,
-                source_code: req.body.code,
-                developer_version: developer_version,
-                approved_version: approve ? developer_version :
-                    (old !== null ? old.approved_version : null),
-            };
-            if (req.files.icon && req.files.icon.length)
-                Object.assign(generalInfo, await Importer.uploadIcon(kind, req.files.icon[0].path));
-
-            const discoveryServices = FactoryUtils.getDiscoveryServices(classDef);
-            const factory = FactoryUtils.makeDeviceFactory(classDef, generalInfo);
-            const versionedInfo = {
-                code: classDef.prettyprint(),
-                factory: JSON.stringify(factory),
-                module_type: classDef.is_abstract ? 'org.thingpedia.abstract' : classDef.loader.module,
-                downloadable: downloadable
-            };
-
-            if (create) {
-                generalInfo.owner = req.user.developer_org;
-                await model.create(dbClient, generalInfo, extraKinds, extraChildKinds, discoveryServices, versionedInfo);
-            } else {
-                generalInfo.owner = old.owner;
-                await model.update(dbClient, old.id, generalInfo, extraKinds, extraChildKinds, discoveryServices, versionedInfo);
-            }
-
-            if (downloadable) {
-                const zipFile = req.files && req.files.zipfile && req.files.zipfile.length ?
-                    req.files.zipfile[0] : null;
-
-                let stream;
-                if (zipFile !== null)
-                    stream = fs.createReadStream(zipFile.path);
-                else if (old !== null)
-                    stream = code_storage.downloadZipFile(kind, old.developer_version);
-                else
-                    throw new BadRequestError(req._("Invalid zip file"));
-
-                if (zipFile && isJavaScript(zipFile))
-                    await Importer.uploadJavaScript(req, generalInfo, stream);
-                else
-                    await Importer.uploadZipFile(req, generalInfo, stream);
-            }
-
-            if (schemaChanged || datasetChanged) {
-                // trigger the training server if configured
-                await TrainingServer.get().queue('en', [kind], 'update-dataset');
-            }
-
-            return true;
-        }, 'repeatable read');
-
-        if (ok) {
-            // trigger updating the device on the user
-            await tryUpdateDevice(kind, req.user.id);
-
-            res.redirect('/thingpedia/devices/by-id/' + kind);
-        }
-    } finally {
-        var toDelete = [];
-        if (req.files) {
-            if (req.files.zipfile && req.files.zipfile.length)
-                toDelete.push(Q.nfcall(fs.unlink, req.files.zipfile[0].path));
-        }
-        await Promise.all(toDelete);
+        console.error(e.stack);
+        res.render('thingpedia_device_create_or_edit', { page_title:
+                                                         (create ?
+                                                          req._("Thingpedia - Create New Device") :
+                                                          req._("Thingpedia - Edit Device")),
+                                                         error: e,
+                                                         device: req.body,
+                                                         create: create });
+        return;
     }
+
+    res.redirect('/thingpedia/devices/by-id/' + kind);
 }
 
 const updateArguments = {

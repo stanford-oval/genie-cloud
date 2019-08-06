@@ -14,10 +14,13 @@ require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');
 
+const fs = require('fs');
 const assert = require('assert');
+const path = require('path');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const FormData = require('form-data');
+const JSZip = require('jszip');
 
 const { sessionRequest, assertHttpError } = require('./website/scaffold');
 const { login, startSession } = require('./login');
@@ -1884,6 +1887,276 @@ async function testGetSnapshot() {
     assert.strictEqual(await ttRequest('/snapshot/2'), '');
 }
 
+const NEW_DEVICE1_CLASS = `
+class @org.thingpedia.test.newdevice1 {
+    import loader from @org.thingpedia.v2();
+    import config from @org.thingpedia.config.none();
+
+    query foo(out text : String)
+    #_[confirmation="the foos"];
+}
+`;
+const NEW_DEVICE1_DATASET = `
+dataset @org.thingpedia.test.newdevice1 language "en" {
+}
+`;
+const NEW_DEVICE1_ICON = fs.readFileSync(path.resolve(path.dirname(module.filename), './data/com.bing.png'));
+
+const NEW_DEVICE1_CODE = `
+"use strict";
+const Tp = require('thingpedia');
+module.exports = class TestDevice extends Tp.BaseDevice {
+    get_foo() {
+        return [{ text: "foo" }];
+    }
+};
+`;
+
+const BANG_CLASS_FULL = `class @com.bing
+#_[name="Bang Search"]
+#_[description="Search the web with Bang"]
+#[version=1]
+#[package_version=1] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none(subscription_key="12345");
+
+  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                    out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
+                                    out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
+                                    out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="web search on bing"]
+  #_[confirmation="websites matching $query on Bing"]
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
+  #[poll_interval=3600000ms]
+  #[doc="search for ${'`query`'} on Bing"];
+
+  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                      out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
+                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                      out link: Entity(tt:url) #_[canonical="link"],
+                                      out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
+                                      out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
+  #_[canonical="image search on bing"]
+  #_[confirmation="images matching $query from Bing"]
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
+  #[poll_interval=3600000ms]
+  #[doc="search for ${'`query`'} on Bing Images"];
+}
+`;
+
+async function testCreateDevice() {
+    await startSession();
+    const bob = await login('bob', '12345678');
+    const bob_token = await getAccessToken(bob);
+
+    function createUpload(zipfile, jsfile, icon, data) {
+        const fd = new FormData();
+
+        if (zipfile)
+            fd.append('zipfile', zipfile, { filename: 'device.zip', contentType: 'application/zip' });
+        if (jsfile) // note: the js file goes in the same spot at the zip file, and the server disambiguates based on file extension
+            fd.append('zipfile', jsfile, { filename: 'device.js', contentType: 'application/javascript' });
+        if (icon)
+            fd.append('icon', icon, { filename: 'icon.png', contentType: 'image/png' });
+        for (let key in data)
+            fd.append(key, data[key]);
+        return fd;
+    }
+    function tryUpload(zipfile, jsfile, icon, data) {
+        const fd = createUpload(zipfile, jsfile, icon, data);
+        return Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/devices/create', fd, {
+            dataContentType:  'multipart/form-data; boundary=' + fd.getBoundary(),
+            extraHeaders: {
+                Authorization: 'Bearer ' + bob_token
+            },
+            useOAuth2: true
+        });
+    }
+
+    await assertHttpError(
+        Tp.Helpers.Http.post(THINGPEDIA_URL + '/devices/create', '', {
+            'Content-Type': 'multipart/form-data'
+        }),
+        401,
+        'Authentication required.'
+    );
+
+    await assertHttpError(tryUpload(null, null, null, {
+        primary_kind: 'org.thingpedia.test.newdevice1',
+        name: 'New Test Device',
+        description: 'Yet another test device (can\'t have too many of those)',
+        license: 'CC0',
+        license_gplcompatible: '1',
+        subcategory: 'service',
+        code: NEW_DEVICE1_CLASS,
+        dataset: NEW_DEVICE1_DATASET,
+    }), 400, 'An icon must be specified for new devices');
+
+    await assertHttpError(tryUpload(null, null, NEW_DEVICE1_ICON, {
+        primary_kind: 'org.thingpedia.test.newdevice1',
+        name: 'New Test Device',
+        description: 'Yet another test device (can\'t have too many of those)',
+        license: 'CC0',
+        license_gplcompatible: '1',
+        subcategory: 'service',
+        code: NEW_DEVICE1_CLASS,
+        dataset: NEW_DEVICE1_DATASET,
+    }), 400, 'Invalid zip file');
+
+    await assertHttpError(tryUpload(null, null, NEW_DEVICE1_ICON, {
+        primary_kind: 'org.thingpedia.test.newdevice1',
+        name: 'New Test Device',
+        description: 'Yet another test device (can\'t have too many of those)',
+        license: 'CC0',
+        license_gplcompatible: '1',
+        subcategory: 'service',
+        code: `class @foo.bad {}`,
+        dataset: NEW_DEVICE1_DATASET,
+    }), 400, 'Invalid manifest file: must contain exactly one class, with the same identifier as the device');
+
+    await tryUpload(null, NEW_DEVICE1_CODE, NEW_DEVICE1_ICON, {
+        primary_kind: 'org.thingpedia.test.newdevice1',
+        name: 'New Test Device',
+        description: 'Yet another test device (can\'t have too many of those)',
+        license: 'CC0',
+        license_gplcompatible: '1',
+        subcategory: 'service',
+        code: NEW_DEVICE1_CLASS,
+        dataset: NEW_DEVICE1_DATASET,
+    });
+
+    await assertHttpError(ttRequest(`/devices/code/org.thingpedia.test.newdevice1`), 404);
+    const manifest = await ttRequest(`/devices/code/org.thingpedia.test.newdevice1?developer_key=${process.env.DEVELOPER_KEY}`);
+    assert.strictEqual(manifest, `class @org.thingpedia.test.newdevice1
+#_[name="New Test Device"]
+#_[description="Yet another test device (can't have too many of those)"]
+#[version=0]
+#[package_version=0] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  query foo(out text: String #_[canonical="text"])
+  #_[confirmation="the foos"]
+  #_[canonical="foo on new test device"];
+}
+`);
+
+    let source = await streamRequest(`/devices/package/org.thingpedia.test.newdevice1?developer_key=${process.env.DEVELOPER_KEY}`);
+    const buffer = await new Promise((resolve, reject) => {
+        let buffers = [];
+        let buflen = 0;
+        source.on('data', (buf) => {
+            buffers.push(buf);
+            buflen += buf.length;
+        });
+        source.on('error', reject);
+        source.on('end', () => resolve(Buffer.concat(buffers, buflen)));
+        source.resume();
+    });
+    const zipFile = new JSZip;
+    await zipFile.loadAsync(buffer, { checkCRC32: true });
+    const packageJson = JSON.parse(await zipFile.file('package.json').async('string'));
+
+    assert.deepStrictEqual(packageJson, {
+        name: 'org.thingpedia.test.newdevice1',
+        author: 'bob@thingpedia.stanford.edu',
+        main: 'index.js',
+        'thingpedia-version': 0
+    });
+}
+
+const BING_DATASET = `
+dataset @com.bing language "en" {
+    query (p_query :String)  := @com.bing.web_search(query=p_query)
+    #_[utterances=["${'${p_query:const}'} on bing","bing $p_query","websites matching $p_query","web sites matching $p_query"]];
+
+    query  := @com.bing.web_search(query=$?)
+    #_[utterances=[", search on bing",", bing search",", web search"]];
+
+    query (p_query :String)  := @com.bing.image_search(query=p_query)
+    #_[utterances=["${'${p_query:const}'} images on bing","images matching $p_query from bing"]];
+
+    query  := @com.bing.image_search(query=$?)
+    #_[utterances=[", search images on bing",", bing image search",", image search"]];
+
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width == p_width && height == p_height)
+    #_[utterances=["images from bing matching $p_query with size $p_width x $p_height"]];
+
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width >= p_width && height >= p_height)
+    #_[utterances=["images from bing matching $p_query larger than $p_width x $p_height"]];
+
+    query (p_query :String, p_width :Number)  := (@com.bing.image_search(query=p_query)), width >= p_width
+    #_[utterances=["images from bing matching $p_query wider than $p_width"]];
+
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width >= p_width || height >= p_height)
+    #_[utterances=["images from bing matching $p_query larger than $p_width x $p_height in either dimension"]];
+
+    query (p_query :String, p_height :Number)  := (@com.bing.image_search(query=p_query)), height >= p_height
+    #_[utterances=["images from bing matching $p_query taller than $p_height"]];
+
+    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width <= p_width && height <= p_height)
+    #_[utterances=["images from bing matching $p_query smaller than $p_width x $p_height"]];
+  }
+`;
+
+async function testEditDevice() {
+    await startSession();
+    const bob = await login('bob', '12345678');
+    const bob_token = await getAccessToken(bob);
+
+    function createUpload(zipfile, jsfile, icon, data) {
+        const fd = new FormData();
+
+        if (zipfile)
+            fd.append('zipfile', zipfile, { filename: 'device.zip', contentType: 'application/zip' });
+        if (jsfile) // note: the js file goes in the same spot at the zip file, and the server disambiguates based on file extension
+            fd.append('zipfile', jsfile, { filename: 'device.js', contentType: 'application/javascript' });
+        if (icon)
+            fd.append('icon', icon, { filename: 'icon.png', contentType: 'image/png' });
+        for (let key in data)
+            fd.append(key, data[key]);
+        return fd;
+    }
+    function tryUpload(zipfile, jsfile, icon, data) {
+        const fd = createUpload(zipfile, jsfile, icon, data);
+        return Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/devices/create', fd, {
+            dataContentType:  'multipart/form-data; boundary=' + fd.getBoundary(),
+            extraHeaders: {
+                Authorization: 'Bearer ' + bob_token
+            },
+            useOAuth2: true
+        });
+    }
+
+    await assertHttpError(tryUpload(null, null, null, {
+        primary_kind: 'org.thingpedia.builtin.test.adminonly',
+        name: 'New Test Device',
+        description: 'I am taking over the Admin Only Device!',
+        license: 'CC0',
+        license_gplcompatible: '1',
+        subcategory: 'service',
+        code: NEW_DEVICE1_CLASS,
+        dataset: NEW_DEVICE1_DATASET,
+    }), 403, 'You do not have permission to perform the requested operation.');
+
+    // upload nothing
+    await tryUpload(null, null, null, {
+        primary_kind: 'com.bing',
+        // everybody knows Bing should have been called Bang
+        name: 'Bang Search',
+        description: 'Search the web with Bang',
+        license: 'CC0',
+        license_gplcompatible: '1',
+        subcategory: 'service',
+        code: BANG_CLASS_FULL,
+        dataset: BING_DATASET,
+    });
+
+    assert.strictEqual(await ttRequest(`/devices/code/com.bing`), BING_CLASS_FULL);
+    assert.strictEqual(await ttRequest(`/devices/code/com.bing?developer_key=${process.env.DEVELOPER_KEY}`), BANG_CLASS_FULL);
+}
+
+
 async function main() {
     await testGetSchemas();
     await testGetMetadata();
@@ -1913,5 +2186,7 @@ async function main() {
     await testLookupLocation();
     await testEntityUpload();
     await testStringUpload();
+    await testCreateDevice();
+    await testEditDevice();
 }
 main();
