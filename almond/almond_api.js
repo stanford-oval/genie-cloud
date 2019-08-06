@@ -70,14 +70,16 @@ module.exports = class AlmondApi {
                     continue;
                 if (typeof slot.id !== 'string')
                     throw new TypeError(`must select a device for @${slot.kind}`);
+                continue;
             }
-            if (slot.value.isLocation && slot.value.value.isRelative) {
-                let relativeTag = slot.value.value.relativeTag;
+            const value = slot.get();
+            if (value.isLocation && value.value.isRelative) {
+                let relativeTag = value.value.relativeTag;
                 if (relativeTag === 'current_location')
-                    slot.value = locations['current_location'] ? Ast.Value.fromJSON(ThingTalk.Type.Location, locations['current_location']) : null;
+                    slot.set(locations['current_location'] ? Ast.Value.fromJSON(ThingTalk.Type.Location, locations['current_location']) : null);
                 else
-                    slot.value = this._resolveUserContext('$context.location.' + relativeTag);
-                if (!slot.value)
+                    slot.set(this._resolveUserContext('$context.location.' + relativeTag));
+                if (!slot.get())
                     throw new TypeError(`missing location ${relativeTag}`);
             }
         }
