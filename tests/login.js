@@ -9,7 +9,8 @@
 // See COPYING for details
 "use strict";
 
-require('thingengine-core/lib/polyfill');
+// load thingpedia to initialize the polyfill
+require('thingpedia');
 require('./polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');

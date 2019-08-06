@@ -10,6 +10,9 @@
 // See COPYING for details
 "use strict";
 
+// load thingpedia to initialize the polyfill
+require('thingpedia');
+
 const Q = require('q');
 Q.longStackSupport = true;
 require('../util/config_init');

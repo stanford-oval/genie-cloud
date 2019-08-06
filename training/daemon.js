@@ -11,6 +11,9 @@
 // See COPYING for details
 "use strict";
 
+// load thingpedia to initialize the polyfill
+require('thingpedia');
+
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');
 
