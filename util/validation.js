@@ -18,6 +18,7 @@ const stringModel = require('../model/strings');
 const { clean, splitParams, tokenize } = require('./tokenize');
 const TokenizerService = require('./tokenizer_service');
 const ThingpediaClient = require('./thingpedia-client');
+const { ValidationError } = require('./errors');
 
 assert(typeof ThingpediaClient === 'function');
 
@@ -35,13 +36,6 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
 const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
 const ALLOWED_CLASS_METADATA = new Set(['name', 'description']);
-
-class ValidationError extends Error {
-    constructor(message) {
-        super(message);
-        this.code = 'EINVAL';
-    }
-}
 
 function validateAnnotations(annotations) {
     for (let name of Object.getOwnPropertyNames(annotations)) {
