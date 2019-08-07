@@ -10,11 +10,11 @@
 "use strict";
 
 const ThingTalk = require('thingtalk');
-const TpClient = require('thingpedia-client');
+const Tp = require('thingpedia');
 const fs = require('fs');
 const util = require('util');
 
-module.exports = class FileThingpediaClient extends TpClient.BaseClient {
+module.exports = class FileThingpediaClient extends Tp.BaseClient {
     constructor(args) {
         super({ locale: args.locale, getDeveloperKey() { return null; } });
         this._locale = args.locale;
