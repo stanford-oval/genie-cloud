@@ -13,7 +13,9 @@
 // Bootstrap an installation of Almond Cloud by creating the
 // database schema and adding the requisite initial data
 
-require('thingengine-core/lib/polyfill');
+// load thingpedia to initialize the polyfill
+require('thingpedia');
+
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');
 

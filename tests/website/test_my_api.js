@@ -103,7 +103,7 @@ async function testMyApiCreateGetApp(auth) {
 
     assert(result.uniqueId.startsWith('uuid-'));
     assert.strictEqual(result.description, 'get generate 10 byte of fake data with count equal to 2 and then notify you');
-    assert.strictEqual(result.code, '{\n  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(count=2, size=10byte) => notify;\n}');
+    assert.strictEqual(result.code, 'now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(count=2, size=10byte) => notify;');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
     assert.deepStrictEqual(result.errors, []);
 
@@ -146,7 +146,7 @@ async function testMyApiCreateWhenApp(auth) {
 
     assert(result.uniqueId.startsWith('uuid-'));
     assert.strictEqual(result.description, 'notify you when generate 10 byte of fake data change');
-    assert.strictEqual(result.code, '{\n  monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;\n}');
+    assert.strictEqual(result.code, 'monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
     assert.deepStrictEqual(result.results, []);
     assert.deepStrictEqual(result.errors, []);
@@ -192,7 +192,7 @@ async function testMyApiListApps(auth, uniqueId) {
         description: 'notify you when generate 10 byte of fake data change',
         error: null,
         code:
-         '{\n  monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;\n}',
+         'monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;',
         icon: '/download/icons/org.thingpedia.builtin.test.png'
     }]);
 
@@ -202,7 +202,7 @@ async function testMyApiListApps(auth, uniqueId) {
         description: 'notify you when generate 10 byte of fake data change',
         error: null,
         code:
-         '{\n  monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;\n}',
+         'monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;',
         icon: '/download/icons/org.thingpedia.builtin.test.png'
     });
 

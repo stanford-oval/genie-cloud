@@ -45,7 +45,7 @@ function getCachedModules(userId) {
     return EngineManager.get().getEngine(userId).then((engine) => {
         return engine.devices.factory;
     }).then((devFactory) => {
-        return devFactory.getCachedModules();
+        return devFactory.getCachedDeviceClasses();
     }).catch((e) => {
         console.log('Failed to retrieve cached modules: ' + e.message);
         return [];

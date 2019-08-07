@@ -397,15 +397,15 @@ align-text@^0.1.1, align-text@^0.1.3:
     longest "^1.0.1"
     repeat-string "^1.5.2"
 
-almond-dialog-agent@~1.4.0:
+"almond-dialog-agent@github:stanford-oval/almond-dialog-agent":
   version "1.4.1"
-  resolved "https://registry.yarnpkg.com/almond-dialog-agent/-/almond-dialog-agent-1.4.1.tgz#4bc3a42ab908855e151990d7665883c601573794"
-  integrity sha512-ulpKrbM9VKWVKi9ed6Cin528qWR5xUUXGLxAJ+y7Tdz5vQofn/faqMzy/Kv5gJKYSm4R8BlMYPaQHQ2ONjJ5Hw==
+  resolved "https://codeload.github.com/stanford-oval/almond-dialog-agent/tar.gz/58b1b0f6f764c81413570d7b20690005fe7eba12"
   dependencies:
     adt "~0.7.2"
     consumer-queue "^1.0.0"
+    qs "^6.7.0"
     thingpedia "^2.3.0"
-    thingtalk "~1.7.2"
+    thingtalk "github:stanford-oval/thingtalk"
     uuid "^3.1.0"
 
 another-json@^0.2.0:
@@ -653,9 +653,9 @@ atob@^2.1.1:
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
 aws-sdk@^2.2.48:
-  version "2.503.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.503.0.tgz#983b8c03aa919060a81127cb9d94fbb1667f4cf2"
-  integrity sha512-DPwRxhPYCGNvKL9rUhpAoOVpMRyISbVMlXykLQknYo7wyOI+jYcyA7t8H7IFPAqj4ZG+R+Au9tO/KT4im+2gbg==
+  version "2.504.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.504.0.tgz#d7111b3f5117548935d68c717d72bbf57a9362f9"
+  integrity sha512-azOX54oovJv0zWzO23fBgIprwsvx8KUuMR+cAUAOx23D8LJ5S+sl3UYS9Q1X4qF/blBTa4+ZNawZDV0N1HiQmw==
   dependencies:
     buffer "4.9.1"
     events "1.1.1"
@@ -714,9 +714,9 @@ balanced-match@^1.0.0:
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
 
 base64-js@^1.0.2, base64-js@^1.3.0:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.3.0.tgz#cab1e6118f051095e58b5281aea8c1cd22bfc0e3"
-  integrity sha512-ccav/yGvoa80BQDljCxsmmQ3Xvx60/UpBIij5QN21W3wBi/hhIC9OoO+KLpu9IJTS9j4DRVJ3aDDF9cMSoa2lw==
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/base64-js/-/base64-js-1.3.1.tgz#58ece8cb75dd07e71ed08c736abc5fac4dbf8df1"
+  integrity sha512-mLQ4i2QO1ytvGWFWmcngKO//JXAQueZvwEKtjgQFM4jIK0kU+ytMfplL8j+n5mspOfjHwoAg+9yhb7BwAHm36g==
 
 base64url@3.x.x:
   version "3.0.1"
@@ -2909,9 +2909,9 @@ googleapis@^39.2.0:
     googleapis-common "^0.7.0"
 
 graceful-fs@^4.1.11, graceful-fs@^4.1.15, graceful-fs@^4.1.2, graceful-fs@^4.1.6:
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.0.tgz#8d8fdc73977cb04104721cb53666c1ca64cd328b"
-  integrity sha512-jpSvDPV4Cq/bgtpndIWbI5hmYxhQGHPC4d4cqBPb4DLniCfhJokdXhwhaDuLBGLQdvvRum/UiX6ECVIPvDXqdg==
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.1.tgz#1c1f0c364882c868f5bff6512146328336a11b1d"
+  integrity sha512-b9usnbDGnD928gJB3LrCmxoibr3VE4U2SMo5PBuBnokWyDADTqDPXg4YpwKF1trpH+UbGp7QLicO3+aWEy0+mw==
 
 "growl@~> 1.10.0":
   version "1.10.5"
@@ -3050,9 +3050,11 @@ hmac-drbg@^1.0.0:
     minimalistic-crypto-utils "^1.0.1"
 
 hosted-git-info@^2.1.4:
-  version "2.7.1"
-  resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.7.1.tgz#97f236977bd6e125408930ff6de3eec6281ec047"
-  integrity sha512-7T/BxH19zbcCTa8XkMlbK5lTo1WtgkFi3GvdWEyNuc4Vex7/9Dqbnpsf4JMydcfj9HCg4zUWFTL3Za6lapg5/w==
+  version "2.8.2"
+  resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.8.2.tgz#a35c3f355ac1249f1093c0c2a542ace8818c171a"
+  integrity sha512-CyjlXII6LMsPMyUzxpTt8fzh5QwzGqPmQXgY/Jyf4Zfp27t/FvfhwoE/8laaMUcMy816CkWF20I7NeQhwwY88w==
+  dependencies:
+    lru-cache "^5.1.1"
 
 htmlescape@^1.1.0:
   version "1.1.1"
@@ -3931,7 +3933,7 @@ lru-cache@^4.0.1, lru-cache@^4.1.3:
     pseudomap "^1.0.2"
     yallist "^2.1.2"
 
-lru-cache@^5.0.0:
+lru-cache@^5.0.0, lru-cache@^5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-5.1.1.tgz#1da27e6710271947695daf6848e847f01d84b920"
   integrity sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==
@@ -4671,11 +4673,6 @@ osenv@^0.1.4:
   dependencies:
     os-homedir "^1.0.0"
     os-tmpdir "^1.0.0"
-
-p-finally@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/p-finally/-/p-finally-1.0.0.tgz#3fbcfb15b899a44123b34b6dcc18b724336a2cae"
-  integrity sha1-P7z7FbiZpEEjs0ttzBi3JDNqLK4=
 
 p-limit@^2.0.0:
   version "2.2.0"
@@ -6216,7 +6213,7 @@ text-table@^0.2.0:
 
 "thingengine-core@github:stanford-oval/thingengine-core":
   version "1.5.0"
-  resolved "https://codeload.github.com/stanford-oval/thingengine-core/tar.gz/0bd12bffd34b0bea40b61a4663815f1a73d897c1"
+  resolved "https://codeload.github.com/stanford-oval/thingengine-core/tar.gz/8ac47737dca968b59208cf1b661229b6aefcbe14"
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.1"
@@ -6225,20 +6222,11 @@ text-table@^0.2.0:
     matrix-js-sdk "0.9.2"
     q "^1.5.0"
     sqlite3 "^4.0.2"
-    thingpedia "^2.2.1"
-    thingpedia-client "github:stanford-oval/thingpedia-client"
+    thingpedia "github:stanford-oval/thingpedia-api"
     thingpedia-discovery "^1.0.0"
     thingtalk "~1.7.0"
     uuid "^3.1.0"
     ws "^7.0.0"
-
-"thingpedia-client@github:stanford-oval/thingpedia-client":
-  version "0.2.5"
-  resolved "https://codeload.github.com/stanford-oval/thingpedia-client/tar.gz/8bdea6a9b05d42f349ec7ffce54917f68ebdfcdd"
-  dependencies:
-    thingpedia "^2.3.0"
-    thingtalk "~1.7.0"
-    tmp "^0.1.0"
 
 thingpedia-discovery@^1.0.0:
   version "1.0.0"
@@ -6247,22 +6235,21 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-thingpedia@^2.2.1, thingpedia@^2.2.2, thingpedia@^2.3.0, thingpedia@^2.3.3:
+thingpedia@^2.3.0, thingpedia@^2.3.3, "thingpedia@github:stanford-oval/thingpedia-api":
   version "2.4.0"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.4.0.tgz#a4bd953848e87fb55dfcdc56e231810c22b58bcc"
-  integrity sha512-AVgQwYBH16pU7OcE5mhsFs3oHZ9EsJG0mqGohNZWLVEHsdiWxoahaMVRQFypXpxlcyF/ksCQ8I/0U3qWmdDJXQ==
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/cdf395e87568dbb764c4acfef58ed9badcb3ee95"
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
     oauth "~0.9.14"
-    p-finally "^1.0.0"
     thingtalk "^1.7.0"
+    tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk", thingtalk@~1.7.0, thingtalk@~1.7.2:
+thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk", thingtalk@~1.7.0:
   version "1.7.3"
-  uid "9e5fddf38388756bad99c0be263f0a057019043d"
-  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/9e5fddf38388756bad99c0be263f0a057019043d"
+  uid "332f5176f6107f5d5b581841041cc8d33efcebc3"
+  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/332f5176f6107f5d5b581841041cc8d33efcebc3"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
@@ -6632,9 +6619,9 @@ uuid@3.3.2, uuid@^3.1.0, uuid@^3.2.1, uuid@^3.3.2:
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
 
 v8-compile-cache@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/v8-compile-cache/-/v8-compile-cache-2.0.3.tgz#00f7494d2ae2b688cfe2899df6ed2c54bef91dbe"
-  integrity sha512-CNmdbwQMBjwr9Gsmohvm0pbL954tJrNzf6gWL3K+QMQf00PF7ERGrEiLgjuU3mKreLC2MeGhUsNV9ybTbLgd3w==
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/v8-compile-cache/-/v8-compile-cache-2.1.0.tgz#e14de37b31a6d194f5690d67efc4e7f6fc6ab30e"
+  integrity sha512-usZBT3PW+LOjM25wbqIlZwPeJV+3OSz3M1k1Ws8snlW39dZyYL9lOGC5FgPVHfk0jKmjiDV8Z0mIbVQPiwFs7g==
 
 validate-npm-package-license@^3.0.1:
   version "3.0.4"

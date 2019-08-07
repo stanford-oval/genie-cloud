@@ -10,7 +10,8 @@
 // See COPYING for details
 "use strict";
 
-require('../util/config_init');
+// load thingpedia to initialize the polyfill
+require('thingpedia');
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
 
