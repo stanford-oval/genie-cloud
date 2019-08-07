@@ -70,17 +70,17 @@ $srcdir/scripts/execute-sql-file.js $srcdir/model/schema.sql
 node $srcdir/scripts/bootstrap.js
 
 mkdir -p 'org.thingpedia.models.default:en'
-mkdir -p 'org.thingpedia.models.developer:en'
 mkdir -p 'org.thingpedia.models.contextual:en'
-mkdir -p 'org.thingpedia.models.developer.contextual:en'
 
 wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current.tar.gz -O $srcdir/tests/embeddings/current.tar.gz
 tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'org.thingpedia.models.default:en'
-tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'org.thingpedia.models.developer:en'
 
 wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current-contextual.tar.gz -O $srcdir/tests/embeddings/current-contextual.tar.gz
 tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'org.thingpedia.models.contextual:en'
-tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'org.thingpedia.models.developer.contextual:en'
+
+# remove developer models that were autoadded by bootstrap
+# we'll test the main models only (there is no difference really)
+$srcdir/scripts/execute-sql-file.js <(echo "delete from models where tag like '%developer%'")
 
 mkdir -p 'classifier'
 wget --no-verbose -c https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
