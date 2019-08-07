@@ -124,6 +124,7 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
                 preprocessed: [row.preprocessed],
                 click_count: row.click_count,
                 like_count: row.like_count,
+                name: row.name
             });
         }
     }
@@ -138,12 +139,14 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
             if (!skipId && ex.id !== undefined) {
                 buffer.push(`    ${targetCode}
     #_[utterances=[${ex.utterances.map(stringEscape).join(',\n' + ' '.repeat(19))}]]
-    #[id=${ex.id}];
+    #[id=${ex.id}]
+    #[name=${stringEscape(ex.name || '')}];
 
 `);
             } else {
                 buffer.push(`    ${targetCode}
-    #_[utterances=[${ex.utterances.map(stringEscape).join(',\n' + ' '.repeat(19))}]];
+    #_[utterances=[${ex.utterances.map(stringEscape).join(',\n' + ' '.repeat(19))}]]
+    #[name=${stringEscape(ex.name || '')}];
 
 `);
             }
@@ -151,7 +154,8 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
             buffer.push(`    ${targetCode}
     #_[utterances=[${ex.utterances.map(stringEscape)}]]
     #_[preprocessed=[${ex.preprocessed.map(stringEscape)}]]
-    #[id=${ex.id}] #[click_count=${ex.click_count}] #[like_count=${ex.like_count}];
+    #[id=${ex.id}] #[click_count=${ex.click_count}] #[like_count=${ex.like_count}]
+    #[name=${stringEscape(ex.name || '')}];
 `);
         }
     }

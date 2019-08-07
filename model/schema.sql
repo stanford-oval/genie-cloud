@@ -373,11 +373,13 @@ CREATE TABLE `example_utterances` (
   `click_count` int(11) NOT NULL DEFAULT 0,
   `like_count` int(11) NOT NULL DEFAULT 0,
   `owner` int(11) DEFAULT NULL,
+  `name` varchar(128) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `schema_id` (`schema_id`),
   KEY `language_type` (`language`,`type`),
   KEY `language_flags` (`language`,`flags`),
   KEY `owner` (`owner`),
+  UNIQUE KEY `intent_name` (`language`, `schema_id`, `name`),
   CONSTRAINT `example_utterances_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `example_utterances_ibfk_2` FOREIGN KEY (`owner`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -396,26 +398,6 @@ CREATE TABLE `example_likes` (
   PRIMARY KEY (`example_id`, `user_id`),
   CONSTRAINT `example_likes_ibfk_1` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `example_likes_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `replaced_example_utterances`
---
-
-DROP TABLE IF EXISTS `replaced_example_utterances`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `replaced_example_utterances` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
-  `type` char(32) COLLATE utf8_bin NOT NULL DEFAULT 'other',
-  `flags` set('synthetic','augmented','obsolete','ambiguous','template','training','exact') COLLATE utf8_bin NOT NULL DEFAULT '',
-  `preprocessed` text CHARACTER SET utf8mb4 NOT NULL,
-  `target_code` text COLLATE utf8mb4_bin NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `language_type` (`language`,`type`),
-  KEY `language_flags` (`language`,`flags`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -684,7 +666,8 @@ CREATE TABLE `model_devices` (
   `schema_id` int(11) NOT NULL,
   PRIMARY KEY (`model_id`, `schema_id`),
   KEY `schema_id` (`schema_id`),
-  CONSTRAINT `model_devices_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
+  CONSTRAINT `model_devices_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `model_devices_ibfk_2` FOREIGN KEY (`model_id`) REFERENCES `models` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -794,6 +777,46 @@ CREATE TABLE `homepage_links` (
   KEY `upd_date` (`upd_date`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `alexa_models`
+--
+
+DROP TABLE IF EXISTS `alexa_models`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `alexa_models` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `language` char(15) COLLATE utf8_bin NOT NULL DEFAULT 'en',
+  `tag` varchar(64) COLLATE utf8_bin,
+  `owner` int(11) NOT NULL,
+  `access_token` char(64) COLLATE utf8_bin NULL,
+  `anonymous_user` int(11) NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY (`language`, `tag`),
+  KEY `owner` (`owner`),
+  CONSTRAINT `alexa_models_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT `alexa_models_ibfk_2` FOREIGN KEY (`anonymous_user`) REFERENCES `users` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `alexa_model_devices`
+--
+
+DROP TABLE IF EXISTS `alexa_model_devices`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `alexa_model_devices` (
+  `model_id` int(11) NOT NULL,
+  `schema_id` int(11) NOT NULL,
+  PRIMARY KEY (`model_id`, `schema_id`),
+  KEY `schema_id` (`schema_id`),
+  CONSTRAINT `alexa_model_devices_ibfk_1` FOREIGN KEY (`schema_id`) REFERENCES `device_schema` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `alexa_model_devices_ibfk_2` FOREIGN KEY (`model_id`) REFERENCES `alexa_models` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

@@ -131,17 +131,6 @@ async function learn(req, res) {
         });
         if (store === 'commandpedia')
             await exampleModel.like(dbClient, ex.id, ownerId);
-
-        if (trainable) {
-            // insert a second copy of the sentence with the "replaced" flag
-            await exampleModel.createReplaced(dbClient, {
-                language: languageTag,
-                type: store,
-                flags: 'training,exact',
-                preprocessed: preprocessed,
-                target_code: target_code,
-            });
-        }
         return ex.id;
     });
     if (exampleId === null)

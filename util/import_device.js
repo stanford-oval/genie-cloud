@@ -108,7 +108,7 @@ function exampleToCode(example) {
     clone.id = -1;
     clone.utterances = [];
     clone.preprocessed = [];
-    clone.metadata = {};
+    clone.annotations = {};
     return clone.prettyprint();
 }
 
@@ -121,7 +121,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
        - it creates fresh examples for secondary utterances
     */
 
-    const existing = new Map;
+    const existingMap = new Map;
     const toDelete = new Set;
 
     const old = await exampleModel.getBaseBySchema(dbClient, schemaId, dataset.language);
@@ -133,7 +133,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
         return false;
 
     for (let row of old) {
-        existing.set(row.id, row);
+        existingMap.set(row.id, row);
         toDelete.add(row.id);
     }
 
@@ -144,12 +144,18 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
         const code = exampleToCode(example);
 
         if (example.id >= 0) {
-            if (existing.has(example.id) && existing.target_code === code && existing.language === dataset.language) {
-                toDelete.delete(example.id);
-                if (existing.utterance !== example.utterances[0]) {
-                    toUpdate.push({ id: example.id,
-                                    utterance: example.utterances[0],
-                                    preprocessed: example.preprocessed[0] });
+            if (existingMap.has(example.id)) {
+                const existing = existingMap.get(example.id);
+                if (existing.target_code === code && existing.language === dataset.language &&
+                    existing.name === example.annotations.name) {
+                    toDelete.delete(example.id);
+                    if (existing.utterance !== example.utterances[0]) {
+                        toUpdate.push({ id: example.id,
+                                        utterance: example.utterances[0],
+                                        preprocessed: example.preprocessed[0] });
+                    }
+                } else {
+                    example.id = -1;
                 }
             } else {
                 example.id = -1;
@@ -159,7 +165,8 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
             toCreate.push({
                 utterance: example.utterances[0],
                 preprocessed: example.preprocessed[0],
-                target_code: code
+                target_code: code,
+                name: example.annotations.name,
             });
         }
 
@@ -167,7 +174,8 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
             toCreate.push({
                 utterance: example.utterances[i],
                 preprocessed: example.preprocessed[i],
-                target_code: code
+                target_code: code,
+                name: null
             });
         }
     }
@@ -190,7 +198,8 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
                 type: 'thingpedia',
                 language: dataset.language,
                 is_base: 1,
-                flags: 'template'
+                flags: 'template',
+                name: ex.name
             });
         }))
     ]);

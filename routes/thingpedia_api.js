@@ -2,7 +2,7 @@
 //
 // This file is part of Thingpedia
 //
-// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2015-2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -22,21 +22,38 @@ const commandModel = require('../model/example');
 const ThingpediaClient = require('../util/thingpedia-client');
 const ImageCacheManager = require('../util/cache_manager');
 const SchemaUtils = require('../util/manifest_to_schema');
-const { tokenize, PARAM_REGEX } = require('../util/tokenize');
+const { tokenize } = require('../util/tokenize');
 const userUtils = require('../util/user');
 const iv = require('../util/input_validation');
-const { isOriginOk } = require('../util/origin');
 const { AuthenticationError } = require('../util/errors');
 const errorHandling = require('../util/error_handling');
 const I18n = require('../util/i18n');
 const platform = require('../util/platform');
 const { uploadEntities, uploadStringDataset } = require('../util/upload_dataset');
+const { validatePageAndSize } = require('../util/pagination');
+const { getCommandDetails } = require('../util/commandpedia');
 const { uploadDevice } = require('../util/import_device');
 
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
 
 const everything = express.Router();
+
+// apis are CORS enabled always
+everything.use('/thingpedia/api', (req, res, next) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Vary', 'Origin');
+    next();
+});
+
+everything.options('/[^]{0,}', (req, res, next) => {
+    res.set('Access-Control-Max-Age', '86400');
+    res.set('Access-Control-Allow-Methods', 'GET, POST');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Accept, Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Vary', 'Origin');
+    res.send('');
+});
 
 const v1 = express.Router();
 const v2 = express.Router();
@@ -750,26 +767,6 @@ v3.get('/devices/setup', (req, res, next) => {
     }).catch(next);
 });
 
-function validatePageAndSize(req, defaultValue, maxValue) {
-    let page = req.query.page;
-    if (page === undefined)
-        page = 0;
-    else
-        page = parseInt(page);
-    if (!isFinite(page) || page < 0)
-        page = 0;
-    let page_size = req.query.page_size;
-    if (page_size === undefined)
-        page_size = defaultValue;
-    else
-        page_size = parseInt(page_size);
-    if (!isFinite(page_size) || page_size < 0)
-        page_size = defaultValue;
-    if (page_size > maxValue)
-        page_size = maxValue;
-    return [page, page_size];
-}
-
 v1.get('/devices/all', (req, res, next) => {
     const [page, page_size] = validatePageAndSize(req, 10, 50);
     if (!isValidDeviceClass(req, res))
@@ -898,44 +895,6 @@ v3.get('/devices/search', (req, res, next) => {
     }).catch(next);
 });
 
-function getCommandDetails(_, commands) {
-    for (let command of commands) {
-        if (command.liked !== undefined)
-            command.liked = !!command.liked;
-        if (command.is_base) {
-            command.utterance = command.utterance.replace(new RegExp(PARAM_REGEX, 'g'), '____');
-            if (command.utterance.startsWith(', '))
-                command.utterance = command.utterance.substring(2);
-            else if (command.target_code.startsWith('let stream') || command.target_code.startsWith('stream'))
-                command.utterance = _("notify me %s").format(command.utterance);
-            else if (command.target_code.startsWith('let table') || command.target_code.startsWith('query'))
-                command.utterance = _("show me %s").format(command.utterance);
-
-            command.devices = [command.kind];
-        } else {
-            // get device kinds from target_code
-            let functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
-            let devices = new Set(functions.map((f) => {
-                let kind = f.split('.');
-                kind.splice(-1, 1);
-                kind = kind.join('.').substr(1);
-                return kind;
-            }));
-            command.devices = Array.from(devices);
-        }
-        delete command.kind;
-
-        const renames = {
-             'light-bulb': 'com.hue',
-             'car': 'com.tesla.car',
-             'thermostat': 'com.nest',
-             'security-camera': 'com.nest'
-        };
-
-        command.devices = command.devices.map((d) => renames[d] || d);
-    }
-}
-
 /**
  * @api {get} /v3/commands/all Get All Commands from Commandpedia
  * @apiName GetAllCommands
@@ -990,12 +949,7 @@ v1.get('/commands/all', (req, res, next) => {
     const [page, page_size] = validatePageAndSize(req, 9, 50);
 
     db.withTransaction(async (client) => {
-        let commands;
-        if (userUtils.isAuthenticated(req) && isOriginOk(req))
-            commands = await commandModel.getCommandsForUser(client, language, req.user.id, page * page_size, page_size);
-        else
-            commands = await commandModel.getCommands(client, language, page * page_size, page_size);
-
+        const commands = await commandModel.getCommands(client, language, page * page_size, page_size);
         getCommandDetails(gettext, commands);
         res.cacheFor(30 * 1000);
         res.json({ result: 'ok', data: commands });
@@ -1057,12 +1011,7 @@ v1.get('/commands/search', (req, res, next) => {
     const gettext = I18n.get(locale).gettext;
 
     db.withTransaction(async (client) => {
-        let commands;
-        if (userUtils.isAuthenticated(req) && isOriginOk(req))
-            commands = await commandModel.getCommandsByFuzzySearchForUser(client, language, req.user.id, q);
-        else
-            commands = await commandModel.getCommandsByFuzzySearch(client, language, q);
-
+        const commands = await commandModel.getCommandsByFuzzySearch(client, language, q);
         getCommandDetails(gettext, commands);
         res.cacheFor(30 * 1000);
         res.json({ result: 'ok', data: commands });

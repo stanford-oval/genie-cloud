@@ -240,7 +240,8 @@ router.ws('/results', user.requireScope('user-read-results'), (ws, req, next) =>
 });
 
 class WebsocketAssistantDelegate {
-    constructor(ws) {
+    constructor(locale, ws) {
+        this._locale = locale;
         this._ws = ws;
     }
 
@@ -261,8 +262,7 @@ class WebsocketAssistantDelegate {
             type: 'result',
             result: message,
 
-            // FIXME pass the right locale here...
-            fallback: message.toLocaleString(),
+            fallback: message.toLocaleString(this._locale),
             icon: icon
         }));
     }
@@ -299,7 +299,7 @@ async function doConversation(user, anonymous, ws, query) {
         const assistantUser = { name: user.human_name || user.username, isOwner: true };
         const options = { showWelcome: !query.hide_welcome, anonymous };
 
-        const delegate = new WebsocketAssistantDelegate(ws);
+        const delegate = new WebsocketAssistantDelegate(user.locale, ws);
 
         let opened = false, earlyClose = false;
         const id = query.id || 'web-' + makeRandom(4);

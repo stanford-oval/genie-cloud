@@ -107,9 +107,8 @@ function makeTranslationPairs(english, translated) {
     return out;
 }
 
-router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ locale: '?string', fromVersion: '?integer',  }), (req, res, next) => {
-    const locale = req.query.locale || req.user.locale;
-    const language = I18n.localeToLanguage(locale);
+router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ fromVersion: '?integer',  }), (req, res, next) => {
+    const language = I18n.localeToLanguage(req.locale);
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Translations for English cannot be contributed.") });
@@ -156,7 +155,6 @@ router.get('/by-id/:kind', user.requireLogIn, iv.validateGET({ locale: '?string'
         res.render('thingpedia_translate_schema', {
             page_title: req._("Thingpedia - Translate Device"),
             kind: req.params.kind,
-            locale,
             language,
             fromVersion,
             actions,

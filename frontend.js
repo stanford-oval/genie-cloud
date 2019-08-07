@@ -32,13 +32,12 @@ const passport = require('passport');
 const connect_flash = require('connect-flash');
 const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
-const acceptLanguage = require('accept-language');
 const Prometheus = require('prom-client');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
 const db = require('./util/db');
-const i18n = require('./util/i18n');
+const I18n = require('./util/i18n');
 const userUtils = require('./util/user');
 const platform = require('./util/platform');
 const Metrics = require('./util/metrics');
@@ -60,7 +59,7 @@ class Frontend {
         this._app.set('view engine', 'pug');
         this._app.enable('trust proxy');
 
-        // provide a very-eary version of req._ in case something
+        // provide a very-early version of req._ in case something
         // early in the request stack fails and we hit the error handler
         this._app.use((req, res, next) => {
             req.locale = 'en-US';
@@ -69,7 +68,7 @@ class Frontend {
             req.pgettext = (c, x) => x;
             req.ngettext = (x, x2, n) => n === 1 ? x : x2;
 
-            res.locals.I18n = i18n;
+            res.locals.I18n = I18n;
             res.locals.locale = 'en-US';
             res.locals.gettext = req.gettext;
             res.locals._ = req._;
@@ -160,20 +159,6 @@ class Frontend {
             });
         }
 
-        this._app.use(bodyParser.json());
-        this._app.use(bodyParser.urlencoded({ extended: true }));
-        this._app.use(xmlBodyParser({ explicitArray: true, trim: false }));
-        this._app.use(cookieParser(secretKey.getSecretKey()));
-
-        this._sessionStore = new MySQLStore({
-            expiration: 86400000 // 1 day, in ms
-        }, db.getPool());
-        this._app.use(session({ resave: false,
-                                saveUninitialized: false,
-                                store: this._sessionStore,
-                                secret: secretKey.getSecretKey() }));
-        this._app.use(connect_flash());
-
         this._app.use('/brassau/backgrounds', (req, res, next) => {
             res.set('Access-Control-Allow-Origin', '*');
             next();
@@ -186,11 +171,55 @@ class Frontend {
         this._app.use(express.static(path.join(__dirname, 'public'),
                                      { maxAge: 86400000 }));
         this._app.use(cacheable());
-
-        this._app.use(passport.initialize());
-        this._app.use(passport.session());
         passportUtil.initialize();
 
+        this._app.use(bodyParser.json());
+        this._app.use(bodyParser.urlencoded({ extended: true }));
+        this._app.use(xmlBodyParser({ explicitArray: true, trim: false }));
+
+        // mount the public APIs before passport.session, so cookie authentication
+        // does not leak into them (which prevents cross-origin attacks because the APIs are CORS-enabled)
+
+        // sinkholes are dummy routes used by demo devices
+        this._app.get('/sinkhole', (req, res, next) => {
+            res.send('');
+        });
+        this._app.post('/sinkhole', (req, res, next) => {
+            res.send('');
+        });
+        this._app.use('/api/webhook', require('./routes/webhook'));
+        this._app.use('/me/api/alexa', require('./routes/bridges/alexa'));
+        this._app.use('/me/api/gassistant', require('./routes/gassistant'));
+
+        // legacy route for /me/api/sync, uses auth tokens instead of full OAuth2
+        this._app.use('/ws', require('./routes/thingengine_ws'));
+
+        if (Config.WITH_THINGPEDIA === 'embedded') {
+            this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
+            // legacy, part of v1/v2 API, in v3 this endpoint lives as /v3/devices/package
+            this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
+        }
+
+        // now initialize cookies, session and session-based logins
+
+        this._app.use(cookieParser(secretKey.getSecretKey()));
+        this._sessionStore = new MySQLStore({
+            expiration: 86400000 // 1 day, in ms
+        }, db.getPool());
+        this._app.use(session({ resave: false,
+                                saveUninitialized: false,
+                                store: this._sessionStore,
+                                secret: secretKey.getSecretKey() }));
+        this._app.use(connect_flash());
+        this._app.use(passport.initialize());
+        this._app.use(passport.session());
+
+        // this is an authentication kludge used by the Android app
+        // the app loads the index with ?app, which causes us to respond with
+        // a WWW-Authenticate header, and then the app injects basic authentication
+        // info (cloud id + auth token) in the browser
+        // this is not great, but we must keep it until the app is updated to
+        // use OAuth tokens instead
         var basicAuth = passport.authenticate('basic', { failWithError: true });
         this._app.use((req, res, next) => {
             if (req.query.auth === 'app') {
@@ -210,73 +239,21 @@ class Frontend {
             }
         });
         this._app.use((req, res, next) => {
-            res.locals.user = req.user || { isConfigured: true };
+            res.locals.user = req.user;
             res.locals.authenticated = userUtils.isAuthenticated(req);
             next();
         });
+        this._app.use(I18n.handler);
 
-        // i18n support
-        acceptLanguage.languages(i18n.LANGS);
-        this._app.use((req, res, next) => {
-            let locale = req.session.locale;
-            if (!locale && req.user)
-                locale = req.user.locale;
-            if (!locale && req.headers['accept-language'])
-                locale = acceptLanguage.get(req.headers['accept-language']);
-            if (!locale)
-                locale = 'en-US';
-            let lang = i18n.get(locale);
-
-            req.locale = locale;
-            req.gettext = lang.gettext;
-            req._ = req.gettext;
-            req.pgettext = lang.pgettext;
-            req.ngettext = lang.ngettext;
-
-            res.locals.I18n = i18n;
-            res.locals.locale = locale;
-            res.locals.gettext = req.gettext;
-            res.locals._ = req._;
-            res.locals.pgettext = req.pgettext;
-            res.locals.ngettext = req.ngettext;
-
-            res.locals.timezone = req.user ? req.user.timezone : 'America/Los_Angeles';
-            next();
-        });
-
-        this._app.get('/sinkhole', (req, res, next) => {
-            res.send('');
-        });
-        this._app.post('/sinkhole', (req, res, next) => {
-            res.send('');
-        });
-
-        if (Config.WITH_THINGPEDIA === 'embedded') {
-            // apis are CORS enabled always
-            this._app.use('/thingpedia/api', (req, res, next) => {
-                res.set('Access-Control-Allow-Origin', '*');
-                next();
-            });
-        }
-
-        // mount /api before CSRF
-        // as we don't need CSRF protection for that
-        this._app.use('/api/webhook', require('./routes/webhook'));
+        // /me/api/oauth2 uses session-auth and is susceptible to CSRF, but oauth2orize has
+        // built-in CSRF protection (transaction IDs) so we don't need csurf
         this._app.use('/me/api/oauth2', require('./routes/oauth2'));
-        this._app.use('/me/api/alexa', require('./routes/alexa'));
-        this._app.use('/me/api/gassistant', require('./routes/gassistant'));
         this._app.use('/me/api', require('./routes/my_api'));
-        this._app.use('/ws', require('./routes/thingengine_ws'));
 
-        // MAKE SURE ALL ROUTES HAVE CSURF IN /upload
+        // initialize csurf after any route that uses file upload.
+        // because file upload uses multer, which must be initialized before csurf
+        // MAKE SURE ALL ROUTES HAVE CSURF
         if (Config.WITH_THINGPEDIA === 'embedded') {
-            this._app.use('/thingpedia/api', require('./routes/thingpedia_api'));
-            this._app.use('/thingpedia/download', require('./routes/thingpedia_download'));
-
-            // initialize csurf after /upload and /entities too
-            // because upload uses multer, which is incompatible
-            // with csurf
-            // MAKE SURE ALL ROUTES HAVE CSURF
             this._app.use('/thingpedia/upload', require('./routes/thingpedia_upload'));
             this._app.use('/thingpedia/entities', require('./routes/thingpedia_entities'));
             this._app.use('/thingpedia/strings', require('./routes/thingpedia_strings'));

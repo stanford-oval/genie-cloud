@@ -9,13 +9,15 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const events = require('events');
 
 const Almond = require('almond-dialog-agent');
 const AlmondApi = require('./almond_api');
+const TimedCache = require('../util/timed_cache');
 
 const Config = require('../config');
+
+const CONVERSATION_TTL = 300000; // 5 minutes
 
 class Conversation extends Almond {
 }
@@ -31,11 +33,11 @@ module.exports = class Assistant extends events.EventEmitter {
             options.modelTag !== 'org.thingpedia.models.default')
             this._url += '/@' + options.modelTag;
         this._engine = engine;
-        this._conversations = {};
         this._lastConversation = null;
 
         this._api = new AlmondApi(this._engine);
-        this._conversations['api'] = this._api;
+        this._conversations = new TimedCache();
+        this._conversations.set('api', this._api, null);
     }
 
     parse(sentence, targetJson) {
@@ -52,56 +54,65 @@ module.exports = class Assistant extends events.EventEmitter {
         out.$free();
     }
 
-    notifyAll(...data) {
-        return Q.all(Object.keys(this._conversations).map((id) => {
-            return this._conversations[id].notify(...data);
-        }));
+    async notifyAll(...data) {
+        const promises = [];
+        for (let conv of this._conversations.values())
+            promises.push(conv.notify(...data));
+        await Promise.all(promises);
     }
 
-    notifyErrorAll(...data) {
-        return Q.all(Object.keys(this._conversations).map((id) => {
-            return this._conversations[id].notifyError(...data);
-        }));
+    async notifyErrorAll(...data) {
+        const promises = [];
+        for (let conv of this._conversations.values())
+            promises.push(conv.notifyError(...data));
+        await Promise.all(promises);
     }
 
     getConversation(id) {
-        if (id !== undefined && this._conversations[id])
-            return this._conversations[id];
+        if (id !== undefined && this._conversations.has(id))
+            return this._conversations.get(id);
         else
             return this._lastConversation;
     }
 
-    getOrOpenConversation(id, user, delegate, options) {
-        if (this._conversations[id]) {
-            this._conversations[id]._delegate = delegate;
-            return Promise.resolve(this._conversations[id]);
+    _freeConversation(conv) {
+        if (conv === this._lastConversation)
+            this._lastConversation = null;
+    }
+
+    async getOrOpenConversation(id, user, delegate, options) {
+        if (this._conversations.has(id)) {
+            const conv = this._conversations.get(id);
+            conv._delegate = delegate;
+            // NOTE: we don't refresh the timer here, but the caller is likely to make the conversation
+            // active again, which will restart the timer
+            return conv;
         }
         options = options || {};
         options.sempreUrl = this._url;
         let conv = this.openConversation(id, user, delegate, options);
-        return Promise.resolve(conv.start()).then(() => conv);
-    }
-
-    openConversation(feedId, user, delegate, options) {
-        if (this._conversations[feedId]) {
-            this._conversations[feedId].$free();
-            delete this._conversations[feedId];
-        }
-        options = options || {};
-        options.sempreUrl = this._url;
-        var conv = new Conversation(this._engine, feedId, user, delegate, options);
-        conv.on('active', () => this._lastConversation = conv);
-        this._lastConversation = conv;
-        this._conversations[feedId] = conv;
+        await conv.start();
         return conv;
     }
 
-    closeConversation(feedId) {
-        if (this._conversations[feedId])
-            this._conversations[feedId].$free();
-        if (this._conversations[feedId] === this._lastConversation)
-            this._lastConversation = null;
-        delete this._conversations[feedId];
+    openConversation(id, user, delegate, options) {
+        this._conversations.delete(id);
+        options = options || {};
+        options.sempreUrl = this._url;
+        var conv = new Conversation(this._engine, id, user, delegate, options);
+        conv.on('active', () => {
+            this._lastConversation = conv;
+
+            // refresh the timer
+            this._conversations.set(id, conv, CONVERSATION_TTL, this._freeConversation.bind(this));
+        });
+        this._lastConversation = conv;
+        this._conversations.set(id, conv, CONVERSATION_TTL, this._freeConversation.bind(this));
+        return conv;
+    }
+
+    closeConversation(id) {
+        this._conversations.delete(id);
     }
 };
 module.exports.prototype.$rpcMethods = ['openConversation', 'closeConversation', 'getConversation', 'getOrOpenConversation', 'parse', 'createApp', 'addOutput', 'removeOutput'];

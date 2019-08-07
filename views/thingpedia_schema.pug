@@ -41,7 +41,7 @@ block content
     div.alert.alert-info(role='alert')
       p
         = _("The translation for this type in your language is incomplete. ")
-        a(href='/thingpedia/translate/by-id/' + schema.kind + '?locale=' + uselocale).btn.btn-default= _("Contribute translation")
+        a(href='/thingpedia/translate/by-id/' + schema.kind + '?locale=' + locale).btn.btn-default= _("Contribute translation")
 
   if schema.kind_type === 'discovery'
     p
@@ -76,6 +76,6 @@ block content
           input(type='hidden',name='_csrf',value=csrfToken)
           input(type='hidden',name='kind',value=schema.kind)
           button(type='submit').btn.btn-danger.btn-block= _("Delete")
-    if authenticated && uselocale !== 'en-US'
+    if authenticated && locale !== 'en-US'
       div.col-md-2
-        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + schema.kind + '?locale=' + uselocale)= _("Translate")
+        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + schema.kind + '?locale=' + locale)= _("Translate")

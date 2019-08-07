@@ -343,6 +343,7 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
                 row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+(table|action|stream)[ \r\n\t\v]+x[ \r\n\t\v]*(\(.+\))[ \r\n\t\v]+:=[ \r\n\t\v]+/,
                     'let $1 x := \\$2 -> ');
             }
+            delete row.name;
         }
         return rows;
     }
