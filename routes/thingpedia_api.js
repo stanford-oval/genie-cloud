@@ -32,6 +32,7 @@ const platform = require('../util/platform');
 const { uploadEntities, uploadStringDataset } = require('../util/upload_dataset');
 const { validatePageAndSize } = require('../util/pagination');
 const { getCommandDetails } = require('../util/commandpedia');
+const { uploadDevice } = require('../util/import_device');
 
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
@@ -1858,6 +1859,57 @@ v3.post('/entities/create',
     }).catch(next);
 });
 
+/**
+ * @api {post} /v3/devices/create Create or update a new device class
+ * @apiName NewDevice
+ * @apiGroup Devices
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Create a new device class, or update an existing device class.
+ *
+ * @apiParam {String} primary_kind The ID of the device to create or update
+ * @apiParam {String} name The name of the device in Thingpedia
+ * @apiParam {String} description The description of the device in Thingpedia
+ * @apiParam {String} license The SPDX identifier of the license of the code
+ * @apiParam {Boolean} license_gplcompatible Whether the license is GPL-compatible
+ * @apiParam {String} [website] A URL of a website associated with this device or service
+ * @apiParam {String} [repository] A link to a public source code repository for the device
+ * @apiParam {String} [issue_tracker] A link to page where users can report bugs for the device
+ * @apiParam {String="home","data-management","communication","social-network","health","media","service"} subcategory The general domain of this device
+ * @apiParam {String} code The ThingTalk class definition for this device
+ * @apiParam {String} dataset The ThingTalk dataset definition for this device
+ * @apiParam {File} [zipfile] The ZIP file containing the source code for this device
+ * @apiParam {File} [icon] A PNG or JPEG file to use as the icon for this device; preferred size is 512x512
+ *
+ * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
+ *
+ */
+const deviceCreateArguments = {
+    primary_kind: 'string',
+    name: 'string',
+    description: 'string',
+    license: 'string',
+    license_gplcompatible: 'boolean',
+    website: '?string',
+    repository: '?string',
+    issue_tracker: '?string',
+    subcategory: 'string',
+    code: 'string',
+    dataset: 'string',
+    approve: 'boolean'
+};
+v3.post('/devices/create',
+    userUtils.requireScope('developer-upload'),
+    multer({ dest: platform.getTmpDir() }).fields([
+        { name: 'zipfile', maxCount: 1 },
+        { name: 'icon', maxCount: 1 }
+    ]),
+    iv.validatePOST(deviceCreateArguments, { json: true }),
+    (req, res, next) => {
+    uploadDevice(req).then(() => {
+        res.json({ result: 'ok' });
+    }).catch(next);
+});
 
 /**
  * @api {post} /v3/strings/upload Upload a new string dataset

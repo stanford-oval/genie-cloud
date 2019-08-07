@@ -10,7 +10,6 @@
 // See COPYING for details
 "use strict";
 
-require('thingengine-core/lib/polyfill');
 process.on('unhandledRejection', (up) => { throw up; });
 require('../../util/config_init');
 

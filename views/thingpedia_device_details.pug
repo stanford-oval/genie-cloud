@@ -113,7 +113,7 @@ block content
       i= _("This is a builtin device in certain versions of Almond. It may not be available in the Almond you are using.")
 
   if classDef.extends !== null
-    p!= _("This device extends the functionality of %s.").format(classDef.extends.map((k) => '<a href="/thingpedia/classes/by-id/' + k + '">@' + k + '</a>').join(', '))
+    p!= _("This device extends the functionality of %s.").format(classDef.extends.map((k) => '<a href="/thingpedia/devices/by-id/' + k + '">@' + k + '</a>').join(', '))
 
   p
     = _("Class: ")
@@ -213,9 +213,9 @@ block content
             - if (!a.is_input) continue;
             li
               if a.metadata.prompt
-                = _("%s [%s]: %s").format(a.metadata.canonical || clean(argname), a.metadata.human_readable_type, a.metadata.prompt)
+                = _("%s [%s]: %s").format(a.canonical, a.metadata.human_readable_type, a.metadata.prompt)
               else
-                = _("%s [%s]").format(a.metadata.canonical || clean(argname), a.metadata.human_readable_type)
+                = _("%s [%s]").format(a.canonical, a.metadata.human_readable_type)
 
     if inv_type === 'query'
       section
@@ -225,7 +225,7 @@ block content
             - let a = inv.getArgument(argname)
             - if (a.is_input) continue;
             li
-              = _("%s [%s]").format(a.metadata.canonical || clean(argname), a.metadata.human_readable_type)
+              = _("%s [%s]").format(a.canonical, a.metadata.human_readable_type)
 
       p
       if inv.is_list

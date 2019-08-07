@@ -10,6 +10,9 @@
 // See COPYING for details
 "use strict";
 
+// load thingpedia to initialize the polyfill
+require('thingpedia');
+
 const Q = require('q');
 Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });

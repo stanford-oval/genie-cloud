@@ -13,15 +13,17 @@
 // Bootstrap an installation of Almond Cloud by creating the
 // database schema and adding the requisite initial data
 
-require('thingengine-core/lib/polyfill');
+// load thingpedia to initialize the polyfill
+require('thingpedia');
+
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');
 
 const path = require('path');
 const fs = require('fs');
 const util = require('util');
-const Tp = require('thingpedia');
 const yaml = require('js-yaml');
+const child_process = require('child_process');
 
 const db = require('../util/db');
 const user = require('../util/user');
@@ -223,7 +225,13 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
         version: 0
     });
 
-    await codeStorage.storeZipFile(await Tp.Helpers.Http.getStream('https://almond-static.stanford.edu/test-data/en-thingtalk.zip'),
+    const geniedir = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit');
+    const { stdout, stderr } = await util.promisify(child_process.execFile)(
+        'make', ['-C', geniedir, 'bundle/en.zip'], { maxBuffer: 1024 * 1024 });
+    process.stdout.write(stdout);
+    process.stderr.write(stderr);
+
+    await codeStorage.storeZipFile(fs.createReadStream(path.resolve(geniedir, 'bundle/en.zip')),
         'org.thingpedia.genie.thingtalk', 0, 'template-files');
 
     return tmpl.id;

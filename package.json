@@ -20,19 +20,22 @@
     "update-po": "./scripts/update-po.sh",
     "lint": "eslint almond/ browser/ model/ routes/ util/ stanford/ training/ nlp/ scripts/ config.js frontend.js",
     "test": "nyc ./tests/everything.sh",
-    "prepare": "(cd node_modules/thingtalk; yarn); (cd node_modules/genie-toolkit; yarn; rm -fr node_modules); make prepare",
+    "prepare": "(cd node_modules/thingtalk; yarn); (cd node_modules/genie-toolkit; yarn; rm -fr node_modules); (cd node_modules/thingengine-core; yarn; rm -fr node_modules); make prepare",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "install": "make install"
   },
   "resolutions": {
+    "almond-dialog-agent": "github:stanford-oval/almond-dialog-agent",
     "thingtalk": "github:stanford-oval/thingtalk",
-    "genie-toolkit": "github:stanford-oval/genie-toolkit"
+    "genie-toolkit": "github:stanford-oval/genie-toolkit",
+    "thingengine-core": "github:stanford-oval/thingengine-core",
+    "thingpedia": "github:stanford-oval/thingpedia-api"
   },
   "dependencies": {
     "accept-language": "^3.0.18",
     "accepts": "^1.3.5",
     "actions-on-google": "^2.2.0",
-    "almond-dialog-agent": "~1.4.0",
+    "almond-dialog-agent": "github:stanford-oval/almond-dialog-agent",
     "argparse": "^1.0.10",
     "body-parser": "^1.18.3",
     "cacheable-middleware": "^1.0.0",
@@ -95,9 +98,8 @@
     "serve-favicon": "^2.3.0",
     "smtlib": "^0.1.1",
     "sockaddr": "^1.0.0",
-    "thingengine-core": "~1.5.0",
-    "thingpedia": "^2.2.2",
-    "thingpedia-client": "^0.2.4",
+    "thingengine-core": "github:stanford-oval/thingengine-core",
+    "thingpedia": "github:stanford-oval/thingpedia-api",
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "github:stanford-oval/thingtalk",
     "thirty-two": "^1.0.2",

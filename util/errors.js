@@ -23,6 +23,13 @@ class BadRequestError extends HTTPError {
     }
 }
 
+class ValidationError extends Error {
+    constructor(message) {
+        super(message);
+        this.code = 'EINVAL';
+    }
+}
+
 class ForbiddenError extends HTTPError {
     constructor(message = "You do not have permission to perform the requested operation.") {
         super(403, message);
@@ -56,6 +63,7 @@ module.exports = {
     BadRequestError,
     ForbiddenError,
     AuthenticationError,
+    ValidationError,
 
     NotFoundError,
 

@@ -21,20 +21,8 @@ router.use(user.requireLogIn);
 router.get('/oauth2/callback/:kind', (req, res, next) => {
     const kind = req.params.kind;
 
-    EngineManager.get().getEngine(req.user.id).then((engine) => {
-        return engine.devices.factory;
-    }).then((devFactory) => {
-        var saneReq = {
-            httpVersion: req.httpVersion,
-            url: req.url,
-            headers: req.headers,
-            rawHeaders: req.rawHeaders,
-            method: req.method,
-            query: req.query,
-            session: req.session,
-        };
-        return devFactory.runOAuth2(kind, saneReq);
-    }).then(() => {
+    EngineManager.get().getEngine(req.user.id).then(async (engine) => {
+        await engine.devices.completeOAuth(kind, req.url, req.session);
         if (req.session['device-redirect-to']) {
             res.redirect(303, req.session['device-redirect-to']);
             delete req.session['device-redirect-to'];

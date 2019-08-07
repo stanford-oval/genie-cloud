@@ -11,9 +11,9 @@
 
 const assert = require('assert');
 
+const Tp = require('thingpedia');
 const TpDiscovery = require('thingpedia-discovery');
 const ThingTalk = require('thingtalk');
-const TpClient = require('thingpedia-client');
 
 const Config = require('../config');
 
@@ -81,7 +81,7 @@ class Platform {
     }
 }
 
-module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
+module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
     constructor(developerKey, locale, dbClient = null) {
         super(new Platform(developerKey, locale));
 

@@ -18,9 +18,7 @@ const events = require('events');
 const child_process = require('child_process');
 const smtlib = require('smtlib');
 const smtsolver = smtlib.LocalCVC4Solver;
-
-// FIXME we should not punch through the abstraction
-const prefs = require('thingengine-core/lib/util/prefs');
+const Tp = require('thingpedia');
 
 const Assistant = require('./assistant');
 const graphics = require('./graphics');
@@ -136,8 +134,9 @@ class WebSocketApi extends events.EventEmitter {
 }
 WebSocketApi.prototype.$rpcMethods = ['newConnection'];
 
-class Platform {
+class Platform extends Tp.BasePlatform {
     constructor(thingpediaClient, options) {
+        super();
         this._cloudId = options.cloudId;
         this._authToken = options.authToken;
         this._developerKey = options.developerKey;
@@ -155,12 +154,16 @@ class Platform {
             if (e.code !== 'EEXIST')
                 throw e;
         }
-        this._prefs = new prefs.FilePreferences(this._writabledir + '/prefs.db');
+        this._prefs = new Tp.Helpers.FilePreferences(this._writabledir + '/prefs.db');
 
         this._webhookApi = new WebhookApi(this._cloudId);
         this._websocketApi = new WebSocketApi();
 
         this._assistant = null;
+    }
+
+    get type() {
+        return 'cloud';
     }
 
     get locale() {
@@ -359,7 +362,6 @@ class Platform {
         return false;
     }
 }
-Platform.prototype.type = 'cloud';
 
 var _shared;
 

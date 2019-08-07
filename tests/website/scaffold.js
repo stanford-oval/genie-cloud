@@ -11,7 +11,6 @@
 
 const Q = require('q');
 Q.longStackSupport = true;
-require('thingengine-core/lib/polyfill');
 require('../polyfill');
 
 const assert = require('assert');

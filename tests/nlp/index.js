@@ -17,7 +17,7 @@ process.env.TEST_MODE = '1';
 const assert = require('assert');
 const ThingTalk = require('thingtalk');
 const Gettext = require('node-gettext');
-const TpClient = require('thingpedia-client');
+const Tp = require('thingpedia');
 
 const Almond = require('almond-dialog-agent');
 const Intent = Almond.Intent;
@@ -30,7 +30,7 @@ assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 const gettext = new Gettext();
 gettext.setLocale('en-US');
 
-const schemas = new ThingTalk.SchemaRetriever(new TpClient.HttpClient({
+const schemas = new ThingTalk.SchemaRetriever(new Tp.HttpClient({
     getDeveloperKey() {
         return null;
     },

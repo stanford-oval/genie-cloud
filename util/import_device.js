@@ -9,12 +9,12 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const fs = require('fs');
 const JSZip = require('jszip');
 const ThingTalk = require('thingtalk');
 const stream = require('stream');
 const deq = require('deep-equal');
+const util = require('util');
 
 const model = require('../model/device');
 const schemaModel = require('../model/schema');
@@ -31,7 +31,11 @@ const code_storage = require('./code_storage');
 const SchemaUtils = require('./manifest_to_schema');
 const DatasetUtils = require('./dataset');
 const FactoryUtils = require('./device_factories');
-const { ForbiddenError, BadRequestError } = require('./errors');
+const TrainingServer = require('./training_server');
+const { NotFoundError, ForbiddenError, BadRequestError } = require('./errors');
+const db = require('./db');
+
+const EngineManager = require('../almond/enginemanagerclient');
 
 function areMetaIdentical(one, two) {
     for (let what of ['queries', 'actions']) {
@@ -346,7 +350,7 @@ async function uploadIcon(primary_kind, iconPath, deleteAfterwards = true) {
         return result;
     } finally {
         if (deleteAfterwards)
-            await Q.nfcall(fs.unlink, iconPath);
+            await util.promisify(fs.unlink)(iconPath);
     }
 }
 
@@ -418,6 +422,135 @@ function migrateManifest(code, device) {
     return ThingTalk.Ast.fromManifest(device.primary_kind, ast).prettyprint();
 }
 
+function tryUpdateDevice(primaryKind, userId) {
+    // do the update asynchronously - if the update fails, the user will
+    // have another chance from the status page
+    EngineManager.get().getEngine(userId).then((engine) => {
+        return engine.devices.updateDevicesOfKind(primaryKind);
+    }).catch((e) => {
+        console.error(`Failed to auto-update device ${primaryKind} for user ${userId}: ${e.message}`);
+    });
+
+    return Promise.resolve();
+}
+
+function isJavaScript(file) {
+    return file.mimetype === 'application/javascript' ||
+        file.mimetype === 'text/javascript' ||
+        (file.originalname && file.originalname.endsWith('.js'));
+}
+
+async function uploadDevice(req) {
+    const approve = (req.user.roles & (user.Role.TRUSTED_DEVELOPER | user.Role.THINGPEDIA_ADMIN)) !== 0
+        && !!req.body.approve;
+
+    try {
+        await db.withTransaction(async (dbClient) => {
+            let create = false;
+            let old = null;
+            try {
+                old = await model.getByPrimaryKind(dbClient, req.body.primary_kind);
+
+                if (old.owner !== req.user.developer_org &&
+                    (req.user.roles & user.Role.THINGPEDIA_ADMIN) === 0)
+                    throw new ForbiddenError();
+            } catch(e) {
+                if (!(e instanceof NotFoundError))
+                    throw e;
+                create = true;
+                if (!req.files.icon || !req.files.icon.length)
+                    throw new BadRequestError(req._("An icon must be specified for new devices"));
+            }
+
+            const [classDef, dataset] = await Validation.validateDevice(dbClient, req, req.body,
+                                                                        req.body.code, req.body.dataset);
+            await Validation.tokenizeDataset(dataset);
+
+            const [schemaId, schemaChanged] = await ensurePrimarySchema(dbClient, req.body.name,
+                                                                        classDef, req, approve);
+            const datasetChanged = await ensureDataset(dbClient, schemaId, dataset, req.body.dataset);
+
+            const extraKinds = classDef.extends || [];
+            const extraChildKinds = classDef.annotations.child_types ?
+                classDef.annotations.child_types.toJS() : [];
+
+            const downloadable = isDownloadable(classDef);
+
+            const developer_version = create ? 0 : old.developer_version + 1;
+            classDef.annotations.version = ThingTalk.Ast.Value.Number(developer_version);
+            classDef.annotations.package_version = ThingTalk.Ast.Value.Number(developer_version);
+
+            const generalInfo = {
+                primary_kind: req.body.primary_kind,
+                name: req.body.name,
+                description: req.body.description,
+                license: req.body.license,
+                license_gplcompatible: !!req.body.license_gplcompatible,
+                website: req.body.website || '',
+                repository: req.body.repository || '',
+                issue_tracker: req.body.issue_tracker || '',
+                category: getCategory(classDef),
+                subcategory: req.body.subcategory,
+                source_code: req.body.code,
+                developer_version: developer_version,
+                approved_version: approve ? developer_version :
+                    (old !== null ? old.approved_version : null),
+            };
+            if (req.files.icon && req.files.icon.length)
+                Object.assign(generalInfo, await uploadIcon(req.body.primary_kind, req.files.icon[0].path));
+
+            const discoveryServices = FactoryUtils.getDiscoveryServices(classDef);
+            const factory = FactoryUtils.makeDeviceFactory(classDef, generalInfo);
+            const versionedInfo = {
+                code: classDef.prettyprint(),
+                factory: JSON.stringify(factory),
+                module_type: classDef.is_abstract ? 'org.thingpedia.abstract' : classDef.loader.module,
+                downloadable: downloadable
+            };
+
+            if (create) {
+                generalInfo.owner = req.user.developer_org;
+                await model.create(dbClient, generalInfo, extraKinds, extraChildKinds, discoveryServices, versionedInfo);
+            } else {
+                generalInfo.owner = old.owner;
+                await model.update(dbClient, old.id, generalInfo, extraKinds, extraChildKinds, discoveryServices, versionedInfo);
+            }
+
+            if (downloadable) {
+                const zipFile = req.files && req.files.zipfile && req.files.zipfile.length ?
+                    req.files.zipfile[0] : null;
+
+                let stream;
+                if (zipFile !== null)
+                    stream = fs.createReadStream(zipFile.path);
+                else if (old !== null)
+                    stream = code_storage.downloadZipFile(req.body.primary_kind, old.developer_version);
+                else
+                    throw new BadRequestError(req._("Invalid zip file"));
+
+                if (zipFile && isJavaScript(zipFile))
+                    await uploadJavaScript(req, generalInfo, stream);
+                else
+                    await uploadZipFile(req, generalInfo, stream);
+            }
+
+            if (schemaChanged || datasetChanged) {
+                // trigger the training server if configured
+                await TrainingServer.get().queue('en', [req.body.primary_kind], 'update-dataset');
+            }
+        }, 'repeatable read');
+
+        // trigger updating the device on the user
+        await tryUpdateDevice(req.body.primary_kind, req.user.id);
+    } finally {
+        var toDelete = [];
+        if (req.files) {
+            if (req.files.zipfile && req.files.zipfile.length)
+                toDelete.push(util.promisify(fs.unlink)(req.files.zipfile[0].path));
+        }
+        await Promise.all(toDelete);
+    }
+}
 
 module.exports = {
     ensurePrimarySchema,
@@ -430,6 +563,7 @@ module.exports = {
     uploadIcon,
 
     importDevice,
+    uploadDevice,
 
     migrateManifest,
 };

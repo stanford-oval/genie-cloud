@@ -10,7 +10,8 @@
 // See COPYING for details
 "use strict";
 
-require('thingengine-core/lib/polyfill');
+// load thingpedia to initialize the polyfill
+require('thingpedia');
 require('../util/config_init');
 
 const ThingTalk = require('thingtalk');
