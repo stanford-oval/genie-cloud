@@ -190,6 +190,7 @@ class Frontend {
         this._app.use('/api/webhook', require('./routes/webhook'));
         this._app.use('/me/api/alexa', require('./routes/bridges/alexa'));
         this._app.use('/me/api/gassistant', require('./routes/gassistant'));
+        this._app.use('/me/api', require('./routes/my_api'));
 
         // legacy route for /me/api/sync, uses auth tokens instead of full OAuth2
         this._app.use('/ws', require('./routes/thingengine_ws'));
@@ -245,11 +246,6 @@ class Frontend {
         });
         this._app.use(I18n.handler);
 
-        // /me/api/oauth2 uses session-auth and is susceptible to CSRF, but oauth2orize has
-        // built-in CSRF protection (transaction IDs) so we don't need csurf
-        this._app.use('/me/api/oauth2', require('./routes/oauth2'));
-        this._app.use('/me/api', require('./routes/my_api'));
-
         // initialize csurf after any route that uses file upload.
         // because file upload uses multer, which must be initialized before csurf
         // MAKE SURE ALL ROUTES HAVE CSURF
@@ -262,6 +258,8 @@ class Frontend {
             this._app.use('/luinet/templates', require('./routes/luinet_templates'));
             this._app.use('/mturk', require('./routes/mturk'));
         }
+        if (Config.ENABLE_DEVELOPER_PROGRAM)
+            this._app.use('/developers/oauth', require('./routes/developer_oauth2'));
         this._app.use('/admin/blog/upload', require('./routes/admin_upload'));
 
         this._app.use(csurf({ cookie: false }));
@@ -275,6 +273,7 @@ class Frontend {
         this._app.use('/blog', require('./routes/blog'));
 
         this._app.use('/me', require('./routes/my_stuff'));
+        this._app.use('/me/api/oauth2', require('./routes/my_oauth2'));
         this._app.use('/me/ws', require('./routes/my_internal_api'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));

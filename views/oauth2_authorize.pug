@@ -38,6 +38,7 @@ block content
 
   form(action='/me/api/oauth2/authorize', method='post').form-inline
     input(name='transaction_id', type='hidden', value=transaction_id)
+    input(name='_csrf', type='hidden', value=csrfToken)
     input(name='scope', type='hidden', value=scope.join(' '))
 
     div.form-group

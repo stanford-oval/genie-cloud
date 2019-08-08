@@ -24,10 +24,10 @@ const db = require('../../util/db');
 //const Config = require('../../config');
 
 async function testCreateOAuthClient(bob, david, nobody) {
-    await assertLoginRequired(sessionRequest('/me/api/oauth2/clients/create', 'POST', null, nobody));
+    await assertLoginRequired(sessionRequest('/developers/oauth/create', 'POST', null, nobody));
 
     // david is not a developer
-    await assertHttpError(sessionRequest('/me/api/oauth2/clients/create', 'POST', null, david),
+    await assertHttpError(sessionRequest('/developers/oauth/create', 'POST', null, david),
         403, 'You do not have permission to perform this operation.');
 
 
@@ -39,7 +39,7 @@ async function testCreateOAuthClient(bob, david, nobody) {
     fd1.append('scope', 'user-read');
     fd1.append('redirect_uri', 'https://example.com/oauth https://dev.example.com/oauth http://127.0.0.1:1010/oauth');
 
-    await assertRedirect(sessionRequest('/me/api/oauth2/clients/create', 'POST', fd1, bob, { followRedirects: false }),
+    await assertRedirect(sessionRequest('/developers/oauth/create', 'POST', fd1, bob, { followRedirects: false }),
         '/developers/oauth');
 
     const clients = await dbQuery(`select * from oauth2_clients where name = ?`, ['Test OAuth Client']);
@@ -51,9 +51,6 @@ async function testCreateOAuthClient(bob, david, nobody) {
 }
 
 async function testAuthorize(clientId, david, nobody) {
-    await assertRedirect(sessionRequest('/me/api/oauth2/authorize', 'GET', null, nobody, { followRedirects: false }),
-        '/user/login');
-
     await assertHttpError(sessionRequest('/me/api/oauth2/authorize', 'GET', { client_id: 'invalid' }, david),
         400, 'Missing required parameter: response_type');
 

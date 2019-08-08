@@ -18,6 +18,7 @@ const EngineManager = require('../almond/enginemanagerclient');
 const iv = require('../util/input_validation');
 const { NotFoundError, BadRequestError } = require('../util/errors');
 const errorHandling = require('../util/error_handling');
+const oauth2server = require('../util/oauth2');
 
 const Config = require('../config');
 
@@ -39,6 +40,14 @@ router.use((req, res, next) => {
     res.set('Vary', 'Origin');
     next();
 });
+
+router.post('/oauth2/token',
+    passport.authenticate(['oauth2-client-basic', 'oauth2-client-password'], { session: false }),
+    oauth2server.token(), oauth2server.errorHandler());
+
+// /me/api/oauth2/authorize is handled later because it needs session support and also
+// it is not OAuth authenticated, so exit this router
+router.use('/oauth2/authorize', (req, res, next) => next('router'));
 
 router.ws('/anonymous', MyConversation.anonymous);
 router.use(passport.authenticate('bearer', { session: false }));
