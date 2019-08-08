@@ -26,6 +26,20 @@ module.exports = {
         const row = await db.selectOne(client, "select credits from organizations where id = ? for update", [id]);
         return row.credits;
     },
+    async applyWeeklyCreditUpdate(client, params) {
+        const query = `update organizations org, org_statistics os set
+            org.credits = org.credits + (
+                ${params.WEEKLY_APPROVED_THINGPEDIA_UPDATE} * approved_device_count +
+                ${params.WEEKLY_OSS_THINGPEDIA_UPDATE} * (oss_device_count - oss_approved_device_count) +
+                ${params.WEEKLY_THINGPEDIA_UPDATE} * (device_count - approved_device_count - (oss_device_count - oss_approved_device_count)) +
+                ${params.WEEKLY_OSS_TEMPLATE_PACK_UPDATE} * oss_template_file_count)
+                * timestampdiff(week, last_credit_update, now()),
+            org.last_credit_update = org.last_credit_update + interval (timestampdiff(week, last_credit_update, now())) week
+            where org.id = os.id`;
+            // ^ add an integer number of weeks
+        console.log(query);
+        await db.query(client, query);
+    },
 
     getAll(client, start, end) {
         if (start !== undefined && end !== undefined)

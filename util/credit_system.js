@@ -60,10 +60,14 @@ module.exports = {
         return update;
     },
 
-    getNextUpdate() {
-        const now = new Date;
-        now.setUTCHours(0, 0, 0);
-        now.setUTCDate(now.getUTCDate() + (7 - now.getUTCDay()));
-        return now;
+    getNextUpdate(lastUpdate) {
+        const oneWeek = 1000 * 7 * 24 * 3600;
+
+        // each org receives one credit update per week, based on the time of the last update
+        // updates are applied in batches daily at midnight UTC, so we round up to the next update time
+        const nextUpdate = new Date((+lastUpdate) + oneWeek);
+        nextUpdate.setUTCHours(0, 0, 0);
+        nextUpdate.setUTCDate(nextUpdate.getUTCDate() + 1);
+        return nextUpdate;
     }
 };
