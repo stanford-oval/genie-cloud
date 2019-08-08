@@ -320,7 +320,7 @@ async function main() {
         }
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
-            await importStandardEntities(dbClient, rootOrg);
+            await importStandardEntities(dbClient);
             await importStandardStringTypes(dbClient, rootOrg);
             await importStandardSchemas(dbClient, rootOrg);
             await importBuiltinDevices(dbClient, rootOrg);
