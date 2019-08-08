@@ -89,16 +89,6 @@ module.exports = {
     },
 
     async getStatistics(client, id) {
-        const rows = await Promise.all([
-            db.selectOne(client, `select count(*) as device_count from device_class where owner = ?`, [id]),
-            db.selectOne(client, `select count(*) as oss_device_count from device_class where license_gplcompatible and owner = ?`, [id]),
-            db.selectOne(client, `select count(*) as approved_device_count from device_class where approved_version is not null and owner = ?`, [id]),
-            db.selectOne(client, `select count(*) as oss_approved_device_count from device_class where license_gplcompatible and approved_version is not null and owner = ?`, [id]),
-            db.selectOne(client, `select count(*) as oss_template_file_count from template_files where public and owner = ?`, [id]),
-        ]);
-
-        const obj = {};
-        Object.assign(obj, ...rows);
-        return obj;
+        return db.selectOne(client, `select * from org_statistics where id = ?`, [id]);
     }
 };

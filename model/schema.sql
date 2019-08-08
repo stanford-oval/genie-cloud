@@ -546,6 +546,24 @@ CREATE TABLE `organizations` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `organizations`
+--
+
+DROP VIEW IF EXISTS `org_statistics`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE SQL SECURITY INVOKER VIEW `org_statistics`
+  AS SELECT
+   org.id,
+   (select count(*) from device_class where owner = org.id) as device_count,
+   (select count(*) from device_class where license_gplcompatible and owner = org.id) as oss_device_count,
+   (select count(*) from device_class where approved_version is not null and owner = org.id) as approved_device_count,
+   (select count(*) from device_class where license_gplcompatible and approved_version is not null and owner = org.id) as oss_approved_device_count,
+   (select count(*) from template_files where public and owner = org.id) as oss_template_file_count
+   from organizations org;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `org_invitations`
 --
 
