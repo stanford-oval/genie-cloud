@@ -96,6 +96,9 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
 
     if (!name || !description || !kind || !license)
         throw new ValidationError("Not all required fields were present");
+    if (Buffer.from(kind, 'utf8').length > 128)
+        throw new ValidationError("The chosen identifier is too long");
+
     if (!SUBCATEGORIES.has(options.subcategory))
         throw new ValidationError(req._("Invalid device category %s").format(options.subcategory));
     const [classDef, dataset] = await loadClassDef(dbClient, req, kind, classCode, datasetCode);

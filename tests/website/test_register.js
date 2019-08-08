@@ -13,6 +13,7 @@ const assert = require('assert');
 const fs = require('fs');
 const { assertHttpError, assertBanner, assertLoginRequired, sessionRequest, dbQuery } = require('./scaffold');
 const { startSession } = require('../login');
+const minidom = require('../util/minidom');
 
 const db = require('../../util/db');
 const EngineManagerClient = require('../../almond/enginemanagerclient');
@@ -91,18 +92,16 @@ async function testRegister(charlie) {
     }, charlie);
 
     // check that now we're registered
-    const result = JSON.parse(await sessionRequest('/me/api/profile', 'GET', null, charlie));
+    const result = minidom.parse(await sessionRequest('/user/profile', 'GET', null, charlie));
 
-    delete result.id;
-    assert.deepStrictEqual(result, {
-        username: 'charlie',
-        email: 'foo@bar',
-        email_verified: 0,
-        full_name: null,
-        locale: 'en-US',
-        timezone: 'America/Los_Angeles',
-        model_tag: null
-    });
+    let found = false;
+    for (let el of minidom.getElementsByTagName(result, 'input')) {
+        if (minidom.getAttribute(el, 'id') === 'username') {
+            assert.strictEqual(minidom.getAttribute(el, 'value'), 'charlie');
+            found = true;
+        }
+    }
+    assert(found);
 }
 
 async function testDeleteUser(charlie, nobody) {

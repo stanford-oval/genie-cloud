@@ -52,7 +52,7 @@ block content
                     a.close(data-dismiss='modal', aria-label="Close")
                       span(aria-hidden='true') ×
                     h4.modal-title= _("New OAuth App")
-                  form(action='/me/api/oauth2/clients/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+                  form(action='/developers/oauth/create', enctype='multipart/form-data', method='post', data-toggle='validator')
                     div.modal-body
                       input(type='hidden',name='_csrf',value=csrfToken)
                       div.form-group

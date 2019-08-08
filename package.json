@@ -93,6 +93,7 @@
     "pug": "^2.0.3",
     "q": "^1.4.1",
     "rss": "^1.2.2",
+    "sanitize-filename": "^1.6.2",
     "seedrandom": "^3.0.0",
     "semver": "^6.1.0",
     "serve-favicon": "^2.3.0",
