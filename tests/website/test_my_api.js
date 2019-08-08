@@ -13,7 +13,7 @@ const assert = require('assert');
 const WebSocket = require('ws');
 const ThingTalk = require('thingtalk');
 const { assertHttpError, request, sessionRequest, dbQuery } = require('./scaffold');
-const { login, startSession } = require('../login');
+const { login, } = require('../login');
 
 const db = require('../../util/db');
 
@@ -23,42 +23,6 @@ async function getAccessToken(session) {
     return JSON.parse(await sessionRequest('/user/token', 'POST', '', session, {
         accept: 'application/json',
     })).token;
-}
-
-async function testMyApiCookie(bob, nobody) {
-    const result = JSON.parse(await sessionRequest('/me/api/profile', 'GET', null, bob));
-
-    const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
-
-    assert.deepStrictEqual(result, {
-        id: bobInfo.cloud_id,
-        username: 'bob',
-        full_name: bobInfo.human_name,
-        email: bobInfo.email,
-        email_verified: bobInfo.email_verified,
-        locale: bobInfo.locale,
-        timezone: bobInfo.timezone,
-        model_tag: bobInfo.model_tag
-    });
-
-    await assertHttpError(request('/me/api/profile', 'GET', null, {
-        extraHeaders: {
-            'Cookie': 'connect.sid=invalid',
-        }
-    }), 403, 'Forbidden Cross Origin Request');
-    await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, nobody), 403);
-
-    await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, bob, {
-        extraHeaders: {
-            'Origin': 'https://invalid.origin.example.com'
-        }
-    }), 403, 'Forbidden Cross Origin Request');
-
-    await sessionRequest('/me/api/profile', 'GET', null, bob, {
-        extraHeaders: {
-            'Origin': Config.SERVER_ORIGIN
-        }
-    });
 }
 
 async function testMyApiProfileOAuth(auth) {
@@ -262,11 +226,9 @@ async function testMyApiOAuth(accessToken) {
 }
 
 async function main() {
-    const nobody = await startSession();
     const bob = await login('bob', '12345678');
 
     // user (web almond) api
-    await testMyApiCookie(bob, nobody);
     const token = await getAccessToken(bob);
     await testMyApiOAuth(token);
 

@@ -242,7 +242,7 @@ block content
     if user.developer_org !== null
       div.panel-footer
         p
-          form(action='/me/api/generate-token',method='post')#issue-token-form
+          form(action='/user/token',method='post')#issue-token-form
             input(type='hidden', name='_csrf', value=csrfToken)
             button(type='submit').btn.btn-primary= _("Issue an Access Token")
         div#issue-token-result.hidden

@@ -275,6 +275,7 @@ class Frontend {
         this._app.use('/blog', require('./routes/blog'));
 
         this._app.use('/me', require('./routes/my_stuff'));
+        this._app.use('/me/ws', require('./routes/my_internal_api'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));
         this._app.use('/devices', require('./routes/devices_compat'));
