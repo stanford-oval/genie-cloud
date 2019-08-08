@@ -712,6 +712,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `github_id` (`github_id`),
   UNIQUE KEY `facebook_id` (`facebook_id`),
   UNIQUE KEY `omlet_id` (`omlet_id`),
+  UNIQUE KEY `email` (`email`),
   KEY `developer_org` (`developer_org`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`developer_org`) REFERENCES `organizations` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
