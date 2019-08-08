@@ -282,10 +282,10 @@ if (Config.WITH_LUINET === 'embedded') {
 
 if (Config.WITH_THINGPEDIA === 'embedded') {
     router.get('/devices', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
-        db.withTransaction((dbClient) => {
+        db.withClient((dbClient) => {
             return device.getByOwner(dbClient, req.user.developer_org);
         }).then((developer_devices) => {
-            res.render('dev_devices', { page_title: req._("Almond Developer Console = Devices"),
+            res.render('dev_devices', { page_title: req._("Almond Developer Console - Devices"),
                                         developer_devices });
         }).catch(next);
     });

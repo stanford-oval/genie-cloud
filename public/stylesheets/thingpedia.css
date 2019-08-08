@@ -153,3 +153,7 @@
   padding-right: 50px;
 }
 }
+
+#alexa-interaction-model {
+    white-space: pre;
+}
