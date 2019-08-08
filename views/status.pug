@@ -2,7 +2,7 @@ extends layout
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/status.css')
-  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia_dev_sidebar.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
 
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/status.js')
@@ -14,7 +14,7 @@ block page_name
   = _("Status")
 
 block content
-  div(class=WITH_THINGPEDIA === 'embedded' ? 'container-fluid' : 'container')#page-body
+  div(class='container-fluid')#page-body
     div.row
       div.col-lg-3.col-md-4
         include dev_sidebar
