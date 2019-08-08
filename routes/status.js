@@ -45,6 +45,12 @@ function getCachedModules(userId) {
     return EngineManager.get().getEngine(userId).then((engine) => {
         return engine.devices.getCachedDeviceClasses();
     }).catch((e) => {
+        // ignore errors related to the communication with the engine
+        // (which indicate the engine is dead/dying), but propagate
+        // all other errors
+        if (['ERR_SOCKET_CLOSED', 'EPIPE', 'ECONNRESET', 'EIO', 'E_ENGINE_DEAD', 'E_INVALID_USER'].indexOf(e.code) < 0)
+            throw e;
+
         console.log('Failed to retrieve cached modules: ' + e.message);
         return [];
     });

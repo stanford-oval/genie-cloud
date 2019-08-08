@@ -84,8 +84,11 @@ class EngineManagerClient extends events.EventEmitter {
             defer.reject(err);
         });
         var initError = (msg) => {
-            if (msg.error)
-                defer.reject(new Error(msg.error));
+            if (msg.error) {
+                const err = new Error(msg.error);
+                err.code = msg.code;
+                defer.reject(err);
+            }
         };
         jsonSocket.on('data', initError);
 
