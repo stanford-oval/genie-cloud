@@ -6210,7 +6210,7 @@ text-table@^0.2.0:
 
 "thingengine-core@github:stanford-oval/thingengine-core":
   version "1.5.0"
-  resolved "https://codeload.github.com/stanford-oval/thingengine-core/tar.gz/44124925798547c6c29f7d1093dd938529532261"
+  resolved "https://codeload.github.com/stanford-oval/thingengine-core/tar.gz/30095ed3b52416685d32e04d88e7391318a25c60"
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.1"
@@ -6221,7 +6221,7 @@ text-table@^0.2.0:
     sqlite3 "^4.0.2"
     thingpedia "github:stanford-oval/thingpedia-api"
     thingpedia-discovery "^1.0.0"
-    thingtalk "~1.7.0"
+    thingtalk "github:stanford-oval/thingtalk"
     uuid "^3.1.0"
     ws "^7.0.0"
 
@@ -6234,7 +6234,7 @@ thingpedia-discovery@^1.0.0:
 
 thingpedia@^2.3.0, thingpedia@^2.3.3, "thingpedia@github:stanford-oval/thingpedia-api":
   version "2.4.0"
-  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/cdf395e87568dbb764c4acfef58ed9badcb3ee95"
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/79a872508fb73f73089958050aae46b3ef8323c3"
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
@@ -6243,7 +6243,7 @@ thingpedia@^2.3.0, thingpedia@^2.3.3, "thingpedia@github:stanford-oval/thingpedi
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk", thingtalk@~1.7.0:
+thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk":
   version "1.7.3"
   uid "7d476207bd414969a0d90cc007852398152a8dcd"
   resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/7d476207bd414969a0d90cc007852398152a8dcd"
