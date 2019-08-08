@@ -57,7 +57,7 @@ router.get('/', (req, res, next) => {
                                                 developer_org_invitations,
                                                 developer_org_stats,
                                                 credit_update_value: creditSystem.getCreditUpdate(developer_org_stats),
-                                                credit_update_time: creditSystem.getNextUpdate(),
+                                                credit_update_time: creditSystem.getNextUpdate(developer_org.last_credit_update),
         });
     }).catch(next);
 });
