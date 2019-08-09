@@ -1649,6 +1649,119 @@ async function testLookupEntity() {
     });
 }
 
+async function testGetStringList() {
+    assert.deepStrictEqual(await request('/strings/all'), {
+        "result": "ok",
+            "data": [
+            {
+                "type": "org.thingpedia.test:api_string_test1",
+                "name": "Test String Three",
+                "license": "proprietary",
+                "attribution": ""
+            },
+            {
+                "type": "org.thingpedia.test:api_string_test2",
+                "name": "Test String Three",
+                "license": "proprietary",
+                "attribution": ""
+            },
+            {
+                "type": "tt:location",
+                "name": "Cities, points on interest and addresses",
+                "license": "public-domain",
+                "attribution": ""
+            },
+            {
+                "type": "tt:long_free_text",
+                "name": "General Text (paragraph)",
+                "license": "non-commercial",
+                "attribution": "The Brown Corpus "
+            },
+            {
+                "type": "tt:path_name",
+                "name": "File and directory names",
+                "license": "public-domain",
+                "attribution": ""
+            },
+            {
+                "type": "tt:person_first_name",
+                "name": "First names of people",
+                "license": "public-domain",
+                "attribution": ""
+            },
+            {
+                "type": "tt:search_query",
+                "name": "Web Search Query",
+                "license": "public-domain",
+                "attribution": ""
+            },
+            {
+                "type": "tt:short_free_text",
+                "name": "General Text (short phrase)",
+                "license": "public-domain",
+                "attribution": ""
+            }
+        ]
+    });
+}
+
+async function testGetStringValues() {
+    assert.deepStrictEqual(await request('/strings/list/tt:location?developer_key=${process.env.DEVELOPER_KEY}'), {
+        "result": "ok",
+        "data": [
+        {
+            "value": "desktop\tdesktop\t1000.0",
+            "preprocessed": "desktop\tdesktop\t1000.0",
+            "weight": 1
+        },
+        {
+            "value": "my documents\tmy documents\t1000.0",
+            "preprocessed": "my documents\tmy documents\t1000.0",
+            "weight": 1
+        },
+        {
+            "value": "my network\tmy network\t1000.0",
+            "preprocessed": "my network\tmy network\t1000.0",
+            "weight": 1
+        },
+        {
+            "value": "pictures\tpictures\t1000.0",
+            "preprocessed": "pictures\tpictures\t1000.0",
+            "weight": 1
+        },
+        {
+            "value": "android\tandroid\t1000.0",
+            "preprocessed": "android\tandroid\t1000.0",
+            "weight": 1
+        },
+        {
+            "value": "ios\tios\t1000.0",
+            "preprocessed": "ios\tios\t1000.0",
+            "weight": 1
+        },
+        {
+            "value": "files\tfiles\t1000.0",
+            "preprocessed": "files\tfiles\t1000.0",
+            "weight": 1
+        },
+        {
+            "value": "downloads\tdownloads\t1000.0",
+            "preprocessed": "downloads\tdownloads\t1000.0",
+            "weight": 1
+        },
+        {
+            "value": "music\tmusic\t1000.0",
+            "preprocessed": "music\tmusic\t1000.0",
+            "weight": 1
+        },
+        {
+            "value": "videos\tvideos\t1000.0",
+            "preprocessed": "videos\tvideos\t1000.0",
+            "weight": 1
+        }
+    ]});
+}
+
 async function testLookupLocation() {
     const result = await request('/locations/lookup?q=seattle');
 
@@ -2184,6 +2297,8 @@ async function main() {
     await testGetEntityList();
     await testGetEntityValues();
     await testLookupEntity();
+    await testGetStringList();
+    await testGetStringValues();
     await testLookupLocation();
     await testEntityUpload();
     await testStringUpload();
