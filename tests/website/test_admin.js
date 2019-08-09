@@ -77,6 +77,10 @@ async function testAdminKillRestart(root, bob, nobody) {
     await assertRedirect(sessionRequest('/admin/users/start/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');
 
     assert (await emc.isRunning(1)); // root
+    assert (!await emc.isRunning(3)); // bob
+
+    // try connecting to /me/status from bob, this should not fail even though bob is not running
+    await sessionRequest('/me/status', 'GET', '', bob);
 
     // start everybody else too
     await sessionRequest('/admin/users/start/2', 'POST', '', root);
