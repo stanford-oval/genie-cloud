@@ -270,9 +270,10 @@ async function loadAlexaModel(dbClient, bob, alexaUser) {
         language: 'en',
         tag: 'org.thingpedia.alexa.test',
         owner: bob.developer_org,
+        call_phrase: 'Bob Assistant',
         access_token: null,
         anonymous_user: alexaUser.id
-    });
+    }, ['com.bing', 'org.thingpedia.builtin.test']);
 }
 
 async function main() {

@@ -124,7 +124,8 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
                 preprocessed: [row.preprocessed],
                 click_count: row.click_count,
                 like_count: row.like_count,
-                name: row.name
+                name: row.name,
+                kind: row.kind
             });
         }
     }
@@ -155,7 +156,7 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
     #_[utterances=[${ex.utterances.map(stringEscape)}]]
     #_[preprocessed=[${ex.preprocessed.map(stringEscape)}]]
     #[id=${ex.id}] #[click_count=${ex.click_count}] #[like_count=${ex.like_count}]
-    #[name=${stringEscape(ex.name || '')}];
+    #[name=${stringEscape((ex.kind ? ex.kind + '.' : '') + (ex.name || ''))}];
 `);
         }
     }

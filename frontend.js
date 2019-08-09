@@ -282,8 +282,11 @@ class Frontend {
         if (Config.DOCUMENTATION_URL.startsWith('/doc'))
             this._app.use('/doc', require('./routes/doc'));
 
-        if (Config.ENABLE_DEVELOPER_PROGRAM)
+        if (Config.ENABLE_DEVELOPER_PROGRAM) {
             this._app.use('/developers', require('./routes/developer_console'));
+            if (Config.WITH_THINGPEDIA === 'embedded')
+                this._app.use('/developers/alexa', require('./routes/developer_alexa'));
+        }
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             this._app.use('/thingpedia', require('./routes/thingpedia_portal'));

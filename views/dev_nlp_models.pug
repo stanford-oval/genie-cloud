@@ -1,4 +1,5 @@
 extends layout
+include device_selector
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
@@ -6,6 +7,7 @@ block styles
 
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
+  script(src=Config.ASSET_CDN + '/javascripts/device-selector.js')
 
 block page_name
   - stdlayout = false;
@@ -118,10 +120,7 @@ block content
                         input(type='text',name='flags').form-control#new-model-flags
                         span.help-block= _("Template flags to enable.")
 
-                      div.form-group
-                        label(for='new-model-devices').control-label= _("Devices")
-                        input(type='text',name='for_devices').form-control#new-model-devices
-                        span.help-block= _("Multiple devices can be separated by a comma or space. Leave blank to include all visible devices.")
+                      +device_selector('new-model-devices', 'for_devices', _("Devices"), _("Choose which devices to include in your model, or choose none to include all available devices."))
 
                       div.form-group
                         div.checkbox

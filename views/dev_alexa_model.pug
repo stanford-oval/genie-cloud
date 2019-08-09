@@ -1,0 +1,54 @@
+extends layout
+include device_selector
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
+  link(rel='stylesheet', href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css")
+
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
+  script(src=Config.ASSET_CDN + '/javascripts/device-selector.js')
+
+block page_name
+  - stdlayout = false;
+  - var section = 'alexa';
+  = _("Developer Console")
+
+block content
+  div.container-fluid#page-body
+    div.row
+      div.col-lg-3.col-md-4
+        include dev_sidebar
+
+      div.col-xs-12.col-md-8.col-lg-9
+        section.divider
+          h3= _("Alexa Skill: %s").format(model.call_phrase)
+
+          p= _("ID: %s").format(model.tag)
+          p= _("Language: %s").format(I18n.getLangName(_, model.language))
+
+          h4= _("Intents")
+
+          for intent in intents
+            h5
+              a(href='#intent-' + intent.annotations.name.replace(/\./g, '-'), data-toggle='collapse')= intent.annotations.name
+
+            div(id='intent-' + intent.annotations.name.replace(/\./g, '-')).collapse
+              p
+                code= intent.target_code
+
+              if intent.unsupported
+                p
+                  i= _("This intent cannot be used in Alexa: %s").format(intent.unsupported_reason)
+              else
+                ul
+                  for sample in intent.samples
+                    li= sample
+
+          h4= _("Interaction Model")
+          p
+            a(href='#alexa-interaction-model',data-toggle='collapse',aria-expanded='false',aria-controls='alexa-interaction-model').btn.btn-primary= _("Show/Hide Code")
+
+          div#alexa-interaction-model.collapse
+            code.hljs!= interactionModelJSON

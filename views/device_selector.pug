@@ -1,0 +1,18 @@
+mixin device_selector(id, name, title, helptext)
+  section.device-selector(id=id)
+    div.form-group.fallback
+      label(for=id + '-fallback').control-label= title
+      input(type='text',name=name, id=id + '-fallback').form-control
+      span.help-block= helptext
+    div.panel.panel-default
+      div.panel-heading
+        h4.panel-title= title
+      div.panel-body
+        span.help-block= helptext
+
+        h5= _("Selected")
+        ul.list-group.selected-devices
+
+        h5= _("Add new")
+        input(type='text', placeholder=_("Type to search…"), aria-label=_("Name of the new device")).form-control.search-bar
+        div.list-group.add-new-devices
