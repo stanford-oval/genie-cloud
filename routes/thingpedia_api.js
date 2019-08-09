@@ -1786,7 +1786,13 @@ v3.get('/strings/list/:type', (req, res, next) => {
         if (!org)
             throw new ForbiddenError(`A valid developer key is required to download string datasets`);
 
-        return stringModel.getValues(dbClient, req.params.type, I18n.localeToLanguage(req.query.locale || 'en-US'));
+        const language = I18n.localeToLanguage(req.query.locale || 'en-US');
+        // check for the existance of this type, and also check if the dataset can be downloaded
+        const stringType = await stringModel.getByTypeName(req.params.type, language);
+        if (stringType.license === 'proprietary')
+            throw new ForbiddenError(`This dataset is proprietary and cannot be downloaded`);
+
+        return stringModel.getValues(dbClient, req.params.type, language);
     }).then((rows) => {
         res.cacheFor(86400000);
         res.status(200).json({ result: 'ok', data: rows.map((r) => ({
