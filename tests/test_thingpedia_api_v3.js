@@ -1649,6 +1649,111 @@ async function testLookupEntity() {
     });
 }
 
+async function testGetStringList() {
+    assert.deepStrictEqual(await request('/strings/all'), {
+        "result": "ok",
+            "data": [
+            {
+                "type": "tt:location",
+                "name": "Cities, points on interest and addresses",
+                "license": "free-copyleft",
+                "attribution": "Copyright © OpenStreetMap contributors <https://www.openstreemap.org/copyright>. Distributed under the Open Data Commons Open Database License."
+            },
+            {
+                "type": "tt:long_free_text",
+                "name": "General Text (paragraph)",
+                "license": "non-commercial",
+                "attribution": "The Brown Corpus <http://www.hit.uib.no/icame/brown/bcm.html>"
+            },
+            {
+                "type": "tt:path_name",
+                "name": "File and directory names",
+                "license": "public-domain",
+                "attribution": ""
+            },
+            {
+                "type": "tt:person_first_name",
+                "name": "First names of people",
+                "license": "public-domain",
+                "attribution": "United States Census and Social Security data"
+            },
+            {
+                "type": "tt:search_query",
+                "name": "Web Search Query",
+                "license": "public-domain",
+                "attribution": ""
+            },
+            {
+                "type": "tt:short_free_text",
+                "name": "General Text (short phrase)",
+                "license": "non-commercial",
+                "attribution": "The Brown Corpus <http://www.hit.uib.no/icame/brown/bcm.html>"
+            }
+        ]
+    });
+}
+
+async function testGetStringValues() {
+    await assertHttpError(request(`/strings/list/tt:path_name`), 403);
+
+    assert.deepStrictEqual(await request(`/strings/list/tt:path_name?developer_key=${process.env.DEVELOPER_KEY}`), {
+        "result": "ok",
+        "data": [
+        {
+            "value": "desktop",
+            "preprocessed": "desktop",
+            "weight": 1000
+        },
+        {
+            "value": "my documents",
+            "preprocessed": "my documents",
+            "weight": 1000
+        },
+        {
+            "value": "my network",
+            "preprocessed": "my network",
+            "weight": 1000
+        },
+        {
+            "value": "pictures",
+            "preprocessed": "pictures",
+            "weight": 1000
+        },
+        {
+            "value": "android",
+            "preprocessed": "android",
+            "weight": 1000
+        },
+        {
+            "value": "ios",
+            "preprocessed": "ios",
+            "weight": 1000
+        },
+        {
+            "value": "files",
+            "preprocessed": "files",
+            "weight": 1000
+        },
+        {
+            "value": "downloads",
+            "preprocessed": "downloads",
+            "weight": 1000
+        },
+        {
+            "value": "music",
+            "preprocessed": "music",
+            "weight": 1000
+        },
+        {
+            "value": "videos",
+            "preprocessed": "videos",
+            "weight": 1000
+        }
+    ]});
+
+    await assertHttpError(request(`/strings/list/tt:invalid?developer_key=${process.env.DEVELOPER_KEY}`), 404);
+}
+
 async function testLookupLocation() {
     const result = await request('/locations/lookup?q=seattle');
 
@@ -2184,6 +2289,8 @@ async function main() {
     await testGetEntityList();
     await testGetEntityValues();
     await testLookupEntity();
+    await testGetStringList();
+    await testGetStringValues();
     await testLookupLocation();
     await testEntityUpload();
     await testStringUpload();

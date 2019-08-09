@@ -135,9 +135,15 @@ async function importStandardStringTypes(dbClient, rootOrg) {
             license: 'public-domain',
             attribution: '',
         };
-        if (id === 'tt:long_free_text') {
+        if (id === 'tt:long_free_text' || id === 'tt:short_free_text') {
             obj.license = 'non-commercial';
             obj.attribution = 'The Brown Corpus <http://www.hit.uib.no/icame/brown/bcm.html>';
+        }
+        if (id === 'tt:person_first_name')
+            obj.attribution = 'United States Census and Social Security data';
+        if (id === 'tt:location') {
+            obj.license = 'free-copyleft';
+            obj.attribution = 'Copyright © OpenStreetMap contributors <https://www.openstreemap.org/copyright>. Distributed under the Open Data Commons Open Database License.';
         }
 
         return obj;

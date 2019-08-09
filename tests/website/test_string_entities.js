@@ -209,18 +209,22 @@ async function testStringCreate(nobody, bob, root) {
         assert.deepStrictEqual(values, [
             {
                 preprocessed: 'aaaa',
+                value: 'Aaaa',
                 weight: 1.0
             },
             {
                 preprocessed: 'bbbb .',
+                value: 'Bbbb.',
                 weight: 1.0
             },
             {
                 preprocessed: 'cccc ???',
+                value: 'Cccc???',
                 weight: 1.0
             },
             {
                 preprocessed: 'dddd',
+                value: 'Dddd',
                 weight: 1.0
             },
         ]);
@@ -255,18 +259,22 @@ async function testStringCreate(nobody, bob, root) {
         assert.deepStrictEqual(values, [
             {
                 preprocessed: 'aaaa',
+                value: 'aaaa',
                 weight: 1.0
             },
             {
                 preprocessed: 'bbbb .',
+                value: 'bbbb .',
                 weight: 1.0
             },
             {
                 preprocessed: 'cccc???',
+                value: 'cccc???',
                 weight: 1.0
             },
             {
                 preprocessed: 'dddd',
+                value: 'dddd',
                 weight: 1.0
             },
         ]);
@@ -302,18 +310,22 @@ async function testStringCreate(nobody, bob, root) {
         assert.deepStrictEqual(values, [
             {
                 preprocessed: 'aaaa',
+                value: 'aaaa',
                 weight: 1.0
             },
             {
                 preprocessed: 'bbbb',
+                value: 'bbbb',
                 weight: 5.0
             },
             {
                 preprocessed: 'cccc',
+                value: 'cccc',
                 weight: 1.0
             },
             {
                 preprocessed: 'dddd',
+                value: 'dddd',
                 weight: 1.0
             },
         ]);

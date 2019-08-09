@@ -23,6 +23,7 @@ const organization = require('../model/organization');
 const schemaModel = require('../model/schema');
 const exampleModel = require('../model/example');
 const entityModel = require('../model/entity');
+const stringModel = require('../model/strings');
 
 const DatasetUtils = require('./dataset');
 const SchemaUtils = require('./manifest_to_schema');
@@ -450,6 +451,19 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
                 name: r.name,
                 is_well_known: r.is_well_known,
                 has_ner_support: r.has_ner_support
+            }));
+        });
+    }
+
+    getAllStrings() {
+        return this._withClient((dbClient) => {
+            return stringModel.getAll(dbClient, this.language);
+        }).then((rows) => {
+            return rows.map((r) => ({
+                type: r.type_name,
+                name: r.name,
+                license: r.license,
+                attribution: r.attribution
             }));
         });
     }
