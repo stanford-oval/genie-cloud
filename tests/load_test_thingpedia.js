@@ -117,12 +117,24 @@ async function loadStringValues(dbClient) {
         const filename = path.resolve(path.dirname(module.filename), './data/' + type + '.txt');
         const data = (await util.promisify(fs.readFile)(filename)).toString().trim().split('\n');
 
+
         const {id:typeId} = await db.selectOne(dbClient,
             `select id from string_types where language='en' and type_name=?`, [type]);
+        const mappedData = data.map((line) => {
+            const parts = line.split('\t');
+            if (parts.length === 1)
+                return [typeId, parts[0], parts[0], 1];
+            if (parts.length === 3)
+                return [typeId, parts[0], parts[1], parseFloat(parts[2])];
+
+            const weight = parseFloat(parts[1]);
+            if (Number.isNaN(weight))
+                return [typeId, parts[0], parts[1], 1];
+            else
+                return [typeId, parts[0], parts[0], weight];
+        });
         await db.insertOne(dbClient,
-            `insert into string_values(type_id,value,preprocessed,weight) values ?`,
-            [data.map((v) => [typeId, v, v, 1.0])],
-        );
+            `insert into string_values(type_id,value,preprocessed,weight) values ?`, [mappedData]);
     }
 }
 
