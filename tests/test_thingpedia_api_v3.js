@@ -1654,28 +1654,16 @@ async function testGetStringList() {
         "result": "ok",
             "data": [
             {
-                "type": "org.thingpedia.test:api_string_test1",
-                "name": "Test String Three",
-                "license": "proprietary",
-                "attribution": ""
-            },
-            {
-                "type": "org.thingpedia.test:api_string_test2",
-                "name": "Test String Three",
-                "license": "proprietary",
-                "attribution": ""
-            },
-            {
                 "type": "tt:location",
                 "name": "Cities, points on interest and addresses",
-                "license": "public-domain",
-                "attribution": ""
+                "license": "free-copyleft",
+                "attribution": "Copyright © OpenStreetMap contributors <https://www.openstreemap.org/copyright>. Distributed under the Open Data Commons Open Database License."
             },
             {
                 "type": "tt:long_free_text",
                 "name": "General Text (paragraph)",
                 "license": "non-commercial",
-                "attribution": "The Brown Corpus "
+                "attribution": "The Brown Corpus <http://www.hit.uib.no/icame/brown/bcm.html>"
             },
             {
                 "type": "tt:path_name",
@@ -1687,7 +1675,7 @@ async function testGetStringList() {
                 "type": "tt:person_first_name",
                 "name": "First names of people",
                 "license": "public-domain",
-                "attribution": ""
+                "attribution": "United States Census and Social Security data"
             },
             {
                 "type": "tt:search_query",
@@ -1698,68 +1686,72 @@ async function testGetStringList() {
             {
                 "type": "tt:short_free_text",
                 "name": "General Text (short phrase)",
-                "license": "public-domain",
-                "attribution": ""
+                "license": "non-commercial",
+                "attribution": "The Brown Corpus <http://www.hit.uib.no/icame/brown/bcm.html>"
             }
         ]
     });
 }
 
 async function testGetStringValues() {
-    assert.deepStrictEqual(await request('/strings/list/tt:location?developer_key=${process.env.DEVELOPER_KEY}'), {
+    await assertHttpError(request(`/strings/list/tt:path_name`), 403);
+
+    assert.deepStrictEqual(await request(`/strings/list/tt:path_name?developer_key=${process.env.DEVELOPER_KEY}`), {
         "result": "ok",
         "data": [
         {
-            "value": "desktop\tdesktop\t1000.0",
-            "preprocessed": "desktop\tdesktop\t1000.0",
-            "weight": 1
+            "value": "desktop",
+            "preprocessed": "desktop",
+            "weight": 1000
         },
         {
-            "value": "my documents\tmy documents\t1000.0",
-            "preprocessed": "my documents\tmy documents\t1000.0",
-            "weight": 1
+            "value": "my documents",
+            "preprocessed": "my documents",
+            "weight": 1000
         },
         {
-            "value": "my network\tmy network\t1000.0",
-            "preprocessed": "my network\tmy network\t1000.0",
-            "weight": 1
+            "value": "my network",
+            "preprocessed": "my network",
+            "weight": 1000
         },
         {
-            "value": "pictures\tpictures\t1000.0",
-            "preprocessed": "pictures\tpictures\t1000.0",
-            "weight": 1
+            "value": "pictures",
+            "preprocessed": "pictures",
+            "weight": 1000
         },
         {
-            "value": "android\tandroid\t1000.0",
-            "preprocessed": "android\tandroid\t1000.0",
-            "weight": 1
+            "value": "android",
+            "preprocessed": "android",
+            "weight": 1000
         },
         {
-            "value": "ios\tios\t1000.0",
-            "preprocessed": "ios\tios\t1000.0",
-            "weight": 1
+            "value": "ios",
+            "preprocessed": "ios",
+            "weight": 1000
         },
         {
-            "value": "files\tfiles\t1000.0",
-            "preprocessed": "files\tfiles\t1000.0",
-            "weight": 1
+            "value": "files",
+            "preprocessed": "files",
+            "weight": 1000
         },
         {
-            "value": "downloads\tdownloads\t1000.0",
-            "preprocessed": "downloads\tdownloads\t1000.0",
-            "weight": 1
+            "value": "downloads",
+            "preprocessed": "downloads",
+            "weight": 1000
         },
         {
-            "value": "music\tmusic\t1000.0",
-            "preprocessed": "music\tmusic\t1000.0",
-            "weight": 1
+            "value": "music",
+            "preprocessed": "music",
+            "weight": 1000
         },
         {
-            "value": "videos\tvideos\t1000.0",
-            "preprocessed": "videos\tvideos\t1000.0",
-            "weight": 1
+            "value": "videos",
+            "preprocessed": "videos",
+            "weight": 1000
         }
     ]});
+
+    await assertHttpError(request(`/strings/list/tt:invalid?developer_key=${process.env.DEVELOPER_KEY}`), 404);
 }
 
 async function testLookupLocation() {

@@ -1782,13 +1782,13 @@ v3.get('/strings/all', getAllStrings);
  */
 v3.get('/strings/list/:type', (req, res, next) => {
     db.withClient(async (dbClient) => {
-        const org = await orgModel.getByDeveloperKey(dbClient, req.query.developer_key)[0];
+        const org = (await orgModel.getByDeveloperKey(dbClient, req.query.developer_key))[0];
         if (!org)
             throw new ForbiddenError(`A valid developer key is required to download string datasets`);
 
         const language = I18n.localeToLanguage(req.query.locale || 'en-US');
         // check for the existance of this type, and also check if the dataset can be downloaded
-        const stringType = await stringModel.getByTypeName(req.params.type, language);
+        const stringType = await stringModel.getByTypeName(dbClient, req.params.type, language);
         if (stringType.license === 'proprietary')
             throw new ForbiddenError(`This dataset is proprietary and cannot be downloaded`);
 
