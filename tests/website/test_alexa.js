@@ -209,7 +209,7 @@ async function testAlexa(accessToken) {
     assert.deepStrictEqual(response5, {
        response: {
          outputSpeech: {
-           text: 'This user is a demo only, and cannot enable long-running commands. To execute this command, you must register an account for yourself.\n',
+           text: 'Sorry, to execute this command you must log in to your personal account.\n',
            type: 'PlainText'
          },
          card: {
