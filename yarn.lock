@@ -6251,21 +6251,22 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-thingpedia@^2.3.0, thingpedia@^2.3.3, "thingpedia@github:stanford-oval/thingpedia-api":
-  version "2.4.0"
-  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/79a872508fb73f73089958050aae46b3ef8323c3"
+thingpedia@2.5.0-beta.1, thingpedia@^2.3.0, thingpedia@^2.3.3, "thingpedia@github:stanford-oval/thingpedia-api", thingpedia@~2.5.0-beta.1:
+  version "2.5.0-beta.1"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.5.0-beta.1.tgz#0c82703d17d588c52398b897f10b293d2cd9f32d"
+  integrity sha512-/nrynhUjHWORLgumnnV4KihBsigx6Cf/OsvCEnSfyDvoDs4H4Bz+rHObVZYmI6mRoGzkgbILn0AfeZopJeNB7Q==
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
     oauth "~0.9.14"
-    thingtalk "^1.7.0"
+    thingtalk "~1.8.0-beta.1"
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@^1.7.0, "thingtalk@github:stanford-oval/thingtalk":
-  version "1.7.3"
-  uid "7d476207bd414969a0d90cc007852398152a8dcd"
-  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/7d476207bd414969a0d90cc007852398152a8dcd"
+thingtalk@1.8.0-beta.1, "thingtalk@github:stanford-oval/thingtalk", thingtalk@~1.8.0-beta.1:
+  version "1.8.0-beta.1"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.8.0-beta.1.tgz#e3db697173b60f6eb160016ce11743ffe1735fc5"
+  integrity sha512-ozn0gbBcKfNCXyS/zsUsVrwCWYwmLNdHAwYXHAOQmcKBNflKt/dWGp5gJvmt+zX9uahN5o33St4sItJSRQjTpg==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
