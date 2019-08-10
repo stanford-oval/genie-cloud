@@ -82,6 +82,12 @@ module.exports = class AlmondApi {
                 if (!slot.get())
                     throw new TypeError(`missing location ${relativeTag}`);
             }
+            if (value.isTime && value.value.isRelative) {
+                let relativeTag = value.value.relativeTag;
+                slot.set(this._resolveUserContext('$context.time.' + relativeTag));
+                if (!slot.get())
+                    throw new TypeError(`missing time ${relativeTag}`);
+            }
         }
 
         let icon = null;
@@ -140,12 +146,19 @@ module.exports = class AlmondApi {
     async createApp(data) {
         let code = data.code;
         let locations = data.locations || {};
+        let times = data.times || {};
 
         let sharedPrefs = this._engine.platform.getSharedPreferences();
         for (let loc in locations) {
             if (loc === 'home' || loc === 'work') {
                 let location = Ast.Value.fromJSON(ThingTalk.Type.Location, locations[loc]);
                 sharedPrefs.set('context-$context.location.' + loc, location.toJS());
+            }
+        }
+        for (let time in times) {
+            if (time === 'morning' || time === 'evening') {
+                let time = Ast.Value.fromJSON(ThingTalk.Type.Time, times[time]);
+                sharedPrefs.set('context-$context.time.' + time, time.toJS());
             }
         }
         if (!code)
@@ -280,6 +293,14 @@ module.exports = class AlmondApi {
                 else
                     return null;
             }
+            case '$context.time.morning':
+            case '$context.time.evening': {
+                let value = sharedPrefs.get('context-' + variable);
+                if (value !== undefined)
+                    return Ast.Value.fromJSON(ThingTalk.Type.Time, value);
+                else
+                    return null;
+            }
             default:
                 throw new TypeError('Invalid variable ' + variable);
         }
@@ -324,6 +345,15 @@ module.exports = class AlmondApi {
                     result.locations[slot.value.value.relativeTag] = false;
                 }
             }
+            if (slot.value.isTime && slot.value.value.isRelative) {
+                let value = this._resolveUserContext('$context.time.' + slot.value.value.relativeTag);
+                if (value !== null) {
+                    slot.value.value = value;
+                    result.times[slot.value.value.relativeTag] = true;
+                } else {
+                    result.times[slot.value.value.relativeTag] = false;
+                }
+            }
         }
     }
 
@@ -350,6 +380,7 @@ module.exports = class AlmondApi {
             commandClass: 'rule',
             devices: {},
             locations: {},
+            times: {},
         };
         const ok = await this._processPrimitives(program, primitives, result);
         if (!ok)
