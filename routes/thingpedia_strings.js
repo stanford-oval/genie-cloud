@@ -12,7 +12,7 @@
 const express = require('express');
 const multer = require('multer');
 const csurf = require('csurf');
-const csv = require('csv');
+const csvstringify = require('csv-stringify');
 
 const db = require('../util/db');
 const stringModel = require('../model/strings');
@@ -60,7 +60,7 @@ router.get('/download/:id', user.requireLogIn, (req, res, next) => {
             const query = stringModel.streamValues(dbClient, req.params.id, language);
 
             res.set('Content-Type', 'text/tab-separated-values');
-            const writer = csv.stringify({ delimiter: '\t' });
+            const writer = csvstringify({ delimiter: '\t' });
             writer.pipe(res);
 
             query.on('result', (row) => {

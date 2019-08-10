@@ -11,7 +11,8 @@
 
 const Q = require('q');
 const fs = require('fs');
-const csv = require('csv');
+const csvparse = require('csv-parse');
+const csvstringify = require('csv-stringify');
 const express = require('express');
 const db = require('../util/db');
 const ThingTalk = require('thingtalk');
@@ -76,7 +77,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
                 return doInsert();
             }
 
-            const parser = csv.parse({ columns: true, delimiter: '\t' });
+            const parser = csvparse({ columns: true, delimiter: '\t' });
             fs.createReadStream(req.files.upload[0].path).pipe(parser);
 
             let promises = [];
@@ -119,7 +120,7 @@ router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMI
         return new Promise((resolve, reject) => {
             res.set('Content-disposition', 'attachment; filename=mturk.csv');
             res.status(200).set('Content-Type', 'text/csv');
-            let output = csv.stringify({ header: true });
+            let output = csvstringify({ header: true });
             output.pipe(res);
 
             let query = model.streamHITs(dbClient, req.params.batch);
@@ -141,7 +142,7 @@ router.get('/validation/csv/:batch', user.requireLogIn, user.requireRole(user.Ro
         return new Promise((resolve, reject) => {
             res.set('Content-disposition', 'attachment; filename=validate.csv');
             res.status(200).set('Content-Type', 'text/csv');
-            let output = csv.stringify({ header: true });
+            let output = csvstringify({ header: true });
             output.pipe(res);
 
             let query = model.streamHITsToValidate(dbClient, req.params.batch);

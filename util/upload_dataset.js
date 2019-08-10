@@ -2,7 +2,7 @@
 
 const Q = require('q');
 const fs = require('fs');
-const csv = require('csv');
+const csvparse = require('csv-parse');
 const Stream = require('stream');
 
 const db = require('./db');
@@ -99,7 +99,7 @@ module.exports = {
                 if (!req.files.upload || !req.files.upload.length)
                     throw new BadRequestError(req._("You must upload a CSV file with the entity values."));
 
-                const parser = csv.parse({delimiter: ','});
+                const parser = csvparse({delimiter: ','});
                 fs.createReadStream(req.files.upload[0].path).pipe(parser);
 
                 const transformer = Stream.Transform({
@@ -200,7 +200,7 @@ module.exports = {
 
                 const file = fs.createReadStream(req.files.upload[0].path);
                 file.setEncoding('utf8');
-                const parser = file.pipe(csv.parse({ delimiter: '\t', relax: true }));
+                const parser = file.pipe(csvparse({ delimiter: '\t', relax: true }));
                 const transformer = new StreamTokenizer({
                     preprocessed: !!req.body.preprocessed,
                     language,
