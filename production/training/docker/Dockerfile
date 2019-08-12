@@ -32,6 +32,7 @@ RUN yum install -y \
 # setup working dir
 WORKDIR /var/lib/almond-training
 COPY training.conf.json  training.conf.json
+COPY training_small.conf.json  training_small.conf.json
 COPY startup.sh startup.sh
 RUN chmod 755 startup.sh
 RUN wget https://parmesan.stanford.edu/glove/ppdb-2.0-m-lexical.bin && \

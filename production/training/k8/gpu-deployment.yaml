@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "training-deployment"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "training"
+    spec:
+      containers:
+      - name: "training"
+        image: ${REPO}/almond/training:v0.5
+        imagePullPolicy: Always
+        env:
+        - name: "PORT"
+          value: "9999"
+        - name: "RUN_GPU_DAEMON"
+          value: "true"
+        resources:
+          limits:
+              nvidia.com/gpu: 1
+        ports:
+        - containerPort: 9999
+        volumeMounts:
+        - name: config
+          mountPath: "/etc/almond-cloud"
+          readOnly: true
+        - name: aws
+          mountPath: "/home/almond-prod/.aws"
+          readOnly: true
+        securityContext:
+          capabilities:
+            add:
+              - SYS_ADMIN
+              - NET_ADMIN
+      volumes:
+      - name: config
+        secret:
+          secretName: almond-config
+      - name: aws
+        secret:
+          secretName: aws-config

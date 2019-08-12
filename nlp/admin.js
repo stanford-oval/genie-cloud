@@ -12,6 +12,7 @@
 const express = require('express');
 
 const child_process = require('child_process');
+const cmd = require('../util/command');
 const db = require('../util/db');
 const i18n = require('../util/i18n');
 const path = require('path');
@@ -47,28 +48,6 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
 });
 
 
-function execCommand(script, argv) {
-    return new Promise((resolve, reject) => {
-        const stdio = ['ignore', 'inherit', 'inherit'];
-        console.log(`${script} ${argv.map((a) => "'" + a + "'").join(' ')}`);
-        const child = child_process.spawn(script, argv, { stdio });
-        child.on('error', reject);
-        child.on('exit', (code, signal) => {
-            if (signal) {
-                if (signal === 'SIGINT' || signal === 'SIGTERM')
-                    reject(new Error(`Killed`));
-                else
-                    reject(new Error(`Command crashed with signal ${signal}`));
-            } else {
-                if (code !== 0)
-                    reject(new Error(`Command exited with code ${code}`));
-                else
-                    resolve();
-            }
-        });
-    });
-}
-
 router.post('/reload/@:model_tag/:locale', async (req, res, next) => {
     if (!i18n.get(req.params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
@@ -77,7 +56,7 @@ router.post('/reload/@:model_tag/:locale', async (req, res, next) => {
 
     if (Config.NL_MODEL_DIR) {
         const modelLangDir = `${req.params.model_tag}:${req.params.locale}`;
-        await execCommand('aws', ['s3',
+        await cmd.exec('aws', ['s3',
             'sync',
             `${Config.NL_MODEL_DIR}/${modelLangDir}/`,
             path.resolve('.') + '/' + modelLangDir + '/'

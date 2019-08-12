@@ -16,6 +16,7 @@ const util = require('util');
 
 const Tp = require('thingpedia');
 const Genie = require('genie-toolkit');
+const GPUJob = require('./gpu_training_job');
 
 const child_process = require('child_process');
 const byline = require('byline');
@@ -186,8 +187,8 @@ async function taskTraining(job) {
     const workdir = path.resolve(job.jobDir, 'workdir');
     const datadir = path.resolve(job.jobDir, 'dataset');
     const outputdir = path.resolve(job.jobDir, 'output');
-
-    const genieJob = Genie.Training.createJob({
+    
+    const options = {
         id: job.id,
         backend: 'decanlp',
         config: job.config,
@@ -197,7 +198,23 @@ async function taskTraining(job) {
         workdir,
         datadir,
         outputdir
-    });
+    };
+
+    let genieJob = null;
+    if (Config.ENABLE_ON_DEMAND_GPU_TRAINING) {
+        genieJob = new GPUJob(
+            options,
+            Config.GPU_REGION,
+            Config.GPU_CLUSTER,
+            Config.GPU_NODE_GROUP,
+            Config.GPU_S3_WORKDIR,
+            Config.GPU_SQS_REQUEST_URL,
+            Config.GPU_SQS_RESPONSE_URL,
+        )
+        job.s3outputdir = genieJob.outputdir
+    } else {
+        genieJob = Genie.Training.createJob(options);
+    }
     // mirror the configuration into job so whatever default we're using now
     // is stored permanently for later analysis
     Object.assign(job.config, genieJob.config);
@@ -228,7 +245,7 @@ async function taskUploading(job) {
     if (Config.NL_MODEL_DIR) {
         await execCommand(job, 'aws', ['s3',
             'sync',
-            path.resolve(outputdir) + '/',
+            job.s3outputdir,
             `${Config.NL_MODEL_DIR}/${modelLangDir}/`
         ]);
     } else {
