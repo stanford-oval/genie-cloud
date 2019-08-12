@@ -55,6 +55,8 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
             metadata.formatted = schema.formatted;
     }
     const annotations = {};
+    if (isMeta)
+        annotations.confirm = Ast.Value.Boolean(schema.confirm);
 
     return new Ast.FunctionDef(functionType,
                                functionName,
@@ -145,6 +147,7 @@ module.exports = {
                     formatted: fnDef.metadata.formatted || [],
                     is_list: fnDef.is_list,
                     is_monitorable: fnDef.is_monitorable,
+                    confirm: fnDef.annotations.confirm.toJS(),
                     types: [],
                     args: [],
                     argcanonicals: [],

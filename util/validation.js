@@ -250,6 +250,15 @@ function validateInvocation(kind, where, what, entities, stringTypes, options = 
             throw new ValidationError(`Detected placeholder in canonical form for ${name}: this is incorrect, the canonical form must not contain parameters`);
         if (!where[name].metadata.confirmation)
             throw new ValidationError(`Missing confirmation for ${name}`);
+        if (where[name].annotations.confirm) {
+            if (!where[name].annotations.confirm.isBoolean)
+                throw new ValidationError(`Invalid #[confirm] annotation for ${name}, must be a Boolean`);
+        } else {
+            if (what === 'query')
+                where[name].annotations.confirm = ThingTalk.Ast.Value.Boolean(false);
+            else
+                where[name].annotations.confirm = ThingTalk.Ast.Value.Boolean(true);
+        }
         if (options.checkPollInterval && what === 'query' && where[name].is_monitorable) {
             if (!where[name].annotations.poll_interval)
                 throw new ValidationError(`Missing poll interval for monitorable query ${name}`);
