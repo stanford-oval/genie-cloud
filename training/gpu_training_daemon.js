@@ -19,8 +19,8 @@ const path = require('path');
 
 class GPUTrainingDaemon {
     constructor(region, sqsRequestURL, sqsResponseURL) {
-        this._sqsRequestURL = sqsRequestURL
-        this._sqsResponseURL = sqsResponseURL
+        this._sqsRequestURL = sqsRequestURL;
+        this._sqsResponseURL = sqsResponseURL;
 
         // setup aws sqs
         AWS.config.update({region: region});
@@ -29,7 +29,7 @@ class GPUTrainingDaemon {
 
     async trainLoop() {
         try {
-            while (true) {
+            for (;;) {
                 await this._receiveJob();
                 await this._setupJob();
                 await this._train();
@@ -50,18 +50,18 @@ class GPUTrainingDaemon {
             MaxNumberOfMessages: 1,
             WaitTimeSeconds: 20,
         };
-        while (true) {
-            let data = await this._sqs.receiveMessage(params).promise()
+        for (;;) {
+            let data = await this._sqs.receiveMessage(params).promise();
             if (data.Messages === undefined) continue;
-            const m = JSON.parse(data.Messages[0].Body)
+            const m = JSON.parse(data.Messages[0].Body);
             // remove message from queue
             const deleteParams = {
                 QueueUrl: this._sqsRequestURL,
                 ReceiptHandle: data.Messages[0].ReceiptHandle
             };
-            this._sqs.deleteMessage(deleteParams, function(err, data) {
+            this._sqs.deleteMessage(deleteParams, (err, data) => {
                  if (err) throw err;
-            })
+            });
             this._uid = m.uid;
             this._s3workdir = m.s3workdir;
             this._options = m.options;
@@ -99,17 +99,17 @@ class GPUTrainingDaemon {
             type: mtype,
             uid: this._uid,
             value: JSON.stringify(m),
-        })
+        });
         console.log(`Sending response: ${msg}`);
         const params = {
             QueueUrl: this._sqsResponseURL,
             MessageBody: msg,
             MessageGroupId: 'almond-gpu-training',
         };
-        this._sqs.sendMessage(params, function(err, data) {
-            if (err) throw error;
+        this._sqs.sendMessage(params, (err, data) => {
+            if (err) throw err;
             console.log('Sent response:', data.MessageId);
-        })
+        });
     }
 }
 
@@ -118,7 +118,7 @@ async function main() {
         Config.GPU_REGION,
         Config.GPU_SQS_REQUEST_URL,
         Config.GPU_SQS_RESPONSE_URL
-    )
+    );
     await daemon.trainLoop();
 }
 

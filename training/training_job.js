@@ -210,8 +210,8 @@ async function taskTraining(job) {
             Config.GPU_S3_WORKDIR,
             Config.GPU_SQS_REQUEST_URL,
             Config.GPU_SQS_RESPONSE_URL,
-        )
-        job.s3outputdir = genieJob.outputdir
+        );
+        job.s3outputdir = genieJob.outputdir;
     } else {
         genieJob = Genie.Training.createJob(options);
     }

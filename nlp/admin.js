@@ -11,7 +11,6 @@
 
 const express = require('express');
 
-const child_process = require('child_process');
 const cmd = require('../util/command');
 const db = require('../util/db');
 const i18n = require('../util/i18n');

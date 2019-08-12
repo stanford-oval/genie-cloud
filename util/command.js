@@ -33,4 +33,4 @@ function exec(file, argv) {
     });
 }
 
-module.exports = { exec }
+module.exports = { exec };

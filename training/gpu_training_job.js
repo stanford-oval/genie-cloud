@@ -10,10 +10,8 @@
 // See COPYING for details
 'use strict';
 
-const cmd = require('../util/command')
-const child_process = require('child_process');
+const cmd = require('../util/command');
 const path = require('path');
-const util = require('util');
 const AWS = require('aws-sdk');
 const BaseTrainingJob = require('genie-toolkit/lib/training/base_training_job');
 
@@ -62,19 +60,16 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
             s3workdir: this._s3workdir,
             options: this._options,
         };
-
-        console.log(`--Sending msg: ${JSON.stringify(msg)}`);
-            
         const requestParams = {
             QueueUrl: this._sqsRequestURL,
             MessageBody: JSON.stringify(msg),
             MessageGroupId: 'almond-gpu-training',
             MessageDeduplicationId: this._uid,
-        }
-        this._sqs.sendMessage(requestParams, function(err, data) {
-            if (err) throw error;
+        };
+        this._sqs.sendMessage(requestParams, (err, data) => {
+            if (err) throw err;
             console.log('Sent training request:', data.MessageId);
-        })
+        });
         try {
             await this._processResponse();
         } finally {
@@ -83,15 +78,15 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
     }
 
     async _uploadWorkdir() {
-        const tarfile = `${this._uid}.tar.gz`
-        await cmd.exec('tar', ['cvzf', tarfile, path.join('jobs', `${this.id}`, '/')])
+        const tarfile = `${this._uid}.tar.gz`;
+        await cmd.exec('tar', ['cvzf', tarfile, path.join('jobs', `${this.id}`, '/')]);
         await cmd.exec('aws', ['s3', 'cp', tarfile, this._s3workdir + path.join(this._uid, '/')]);
         await cmd.exec('rm', ['-f',  tarfile]);
     }
 
     async _scaleGPUNode(numNodes) {
          await cmd.exec('eksctl', ['scale', 'nodegroup',
-            `--cluster=${this._cluster}`, `-name=this._nodegroup`, `--nodes=${numNodes}`])
+            `--cluster=${this._cluster}`, `-name=this._nodegroup`, `--nodes=${numNodes}`]);
     }
 
     async _processResponse() {
@@ -116,11 +111,10 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
                 QueueUrl: this._sqsResponseURL,
                 ReceiptHandle: data.Messages[0].ReceiptHandle
             };
-            this._sqs.deleteMessage(deleteParams, function(err, data) {
+            this._sqs.deleteMessage(deleteParams, (err, data) => {
                 if (err) throw err;
             });
             // process message
-            console.log(`---type:${typeof m} m['uid']:${m['uid']} m.uid:<${m.uid}> this._uid:<${this._uid}> ${m['uid'] !== this._uid}`);
             if (m.uid !== this._uid) {
                 // this should only happen when a job fails
                 console.log('Ignore response from other job:', m);
