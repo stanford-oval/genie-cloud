@@ -169,8 +169,7 @@ function durationToString(_, ngettext, poll_interval) {
 }
 
 function getDetails(fn, param, req, res) {
-    const locale = req.query.locale || (req.user ? req.user.locale : 'en');
-    const language = I18n.localeToLanguage(locale);
+    const language = I18n.localeToLanguage(req.locale);
 
     return db.withClient(async (client) => {
         const device = await fn(client, param);
@@ -249,7 +248,6 @@ function getDetails(fn, param, req, res) {
         }
 
         res.render('thingpedia_device_details', { page_title: title,
-                                                  uselocale: locale,
                                                   device: device,
                                                   classDef: classDef,
                                                   examples: examples,

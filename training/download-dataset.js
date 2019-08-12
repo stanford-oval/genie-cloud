@@ -61,17 +61,20 @@ async function main() {
 
         query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
             where language = ? and not find_in_set('obsolete',flags)
-            and target_code<>'' and preprocessed<>'' and target_code rlike ?`,
+            and target_code<>'' and preprocessed<>'' and target_code rlike ?
+            order by id asc`,
             [language, regexp]);
     } else if (types.length > 0) {
         query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
             where language = ? and not find_in_set('obsolete',flags)
-            and target_code<>'' and preprocessed<>'' and type in (?)`,
+            and target_code<>'' and preprocessed<>'' and type in (?)
+            order by id asc`,
             [language, types]);
     } else {
         query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
             where language = ? and not find_in_set('obsolete',flags)
-            and target_code<>'' and preprocessed<>''`,
+            and target_code<>'' and preprocessed<>''
+            order by id asc`,
             [language]);
     }
     if (argv.test)

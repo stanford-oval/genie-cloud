@@ -11,6 +11,9 @@
 // See COPYING for details
 "use strict";
 
+// load thingpedia to initialize the polyfill
+require('thingpedia');
+
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');
 
@@ -249,7 +252,7 @@ Check the logs for further information.`
         const affectedModels = await db.withClient((dbClient) => {
             if (jobTemplate.modelTag)
                 return modelsModel.getByTag(dbClient, language, jobTemplate.modelTag);
-            else if (forDevices !== null)
+            else if (forDevices === null)
                 return modelsModel.getForLanguage(dbClient, language);
             else
                 return modelsModel.getForDevices(dbClient, language, forDevices);

@@ -15,9 +15,9 @@ node_js:
 - '10'
 cache:
   timeout: 900
-  directories:
-  - $HOME/.cache/pip
-  - tests/embeddings
+  npm: true
+  yarn: true
+  pip: true
 before_install:
 - ./travis/unlock-key.sh
 - mkdir cvc4/

@@ -9,7 +9,8 @@
 // See COPYING for details
 "use strict";
 
-require('thingengine-core/lib/polyfill');
+// load thingpedia to initialize the polyfill
+require('thingpedia');
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');
 
@@ -25,6 +26,7 @@ const organization = require('../model/organization');
 const entityModel = require('../model/entity');
 const exampleModel = require('../model/example');
 const snapshotModel = require('../model/snapshot');
+const alexaModelsModel = require('../model/alexa_model');
 
 const user = require('../util/user');
 const Importer = require('../util/import_device');
@@ -101,17 +103,38 @@ async function loadEntityValues(dbClient) {
          ]]);
 }
 
+const STRING_VALUES = [
+    'tt:search_query',
+    'tt:long_free_text',
+    'tt:short_free_text',
+    'tt:person_first_name',
+    'tt:path_name',
+    'tt:location',
+];
+
 async function loadStringValues(dbClient) {
-    for (let type of ['tt:search_query', 'tt:long_free_text', 'tt:short_free_text', 'tt:person_first_name', 'tt:path_name']) {
+    for (let type of STRING_VALUES) {
         const filename = path.resolve(path.dirname(module.filename), './data/' + type + '.txt');
         const data = (await util.promisify(fs.readFile)(filename)).toString().trim().split('\n');
 
+
         const {id:typeId} = await db.selectOne(dbClient,
             `select id from string_types where language='en' and type_name=?`, [type]);
+        const mappedData = data.map((line) => {
+            const parts = line.split('\t');
+            if (parts.length === 1)
+                return [typeId, parts[0], parts[0], 1];
+            if (parts.length === 3)
+                return [typeId, parts[0], parts[1], parseFloat(parts[2])];
+
+            const weight = parseFloat(parts[1]);
+            if (Number.isNaN(weight))
+                return [typeId, parts[0], parts[1], 1];
+            else
+                return [typeId, parts[0], parts[0], weight];
+        });
         await db.insertOne(dbClient,
-            `insert into string_values(type_id,value,preprocessed,weight) values ?`,
-            [data.map((v) => [typeId, v, v, 1.0])],
-        );
+            `insert into string_values(type_id,value,preprocessed,weight) values ?`, [mappedData]);
     }
 }
 
@@ -147,7 +170,8 @@ async function loadExamples(dbClient, bob) {
         target_code: 'let action x := @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
         click_count: 0,
-        flags: 'template'
+        flags: 'template',
+        name: 'EatData',
     },
     {
         id: 1001,
@@ -160,7 +184,8 @@ async function loadExamples(dbClient, bob) {
         target_code: 'let query x := \\(p_size : Measure(byte)) -> @org.thingpedia.builtin.test.get_data(size=p_size);',
         type: 'thingpedia',
         click_count: 7,
-        flags: 'template'
+        flags: 'template',
+        name: 'GenDataWithSize',
     },
     {
         id: 1002,
@@ -173,7 +198,8 @@ async function loadExamples(dbClient, bob) {
         target_code: 'monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
         click_count: 0,
-        flags: 'template'
+        flags: 'template',
+        name: 'GenDataThenEatData',
     },
     {
         id: 1003,
@@ -186,7 +212,8 @@ async function loadExamples(dbClient, bob) {
         target_code: 'program := monitor (@org.thingpedia.builtin.test.get_data()) => @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
         click_count: 0,
-        flags: 'template'
+        flags: 'template',
+        name: null,
     },
     {
         id: 1004,
@@ -196,10 +223,11 @@ async function loadExamples(dbClient, bob) {
         utterance: 'more data eating...',
         preprocessed: 'more data eating ...',
         target_json: '',
-        target_code: 'action () := @org.thingpedia.builtin.test.eat_data();',
+        target_code: 'action  := @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
         click_count: 0,
-        flags: 'template'
+        flags: 'template',
+        name: null,
     },
     {
         id: 1005,
@@ -212,9 +240,11 @@ async function loadExamples(dbClient, bob) {
         target_code: 'let table _ := @org.thingpedia.builtin.test.get_data();',
         type: 'thingpedia',
         click_count: 0,
-        flags: 'template'
+        flags: 'template',
+        name: 'GenData'
     },
 
+    // online
     {
         id: 1006,
         schema_id: null,
@@ -226,7 +256,7 @@ async function loadExamples(dbClient, bob) {
         target_code: 'now => @org.thingpedia.builtin.thingengine.phone.call param:number:Entity(tt:phone_number) = USERNAME_0',
         type: 'online',
         click_count: 0,
-        flags: 'training,exact'
+        flags: 'training,exact',
     },
     {
         id: 1007,
@@ -245,6 +275,17 @@ async function loadExamples(dbClient, bob) {
     ]);
 
     await exampleModel.like(dbClient, bob.id, 999);
+}
+
+async function loadAlexaModel(dbClient, bob, alexaUser) {
+    await alexaModelsModel.create(dbClient, {
+        language: 'en',
+        tag: 'org.thingpedia.alexa.test',
+        owner: bob.developer_org,
+        call_phrase: 'Bob Assistant',
+        access_token: null,
+        anonymous_user: alexaUser.id
+    }, ['com.bing', 'org.thingpedia.builtin.test']);
 }
 
 async function main() {
@@ -283,12 +324,21 @@ async function main() {
             locale: 'en-US',
             timezone: 'America/Los_Angeles',
         });
+        const alexaUser = await user.register(dbClient, req, {
+            username: 'alexa_user',
+            password: '12345678',
+            email: 'alexa_user@localhost',
+            email_verified: true,
+            locale: 'en-US',
+            timezone: 'America/Los_Angeles',
+        });
 
         const [root] = await userModel.getByName(dbClient, 'root');
         await loadAllDevices(dbClient, bob, root);
         await loadEntityValues(dbClient);
         await loadStringValues(dbClient);
         await loadExamples(dbClient, bob);
+        await loadAlexaModel(dbClient, bob, alexaUser);
 
         console.log(`export DEVELOPER_KEY="${newOrg.developer_key}" ROOT_DEVELOPER_KEY="${root.developer_key}"`);
     });

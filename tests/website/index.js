@@ -27,4 +27,7 @@ seq([
     ('./test_admin'),
     Config.WITH_THINGPEDIA === 'embedded' ? ('./test_oauth') : null,
     Config.WITH_THINGPEDIA === 'embedded' ? ('./test_string_entities') : null,
+
+    // only test alexa with embedded thingpedia, so we know what intents are available
+    Config.WITH_THINGPEDIA === 'embedded' ? ('./test_alexa') : null,
 ]);

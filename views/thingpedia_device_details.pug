@@ -64,7 +64,7 @@ block content
           = _("The translation for this account in your language is incomplete. ")
         else
           = _("The translation for this device in your language is incomplete. ")
-        a(href='/thingpedia/translate/by-id/' + device.primary_kind + '?locale=' + uselocale).btn.btn-default= _("Contribute translation")
+        a(href='/thingpedia/translate/by-id/' + device.primary_kind + '?locale=' + locale).btn.btn-default= _("Contribute translation")
 
   if device.current_jobs['update-dataset'] && user && user.developer_org === device.owner
     div.alert.alert-info(role='alert')
@@ -113,7 +113,7 @@ block content
       i= _("This is a builtin device in certain versions of Almond. It may not be available in the Almond you are using.")
 
   if classDef.extends !== null
-    p!= _("This device extends the functionality of %s.").format(classDef.extends.map((k) => '<a href="/thingpedia/classes/by-id/' + k + '">@' + k + '</a>').join(', '))
+    p!= _("This device extends the functionality of %s.").format(classDef.extends.map((k) => '<a href="/thingpedia/devices/by-id/' + k + '">@' + k + '</a>').join(', '))
 
   p
     = _("Class: ")
@@ -213,9 +213,9 @@ block content
             - if (!a.is_input) continue;
             li
               if a.metadata.prompt
-                = _("%s [%s]: %s").format(a.metadata.canonical || clean(argname), a.metadata.human_readable_type, a.metadata.prompt)
+                = _("%s [%s]: %s").format(a.canonical, a.metadata.human_readable_type, a.metadata.prompt)
               else
-                = _("%s [%s]").format(a.metadata.canonical || clean(argname), a.metadata.human_readable_type)
+                = _("%s [%s]").format(a.canonical, a.metadata.human_readable_type)
 
     if inv_type === 'query'
       section
@@ -225,7 +225,7 @@ block content
             - let a = inv.getArgument(argname)
             - if (a.is_input) continue;
             li
-              = _("%s [%s]").format(a.metadata.canonical || clean(argname), a.metadata.human_readable_type)
+              = _("%s [%s]").format(a.canonical, a.metadata.human_readable_type)
 
       p
       if inv.is_list
@@ -279,9 +279,9 @@ block content
     if device.repository
       div.col-md-3.col-sm-6
         a.btn.btn-default.btn-block(href=device.repository)= _("Source Code Repository")
-    if authenticated && uselocale !== 'en-US'
+    if authenticated && locale !== 'en-US'
       div.col-md-3.col-sm-6
-        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind + '?locale=' + uselocale)= _("Translate")
+        a.btn.btn-default.btn-block(href='/thingpedia/translate/by-id/' + device.primary_kind + '?locale=' + locale)= _("Translate")
     if device.issue_tracker
       div.col-md-3.col-sm-6
         a.btn.btn-default.btn-block(href=device.issue_tracker)= _("Report a bug")

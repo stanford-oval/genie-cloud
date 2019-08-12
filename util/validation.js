@@ -18,6 +18,8 @@ const stringModel = require('../model/strings');
 const { clean, splitParams, tokenize } = require('./tokenize');
 const TokenizerService = require('./tokenizer_service');
 const ThingpediaClient = require('./thingpedia-client');
+const getExampleName = require('./example_names');
+const { ValidationError } = require('./errors');
 
 assert(typeof ThingpediaClient === 'function');
 
@@ -35,13 +37,6 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
 const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
 const ALLOWED_CLASS_METADATA = new Set(['name', 'description']);
-
-class ValidationError extends Error {
-    constructor(message) {
-        super(message);
-        this.code = 'EINVAL';
-    }
-}
 
 function validateAnnotations(annotations) {
     for (let name of Object.getOwnPropertyNames(annotations)) {
@@ -101,6 +96,9 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
 
     if (!name || !description || !kind || !license)
         throw new ValidationError("Not all required fields were present");
+    if (Buffer.from(kind, 'utf8').length > 128)
+        throw new ValidationError("The chosen identifier is too long");
+
     if (!SUBCATEGORIES.has(options.subcategory))
         throw new ValidationError(req._("Invalid device category %s").format(options.subcategory));
     const [classDef, dataset] = await loadClassDef(dbClient, req, kind, classCode, datasetCode);
@@ -142,7 +140,24 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     return [classDef, dataset];
 }
 
+function autogenExampleName(ex, names) {
+    let baseName = getExampleName(ex);
+
+    if (!names.has(baseName)) {
+        names.add(baseName);
+        return baseName;
+    }
+
+    let counter = 1;
+    let name = baseName + counter;
+    while (names.has(name))
+        counter ++;
+    names.add(name);
+    return name;
+}
+
 function validateDataset(dataset) {
+    const names = new Set;
     dataset.examples.forEach((ex, i) => {
         try {
             let ruleprog = ex.toProgram();
@@ -158,6 +173,19 @@ function validateDataset(dataset) {
                 else
                     throw new ValidationError(`missing utterances annotation`);
             }
+
+            if (ex.annotations.name) {
+                if (typeof ex.annotations.name !== 'string')
+                    throw new ValidationError(`invalid #[name] annotation (must be a string)`);
+                if (ex.annotations.name.length > 128)
+                    throw new ValidationError(`the #[name] annotation must be at most 128 characters`);
+                if (names.has(ex.annotations.name))
+                    throw new ValidationError(`duplicate name`);
+                names.add(ex.annotations.name);
+            } else {
+                ex.annotations.name = autogenExampleName(ex, names);
+            }
+
             for (let utterance of ex.utterances)
                 validateUtterance(ex.args, utterance);
         } catch(e) {

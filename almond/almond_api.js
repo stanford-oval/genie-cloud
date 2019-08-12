@@ -11,7 +11,6 @@
 
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
-const Describe = ThingTalk.Describe;
 const Formatter = ThingTalk.Formatter;
 const { ParserClient } = require('almond-dialog-agent');
 
@@ -63,9 +62,91 @@ module.exports = class AlmondApi {
         }});
     }
 
-    createApp(data) {
+    async _doCreateApp(code, locations) {
+        const program = await ThingTalk.Grammar.parseAndTypecheck(code, this._engine.schemas, true);
+        for (let slot of program.iterateSlots2()) {
+            if (slot instanceof Ast.Selector) {
+                if (slot.isBuiltin)
+                    continue;
+                if (typeof slot.id !== 'string')
+                    throw new TypeError(`must select a device for @${slot.kind}`);
+                continue;
+            }
+            const value = slot.get();
+            if (value.isLocation && value.value.isRelative) {
+                let relativeTag = value.value.relativeTag;
+                if (relativeTag === 'current_location')
+                    slot.set(locations['current_location'] ? Ast.Value.fromJSON(ThingTalk.Type.Location, locations['current_location']) : null);
+                else
+                    slot.set(this._resolveUserContext('$context.location.' + relativeTag));
+                if (!slot.get())
+                    throw new TypeError(`missing location ${relativeTag}`);
+            }
+            if (value.isTime && value.value.isRelative) {
+                let relativeTag = value.value.relativeTag;
+                slot.set(this._resolveUserContext('$context.time.' + relativeTag));
+                if (!slot.get())
+                    throw new TypeError(`missing time ${relativeTag}`);
+            }
+        }
+
+        let icon = null;
+        for (let [, prim] of program.iteratePrimitives()) {
+            if (prim.selector.isBuiltin)
+                continue;
+            if (prim.selector.kind !== 'org.thingpedia.builtin.thingengine.remote' &&
+                !prim.selector.kind.startsWith('__dyn')
+                && prim.selector.id) {
+                let device = this._engine.devices.getDevice(prim.selector.id);
+                icon = device ? device.kind : null;
+                if (icon) break;
+            }
+        }
+
+        let options = { icon };
+        return this._engine.apps.createApp(program, options);
+    }
+
+    async _doDrainApp(app) {
+        // drain the queue of results from the app
+        let results = [];
+        let errors = [];
+        if (!app)
+            return [results, errors];
+
+        for (;;) {
+            let { item: next, resolve, reject } = await app.mainOutput.next();
+
+            if (next.isDone) {
+                resolve();
+                break;
+            }
+
+            if (next.isNotification) {
+                try {
+                    const messages = await this._formatter.formatForType(next.outputType, next.outputValue, 'messages');
+                    results.push({ raw: next.outputValue, type: next.outputType, formatted: messages });
+                    resolve();
+                } catch (e) {
+                    reject(e);
+                }
+            } else if (next.isError) {
+                errors.push(next.error);
+                resolve();
+            } else if (next.isQuestion) {
+                let e = new Error('User cancelled');
+                e.code = 'ECANCELLED';
+                reject(e);
+            }
+        }
+
+        return [results, errors];
+    }
+
+    async createApp(data) {
         let code = data.code;
         let locations = data.locations || {};
+        let times = data.times || {};
 
         let sharedPrefs = this._engine.platform.getSharedPreferences();
         for (let loc in locations) {
@@ -74,111 +155,33 @@ module.exports = class AlmondApi {
                 sharedPrefs.set('context-$context.location.' + loc, location.toJS());
             }
         }
+        for (let time in times) {
+            if (time === 'morning' || time === 'evening') {
+                let time = Ast.Value.fromJSON(ThingTalk.Type.Time, times[time]);
+                sharedPrefs.set('context-$context.time.' + time, time.toJS());
+            }
+        }
         if (!code)
             return { error: 'Missing program' };
 
-        return ThingTalk.Grammar.parseAndTypecheck(code, this._engine.schemas, true).then((program) => {
-            if (program.principal !== null)
-                throw new TypeError(`Cannot use this API to send remote programs`);
+        try {
+            const app = await this._doCreateApp(code, locations);
+            const [results, errors] = await this._doDrainApp(app);
 
-            for (let [,prim] of program.iteratePrimitives()) {
-                if (prim.selector.isBuiltin)
-                    continue;
-                if (prim.selector.id === null || typeof prim.selector.id !== 'string')
-                    throw new TypeError(`must select a device for primitive ${prim.selector.kind}.${prim.channel}`);
-            }
-            for (let [, slot, ,] of program.iterateSlots()) {
-                if (slot instanceof Ast.Selector)
-                    continue;
-                if (slot.value.isUndefined || (slot.value.isVarRef && slot.value.name.startsWith('__const_')))
-                    throw new TypeError(`cannot have slots in this API, parse and modify the program instead`);
-
-                if (slot.value.isLocation && slot.value.value.isRelative) {
-                    let relativeTag = slot.value.value.relativeTag;
-                    if (relativeTag === 'current_location')
-                        slot.value = locations['current_location'] ? Ast.Value.fromJSON(ThingTalk.Type.Location, locations['current_location']) : null;
-                    else
-                        slot.value = this._resolveUserContext('$context.location.' + relativeTag);
-                    if (!slot.value)
-                        throw new TypeError(`missing location ${relativeTag}`);
-                }
-            }
-
-            const gettext = this._engine.platform.getCapability('gettext');
-            const description = Describe.describeProgram(gettext, program);
-            const name = Describe.getProgramName(gettext, program);
-
-            let icon = null;
-            for (let [, prim] of program.iteratePrimitives()) {
-                if (prim.selector.isBuiltin)
-                    continue;
-                if (prim.selector.kind !== 'org.thingpedia.builtin.thingengine.remote' &&
-                    !prim.selector.kind.startsWith('__dyn')
-                    && prim.selector.id) {
-                    let device = this._engine.devices.getDevice(prim.selector.id);
-                    icon = device ? device.kind : null;
-                    if (icon) break;
-                }
-            }
-
-            let appMeta = {
-                $icon: icon
+            return {
+                uniqueId: app.uniqueId,
+                description: app.description,
+                code: app.code,
+                icon: Config.CDN_HOST + '/icons/' + app.icon + '.png',
+                results, errors
             };
-
-            let code = program.prettyprint(false);
-            return this._engine.apps.loadOneApp(code, appMeta, undefined, undefined,
-                                                name, description, true);
-        }).then((app) => {
-            // drain the queue of results from the app
-            let results = [];
-            let errors = [];
-
-            function loop() {
-                if (!app)
-                    return Promise.resolve();
-                return app.mainOutput.next().then(({ item: next, resolve, reject }) => {
-                    if (next.isDone) {
-                        resolve();
-                        return Promise.resolve();
-                    }
-
-                    if (next.isNotification) {
-                        return Promise.resolve(this._formatter.formatForType(next.outputType, next.outputValue, 'messages')).then((messages) => {
-                            results.push({ raw: next.outputValue, type: next.outputType, formatted: messages });
-                            resolve();
-                            return loop.call(this);
-                        }).catch((e) => {
-                            reject(e);
-                            return loop.call(this);
-                        });
-                    } else if (next.isError) {
-                        errors.push(next.error);
-                    } else if (next.isQuestion) {
-                        let e = new Error('User cancelled');
-                        e.code = 'ECANCELLED';
-                        reject(e);
-                    }
-                    resolve();
-                    return loop.call(this);
-                });
-            }
-
-            return loop.call(this).then(() => {
-                return {
-                    uniqueId: app.uniqueId,
-                    description: app.description,
-                    code: app.code,
-                    icon: Config.CDN_HOST + '/icons/' + app.icon + '.png',
-                    results, errors
-                };
-            });
-        }).catch((e) => {
+        } catch (e) {
             console.error(e.stack);
             if (e instanceof TypeError)
                 return { error: e.message };
             else
                 throw e;
-        });
+        }
     }
 
     _doParse(sentence) {
@@ -217,7 +220,7 @@ module.exports = class AlmondApi {
             }
 
             if (factory.type === 'none') {
-                return this._engine.devices.loadOneDevice({ kind: factory.kind }, true).then((device) => {
+                return this._engine.devices.addSerialized({ kind: factory.kind }).then((device) => {
                     return [device, null];
                 });
             } else {
@@ -290,6 +293,14 @@ module.exports = class AlmondApi {
                 else
                     return null;
             }
+            case '$context.time.morning':
+            case '$context.time.evening': {
+                let value = sharedPrefs.get('context-' + variable);
+                if (value !== undefined)
+                    return Ast.Value.fromJSON(ThingTalk.Type.Time, value);
+                else
+                    return null;
+            }
             default:
                 throw new TypeError('Invalid variable ' + variable);
         }
@@ -334,6 +345,15 @@ module.exports = class AlmondApi {
                     result.locations[slot.value.value.relativeTag] = false;
                 }
             }
+            if (slot.value.isTime && slot.value.value.isRelative) {
+                let value = this._resolveUserContext('$context.time.' + slot.value.value.relativeTag);
+                if (value !== null) {
+                    slot.value.value = value;
+                    result.times[slot.value.value.relativeTag] = true;
+                } else {
+                    result.times[slot.value.value.relativeTag] = false;
+                }
+            }
         }
     }
 
@@ -360,6 +380,7 @@ module.exports = class AlmondApi {
             commandClass: 'rule',
             devices: {},
             locations: {},
+            times: {},
         };
         const ok = await this._processPrimitives(program, primitives, result);
         if (!ok)

@@ -10,6 +10,9 @@
 // See COPYING for details
 "use strict";
 
+// load thingpedia to initialize the polyfill
+require('thingpedia');
+
 const Q = require('q');
 Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
@@ -68,7 +71,7 @@ class ControlSocket extends events.EventEmitter {
                 this.emit('close');
                 this._socket = null;
                 engines.sendSocket(msg.target, msg.replyId, socket).catch((e) => {
-                    jsonSocket.write({ error: e.message });
+                    jsonSocket.write({ error: e.message, code: e.code });
                     jsonSocket.end();
                 });
             } else if (msg.control === 'master') {

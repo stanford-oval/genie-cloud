@@ -12,6 +12,7 @@
 const fs = require('fs');
 const Q = require('q');
 const Url = require('url');
+const sanitize = require('sanitize-filename');
 
 const Config = require('../config');
 const platform = require('./platform');
@@ -78,12 +79,14 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
             return Q.ninvoke(upload, 'send');
         },
         downloadZipFile(name, version, directory = 'devices') {
+            name = sanitize(name);
             var s3 = new AWS.S3();
             var download = s3.getObject({ Bucket: 'thingpedia2',
                                           Key: directory + '/' + name + '-v' + version + '.zip' });
             return download.createReadStream();
         },
         storeZipFile(blob, name, version, directory = 'devices') {
+            name = sanitize(name);
             var s3 = new AWS.S3();
             var upload = s3.upload({ Bucket: 'thingpedia2',
                                      Key: directory + '/' + name + '-v' + version + '.zip',
@@ -108,10 +111,12 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
             return writeFile(blob, platform.getWritableDir() + '/blog-assets/' + name);
         },
         downloadZipFile(name, version, directory = 'devices') {
+            name = sanitize(name);
             let filename = platform.getWritableDir() + '/' + directory + '/' + name + '-v' + version + '.zip';
             return fs.createReadStream(filename);
         },
         storeZipFile(blob, name, version, directory = 'devices') {
+            name = sanitize(name);
             let filename = platform.getWritableDir() + '/' + directory + '/' + name + '-v' + version + '.zip';
             return writeFile(blob, filename);
         },

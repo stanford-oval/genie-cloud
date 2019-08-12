@@ -2,7 +2,7 @@
 //
 // This file is part of Thingpedia
 //
-// Copyright 2015-2016 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2015-2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -17,25 +17,45 @@ const multer = require('multer');
 
 const db = require('../util/db');
 const entityModel = require('../model/entity');
+const stringModel = require('../model/strings');
 const commandModel = require('../model/example');
+const orgModel = require('../model/organization');
 
 const ThingpediaClient = require('../util/thingpedia-client');
 const ImageCacheManager = require('../util/cache_manager');
 const SchemaUtils = require('../util/manifest_to_schema');
-const { tokenize, PARAM_REGEX } = require('../util/tokenize');
+const { tokenize } = require('../util/tokenize');
 const userUtils = require('../util/user');
 const iv = require('../util/input_validation');
-const { isOriginOk } = require('../util/origin');
-const { AuthenticationError } = require('../util/errors');
+const { ForbiddenError, AuthenticationError } = require('../util/errors');
 const errorHandling = require('../util/error_handling');
 const I18n = require('../util/i18n');
 const platform = require('../util/platform');
 const { uploadEntities, uploadStringDataset } = require('../util/upload_dataset');
+const { validatePageAndSize } = require('../util/pagination');
+const { getCommandDetails } = require('../util/commandpedia');
+const { uploadDevice } = require('../util/import_device');
 
 const Config = require('../config');
 const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
 
 const everything = express.Router();
+
+// apis are CORS enabled always
+everything.use('/thingpedia/api', (req, res, next) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Vary', 'Origin');
+    next();
+});
+
+everything.options('/[^]{0,}', (req, res, next) => {
+    res.set('Access-Control-Max-Age', '86400');
+    res.set('Access-Control-Allow-Methods', 'GET, POST');
+    res.set('Access-Control-Allow-Headers', 'Authorization, Accept, Content-Type');
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Vary', 'Origin');
+    res.send('');
+});
 
 const v1 = express.Router();
 const v2 = express.Router();
@@ -749,26 +769,6 @@ v3.get('/devices/setup', (req, res, next) => {
     }).catch(next);
 });
 
-function validatePageAndSize(req, defaultValue, maxValue) {
-    let page = req.query.page;
-    if (page === undefined)
-        page = 0;
-    else
-        page = parseInt(page);
-    if (!isFinite(page) || page < 0)
-        page = 0;
-    let page_size = req.query.page_size;
-    if (page_size === undefined)
-        page_size = defaultValue;
-    else
-        page_size = parseInt(page_size);
-    if (!isFinite(page_size) || page_size < 0)
-        page_size = defaultValue;
-    if (page_size > maxValue)
-        page_size = maxValue;
-    return [page, page_size];
-}
-
 v1.get('/devices/all', (req, res, next) => {
     const [page, page_size] = validatePageAndSize(req, 10, 50);
     if (!isValidDeviceClass(req, res))
@@ -897,44 +897,6 @@ v3.get('/devices/search', (req, res, next) => {
     }).catch(next);
 });
 
-function getCommandDetails(_, commands) {
-    for (let command of commands) {
-        if (command.liked !== undefined)
-            command.liked = !!command.liked;
-        if (command.is_base) {
-            command.utterance = command.utterance.replace(new RegExp(PARAM_REGEX, 'g'), '____');
-            if (command.utterance.startsWith(', '))
-                command.utterance = command.utterance.substring(2);
-            else if (command.target_code.startsWith('let stream') || command.target_code.startsWith('stream'))
-                command.utterance = _("notify me %s").format(command.utterance);
-            else if (command.target_code.startsWith('let table') || command.target_code.startsWith('query'))
-                command.utterance = _("show me %s").format(command.utterance);
-
-            command.devices = [command.kind];
-        } else {
-            // get device kinds from target_code
-            let functions = command.target_code.split(' ').filter((code) => code.startsWith('@'));
-            let devices = new Set(functions.map((f) => {
-                let kind = f.split('.');
-                kind.splice(-1, 1);
-                kind = kind.join('.').substr(1);
-                return kind;
-            }));
-            command.devices = Array.from(devices);
-        }
-        delete command.kind;
-
-        const renames = {
-             'light-bulb': 'com.hue',
-             'car': 'com.tesla.car',
-             'thermostat': 'com.nest',
-             'security-camera': 'com.nest'
-        };
-
-        command.devices = command.devices.map((d) => renames[d] || d);
-    }
-}
-
 /**
  * @api {get} /v3/commands/all Get All Commands from Commandpedia
  * @apiName GetAllCommands
@@ -989,12 +951,7 @@ v1.get('/commands/all', (req, res, next) => {
     const [page, page_size] = validatePageAndSize(req, 9, 50);
 
     db.withTransaction(async (client) => {
-        let commands;
-        if (userUtils.isAuthenticated(req) && isOriginOk(req))
-            commands = await commandModel.getCommandsForUser(client, language, req.user.id, page * page_size, page_size);
-        else
-            commands = await commandModel.getCommands(client, language, page * page_size, page_size);
-
+        const commands = await commandModel.getCommands(client, language, page * page_size, page_size);
         getCommandDetails(gettext, commands);
         res.cacheFor(30 * 1000);
         res.json({ result: 'ok', data: commands });
@@ -1056,12 +1013,7 @@ v1.get('/commands/search', (req, res, next) => {
     const gettext = I18n.get(locale).gettext;
 
     db.withTransaction(async (client) => {
-        let commands;
-        if (userUtils.isAuthenticated(req) && isOriginOk(req))
-            commands = await commandModel.getCommandsByFuzzySearchForUser(client, language, req.user.id, q);
-        else
-            commands = await commandModel.getCommandsByFuzzySearch(client, language, q);
-
+        const commands = await commandModel.getCommandsByFuzzySearch(client, language, q);
         getCommandDetails(gettext, commands);
         res.cacheFor(30 * 1000);
         res.json({ result: 'ok', data: commands });
@@ -1729,6 +1681,125 @@ v3.get('/entities/icon', (req, res, next) => {
     getEntityIcon(res, next, entityValue, entityType, entityDisplay);
 });
 
+function getAllStrings(req, res, next) {
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+
+    client.getAllStrings().then((data) => {
+        if (data.length > 0)
+            res.cacheFor(6, 'months');
+        else
+            res.cacheFor(86400000);
+        res.status(200).json({ result: 'ok', data });
+    }).catch(next);
+}
+
+/**
+ * @api {get} /v3/strings/all Get List of String Datasets
+ * @apiName GetAllStrings
+ * @apiGroup String Dataset
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Retrieve the full list of string datasets.
+ *
+ * @apiParam {String} [developer_key] Developer key to use for this operation
+ * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
+ *
+ * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
+ * @apiSuccess {Object[]} data List of entity types
+ * @apiSuccess {String} data.type String dataset type
+ * @apiSuccess {String} data.name User-visible name of this string dataset
+ * @apiSuccess {String} data.license Software license of the string dataset
+ * @apiSuccess {String} data.attribution Copyright and attribution, including citations of relevant papers
+ *
+ * @apiSuccessExample {json} Example Response:
+ *  {
+ *    "result": "ok",
+ *    "data": [
+ *      {
+ *           "type": "tt:long_free_text",
+ *           "name": "General Text (paragraph)",
+ *           "license": "non-commercial",
+ *           "attribution": "The Brown Corpus "
+ *       },
+ *       {
+ *           "type": "tt:path_name",
+ *           "name": "File and directory names",
+ *           "license": "public-domain",
+ *           "attribution": ""
+ *       },
+ *       {
+ *           "type": "tt:person_first_name",
+ *           "name": "First names of people",
+ *           "license": "public-domain",
+ *           "attribution": ""
+ *       },
+ *      ...
+ *    ]
+ *  }
+ *
+ */
+v3.get('/strings/all', getAllStrings);
+
+
+/**
+ * @api {get} /v3/strings/list/:type List String Values
+ * @apiName StringList
+ * @apiGroup String Dataset
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Download the named string parameter dataset.
+ *
+ * @apiParam {String} type String Dataset name
+ * @apiParam {String} developer_key Developer key to use for this operation
+ * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
+ *
+ * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
+ * @apiSuccess {Object[]} data List of string values
+ * @apiSuccess {String} data.value String value
+ * @apiSuccess {String} data.preprocessed Tokenized form of string value
+ * @apiSuccess {String} data.weight Weight
+ *
+ * @apiSuccessExample {json} Example Response:
+ *  {
+ *    "result": "ok",
+ *    "data": [
+ *      {
+ *        "value": "the fulton county grand jury",
+ *        "weight": 1,
+ *      },
+ *      {
+ *        "value": "took place",
+ *        "weight": 1,
+ *      },
+ *      {
+ *        "value": "the jury further",
+ *        "weight": 1
+ *      },
+ *      ...
+ *    ]
+ *  }
+ *
+ */
+v3.get('/strings/list/:type', (req, res, next) => {
+    db.withClient(async (dbClient) => {
+        const org = (await orgModel.getByDeveloperKey(dbClient, req.query.developer_key))[0];
+        if (!org)
+            throw new ForbiddenError(`A valid developer key is required to download string datasets`);
+
+        const language = I18n.localeToLanguage(req.query.locale || 'en-US');
+        // check for the existance of this type, and also check if the dataset can be downloaded
+        const stringType = await stringModel.getByTypeName(dbClient, req.params.type, language);
+        if (stringType.license === 'proprietary')
+            throw new ForbiddenError(`This dataset is proprietary and cannot be downloaded`);
+
+        return stringModel.getValues(dbClient, req.params.type, language);
+    }).then((rows) => {
+        res.cacheFor(86400000);
+        res.status(200).json({ result: 'ok', data: rows.map((r) => ({
+                value: r.value, preprocessed: r.preprocessed, weight: r.weight })) });
+    }).catch(next);
+});
+
 /**
  * @api {get} /v3/locations/lookup Lookup Location By Name
  * @apiName LookupLocation
@@ -1909,6 +1980,57 @@ v3.post('/entities/create',
     }).catch(next);
 });
 
+/**
+ * @api {post} /v3/devices/create Create or update a new device class
+ * @apiName NewDevice
+ * @apiGroup Devices
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Create a new device class, or update an existing device class.
+ *
+ * @apiParam {String} primary_kind The ID of the device to create or update
+ * @apiParam {String} name The name of the device in Thingpedia
+ * @apiParam {String} description The description of the device in Thingpedia
+ * @apiParam {String} license The SPDX identifier of the license of the code
+ * @apiParam {Boolean} license_gplcompatible Whether the license is GPL-compatible
+ * @apiParam {String} [website] A URL of a website associated with this device or service
+ * @apiParam {String} [repository] A link to a public source code repository for the device
+ * @apiParam {String} [issue_tracker] A link to page where users can report bugs for the device
+ * @apiParam {String="home","data-management","communication","social-network","health","media","service"} subcategory The general domain of this device
+ * @apiParam {String} code The ThingTalk class definition for this device
+ * @apiParam {String} dataset The ThingTalk dataset definition for this device
+ * @apiParam {File} [zipfile] The ZIP file containing the source code for this device
+ * @apiParam {File} [icon] A PNG or JPEG file to use as the icon for this device; preferred size is 512x512
+ *
+ * @apiSuccess {String} result Whether the API call was successful; always the value `ok`
+ *
+ */
+const deviceCreateArguments = {
+    primary_kind: 'string',
+    name: 'string',
+    description: 'string',
+    license: 'string',
+    license_gplcompatible: 'boolean',
+    website: '?string',
+    repository: '?string',
+    issue_tracker: '?string',
+    subcategory: 'string',
+    code: 'string',
+    dataset: 'string',
+    approve: 'boolean'
+};
+v3.post('/devices/create',
+    userUtils.requireScope('developer-upload'),
+    multer({ dest: platform.getTmpDir() }).fields([
+        { name: 'zipfile', maxCount: 1 },
+        { name: 'icon', maxCount: 1 }
+    ]),
+    iv.validatePOST(deviceCreateArguments, { json: true }),
+    (req, res, next) => {
+    uploadDevice(req).then(() => {
+        res.json({ result: 'ok' });
+    }).catch(next);
+});
 
 /**
  * @api {post} /v3/strings/upload Upload a new string dataset
@@ -1945,6 +2067,7 @@ v3.post('/strings/upload',
         res.json({ result: 'ok' });
     }).catch(next);
 });
+
 
 everything.use('/v1', v1);
 everything.use('/v2', v2);

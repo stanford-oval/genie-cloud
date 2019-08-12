@@ -11,7 +11,7 @@
 
 const path = require('path');
 const Genie = require('genie-toolkit');
-const TpClient = require('thingpedia-client');
+const Tp = require('thingpedia');
 
 const BaseThingpediaClient = require('../util/thingpedia-client');
 
@@ -68,7 +68,7 @@ module.exports = class NLPModel {
             const org = owner === null ? { is_admin: true, id: 1 } : { is_admin: false, id: owner };
             this.tpClient = new OrgThingpediaClient(locale, org);
         } else {
-            this.tpClient = new TpClient.HttpClient({
+            this.tpClient = new Tp.HttpClient({
                 getDeveloperKey() {
                     return Config.NL_THINGPEDIA_DEVELOPER_KEY;
                 },

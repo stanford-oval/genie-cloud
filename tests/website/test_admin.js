@@ -56,6 +56,7 @@ async function testAdminKillRestart(root, bob, nobody) {
     assert (await emc.isRunning(2)); // anonymous
     assert (await emc.isRunning(3)); // bob
     assert (await emc.isRunning(4)); // david
+    assert (await emc.isRunning(5)); // emma -or- alexa_user
 
     // /kill/all is very aggressive, and kills also the shared processes (it's sort of a killswitch for
     // when things go awry, short of "systemctl stop thingengine-cloud@.service"
@@ -67,6 +68,7 @@ async function testAdminKillRestart(root, bob, nobody) {
     assert (!await emc.isRunning(2)); // anonymous
     assert (!await emc.isRunning(3)); // bob
     assert (!await emc.isRunning(4)); // david
+    assert (!await emc.isRunning(5)); // emma -or- alexa_user
 
     // the shared processes will be restarted in 5s
     await delay(10000);
@@ -75,15 +77,21 @@ async function testAdminKillRestart(root, bob, nobody) {
     await assertRedirect(sessionRequest('/admin/users/start/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');
 
     assert (await emc.isRunning(1)); // root
+    assert (!await emc.isRunning(3)); // bob
+
+    // try connecting to /me/status from bob, this should not fail even though bob is not running
+    await sessionRequest('/me/status', 'GET', '', bob);
 
     // start everybody else too
     await sessionRequest('/admin/users/start/2', 'POST', '', root);
     await sessionRequest('/admin/users/start/3', 'POST', '', root);
     await sessionRequest('/admin/users/start/4', 'POST', '', root);
+    await sessionRequest('/admin/users/start/5', 'POST', '', root);
 
     assert (await emc.isRunning(2)); // anonymous
     assert (await emc.isRunning(3)); // bob
     assert (await emc.isRunning(4)); // david
+    assert (await emc.isRunning(5)); // emma -or- alexa_user
 
     // kill root
     await assertLoginRequired(sessionRequest('/admin/users/kill/1', 'POST', '', nobody));
@@ -93,6 +101,7 @@ async function testAdminKillRestart(root, bob, nobody) {
     assert (await emc.isRunning(2)); // anonymous
     assert (await emc.isRunning(3)); // bob
     assert (await emc.isRunning(4)); // david
+    assert (await emc.isRunning(5)); // emma -or- alexa_user
 
 
     await sessionRequest('/admin/users/start/1', 'POST', '', root);

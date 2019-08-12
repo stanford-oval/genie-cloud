@@ -1,10 +1,10 @@
 nav#doc-sidebar
   ul
-
-    li(class=(section === 'overview' ? 'current' : ''))
-      a.doc-sidebar-subtitle(href='/developers')= _("Overview")
-    li(class=(section === 'train-almond' ? 'current' : ''))
-      a.doc-sidebar-subtitle(href='/developers/train')= _("Train Almond")
+    if Config.ENABLE_DEVELOPER_PROGRAM
+      li(class=(section === 'overview' ? 'current' : ''))
+        a.doc-sidebar-subtitle(href='/developers')= _("Overview")
+      li(class=(section === 'train-almond' ? 'current' : ''))
+        a.doc-sidebar-subtitle(href='/developers/train')= _("Train Almond")
     li(class = (section === 'status' ? 'current' : ''))
       a.doc-sidebar-subtitle(href='/me/status')= _("Almond Status and Logs")
     if user.developer_org !== null
@@ -16,5 +16,8 @@ nav#doc-sidebar
       if Config.WITH_LUINET === 'embedded'
         li(class=(section === 'models' ? 'current' : ''))
           a.doc-sidebar-subtitle(href='/developers/models')= _("LUInet Models")
+      if Config.WITH_THINGPEDIA === 'embedded'
+        li(class=(section === 'alexa' ? 'current' : ''))
+          a.doc-sidebar-subtitle(href='/developers/alexa')= _("Alexa Skills")
 
 

@@ -37,8 +37,8 @@ $(() => {
 
     new SearchOrInfiniteScroll({
         container: '#commandpedia',
-        url: '/thingpedia/api/v3/commands/all',
-        searchUrl: '/thingpedia/api/v3/commands/search',
+        url: '/thingpedia/commands/all',
+        searchUrl: '/thingpedia/commands/search',
         autoScrollOnStart: false,
 
         render(command) {

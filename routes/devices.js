@@ -39,7 +39,7 @@ router.post('/create', iv.validatePOST({ kind: 'string' }), (req, res, next) => 
     EngineManager.get().getEngine(req.user.id).then((engine) => {
         const devices = engine.devices;
 
-        return devices.loadOneDevice(req.body, true);
+        return devices.addSerialized(req.body);
     }).then(() => {
         if (req.session['device-redirect-to']) {
             res.redirect(303, req.session['device-redirect-to']);
@@ -87,8 +87,7 @@ router.get('/oauth2/:kind', (req, res, next) => {
     const kind = req.params.kind;
 
     EngineManager.get().getEngine(req.user.id).then(async (engine) => {
-        const devFactory = await engine.devices.factory;
-        const result = await devFactory.runOAuth2(kind, null);
+        const result = await engine.devices.addFromOAuth(kind);
         if (result !== null) {
             const redirect = result[0];
             const session = result[1];

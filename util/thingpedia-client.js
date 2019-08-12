@@ -11,9 +11,9 @@
 
 const assert = require('assert');
 
+const Tp = require('thingpedia');
 const TpDiscovery = require('thingpedia-discovery');
 const ThingTalk = require('thingtalk');
-const TpClient = require('thingpedia-client');
 
 const Config = require('../config');
 
@@ -23,6 +23,7 @@ const organization = require('../model/organization');
 const schemaModel = require('../model/schema');
 const exampleModel = require('../model/example');
 const entityModel = require('../model/entity');
+const stringModel = require('../model/strings');
 
 const DatasetUtils = require('./dataset');
 const SchemaUtils = require('./manifest_to_schema');
@@ -81,7 +82,7 @@ class Platform {
     }
 }
 
-module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
+module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
     constructor(developerKey, locale, dbClient = null) {
         super(new Platform(developerKey, locale));
 
@@ -343,6 +344,7 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
                 row.target_code = row.target_code.replace(/^[ \r\n\t\v]*let[ \r\n\t\v]+(table|action|stream)[ \r\n\t\v]+x[ \r\n\t\v]*(\(.+\))[ \r\n\t\v]+:=[ \r\n\t\v]+/,
                     'let $1 x := \\$2 -> ');
             }
+            delete row.name;
         }
         return rows;
     }
@@ -449,6 +451,19 @@ module.exports = class ThingpediaClientCloud extends TpClient.BaseClient {
                 name: r.name,
                 is_well_known: r.is_well_known,
                 has_ner_support: r.has_ner_support
+            }));
+        });
+    }
+
+    getAllStrings() {
+        return this._withClient((dbClient) => {
+            return stringModel.getAll(dbClient, this.language);
+        }).then((rows) => {
+            return rows.map((r) => ({
+                type: r.type_name,
+                name: r.name,
+                license: r.license,
+                attribution: r.attribution
             }));
         });
     }

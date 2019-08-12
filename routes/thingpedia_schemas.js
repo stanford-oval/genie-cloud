@@ -25,7 +25,6 @@ const SchemaUtils = require('../util/manifest_to_schema');
 const DatasetUtils = require('../util/dataset');
 const Importer = require('../util/import_device');
 const I18n = require('../util/i18n');
-const iv = require('../util/input_validation');
 
 var router = express.Router();
 
@@ -38,9 +37,8 @@ function getOrgId(req) {
         return req.user.developer_org;
 }
 
-router.get('/by-id/:kind', iv.validateGET({ locale: '?string' }), (req, res, next) => {
-    const locale = req.query.locale || (req.user ? req.user.locale : 'en');
-    const language = I18n.localeToLanguage(locale);
+router.get('/by-id/:kind', (req, res, next) => {
+    const language = I18n.localeToLanguage(req.locale);
     db.withClient(async (dbClient) => {
         const orgId = getOrgId(req);
         const [devices, schemas, examples] = await Promise.all([
@@ -85,8 +83,7 @@ router.get('/by-id/:kind', iv.validateGET({ locale: '?string' }), (req, res, nex
 
         res.render('thingpedia_schema', { page_title: req._("Thingpedia - Type detail"),
                                           csrfToken: req.csrfToken(),
-                                          schema: row,
-                                          uselocale: locale });
+                                          schema: row });
     }).catch(next);
 });
 

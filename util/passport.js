@@ -139,10 +139,10 @@ function authenticateGoogle(req, accessToken, refreshToken, profile, done) {
         return EngineManager.get().startUser(user.id).then(() => {
             // asynchronously inject google-account device
             EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.loadOneDevice({ kind: 'com.google',
+                return engine.devices.addSerialized({ kind: 'com.google',
                                                       profileId: profile.id,
                                                       accessToken: accessToken,
-                                                      refreshToken: refreshToken }, true);
+                                                      refreshToken: refreshToken });
             }).done();
             return user;
         });
@@ -154,10 +154,10 @@ function associateGoogle(user, accessToken, refreshToken, profile, done) {
         return model.update(dbClient, user.id, { google_id: profile.id }).then(() => {
             // asynchronously inject google-account device
             EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.loadOneDevice({ kind: 'com.google',
+                return engine.devices.addSerialized({ kind: 'com.google',
                                                       profileId: profile.id,
                                                       accessToken: accessToken,
-                                                      refreshToken: refreshToken }, true);
+                                                      refreshToken: refreshToken });
             }).done();
             return user;
         });
@@ -214,11 +214,11 @@ function authenticateGithub(req, accessToken, refreshToken, profile, done) {
         return EngineManager.get().startUser(user.id).then(() => {
             // asynchronously inject github-account device
             EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.loadOneDevice({ kind: 'com.github',
+                return engine.devices.addSerialized({ kind: 'com.github',
                                                       userId: profile.id,
                                                       userName: profile.username,
                                                       accessToken: accessToken,
-                                                      refreshToken: refreshToken }, true);
+                                                      refreshToken: refreshToken });
             }).done();
             return user;
         });
@@ -231,11 +231,11 @@ function associateGithub(user, accessToken, refreshToken, profile, done) {
             // asynchronously inject github-account device
 
             EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.loadOneDevice({ kind: 'com.github',
+                return engine.devices.addSerialized({ kind: 'com.github',
                                                       userId: profile.id,
                                                       userName: profile.username,
                                                       accessToken: accessToken,
-                                                      refreshToken: refreshToken }, true);
+                                                      refreshToken: refreshToken });
             }).done();
             return user;
         });

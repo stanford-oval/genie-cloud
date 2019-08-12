@@ -10,7 +10,9 @@
 // See COPYING for details
 "use strict";
 
-require('thingengine-core/lib/polyfill');
+// load thingpedia to initialize the polyfill
+require('thingpedia');
+
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');
 
@@ -145,7 +147,7 @@ class DatasetGenerator {
         const constProvider = new DatabaseParameterProvider(this._language, this._dbClient);
         const ppdb = await Genie.BinaryPPDB.mapFile(this._options.ppdbFile);
 
-        const augmenter = new Genie.DatasetAugmenter(this._schemas, constProvider, {
+        const augmenter = new Genie.DatasetAugmenter(this._schemas, constProvider, this._tpClient, {
             quotedProbability: this._options.quotedProbability,
             untypedStringProbability: 0,
             maxSpanLength: MAX_SPAN_LENGTH,

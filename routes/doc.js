@@ -57,7 +57,9 @@ function highlightSearch(url, metadata) {
 }
 
 router.get('/search', iv.validateGET({ q: 'string' }, { json: true }), (req, res) => {
-    const results = searchIndex.index.search(req.query.q);
+    // lgtm thinks will .search() is a RegExp method, but it's actually a lunr method
+    // and there is no regex injection
+    const results = searchIndex.index.search(req.query.q); // lgtm [js/regex-injection]
     const data = [];
     for (let i = 0; i < Math.min(5, results.length); i++) {
         const result = results[i];

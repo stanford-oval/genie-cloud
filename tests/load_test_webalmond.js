@@ -9,7 +9,8 @@
 // See COPYING for details
 "use strict";
 
-require('thingengine-core/lib/polyfill');
+// load thingpedia to initialize the polyfill
+require('thingpedia');
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');
 
@@ -40,6 +41,13 @@ async function main() {
             username: 'david',
             password: '12345678',
             email: 'david@localhost',
+            locale: 'en-US',
+            timezone: 'America/Los_Angeles',
+        });
+        await user.register(dbClient, req, {
+            username: 'emma',
+            password: '12345678',
+            email: 'emma@localhost',
             locale: 'en-US',
             timezone: 'America/Los_Angeles',
         });

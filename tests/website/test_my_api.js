@@ -13,7 +13,7 @@ const assert = require('assert');
 const WebSocket = require('ws');
 const ThingTalk = require('thingtalk');
 const { assertHttpError, request, sessionRequest, dbQuery } = require('./scaffold');
-const { login, startSession } = require('../login');
+const { login, } = require('../login');
 
 const db = require('../../util/db');
 
@@ -23,42 +23,6 @@ async function getAccessToken(session) {
     return JSON.parse(await sessionRequest('/user/token', 'POST', '', session, {
         accept: 'application/json',
     })).token;
-}
-
-async function testMyApiCookie(bob, nobody) {
-    const result = JSON.parse(await sessionRequest('/me/api/profile', 'GET', null, bob));
-
-    const [bobInfo] = await dbQuery(`select * from users where username = ?`, ['bob']);
-
-    assert.deepStrictEqual(result, {
-        id: bobInfo.cloud_id,
-        username: 'bob',
-        full_name: bobInfo.human_name,
-        email: bobInfo.email,
-        email_verified: bobInfo.email_verified,
-        locale: bobInfo.locale,
-        timezone: bobInfo.timezone,
-        model_tag: bobInfo.model_tag
-    });
-
-    await assertHttpError(request('/me/api/profile', 'GET', null, {
-        extraHeaders: {
-            'Cookie': 'connect.sid=invalid',
-        }
-    }), 403, 'Forbidden Cross Origin Request');
-    await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, nobody), 403);
-
-    await assertHttpError(sessionRequest('/me/api/profile', 'GET', null, bob, {
-        extraHeaders: {
-            'Origin': 'https://invalid.origin.example.com'
-        }
-    }), 403, 'Forbidden Cross Origin Request');
-
-    await sessionRequest('/me/api/profile', 'GET', null, bob, {
-        extraHeaders: {
-            'Origin': Config.SERVER_ORIGIN
-        }
-    });
 }
 
 async function testMyApiProfileOAuth(auth) {
@@ -103,7 +67,7 @@ async function testMyApiCreateGetApp(auth) {
 
     assert(result.uniqueId.startsWith('uuid-'));
     assert.strictEqual(result.description, 'get generate 10 byte of fake data with count equal to 2 and then notify you');
-    assert.strictEqual(result.code, '{\n  now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(count=2, size=10byte) => notify;\n}');
+    assert.strictEqual(result.code, 'now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(count=2, size=10byte) => notify;');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
     assert.deepStrictEqual(result.errors, []);
 
@@ -146,7 +110,7 @@ async function testMyApiCreateWhenApp(auth) {
 
     assert(result.uniqueId.startsWith('uuid-'));
     assert.strictEqual(result.description, 'notify you when generate 10 byte of fake data change');
-    assert.strictEqual(result.code, '{\n  monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;\n}');
+    assert.strictEqual(result.code, 'monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;');
     assert.strictEqual(result.icon, '/download/icons/org.thingpedia.builtin.test.png');
     assert.deepStrictEqual(result.results, []);
     assert.deepStrictEqual(result.errors, []);
@@ -192,7 +156,7 @@ async function testMyApiListApps(auth, uniqueId) {
         description: 'notify you when generate 10 byte of fake data change',
         error: null,
         code:
-         '{\n  monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;\n}',
+         'monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;',
         icon: '/download/icons/org.thingpedia.builtin.test.png'
     }]);
 
@@ -202,7 +166,7 @@ async function testMyApiListApps(auth, uniqueId) {
         description: 'notify you when generate 10 byte of fake data change',
         error: null,
         code:
-         '{\n  monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;\n}',
+         'monitor (@org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").get_data(size=10byte)) => notify;',
         icon: '/download/icons/org.thingpedia.builtin.test.png'
     });
 
@@ -262,11 +226,9 @@ async function testMyApiOAuth(accessToken) {
 }
 
 async function main() {
-    const nobody = await startSession();
     const bob = await login('bob', '12345678');
 
     // user (web almond) api
-    await testMyApiCookie(bob, nobody);
     const token = await getAccessToken(bob);
     await testMyApiOAuth(token);
 

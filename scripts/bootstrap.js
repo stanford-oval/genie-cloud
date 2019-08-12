@@ -13,15 +13,17 @@
 // Bootstrap an installation of Almond Cloud by creating the
 // database schema and adding the requisite initial data
 
-require('thingengine-core/lib/polyfill');
+// load thingpedia to initialize the polyfill
+require('thingpedia');
+
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');
 
 const path = require('path');
 const fs = require('fs');
 const util = require('util');
-const Tp = require('thingpedia');
 const yaml = require('js-yaml');
+const child_process = require('child_process');
 
 const db = require('../util/db');
 const user = require('../util/user');
@@ -121,7 +123,8 @@ async function importStandardStringTypes(dbClient, rootOrg) {
         'tt:short_free_text': 'General Text (short phrase)',
         'tt:long_free_text': 'General Text (paragraph)',
         'tt:person_first_name': 'First names of people',
-        'tt:path_name': 'File and directory names'
+        'tt:path_name': 'File and directory names',
+        'tt:location': 'Cities, points on interest and addresses',
     };
 
     await stringModel.createMany(dbClient, Object.keys(STRING_TYPES).map((id) => {
@@ -132,9 +135,15 @@ async function importStandardStringTypes(dbClient, rootOrg) {
             license: 'public-domain',
             attribution: '',
         };
-        if (id === 'tt:long_free_text') {
+        if (id === 'tt:long_free_text' || id === 'tt:short_free_text') {
             obj.license = 'non-commercial';
             obj.attribution = 'The Brown Corpus <http://www.hit.uib.no/icame/brown/bcm.html>';
+        }
+        if (id === 'tt:person_first_name')
+            obj.attribution = 'United States Census and Social Security data';
+        if (id === 'tt:location') {
+            obj.license = 'free-copyleft';
+            obj.attribution = 'Copyright © OpenStreetMap contributors <https://www.openstreemap.org/copyright>. Distributed under the Open Data Commons Open Database License.';
         }
 
         return obj;
@@ -222,7 +231,13 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
         version: 0
     });
 
-    await codeStorage.storeZipFile(await Tp.Helpers.Http.getStream('https://almond-static.stanford.edu/test-data/en-thingtalk.zip'),
+    const geniedir = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit');
+    const { stdout, stderr } = await util.promisify(child_process.execFile)(
+        'make', ['-C', geniedir, 'bundle/en.zip'], { maxBuffer: 1024 * 1024 });
+    process.stdout.write(stdout);
+    process.stderr.write(stderr);
+
+    await codeStorage.storeZipFile(fs.createReadStream(path.resolve(geniedir, 'bundle/en.zip')),
         'org.thingpedia.genie.thingtalk', 0, 'template-files');
 
     return tmpl.id;
@@ -311,7 +326,7 @@ async function main() {
         }
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
-            await importStandardEntities(dbClient, rootOrg);
+            await importStandardEntities(dbClient);
             await importStandardStringTypes(dbClient, rootOrg);
             await importStandardSchemas(dbClient, rootOrg);
             await importBuiltinDevices(dbClient, rootOrg);
