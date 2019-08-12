@@ -90,10 +90,8 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
     }
 
     async _scaleGPUNode(numNodes) {
-        await cmd.exec('echo', ['eksctl', 'scale', 'nodegroup',
+         await cmd.exec('eksctl', ['scale', 'nodegroup',
             `--cluster=${this._cluster}`, `-name=this._nodegroup`, `--nodes=${numNodes}`])
- //        await cmd.exec('eksctl', ['scale', 'nodegroup',
- //           `--cluster=${this._cluster}`, `-name=this._nodegroup`, `--nodes=${numNodes}`])
     }
 
     async _processResponse() {
