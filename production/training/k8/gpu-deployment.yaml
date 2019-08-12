@@ -1,7 +1,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: "training-deployment"
+  name: "gpu-training-deployment"
 spec:
   replicas: 1
   template:
