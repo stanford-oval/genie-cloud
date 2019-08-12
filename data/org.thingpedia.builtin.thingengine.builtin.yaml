@@ -57,31 +57,36 @@ class: |
     #_[canonical="log"]
     #_[confirmation="write $message in the developer logs"]
     #_[confirmation_remote="write $message in the developer logs on $__person's phone"]
-    #[doc="log a message in the developer logs"];
+    #[doc="log a message in the developer logs"]
+    #[confirm=false];
 
     action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"])
     #_[canonical="configure"]
     #_[confirmation="configure a new $device"]
     #_[confirmation_remote="configure a new $device on $__person's Almond"]
-    #[doc="configure a specific device by type"];
+    #[doc="configure a specific device by type"]
+    #[confirm=false];
 
     action say(in req message: String #_[prompt="What do you want me to say?"])
     #_[canonical="say"]
     #_[confirmation="send me a message $message"]
     #_[confirmation_remote="send $__person message $message"]
-    #[doc="makes Almond say something; this is the codegennable version of @$notify"];
+    #[doc="makes Almond say something; this is the codegennable version of @$notify"]
+    #[confirm=false];
 
     action discover()
     #_[canonical="discover"]
     #_[confirmation="search for new devices"]
     #_[confirmation_remote="search for new devices on $__person's Almond"]
-    #[doc="start interactive discovery for new devices"];
+    #[doc="start interactive discovery for new devices"]
+    #[confirm=false];
 
     action open_url(in req url: Entity(tt:url) #_[prompt="What URL do you want to open?"])
     #_[canonical="open url on builtin"]
     #_[confirmation="open $url"]
     #_[confirmation_remote="open $url in $__person's PC"]
-    #[doc="open a file/link"];
+    #[doc="open a file/link"]
+    #[confirm=false];
   }
 
 dataset: |

@@ -29,7 +29,8 @@ class: |
     #_[canonical="set ringer on phone"]
     #_[confirmation="set your phone to $mode"]
     #_[confirmation_remote="set $__person's phone to $mode"]
-    #[doc="set ringer mode; valid values are \"normal\", \"vibrate\" and \"silent\""];
+    #[doc="set ringer mode; valid values are \"normal\", \"vibrate\" and \"silent\""]
+    #[confirm=false];
 
     action call(in req number: Entity(tt:phone_number) #_[prompt="Who do you want to call?"] #_[canonical="number"])
     #_[canonical="make call on phone"]
