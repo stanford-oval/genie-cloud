@@ -397,9 +397,10 @@ align-text@^0.1.1, align-text@^0.1.3:
     longest "^1.0.1"
     repeat-string "^1.5.2"
 
-"almond-dialog-agent@github:stanford-oval/almond-dialog-agent":
-  version "1.4.1"
-  resolved "https://codeload.github.com/stanford-oval/almond-dialog-agent/tar.gz/f77d68134c631fc7cd642e729573f9c64ef0053e"
+almond-dialog-agent@~1.6.0-beta.1:
+  version "1.6.0-beta.1"
+  resolved "https://registry.yarnpkg.com/almond-dialog-agent/-/almond-dialog-agent-1.6.0-beta.1.tgz#516afbe8d54dc833adf5452871bdbf421f94d9a4"
+  integrity sha512-yT205IhxmLaFnQZIuNn7Tgq86B+7b4u4gsuo6RzpjPVH134UuYSlOJ+jSPSryb2zoYI3jgG9AM+NEQFQvYM0Dg==
   dependencies:
     adt "~0.7.2"
     consumer-queue "^1.0.0"
@@ -2674,9 +2675,10 @@ gcp-metadata@^1.0.0:
     gaxios "^1.0.2"
     json-bigint "^0.3.0"
 
-"genie-toolkit@github:stanford-oval/genie-toolkit":
-  version "0.3.3"
-  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/6a79a912bbb98c3df3a55720de8ff33dcc11f520"
+genie-toolkit@~0.4.0-beta.1:
+  version "0.4.0-beta.1"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.4.0-beta.1.tgz#b957984b2224d59c7ecce31a4ad0264d9bb9738d"
+  integrity sha512-7BOzxWpsow3ArNw48GjLP7gaVl224JbsfTbvoP/S4exNVWilkFIyLLnZVtKVYnY/7+bTMYiquvsj4VppFWbT1w==
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
@@ -2685,7 +2687,6 @@ gcp-metadata@^1.0.0:
     mmap-io "^1.1.7"
     qs "^6.7.0"
     seedrandom "^3.0.0"
-    shuffle-array "^1.0.1"
     sockaddr "^1.0.1"
     thingpedia "~2.5.0-beta.1"
     thingtalk "~1.8.0-beta.1"
@@ -5753,11 +5754,6 @@ shell-quote@^1.6.1:
     array-reduce "~0.0.0"
     jsonify "~0.0.0"
 
-shuffle-array@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/shuffle-array/-/shuffle-array-1.0.1.tgz#c4ff3cfe74d16f93730592301b25e6577b12898b"
-  integrity sha1-xP88/nTRb5NzBZIwGyXmV3sSiYs=
-
 signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
@@ -6198,9 +6194,10 @@ text-table@^0.2.0:
   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
   integrity sha1-f17oI66AUgfACvLfSoTsP8+lcLQ=
 
-"thingengine-core@github:stanford-oval/thingengine-core":
-  version "1.5.0"
-  resolved "https://codeload.github.com/stanford-oval/thingengine-core/tar.gz/4977873f6800a58e35d5fe73b2d3389660e2dbb1"
+thingengine-core@~1.6.0-beta.1:
+  version "1.6.0-beta.1"
+  resolved "https://registry.yarnpkg.com/thingengine-core/-/thingengine-core-1.6.0-beta.1.tgz#8f344119b946045c7efd6a118bed7039adf4a72f"
+  integrity sha512-O1pjcKNJIE+0V4InpeIIEQzA7dvUV2NMVobkpU7oyaZYZlm6s7BOVcPLjtf3bEQ/SXk2C0Iy5lxHX3Wn0ZnV2g==
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.1"
@@ -6222,7 +6219,7 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-thingpedia@2.5.0-beta.1, thingpedia@~2.5.0-beta.1:
+thingpedia@~2.5.0-beta.1:
   version "2.5.0-beta.1"
   resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.5.0-beta.1.tgz#0c82703d17d588c52398b897f10b293d2cd9f32d"
   integrity sha512-/nrynhUjHWORLgumnnV4KihBsigx6Cf/OsvCEnSfyDvoDs4H4Bz+rHObVZYmI6mRoGzkgbILn0AfeZopJeNB7Q==
@@ -6234,7 +6231,7 @@ thingpedia@2.5.0-beta.1, thingpedia@~2.5.0-beta.1:
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@1.8.0-beta.1, thingtalk@~1.8.0-beta.1:
+thingtalk@~1.8.0-beta.1:
   version "1.8.0-beta.1"
   resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.8.0-beta.1.tgz#e3db697173b60f6eb160016ce11743ffe1735fc5"
   integrity sha512-ozn0gbBcKfNCXyS/zsUsVrwCWYwmLNdHAwYXHAOQmcKBNflKt/dWGp5gJvmt+zX9uahN5o33St4sItJSRQjTpg==
