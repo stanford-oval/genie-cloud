@@ -215,6 +215,7 @@ CREATE TABLE `device_schema_channels` (
   `doc` mediumtext COLLATE utf8_bin NOT NULL,
   `is_list` tinyint(1) NOT NULL DEFAULT 1,
   `is_monitorable` tinyint(1) NOT NULL DEFAULT 1,
+  `confirm` tinyint(1) NOT NULL DEFAULT 1,
   PRIMARY KEY (`schema_id`,`version`,`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;

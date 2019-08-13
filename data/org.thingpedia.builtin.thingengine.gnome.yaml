@@ -20,7 +20,8 @@ class: |
     #_[canonical="open app on laptop"]
     #_[confirmation="open $app_id"]
     #_[confirmation_remote="open $app_id in $__person's PC"]
-    #[doc="open the given app (optionally with a file)"];
+    #[doc="open the given app (optionally with a file)"]
+    #[confirm=false];
 
     action lock()
     #_[canonical="lock on laptop"]

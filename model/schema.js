@@ -49,7 +49,8 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
                            JSON.stringify(meta.is_input),
                            JSON.stringify(meta.string_values),
                            !!meta.is_list,
-                           !!meta.is_monitorable]);
+                           !!meta.is_monitorable,
+                           !!meta.confirm]);
             channelCanonicals.push([schemaId, version, language, name,
                                     meta.canonical,
                                     meta.confirmation,
@@ -68,7 +69,7 @@ function insertChannels(dbClient, schemaId, schemaKind, kindType, version, langu
         return Q();
 
     return db.insertOne(dbClient, 'insert into device_schema_channels(schema_id, version, name, '
-        + 'channel_type, doc, types, argnames, required, is_input, string_values, is_list, is_monitorable) values ?', [channels])
+        + 'channel_type, doc, types, argnames, required, is_input, string_values, is_list, is_monitorable, confirm) values ?', [channels])
         .then(() => {
             return db.insertOne(dbClient, 'insert into device_schema_channel_canonicals(schema_id, version, language, name, '
             + 'canonical, confirmation, confirmation_remote, formatted, argcanonicals, questions) values ?', [channelCanonicals]);
@@ -126,6 +127,7 @@ function processMetaRows(rows) {
             is_input: JSON.parse(row.is_input) || [],
             is_list: !!row.is_list,
             is_monitorable: !!row.is_monitorable,
+            confirm: !!row.confirm,
             confirmation: row.confirmation,
             confirmation_remote: row.confirmation_remote || row.confirmation, // for compatibility
             formatted: JSON.parse(row.formatted || '[]'),
@@ -265,7 +267,7 @@ module.exports = {
         if (org === -1) {
             return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                 confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type
+                is_list, is_monitorable, string_values, questions, confirm, kind, kind_canonical, kind_type
                 from device_schema ds
                 left join device_schema_channels dsc on ds.id = dsc.schema_id
                 and dsc.version = ds.developer_version
@@ -275,7 +277,7 @@ module.exports = {
         } else if (org !== null) {
             return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                 confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type
+                is_list, is_monitorable, string_values, questions, confirm, kind, kind_canonical, kind_type
                 from device_schema ds
                 left join device_schema_channels dsc on ds.id = dsc.schema_id
                 and ((dsc.version = ds.developer_version and ds.owner = ?) or
@@ -287,7 +289,7 @@ module.exports = {
         } else {
             return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                 confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type
+                is_list, is_monitorable, string_values, questions, confirm, kind, kind_canonical, kind_type
                 from device_schema ds
                 left join device_schema_channels dsc on ds.id = dsc.schema_id
                 and dsc.version = ds.approved_version
@@ -327,7 +329,7 @@ module.exports = {
         if (org === -1) {
             return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                 confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type
+                is_list, is_monitorable, string_values, questions, confirm, kind, kind_canonical, kind_type
                 from device_schema_snapshot ds
                 left join device_schema_channels dsc on ds.schema_id = dsc.schema_id
                 and dsc.version = ds.developer_version
@@ -338,7 +340,7 @@ module.exports = {
         } else if (org !== null) {
             return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                 confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type
+                is_list, is_monitorable, string_values, questions, confirm, kind, kind_canonical, kind_type
                 from device_schema_snapshot ds
                 left join device_schema_channels dsc on ds.schema_id = dsc.schema_id
                 and ((dsc.version = ds.developer_version and ds.owner = ?) or
@@ -350,7 +352,7 @@ module.exports = {
         } else {
             return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                 confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                is_list, is_monitorable, string_values, questions, kind, kind_canonical, kind_type
+                is_list, is_monitorable, string_values, questions, confirm, kind, kind_canonical, kind_type
                 from device_schema_snapshot ds
                 left join device_schema_channels dsc on ds.schema_id = dsc.schema_id
                 and dsc.version = ds.approved_version
@@ -397,7 +399,7 @@ module.exports = {
             if (org === -1) {
                 return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                     confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                    string_values, is_list, is_monitorable, questions, kind, kind_type
+                    string_values, is_list, is_monitorable, questions, confirm, kind, kind_type
                     from device_schema ds left join
                     device_schema_channels dsc on ds.id = dsc.schema_id and
                     dsc.version = ds.developer_version left join device_schema_channel_canonicals dscc
@@ -407,7 +409,7 @@ module.exports = {
             } if (org !== null) {
                 return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                     confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                    string_values, is_list, is_monitorable, questions, kind, kind_type
+                    string_values, is_list, is_monitorable, questions, confirm, kind, kind_type
                     from device_schema ds left join
                     device_schema_channels dsc on ds.id = dsc.schema_id and
                     ((dsc.version = ds.developer_version and ds.owner = ?) or
@@ -419,7 +421,7 @@ module.exports = {
             } else {
                 return db.selectAll(client, `select dsc.name, channel_type, canonical, confirmation,
                     confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                    string_values, is_list, is_monitorable, questions, kind, kind_type
+                    string_values, is_list, is_monitorable, questions, confirm, kind, kind_type
                     from device_schema ds left join device_schema_channels
                     dsc on ds.id = dsc.schema_id and dsc.version = ds.approved_version left join
                     device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and
@@ -433,7 +435,7 @@ module.exports = {
     getMetasByKindAtVersion(client, kind, version, language) {
         return Q.try(() => {
             return db.selectAll(client, "select dsc.name, channel_type, canonical, confirmation, confirmation_remote, formatted, doc, types,"
-                                + " argnames, argcanonicals, required, is_input, string_values, is_list, is_monitorable, questions, kind, kind_type "
+                                + " argnames, argcanonicals, required, is_input, string_values, is_list, is_monitorable, questions, confirm, kind, kind_type "
                                 + " from device_schema ds"
                                 + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                 + " and dsc.version = ? "

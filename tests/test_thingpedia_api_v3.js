@@ -117,7 +117,8 @@ const BING_METADATA = {
               null,
               null,
               null
-            ]
+            ],
+            confirm: false
         },
         web_search: {
             types: ["String", "String", "String", "Entity(tt:url)"],
@@ -148,7 +149,8 @@ const BING_METADATA = {
               "tt:short_free_text",
               "tt:long_free_text",
               null,
-            ]
+            ],
+            confirm: false
         }
     }
 };
@@ -176,7 +178,8 @@ const BING_CLASS_WITH_METADATA = `class @com.bing {
                                       out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
   #_[canonical="image search on bing"]
   #_[confirmation="images matching $query from Bing"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]];
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
+  #[confirm=false];
 
   monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                     out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
@@ -184,7 +187,8 @@ const BING_CLASS_WITH_METADATA = `class @com.bing {
                                     out link: Entity(tt:url) #_[canonical="link"])
   #_[canonical="web search on bing"]
   #_[confirmation="websites matching $query on Bing"]
-  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]];
+  #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
+  #[confirm=false];
 }
 `;
 const BING_CLASS_FULL = `class @com.bing
@@ -203,7 +207,8 @@ const BING_CLASS_FULL = `class @com.bing
   #_[confirmation="websites matching $query on Bing"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
   #[poll_interval=3600000ms]
-  #[doc="search for ${'`query`'} on Bing"];
+  #[doc="search for ${'`query`'} on Bing"]
+  #[confirm=false];
 
   monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                       out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
@@ -215,7 +220,8 @@ const BING_CLASS_FULL = `class @com.bing
   #_[confirmation="images matching $query from Bing"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
   #[poll_interval=3600000ms]
-  #[doc="search for ${'`query`'} on Bing Images"];
+  #[doc="search for ${'`query`'} on Bing Images"]
+  #[confirm=false];
 }
 `;
 
@@ -230,13 +236,15 @@ const ADMINONLY_CLASS = `class @org.thingpedia.builtin.test.adminonly {
 const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisible {
   action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
   #_[canonical="eat data on test"]
-  #_[confirmation="consume $data"];
+  #_[confirmation="consume $data"]
+  #[confirm=true];
 }
 `;
 const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.adminonly {
   action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
   #_[canonical="eat data on test"]
-  #_[confirmation="consume $data"];
+  #_[confirmation="consume $data"]
+  #[confirm=true];
 }
 `;
 
@@ -406,7 +414,8 @@ async function testGetMetadata() {
                         canonical: "eat data on test",
                         is_list: false,
                         is_monitorable: false,
-                        string_values: [null]
+                        string_values: [null],
+                        confirm: true
                     }
                 }
             }
@@ -441,7 +450,8 @@ async function testGetMetadata() {
                         canonical: "eat data on test",
                         is_list: false,
                         is_monitorable: false,
-                        string_values: [null]
+                        string_values: [null],
+                        confirm: true
                     }
                 }
             }
@@ -488,7 +498,8 @@ async function testGetMetadata() {
                         canonical: "eat data on test",
                         is_list: false,
                         is_monitorable: false,
-                        string_values: [null]
+                        string_values: [null],
+                        confirm: true
                     }
                 }
             }
@@ -2034,7 +2045,8 @@ const BANG_CLASS_FULL = `class @com.bing
   #_[confirmation="websites matching $query on Bing"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}",displayText="${'${description}'}"}]]
   #[poll_interval=3600000ms]
-  #[doc="search for ${'`query`'} on Bing"];
+  #[doc="search for ${'`query`'} on Bing"]
+  #[confirm=false];
 
   monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                       out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
@@ -2046,7 +2058,8 @@ const BANG_CLASS_FULL = `class @com.bing
   #_[confirmation="images matching $query from Bing"]
   #_[formatted=[{type="rdl",webCallback="${'${link}'}",displayTitle="${'${title}'}"}, {type="picture",url="${'${picture_url}'}"}]]
   #[poll_interval=3600000ms]
-  #[doc="search for ${'`query`'} on Bing Images"];
+  #[doc="search for ${'`query`'} on Bing Images"]
+  #[confirm=false];
 }
 `;
 
@@ -2143,7 +2156,8 @@ async function testCreateDevice() {
 
   query foo(out text: String #_[canonical="text"])
   #_[confirmation="the foos"]
-  #_[canonical="foo on new test device"];
+  #_[canonical="foo on new test device"]
+  #[confirm=false];
 }
 `);
 

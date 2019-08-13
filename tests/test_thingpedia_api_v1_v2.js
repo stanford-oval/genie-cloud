@@ -93,7 +93,8 @@ const BING_METADATA = {
               null,
               null,
               null
-            ]
+            ],
+            confirm: false
         },
         web_search: {
             schema: ["String", "String", "String", "Entity(tt:url)"],
@@ -124,7 +125,8 @@ const BING_METADATA = {
               "tt:short_free_text",
               "tt:long_free_text",
               null,
-            ]
+            ],
+            confirm: false
         }
     }
 };
@@ -203,6 +205,7 @@ async function testGetMetadata() {
                     is_list: false,
                     is_monitorable: false,
                     string_values: [null],
+                    confirm: true
                 }
             }
         }
@@ -230,7 +233,8 @@ async function testGetMetadata() {
                     canonical: "eat data on test",
                     is_list: false,
                     is_monitorable: false,
-                    string_values: [null]
+                    string_values: [null],
+                    confirm: true
                 }
             }
         }
