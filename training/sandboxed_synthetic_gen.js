@@ -48,7 +48,7 @@ async function downloadThingpedia(dbClient, orgId, language) {
 async function downloadTemplatePack(dbClient, language, templatePack) {
     const tmpl = await templatePackModel.getByTag(dbClient, language, templatePack);
 
-    const zipFileStream = await codeStorage.downloadZipFile(templatePack, tmpl.version, 'template-files');
+    const zipFileStream = await codeStorage.downloadZipFile(templatePack, tmpl.version, 'template-files/' + language);
 
     const tmpZipFile = fs.createWriteStream('./templates.zip');
     zipFileStream.pipe(tmpZipFile);

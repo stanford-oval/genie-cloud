@@ -56,7 +56,7 @@ async function uploadZipFile(req, obj, stream) {
     if (!indexGenie)
         throw new BadRequestError(req._("index.genie missing from template zip file"));
 
-    await code_storage.storeZipFile(buffer, obj.tag, obj.version, 'template-files');
+    await code_storage.storeZipFile(buffer, obj.tag, obj.version, 'template-files/' + obj.language);
 }
 
 async function uploadTemplatePack(req) {
