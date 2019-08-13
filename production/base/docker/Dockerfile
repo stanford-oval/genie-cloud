@@ -39,5 +39,8 @@ USER almond-prod
 
 # install aws client
 RUN pip3 install --user awscli
+RUN curl --silent --location \
+    "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | \
+    tar xz -C /home/almond-prod/.local/bin
 
 USER root
