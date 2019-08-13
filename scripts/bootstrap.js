@@ -238,7 +238,7 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
     process.stderr.write(stderr);
 
     await codeStorage.storeZipFile(fs.createReadStream(path.resolve(geniedir, 'bundle/en.zip')),
-        'org.thingpedia.genie.thingtalk', 0, 'template-files');
+        'org.thingpedia.genie.thingtalk', 0, 'template-files/en');
 
     return tmpl.id;
 }

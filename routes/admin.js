@@ -320,7 +320,7 @@ router.post('/organizations/add-member', user.requireRole(user.Role.THINGPEDIA_A
         if (user.developer_org !== null && user.developer_org !== parseInt(req.body.id))
             throw new BadRequestError(req._("%s is already a member of another developer organization.").format(req.body.username));
 
-        const targetStatus = req.body.as_developer ? userUtils.DeveloperStatus.DEVELOPER : userUtils.DeveloperStatus.TESTER;
+        const targetStatus = req.body.as_developer ? userUtils.DeveloperStatus.DEVELOPER : userUtils.DeveloperStatus.USER;
         await userUtils.makeDeveloper(dbClient, user.id, req.body.id, targetStatus);
         return user.id;
     }).then(async (userId) => {
