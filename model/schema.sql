@@ -645,6 +645,7 @@ CREATE TABLE `models` (
   `access_token` char(64) COLLATE utf8_bin NULL,
   `template_file` int(11) NOT NULL,
   `flags` text COLLATE utf8_bin NOT NULL,
+  `contextual` boolean NOT NULL DEFAULT false,
   `all_devices` boolean NOT NULL DEFAULT false,
   `use_approved` boolean NOT NULL DEFAULT false,
   PRIMARY KEY (`id`),

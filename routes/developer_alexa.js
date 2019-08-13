@@ -18,7 +18,7 @@ const alexaModelsModel = require('../model/alexa_model');
 const userModel = require('../model/user');
 const schemaModel = require('../model/schema');
 const user = require('../util/user');
-const { NotFoundError, BadRequestError } = require('../util/errors');
+const { ForbiddenError, NotFoundError, BadRequestError } = require('../util/errors');
 const DatasetUtils = require('../util/dataset');
 const { clean } = require('../util/tokenize');
 const iv = require('../util/input_validation');
@@ -44,6 +44,15 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
     const language = I18n.localeToLanguage(req.body.language);
 
     db.withTransaction(async (dbClient) => {
+        try {
+            const existing = await alexaModelsModel.getByTagForUpdate(dbClient, language, req.body.tag);
+            if (existing && existing.owner !== req.user.developer_org)
+                throw new ForbiddenError(req._("A model with this ID already exists."));
+        } catch(e) {
+            if (e.code !== 'ENOENT')
+                throw e;
+        }
+
         const anonymousUser = (await userModel.getByName(dbClient, req.body.anonymous_user))[0];
         if (!anonymousUser)
             throw new BadRequestError(req._("No such user %s").format(req.body.anonymous_user));

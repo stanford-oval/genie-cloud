@@ -58,8 +58,9 @@ tokenizerpid=$!
 
 # set up download directories
 mkdir -p $srcdir/public/download
-for x in blog-assets template-files ; do
+for x in blog-assets template-files/en ; do
     mkdir -p $workdir/shared/$x
+    mkdir -p $srcdir/public/download/$(dirname $x)
     ln -sf -T $workdir/shared/$x $srcdir/public/download/$x
 done
 mkdir -p $workdir/shared/cache

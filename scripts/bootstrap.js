@@ -238,7 +238,7 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
     process.stderr.write(stderr);
 
     await codeStorage.storeZipFile(fs.createReadStream(path.resolve(geniedir, 'bundle/en.zip')),
-        'org.thingpedia.genie.thingtalk', 0, 'template-files');
+        'org.thingpedia.genie.thingtalk', 0, 'template-files/en');
 
     return tmpl.id;
 }
@@ -257,6 +257,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'triple_commands',
             'configure_actions'
         ]),
+        contextual: false,
         all_devices: true,
         use_approved: true
     });
@@ -274,6 +275,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'triple_commands',
             'configure_actions'
         ]),
+        contextual: true,
         all_devices: true,
         use_approved: true
     });
@@ -291,6 +293,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'triple_commands',
             'configure_actions'
         ]),
+        contextual: false,
         all_devices: true,
         use_approved: false
     });
@@ -308,6 +311,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'triple_commands',
             'configure_actions'
         ]),
+        contextual: true,
         all_devices: true,
         use_approved: false
     });

@@ -31,6 +31,9 @@ module.exports = {
     getByTag(client, language, tag) {
         return db.selectOne(client, "select * from template_files where language = ? and tag = ?", [language, tag]);
     },
+    getByTagForUpdate(client, language, tag) {
+        return db.selectOne(client, "select * from template_files where language = ? and tag = ? for update", [language, tag]);
+    },
 
     async create(client, tmpl) {
         const id = await db.insertOne(client, "insert into template_files set ?", [tmpl]);

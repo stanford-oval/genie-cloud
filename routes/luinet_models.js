@@ -17,7 +17,7 @@ const nlpModelsModel = require('../model/nlp_models');
 const templateModel = require('../model/template_files');
 const schemaModel = require('../model/schema');
 const iv = require('../util/input_validation');
-const { NotFoundError, BadRequestError } = require('../util/errors');
+const { ForbiddenError, NotFoundError, BadRequestError } = require('../util/errors');
 const I18n = require('../util/i18n');
 const { makeRandom } = require('../util/random');
 const creditSystem = require('../util/credit_system');
@@ -33,7 +33,17 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
     const language = I18n.localeToLanguage(req.body.language);
 
     db.withTransaction(async (dbClient) => {
-        await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.CREATE_MODEL_COST);
+        try {
+            const existing = await nlpModelsModel.getByTagForUpdate(dbClient, language, req.body.tag);
+            if (existing && existing.owner !== req.user.developer_org)
+                throw new ForbiddenError(req._("A model with this ID already exists."));
+        } catch(e) {
+            if (e.code !== 'ENOENT')
+                throw e;
+
+            // only pay if the model does not exist already
+            await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.CREATE_MODEL_COST);
+        }
 
         let template;
         try {
