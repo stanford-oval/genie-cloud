@@ -21,7 +21,7 @@ const user = require('../util/user');
 const model = require('../model/template_files');
 const platform = require('../util/platform');
 const iv = require('../util/input_validation');
-const { BadRequestError } = require('../util/errors');
+const { ForbiddenError, BadRequestError } = require('../util/errors');
 const I18n = require('../util/i18n');
 const code_storage = require('../util/code_storage');
 
@@ -77,15 +77,38 @@ async function uploadTemplatePack(req) {
             throw new BadRequestError(req._("Zip file missing"));
 
         await db.withTransaction(async (dbClient) => {
-            const template = await model.create(dbClient, {
-                tag: req.body.tag,
-                owner: req.user.developer_org,
-                language: I18n.localeToLanguage(req.body.language),
-                flags: JSON.stringify(flags),
-                description: req.body.description,
-                version: 0,
-                public: !!req.body.public,
-            });
+            const language = I18n.localeToLanguage(req.body.language);
+
+            let template;
+            try {
+                template = await model.getByTagForUpdate(dbClient, language, req.body.tag);
+                if (template && template.owner !== req.user.developer_org)
+                    throw new ForbiddenError(req._("A template pack with this ID already exists."));
+
+                await model.update(dbClient, template.id, {
+                    tag: req.body.tag,
+                    owner: req.user.developer_org,
+                    language: language,
+                    flags: JSON.stringify(flags),
+                    description: req.body.description,
+                    version: template.version + 1,
+                    public: !!req.body.public,
+                });
+                template.version = template.version + 1;
+            } catch(e) {
+                if (e.code !== 'ENOENT')
+                    throw e;
+
+                template = await model.create(dbClient, {
+                    tag: req.body.tag,
+                    owner: req.user.developer_org,
+                    language: language,
+                    flags: JSON.stringify(flags),
+                    description: req.body.description,
+                    version: 0,
+                    public: !!req.body.public,
+                });
+            }
 
             await uploadZipFile(req, template, fs.createReadStream(zipFile.path));
         });

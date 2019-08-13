@@ -15,13 +15,16 @@ module.exports = {
     getByTag(client, language, tag) {
         return db.selectOne(client, "select * from alexa_models where language = ? and tag = ?", [language, tag]);
     },
+    getByTagForUpdate(client, language, tag) {
+        return db.selectOne(client, "select * from alexa_models where language = ? and tag = ? for update", [language, tag]);
+    },
 
     getByOwner(client, owner) {
         return db.selectAll(client, "select * from alexa_models where owner = ?", [owner]);
     },
 
     async create(client, model, for_devices = []) {
-        const id = await db.insertOne(client, "insert into alexa_models set ?", [model]);
+        const id = await db.insertOne(client, "replace into alexa_models set ?", [model]);
         if (for_devices.length > 0)
             await db.insertOne(client, "insert into alexa_model_devices(model_id, schema_id) select ?,id from device_schema where kind in (?)", [id, for_devices]);
         model.id = id;
