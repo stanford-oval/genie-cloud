@@ -174,29 +174,25 @@ router.post('/users/delete/:id', user.requireRole(user.Role.ADMIN), (req, res, n
 });
 
 router.post('/users/promote/:id', user.requireRole(user.Role.ADMIN), (req, res, next) => {
-    let needsRestart = false;
+    db.withTransaction(async (dbClient) => {
+        const user = await model.get(dbClient, req.params.id);
+        if (user.developer_status >= userUtils.DeveloperStatus.ORG_ADMIN)
+            return false;
 
-    db.withTransaction((dbClient) => {
-        return model.get(dbClient, req.params.id).then((user) => {
-            if (user.developer_status >= userUtils.DeveloperStatus.ORG_ADMIN)
-                return Promise.resolve();
-
-            if (user.developer_org === null) {
-                needsRestart = true;
-                return organization.create(dbClient, {
-                    name: '',
-                    comment: '',
-                    id_hash: makeRandom(8),
-                    developer_key: makeRandom()
-                }).then((org) => {
-                    return model.update(dbClient, user.id, { developer_status: userUtils.DeveloperStatus.ORG_ADMIN,
-                                                             developer_org: org.id });
-                });
-            } else {
-                return model.update(dbClient, user.id, { developer_status: user.developer_status + 1 });
-            }
-        });
-    }).then(() => {
+        if (user.developer_org === null) {
+            const org = await organization.create(dbClient, {
+                name: '',
+                comment: '',
+                id_hash: makeRandom(8),
+                developer_key: makeRandom()
+            });
+            await userUtils.makeDeveloper(dbClient, user.id, org.id, userUtils.DeveloperStatus.ORG_ADMIN);
+            return true;
+        } else {
+            await model.update(dbClient, user.id, { developer_status: user.developer_status + 1 });
+            return false;
+        }
+    }).then((needsRestart) => {
         if (needsRestart)
             return EngineManager.get().restartUser(req.params.id);
         else
@@ -231,10 +227,10 @@ router.post('/users/revoke-developer/:id', user.requireRole(user.Role.ADMIN), (r
         return;
     }
 
-    db.withTransaction((dbClient) => {
-        return model.get(dbClient, req.params.id).then((user) => {
-            return model.update(dbClient, user.id, { developer_status: 0, developer_org: null });
-        });
+    db.withTransaction(async (dbClient) => {
+        // check the user exists
+        await model.get(dbClient, req.params.id);
+        await userUtils.makeDeveloper(dbClient, req.params.id, null);
     }).then(() => EngineManager.get().restartUserWithoutCache(req.params.id)).then(() => {
         res.redirect(303, '/admin/users/search?q=' + req.params.id);
     }).catch(next);
@@ -324,8 +320,8 @@ router.post('/organizations/add-member', user.requireRole(user.Role.THINGPEDIA_A
         if (user.developer_org !== null && user.developer_org !== parseInt(req.body.id))
             throw new BadRequestError(req._("%s is already a member of another developer organization.").format(req.body.username));
 
-        await model.update(dbClient, user.id, { developer_status: req.body.as_developer ? 1 : 0,
-                                                developer_org: req.body.id });
+        const targetStatus = req.body.as_developer ? userUtils.DeveloperStatus.DEVELOPER : userUtils.DeveloperStatus.TESTER;
+        await userUtils.makeDeveloper(dbClient, user.id, req.body.id, targetStatus);
         return user.id;
     }).then(async (userId) => {
         if (userId !== null) {

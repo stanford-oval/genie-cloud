@@ -788,10 +788,10 @@ router.post('/request-developer', userUtils.requireLogIn, iv.validatePOST({ name
             id_hash: makeRandom(8),
             developer_key: makeRandom(),
         });
-        await model.update(dbClient, req.user.id, { developer_status: userUtils.DeveloperStatus.ORG_ADMIN,
-                                                    profile_flags: req.user.profile_flags | userUtils.ProfileFlags.VISIBLE_ORGANIZATION_PROFILE,
-                                                    developer_org: org.id });
-
+        await userUtils.makeDeveloper(dbClient, req.user.id, org.id);
+        await model.update(dbClient, req.user.id, {
+            profile_flags: req.user.profile_flags | userUtils.ProfileFlags.VISIBLE_ORGANIZATION_PROFILE
+        });
         await sendNewOrgNotificationEmail(req);
         return org;
     }).then(async (org) => {

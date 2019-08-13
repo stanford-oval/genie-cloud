@@ -65,14 +65,15 @@ function validateUsername(username) {
     return true;
 }
 
+const DeveloperStatus = {
+    USER: 0,
+    DEVELOPER: 1,
+    ORG_ADMIN: 2,
+};
+
 module.exports = {
     OAuthScopes,
-
-    DeveloperStatus: {
-        USER: 0,
-        DEVELOPER: 1,
-        ORG_ADMIN: 2,
-    },
+    DeveloperStatus,
 
     Role: {
         ADMIN: 1,             // allows to view and manipulate users
@@ -161,6 +162,22 @@ module.exports = {
                                                 password: newhash });
         user.salt = salt;
         user.password = newhash;
+    },
+
+    async makeDeveloper(dbClient, userId, orgId, status = DeveloperStatus.ORG_ADMIN) {
+        if (orgId !== null) {
+            await model.update(dbClient, userId, {
+                developer_org: orgId,
+                developer_status: status,
+                model_tag: 'org.thingpedia.models.developer'
+            });
+        } else {
+            await model.update(dbClient, userId, {
+                developer_org: null,
+                developer_status: 0,
+                model_tag: null
+            });
+        }
     },
 
     isAuthenticated,

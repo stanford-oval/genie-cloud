@@ -150,10 +150,7 @@ router.get('/organization/accept-invitation/:id_hash', user.requireLogIn, (req, 
             return [null, null];
         }
 
-        await userModel.update(dbClient, req.user.id, {
-            developer_status: invitation.developer_status,
-            developer_org: org.id
-        });
+        await user.makeDeveloper(dbClient, req.user.id, org.id, invitation.developer_status);
         await organization.rescindAllInvitations(dbClient, req.user.id);
         return [req.user.id, org.name];
     }).then(async ([userId, orgName]) => {
@@ -189,10 +186,7 @@ router.post('/organization/remove-member', user.requireLogIn, user.requireDevelo
         if (users[0].developer_org !== req.user.developer_org)
             throw new BadRequestError(req._("The user is not a member of your developer organization."));
 
-        await userModel.update(dbClient, users[0].id, {
-            developer_status: 0,
-            developer_org: null
-        });
+        await user.makeDeveloper(dbClient, users[0].id, null);
         const userId = users[0].id;
         await EngineManager.get().restartUserWithoutCache(userId);
         res.redirect(303, '/developers');
