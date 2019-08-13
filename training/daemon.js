@@ -249,13 +249,20 @@ Check the logs for further information.`
         let language = jobTemplate.language || 'en';
         let jobType = jobTemplate.jobType || 'train';
 
-        const affectedModels = await db.withClient((dbClient) => {
+        const affectedModels = (await db.withClient((dbClient) => {
             if (jobTemplate.modelTag)
                 return modelsModel.getByTag(dbClient, language, jobTemplate.modelTag);
             else if (forDevices === null)
                 return modelsModel.getForLanguage(dbClient, language);
             else
                 return modelsModel.getForDevices(dbClient, language, forDevices);
+        })).filter((m) => {
+            if (m.contextual) {
+                console.log(`WARNING/TODO: Ignored contextual model @${m.tag}/${m.language}`);
+                return false;
+            } else {
+                return true;
+            }
         });
 
         if (jobType === 'train' || jobType === 'train-only') {
