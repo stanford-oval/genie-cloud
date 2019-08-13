@@ -105,10 +105,18 @@ const self = {
         return _(ALLOWED_LANGUAGES[lang]);
     },
 
-    localeToLanguage(locale) {
-        // only keep the language part of the locale, we don't
-        // yet distinguish en_US from en_GB
-        return (locale || 'en').split(/[-_@.]/)[0];
+    localeToLanguage(locale = 'en') {
+        locale = locale.toLowerCase();
+
+        // for Chinese, we need to distinguish Traditional vs Simplified
+        if (locale === 'zh-tw' || locale === 'zh-cn')
+            return locale;
+
+        // for other languages, we only keep the language part of the locale
+
+        // FIXME: in the future, we definitely need to distinguish en-US from
+        // other en-*, because our templates and datasets are very Americentric
+        return locale.split(/[-_@.]/)[0];
     },
 
     get(locale, fallback = true) {
