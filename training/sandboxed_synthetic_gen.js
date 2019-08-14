@@ -23,6 +23,7 @@ const templatePackModel = require('../model/template_files');
 const SchemaUtils = require('../util/manifest_to_schema');
 const DatasetUtils = require('../util/dataset');
 const codeStorage = require('../util/code_storage');
+const { InternalError } = require('../util/errors');
 
 async function downloadThingpedia(dbClient, orgId, language) {
     const snapshot = await schemaModel.getCurrentSnapshotMeta(dbClient, language, orgId);
@@ -140,7 +141,18 @@ module.exports = async function genSynthetic(options) {
     });
 
     child.stdout.setEncoding('utf8');
-    return child.stdout
+    const stream = child.stdout
         .pipe(byline())
         .pipe(new Genie.DatasetParser());
+
+    // propagate errors from the child process to the stream
+    child.on('error', (e) => stream.emit('error', e));
+    child.on('exit', (code, signal) => {
+        if (code === null)
+            stream.emit('error', new InternalError(signal, `Synthetic generation worker died with signal ${signal}.`));
+        else if (code !== 0)
+            stream.emit('error', new InternalError('E_BAD_EXIT_CODE', `Synthetic generation worker exited with status ${code}.`));
+    });
+
+    return stream;
 };
