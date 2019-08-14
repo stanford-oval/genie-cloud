@@ -286,6 +286,13 @@ module.exports.NL_SERVER_ADMIN_TOKEN = null;
 module.exports.NL_THINGPEDIA_DEVELOPER_KEY = null;
 
 /**
+  Deployed model directory on S3.
+
+  Set this path if you want to use s3 to store deployed models.
+*/
+module.exports.NL_MODEL_DIR = null;
+
+/**
   Training server URL.
 
   This URL will be called from the Thingpedia web server when a new device
@@ -446,3 +453,53 @@ module.exports.SUPPORTED_LANGUAGES = ['en-US'];
 */
 module.exports.MAPQUEST_KEY = null;
  
+/**
+  Enable on demand gpu training.
+
+  If true, will start a gpu node when a training request comes in and shuts down
+  the gpu node when training is done.
+*/
+module.exports.ENABLE_ON_DEMAND_GPU_TRAINING = false;
+
+/**
+  GPU training region
+
+  The AWS region where GPU training cluster is created.
+*/
+module.exports.GPU_REGION = null;
+
+/**
+  GPU training cluster
+
+  The name of gpu training cluster.
+*/
+module.exports.GPU_CLUSTER = null;
+
+/**
+  GPU training node group.
+
+  The name of the gpu nodegroup in the training cluster.
+*/
+module.exports.GPU_NODE_GROUP = null;
+
+/**
+  S3 work dir for GPU training.
+
+  S3 directory for temporary workdir storage.
+*/
+module.exports.GPU_S3_WORKDIR = null;
+
+/**
+  SQS request URL for GPU training.
+
+  The SQS FIFO queue URL used to submit GPU training requests to GPU node.
+*/
+module.exports.GPU_SQS_REQUEST_URL = null;
+
+
+/**
+  SQS response URL for GPU training.
+
+  The SQS FIFO queue URL used to submit GPU training resposne from GPU node.
+*/
+module.exports.GPU_SQS_RESPONSE_URL = null;

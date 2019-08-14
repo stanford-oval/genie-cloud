@@ -1,0 +1,44 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: "nlp-deployment"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "nlp"
+    spec:
+      containers:
+      # main container
+      - name: "nlp"
+        image: ${REPO}/almond/nlp:v0.5
+        imagePullPolicy: Always
+        env:
+        - name: "PORT"
+          value: "9999"
+        ports:
+        - containerPort: 9999
+        volumeMounts:
+        - name: config
+          mountPath: "/etc/almond-cloud"
+          readOnly: true
+        - name: aws
+          mountPath: "/home/almond-prod/.aws"
+          readOnly: true
+      # sidecar container
+      - name: "tokenizer"
+        image: ${REPO}/almond/tokenizer:v0.5
+        imagePullPolicy: Always
+        env:
+        - name: "PORT"
+          value: "8888"
+        ports:
+        - containerPort: 8888
+      volumes:
+      - name: config
+        secret:
+          secretName: almond-config
+      - name: aws
+        secret:
+          secretName: aws-config

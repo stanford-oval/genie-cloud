@@ -1,0 +1,10 @@
+{
+  "train_iterations": 50000,
+  "save_every": 2000,
+  "val_every": 1000,
+  "log_every": 500,
+  "trainable_decoder_embedding": 50,
+  "no_glove_decoder": true,
+  "synthetic_depth": 5,
+  "no_commit": true
+}

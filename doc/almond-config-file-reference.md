@@ -279,6 +279,13 @@ NLP server but you want to use the public Thingpedia.
 
 Default value: `null`
 
+## NL_MODEL_DIR
+Deployed model directory on S3.
+
+Set this path if you want to use s3 to store deployed models.
+
+Default value: `null`
+
 ## TRAINING_URL
 Training server URL.
 
@@ -441,6 +448,56 @@ MapQuest API key.
 
 This is key is used to provide the location querying API. If unset, it will
 fallback to the public Nominatim API, which has a low API quota.
+
+Default value: `null`
+
+## ENABLE_ON_DEMAND_GPU_TRAINING
+Enable on demand gpu training.
+
+If true, will start a gpu node when a training request comes in and shuts down
+the gpu node when training is done.
+
+Default value: `false`
+
+## GPU_REGION
+GPU training region
+
+The AWS region where GPU training cluster is created.
+
+Default value: `null`
+
+## GPU_CLUSTER
+GPU training cluster
+
+The name of gpu training cluster.
+
+Default value: `null`
+
+## GPU_NODE_GROUP
+GPU training node group.
+
+The name of the gpu nodegroup in the training cluster.
+
+Default value: `null`
+
+## GPU_S3_WORKDIR
+S3 work dir for GPU training.
+
+S3 directory for temporary workdir storage.
+
+Default value: `null`
+
+## GPU_SQS_REQUEST_URL
+SQS request URL for GPU training.
+
+The SQS FIFO queue URL used to submit GPU training requests to GPU node.
+
+Default value: `null`
+
+## GPU_SQS_RESPONSE_URL
+SQS response URL for GPU training.
+
+The SQS FIFO queue URL used to submit GPU training resposne from GPU node.
 
 Default value: `null`
 

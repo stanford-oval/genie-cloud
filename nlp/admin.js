@@ -11,8 +11,10 @@
 
 const express = require('express');
 
+const cmd = require('../util/command');
 const db = require('../util/db');
 const i18n = require('../util/i18n');
+const path = require('path');
 const Config = require('../config');
 
 const router = express.Router();
@@ -44,11 +46,23 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
     }).catch(next);
 });
 
-router.post('/reload/@:model_tag/:locale', (req, res, next) => {
+
+router.post('/reload/@:model_tag/:locale', async (req, res, next) => {
     if (!i18n.get(req.params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
+
+    if (Config.NL_MODEL_DIR) {
+        const modelLangDir = `${req.params.model_tag}:${req.params.locale}`;
+        await cmd.exec('aws', ['s3',
+            'sync',
+            `${Config.NL_MODEL_DIR}/${modelLangDir}/`,
+            path.resolve('.') + '/' + modelLangDir + '/'
+        ]);
+	
+    }
+
 
     const model = req.app.service.getModel(req.params.model_tag, req.params.locale);
     if (!model) {
