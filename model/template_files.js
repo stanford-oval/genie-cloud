@@ -39,5 +39,8 @@ module.exports = {
         const id = await db.insertOne(client, "insert into template_files set ?", [tmpl]);
         tmpl.id = id;
         return tmpl;
+    },
+    update(client, tmplId, tmpl) {
+        return db.query(client, `update template_files set ? where id = ?`, [tmpl, tmplId]);
     }
 };

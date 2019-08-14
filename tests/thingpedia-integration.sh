@@ -178,7 +178,7 @@ mkdir jobdir
 
 sha256sum exact.tsv jobdir/eval.tsv jobdir/train.tsv
 sha256sum -c <<EOF
-4295b60b193c673ea168844e441794cbf638e094abe2be3675e5024066f55d15  exact.tsv
+15bc13b7c0f964eb4bbb0d851707c5e702d575eb463be6a3d18948e49e3a3442  exact.tsv
 72bccb2f8b7d4c6b6556eb5c998374c0b10b1e78c56f3ba7f72ea08cd5a8f240  jobdir/eval.tsv
 ccf5b85172720d6e22da4a3e010bf7227ec600755926bb2cb3c5712667d60701  jobdir/train.tsv
 EOF

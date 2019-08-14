@@ -157,7 +157,12 @@ class DatasetUpdater {
                 aggregation: true,
                 bookkeeping: true,
                 triple_commands: true,
-                configure_actions: true
+                configure_actions: true,
+                timer: true,
+                projection: true,
+                undefined_filter: true,
+                projection_with_filter: false,
+                extended_timers: false
             },
             maxDepth: this._options.maxDepth,
             debug: this._options.debug,
