@@ -225,7 +225,12 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
             'aggregation',
             'bookkeeping',
             'triple_commands',
-            'configure_actions'
+            'configure_actions',
+            'timer',
+            'projection',
+            'undefined_filter',
+            'projection_with_filter',
+            'extended_timers'
         ]),
         public: true,
         version: 0
@@ -255,7 +260,10 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'aggregation',
             'bookkeeping',
             'triple_commands',
-            'configure_actions'
+            'configure_actions',
+            'timer',
+            'projection',
+            'undefined_filter',
         ]),
         contextual: false,
         all_devices: true,
@@ -273,7 +281,10 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'aggregation',
             'bookkeeping',
             'triple_commands',
-            'configure_actions'
+            'configure_actions',
+            'timer',
+            'projection',
+            'undefined_filter',
         ]),
         contextual: true,
         all_devices: true,
@@ -291,7 +302,11 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'aggregation',
             'bookkeeping',
             'triple_commands',
-            'configure_actions'
+            'configure_actions',
+            'timer',
+            'projection',
+            'undefined_filter',
+            'projection_with_filter',
         ]),
         contextual: false,
         all_devices: true,
@@ -309,7 +324,11 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
             'aggregation',
             'bookkeeping',
             'triple_commands',
-            'configure_actions'
+            'configure_actions',
+            'timer',
+            'projection',
+            'undefined_filter',
+            'projection_with_filter',
         ]),
         contextual: true,
         all_devices: true,
