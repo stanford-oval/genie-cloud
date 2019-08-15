@@ -3,16 +3,21 @@ kind: Ingress
 metadata:
   name: "nlp-ingress"
   annotations:
-    kubernetes.io/ingress.class: alb
-    alb.ingress.kubernetes.io/scheme: internet-facing
-    external-dns.alpha.kubernetes.io/hostname: nlp-staging.almond.stanford.edu
+    kubernetes.io/ingress.class: nginx
+    #external-dns.alpha.kubernetes.io/hostname: nlp-staging.almond.stanford.edu
+    kubernetes.io/tls-acme: "true"
   labels:
     app: nlp-ingress
 spec:
+  tls:
+  - hosts:
+    - nlp-staging.almond.stanford.edu
+    secretName: nlp-ingress-tls-secret
   rules:
-    - http:
+    - host: nlp-staging.almond.stanford.edu
+      http:
         paths:
-          - path: /*
+          - path: /
             backend:
               serviceName: "nlp-service"
               servicePort: 80
