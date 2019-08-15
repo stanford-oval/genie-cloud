@@ -50,10 +50,10 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
 
     async train() {
         // perform upload and scale gpu operations in parallel
-        const uploadPromise = this._uploadWorkdir();
-        const scaleGPUPromise = this._scaleGPUNode(1);
-        await uploadPromise;
-        await scaleGPUPromise;
+        await Promise.all([
+            this._uploadWorkdir(),
+            this._scaleGPUNode(1)
+        ]);
         // send request
         const msg = {
             uid: this._uid,
@@ -86,7 +86,7 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
 
     async _scaleGPUNode(numNodes) {
          await cmd.exec('eksctl', ['scale', 'nodegroup',
-            `--cluster=${this._cluster}`, `-name=this._nodegroup`, `--nodes=${numNodes}`]);
+            `--cluster=${this._cluster}`, `--name=${this._nodegroup}`, `--nodes=${numNodes}`]);
     }
 
     async _processResponse() {
@@ -147,6 +147,8 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
 
     kill() {
         this._killed = true;
-        this._scaleGPUNode(0);
+        this._scaleGPUNode(0).catch((e) => {
+            console.error(`Failed to terminate GPU node: ${e.message}`);
+        });
     }
 };
