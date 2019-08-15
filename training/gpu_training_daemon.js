@@ -11,7 +11,7 @@
 'use strict';
 
 process.on('unhandledRejection', (up) => { throw up; });
-require('./util/config_init');
+require('../util/config_init');
 
 const Genie = require('genie-toolkit');
 const AWS = require('aws-sdk');
