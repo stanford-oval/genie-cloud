@@ -9,13 +9,17 @@
 //
 // See COPYING for details
 'use strict';
+
+process.on('unhandledRejection', (up) => { throw up; });
+require('./util/config_init');
+
 const Genie = require('genie-toolkit');
 const AWS = require('aws-sdk');
-const Config = require('../config');
-const cmd = require('../util/command');
 const path = require('path');
 
+const cmd = require('../util/command');
 
+const Config = require('../config');
 
 class GPUTrainingDaemon {
     constructor(region, sqsRequestURL, sqsResponseURL) {
