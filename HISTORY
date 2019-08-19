@@ -1,3 +1,52 @@
+1.6.0
+=====
+
+* The automatic training system was refactored. Updating the exact match
+  dataset after uploading a device is now significantly faster, and the chances
+  of failure due to database lock timeout should be greatly reduced [#337, #395, #396].
+* Automatic evaluation of trained model is now based on realistic data,
+  not paraphrase data, which means the accuracy numbers reported in the admin
+  dashboard are more meaningful [#337].
+* The developer program is now controlled by a separate configuration variable,
+  and can be enabled even if the embedded Thingpedia is not used [#337].
+* Organizations can now upload custom Genie template packs, and create customized
+  LUInet models that use a subset of Thingpedia, use custom template packs, or
+  have different Genie parameters [#337, #395].
+* An experimental credit system was added. Organizations receive credits for
+  contributing public devices and template packs, and can use credits to create
+  custom LUInet models [#380, #386].
+* Added experimental support for creating custom Alexa skills backed by Thingpedia
+  devices. These skills use Alexa AI (intent + slot classifier) [#371, #384, #395].
+* Added a new API to lookup locations, which eliminates the need for location
+  preprocessing in almond-tokenizer. Compatibility code for old ThingTalk versions
+  has been added [#357, #358].
+* Added a new API to upload devices. The API is OAuth-protected and is suitable
+  to use in CI workflows to upload devices automatically after testing [#376].
+* Added new API to download string datasets. The API requires a developer key
+  to audit who downloads which dataset and ensure licensing compliance [#388].
+* The snapshot lookup API now respects the developer key, closing another loophole
+  that exposes unapproved devices. Only devices that were approved at the time of
+  the snapshot are exposed. The list of snapshots is now public [#359].
+* Primitive templates (dataset.tt entries / examples in Thingpedia API) now support
+  a `#[name]` annotation, which is used to construct named intents for third-party
+  AI integration [#371].
+* docker builds of training and NLP inference servers are now officially supported,
+  and we provide example configurations for Kubernetes. The example configurations
+  match those used in our production infrastructure [#365, #399].
+* The frontend classifier was revamped and converted to use PyTorch and pytorch-transformers
+  instead of Keras and Tensorflow. This should result in a smaller dependency footprint
+  and better model quality [#369].
+* The initialization and routing logic in the frontend was refactored, so that
+  public Thingpedia APIs are no longer accessible through cookie authentication, and no
+  longer influenced by cookies. This is safer as it reduces the risks from CSRF [#382].
+* I18n code was consolidated and made uniform. All pages now support a `?locale` parameter
+  to retrieve the page and data in a different language (for supported languages) [#371].
+* The rules for usernames and emails have been made stricter. Usernames are now case
+  insensitive and must use ASCII alphanumeric characters only. Emails must be unique.
+  This matches Discourse and helps when SSO integration is enabled [#350].
+* Misc bug fixes [#350, #370, #372, #378, #382, #385, #387, #389, #395, #402].
+* Updated dependencies [#343, #354, #361, #363, #374, #377, #390, #391, #393].
+
 1.5.1
 =====
 
