@@ -28,6 +28,8 @@ const TokenizerService = require('../util/tokenizer_service');
 const iv = require('../util/input_validation');
 const { BadRequestError } = require('../util/errors');
 
+const Config = require('../config');
+
 var router = express.Router();
 
 router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
@@ -125,7 +127,7 @@ router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMI
 
             let query = model.streamHITs(dbClient, req.params.batch);
             query.on('result', (row) => {
-                output.write({url: `https://almond.stanford.edu/submit/mturk/${req.params.batch}/${row.id}` });
+                output.write({url: Config.SERVER_ORIGIN + `/mturk/submit/${req.params.batch}/${row.id}` });
             });
             query.on('end', () => {
                 output.end();
@@ -147,7 +149,7 @@ router.get('/validation/csv/:batch', user.requireLogIn, user.requireRole(user.Ro
 
             let query = model.streamHITsToValidate(dbClient, req.params.batch);
             query.on('result', (row) => {
-                output.write({url: `https://almond.stanford.edu/validate/mturk/${req.params.batch}/${row.id}` });
+                output.write({url: Config.SERVER_ORIGIN + `/mturk/validate/${req.params.batch}/${row.id}` });
             });
             query.on('end', () => {
                 output.end();
