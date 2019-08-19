@@ -24,6 +24,9 @@ block content
         section.divider
           h3= _("Your Alexa Skills")
 
+          div.alert.alert-warning(role='alert')
+            p= _("Caution! Creating Alexa skills in Thingpedia is an experimental feature.")
+
           if models.length > 0
             a.list-group
               each m in models
