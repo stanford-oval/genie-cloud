@@ -156,7 +156,7 @@ function getDiscoveryServices(classDef) {
         return services;
     }
     case 'org.thingpedia.config.discovery.upnp':
-        return getInputParam(config, 'st').map((st) => {
+        return getInputParam(config, 'search_target').map((st) => {
             return {
                 discovery_type: 'upnp',
                 service: st.toLowerCase().replace(/^urn:/, '').replace(/:/g, '-')
