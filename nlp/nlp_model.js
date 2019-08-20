@@ -43,13 +43,25 @@ class DummyExactMatcher {
     add() {}
 }
 
+function isDefaultModel(modelTag) {
+    switch (modelTag) {
+    case 'org.thingpedia.models.default':
+    case 'org.thingpedia.models.contextual':
+    case 'org.thingpedia.models.developer':
+    case 'org.thingpedia.models.developer.contextual':
+        return true;
+    default:
+        return false;
+    }
+}
+
 module.exports = class NLPModel {
     constructor(locale, modelTag, owner, accessToken) {
         this.accessToken = accessToken;
         this.id = `@${modelTag}/${locale}`;
         this.locale = locale;
 
-        const isDefault = modelTag === 'org.thingpedia.models.default' || modelTag === 'org.thingpedia.models.contextual';
+        const isDefault = isDefaultModel(modelTag);
         if (isDefault)
             this.exact = new ExactMatcher(locale, modelTag);
         else
@@ -65,7 +77,7 @@ module.exports = class NLPModel {
         this.predictor = new Genie.Predictor(this.id, modeldir, nprocesses);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
-            const org = owner === null ? { is_admin: true, id: 1 } : { is_admin: false, id: owner };
+            const org = (owner === null || owner === 1) ? { is_admin: true, id: 1 } : { is_admin: false, id: owner };
             this.tpClient = new OrgThingpediaClient(locale, org);
         } else {
             this.tpClient = new Tp.HttpClient({
