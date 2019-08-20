@@ -73,9 +73,8 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
         try {
             await this._processResponse();
         } finally {
-            if (this._killed !== true) {
+            if (this._killed !== true)
               await this._scaleGPUNode(0);
-            }
         }
     }
 
