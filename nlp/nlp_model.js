@@ -77,7 +77,7 @@ module.exports = class NLPModel {
         this.predictor = new Genie.Predictor(this.id, modeldir, nprocesses);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
-            const org = owner === null ? { is_admin: true, id: 1 } : { is_admin: false, id: owner };
+            const org = (owner === null || owner === 1) ? { is_admin: true, id: 1 } : { is_admin: false, id: owner };
             this.tpClient = new OrgThingpediaClient(locale, org);
         } else {
             this.tpClient = new Tp.HttpClient({
