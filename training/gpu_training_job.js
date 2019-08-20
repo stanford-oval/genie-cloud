@@ -73,7 +73,10 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
         try {
             await this._processResponse();
         } finally {
-            await this._scaleGPUNode(0);
+            if (this._killed !== true) {
+              await this._scaleGPUNode(0);
+              return;
+            }
         }
     }
 
@@ -97,6 +100,10 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
         };
         let done = false;
         while (!done) {
+            if (this._killed === true) {
+              console.log(`job ${this._uid} has been killed, exiting loop.`);
+              return;
+            }
             console.log(`${this._uid} waiting for response from gpu node.`);
             const data = await this._sqs.receiveMessage(responseParams).promise();
             if (typeof data.Messages === 'undefined') {
