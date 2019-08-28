@@ -217,6 +217,9 @@ async function taskUploading(job) {
     const modelLangDir = `${job.model_tag}:${job.language}`;
     const outputdir = path.resolve(job.jobDir, 'output');
 
+    if (Config.NL_SERVER_URL === null)
+        return;
+
     const INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
     if (Config.NL_MODEL_DIR) {
         await execCommand(job, 'aws', ['s3',
