@@ -84,9 +84,17 @@ module.exports = {
     },
 
     getByTag(client, language, tag) {
-        return db.selectAll(client, `select m.*, tpl.tag as template_file_name
+        return db.selectAll(client, `
+            (select m.*, tpl.tag as template_file_name, null as kind
               from models m, template_files tpl where tpl.id = m.template_file
-              and m.language = ? and m.tag = ?`, [language, tag]);
+              and all_devices and m.language = ? and m.tag = ?)
+             union
+             (select m.*, tpl.tag as template_file_name, ds.kind
+              from models m, template_files tpl, model_devices md, device_schema ds
+              where tpl.id = m.template_file
+              and not m.all_devices and m.language = ? and m.tag = ?
+              and md.schema_id = ds.id and md.model_id = m.id)
+             order by id`, [language, tag, language, tag]).then(loadModels);
     },
     getByTagForUpdate(client, language, tag) {
         return db.selectAll(client, `select m.*, tpl.tag as template_file_name
