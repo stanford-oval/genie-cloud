@@ -97,16 +97,6 @@ async function mkdirRecursive(dir) {
     }
 }
 
-async function taskPrepare(job) {
-    await delay(0);
-    job.jobDir = path.resolve('./jobs/' + job.id);
-    await mkdirRecursive(job.jobDir);
-
-    await safeMkdir(path.resolve(job.jobDir, 'dataset'));
-    await safeMkdir(path.resolve(job.jobDir, 'workdir'));
-    await safeMkdir(path.resolve(job.jobDir, 'server'));
-}
-
 async function taskUpdatingDataset(job) {
     const script = process.execPath;
 
@@ -135,6 +125,14 @@ async function taskReloadingExact(job) {
 }
 
 async function taskGenerateTrainingSet(job) {
+    await delay(0);
+    job.jobDir = path.resolve('./jobs/' + job.id);
+    await mkdirRecursive(job.jobDir);
+
+    await safeMkdir(path.resolve(job.jobDir, 'dataset'));
+    await safeMkdir(path.resolve(job.jobDir, 'workdir'));
+    await safeMkdir(path.resolve(job.jobDir, 'server'));
+
     const script = process.execPath;
 
     const dataset = path.resolve(job.jobDir, 'dataset');
@@ -240,7 +238,7 @@ async function taskUploading(job) {
 
 const TASKS = {
     'update-dataset': [taskUpdatingDataset, taskReloadingExact],
-    'train': [taskPrepare, taskGenerateTrainingSet, taskTraining, taskUploading]
+    'train': [taskGenerateTrainingSet, taskTraining, taskUploading]
 };
 
 function taskName(task) {
