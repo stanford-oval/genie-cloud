@@ -65,11 +65,7 @@ module.exports = class NLPModel {
 
         const modeldir = path.resolve(`./${spec.tag}:${spec.language}`);
 
-        let nprocesses;
-        if (isDefault && process.env.THINGENGINE_NUM_NLP_WORKERS)
-            nprocesses = parseInt(process.env.THINGENGINE_NUM_NLP_WORKERS);
-        else
-            nprocesses = 1;
+        const nprocesses = 1;
         this.predictor = new Genie.Predictor(this.id, modeldir, nprocesses);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
