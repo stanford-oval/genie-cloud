@@ -31,15 +31,18 @@ const db = require('../util/db');
 const Metrics = require('../util/metrics');
 const errorHandling = require('../util/error_handling');
 const modelsModel = require('../model/nlp_models');
+const I18n = require('../util/i18n');
 
 const NLPModel = require('./nlp_model');
 const FrontendClassifier = require('./classifier');
+const ExactMatcher = require('./exact');
 
 const Config = require('../config');
 
 class NLPInferenceServer {
     constructor() {
         this._models = new Map;
+        this._exactMatchers = new Map;
         this._classifier = new FrontendClassifier();
         this._tokenizer = new Genie.LocalTokenizer();
     }
@@ -50,6 +53,18 @@ class NLPInferenceServer {
 
     get frontendClassifier() {
         return this._classifier;
+    }
+
+    getExact(locale) {
+        const splitTag = locale.split(/[_.-]/g);
+
+        while (splitTag.length > 0) {
+            const matcher = this._exactMatchers.get(splitTag.join('-'));
+            if (matcher)
+                return matcher;
+            splitTag.pop();
+        }
+        return undefined;
     }
 
     getModel(modelTag = 'org.thingpedia.models.default', locale) {
@@ -73,10 +88,17 @@ class NLPInferenceServer {
         await this._classifier.start();
 
         await db.withTransaction(async (dbClient) => {
+            for (let locale of Config.SUPPORTED_LANGUAGES) {
+                const language = I18n.localeToLanguage(locale);
+                const matcher = new ExactMatcher(language);
+                this._exactMatchers.set(language, matcher);
+                await matcher.load(dbClient);
+            }
+
             const modelspecs = await modelsModel.getAll(dbClient);
             for (let modelspec of modelspecs) {
-                const model = new NLPModel(modelspec.language, modelspec.tag, modelspec.owner, modelspec.access_token);
-                await model.load(dbClient);
+                const model = new NLPModel(modelspec, this);
+                await model.load();
                 this._models.set(model.id, model);
             }
         }, 'repeatable read');

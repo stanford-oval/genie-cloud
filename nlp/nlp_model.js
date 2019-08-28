@@ -15,10 +15,6 @@ const Tp = require('thingpedia');
 
 const BaseThingpediaClient = require('../util/thingpedia-client');
 
-const ExactMatcher = require('./exact');
-
-const db = require('../util/db');
-
 const Config = require('../config');
 
 // A ThingpediaClient that operates under the credentials of a specific organization
@@ -56,18 +52,18 @@ function isDefaultModel(modelTag) {
 }
 
 module.exports = class NLPModel {
-    constructor(locale, modelTag, owner, accessToken) {
-        this.accessToken = accessToken;
-        this.id = `@${modelTag}/${locale}`;
-        this.locale = locale;
+    constructor(spec, service) {
+        this.accessToken = spec.access_token;
+        this.id = `@${spec.tag}/${spec.language}`;
+        this.locale = spec.language;
 
-        const isDefault = isDefaultModel(modelTag);
+        const isDefault = isDefaultModel(spec.tag);
         if (isDefault)
-            this.exact = new ExactMatcher(locale, modelTag);
+            this.exact = service.getExact(spec.language);
         else
             this.exact = new DummyExactMatcher(); // non default models don't get any exact match
 
-        const modeldir = path.resolve(`./${modelTag}:${locale}`);
+        const modeldir = path.resolve(`./${spec.tag}:${spec.language}`);
 
         let nprocesses;
         if (isDefault && process.env.THINGENGINE_NUM_NLP_WORKERS)
@@ -77,14 +73,14 @@ module.exports = class NLPModel {
         this.predictor = new Genie.Predictor(this.id, modeldir, nprocesses);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
-            const org = (owner === null || owner === 1) ? { is_admin: true, id: 1 } : { is_admin: false, id: owner };
-            this.tpClient = new OrgThingpediaClient(locale, org);
+            const org = (spec.owner === null || spec.owner === 1) ? { is_admin: true, id: 1 } : { is_admin: false, id: spec.owner };
+            this.tpClient = new OrgThingpediaClient(spec.language, org);
         } else {
             this.tpClient = new Tp.HttpClient({
                 getDeveloperKey() {
                     return Config.NL_THINGPEDIA_DEVELOPER_KEY;
                 },
-                locale: locale,
+                locale: spec.language,
             }, Config.THINGPEDIA_URL);
         }
     }
@@ -94,18 +90,10 @@ module.exports = class NLPModel {
     }
 
     reload() {
-        return Promise.all([
-            db.withClient((dbClient) => {
-                return this.exact.load(dbClient);
-            }),
-            this.predictor.reload()
-        ]);
+        return this.predictor.reload();
     }
 
-    load(dbClient) {
-        return Promise.all([
-            this.exact.load(dbClient),
-            this.predictor.start()
-        ]);
+    load() {
+        return this.predictor.start();
     }
 };

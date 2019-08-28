@@ -31,9 +31,8 @@ function findSpan(sequence, substring) {
 }
 
 module.exports = class ExactMatcher {
-    constructor(language, modelTag) {
+    constructor(language) {
         this._language = language;
-        this._modelTag = modelTag;
 
         this._trie = new Trie();
     }
