@@ -33,17 +33,34 @@ class StreamTokenizer extends Stream.Transform {
             return;
         }
 
-        const value = row[0];
-        let weight = parseFloat(row[1]) || 1.0;
+        let value, preprocessed, weight;
+        if (row.length === 1) {
+            value = row[0];
+            weight = 1.0;
+        } else if (row.length === 2) {
+            if (isFinite(+row[1])) {
+                value = row[0];
+                weight = row[1];
+            } else {
+                value = row[0];
+                preprocessed = row[1];
+                weight = 1.0;
+            }
+        } else {
+            value = row[0];
+            preprocessed = row[1];
+            weight = parseFloat(row[2]) || 1.0;
+        }
         if (!(weight > 0.0))
             weight = 1.0;
 
-        if (this._preprocessed) {
+        if (preprocessed === undefined && this._preprocessed)
+            preprocessed = value;
+
+        if (preprocessed !== undefined) {
             callback(null, {
                 type_id: this._typeId,
-                value: value,
-                preprocessed: value,
-                weight: weight
+                value, preprocessed, weight
             });
         } else {
             TokenizerService.tokenize(this._language, value).then((result) => {
@@ -53,9 +70,9 @@ class StreamTokenizer extends Stream.Transform {
                 } else {
                     callback(null, {
                         type_id: this._typeId,
-                        value: value,
+                        value,
                         preprocessed: result.tokens.join(' '),
-                        weight: weight
+                        weight
                     });
                 }
             }, (err) => callback(err));
@@ -205,7 +222,7 @@ module.exports = {
 
                 const file = fs.createReadStream(req.files.upload[0].path);
                 file.setEncoding('utf8');
-                const parser = file.pipe(csvparse({ delimiter: '\t', relax: true }));
+                const parser = file.pipe(csvparse({ delimiter: '\t', relax: true, relax_column_count: true }));
                 const transformer = new StreamTokenizer({
                     preprocessed: !!req.body.preprocessed,
                     language,
