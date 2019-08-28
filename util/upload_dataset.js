@@ -28,6 +28,11 @@ class StreamTokenizer extends Stream.Transform {
     }
 
     _transform(row, encoding, callback) {
+        if (row.length < 1 || !row[0]) {
+            callback();
+            return;
+        }
+
         const value = row[0];
         let weight = parseFloat(row[1]) || 1.0;
         if (!(weight > 0.0))
