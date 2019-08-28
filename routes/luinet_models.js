@@ -27,7 +27,8 @@ const router = express.Router();
 
 router.post('/create', user.requireLogIn, user.requireDeveloper(),
     iv.validatePOST({ tag: 'string', language: 'string', template: 'string', flags: '?string',
-                      for_devices: '?string', use_approved: 'boolean', public: 'boolean' }), (req, res, next) => {
+                      for_devices: '?string', use_approved: 'boolean', use_exact: 'boolean',
+                      public: 'boolean' }), (req, res, next) => {
     if (!I18n.get(req.body.language))
         throw new BadRequestError(req._("Unsupported language"));
     const language = I18n.localeToLanguage(req.body.language);
@@ -87,6 +88,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
             flags: JSON.stringify(flags),
             all_devices: devices.length === 0,
             use_approved: !!req.body.use_approved,
+            use_exact: !!req.body.use_exact,
         }, devices);
 
         res.redirect(303, '/developers/models');

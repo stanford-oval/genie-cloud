@@ -267,7 +267,8 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         ]),
         contextual: false,
         all_devices: true,
-        use_approved: true
+        use_approved: true,
+        use_exact: true
     });
 
     await nlpModelsModel.create(dbClient, {
@@ -288,7 +289,8 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         ]),
         contextual: true,
         all_devices: true,
-        use_approved: true
+        use_approved: true,
+        use_exact: true
     });
 
     await nlpModelsModel.create(dbClient, {
@@ -310,7 +312,8 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         ]),
         contextual: false,
         all_devices: true,
-        use_approved: false
+        use_approved: false,
+        use_exact: true
     });
 
     await nlpModelsModel.create(dbClient, {
@@ -332,7 +335,8 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         ]),
         contextual: true,
         all_devices: true,
-        use_approved: false
+        use_approved: false,
+        use_exact: true
     });
 }
 

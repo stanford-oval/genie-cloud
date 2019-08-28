@@ -39,26 +39,13 @@ class DummyExactMatcher {
     add() {}
 }
 
-function isDefaultModel(modelTag) {
-    switch (modelTag) {
-    case 'org.thingpedia.models.default':
-    case 'org.thingpedia.models.contextual':
-    case 'org.thingpedia.models.developer':
-    case 'org.thingpedia.models.developer.contextual':
-        return true;
-    default:
-        return false;
-    }
-}
-
 module.exports = class NLPModel {
     constructor(spec, service) {
         this.accessToken = spec.access_token;
         this.id = `@${spec.tag}/${spec.language}`;
         this.locale = spec.language;
 
-        const isDefault = isDefaultModel(spec.tag);
-        if (isDefault)
+        if (spec.use_exact)
             this.exact = service.getExact(spec.language);
         else
             this.exact = new DummyExactMatcher(); // non default models don't get any exact match
