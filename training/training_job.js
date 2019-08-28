@@ -86,15 +86,6 @@ async function safeMkdir(dir, options) {
          throw e;
     }
 }
-function safeUnlinkSync(path) {
-    try {
-         fs.unlinkSync(path);
-    } catch(e) {
-         if (e.code === 'ENOENT')
-             return;
-         throw e;
-    }
-}
 
 async function mkdirRecursive(dir) {
     const components = path.resolve(dir).split('/').slice(1);
@@ -111,18 +102,9 @@ async function taskPrepare(job) {
     job.jobDir = path.resolve('./jobs/' + job.id);
     await mkdirRecursive(job.jobDir);
 
-    await mkdirRecursive(path.resolve(`./tensorboard/${job.model_tag}/${job.language}`));
-    await mkdirRecursive(path.resolve(`./saved-model/${job.model_tag}/${job.language}`));
-    await mkdirRecursive(path.resolve(`./dataset/${job.model_tag}/${job.language}`));
-
     await safeMkdir(path.resolve(job.jobDir, 'dataset'));
     await safeMkdir(path.resolve(job.jobDir, 'workdir'));
     await safeMkdir(path.resolve(job.jobDir, 'server'));
-
-    safeUnlinkSync(path.resolve(`./dataset/${job.model_tag}/${job.language}/in-progress`));
-    fs.symlinkSync(path.resolve(job.jobDir, 'dataset'), path.resolve(`./dataset/${job.model_tag}/${job.language}/in-progress`));
-    safeUnlinkSync(path.resolve(`./tensorboard/${job.model_tag}/${job.language}/in-progress`));
-    fs.symlinkSync(path.resolve(job.jobDir, 'workdir/model'), path.resolve(`./tensorboard/${job.model_tag}/${job.language}/in-progress`));
 }
 
 async function taskUpdatingDataset(job) {
@@ -250,25 +232,6 @@ async function taskUploading(job) {
             INFERENCE_SERVER + `:${modelLangDir}/`
         ]);
     }
-
-    for (let what of ['saved-model', 'tensorboard', 'dataset']) {
-        const current = path.resolve(`./${what}/${job.model_tag}/${job.language}/current`);
-        try {
-            fs.renameSync(current, path.resolve(`./${what}/${job.model_tag}/${job.language}/previous`));
-        } catch(e) {
-            // eat the error if the current path does not exist
-            if (e.code !== 'ENOENT')
-                throw e;
-        }
-    }
-
-    fs.symlinkSync(outputdir, path.resolve(`./saved-model/${job.model_tag}/${job.language}/current`));
-
-    fs.symlinkSync(path.resolve(job.jobDir, 'workdir/model'), path.resolve(`./tensorboard/${job.model_tag}/${job.language}/current`));
-    safeUnlinkSync(path.resolve(`./tensorboard/${job.model_tag}/${job.language}/in-progress`));
-
-    fs.symlinkSync(path.resolve(job.jobDir, 'dataset'), path.resolve(`./dataset/${job.model_tag}/${job.language}/current`));
-    safeUnlinkSync(path.resolve(`./dataset/${job.model_tag}/${job.language}/in-progress`));
 
     await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
         dataContentType: 'application/x-www-form-urlencoded'
