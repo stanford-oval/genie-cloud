@@ -60,6 +60,38 @@ class QueryReadableAdapter extends Stream.Readable {
     _read() {}
 }
 
+class TypecheckStream extends Stream.Transform {
+    constructor(schemas) {
+        super({ objectMode: true });
+
+        this._schemas = schemas;
+        this._dropped = 0;
+    }
+
+    async process(ex) {
+        const entities = Genie.Utils.makeDummyEntities(ex.preprocessed);
+        const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
+
+        try {
+            await program.typecheck(this._schemas);
+            this.push(ex);
+            return;
+        } catch(e) {
+            this._dropped++;
+        }
+    }
+
+    _transform(ex, encoding, callback) {
+        this.process(ex).then(() => callback(), callback);
+    }
+
+    _flush(callback) {
+        if (this._dropped > 0)
+            console.error(`WARNING: dropped ${this._dropped} sentences after typechecking`);
+        callback();
+    }
+}
+
 class DatasetGenerator {
     constructor(language, forDevices, options) {
         this._language = language;
@@ -143,6 +175,7 @@ class DatasetGenerator {
         const source = StreamUtils.chain([paraphrase, synthetic], {
             objectMode: true
         });
+        const typecheck = new TypecheckStream(this._schemas);
 
         const constProvider = new DatabaseParameterProvider(this._language, this._dbClient);
         const ppdb = await Genie.BinaryPPDB.mapFile(this._options.ppdbFile);
@@ -182,7 +215,7 @@ class DatasetGenerator {
             splitStrategy: this._options.splitStrategy,
         });
 
-        source.pipe(augmenter).pipe(splitter);
+        source.pipe(typecheck).pipe(augmenter).pipe(splitter);
         await Promise.all(promises);
     }
 
