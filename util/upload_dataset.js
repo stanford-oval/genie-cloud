@@ -16,7 +16,7 @@ const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
 const stringModel = require('../model/strings');
 
-const NAME_REGEX = /([A-Za-z_][A-Za-z0-9_.-]*):([A-Za-z_][A-Za-z0-9_]*)/;
+const NAME_REGEX = /^([A-Za-z_][A-Za-z0-9_.-]*):([A-Za-z_][A-Za-z0-9_]*)$/;
 
 class StreamTokenizer extends Stream.Transform {
     constructor(options) {
