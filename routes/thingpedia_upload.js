@@ -125,7 +125,7 @@ router.get('/update/:kind', (req, res, next) => {
         });
     }).catch((e) => {
         res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-                                          message: e });
+                                          message: e.message });
     }).catch(next);
 });
 
