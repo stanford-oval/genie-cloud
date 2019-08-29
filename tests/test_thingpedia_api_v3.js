@@ -1886,6 +1886,11 @@ bbbb\t5.0
 cccc\t
 dddd\t1.0`;
 
+const STRING_FILE2 = `Aaaa\taaaa\t1.0
+BBBB\t5.0
+CCcc\tcccc\t
+DDDD\tdddd\t1.0`;
+
 async function testStringUpload() {
     await startSession();
     const bob = await login('bob', '12345678');
@@ -1948,6 +1953,45 @@ async function testStringUpload() {
         useOAuth2: true,
     });
     assert.deepStrictEqual(JSON.parse(r2), { result: 'ok' });
+
+    const fd3 = createUpload(STRING_FILE2, {
+        type_name: 'org.thingpedia.test:api_string_test4',
+        name: 'Test String Four',
+        license: 'free-copyleft',
+    });
+    const r3 = await Tp.Helpers.Http.postStream(THINGPEDIA_URL + '/strings/upload', fd3, {
+        dataContentType: 'multipart/form-data; boundary=' + fd3.getBoundary(),
+        extraHeaders: {
+            Authorization: 'Bearer ' + root_token
+        },
+        useOAuth2: true,
+    });
+    assert.deepStrictEqual(JSON.parse(r3), { result: 'ok' });
+
+     assert.deepStrictEqual(await request(`/strings/list/org.thingpedia.test:api_string_test4?developer_key=${process.env.DEVELOPER_KEY}`), {
+        "result": "ok",
+        "data": [
+        {
+            "value": "Aaaa",
+            "preprocessed": "aaaa",
+            "weight": 1
+        },
+        {
+            "value": "BBBB",
+            "preprocessed": "bbbb",
+            "weight": 5
+        },
+        {
+            "value": "CCcc",
+            "preprocessed": "cccc",
+            "weight": 1
+        },
+        {
+            "value": "DDDD",
+            "preprocessed": "dddd",
+            "weight": 1
+        },
+    ]});
 }
 
 async function testGetSnapshot() {
