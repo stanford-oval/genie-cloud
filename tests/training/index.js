@@ -253,9 +253,24 @@ async function testForDevice() {
     await waitUntilAllJobsDone();
 }
 
+async function testMetrics() {
+    const server = TrainingServer.get();
+
+    // issue a train command for a device that is not approved
+
+    const metrics = await db.withClient((dbClient) => server.getMetrics(dbClient));
+    console.log(metrics);
+
+    assert.deepStrictEqual(metrics, {
+        'org.thingpedia.models.default/en': { em: 0, nem: 0, nf1: 0, fm: 0, dm: 0, bleu: 0, deca: 0 },
+        'org.thingpedia.models.developer/en': { em: 0, nem: 0, nf1: 0, fm: 0, dm: 0, bleu: 0, deca: 0 }
+    });
+}
+
 async function main() {
     await testBasic();
     await testForDevice();
+    await testMetrics();
 
     await db.tearDown();
 }
