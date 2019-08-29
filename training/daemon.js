@@ -232,7 +232,7 @@ Check the logs for further information.`
                 }
 
                 for (let modelInfo of affectedModels)
-                    await this._queueOrMergeJob(dbClient, [], 'train', language, modelInfo.tag, dependsOn);
+                    await this._queueOrMergeJob(dbClient, forDevices, 'train', language, modelInfo.tag, dependsOn);
             } else if (jobType === 'update-dataset') {
                 await this._queueOrMergeJob(dbClient, forDevices, 'update-dataset', language, null, null);
             } else {

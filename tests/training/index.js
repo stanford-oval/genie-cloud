@@ -46,6 +46,19 @@ async function waitUntilAllJobsDone() {
     assert.deepStrictEqual(failed, []);
 }
 
+function removeTimes(queue) {
+    for (let jobType in queue) {
+        for (let job of queue[jobType]) {
+            job.start_time = null;
+            job.end_time = null;
+
+            // remove task_index/task_name too, as that could be racy
+            job.task_index = null;
+            job.task_name = null;
+        }
+    }
+}
+
 async function testBasic() {
     const server = TrainingServer.get();
 
@@ -55,13 +68,7 @@ async function testBasic() {
 
     const queue = await server.getJobQueue();
     //console.log(queue);
-
-    for (let jobType in queue) {
-        for (let job of queue[jobType]) {
-            job.start_time = null;
-            job.end_time = null;
-        }
-    }
+    removeTimes(queue);
 
     assert.deepStrictEqual(queue, {
         'update-dataset': [ {
@@ -90,7 +97,7 @@ async function testBasic() {
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.default',
-            all_devices: 0,
+            all_devices: 1,
             status: 'queued',
             task_index: null,
             task_name: null,
@@ -108,7 +115,7 @@ async function testBasic() {
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.developer',
-            all_devices: 0,
+            all_devices: 1,
             status: 'queued',
             task_index: null,
             task_name: null,
@@ -126,8 +133,112 @@ async function testBasic() {
     await waitUntilAllJobsDone();
 }
 
+async function testForDevice() {
+    const server = TrainingServer.get();
+
+    // issue a train command for a device that is not approved
+
+    await server.queue('en', ['org.thingpedia.builtin.test.adminonly'], 'train');
+
+    const queue = await server.getJobQueue();
+    //console.log(queue);
+    removeTimes(queue);
+
+    assert.deepStrictEqual(queue, {
+        'update-dataset': [ {
+            id: 4,
+            depends_on: null,
+            job_type: 'update-dataset',
+            language: 'en',
+            model_tag: null,
+            all_devices: 0,
+            status: 'started',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config:
+            '{"synthetic_depth":2,"train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            metrics: null,
+            for_devices: ['org.thingpedia.builtin.test.adminonly'] }
+        ],
+        train: [ {
+            id: 5,
+            depends_on: 4,
+            job_type: 'train',
+            language: 'en',
+            model_tag: 'org.thingpedia.models.developer',
+            all_devices: 0,
+            status: 'queued',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config: null,
+            metrics: null,
+            for_devices: ['org.thingpedia.builtin.test.adminonly']
+        }
+    ]});
+
+    const queue2 = await server.check('en', 'org.thingpedia.builtin.test.adminonly');
+    //console.log(queue);
+    removeTimes(queue2);
+
+    assert.deepStrictEqual(queue2, {
+        'update-dataset': [ {
+            id: 4,
+            depends_on: null,
+            job_type: 'update-dataset',
+            language: 'en',
+            model_tag: null,
+            all_devices: 0,
+            status: 'started',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config:
+            '{"synthetic_depth":2,"train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            metrics: null
+        } ],
+        train: [ {
+            id: 5,
+            depends_on: 4,
+            job_type: 'train',
+            language: 'en',
+            model_tag: 'org.thingpedia.models.developer',
+            all_devices: 0,
+            status: 'queued',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config: null,
+            metrics: null,
+        }
+    ]});
+
+    const queue3 = await server.check('en', 'com.bing');
+    assert.deepStrictEqual(queue3, {});
+
+    await waitUntilAllJobsDone();
+}
+
 async function main() {
     await testBasic();
+    await testForDevice();
 
     await db.tearDown();
 }
