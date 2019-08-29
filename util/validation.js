@@ -61,15 +61,17 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
         parsed = await ThingTalk.Grammar.parseAndTypecheck(`${classCode}\n${datasetCode}`, schemaRetriever, true);
     } catch(e) {
         if (e.name === 'SyntaxError' && e.location) {
-            const lineNumber = e.location.start.line;
+            let lineNumber = e.location.start.line;
             // add 1 for the \n that we add to separate classCode and datasetCode
             console.log(classCode);
             const classLength = 1 + classCode.split('\n').length;
-            e.fileName = lineNumber > classLength ? 'dataset.tt' : 'manifest.tt';
+            const fileName = lineNumber > classLength ? 'dataset.tt' : 'manifest.tt';
             // mind the 1-based line numbers...
-            e.lineNumber = lineNumber > classLength ? lineNumber - classLength + 1 : lineNumber;
+            lineNumber = lineNumber > classLength ? lineNumber - classLength + 1 : lineNumber;
+            throw new ValidationError(`Syntax error in ${fileName} line ${lineNumber}: ${e.message}`);
+        } else {
+            throw new ValidationError(e.message);
         }
-        throw e;
     }
 
     if (!parsed.isMeta || parsed.classes.length !== 1 ||
