@@ -19,6 +19,7 @@ const userModel = require('../model/user');
 const schemaModel = require('../model/schema');
 const user = require('../util/user');
 const { ForbiddenError, NotFoundError, BadRequestError } = require('../util/errors');
+const { validateTag } = require('../util/validation');
 const DatasetUtils = require('../util/dataset');
 const { clean } = require('../util/tokenize');
 const iv = require('../util/input_validation');
@@ -42,6 +43,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
     if (!I18n.get(req.body.language))
         throw new BadRequestError(req._("Unsupported language"));
     const language = I18n.localeToLanguage(req.body.language);
+    validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
 
     db.withTransaction(async (dbClient) => {
         try {

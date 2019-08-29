@@ -52,7 +52,7 @@ function isAuthenticated(req) {
     return req.session.completed2fa;
 }
 
-const INVALID_USERNAMES = new Set('admin,moderator,administrator,mod,sys,system,community,info,you,name,username,user,nickname,discourse,discourseorg,discourseforum,support,hp,account-created,password-reset,admin-login,confirm-admin,account-created,activate-account,confirm-email-token,authorize-email,stanfordalmond,almondstanford'.split(','));
+const INVALID_USERNAMES = new Set('admin,moderator,administrator,mod,sys,system,community,info,you,name,username,user,nickname,discourse,discourseorg,discourseforum,support,hp,account-created,password-reset,admin-login,confirm-admin,account-created,activate-account,confirm-email-token,authorize-email,stanfordalmond,almondstanford,almond,root,noreply,stanford'.split(','));
 
 const MAX_USERNAME_LENGTH = 60;
 
