@@ -131,8 +131,8 @@ router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res, ne
 async function getTraining(req, res) {
     const [jobs, metrics] = await db.withClient((dbClient) => {
         return Promise.all([
-            TrainingServer.get().getJobQueue(),
-            TrainingServer.get().getMetrics()
+            TrainingServer.get().getJobQueue(dbClient),
+            TrainingServer.get().getMetrics(dbClient)
         ]);
     });
     res.render('admin_training', { page_title: req._("Thingpedia - Administration - Natural Language Training"),
