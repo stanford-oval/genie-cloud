@@ -12,6 +12,7 @@
 
 const Tp = require('thingpedia');
 
+const trainingJobModel = require('../model/training_job');
 const { InternalError } = require('./errors');
 
 const Config = require('../config');
@@ -25,34 +26,34 @@ class TrainingServer {
         return _instance;
     }
 
-    getJobQueue() {
-        if (!Config.TRAINING_URL)
-            return Promise.resolve({});
-        let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
-        return Tp.Helpers.Http.get(Config.TRAINING_URL + '/jobs', { auth }).then((response) => {
-            let parsed = JSON.parse(response);
-            return parsed;
-        }).catch((e) => {
-            // if the server is down return nothing
-            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
-                return {};
-            throw e;
-        });
+    async getJobQueue(dbClient) {
+        const out = {};
+        const jobs = await trainingJobModel.getQueue(dbClient);
+
+        await Promise.all(jobs.map(async (job) => {
+            job.for_devices = await trainingJobModel.readForDevices(dbClient, job.id);
+        }));
+
+        for (let job of jobs) {
+            if (out[job.job_type])
+                out[job.job_type].push(job);
+            else
+                out[job.job_type] = [job];
+        }
+        return out;
     }
 
-    getMetrics() {
-        if (!Config.TRAINING_URL)
-            return Promise.resolve({});
-        let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
-        return Tp.Helpers.Http.get(Config.TRAINING_URL + '/jobs/metrics', { auth }).then((response) => {
-            let parsed = JSON.parse(response);
-            return parsed;
-        }).catch((e) => {
-            // if the server is down return nothing
-            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
-                return {};
-            throw e;
-        });
+    async getMetrics(dbClient) {
+        const jobs = await trainingJobModel.getLastSuccessful(dbClient, 'train');
+        if (jobs.length === 0)
+            return {};
+
+        const out = {};
+        for (let job of jobs) {
+            const key = job.model_tag + '/' + job.language;
+            out[key] = JSON.parse(job.metrics);
+        }
+        return out;
     }
 
     kill(jobId) {
@@ -98,24 +99,6 @@ class TrainingServer {
             let parsed = JSON.parse(response);
             console.log('Successfully started training job ' + parsed.id);
         });
-    }
-
-    check(language, device) {
-        const jobId = language + '/' + device;
-
-        if (!Config.TRAINING_URL)
-            return Promise.resolve({});
-        let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
-        let promise = Tp.Helpers.Http.get(Config.TRAINING_URL + '/jobs/' + jobId, { auth }).then((response) => {
-            let parsed = JSON.parse(response);
-            return parsed;
-        }).catch((e) => {
-            // if the server is down return nothing
-            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
-                return {};
-            throw e;
-        });
-        return promise;
     }
 }
 _instance =  new TrainingServer();

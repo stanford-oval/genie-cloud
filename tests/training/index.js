@@ -18,6 +18,7 @@ const assert = require('assert');
 //const Tp = require('thingpedia');
 
 const db = require('../../util/db');
+const trainingJobModel = require('../../model/training_job');
 const TrainingServer = require('../../util/training_server');
 
 async function delay(ms) {
@@ -59,18 +60,27 @@ function removeTimes(queue) {
     }
 }
 
+// a version of deepStrictEqual that works with RowDataPacket objects returned from mysql
+function deepStrictEqual(a, b, ...args) {
+    assert.deepStrictEqual(
+        JSON.parse(JSON.stringify(a)),
+        JSON.parse(JSON.stringify(b)),
+        ...args);
+}
+
 async function testBasic() {
     const server = TrainingServer.get();
 
     // issue a basic train command
 
     await server.queue('en', null, 'train');
+    await delay(1000);
 
-    const queue = await server.getJobQueue();
+    const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
     //console.log(queue);
     removeTimes(queue);
 
-    assert.deepStrictEqual(queue, {
+    deepStrictEqual(queue, {
         'update-dataset': [ {
             id: 1,
             depends_on: null,
@@ -139,12 +149,13 @@ async function testForDevice() {
     // issue a train command for a device that is not approved
 
     await server.queue('en', ['org.thingpedia.builtin.test.adminonly'], 'train');
+    await delay(1000);
 
-    const queue = await server.getJobQueue();
+    const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
     //console.log(queue);
     removeTimes(queue);
 
-    assert.deepStrictEqual(queue, {
+    deepStrictEqual(queue, {
         'update-dataset': [ {
             id: 4,
             depends_on: null,
@@ -186,12 +197,17 @@ async function testForDevice() {
         }
     ]});
 
-    const queue2 = await server.check('en', 'org.thingpedia.builtin.test.adminonly');
-    //console.log(queue);
-    removeTimes(queue2);
+    const queue2 = await db.withClient((dbClient) =>
+        trainingJobModel.getForDevice(dbClient,'en', 'org.thingpedia.builtin.test.adminonly'));
+    for (let job of queue2) {
+        job.start_time = null;
+        job.end_time = null;
+        job.task_index = null;
+        job.task_name = null;
+    }
 
-    assert.deepStrictEqual(queue2, {
-        'update-dataset': [ {
+    deepStrictEqual(queue2, [
+        {
             id: 4,
             depends_on: null,
             job_type: 'update-dataset',
@@ -209,8 +225,8 @@ async function testForDevice() {
             config:
             '{"synthetic_depth":2,"train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
             metrics: null
-        } ],
-        train: [ {
+        },
+        {
             id: 5,
             depends_on: 4,
             job_type: 'train',
@@ -228,10 +244,11 @@ async function testForDevice() {
             config: null,
             metrics: null,
         }
-    ]});
+    ]);
 
-    const queue3 = await server.check('en', 'com.bing');
-    assert.deepStrictEqual(queue3, {});
+    const queue3 = await db.withClient((dbClient) =>
+        trainingJobModel.getForDevice(dbClient, 'en', 'com.bing'));
+    deepStrictEqual(queue3, []);
 
     await waitUntilAllJobsDone();
 }

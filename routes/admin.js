@@ -129,14 +129,16 @@ router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res, ne
 });
 
 async function getTraining(req, res) {
-    const [jobs, metrics] = await Promise.all([
-        TrainingServer.get().getJobQueue(),
-        TrainingServer.get().getMetrics()
-    ]);
+    const [jobs, metrics] = await db.withClient((dbClient) => {
+        return Promise.all([
+            TrainingServer.get().getJobQueue(),
+            TrainingServer.get().getMetrics()
+        ]);
+    });
     res.render('admin_training', { page_title: req._("Thingpedia - Administration - Natural Language Training"),
-                                 csrfToken: req.csrfToken(),
-                                 metrics,
-                                 jobs });
+                                  csrfToken: req.csrfToken(),
+                                  metrics,
+                                  jobs });
 }
 
 if (Config.WITH_LUINET === 'embedded') {

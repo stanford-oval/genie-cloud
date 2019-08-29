@@ -283,23 +283,6 @@ Check the logs for further information.`
             next();
         });
 
-        app.get('/jobs/metrics', (req, res, next) => {
-            db.withClient(async (dbClient) => {
-                const jobs = await trainingJobModel.getLastSuccessful(dbClient, 'train');
-                if (jobs.length === 0)
-                    return {};
-
-                const out = {};
-                for (let job of jobs) {
-                    const key = job.model_tag + '/' + job.language;
-                    out[key] = JSON.parse(job.metrics);
-                }
-                return out;
-            }).then((out) => {
-                res.json(out);
-            }).catch(next);
-        });
-
         app.post('/jobs/create', async (req, res, next) => { //'
             try {
                 let id = await this.scheduleJob(req.body);
@@ -313,42 +296,6 @@ Check the logs for further information.`
             const id = req.body.id;
             this.killJob(id).then(() => {
                 res.json({result:'killed'});
-            }).catch(next);
-        });
-        app.get('/jobs', (req, res, next) => {
-            db.withTransaction(async (dbClient) => {
-                const out = {};
-                const jobs = await trainingJobModel.getQueue(dbClient);
-
-                await Promise.all(jobs.map(async (job) => {
-                    job.for_devices = await trainingJobModel.readForDevices(dbClient, job.id);
-                }));
-
-                for (let job of jobs) {
-                    if (out[job.job_type])
-                        out[job.job_type].push(job);
-                    else
-                        out[job.job_type] = [job];
-                }
-                return out;
-            }, 'serializable', 'read only').then((out) => {
-                res.json(out);
-            }).catch(next);
-        });
-        app.get('/jobs/:language/:forDevice', (req, res, next) => {
-            db.withClient(async (dbClient) => {
-                const out = {};
-                const jobs = await trainingJobModel.getForDevice(dbClient, req.params.language, req.params.forDevice);
-
-                for (let job of jobs) {
-                    if (out[job.job_type])
-                        out[job.job_type].push(job);
-                    else
-                        out[job.job_type] = [job];
-                }
-                return out;
-            }).then((out) => {
-                res.json(out);
             }).catch(next);
         });
 
