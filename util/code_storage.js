@@ -12,6 +12,7 @@
 const fs = require('fs');
 const Q = require('q');
 const Url = require('url');
+const express = require('express');
 const sanitize = require('sanitize-filename');
 
 const Config = require('../config');
@@ -48,6 +49,9 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
                         logger: process.stdout });
 
     _backend = {
+        initFrontend(app) {
+            // nothing to do to initialize S3
+        },
         storeIcon(blob, name) {
             var s3 = new AWS.S3();
             var upload = s3.upload({ Bucket: 'thingpedia2',
@@ -101,23 +105,26 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
     };
 } else if (Config.FILE_STORAGE_BACKEND === 'local') {
     _backend = {
+        initFrontend(app) {
+            app.use('/download', express.static(platform.getWritableDir() + '/download'));
+        },
         storeIcon(blob, name) {
-            return writeFile(blob, platform.getWritableDir() + '/icons/' + name + '.png');
+            return writeFile(blob, platform.getWritableDir() + '/download/icons/' + name + '.png');
         },
         storeBackground(blob, name) {
-            return writeFile(blob, platform.getWritableDir() + '/backgrounds/' + name + '.png');
+            return writeFile(blob, platform.getWritableDir() + '/download/backgrounds/' + name + '.png');
         },
         storeBlogAsset(blob, name, contentType = 'application/octet-stream') {
-            return writeFile(blob, platform.getWritableDir() + '/blog-assets/' + name);
+            return writeFile(blob, platform.getWritableDir() + '/download/blog-assets/' + name);
         },
         downloadZipFile(name, version, directory = 'devices') {
             name = sanitize(name);
-            let filename = platform.getWritableDir() + '/' + directory + '/' + name + '-v' + version + '.zip';
+            let filename = platform.getWritableDir() + '/download/' + directory + '/' + name + '-v' + version + '.zip';
             return fs.createReadStream(filename);
         },
         storeZipFile(blob, name, version, directory = 'devices') {
             name = sanitize(name);
-            let filename = platform.getWritableDir() + '/' + directory + '/' + name + '-v' + version + '.zip';
+            let filename = platform.getWritableDir() + '/download/' + directory + '/' + name + '-v' + version + '.zip';
             return writeFile(blob, filename);
         },
         getDownloadLocation

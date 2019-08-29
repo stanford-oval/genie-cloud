@@ -42,6 +42,7 @@ const userUtils = require('./util/user');
 const platform = require('./util/platform');
 const Metrics = require('./util/metrics');
 const errorHandling = require('./util/error_handling');
+const codeStorage = require('./util/code_storage');
 const EngineManager = require('./almond/enginemanagerclient');
 
 const Config = require('./config');
@@ -168,8 +169,9 @@ class Frontend {
             next();
         });
         this._app.use(favicon(__dirname + '/public/images/favicon.ico'));
-        this._app.use(express.static(path.join(__dirname, 'public'),
-                                     { maxAge: 86400000 }));
+        this._app.use('/assets', express.static(path.join(__dirname, 'public'),
+                                                { maxAge: 86400000 }));
+        codeStorage.initFrontend(this._app);
         this._app.use(cacheable());
         passportUtil.initialize();
 
