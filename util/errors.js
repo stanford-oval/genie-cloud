@@ -23,9 +23,9 @@ class BadRequestError extends HTTPError {
     }
 }
 
-class ValidationError extends Error {
+class ValidationError extends HTTPError {
     constructor(message) {
-        super(message);
+        super(400, message);
         this.code = 'EINVAL';
     }
 }
