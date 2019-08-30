@@ -28,7 +28,7 @@ spec:
           readOnly: true
       # sidecar container
       - name: "tokenizer"
-        image: ${REPO}/almond/tokenizer:v0.5
+        image: stanfordoval/almond-tokenizer:v3.0.1
         imagePullPolicy: Always
         env:
         - name: "PORT"
