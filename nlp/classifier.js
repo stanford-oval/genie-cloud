@@ -23,7 +23,7 @@ module.exports = class FrontendClassifier {
         // spawn python process
         this._pythonProcess = child_process.spawn('python3', [
             path.resolve(path.dirname(module.filename), './python_classifier/classifier.py'),
-            `./classifier`
+            process.env.ALMOND_FRONTEND_CLASSIFIER || `./classifier`
         ], {
             stdio: ['pipe', 'pipe', 'inherit']
         });
