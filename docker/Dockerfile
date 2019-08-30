@@ -5,7 +5,7 @@ FROM ${BASE_IMAGE}
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
 # install basic tools
-RUN yum -y install git wget gcc gcc-c++ make
+RUN yum -y install git wget gcc gcc-c++ make gettext
 
 # add epel repo
 RUN wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
