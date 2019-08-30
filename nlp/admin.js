@@ -33,14 +33,14 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
         return;
     }
 
-    const model = req.app.service.getModel(req.params.model_tag, req.params.locale);
-    if (!model) {
+    const matcher = req.app.service.getExact(req.params.locale);
+    if (!matcher) {
         res.status(404).json({ error: 'No such model' });
         return;
     }
 
     db.withClient((dbClient) => {
-        return model.exact.load(dbClient);
+        return matcher.load(dbClient);
     }).then(() => {
         res.json({ result: 'ok' });
     }).catch(next);
@@ -60,9 +60,7 @@ router.post('/reload/@:model_tag/:locale', async (req, res, next) => {
             `${Config.NL_MODEL_DIR}/${modelLangDir}/`,
             path.resolve('.') + '/' + modelLangDir + '/'
         ]);
-	
     }
-
 
     const model = req.app.service.getModel(req.params.model_tag, req.params.locale);
     if (!model) {

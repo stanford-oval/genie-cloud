@@ -133,6 +133,12 @@ block content
 
                       div.form-group
                         div.checkbox
+                          label(for='new-model-use-exact').control-label
+                            input(type='checkbox',name='use_exact',value='1',checked=true)#new-model-use-exact
+                            = _(" Include a match on the exact form of the primitive templates in addition to the predicted results from the neural network.")
+
+                      div.form-group
+                        div.checkbox
                           label(for='new-model-public').control-label
                             input(type='checkbox',name='public',value='1',checked=false)#new-model-public
                             = _(" This model is public for everyone to use.")
