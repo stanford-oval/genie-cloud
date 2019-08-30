@@ -2,10 +2,16 @@
 
 version=$(git describe)
 
-case $DOCKER_TAG in
+case $DOCKER_TAG in)
+	*-decanlp-cuda)
+		version=${version}-decanlp-cuda
+		;;
+	*-decanlp)
+		version=${version}-decanlp
+		;;
 	*-cuda)
 		version=${version}-cuda
-	;;
+		;;
 esac
 docker tag $IMAGE_NAME $DOCKER_REPO:$version
 docker push $DOCKER_REPO:$version
