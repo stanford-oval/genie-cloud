@@ -1,0 +1,11 @@
+#!/bin/bash
+
+version=$(git describe)
+
+case $DOCKER_TAG in
+	*-cuda)
+		version=${version}-cuda
+	;;
+esac
+docker tag $IMAGE_NAME $DOCKER_REPO:$version
+docker push $DOCKER_REPO:$version

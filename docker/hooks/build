@@ -1,0 +1,11 @@
+#!/bin/bash
+
+case $DOCKER_TAG in
+	*-cuda)
+		docker build --build-arg BASE_IMAGE=cuda:10.1-runtime-ubi7 -f $DOCKERFILE_PATH -t $IMAGE_NAME .
+	;;
+
+	*)
+		docker build -f $DOCKERFILE_PATH -t $IMAGE_NAME .
+	;;
+esac
