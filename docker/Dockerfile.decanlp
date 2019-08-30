@@ -1,23 +1,16 @@
-FROM registry.access.redhat.com/ubi7/ubi:latest
+# override this to "stanfordoval/decanlp:latest-cuda" if cuda is desired
+ARG BASE_IMAGE=stanfordoval/decanlp:latest
+FROM ${BASE_IMAGE}
 
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
 # install basic tools
-RUN yum -y install git wget gcc gcc-c++ make gettext
-
-# add epel repo
-RUN wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-RUN yum -y install epel-release-latest-7.noarch.rpm
+RUN yum -y install make gettext
 
 # install nodejs 10.x and yarn
 RUN curl -sL https://rpm.nodesource.com/setup_10.x | bash -
 RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo
 RUN yum -y install nodejs yarn
-
-# install python3
-RUN yum -y install python36 \
-	python36-pip \
-	python36-devel
 
 # install aws client
 RUN pip3 install awscli
@@ -34,6 +27,19 @@ RUN wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt 
 
 # install other dependencies
 RUN yum -y install GraphicsMagick bubblewrap
+
+# download classifer and PPDB
+RUN mkdir -p /usr/local/share/almond-cloud/classifier && \
+    wget https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz  && \
+    tar xvf classifier1.tar.gz -C /usr/local/share/almond-cloud/classifier && \
+    rm -f classifier1.tar.gz
+RUN pip3 install pytorch_transformers tensorboardX tqdm
+ENV ALMOND_FRONTEND_CLASSIFIER=/usr/local/share/almond-cloud/classifier
+
+RUN wget https://parmesan.stanford.edu/glove/ppdb-2.0-m-lexical.bin -O /usr/local/share/ppdb-2.0-m-lexical.bin && \
+    chmod 755 /usr/local/share/ppdb-2.0-m-lexical.bin
+ENV PPDB=/usr/local/share/ppdb-2.0-m-lexical.bin
+ENV DECANLP_EMBEDDINGS=/usr/local/share/decanlp/embeddings
 
 # copy source and install packages
 COPY . /opt/almond-cloud/

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-case $DOCKER_TAG in
+case $DOCKER_TAG in)
 	*-cuda)
-		docker build --build-arg BASE_IMAGE=cuda:10.1-runtime-ubi7 -f $DOCKERFILE_PATH -t $IMAGE_NAME .
+		docker build --build-arg BASE_IMAGE=stanfordoval/decanlp:latest-cuda -f $DOCKERFILE_PATH -t $IMAGE_NAME .
 	;;
 
 	*)
