@@ -5,6 +5,7 @@ FROM ${BASE_IMAGE}
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
 # install basic tools
+USER root
 RUN yum -y install make gettext
 
 # install nodejs 10.x and yarn
