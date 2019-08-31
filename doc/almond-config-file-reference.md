@@ -279,6 +279,15 @@ NLP server but you want to use the public Thingpedia.
 
 Default value: `null`
 
+## NL_TOKENIZER_ADDRESS
+The address (socket path or host:port) of a running Almond Tokenizer.
+
+This is only used if WITH_LUINET === 'embedded'. If the environment
+variable `THINGENGINE_USE_TOKENIZER` is set, it is used by both the
+frontend and the NLP processes; otherwise, only by the NLP process.
+
+Default value: `'127.0.0.1:8888'`
+
 ## NL_MODEL_DIR
 Deployed model directory on S3.
 
