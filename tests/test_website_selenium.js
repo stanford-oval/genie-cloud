@@ -192,7 +192,7 @@ async function testMyConversation(driver) {
 
     const response = await driver.wait(
         WD.until.elementLocated(WD.By.css('.from-almond:nth-child(3) .message')),
-        10000);
+        60000);
     assert.strictEqual(await response.getText(), 'No way!');
 }
 
