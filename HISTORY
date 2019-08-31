@@ -1,3 +1,14 @@
+1.6.1
+=====
+
+* Custom NLP models can now make use of the exact matcher [#419, #442]
+* Evaluation of NLP models now correctly distinguishes paraphrases and developer data,
+  resulting in more accurate metrics [#446]
+* Fixed developer NLP models [#409]
+* Fixed killing GPU training jobs [#408, #410]
+* Misc bug fixes [#438, #439, #443, #444, #445, #447, #450, #452]
+* Updated dependencies [#440]
+
 1.6.0
 =====
 
