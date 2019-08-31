@@ -43,10 +43,9 @@ class QueryReadableAdapter extends Stream.Readable {
 
         query.on('result', (row) => {
             row.flags = parseFlags(row.flags);
-            // treat paraphrase data as synthetic, which will prevent
-            // from evaluating on it
-            if (!row.flags.exact)
-                row.flags.synthetic = true;
+            // mark a sentence for evaluation only if is exact and not synthetic,
+            // which means it comes from the online dataset (developer data)
+            row.flags.eval = row.flags.exact && !row.flags.synthetic;
             this.push(row);
         });
         query.on('end', () => {
@@ -213,6 +212,7 @@ class DatasetGenerator {
             evalProbability: this._options.evalProbability,
             forDevices: this._forDevices,
             splitStrategy: this._options.splitStrategy,
+            useEvalFlag: true
         });
 
         source.pipe(typecheck).pipe(augmenter).pipe(splitter);

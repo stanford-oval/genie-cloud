@@ -44,7 +44,7 @@ class NLPInferenceServer {
         this._models = new Map;
         this._exactMatchers = new Map;
         this._classifier = new FrontendClassifier();
-        this._tokenizer = new Genie.LocalTokenizer();
+        this._tokenizer = new Genie.LocalTokenizer(Config.NL_TOKENIZER_ADDRESS);
     }
 
     get tokenizer() {
