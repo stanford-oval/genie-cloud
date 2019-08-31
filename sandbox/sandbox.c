@@ -31,7 +31,9 @@
 #include <syslog.h>
 #include <stdbool.h>
 
+#ifdef HAVE_SYSTEMD
 #include <systemd/sd-journal.h>
+#endif
 
 static void
 die_with_error (const char *format, ...)
@@ -229,8 +231,10 @@ strv_dump (struct strv* strv)
 
 int main(int argc, const char* const *argv)
 {
+#ifdef HAVE_SYSTEMD
   int stdout_fileno, stderr_fileno;
   char syslog_identifier[] = "thingengine-child-XXXXXXXX";
+#endif
   char *thingengine_prefix;
   char *thingengine_user_id;
   struct strv args;
@@ -246,6 +250,7 @@ int main(int argc, const char* const *argv)
   if (thingengine_user_id == NULL)
     die ("Missing THINGENGINE_USER_ID in the environment\n");
 
+#ifdef HAVE_SYSTEMD
   if (getenv ("THINGENGINE_DISABLE_SYSTEMD") == NULL) {
     snprintf (syslog_identifier, sizeof(syslog_identifier), "thingengine-child-%s",
               thingengine_user_id);
@@ -256,6 +261,7 @@ int main(int argc, const char* const *argv)
     if (stderr_fileno < 0 || dup2 (stderr_fileno, 2) < 0 || close (stderr_fileno) < 0)
       die_with_error ("Failed to open stderr");
   }
+#endif
 
   strv_init (&args);
   add_base_args (&args);

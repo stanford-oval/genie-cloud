@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+set -x
+echo "Running in $(pwd)"
+
+case $DOCKER_TAG in
+	*-cuda)
+		docker build --build-arg BASE_IMAGE=stanfordoval/decanlp:latest-cuda -f $(basename $DOCKERFILE_PATH) -t $IMAGE_NAME ..
+	;;
+
+	*)
+		docker build -f $(basename $DOCKERFILE_PATH) -t $IMAGE_NAME ..
+	;;
+esac

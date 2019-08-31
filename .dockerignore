@@ -6,21 +6,15 @@
 *.txt.pt
 *.pth
 *.bin
+.git
 .buildconfig
 
 home
 workdir
 shared
 
-/platform_config.js
-/secret_config.js
-/public/cache
-/public/brassau
-/public/friendhub
-/public/download/devices
-/public/download/backgrounds
-/public/download/icons
-/public/download/blog-assets
+platform_config.js
+secret_config.js
 
 doc/doc-list.json
 doc/fts.json
@@ -32,11 +26,11 @@ views/thingpedia_doc_index.pug
 
 tests/embeddings
 
-node_modules/
+node_modules
 
 yarn-error.log
 
-/.nyc_output
-/coverage
+.nyc_output
+.coverage
 
 .idea
