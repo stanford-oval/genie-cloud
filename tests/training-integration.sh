@@ -75,11 +75,9 @@ node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs
 export PPDB=$workdir/ppdb-2.0-xs-lexical.bin
 
 # set up download directories
-mkdir -p $srcdir/public/download
+mkdir -p $workdir/shared/download
 for x in devices icons backgrounds blog-assets template-files/en ; do
-    mkdir -p $workdir/shared/$x
-    mkdir -p $srcdir/public/download/$(dirname $x)
-    ln -sf -T $workdir/shared/$x $srcdir/public/download/$x
+    mkdir -p $workdir/shared/download/$x
 done
 mkdir -p $workdir/shared/cache
 echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
