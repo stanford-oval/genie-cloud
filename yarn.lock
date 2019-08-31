@@ -2661,10 +2661,10 @@ gcp-metadata@^1.0.0:
     gaxios "^1.0.2"
     json-bigint "^0.3.0"
 
-genie-toolkit@~0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.4.0.tgz#91fec5ec6916fe9a8b8b6b6bc89dc80841003ac6"
-  integrity sha512-DGPYZ3pcH3GX2RgtbslIhFwuZWXX9/46dNGDXnIHtofSKMNHAFwp8iWAtMxhqbRNghB+u+si4ILKfhDVyHgIIw==
+genie-toolkit@~0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.4.1.tgz#b375aed82fd4b93cf482b513b5c9ffa8ed91bb21"
+  integrity sha512-68uXGaFEMZyQRZ1NlQirEGSeY1NXsLixW5dCNAWLizmGxk0I6qVth4yFn6v5jCKZ0KS4uByRlFF7tpM5DPQ3lA==
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
