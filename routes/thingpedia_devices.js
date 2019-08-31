@@ -21,6 +21,7 @@ const model = require('../model/device');
 const user = require('../util/user');
 const schemaModel = require('../model/schema');
 const exampleModel = require('../model/example');
+const trainingJobModel = require('../model/training_job');
 const TrainingServer = require('../util/training_server');
 const SendMail = require('../util/sendmail');
 const I18n = require('../util/i18n');
@@ -195,8 +196,16 @@ function getDetails(fn, param, req, res) {
         [code, examples, current_jobs] = await Promise.all([
             code,
             exampleModel.getByKinds(client, [device.primary_kind], getOrgId(req), language),
-            TrainingServer.get().check(language, device.primary_kind)
+            trainingJobModel.getForDevice(client, language, device.primary_kind)
         ]);
+
+        const current_job_queues = {};
+        for (let job of current_jobs) {
+            if (current_job_queues[job.job_type])
+                current_job_queues[job.job_type].push(job);
+            else
+                current_job_queues[job.job_type] = [job];
+        }
 
         let migrated;
         try {
@@ -230,7 +239,7 @@ function getDetails(fn, param, req, res) {
 
         await Promise.all(loadHumanReadableTypes(req, language, client, classDef));
         device.translated = translated;
-        device.current_jobs = current_jobs;
+        device.current_jobs = current_job_queues;
 
         let online = false;
         examples = DatasetUtils.sortAndChunkExamples(examples);

@@ -13,13 +13,16 @@ const Url = require('url');
 const fs = require('fs');
 const path = require('path');
 const util = require('util');
+const child_process = require('child_process');
+const byline = require('byline');
 
 const Tp = require('thingpedia');
 const Genie = require('genie-toolkit');
-const GPUJob = require('./gpu_training_job');
 
-const child_process = require('child_process');
-const byline = require('byline');
+const db = require('../util/db');
+const trainingJobModel = require('../model/training_job');
+
+const GPUJob = require('./gpu_training_job');
 
 const Config = require('../config');
 
@@ -28,19 +31,6 @@ const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 const DEFAULT_TRAINING_CONFIG = {
     synthetic_depth: 4
 };
-
-function delay(timeout) {
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve, timeout);
-    });
-}
-
-function addAll(array, add) {
-    for (let elem of add) {
-        if (array.indexOf(elem) < 0)
-            array.push(elem);
-    }
-}
 
 function execCommand(job, script, argv, handleStderr = null, extraEnv = {}) {
     return new Promise((resolve, reject) => {
@@ -90,15 +80,6 @@ async function safeMkdir(dir, options) {
          throw e;
     }
 }
-function safeUnlinkSync(path) {
-    try {
-         fs.unlinkSync(path);
-    } catch(e) {
-         if (e.code === 'ENOENT')
-             return;
-         throw e;
-    }
-}
 
 async function mkdirRecursive(dir) {
     const components = path.resolve(dir).split('/').slice(1);
@@ -108,25 +89,6 @@ async function mkdirRecursive(dir) {
          subpath += '/' + component;
          await safeMkdir(subpath);
     }
-}
-
-async function taskPrepare(job) {
-    await delay(0);
-    job.jobDir = path.resolve('./jobs/' + job.id);
-    await mkdirRecursive(job.jobDir);
-
-    await mkdirRecursive(path.resolve(`./tensorboard/${job.modelTag}/${job.language}`));
-    await mkdirRecursive(path.resolve(`./saved-model/${job.modelTag}/${job.language}`));
-    await mkdirRecursive(path.resolve(`./dataset/${job.modelTag}/${job.language}`));
-
-    await safeMkdir(path.resolve(job.jobDir, 'dataset'));
-    await safeMkdir(path.resolve(job.jobDir, 'workdir'));
-    await safeMkdir(path.resolve(job.jobDir, 'server'));
-
-    safeUnlinkSync(path.resolve(`./dataset/${job.modelTag}/${job.language}/in-progress`));
-    fs.symlinkSync(path.resolve(job.jobDir, 'dataset'), path.resolve(`./dataset/${job.modelTag}/${job.language}/in-progress`));
-    safeUnlinkSync(path.resolve(`./tensorboard/${job.modelTag}/${job.language}/in-progress`));
-    fs.symlinkSync(path.resolve(job.jobDir, 'workdir/model'), path.resolve(`./tensorboard/${job.modelTag}/${job.language}/in-progress`));
 }
 
 async function taskUpdatingDataset(job) {
@@ -148,7 +110,7 @@ async function taskUpdatingDataset(job) {
 async function taskReloadingExact(job) {
     // reload the exact matches now that the synthetic set has been updated
     try {
-        await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/exact/@${job.modelTag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
+        await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/exact/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
             dataContentType: 'application/x-www-form-urlencoded'
         });
     } catch(e) {
@@ -157,6 +119,13 @@ async function taskReloadingExact(job) {
 }
 
 async function taskGenerateTrainingSet(job) {
+    job.jobDir = path.resolve('./jobs/' + job.id);
+    await mkdirRecursive(job.jobDir);
+
+    await safeMkdir(path.resolve(job.jobDir, 'dataset'));
+    await safeMkdir(path.resolve(job.jobDir, 'workdir'));
+    await safeMkdir(path.resolve(job.jobDir, 'server'));
+
     const script = process.execPath;
 
     const dataset = path.resolve(job.jobDir, 'dataset');
@@ -234,12 +203,15 @@ async function taskTraining(job) {
     job.child = null;
 
     if (!job._killed)
-        job.metrics = genieJob.metrics;
+        await job.setMetrics(genieJob.metrics);
 }
 
 async function taskUploading(job) {
-    const modelLangDir = `${job.modelTag}:${job.language}`;
+    const modelLangDir = `${job.model_tag}:${job.language}`;
     const outputdir = path.resolve(job.jobDir, 'output');
+
+    if (Config.NL_SERVER_URL === null)
+        return;
 
     const INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
     if (Config.NL_MODEL_DIR) {
@@ -255,33 +227,14 @@ async function taskUploading(job) {
         ]);
     }
 
-    for (let what of ['saved-model', 'tensorboard', 'dataset']) {
-        const current = path.resolve(`./${what}/${job.modelTag}/${job.language}/current`);
-        try {
-            fs.renameSync(current, path.resolve(`./${what}/${job.modelTag}/${job.language}/previous`));
-        } catch(e) {
-            // eat the error if the current path does not exist
-            if (e.code !== 'ENOENT')
-                throw e;
-        }
-    }
-
-    fs.symlinkSync(outputdir, path.resolve(`./saved-model/${job.modelTag}/${job.language}/current`));
-
-    fs.symlinkSync(path.resolve(job.jobDir, 'workdir/model'), path.resolve(`./tensorboard/${job.modelTag}/${job.language}/current`));
-    safeUnlinkSync(path.resolve(`./tensorboard/${job.modelTag}/${job.language}/in-progress`));
-
-    fs.symlinkSync(path.resolve(job.jobDir, 'dataset'), path.resolve(`./dataset/${job.modelTag}/${job.language}/current`));
-    safeUnlinkSync(path.resolve(`./dataset/${job.modelTag}/${job.language}/in-progress`));
-
-    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.modelTag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
+    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
         dataContentType: 'application/x-www-form-urlencoded'
     });
 }
 
 const TASKS = {
     'update-dataset': [taskUpdatingDataset, taskReloadingExact],
-    'train': [taskPrepare, taskGenerateTrainingSet, taskTraining, taskUploading]
+    'train': [taskGenerateTrainingSet, taskTraining, taskUploading]
 };
 
 function taskName(task) {
@@ -295,65 +248,51 @@ function taskName(task) {
 }
 
 module.exports = class Job {
-    constructor(daemon, id, jobType, forDevices, language, modelTag, dependsOn, modelInfo) {
+    constructor(daemon, jobRow, forDevices, modelInfo) {
         this._daemon = daemon;
-        this.data = {
-            id: id,
-            jobType: jobType,
-            forDevices: forDevices,
-            language: language,
-            modelTag: modelTag,
-            startTime: null,
-            endTime: null,
-            taskIndex: 0,
-            status: 'queued',
-            progress: 0,
-            eta: null,
-            dependsOn: dependsOn,
-            modelInfo: modelInfo,
+        this.data = jobRow;
+        this._config = JSON.parse(this.data.config);
+        this._metrics = JSON.parse(this.data.metrics);
 
-            taskStats: {}
-        };
+        this._forDevices = forDevices;
+        this._modelInfo = modelInfo;
 
         this._killed = false;
         this.child = null;
-        this._allTasks = TASKS[this.data.jobType];
+        this._allTasks = TASKS[this.data.job_type];
 
         this.jobDir = null;
         this.bestModelDir = null;
         this._progressUpdates = [];
     }
 
-    static load(daemon, json) {
-        const self = new Job(daemon);
-        self.data = json;
-        self._allTasks = TASKS[self.data.jobType];
-
-        return self;
+    async _save(keys) {
+        await db.withClient((dbClient) => {
+            const toSave = {};
+            keys.forEach((k) => toSave[k] = this.data[k]);
+            return trainingJobModel.update(dbClient, this.data.id, toSave);
+        });
     }
 
-    toJSON() {
-        return this.data;
-    }
+    async start(dbClient) {
+        console.log(`Starting ${this.data.job_type} job ${this.data.id} for model @${this.data.model_tag}/${this.data.language}`);
 
-    save() {
-        return this._daemon.save();
-    }
+        await this._doStart(dbClient);
 
-    start() {
-        console.log(`Starting ${this.data.jobType} job ${this.data.id} for model @${this.data.modelTag}/${this.data.language}`);
-
-        this._doStart().catch((err) => {
-            this.fail(err);
+        // do the rest asynchronously:
+        // _doRun will resolve when the job is done,
+        // start() resolves immediately to record that the job started
+        this._doRun().catch((err) => {
+            return this.fail(err);
         });
     }
 
     _currentTaskName() {
-        return taskName(this._allTasks[this.data.taskIndex]);
+        return taskName(this._allTasks[this.data.task_index]);
     }
 
-    async _doStart() {
-        this.data.startTime = (new Date).toISOString();
+    async _doStart(dbClient) {
+        this.data.start_time = new Date;
         this.data.status = 'started';
 
         const configFile = Config.TRAINING_CONFIG_FILE;
@@ -361,34 +300,42 @@ module.exports = class Job {
         Object.assign(config, DEFAULT_TRAINING_CONFIG);
         if (configFile)
             Object.assign(config, JSON.parse(await util.promisify(fs.readFile)(configFile, { encoding: 'utf8' })));
-        this.data.config = config;
-        await this.save();
+        this._config = config;
+        this.data.config = JSON.stringify(config);
+        await trainingJobModel.update(dbClient, this.data.id, {
+            start_time: this.data.start_time,
+            status: this.data.status,
+            config: this.data.config,
+        });
+    }
 
+    async _doRun() {
         for (let i = 0; i < this._allTasks.length; i++) {
             if (this._killed)
                 throw new Error(`Killed`);
 
-            this.data.taskIndex = i;
+            this.data.task_index = i;
             const taskName = this._currentTaskName();
             console.log(`Job ${this.data.id} is now ${taskName}`);
-            this.data.status = taskName;
+            this.data.task_name = taskName;
             this.data.progress = 0;
-            await this.save();
+            await this._save(['task_index', 'task_name', 'progress']);
 
             const start = new Date();
-            const task = this._allTasks[this.data.taskIndex];
+            const task = this._allTasks[this.data.task_index];
             await task(this);
             const end = new Date();
 
             const duration = end - start;
             console.log(`Completed task ${taskName} in ${Math.round(duration/1000)} seconds`);
 
-            this.data.taskStats[taskName] = end - start;
-            this._daemon.recordDuration(this, taskName, duration);
+            await db.withClient((dbClient) => {
+                return trainingJobModel.recordTask(dbClient, this.data.id, taskName, start, end);
+            });
         }
 
         this.data.status = 'success';
-        this.complete();
+        await this.complete();
     }
 
     kill() {
@@ -398,7 +345,7 @@ module.exports = class Job {
             this.child.kill('SIGTERM');
     }
 
-    fail(error) {
+    async fail(error) {
         if (this.data.status !== 'queued' && !this._killed) {
             console.error(`Job ${this.data.id} failed during task ${this._currentTaskName()}: ${error}`);
             if (error.stack)
@@ -406,59 +353,52 @@ module.exports = class Job {
         }
         this.data.status = 'error';
         this.data.error = error.message;
-        this.complete();
+        await this.complete();
     }
 
-    complete() {
-        this.data.endTime = (new Date).toISOString();
-
-        console.log(`Completed ${this.data.jobType} job ${this.data.id} for model @${this.data.modelTag}/${this.data.language}`);
-        this._daemon.jobComplete(this);
+    async complete() {
+        this.data.end_time = new Date;
+        console.log(`Completed ${this.data.job_type} job ${this.data.id} for model @${this.data.model_tag}/${this.data.language}`);
+        await this._daemon.jobComplete(this);
     }
 
     get id() {
         return this.data.id;
     }
-    get jobType() {
-        return this.data.jobType;
-    }
-    get dependsOn() {
-        return this.data.dependsOn;
+    get job_type() {
+        return this.data.job_type;
     }
 
     get language() {
         return this.data.language;
     }
     get forDevices() {
-        return this.data.forDevices;
+        return this._forDevices;
     }
-    get modelTag() {
-        return this.data.modelTag;
+    get model_tag() {
+        return this.data.model_tag;
     }
     get modelInfo() {
-        return this.data.modelInfo;
-    }
-
-    addDevices(forDevices) {
-        addAll(this.data.forDevices, forDevices);
-        return this.save();
+        return this._modelInfo;
     }
 
     get startTime() {
-        return this.data.startTime;
+        return this.data.start_time;
     }
     get endTime() {
-        return this.data.endTime;
+        return this.data.end_time;
     }
 
     get config() {
-        return this.data.config;
+        return this._config;
     }
     get metrics() {
-        return this.data.metrics;
+        return this._metrics;
     }
-    set metrics(v) {
-        return this.data.metrics = v;
+    setMetrics(v) {
+        this._metrics = v;
+        this.data.metrics = JSON.stringify(v);
+        return this._save(['metrics']);
     }
 
     get status() {
@@ -498,7 +438,7 @@ module.exports = class Job {
             this.data.eta = new Date(eta);
         }
         this.data.progress = value;
-        return this.save();
+        return this._save(['progress', 'eta']);
     }
 
 };
