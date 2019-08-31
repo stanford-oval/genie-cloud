@@ -2,7 +2,7 @@
 
 version=$(git describe)
 
-case $DOCKER_TAG in)
+case $DOCKER_TAG in
 	*-decanlp-cuda)
 		version=${version}-decanlp-cuda
 		;;
