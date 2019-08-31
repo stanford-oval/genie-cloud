@@ -649,6 +649,7 @@ CREATE TABLE `models` (
   `contextual` boolean NOT NULL DEFAULT false,
   `all_devices` boolean NOT NULL DEFAULT false,
   `use_approved` boolean NOT NULL DEFAULT false,
+  `use_exact` boolean NOT NULL DEFAULT false,
   PRIMARY KEY (`id`),
   UNIQUE KEY (`language`, `tag`),
   KEY `owner` (`owner`),
@@ -658,7 +659,7 @@ CREATE TABLE `models` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Table structure for table `models`
+-- Table structure for table `model_devices`
 --
 
 DROP TABLE IF EXISTS `model_devices`;
