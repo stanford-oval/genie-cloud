@@ -32,12 +32,6 @@ const DEFAULT_TRAINING_CONFIG = {
     synthetic_depth: 4
 };
 
-function delay(timeout) {
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve, timeout);
-    });
-}
-
 function execCommand(job, script, argv, handleStderr = null, extraEnv = {}) {
     return new Promise((resolve, reject) => {
         const stdio = ['ignore', 'pipe', 'pipe'];
@@ -125,7 +119,6 @@ async function taskReloadingExact(job) {
 }
 
 async function taskGenerateTrainingSet(job) {
-    await delay(0);
     job.jobDir = path.resolve('./jobs/' + job.id);
     await mkdirRecursive(job.jobDir);
 
