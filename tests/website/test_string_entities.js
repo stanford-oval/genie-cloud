@@ -43,10 +43,6 @@ const STRING_FILE_THREE = `aaaa\t1.0
 bbbb\t5.0
 cccc\t
 dddd\t1.0`;
-const STRING_FILE_BAD = `aaaa\t1.0
-bbbb\t5.0
-cccc
-`;
 
 function createUpload(file, data) {
     const fd = new FormData();
@@ -279,16 +275,6 @@ async function testStringCreate(nobody, bob, root) {
             },
         ]);
     });
-
-    const fd7 = createUpload(STRING_FILE_BAD, {
-        type_name: 'org.thingpedia.test:string_test3',
-        name: 'Test String Three',
-        license: 'proprietary',
-        preprocessed:'1'
-    });
-
-    await assertHttpError(sessionRequest('/thingpedia/strings/create', 'POST', fd7, root),
-        400, 'Invalid Record Length: expect 2, got 1 on line 3');
 
     const fd8 = createUpload(STRING_FILE_THREE, {
         type_name: 'org.thingpedia.test:string_test3',

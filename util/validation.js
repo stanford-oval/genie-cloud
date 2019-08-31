@@ -20,6 +20,7 @@ const TokenizerService = require('./tokenizer_service');
 const ThingpediaClient = require('./thingpedia-client');
 const getExampleName = require('./example_names');
 const { ValidationError } = require('./errors');
+const userUtils = require('./user');
 
 assert(typeof ThingpediaClient === 'function');
 
@@ -32,7 +33,7 @@ const SUBCATEGORIES = new Set(['service','media','social-network','communication
 const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 '__proto__', 'constructor', '__defineGetter__', '__defineSetter__', '__lookupGetter__',
 '__lookupSetter__', 'eval', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable',
-'toLocaleString', 'toSource', 'toString', 'unwatch', 'watch', 'valueOf']);
+'toLocaleString', 'toSource', 'toString', 'valueOf']);
 
 const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
 const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
@@ -60,15 +61,17 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
         parsed = await ThingTalk.Grammar.parseAndTypecheck(`${classCode}\n${datasetCode}`, schemaRetriever, true);
     } catch(e) {
         if (e.name === 'SyntaxError' && e.location) {
-            const lineNumber = e.location.start.line;
+            let lineNumber = e.location.start.line;
             // add 1 for the \n that we add to separate classCode and datasetCode
             console.log(classCode);
             const classLength = 1 + classCode.split('\n').length;
-            e.fileName = lineNumber > classLength ? 'dataset.tt' : 'manifest.tt';
+            const fileName = lineNumber > classLength ? 'dataset.tt' : 'manifest.tt';
             // mind the 1-based line numbers...
-            e.lineNumber = lineNumber > classLength ? lineNumber - classLength + 1 : lineNumber;
+            lineNumber = lineNumber > classLength ? lineNumber - classLength + 1 : lineNumber;
+            throw new ValidationError(`Syntax error in ${fileName} line ${lineNumber}: ${e.message}`);
+        } else {
+            throw new ValidationError(e.message);
         }
-        throw e;
     }
 
     if (!parsed.isMeta || parsed.classes.length !== 1 ||
@@ -86,8 +89,6 @@ async function loadClassDef(dbClient, req, kind, classCode, datasetCode) {
     return [classDef, dataset];
 }
 
-const LEGACY_KINDS = ['security-camera', 'car', 'messaging', 'light-bulb', 'smoke-alarm', 'thermostat'];
-
 async function validateDevice(dbClient, req, options, classCode, datasetCode) {
     const name = options.name;
     const description = options.description;
@@ -96,17 +97,13 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
 
     if (!name || !description || !kind || !license)
         throw new ValidationError("Not all required fields were present");
-    if (Buffer.from(kind, 'utf8').length > 128)
-        throw new ValidationError("The chosen identifier is too long");
+    validateTag(kind, req.user, userUtils.Role.THINGPEDIA_ADMIN);
 
     if (!SUBCATEGORIES.has(options.subcategory))
         throw new ValidationError(req._("Invalid device category %s").format(options.subcategory));
     const [classDef, dataset] = await loadClassDef(dbClient, req, kind, classCode, datasetCode);
     validateMetadata(classDef.metadata, ALLOWED_CLASS_METADATA);
     validateAnnotations(classDef.annotations);
-
-    if (kind.indexOf('.') < 0 && LEGACY_KINDS.indexOf(kind) < 0)
-        throw new ValidationError(`Invalid device ID ${kind}: must contain at least one period`);
 
     if (!classDef.is_abstract) {
         if (!classDef.loader)
@@ -223,8 +220,6 @@ function validateUtterance(args, utterance) {
 }
 
 function validateAllInvocations(classDef, options = {}) {
-    if (FORBIDDEN_NAMES.has(classDef.kind))
-        throw new ValidationError(`${classDef.kind} is not allowed as a device ID`);
 
     let entities = new Set;
     let stringTypes = new Set;
@@ -377,6 +372,50 @@ async function tokenizeDataset(dataset) {
     }));
 }
 
+
+function validateTag(tag, user, adminRole) {
+    // first the security/well-formedness checks
+    // the name must be a valid DNS name: multiple parts separated
+    // by '.'; each part must be alphanumeric, -, or _,
+    // and must be both a valid hostname and a valid ThingTalk class-identifier
+    // (not start or end with -, not start with a number)
+    if (!/^([A-Za-z_][A-Za-z0-9_.-]*)$/.test(tag))
+        throw new ValidationError(`Invalid ID ${tag}`);
+
+    const parts = tag.split('.');
+    for (let part of parts) {
+        if (part.length === 0 || /^[-0-9]/.test(part) || part.endsWith('-'))
+            throw new ValidationError(`Invalid ID ${tag}`);
+
+        // JS reserved words and unsafe names are forbidden
+        if (FORBIDDEN_NAMES.has(part))
+            throw new ValidationError(`${tag} is not allowed as ID because it contains the unsafe keyword ${part}`);
+    }
+
+    if (Buffer.from(tag, 'utf8').length > 128)
+        throw new ValidationError("The chosen identifier is too long");
+
+    // now the naming convention checks
+
+    // if there is an admin role in this context, and the user has it, anything is allowed
+    if (adminRole !== undefined && (user.roles & adminRole) === adminRole)
+        return;
+
+    // otherwise, single part names (no dots) are always disallowed
+    // names in the org.thingpedia namespace are also disallowed
+
+    if (parts.length <= 1)
+        throw new ValidationError(`Invalid ID ${tag}: must contain at least one period`);
+
+    if (parts[0] === 'org' && parts[1] === 'thingpedia') {
+        // ignore the 'org.thingpedia.builtin.test' and 'org.thingpedia.test' namespaces, which are free-for-all
+        if (parts[2] === 'test' || (parts[2] === 'builtin' && parts[3] === 'test'))
+            return;
+
+        throw new ValidationError(`Invalid ID ${tag}: the @org.thingpedia namespace is reserved`);
+    }
+}
+
 module.exports = {
     ValidationError,
 
@@ -385,6 +424,7 @@ module.exports = {
 
     validateDevice,
     validateDataset,
+    validateTag,
 
     tokenizeDataset,
 };

@@ -21,6 +21,7 @@ const user = require('../util/user');
 const model = require('../model/template_files');
 const platform = require('../util/platform');
 const iv = require('../util/input_validation');
+const { validateTag } = require('../util/validation');
 const { ForbiddenError, BadRequestError } = require('../util/errors');
 const I18n = require('../util/i18n');
 const code_storage = require('../util/code_storage');
@@ -66,6 +67,8 @@ async function uploadTemplatePack(req) {
 
         if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,][a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
             throw new BadRequestError(req._("Invalid flags"));
+
+        validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
 
         const flags = req.body.flags ? req.body.flags.split(/[ ,]/g) : [];
         if (flags.indexOf('turking') < 0)

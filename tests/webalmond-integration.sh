@@ -57,10 +57,9 @@ oldpwd=`pwd`
 cd $workdir
 
 # set up download directories
-mkdir -p $srcdir/public/download
+mkdir -p $workdir/shared/download
 for x in blog-assets ; do
-    mkdir -p $workdir/shared/$x
-    ln -sf -T $workdir/shared/$x $srcdir/public/download/$x
+    mkdir -p $workdir/shared/download/$x
 done
 
 node $srcdir/tests/load_test_webalmond.js

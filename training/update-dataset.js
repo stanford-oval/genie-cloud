@@ -138,10 +138,44 @@ class DatasetUpdater {
         console.log(`Dataset cleaned`);
     }
 
-    async _transaction() {
-        this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
-        this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
+    async _typecheckParaphrasesAndOnline() {
+        let rows;
+        if (this._forDevicesPattern !== null) {
+            rows = await db.selectAll(this._dbClient, `select id,preprocessed,target_code from example_utterances
+                where type not in ('generated', 'thingpedia') and find_in_set('training', flags)
+                and not find_in_set('obsolete', flags) and language = ? and target_code rlike ?`,
+                [this._language, this._forDevicesPattern]);
+        } else {
+            rows = await db.selectAll(this._dbClient, `select id,preprocessed,target_code from example_utterances
+                where type not in ('generated', 'thingpedia') and find_in_set('training', flags)
+                and not find_in_set('obsolete', flags) and language = ?`,
+                [this._language]);
+        }
 
+        for (let i = 0; i < rows.length+1000-1; i += 1000) {
+            const batch = rows.slice(i, i+1000);
+
+            const toUpdate = (await Promise.all(batch.map(async (ex) => {
+                const entities = Genie.Utils.makeDummyEntities(ex.preprocessed);
+                const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
+
+                try {
+                    await program.typecheck(this._schemas);
+                    this.push(ex);
+                    return;
+                } catch(e) {
+                    this._dropped++;
+                }
+            }))).filter((id) => id !== null);
+
+            if (toUpdate.length > 0) {
+                await db.query(this._dbClient, `update example_utterances set
+                    flags = concat(flags, ',obsolete') where id in (?)`, [toUpdate]);
+            }
+        }
+    }
+
+    async _generateNewSynthetic() {
         const options = {
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
@@ -195,11 +229,19 @@ class DatasetUpdater {
         await StreamUtils.waitFinish(writer);
     }
 
+    async _transaction() {
+        this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
+        this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
+
+        await this._clearExistingDataset();
+        await this._typecheckParaphrasesAndOnline();
+        await this._generateNewSynthetic();
+    }
+
     async run() {
-        await db.withTransaction(async (dbClient) => {
+        await db.withTransaction((dbClient) => {
             this._dbClient = dbClient;
-            await this._clearExistingDataset();
-            await this._transaction();
+            return this._transaction();
         }, 'repeatable read');
     }
 }
