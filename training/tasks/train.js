@@ -17,7 +17,6 @@ const fs = require('fs');
 const Genie = require('genie-toolkit');
 
 const Config = require('../../config');
-const GPUJob = require('./gpu_training_job');
 
 module.exports = async function main(task, argv) {
     const workdir = path.resolve(task.jobDir, 'workdir');
@@ -46,22 +45,7 @@ module.exports = async function main(task, argv) {
         outputdir
     };
 
-    let genieJob = null;
-    if (Config.ENABLE_ON_DEMAND_GPU_TRAINING) {
-        genieJob = new GPUJob(
-            options,
-            Config.GPU_REGION,
-            Config.GPU_CLUSTER,
-            Config.GPU_NODE_GROUP,
-            Config.GPU_S3_WORKDIR,
-            Config.GPU_SQS_REQUEST_URL,
-            Config.GPU_SQS_RESPONSE_URL,
-        );
-        task.s3outputdir = genieJob.outputdir;
-    } else {
-        genieJob = Genie.Training.createJob(options);
-    }
-
+    const genieJob = Genie.Training.createJob(options);
     genieJob.on('progress', (value) => {
         task.setProgress(value);
     });

@@ -495,18 +495,3 @@ module.exports.GPU_NODE_GROUP = null;
   S3 directory for temporary workdir storage.
 */
 module.exports.GPU_S3_WORKDIR = null;
-
-/**
-  SQS request URL for GPU training.
-
-  The SQS FIFO queue URL used to submit GPU training requests to GPU node.
-*/
-module.exports.GPU_SQS_REQUEST_URL = null;
-
-
-/**
-  SQS response URL for GPU training.
-
-  The SQS FIFO queue URL used to submit GPU training resposne from GPU node.
-*/
-module.exports.GPU_SQS_RESPONSE_URL = null;
