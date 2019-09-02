@@ -17,7 +17,7 @@ spec:
       - name: "nlp"
         image: stanfordoval/almond-cloud:latest-decanlp
         imagePullPolicy: Always
-        command: ["run-nlp"]
+        args: ["run-nlp"]
         volumeMounts:
         - name: config
           mountPath: "/etc/almond-cloud"

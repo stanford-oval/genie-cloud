@@ -16,7 +16,7 @@ spec:
       - name: "gpu-training"
         image: stanfordoval/almond-cloud:latest-decanlp-cuda
         imagePullPolicy: Always
-        command: ["run-gpu-training"]
+        args: ["run-gpu-training"]
         resources:
           limits:
             nvidia.com/gpu: 1

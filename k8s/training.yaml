@@ -16,7 +16,7 @@ spec:
       - name: "training"
         image: stanfordoval/almond-cloud:latest-decanlp
         imagePullPolicy: Always
-        command: ["run-training"]
+        args: ["run-training"]
         volumeMounts:
         - name: config
           mountPath: "/etc/almond-cloud"
