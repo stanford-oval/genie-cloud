@@ -7,7 +7,7 @@ tar -xvzf $EMBEDDINGS_TAR_FILE -C $DECANLP_EMBEDDINGS
 rm -f $EMBEDDINGS_TAR_FILE
 
 # Download models
-S3_NL_MODEL_DIR=`node config_get.js /etc/almond-cloud/config.js NL_MODEL_DIR`
+S3_NL_MODEL_DIR=`/home/almond-prod/src/almond-cloud/scripts/config_get.js NL_MODEL_DIR`
 aws s3 sync $S3_NL_MODEL_DIR .
 
 /usr/bin/node /home/almond-prod/src/almond-cloud/nlp/main.js
