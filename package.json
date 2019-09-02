@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "update-pot": "xgettext -f po/POTFILES -o po/${npm_package_name}.pot --from-code UTF-8 --package-name ${npm_package_name} --package-version ${npm_package_version}; xargs -a po/POTFILES.jade jsxgettext -k _,N_,gettext,ngettext,pgettext -L pug -o po/${npm_package_name}.pot -j",
-    "update-po": "./scripts/update-po.sh",
+    "update-po": "./build/update-po.sh",
     "lint": "eslint almond/ browser/ model/ routes/ util/ stanford/ training/ nlp/ scripts/ config.js frontend.js",
     "test": "nyc ./tests/everything.sh",
     "prepare": "make prepare",
