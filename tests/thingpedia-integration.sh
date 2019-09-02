@@ -9,9 +9,6 @@ set -o pipefail
 
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
-almond-cloud() {
-	${srcdir}/main.js "$@"
-}
 
 PORT=${PORT:-8080}
 cat > $srcdir/secret_config.js <<EOF
@@ -61,14 +58,14 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 # clean the database and bootstrap
 # (this has to occur after setting up the download
 # directories because it copies the icon png files)
-almond-cloud execute-sql-file $srcdir/model/schema.sql
-almond-cloud bootstrap
+${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
+${srcdir}/main.js bootstrap
 
 # load some more data into Thingpedia
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
 eval $(node $srcdir/tests/load_test_thingpedia.js)
 
-almond-cloud run-frontend &
+${srcdir}/main.js run-frontend &
 frontendpid=$!
 
 # in interactive mode, sleep forever
@@ -119,10 +116,10 @@ EOF
 # too, so make sure we don't die with 400 or 500 because Almond is off
 # we have just tested operation without web almond anyway
 export THINGENGINE_DISABLE_SYSTEMD=1
-almond-cloud run-almond &
+${srcdir}/main.js run-almond &
 masterpid=$!
 
-almond-cloud run-frontend &
+${srcdir}/main.js run-frontend &
 frontendpid=$!
 
 if test "$1" = "--webalmond-interactive" ; then

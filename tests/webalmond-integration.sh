@@ -9,9 +9,6 @@ set -o pipefail
 
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
-almond-cloud() {
-	${srcdir}/main.js "$@"
-}
 
 DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test"
 export DATABASE_URL
@@ -36,8 +33,8 @@ module.exports.DISCOURSE_SSO_REDIRECT = 'https://discourse.almond.stanford.edu';
 EOF
 
 # clean the database and bootstrap
-almond-cloud execute-sql-file $srcdir/model/schema.sql
-eval $(almond-cloud bootstrap)
+${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
+eval $(${srcdir}/main.js bootstrap)
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
@@ -68,12 +65,12 @@ done
 node $srcdir/tests/load_test_webalmond.js
 
 export THINGENGINE_DISABLE_SANDBOX=1
-almond-cloud run-almond --shard 0 &
+${srcdir}/main.js run-almond --shard 0 &
 masterpid1=$!
-almond-cloud run-almond --shard 1 &
+${srcdir}/main.js run-almond --shard 1 &
 masterpid2=$!
 
-almond-cloud run-frontend --port 7070 &
+${srcdir}/main.js run-frontend --port 7070 &
 frontendpid=$!
 
 # in interactive mode, sleep forever

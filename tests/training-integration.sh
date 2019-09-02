@@ -8,9 +8,6 @@ set -o pipefail
 
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
-almond-cloud() {
-	${srcdir}/main.js "$@"
-}
 
 export THINGENGINE_USE_TOKENIZER=local
 export GENIE_USE_TOKENIZER=local
@@ -88,16 +85,16 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 # clean the database and bootstrap
 # (this has to occur after setting up the download
 # directories because it copies the icon png files)
-almond-cloud execute-sql-file $srcdir/model/schema.sql
-almond-cloud bootstrap
+${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
+${srcdir}/main.js bootstrap
 
 # load some more data into Thingpedia
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
 eval $(node $srcdir/tests/load_test_thingpedia.js)
 
-almond-cloud run-frontend &
+${srcdir}/main.js run-frontend &
 frontendpid=$!
-almond-cloud run-training &
+${srcdir}/main.js run-training &
 serverpid=$!
 
 # in interactive mode, sleep forever
