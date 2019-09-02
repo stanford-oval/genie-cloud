@@ -17,22 +17,22 @@ const child_process = require('child_process');
 const byline = require('byline');
 
 const Tp = require('thingpedia');
-const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const trainingJobModel = require('../model/training_job');
 
-const GPUJob = require('./gpu_training_job');
-
 const Config = require('../config');
 
-const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
-
 const DEFAULT_TRAINING_CONFIG = {
-    synthetic_depth: 4
+    synthetic_depth: 4,
+    dataset_ppdb_probability_synthetic: 0.1,
+    dataset_ppdb_probability_paraphrase: 1.0,
+    dataset_quoted_probability: 0.1,
+    dataset_eval_probability: 0.5,
+    dataset_split_strategy: 'sentence'
 };
 
-function execCommand(job, script, argv, handleStderr = null, extraEnv = {}) {
+function execCommand(job, script, argv) {
     return new Promise((resolve, reject) => {
         const stdio = ['ignore', 'pipe', 'pipe'];
 
@@ -65,46 +65,26 @@ function execCommand(job, script, argv, handleStderr = null, extraEnv = {}) {
         let stderr = byline(child.stdio[2]);
         stderr.on('data', (line) => {
             process.stderr.write(`job ${job.id}: ${line}\n`);
-            if (handleStderr)
-                handleStderr(line);
         });
     });
 }
 
-async function safeMkdir(dir, options) {
-    try {
-         await util.promisify(fs.mkdir)(dir, options);
-    } catch(e) {
-         if (e.code === 'EEXIST')
-             return;
-         throw e;
-    }
-}
+function execTask(job, taskName) {
+    const nodejs = process.execPath;
+    const args = process.execArgv.concat([
+        '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
+        path.resolve(path.dirname(module.filename), '../main.js'),
+        'run-training-task',
+        '--task-name', taskName,
+        '--job-id', job.id,
+        '--job-directory', job.jobDir,
+    ]);
 
-async function mkdirRecursive(dir) {
-    const components = path.resolve(dir).split('/').slice(1);
-
-    let subpath = '';
-    for (let component of components) {
-         subpath += '/' + component;
-         await safeMkdir(subpath);
-    }
+    return execCommand(job, nodejs, args);
 }
 
 async function taskUpdatingDataset(job) {
-    const script = process.execPath;
-
-    const args = process.execArgv.concat([
-        '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
-        path.resolve(path.dirname(module.filename), './update-dataset.js'),
-        '--language', job.language,
-    ]);
-    if (job.forDevices !== null) {
-        for (let d of job.forDevices)
-            args.push('--device', d);
-    }
-
-    await execCommand(job, script, args);
+    return execTask(job, 'update-dataset');
 }
 
 async function taskReloadingExact(job) {
@@ -119,91 +99,11 @@ async function taskReloadingExact(job) {
 }
 
 async function taskGenerateTrainingSet(job) {
-    job.jobDir = path.resolve('./jobs/' + job.id);
-    await mkdirRecursive(job.jobDir);
-
-    await safeMkdir(path.resolve(job.jobDir, 'dataset'));
-    await safeMkdir(path.resolve(job.jobDir, 'workdir'));
-    await safeMkdir(path.resolve(job.jobDir, 'server'));
-
-    const script = process.execPath;
-
-    const dataset = path.resolve(job.jobDir, 'dataset');
-    const args = process.execArgv.concat([
-        '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
-        path.resolve(path.dirname(module.filename), './prepare-training-set.js'),
-        '--language', job.language,
-        '--owner', job.modelInfo.owner,
-        '--template-file', job.modelInfo.template_file_name,
-        '--train', path.resolve(dataset, 'train.tsv'),
-        '--eval', path.resolve(dataset, 'eval.tsv'),
-        '--maxdepth', job.config.synthetic_depth,
-        '--ppdb', path.resolve(PPDB),
-    ]);
-    for (let d of job.modelInfo.for_devices)
-        args.push('--device', d);
-    for (let f of job.modelInfo.flags)
-        args.push('--flag', f);
-    if (job.modelInfo.use_approved)
-        args.push('--approved-only');
-
-    await execCommand(job, script, args);
-
-    await util.promisify(fs.writeFile)(path.resolve(dataset, 'test.tsv'), '');
+    return execTask(job, 'prepare-training-set');
 }
 
 async function taskTraining(job) {
-    const workdir = path.resolve(job.jobDir, 'workdir');
-    const datadir = path.resolve(job.jobDir, 'dataset');
-    const outputdir = path.resolve(job.jobDir, 'output');
-    
-    const options = {
-        id: job.id,
-        backend: 'decanlp',
-        config: job.config,
-        thingpediaUrl: Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL),
-        debug: true,
-
-        workdir,
-        datadir,
-        outputdir
-    };
-
-    let genieJob = null;
-    if (Config.ENABLE_ON_DEMAND_GPU_TRAINING) {
-        genieJob = new GPUJob(
-            options,
-            Config.GPU_REGION,
-            Config.GPU_CLUSTER,
-            Config.GPU_NODE_GROUP,
-            Config.GPU_S3_WORKDIR,
-            Config.GPU_SQS_REQUEST_URL,
-            Config.GPU_SQS_RESPONSE_URL,
-        );
-        job.s3outputdir = genieJob.outputdir;
-    } else {
-        genieJob = Genie.Training.createJob(options);
-    }
-    // mirror the configuration into job so whatever default we're using now
-    // is stored permanently for later analysis
-    Object.assign(job.config, genieJob.config);
-
-    genieJob.on('progress', (value) => {
-        job.setProgress(value);
-    });
-
-
-    // set the genie job as child of this job
-    // this way, when the job is killed, we'll call .kill()
-    // on the genieJob as well (which in turn will
-    job.child = genieJob;
-
-    await genieJob.train();
-
-    job.child = null;
-
-    if (!job._killed)
-        await job.setMetrics(genieJob.metrics);
+    return execTask(job, 'train');
 }
 
 async function taskUploading(job) {
@@ -261,8 +161,7 @@ module.exports = class Job {
         this.child = null;
         this._allTasks = TASKS[this.data.job_type];
 
-        this.jobDir = null;
-        this.bestModelDir = null;
+        this.jobDir = path.resolve('./jobs/' + this.id);
         this._progressUpdates = [];
     }
 
@@ -333,6 +232,8 @@ module.exports = class Job {
                 return trainingJobModel.recordTask(dbClient, this.data.id, taskName, start, end);
             });
         }
+        if (this._killed)
+            throw new Error(`Killed`);
 
         this.data.status = 'success';
         await this.complete();

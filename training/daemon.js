@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -125,29 +124,11 @@ Check the logs for further information.`
 
             const next = rows[0];
 
-            let modelInfo = null;
-            if (next.model_tag !== null) {
-                modelInfo = (await modelsModel.getByTag(dbClient, next.language, next.model_tag))[0];
-                if (!modelInfo) {
-                    // the model was deleted since the job was scheduled, or some other weirdness
-                    next.status = 'error';
-                    next.error = 'The model this job refers to no longer exists';
-                    await this._recordJobCompletion(dbClient, next);
-                    // try scheduling again in the future (outside the transaction)
-                    setImmediate(() => {
-                        this._startNextJob(jobType);
-                    });
-                    return;
-                }
-            }
-
-            let forDevices = await trainingJobModel.readForDevices(dbClient, next.id);
-
             // check for races
             if (this._currentJobs[jobType])
                 return;
 
-            this._currentJobs[jobType] = new Job(this, next, forDevices, modelInfo);
+            this._currentJobs[jobType] = new Job(this, next);
             await this._currentJobs[jobType].start(dbClient);
         }); // no catch: on error, crash the process
     }
