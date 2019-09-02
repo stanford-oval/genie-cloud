@@ -106,7 +106,7 @@ Default value: `'https://thingpedia.stanford.edu/thingpedia'`
 Where to store icons and zip files.
 
 Set this option to s3 to use Amazon S3, local to use the local filesystem
-which must be configured with the correct permissions).
+(which must be configured with the correct permissions).
 
 Default value: `'local'`
 
@@ -122,16 +122,23 @@ Default value: `'/download'`
 ## ASSET_CDN
 The CDN to use for website assets (javascript, css, images files contained in public/ )
 
-If you are using CloudFront+S3, you can use `./scripts/sync-assets-to-s3.sh ${s3_bucket}`
-to upload the assets. If you are using CloudFront+ELB, you can simply point the
-CDN to the almond-cloud website; the website will act as origin server for the content
-and set appropriate cache headers.
+You should configure your CDN to map the URL you specify here to the /assets
+path on the frontend server (SERVER_ORIGIN setting).
 
 Use a fully qualified URL (including https://) and omit the trailing slash.
-Leave blank if you do not want to use a CDN, in which case assets will
-be loaded directly from the almond-cloud website.
+Use the default `/assets` if you do not want to use a CDN, in which case assets will
+be loaded directly from your configured frontend server.
 
-Default value: `''`
+Default value: `'/assets'`
+
+## USE_BRAND
+Which branding to use for the website.
+
+Valid values are "generic" (no branding) or "stanford" (Stanford University logo and
+footer). Note that the Stanford University logo is a registered trademark, and therefore
+using "stanford" branding requires permission.
+
+Default value: `'generic'`
 
 ## SERVER_ORIGIN
 The origin (scheme, hostname, port) where the server is reachable.

@@ -17,7 +17,7 @@
 // gettext marker
 function _(x) { return x; }
 
-module.exports.USE_STANFORD_BRAND = true;
+module.exports.USE_BRAND = 'stanford';
 module.exports.WITH_THINGPEDIA = 'embedded';
 module.exports.THINGPEDIA_URL = '/thingpedia';
 module.exports.SERVER_ORIGIN = 'https://almond.stanford.edu';
