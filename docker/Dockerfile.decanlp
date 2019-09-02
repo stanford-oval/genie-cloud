@@ -53,3 +53,4 @@ RUN useradd -ms /bin/bash -r almond-cloud
 USER almond-cloud
 WORKDIR /home/almond-cloud
 
+ENTRYPOINT ["/opt/almond-cloud/main.js"]
