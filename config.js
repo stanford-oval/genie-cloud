@@ -358,6 +358,38 @@ module.exports.TRAINING_DIR = './training';
 module.exports.TRAINING_TASK_BACKEND = 'local';
 
 /**
+  The Docker image to use for training using Kubernetes.
+
+  The suffix `-cuda` will be appended to the version for GPU training.
+*/
+module.exports.TRAINING_KUBERNETES_IMAGE = 'stanfordoval/almond-cloud:latest-decanlp';
+
+/**
+  The namespace for Kubernetes Jobs created for training.
+*/
+module.exports.TRAINING_KUBERNETES_NAMESPACE = 'default';
+
+/**
+  Prefix to add to the Kubernetes Jobs and Pods created for training.
+*/
+module.exports.TRAINING_KUBERNETES_JOB_NAME_PREFIX = '';
+
+/**
+  Additional labels to add to the Kubernetes Jobs and Pods created for training.
+*/
+module.exports.TRAINING_KUBERNETES_EXTRA_METADATA_LABELS = {};
+
+/**
+  Additional fields to add to the Kubernetes Pods created for training.
+*/
+module.exports.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE = {};
+
+/**
+  Additional fields to add to the Kubernetes Pods created for training.
+*/
+module.exports.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE = {};
+
+/**
   URL of documentation.
 
   Set this to a string starting with `/doc` to enable the embedded documentation site. Alternatively,

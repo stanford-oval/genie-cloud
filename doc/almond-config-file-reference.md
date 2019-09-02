@@ -351,6 +351,38 @@ a training cluster and must run a service account with sufficient privileges to 
 
 Default value: `'local'`
 
+## TRAINING_KUBERNETES_IMAGE
+The Docker image to use for training using Kubernetes.
+
+The suffix `-cuda` will be appended to the version for GPU training.
+
+Default value: `'stanfordoval/almond-cloud:latest-decanlp'`
+
+## TRAINING_KUBERNETES_NAMESPACE
+The namespace for Kubernetes Jobs created for training.
+
+Default value: `'default'`
+
+## TRAINING_KUBERNETES_JOB_NAME_PREFIX
+Prefix to add to the Kubernetes Jobs and Pods created for training.
+
+Default value: `''`
+
+## TRAINING_KUBERNETES_EXTRA_METADATA_LABELS
+Additional labels to add to the Kubernetes Jobs and Pods created for training.
+
+Default value: `{}`
+
+## TRAINING_KUBERNETES_POD_SPEC_OVERRIDE
+Additional fields to add to the Kubernetes Pods created for training.
+
+Default value: `{}`
+
+## TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE
+Additional fields to add to the Kubernetes Pods created for training.
+
+Default value: `{}`
+
 ## DOCUMENTATION_URL
 URL of documentation.
 

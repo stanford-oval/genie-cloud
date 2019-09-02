@@ -127,6 +127,7 @@
     "tough-cookie": "^3.0.1"
   },
   "optionalDependencies": {
+    "@kubernetes/client-node": "^0.10.2",
     "aws-sdk": "^2.2.48"
   },
   "nyc": {

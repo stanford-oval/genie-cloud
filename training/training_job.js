@@ -170,7 +170,7 @@ module.exports = class Job {
                 await taskSpec.task(this);
             } else {
                 // ask our backend to run this task
-                this.child = this._backend(this, taskSpec);
+                this.child = await this._backend(this, taskSpec);
                 await this.child.wait();
                 this.child = null;
             }
