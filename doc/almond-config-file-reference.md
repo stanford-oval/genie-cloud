@@ -342,6 +342,15 @@ be of the form `file:///`, with 3 consecutive slashes.
 
 Default value: `'./training'`
 
+## TRAINING_TASK_BACKEND
+Which backend to use to run compute-intensive training tasks.
+
+Valid options are `local`, which spawns a local process, and `kubernetes`, which creates
+a Kubernetes Job. If `kubernetes` is chosen, the training controller must be executed in
+a training cluster and must run a service account with sufficient privileges to create and watch Jobs.
+
+Default value: `'local'`
+
 ## DOCUMENTATION_URL
 URL of documentation.
 

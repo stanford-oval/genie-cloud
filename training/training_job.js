@@ -10,9 +10,6 @@
 "use strict";
 
 const util = require('util');
-const child_process = require('child_process');
-const byline = require('byline');
-const path = require('path');
 const fs = require('fs');
 
 const Tp = require('thingpedia');
@@ -32,109 +29,69 @@ const DEFAULT_TRAINING_CONFIG = {
     dataset_split_strategy: 'sentence'
 };
 
-function execCommand(job, script, argv) {
-    return new Promise((resolve, reject) => {
-        const stdio = ['ignore', 'pipe', 'pipe'];
-
-        console.log(`${script} ${argv.map((a) => "'" + a + "'").join(' ')}`);
-        const child = child_process.spawn(script, argv, { stdio, cwd: job.jobDir });
-        job.child = child;
-        child.on('error', reject);
-        child.on('exit', (code, signal) => {
-            job.child = null;
-            if (signal) {
-                if (signal === 'SIGINT' || signal === 'SIGTERM')
-                    reject(new Error(`Killed`));
-                else
-                    reject(new Error(`Command crashed with signal ${signal}`));
-            } else {
-                if (code !== 0)
-                    reject(new Error(`Command exited with code ${code}`));
-                else
-                    resolve();
-            }
-        });
-
-        child.stdio[1].setEncoding('utf-8');
-        let stdout = byline(child.stdio[1]);
-        stdout.on('data', (line) => {
-            process.stdout.write(`job ${job.id}: ${line}\n`);
-        });
-
-        child.stdio[2].setEncoding('utf-8');
-        let stderr = byline(child.stdio[2]);
-        stderr.on('data', (line) => {
-            process.stderr.write(`job ${job.id}: ${line}\n`);
-        });
-    });
-}
-
-function execTask(job, taskName) {
-    const nodejs = process.execPath;
-    const args = process.execArgv.concat([
-        '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
-        path.resolve(path.dirname(module.filename), '../main.js'),
-        'run-training-task',
-        '--task-name', taskName,
-        '--job-id', job.id,
-        '--job-directory', job.jobDir,
-    ]);
-
-    return execCommand(job, nodejs, args);
-}
-
-async function taskUpdatingDataset(job) {
-    return execTask(job, 'update-dataset');
-}
-
-async function taskReloadingExact(job) {
-    // reload the exact matches now that the synthetic set has been updated
-    try {
-        await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/exact/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
-            dataContentType: 'application/x-www-form-urlencoded'
-        });
-    } catch(e) {
-        console.error(`Failed to ask server to reload exact matches: ${e.message}`);
-    }
-}
-
-async function taskGenerateTrainingSet(job) {
-    return execTask(job, 'prepare-training-set');
-}
-
-async function taskTraining(job) {
-    return execTask(job, 'train');
-}
-
-async function taskUploading(job) {
-    const modelLangDir = `${job.model_tag}:${job.language}`;
-    const outputdir = AbstractFS.resolve(job.jobDir, 'output');
-
-    if (Config.NL_MODEL_DIR === null)
-        return;
-
-    await AbstractFS.sync(outputdir + '/',
-        AbstractFS.resolve(Config.NL_MODEL_DIR, modelLangDir) + '/');
-
-    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
-        dataContentType: 'application/x-www-form-urlencoded'
-    });
-}
-
 const TASKS = {
-    'update-dataset': [taskUpdatingDataset, taskReloadingExact],
-    'train': [taskGenerateTrainingSet, taskTraining, taskUploading]
-};
+    'update-dataset': [
+        {
+            name: 'update-dataset',
 
-function taskName(task) {
-    let name;
-    if (typeof task === 'function')
-        name = task.name;
-    else
-        name = String(task);
-    name = name.replace(/^task/, '').replace(/([a-z])([A-Z])/g, (_, one, two) => (one + '_' + two)).toLowerCase();
-    return name;
-}
+            requests: {
+                cpu: 1.1,
+                gpu: 0
+            }
+        },
+        {
+            name: 'reloading-exact',
+
+            async task(job) {
+                // reload the exact matches now that the synthetic set has been updated
+                try {
+                    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/exact/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
+                        dataContentType: 'application/x-www-form-urlencoded'
+                    });
+                } catch(e) {
+                    console.error(`Failed to ask server to reload exact matches: ${e.message}`);
+                }
+            }
+        }
+    ],
+
+    'train': [
+        {
+            name: 'prepare-training-set',
+
+            requests: {
+                cpu: 1.5,
+                gpu: 0
+            }
+        },
+        {
+            name: 'train',
+
+            requests: {
+                cpu: 2.5,
+                gpu: 1
+            }
+        },
+        {
+            name: 'uploading',
+
+            async task(job) {
+                const modelLangDir = `${job.model_tag}:${job.language}`;
+                const outputdir = AbstractFS.resolve(job.jobDir, 'output');
+
+                if (Config.NL_MODEL_DIR === null)
+                    return;
+
+                await AbstractFS.sync(outputdir + '/',
+                    AbstractFS.resolve(Config.NL_MODEL_DIR, modelLangDir) + '/');
+
+                await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
+                    dataContentType: 'application/x-www-form-urlencoded'
+                });
+            }
+        }
+    ]
+};
 
 module.exports = class Job {
     constructor(daemon, jobRow, forDevices, modelInfo) {
@@ -149,6 +106,7 @@ module.exports = class Job {
         this._killed = false;
         this.child = null;
         this._allTasks = TASKS[this.data.job_type];
+        this._backend = require('./backends/' + Config.TRAINING_TASK_BACKEND);
 
         this.jobDir = AbstractFS.resolve(Config.TRAINING_DIR, './jobs/' + this.id);
         this._progressUpdates = [];
@@ -175,10 +133,6 @@ module.exports = class Job {
         });
     }
 
-    _currentTaskName() {
-        return taskName(this._allTasks[this.data.task_index]);
-    }
-
     async _doStart(dbClient) {
         this.data.start_time = new Date;
         this.data.status = 'started';
@@ -203,22 +157,30 @@ module.exports = class Job {
                 throw new Error(`Killed`);
 
             this.data.task_index = i;
-            const taskName = this._currentTaskName();
-            console.log(`Job ${this.data.id} is now ${taskName}`);
-            this.data.task_name = taskName;
+            const taskSpec = this._allTasks[this.data.task_index];
+
+            console.log(`Job ${this.data.id} is now ${taskSpec.name}`);
+            this.data.task_name = taskSpec.name;
             this.data.progress = 0;
             await this._save(['task_index', 'task_name', 'progress']);
 
             const start = new Date();
-            const task = this._allTasks[this.data.task_index];
-            await task(this);
+            if (typeof taskSpec.task === 'function') {
+                // local function task, run it
+                await taskSpec.task(this);
+            } else {
+                // ask our backend to run this task
+                this.child = this._backend(this, taskSpec);
+                await this.child.wait();
+                this.child = null;
+            }
             const end = new Date();
 
             const duration = end - start;
-            console.log(`Completed task ${taskName} in ${Math.round(duration/1000)} seconds`);
+            console.log(`Completed task ${taskSpec.name} in ${Math.round(duration/1000)} seconds`);
 
             await db.withClient((dbClient) => {
-                return trainingJobModel.recordTask(dbClient, this.data.id, taskName, start, end);
+                return trainingJobModel.recordTask(dbClient, this.data.id, taskSpec.name, start, end);
             });
         }
         if (this._killed)

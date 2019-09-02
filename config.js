@@ -349,6 +349,15 @@ module.exports.TRAINING_MEMORY_USAGE = 24000;
 module.exports.TRAINING_DIR = './training';
 
 /**
+  Which backend to use to run compute-intensive training tasks.
+
+  Valid options are `local`, which spawns a local process, and `kubernetes`, which creates
+  a Kubernetes Job. If `kubernetes` is chosen, the training controller must be executed in
+  a training cluster and must run a service account with sufficient privileges to create and watch Jobs.
+*/
+module.exports.TRAINING_TASK_BACKEND = 'local';
+
+/**
   URL of documentation.
 
   Set this to a string starting with `/doc` to enable the embedded documentation site. Alternatively,
