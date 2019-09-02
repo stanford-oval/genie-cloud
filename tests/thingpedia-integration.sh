@@ -26,6 +26,9 @@ trap on_error ERR INT TERM
 oldpwd=`pwd`
 cd $workdir
 
+# remove stale config files
+rm -f $srcdir/secret_config.js
+
 mkdir -p $workdir/etc/config.d
 export THINGENGINE_CONFIGDIR=$workdir/etc
 PORT=${PORT:-8080}

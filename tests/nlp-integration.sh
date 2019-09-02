@@ -20,9 +20,6 @@ export SECRET_KEY
 
 export THINGENGINE_USE_TOKENIZER=local
 
-cat > $srcdir/secret_config.js <<EOF
-EOF
-
 workdir=`mktemp -t -d almond-nlp-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
@@ -39,6 +36,9 @@ trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
+
+# remove stale config files
+rm -f $srcdir/secret_config.js
 
 mkdir -p $workdir/etc/config.d
 export THINGENGINE_CONFIGDIR=$workdir/etc

@@ -12,30 +12,6 @@ srcdir=`realpath $srcdir`
 export THINGENGINE_USE_TOKENIZER=local
 export GENIE_USE_TOKENIZER=local
 
-cat > $srcdir/secret_config.js <<EOF
-module.exports.DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test";
-module.exports.SERVER_ORIGIN = 'http://127.0.0.1:8080';
-module.exports.FILE_STORAGE_BACKEND = 'local';
-module.exports.CDN_HOST = '/download';
-module.exports.WITH_THINGPEDIA = 'embedded';
-module.exports.WITH_LUINET = 'embedded';
-module.exports.THINGPEDIA_URL = '/thingpedia';
-module.exports.DOCUMENTATION_URL = '/doc/getting-started.md';
-module.exports.ENABLE_DEVELOPER_PROGRAM = true;
-module.exports.ENABLE_PROMETHEUS = true;
-module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
-module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
-module.exports.AES_SECRET_KEY = '80bb23f93126074ba01410c8a2278c0c';
-module.exports.JWT_SIGNING_KEY = "not so secret key" ;
-module.exports.SECRET_KEY = "not so secret key";
-module.exports.NL_SERVER_URL = null;
-module.exports.TRAINING_URL = 'http://127.0.0.1:${PORT}';
-module.exports.TRAINING_ACCESS_TOKEN = 'test-training-access-token';
-module.exports.TRAINING_CONFIG_FILE = './training.conf.json';
-module.exports.TRAINING_MEMORY_USAGE = 1000;
-module.exports.SUPPORTED_LANGUAGES = ['en-US'];
-EOF
-
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
@@ -53,6 +29,9 @@ trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
+
+# remove stale config files
+rm -f $srcdir/secret_config.js
 
 mkdir -p $workdir/etc/config.d
 export THINGENGINE_CONFIGDIR=$workdir/etc
