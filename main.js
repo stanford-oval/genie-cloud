@@ -43,7 +43,8 @@ const commands = {
     'get-config': require('./scripts/get-config'),
     'get-user-shards': require('./scripts/get-user-shards'),
     'generate-cheatsheet': require('./scripts/generate-cheatsheet'),
-    'sync-discourse-sso': require('./scripts/sync-discourse-sso')
+    'sync-discourse-sso': require('./scripts/sync-discourse-sso'),
+    'download-dataset': require('./scripts/download-dataset')
 };
 
 platform.init();

@@ -27,7 +27,7 @@ const Genie = require('genie-toolkit');
 const exampleModel = require('../model/example');
 
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
-const { makeFlags } = require('./flag_utils');
+const { makeFlags } = require('../util/genie_flag_utils');
 const StreamUtils = require('./stream-utils');
 
 const db = require('../util/db');
