@@ -9,6 +9,7 @@
 // See COPYING for details
 "use strict";
 
+const Tp = require('thingpedia');
 const events = require('events');
 
 const trainingJobModel = require('../model/training_job');
@@ -16,6 +17,8 @@ const modelsModel = require('../model/nlp_models');
 const db = require('../util/db');
 
 const Tasks = require('./tasks');
+
+const Config = require('../config');
 
 class Task extends events.EventEmitter {
     constructor(jobId, jobDir) {
@@ -53,11 +56,19 @@ class Task extends events.EventEmitter {
         this.emit('killed');
     }
 
-    setProgress() {
-        // TODO
+    async setProgress(value) {
+        let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
+        return Tp.Helpers.Http.post(`${Config.TRAINING_URL}/jobs/${this.jobId}/progress`,
+            JSON.stringify({ value }), {
+            dataContentType: 'application/json', auth,
+        });
     }
-    setMetrics() {
-        // TODO
+    async setMetrics(metrics) {
+        let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
+        return Tp.Helpers.Http.post(`${Config.TRAINING_URL}/jobs/${this.jobId}/metrics`,
+            JSON.stringify(metrics), {
+            dataContentType: 'application/json', auth,
+        });
     }
 }
 

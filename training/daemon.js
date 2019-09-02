@@ -23,6 +23,7 @@ const Metrics = require('../util/metrics');
 const modelsModel = require('../model/nlp_models');
 const trainingJobModel = require('../model/training_job');
 const errorHandling = require('../util/error_handling');
+const { NotFoundError } = require('../util/errors');
 
 const Job = require('./training_job');
 
@@ -231,6 +232,14 @@ Check the logs for further information.`
         });
     }
 
+    getRunningJob(id) {
+        for (let jobType in this._currentJobs) {
+            if (this._currentJobs[jobType].id === id)
+                return this._currentJobs[jobType];
+        }
+        return undefined;
+    }
+
     initFrontend(port) {
         const app = express();
 
@@ -255,6 +264,20 @@ Check the logs for further information.`
                 return;
             }
             next();
+        });
+
+        app.post('/jobs/:id/metrics', (req, res, next) => {
+            const job = this.getRunningJob(parseInt(req.params.id));
+            if (!job)
+                throw new NotFoundError();
+            job.setMetrics(req.body).catch(next);
+        });
+
+        app.post('/jobs/:id/progress', (req, res, next) => {
+            const job = this.getRunningJob(parseInt(req.params.id));
+            if (!job)
+                throw new NotFoundError();
+            job.setProgress(req.body.value).catch(next);
         });
 
         app.post('/jobs/create', async (req, res, next) => { //'
