@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -10,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-require('../util/config_init');
-
 const child_process = require('child_process');
 const Url = require('url');
 const util = require('util');
@@ -19,35 +16,45 @@ const fs = require('fs');
 
 const Config = require('../config');
 
-async function main() {
-    try {
-        const parsed = Url.parse(Config.DATABASE_URL);
-        const [user, pass] = parsed.auth.split(':');
-
-        const argv = [
-            '-h', parsed.hostname,
-            '-u', user,
-            '-p' + pass,
-            '-D', parsed.pathname.substring(1),
-            '--batch'
-        ];
-
-        const stdin = await util.promisify(fs.open)(process.argv[2], 'r');
-        const child = child_process.spawn('mysql', argv, {
-            stdio: [stdin, 'inherit', 'inherit'],
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.addParser('execute-sql-file', {
+            description: 'Execute a SQL script against the configured Almond Cloud database'
         });
-        process.exit(await new Promise((resolve, reject) => {
-            child.on('exit', (code, signal) => {
-                if (signal)
-                    reject(new Error(`Crashed with signal ${signal}`));
-                else
-                    resolve(code);
+        parser.addArgument('filename', {
+            help: "The file to execute"
+        });
+    },
+
+    async main(argv) {
+        try {
+            const parsed = Url.parse(Config.DATABASE_URL);
+            const [user, pass] = parsed.auth.split(':');
+
+            const args = [
+                '-h', parsed.hostname,
+                '-u', user,
+                '-p' + pass,
+                '-D', parsed.pathname.substring(1),
+                '--batch'
+            ];
+
+            const stdin = await util.promisify(fs.open)(argv.filename, 'r');
+            const child = child_process.spawn('mysql', args, {
+                stdio: [stdin, 'inherit', 'inherit'],
             });
-            child.on('error', reject);
-        }));
-    } catch(e) {
-        console.error(e);
-        process.exit(1);
+            process.exit(await new Promise((resolve, reject) => {
+                child.on('exit', (code, signal) => {
+                    if (signal)
+                        reject(new Error(`Crashed with signal ${signal}`));
+                    else
+                        resolve(code);
+                });
+                child.on('error', reject);
+            }));
+        } catch(e) {
+            console.error(e);
+            process.exit(1);
+        }
     }
-}
-main();
+};

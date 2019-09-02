@@ -6,7 +6,7 @@ After=almond-tokenizer.service
 [Service]
 EnvironmentFile=/etc/sysconfig/almond-cloud
 Environment=DECANLP_EMBEDDINGS=/var/lib/almond-cloud/embeddings
-ExecStart=/usr/bin/node /opt/almond-cloud/nlp/main.js
+ExecStart=/opt/almond-cloud/main.js run-nlp
 Type=simple
 User=almond-nlp
 WorkingDirectory=/var/lib/almond-cloud/nlp

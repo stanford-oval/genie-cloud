@@ -13,9 +13,12 @@ spec:
       - name: "training"
         image: ${REPO}/almond/training:v0.7
         imagePullPolicy: Always
-        env:
-        - name: "PORT"
-          value: "9999"
+        command:
+          - /bin/bash
+          - /var/lib/almond-training/startup.sh
+          - run-training
+          - "--port"
+          - 9999
         ports:
         - containerPort: 9999
         volumeMounts:

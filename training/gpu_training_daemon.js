@@ -10,9 +10,6 @@
 // See COPYING for details
 'use strict';
 
-process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
-
 const Genie = require('genie-toolkit');
 const AWS = require('aws-sdk');
 const path = require('path');
@@ -117,14 +114,19 @@ class GPUTrainingDaemon {
     }
 }
 
-async function main() {
-    const daemon = new GPUTrainingDaemon(
-        Config.GPU_REGION,
-        Config.GPU_SQS_REQUEST_URL,
-        Config.GPU_SQS_RESPONSE_URL
-    );
-    await daemon.trainLoop();
-}
+module.exports = {
+    initArgparse(subparsers) {
+        subparsers.addParser('run-gpu-training', {
+            description: 'Run the GPU training process'
+        });
+    },
 
-
-main();
+    async main(argv) {
+        const daemon = new GPUTrainingDaemon(
+            Config.GPU_REGION,
+            Config.GPU_SQS_REQUEST_URL,
+            Config.GPU_SQS_RESPONSE_URL
+        );
+        await daemon.trainLoop();
+    }
+};

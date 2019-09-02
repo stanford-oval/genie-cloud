@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond Cloud
@@ -12,12 +11,6 @@
 
 // Bootstrap an installation of Almond Cloud by creating the
 // database schema and adding the requisite initial data
-
-// load thingpedia to initialize the polyfill
-require('thingpedia');
-
-process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
 
 const path = require('path');
 const fs = require('fs');
@@ -37,7 +30,6 @@ const { makeRandom } = require('../util/random');
 const Importer = require('../util/import_device');
 const { clean } = require('../util/tokenize');
 const TokenizerService = require('../util/tokenizer_service');
-const platform = require('../util/platform');
 const codeStorage = require('../util/code_storage');
 
 const Config = require('../config');
@@ -340,27 +332,32 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
     });
 }
 
-async function main() {
-    platform.init();
+module.exports = {
+    initArgparse(subparsers) {
+        subparsers.addParser('bootstrap', {
+            description: 'Bootstrap an installation of Almond Cloud'
+        });
+    },
 
-    await db.withTransaction(async (dbClient) => {
-        const rootOrg = await createRootOrg(dbClient);
-        await createDefaultUsers(dbClient, rootOrg);
+    async main(argv) {
+        await db.withTransaction(async (dbClient) => {
+            const rootOrg = await createRootOrg(dbClient);
+            await createDefaultUsers(dbClient, rootOrg);
 
-        if (Config.WITH_LUINET === 'embedded') {
-            const templatePack = await importStandardTemplatePack(dbClient, rootOrg);
-            await importDefaultNLPModels(dbClient, rootOrg, templatePack);
-        }
+            if (Config.WITH_LUINET === 'embedded') {
+                const templatePack = await importStandardTemplatePack(dbClient, rootOrg);
+                await importDefaultNLPModels(dbClient, rootOrg, templatePack);
+            }
 
-        if (Config.WITH_THINGPEDIA === 'embedded') {
-            await importStandardEntities(dbClient);
-            await importStandardStringTypes(dbClient, rootOrg);
-            await importStandardSchemas(dbClient, rootOrg);
-            await importBuiltinDevices(dbClient, rootOrg);
-        }
-    });
+            if (Config.WITH_THINGPEDIA === 'embedded') {
+                await importStandardEntities(dbClient);
+                await importStandardStringTypes(dbClient, rootOrg);
+                await importStandardSchemas(dbClient, rootOrg);
+                await importBuiltinDevices(dbClient, rootOrg);
+            }
+        });
 
-    await db.tearDown();
-    TokenizerService.tearDown();
-}
-main();
+        await db.tearDown();
+        TokenizerService.tearDown();
+    }
+};

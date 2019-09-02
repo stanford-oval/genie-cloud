@@ -4,7 +4,7 @@ Description=Apply credit updates to Almond developer organizations
 [Service]
 User=almond-cloud
 EnvironmentFile=/etc/sysconfig/almond-cloud
-ExecStart=/usr/bin/node /opt/almond-cloud/scripts/apply-credits.js
+ExecStart=/opt/almond-cloud/main.js apply-credits
 Type=oneshot
 RemainAfterExit=no
 WorkingDirectory=/var/lib/almond-cloud
