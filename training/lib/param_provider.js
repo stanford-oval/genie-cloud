@@ -9,8 +9,8 @@
 // See COPYING for details
 "use strict";
 
-const entityModel = require('../model/entity');
-const stringModel = require('../model/strings');
+const entityModel = require('../../model/entity');
+const stringModel = require('../../model/strings');
 
 module.exports = class DatabaseParameterProvider {
     constructor(language, dbClient) {

@@ -14,7 +14,7 @@
 require('thingpedia');
 
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+require('../../util/config_init');
 
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
@@ -24,16 +24,16 @@ const fs = require('fs');
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
 
-const AdminThingpediaClient = require('../util/admin-thingpedia-client');
-const { parseFlags } = require('./flag_utils');
-const DatabaseParameterProvider = require('./param_provider');
-const StreamUtils = require('./stream-utils');
-const genSynthetic = require('./sandboxed_synthetic_gen');
+const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
+const { parseFlags } = require('../lib/flag_utils');
+const DatabaseParameterProvider = require('../lib/param_provider');
+const StreamUtils = require('../lib/stream-utils');
+const genSynthetic = require('../sandboxed_synthetic_gen');
 
-const schemaModel = require('../model/schema');
-const orgModel = require('../model/organization');
-const platform = require('../util/platform');
-const db = require('../util/db');
+const schemaModel = require('../../model/schema');
+const orgModel = require('../../model/organization');
+const platform = require('../../util/platform');
+const db = require('../../util/db');
 
 const MAX_SPAN_LENGTH = 10;
 

@@ -21,8 +21,8 @@ const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
 
 const FileThingpediaClient = require('../util/file_thingpedia_client');
-const StreamUtils = require('./stream-utils');
-const ActionSetFlag = require('./action_set_flag');
+const StreamUtils = require('./lib/stream-utils');
+const ActionSetFlag = require('./lib/action_set_flag');
 
 async function main() {
     const parser = new argparse.ArgumentParser({

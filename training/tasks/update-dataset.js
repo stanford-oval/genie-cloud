@@ -14,7 +14,7 @@
 require('thingpedia');
 
 process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
+require('../../util/config_init');
 
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
@@ -24,13 +24,13 @@ const path = require('path');
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
 
-const exampleModel = require('../model/example');
+const exampleModel = require('../../model/example');
 
-const AdminThingpediaClient = require('../util/admin-thingpedia-client');
-const { makeFlags } = require('../util/genie_flag_utils');
-const StreamUtils = require('./stream-utils');
+const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
+const { makeFlags } = require('../../util/genie_flag_utils');
+const StreamUtils = require('../lib/stream-utils');
 
-const db = require('../util/db');
+const db = require('../../util/db');
 
 // FIXME
 const GENIE_FILE = path.resolve(path.dirname(module.filename), '../node_modules/genie-toolkit/languages/en/thingtalk.genie');

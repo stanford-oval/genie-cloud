@@ -125,9 +125,9 @@ module.exports = class GPUTrainingJob extends BaseTrainingJob {
                 console.log('Ignore response from other job:', m);
                 continue;
             }
-            if (typeof m.value !== 'string') 
+            if (typeof m.value !== 'string')
                 throw Error(`message value is not string: ${m}`);
-            
+
             const value = JSON.parse(m.value);
             switch (m.type) {
                 case 'progress':
