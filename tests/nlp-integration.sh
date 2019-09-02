@@ -20,19 +20,7 @@ export SECRET_KEY
 
 export THINGENGINE_USE_TOKENIZER=local
 
-NLP_PORT=${NLP_PORT:-8400}
-TRAINING_PORT=${TRAINING_PORT:-8090}
 cat > $srcdir/secret_config.js <<EOF
-module.exports.NL_SERVER_URL = 'http://127.0.0.1:${NLP_PORT}';
-module.exports.TRAINING_URL = 'http://127.0.0.1:${TRAINING_PORT}';
-module.exports.FILE_STORAGE_BACKEND = 'local';
-module.exports.CDN_HOST = '/download';
-module.exports.WITH_THINGPEDIA = 'external';
-module.exports.WITH_LUINET = 'embedded';
-module.exports.THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
-module.exports.ENABLE_PROMETHEUS = true;
-module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
-module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
 EOF
 
 workdir=`mktemp -t -d almond-nlp-integration-XXXXXX`
@@ -51,6 +39,22 @@ trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
+
+mkdir -p $workdir/etc/config.d
+export THINGENGINE_CONFIGDIR=$workdir/etc
+NLP_PORT=${NLP_PORT:-8400}
+TRAINING_PORT=${TRAINING_PORT:-8090}
+cat > ${THINGENGINE_CONFIGDIR}/config.yaml <<EOF
+NL_SERVER_URL: "http://127.0.0.1:${NLP_PORT}"
+TRAINING_URL: "http://127.0.0.1:${TRAINING_PORT}"
+FILE_STORAGE_BACKEND: local
+CDN_HOST: /download
+WITH_THINGPEDIA: external
+WITH_LUINET: embedded
+THINGPEDIA_URL: https://almond-dev.stanford.edu/thingpedia
+ENABLE_PROMETHEUS: true
+PROMETHEUS_ACCESS_TOKEN: my-prometheus-access-token
+EOF
 
 node $srcdir/tests/mock-tokenizer.js &
 tokenizerpid=$!
