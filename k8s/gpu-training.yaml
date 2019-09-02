@@ -1,24 +1,25 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "nlp-deployment"
+  name: "gpu-training"
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: "gpu-training"
   template:
     metadata:
       labels:
-        app: "nlp"
+        app: "gpu-training"
     spec:
       containers:
-      # main container
-      - name: "nlp"
-        image: ${REPO}/almond/nlp:v0.5
+      - name: "gpu-training"
+        image: stanfordoval/almond-cloud:latest-decanlp-cuda
         imagePullPolicy: Always
-        env:
-        - name: "PORT"
-          value: "9999"
-        ports:
-        - containerPort: 9999
+        command: ["run-gpu-training"]
+        resources:
+          limits:
+            nvidia.com/gpu: 1
         volumeMounts:
         - name: config
           mountPath: "/etc/almond-cloud"
@@ -26,15 +27,6 @@ spec:
         - name: aws
           mountPath: "/home/almond-prod/.aws"
           readOnly: true
-      # sidecar container
-      - name: "tokenizer"
-        image: stanfordoval/almond-tokenizer:v3.0.1
-        imagePullPolicy: Always
-        env:
-        - name: "PORT"
-          value: "8888"
-        ports:
-        - containerPort: 8888
       volumes:
       - name: config
         secret:
@@ -42,3 +34,7 @@ spec:
       - name: aws
         secret:
           secretName: aws-config
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
