@@ -12,8 +12,7 @@
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
 const path = require('path');
-const util = require('util');
-const fs = require('fs');
+const AbstractFS = require('../lib/abstract_fs');
 
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
@@ -221,28 +220,8 @@ class DatasetGenerator {
     }
 }
 
-async function safeMkdir(dir, options) {
-    try {
-         await util.promisify(fs.mkdir)(dir, options);
-    } catch(e) {
-         if (e.code === 'EEXIST')
-             return;
-         throw e;
-    }
-}
-
-async function mkdirRecursive(dir) {
-    const components = path.resolve(dir).split('/').slice(1);
-
-    let subpath = '';
-    for (let component of components) {
-         subpath += '/' + component;
-         await safeMkdir(subpath);
-    }
-}
-
 module.exports = async function main(task, argv) {
-    await mkdirRecursive(task.jobDir);
+    await AbstractFS.mkdirRecursive(task.jobDir);
 
     const modelInfo = task.modelInfo;
     const config = task.config;
@@ -257,8 +236,8 @@ module.exports = async function main(task, argv) {
     });
 
     const generator = new DatasetGenerator(task.language, modelInfo.for_devices, {
-        train: path.resolve(task.jobDir, 'dataset/train.tsv'),
-        eval: path.resolve(task.jobDir, 'dataset/eval.tsv'),
+        train: AbstractFS.createWriteStream(path.resolve(task.jobDir, 'dataset/train.tsv')),
+        eval: AbstractFS.createWriteStream(path.resolve(task.jobDir, 'dataset/eval.tsv')),
 
         // generation flags
         owner: modelInfo.owner,

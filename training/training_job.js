@@ -9,15 +9,15 @@
 // See COPYING for details
 "use strict";
 
-const Url = require('url');
-const fs = require('fs');
-const path = require('path');
 const util = require('util');
 const child_process = require('child_process');
 const byline = require('byline');
+const path = require('path');
+const fs = require('fs');
 
 const Tp = require('thingpedia');
 
+const AbstractFS = require('../util/abstract_fs');
 const db = require('../util/db');
 const trainingJobModel = require('../model/training_job');
 
@@ -108,24 +108,13 @@ async function taskTraining(job) {
 
 async function taskUploading(job) {
     const modelLangDir = `${job.model_tag}:${job.language}`;
-    const outputdir = path.resolve(job.jobDir, 'output');
+    const outputdir = AbstractFS.resolve(job.jobDir, 'output');
 
-    if (Config.NL_SERVER_URL === null)
+    if (Config.NL_MODEL_DIR === null)
         return;
 
-    const INFERENCE_SERVER = Url.parse(Config.NL_SERVER_URL).hostname;
-    if (Config.NL_MODEL_DIR) {
-        await execCommand(job, 'aws', ['s3',
-            'sync',
-            job.s3outputdir,
-            `${Config.NL_MODEL_DIR}/${modelLangDir}/`
-        ]);
-    } else {
-        await execCommand(job, 'rsync', ['-rv',
-            path.resolve(outputdir) + '/',
-            INFERENCE_SERVER + `:${modelLangDir}/`
-        ]);
-    }
+    await AbstractFS.sync(outputdir + '/',
+        AbstractFS.resolve(Config.NL_MODEL_DIR, modelLangDir) + '/');
 
     await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
         dataContentType: 'application/x-www-form-urlencoded'
@@ -161,7 +150,7 @@ module.exports = class Job {
         this.child = null;
         this._allTasks = TASKS[this.data.job_type];
 
-        this.jobDir = path.resolve('./jobs/' + this.id);
+        this.jobDir = AbstractFS.resolve(Config.TRAINING_DIR, './jobs/' + this.id);
         this._progressUpdates = [];
     }
 

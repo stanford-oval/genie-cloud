@@ -70,8 +70,8 @@ multiple masters based on their ID (using a simple hashing scheme).
 
 The number of shards can be changed dynamically, provided all processes use
 a consistent configuration (they must be all stopped when the configuration is changed),
-and all shards have access to shared storage (eg NFS).
-If the storage is not shared, use scripts/shard-users.js to compute which user is
+and all shards have access to shared storage (e.g. NFS).
+If the storage is not shared, use the `get-user-shards` to compute which user is
 assigned to which shard, and transfer the user's folder appropriately.
 
 Default value: `['./control']`
@@ -106,7 +106,7 @@ Default value: `'https://thingpedia.stanford.edu/thingpedia'`
 Where to store icons and zip files.
 
 Set this option to s3 to use Amazon S3, local to use the local filesystem
-which must be configured with the correct permissions).
+(which must be configured with the correct permissions).
 
 Default value: `'local'`
 
@@ -122,16 +122,14 @@ Default value: `'/download'`
 ## ASSET_CDN
 The CDN to use for website assets (javascript, css, images files contained in public/ )
 
-If you are using CloudFront+S3, you can use `./scripts/sync-assets-to-s3.sh ${s3_bucket}`
-to upload the assets. If you are using CloudFront+ELB, you can simply point the
-CDN to the almond-cloud website; the website will act as origin server for the content
-and set appropriate cache headers.
+You should configure your CDN to map the URL you specify here to the /assets
+path on the frontend server (SERVER_ORIGIN setting).
 
 Use a fully qualified URL (including https://) and omit the trailing slash.
-Leave blank if you do not want to use a CDN, in which case assets will
-be loaded directly from the almond-cloud website.
+Use the default `/assets` if you do not want to use a CDN, in which case assets will
+be loaded directly from your configured frontend server.
 
-Default value: `''`
+Default value: `'/assets'`
 
 ## SERVER_ORIGIN
 The origin (scheme, hostname, port) where the server is reachable.
@@ -289,11 +287,19 @@ frontend and the NLP processes; otherwise, only by the NLP process.
 Default value: `'127.0.0.1:8888'`
 
 ## NL_MODEL_DIR
-Deployed model directory on S3.
+Deployed model directory.
 
-Set this path if you want to use s3 to store deployed models.
+This is the path containing the models that should be served by the NLP inference
+server. It can be a relative or absolute path, or a file: or s3: URI.
 
-Default value: `null`
+For a file URI, if the training and inference servers are on different machines,
+you should specify the hostname of the inference server. The training server will
+use `rsync` to upload the model after training.
+
+If this is set to `null`, trained models will not be uploaded to a NLP inference
+server. This is not a valid setting for the inference server.
+
+Default value: `'./models'`
 
 ## TRAINING_URL
 Training server URL.
@@ -325,6 +331,16 @@ Maximum memory usage for training processes.
 In megabytes.
 
 Default value: `24000`
+
+## TRAINING_DIR
+The directory to use to store training jobs (datasets, working directories and trained models).
+
+This can be a relative or absolute path, or a file: or s3: URI.
+
+NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
+be of the form `file:///`, with 3 consecutive slashes.
+
+Default value: `'./training'`
 
 ## DOCUMENTATION_URL
 URL of documentation.
@@ -493,20 +509,6 @@ Default value: `null`
 S3 work dir for GPU training.
 
 S3 directory for temporary workdir storage.
-
-Default value: `null`
-
-## GPU_SQS_REQUEST_URL
-SQS request URL for GPU training.
-
-The SQS FIFO queue URL used to submit GPU training requests to GPU node.
-
-Default value: `null`
-
-## GPU_SQS_RESPONSE_URL
-SQS response URL for GPU training.
-
-The SQS FIFO queue URL used to submit GPU training resposne from GPU node.
 
 Default value: `null`
 

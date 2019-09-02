@@ -13,15 +13,17 @@ const Url = require('url');
 const path = require('path');
 const util = require('util');
 const fs = require('fs');
+const AbstractFS = require('../../util/abstract_fs');
 
 const Genie = require('genie-toolkit');
 
 const Config = require('../../config');
 
 module.exports = async function main(task, argv) {
-    const workdir = path.resolve(task.jobDir, 'workdir');
-    const datadir = path.resolve(task.jobDir, 'dataset');
-    const outputdir = path.resolve(task.jobDir, 'output');
+    const jobdir = await AbstractFS.download(task.jobDir + '/');
+    const datadir = path.resolve(jobdir, 'dataset');
+    const workdir = path.resolve(jobdir, 'workdir');
+    const outputdir = path.resolve(jobdir, 'output');
 
     // create a dummy test.tsv file to placate decanlp
     await util.promisify(fs.writeFile)(path.resolve(datadir, 'test.tsv'), '');
@@ -55,6 +57,8 @@ module.exports = async function main(task, argv) {
 
     await genieJob.train();
 
-    if (!task.killed)
+    if (!task.killed) {
         await task.setMetrics(genieJob.metrics);
+        await task.upload(outputdir, AbstractFS.resolve(task.jobDir, 'output'));
+    }
 };

@@ -293,11 +293,19 @@ module.exports.NL_THINGPEDIA_DEVELOPER_KEY = null;
 module.exports.NL_TOKENIZER_ADDRESS = '127.0.0.1:8888';
 
 /**
-  Deployed model directory on S3.
+  Deployed model directory.
 
-  Set this path if you want to use s3 to store deployed models.
+  This is the path containing the models that should be served by the NLP inference
+  server. It can be a relative or absolute path, or a file: or s3: URI.
+
+  For a file URI, if the training and inference servers are on different machines,
+  you should specify the hostname of the inference server. The training server will
+  use `rsync` to upload the model after training.
+
+  If this is set to `null`, trained models will not be uploaded to a NLP inference
+  server. This is not a valid setting for the inference server.
 */
-module.exports.NL_MODEL_DIR = null;
+module.exports.NL_MODEL_DIR = './models';
 
 /**
   Training server URL.
@@ -329,6 +337,16 @@ module.exports.TRAINING_CONFIG_FILE = null;
   In megabytes.
 */
 module.exports.TRAINING_MEMORY_USAGE = 24000;
+
+/**
+  The directory to use to store training jobs (datasets, working directories and trained models).
+
+  This can be a relative or absolute path, or a file: or s3: URI.
+
+  NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
+  be of the form `file:///`, with 3 consecutive slashes.
+*/
+module.exports.TRAINING_DIR = './training';
 
 /**
   URL of documentation.
