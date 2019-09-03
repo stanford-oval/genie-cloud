@@ -97,7 +97,8 @@ class EngineProcess extends events.EventEmitter {
             locale: user.locale,
             timezone: user.timezone,
             storageKey: user.storage_key,
-            modelTag: user.model_tag || 'default' }]);
+            modelTag: user.model_tag || 'default',
+        }]);
     }
 
     killEngine(userId) {
@@ -187,6 +188,15 @@ class EngineProcess extends events.EventEmitter {
         });
     }
 
+    _addConfigArgs(args) {
+        args.push(
+            '--thingpedia-url', Config.THINGPEDIA_URL,
+            '--nl-server-url', Config.NL_SERVER_URL,
+            '--cdn-host', Config.CDN_HOST,
+            '--oauth-redirect-origin', Config.OAUTH_REDIRECT_ORIGIN
+        );
+    }
+
     start() {
         const ALLOWED_ENVS = ['LANG', 'LOGNAME', 'USER', 'PATH',
                               'HOME', 'SHELL', 'THINGENGINE_PROXY',
@@ -217,6 +227,7 @@ class EngineProcess extends events.EventEmitter {
             args = process.execArgv.slice();
             args.push(enginePath);
             args.push('--shared');
+            this._addConfigArgs(args);
             child = child_process.spawn(process.execPath, args,
                                         { stdio: ['ignore', 'ignore', 2, 'ignore', 'ipc'],
                                           detached: true, // ignore ^C
@@ -226,11 +237,13 @@ class EngineProcess extends events.EventEmitter {
                 processPath = process.execPath;
                 args = process.execArgv.slice();
                 args.push(enginePath);
+                this._addConfigArgs(args);
                 stdio = ['ignore', 1, 2, 'ignore', 'ipc'];
             } else {
                 processPath = path.resolve(managerPath, '../sandbox/sandbox');
                 args = [process.execPath].concat(process.execArgv);
                 args.push(enginePath);
+                this._addConfigArgs(args);
                 stdio = ['ignore', 1, 2, 'pipe', 'ipc'];
 
                 const jsPrefix = path.resolve(path.dirname(managerPath));
