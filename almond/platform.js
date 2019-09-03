@@ -20,11 +20,8 @@ const smtlib = require('smtlib');
 const smtsolver = smtlib.LocalCVC4Solver;
 const Tp = require('thingpedia');
 
-const Assistant = require('./assistant');
 const graphics = require('./graphics');
 const i18n = require('../util/i18n');
-
-const Config = require('../config');
 
 var _unzipApi = {
     unzip(zipPath, dir) {
@@ -174,10 +171,8 @@ class Platform extends Tp.BasePlatform {
         return this._timezone;
     }
 
-    createAssistant(engine, options) {
-        this._assistant = new Assistant(engine, options);
-        // for compat
-        engine.assistant = this._assistant;
+    _setAssistant(assistant) {
+        this._assistant = assistant;
     }
 
     // Return the platform device for this platform, accessing platform-specific
@@ -232,7 +227,7 @@ class Platform extends Tp.BasePlatform {
             return true;
 
         case 'thingpedia-client':
-            return Config.WITH_THINGPEDIA === 'embedded';
+            return module.exports.thingpediaUrl === '/thingpedia';
 
         case 'graphics-api':
         case 'webhook-api':
@@ -368,8 +363,22 @@ var _shared;
 module.exports = {
     // Initialize the platform code
     // Will be called before instantiating the engine
-    init(shared) {
-        _shared = shared;
+    init(options) {
+        _shared = options.shared;
+        this._thingpediaUrl = options.thingpedia_url;
+        this._nlServerUrl = options.nl_server_url;
+        this._cdnHost = options.cdn_host;
+        this._oauthRedirectOrigin = options.oauth_redirect_origin;
+    },
+
+    get thingpediaUrl() {
+        return this._thingpediaUrl;
+    },
+    get nlServerUrl() {
+        return this._nlServerUrl;
+    },
+    get cdnHost() {
+        return this._cdnHost;
     },
 
     get shared() {
@@ -382,8 +391,7 @@ module.exports = {
 
     // for compat with existing code that does platform.getOrigin()
     getOrigin() {
-        // Xor these comments for testing
-        return Config.OAUTH_REDIRECT_ORIGIN;
+        return this._oauthRedirectOrigin;
     },
 
     // Check if this platform has the required capability

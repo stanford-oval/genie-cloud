@@ -15,16 +15,15 @@ require('thingpedia');
 
 const Q = require('q');
 Q.longStackSupport = true;
-require('../util/config_init');
 
 const stream = require('stream');
 const rpc = require('transparent-rpc');
+const argparse = require('argparse');
 
 const Engine = require('thingengine-core');
 const PlatformModule = require('./platform');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
-
-const Config = require('../config');
+const Assistant = require('./assistant');
 
 class ParentProcessSocket extends stream.Duplex {
     constructor() {
@@ -64,14 +63,19 @@ function handleSignal() {
 }
 
 function runEngine(thingpediaClient, options) {
-    var platform = PlatformModule.newInstance(thingpediaClient, options);
+    const platform = PlatformModule.newInstance(thingpediaClient, options);
     if (!PlatformModule.shared)
         global.platform = platform;
 
-    var obj = { cloudId: options.cloudId, running: false, sockets: new Set };
-    var engine = new Engine(platform, { thingpediaUrl: Config.THINGPEDIA_URL });
+    const obj = { cloudId: options.cloudId, running: false, sockets: new Set };
+    const engine = new Engine(platform, { thingpediaUrl: PlatformModule.thingpediaUrl });
     obj.engine = engine;
-    platform.createAssistant(engine, options);
+
+    const assistant = new Assistant(engine, options);
+    platform._setAssistant(assistant);
+    // for compat
+    engine.assistant = this._assistant;
+
     engine.open().then(() => {
         obj.running = true;
 
@@ -130,11 +134,38 @@ function handleDirectSocket(userId, replyId, socket) {
 }
 
 function main() {
-    var shared = (process.argv[2] === '--shared');
+    const parser = new argparse.ArgumentParser({
+        addHelp: true,
+        description: 'Worker Almond process'
+    });
+    parser.addArgument('--shared', {
+        nargs: 0,
+        action: 'storeTrue',
+        help: 'Run as a shared (multi-user) process',
+        defaultValue: false,
+    });
+    parser.addArgument('--thingpedia-url', {
+        required: true,
+        help: 'Thingpedia URL',
+    });
+    parser.addArgument('--oauth-redirect-origin', {
+        required: true,
+        help: 'OAuth Redirect Origin',
+    });
+    parser.addArgument('--nl-server-url', {
+        required: true,
+        help: 'NLP Server URL',
+    });
+    parser.addArgument('--cdn-host', {
+        required: true,
+        help: 'CDN Host',
+    });
+
+    const argv = parser.parseArgs();
 
     // for compat with platform.getOrigin()
     // (but not platform.getCapability())
-    if (shared)
+    if (argv.shared)
         global.platform = PlatformModule;
 
     process.on('SIGINT', handleSignal);
@@ -164,7 +195,7 @@ function main() {
         killEngine: killEngine,
     };
     var rpcId = rpcSocket.addStub(factory);
-    PlatformModule.init(shared);
+    PlatformModule.init(argv);
     process.send({ type: 'ready', id: rpcId });
 
     // wait 10 seconds for a runEngine message

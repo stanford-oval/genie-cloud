@@ -14,12 +14,12 @@ const Ast = ThingTalk.Ast;
 const Formatter = ThingTalk.Formatter;
 const { ParserClient } = require('almond-dialog-agent');
 
-const Config = require('../config');
+const PlatformModule = require('./platform');
 
 module.exports = class AlmondApi {
-    constructor(engine) {
+    constructor(engine, options) {
         this._engine = engine;
-        this._parser = new ParserClient(Config.NL_SERVER_URL, engine.platform.locale, engine.platform.getSharedPreferences());
+        this._parser = new ParserClient(PlatformModule.nlServerUrl, engine.platform.locale, engine.platform.getSharedPreferences());
         this._formatter = new Formatter(this._engine.platform.locale, this._engine.platform.timezone, this._engine.schemas);
 
         this._outputs = new Set;
@@ -46,7 +46,7 @@ module.exports = class AlmondApi {
         return Promise.resolve(this._formatter.formatForType(outputType, outputValue, 'messages')).then((messages) => {
             this._sendWs({ result: {
                 appId: appId,
-                icon: icon ? Config.CDN_HOST + '/icons/' + icon + '.png' : null,
+                icon: icon ? PlatformModule.cdnHost + '/icons/' + icon + '.png' : null,
                 raw: outputValue,
                 type: outputType,
                 formatted: messages
@@ -57,7 +57,7 @@ module.exports = class AlmondApi {
     notifyError(appId, icon, error) {
         this._sendWs({ error: {
             appId: appId,
-            icon: icon ? Config.CDN_HOST + '/icons/' + icon + '.png' : null,
+            icon: icon ? PlatformModule.cdnHost + '/icons/' + icon + '.png' : null,
             error: error
         }});
     }
@@ -172,7 +172,7 @@ module.exports = class AlmondApi {
                 uniqueId: app.uniqueId,
                 description: app.description,
                 code: app.code,
-                icon: Config.CDN_HOST + '/icons/' + app.icon + '.png',
+                icon: PlatformModule.cdnHost + '/icons/' + app.icon + '.png',
                 results, errors
             };
         } catch (e) {
@@ -238,7 +238,7 @@ module.exports = class AlmondApi {
                 name: device.name,
                 description: device.description,
                 kind: device.kind,
-                icon: Config.CDN_HOST + '/icons/' + device.kind + '.png',
+                icon: PlatformModule.cdnHost + '/icons/' + device.kind + '.png',
             };
         }
 

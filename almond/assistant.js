@@ -14,8 +14,7 @@ const events = require('events');
 const Almond = require('almond-dialog-agent');
 const AlmondApi = require('./almond_api');
 const TimedCache = require('../util/timed_cache');
-
-const Config = require('../config');
+const PlatformModule = require('./platform');
 
 const CONVERSATION_TTL = 300000; // 5 minutes
 
@@ -27,7 +26,7 @@ module.exports = class Assistant extends events.EventEmitter {
     constructor(engine, options) {
         super();
 
-        this._url = Config.NL_SERVER_URL;
+        this._url = PlatformModule.nlServerUrl;
         if (options.modelTag !== null &&
             options.modelTag !== 'default' &&
             options.modelTag !== 'org.thingpedia.models.default')

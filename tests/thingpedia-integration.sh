@@ -10,27 +10,6 @@ set -o pipefail
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
 
-PORT=${PORT:-8080}
-cat > $srcdir/secret_config.js <<EOF
-module.exports.DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test";
-module.exports.SERVER_ORIGIN = 'http://127.0.0.1:${PORT}';
-module.exports.FILE_STORAGE_BACKEND = 'local';
-module.exports.CDN_HOST = '/download';
-module.exports.WITH_THINGPEDIA = 'embedded';
-module.exports.WITH_LUINET = 'embedded';
-module.exports.THINGPEDIA_URL = '/thingpedia';
-module.exports.DOCUMENTATION_URL = '/doc/getting-started.md';
-module.exports.ENABLE_DEVELOPER_PROGRAM = true;
-module.exports.ENABLE_PROMETHEUS = true;
-module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
-module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
-module.exports.AES_SECRET_KEY = '80bb23f93126074ba01410c8a2278c0c';
-module.exports.JWT_SIGNING_KEY = "not so secret key" ;
-module.exports.SECRET_KEY = "not so secret key";
-module.exports.NL_SERVER_URL = "https://almond-dev.stanford.edu/nnparser";
-module.exports.SUPPORTED_LANGUAGES = ['en-US', 'it-IT', 'zh-CN', 'zh-TW'];
-EOF
-
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
@@ -46,6 +25,36 @@ trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
+
+# remove stale config files
+rm -f $srcdir/secret_config.js
+
+mkdir -p $workdir/etc/config.d
+export THINGENGINE_CONFIGDIR=$workdir/etc
+PORT=${PORT:-8080}
+cat > ${THINGENGINE_CONFIGDIR}/config.d/99-local.yaml <<EOF
+DATABASE_URL: "mysql://thingengine:thingengine@localhost/thingengine_test"
+SERVER_ORIGIN: "http://127.0.0.1:${PORT}"
+FILE_STORAGE_BACKEND: local
+CDN_HOST: /download
+WITH_THINGPEDIA: embedded
+WITH_LUINET: embedded
+THINGPEDIA_URL: /thingpedia
+DOCUMENTATION_URL: /doc/getting-started.md
+ENABLE_DEVELOPER_PROGRAM: true
+ENABLE_PROMETHEUS: true
+PROMETHEUS_ACCESS_TOKEN: my-prometheus-access-token
+DISCOURSE_SSO_SECRET: d836444a9e4084d5b224a60c208dce14
+AES_SECRET_KEY: 80bb23f93126074ba01410c8a2278c0c
+JWT_SIGNING_KEY: "not so secret key"
+SECRET_KEY: "not so secret key"
+NL_SERVER_URL: "https://almond-dev.stanford.edu/nnparser"
+SUPPORTED_LANGUAGES:
+  - en-US
+  - it-IT
+  - zh-CN
+  - zh-TW
+EOF
 
 # set up download directories
 mkdir -p $workdir/shared/download
@@ -90,27 +99,7 @@ frontendpid=
 wait
 
 # now enable the Stanford pages and run the website again
-cat > $srcdir/secret_config.js <<EOF
-Object.assign(module.exports, require('./stanford/config.js'));
-module.exports.DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test";
-module.exports.SERVER_ORIGIN = 'http://127.0.0.1:${PORT}';
-module.exports.OAUTH_REDIRECT_ORIGIN = module.exports.SERVER_ORIGIN;
-module.exports.FILE_STORAGE_BACKEND = 'local';
-module.exports.CDN_HOST = '/download';
-module.exports.WITH_THINGPEDIA = 'embedded';
-module.exports.WITH_LUINET = 'embedded';
-module.exports.THINGPEDIA_URL = '/thingpedia';
-module.exports.DOCUMENTATION_URL = '/doc/getting-started.md';
-module.exports.ENABLE_DEVELOPER_PROGRAM = true;
-module.exports.ENABLE_PROMETHEUS = true;
-module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
-module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
-module.exports.AES_SECRET_KEY = '80bb23f93126074ba01410c8a2278c0c';
-module.exports.JWT_SIGNING_KEY = "not so secret key" ;
-module.exports.SECRET_KEY = "not so secret key";
-module.exports.NL_SERVER_URL = "https://almond-dev.stanford.edu/nnparser";
-module.exports.SUPPORTED_LANGUAGES = ['en-US', 'it-IT', 'zh-CN', 'zh-TW'];
-EOF
+cp $srcdir/stanford/config.js $THINGENGINE_CONFIGDIR/config.d/00-stanford.js
 
 # the website crawler tests will touch the web almond pages
 # too, so make sure we don't die with 400 or 500 because Almond is off

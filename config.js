@@ -140,6 +140,15 @@ module.exports.CDN_HOST = '/download';
 module.exports.ASSET_CDN = '/assets';
 
 /**
+  Which branding to use for the website.
+
+  Valid values are "generic" (no branding) or "stanford" (Stanford University logo and
+  footer). Note that the Stanford University logo is a registered trademark, and therefore
+  using "stanford" branding requires permission.
+*/
+module.exports.USE_BRAND = 'generic';
+
+/**
   The origin (scheme, hostname, port) where the server is reachable.
 
   This is used for redirects and CORS checks.

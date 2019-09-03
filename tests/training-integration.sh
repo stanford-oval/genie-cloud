@@ -12,31 +12,6 @@ srcdir=`realpath $srcdir`
 export THINGENGINE_USE_TOKENIZER=local
 export GENIE_USE_TOKENIZER=local
 
-PORT=${PORT:-8090}
-cat > $srcdir/secret_config.js <<EOF
-module.exports.DATABASE_URL="mysql://thingengine:thingengine@localhost/thingengine_test";
-module.exports.SERVER_ORIGIN = 'http://127.0.0.1:8080';
-module.exports.FILE_STORAGE_BACKEND = 'local';
-module.exports.CDN_HOST = '/download';
-module.exports.WITH_THINGPEDIA = 'embedded';
-module.exports.WITH_LUINET = 'embedded';
-module.exports.THINGPEDIA_URL = '/thingpedia';
-module.exports.DOCUMENTATION_URL = '/doc/getting-started.md';
-module.exports.ENABLE_DEVELOPER_PROGRAM = true;
-module.exports.ENABLE_PROMETHEUS = true;
-module.exports.PROMETHEUS_ACCESS_TOKEN = 'my-prometheus-access-token';
-module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
-module.exports.AES_SECRET_KEY = '80bb23f93126074ba01410c8a2278c0c';
-module.exports.JWT_SIGNING_KEY = "not so secret key" ;
-module.exports.SECRET_KEY = "not so secret key";
-module.exports.NL_SERVER_URL = null;
-module.exports.TRAINING_URL = 'http://127.0.0.1:${PORT}';
-module.exports.TRAINING_ACCESS_TOKEN = 'test-training-access-token';
-module.exports.TRAINING_CONFIG_FILE = './training.conf.json';
-module.exports.TRAINING_MEMORY_USAGE = 1000;
-module.exports.SUPPORTED_LANGUAGES = ['en-US'];
-EOF
-
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`
 on_error() {
@@ -54,6 +29,36 @@ trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
+
+# remove stale config files
+rm -f $srcdir/secret_config.js
+
+mkdir -p $workdir/etc/config.d
+export THINGENGINE_CONFIGDIR=$workdir/etc
+PORT=${PORT:-8090}
+cat > ${THINGENGINE_CONFIGDIR}/config.yaml <<EOF
+DATABASE_URL: "mysql://thingengine:thingengine@localhost/thingengine_test"
+SERVER_ORIGIN: "http://127.0.0.1:8080"
+FILE_STORAGE_BACKEND: local
+CDN_HOST: /download
+WITH_THINGPEDIA: embedded
+WITH_LUINET: embedded
+THINGPEDIA_URL: /thingpedia
+DOCUMENTATION_URL: /doc/getting-started.md
+ENABLE_DEVELOPER_PROGRAM: true
+ENABLE_PROMETHEUS: true
+PROMETHEUS_ACCESS_TOKEN: my-prometheus-access-token
+DISCOURSE_SSO_SECRET: d836444a9e4084d5b224a60c208dce14
+AES_SECRET_KEY: 80bb23f93126074ba01410c8a2278c0c
+JWT_SIGNING_KEY: "not so secret key"
+SECRET_KEY: "not so secret key"
+NL_SERVER_URL: null
+TRAINING_URL: "http://127.0.0.1:${PORT}"
+TRAINING_ACCESS_TOKEN: test-training-access-token
+TRAINING_CONFIG_FILE: ./training.conf.json
+TRAINING_MEMORY_USAGE: 1000
+SUPPORTED_LANGUAGES: ['en-US']
+EOF
 
 node $srcdir/tests/mock-tokenizer.js &
 tokenizerpid=$!
