@@ -1,9 +1,12 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "training-deployment"
+  name: "training"
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: "training"
   template:
     metadata:
       labels:
@@ -11,13 +14,9 @@ spec:
     spec:
       containers:
       - name: "training"
-        image: ${REPO}/almond/training:v0.7
+        image: stanfordoval/almond-cloud:latest-decanlp
         imagePullPolicy: Always
-        env:
-        - name: "PORT"
-          value: "9999"
-        ports:
-        - containerPort: 9999
+        args: ["run-training"]
         volumeMounts:
         - name: config
           mountPath: "/etc/almond-cloud"
@@ -30,6 +29,15 @@ spec:
             add:
               - SYS_ADMIN
               - NET_ADMIN
+        resources:
+          requests:
+            memory: 32G
+            ephemeral-storage: 40G
+        readinessProbe:
+          tcpSocket:
+            port: 8090
+          initialDelaySeconds: 30
+          periodSeconds: 20
       volumes:
       - name: config
         secret:
@@ -37,3 +45,14 @@ spec:
       - name: aws
         secret:
           secretName: aws-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "training"
+spec:
+  ports:
+  - port: 8090
+    protocol: TCP
+  selector:
+    app: "training"

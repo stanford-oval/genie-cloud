@@ -1,9 +1,8 @@
-#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Almond
 //
-// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
@@ -17,11 +16,18 @@ const orgModel = require('../model/organization');
 const creditSystem = require('../util/credit_system');
 const db = require('../util/db');
 
-async function main() {
-    await db.withTransaction((dbClient) => {
-        return orgModel.applyWeeklyCreditUpdate(dbClient, creditSystem);
-    });
+module.exports = {
+    initArgparse(subparsers) {
+        subparsers.addParser('apply-credits', {
+            description: 'Apply weekly credit update'
+        });
+    },
 
-    await db.tearDown();
-}
-main();
+    async main(argv) {
+        await db.withTransaction((dbClient) => {
+            return orgModel.applyWeeklyCreditUpdate(dbClient, creditSystem);
+        });
+
+        await db.tearDown();
+    }
+};

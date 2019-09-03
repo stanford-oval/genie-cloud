@@ -4,9 +4,7 @@ Description=Almond Cloud Web Frontend
 [Service]
 User=almond-cloud
 WorkingDirectory=/srv/almond-cloud
-EnvironmentFile=/etc/sysconfig/almond-cloud
-Environment=PORT=%I
-ExecStart=/usr/bin/node /opt/almond-cloud/frontend.js
+ExecStart=/opt/almond-cloud/main.js run-frontend --port %I
 CapabilityBoundingSet=
 Restart=on-failure
 RestartSec=1s

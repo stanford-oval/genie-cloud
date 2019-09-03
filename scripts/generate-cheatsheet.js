@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -17,7 +16,6 @@ const util = require('util');
 const path = require('path');
 const Url = require('url');
 const child_process = require('child_process');
-const argparse = require('argparse');
 const Tp = require('thingpedia');
 const seedrandom = require('seedrandom');
 
@@ -192,11 +190,10 @@ async function execCommand(command, argv, options) {
     });
 }
 
-async function main() {
-    try {
-        const parser = new argparse.ArgumentParser({
-            addHelp: true,
-            description: 'A tool to generate cheatsheet in pdf format.'
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.addParser('generate-cheatsheet', {
+            description: 'Generate a cheatsheet in pdf format.'
         });
         parser.addArgument(['-l', '--locale'], {
             required: false,
@@ -236,56 +233,59 @@ async function main() {
             required: false,
             help: 'The suffix of generated files (for generating domain-specific cheatsheet).'
         });
-        const args = parser.parseArgs();
-        const locale = args.locale;
-        const outputpath = path.resolve(args.output);
-        await safeMkdir(outputpath);
+    },
 
-        const rng = seedrandom(args.random_seed);
+    async main(args) {
+        try {
+            const locale = args.locale;
+            const outputpath = path.resolve(args.output);
+            await safeMkdir(outputpath);
 
-        for (let i = 0; i < args.count; i++) {
-            const devices = await getDevices(locale, args.thingpedia, args.dataset, args.sample, rng);
-            const icons = devices.map((d) => d.primary_kind);
-            await safeMkdir(`${outputpath}/icons`);
+            const rng = seedrandom(args.random_seed);
 
-            const baseUrl = Url.resolve(Config.SERVER_ORIGIN, Config.CDN_HOST);
-            for (let icon of icons) {
-                const iconfile = `${outputpath}/icons/${icon}.png`;
-                if (fs.existsSync(iconfile))
-                    continue;
-                const url = Url.resolve(baseUrl, `/icons/${icon}.png`);
-                try {
-                    await saveFile(url, iconfile);
-                } catch(e) {
-                    console.error(`Failed to download icon for ${icon}`);
+            for (let i = 0; i < args.count; i++) {
+                const devices = await getDevices(locale, args.thingpedia, args.dataset, args.sample, rng);
+                const icons = devices.map((d) => d.primary_kind);
+                await safeMkdir(`${outputpath}/icons`);
+
+                const baseUrl = Url.resolve(Config.SERVER_ORIGIN, Config.CDN_HOST);
+                for (let icon of icons) {
+                    const iconfile = `${outputpath}/icons/${icon}.png`;
+                    if (fs.existsSync(iconfile))
+                        continue;
+                    const url = Url.resolve(baseUrl, `/icons/${icon}.png`);
+                    try {
+                        await saveFile(url, iconfile);
+                    } catch(e) {
+                        console.error(`Failed to download icon for ${icon}`);
+                    }
                 }
-            }
 
-            const suffix = '-' + (args.suffix ? args.suffix : '') + i;
-            await genTex(devices, outputpath, suffix);
-            await execCommand('latexmk',
-                ['-pdf', `cheatsheet${suffix}.tex`], {
-                cwd: outputpath,
-                stdio: ['ignore', 'inherit', 'inherit'],
-            });
-            await execCommand('pdfcrop',
-                ['--margins', '25', `cheatsheet${suffix}.pdf`], {
-                cwd: outputpath,
-                stdio: ['ignore', 'inherit', 'inherit']
-            });
-            await execCommand('convert',
-                ['-density', '100', `cheatsheet${suffix}-crop.pdf`, `cheatsheet${suffix}.png`], {
-                cwd: outputpath,
-                stdio: ['ignore', 'inherit', 'inherit']
-            });
-            await execCommand('rm',
-                [`cheatsheet${suffix}.pdf`, `cheatsheet${suffix}.aux`, `cheatsheet${suffix}.fdb_latexmk`, `cheatsheet${suffix}.fls`, `cheatsheet${suffix}.log`], {
-                cwd: outputpath,
-                stdio: ['ignore', 'inherit', 'inherit']
-            });
+                const suffix = '-' + (args.suffix ? args.suffix : '') + i;
+                await genTex(devices, outputpath, suffix);
+                await execCommand('latexmk',
+                    ['-pdf', `cheatsheet${suffix}.tex`], {
+                    cwd: outputpath,
+                    stdio: ['ignore', 'inherit', 'inherit'],
+                });
+                await execCommand('pdfcrop',
+                    ['--margins', '25', `cheatsheet${suffix}.pdf`], {
+                    cwd: outputpath,
+                    stdio: ['ignore', 'inherit', 'inherit']
+                });
+                await execCommand('convert',
+                    ['-density', '100', `cheatsheet${suffix}-crop.pdf`, `cheatsheet${suffix}.png`], {
+                    cwd: outputpath,
+                    stdio: ['ignore', 'inherit', 'inherit']
+                });
+                await execCommand('rm',
+                    [`cheatsheet${suffix}.pdf`, `cheatsheet${suffix}.aux`, `cheatsheet${suffix}.fdb_latexmk`, `cheatsheet${suffix}.fls`, `cheatsheet${suffix}.log`], {
+                    cwd: outputpath,
+                    stdio: ['ignore', 'inherit', 'inherit']
+                });
+            }
+        } finally {
+            await db.tearDown();
         }
-    } finally {
-        await db.tearDown();
     }
-}
-main();
+};

@@ -178,12 +178,12 @@ Common correct choices include `/srv/almond-cloud` and `/var/lib/almond-cloud`.
 
 Set up your database by running
 ```sh
-node ./scripts/execute-sql-file.js ./model/schema.sql
+almond-cloud execute-sql-file ./model/schema.sql
 ```
 
 After that, execute:
 ```sh
-node ./scripts/bootstrap.js
+almond-cloud bootstrap
 ```
 
 This script will create the default `root` user, with password `rootroot`.
@@ -204,7 +204,7 @@ Web Almond is composed of a master process, and a number of worker processes.
 To start the master process, create a working directory, say `/srv/almond-cloud/workdir`, then do:
 
 ```sh
-cd /srv/almond-cloud/workdir ; node <path-to-almond-cloud>/almond/master.js
+cd /srv/almond-cloud/workdir ; almond-cloud run-almond
 ```
 
 **Do not** use a subdirectory of the code checkout for the Web Almond working directory,
@@ -227,10 +227,10 @@ the repository is located at `/opt/almond-cloud` and the local state directory i
 You can run the web frontend in the same working directory as the master process, by saying:
 
 ```
-PORT=... node <path-to-almond-cloud>/frontend.js
+almond-cloud run-frontend --port ...
 ```
 
-If PORT is unspecified, it defaults to 8080. Multiple frontend web services can be run on different
+If `--port` is unspecified, it defaults to 8080. Multiple frontend web services can be run on different
 ports, for load balancing. It is recommended to run at least two.
 An example systemd unit file is provided, called `almond-website@.service`.
 
@@ -258,10 +258,10 @@ for an example.
 
 To run the NLP inference server do:
 ```
-PORT=... node <path-to-almond-cloud>/nlp/main.js
+almond-cloud run-nlp --port ...
 ```
 
-PORT defaults to 8400. You can run multiple NLP inference servers on the same machine, but it is not
+The port defaults to 8400. You can run multiple NLP inference servers on the same machine, but it is not
 recommended, as each server already makes use of all available cores, and multiple servers can easily
 exhaust available RAM. It is also not recommended to run this on the same machine as the frontend and
 and master processes.
@@ -276,7 +276,7 @@ the master and frontend processes.
 You can automate training custom NLP models using the training server, which you can run as:
 
 ```
-PORT=... node <path-to-almond-cloud>/training/daemon.js
+almond-cloud run-training
 ```
 
 The current directly must be writable to the user running the server, and must be on disk with
@@ -292,4 +292,3 @@ for example with the following SSH `authorized_keys` entry:
 ```
 command="/usr/local/bin/rrsync -wo /var/lib/almond-cloud/nlp",restrict ssh-rsa AAAA...
 ```
-

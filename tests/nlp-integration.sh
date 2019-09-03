@@ -64,8 +64,8 @@ mkdir -p $workdir/shared/cache
 echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
 
 # clean the database and bootstrap
-$srcdir/scripts/execute-sql-file.js $srcdir/model/schema.sql
-node $srcdir/scripts/bootstrap.js
+${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
+${srcdir}/main.js bootstrap
 
 mkdir -p 'org.thingpedia.models.default:en'
 mkdir -p 'org.thingpedia.models.contextual:en'
@@ -78,13 +78,13 @@ tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'org.thingpedia.mo
 
 # remove developer models that were autoadded by bootstrap
 # we'll test the main models only (there is no difference really)
-$srcdir/scripts/execute-sql-file.js <(echo "delete from models where tag like '%developer%'")
+${srcdir}/main.js execute-sql-file <(echo "delete from models where tag like '%developer%'")
 
 mkdir -p 'classifier'
 wget --no-verbose -c https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
 tar xvf $srcdir/tests/embeddings/classifier1.tar.gz -C 'classifier'
 
-PORT=$NLP_PORT node $srcdir/nlp/main.js &
+${srcdir}/main.js run-nlp --port $NLP_PORT &
 inferpid=$!
 
 # in interactive mode, sleep forever

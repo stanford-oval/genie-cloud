@@ -80,8 +80,8 @@ module.exports.AES_SECRET_KEY = process.env.AES_SECRET_KEY;
 
   The number of shards can be changed dynamically, provided all processes use
   a consistent configuration (they must be all stopped when the configuration is changed),
-  and all shards have access to shared storage (eg NFS).
-  If the storage is not shared, use scripts/shard-users.js to compute which user is
+  and all shards have access to shared storage (e.g. NFS).
+  If the storage is not shared, use the `get-user-shards` to compute which user is
   assigned to which shard, and transfer the user's folder appropriately.
 */
 module.exports.THINGENGINE_MANAGER_ADDRESS = ['./control'];

@@ -11,12 +11,6 @@
 // See COPYING for details
 "use strict";
 
-// load thingpedia to initialize the polyfill
-require('thingpedia');
-
-process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
-
 const express = require('express');
 const path = require('path');
 
@@ -30,7 +24,6 @@ const Metrics = require('../util/metrics');
 const modelsModel = require('../model/nlp_models');
 const trainingJobModel = require('../model/training_job');
 const errorHandling = require('../util/error_handling');
-const platform = require('../util/platform');
 
 const Job = require('./training_job');
 
@@ -257,10 +250,10 @@ Check the logs for further information.`
         });
     }
 
-    initFrontend() {
+    initFrontend(port) {
         const app = express();
 
-        app.set('port', process.env.PORT || 8090);
+        app.set('port', port);
         app.set('views', path.join(__dirname, 'views'));
         app.set('view engine', 'pug');
         app.enable('trust proxy');
@@ -308,14 +301,26 @@ Check the logs for further information.`
     }
 }
 
-async function main() {
-    platform.init();
-    const daemon = new TrainingDaemon();
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.addParser('run-training', {
+            description: 'Run the training controller process'
+        });
+        parser.addArgument(['-p', '--port'], {
+            required: false,
+            type: Number,
+            help: 'Listen on the given port',
+            defaultValue: 8090
+        });
+    },
 
-    await daemon.checkExistingJobs();
-    daemon.initFrontend();
+    async main(argv) {
+        const daemon = new TrainingDaemon();
 
-    if (Config.ENABLE_PROMETHEUS)
-        Prometheus.collectDefaultMetrics();
-}
-main();
+        await daemon.checkExistingJobs();
+        daemon.initFrontend(argv.port);
+
+        if (Config.ENABLE_PROMETHEUS)
+            Prometheus.collectDefaultMetrics();
+    }
+};

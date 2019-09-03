@@ -9,14 +9,6 @@
 // See COPYING for details
 "use strict";
 
-// load thingpedia to initialize the polyfill
-require('thingpedia');
-
-const Q = require('q');
-Q.longStackSupport = true;
-process.on('unhandledRejection', (up) => { throw up; });
-require('./util/config_init');
-
 const express = require('express');
 const http = require('http');
 const url = require('url');
@@ -39,7 +31,6 @@ const secretKey = require('./util/secret_key');
 const db = require('./util/db');
 const I18n = require('./util/i18n');
 const userUtils = require('./util/user');
-const platform = require('./util/platform');
 const Metrics = require('./util/metrics');
 const errorHandling = require('./util/error_handling');
 const codeStorage = require('./util/code_storage');
@@ -48,14 +39,14 @@ const EngineManager = require('./almond/enginemanagerclient');
 const Config = require('./config');
 
 class Frontend {
-    constructor() {
+    constructor(port) {
         // all environments
         this._app = express();
 
         this.server = http.createServer(this._app);
         require('express-ws')(this._app, this.server);
 
-        this._app.set('port', process.env.PORT || 8080);
+        this._app.set('port', port);
         this._app.set('views', path.join(__dirname, 'views'));
         this._app.set('view engine', 'pug');
         this._app.enable('trust proxy');
@@ -353,30 +344,41 @@ class Frontend {
     }
 }
 
-function main() {
-    platform.init();
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.addParser('run-frontend', {
+            description: 'Run a Web Almond frontend'
+        });
+        parser.addArgument(['-p', '--port'], {
+            required: false,
+            type: Number,
+            help: 'Listen on the given port',
+            defaultValue: 8080
+        });
+    },
 
-    const frontend = new Frontend();
-    const enginemanager = new EngineManager();
-    enginemanager.start();
+    main(argv) {
+        const frontend = new Frontend(argv.port);
+        const enginemanager = new EngineManager();
+        enginemanager.start();
 
-    let metricsInterval = null;
-    if (Config.ENABLE_PROMETHEUS)
-        metricsInterval = Prometheus.collectDefaultMetrics();
+        let metricsInterval = null;
+        if (Config.ENABLE_PROMETHEUS)
+            metricsInterval = Prometheus.collectDefaultMetrics();
 
-    async function handleSignal() {
-        if (metricsInterval)
-            clearInterval(metricsInterval);
-        await frontend.close();
-        await enginemanager.stop();
-        await db.tearDown();
-        process.exit();
+        async function handleSignal() {
+            if (metricsInterval)
+                clearInterval(metricsInterval);
+            await frontend.close();
+            await enginemanager.stop();
+            await db.tearDown();
+            process.exit();
+        }
+
+        process.on('SIGINT', handleSignal);
+        process.on('SIGTERM', handleSignal);
+
+        // open the HTTP server
+        frontend.open();
     }
-
-    process.on('SIGINT', handleSignal);
-    process.on('SIGTERM', handleSignal);
-
-    // open the HTTP server
-    frontend.open();
-}
-main();
+};

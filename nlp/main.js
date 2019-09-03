@@ -10,14 +10,6 @@
 // See COPYING for details
 "use strict";
 
-// load thingpedia to initialize the polyfill
-require('thingpedia');
-
-const Q = require('q');
-Q.longStackSupport = true;
-process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
-
 const express = require('express');
 const path = require('path');
 
@@ -106,11 +98,11 @@ class NLPInferenceServer {
         console.log(`Loaded ${this._models.size} models`);
     }
 
-    initFrontend() {
+    initFrontend(port) {
         const app = express();
 
         app.service = this;
-        app.set('port', process.env.PORT || 8400);
+        app.set('port', port);
         app.set('views', path.join(__dirname, 'views'));
         app.set('view engine', 'pug');
         app.enable('trust proxy');
@@ -145,14 +137,26 @@ class NLPInferenceServer {
     }
 }
 
-function main() {
-    const daemon = new NLPInferenceServer();
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.addParser('run-nlp', {
+            description: 'Run the NLP inference process'
+        });
+        parser.addArgument(['-p', '--port'], {
+            required: false,
+            type: Number,
+            help: 'Listen on the given port',
+            defaultValue: 8400
+        });
+    },
 
-    daemon.loadAllLanguages();
-    daemon.initFrontend();
+    main(argv) {
+        const daemon = new NLPInferenceServer();
 
-    if (Config.ENABLE_PROMETHEUS)
-        Prometheus.collectDefaultMetrics();
-}
-main();
+        daemon.loadAllLanguages();
+        daemon.initFrontend(argv.port);
 
+        if (Config.ENABLE_PROMETHEUS)
+            Prometheus.collectDefaultMetrics();
+    }
+};

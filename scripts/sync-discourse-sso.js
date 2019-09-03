@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -10,11 +9,6 @@
 // See COPYING for details
 "use strict";
 
-// load thingpedia to initialize the polyfill
-require('thingpedia');
-process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
-
 const Tp = require('thingpedia');
 const DiscourseSSO = require('discourse-sso');
 
@@ -24,30 +18,41 @@ const userUtils = require('../util/user');
 
 const Config = require('../config');
 
-async function main() {
-    const sso = new DiscourseSSO(Config.DISCOURSE_SSO_SECRET);
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.addParser('sync-discourse-sso', {
+            description: 'Create a Discourse user for an existing Almond user'
+        });
 
-    const user = (await db.withClient((dbClient) => {
-        return model.getByName(dbClient, process.argv[2]);
-    }))[0];
-    if (!user)
-        throw new Error(`No such user ${process.argv[2]}`);
+        parser.addArgument(['username'], {
+            help: 'The Almond user for which a new Discourse user will be created'
+        });
+    },
 
-    const payload = {
-        nonce: '',
-        external_id: user.cloud_id,
-        email: user.email,
-        username: user.username,
-        name: user.human_name,
-        admin: (user.roles & userUtils.Role.DISCOURSE_ADMIN) === userUtils.Role.DISCOURSE_ADMIN
-    };
-    console.log(payload);
+    async main(argv) {
+        const sso = new DiscourseSSO(Config.DISCOURSE_SSO_SECRET);
 
-    await Tp.Helpers.Http.post('https://community.almond.stanford.edu/admin/users/sync_sso',
-        sso.buildLoginString(payload) + '&api_username=root&api_key=' + Config.DISCOURSE_API_KEY, {
-        dataContentType: 'application/x-www-form-urlencoded'
-    });
+        const user = (await db.withClient((dbClient) => {
+            return model.getByName(dbClient, argv.username);
+        }))[0];
+        if (!user)
+            throw new Error(`No such user ${argv.username}`);
 
-    await db.tearDown();
-}
-main();
+        const payload = {
+            nonce: '',
+            external_id: user.cloud_id,
+            email: user.email,
+            username: user.username,
+            name: user.human_name,
+            admin: (user.roles & userUtils.Role.DISCOURSE_ADMIN) === userUtils.Role.DISCOURSE_ADMIN
+        };
+        console.log(payload);
+
+        await Tp.Helpers.Http.post('https://community.almond.stanford.edu/admin/users/sync_sso',
+            sso.buildLoginString(payload) + '&api_username=root&api_key=' + Config.DISCOURSE_API_KEY, {
+            dataContentType: 'application/x-www-form-urlencoded'
+        });
+
+        await db.tearDown();
+    }
+};

@@ -34,7 +34,7 @@ for migration in $srcdir/model/migrations/* ; do
 
 		case $migration in
 		*.sql)
-			$srcdir/scripts/execute-sql-file.js $migration
+			$srcdir/main.js execute-sql-file $migration
 			;;
 		*)
 			$migration

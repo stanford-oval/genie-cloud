@@ -6,8 +6,8 @@ After=almond-tokenizer.service
 [Service]
 Type=simple
 User=almond-training
-WorkingDirectory=/var/lib/almond-training
-ExecStart=/usr/bin/node /opt/almond-cloud/training/daemon.js
+WorkingDirectory=/var/lib/almond-cloud/training
+ExecStart=/opt/almond-cloud/main.js run-training
 
 [Install]
 WantedBy=multi-user.target

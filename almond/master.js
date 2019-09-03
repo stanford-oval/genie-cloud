@@ -10,20 +10,12 @@
 // See COPYING for details
 "use strict";
 
-// load thingpedia to initialize the polyfill
-require('thingpedia');
-
 const Q = require('q');
-Q.longStackSupport = true;
-process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
-
 const assert = require('assert');
 const events = require('events');
 const rpc = require('transparent-rpc');
 const net = require('net');
 const sockaddr = require('sockaddr');
-const argparse = require('argparse');
 
 const EngineManager = require('./enginemanager');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
@@ -126,52 +118,54 @@ class ControlSocketServer {
     }
 }
 
-function main() {
-    const parser = new argparse.ArgumentParser({
-        addHelp: true,
-        description: 'Master Almond process'
-    });
-    parser.addArgument(['-s', '--shard'], {
-        required: false,
-        type: Number,
-        help: 'Shard number for this process',
-        defaultValue: 0
-    });
-    const argv = parser.parseArgs();
-    if (argv.shard < 0 || argv.shard >= Config.THINGENGINE_MANAGER_ADDRESS.length)
-        throw new InternalError('E_INVALID_CONFIG', `Invalid shard number ${argv.shard}, must be between 0 and ${Config.THINGENGINE_MANAGER_ADDRESS.length-1}`);
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.addParser('run-almond', {
+            description: 'Run the master Web Almond process'
+        });
+        parser.addArgument(['-s', '--shard'], {
+            required: false,
+            type: Number,
+            help: 'Shard number for this process',
+            defaultValue: 0
+        });
+    },
 
-    const enginemanager = new EngineManager(argv.shard);
+    main(argv) {
+        if (argv.shard < 0 || argv.shard >= Config.THINGENGINE_MANAGER_ADDRESS.length)
+            throw new InternalError('E_INVALID_CONFIG', `Invalid shard number ${argv.shard}, must be between 0 and ${Config.THINGENGINE_MANAGER_ADDRESS.length-1}`);
 
-    const controlSocket = new ControlSocketServer(enginemanager, argv.shard);
+        const enginemanager = new EngineManager(argv.shard);
 
-    controlSocket.start().then(() => {
-        return enginemanager.start();
-    }).catch((e) => {
-        console.error('Failed to start: ' + e.message);
-        console.error(e.stack);
-        process.exit(1);
-    });
+        const controlSocket = new ControlSocketServer(enginemanager, argv.shard);
 
-    let _stopping = false;
-    async function stop() {
-        if (_stopping)
-            return;
-        _stopping = true;
-        try {
-            await Promise.all([
-                enginemanager.stop(),
-                controlSocket.stop()
-            ]);
-        } catch(e) {
-            console.error('Failed to stop: ' + e.message);
+        controlSocket.start().then(() => {
+            return enginemanager.start();
+        }).catch((e) => {
+            console.error('Failed to start: ' + e.message);
             console.error(e.stack);
             process.exit(1);
-        }
-        process.exit(0);
-    }
+        });
 
-    process.on('SIGINT', stop);
-    process.on('SIGTERM', stop);
-}
-main();
+        let _stopping = false;
+        async function stop() {
+            if (_stopping)
+                return;
+            _stopping = true;
+            try {
+                await Promise.all([
+                    enginemanager.stop(),
+                    controlSocket.stop()
+                ]);
+            } catch(e) {
+                console.error('Failed to stop: ' + e.message);
+                console.error(e.stack);
+                process.exit(1);
+            }
+            process.exit(0);
+        }
+
+        process.on('SIGINT', stop);
+        process.on('SIGTERM', stop);
+    }
+};

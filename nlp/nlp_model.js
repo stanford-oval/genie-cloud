@@ -14,6 +14,7 @@ const Genie = require('genie-toolkit');
 const Tp = require('thingpedia');
 
 const BaseThingpediaClient = require('../util/thingpedia-client');
+const cmd = require('../util/command');
 
 const Config = require('../config');
 
@@ -43,6 +44,7 @@ module.exports = class NLPModel {
     constructor(spec, service) {
         this.accessToken = spec.access_token;
         this.id = `@${spec.tag}/${spec.language}`;
+        this.tag = spec.tag;
         this.locale = spec.language;
 
         if (spec.use_exact)
@@ -68,15 +70,28 @@ module.exports = class NLPModel {
         }
     }
 
+    async _syncLocalCopy() {
+        if (Config.NL_MODEL_DIR) {
+            const modelLangDir = `${this.tag}:${this.locale}`;
+            await cmd.exec('aws', ['s3',
+                'sync',
+                `${Config.NL_MODEL_DIR}/${modelLangDir}/`,
+                path.resolve('.') + '/' + modelLangDir + '/'
+            ]);
+        }
+    }
+
     destroy() {
         return this.predictor.stop();
     }
 
-    reload() {
+    async reload() {
+        await this._syncLocalCopy();
         return this.predictor.reload();
     }
 
-    load() {
+    async load() {
+        await this._syncLocalCopy();
         return this.predictor.start();
     }
 };
