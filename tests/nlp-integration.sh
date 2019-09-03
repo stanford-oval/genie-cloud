@@ -84,7 +84,7 @@ mkdir -p 'classifier'
 wget --no-verbose -c https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
 tar xvf $srcdir/tests/embeddings/classifier1.tar.gz -C 'classifier'
 
-PORT=$NLP_PORT node $srcdir/nlp/main.js &
+${srcdir}/main.js run-nlp --port $NLP_PORT &
 inferpid=$!
 
 # in interactive mode, sleep forever
