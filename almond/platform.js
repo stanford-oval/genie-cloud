@@ -20,7 +20,6 @@ const smtlib = require('smtlib');
 const smtsolver = smtlib.LocalCVC4Solver;
 const Tp = require('thingpedia');
 
-const Assistant = require('./assistant');
 const graphics = require('./graphics');
 const i18n = require('../util/i18n');
 
@@ -172,10 +171,8 @@ class Platform extends Tp.BasePlatform {
         return this._timezone;
     }
 
-    createAssistant(engine, options) {
-        this._assistant = new Assistant(engine, options);
-        // for compat
-        engine.assistant = this._assistant;
+    _setAssistant(assistant) {
+        this._assistant = assistant;
     }
 
     // Return the platform device for this platform, accessing platform-specific

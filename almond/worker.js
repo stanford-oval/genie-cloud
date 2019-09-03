@@ -23,6 +23,7 @@ const argparse = require('argparse');
 const Engine = require('thingengine-core');
 const PlatformModule = require('./platform');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
+const Assistant = require('./assistant');
 
 class ParentProcessSocket extends stream.Duplex {
     constructor() {
@@ -62,14 +63,19 @@ function handleSignal() {
 }
 
 function runEngine(thingpediaClient, options) {
-    var platform = PlatformModule.newInstance(thingpediaClient, options);
+    const platform = PlatformModule.newInstance(thingpediaClient, options);
     if (!PlatformModule.shared)
         global.platform = platform;
 
-    var obj = { cloudId: options.cloudId, running: false, sockets: new Set };
-    var engine = new Engine(platform, { thingpediaUrl: PlatformModule.thingpediaUrl });
+    const obj = { cloudId: options.cloudId, running: false, sockets: new Set };
+    const engine = new Engine(platform, { thingpediaUrl: PlatformModule.thingpediaUrl });
     obj.engine = engine;
-    platform.createAssistant(engine, options);
+
+    const assistant = new Assistant(engine, options);
+    platform._setAssistant(assistant);
+    // for compat
+    engine.assistant = this._assistant;
+
     engine.open().then(() => {
         obj.running = true;
 
