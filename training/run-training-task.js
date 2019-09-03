@@ -30,13 +30,13 @@ class Task extends events.EventEmitter {
     }
 
     get language() {
-        return this.jobInfo.language;
+        return this.info.language;
     }
 
     async load() {
         await db.withTransaction(async (dbClient) => {
             this.info = await trainingJobModel.get(dbClient, this.jobId);
-            this.config = JSON.parse(this.jobInfo.config);
+            this.config = JSON.parse(this.info.config);
 
             this.modelInfo = null;
             if (this.info.model_tag !== null) {
@@ -48,7 +48,7 @@ class Task extends events.EventEmitter {
             }
 
             this.forDevices = await trainingJobModel.readForDevices(dbClient, this.jobId);
-        }, 'repeatable read', 'read only');
+        }, 'serializable', 'read only');
     }
 
     kill() {
@@ -78,7 +78,7 @@ module.exports = {
             help: 'Run a training task',
         });
 
-        parser.addArgument('-t', '--task-name', {
+        parser.addArgument(['-t', '--task-name'], {
             help: 'The name of the task to run',
             choices: Object.keys(Tasks),
             required: true
@@ -110,6 +110,7 @@ module.exports = {
 
     async main(argv) {
         const task = new Task(argv.job_id, argv.job_directory);
+        await task.load();
         process.on('SIGINT', () => task.kill());
         process.on('SIGTERM', () => task.kill());
 

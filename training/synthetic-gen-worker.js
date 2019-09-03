@@ -21,7 +21,7 @@ const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
 
 const FileThingpediaClient = require('../util/file_thingpedia_client');
-const StreamUtils = require('./lib/stream-utils');
+const StreamUtils = require('../util/stream-utils');
 const ActionSetFlag = require('./lib/action_set_flag');
 
 async function main() {
@@ -79,6 +79,9 @@ async function main() {
     };
 
     const generator = new Genie.BasicSentenceGenerator(options);
+    /*generator.on('progress', (value) => {
+        console.error('progress:' + value);
+    });*/
     const stringifier = new Genie.DatasetStringifier();
 
     generator.pipe(stringifier).pipe(process.stdout);

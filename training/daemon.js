@@ -220,7 +220,7 @@ Check the logs for further information.`
 
     killJob(id) {
         return db.withTransaction(async (dbClient) => {
-            const job = await trainingJobModel.get(dbClient, id);
+            const job = await trainingJobModel.getForUpdate(dbClient, id);
             if (job.status === 'started' && this._currentJobs[job.job_types] &&
                 this._currentJobs[job.job_types].id === id) {
                 this._currentJobs[job.job_types].kill();
@@ -234,7 +234,7 @@ Check the logs for further information.`
 
     getRunningJob(id) {
         for (let jobType in this._currentJobs) {
-            if (this._currentJobs[jobType].id === id)
+            if (this._currentJobs[jobType] && this._currentJobs[jobType].id === id)
                 return this._currentJobs[jobType];
         }
         return undefined;
@@ -270,14 +270,18 @@ Check the logs for further information.`
             const job = this.getRunningJob(parseInt(req.params.id));
             if (!job)
                 throw new NotFoundError();
-            job.setMetrics(req.body).catch(next);
+            job.setMetrics(req.body).then(() => {
+                res.json({ result: 'ok' });
+            }).catch(next);
         });
 
         app.post('/jobs/:id/progress', (req, res, next) => {
             const job = this.getRunningJob(parseInt(req.params.id));
             if (!job)
                 throw new NotFoundError();
-            job.setProgress(req.body.value).catch(next);
+            job.setProgress(req.body.value).then(() => {
+                res.json({ result: 'ok' });
+            }).catch(next);
         });
 
         app.post('/jobs/create', async (req, res, next) => { //'

@@ -30,6 +30,7 @@ module.exports.AES_SECRET_KEY = '80bb23f93126074ba01410c8a2278c0c';
 module.exports.JWT_SIGNING_KEY = "not so secret key" ;
 module.exports.SECRET_KEY = "not so secret key";
 module.exports.NL_SERVER_URL = null;
+module.exports.NL_MODEL_DIR = null;
 module.exports.TRAINING_URL = 'http://127.0.0.1:${PORT}';
 module.exports.TRAINING_ACCESS_TOKEN = 'test-training-access-token';
 module.exports.TRAINING_CONFIG_FILE = './training.conf.json';

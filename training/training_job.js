@@ -76,7 +76,7 @@ const TASKS = {
             name: 'uploading',
 
             async task(job) {
-                const modelLangDir = `${job.model_tag}:${job.language}`;
+                const modelLangDir = `./${job.model_tag}:${job.language}`;
                 const outputdir = AbstractFS.resolve(job.jobDir, 'output');
 
                 if (Config.NL_MODEL_DIR === null)
@@ -199,7 +199,7 @@ module.exports = class Job {
 
     async fail(error) {
         if (this.data.status !== 'queued' && !this._killed) {
-            console.error(`Job ${this.data.id} failed during task ${this._currentTaskName()}: ${error}`);
+            console.error(`Job ${this.data.id} failed during task ${this.data.task_name}: ${error}`);
             if (error.stack)
                 console.error(error.stack);
         }

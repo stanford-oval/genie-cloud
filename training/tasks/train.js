@@ -13,9 +13,9 @@ const Url = require('url');
 const path = require('path');
 const util = require('util');
 const fs = require('fs');
-const AbstractFS = require('../../util/abstract_fs');
-
 const Genie = require('genie-toolkit');
+
+const AbstractFS = require('../../util/abstract_fs');
 
 const Config = require('../../config');
 
@@ -59,6 +59,6 @@ module.exports = async function main(task, argv) {
 
     if (!task.killed) {
         await task.setMetrics(genieJob.metrics);
-        await task.upload(outputdir, AbstractFS.resolve(task.jobDir, 'output'));
+        await AbstractFS.upload(outputdir, AbstractFS.resolve(task.jobDir, 'output'));
     }
 };

@@ -13,7 +13,7 @@ const child_process = require('child_process');
 const byline = require('byline');
 const path = require('path');
 
-const Config = require('../config');
+const Config = require('../../config');
 
 class TaskRunner {
     constructor(child) {
@@ -51,7 +51,7 @@ module.exports = function execTask(job, spec) {
     const nodejs = process.execPath;
     const args = process.execArgv.concat([
         '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
-        path.resolve(path.dirname(module.filename), '../main.js'),
+        path.resolve(path.dirname(module.filename), '../../main.js'),
         'run-training-task',
         '--task-name', spec.name,
         '--job-id', job.id,

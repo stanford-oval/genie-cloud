@@ -17,7 +17,7 @@ const Genie = require('genie-toolkit');
 
 const db = require('../util/db');
 const { parseFlags } = require('../util/genie_flag_utils');
-const StreamUtils = require('./stream-utils');
+const StreamUtils = require('../util/stream-utils');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -59,19 +59,19 @@ module.exports = {
             const regexp = ' @(' + forDevices.map((d) => d.replace(/[.\\]/g, '\\$&')).join('|') + ')\\.[A-Za-z0-9_]+( |$)';
 
             query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and not find_in_set('obsolete',flags)
+                where language = ? and not find_in_set('obsolete',flags) and not find_in_set('template',flags)
                 and target_code<>'' and preprocessed<>'' and target_code rlike ?
                 order by id asc`,
                 [language, regexp]);
         } else if (types.length > 0) {
             query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and not find_in_set('obsolete',flags)
+                where language = ? and not find_in_set('obsolete',flags) and not find_in_set('template',flags)
                 and target_code<>'' and preprocessed<>'' and type in (?)
                 order by id asc`,
                 [language, types]);
         } else {
             query = dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                where language = ? and not find_in_set('obsolete',flags)
+                where language = ? and not find_in_set('obsolete',flags) and not find_in_set('template',flags)
                 and target_code<>'' and preprocessed<>''
                 order by id asc`,
                 [language]);

@@ -104,7 +104,11 @@ function cleanEnv() {
 }
 
 module.exports = async function genSynthetic(options) {
-    const tmpDir = await tmp.dir({ mode: 0o700, prefix: 'synthetic-gen-sandbox.' });
+    const { path: tmpDir } = await tmp.dir({
+        mode: 0o700,
+        prefix: 'synthetic-gen-sandbox.',
+        unsafeCleanup: true
+    });
 
     await downloadThingpedia(options.dbClient, options.orgId, options.language, tmpDir);
     await downloadTemplatePack(options.dbClient, options.language, options.templatePack, tmpDir);

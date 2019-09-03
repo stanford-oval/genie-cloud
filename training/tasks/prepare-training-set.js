@@ -12,15 +12,15 @@
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
 const path = require('path');
-const AbstractFS = require('../lib/abstract_fs');
 
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
 
+const AbstractFS = require('../../util/abstract_fs');
 const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
-const { parseFlags } = require('../lib/flag_utils');
+const { parseFlags } = require('../../util/genie_flag_utils');
+const StreamUtils = require('../../util/stream-utils');
 const DatabaseParameterProvider = require('../lib/param_provider');
-const StreamUtils = require('../lib/stream-utils');
 const genSynthetic = require('../sandboxed_synthetic_gen');
 
 const schemaModel = require('../../model/schema');
@@ -61,6 +61,12 @@ class TypecheckStream extends Stream.Transform {
     }
 
     async process(ex) {
+        if (ex.flags.synthetic) {
+            // skip typechecking synthetic examples, we know they are correct
+            this.push(ex);
+            return;
+        }
+
         const entities = Genie.Utils.makeDummyEntities(ex.preprocessed);
         const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
 
@@ -209,6 +215,7 @@ class DatasetGenerator {
         });
 
         source.pipe(typecheck).pipe(augmenter).pipe(splitter);
+
         await Promise.all(promises);
     }
 
@@ -221,7 +228,7 @@ class DatasetGenerator {
 }
 
 module.exports = async function main(task, argv) {
-    await AbstractFS.mkdirRecursive(task.jobDir);
+    await AbstractFS.mkdirRecursive(AbstractFS.resolve(task.jobDir, 'dataset'));
 
     const modelInfo = task.modelInfo;
     const config = task.config;
@@ -232,8 +239,8 @@ module.exports = async function main(task, argv) {
     });
 
     const generator = new DatasetGenerator(task.language, modelInfo.for_devices, {
-        train: AbstractFS.createWriteStream(path.resolve(task.jobDir, 'dataset/train.tsv')),
-        eval: AbstractFS.createWriteStream(path.resolve(task.jobDir, 'dataset/eval.tsv')),
+        train: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/train.tsv')),
+        eval: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/eval.tsv')),
 
         // generation flags
         owner: modelInfo.owner,

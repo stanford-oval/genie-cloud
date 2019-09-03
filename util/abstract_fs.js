@@ -21,7 +21,7 @@ const cmd = require('./command');
 // An abstraction over file system operations, that supports local files and s3:// URIs
 
 const _backends = {
-    's3': {
+    's3:': {
         mkdirRecursive() {
             // nothing to do, directories don't need to be created in S3 and don't carry
             // metadata anyway
@@ -30,13 +30,21 @@ const _backends = {
         async download(url) {
             if (url.pathname.endsWith('/')) { // directory
                 // use /var/tmp as the parent directory, to ensure it's on disk and not in a tmpfs
-                const dir = await tmp.dir({ mode: 0o700, dir: '/var/tmp',
-                    prefix: path.basename(url.pathname) + '.' });
+                const { path: dir } = await tmp.dir({
+                    mode: 0o700,
+                    dir: '/var/tmp',
+                    unsafeCleanup: true,
+                    prefix: path.basename(url.pathname) + '.'
+                });
                 await cmd.exec('aws', ['s3', 'sync', 's3://' + url.hostname + url.pathname, dir]);
                 return dir;
             } else { // file
-                const file = await tmp.file({ mode: 0o600, dir: '/var/tmp',
-                    prefix: path.basename(url.pathname) + '.' });
+                const { path: file } = await tmp.file({
+                    mode: 0o600,
+                    discardDescriptor: true,
+                    dir: '/var/tmp',
+                    prefix: path.basename(url.pathname) + '.'
+                });
                 await cmd.exec('aws', ['s3', 'cp',  's3://' + url.hostname + url.pathname, file]);
                 return file;
             }
@@ -74,7 +82,7 @@ const _backends = {
         }
     },
 
-    'file': {
+    'file:': {
         async mkdirRecursive(url) {
             async function safeMkdir(dir, options) {
                 try {
@@ -104,7 +112,7 @@ const _backends = {
 
         async upload(localdir, url) {
             if (!url.hostname) {
-                if (localdir === url.pathname)
+                if (path.resolve(localdir) === path.resolve(url.pathname))
                     return;
                 await cmd.exec('cp', ['-rT', localdir, url.pathname]);
                 return;
@@ -131,14 +139,15 @@ const _backends = {
     }
 };
 
-const cwd = 'file:///' + process.cwd() + '/';
+const cwd = 'file://' + process.cwd() + '/';
 function getBackend(url) {
     url = Url.resolve(cwd, url);
+    const parsed = Url.parse(url);
 
-    if (!_backends[url.scheme])
-        throw new Error(`Unknown URL scheme ${url.scheme}`);
+    if (!_backends[parsed.protocol])
+        throw new Error(`Unknown URL scheme ${parsed.protocol}`);
 
-    return [url, _backends[url.scheme]];
+    return [parsed, _backends[parsed.protocol]];
 }
 
 module.exports = {
@@ -154,7 +163,7 @@ module.exports = {
       AbstractFS.resolve('file:///foo', 'bar') = 'file://foo/bar'
       AbstractFS.resolve('/foo', 'bar') = '/foo/bar'
     */
-    async resolve(url, ...others) {
+    resolve(url, ...others) {
         url = Url.resolve(cwd, url);
         for (let other of others)
             url = Url.resolve(url + '/', other);
@@ -204,11 +213,11 @@ module.exports = {
     async removeTemporary(pathname) {
         if (!pathname.startsWith('/var/tmp'))
             return;
-        await _backends['file'].removeRecursive({ pathname });
+        await _backends['file:'].removeRecursive({ pathname });
     },
 
     async isLocal(url) {
         const [, backend] = getBackend(url);
-        return backend === 'file';
+        return backend === 'file:';
     }
 };

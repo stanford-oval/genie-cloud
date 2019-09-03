@@ -83,8 +83,11 @@ module.exports = {
         return rows.map((r) => r.kind);
     },
 
-    get(client, id) {
+    getForUpdate(client, id) {
         return db.selectOne(client, `select * from training_jobs where id = ? for update`, [id]);
+    },
+    get(client, id) {
+        return db.selectOne(client, `select * from training_jobs where id = ?`, [id]);
     },
 
     getLastSuccessful(client, jobType) {

@@ -78,7 +78,7 @@ tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'org.thingpedia.mo
 
 # remove developer models that were autoadded by bootstrap
 # we'll test the main models only (there is no difference really)
-${srcdir}/main.js execute-sql-file <<<"delete from models where tag like '%developer%'"
+${srcdir}/main.js execute-sql-file - <<<"delete from models where tag like '%developer%'"
 
 mkdir -p 'classifier'
 wget --no-verbose -c https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
