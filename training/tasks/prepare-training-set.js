@@ -226,10 +226,6 @@ module.exports = async function main(task, argv) {
     const modelInfo = task.modelInfo;
     const config = task.config;
 
-    const flags = {};
-    for (let f of modelInfo.flags)
-        flags[f] = true;
-
     task.on('killed', () => {
         // die quietly if killed
         process.exit(0);
@@ -242,7 +238,7 @@ module.exports = async function main(task, argv) {
         // generation flags
         owner: modelInfo.owner,
         approvedOnly: modelInfo.use_approved,
-        flags: flags,
+        flags: modelInfo.flags,
         maxDepth: config.synthetic_depth,
         templatePack: modelInfo.template_file_name,
 

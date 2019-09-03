@@ -14,7 +14,7 @@ const Url = require('url');
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
-const tmp = require('tmp');
+const tmp = require('tmp-promise');
 
 const cmd = require('./command');
 
@@ -31,12 +31,12 @@ const _backends = {
             if (url.pathname.endsWith('/')) { // directory
                 // use /var/tmp as the parent directory, to ensure it's on disk and not in a tmpfs
                 const dir = await tmp.dir({ mode: 0o700, dir: '/var/tmp',
-                    prefix: path.basename(url.pathname) });
+                    prefix: path.basename(url.pathname) + '.' });
                 await cmd.exec('aws', ['s3', 'sync', 's3://' + url.hostname + url.pathname, dir]);
                 return dir;
             } else { // file
                 const file = await tmp.file({ mode: 0o600, dir: '/var/tmp',
-                    prefix: path.basename(url.pathname) });
+                    prefix: path.basename(url.pathname) + '.' });
                 await cmd.exec('aws', ['s3', 'cp',  's3://' + url.hostname + url.pathname, file]);
                 return file;
             }

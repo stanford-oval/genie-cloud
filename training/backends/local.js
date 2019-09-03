@@ -61,7 +61,7 @@ module.exports = function execTask(job, spec) {
     const stdio = ['ignore', 'pipe', 'pipe'];
 
     console.log(`${nodejs} ${args.map((a) => "'" + a + "'").join(' ')}`);
-    const child = child_process.spawn(nodejs, args, { stdio, cwd: job.jobDir });
+    const child = child_process.spawn(nodejs, args, { stdio });
 
     child.stdio[1].setEncoding('utf-8');
     let stdout = byline(child.stdio[1]);
