@@ -149,7 +149,7 @@ module.exports = async function execTask(job, spec) {
                             name: 'main',
                             image: Config.TRAINING_KUBERNETES_IMAGE + (spec.gpu > 0 ? '-cuda' : ''),
                             imagePullPolicy: 'Always',
-                            command: [
+                            args: [
                                 'run-training-task',
                                 '--task-name', spec.name,
                                 '--job-id', job.id,
