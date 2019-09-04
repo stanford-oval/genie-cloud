@@ -22,7 +22,10 @@ spec:
           mountPath: "/etc/almond-cloud"
           readOnly: true
         - name: aws
-          mountPath: "/home/almond-prod/.aws"
+          mountPath: "/home/almond-cloud/.aws"
+          readOnly: true
+        - name: training-config
+          mountPath: "/etc/almond-cloud/training"
           readOnly: true
         securityContext:
           capabilities:
@@ -45,6 +48,9 @@ spec:
       - name: aws
         secret:
           secretName: aws-config
+      - name: training-config
+        configMap:
+          name: training-config
 ---
 apiVersion: v1
 kind: Service
@@ -56,3 +62,38 @@ spec:
     protocol: TCP
   selector:
     app: "training"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: training-config
+data:
+  training.conf.json: |-
+    {
+      "train_iterations": 50000,
+      "save_every": 2000,
+      "val_every": 1000,
+      "log_every": 500,
+      "trainable_decoder_embedding": 50,
+      "no_glove_decoder": true,
+      "synthetic_depth": 5,
+      "no_commit": true
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: training-config-small
+data:
+  training.conf.json: |-
+    {
+      "train_iterations": 100,
+      "save_every": 50,
+      "val_every": 50,
+      "log_every": 10,
+      "trainable_decoder_embedding": 50,
+      "no_glove_decoder": true,
+      "synthetic_depth": 2,
+      "no_commit": true
+    }
+
