@@ -131,6 +131,15 @@ be loaded directly from your configured frontend server.
 
 Default value: `'/assets'`
 
+## USE_BRAND
+Which branding to use for the website.
+
+Valid values are "generic" (no branding) or "stanford" (Stanford University logo and
+footer). Note that the Stanford University logo is a registered trademark, and therefore
+using "stanford" branding requires permission.
+
+Default value: `'generic'`
+
 ## SERVER_ORIGIN
 The origin (scheme, hostname, port) where the server is reachable.
 
