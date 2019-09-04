@@ -71,14 +71,14 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 ${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
 ${srcdir}/main.js bootstrap
 
-mkdir -p 'org.thingpedia.models.default:en'
-mkdir -p 'org.thingpedia.models.contextual:en'
+mkdir -p 'models/org.thingpedia.models.default:en'
+mkdir -p 'models/org.thingpedia.models.contextual:en'
 
 wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current.tar.gz -O $srcdir/tests/embeddings/current.tar.gz
-tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'org.thingpedia.models.default:en'
+tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'models/org.thingpedia.models.default:en'
 
 wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current-contextual.tar.gz -O $srcdir/tests/embeddings/current-contextual.tar.gz
-tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'org.thingpedia.models.contextual:en'
+tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'models/org.thingpedia.models.contextual:en'
 
 # remove developer models that were autoadded by bootstrap
 # we'll test the main models only (there is no difference really)
