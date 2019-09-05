@@ -92,7 +92,7 @@ CREATE TABLE `mturk_validation_output` (
   `submission_id` char(16) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `answer` enum('same','different') COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`validation_sentence_id`, `submission_id`),
-  KEY `submission_id` (`validation_sentence_id`, `submission_id`,),
+  KEY `submission_id` (`validation_sentence_id`, `submission_id`),
   CONSTRAINT `mturk_validation_output_ibfk_0` FOREIGN KEY (`submission_id`) REFERENCES `mturk_validation_log` (`submission_id`) ON UPDATE CASCADE ON DELETE CASCADE,
   CONSTRAINT `mturk_validation_output_ibfk_1` FOREIGN KEY (`validation_sentence_id`) REFERENCES `mturk_validation_input` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
