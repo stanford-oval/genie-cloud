@@ -28,7 +28,7 @@ const example = require('../model/example');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const TokenizerService = require('../util/tokenizer_service');
 const iv = require('../util/input_validation');
-const { BadRequestError, ForbiddenError, InternalError } = require('../util/errors');
+const { BadRequestError, ForbiddenError, InternalError, NotFoundError } = require('../util/errors');
 const { shuffle } = require('../util/random');
 
 const Config = require('../config');
@@ -530,6 +530,8 @@ router.get(`/submit/:batch/:hit`, (req, res, next) => {
 
         return model.getHIT(dbClient, batchId, hitId);
     }, 'serializable', 'read only').then((hit) => {
+        if (hit.length === 0)
+            throw new NotFoundError();
         let program_id = [];
         let sentences = [];
         let code = [];
@@ -571,7 +573,7 @@ router.post('/validate', iv.validatePOST({ batch: 'string', hit: 'string' }), (r
         for (let hit of hits) {
             if (req.body['validation-' + hit.id] !== 'same' && req.body['validation-' + hit.id] !== 'different') {
                 throw new BadRequestError(req._("Missing or invalid parameter %s")
-                    .format(`validation[${hit.id}]`));
+                    .format(`validation-${hit.id}`));
             }
             if (hit.type === 'fake-same' && req.body['validation-' + hit.id] !== 'same') {
                 errors ++;
@@ -613,9 +615,9 @@ router.get(`/validate/:batch/:hit`, (req, res, next) => {
 
         return model.getValidationHIT(dbClient, batchId, hitId);
     }, 'serializable', 'read only').then((hit) => {
+        if (hit.length === 0)
+            throw new NotFoundError();
         let sentences = [];
-
-        console.log(hit);
 
         let current = undefined;
         for (let row of hit) {
@@ -636,7 +638,6 @@ router.get(`/validate/:batch/:hit`, (req, res, next) => {
                 sentences.push(current);
             }
         }
-        console.log(sentences);
 
         res.render('mturk_validate', {
             page_title: req._("Almond - Paraphrase Validation"),

@@ -30,4 +30,6 @@ seq([
 
     // only test alexa with embedded thingpedia, so we know what intents are available
     Config.WITH_THINGPEDIA === 'embedded' ? ('./test_alexa') : null,
+
+    Config.WITH_THINGPEDIA === 'embedded' ? ('./test_mturk') : null,
 ]);
