@@ -39,7 +39,8 @@ module.exports = {
                 '--batch'
             ];
 
-            const stdin = await util.promisify(fs.open)(argv.filename, 'r');
+            const stdin = argv.filename === '-' ? 'inherit' :
+                await util.promisify(fs.open)(argv.filename, 'r');
             const child = child_process.spawn('mysql', args, {
                 stdio: [stdin, 'inherit', 'inherit'],
             });

@@ -9,12 +9,11 @@
 // See COPYING for details
 "use strict";
 
-const path = require('path');
 const Genie = require('genie-toolkit');
 const Tp = require('thingpedia');
 
 const BaseThingpediaClient = require('../util/thingpedia-client');
-const cmd = require('../util/command');
+const AbstractFS = require('../util/abstract_fs');
 
 const Config = require('../config');
 
@@ -40,6 +39,8 @@ class DummyExactMatcher {
     add() {}
 }
 
+const nprocesses = 1;
+
 module.exports = class NLPModel {
     constructor(spec, service) {
         this.accessToken = spec.access_token;
@@ -52,10 +53,8 @@ module.exports = class NLPModel {
         else
             this.exact = new DummyExactMatcher(); // non default models don't get any exact match
 
-        const modeldir = path.resolve(`./${spec.tag}:${spec.language}`);
-
-        const nprocesses = 1;
-        this.predictor = new Genie.Predictor(this.id, modeldir, nprocesses);
+        this._localdir = null;
+        this._modeldir = AbstractFS.resolve(Config.NL_MODEL_DIR, `./${spec.tag}:${spec.language}`);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             const org = (spec.owner === null || spec.owner === 1) ? { is_admin: true, id: 1 } : { is_admin: false, id: spec.owner };
@@ -70,28 +69,34 @@ module.exports = class NLPModel {
         }
     }
 
-    async _syncLocalCopy() {
-        if (Config.NL_MODEL_DIR) {
-            const modelLangDir = `${this.tag}:${this.locale}`;
-            await cmd.exec('aws', ['s3',
-                'sync',
-                `${Config.NL_MODEL_DIR}/${modelLangDir}/`,
-                path.resolve('.') + '/' + modelLangDir + '/'
-            ]);
-        }
+    async _download() {
+        this._localdir = await AbstractFS.download(this._modeldir);
     }
 
     destroy() {
-        return this.predictor.stop();
+        return Promise.all([
+            this.predictor.stop(),
+            AbstractFS.removeTemporary(this._localdir)
+        ]);
     }
 
     async reload() {
-        await this._syncLocalCopy();
-        return this.predictor.reload();
+        const oldlocaldir = this._localdir;
+        await this._download();
+
+        const oldpredictor = this.predictor;
+        this.predictor = new Genie.Predictor(this.id, this._localdir, nprocesses);
+        await this.predictor.start();
+
+        await Promise.all([
+            oldpredictor.stop(),
+            AbstractFS.removeTemporary(oldlocaldir)
+        ]);
     }
 
     async load() {
-        await this._syncLocalCopy();
+        await this._download();
+        this.predictor = new Genie.Predictor(this.id, this._localdir, nprocesses);
         return this.predictor.start();
     }
 };

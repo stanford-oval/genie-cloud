@@ -25,6 +25,7 @@ trap on_error ERR INT TERM
 
 oldpwd=`pwd`
 cd $workdir
+export THINGENGINE_ROOTDIR=$workdir
 
 # remove stale config files
 rm -f $srcdir/secret_config.js
@@ -147,30 +148,30 @@ wait
 
 # Now tests that we can update the datasets
 
+mkdir -p $workdir/training/jobs/{1,2,3}
+
 # first compile the PPDB
 node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
+export PPDB=$workdir/ppdb-2.0-xs-lexical.bin
+
+# make up a training job
+${srcdir}/main.js execute-sql-file - <<<"insert into training_jobs set id = 1, job_type ='update-dataset', language = 'en', all_devices = 1, status = 'started', task_index = 0, task_name = 'update-dataset', config = '{}'"
 
 # now update the exact match dataset (which will be saved to mysql)
-node $srcdir/training/update-dataset.js -l en --maxdepth 3 --debug
+node ${srcdir}/main.js run-training-task -t update-dataset --job-id 1 --job-dir $workdir/training/jobs/1 --debug
 # download
-node $srcdir/training/download-dataset.js -l en --output exact.tsv
+node ${srcdir}/main.js download-dataset -l en --output exact.tsv
 
 # generate a training set
-mkdir jobdir
-(cd jobdir; THINGENGINE_ROOTDIR=.. node $srcdir/training/prepare-training-set.js -l en \
-    --owner 1 --template-file org.thingpedia.genie.thingtalk \
-    --flag policies --flag remote_programs --flag aggregation --flag bookkeeping --flag triple_commands --flag configure_actions \
-    --maxdepth 3 --train train.tsv --eval eval.tsv --eval-probability 1.0 \
-    --ppdb $workdir/ppdb-2.0-xs-lexical.bin )
 
-sha256sum exact.tsv jobdir/eval.tsv jobdir/train.tsv
+${srcdir}/main.js execute-sql-file - <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_eval_probability\":1.0}'"
+node ${srcdir}/main.js run-training-task -t prepare-training-set --job-id 2 --job-dir $workdir/training/jobs/2 --debug
+
+sha256sum exact.tsv ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
-74035f44a6b975436f9e4840c19464dbf97f290e07ce81533c57ed0ace2fa005  exact.tsv
-dcc634dbf73ac5291e148c18a863810c8fc54a258508ffc4527974ab2bb11642  jobdir/eval.tsv
-64e2404ffb54874449bf4f0cff18a9049b0e1b08afca7fa49610e21c724aa84d  jobdir/train.tsv
+939aacd713dd3d7e794982ba2cb5bb67bd137863e3f5ee7b3acf35159acb4471  exact.tsv
+841ac7dc62bbc3de54e850722dd22679672f01dd176bac87d2e9e82a665b9222  ./training/jobs/2/dataset/eval.tsv
+fe78c2d0ecce92f53c2e597bf36d7022a27bfeca0fabab8c19e046ca5cbf9cf6  ./training/jobs/2/dataset/train.tsv
 EOF
-
-# now update the exact match dataset incrementally
-node $srcdir/training/update-dataset.js -l en --device com.bing --maxdepth 3 --debug
 
 rm -rf $workdir

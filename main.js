@@ -34,16 +34,17 @@ const commands = {
     'run-frontend': require('./frontend'),
     'run-nlp': require('./nlp/main'),
     'run-training': require('./training/daemon'),
-    'run-gpu-training': require('./training/gpu_training_daemon'),
 
-    // (cron)jobs
+    // batch jobs
     'apply-credits': require('./scripts/apply-credits'),
+    'run-training-task': require('./training/run-training-task'),
 
     // utility commands
     'get-config': require('./scripts/get-config'),
     'get-user-shards': require('./scripts/get-user-shards'),
     'generate-cheatsheet': require('./scripts/generate-cheatsheet'),
-    'sync-discourse-sso': require('./scripts/sync-discourse-sso')
+    'sync-discourse-sso': require('./scripts/sync-discourse-sso'),
+    'download-dataset': require('./scripts/download-dataset')
 };
 
 platform.init();

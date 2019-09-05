@@ -102,7 +102,7 @@
     "thingpedia-discovery": "^1.0.0",
     "thingtalk": "~1.8.0",
     "thirty-two": "^1.0.2",
-    "tmp": "0.1.0",
+    "tmp-promise": "^2.0.2",
     "transparent-rpc": "^1.0.0",
     "type-is": "^1.6.16"
   },
@@ -127,6 +127,7 @@
     "tough-cookie": "^3.0.1"
   },
   "optionalDependencies": {
+    "@kubernetes/client-node": "^0.10.2",
     "aws-sdk": "^2.2.48"
   },
   "nyc": {

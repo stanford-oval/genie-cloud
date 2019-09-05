@@ -15,6 +15,7 @@ const path = require('path');
 const byline = require('byline');
 const child_process = require('child_process');
 const Genie = require('genie-toolkit');
+const tmp = require('tmp-promise');
 
 const schemaModel = require('../model/schema');
 const entityModel = require('../model/entity');
@@ -25,10 +26,10 @@ const DatasetUtils = require('../util/dataset');
 const codeStorage = require('../util/code_storage');
 const { InternalError } = require('../util/errors');
 
-async function downloadThingpedia(dbClient, orgId, language) {
+async function downloadThingpedia(dbClient, orgId, language, tmpDir) {
     const snapshot = await schemaModel.getCurrentSnapshotMeta(dbClient, language, orgId);
 
-    await util.promisify(fs.writeFile)('./thingpedia.tt',
+    await util.promisify(fs.writeFile)(path.resolve(tmpDir, 'thingpedia.tt'),
         SchemaUtils.schemaListToClassDefs(snapshot, true).prettyprint());
 
     const entities = (await entityModel.getAll(dbClient)).map((r) => ({
@@ -38,20 +39,21 @@ async function downloadThingpedia(dbClient, orgId, language) {
         has_ner_support: r.has_ner_support
     }));
 
-    await util.promisify(fs.writeFile)('./entities.json', JSON.stringify(entities));
+    await util.promisify(fs.writeFile)(path.resolve(tmpDir, 'entities.json'),
+        JSON.stringify(entities));
 
     const examples = await exampleModel.getBaseByLanguage(dbClient, orgId, language);
 
-    await util.promisify(fs.writeFile)('./dataset.tt',
+    await util.promisify(fs.writeFile)(path.resolve(tmpDir, 'dataset.tt'),
         DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.everything`, language, examples));
 }
 
-async function downloadTemplatePack(dbClient, language, templatePack) {
+async function downloadTemplatePack(dbClient, language, templatePack, tmpDir) {
     const tmpl = await templatePackModel.getByTag(dbClient, language, templatePack);
 
     const zipFileStream = await codeStorage.downloadZipFile(templatePack, tmpl.version, 'template-files/' + language);
 
-    const tmpZipFile = fs.createWriteStream('./templates.zip');
+    const tmpZipFile = fs.createWriteStream(path.resolve(tmpDir, 'templates.zip'));
     zipFileStream.pipe(tmpZipFile);
 
     await new Promise((resolve, reject) => {
@@ -59,17 +61,18 @@ async function downloadTemplatePack(dbClient, language, templatePack) {
         tmpZipFile.on('error', reject);
     });
 
-    await util.promisify(child_process.execFile)('/usr/bin/unzip', ['-uo', 'templates.zip']);
+    await util.promisify(child_process.execFile)('/usr/bin/unzip', ['-uo',
+        '-d', tmpDir, path.resolve(tmpDir, 'templates.zip')]);
 
     try {
-        await util.promisify(fs.mkdir)('node_modules');
+        await util.promisify(fs.mkdir)(path.resolve(tmpDir, 'node_modules'));
     } catch(e) {
         if (e.code !== 'EEXIST')
             throw e;
     }
     try {
         await util.promisify(fs.symlink)(path.dirname(require.resolve('thingtalk')),
-                                         './node_modules/thingtalk');
+                                         path.resolve(tmpDir, './node_modules/thingtalk'));
     } catch(e) {
         if (e.code !== 'EEXIST')
             throw e;
@@ -101,8 +104,14 @@ function cleanEnv() {
 }
 
 module.exports = async function genSynthetic(options) {
-    await downloadThingpedia(options.dbClient, options.orgId, options.language);
-    await downloadTemplatePack(options.dbClient, options.language, options.templatePack);
+    const { path: tmpDir } = await tmp.dir({
+        mode: 0o700,
+        prefix: 'synthetic-gen-sandbox.',
+        unsafeCleanup: true
+    });
+
+    await downloadThingpedia(options.dbClient, options.orgId, options.language, tmpDir);
+    await downloadTemplatePack(options.dbClient, options.language, options.templatePack, tmpDir);
 
     const ourpath = path.dirname(module.filename);
     const workerpath = path.resolve(ourpath, './synthetic-gen-worker.js');
@@ -136,7 +145,7 @@ module.exports = async function genSynthetic(options) {
 
     const child = child_process.spawn(processPath, args, {
         stdio: stdio,
-        cwd: process.cwd(),
+        cwd: tmpDir,
         env: env
     });
 

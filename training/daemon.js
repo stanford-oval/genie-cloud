@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -24,6 +23,7 @@ const Metrics = require('../util/metrics');
 const modelsModel = require('../model/nlp_models');
 const trainingJobModel = require('../model/training_job');
 const errorHandling = require('../util/error_handling');
+const { NotFoundError } = require('../util/errors');
 
 const Job = require('./training_job');
 
@@ -125,29 +125,11 @@ Check the logs for further information.`
 
             const next = rows[0];
 
-            let modelInfo = null;
-            if (next.model_tag !== null) {
-                modelInfo = (await modelsModel.getByTag(dbClient, next.language, next.model_tag))[0];
-                if (!modelInfo) {
-                    // the model was deleted since the job was scheduled, or some other weirdness
-                    next.status = 'error';
-                    next.error = 'The model this job refers to no longer exists';
-                    await this._recordJobCompletion(dbClient, next);
-                    // try scheduling again in the future (outside the transaction)
-                    setImmediate(() => {
-                        this._startNextJob(jobType);
-                    });
-                    return;
-                }
-            }
-
-            let forDevices = await trainingJobModel.readForDevices(dbClient, next.id);
-
             // check for races
             if (this._currentJobs[jobType])
                 return;
 
-            this._currentJobs[jobType] = new Job(this, next, forDevices, modelInfo);
+            this._currentJobs[jobType] = new Job(this, next);
             await this._currentJobs[jobType].start(dbClient);
         }); // no catch: on error, crash the process
     }
@@ -238,7 +220,7 @@ Check the logs for further information.`
 
     killJob(id) {
         return db.withTransaction(async (dbClient) => {
-            const job = await trainingJobModel.get(dbClient, id);
+            const job = await trainingJobModel.getForUpdate(dbClient, id);
             if (job.status === 'started' && this._currentJobs[job.job_types] &&
                 this._currentJobs[job.job_types].id === id) {
                 this._currentJobs[job.job_types].kill();
@@ -248,6 +230,14 @@ Check the logs for further information.`
                 await this._recordJobCompletion(job);
             }
         });
+    }
+
+    getRunningJob(id) {
+        for (let jobType in this._currentJobs) {
+            if (this._currentJobs[jobType] && this._currentJobs[jobType].id === id)
+                return this._currentJobs[jobType];
+        }
+        return undefined;
     }
 
     initFrontend(port) {
@@ -274,6 +264,24 @@ Check the logs for further information.`
                 return;
             }
             next();
+        });
+
+        app.post('/jobs/:id/metrics', (req, res, next) => {
+            const job = this.getRunningJob(parseInt(req.params.id));
+            if (!job)
+                throw new NotFoundError();
+            job.setMetrics(req.body).then(() => {
+                res.json({ result: 'ok' });
+            }).catch(next);
+        });
+
+        app.post('/jobs/:id/progress', (req, res, next) => {
+            const job = this.getRunningJob(parseInt(req.params.id));
+            if (!job)
+                throw new NotFoundError();
+            job.setProgress(req.body.value).then(() => {
+                res.json({ result: 'ok' });
+            }).catch(next);
         });
 
         app.post('/jobs/create', async (req, res, next) => { //'

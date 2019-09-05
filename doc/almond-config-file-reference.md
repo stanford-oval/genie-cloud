@@ -70,8 +70,8 @@ multiple masters based on their ID (using a simple hashing scheme).
 
 The number of shards can be changed dynamically, provided all processes use
 a consistent configuration (they must be all stopped when the configuration is changed),
-and all shards have access to shared storage (eg NFS).
-If the storage is not shared, use scripts/shard-users.js to compute which user is
+and all shards have access to shared storage (e.g. NFS).
+If the storage is not shared, use the `get-user-shards` to compute which user is
 assigned to which shard, and transfer the user's folder appropriately.
 
 Default value: `['./control']`
@@ -296,11 +296,19 @@ frontend and the NLP processes; otherwise, only by the NLP process.
 Default value: `'127.0.0.1:8888'`
 
 ## NL_MODEL_DIR
-Deployed model directory on S3.
+Deployed model directory.
 
-Set this path if you want to use s3 to store deployed models.
+This is the path containing the models that should be served by the NLP inference
+server. It can be a relative or absolute path, or a file: or s3: URI.
 
-Default value: `null`
+For a file URI, if the training and inference servers are on different machines,
+you should specify the hostname of the inference server. The training server will
+use `rsync` to upload the model after training.
+
+If this is set to `null`, trained models will not be uploaded to a NLP inference
+server. This is not a valid setting for the inference server.
+
+Default value: `'./models'`
 
 ## TRAINING_URL
 Training server URL.
@@ -332,6 +340,57 @@ Maximum memory usage for training processes.
 In megabytes.
 
 Default value: `24000`
+
+## TRAINING_DIR
+The directory to use to store training jobs (datasets, working directories and trained models).
+
+This can be a relative or absolute path, or a file: or s3: URI.
+
+NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
+be of the form `file:///`, with 3 consecutive slashes.
+
+Default value: `'./training'`
+
+## TRAINING_TASK_BACKEND
+Which backend to use to run compute-intensive training tasks.
+
+Valid options are `local`, which spawns a local process, and `kubernetes`, which creates
+a Kubernetes Job. If `kubernetes` is chosen, the training controller must be executed in
+a training cluster and must run a service account with sufficient privileges to create and watch Jobs.
+
+Default value: `'local'`
+
+## TRAINING_KUBERNETES_IMAGE
+The Docker image to use for training using Kubernetes.
+
+The suffix `-cuda` will be appended to the version for GPU training.
+
+Default value: `'stanfordoval/almond-cloud:latest-decanlp'`
+
+## TRAINING_KUBERNETES_NAMESPACE
+The namespace for Kubernetes Jobs created for training.
+
+Default value: `'default'`
+
+## TRAINING_KUBERNETES_JOB_NAME_PREFIX
+Prefix to add to the Kubernetes Jobs and Pods created for training.
+
+Default value: `''`
+
+## TRAINING_KUBERNETES_EXTRA_METADATA_LABELS
+Additional labels to add to the Kubernetes Jobs and Pods created for training.
+
+Default value: `{}`
+
+## TRAINING_KUBERNETES_POD_SPEC_OVERRIDE
+Additional fields to add to the Kubernetes Pods created for training.
+
+Default value: `{}`
+
+## TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE
+Additional fields to add to the Kubernetes Pods created for training.
+
+Default value: `{}`
 
 ## DOCUMENTATION_URL
 URL of documentation.
@@ -500,20 +559,6 @@ Default value: `null`
 S3 work dir for GPU training.
 
 S3 directory for temporary workdir storage.
-
-Default value: `null`
-
-## GPU_SQS_REQUEST_URL
-SQS request URL for GPU training.
-
-The SQS FIFO queue URL used to submit GPU training requests to GPU node.
-
-Default value: `null`
-
-## GPU_SQS_RESPONSE_URL
-SQS response URL for GPU training.
-
-The SQS FIFO queue URL used to submit GPU training resposne from GPU node.
 
 Default value: `null`
 

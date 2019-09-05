@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 // -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ThingEngine
@@ -10,31 +9,25 @@
 // See COPYING for details
 "use strict";
 
-// load thingpedia to initialize the polyfill
-require('thingpedia');
-
-process.on('unhandledRejection', (up) => { throw up; });
-require('../util/config_init');
-
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
-const argparse = require('argparse');
-const fs = require('fs');
+const path = require('path');
 
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
 
-const AdminThingpediaClient = require('../util/admin-thingpedia-client');
-const { parseFlags } = require('./flag_utils');
-const DatabaseParameterProvider = require('./param_provider');
-const StreamUtils = require('./stream-utils');
-const genSynthetic = require('./sandboxed_synthetic_gen');
+const AbstractFS = require('../../util/abstract_fs');
+const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
+const { parseFlags } = require('../../util/genie_flag_utils');
+const StreamUtils = require('../../util/stream-utils');
+const DatabaseParameterProvider = require('../lib/param_provider');
+const genSynthetic = require('../sandboxed_synthetic_gen');
 
-const schemaModel = require('../model/schema');
-const orgModel = require('../model/organization');
-const platform = require('../util/platform');
-const db = require('../util/db');
+const schemaModel = require('../../model/schema');
+const orgModel = require('../../model/organization');
+const db = require('../../util/db');
 
+const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 const MAX_SPAN_LENGTH = 10;
 
 class QueryReadableAdapter extends Stream.Readable {
@@ -68,6 +61,12 @@ class TypecheckStream extends Stream.Transform {
     }
 
     async process(ex) {
+        if (ex.flags.synthetic) {
+            // skip typechecking synthetic examples, we know they are correct
+            this.push(ex);
+            return;
+        }
+
         const entities = Genie.Utils.makeDummyEntities(ex.preprocessed);
         const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
 
@@ -216,6 +215,7 @@ class DatasetGenerator {
         });
 
         source.pipe(typecheck).pipe(augmenter).pipe(splitter);
+
         await Promise.all(promises);
     }
 
@@ -227,132 +227,39 @@ class DatasetGenerator {
     }
 }
 
+module.exports = async function main(task, argv) {
+    await AbstractFS.mkdirRecursive(AbstractFS.resolve(task.jobDir, 'dataset'));
 
-async function main() {
-    const parser = new argparse.ArgumentParser({
-        addHelp: true,
-        description: 'Update Thingpedia Dataset'
-    });
-    parser.addArgument(['-l', '--language'], {
-        required: true,
-    });
-    parser.addArgument('--owner', {
-        type: Number,
-        help: 'Organization ID of the model owner',
-        required: true,
-    });
-    parser.addArgument('--template-file', {
-        help: 'Template file to use',
-        required: true,
-    });
-    parser.addArgument(['--train'], {
-        required: true,
-        type: fs.createWriteStream,
-        help: 'Train file output path',
-    });
-    parser.addArgument(['--eval'], {
-        required: true,
-        type: fs.createWriteStream,
-        help: 'Eval file output path',
-    });
-    parser.addArgument(['--eval-probability'], {
-        type: Number,
-        help: 'Eval probability',
-        defaultValue: 0.5,
-    });
-    parser.addArgument(['--split-strategy'], {
-        help: 'Method to use to choose training and evaluation sentences',
-        defaultValue: 'sentence',
-        choices: ['id', 'raw-sentence', 'sentence', 'program', 'combination']
-    });
-    parser.addArgument(['-d', '--device'], {
-        action: 'append',
-        metavar: 'DEVICE',
-        help: 'Restrict generation to command of the given device. This option can be passed multiple times to specify multiple devices',
-        dest: 'forDevices',
-    });
-    parser.addArgument('--approved-only', {
-        nargs: 0,
-        action: 'storeTrue',
-        help: 'Only consider approved devices.',
-        defaultValue: false
-    });
-    parser.addArgument('--flag', {
-        action: 'append',
-        metavar: 'FLAG',
-        help: 'Set a flag for the construct template file.',
-        dest: 'flags',
-        defaultValue: [],
-    });
-    parser.addArgument('--maxdepth', {
-        type: Number,
-        help: 'Maximum depth of synthetic sentence generation',
-    });
-    parser.addArgument('--ppdb', {
-        defaultValue: './ppdb-2.0-m-lexical.bin',
-        metavar: 'FILENAME',
-        help: 'Path to the binary PPDB file',
-    });
-    parser.addArgument('--ppdb-synthetic-fraction', {
-        type: Number,
-        defaultValue: 0.1,
-        metavar: 'FRACTION',
-        help: 'Fraction of synthetic sentences to augment with PPDB',
-    });
-    parser.addArgument('--ppdb-paraphrase-fraction', {
-        type: Number,
-        defaultValue: 1.0,
-        metavar: 'FRACTION',
-        help: 'Fraction of paraphrase sentences to augment with PPDB',
-    });
-    parser.addArgument('--quoted-fraction', {
-        type: Number,
-        defaultValue: 0.1,
-        metavar: 'FRACTION',
-        help: 'Fraction of sentences that will not have their quoted parameters replaced',
-    });
-    parser.addArgument('--debug', {
-        nargs: 0,
-        action: 'storeTrue',
-        help: 'Enable debugging.',
-        defaultValue: false
-    });
-    parser.addArgument('--no-debug', {
-        nargs: 0,
-        action: 'storeFalse',
-        dest: 'debug',
-        help: 'Disable debugging.',
-    });
-    const args = parser.parseArgs();
+    const modelInfo = task.modelInfo;
+    const config = task.config;
 
-    await platform.init();
+    task.on('killed', () => {
+        // die quietly if killed
+        process.exit(0);
+    });
 
-    const generator = new DatasetGenerator(args.language, args.forDevices, {
-        train: args.train,
-        eval: args.eval,
+    const generator = new DatasetGenerator(task.language, modelInfo.for_devices, {
+        train: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/train.tsv')),
+        eval: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/eval.tsv')),
 
         // generation flags
-        owner: args.owner,
-        approvedOnly: args.approved_only,
-        flags: args.flags,
-        maxDepth: args.maxdepth,
-        templatePack: args.template_file,
+        owner: modelInfo.owner,
+        approvedOnly: modelInfo.use_approved,
+        flags: modelInfo.flags,
+        maxDepth: config.synthetic_depth,
+        templatePack: modelInfo.template_file_name,
 
         // augmentation flags
-        ppdbFile: args.ppdb,
-        ppdbProbabilitySynthetic: args.ppdb_synthetic_fraction,
-        ppdbProbabilityParaphrase: args.ppdb_paraphrase_fraction,
-        quotedProbability: args.quoted_fraction,
+        ppdbFile: PPDB,
+        ppdbProbabilitySynthetic: config.dataset_ppdb_probability_synthetic,
+        ppdbProbabilityParaphrase: config.dataset_ppdb_probability_paraphrase,
+        quotedProbability: config.dataset_quoted_probability,
 
         // train/eval split flags
-        evalProbability: args.eval_probability,
-        splitStrategy: args.split_strategy,
+        evalProbability: config.dataset_eval_probability,
+        splitStrategy: config.dataset_split_strategy,
 
-        debug: args.debug
+        debug: argv.debug
     });
     await generator.run();
-
-    await db.tearDown();
-}
-main();
-
+};
