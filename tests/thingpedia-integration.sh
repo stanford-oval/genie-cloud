@@ -19,7 +19,7 @@ on_error() {
     masterpid=
     wait
 
-    rm -fr $workdir
+    #rm -fr $workdir
 }
 trap on_error ERR INT TERM
 

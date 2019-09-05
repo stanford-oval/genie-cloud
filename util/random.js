@@ -63,6 +63,19 @@ function categorical(weights, rng = Math.random) {
     return cumsum.length-1;
 }
 
+// inplace array shuffle
+function swap(array, i, j) {
+    const tmp = array[i];
+    array[i] = array[j];
+    array[j] = tmp;
+}
+function shuffle(array, rng = Math.random) {
+    for (let i = 0; i < array.length-1; i++) {
+        const idx = Math.floor(rng() * (array.length - i));
+        swap(array, i, i+idx);
+    }
+}
+
 function makeRandom(size = 32) {
     return crypto.randomBytes(size).toString('hex');
 }
@@ -72,6 +85,7 @@ module.exports = {
     uniform,
     choose,
     categorical,
+    shuffle,
 
     makeRandom
 };
