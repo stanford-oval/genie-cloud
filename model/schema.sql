@@ -470,7 +470,7 @@ CREATE TABLE `mturk_output` (
   `target_count` int(11) NOT NULL DEFAULT 3,
   `accept_count` int(11) NOT NULL DEFAULT 0,
   `reject_count` int(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY `example_id` (`example_id`),
+  PRIMARY KEY (`example_id`),
   KEY (`submission_id`),
   CONSTRAINT `mturk_output_ibfk_0` FOREIGN KEY (`submission_id`) REFERENCES `mturk_log` (`submission_id`) ON UPDATE CASCADE ON DELETE CASCADE,
   CONSTRAINT `mturk_output_ibfk_1` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
