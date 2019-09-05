@@ -19,8 +19,8 @@ module.exports = {
         });
     },
 
-    getHIT(dbClient, batch, id) {
-        return db.selectOne(dbClient, 'select * from mturk_input where batch = ? and id = ?', [batch, id]);
+    getHIT(dbClient, batch, hitId) {
+        return db.selectAll(dbClient, 'select * from mturk_input where batch = ? and hit_id = ?', [batch, hitId]);
     },
     getBatchDetails(dbClient, batch) {
         return db.selectOne(dbClient, `select * from mturk_batch where id = ?`, [batch]);
@@ -69,6 +69,6 @@ module.exports = {
     },
 
     streamHITs(dbClient, batch) {
-        return dbClient.query(`select id from mturk_input where batch = ?`, batch);
+        return dbClient.query(`select hit_id from mturk_input where batch = ? group by hit_id`, batch);
     }
 };

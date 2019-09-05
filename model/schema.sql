@@ -428,20 +428,11 @@ DROP TABLE IF EXISTS `mturk_input`;
 CREATE TABLE `mturk_input` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `batch` int(11) NOT NULL,
-  `id1` int(11) DEFAULT NULL,
-  `thingtalk1` mediumtext COLLATE utf8_bin DEFAULT NULL,
-  `sentence1` text CHARACTER SET utf8 DEFAULT NULL,
-  `id2` int(11) DEFAULT NULL,
-  `thingtalk2` mediumtext COLLATE utf8_bin DEFAULT NULL,
-  `sentence2` text CHARACTER SET utf8 DEFAULT NULL,
-  `id3` int(11) DEFAULT NULL,
-  `thingtalk3` mediumtext COLLATE utf8_bin DEFAULT NULL,
-  `sentence3` text CHARACTER SET utf8 DEFAULT NULL,
-  `id4` int(11) DEFAULT NULL,
-  `thingtalk4` mediumtext COLLATE utf8_bin DEFAULT NULL,
-  `sentence4` text CHARACTER SET utf8 DEFAULT NULL,
+  `hit_id` int(11) NOT NULL,
+  `thingtalk` text COLLATE utf8_bin DEFAULT NULL,
+  `sentence` text CHARACTER SET utf8 DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `batch` (`batch`),
+  KEY `batch_hit` (`batch`, `hit_id`),
   CONSTRAINT `mturk_input_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -461,8 +452,7 @@ CREATE TABLE `mturk_log` (
   PRIMARY KEY (`submission_id`),
   UNIQUE KEY `hit` (`hit`,`worker`),
   KEY `batch` (`batch`),
-  CONSTRAINT `mturk_log_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`),
-  CONSTRAINT `mturk_log_ibfk_2` FOREIGN KEY (`hit`) REFERENCES `mturk_input` (`id`)
+  CONSTRAINT `mturk_log_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -482,7 +472,8 @@ CREATE TABLE `mturk_output` (
   `reject_count` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`submission_id`,`example_id`),
   KEY `example_id` (`example_id`),
-  CONSTRAINT `mturk_output_ibfk_1` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`)
+  CONSTRAINT `mturk_output_ibfk_1` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`),
+  CONSTRAINT `mturk_output_ibfk_2` FOREIGN KEY (`program_id`) REFERENCES `mturk_input` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

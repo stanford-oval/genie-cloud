@@ -47,17 +47,12 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     Q(db.withTransaction((dbClient) => {
         return model.create(dbClient, { name: req.body.name, submissions_per_hit: req.body.submissions_per_hit }).then((batch) => {
             let minibatch = [];
-            let columns = ['batch'];
-            for (let i = 1; i < 5; i ++ ) {
-                columns.push(`id${i}`);
-                columns.push(`thingtalk${i}`);
-                columns.push(`sentence${i}`);
-            }
-            columns = columns.join(',');
+            let hitCount = 0;
             function doInsert() {
                 let data = minibatch;
                 minibatch = [];
-                return db.insertOne(dbClient, `insert into mturk_input(${columns}) values ?`, [data]);
+                return db.insertOne(dbClient,
+                `insert into mturk_input(batch, hit, sentence, thingtalk) values ?`, [data]);
             }
 
             function finish() {
@@ -67,13 +62,15 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
             }
 
             function insertOneHIT(programs) {
-                let row = [batch.id];
+                let hitId = hitCount++;
                 programs.forEach((p) => {
-                    row.push(p.id);
-                    row.push(p.code);
-                    row.push(p.sentence);
+                    minibatch.push([
+                        batch.id,
+                        hitId,
+                        p.sentence,
+                        p.code
+                    ]);
                 });
-                minibatch.push(row);
                 if (minibatch.length < 100)
                     return Promise.resolve();
                 return doInsert();
@@ -127,7 +124,7 @@ router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMI
 
             let query = model.streamHITs(dbClient, req.params.batch);
             query.on('result', (row) => {
-                output.write({url: Config.SERVER_ORIGIN + `/mturk/submit/${req.params.batch}/${row.id}` });
+                output.write({url: Config.SERVER_ORIGIN + `/mturk/submit/${req.params.batch}/${row.hit_id}` });
             });
             query.on('end', () => {
                 output.end();
@@ -250,21 +247,22 @@ router.post('/submit', iv.validatePOST({ batch: 'string' }), validateSubmission,
 
 router.get(`/submit/:batch/:hit`, (req, res, next) => {
     const batch = req.params.batch;
-    const id = req.params.hit;
+    const hitId = req.params.hit;
 
     db.withClient((dbClient) => {
-        return model.getHIT(dbClient, batch, id);
+        return model.getHIT(dbClient, batch, hitId);
     }).then((hit) => {
         let program_id = [];
         let sentences = [];
         let code = [];
-        for (let i = 1; i < 5; i ++) {
-            program_id.push(hit[`id${i}`]);
-            code.push(hit[`thingtalk${i}`]);
-            sentences.push(hit[`sentence${i}`]);
+        for (let i = 1; i < hit.length + 1; i ++) {
+            const row = hit[i-1];
+            program_id.push(row.id);
+            code.push(row.thingtalk);
+            sentences.push(row.sentence);
         }
         res.render('mturk', { page_title: req._('Paraphrase'),
-                              hit: id,
+                              hit: hitId,
                               batch: batch,
                               program_id: program_id,
                               code: code,
