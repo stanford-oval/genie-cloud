@@ -12,8 +12,6 @@
 const util = require('util');
 const fs = require('fs');
 
-const Tp = require('thingpedia');
-
 const AbstractFS = require('../util/abstract_fs');
 const db = require('../util/db');
 const trainingJobModel = require('../model/training_job');
@@ -29,77 +27,7 @@ const DEFAULT_TRAINING_CONFIG = {
     dataset_split_strategy: 'sentence'
 };
 
-const TASKS = {
-    'update-dataset': [
-        {
-            name: 'update-dataset',
-
-            requests: {
-                cpu: 1.1,
-                gpu: 0
-            }
-        },
-        {
-            name: 'reloading-exact',
-
-            async task(job) {
-                // reload the exact matches now that the synthetic set has been updated
-                try {
-                    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/exact/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
-                        dataContentType: 'application/x-www-form-urlencoded'
-                    });
-                } catch(e) {
-                    console.error(`Failed to ask server to reload exact matches: ${e.message}`);
-                }
-            }
-        }
-    ],
-
-    'train': [
-        {
-            name: 'prepare-training-set',
-
-            requests: {
-                cpu: 1.5,
-                gpu: 0
-            }
-        },
-        {
-            name: 'train',
-
-            requests: {
-                cpu: 2.5,
-                gpu: 1
-            }
-        },
-        {
-            name: 'evaluate',
-
-            requests: {
-                cpu: 1.5,
-                gpu: 0 // XXX: if we care, we can evaluate on GPU too
-            }
-        },
-        {
-            name: 'uploading',
-
-            async task(job) {
-                const modelLangDir = `./${job.model_tag}:${job.language}`;
-                const outputdir = AbstractFS.resolve(job.jobDir, 'output');
-
-                if (Config.NL_MODEL_DIR === null)
-                    return;
-
-                await AbstractFS.sync(outputdir + '/',
-                    AbstractFS.resolve(Config.NL_MODEL_DIR, modelLangDir) + '/');
-
-                await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
-                    dataContentType: 'application/x-www-form-urlencoded'
-                });
-            }
-        }
-    ]
-};
+const JobSpecs = require('./job_specs');
 
 module.exports = class Job {
     constructor(daemon, jobRow, forDevices, modelInfo) {
@@ -113,7 +41,7 @@ module.exports = class Job {
 
         this._killed = false;
         this.child = null;
-        this._allTasks = TASKS[this.data.job_type];
+        this._allTasks = JobSpecs[this.data.job_type];
         this._backend = require('./backends/' + Config.TRAINING_TASK_BACKEND);
 
         this.jobDir = AbstractFS.resolve(Config.TRAINING_DIR, './jobs/' + this.id);

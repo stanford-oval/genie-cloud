@@ -29,7 +29,8 @@ const Job = require('./training_job');
 
 const Config = require('../config');
 
-const JOB_TYPES = ['update-dataset', 'train'];
+const JobSpecs = require('./job_specs');
+const JOB_TYPES = Object.keys(JobSpecs);
 
 class TrainingDaemon {
     constructor() {
