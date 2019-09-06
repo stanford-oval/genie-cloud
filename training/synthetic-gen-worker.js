@@ -79,9 +79,9 @@ async function main() {
     };
 
     const generator = new Genie.BasicSentenceGenerator(options);
-    /*generator.on('progress', (value) => {
-        console.error('progress:' + value);
-    });*/
+    generator.on('progress', (value) => {
+        process.send({ cmd:'progress', v: value });
+    });
     const stringifier = new Genie.DatasetStringifier();
 
     generator.pipe(stringifier).pipe(process.stdout);

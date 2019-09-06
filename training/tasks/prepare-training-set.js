@@ -91,8 +91,9 @@ class TypecheckStream extends Stream.Transform {
 }
 
 class DatasetGenerator {
-    constructor(language, forDevices, options) {
-        this._language = language;
+    constructor(task, forDevices, options) {
+        this._task = task;
+        this._language = task.language;
         this._options = options;
         this._rng = seedrandom.alea('almond is awesome');
 
@@ -168,6 +169,14 @@ class DatasetGenerator {
             maxDepth: this._options.maxDepth,
             debug: this._options.debug,
         });
+        // assume that the progress of synthetic generation is the overall progress, because
+        // synthetic generation is the biggest part of the process, and augmentation happens in parallel
+        synthetic.on('progress', (value) => {
+            this._task.setProgress(value).catch((e) => {
+                console.error(`Failed to update task progress: ${e.message}`);
+            });
+        });
+
         const paraphrase = this._downloadParaphrase();
 
         const source = StreamUtils.chain([paraphrase, synthetic], {
@@ -235,7 +244,7 @@ module.exports = async function main(task, argv) {
     const modelInfo = task.modelInfo;
     const config = task.config;
 
-    const generator = new DatasetGenerator(task.language, modelInfo.for_devices, {
+    const generator = new DatasetGenerator(task, modelInfo.for_devices, {
         train: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/train.tsv')),
         eval: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/eval.tsv')),
 

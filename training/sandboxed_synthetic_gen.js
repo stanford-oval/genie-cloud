@@ -122,12 +122,12 @@ module.exports = async function genSynthetic(options) {
         processPath = process.execPath;
         args = process.execArgv.slice();
         args.push(workerpath);
-        stdio = ['ignore', 'pipe', 'inherit', 'pipe'];
+        stdio = ['ignore', 'pipe', 'inherit', 'pipe', 'ipc'];
     } else {
         processPath = path.resolve(ourpath, '../sandbox/sandbox');
         args = [process.execPath].concat(process.execArgv);
         args.push(workerpath);
-        stdio = ['ignore', 'pipe', 'inherit', 'pipe'];
+        stdio = ['ignore', 'pipe', 'inherit', 'pipe', 'ipc'];
 
         const jsPrefix = path.resolve(ourpath, '..');
         const nodepath = path.resolve(process.execPath);
@@ -162,5 +162,10 @@ module.exports = async function genSynthetic(options) {
         else if (code !== 0)
             stream.emit('error', new InternalError('E_BAD_EXIT_CODE', `Synthetic generation worker exited with status ${code}.`));
     });
+    child.on('message', (obj) => {
+        if (obj.cmd === 'progress')
+            stream.emit('progress', obj.v);
+    });
+
     return stream;
 };
