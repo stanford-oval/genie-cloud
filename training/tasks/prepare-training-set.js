@@ -228,15 +228,12 @@ class DatasetGenerator {
 }
 
 module.exports = async function main(task, argv) {
+    task.handleKill();
+
     await AbstractFS.mkdirRecursive(AbstractFS.resolve(task.jobDir, 'dataset'));
 
     const modelInfo = task.modelInfo;
     const config = task.config;
-
-    task.on('killed', () => {
-        // die quietly if killed
-        process.exit(0);
-    });
 
     const generator = new DatasetGenerator(task.language, modelInfo.for_devices, {
         train: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/train.tsv')),

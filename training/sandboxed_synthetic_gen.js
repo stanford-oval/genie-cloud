@@ -162,6 +162,5 @@ module.exports = async function genSynthetic(options) {
         else if (code !== 0)
             stream.emit('error', new InternalError('E_BAD_EXIT_CODE', `Synthetic generation worker exited with status ${code}.`));
     });
-
     return stream;
 };

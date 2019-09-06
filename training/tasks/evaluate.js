@@ -59,6 +59,8 @@ class LocalParserClient {
 
 
 module.exports = async function main(task, argv) {
+    task.handleKill();
+
     const jobdir = await AbstractFS.download(task.jobDir + '/');
     const datadir = path.resolve(jobdir, 'dataset');
     const outputdir = path.resolve(jobdir, 'output');

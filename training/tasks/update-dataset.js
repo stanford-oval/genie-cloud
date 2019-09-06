@@ -242,10 +242,7 @@ class DatasetUpdater {
 }
 
 module.exports = async function main(task, argv) {
-    task.on('killed', () => {
-        // die quietly if killed
-        process.exit(0);
-    });
+    task.handleKill();
 
     const updater = new DatasetUpdater(task.language, task.forDevices, {
         maxDepth: SYNTHETIC_DEPTH,

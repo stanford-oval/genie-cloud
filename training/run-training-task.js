@@ -68,6 +68,13 @@ class Task extends events.EventEmitter {
         this.emit('killed');
     }
 
+    handleKill() {
+        this.on('killed', () => {
+            // die quietly if killed
+            process.exit(0);
+        });
+    }
+
     async _save(keys) {
         await db.withClient((dbClient) => {
             const toSave = {};
