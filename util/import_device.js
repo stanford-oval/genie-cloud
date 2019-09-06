@@ -103,15 +103,6 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
     });
 }
 
-function exampleToCode(example) {
-    const clone = example.clone();
-    clone.id = -1;
-    clone.utterances = [];
-    clone.preprocessed = [];
-    clone.annotations = {};
-    return clone.prettyprint();
-}
-
 async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
     /* This functions does three things:
 
@@ -141,7 +132,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
     const toUpdate = [];
 
     for (let example of dataset.examples) {
-        const code = exampleToCode(example);
+        const code = DatasetUtils.exampleToCode(example);
 
         if (example.id >= 0) {
             if (existingMap.has(example.id)) {

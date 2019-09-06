@@ -9,6 +9,7 @@
 // See COPYING for details
 "use strict";
 
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const { stringEscape } = require('./escaping');
 const { splitParams } = require('./tokenize');
@@ -17,8 +18,16 @@ const db = require('./db');
 const exampleModel = require('../model/example');
 const deviceModel = require('../model/device');
 const { InternalError } = require('./errors');
+const { uniform } = require('./random');
 
-const TpClient = require('genie-toolkit/tool/lib/file_thingpedia_client');
+function exampleToCode(example) {
+    const clone = example.clone();
+    clone.id = -1;
+    clone.utterances = [];
+    clone.preprocessed = [];
+    clone.annotations = {};
+    return clone.prettyprint();
+}
 
 const kindMap = {
     'thermostat': 'com.nest.thermostat',
@@ -72,10 +81,45 @@ function getCheatsheet(language, thingpedia, dataset, rng = Math.random) {
     });
 }
 
+
+async function loadCheatsheetFromFile(language, thingpedia, dataset, random = true, options = {}) {
+    const tpClient = new Tp.FileClient({
+        locale: language,
+        thingpedia, dataset
+    });
+    const deviceNames = await tpClient.getAllDeviceNames(null);
+    const devices = [];
+    const devices_rev = {};
+    for (let dev of deviceNames) {
+        devices.push({
+            primary_kind: dev.kind,
+            name: dev.kind_canonical
+        });
+        devices_rev[dev.kind] = true;
+    }
+
+    let parsedExamples = ThingTalk.Grammar.parse(await tpClient.getAllExamples()).datasets[0].examples;
+    const examples = parsedExamples.map((e) => {
+        let kind;
+        for (let [, invocation] of e.iteratePrimitives())
+            kind = invocation.selector.kind;
+        if (kind in devices_rev) {
+            let utterance = random ? uniform(e.utterances, options.rng) : e.utterances[0];
+            return {
+                kind: kind,
+                utterance: utterance,
+                target_code: exampleToCode(e)
+            };
+        } else {
+            return null;
+        }
+    }).filter((e) => !!e);
+    return [devices, examples];
+}
+
 function loadThingpedia(language, thingpedia, dataset, rng) {
     if (thingpedia && dataset) {
-        const tpClient = new TpClient(language, thingpedia, dataset);
-        return tpClient.genCheatsheet(true, { rng });
+        return loadCheatsheetFromFile(language, thingpedia, dataset, true, { rng });
     } else {
         return db.withClient((dbClient) => {
             return Promise.all([
@@ -204,6 +248,8 @@ function sortAndChunkExamples(rows) {
 }
 
 module.exports = {
+    exampleToCode,
+
     examplesToDataset(name, language, rows, options = {}) {
         return `dataset @${name} language "${language}" {
 ${rowsToExamples(rows, options)}}`;

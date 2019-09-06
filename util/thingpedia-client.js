@@ -64,31 +64,23 @@ var _discoveryServer = new TpDiscovery.Server(new ThingpediaDiscoveryDatabase())
 
 const CATEGORIES = new Set(['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management']);
 
-// TpClient.BaseClient wants a Platform instance rather than
-// a static pair of (developerKey, locale) because it wants to
-// be immune to changes in the developer key (which in the clients
-// can occur at runtime)
-// In almond-cloud, the developer key is immutable so this is not
-// an issue, but we still wrap the key and locale in a Platform object
-// to keep the API consistent
-class Platform {
-    constructor(developerKey, locale) {
-        this._developerKey = developerKey;
-        this.locale = locale;
-    }
-
-    getDeveloperKey() {
-        return this._developerKey;
-    }
-}
-
 module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
     constructor(developerKey, locale, dbClient = null) {
-        super(new Platform(developerKey, locale));
+        super();
 
+        this._developerKey = developerKey;
+        this._locale = locale;
         this.language = I18n.localeToLanguage(locale);
 
         this._dbClient = null;
+    }
+
+    get developerKey() {
+        return this._developerKey;
+    }
+
+    get locale() {
+        return this._locale;
     }
 
     _withClient(func) {
