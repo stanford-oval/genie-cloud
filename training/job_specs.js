@@ -18,6 +18,7 @@ module.exports = {
     'update-dataset': [
         {
             name: 'update-dataset',
+            progress: 0.9,
 
             requests: {
                 cpu: 1.1,
@@ -26,6 +27,7 @@ module.exports = {
         },
         {
             name: 'reloading-exact',
+            progress: 0.1,
 
             async task(job) {
                 // reload the exact matches now that the synthetic set has been updated
@@ -43,6 +45,7 @@ module.exports = {
     'train': [
         {
             name: 'prepare-training-set',
+            progress: 0.15,
 
             requests: {
                 cpu: 1.5,
@@ -51,6 +54,7 @@ module.exports = {
         },
         {
             name: 'train',
+            progress: 0.8,
 
             requests: {
                 cpu: 2.5,
@@ -59,6 +63,7 @@ module.exports = {
         },
         {
             name: 'evaluate',
+            progress: 0.049,
 
             requests: {
                 cpu: 1.5,
@@ -67,6 +72,7 @@ module.exports = {
         },
         {
             name: 'uploading',
+            progress: 0.001,
 
             async task(job) {
                 const modelLangDir = `./${job.model_tag}:${job.language}`;

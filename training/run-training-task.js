@@ -17,14 +17,17 @@ const modelsModel = require('../model/nlp_models');
 const db = require('../util/db');
 
 const Tasks = require('./tasks');
+const JobSpecs = require('./job_specs');
 
 const Config = require('../config');
 
 class Task extends events.EventEmitter {
-    constructor(jobId, jobDir) {
+    constructor(jobId, jobDir, name) {
         super();
         this.jobId = jobId;
         this.jobDir = jobDir;
+        this.name = name;
+        this._baseProgress = 0;
 
         this.killed = false;
     }
@@ -37,6 +40,16 @@ class Task extends events.EventEmitter {
         await db.withTransaction(async (dbClient) => {
             this.info = await trainingJobModel.get(dbClient, this.jobId);
             this.config = JSON.parse(this.info.config);
+
+            const jobspec = JobSpecs[this.info.job_type];
+            for (let task of jobspec) {
+                if (task.name === this.name) {
+                    this.spec = task;
+                    break;
+                }
+
+                this._baseProgress = task.progress;
+            }
 
             this.modelInfo = null;
             if (this.info.model_tag !== null) {
@@ -57,6 +70,9 @@ class Task extends events.EventEmitter {
     }
 
     async setProgress(value) {
+        // rescale task progress to job progress
+        value = this._baseProgress + value * this.spec.progress;
+
         let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
         return Tp.Helpers.Http.post(`${Config.TRAINING_URL}/jobs/${this.jobId}/progress`,
             JSON.stringify({ value }), {
@@ -109,13 +125,15 @@ module.exports = {
     },
 
     async main(argv) {
-        const task = new Task(argv.job_id, argv.job_directory);
+        const task = new Task(argv.job_id, argv.job_directory, argv.task_name);
         await task.load();
+        await task.setProgress(0);
         process.on('SIGINT', () => task.kill());
         process.on('SIGTERM', () => task.kill());
 
         await Tasks[argv.task_name](task, argv);
 
+        await task.setProgress(1);
         await db.tearDown();
     }
 };
