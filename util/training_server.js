@@ -34,7 +34,7 @@ class TrainingServer {
             return parsed;
         }).catch((e) => {
             // if the server is down return nothing
-            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
+            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED' || e.code === 'ECONNRESET') 
                 return {};
             throw e;
         });
@@ -49,7 +49,7 @@ class TrainingServer {
             return parsed;
         }).catch((e) => {
             // if the server is down return nothing
-            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
+            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED' || e.code === 'ECONNRESET')
                 return {};
             throw e;
         });
@@ -64,7 +64,7 @@ class TrainingServer {
             return parsed;
         }).catch((e) => {
             // if the server is down return nothing
-            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
+            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED' || e.code === 'ECONNRESET')
                 return {};
             throw e;
         });
@@ -79,7 +79,7 @@ class TrainingServer {
             auth,
         }).catch((err) => {
             // if the server is down eat the error
-            if (err.code !== 503 && err.code !== 'EHOSTUNREACH' && err.code === 'ECONNREFUSED')
+            if (err.code !== 503 && err.code !== 'EHOSTUNREACH' && err.code !== 'ECONNREFUSED' && err.code !== 'ECONNRESET')
                 throw err;
         });
     }
@@ -97,7 +97,7 @@ class TrainingServer {
         }).catch((err) => {
             console.error('Failed to start training job: ' + err.message);
             // if the server is down eat the error
-            if (err.code !== 503 && err.code !== 'EHOSTUNREACH' && err.code === 'ECONNREFUSED')
+            if (err.code !== 503 && err.code !== 'EHOSTUNREACH' && err.code !== 'ECONNREFUSED' && err.code !== 'ECONNRESET')
                 throw err;
         });
     }
@@ -126,7 +126,7 @@ class TrainingServer {
             return parsed;
         }).catch((e) => {
             // if the server is down return nothing
-            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED')
+            if (e.code === 503 || e.code === 'EHOSTUNREACH' || e.code === 'ECONNREFUSED' || e.code === 'ECONNRESET')
                 return {};
             throw e;
         });
