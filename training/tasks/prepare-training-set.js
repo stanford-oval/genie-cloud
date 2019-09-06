@@ -12,6 +12,9 @@
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
 const path = require('path');
+const tmp = require('tmp-promise');
+const fs = require('fs');
+const byline = require('byline');
 
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
@@ -39,6 +42,7 @@ class QueryReadableAdapter extends Stream.Readable {
             // mark a sentence for evaluation only if is exact and not synthetic,
             // which means it comes from the online dataset (developer data)
             row.flags.eval = row.flags.exact && !row.flags.synthetic;
+            row.flags.contextual = row.context !== null;
             this.push(row);
         });
         query.on('end', () => {
@@ -95,6 +99,8 @@ class DatasetGenerator {
         this._task = task;
         this._language = task.language;
         this._options = options;
+        this._contextual = options.contextual;
+
         this._rng = seedrandom.alea('almond is awesome');
 
         this._forDevices = forDevices;
@@ -105,24 +111,16 @@ class DatasetGenerator {
         this._augmenter = null;
     }
 
-    _downloadParaphrase() {
-        let query;
-        if (this._forDevicesPattern !== null) {
-            query = this._dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ?
-                and find_in_set('training',flags) and not find_in_set('obsolete',flags)
-                and target_code<>'' and preprocessed<>'' and type <> 'generated' and target_code rlike ?
-                order by id`,
-                [this._language, this._forDevicesPattern]);
-        } else {
-            query = this._dbClient.query(`select id,flags,preprocessed,target_code from example_utterances
-                use index (language_flags) where language = ?
-                and find_in_set('training',flags) and not find_in_set('obsolete',flags)
-                and target_code<>'' and preprocessed<>'' and type <> 'generated'
-                order by id`,
-                [this._language]);
-        }
+    _downloadParaphrase(contextual) {
+        const queryString = `select id,flags,preprocessed,target_code from example_utterances
+            use index (language_flags) where language = ?
+            and find_in_set('training',flags) and not find_in_set('obsolete',flags)
+            and target_code<>'' and preprocessed<>'' and type <> 'generated'
+            ${contextual ? ' and context is not null' : ' and context is null'}
+            ${this._forDevicesPattern !== null ? ' and target_code rlike ?' : ''}
+            order by id`;
 
+        const query = this._dbClient.query(queryString, [this._language, this._forDevicesPattern]);
         return new QueryReadableAdapter(query);
     }
 
@@ -159,30 +157,92 @@ class DatasetGenerator {
         this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
 
-        const synthetic = await genSynthetic({
+        const tmpDir = await genSynthetic.prepare({
             dbClient: this._dbClient,
             language: this._language,
             orgId: orgId,
             templatePack: this._options.templatePack,
+        });
 
+        const basicSynthetic = genSynthetic.generate(tmpDir, {
+            contextual: false,
+            language: this._language,
             flags: this._options.flags,
             maxDepth: this._options.maxDepth,
             debug: this._options.debug,
         });
-        // assume that the progress of synthetic generation is the overall progress, because
-        // synthetic generation is the biggest part of the process, and augmentation happens in parallel
-        synthetic.on('progress', (value) => {
-            this._task.setProgress(value).catch((e) => {
-                console.error(`Failed to update task progress: ${e.message}`);
+
+        const basicParaphrase = this._downloadParaphrase(false)
+            .pipe(new TypecheckStream(this._schemas));
+        let source;
+
+        if (this._contextual) {
+            const basicSource = StreamUtils.chain([basicParaphrase, basicSynthetic], { objectMode: true });
+
+            const { path: basicDataset, fd: basicDatasetFD } =
+                await tmp.file({ mode: 0o600, dir: '/var/tmp' });
+
+            // Spool the basic (non-contextual, not augmented) dataset to disk
+            // We need to do this because:
+            // 1) We don't want to run to many generation/processing steps as a pipeline, because that
+            //    would use too much memory
+            // 2) We need to do multiple passes over the basic dataset for different reasons, and
+            //    we can't cache it in memory
+
+            await StreamUtils.waitFinish(basicSource
+                .pipe(new Genie.DatasetStringifier())
+                .pipe(fs.createWriteStream(basicDataset, { fd: basicDatasetFD })));
+            // basicDatasetFD is closed here
+
+            let contexts = await
+                fs.createReadStream(basicDataset, { encoding: 'utf8' })
+                .pipe(byline())
+                .pipe(new Genie.DatasetParser({ contextual: false }))
+                .pipe(new Genie.ContextExtractor(this._schemas))
+                .read();
+
+            const contextualized =
+                fs.createReadStream(basicDataset, { encoding: 'utf8' })
+                .pipe(byline())
+                .pipe(new Genie.DatasetParser({ contextual: false }))
+                .pipe(new Genie.Contextualizer(contexts, {
+                    locale: this._language,
+                    numSamples: 20,
+                    nullOnly: false,
+                }));
+
+            const contextualSynthetic = genSynthetic.generate(tmpDir, {
+                contextual: true,
+                contexts,
+
+                language: this._language,
+                flags: this._options.flags,
+                maxDepth: this._options.maxDepth,
+                debug: this._options.debug,
             });
-        });
 
-        const paraphrase = this._downloadParaphrase();
+            // free memory
+            contexts = null;
 
-        const source = StreamUtils.chain([paraphrase, synthetic], {
-            objectMode: true
-        });
-        const typecheck = new TypecheckStream(this._schemas);
+            const contextualParaphrase = this._downloadParaphrase(true)
+                .pipe(new TypecheckStream(this._schemas));
+
+            // chain them in order of quality, from best to worst, because
+            // dataset splitter will discard later examples if they look similar
+            // to earlier ones
+            // (same sentence or same program, depending on the options)
+            source = StreamUtils.chain([contextualParaphrase, contextualized, contextualSynthetic]);
+        } else {
+            // assume that the progress of synthetic generation is the overall progress, because
+            // synthetic generation is the biggest part of the process, and augmentation happens in parallel
+            basicSynthetic.on('progress', (value) => {
+                this._task.setProgress(value).catch((e) => {
+                    console.error(`Failed to update task progress: ${e.message}`);
+                });
+            });
+
+            source = StreamUtils.chain([basicParaphrase, basicSynthetic], { objectMode: true });
+        }
 
         const constProvider = new DatabaseParameterProvider(this._language, this._dbClient);
         const ppdb = await Genie.BinaryPPDB.mapFile(this._options.ppdbFile);
@@ -223,7 +283,7 @@ class DatasetGenerator {
             useEvalFlag: true
         });
 
-        source.pipe(typecheck).pipe(augmenter).pipe(splitter);
+        source.pipe(augmenter).pipe(splitter);
 
         await Promise.all(promises);
     }
@@ -245,6 +305,8 @@ module.exports = async function main(task, argv) {
     const config = task.config;
 
     const generator = new DatasetGenerator(task, modelInfo.for_devices, {
+        contextual: modelInfo.contextual,
+
         train: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/train.tsv')),
         eval: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/eval.tsv')),
 
