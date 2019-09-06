@@ -68,15 +68,15 @@ module.exports = class NLPModel {
         }
     }
 
-    destroy() {
+    async destroy() {
         return this.predictor.stop();
     }
 
-    reload() {
+    async reload() {
         return this.predictor.reload();
     }
 
-    load() {
+    async load() {
         return this.predictor.start();
     }
 };
