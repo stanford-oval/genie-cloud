@@ -188,14 +188,7 @@ Check the logs for further information.`
             let language = jobTemplate.language || 'en';
             let jobType = jobTemplate.jobType || 'train';
 
-            const affectedModels = (await this._getAffectedModels(dbClient, language, jobTemplate)).filter((m) => {
-                if (m.contextual) {
-                    console.log(`WARNING/TODO: Ignored contextual model @${m.tag}/${m.language}`);
-                    return false;
-                } else {
-                    return true;
-                }
-            });
+            const affectedModels = await this._getAffectedModels(dbClient, language, jobTemplate);
 
             if (jobType === 'train' || jobType === 'train-only') {
                 let dependsOn = null;
