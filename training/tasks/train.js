@@ -38,6 +38,9 @@ module.exports = async function main(task, argv) {
     const options = {
         // do not pass the job ID to Genie, otherwise the lines will be prefixed twice
         backend: 'decanlp',
+        task_name: task.modelInfo.contextual ? 'contextual_almond' : 'almond',
+        locale: task.language,
+
         config: genieConfig,
         thingpediaUrl: Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL),
         debug: true,
