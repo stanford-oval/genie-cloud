@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Tp = require('thingpedia');
 const events = require('events');
 
 const trainingJobModel = require('../model/training_job');
@@ -19,15 +18,15 @@ const db = require('../util/db');
 const Tasks = require('./tasks');
 const JobSpecs = require('./job_specs');
 
-const Config = require('../config');
-
 class Task extends events.EventEmitter {
     constructor(jobId, jobDir, name) {
         super();
         this.jobId = jobId;
         this.jobDir = jobDir;
         this.name = name;
+
         this._baseProgress = 0;
+        this._progressUpdates = [];
 
         this.killed = false;
     }
@@ -69,22 +68,47 @@ class Task extends events.EventEmitter {
         this.emit('killed');
     }
 
+    async _save(keys) {
+        await db.withClient((dbClient) => {
+            const toSave = {};
+            keys.forEach((k) => toSave[k] = this.info[k]);
+            return trainingJobModel.update(dbClient, this.info.id, toSave);
+        });
+    }
+
     async setProgress(value) {
         // rescale task progress to job progress
         value = this._baseProgress + value * this.spec.progress;
 
-        let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
-        return Tp.Helpers.Http.post(`${Config.TRAINING_URL}/jobs/${this.jobId}/progress`,
-            JSON.stringify({ value }), {
-            dataContentType: 'application/json', auth,
-        });
+        console.log(`Progress for job ${this.id}: ${Math.floor(value*100)}`);
+
+        const now = new Date;
+        this._progressUpdates.push([now, value]);
+        if (this._progressUpdates.length > 3)
+            this._progressUpdates.shift();
+        if (this._progressUpdates.length === 3) {
+            let speedSum = 0;
+            for (let i = 1; i < this._progressUpdates.length; i++) {
+                const timeDelta = this._progressUpdates[i][0].getTime() - this._progressUpdates[i-1][0].getTime();
+                const stepDelta = this._progressUpdates[i][1] - this._progressUpdates[i-1][1];
+                const speed = stepDelta / timeDelta;
+                speedSum += speed;
+            }
+            const avgSpeed = speedSum / 2;
+
+            let eta = Math.ceil(now.getTime() + (1 - value) / avgSpeed);
+
+            // add 10 minutes to account for validation, uploading, etc.
+            eta += 10 * 60 * 1000;
+
+            this.info.eta = new Date(eta);
+        }
+        this.info.progress = value;
+        return this._save(['progress', 'eta']);
     }
     async setMetrics(metrics) {
-        let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
-        return Tp.Helpers.Http.post(`${Config.TRAINING_URL}/jobs/${this.jobId}/metrics`,
-            JSON.stringify(metrics), {
-            dataContentType: 'application/json', auth,
-        });
+        this.info.metrics = JSON.stringify(metrics);
+        return this._save(['metrics']);
     }
 }
 
