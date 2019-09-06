@@ -57,8 +57,6 @@ module.exports = async function main(task, argv) {
 
     await genieJob.train();
 
-    if (!task.killed) {
-        await task.setMetrics(genieJob.metrics);
+    if (!task.killed)
         await AbstractFS.upload(outputdir, AbstractFS.resolve(task.jobDir, 'output'));
-    }
 };

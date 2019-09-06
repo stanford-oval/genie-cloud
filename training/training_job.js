@@ -73,6 +73,14 @@ const TASKS = {
             }
         },
         {
+            name: 'evaluate',
+
+            requests: {
+                cpu: 1.5,
+                gpu: 0 // XXX: if we care, we can evaluate on GPU too
+            }
+        },
+        {
             name: 'uploading',
 
             async task(job) {
