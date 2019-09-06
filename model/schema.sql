@@ -371,6 +371,7 @@ CREATE TABLE `example_utterances` (
   `preprocessed` text CHARACTER SET utf8mb4 NOT NULL,
   `target_json` text COLLATE utf8_bin NOT NULL,
   `target_code` text COLLATE utf8mb4_bin NOT NULL,
+  `context` text COLLATE utf8mb4_bin NULL,
   `click_count` int(11) NOT NULL DEFAULT 0,
   `like_count` int(11) NOT NULL DEFAULT 0,
   `owner` int(11) DEFAULT NULL,

@@ -17,7 +17,8 @@ function createMany(client, examples) {
         return Promise.resolve();
 
     const KEYS = ['id', 'schema_id', 'is_base', 'flags', 'language', 'utterance', 'preprocessed',
-                  'target_json', 'target_code', 'type', 'click_count', 'like_count', 'owner', 'name'];
+                  'target_json', 'target_code', 'context',
+                  'type', 'click_count', 'like_count', 'owner', 'name'];
     const arrays = [];
     examples.forEach((ex) => {
         if (!ex.type)
