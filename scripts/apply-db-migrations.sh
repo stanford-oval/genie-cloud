@@ -23,22 +23,26 @@ srcdir=`realpath $srcdir`
 
 for migration in $srcdir/model/migrations/* ; do
 	test -x $migration || continue
-	commit=`basename $migration | cut -f1 -d'-'`
+	commit=`basename ${migration} | cut -f1 -d'-'`
 	commit=`git rev-parse $commit`
-
-	if test -n "`git rev-list ${commit} ^${old_head}`" ; then
-		echo "Applying `basename $migration`"
-		if test $dry_run -eq 1 ; then
-			continue
-		fi
-
-		case $migration in
-		*.sql)
-			$srcdir/main.js execute-sql-file $migration
-			;;
-		*)
-			$migration
-			;;
-		esac
+	date=`git show --no-patch --pretty=tformat:%at ${commit}`
+	if test -z "`git rev-list ${commit} ^${old_head}`" ; then
+		continue
 	fi
+
+	printf "%s\t%s\t%s\n" "${date}" "${commit}" "${migration}"
+done | sort -n | while read date commit migration ; do
+	echo "Applying `basename $migration` (from `date --date=@${date}`)"
+	if test $dry_run -eq 1 ; then
+		continue
+	fi
+
+	case $migration in
+	*.sql)
+		$srcdir/main.js execute-sql-file $migration
+		;;
+	*)
+		$migration
+		;;
+	esac
 done
