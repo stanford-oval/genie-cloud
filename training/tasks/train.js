@@ -16,6 +16,7 @@ const fs = require('fs');
 const Genie = require('genie-toolkit');
 
 const AbstractFS = require('../../util/abstract_fs');
+const cmd = require('../../util/command');
 
 const Config = require('../../config');
 
@@ -50,6 +51,13 @@ module.exports = async function main(task, argv) {
     const genieJob = Genie.Training.createJob(options);
     genieJob.on('progress', (value) => {
         task.setProgress(value);
+	if (Config.TENSORBOARD_DIR) {
+            cmd.exec('aws', [ 's3', 'sync',
+                 workdir, `${Config.TENSORBOARD_DIR}/${task.jobId}/${task.info.model_tag}:${task.language}/`,
+                 '--exclude="*"',
+                 '--include="*tfevents*"'
+            ]);
+        }
     });
     task.on('killed', () => {
         genieJob.kill();

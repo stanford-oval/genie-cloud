@@ -6,7 +6,7 @@ MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
 # install basic tools
 USER root
-RUN yum -y install make gettext
+RUN yum -y install make gettext unzip
 
 # install nodejs 10.x and yarn
 RUN curl -sL https://rpm.nodesource.com/setup_10.x | bash -

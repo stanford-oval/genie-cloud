@@ -43,7 +43,7 @@ class TrainingDaemon {
             for (let job of existing) {
                 job.status = 'error';
                 job.error = 'Master process failed';
-                await this._recordJobCompletion(job);
+                await this._recordJobCompletion(dbClient, job);
             }
         });
 
@@ -227,7 +227,7 @@ Check the logs for further information.`
             } else {
                 job.status = 'error';
                 job.error = 'Killed';
-                await this._recordJobCompletion(job);
+                await this._recordJobCompletion(dbClient, job);
             }
         });
     }

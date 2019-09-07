@@ -392,6 +392,11 @@ Additional fields to add to the Kubernetes Pods created for training.
 
 Default value: `{}`
 
+## TENSORBOARD_DIR
+S3 directory where tensboard events are sycned to during training.
+
+Default value: `null`
+
 ## DOCUMENTATION_URL
 URL of documentation.
 
