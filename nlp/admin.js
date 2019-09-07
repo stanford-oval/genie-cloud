@@ -57,8 +57,9 @@ router.post('/reload/@:model_tag/:locale', async (req, res, next) => {
         return;
     }
 
-    await model.reload();
-    res.json({ result: 'ok' });
+    model.reload().then(() => {
+        res.json({ result: 'ok' });
+    }).catch(next);
 });
 
 module.exports = router;
