@@ -77,12 +77,19 @@ const _backends = {
 
             const s3 = new AWS.S3();
             const stream = new Stream.PassThrough();
-            const upload = s3.upload({
+            const key = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+            s3.upload({
                 Bucket: url.hostname,
-                Key: url.pathname,
+                Key: key,
                 Body: stream,
+            },(err, data) => {
+               if (err) {
+                  console.log('upload error:', err);
+                  stream.emit('error', err);
+                  return;
+               }
+               console.log('upload success:', data);
             });
-            upload.on('error', (e) => stream.emit('error', e));
 
             return stream;
         }
