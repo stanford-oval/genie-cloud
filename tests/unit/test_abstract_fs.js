@@ -99,6 +99,9 @@ async function testSync() {
     await expectCmd(afs.sync, [afs.resolve('/tmp'), afs.resolve('s3://bucket/dir', 'a/')],
         ['aws s3 sync /tmp s3://bucket/dir/a/']);
 
+    await expectCmd(afs.sync, [afs.resolve('s3://bucket/dir', 'b/'), afs.resolve('s3://bucket/dir', 'a/')],
+        ['aws s3 sync s3://bucket/dir/b/ s3://bucket/dir/a/']);
+
     await expectCmd(afs.sync, [afs.resolve('s3://bucket/dir', 'a/'), afs.resolve('/workdir/a')],
         ['aws s3 sync s3://bucket/dir/a/ /var/tmp/x',
          'rsync -av /var/tmp/x /workdir/a',

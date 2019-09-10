@@ -63,7 +63,7 @@ const _backends = {
         },
 
         async sync(url1, url2, ...extraArgs) {
-            const args = ['s3',
+            const args = ['s3', 'sync',
                 's3://' + url1.hostname + url1.pathname,
                 's3://' + url2.hostname + url2.pathname,
             ];
