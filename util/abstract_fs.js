@@ -51,7 +51,13 @@ const _backends = {
         },
 
         async upload(localdir, url) {
-            await cmd.exec('aws', ['s3', 'sync', localdir, 's3://' + url.hostname + url.pathname]);
+            await this.uploadWithExtraArgs(localdir, url);
+        },
+
+        async uploadWithExtraArgs(localdir, url, ...extraArgs) {
+            const args = ['s3', 'sync', localdir, 's3://' + url.hostname + url.pathname];
+            if (extraArgs) args.push(...extraArgs);
+            await cmd.exec('aws', args);
         },
 
         async removeRecursive(url) {
@@ -110,6 +116,19 @@ const _backends = {
             return path.resolve(url.pathname);
         },
 
+        async uploadWithExtraArgs(localdir, url, ...extraArgs) {
+            var hostname = '';
+            if (!url.hostname) {
+                if (path.resolve(localdir) === path.resolve(url.pathname))
+                    return;
+            } else {
+                hostname = url.hostname + ':';
+            }
+            const args = ['-av', localdir, `${hostname}${url.pathname}`];
+            if (extraArgs) args.push(...extraArgs);
+            await cmd.exec('rsync', args);
+        },
+
         async upload(localdir, url) {
             if (!url.hostname) {
                 if (path.resolve(localdir) === path.resolve(url.pathname))
@@ -117,9 +136,7 @@ const _backends = {
                 await cmd.exec('cp', ['-rT', localdir, url.pathname]);
                 return;
             }
-
-            await cmd.exec('rsync', ['-av', localdir,
-                `${url.hostname}:${url.pathname}`]);
+            await this.uploadWithExtraArgs(localdir, url);
         },
 
         async removeRecursive(url) {
@@ -158,9 +175,9 @@ module.exports = {
       to perform path resolution.
 
       Note that path resolution is not the same as URL resolution:
-      Url.resolve('file:///foo', 'bar') = 'file://bar'
+      Url.resolve('file://foo', 'bar') = 'file://bar'
       path.resolve('/foo', 'bar') = 'foo/bar'
-      AbstractFS.resolve('file:///foo', 'bar') = 'file://foo/bar'
+      AbstractFS.resolve('file://foo', 'bar') = 'file://foo/bar'
       AbstractFS.resolve('/foo', 'bar') = '/foo/bar'
     */
     resolve(url, ...others) {
@@ -183,6 +200,11 @@ module.exports = {
     async upload(localdir, url) {
         const [parsed, backend] = getBackend(url);
         return backend.upload(localdir, parsed);
+    },
+
+    async uploadWithExtraArgs(localdir, url, ...extraArgs) {
+        const [parsed, backend] = getBackend(url);
+        return backend.uploadWithExtraArgs(localdir, parsed, ...extraArgs);
     },
 
     async removeRecursive(url) {
