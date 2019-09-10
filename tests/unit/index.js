@@ -15,6 +15,7 @@ async function seq(array) {
 }
 
 seq([
+    ('./test_abstract_fs'),
     ('./test_lock'),
     ('./test_tokenize'),
     ('./test_device_factories'),
