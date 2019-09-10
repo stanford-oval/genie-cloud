@@ -399,7 +399,7 @@ module.exports.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE = {};
 module.exports.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE = {};
 
 /**
-  S3 directory where tensboard events are sycned to during training.
+  Directory in s3:// or file:// URI, where tensboard events are synced to during training.
 */
 module.exports.TENSORBOARD_DIR = null;
 
