@@ -50,7 +50,7 @@ module.exports = async function main(task, argv) {
     genieJob.on('progress', async (value) => {
         task.setProgress(value);
         if (Config.TENSORBOARD_DIR) {
-              await AbstractFS.uploadWithExtraArgs(
+              await AbstractFS.sync(
                   workdir,
                   AbstractFS.resolve(Config.TENSORBOARD_DIR, task.jobId.toString(), `./${task.info.model_tag}:${task.language}/`),
                  '--exclude=*', '--include=*tfevents*');

@@ -64,11 +64,13 @@ const _backends = {
             return cmd.exec('aws', ['s3', 'rm', '--recursive', 's3://' + url.hostname + url.pathname]);
         },
 
-        async sync(url1, url2) {
-            return cmd.exec('aws', ['s3',
+        async sync(url1, url2, ...extraArgs) {
+            const args = ['s3',
                 's3://' + url1.hostname + url1.pathname,
                 's3://' + url2.hostname + url2.pathname,
-            ]);
+            ];
+            if (extraArgs) args.push(...extraArgs);
+            return cmd.exec('aws', args);
         },
 
         createWriteStream(url) {
@@ -143,11 +145,13 @@ const _backends = {
             return cmd.exec('rm', ['-r', url.pathname]);
         },
 
-        async sync(url1, url2) {
-            return cmd.exec('rsync', ['-av',
+        async sync(url1, url2, ...extraArgs) {
+            const args = ['-av',
                 url1.hostname ? `${url1.hostname}:${url1.pathname}` : url1.pathname,
                 url2.hostname ? `${url2.hostname}:${url2.pathname}` : url2.pathname,
-            ]);
+            ];
+            if (extraArgs) args.push(...extraArgs);
+            return cmd.exec('rsync', args);
         },
 
         createWriteStream(url) {
@@ -212,18 +216,18 @@ module.exports = {
         return backend.removeRecursive(parsed);
     },
 
-    async sync(url1, url2) {
+    async sync(url1, url2, ...extraArgs) {
         const [parsed1, backend1] = getBackend(url1);
         const [parsed2, backend2] = getBackend(url2);
 
         if (backend1 === backend2) {
-            await backend1.sync(parsed1, parsed2);
+            await backend1.sync(parsed1, parsed2, ...extraArgs);
             return;
         }
 
         // download to a temporary directory, then upload
         const tmpdir = await backend1.download(parsed1);
-        await backend2.upload(tmpdir, parsed2);
+        await backend2.uploadWithExtraArgs(tmpdir, parsed2, ...extraArgs);
         await this.removeTemporary(tmpdir);
     },
 
