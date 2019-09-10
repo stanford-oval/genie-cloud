@@ -70,7 +70,7 @@ module.exports = class NLPModel {
     }
 
     async _download() {
-        this._localdir = await AbstractFS.download(this._modeldir);
+        this._localdir = await AbstractFS.download(this._modeldir + '/');
     }
 
     destroy() {
