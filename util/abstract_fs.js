@@ -214,11 +214,12 @@ module.exports = {
             await backend1.sync(parsed1, parsed2, ...extraArgs);
             return;
         }
-
         // download to a temporary directory, then upload
         const tmpdir = await backend1.download(parsed1, ...extraArgs);
         await backend2.upload(tmpdir, parsed2, ...extraArgs);
-        await module.exports.removeTemporary(tmpdir);
+        // tmpdir is not created for local file
+        if (parsed1.protocol !== 'file:')
+            await module.exports.removeTemporary(tmpdir);
     },
 
     createWriteStream(url) {

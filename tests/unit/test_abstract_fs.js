@@ -119,8 +119,8 @@ async function testSync() {
 
     const jobid = 15;
     await expectCmd(afs.sync,
-        ['/home/workdir', afs.resolve('s3://bucket/dir', jobid.toString(), './tag:lang/'), '--exclude=* --include=*tfevents*'],
-        ['aws s3 sync /home/workdir s3://bucket/dir/15/tag:lang/ --exclude=* --include=*tfevents*']);
+        ['/var/tmp/workdir', afs.resolve('s3://bucket/dir', jobid.toString(), './tag:lang/'), '--exclude=* --include=*tfevents*'],
+        ['aws s3 sync /var/tmp/workdir s3://bucket/dir/15/tag:lang/ --exclude=* --include=*tfevents*']);
 }
 
 
