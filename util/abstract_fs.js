@@ -56,7 +56,7 @@ const _backends = {
 
         async uploadWithExtraArgs(localdir, url, ...extraArgs) {
             const args = ['s3', 'sync', localdir, 's3://' + url.hostname + url.pathname];
-            if (extraArgs) args.push(...extraArgs);
+            if (extraArgs.length > 0) args.push(...extraArgs);
             await cmd.exec('aws', args);
         },
 
@@ -69,7 +69,7 @@ const _backends = {
                 's3://' + url1.hostname + url1.pathname,
                 's3://' + url2.hostname + url2.pathname,
             ];
-            if (extraArgs) args.push(...extraArgs);
+            if (extraArgs.length > 0) args.push(...extraArgs);
             return cmd.exec('aws', args);
         },
 
@@ -127,7 +127,7 @@ const _backends = {
                 hostname = url.hostname + ':';
             }
             const args = ['-av', localdir, `${hostname}${url.pathname}`];
-            if (extraArgs) args.push(...extraArgs);
+            if (extraArgs.length > 0) args.push(...extraArgs);
             await cmd.exec('rsync', args);
         },
 
@@ -150,7 +150,7 @@ const _backends = {
                 url1.hostname ? `${url1.hostname}:${url1.pathname}` : url1.pathname,
                 url2.hostname ? `${url2.hostname}:${url2.pathname}` : url2.pathname,
             ];
-            if (extraArgs) args.push(...extraArgs);
+            if (extraArgs.length > 0) args.push(...extraArgs);
             return cmd.exec('rsync', args);
         },
 
