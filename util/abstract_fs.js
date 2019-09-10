@@ -27,7 +27,7 @@ const _backends = {
             // metadata anyway
         },
 
-        async download(url) {
+        async download(url, ...extraArgs) {
             if (url.pathname.endsWith('/')) { // directory
                 // use /var/tmp as the parent directory, to ensure it's on disk and not in a tmpfs
                 const { path: dir } = await tmp.dir({
@@ -36,7 +36,9 @@ const _backends = {
                     unsafeCleanup: true,
                     prefix: path.basename(url.pathname) + '.'
                 });
-                await cmd.exec('aws', ['s3', 'sync', 's3://' + url.hostname + url.pathname, dir]);
+                const args = ['s3', 'sync', 's3://' + url.hostname + url.pathname, dir];
+                if (extraArgs.length > 0) args.push(...extraArgs);
+                await cmd.exec('aws', args);
                 return dir;
             } else { // file
                 const { path: file } = await tmp.file({
@@ -111,7 +113,7 @@ const _backends = {
             }
         },
 
-        async download(url) {
+        async download(url, ...extraArgs) {
             // the file is already local, so we have nothing to do
             // (note that the hostname part of the URL is ignored)
 
@@ -196,9 +198,9 @@ module.exports = {
         return backend.mkdirRecursive(parsed);
     },
 
-    async download(url) {
+    async download(url, ...extraArgs) {
         const [parsed, backend] = getBackend(url);
-        return backend.download(parsed);
+        return backend.download(parsed, ...extraArgs);
     },
 
     async upload(localdir, url) {
@@ -226,9 +228,9 @@ module.exports = {
         }
 
         // download to a temporary directory, then upload
-        const tmpdir = await backend1.download(parsed1);
+        const tmpdir = await backend1.download(parsed1, ...extraArgs);
         await backend2.uploadWithExtraArgs(tmpdir, parsed2, ...extraArgs);
-        await this.removeTemporary(tmpdir);
+        await module.exports.removeTemporary(tmpdir);
     },
 
     createWriteStream(url) {
