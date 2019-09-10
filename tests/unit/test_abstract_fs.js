@@ -54,7 +54,7 @@ async function expectCmd(fn, args, want) {
 
 async function testUpload() {
     await expectCmd(afs.upload, ['/tmp/a', afs.resolve('/tmp', 'b')],
-        ['cp -rT /tmp/a /tmp/b']);
+        ['rsync -av /tmp/a /tmp/b']);
 
     await expectCmd(afs.upload, ['/tmp/a', afs.resolve('/tmp', 'a')], []);
 
@@ -63,27 +63,25 @@ async function testUpload() {
 
     await expectCmd(afs.upload, ['/tmp', afs.resolve('s3://bucket/dir', 'a/')],
         ['aws s3 sync /tmp s3://bucket/dir/a/']);
-}
 
-async function testUploadWithExtraArgs() {
-    await expectCmd(afs.uploadWithExtraArgs,
+    await expectCmd(afs.upload,
         ['/tmp/a', afs.resolve('file://host1/tmp', 'b'), '--exclude=*', '--include=*tfevents*'],
         ['rsync -av /tmp/a host1:/tmp/b --exclude=* --include=*tfevents*']);
 
-    await expectCmd(afs.uploadWithExtraArgs,
+    await expectCmd(afs.upload,
         ['/tmp/a', afs.resolve('/tmp', 'b'), '--exclude=*', '--include=*tfevents*'],
         ['rsync -av /tmp/a /tmp/b --exclude=* --include=*tfevents*']);
 
-    await expectCmd(afs.uploadWithExtraArgs,
+    await expectCmd(afs.upload,
         ['/tmp/a', afs.resolve('/tmp', 'a'), '--exclude=*', '--include=*tfevents*'],
         []);
 
-    await expectCmd(afs.uploadWithExtraArgs,
+    await expectCmd(afs.upload,
         ['/tmp', afs.resolve('s3://bucket/dir', 'a/'), '--exclude=*', '--include=*tfevents*'],
         ['aws s3 sync /tmp s3://bucket/dir/a/ --exclude=* --include=*tfevents*']);
 
     const jobid = 15;
-    await expectCmd(afs.uploadWithExtraArgs,
+    await expectCmd(afs.upload,
         ['/home/workdir', afs.resolve('s3://bucket/dir', jobid.toString(), './tag:lang/'), '--exclude=*', '--include=*tfevents*'],
         ['aws s3 sync /home/workdir s3://bucket/dir/15/tag:lang/ --exclude=* --include=*tfevents*']);
 }
@@ -129,7 +127,6 @@ async function testSync() {
 async function main() {
     testResolve();
     await testUpload();
-    await testUploadWithExtraArgs();
     await testSync();
 }
 module.exports = main;

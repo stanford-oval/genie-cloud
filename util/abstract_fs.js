@@ -52,11 +52,7 @@ const _backends = {
             }
         },
 
-        async upload(localdir, url) {
-            await this.uploadWithExtraArgs(localdir, url);
-        },
-
-        async uploadWithExtraArgs(localdir, url, ...extraArgs) {
+        async upload(localdir, url, ...extraArgs) {
             const args = ['s3', 'sync', localdir, 's3://' + url.hostname + url.pathname];
             if (extraArgs.length > 0) args.push(...extraArgs);
             await cmd.exec('aws', args);
@@ -120,7 +116,7 @@ const _backends = {
             return path.resolve(url.pathname);
         },
 
-        async uploadWithExtraArgs(localdir, url, ...extraArgs) {
+        async upload(localdir, url, ...extraArgs) {
             var hostname = '';
             if (!url.hostname) {
                 if (path.resolve(localdir) === path.resolve(url.pathname))
@@ -131,16 +127,6 @@ const _backends = {
             const args = ['-av', localdir, `${hostname}${url.pathname}`];
             if (extraArgs.length > 0) args.push(...extraArgs);
             await cmd.exec('rsync', args);
-        },
-
-        async upload(localdir, url) {
-            if (!url.hostname) {
-                if (path.resolve(localdir) === path.resolve(url.pathname))
-                    return;
-                await cmd.exec('cp', ['-rT', localdir, url.pathname]);
-                return;
-            }
-            await this.uploadWithExtraArgs(localdir, url);
         },
 
         async removeRecursive(url) {
@@ -203,14 +189,9 @@ module.exports = {
         return backend.download(parsed, ...extraArgs);
     },
 
-    async upload(localdir, url) {
+    async upload(localdir, url, ...extraArgs) {
         const [parsed, backend] = getBackend(url);
-        return backend.upload(localdir, parsed);
-    },
-
-    async uploadWithExtraArgs(localdir, url, ...extraArgs) {
-        const [parsed, backend] = getBackend(url);
-        return backend.uploadWithExtraArgs(localdir, parsed, ...extraArgs);
+        return backend.upload(localdir, parsed, ...extraArgs);
     },
 
     async removeRecursive(url) {
@@ -229,7 +210,7 @@ module.exports = {
 
         // download to a temporary directory, then upload
         const tmpdir = await backend1.download(parsed1, ...extraArgs);
-        await backend2.uploadWithExtraArgs(tmpdir, parsed2, ...extraArgs);
+        await backend2.upload(tmpdir, parsed2, ...extraArgs);
         await module.exports.removeTemporary(tmpdir);
     },
 
