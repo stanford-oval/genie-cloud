@@ -65,5 +65,6 @@ module.exports = async function main(task, argv) {
     if (!task.killed) {
         await task.setMetrics(genieJob.metrics);
         await AbstractFS.upload(outputdir, AbstractFS.resolve(task.jobDir, 'output'));
+        await AbstractFS.removeTemporary(jobdir);
     }
 };
