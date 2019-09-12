@@ -23,6 +23,41 @@ function* getElementsByTagName(root, tagName) {
     }
 }
 
+function* getTextContentHelper(root) {
+    if (root.nodeName === '#text') {
+        yield root.value;
+        return;
+    }
+
+    for (let child of root.childNodes) {
+        if (child.nodeName === '#comment')
+            continue;
+        yield* getTextContentHelper(child);
+    }
+}
+
+function getTextContent(root) {
+    let buffer = '';
+    for (let node of getTextContentHelper(root))
+        buffer += node;
+    return buffer;
+}
+
+function getElementById(root, id) {
+    if (getAttribute(root, 'id') === id)
+        return root;
+
+    for (let child of root.childNodes) {
+        if (child.nodeName === '#text' || child.nodeName === '#comment')
+            continue;
+        let descendant;
+        if ((descendant = getElementById(child, id)))
+            return descendant;
+    }
+
+    return undefined;
+}
+
 function getDocumentElement(document) {
     for (let node of document.childNodes) {
         if (node.nodeName === 'html')
@@ -47,6 +82,8 @@ module.exports = {
     parse,
 
     getElementsByTagName,
+    getElementById,
     getDocumentElement,
     getAttribute,
+    getTextContent,
 };

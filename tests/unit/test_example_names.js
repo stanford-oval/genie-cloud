@@ -9,14 +9,13 @@
 // See COPYING for details
 "use strict";
 
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const path = require('path');
 
-const FileThingpediaClient = require('./file_thingpedia_client');
-
 const getExampleName = require('../../util/example_names');
 
-const _schemaRetriever = new ThingTalk.SchemaRetriever(new FileThingpediaClient({
+const _schemaRetriever = new ThingTalk.SchemaRetriever(new Tp.FileClient({
     thingpedia: path.resolve(path.dirname(module.filename), './thingpedia.tt')
 }), null, true);
 

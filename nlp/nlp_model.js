@@ -70,10 +70,10 @@ module.exports = class NLPModel {
     }
 
     async _download() {
-        this._localdir = await AbstractFS.download(this._modeldir);
+        this._localdir = await AbstractFS.download(this._modeldir + '/');
     }
 
-    destroy() {
+    async destroy() {
         return Promise.all([
             this.predictor.stop(),
             AbstractFS.removeTemporary(this._localdir)

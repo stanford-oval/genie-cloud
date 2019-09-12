@@ -415,6 +415,7 @@ CREATE TABLE `mturk_batch` (
   `name` varchar(255) CHARACTER SET utf8 NOT NULL,
   `language` char(16) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `submissions_per_hit` int(11) NOT NULL DEFAULT 3,
+  `status` enum('created','paraphrasing','validating','complete') NOT NULL COLLATE utf8_bin DEFAULT 'created',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -429,21 +430,12 @@ DROP TABLE IF EXISTS `mturk_input`;
 CREATE TABLE `mturk_input` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `batch` int(11) NOT NULL,
-  `id1` int(11) DEFAULT NULL,
-  `thingtalk1` mediumtext COLLATE utf8_bin DEFAULT NULL,
-  `sentence1` text CHARACTER SET utf8 DEFAULT NULL,
-  `id2` int(11) DEFAULT NULL,
-  `thingtalk2` mediumtext COLLATE utf8_bin DEFAULT NULL,
-  `sentence2` text CHARACTER SET utf8 DEFAULT NULL,
-  `id3` int(11) DEFAULT NULL,
-  `thingtalk3` mediumtext COLLATE utf8_bin DEFAULT NULL,
-  `sentence3` text CHARACTER SET utf8 DEFAULT NULL,
-  `id4` int(11) DEFAULT NULL,
-  `thingtalk4` mediumtext COLLATE utf8_bin DEFAULT NULL,
-  `sentence4` text CHARACTER SET utf8 DEFAULT NULL,
+  `hit_id` int(11) NOT NULL,
+  `thingtalk` text COLLATE utf8_bin NOT NULL,
+  `sentence` text CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `batch` (`batch`),
-  CONSTRAINT `mturk_input_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`)
+  KEY `batch_hit` (`batch`, `hit_id`),
+  CONSTRAINT `mturk_input_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -460,10 +452,8 @@ CREATE TABLE `mturk_log` (
   `hit` int(11) DEFAULT NULL,
   `worker` varchar(32) COLLATE utf8_bin DEFAULT NULL,
   PRIMARY KEY (`submission_id`),
-  UNIQUE KEY `hit` (`hit`,`worker`),
   KEY `batch` (`batch`),
-  CONSTRAINT `mturk_log_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`),
-  CONSTRAINT `mturk_log_ibfk_2` FOREIGN KEY (`hit`) REFERENCES `mturk_input` (`id`)
+  CONSTRAINT `mturk_log_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -475,16 +465,79 @@ DROP TABLE IF EXISTS `mturk_output`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mturk_output` (
-  `submission_id` char(16) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `example_id` int(11) NOT NULL,
+  `submission_id` char(16) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
   `program_id` int(11) NOT NULL,
   `target_count` int(11) NOT NULL DEFAULT 3,
   `accept_count` int(11) NOT NULL DEFAULT 0,
   `reject_count` int(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`submission_id`,`example_id`),
-  KEY `example_id` (`example_id`),
-  CONSTRAINT `mturk_output_ibfk_1` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`)
+  PRIMARY KEY (`example_id`),
+  KEY `submission_id` (`submission_id`),
+  CONSTRAINT `mturk_output_ibfk_0` FOREIGN KEY (`submission_id`) REFERENCES `mturk_log` (`submission_id`) ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT `mturk_output_ibfk_1` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `mturk_output_ibfk_2` FOREIGN KEY (`program_id`) REFERENCES `mturk_input` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `mturk_validation_input`
+--
+
+DROP TABLE IF EXISTS `mturk_validation_input`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mturk_validation_input` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `batch` int(11) NOT NULL,
+  `hit_id` int(11) NOT NULL,
+  `type` enum('real','fake-same','fake-different') COLLATE utf8_bin NOT NULL,
+  `program_id` int(11) NOT NULL,
+  `example_id` int(11) NULL,
+  `paraphrase` text CHARACTER SET utf8 DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `batch_hit` (`batch`, `hit_id`),
+  KEY `program_id` (`program_id`),
+  KEY `example_id` (`example_id`),
+  CONSTRAINT `mturk_validation_input_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`) ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT `mturk_validation_input_ibfk_2` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT `mturk_validation_input_ibfk_3` FOREIGN KEY (`program_id`) REFERENCES `mturk_input` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `mturk_validation_log`
+--
+
+DROP TABLE IF EXISTS `mturk_validation_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mturk_validation_log` (
+  `submission_id` char(16) COLLATE utf8_bin NOT NULL,
+  `batch` int(11) NOT NULL,
+  `hit` int(11) DEFAULT NULL,
+  `worker` varchar(32) COLLATE utf8_bin DEFAULT NULL,
+  PRIMARY KEY (`submission_id`),
+  KEY `batch_hit` (`batch`, `hit`),
+  CONSTRAINT `mturk_validation_log_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `mturk_validation_output`
+--
+
+DROP TABLE IF EXISTS `mturk_validation_output`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mturk_validation_output` (
+  `validation_sentence_id` int(11) NOT NULL,
+  `submission_id` char(16) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+  `answer` enum('same','different') COLLATE utf8_bin NOT NULL,
+  PRIMARY KEY (`validation_sentence_id`, `submission_id`),
+  KEY `submission_id` (`validation_sentence_id`, `submission_id`),
+  CONSTRAINT `mturk_validation_output_ibfk_0` FOREIGN KEY (`submission_id`) REFERENCES `mturk_validation_log` (`submission_id`) ON UPDATE CASCADE ON DELETE CASCADE,
+  CONSTRAINT `mturk_validation_output_ibfk_1` FOREIGN KEY (`validation_sentence_id`) REFERENCES `mturk_validation_input` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

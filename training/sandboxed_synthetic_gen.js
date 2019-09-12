@@ -40,7 +40,7 @@ async function downloadThingpedia(dbClient, orgId, language, tmpDir) {
     }));
 
     await util.promisify(fs.writeFile)(path.resolve(tmpDir, 'entities.json'),
-        JSON.stringify(entities));
+        JSON.stringify({ data: entities }));
 
     const examples = await exampleModel.getBaseByLanguage(dbClient, orgId, language);
 
