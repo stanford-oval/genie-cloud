@@ -97,7 +97,7 @@ module.exports = {
              order by id`, [language, tag, language, tag]).then(loadModels);
     },
     getByTagForUpdate(client, language, tag) {
-        return db.selectAll(client, `select m.*, tpl.tag as template_file_name
+        return db.selectOne(client, `select m.*, tpl.tag as template_file_name
               from models m, template_files tpl where tpl.id = m.template_file
               and m.language = ? and m.tag = ? for update`, [language, tag]);
     },
