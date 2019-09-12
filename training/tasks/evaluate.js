@@ -84,6 +84,9 @@ module.exports = async function main(task, argv) {
     const result = await output.read();
     await task.setMetrics(result);
 
-    await parser.stop();
-    await TokenizerService.tearDown();
+    await Promise.all([
+        parser.stop(),
+        TokenizerService.tearDown(),
+        AbstractFS.removeTemporary(jobdir)
+    ]);
 };

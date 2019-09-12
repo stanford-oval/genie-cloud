@@ -21,7 +21,6 @@ const byline = require('byline');
 const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
-const Tp = require('thingpedia');
 
 const StreamUtils = require('../util/stream-utils');
 const ActionSetFlag = require('./lib/action_set_flag');

@@ -25,7 +25,9 @@ class Task extends events.EventEmitter {
         this.jobDir = jobDir;
         this.name = name;
 
-        this._baseProgress = 0;
+        // this is the base value of progress (from previous tasks)
+        // used to convert task progress to job progress
+        this._baseJobProgress = 0;
         this._progressUpdates = [];
 
         this.killed = false;
@@ -47,7 +49,7 @@ class Task extends events.EventEmitter {
                     break;
                 }
 
-                this._baseProgress = task.progress;
+                this._baseJobProgress += task.progress;
             }
 
             this.modelInfo = null;
@@ -85,7 +87,7 @@ class Task extends events.EventEmitter {
 
     async setProgress(value) {
         // rescale task progress to job progress
-        value = this._baseProgress + value * this.spec.progress;
+        value = this._baseJobProgress + value * this.spec.progress;
 
         console.log(`Progress for job ${this.id}: ${Math.floor(value*100)}`);
 
