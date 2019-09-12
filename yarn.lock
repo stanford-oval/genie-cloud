@@ -268,15 +268,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.5.tgz#e19436e7f8e9b4601005d73673b6dc4784ffcc2f"
   integrity sha512-9fq4jZVhPNW8r+UYKnxF1e2HkDWOWKM5bC2/7c9wPV835I0aOrVbS/Hw/pWPk2uKrNXQqg9Z959Kz+IYDd5p3w==
 
-"@types/node@^10.1.0":
+"@types/node@^10.1.0", "@types/node@^10.12.0":
   version "10.14.18"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.18.tgz#b7d45fc950e6ffd7edc685e890d13aa7b8535dce"
   integrity sha512-ryO3Q3++yZC/+b8j8BdKd/dn9JlzlHBPdm80656xwYUdmPkpTGTjkAdt6BByiNupGPE8w0FhBgvYy/fX9hRNGQ==
-
-"@types/node@^10.12.0":
-  version "10.14.17"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.17.tgz#b96d4dd3e427382482848948041d3754d40fd5ce"
-  integrity sha512-p/sGgiPaathCfOtqu2fx5Mu1bcjuP8ALFg4xpGgNkcin7LwRyzUKniEHBKdcE1RPsenq5JVPIpMTJSygLboygQ==
 
 "@types/node@^9.4.6":
   version "9.6.52"
@@ -2763,7 +2758,7 @@ gcp-metadata@^1.0.0:
 
 "genie-toolkit@github:stanford-oval/genie-toolkit":
   version "0.4.1"
-  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/40f630a337cd5ff01793f90693ae08d3802528f9"
+  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/da89b675627825016c3bbdb2bcbe406e689f197a"
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
