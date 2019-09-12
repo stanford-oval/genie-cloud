@@ -82,22 +82,23 @@ block content
       p= _("Your Almond is dead. ")
         a.btn.btn-default.btn-sm(href="/me/status")= _("More Details")
 
+  div.hidden-xs
+    button.collapsible= _("Active Commands")
+    div.command-list
+      for app in apps
+        div.row
+          div.col-lg-6.col-xs-12.app-template
+            form.form-inline(action="/me/apps/delete",method="post").form-delete.form-delete-app
+              input(type='hidden',name='id',value=app.uniqueId)
+              input(type='hidden',name='_csrf',value=csrfToken)
+              button(type='submit').btn.btn-sm.btn-danger= _("Stop")
+            p= app.description
+            if app.error
+              p= _("This rule had an error: %s").format(app.error)
 
-  button.collapsible= _("Active Commands")
-  div.command-list
-    for app in apps
-      div.row
-        div.col-lg-6.col-xs-12.app-template
-          form.form-inline(action="/me/apps/delete",method="post").form-delete.form-delete-app
-            input(type='hidden',name='id',value=app.uniqueId)
-            input(type='hidden',name='_csrf',value=csrfToken)
-            button(type='submit').btn.btn-sm.btn-danger= _("Stop")
-          p= app.description
-          if app.error
-            p= _("This rule had an error: %s").format(app.error)
-
-  button.collapsible= _("Enabled Skills")
-  +device_list(devices)
+  div.hidden-xs
+    button.collapsible= _("Enabled Skills")
+    +device_list(devices)
 
   br
   br

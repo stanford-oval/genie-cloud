@@ -77,6 +77,8 @@ function load() {
 
         // prebind the gt for ease of use, because the usual gettext API is not object-oriented
         const prebound = {
+            locale,
+
             gettext: gt.gettext.bind(gt),
             ngettext: gt.ngettext.bind(gt),
             pgettext: gt.pgettext.bind(gt),
