@@ -2756,10 +2756,9 @@ gcp-metadata@^1.0.0:
     gaxios "^1.0.2"
     json-bigint "^0.3.0"
 
-genie-toolkit@~0.4.1:
+"genie-toolkit@github:stanford-oval/genie-toolkit":
   version "0.4.1"
-  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.4.1.tgz#b375aed82fd4b93cf482b513b5c9ffa8ed91bb21"
-  integrity sha512-68uXGaFEMZyQRZ1NlQirEGSeY1NXsLixW5dCNAWLizmGxk0I6qVth4yFn6v5jCKZ0KS4uByRlFF7tpM5DPQ3lA==
+  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/40f630a337cd5ff01793f90693ae08d3802528f9"
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
@@ -2769,7 +2768,7 @@ genie-toolkit@~0.4.1:
     qs "^6.7.0"
     seedrandom "^3.0.0"
     sockaddr "^1.0.1"
-    thingpedia "~2.5.0"
+    thingpedia "github:stanford-oval/thingpedia-api"
     thingtalk "~1.8.0"
 
 get-assigned-identifiers@^1.2.0:
