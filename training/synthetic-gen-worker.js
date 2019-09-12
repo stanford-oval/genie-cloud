@@ -19,8 +19,8 @@ const argparse = require('argparse');
 const seedrandom = require('seedrandom');
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
+const Tp = require('thingpedia');
 
-const FileThingpediaClient = require('../util/file_thingpedia_client');
 const StreamUtils = require('../util/stream-utils');
 const ActionSetFlag = require('./lib/action_set_flag');
 
@@ -60,7 +60,12 @@ async function main() {
 
     const args = parser.parseArgs();
 
-    const tpClient = new FileThingpediaClient(args.locale, './thingpedia.tt', './entities.json', './dataset.tt');
+    const tpClient = new Tp.FileClient({
+        locale: args.locale,
+        thingpedia: './thingpedia.tt',
+        entities: './entities.json',
+        dataset: './dataset.tt'
+    });
     const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
     const rng = seedrandom.alea('almond is awesome');

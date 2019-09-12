@@ -169,9 +169,9 @@ node ${srcdir}/main.js run-training-task -t prepare-training-set --job-id 2 --jo
 
 sha256sum exact.tsv ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
-939aacd713dd3d7e794982ba2cb5bb67bd137863e3f5ee7b3acf35159acb4471  exact.tsv
+3de0cdd08c70f0094a81fa110ae71e067f76ee3ce0aefc91e20a1019e1716bed  exact.tsv
 841ac7dc62bbc3de54e850722dd22679672f01dd176bac87d2e9e82a665b9222  ./training/jobs/2/dataset/eval.tsv
-fe78c2d0ecce92f53c2e597bf36d7022a27bfeca0fabab8c19e046ca5cbf9cf6  ./training/jobs/2/dataset/train.tsv
+80f3dc88a01075a957a57faccc2bd8a02bd3d327f994239e0f91a04463f875ae  ./training/jobs/2/dataset/train.tsv
 EOF
 
 rm -rf $workdir

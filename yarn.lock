@@ -268,15 +268,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.5.tgz#e19436e7f8e9b4601005d73673b6dc4784ffcc2f"
   integrity sha512-9fq4jZVhPNW8r+UYKnxF1e2HkDWOWKM5bC2/7c9wPV835I0aOrVbS/Hw/pWPk2uKrNXQqg9Z959Kz+IYDd5p3w==
 
-"@types/node@^10.1.0":
+"@types/node@^10.1.0", "@types/node@^10.12.0":
   version "10.14.18"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.18.tgz#b7d45fc950e6ffd7edc685e890d13aa7b8535dce"
   integrity sha512-ryO3Q3++yZC/+b8j8BdKd/dn9JlzlHBPdm80656xwYUdmPkpTGTjkAdt6BByiNupGPE8w0FhBgvYy/fX9hRNGQ==
-
-"@types/node@^10.12.0":
-  version "10.14.17"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.14.17.tgz#b96d4dd3e427382482848948041d3754d40fd5ce"
-  integrity sha512-p/sGgiPaathCfOtqu2fx5Mu1bcjuP8ALFg4xpGgNkcin7LwRyzUKniEHBKdcE1RPsenq5JVPIpMTJSygLboygQ==
 
 "@types/node@^9.4.6":
   version "9.6.52"
@@ -289,9 +284,9 @@
   integrity sha512-ewFXqrQHlFsgc09MK5jP5iR7vumV/BYayNC6PgJO2LPe8vrnNFyjQjSppfEngITi0qvfKtzFvgKymGheFM9UOA==
 
 "@types/request@^2.47.1":
-  version "2.48.2"
-  resolved "https://registry.yarnpkg.com/@types/request/-/request-2.48.2.tgz#936374cbe1179d7ed529fc02543deb4597450fed"
-  integrity sha512-gP+PSFXAXMrd5PcD7SqHeUjdGshAI8vKQ3+AvpQr3ht9iQea+59LOKvKITcQI+Lg+1EIkDP6AFSBUJPWG8GDyA==
+  version "2.48.3"
+  resolved "https://registry.yarnpkg.com/@types/request/-/request-2.48.3.tgz#970b8ed2317568c390361d29c555a95e74bd6135"
+  integrity sha512-3Wo2jNYwqgXcIz/rrq18AdOZUQB8cQ34CXZo+LUwPJNpvRAL86+Kc2wwI8mqpz9Cr1V+enIox5v+WZhy/p3h8w==
   dependencies:
     "@types/caseless" "*"
     "@types/node" "*"
@@ -2761,10 +2756,9 @@ gcp-metadata@^1.0.0:
     gaxios "^1.0.2"
     json-bigint "^0.3.0"
 
-genie-toolkit@~0.4.1:
+"genie-toolkit@github:stanford-oval/genie-toolkit":
   version "0.4.1"
-  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.4.1.tgz#b375aed82fd4b93cf482b513b5c9ffa8ed91bb21"
-  integrity sha512-68uXGaFEMZyQRZ1NlQirEGSeY1NXsLixW5dCNAWLizmGxk0I6qVth4yFn6v5jCKZ0KS4uByRlFF7tpM5DPQ3lA==
+  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/da89b675627825016c3bbdb2bcbe406e689f197a"
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
@@ -2774,7 +2768,7 @@ genie-toolkit@~0.4.1:
     qs "^6.7.0"
     seedrandom "^3.0.0"
     sockaddr "^1.0.1"
-    thingpedia "~2.5.0"
+    thingpedia "github:stanford-oval/thingpedia-api"
     thingtalk "~1.8.0"
 
 get-assigned-identifiers@^1.2.0:
@@ -6415,10 +6409,9 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-thingpedia@~2.5.0:
+"thingpedia@github:stanford-oval/thingpedia-api", thingpedia@~2.5.0:
   version "2.5.1"
-  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.5.1.tgz#92c7ea9f9c566d9cc4e9c7a57ff7b387f4dc2a3d"
-  integrity sha512-h+b/Ya2Ua701+GDP0jDtt0agdTiZUerxwvqCn1ba9OIkLgPQ+eOp5Kq41gaz8wUWu/1gODz8d1txJ5QKWc3XAQ==
+  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/4f44f54421ec2380b64115f8aad01f09c810cdc9"
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"

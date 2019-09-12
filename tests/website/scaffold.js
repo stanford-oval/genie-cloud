@@ -108,7 +108,7 @@ function assertLoginRequired(request) {
 
 function assertRedirect(request, redirect) {
     return request.then(() => {
-        assert.fail(new Error(`Expected HTTP redirect`));
+        assert.fail(new Error(`Expected HTTP redirect to ${redirect}`));
     }, (err) => {
         if (!err.detail || !err.code)
             throw err;

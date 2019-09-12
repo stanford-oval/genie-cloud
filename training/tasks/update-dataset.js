@@ -72,7 +72,7 @@ class DatabaseInserter extends Stream.Writable {
                 target_code: ex.target_code,
                 target_json: '',
                 type: ex.type,
-                flags: makeFlags(ex.flags),
+                flags: makeFlags(ex.flags) + ',training',
                 is_base: 0,
                 language: this._language
             };
