@@ -3,7 +3,7 @@ FROM registry.access.redhat.com/ubi7/ubi:latest
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
 # install basic tools
-RUN yum -y install git wget gcc gcc-c++ make gettext
+RUN yum -y install git wget gcc gcc-c++ make gettext unzip
 
 # add epel repo
 RUN wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
@@ -15,9 +15,9 @@ RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.re
 RUN yum -y install nodejs yarn
 
 # install python3
-RUN yum -y install python36 \
-	python36-pip \
-	python36-devel
+RUN yum -y install python3 \
+	python3-pip \
+	python3-devel
 
 # install aws client
 RUN pip3 install awscli
