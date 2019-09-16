@@ -67,10 +67,9 @@ class TypecheckStream extends Stream.Transform {
             return;
         }
 
-        const entities = Genie.Utils.makeDummyEntities(ex.preprocessed);
-        const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
-
         try {
+            const entities = Genie.Utils.makeDummyEntities(ex.preprocessed);
+            const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
             await program.typecheck(this._schemas);
             this.push(ex);
             return;

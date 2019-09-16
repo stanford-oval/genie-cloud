@@ -3,7 +3,7 @@ FROM registry.access.redhat.com/ubi7/ubi:latest
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
 # install basic tools
-RUN yum -y install git wget gcc gcc-c++ make gettext
+RUN yum -y install git wget gcc gcc-c++ make gettext unzip
 
 # add epel repo
 RUN wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm

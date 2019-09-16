@@ -399,6 +399,11 @@ module.exports.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE = {};
 module.exports.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE = {};
 
 /**
+  Directory in s3:// or file:// URI, where tensboard events are synced to during training.
+*/
+module.exports.TENSORBOARD_DIR = null;
+
+/**
   URL of documentation.
 
   Set this to a string starting with `/doc` to enable the embedded documentation site. Alternatively,

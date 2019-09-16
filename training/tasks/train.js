@@ -16,7 +16,6 @@ const fs = require('fs');
 const Genie = require('genie-toolkit');
 
 const AbstractFS = require('../../util/abstract_fs');
-
 const Config = require('../../config');
 
 module.exports = async function main(task, argv) {
@@ -48,8 +47,14 @@ module.exports = async function main(task, argv) {
     };
 
     const genieJob = Genie.Training.createJob(options);
-    genieJob.on('progress', (value) => {
+    genieJob.on('progress', async (value) => {
         task.setProgress(value);
+        if (Config.TENSORBOARD_DIR) {
+              await AbstractFS.sync(
+                  workdir,
+                  AbstractFS.resolve(Config.TENSORBOARD_DIR, task.jobId.toString(), `./${task.info.model_tag}:${task.language}/`),
+                 '--exclude=*', '--include=*tfevents*');
+        }
     });
     task.on('killed', () => {
         genieJob.kill();
@@ -60,5 +65,6 @@ module.exports = async function main(task, argv) {
     if (!task.killed) {
         await task.setMetrics(genieJob.metrics);
         await AbstractFS.upload(outputdir, AbstractFS.resolve(task.jobDir, 'output'));
+        await AbstractFS.removeTemporary(jobdir);
     }
 };
