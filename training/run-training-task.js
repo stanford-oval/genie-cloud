@@ -89,7 +89,9 @@ class Task extends events.EventEmitter {
         // rescale task progress to job progress
         value = this._baseJobProgress + value * this.spec.progress;
 
-        console.log(`Progress for job ${this.id}: ${Math.floor(value*100)}`);
+        // log only when the rounded value changes
+        if (Math.floor(value*100) > Math.floor(this.info.progress*100))
+            console.log(`Progress for job ${this.jobId}: ${Math.floor(value*100)}`);
 
         const now = new Date;
         this._progressUpdates.push([now, value]);

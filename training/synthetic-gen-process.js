@@ -59,6 +59,8 @@ async function genBasic(args) {
 
     generator.pipe(stringifier).pipe(process.stdout);
     await StreamUtils.waitFinish(process.stdout);
+
+    process.disconnect();
 }
 
 async function genContextual(args) {
@@ -68,8 +70,11 @@ async function genContextual(args) {
 
     const options = {
         locale: args.locale,
+        thingpedia: './thingpedia.tt',
+        entities: './entities.json',
+        dataset: './dataset.tt',
         flags: args.flags,
-        template: 'index.genie',
+        template: 'contextual.genie',
         random_seed: 'almond is awesome',
         maxdepth: args.maxdepth,
         debug: false, // no debugging, ever, because debugging also goes to stdout
@@ -80,7 +85,10 @@ async function genContextual(args) {
             require.resolve('./workers/generate-contextual-worker.js'), options))
         .pipe(new Genie.DatasetStringifier())
         .pipe(process.stdout);
+
     await StreamUtils.waitFinish(process.stdout);
+
+    process.disconnect();
 }
 
 async function main() {

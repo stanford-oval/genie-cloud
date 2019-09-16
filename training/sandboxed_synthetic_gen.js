@@ -116,7 +116,7 @@ async function prepare(options) {
     return tmpDir;
 }
 
-function spawnSandboxed(tmpDir, script, scriptArgs, debug) {
+function spawnSandboxed(tmpDir, script, scriptArgs, debug, contextual) {
     const ourpath = path.dirname(module.filename);
 
     const env = cleanEnv();
@@ -152,7 +152,7 @@ function spawnSandboxed(tmpDir, script, scriptArgs, debug) {
     child.stdout.setEncoding('utf8');
     const stream = child.stdout
         .pipe(byline())
-        .pipe(new Genie.DatasetParser());
+        .pipe(new Genie.DatasetParser({ contextual }));
 
     // propagate errors from the child process to the stream
     child.on('error', (e) => stream.emit('error', e));
@@ -183,7 +183,8 @@ function generate(tmpDir, options) {
     if (options.contextual)
         scriptArgs.push('--contextual');
 
-    const [child, stream] = spawnSandboxed(tmpDir, workerpath, scriptArgs, options.debug);
+    const [child, stream] = spawnSandboxed(tmpDir, workerpath, scriptArgs,
+        options.debug, options.contextual);
 
     if (options.contextual) {
         for (let context of options.contexts)

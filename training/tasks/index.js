@@ -12,5 +12,6 @@
 module.exports = {
     'prepare-training-set': require('./prepare-training-set'),
     'update-dataset': require('./update-dataset'),
-    'train': require('./train')
+    'train': require('./train'),
+    'evaluate': require('./evaluate')
 };

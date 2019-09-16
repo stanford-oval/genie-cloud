@@ -2758,7 +2758,7 @@ gcp-metadata@^1.0.0:
 
 "genie-toolkit@github:stanford-oval/genie-toolkit":
   version "0.4.1"
-  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/da89b675627825016c3bbdb2bcbe406e689f197a"
+  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/cf5b6c47761310e52014f4f7a89a3dd2cf14eab2"
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"

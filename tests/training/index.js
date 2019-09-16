@@ -124,7 +124,43 @@ async function testBasic() {
             depends_on: 1,
             job_type: 'train',
             language: 'en',
+            model_tag: 'org.thingpedia.models.contextual',
+            all_devices: 1,
+            status: 'queued',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config: null,
+            metrics: null,
+            for_devices: []
+        }, {
+            id: 4,
+            depends_on: 1,
+            job_type: 'train',
+            language: 'en',
             model_tag: 'org.thingpedia.models.developer',
+            all_devices: 1,
+            status: 'queued',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config: null,
+            metrics: null,
+            for_devices: []
+        }, {
+            id: 5,
+            depends_on: 1,
+            job_type: 'train',
+            language: 'en',
+            model_tag: 'org.thingpedia.models.developer.contextual',
             all_devices: 1,
             status: 'queued',
             task_index: null,
@@ -157,7 +193,7 @@ async function testForDevice() {
 
     deepStrictEqual(queue, {
         'update-dataset': [ {
-            id: 4,
+            id: 6,
             depends_on: null,
             job_type: 'update-dataset',
             language: 'en',
@@ -177,11 +213,29 @@ async function testForDevice() {
             for_devices: ['org.thingpedia.builtin.test.adminonly'] }
         ],
         train: [ {
-            id: 5,
-            depends_on: 4,
+            id: 7,
+            depends_on: 6,
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.developer',
+            all_devices: 0,
+            status: 'queued',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config: null,
+            metrics: null,
+            for_devices: ['org.thingpedia.builtin.test.adminonly']
+        }, {
+            id: 8,
+            depends_on: 6,
+            job_type: 'train',
+            language: 'en',
+            model_tag: 'org.thingpedia.models.developer.contextual',
             all_devices: 0,
             status: 'queued',
             task_index: null,
@@ -208,7 +262,7 @@ async function testForDevice() {
 
     deepStrictEqual(queue2, [
         {
-            id: 4,
+            id: 6,
             depends_on: null,
             job_type: 'update-dataset',
             language: 'en',
@@ -227,11 +281,29 @@ async function testForDevice() {
             metrics: null
         },
         {
-            id: 5,
-            depends_on: 4,
+            id: 7,
+            depends_on: 6,
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.developer',
+            all_devices: 0,
+            status: 'queued',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config: null,
+            metrics: null,
+        },
+        {
+            id: 8,
+            depends_on: 6,
+            job_type: 'train',
+            language: 'en',
+            model_tag: 'org.thingpedia.models.developer.contextual',
             all_devices: 0,
             status: 'queued',
             task_index: null,
@@ -261,10 +333,11 @@ async function testMetrics() {
     const metrics = await db.withClient((dbClient) => server.getMetrics(dbClient));
     console.log(metrics);
 
-    assert.deepStrictEqual(metrics, {
-        'org.thingpedia.models.default/en': { em: 0, nem: 0, nf1: 0, fm: 0, dm: 0, bleu: 0, deca: 0 },
-        'org.thingpedia.models.developer/en': { em: 0, nem: 0, nf1: 0, fm: 0, dm: 0, bleu: 0, deca: 0 }
-    });
+    // the specific metric values depend on unpredictable factors, so we don't check them
+    assert('org.thingpedia.models.default/en' in metrics);
+    assert('org.thingpedia.models.developer/en' in metrics);
+    assert('org.thingpedia.models.contextual/en' in metrics);
+    assert('org.thingpedia.models.developer.contextual/en' in metrics);
 }
 
 async function main() {

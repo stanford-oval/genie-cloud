@@ -11,7 +11,10 @@
 
 const Tp = require('thingpedia');
 const seedrandom = require('seedrandom');
-const Genie = require('genie-toolkit');
+
+// FIXME: we cannot require "genie-toolkit" because that will try and load mmap-io
+// which is incompatible with worker use
+const { ContextualSentenceGenerator } = require('genie-toolkit/lib/sentence-generator');
 
 module.exports = function worker(args, shard) {
     const tpClient = new Tp.FileClient(args);
@@ -25,5 +28,5 @@ module.exports = function worker(args, shard) {
         maxDepth: args.maxdepth,
         debug: args.debug,
     };
-    return new Genie.ContextualSentenceGenerator(options);
+    return new ContextualSentenceGenerator(options);
 };

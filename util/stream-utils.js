@@ -13,7 +13,7 @@ const assert = require('assert');
 const Stream = require('stream');
 
 class ChainStream extends Stream.Readable {
-    constructor(chain, options) {
+    constructor(chain, options = {}) {
         super(options);
 
         this._chain = chain;

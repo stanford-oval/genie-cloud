@@ -112,7 +112,7 @@ class DatasetGenerator {
     }
 
     _downloadParaphrase(contextual) {
-        const queryString = `select id,flags,preprocessed,target_code from example_utterances
+        const queryString = `select id,flags,preprocessed,context,target_code from example_utterances
             use index (language_flags) where language = ?
             and find_in_set('training',flags) and not find_in_set('obsolete',flags)
             and target_code<>'' and preprocessed<>'' and type <> 'generated'
@@ -164,10 +164,15 @@ class DatasetGenerator {
             templatePack: this._options.templatePack,
         });
 
+        // FIXME find a better place for this
+        let basicFlags = this._options.flags.slice();
+        if (this._contextual)
+            basicFlags.push('no_contextual_bookkeeping');
+
         const basicSynthetic = genSynthetic.generate(tmpDir, {
             contextual: false,
             language: this._language,
-            flags: this._options.flags,
+            flags: basicFlags,
             maxDepth: this._options.maxDepth,
             debug: this._options.debug,
         });
@@ -177,10 +182,10 @@ class DatasetGenerator {
         let source;
 
         if (this._contextual) {
-            const basicSource = StreamUtils.chain([basicParaphrase, basicSynthetic], { objectMode: true });
+            const contextualParaphrase = this._downloadParaphrase(true)
+                .pipe(new TypecheckStream(this._schemas));
 
-            const { path: basicDataset, fd: basicDatasetFD } =
-                await tmp.file({ mode: 0o600, dir: '/var/tmp' });
+            const basicSource = StreamUtils.chain([basicParaphrase, basicSynthetic], { objectMode: true });
 
             // Spool the basic (non-contextual, not augmented) dataset to disk
             // We need to do this because:
@@ -188,6 +193,8 @@ class DatasetGenerator {
             //    would use too much memory
             // 2) We need to do multiple passes over the basic dataset for different reasons, and
             //    we can't cache it in memory
+            const { path: basicDataset, fd: basicDatasetFD } =
+                await tmp.file({ mode: 0o600, dir: '/var/tmp' });
 
             await StreamUtils.waitFinish(basicSource
                 .pipe(new Genie.DatasetStringifier())
@@ -224,14 +231,13 @@ class DatasetGenerator {
             // free memory
             contexts = null;
 
-            const contextualParaphrase = this._downloadParaphrase(true)
-                .pipe(new TypecheckStream(this._schemas));
 
             // chain them in order of quality, from best to worst, because
             // dataset splitter will discard later examples if they look similar
             // to earlier ones
             // (same sentence or same program, depending on the options)
-            source = StreamUtils.chain([contextualParaphrase, contextualized, contextualSynthetic]);
+            source = StreamUtils.chain([contextualParaphrase, contextualized, contextualSynthetic],
+                { objectMode: true });
         } else {
             // assume that the progress of synthetic generation is the overall progress, because
             // synthetic generation is the biggest part of the process, and augmentation happens in parallel
