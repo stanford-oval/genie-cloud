@@ -76,6 +76,19 @@ class NLPInferenceServer {
         return undefined;
     }
 
+    getOrCreateModel(spec) {
+        const key = `@${spec.tag}/${spec.language}`;
+        let model = this._models.get(key);
+        if (model) {
+            model.init(spec, this);
+            return model;
+        }
+
+        model = new NLPModel(spec, this);
+        this._models.set(key, model);
+        return model;
+    }
+
     async loadAllLanguages() {
         await this._classifier.start();
 
@@ -93,7 +106,7 @@ class NLPInferenceServer {
                 await model.load();
                 this._models.set(model.id, model);
             }
-        }, 'repeatable read');
+        }, 'repeatable read', 'read only');
 
         console.log(`Loaded ${this._models.size} models`);
     }
