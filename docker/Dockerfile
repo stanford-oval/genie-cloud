@@ -15,9 +15,9 @@ RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.re
 RUN yum -y install nodejs yarn
 
 # install python3
-RUN yum -y install python36 \
-	python36-pip \
-	python36-devel
+RUN yum -y install python3 \
+	python3-pip \
+	python3-devel
 
 # install aws client
 RUN pip3 install awscli
