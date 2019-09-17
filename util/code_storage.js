@@ -66,7 +66,6 @@ module.exports = {
         await AbstractFS.writeFile(AbstractFS.resolve(writableDirectory, filename), blob, {
             contentType: 'application/zip'
         });
-        console.log(`Successfully stored zip file for ${name} v${version}`);
     },
 
     downloadZipFile(name, version, directory = 'devices') {
