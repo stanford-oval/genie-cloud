@@ -129,5 +129,9 @@ module.exports = {
             await db.insertOne(client, "insert into model_devices(model_id, schema_id) select ?,id from device_schema where kind in (?)", [id, for_devices]);
         model.id = id;
         return model;
+    },
+
+    async updateByTag(client, language, tag, model) {
+        return db.query(client, `update models set ? where language = ? and tag = ?`, [model, language, tag]);
     }
 };

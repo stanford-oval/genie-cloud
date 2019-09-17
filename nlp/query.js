@@ -91,7 +91,7 @@ async function query(params, data, service, res) {
     }
 
     const model = service.getModel(modelTag, params.locale);
-    if (!model) {
+    if (!model || !model.trained) {
         res.status(404).json({ error: 'No such model' });
         return;
     }
