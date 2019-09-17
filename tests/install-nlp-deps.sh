@@ -17,8 +17,5 @@ cd $srcdir/tests/embeddings
 
 wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/thingtalk-lm2.pth
 
-for v in charNgram glove.840B.300d ; do
-	for f in vectors table itos ; do
-		wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/${v}.txt.${f}.npy
-	done
-done
+wget -c https://oval.cs.stanford.edu/data/glove/embeddings.tar.xz
+tar xvf embeddings.tar.xz
