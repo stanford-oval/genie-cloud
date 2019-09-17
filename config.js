@@ -134,7 +134,7 @@ module.exports.FILE_STORAGE_DIR = './shared/download';
   Note: unlike other _DIR configuration keys, this key cannot be a URL. The cache directory
   is always on the local machine where the Almond process runs.
 */
-module.exports.CACHE_DIR = './shared/download';
+module.exports.CACHE_DIR = './shared/cache';
 
 /**
   The location where icons and zip files can be retrieved.
