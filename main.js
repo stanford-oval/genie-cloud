@@ -21,8 +21,6 @@ require('./util/config_init');
 
 const argparse = require('argparse');
 
-const platform = require('./util/platform');
-
 const commands = {
     // administrative commands
     'bootstrap': require('./scripts/bootstrap'),
@@ -46,8 +44,6 @@ const commands = {
     'sync-discourse-sso': require('./scripts/sync-discourse-sso'),
     'download-dataset': require('./scripts/download-dataset')
 };
-
-platform.init();
 
 const parser = new argparse.ArgumentParser({
     addHelp: true,

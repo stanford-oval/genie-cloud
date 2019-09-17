@@ -18,7 +18,6 @@ const assert = require('assert');
 
 const db = require('../util/db');
 const user = require('../util/user');
-const platform = require('../util/platform');
 
 const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
@@ -26,8 +25,6 @@ assert.strictEqual(Config.WITH_THINGPEDIA, 'external');
 const req = { _(x) { return x; } };
 
 async function main() {
-    platform.init();
-
     await db.withTransaction(async (dbClient) => {
         await user.register(dbClient, req, {
             username: 'bob',

@@ -19,7 +19,6 @@ const db = require('../../util/db');
 const nlpModelsModel = require('../../model/nlp_models');
 const templatePackModel = require('../../model/template_files');
 
-const platform = require('../../util/platform');
 const codeStorage = require('../../util/code_storage');
 
 const Config = require('../../config');
@@ -123,7 +122,6 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
 
 
 async function main() {
-    platform.init();
     if (Config.WITH_LUINET !== 'embedded')
         return;
 
