@@ -12,17 +12,17 @@
 const express = require('express');
 const multer = require('multer');
 const csurf = require('csurf');
+const os = require('os');
 
 const db = require('../util/db');
 const entityModel = require('../model/entity');
 const user = require('../util/user');
-const platform = require('../util/platform');
 const iv = require('../util/input_validation');
 const { uploadEntities } = require('../util/upload_dataset');
 
 const router = express.Router();
 
-router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
+router.post('/create', multer({ dest: os.tmpdir() }).fields([
     { name: 'upload', maxCount: 1 }
 ]), csurf({ cookie: false }),
     user.requireLogIn, user.requireDeveloper(),
