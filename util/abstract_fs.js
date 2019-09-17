@@ -92,6 +92,33 @@ const _backends = {
             });
 
             return stream;
+        },
+        createReadStream(url) {
+            // lazy-load AWS, which is optional
+            const AWS = require('aws-sdk');
+
+            const s3 = new AWS.S3();
+            const key = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+            const download = s3.getObject({
+                Bucket: url.hostname,
+                Key: key
+            });
+            return download.createReadStream();
+        },
+
+        async writeFile(url, blob, options) {
+            // lazy-load AWS, which is optional
+            const AWS = require('aws-sdk');
+
+            const s3 = new AWS.S3();
+            const key = url.pathname.startsWith('/') ? url.pathname.substring(1) : url.pathname;
+            const upload = s3.upload({
+                Bucket: url.hostname,
+                Key: key,
+                Body: blob,
+                ContentType: options.contentType
+            });
+            return upload.promise();
         }
     },
 
@@ -239,6 +266,14 @@ module.exports = {
     createWriteStream(url) {
         const [parsed, backend] = getBackend(url);
         return backend.createWriteStream(parsed);
+    },
+    createReadStream(url) {
+        const [parsed, backend] = getBackend(url);
+        return backend.createReadStream(parsed);
+    },
+    async writeFile(url, blob, options) {
+        const [parsed, backend] = getBackend(url);
+        return backend.writeFile(parsed, blob, options);
     },
 
     async removeTemporary(pathname) {
