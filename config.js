@@ -306,6 +306,8 @@ module.exports.NL_TOKENIZER_ADDRESS = '127.0.0.1:8888';
 
   This is the path containing the models that should be served by the NLP inference
   server. It can be a relative or absolute path, or a file: or s3: URI.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
 
   For a file URI, if the training and inference servers are on different machines,
   you should specify the hostname of the inference server. The training server will
@@ -351,6 +353,8 @@ module.exports.TRAINING_MEMORY_USAGE = 24000;
   The directory to use to store training jobs (datasets, working directories and trained models).
 
   This can be a relative or absolute path, or a file: or s3: URI.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
 
   NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
   be of the form `file:///`, with 3 consecutive slashes.
@@ -399,7 +403,7 @@ module.exports.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE = {};
 module.exports.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE = {};
 
 /**
-  Directory in s3:// or file:// URI, where tensboard events are synced to during training.
+  Directory in s3:// or file:// URI, where tensorboard events are synced to during training.
 */
 module.exports.TENSORBOARD_DIR = null;
 

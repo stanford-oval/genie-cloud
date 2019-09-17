@@ -151,11 +151,25 @@ const _backends = {
 
         createWriteStream(url) {
             return fs.createWriteStream(url.pathname);
+        },
+        createReadStream(url) {
+            return fs.createReadStream(url.pathname);
+        },
+        async writeFile(url, blob, options) {
+            let output = fs.createWriteStream(url.pathname);
+            if (typeof blob === 'string' || blob instanceof Uint8Array || blob instanceof Buffer)
+                output.end(blob);
+            else
+                blob.pipe(output);
+            return new Promise((callback, errback) => {
+                output.on('finish', callback);
+                output.on('error', errback);
+            });
         }
     }
 };
 
-const cwd = 'file://' + process.cwd() + '/';
+const cwd = 'file://' + (path.resolve(process.env.THINGENGINE_ROOTDIR || '.')) + '/';
 function getBackend(url) {
     url = Url.resolve(cwd, url);
     const parsed = Url.parse(url);
