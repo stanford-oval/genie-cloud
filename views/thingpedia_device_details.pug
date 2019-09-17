@@ -71,26 +71,20 @@ block content
       p
         = _("The natural language dataset for this device is being updated. You should wait before testing.")
 
-  if device.current_jobs.train
+  if device.current_jobs.train && device.current_jobs.train.length > 0
     div.alert.alert-info(role='alert')
       p
         = _("The natural language model for this device is being updated. Natural language support might be limited.")
       if authenticated && user.developer_org === device.owner
         p
-          if device.current_jobs.train.status === 'queued'
+          if device.current_jobs.train[0].status === 'queued'
              = _("Status: queued.")
-          else if ['prepare', 'download_dataset', 'datagen'].indexOf(device.current_jobs.train.status) >= 0
-             = _("Status: phase 1/3: preparing dataset.")
-          else if ['training'].indexOf(device.current_jobs.train.status) >= 0
-             = _("Status: phase 2/3: training machine learning model (%.0f%%).").format(device.current_jobs.train.progress*100)
-          else if ['testing', 'uploading'].indexOf(device.current_jobs.train.status) >= 0
-             = _("Status: phase 3/3: validating and uploading trained model.")
           else
-             = _("Status: running.")
+             = _("Status: training (%.0f%%).").format(device.current_jobs.train[0].progress*100)
           |
           |
-          if device.current_jobs.train.eta
-            = _("ETA: %s").format((new Date(device.current_jobs.train.eta)).toLocaleString(locale, { timeZone: user ? user.timezone : undefined, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', 'minute': 'numeric' }))
+          if device.current_jobs.train[0].eta
+            = _("ETA: %s").format((new Date(device.current_jobs.train[0].eta)).toLocaleString(locale, { timeZone: user ? user.timezone : undefined, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', 'minute': 'numeric' }))
       
 
   aside#device-icon-large
