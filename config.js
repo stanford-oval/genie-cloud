@@ -113,17 +113,36 @@ module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 /**
   Where to store icons and zip files.
 
-  Set this option to s3 to use Amazon S3, local to use the local filesystem
-  (which must be configured with the correct permissions).
+  This can be a relative or absolute path, or a file: or s3: URI.
+  The location must be writable by the frontend Almond processes.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
+
+  NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
+  be of the form `file:///`, with 3 consecutive slashes.
 */
-module.exports.FILE_STORAGE_BACKEND = 'local';
+module.exports.FILE_STORAGE_DIR = './shared/download';
 
 /**
-  The location where icons and zip files are stored.
+  Where to cache entity icons and contact avatars.
 
-  If using the S3 storage backend, this could be the S3 website URL, or the URL
+  This can be a relative or absolute path.
+  The location must be writable by the frontend Almond processes.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
+
+  Note: unlike other _DIR configuration keys, this key cannot be a URL. The cache directory
+  is always on the local machine where the Almond process runs.
+*/
+module.exports.CACHE_DIR = './shared/cache';
+
+/**
+  The location where icons and zip files can be retrieved.
+
+  If using S3 storage, this could be the S3 website URL, or the URL
   of a CloudFront distribution mapping to the S3 bucket.
-  If using the `local` storage backend, it must be the exact string `"/download"`.
+  If using local storage, or if no CDN is available, it must be the
+  exact string `"/download"`.
 */
 module.exports.CDN_HOST = '/download';
 
@@ -306,6 +325,8 @@ module.exports.NL_TOKENIZER_ADDRESS = '127.0.0.1:8888';
 
   This is the path containing the models that should be served by the NLP inference
   server. It can be a relative or absolute path, or a file: or s3: URI.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
 
   For a file URI, if the training and inference servers are on different machines,
   you should specify the hostname of the inference server. The training server will
@@ -351,6 +372,8 @@ module.exports.TRAINING_MEMORY_USAGE = 24000;
   The directory to use to store training jobs (datasets, working directories and trained models).
 
   This can be a relative or absolute path, or a file: or s3: URI.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
 
   NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
   be of the form `file:///`, with 3 consecutive slashes.
@@ -399,7 +422,7 @@ module.exports.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE = {};
 module.exports.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE = {};
 
 /**
-  Directory in s3:// or file:// URI, where tensboard events are synced to during training.
+  Directory in s3:// or file:// URI, where tensorboard events are synced to during training.
 */
 module.exports.TENSORBOARD_DIR = null;
 

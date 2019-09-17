@@ -12,8 +12,8 @@
 const express = require('express');
 const multer = require('multer');
 const csurf = require('csurf');
+const os = require('os');
 
-const platform = require('../util/platform');
 const db = require('../util/db');
 const model = require('../model/device');
 const exampleModel = require('../model/example');
@@ -26,7 +26,7 @@ const { ValidationError, BadRequestError, ForbiddenError } = require('../util/er
 
 var router = express.Router();
 
-router.use(multer({ dest: platform.getTmpDir() }).fields([
+router.use(multer({ dest: os.tmpdir() }).fields([
     { name: 'zipfile', maxCount: 1 },
     { name: 'icon', maxCount: 1 }
 ]));

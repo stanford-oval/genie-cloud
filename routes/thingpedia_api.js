@@ -14,6 +14,7 @@ const express = require('express');
 const accepts = require('accepts');
 const passport = require('passport');
 const multer = require('multer');
+const os = require('os');
 
 const db = require('../util/db');
 const entityModel = require('../model/entity');
@@ -30,7 +31,6 @@ const iv = require('../util/input_validation');
 const { ForbiddenError, AuthenticationError } = require('../util/errors');
 const errorHandling = require('../util/error_handling');
 const I18n = require('../util/i18n');
-const platform = require('../util/platform');
 const { uploadEntities, uploadStringDataset } = require('../util/upload_dataset');
 const { validatePageAndSize } = require('../util/pagination');
 const { getCommandDetails } = require('../util/commandpedia');
@@ -1970,7 +1970,7 @@ v3.use((req, res, next) => {
  */
 v3.post('/entities/create',
     userUtils.requireScope('developer-upload'),
-    multer({ dest: platform.getTmpDir() }).fields([
+    multer({ dest: os.tmpdir() }).fields([
         { name: 'upload', maxCount: 1 }
     ]),
     iv.validatePOST({ entity_id: 'string', entity_name: 'string', no_ner_support: 'boolean' }, { json: true }),
@@ -2021,7 +2021,7 @@ const deviceCreateArguments = {
 };
 v3.post('/devices/create',
     userUtils.requireScope('developer-upload'),
-    multer({ dest: platform.getTmpDir() }).fields([
+    multer({ dest: os.tmpdir() }).fields([
         { name: 'zipfile', maxCount: 1 },
         { name: 'icon', maxCount: 1 }
     ]),
@@ -2058,7 +2058,7 @@ v3.post('/devices/create',
  */
 v3.post('/strings/upload',
     userUtils.requireScope('developer-upload'),
-    multer({ dest: platform.getTmpDir() }).fields([
+    multer({ dest: os.tmpdir() }).fields([
         { name: 'upload', maxCount: 1 }
     ]),
     iv.validatePOST({ type_name: 'string', name: 'string', license: 'string', attribution: '?string', preprocessed: 'boolean' }, { json: true }),

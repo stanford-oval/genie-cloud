@@ -102,20 +102,39 @@ It **must** be set to `'/thingpedia'` to use the embedded Thingpedia.
 
 Default value: `'https://thingpedia.stanford.edu/thingpedia'`
 
-## FILE_STORAGE_BACKEND
+## FILE_STORAGE_DIR
 Where to store icons and zip files.
 
-Set this option to s3 to use Amazon S3, local to use the local filesystem
-(which must be configured with the correct permissions).
+This can be a relative or absolute path, or a file: or s3: URI.
+The location must be writable by the frontend Almond processes.
+Relative paths are interpreted relative to the current working directory, or
+the `THINGENGINE_ROOTDIR` environment variable if set.
 
-Default value: `'local'`
+NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
+be of the form `file:///`, with 3 consecutive slashes.
+
+Default value: `'./shared/download'`
+
+## CACHE_DIR
+Where to cache entity icons and contact avatars.
+
+This can be a relative or absolute path.
+The location must be writable by the frontend Almond processes.
+Relative paths are interpreted relative to the current working directory, or
+the `THINGENGINE_ROOTDIR` environment variable if set.
+
+Note: unlike other _DIR configuration keys, this key cannot be a URL. The cache directory
+is always on the local machine where the Almond process runs.
+
+Default value: `'./shared/cache'`
 
 ## CDN_HOST
-The location where icons and zip files are stored.
+The location where icons and zip files can be retrieved.
 
-If using the S3 storage backend, this could be the S3 website URL, or the URL
+If using S3 storage, this could be the S3 website URL, or the URL
 of a CloudFront distribution mapping to the S3 bucket.
-If using the `local` storage backend, it must be the exact string `"/download"`.
+If using local storage, or if no CDN is available, it must be the
+exact string `"/download"`.
 
 Default value: `'/download'`
 
@@ -300,6 +319,8 @@ Deployed model directory.
 
 This is the path containing the models that should be served by the NLP inference
 server. It can be a relative or absolute path, or a file: or s3: URI.
+Relative paths are interpreted relative to the current working directory, or
+the `THINGENGINE_ROOTDIR` environment variable if set.
 
 For a file URI, if the training and inference servers are on different machines,
 you should specify the hostname of the inference server. The training server will
@@ -345,6 +366,8 @@ Default value: `24000`
 The directory to use to store training jobs (datasets, working directories and trained models).
 
 This can be a relative or absolute path, or a file: or s3: URI.
+Relative paths are interpreted relative to the current working directory, or
+the `THINGENGINE_ROOTDIR` environment variable if set.
 
 NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
 be of the form `file:///`, with 3 consecutive slashes.
@@ -393,7 +416,7 @@ Additional fields to add to the Kubernetes Pods created for training.
 Default value: `{}`
 
 ## TENSORBOARD_DIR
-Directory in s3:// or file:// URI, where tensboard events are synced to during training.
+Directory in s3:// or file:// URI, where tensorboard events are synced to during training.
 
 Default value: `null`
 
