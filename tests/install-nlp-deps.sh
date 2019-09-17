@@ -17,5 +17,5 @@ cd $srcdir/tests/embeddings
 
 wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/thingtalk-lm2.pth
 
-wget -c https://oval.cs.stanford.edu/data/glove/embeddings.tar.xz
+wget -c --no-verbose https://oval.cs.stanford.edu/data/glove/embeddings.tar.xz
 tar xvf embeddings.tar.xz
