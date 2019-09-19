@@ -18,7 +18,7 @@ const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
 
 const k8sApi = kc.makeApiClient(k8s.BatchV1Api);
-const watcher = new class JobWatcher extends Tp.RefCounted {
+const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
     constructor() {
         super();
 
@@ -28,8 +28,8 @@ const watcher = new class JobWatcher extends Tp.RefCounted {
         this._watchedJobs = new Map;
     }
 
-    watch(jobId, callbacks) {
-        this._watchedJobs.set(jobId, callbacks);
+    watch(jobIdTask, callbacks) {
+        this._watchedJobs.set(jobIdTask, callbacks);
     }
 
     _computeLabelSelector() {
@@ -44,14 +44,14 @@ const watcher = new class JobWatcher extends Tp.RefCounted {
     async _doOpen() {
         let currentJobs;
         try {
-            currentJobs = (await k8sApi.listNamespacedJob(Config.TRAINING_KUBERNETES_NAMESPACE.
+            currentJobs = (await k8sApi.listNamespacedJob(Config.TRAINING_KUBERNETES_NAMESPACE,
                 false /* includeUninitialized */,
                 false /* pretty */,
                 undefined /* _continue */,
                 undefined /* fieldSelector */,
                 this._computeLabelSelector())).body;
-        } catch(res) {
-            throw new Error(`Failed to list Kubernetes jobs: ${res.response.body.message}`);
+        } catch(err) {
+            throw new Error('Failed to list Kubernetes jobs:' +  JSON.stringify(err));
         }
 
         for (let job of currentJobs.items)
@@ -66,49 +66,63 @@ const watcher = new class JobWatcher extends Tp.RefCounted {
             if (type !== 'ADDED' && type !== 'MODIFIED')
                 return;
             this._processJob(k8sJob);
+        }, (err) => {
+            console.error('watch jobs error:', err);
         });
     }
+    
 
     _processJob(k8sJob) {
-        const jobId = Number(k8sJob.metadata['edu.stanford.almond/job-id']);
-        if (!this._watchedJobs.has(jobId))
+        const jobIdTask = k8sJob.metadata.labels['edu.stanford.almond/job-id-task'];
+        console.log('processing job', jobIdTask);
+        if (!this._watchedJobs.has(jobIdTask)) {
+            console.log('not watching job', jobIdTask);
             return;
-
-        const callbacks = this._watchedJobs.get(jobId);
-        if (k8sJob.status.succeeded > 0) {
-            callbacks.resolve();
-            this._watchedJobs.delete(jobId);
         }
+
+        const callbacks = this._watchedJobs.get(jobIdTask);
+        if (k8sJob.status.succeeded > 0) {
+            console.log('job suceeded');
+            k8sApi.deleteNamespacedJob(k8sJob.metadata.namespace, k8sJob.metadata.name).catch((err) => {
+                console.error('Failed to delete succeeded job:', err);
+            });
+            callbacks.resolve();
+            this._watchedJobs.delete(jobIdTask);
+        }
+        if (!k8sJob.status.conditions) {
+            console.log('wating for job status');
+            return;
+	}
         for (let condition of k8sJob.status.conditions) {
             if (condition.type === 'Failed' && condition.status === 'True') {
                 callbacks.reject(new Error(condition.message || `The Kubernetes Job failed`));
-                this._watchedJobs.delete(jobId);
+                this._watchedJobs.delete(jobIdTask);
                 return;
             }
         }
     }
 
     async _doClose() {
-        this._req.abort();
+        if (this._req) this._req.abort();
     }
 };
 
 class KubernetesTaskRunner {
-    constructor(jobId, k8sJob) {
-        this._jobId = jobId;
+    constructor(jobIdTask, k8sJob) {
+        this._jobIdTask = jobIdTask;
         this._k8sJob = k8sJob;
     }
 
     kill() {
-        k8sApi.deleteNamespacedJob(this._k8sJob.metadata.namespace, this._k8sJob.metadata.name).catch((res) => {
-            console.error(`Failed to kill Kubernetes job: ${res.response.body.message}`);
+        k8sApi.deleteNamespacedJob(this._k8sJob.metadata.namespace, this._k8sJob.metadata.name).catch((err) => {
+            console.error('Failed to kill Kubernetes job:', err);
         });
     }
 
     async wait() {
         try {
             await  new Promise((resolve, reject) => {
-                watcher.watch(this._jobId, { resolve, reject });
+                watcher.watch(this._jobIdTask, { resolve, reject });
                 watcher.open().catch(reject);
             });
         } finally {
@@ -117,15 +131,19 @@ class KubernetesTaskRunner {
     }
 }
 
+
+
 module.exports = async function execTask(job, spec) {
+    const jobName = Config.TRAINING_KUBERNETES_JOB_NAME_PREFIX + 'training-job-' + job.id + '-' + spec.name;
+    const jobIdTask = `${job.id}-${spec.name}`;
     const k8sJob = {
         apiVersion: 'batch/v1',
         kind: 'Job',
         metadata: {
-            name: Config.TRAINING_KUBERNETES_JOB_NAME_PREFIX + 'training-job-' + job.jobId + '-' + spec.name,
+            name: jobName,
             labels: {
                 app: 'training-job',
-                'edu.stanford.almond/job-id': job.id
+                'edu.stanford.almond/job-id-task': jobIdTask
             },
         },
 
@@ -138,7 +156,10 @@ module.exports = async function execTask(job, spec) {
                 metadata: {
                     labels: {
                         app: 'training-job',
-                        'edu.stanford.almond/job-id': job.id
+                        'edu.stanford.almond/job-id-task': jobIdTask
+                    },
+                    annotations: {
+                        'iam.amazonaws.com/role': 'arn:aws:iam::373474209952:role/almond-training-s3-admin'
                     }
                 },
 
@@ -147,12 +168,12 @@ module.exports = async function execTask(job, spec) {
                     containers: [
                         {
                             name: 'main',
-                            image: Config.TRAINING_KUBERNETES_IMAGE + (spec.gpu > 0 ? '-cuda' : ''),
+                            image: Config.TRAINING_KUBERNETES_IMAGE + (spec.requests.gpu > 0 ? '-cuda' : ''),
                             imagePullPolicy: 'Always',
                             args: [
                                 'run-training-task',
                                 '--task-name', spec.name,
-                                '--job-id', job.id,
+                                '--job-id', `${job.id}`,
                                 '--job-directory', job.jobDir
                             ],
                             resources: {
@@ -161,10 +182,35 @@ module.exports = async function execTask(job, spec) {
                                     memory: (Config.TRAINING_MEMORY_USAGE + 100) + 'Mi'
                                 }
                             },
-                            volumeMounts: {}
+                            volumeMounts: [
+                                {
+                                    name: 'config',
+                                    mountPath: '/etc/almond-cloud',
+                                    readOnly: true
+                                },
+                                {
+                                    name: 'training-config',
+                                    mountPath: '/etc/almond-cloud/training',
+                                    readOnly: true
+                                },
+                            ],
+                            securityContext: {
+                                capabilities: {
+                                    add: [ 'SYS_ADMIN', 'NET_ADMIN']
+                                }
+                            }
                         }
                     ],
-                    volumes: [],
+                    volumes: [
+                        {
+                            name: 'config',
+                            secret: { secretName: 'almond-config'}
+                        },
+                        {
+                            name: 'training-config',
+                            configMap: { name: 'training-config'}
+                        }
+                    ],
                     tolerations: []
                 }
             },
@@ -183,7 +229,7 @@ module.exports = async function execTask(job, spec) {
             operator: 'Exists',
             effect: 'NoSchedule'
         });
-        k8sJob.spec.template.spec.containers[0].resources.requests['nvidia.com/gpu'] = spec.requests.gpu;
+        k8sJob.spec.template.spec.containers[0].resources['limits'] = {'nvidia.com/gpu': spec.requests.gpu};
     }
 
     for (let key in Config.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE)
@@ -194,8 +240,8 @@ module.exports = async function execTask(job, spec) {
     try {
         const createdJob = (await k8sApi.createNamespacedJob(Config.TRAINING_KUBERNETES_NAMESPACE, k8sJob)).body;
 
-        return new KubernetesTaskRunner(createdJob);
-    } catch(res) {
-        throw new Error(`Failed to create Kubernetes job: ${res.response.body.message}`);
+        return new KubernetesTaskRunner(jobIdTask, createdJob);
+    } catch(err) {
+        throw new Error('Failed to create Kubernetes job:' + JSON.stringify(err));
     }
 };
