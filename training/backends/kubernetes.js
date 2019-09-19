@@ -83,7 +83,7 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
         const callbacks = this._watchedJobs.get(jobIdTask);
         if (k8sJob.status.succeeded > 0) {
             console.log('job suceeded');
-            k8sApi.deleteNamespacedJob(k8sJob.metadata.namespace, k8sJob.metadata.name).catch((err) => {
+            k8sApi.deleteNamespacedJob(k8sJob.metadata.name, k8sJob.metadata.namespace).catch((err) => {
                 console.error('Failed to delete succeeded job:', err);
             });
             callbacks.resolve();
@@ -114,7 +114,7 @@ class KubernetesTaskRunner {
     }
 
     kill() {
-        k8sApi.deleteNamespacedJob(this._k8sJob.metadata.namespace, this._k8sJob.metadata.name).catch((err) => {
+        k8sApi.deleteNamespacedJob(this._k8sJob.metadata.name, this._k8sJob.metadata.namespace).catch((err) => {
             console.error('Failed to kill Kubernetes job:', err);
         });
     }
