@@ -15,8 +15,7 @@ const util = require('util');
 const multer = require('multer');
 const csurf = require('csurf');
 const crypto = require('crypto');
-
-const platform = require('../util/platform');
+const os = require('os');
 
 const code_storage = require('../util/code_storage');
 
@@ -24,7 +23,7 @@ const user = require('../util/user');
 
 var router = express.Router();
 
-router.use(multer({ dest: platform.getTmpDir() }).single('file'));
+router.use(multer({ dest: os.tmpdir() }).single('file'));
 router.use(csurf({ cookie: false }));
 router.use((req, res, next) => {
     res.locals.csrfToken = req.csrfToken();

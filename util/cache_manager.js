@@ -16,10 +16,9 @@ const fs = require('fs');
 const tmpfile = require('tmp');
 const crypto = require('crypto');
 
-const platform = require('./platform');
+const Config = require('../config');
 
 let _instance;
-let CACHE_DIR;
 
 function downloadImage(url) {
     return Tp.Helpers.Http.getStream(url).then((res) => {
@@ -39,7 +38,7 @@ function downloadImage(url) {
         return new Promise((resolve, reject) => {
             res.on('error', reject);
 
-            tmpfile.file({ dir: CACHE_DIR, keep: true }, (err, tmppath, fd, cleanup) => {
+            tmpfile.file({ dir: Config.CACHE_DIR, keep: true }, (err, tmppath, fd, cleanup) => {
                 console.log('tmppath', tmppath);
                 if (err) {
                     res.resume();
@@ -64,7 +63,7 @@ function downloadImage(url) {
                 filestream.on('finish', () => {
                     let filename = hash.digest().toString('hex') + (extension || '');
 
-                    let filepath = CACHE_DIR + '/' + filename;
+                    let filepath = Config.CACHE_DIR + '/' + filename;
                     fs.rename(tmppath, filepath, (err) => {
                         if (err) {
                             cleanup();
@@ -86,8 +85,7 @@ module.exports = class ImageCacheManager {
     }
 
     constructor() {
-        CACHE_DIR = platform.getCacheDir();
-        this._filename = CACHE_DIR + '/index.json';
+        this._filename = Config.CACHE_DIR + '/index.json';
         this._writeTimeout = 100;
         try {
             this._store = JSON.parse(fs.readFileSync(this._filename));

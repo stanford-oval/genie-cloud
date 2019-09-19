@@ -14,6 +14,7 @@ const express = require('express');
 const db = require('../util/db');
 const i18n = require('../util/i18n');
 const Config = require('../config');
+const modelsModel = require('../model/nlp_models');
 
 const router = express.Router();
 
@@ -45,21 +46,26 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
 });
 
 
-router.post('/reload/@:model_tag/:locale', async (req, res, next) => {
+router.post('/reload/@:model_tag/:locale', (req, res, next) => {
     if (!i18n.get(req.params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
     }
 
-    const model = req.app.service.getModel(req.params.model_tag, req.params.locale);
-    if (!model) {
-        res.status(404).json({ error: 'No such model' });
-        return;
-    }
+    const language = i18n.localeToLanguage(req.params.locale);
 
-    model.reload().then(() => {
+    db.withTransaction(async (dbClient) => {
+        console.log(req.params);
+        const spec = (await modelsModel.getByTag(dbClient, language, req.params.model_tag))[0];
+        if (!spec) {
+            res.status(404).json({ error: 'No such model' });
+            return;
+        }
+        const model = req.app.service.getOrCreateModel(spec);
+
+        await model.reload();
         res.json({ result: 'ok' });
-    }).catch(next);
+    }, 'repeatable read', 'read only');
 });
 
 module.exports = router;

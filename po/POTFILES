@@ -65,7 +65,6 @@ util/manifest_to_schema.js
 util/metrics.js
 util/origin.js
 util/passport.js
-util/platform.js
 util/random.js
 util/secret_key.js
 util/sendmail.js

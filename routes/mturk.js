@@ -14,16 +14,16 @@ const fs = require('fs');
 const csvparse = require('csv-parse');
 const csvstringify = require('csv-stringify');
 const express = require('express');
-const db = require('../util/db');
 const multer = require('multer');
 const csurf = require('csurf');
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
+const os = require('os');
 
+const db = require('../util/db');
 const user = require('../util/user');
-const platform = require('../util/platform');
 const model = require('../model/mturk');
 const example = require('../model/example');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
@@ -38,7 +38,7 @@ var router = express.Router();
 const SYNTHETIC_PER_PARAPHRASE_HIT = 4;
 const PARAPHRASES_PER_SENTENCE = 2;
 
-router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
+router.post('/create', multer({ dest: os.tmpdir() }).fields([
     { name: 'upload', maxCount: 1 }
 ]), csurf({ cookie: false }),
     user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN),

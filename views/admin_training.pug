@@ -86,22 +86,24 @@ block content
             td= job.id
             td= job.language
             if jobType !== 'update-dataset'
-              td= `@${job.modelTag}`
+              td= `@${job.model_tag}`
             if jobType !== 'train'
               td
-                if job.forDevices.length === 0
+                if job.for_devices.length === 0
                   i= _("all")
                 else
-                  = job.forDevices.join(', ')
+                  = job.for_devices.join(', ')
             td
-              if job.status === 'queued' && job.dependsOn !== null
-                = _("waiting for %d").format(job.dependsOn)
+              if job.status === 'queued' && job.depends_on !== null
+                = _("waiting for %d").format(job.depends_on)
+              else if job.status === 'started'
+                = job.task_name
               else
-                = job.status.replace('_', ' ')
+                = job.status
             td= `${(job.progress*100).toFixed(0)}%`
             td
-              if job.startTime
-                = (new Date(job.startTime)).toLocaleString(user.locale, { timeZone: user.timezone })
+              if job.start_time
+                = (new Date(job.start_time)).toLocaleString(user.locale, { timeZone: user.timezone })
             td
               if job.eta
                 = (new Date(job.eta)).toLocaleString(user.locale, { timeZone: user.timezone })

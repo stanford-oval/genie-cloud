@@ -17,19 +17,20 @@ CREATE TABLE `mturk_input2` (
   `sentence` text CHARACTER SET utf8 NOT NULL,
   PRIMARY KEY (`id`),
   KEY `batch_hit` (`batch`, `hit_id`),
-  CONSTRAINT `mturk_input_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
+  CONSTRAINT `mturk_input2_ibfk_1` FOREIGN KEY (`batch`) REFERENCES `mturk_batch` (`id`) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 INSERT into `mturk_input2`(`batch`,`hit_id`,`thingtalk`,`sentence`)
-  ((SELECT `batch`,`id`,`thingtalk1`,`sentence1` FROM `mturk_input`)
+   (SELECT `batch`,`id`,`thingtalk1`,`sentence1` FROM `mturk_input`)
    UNION
    (SELECT `batch`,`id`,`thingtalk2`,`sentence2` FROM `mturk_input`)
    UNION
    (SELECT `batch`,`id`,`thingtalk3`,`sentence3` FROM `mturk_input`)
    UNION
    (SELECT `batch`,`id`,`thingtalk4`,`sentence4` FROM `mturk_input`)
-   ORDER BY `batch`, `id`);
+   ORDER BY `batch`, `id`;
 
+DROP TABLE `mturk_input`;
 RENAME TABLE `mturk_input2` TO `mturk_input`;
 
 ALTER TABLE `mturk_batch`
@@ -37,14 +38,16 @@ ALTER TABLE `mturk_batch`
 
 ALTER TABLE `mturk_log`
   DROP FOREIGN KEY `mturk_log_ibfk_2`,
-  DROP UNIQUE KEY `hit`;
+  DROP KEY `hit`;
 
 ALTER TABLE `mturk_output`
-  DROP FOREIGN KEY `mturk_output_ibfk_1`,
+  DROP FOREIGN KEY `mturk_output_ibfk_1`;
+
+ALTER TABLE `mturk_output`
   DROP PRIMARY KEY,
   DROP KEY `example_id`,
   ADD PRIMARY KEY (`example_id`),
-  ADD KEY `submission_id`,
+  ADD KEY (`submission_id`),
   ADD CONSTRAINT `mturk_output_ibfk_0` FOREIGN KEY (`submission_id`) REFERENCES `mturk_log` (`submission_id`) ON UPDATE CASCADE ON DELETE CASCADE,
   ADD CONSTRAINT `mturk_output_ibfk_1` FOREIGN KEY (`example_id`) REFERENCES `example_utterances` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT,
   ADD CONSTRAINT `mturk_output_ibfk_2` FOREIGN KEY (`program_id`) REFERENCES `mturk_input` (`id`) ON UPDATE CASCADE ON DELETE RESTRICT;

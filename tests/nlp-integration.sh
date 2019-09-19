@@ -46,6 +46,7 @@ NLP_PORT=${NLP_PORT:-8400}
 TRAINING_PORT=${TRAINING_PORT:-8090}
 cat > ${THINGENGINE_CONFIGDIR}/config.yaml <<EOF
 NL_SERVER_URL: "http://127.0.0.1:${NLP_PORT}"
+NL_SERVER_ADMIN_TOKEN: my-super-secret-admin-token
 TRAINING_URL: "http://127.0.0.1:${TRAINING_PORT}"
 FILE_STORAGE_BACKEND: local
 CDN_HOST: /download
@@ -80,9 +81,16 @@ tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'models/org.thingpedia.models
 wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current-contextual.tar.gz -O $srcdir/tests/embeddings/current-contextual.tar.gz
 tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'models/org.thingpedia.models.contextual:en'
 
-# remove developer models that were autoadded by bootstrap
+# 1) remove developer models that were autoadded by bootstrap
 # we'll test the main models only (there is no difference really)
-${srcdir}/main.js execute-sql-file - <<<"delete from models where tag like '%developer%'"
+# 2) mark the models as trained, given that we downloaded a pretrained model
+# 3) create a dummy test model that is not trained
+${srcdir}/main.js execute-sql-file - <<<"
+delete from models where tag like '%developer%';
+update models set trained = true;
+insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', owner = 1,
+  all_devices = 1, use_approved = 1, template_file = 1, flags = '[]', contextual = 0, trained = 0;
+"
 
 mkdir -p 'classifier'
 wget --no-verbose -c https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
