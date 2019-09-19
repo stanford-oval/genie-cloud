@@ -23,13 +23,13 @@ const Metrics = require('../util/metrics');
 const modelsModel = require('../model/nlp_models');
 const trainingJobModel = require('../model/training_job');
 const errorHandling = require('../util/error_handling');
-const { NotFoundError } = require('../util/errors');
 
 const Job = require('./training_job');
 
 const Config = require('../config');
 
-const JOB_TYPES = ['update-dataset', 'train'];
+const JobSpecs = require('./job_specs');
+const JOB_TYPES = Object.keys(JobSpecs);
 
 class TrainingDaemon {
     constructor() {
@@ -188,14 +188,7 @@ Check the logs for further information.`
             let language = jobTemplate.language || 'en';
             let jobType = jobTemplate.jobType || 'train';
 
-            const affectedModels = (await this._getAffectedModels(dbClient, language, jobTemplate)).filter((m) => {
-                if (m.contextual) {
-                    console.log(`WARNING/TODO: Ignored contextual model @${m.tag}/${m.language}`);
-                    return false;
-                } else {
-                    return true;
-                }
-            });
+            const affectedModels = await this._getAffectedModels(dbClient, language, jobTemplate);
 
             if (jobType === 'train' || jobType === 'train-only') {
                 let dependsOn = null;
@@ -232,14 +225,6 @@ Check the logs for further information.`
         });
     }
 
-    getRunningJob(id) {
-        for (let jobType in this._currentJobs) {
-            if (this._currentJobs[jobType] && this._currentJobs[jobType].id === id)
-                return this._currentJobs[jobType];
-        }
-        return undefined;
-    }
-
     initFrontend(port) {
         const app = express();
 
@@ -264,24 +249,6 @@ Check the logs for further information.`
                 return;
             }
             next();
-        });
-
-        app.post('/jobs/:id/metrics', (req, res, next) => {
-            const job = this.getRunningJob(parseInt(req.params.id));
-            if (!job)
-                throw new NotFoundError();
-            job.setMetrics(req.body).then(() => {
-                res.json({ result: 'ok' });
-            }).catch(next);
-        });
-
-        app.post('/jobs/:id/progress', (req, res, next) => {
-            const job = this.getRunningJob(parseInt(req.params.id));
-            if (!job)
-                throw new NotFoundError();
-            job.setProgress(req.body.value).then(() => {
-                res.json({ result: 'ok' });
-            }).catch(next);
         });
 
         app.post('/jobs/create', async (req, res, next) => { //'

@@ -103,7 +103,7 @@ function cleanEnv() {
     return env;
 }
 
-module.exports = async function genSynthetic(options) {
+async function prepare(options) {
     const { path: tmpDir } = await tmp.dir({
         mode: 0o700,
         prefix: 'synthetic-gen-sandbox.',
@@ -113,21 +113,24 @@ module.exports = async function genSynthetic(options) {
     await downloadThingpedia(options.dbClient, options.orgId, options.language, tmpDir);
     await downloadTemplatePack(options.dbClient, options.language, options.templatePack, tmpDir);
 
+    return tmpDir;
+}
+
+function spawnSandboxed(tmpDir, script, scriptArgs, debug, contextual) {
     const ourpath = path.dirname(module.filename);
-    const workerpath = path.resolve(ourpath, './synthetic-gen-worker.js');
 
     const env = cleanEnv();
     let processPath, args, stdio;
     if (process.env.THINGENGINE_DISABLE_SANDBOX === '1') {
         processPath = process.execPath;
         args = process.execArgv.slice();
-        args.push(workerpath);
-        stdio = ['ignore', 'pipe', 'inherit', 'pipe'];
+        args.push(script, ...scriptArgs);
+        stdio = ['pipe', 'pipe', 'inherit', 'pipe', 'ipc'];
     } else {
         processPath = path.resolve(ourpath, '../sandbox/sandbox');
         args = [process.execPath].concat(process.execArgv);
-        args.push(workerpath);
-        stdio = ['ignore', 'pipe', 'inherit', 'pipe'];
+        args.push(script, ...scriptArgs);
+        stdio = ['pipe', 'pipe', 'inherit', 'pipe', 'ipc'];
 
         const jsPrefix = path.resolve(ourpath, '..');
         const nodepath = path.resolve(process.execPath);
@@ -136,11 +139,8 @@ module.exports = async function genSynthetic(options) {
         else
             env.THINGENGINE_PREFIX = jsPrefix;
     }
-    args.push('--locale', options.language, '--maxdepth', options.maxDepth);
-    for (let f of options.flags)
-        args.push('--set-flag', f);
 
-    if (options.debug)
+    if (debug)
         console.log(args.join(' '));
 
     const child = child_process.spawn(processPath, args, {
@@ -152,7 +152,7 @@ module.exports = async function genSynthetic(options) {
     child.stdout.setEncoding('utf8');
     const stream = child.stdout
         .pipe(byline())
-        .pipe(new Genie.DatasetParser());
+        .pipe(new Genie.DatasetParser({ contextual }));
 
     // propagate errors from the child process to the stream
     child.on('error', (e) => stream.emit('error', e));
@@ -162,6 +162,42 @@ module.exports = async function genSynthetic(options) {
         else if (code !== 0)
             stream.emit('error', new InternalError('E_BAD_EXIT_CODE', `Synthetic generation worker exited with status ${code}.`));
     });
+    child.on('message', (obj) => {
+        if (obj.cmd === 'progress')
+            stream.emit('progress', obj.v);
+    });
+
+    return [child, stream];
+}
+
+function generate(tmpDir, options) {
+    const ourpath = path.dirname(module.filename);
+    const workerpath = path.resolve(ourpath, './synthetic-gen-process.js');
+
+    const scriptArgs = [
+        '--locale', options.language,
+        '--maxdepth', options.maxDepth
+    ];
+    for (let f of options.flags)
+        scriptArgs.push('--set-flag', f);
+    if (options.contextual)
+        scriptArgs.push('--contextual');
+
+    const [child, stream] = spawnSandboxed(tmpDir, workerpath, scriptArgs,
+        options.debug, options.contextual);
+
+    if (options.contextual) {
+        for (let context of options.contexts)
+            child.stdin.write(context + '\n');
+    }
+    // close stdin for the child after writing the contexts
+    child.stdin.end();
 
     return stream;
+}
+
+module.exports = {
+    prepare,
+    generate,
 };
+

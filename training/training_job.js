@@ -12,12 +12,9 @@
 const util = require('util');
 const fs = require('fs');
 
-const Tp = require('thingpedia');
-
 const AbstractFS = require('../util/abstract_fs');
 const db = require('../util/db');
 const trainingJobModel = require('../model/training_job');
-const modelsModel = require('../model/nlp_models');
 
 const Config = require('../config');
 
@@ -30,93 +27,20 @@ const DEFAULT_TRAINING_CONFIG = {
     dataset_split_strategy: 'sentence'
 };
 
-const TASKS = {
-    'update-dataset': [
-        {
-            name: 'update-dataset',
-
-            requests: {
-                cpu: 1.1,
-                gpu: 0
-            }
-        },
-        {
-            name: 'reloading-exact',
-
-            async task(job) {
-                // reload the exact matches now that the synthetic set has been updated
-                try {
-                    await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/exact/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
-                        dataContentType: 'application/x-www-form-urlencoded'
-                    });
-                } catch(e) {
-                    console.error(`Failed to ask server to reload exact matches: ${e.message}`);
-                }
-            }
-        }
-    ],
-
-    'train': [
-        {
-            name: 'prepare-training-set',
-
-            requests: {
-                cpu: 1.5,
-                gpu: 0
-            }
-        },
-        {
-            name: 'train',
-
-            requests: {
-                cpu: 2.5,
-                gpu: 1
-            }
-        },
-        {
-            name: 'uploading',
-
-            async task(job) {
-                const modelLangDir = `./${job.model_tag}:${job.language}`;
-                const outputdir = AbstractFS.resolve(job.jobDir, 'output');
-
-                if (Config.NL_MODEL_DIR === null)
-                    return;
-
-                await AbstractFS.sync(outputdir + '/',
-                    AbstractFS.resolve(Config.NL_MODEL_DIR, modelLangDir) + '/');
-
-                await db.withClient((dbClient) => {
-                    return modelsModel.updateByTag(dbClient, job.language, job.model_tag, {
-                        trained: true,
-                    });
-                });
-
-                await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
-                    dataContentType: 'application/x-www-form-urlencoded'
-                });
-            }
-        }
-    ]
-};
+const JobSpecs = require('./job_specs');
 
 module.exports = class Job {
-    constructor(daemon, jobRow, forDevices, modelInfo) {
+    constructor(daemon, jobRow) {
         this._daemon = daemon;
         this.data = jobRow;
         this._config = JSON.parse(this.data.config);
-        this._metrics = JSON.parse(this.data.metrics);
-
-        this._forDevices = forDevices;
-        this._modelInfo = modelInfo;
 
         this._killed = false;
         this.child = null;
-        this._allTasks = TASKS[this.data.job_type];
+        this._allTasks = JobSpecs[this.data.job_type];
         this._backend = require('./backends/' + Config.TRAINING_TASK_BACKEND);
 
         this.jobDir = AbstractFS.resolve(Config.TRAINING_DIR, './jobs/' + this.id);
-        this._progressUpdates = [];
     }
 
     async _save(keys) {
@@ -231,14 +155,8 @@ module.exports = class Job {
     get language() {
         return this.data.language;
     }
-    get forDevices() {
-        return this._forDevices;
-    }
     get model_tag() {
         return this.data.model_tag;
-    }
-    get modelInfo() {
-        return this._modelInfo;
     }
 
     get startTime() {
@@ -251,53 +169,10 @@ module.exports = class Job {
     get config() {
         return this._config;
     }
-    get metrics() {
-        return this._metrics;
-    }
-    setMetrics(v) {
-        this._metrics = v;
-        this.data.metrics = JSON.stringify(v);
-        return this._save(['metrics']);
-    }
-
     get status() {
         return this.data.status;
     }
     get error() {
         return this.data.error;
     }
-    get eta() {
-        return this.data.eta;
-    }
-    get progress() {
-        return this.data.progress;
-    }
-    setProgress(value) {
-        console.log(`Progress for job ${this.id}: ${Math.floor(value*100)}`);
-
-        const now = new Date;
-        this._progressUpdates.push([now, value]);
-        if (this._progressUpdates.length > 3)
-            this._progressUpdates.shift();
-        if (this._progressUpdates.length === 3) {
-            let speedSum = 0;
-            for (let i = 1; i < this._progressUpdates.length; i++) {
-                const timeDelta = this._progressUpdates[i][0].getTime() - this._progressUpdates[i-1][0].getTime();
-                const stepDelta = this._progressUpdates[i][1] - this._progressUpdates[i-1][1];
-                const speed = stepDelta / timeDelta;
-                speedSum += speed;
-            }
-            const avgSpeed = speedSum / 2;
-
-            let eta = Math.ceil(now.getTime() + (1 - value) / avgSpeed);
-
-            // add 10 minutes to account for validation, uploading, etc.
-            eta += 10 * 60 * 1000;
-
-            this.data.eta = new Date(eta);
-        }
-        this.data.progress = value;
-        return this._save(['progress', 'eta']);
-    }
-
 };

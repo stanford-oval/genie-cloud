@@ -38,6 +38,10 @@ module.exports = {
             return tokenizeWithAlmondNL(language, sentence);
     },
 
+    getLocal() {
+        return getLocalTokenizer();
+    },
+
     tearDown() {
         if (_localTokenizer === null)
             return;

@@ -27,7 +27,10 @@ module.exports = async function main(task, argv) {
     // create a dummy test.tsv file to placate decanlp
     await util.promisify(fs.writeFile)(path.resolve(datadir, 'test.tsv'), '');
 
-    const genieConfig = {};
+    const genieConfig = {
+        task_name: task.modelInfo.contextual ? 'contextual_almond' : 'almond',
+        locale: task.language,
+    };
     for (let key in task.config) {
         if (key.startsWith('dataset_'))
             continue;
@@ -37,6 +40,8 @@ module.exports = async function main(task, argv) {
     const options = {
         // do not pass the job ID to Genie, otherwise the lines will be prefixed twice
         backend: 'decanlp',
+        locale: task.language,
+
         config: genieConfig,
         thingpediaUrl: Url.resolve(Config.SERVER_ORIGIN, Config.THINGPEDIA_URL),
         debug: true,
@@ -63,7 +68,6 @@ module.exports = async function main(task, argv) {
     await genieJob.train();
 
     if (!task.killed) {
-        await task.setMetrics(genieJob.metrics);
         await AbstractFS.upload(outputdir, AbstractFS.resolve(task.jobDir, 'output'));
         await AbstractFS.removeTemporary(jobdir);
     }
