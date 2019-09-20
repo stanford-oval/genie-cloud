@@ -436,7 +436,7 @@ async function uploadDevice(req) {
         && !!req.body.approve;
 
     try {
-        await db.withTransaction(async (dbClient) => {
+        const retrain = await db.withTransaction(async (dbClient) => {
             let create = false;
             let old = null;
             try {
@@ -525,11 +525,16 @@ async function uploadDevice(req) {
                     await uploadZipFile(req, generalInfo, stream);
             }
 
-            if (schemaChanged || datasetChanged) {
-                // trigger the training server if configured
-                await TrainingServer.get().queue('en', [req.body.primary_kind], 'update-dataset');
-            }
+            return schemaChanged || datasetChanged;
         }, 'repeatable read');
+
+        // the following two ops access the database from other processes, so they must be outside
+        // the transaction, or we will deadlock
+
+        if (retrain) {
+            // trigger the training server if configured
+            await TrainingServer.get().queue('en', [req.body.primary_kind], 'update-dataset');
+        }
 
         // trigger updating the device on the user
         await tryUpdateDevice(req.body.primary_kind, req.user.id);

@@ -447,17 +447,19 @@ module.exports.DOCUMENTATION_URL = 'https://almond.stanford.edu/doc/getting-star
 module.exports.BING_KEY = '';
 
 /**
+  OAuth Client ID to support Login With Google
+*/
+module.exports.GOOGLE_CLIENT_ID = null;
+
+/**
   OAuth Client secret to support Login With Google
 */
 module.exports.GOOGLE_CLIENT_SECRET = null;
 
 /**
   OAuth Client ID to support Login With Github
-
-  This cannot be the value `null`, use the string `'null'` to disable
-  Login with Github instead.
 */
-module.exports.GITHUB_CLIENT_ID = 'null';
+module.exports.GITHUB_CLIENT_ID = null;
 
 /**
   OAuth Client secret to support Login With Github
