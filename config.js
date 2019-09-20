@@ -412,6 +412,11 @@ module.exports.TRAINING_KUBERNETES_JOB_NAME_PREFIX = '';
 module.exports.TRAINING_KUBERNETES_EXTRA_METADATA_LABELS = {};
 
 /**
+  Additional annotations to add to the Kubernetes Jobs and Pods created for training.
+*/
+module.exports.TRAINING_KUBERNETES_EXTRA_ANNOTATIONS = {};
+
+/**
   Additional fields to add to the Kubernetes Pods created for training.
 */
 module.exports.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE = {};
