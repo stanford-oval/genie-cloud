@@ -31,9 +31,7 @@ const TotpStrategy = require('passport-totp').Strategy;
 
 const EngineManager = require('../almond/enginemanagerclient');
 
-var GOOGLE_CLIENT_ID = '739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com';
-
-const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, GITHUB_CLIENT_ID} = require('../config');
+const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, GITHUB_CLIENT_ID} = require('../config');
 
 const TOTP_PERIOD = 30; // duration in second of TOTP code
 
@@ -308,33 +306,37 @@ exports.initialize = function() {
         }).done();
     }));
 
-    passport.use(new GoogleOAuthStrategy({
-        clientID: GOOGLE_CLIENT_ID,
-        clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/google/callback',
-        passReqToCallback: true,
-    }, (req, accessToken, refreshToken, profile, done) => {
-        if (!req.user) {
-            // authenticate the user
-            authenticateGoogle(req, accessToken, refreshToken, profile, done);
-        } else {
-            associateGoogle(req.user, accessToken, refreshToken, profile, done);
-        }
-    }));
+    if (GOOGLE_CLIENT_ID) {
+        passport.use(new GoogleOAuthStrategy({
+            clientID: GOOGLE_CLIENT_ID,
+            clientSecret: GOOGLE_CLIENT_SECRET,
+            callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/google/callback',
+            passReqToCallback: true,
+        }, (req, accessToken, refreshToken, profile, done) => {
+            if (!req.user) {
+                // authenticate the user
+                authenticateGoogle(req, accessToken, refreshToken, profile, done);
+            } else {
+                associateGoogle(req.user, accessToken, refreshToken, profile, done);
+            }
+        }));
+    }
 
-    passport.use(new GitHubStrategy({
-        clientID: GITHUB_CLIENT_ID,
-        clientSecret: GITHUB_CLIENT_SECRET,
-        callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/github/callback',
-        passReqToCallback: true,
-  },   (req, accessToken, refreshToken, profile, done) => {
-        if (!req.user) {
-            // authenticate the user
-            authenticateGithub(req, accessToken, refreshToken, profile, done);
-        } else {
-            associateGithub(req.user, accessToken, refreshToken, profile, done);
-        }
-    }));
+    if (GITHUB_CLIENT_ID) {
+        passport.use(new GitHubStrategy({
+            clientID: GITHUB_CLIENT_ID,
+            clientSecret: GITHUB_CLIENT_SECRET,
+            callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/github/callback',
+            passReqToCallback: true,
+        },   (req, accessToken, refreshToken, profile, done) => {
+            if (!req.user) {
+                // authenticate the user
+                authenticateGithub(req, accessToken, refreshToken, profile, done);
+            } else {
+                associateGithub(req.user, accessToken, refreshToken, profile, done);
+            }
+        }));
+    }
 
     passport.use(new TotpStrategy((user, done) => {
         if (user.totp_key === null)
