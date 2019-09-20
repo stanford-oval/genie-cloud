@@ -49,7 +49,7 @@ DISCOURSE_SSO_SECRET: d836444a9e4084d5b224a60c208dce14
 AES_SECRET_KEY: 80bb23f93126074ba01410c8a2278c0c
 JWT_SIGNING_KEY: "not so secret key"
 SECRET_KEY: "not so secret key"
-NL_SERVER_URL: "https://almond-dev.stanford.edu/nnparser"
+NL_SERVER_URL: https://nlp-staging.almond.stanford.edu
 SUPPORTED_LANGUAGES:
   - en-US
   - it-IT
