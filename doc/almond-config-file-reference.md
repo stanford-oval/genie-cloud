@@ -405,6 +405,11 @@ Additional labels to add to the Kubernetes Jobs and Pods created for training.
 
 Default value: `{}`
 
+## TRAINING_KUBERNETES_EXTRA_ANNOTATIONS
+Additional annotations to add to the Kubernetes Jobs and Pods created for training.
+
+Default value: `{}`
+
 ## TRAINING_KUBERNETES_POD_SPEC_OVERRIDE
 Additional fields to add to the Kubernetes Pods created for training.
 
@@ -435,6 +440,11 @@ This is used to retrieve icons for entities.
 
 Default value: `''`
 
+## GOOGLE_CLIENT_ID
+OAuth Client ID to support Login With Google
+
+Default value: `null`
+
 ## GOOGLE_CLIENT_SECRET
 OAuth Client secret to support Login With Google
 
@@ -443,10 +453,7 @@ Default value: `null`
 ## GITHUB_CLIENT_ID
 OAuth Client ID to support Login With Github
 
-This cannot be the value `null`, use the string `'null'` to disable
-Login with Github instead.
-
-Default value: `'null'`
+Default value: `null`
 
 ## GITHUB_CLIENT_SECRET
 OAuth Client secret to support Login With Github
