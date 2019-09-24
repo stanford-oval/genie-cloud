@@ -60,6 +60,7 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
 
     return new Ast.FunctionDef(functionType,
                                functionName,
+                               [],
                                args,
                                schema.is_list,
                                schema.is_monitorable,
