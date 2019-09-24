@@ -29,7 +29,7 @@
   },
   "resolutions": {
     "thingpedia": "github:stanford-oval/thingpedia-api",
-    "thingtalk": "github:stanford-oval/thingpedia-api"
+    "thingtalk": "github:stanford-oval/thingtalk"
   },
   "dependencies": {
     "accept-language": "^3.0.18",
@@ -103,7 +103,7 @@
     "thingengine-core": "~1.6.0",
     "thingpedia": "github:stanford-oval/thingpedia-api",
     "thingpedia-discovery": "^1.0.0",
-    "thingtalk": "github:stanford-oval/thingpedia-api",
+    "thingtalk": "github:stanford-oval/thingtalk",
     "thirty-two": "^1.0.2",
     "tmp-promise": "^2.0.2",
     "transparent-rpc": "^1.0.0",

@@ -6442,10 +6442,9 @@ thingpedia-discovery@^1.0.0:
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-thingtalk@~1.8.0:
+"thingtalk@github:stanford-oval/thingtalk", thingtalk@~1.8.0:
   version "1.8.0"
-  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.8.0.tgz#fb62e486cffa607328664e4886af9e9b4cfb34ef"
-  integrity sha512-kwxKNVRMEVB/2NM2vgxMI1Zc5u4u0z0uv7lmvGk2uEt3fLnzYAWLIoElDcW9HczNqChG5p5YfZAvkziTMsyPNg==
+  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/97a34ff0e8cb573ee2e4d9f9e8181d267c6db06a"
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
