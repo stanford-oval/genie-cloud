@@ -17,8 +17,6 @@ cache:
   npm: true
   yarn: true
   pip: true
-before_script:
-  - (cd node_modules/thingtalk ; yarn ; rm -fr node_modules)
 
 stages:
   - test
