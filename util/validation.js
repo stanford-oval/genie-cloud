@@ -134,6 +134,13 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         classDef.metadata.description = description;
     await validateDataset(dataset);
 
+    // delete annotations that are specific to devices uploaded with the "thingpedia" CLI tool
+    // and are stored elsewhere in Thingpedia
+    delete classDef.metadata.thingpedia_name;
+    delete classDef.metadata.thingpedia_description;
+    for (let key of ['license', 'license_gplcompatible', 'subcategory', 'website', 'repository', 'issue_tracker'])
+        delete classDef.annotations[key];
+
     return [classDef, dataset];
 }
 
