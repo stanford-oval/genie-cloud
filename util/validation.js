@@ -37,7 +37,7 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 
 const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
 const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
-const ALLOWED_CLASS_METADATA = new Set(['name', 'description']);
+const ALLOWED_CLASS_METADATA = new Set(['name', 'description', 'thingpedia_name', 'thingpedia_description']);
 
 function validateAnnotations(annotations) {
     for (let name of Object.getOwnPropertyNames(annotations)) {
