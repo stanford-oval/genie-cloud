@@ -216,6 +216,7 @@ module.exports = async function execTask(job, spec) {
                             image: Config.TRAINING_KUBERNETES_IMAGE + (spec.requests.gpu > 0 ? '-cuda' : ''),
                             imagePullPolicy: 'Always',
                             command: [ '/usr/bin/node',
+                                '--experimental-worker',
                                 '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
                                 '/opt/almond-cloud/main.js',
                                 'run-training-task',
