@@ -20,7 +20,7 @@ const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
 
 const AbstractFS = require('../../util/abstract_fs');
-const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
+const BaseThingpediaClient = require('../../util/thingpedia-client');
 const { parseFlags } = require('../../util/genie_flag_utils');
 const StreamUtils = require('../../util/stream-utils');
 const DatabaseParameterProvider = require('../lib/param_provider');
@@ -93,6 +93,17 @@ class TypecheckStream extends Stream.Transform {
     }
 }
 
+class OrgThingpediaClient extends BaseThingpediaClient {
+    constructor(locale, dbClient, org) {
+        super(null, locale, dbClient);
+        this._org = org;
+    }
+
+    async _getOrg(dbClient) {
+        return this._org;
+    }
+}
+
 class DatasetGenerator {
     constructor(task, forDevices, options) {
         this._task = task;
@@ -124,9 +135,9 @@ class DatasetGenerator {
     }
 
     async _transaction() {
-        let orgId;
+        let org;
         if (this._options.approvedOnly) {
-            orgId = null;
+            org = null;
 
             const approvedKinds = (await schemaModel.getAllApproved(this._dbClient)).map((d) => d.kind);
             if (this._forDevices === null) {
@@ -136,8 +147,7 @@ class DatasetGenerator {
                 this._forDevices = this._forDevices.filter((k) => set.has(k));
             }
         } else {
-            const org = await orgModel.get(this._dbClient, this._options.owner);
-            orgId = org.is_admin ? -1 : org.id;
+            org = await orgModel.get(this._dbClient, this._options.owner);
         }
 
         if (this._forDevices !== null && this._forDevices.length > 0) {
@@ -153,13 +163,13 @@ class DatasetGenerator {
             this._forDevicesRegexp = null;
         }
 
-        this._tpClient = new AdminThingpediaClient(this._language, this._dbClient);
+        this._tpClient = new OrgThingpediaClient(this._language, this._dbClient, org);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, !this._options.debug);
 
         const tmpDir = await genSynthetic.prepare({
             dbClient: this._dbClient,
             language: this._language,
-            orgId: orgId,
+            orgId: await this._tpClient._getOrgId(),
             templatePack: this._options.templatePack,
         });
 
