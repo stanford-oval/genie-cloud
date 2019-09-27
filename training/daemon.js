@@ -214,9 +214,9 @@ Check the logs for further information.`
     killJob(id) {
         return db.withTransaction(async (dbClient) => {
             const job = await trainingJobModel.getForUpdate(dbClient, id);
-            if (job.status === 'started' && this._currentJobs[job.job_types] &&
-                this._currentJobs[job.job_types].id === id) {
-                this._currentJobs[job.job_types].kill();
+            if (job.status === 'started' && this._currentJobs[job.job_type] &&
+                this._currentJobs[job.job_type].id === id) {
+                this._currentJobs[job.job_type].kill();
             } else {
                 job.status = 'error';
                 job.error = 'Killed';
