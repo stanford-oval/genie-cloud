@@ -63,16 +63,18 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
             resourceVersion: this._resourceVersion,
             labelSelector: this._computeLabelSelector()
         }, (type, k8sJob) => {
-            if (type !== 'ADDED' && type !== 'MODIFIED')
+            if (type !== 'ADDED' && type !== 'MODIFIED' && type !== 'DELETED') {
+                console.log('Ignored job state change', type, 'for', k8sJob.metadata.name);
                 return;
-            this._processJob(k8sJob);
+            }
+            this._processJob(k8sJob, type);
         }, (err) => {
             console.error('watch jobs error:', err);
         });
     }
     
 
-    _processJob(k8sJob) {
+    _processJob(k8sJob, type) {
         const jobName = k8sJob.metadata.name;
         console.log('processing job', jobName);
         if (!this._watchedJobs.has(jobName)) {
@@ -81,6 +83,14 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
         }
 
         const callbacks = this._watchedJobs.get(jobName);
+        if (type === 'DELETED') {
+          console.log('deleted job', k8sJob.metadata.name);
+          // job was either killed or deleted by user
+          callbacks.reject(new Error('The kubernetes job was deleted'));
+          this._watchedJobs.delete(jobName);
+          return;
+        }
+
         if (k8sJob.status.succeeded > 0) {
             console.log('job suceeded');
             k8sApi.deleteNamespacedJob(k8sJob.metadata.name, k8sJob.metadata.namespace,
@@ -99,7 +109,7 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
         if (!k8sJob.status.conditions) {
             console.log('wating for job status');
             return;
-	}
+        }
         for (let condition of k8sJob.status.conditions) {
             if (condition.type === 'Failed' && condition.status === 'True') {
                 callbacks.reject(new Error(condition.message || `The Kubernetes Job failed`));
@@ -120,6 +130,7 @@ class KubernetesTaskRunner {
     }
 
     kill() {
+        console.log('killing job', this._k8sJob.metadata.name);
         k8sApi.deleteNamespacedJob(this._k8sJob.metadata.name, this._k8sJob.metadata.namespace,
             undefined /*pretty*/,
             undefined /*body*/,
