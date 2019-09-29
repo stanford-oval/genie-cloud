@@ -28,7 +28,8 @@
     "install": "make install"
   },
   "resolutions": {
-    "thingpedia": "github:stanford-oval/thingpedia-api"
+    "thingpedia": "~2.6.0-alpha.1",
+    "thingtalk": "~1.9.0-alpha.1"
   },
   "dependencies": {
     "accept-language": "^3.0.18",
@@ -53,7 +54,7 @@
     "express-session": "^1.14.0",
     "express-ws": "^4.0.0",
     "express-xml-bodyparser": "^0.3.0",
-    "genie-toolkit": "github:stanford-oval/genie-toolkit",
+    "genie-toolkit": "~0.5.0-alpha.1",
     "gettext-parser": "^4.0.0",
     "gm": "^1.23.1",
     "highlight.js": "^9.13.1",
@@ -100,9 +101,9 @@
     "smtlib": "^0.1.1",
     "sockaddr": "^1.0.0",
     "thingengine-core": "~1.6.0",
-    "thingpedia": "github:stanford-oval/thingpedia-api",
+    "thingpedia": "~2.6.0-alpha.1",
     "thingpedia-discovery": "^1.0.0",
-    "thingtalk": "~1.8.0",
+    "thingtalk": "~1.9.0-alpha.1",
     "thirty-two": "^1.0.2",
     "tmp-promise": "^2.0.2",
     "transparent-rpc": "^1.0.0",

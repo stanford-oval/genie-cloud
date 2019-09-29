@@ -47,7 +47,6 @@ COPY . /opt/almond-cloud/
 WORKDIR /opt/almond-cloud/
 RUN echo "build_from_source true" > .yarnrc && echo "sqlite_libname sqlcipher" >> .yarnrc
 RUN yarn install
-RUN (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
 
 # add user almond-cloud
 RUN useradd -ms /bin/bash -r almond-cloud
