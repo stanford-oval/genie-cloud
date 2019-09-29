@@ -46,8 +46,6 @@
     "csv-parse": "^4.4.5",
     "csv-stringify": "5.3.0",
     "deep-equal": "^1.0.1",
-    "dialogflow": "^0.5.0",
-    "dialogflow-fulfillment": "^0.5.0",
     "discourse-sso": "^1.0.3",
     "express": "^4.15.2",
     "express-mysql-session": "^2.0.0",
@@ -132,7 +130,9 @@
   },
   "optionalDependencies": {
     "@kubernetes/client-node": "^0.10.2",
-    "aws-sdk": "^2.2.48"
+    "aws-sdk": "^2.2.48",
+    "dialogflow": "^0.5.0",
+    "dialogflow-fulfillment": "^0.5.0"
   },
   "nyc": {
     "exclude": [
