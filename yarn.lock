@@ -2217,9 +2217,9 @@ eslint-visitor-keys@^1.0.0, eslint-visitor-keys@^1.1.0:
   integrity sha512-8y9YjtM1JBJU/A9Kc+SbaOV4y29sSWckBwMHa+FGtVj5gN/sbnKDf6xJUl+8g7FAij9LVaP8C24DUiH/f/2Z9A==
 
 eslint@^6.0.0:
-  version "6.4.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-6.4.0.tgz#5aa9227c3fbe921982b2eda94ba0d7fae858611a"
-  integrity sha512-WTVEzK3lSFoXUovDHEbkJqCVPEPwbhCq4trDktNI6ygs7aO41d4cDT0JFAT5MivzZeVLWlg7vHL+bgrQv/t3vA==
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-6.5.0.tgz#304623eec903969dd5c9f2d61c6ce3d6ecec8750"
+  integrity sha512-IIbSW+vKOqMatPmS9ayyku4tvWxHY2iricSRtOz6+ZA5IPRlgXzEL0u/j6dr4eha0ugmhMwDTqxtmNu3kj9O4w==
   dependencies:
     "@babel/code-frame" "^7.0.0"
     ajv "^6.10.0"
@@ -2823,9 +2823,10 @@ gcp-metadata@^1.0.0:
     gaxios "^1.0.2"
     json-bigint "^0.3.0"
 
-"genie-toolkit@github:stanford-oval/genie-toolkit":
-  version "0.4.1"
-  resolved "https://codeload.github.com/stanford-oval/genie-toolkit/tar.gz/e856ecca7927e2cdea892c531b02a2eed20bbdb4"
+genie-toolkit@~0.5.0-alpha.1:
+  version "0.5.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.5.0-alpha.1.tgz#db05af06b7443cdf52983eedaeb68a677872019b"
+  integrity sha512-u/eJE0tfglP3YqQsyJknBasB7LQn6YomIfAKYz14ES4VBm3cckxVvJSU6xHi77Sjf+oCnrkZ4hnHfCfcxWubXA==
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
@@ -2835,8 +2836,8 @@ gcp-metadata@^1.0.0:
     qs "^6.7.0"
     seedrandom "^3.0.0"
     sockaddr "^1.0.1"
-    thingpedia "github:stanford-oval/thingpedia-api"
-    thingtalk "github:stanford-oval/thingtalk"
+    thingpedia "~2.6.0-alpha.1"
+    thingtalk "~1.9.0-alpha.1"
 
 get-assigned-identifiers@^1.2.0:
   version "1.2.0"
@@ -3110,9 +3111,9 @@ gtoken@^2.3.0, gtoken@^2.3.2:
     pify "^4.0.0"
 
 handlebars@^4.1.2:
-  version "4.3.4"
-  resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.3.4.tgz#aab065294c27ad16ff4e711240a7288d2753306d"
-  integrity sha512-vvpo6mpK4ScNC1DbGRZ2d5BznS6ht0r1hi20RivsibMc6jNvFAeZQ6qk5VNspo6SOwVOJQbjHyBCpuS7BzA1pw==
+  version "4.4.0"
+  resolved "https://registry.yarnpkg.com/handlebars/-/handlebars-4.4.0.tgz#22e1a897c5d83023d39801f35f6b65cf97ed8b25"
+  integrity sha512-xkRtOt3/3DzTKMOt3xahj2M/EqNhY988T+imYSlMgs5fVhLN2fmKVVj0LtEGmb+3UUYV5Qmm1052Mm3dIQxOvw==
   dependencies:
     neo-async "^2.6.0"
     optimist "^0.6.1"
@@ -6736,20 +6737,22 @@ thingpedia-discovery@^1.0.0:
   dependencies:
     node-ssdp "^2.7.2"
 
-"thingpedia@github:stanford-oval/thingpedia-api", thingpedia@~2.5.0:
-  version "2.5.2"
-  resolved "https://codeload.github.com/stanford-oval/thingpedia-api/tar.gz/24e6884a6485687cf38b3ac3b2e65a9ed7bfbdc3"
+thingpedia@~2.5.0, thingpedia@~2.6.0-alpha.1:
+  version "2.6.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/thingpedia/-/thingpedia-2.6.0-alpha.1.tgz#bd49a6b68df29646840477e33402038df0edfd61"
+  integrity sha512-kw3qZKaseH8xf5f5Ss/3HulK/M4r88s60tMnS+bRIS0eLHJdqNP+YKNmT4IiEOvYlT/iV1yUYON5iDYE9z1vZA==
   dependencies:
     feedparser "^2.2.9"
     ip "~1.1.0"
     oauth "~0.9.14"
-    thingtalk "~1.8.0"
+    thingtalk "~1.9.0-alpha.1"
     tmp "^0.1.0"
     xml2js "^0.4.17"
 
-"thingtalk@github:stanford-oval/thingtalk", thingtalk@~1.8.0:
-  version "1.8.0"
-  resolved "https://codeload.github.com/stanford-oval/thingtalk/tar.gz/97a34ff0e8cb573ee2e4d9f9e8181d267c6db06a"
+thingtalk@~1.8.0, thingtalk@~1.9.0-alpha.1:
+  version "1.9.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/thingtalk/-/thingtalk-1.9.0-alpha.1.tgz#5aaef6728b3a9b6a0bc254d3e8f0007b32f40c1c"
+  integrity sha512-sUKKYnfZoZHEdxbiiNDJil/KWNzH3XGDAF93qRdSOELefRDPozFGgDHQQIMkrebDhvvKatt93dJIAao9mLcYqQ==
   dependencies:
     adt "~0.7.2"
     byline "^5.0.0"
