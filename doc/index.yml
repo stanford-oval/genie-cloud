@@ -28,6 +28,11 @@ sections:
     - thingpedia-cli-tools
     - thingpedia-testing
 -
+  title: Use Cases
+  pages:
+    - home-assistant-integration
+
+-
   title: Almond Integration APIs
   pages:
     - my-api
@@ -82,6 +87,8 @@ pages:
   thingpedia-device-with-zero-code: Declarative Thingpedia Devices
   thingpedia-cli-tools: Thingpedia Command Line Tools
   thingpedia-testing: Testing Thingpedia Devices
+
+  home-assistant-integration: Integrating with Home Assistant
 
   my-api: Web Almond As A Service
   almond-dialog-api-reference: Almond Dialog API
