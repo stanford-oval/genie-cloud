@@ -39,13 +39,47 @@ The module should export a class that inherits from the base Home Assistant devi
 in `./base.js` (and **not** the `Tp.BaseDevice` that Thingpedia devices normally inherit from).
 Inside the class, you can query the Home Assistant entity state as `this.state.state`, and
 query the Home Assistant entity attributes as `this.state.attributes`. To implement actions,
-you can call Home Assistant services with `this._callService`. Please look at `light.js` for
-an example.
+you can call Home Assistant services with `this._callService`.
+
+Here is an example of how to map the [light](https://developers.home-assistant.io/docs/en/entity_light.html)
+to the [`@light-bulb`](https://almond.stanford.edu/thingpedia/classes/by-id/light-bulb)
+interface in Thingpedia:
+
+```javascript
+const HomeAssistantDevice = require('./base');
+
+module.exports = class HomeAssistantLightbulbDevice extends HomeAssistantDevice {
+    async get_power() {
+        return [{ power: this.state.state }];
+    }
+    // note: subscribe_ must NOT be async, or an ImplementationError will occur at runtime
+    subscribe_power() {
+        return this._subscribeState(() => {
+            return { power: this.state.state };
+        });
+    }
+
+    async do_set_power({ power }) {
+        if (power === 'on')
+            await this._callService('light', 'turn_on');
+        else
+            await this._callService('light', 'turn_off');
+    }
+
+    async do_alert_long() {
+        await this._callService('light', 'turn_on', { flash: 'long' });
+    }
+
+    async do_color_loop() {
+        await this._callService('light', 'turn_on', { effect: 'colorloop' });
+    }
+};
+```
 
 When done, you must modify `index.js` to refer to your device as follows:
-```
+```javascript
 const DOMAIN_TO_TP_KIND = {
-    <Home Assistant domain>: <Thingpedia interface ID (e.g. "security-camera")> 
+    <Home Assistant domain>: <Thingpedia interface ID (e.g. "security-camera")>
 };
 const SUBDEVICES = {
     <Thingpedia interface ID>: <your device class>
@@ -60,7 +94,7 @@ If you want to support a type of device that is not in Thingpedia already, you s
 create an abstract Thingpedia class. For example, to support an imaginary Frombulator device, you should
 create an abstract Thingpedia class like:
 
-```
+```tt
 abstract class @<your-username>.frombulator {
    query state(out state : Enum(active,inactive));
    

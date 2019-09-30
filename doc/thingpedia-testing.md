@@ -59,7 +59,7 @@ In that case, you should use one of the [local versions of Almond](/about/get-al
 
 During development, we recommend using [Command Line Almond](https://github.com/stanford-oval/almond-cmdline),
 which can be installed from the NPM registry with:
-```
+```bash
 yarn global add almond-cmdline
 ```
 The command is called `almond`. Please refer to the `yarn` documentation if you encounter
