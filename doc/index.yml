@@ -25,6 +25,13 @@ sections:
     - thingpedia-nl-support
     - thingpedia-device-intro-auth-n-discovery
     - thingpedia-device-with-zero-code
+    - thingpedia-cli-tools
+    - thingpedia-testing
+-
+  title: Use Cases
+  pages:
+    - home-assistant-integration
+
 -
   title: Almond Integration APIs
   pages:
@@ -78,6 +85,10 @@ pages:
   thingpedia-nl-support: Natural Language Support for Devices
   thingpedia-device-intro-auth-n-discovery: Authentication & Discovery
   thingpedia-device-with-zero-code: Declarative Thingpedia Devices
+  thingpedia-cli-tools: Thingpedia Command Line Tools
+  thingpedia-testing: Testing Thingpedia Devices
+
+  home-assistant-integration: Integrating with Home Assistant
 
   my-api: Web Almond As A Service
   almond-dialog-api-reference: Almond Dialog API
