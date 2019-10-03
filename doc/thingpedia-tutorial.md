@@ -112,24 +112,14 @@ it is only available to you with your _developer key_, which you can retrieve
 from your [user profile](/user/profile)
 if you have already been approved to be a developer.
 You should be able to test your device right away using the [Web Almond](/me/conversation) interface.
-While if you want to test on Android Almond, you need one
-more step: go to settings and enable cloud sync.
-
-When you upload your device the first time, you will get some limited natural language support 
-after around 5 minutes. 
-If you think your device is ready and want to get the full natural language support, 
-click on the `Start training` button at the bottom of the details page of your device
-to start a new training job. This takes up to 15 hours. 
-You can see the status of the training at the top of the details page for your device. 
-The training is complete when the blue banner disappears. 
-When you edit it later, your device will be usable but the language might not reflect your latest changes.
-Before the training is ready, you can test by typing ThingTalk directly; this is accomplished using the `\t` prefix in Web Almond. 
-For example, to test the `get` command for The Cat API, 
-you can write: `\t now => @com.thecatapi.get(count=3) => notify;`. 
-Please refer to [ThingTalk by Examples](/doc/thingtalk-intro.md) for more details about how to write a command in ThingTalk.
+For more details about testing, see the [Testing Guide](thingpedia-testing.md).
 
 The device will become available to other users after being reviewed and approved by a
-Thingpedia administrator.
+Thingpedia administrator. You can ask for a review from the device details page; please
+do so only after your device is complete and thoroughly tested.
+
+NOTE: tutorial submission will **not** be reviewed. If you would like feedback or have
+questions, you can ask on the [Community Forum](https://community.almond.stanford.edu) instead. 
 
 ### Access logs
 

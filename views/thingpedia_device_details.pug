@@ -149,17 +149,13 @@ block content
 
   if classDef.annotations.child_types && classDef.annotations.child_types.value.length > 0
     h2= _("Configures:")
-    p.help-block= _("Configuring this device will also configure one or more of the following")
+    p.help-block= _("Configuring this device will also configure one or more of the following:")
 
     ul.device-child-types
       for k in classDef.annotations.child_types.toJS()
         li
-          if k.indexOf('.') >= 0
-            a(href='/thingpedia/devices/by-id/' + k)
-              span= '@' + k
-          else
-            a(href='/thingpedia/classes/by-id/' + k)
-              span= '@' + k
+          a(href='/thingpedia/devices/by-id/' + k)
+            span= '@' + k
 
   h2= _("Commands")
   if examples.length > 0

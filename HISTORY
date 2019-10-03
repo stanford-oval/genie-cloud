@@ -1,3 +1,12 @@
+1.6.3
+=====
+
+* Fixed training custom models [#474, #489]
+* Fixed API inconsistencies in the location linking API [#489]
+* Improved compatibility with thingpedia command-line tool [#489]
+* Misc bug fixes [#489]
+* Updated dependencies
+
 1.6.2
 =====
 
