@@ -1681,10 +1681,10 @@ csurf@^1.9.0:
     csrf "3.1.0"
     http-errors "~1.7.2"
 
-csv-parse@4.6.1:
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.6.1.tgz#5b468e2f3ed79f19cb5813714841f557971ee493"
-  integrity sha512-4ynBqCVauF5HST3hZHPP62eOlCJpXYH00Tf+4MeQP/4aLoV3vsR9oVnLiTDDlOZ9wvNPbcvi0lXpCUoDp6Zk4w==
+csv-parse@4.6.2:
+  version "4.6.2"
+  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.6.2.tgz#281ddcda760fc09965326f12330299de5471abfc"
+  integrity sha512-J1ipqqfhQf08pUlYtHVbWXcbyiAx4+AOUuBFTK1JAjXDDVRe5CtxgE568cUwQ07OlyWErclyfokE1NwJi4DUjQ==
   dependencies:
     pad "^3.2.0"
 
