@@ -89,10 +89,10 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@kubernetes/client-node@^0.10.2":
-  version "0.10.3"
-  resolved "https://registry.yarnpkg.com/@kubernetes/client-node/-/client-node-0.10.3.tgz#1f9839f585df50f3d540da91fd93eea1920b9d28"
-  integrity sha512-mw+1zdKfMW4QN2ns82SKFhAvqC4SVUAiItto4oFg3Me+a510h3h9N5O7ad6m4efAmlQBlMc6Y5FHz70dAwuiMg==
+"@kubernetes/client-node@^0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@kubernetes/client-node/-/client-node-0.11.0.tgz#e85a8c970bf784c72ff4d7c63e158a1651ed5394"
+  integrity sha512-1DQG9rNgn1fNpfStCBnvErGMcuF29ixGuQAjh3CVPLCFVsQCtNQjbSOIEV7XV18YEa2fj2hLU52TmJMSII0Kzw==
   dependencies:
     "@types/js-yaml" "^3.12.1"
     "@types/node" "^10.12.0"
