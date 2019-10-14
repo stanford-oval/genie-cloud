@@ -129,7 +129,7 @@
     "tough-cookie": "^3.0.1"
   },
   "optionalDependencies": {
-    "@kubernetes/client-node": "^0.10.2",
+    "@kubernetes/client-node": "^0.11.0",
     "aws-sdk": "^2.2.48",
     "dialogflow": "^0.5.0",
     "dialogflow-fulfillment": "^0.5.0"
