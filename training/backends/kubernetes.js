@@ -30,6 +30,8 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
 
     watch(jobName, callbacks) {
         this._watchedJobs.set(jobName, callbacks);
+        // Number of tries to watch job status. Setting to a negative number will try indefinitely.
+        this._numTriesLeft = parseInt(Config.TRAINING_WATCH_NUM_TRIES || 5);
     }
 
     _computeLabelSelector() {
@@ -42,6 +44,19 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
     }
 
     async _doOpen() {
+        this._watchJobs();
+    }
+
+    async _watchJobs() {
+        if (this._numTriesLeft === 0) {
+            console.log('Num tries exceeded');
+            for (let [jobName, callback] of this._watchedJobs.entries()) {
+                console.error('failed to watch job', jobName);
+                callback.reject(new Error('Kubernetes failed to watch ' + jobName));
+            }
+            return;
+        }
+        console.log('Watching num jobs:', this._watchedJobs.size,  'with num tries left:', this._numTriesLeft);
         let currentJobs;
         try {
             currentJobs = (await k8sApi.listNamespacedJob(Config.TRAINING_KUBERNETES_NAMESPACE,
@@ -53,15 +68,21 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
         } catch(err) {
             throw new Error('Failed to list Kubernetes jobs:' +  JSON.stringify(err));
         }
-
         for (let job of currentJobs.items)
             this._processJob(job);
         this._resourceVersion = currentJobs.metadata.resourceVersion;
+        if (this._watchedJobs.size === 0) {
+            console.log('Finished processing all jobs from list jobs');
+            return;
+        }
 
         const url = `/apis/batch/v1/namespaces/${Config.TRAINING_KUBERNETES_NAMESPACE}/jobs`;
         this._req = this._watcher.watch(url, {
             resourceVersion: this._resourceVersion,
-            labelSelector: this._computeLabelSelector()
+            labelSelector: this._computeLabelSelector(),
+            // Setting timeout to a large number (7 days). Even so, we may still see occasional
+            // server connection drops. So retrying is necessary.
+            timeoutSeconds: 604800
         }, (type, k8sJob) => {
             if (type !== 'ADDED' && type !== 'MODIFIED' && type !== 'DELETED') {
                 console.log('Ignored job state change', type, 'for', k8sJob.metadata.name);
@@ -70,10 +91,13 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
             this._processJob(k8sJob, type);
         }, (err) => {
             console.error('watch jobs error:', err);
+            if (this._watchedJobs.size > 0) {
+                this._numTriesLeft--;
+                this._watchJobs();
+            }
         });
     }
     
-
     _processJob(k8sJob, type) {
         const jobName = k8sJob.metadata.name;
         console.log('processing job', jobName);

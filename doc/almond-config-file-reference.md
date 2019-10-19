@@ -420,6 +420,11 @@ Additional fields to add to the Kubernetes Pods created for training.
 
 Default value: `{}`
 
+## TRAINING_WATCH_NUM_TRIES
+Number of tries to watch k8s job status. Setting to a negative number will try indefinitely.
+
+Default value: `5`
+
 ## TENSORBOARD_DIR
 Directory in s3:// or file:// URI, where tensorboard events are synced to during training.
 
