@@ -31,7 +31,7 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
     watch(jobName, callbacks) {
         this._watchedJobs.set(jobName, callbacks);
         // Number of tries to watch job status. Setting to a negative number will try indefinitely.
-        this._numTriesLeft = parseInt(Config.TRAINING_WATCH_NUM_TRIES | 5);
+        this._numTriesLeft = parseInt(Config.TRAINING_WATCH_NUM_TRIES || 5);
     }
 
     _computeLabelSelector() {
