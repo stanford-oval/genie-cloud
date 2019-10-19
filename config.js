@@ -427,7 +427,7 @@ module.exports.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE = {};
 module.exports.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE = {};
 
 /**
-  Number of tries to watch k8s job status. Setting to a negative number, will try indefinitely.
+  Number of tries to watch k8s job status. Setting to a negative number will try indefinitely.
 */
 module.exports.TRAINING_WATCH_NUM_TRIES = 5;
 

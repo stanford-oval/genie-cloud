@@ -421,7 +421,7 @@ Additional fields to add to the Kubernetes Pods created for training.
 Default value: `{}`
 
 ## TRAINING_WATCH_NUM_TRIES
-Number of tries to watch k8s job status. Setting to a negative number, will try indefinitely.
+Number of tries to watch k8s job status. Setting to a negative number will try indefinitely.
 
 Default value: `5`
 

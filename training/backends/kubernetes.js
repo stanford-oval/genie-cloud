@@ -30,7 +30,7 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
 
     watch(jobName, callbacks) {
         this._watchedJobs.set(jobName, callbacks);
-        // Number of tries to watch job status. Setting to a negative number, will try indefinitely.
+        // Number of tries to watch job status. Setting to a negative number will try indefinitely.
         this._numTriesLeft = parseInt(Config.TRAINING_WATCH_NUM_TRIES | 5);
     }
 
@@ -48,7 +48,7 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
     }
 
     async _watchJobs() {
-        if (this._numriesLeft === 0) {
+        if (this._numTriesLeft === 0) {
             console.log('Num tries exceeded');
             for (let [jobName, callback] of this._watchedJobs.entries()) {
                 console.error('failed to watch job', jobName);
@@ -59,7 +59,7 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
         console.log('Watching num jobs:', this._watchedJobs.size,  'with num tries left:', this._numTriesLeft);
         let currentJobs;
         try {
-           currentJobs = (await k8sApi.listNamespacedJob(Config.TRAINING_KUBERNETES_NAMESPACE,
+            currentJobs = (await k8sApi.listNamespacedJob(Config.TRAINING_KUBERNETES_NAMESPACE,
                 false /* includeUninitialized */,
                 false /* pretty */,
                 undefined /* _continue */,
