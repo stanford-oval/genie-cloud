@@ -47,4 +47,4 @@ USER almond-cloud
 
 WORKDIR /home/almond-cloud
 
-ENTRYPOINT ["/opt/almond-cloud/main.js"]
+ENTRYPOINT ["/bin/bash", "/opt/almond-cloud/docker/start.sh"]
