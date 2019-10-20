@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi7/ubi:latest
+FROM registry.access.redhat.com/ubi7/ubi:7.7-140
 
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
