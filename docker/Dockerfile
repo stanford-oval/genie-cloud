@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi7/ubi:7.7-140
+FROM registry.access.redhat.com/ubi7/ubi:latest
 
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
@@ -15,12 +15,12 @@ RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.re
 RUN yum -y install nodejs yarn
 
 # install python3
-RUN yum -y install python36 \
-	python36-pip \
-	python36-devel
+RUN yum -y install rh-python36 \
+	rh-p7.7-140ython36-pip \
+	rh-python36-devel
+RUN source scl_source enable rh-python36 && \
+    pip3 install awscli
 
-# install aws client
-RUN pip3 install awscli
 RUN curl --silent --location \
     "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | \
     tar xz -C /usr/local/bin
@@ -44,6 +44,7 @@ RUN yarn install
 # add user almond-cloud
 RUN useradd -ms /bin/bash -r almond-cloud
 USER almond-cloud
+
 WORKDIR /home/almond-cloud
 
 ENTRYPOINT ["/opt/almond-cloud/main.js"]
