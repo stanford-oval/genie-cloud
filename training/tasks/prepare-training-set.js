@@ -306,7 +306,17 @@ class DatasetGenerator {
     async run() {
         await db.withTransaction(async (dbClient) => {
             this._dbClient = dbClient;
-            return this._transaction();
+
+            const timeout = setInterval(() => {
+                this._dbClient.ping((err) => {
+                    if (err)
+                        console.error(`Ignored error in PING to database: ` + err.message);
+                });
+            }, 60000);
+
+            await this._transaction();
+
+            clearInterval(timeout);
         }, 'repeatable read', 'read only');
     }
 }
