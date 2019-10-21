@@ -314,9 +314,11 @@ class DatasetGenerator {
                 });
             }, 60000);
 
-            await this._transaction();
-
-            clearInterval(timeout);
+            try {
+                await this._transaction();
+            } finally {
+                clearInterval(timeout);
+            }
         }, 'repeatable read', 'read only');
     }
 }
