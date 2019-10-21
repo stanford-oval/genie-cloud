@@ -1681,17 +1681,17 @@ csurf@^1.9.0:
     csrf "3.1.0"
     http-errors "~1.7.2"
 
-csv-parse@4.6.1:
-  version "4.6.1"
-  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.6.1.tgz#5b468e2f3ed79f19cb5813714841f557971ee493"
-  integrity sha512-4ynBqCVauF5HST3hZHPP62eOlCJpXYH00Tf+4MeQP/4aLoV3vsR9oVnLiTDDlOZ9wvNPbcvi0lXpCUoDp6Zk4w==
-  dependencies:
-    pad "^3.2.0"
-
 csv-parse@^4.4.5:
   version "4.4.7"
   resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.4.7.tgz#069de0875b92780ca74a018c9880ab41cb3517a1"
   integrity sha512-QfjZ9mhBHcNDUM7Ab1sLC5HNa7wVFSl5jDK3lpM0YyvAUb9bVgO1Veht13tWJno8cEZ2eSowFDwcvRCO4BVvNA==
+
+csv-parse@~4.6.1:
+  version "4.6.5"
+  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.6.5.tgz#e5175166dd883d6d89e29ad8174a63224cb02182"
+  integrity sha512-tUohmlM5X1Wtn7aRA4FsJMmnvGo+GUknK/Dp+//ms7pvpXADda5HIi5vFYOvAs/WSn5JUM1bt2AT3TxtDFV3Cw==
+  dependencies:
+    pad "^3.2.0"
 
 csv-stringify@5.3.0:
   version "5.3.0"
@@ -1699,6 +1699,11 @@ csv-stringify@5.3.0:
   integrity sha512-VMYPbE8zWz475smwqb9VbX9cj0y4J0PBl59UdcqzLkzXHZZ8dh4Rmbb0ZywsWEtUml4A96Hn7Q5MW9ppVghYzg==
   dependencies:
     lodash.get "~4.4.2"
+
+csv-stringify@~5.3.0:
+  version "5.3.3"
+  resolved "https://registry.yarnpkg.com/csv-stringify/-/csv-stringify-5.3.3.tgz#c4725686a33db9f61e70d87af712285baefebe21"
+  integrity sha512-q8Qj+/lN74LRmG7Mg0LauE5WcnJOD5MEGe1gI57IYJCB61KWuEbAFHm1uIPDkI26aqElyBB57SlE2GGwq2EY5A==
 
 d3-geo-projection@0.2:
   version "0.2.16"
