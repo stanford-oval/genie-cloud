@@ -272,9 +272,9 @@ class Frontend {
         this._app.use('/', require('./routes/qrcode'));
         this._app.use('/blog', require('./routes/blog'));
 
+        this._app.use('/me/ws', require('./routes/my_internal_api'));
         this._app.use('/me', require('./routes/my_stuff'));
         this._app.use('/me/api/oauth2', require('./routes/my_oauth2'));
-        this._app.use('/me/ws', require('./routes/my_internal_api'));
         this._app.use('/me/devices', require('./routes/devices'));
         this._app.use('/me/status', require('./routes/status'));
         this._app.use('/devices', require('./routes/devices_compat'));
