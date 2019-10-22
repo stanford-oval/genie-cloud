@@ -119,7 +119,6 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
             console.log('job suceeded');
             k8sApi.deleteNamespacedJob(k8sJob.metadata.name, k8sJob.metadata.namespace,
                 undefined /*pretty*/,
-                undefined /*body*/,
                 undefined /*dryRun*/,
                 undefined /*gracePeriodSeconds*/,
                 undefined /*orphanDependents*/,
@@ -157,7 +156,6 @@ class KubernetesTaskRunner {
         console.log('killing job', this._k8sJob.metadata.name);
         k8sApi.deleteNamespacedJob(this._k8sJob.metadata.name, this._k8sJob.metadata.namespace,
             undefined /*pretty*/,
-            undefined /*body*/,
             undefined /*dryRun*/,
             undefined /*gracePeriodSeconds*/,
             undefined /*orphanDependents*/,
