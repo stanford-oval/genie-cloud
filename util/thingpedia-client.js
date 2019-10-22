@@ -360,6 +360,8 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
     }
 
     getExamplesByKinds(kinds, accept = 'application/x-thingtalk') {
+        if (!Array.isArray(kinds))
+            kinds = [kinds];
         if (kinds.length === 0)
             return Promise.resolve([]);
         return this._withClient(async (dbClient) => {
