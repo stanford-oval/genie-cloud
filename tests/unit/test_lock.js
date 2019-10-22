@@ -12,12 +12,7 @@
 const assert = require('assert');
 
 const Lock = require('../../util/lock');
-
-function delay(timeout) {
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve, timeout);
-    });
-}
+const sleep = require('../../util/sleep');
 
 async function withTimeout(promise, timeout = 30000) {
     await Promise.race([
@@ -50,20 +45,20 @@ async function testInterleave() {
     async function thread1() {
         const release1 = await lock.acquire();
         output.push(1);
-        await delay(1000);
+        await sleep(1000);
         output.push(2);
         release1();
-        await delay(1000);
+        await sleep(1000);
         const release2 = await lock.acquire();
         output.push(5);
         release2();
     }
 
     async function thread2() {
-        await delay(500);
+        await sleep(500);
         const release1 = await lock.acquire();
         output.push(3);
-        await delay(500);
+        await sleep(500);
         output.push(4);
         release1();
     }
@@ -82,22 +77,22 @@ async function testQueue() {
     async function thread1() {
         const release1 = await lock.acquire();
         output.push(1);
-        await delay(5000);
+        await sleep(5000);
         output.push(2);
         release1();
     }
 
     async function thread2() {
-        await delay(500);
+        await sleep(500);
         const release1 = await lock.acquire();
         output.push(3);
-        await delay(500);
+        await sleep(500);
         output.push(4);
         release1();
     }
 
     async function thread3() {
-        await delay(1500);
+        await sleep(1500);
         const release1 = await lock.acquire();
         output.push(5);
         output.push(6);
