@@ -18,14 +18,9 @@ const assert = require('assert');
 //const Tp = require('thingpedia');
 
 const db = require('../../util/db');
+const sleep = require('../../util/sleep');
 const trainingJobModel = require('../../model/training_job');
 const TrainingServer = require('../../util/training_server');
-
-async function delay(ms) {
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve, ms);
-    });
-}
 
 async function waitUntilAllJobsDone() {
     for (;;) {
@@ -37,7 +32,7 @@ async function waitUntilAllJobsDone() {
         if (row.cnt === 0)
             break;
 
-        await delay(10000);
+        await sleep(10000);
     }
 
     const failed = await db.withClient((dbClient) => {
@@ -74,7 +69,7 @@ async function testBasic() {
     // issue a basic train command
 
     await server.queue('en', null, 'train');
-    await delay(1000);
+    await sleep(1000);
 
     const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
     //console.log(queue);
@@ -185,7 +180,7 @@ async function testForDevice() {
     // issue a train command for a device that is not approved
 
     await server.queue('en', ['org.thingpedia.builtin.test.adminonly'], 'train');
-    await delay(1000);
+    await sleep(1000);
 
     const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
     //console.log(queue);
