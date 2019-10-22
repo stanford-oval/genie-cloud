@@ -9,6 +9,8 @@
 // See COPYING for details
 "use strict";
 
+const stream = require('stream');
+
 const db = require('../util/db');
 const { tokenize, stripUnsafeTokens } = require('../util/tokenize');
 
@@ -312,6 +314,20 @@ module.exports = {
 
     createMany,
     create,
+    insertStream(client) {
+        return new stream.Writable({
+            objectMode: true,
+            highWaterMark: 200,
+
+            write(obj, encoding, callback) {
+                create(client, obj).then(() => callback(), callback);
+            },
+            writev(objs, callback) {
+                createMany(client, objs.map((o) => o.chunk)).then(() => callback(), callback);
+            }
+        });
+    },
+
     logUtterance(client, data) {
         return db.insertOne(client, `insert into utterance_log set ?`, [data]);
     },

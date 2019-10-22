@@ -42,7 +42,8 @@ const commands = {
     'get-user-shards': require('./scripts/get-user-shards'),
     'generate-cheatsheet': require('./scripts/generate-cheatsheet'),
     'sync-discourse-sso': require('./scripts/sync-discourse-sso'),
-    'download-dataset': require('./scripts/download-dataset')
+    'download-dataset': require('./scripts/download-dataset'),
+    'upload-dataset': require('./scripts/upload-dataset')
 };
 
 const parser = new argparse.ArgumentParser({
