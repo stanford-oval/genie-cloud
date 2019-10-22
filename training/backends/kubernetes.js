@@ -186,7 +186,10 @@ module.exports = async function execTask(job, spec) {
         metadata: {
             name: jobName,
             labels: {
-                app: 'training-job'
+                app: 'training-job',
+                'job-id': String(job.id),
+                'job-type': job.job_type,
+                'task-name': spec.name
             },
         },
 
@@ -198,7 +201,10 @@ module.exports = async function execTask(job, spec) {
             template: {
                 metadata: {
                     labels: {
-                        app: 'training-job'
+                        app: 'training-job',
+                        'job-id': String(job.id),
+                        'job-type': job.job_type,
+                        'task-name': spec.name
                     }
                 },
 
