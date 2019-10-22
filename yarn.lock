@@ -2843,9 +2843,9 @@ gcp-metadata@^1.0.0:
     json-bigint "^0.3.0"
 
 genie-toolkit@~0.5.0-alpha.1:
-  version "0.5.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.5.0-alpha.1.tgz#db05af06b7443cdf52983eedaeb68a677872019b"
-  integrity sha512-u/eJE0tfglP3YqQsyJknBasB7LQn6YomIfAKYz14ES4VBm3cckxVvJSU6xHi77Sjf+oCnrkZ4hnHfCfcxWubXA==
+  version "0.5.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.5.0-alpha.2.tgz#65ef26466f488bb877f78ccf2bbac4a6e5f64ef2"
+  integrity sha512-yOYr4eteQThTK0/Bmwk7SGUQu03rdZcAJHyiBdi/tRbm8p+sCsqZqvUOErSJ3hnB8bajpSgFsWwMDI9pe0ok1g==
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
