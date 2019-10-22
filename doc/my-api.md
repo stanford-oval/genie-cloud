@@ -207,7 +207,7 @@ Method: POST
 Scope: `user-exec-commands`
 
 ```
-POST /me/api/apps/create
+POST /me/api/converse
 Authorization: Bearer XYZIEOSKLQOW9283472KLW
 Content-Type: application/json
 
@@ -338,7 +338,7 @@ Method: POST
 Scope: `user-exec-command`
 
 ```
-GET /me/api/devices/create
+POST /me/api/devices/create
 Authorization: Bearer XYZIEOSKLQOW9283472KLW
 Content-Type: application/json
 
