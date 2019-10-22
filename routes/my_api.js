@@ -19,6 +19,7 @@ const iv = require('../util/input_validation');
 const { NotFoundError, BadRequestError } = require('../util/errors');
 const errorHandling = require('../util/error_handling');
 const oauth2server = require('../util/oauth2');
+const { makeRandom } = require('../util/random');
 
 const Config = require('../config');
 
@@ -80,6 +81,23 @@ router.get('/parse', user.requireScope('user-read'), iv.validateGET({ q: '?strin
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
         return engine.assistant.parse(query, targetJson);
+    }).then((result) => {
+        res.json(result);
+    }).catch(next);
+});
+
+router.post('/converse', user.requireScope('user-exec-command'), (req, res, next) => {
+    let command = req.body.command;
+    if (!command) {
+        next(new BadRequestError('Missing command'));
+        return;
+    }
+
+    Q.try(() => {
+        return EngineManager.get().getEngine(req.user.id);
+    }).then((engine) => {
+        const assistantUser = { name: user.human_name || user.username, isOwner: true };
+        return engine.assistant.converse(command, assistantUser, req.body.conversationId ? String(req.body.conversationId) : 'stateless-' + makeRandom(4));
     }).then((result) => {
         res.json(result);
     }).catch(next);

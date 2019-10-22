@@ -198,6 +198,47 @@ is closed.
 
 For details on how to control a conversation with Almond, see the [Almond Dialog API Reference](/doc/almond-dialog-api-reference.md).
 
+## Endpoint: /converse
+
+Execute a single turn of an Almond conversation. This is the REST equivalent of `/conversation`,
+and is provided for clients who cannot use Web Sockets.
+
+Method: POST  
+Scope: `user-exec-commands`
+
+```
+POST /me/api/apps/create
+Authorization: Bearer XYZIEOSKLQOW9283472KLW
+Content-Type: application/json
+
+{
+  "command": {
+    "type":"command",
+    "text":"what time is it?"
+  }
+}
+
+HTTP/1.1 200 Ok
+Content-Type: application/json
+
+{
+    "conversationId": "stateless-...",
+    "askSpecial": null,
+    "messages": [
+      { "type": "text", "text": "Current time is 6:24:57 PM PDT.", "icon": "org.thingpedia.builtin.thingengine.builtin" }
+    ]
+}
+```
+
+The request body should contain a single message from the user to Almond. The response
+body will contain a `conversationId` token that can be passed to subsequent calls to
+preserve state, and a list of messages from Almond. For details on the format of messages
+from the user and from Almond, see the [Almond Dialog API Reference](/doc/almond-dialog-api-reference.md).
+
+NOTE: after 5 minutes of inactivity, the conversationId is reset and the state of the conversation
+is lost. You can send a message containing a `bookkeeping(wakeup);` ThingTalk command to keep
+the conversation alive.
+
 ## Endpoint: /apps/create
 
 Execute a single ThingTalk command.

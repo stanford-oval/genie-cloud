@@ -122,6 +122,7 @@ async function testMyApiCreateWhenApp(auth) {
             if (parsed.result.appId !== result.uniqueId)
                 return;
             delete parsed.result.raw.__timestamp;
+            console.log(data);
             if (count === 0) {
                 assert.deepStrictEqual(parsed, { result:
                     { appId: result.uniqueId,
@@ -211,6 +212,55 @@ async function testMyApiListDevices(auth) {
     ]);
 }
 
+
+async function testMyApiConverse(auth) {
+    // ignore the first conversation result as that will show the welcome message
+    const result0 = JSON.parse(await request('/me/api/converse', 'POST', JSON.stringify({
+        command: {
+            type: 'command',
+            text: 'hello',
+        },
+    }), { auth, dataContentType: 'application/json' }));
+    assert(typeof result0.conversationId === 'string');
+    assert(result0.conversationId.startsWith('stateless-'));
+
+    const result1 = JSON.parse(await request('/me/api/converse', 'POST', JSON.stringify({
+        command: {
+            type: 'tt',
+            code: 'now => @org.thingpedia.builtin.test.dup_data(data_in="foo") => notify;',
+        }
+    }), { auth, dataContentType: 'application/json' }));
+    assert(typeof result1.conversationId === 'string');
+    assert(result1.conversationId.startsWith('stateless-'));
+    const conversationId1 = result1.conversationId;
+    delete result1.conversationId;
+    assert.deepStrictEqual(result1, {
+        askSpecial: null,
+        messages: [{
+            type: 'text',
+            text: 'foofoo',
+            icon: 'org.thingpedia.builtin.test'
+        }]
+    });
+
+    const result2 = JSON.parse(await request('/me/api/converse', 'POST', JSON.stringify({
+        command: {
+            type: 'command',
+            text: 'no',
+        },
+        conversationId: conversationId1
+    }), { auth, dataContentType: 'application/json' }));
+    assert.deepStrictEqual(result2, {
+        askSpecial: null,
+        messages: [{
+            type: 'text',
+            text: 'No way!',
+            icon: null
+        }],
+        conversationId: conversationId1
+    });
+}
+
 async function testMyApiOAuth(accessToken) {
     const auth = 'Bearer ' + accessToken;
 
@@ -223,6 +273,7 @@ async function testMyApiOAuth(accessToken) {
     await testMyApiDeleteApp(auth, uniqueId);
     await testMyApiListDevices(auth);
     await testMyApiInvalid(auth);
+    await testMyApiConverse(auth);
 }
 
 async function main() {
