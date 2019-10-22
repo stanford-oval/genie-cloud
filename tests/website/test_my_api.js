@@ -122,6 +122,7 @@ async function testMyApiCreateWhenApp(auth) {
             if (parsed.result.appId !== result.uniqueId)
                 return;
             delete parsed.result.raw.__timestamp;
+            console.log(data);
             if (count === 0) {
                 assert.deepStrictEqual(parsed, { result:
                     { appId: result.uniqueId,
@@ -183,7 +184,7 @@ async function testMyApiDeleteApp(auth, uniqueId) {
     await assertHttpError(request('/me/api/apps/delete/uuid-invalid', 'POST', '', { auth }), 404);
 }
 
-async function testMyApiListDevices(auth) {
+async function testMyApiDevices(auth) {
     const listResult = JSON.parse(await request('/me/api/devices/list', 'GET', null, { auth }));
     console.log(listResult);
     assert.deepStrictEqual(listResult, [
@@ -209,6 +210,100 @@ async function testMyApiListDevices(auth) {
         kind: 'org.thingpedia.builtin.test',
         ownerTier: 'global' },
     ]);
+
+    if (Config.WITH_THINGPEDIA === 'embedded')
+        return;
+
+    const createResult = JSON.parse(await request('/me/api/devices/create', 'POST', JSON.stringify({
+        kind: 'com.xkcd',
+    }), { auth, dataContentType: 'application/json' }));
+
+    assert.deepStrictEqual(createResult, {
+        uniqueId: 'com.xkcd',
+        name: 'XKCD',
+        description: 'A webcomic of romance, sarcasm, math, and language.',
+        kind: 'com.xkcd',
+        ownerTier: 'global'
+    });
+
+    const listResult2 = JSON.parse(await request('/me/api/devices/list', 'GET', null, { auth }));
+    assert.deepStrictEqual(listResult2, [
+      { uniqueId: 'thingengine-own-cloud',
+        name: 'Almond cloud ()',
+        description: 'This is one of your own Almond apps.',
+        kind: 'org.thingpedia.builtin.thingengine',
+        ownerTier: 'cloud' },
+      { uniqueId: 'thingengine-own-global',
+        name: 'Miscellaneous Interfaces',
+        description: 'Time, randomness and other non-device specific things.',
+        kind: 'org.thingpedia.builtin.thingengine.builtin',
+        ownerTier: 'global' },
+      { uniqueId: 'org.thingpedia.builtin.thingengine.remote',
+        name: 'Remote Almond',
+        description:
+         'A proxy device for a Almond owned by a different user. This device is created and managed automatically by the system.',
+        kind: 'org.thingpedia.builtin.thingengine.remote',
+        ownerTier: 'global' },
+      { uniqueId: 'org.thingpedia.builtin.test',
+        name: 'Test Device',
+        description: 'Test Almond in various ways',
+        kind: 'org.thingpedia.builtin.test',
+        ownerTier: 'global' },
+      { uniqueId: 'com.xkcd',
+        name: 'XKCD',
+        description: 'A webcomic of romance, sarcasm, math, and language.',
+        kind: 'com.xkcd',
+        ownerTier: 'global' }
+    ]);
+}
+
+
+async function testMyApiConverse(auth) {
+    // ignore the first conversation result as that will show the welcome message
+    const result0 = JSON.parse(await request('/me/api/converse', 'POST', JSON.stringify({
+        command: {
+            type: 'command',
+            text: 'hello',
+        },
+    }), { auth, dataContentType: 'application/json' }));
+    assert(typeof result0.conversationId === 'string');
+    assert(result0.conversationId.startsWith('stateless-'));
+
+    const result1 = JSON.parse(await request('/me/api/converse', 'POST', JSON.stringify({
+        command: {
+            type: 'tt',
+            code: 'now => @org.thingpedia.builtin.test.dup_data(data_in="foo") => notify;',
+        }
+    }), { auth, dataContentType: 'application/json' }));
+    assert(typeof result1.conversationId === 'string');
+    assert(result1.conversationId.startsWith('stateless-'));
+    const conversationId1 = result1.conversationId;
+    delete result1.conversationId;
+    assert.deepStrictEqual(result1, {
+        askSpecial: null,
+        messages: [{
+            type: 'text',
+            text: 'foofoo',
+            icon: 'org.thingpedia.builtin.test'
+        }]
+    });
+
+    const result2 = JSON.parse(await request('/me/api/converse', 'POST', JSON.stringify({
+        command: {
+            type: 'command',
+            text: 'no',
+        },
+        conversationId: conversationId1
+    }), { auth, dataContentType: 'application/json' }));
+    assert.deepStrictEqual(result2, {
+        askSpecial: null,
+        messages: [{
+            type: 'text',
+            text: 'No way!',
+            icon: null
+        }],
+        conversationId: conversationId1
+    });
 }
 
 async function testMyApiOAuth(accessToken) {
@@ -221,8 +316,9 @@ async function testMyApiOAuth(accessToken) {
     const uniqueId = await testMyApiCreateWhenApp(auth);
     await testMyApiListApps(auth, uniqueId);
     await testMyApiDeleteApp(auth, uniqueId);
-    await testMyApiListDevices(auth);
+    await testMyApiDevices(auth);
     await testMyApiInvalid(auth);
+    await testMyApiConverse(auth);
 }
 
 async function main() {
