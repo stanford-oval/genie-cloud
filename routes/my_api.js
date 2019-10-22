@@ -19,6 +19,7 @@ const iv = require('../util/input_validation');
 const { NotFoundError, BadRequestError } = require('../util/errors');
 const errorHandling = require('../util/error_handling');
 const oauth2server = require('../util/oauth2');
+const { makeRandom } = require('../util/random');
 
 const Config = require('../config');
 
@@ -85,6 +86,23 @@ router.get('/parse', user.requireScope('user-read'), iv.validateGET({ q: '?strin
     }).catch(next);
 });
 
+router.post('/converse', user.requireScope('user-exec-command'), (req, res, next) => {
+    let command = req.body.command;
+    if (!command) {
+        next(new BadRequestError('Missing command'));
+        return;
+    }
+
+    Q.try(() => {
+        return EngineManager.get().getEngine(req.user.id);
+    }).then((engine) => {
+        const assistantUser = { name: user.human_name || user.username, isOwner: true };
+        return engine.assistant.converse(command, assistantUser, req.body.conversationId ? String(req.body.conversationId) : 'stateless-' + makeRandom(4));
+    }).then((result) => {
+        res.json(result);
+    }).catch(next);
+});
+
 async function describeDevice(d, req) {
     const [uniqueId, name, description, kind, ownerTier] = await Promise.all([
         d.uniqueId, d.name, d.description, d.kind, d.ownerTier]);
@@ -109,6 +127,22 @@ router.get('/devices/list', user.requireScope('user-read'), (req, res, next) => 
         // sort by name to provide a deterministic result
         result.sort((a, b) => a.name.localeCompare(b.name));
         res.json(result);
+    }).catch(next);
+});
+
+router.post('/devices/create', user.requireScope('user-exec-command'), iv.validatePOST({ kind: 'string' }, { accept: 'json', json: true }), (req, res, next) => {
+    for (let key in req.body) {
+        if (typeof req.body[key] !== 'string') {
+            iv.failKey(req, res, key, { json: true });
+            return;
+        }
+    }
+
+    EngineManager.get().getEngine(req.user.id).then(async (engine) => {
+        const devices = engine.devices;
+
+        const device = await devices.addSerialized(req.body);
+        res.json(await describeDevice(device, req));
     }).catch(next);
 });
 

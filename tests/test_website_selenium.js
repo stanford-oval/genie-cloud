@@ -164,7 +164,7 @@ async function skipDataCollectionConfirmation(driver) {
 }
 
 async function testMyConversation(driver) {
-    await login(driver, 'bob', '12345678');
+    await login(driver, 'david', '12345678');
 
     await skipDataCollectionConfirmation(driver);
 
