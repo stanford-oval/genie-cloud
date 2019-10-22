@@ -211,6 +211,9 @@ async function testMyApiDevices(auth) {
         ownerTier: 'global' },
     ]);
 
+    if (Config.WITH_THINGPEDIA === 'embedded')
+        return;
+
     const createResult = JSON.parse(await request('/me/api/devices/create', 'POST', JSON.stringify({
         kind: 'com.xkcd',
     }), { auth, dataContentType: 'application/json' }));
