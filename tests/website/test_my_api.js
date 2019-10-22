@@ -184,7 +184,7 @@ async function testMyApiDeleteApp(auth, uniqueId) {
     await assertHttpError(request('/me/api/apps/delete/uuid-invalid', 'POST', '', { auth }), 404);
 }
 
-async function testMyApiListDevices(auth) {
+async function testMyApiDevices(auth) {
     const listResult = JSON.parse(await request('/me/api/devices/list', 'GET', null, { auth }));
     console.log(listResult);
     assert.deepStrictEqual(listResult, [
@@ -209,6 +209,48 @@ async function testMyApiListDevices(auth) {
         description: 'Test Almond in various ways',
         kind: 'org.thingpedia.builtin.test',
         ownerTier: 'global' },
+    ]);
+
+    const createResult = JSON.parse(await request('/me/api/devices/create', 'POST', JSON.stringify({
+        kind: 'com.xkcd',
+    }), { auth, dataContentType: 'application/json' }));
+
+    assert.deepStrictEqual(createResult, {
+        uniqueId: 'com.xkcd',
+        name: 'XKCD',
+        description: 'A webcomic of romance, sarcasm, math, and language.',
+        kind: 'com.xkcd',
+        ownerTier: 'global'
+    });
+
+    const listResult2 = JSON.parse(await request('/me/api/devices/list', 'GET', null, { auth }));
+    assert.deepStrictEqual(listResult2, [
+      { uniqueId: 'thingengine-own-cloud',
+        name: 'Almond cloud ()',
+        description: 'This is one of your own Almond apps.',
+        kind: 'org.thingpedia.builtin.thingengine',
+        ownerTier: 'cloud' },
+      { uniqueId: 'thingengine-own-global',
+        name: 'Miscellaneous Interfaces',
+        description: 'Time, randomness and other non-device specific things.',
+        kind: 'org.thingpedia.builtin.thingengine.builtin',
+        ownerTier: 'global' },
+      { uniqueId: 'org.thingpedia.builtin.thingengine.remote',
+        name: 'Remote Almond',
+        description:
+         'A proxy device for a Almond owned by a different user. This device is created and managed automatically by the system.',
+        kind: 'org.thingpedia.builtin.thingengine.remote',
+        ownerTier: 'global' },
+      { uniqueId: 'org.thingpedia.builtin.test',
+        name: 'Test Device',
+        description: 'Test Almond in various ways',
+        kind: 'org.thingpedia.builtin.test',
+        ownerTier: 'global' },
+      { uniqueId: 'com.xkcd',
+        name: 'XKCD',
+        description: 'A webcomic of romance, sarcasm, math, and language.',
+        kind: 'com.xkcd',
+        ownerTier: 'global' }
     ]);
 }
 
@@ -271,7 +313,7 @@ async function testMyApiOAuth(accessToken) {
     const uniqueId = await testMyApiCreateWhenApp(auth);
     await testMyApiListApps(auth, uniqueId);
     await testMyApiDeleteApp(auth, uniqueId);
-    await testMyApiListDevices(auth);
+    await testMyApiDevices(auth);
     await testMyApiInvalid(auth);
     await testMyApiConverse(auth);
 }

@@ -130,6 +130,22 @@ router.get('/devices/list', user.requireScope('user-read'), (req, res, next) => 
     }).catch(next);
 });
 
+router.post('/devices/create', user.requireScope('user-exec-command'), iv.validatePOST({ kind: 'string' }, { accept: 'json', json: true }), (req, res, next) => {
+    for (let key in req.body) {
+        if (typeof req.body[key] !== 'string') {
+            iv.failKey(req, res, key, { json: true });
+            return;
+        }
+    }
+
+    EngineManager.get().getEngine(req.user.id).then(async (engine) => {
+        const devices = engine.devices;
+
+        const device = await devices.addSerialized(req.body);
+        res.json(await describeDevice(device, req));
+    }).catch(next);
+});
+
 function describeApp(app) {
     return Promise.all([app.uniqueId, app.description, app.error, app.code, app.icon])
         .then(([uniqueId, description, error, code, icon]) => ({
