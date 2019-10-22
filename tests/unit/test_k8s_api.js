@@ -44,12 +44,13 @@ Object.assign(kc, fakeConfig);
 const k8sApi = kc.makeApiClient(k8s.BatchV1Api);
 
 function testdeleteNamespacedJob() {
+    assert.strictEqual(getArgs(k8sApi.deleteNamespacedJob)[0], 'name')
+    assert.strictEqual(getArgs(k8sApi.deleteNamespacedJob)[1], 'namespace')
     assert.strictEqual(getArgs(k8sApi.deleteNamespacedJob)[6], 'propagationPolicy')
 }
 
 
 function main() {
-    console.log(getArgs(k8sApi.deleteNamespacedJob))
     testdeleteNamespacedJob();
 }
 module.exports = main;
