@@ -41,6 +41,8 @@ RUN wget https://parmesan.stanford.edu/glove/ppdb-2.0-m-lexical.bin -O /usr/loca
     chmod 755 /usr/local/share/ppdb-2.0-m-lexical.bin
 ENV PPDB=/usr/local/share/ppdb-2.0-m-lexical.bin
 ENV DECANLP_EMBEDDINGS=/usr/local/share/decanlp/embeddings
+# ensures python sys.std* encoding is always utf-8
+ENV PYTHONIOENCODING=UTF-8
 
 # copy source and install packages
 COPY . /opt/almond-cloud/
