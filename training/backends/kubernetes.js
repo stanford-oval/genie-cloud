@@ -215,6 +215,10 @@ module.exports = async function execTask(job, spec) {
                             name: 'main',
                             image: Config.TRAINING_KUBERNETES_IMAGE + (spec.requests.gpu > 0 ? '-cuda' : ''),
                             imagePullPolicy: 'Always',
+                            env: [
+                                // ensures python sys.std* encoding is always utf-8
+                                {name: 'PYTHONIOENCODING', value: 'UTF-8'}
+                            ],
                             command: [ '/usr/bin/node',
                                 '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
                                 '/opt/almond-cloud/main.js',
