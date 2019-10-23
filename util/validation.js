@@ -414,6 +414,10 @@ function validateTag(tag, user, adminRole) {
     if (parts.length <= 1)
         throw new ValidationError(`Invalid ID ${tag}: must contain at least one period`);
 
+    // if the user is in the root org, they're allowed org.thingpedia
+    if (user.developer_org === 1)
+        return;
+
     if (parts[0] === 'org' && parts[1] === 'thingpedia') {
         // ignore the 'org.thingpedia.builtin.test' and 'org.thingpedia.test' namespaces, which are free-for-all
         if (parts[2] === 'test' || (parts[2] === 'builtin' && parts[3] === 'test'))
