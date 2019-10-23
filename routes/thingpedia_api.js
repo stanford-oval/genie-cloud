@@ -42,7 +42,7 @@ const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
 const everything = express.Router();
 
 // apis are CORS enabled always
-everything.use('/thingpedia/api', (req, res, next) => {
+everything.use('/', (req, res, next) => {
     res.set('Access-Control-Allow-Origin', '*');
     res.set('Vary', 'Origin');
     next();
