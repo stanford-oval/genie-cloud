@@ -14,6 +14,7 @@ const Url = require('url');
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
+const tmpSync = require('tmp');
 const tmp = require('tmp-promise');
 
 const cmd = require('./command');
@@ -71,7 +72,23 @@ const _backends = {
             return cmd.exec('aws', args);
         },
 
-        createWriteStream(url) {
+        createLocalWriteStream(url) {
+            const { name: tmpFile, fd: tmpFD } =
+                tmpSync.fileSync({ mode: 0o600, dir: '/var/tmp' });
+            const stream = fs.createWriteStream(tmpFile, { fd: tmpFD });
+            stream.on('finish', async () => {
+                await this.upload(tmpFile, url);
+                await fs.unlink(tmpFile, (err) => { 
+                    if (err) throw (err);
+                });
+            });
+            return stream;
+        },
+
+        createWriteStream(url, localSpooling) {
+            if (localSpooling)
+                return this.createLocalWriteStream(url);
+
             // lazy-load AWS, which is optional
             const AWS = require('aws-sdk');
 
@@ -262,10 +279,9 @@ module.exports = {
         if (parsed1.protocol !== 'file:')
             await module.exports.removeTemporary(tmpdir);
     },
-
-    createWriteStream(url) {
+    createWriteStream(url, localSpooling) {
         const [parsed, backend] = getBackend(url);
-        return backend.createWriteStream(parsed);
+        return backend.createWriteStream(parsed, localSpooling);
     },
     createReadStream(url) {
         const [parsed, backend] = getBackend(url);

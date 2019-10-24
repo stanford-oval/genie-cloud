@@ -10,7 +10,11 @@
 'use strict';
 
 const assert = require('assert');
-const proxyquire = require('proxyquire')
+const fs = require('fs');
+const proxyquire = require('proxyquire');
+const tmpSync = require('tmp');
+
+const StreamUtils = require('../../util/stream-utils');
 
 const cmdStub = {
     lastCmds: [],
@@ -25,7 +29,10 @@ const tmpStub = {
     }
 }
 
-const afs = proxyquire('../../util/abstract_fs', {'./command': cmdStub, 'tmp-promise': tmpStub} );
+const afs = proxyquire('../../util/abstract_fs', {
+    './command': cmdStub,
+    'tmp-promise': tmpStub,
+});
 
 function testResolve() {
     assert.strictEqual(afs.resolve('file://foo', 'bar').toString(), 'file://foo//bar');
@@ -126,11 +133,41 @@ async function testSync() {
         ['aws s3 sync /var/tmp/workdir s3://bucket/dir/15/tag:lang/ --exclude=* --include=*tfevents*']);
 }
 
+async function testCreateWriteStream() {
+    const { name: tmpFile, fd: tmpFD } =
+        tmpSync.fileSync({ mode: 0o600, dir: '/var/tmp' });
+    const tmpSyncStub = {
+        fileSync: function() {
+            return { name: tmpFile, fd: tmpFD };
+        }
+    }
+    const tmpAFS = proxyquire('../../util/abstract_fs', {
+        './command': cmdStub,
+        'tmp': tmpSyncStub,
+        'fs': { unlink: function(){} },
+    });
+
+    try {
+        cmdStub.lastCmds = [];
+        const stream = tmpAFS.createWriteStream('s3://bucket/dir/file', true)
+        const content = 'foobar'
+        stream.write(content);
+        stream.end();
+        await StreamUtils.waitFinish(stream);
+        const gotContent = fs.readFileSync(tmpFile, { encoding: 'utf-8' });
+        assert.strictEqual(gotContent, content)
+        assert.deepEqual(cmdStub.lastCmds, [`aws s3 sync ${tmpFile} s3://bucket/dir/file`])
+    } finally {
+        fs.unlinkSync(tmpFile);
+    }
+}
+
 
 async function main() {
     testResolve();
     await testUpload();
     await testSync();
+    await testCreateWriteStream();
 }
 module.exports = main;
 if (!module.parent)
