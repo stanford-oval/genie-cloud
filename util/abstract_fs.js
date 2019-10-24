@@ -68,7 +68,8 @@ const _backends = {
                 's3://' + url1.hostname + url1.pathname,
                 's3://' + url2.hostname + url2.pathname,
             ];
-            if (extraArgs.length > 0) args.push(...extraArgs); return cmd.exec('aws', args);
+            if (extraArgs.length > 0) args.push(...extraArgs);
+            return cmd.exec('aws', args);
         },
 
         createLocalWriteStream(url) {
@@ -78,8 +79,7 @@ const _backends = {
             stream.on('finish', async () => {
                 await this.upload(tmpFile, url);
                 await fs.unlink(tmpFile, (err) => { 
-                    if (err)
-                        throw (err);
+                    if (err) throw (err);
                 });
             });
             return stream;

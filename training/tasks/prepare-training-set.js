@@ -334,8 +334,8 @@ module.exports = async function main(task, argv) {
     const generator = new DatasetGenerator(task, modelInfo.for_devices, {
         contextual: modelInfo.contextual,
 
-        train: AbstractFS.createLocalWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/train.tsv')),
-        eval: AbstractFS.createLocalWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/eval.tsv')),
+        train: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/train.tsv'), true),
+        eval: AbstractFS.createWriteStream(AbstractFS.resolve(task.jobDir, 'dataset/eval.tsv'), true),
 
         // generation flags
         owner: modelInfo.owner,
