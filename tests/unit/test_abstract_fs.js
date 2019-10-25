@@ -25,7 +25,7 @@ const cmdStub = {
 
 const tmpStub = {
     dir: async function() {
-        return { path: '/var/tmp/x'};
+        return { path: '/var/tmp'};
     }
 }
 
@@ -60,37 +60,54 @@ async function expectCmd(fn, args, want) {
 }
 
 async function testUpload() {
-    await expectCmd(afs.upload, ['/tmp/a', afs.resolve('/tmp', 'b')],
-        ['rsync -av /tmp/a /tmp/b']);
+    const tmpFile = tmpSync.fileSync();
+    const tmpDir = tmpSync.dirSync();
+    try {
+        await expectCmd(afs.upload, [tmpFile.name, afs.resolve('/tmp', 'b')],
+            [`rsync -av ${tmpFile.name} /tmp/b`]);
 
-    await expectCmd(afs.upload, ['/tmp/a', afs.resolve('/tmp', 'a')], []);
+        await expectCmd(afs.upload, [tmpDir.name, afs.resolve('/tmp', 'b')],
+            [`rsync -av ${tmpDir.name} /tmp/b`]);
+    
+        await expectCmd(afs.upload, [tmpDir.name, tmpDir.name], []);
+    
+        await expectCmd(afs.upload, [tmpDir.name, afs.resolve('file://host1/tmp', 'b')],
+            [`rsync -av ${tmpDir.name} host1:/tmp/b`]);
+    
+        await expectCmd(afs.upload, [tmpDir.name, afs.resolve('s3://bucket/dir', 'a/')],
+            [`aws s3 sync ${tmpDir.name} s3://bucket/dir/a/`]);
 
-    await expectCmd(afs.upload, ['/tmp/a', afs.resolve('file://host1/tmp', 'b')],
-        ['rsync -av /tmp/a host1:/tmp/b']);
+        await expectCmd(afs.upload, [tmpFile.name, afs.resolve('s3://bucket/dir', 'a')],
+            [`aws s3 cp ${tmpFile.name} s3://bucket/dir/a`]);
+    
+        await expectCmd(afs.upload,
+            [tmpDir.name, afs.resolve('file://host1/tmp', 'b'), '--exclude=*', '--include=*tfevents*'],
+            [`rsync -av ${tmpDir.name} host1:/tmp/b --exclude=* --include=*tfevents*`]);
+    
+        await expectCmd(afs.upload,
+            [tmpDir.name, afs.resolve('/tmp', 'b'), '--exclude=*', '--include=*tfevents*'],
+            [`rsync -av ${tmpDir.name} /tmp/b --exclude=* --include=*tfevents*`]);
+    
+        await expectCmd(afs.upload,
+            [tmpDir.name, tmpDir.name, '--exclude=*', '--include=*tfevents*'],
+            []);
+    
+        await expectCmd(afs.upload,
+            [tmpDir.name, afs.resolve('s3://bucket/dir', 'a/'), '--exclude=*', '--include=*tfevents*'],
+            [`aws s3 sync ${tmpDir.name} s3://bucket/dir/a/ --exclude=* --include=*tfevents*`]);
 
-    await expectCmd(afs.upload, ['/tmp', afs.resolve('s3://bucket/dir', 'a/')],
-        ['aws s3 sync /tmp s3://bucket/dir/a/']);
-
-    await expectCmd(afs.upload,
-        ['/tmp/a', afs.resolve('file://host1/tmp', 'b'), '--exclude=*', '--include=*tfevents*'],
-        ['rsync -av /tmp/a host1:/tmp/b --exclude=* --include=*tfevents*']);
-
-    await expectCmd(afs.upload,
-        ['/tmp/a', afs.resolve('/tmp', 'b'), '--exclude=*', '--include=*tfevents*'],
-        ['rsync -av /tmp/a /tmp/b --exclude=* --include=*tfevents*']);
-
-    await expectCmd(afs.upload,
-        ['/tmp/a', afs.resolve('/tmp', 'a'), '--exclude=*', '--include=*tfevents*'],
-        []);
-
-    await expectCmd(afs.upload,
-        ['/tmp', afs.resolve('s3://bucket/dir', 'a/'), '--exclude=*', '--include=*tfevents*'],
-        ['aws s3 sync /tmp s3://bucket/dir/a/ --exclude=* --include=*tfevents*']);
-
-    const jobid = 15;
-    await expectCmd(afs.upload,
-        ['/home/workdir', afs.resolve('s3://bucket/dir', jobid.toString(), './tag:lang/'), '--exclude=*', '--include=*tfevents*'],
-        ['aws s3 sync /home/workdir s3://bucket/dir/15/tag:lang/ --exclude=* --include=*tfevents*']);
+        await expectCmd(afs.upload,
+            [tmpFile.name, afs.resolve('s3://bucket/dir', 'a/'), '--exclude=*', '--include=*tfevents*'],
+            [`aws s3 cp ${tmpFile.name} s3://bucket/dir/a/`]);
+    
+        const jobid = 15;
+        await expectCmd(afs.upload,
+            [tmpDir.name, afs.resolve('s3://bucket/dir', jobid.toString(), './tag:lang/'), '--exclude=*', '--include=*tfevents*'],
+            [`aws s3 sync ${tmpDir.name} s3://bucket/dir/15/tag:lang/ --exclude=* --include=*tfevents*`]);
+    } finally {
+        tmpFile.removeCallback();
+        tmpDir.removeCallback();
+    }
 }
 
 async function testSync() {
@@ -110,27 +127,27 @@ async function testSync() {
         ['aws s3 sync s3://bucket/dir/b/ s3://bucket/dir/a/']);
 
     await expectCmd(afs.sync, [afs.resolve('s3://bucket/dir', 'a/'), afs.resolve('/workdir/a')],
-        ['aws s3 sync s3://bucket/dir/a/ /var/tmp/x',
-         'rsync -av /var/tmp/x /workdir/a',
-         'rm -r /var/tmp/x'
+        ['aws s3 sync s3://bucket/dir/a/ /var/tmp',
+         'rsync -av /var/tmp /workdir/a',
+         'rm -r /var/tmp'
          ]);
 
     await expectCmd(afs.sync, [afs.resolve('s3://bucket/dir', 'a/'), afs.resolve('file://host2/workdir/a')],
-        ['aws s3 sync s3://bucket/dir/a/ /var/tmp/x',
-         'rsync -av /var/tmp/x host2:/workdir/a',
-         'rm -r /var/tmp/x'
+        ['aws s3 sync s3://bucket/dir/a/ /var/tmp',
+         'rsync -av /var/tmp host2:/workdir/a',
+         'rm -r /var/tmp'
          ]);
 
     await expectCmd(afs.sync, [afs.resolve('s3://bucket/dir', 'a/'), afs.resolve('file://host2/workdir/a'), '--extra=arg'],
-        ['aws s3 sync s3://bucket/dir/a/ /var/tmp/x --extra=arg',
-         'rsync -av /var/tmp/x host2:/workdir/a --extra=arg',
-         'rm -r /var/tmp/x'
+        ['aws s3 sync s3://bucket/dir/a/ /var/tmp --extra=arg',
+         'rsync -av /var/tmp host2:/workdir/a --extra=arg',
+         'rm -r /var/tmp'
          ]);
 
     const jobid = 15;
     await expectCmd(afs.sync,
-        ['/var/tmp/workdir', afs.resolve('s3://bucket/dir', jobid.toString(), './tag:lang/'), '--exclude=* --include=*tfevents*'],
-        ['aws s3 sync /var/tmp/workdir s3://bucket/dir/15/tag:lang/ --exclude=* --include=*tfevents*']);
+        ['/var/tmp', afs.resolve('s3://bucket/dir', jobid.toString(), './tag:lang/'), '--exclude=* --include=*tfevents*'],
+        ['aws s3 sync /var/tmp s3://bucket/dir/15/tag:lang/ --exclude=* --include=*tfevents*']);
 }
 
 async function testCreateWriteStream() {
@@ -156,7 +173,7 @@ async function testCreateWriteStream() {
         await StreamUtils.waitFinish(stream);
         const gotContent = fs.readFileSync(tmpFile, { encoding: 'utf-8' });
         assert.strictEqual(gotContent, content)
-        assert.deepEqual(cmdStub.lastCmds, [`aws s3 sync ${tmpFile} s3://bucket/dir/file`])
+        assert.deepEqual(cmdStub.lastCmds, [`aws s3 cp ${tmpFile} s3://bucket/dir/file`])
     } finally {
         fs.unlinkSync(tmpFile);
     }
