@@ -176,7 +176,8 @@ function generate(tmpDir, options) {
 
     const scriptArgs = [
         '--locale', options.language,
-        '--maxdepth', options.maxDepth
+        '--maxdepth', options.maxDepth,
+        '--target-pruning-size', options.targetPruningSize
     ];
     for (let f of options.flags)
         scriptArgs.push('--set-flag', f);

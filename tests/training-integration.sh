@@ -74,7 +74,8 @@ cat > './training.conf.json' <<EOF
   "trainable_decoder_embedding": 10,
   "no_glove_decoder": true,
   "synthetic_depth": 2,
-  "no_commit": true
+  "no_commit": true,
+  "dataset_target_pruning_size": 10000
 }
 EOF
 node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
