@@ -76,7 +76,8 @@ async function genContextual(args) {
         flags: args.flags,
         template: 'contextual.genie',
         random_seed: 'almond is awesome',
-        maxdepth: args.maxdepth,
+        maxDepth: args.maxdepth,
+        targetPruningSize: args.target_pruning_size,
         debug: false, // no debugging, ever, because debugging also goes to stdout
     };
 
@@ -98,8 +99,7 @@ async function main() {
     });
 
     parser.addArgument(['-l', '--locale'], {
-        required: false,
-        defaultValue: 'en-US',
+        required: true,
         help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
     });
     parser.addArgument('--set-flag', {
@@ -110,18 +110,9 @@ async function main() {
         metavar: 'FLAG',
         help: 'Set a flag for the construct template file.',
     });
-    parser.addArgument('--unset-flag', {
-        required: false,
-        nargs: 1,
-        action: ActionSetFlag,
-        constant: false,
-        metavar: 'FLAG',
-        help: 'Unset (clear) a flag for the construct template file.',
-    });
     parser.addArgument('--maxdepth', {
-        required: false,
+        required: true,
         type: Number,
-        defaultValue: 5,
         help: 'Maximum depth of sentence generation',
     });
     parser.addArgument('--contextual', {
@@ -130,6 +121,11 @@ async function main() {
         action: 'storeTrue',
         defaultValue: false,
         help: 'Generate a contextual dataset',
+    });
+    parser.addArgument('--target-pruning-size', {
+        required: true,
+        type: Number,
+        help: 'Target pruning size hyperparameter'
     });
 
     const args = parser.parseArgs();

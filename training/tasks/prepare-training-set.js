@@ -183,6 +183,7 @@ class DatasetGenerator {
             language: this._language,
             flags: basicFlags,
             maxDepth: this._options.maxDepth,
+            targetPruningSize: this._options.targetPruningSize,
             debug: this._options.debug,
         });
 
@@ -342,6 +343,7 @@ module.exports = async function main(task, argv) {
         approvedOnly: modelInfo.use_approved,
         flags: modelInfo.flags,
         maxDepth: config.synthetic_depth,
+        targetPruningSize: config.dataset_target_pruning_size,
         templatePack: modelInfo.template_file_name,
 
         // augmentation flags
