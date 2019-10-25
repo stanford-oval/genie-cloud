@@ -57,9 +57,9 @@ const _backends = {
             const dest =  's3://' + url.hostname + url.pathname;
             if (fs.lstatSync(localpath).isFile()) {
                 await cmd.exec('aws', ['s3', 'cp', localpath, dest]);
-                return
+                return;
             }
-            const args = ['s3', 'sync', localpath, dest]
+            const args = ['s3', 'sync', localpath, dest];
             if (extraArgs.length > 0) args.push(...extraArgs);
             await cmd.exec('aws', args);
         },
