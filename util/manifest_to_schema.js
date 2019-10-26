@@ -15,6 +15,9 @@ const Type = ThingTalk.Type;
 
 const { clean } = require('./tokenize');
 
+// FIXME HACK this should be in thingtalk
+const { prettyprintType } = require('thingtalk/lib/prettyprint');
+
 function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
     const args = [];
     // compat with Thingpedia API quirks
@@ -159,7 +162,7 @@ module.exports = {
                 };
                 for (let argname of fnDef.args) {
                     const arg = fnDef.getArgument(argname);
-                    out.types.push(String(arg.type));
+                    out.types.push(prettyprintType(arg.type));
                     out.args.push(argname);
                     // convert from_channel to 'from channel' and inReplyTo to 'in reply to'
 
