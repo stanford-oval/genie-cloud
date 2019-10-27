@@ -63,7 +63,7 @@ function makeSchemaFunctionDef(functionType, functionName, schema, isMeta) {
 
     return new Ast.FunctionDef(functionType,
                                functionName,
-                               [],
+                               schema.extends || [],
                                args,
                                schema.is_list,
                                schema.is_monitorable,
@@ -152,6 +152,7 @@ module.exports = {
                     is_list: fnDef.is_list,
                     is_monitorable: fnDef.is_monitorable,
                     confirm: fnDef.annotations.confirm.toJS(),
+                    extends: fnDef.extends,
                     types: [],
                     args: [],
                     argcanonicals: [],

@@ -207,6 +207,7 @@ CREATE TABLE `device_schema_channels` (
   `version` int(11) NOT NULL,
   `name` varchar(128) COLLATE utf8_bin NOT NULL,
   `channel_type` enum('trigger','action','query') COLLATE utf8_bin NOT NULL,
+  `extends` text COLLATE utf8_bin NULL,
   `types` mediumtext COLLATE utf8_bin NOT NULL,
   `argnames` mediumtext COLLATE utf8_bin NOT NULL,
   `required` mediumtext COLLATE utf8_bin NOT NULL,
