@@ -96,7 +96,7 @@ constructor(engine, state) {
 }
 ```
 
-The full reference of the `BaseDevice` class is given in the [Thingpedia interface reference](/doc/thingpedia-helpers.md#class-basedevice). 
+The full reference of the `BaseDevice` class is given in the [Thingpedia SDK reference](/doc/jsdoc/thingpedia). 
 
 ## Handling authentication and discovery
 
@@ -117,8 +117,7 @@ Two of the most useful interfaces are probably
 `Tp.Helpers.Http.get()` and `Tp.Helpers.Http.post()`, which deal with HTTP GET request
 and POST request, respectively. We will see an example in practice in the next section.
 
-A full list of the available APIs can be found in 
-[Thingpedia interface reference](/doc/thingpedia-helpers.md#module-helpers-http)
+A full list of the available APIs can be found in the [Thingpedia SDK reference](/doc/jsdoc/thingpedia).
 
 ## Query and action
 Recall that we separate Thingpedia functions in two different types: query and action.
