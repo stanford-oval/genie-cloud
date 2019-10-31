@@ -714,9 +714,9 @@ atob@^2.1.1:
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
 aws-sdk@^2.2.48:
-  version "2.560.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.560.0.tgz#602d9b5a9544429221e11a2b39fbf484b6ed28b1"
-  integrity sha512-OrePJS79p26JimjLKaIJrQPpDzknsClrB8uXv6NjVG/CseRi87XaNY5mJA5MhadZtaea11GxKhVd9NNRDYFgAg==
+  version "2.561.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.561.0.tgz#d96fb509b902768eb5105b67742ea5485c6ffa3e"
+  integrity sha512-UXsjWDZFIIcfXULAEBeE42Eae1xHq4mkDfhPIw1VBlfsIzOVB2Bp+Y3+EvxH31OzO5SN0x03VracLlZFo4HElQ==
   dependencies:
     buffer "4.9.1"
     events "1.1.1"
@@ -2896,9 +2896,9 @@ gcp-metadata@^1.0.0:
     json-bigint "^0.3.0"
 
 genie-toolkit@~0.5.0-alpha.1:
-  version "0.5.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.5.0-alpha.4.tgz#c6447e5bbc9802eb9b20b6e8499b22729cbe283f"
-  integrity sha512-cQ7ibinsCP8ngjR4s+6E+6+YTZX8gXw+LsoqRD2xxMCv8W0q2GZfqDA+gueU7ki5ynIpnnWwSGbmXmQKhGnbcQ==
+  version "0.5.0-alpha.5"
+  resolved "https://registry.yarnpkg.com/genie-toolkit/-/genie-toolkit-0.5.0-alpha.5.tgz#67b83a9f466b8acf59d0db28382b77b51bc0577d"
+  integrity sha512-GkE3i6MrGZNmQ4ptxOihW7EK3Q2UOmllhoE9l0iYbkWsf5So18PGFXJL2wAqsYHyv/m9ce/Vj12nIKde6eS+Gw==
   dependencies:
     argparse "^1.0.10"
     byline "^5.0.0"
