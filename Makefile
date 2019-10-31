@@ -2,7 +2,7 @@ all: install prepare
 
 prepare: prepare-bundles prepare-mo prepare-docs
 
-public/javascripts/%-bundle.js : browser/%.js browser/deps/*
+public/javascripts/%-bundle.js : browser/%.js browser/deps/* yarn.lock
 	browserify -o $@ $<
 
 bundles := \
