@@ -15,8 +15,11 @@
     "templates": {
         "cleverLinks": true,
         "monospaceLinks": true,
-        "default": {
-          "useLongnameInNav": true
-        }
+        "includeDate": false,
+        "useLongnameInNav": true,
+        "copyright": "2019 The Board of Trustees of the Leland Stanford Junior University",
+        "inverseNav": true,
+        "navType": "vertical",
+        "theme": "lumen"
     }
 }

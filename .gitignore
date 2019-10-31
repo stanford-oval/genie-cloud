@@ -25,7 +25,7 @@ shared
 doc/doc-list.json
 doc/fts.json
 doc/thingpedia-api
-doc/jsdoc
+doc/jsdoc/*/
 views/doc_*.pug
 !views/doc_base.pug
 !views/doc_sidebar.pug
