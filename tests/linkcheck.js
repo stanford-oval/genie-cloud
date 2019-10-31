@@ -93,6 +93,8 @@ class LinkChecker {
 
             if (IGNORED_404.has(next))
                 continue;
+            if (next.startsWith('/doc/jsdoc/'))
+                continue;
 
             console.log(`linkchecker: checking ${next}`);
             try {
