@@ -30,6 +30,9 @@ comma = ,
 alldocs := $(foreach w,$(wildcard doc/*.md),$(basename $(notdir $(w))))
 alldocpug := $(foreach d,$(alldocs),views/doc_$(d).pug)
 
+jsdocmodules = thingtalk thingpedia thingengine-core
+alljsdocs = $(foreach m,$(jsdocmodules),doc/jsdoc/$(m))
+
 doc/doc-list.json: doc/
 	echo '['$(subst $(space),$(comma),$(foreach d,$(alldocs),'"'$(d)'"'))']' > $@
 
@@ -48,7 +51,12 @@ doc/thingpedia-api : routes/thingpedia_api.js
 doc/almond-config-file-reference.md: config.js ./build/make-config-file-reference.js
 	./build/make-config-file-reference.js $< $@
 
-prepare-docs: doc/doc-list.json doc/fts.json $(alldocpug) doc/thingpedia-api views/thingpedia_doc_index.pug
+doc/jsdoc/% : node_modules/% yarn.lock
+	mkdir -p $@
+	jsdoc -c jsdoc.json -d doc/jsdoc --readme $</README.md --package $</package.json --verbose -r $$(test -f $</index.js && echo $</index.js) $</lib
+	touch $@
+
+prepare-docs: doc/doc-list.json doc/fts.json $(alldocpug) $(alljsdocs) doc/thingpedia-api views/thingpedia_doc_index.pug
 
 install:
 	make -C sandbox all || echo WARNING: failed to compile the sandbox

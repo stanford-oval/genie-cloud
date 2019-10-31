@@ -44,11 +44,13 @@ sections:
   pages:
     - thingtalk-reference
     - thingpedia-annotations
-    - thingpedia-helpers
     - thingpedia-entity-list
     - thingpedia-string-type-list
+    - thingpedia-jsdoc
     - luinet-template-list
     - thingpedia-snapshot-list
+    - thingtalk-jsdoc
+    - thingengine-core-jsdoc
 
 links:
   thingpedia-api:
@@ -66,6 +68,15 @@ links:
   thingpedia-snapshot-list:
     url: /thingpedia/snapshots
     title: Thingpedia Snapshots
+  thingpedia-jsdoc:
+    url: /doc/jsdoc/thingpedia
+    title: Thingpedia SDK Reference
+  thingtalk-jsdoc:
+    url: /doc/jsdoc/thingtalk
+    title: ThingTalk Library Reference
+  thingengine-core-jsdoc:
+    url: /doc/jsdoc/thingengine-core
+    title: Almond Engine Reference
 
 pages:
   getting-started: Getting Started with Almond
@@ -96,4 +107,3 @@ pages:
 
   thingtalk-reference: ThingTalk Reference
   thingpedia-annotations: Thingpedia Annotation Reference
-  thingpedia-helpers: Thingpedia Device API Reference
