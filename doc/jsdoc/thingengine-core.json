@@ -17,9 +17,9 @@
         "monospaceLinks": true,
         "includeDate": false,
         "useLongnameInNav": true,
-        "copyright": "2019 The Board of Trustees of the Leland Stanford Junior University",
-        "inverseNav": true,
-        "navType": "vertical",
-        "theme": "lumen"
+        "showAccessFilter": false,
+        "systemColor": "#6d1010",
+        "systemName": "thingengine-core",
+        "systemSummary": "A Modular, Powerful Virtual Assistant Engine"
     }
 }

@@ -21,11 +21,6 @@ var router = express.Router();
 router.use('/thingpedia-api', express.static(path.join(__dirname, '../doc/thingpedia-api')));
 router.use('/jsdoc', express.static(path.join(__dirname, '../doc/jsdoc')));
 
-router.get('/jsdoc/:lib(thingtalk|thingengine-core|thingpedia|almond-dialog-agent)', (req, res, next) => {
-    const packagejson = require(req.params.lib + '/package.json');
-    res.redirect('/doc/jsdoc/' + req.params.lib + '/' + packagejson.version + '/');
-});
-
 for (let doc of require('../doc/doc-list.json')) {
     router.get('/' + doc + '.md', (req, res, next) => {
         res.render('doc_' + doc, {

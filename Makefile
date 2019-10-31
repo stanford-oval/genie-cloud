@@ -51,9 +51,9 @@ doc/thingpedia-api : routes/thingpedia_api.js apidoc.json
 doc/almond-config-file-reference.md: config.js ./build/make-config-file-reference.js
 	./build/make-config-file-reference.js $< $@
 
-doc/jsdoc/% : node_modules/% jsdoc.json yarn.lock doc/jsdoc/%.md
+doc/jsdoc/% : node_modules/% doc/jsdoc/%.json yarn.lock doc/jsdoc/%.md
 	mkdir -p $@
-	jsdoc -c jsdoc.json -t node_modules/ink-docstrap/template -d doc/jsdoc --readme doc/jsdoc/$*.md --package $</package.json --verbose -r $$(test -f $</index.js && echo $</index.js) $</lib
+	jsdoc -c doc/jsdoc/$*.json -t node_modules/foodoc/template -d $@ --readme doc/jsdoc/$*.md --package $</package.json --verbose -r $$(test -f $</index.js && echo $</index.js) $</lib
 	touch $@
 
 prepare-docs: doc/doc-list.json doc/fts.json $(alldocpug) $(alljsdocs) doc/thingpedia-api views/thingpedia_doc_index.pug
