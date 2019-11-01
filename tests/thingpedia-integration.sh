@@ -171,7 +171,7 @@ sha256sum exact.tsv ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset
 sha256sum -c <<EOF
 f71f1e8c2df27ef83b259918c58eea9c0208addf27abdfbc87e18136ad42475a  exact.tsv
 841ac7dc62bbc3de54e850722dd22679672f01dd176bac87d2e9e82a665b9222  ./training/jobs/2/dataset/eval.tsv
-f1104e5bc0ccd3e0ec5ab21a66eb05ad873847625b6bb14431af8db94b5909f1  ./training/jobs/2/dataset/train.tsv
+6df22c612bb9eccd94fa1c0fb5c436171b6fd73a6a65a3c9418b366496237cfe  ./training/jobs/2/dataset/train.tsv
 EOF
 
 rm -rf $workdir
