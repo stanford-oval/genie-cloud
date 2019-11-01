@@ -141,10 +141,11 @@ async function query(params, data, service, res) {
             score: 'Infinity'
         }];
     } else if (expect === 'MultipleChoice') {
-        result = (data.choices || []).map((choice, i) => {
+        const choices = await Promise.all((data.choices || []).map((choice) => service.tokenizer.tokenize(languageTag, choice, expect)));
+        result = choices.map((choice, i) => {
             return {
                 code: ['bookkeeping', 'choice', String(i)],
-                score: -editDistance(tokens, choice.split(' '))
+                score: -editDistance(tokens, choice.tokens)
             };
         });
         result.sort((a, b) => b.score - a.score);

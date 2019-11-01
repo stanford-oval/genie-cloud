@@ -153,7 +153,7 @@ async function testAlexa(accessToken) {
     assert.deepStrictEqual(response3, {
        response: {
          outputSpeech: {
-           text: 'Ok, I\'m going to open https://google.com.\nSorry, that did not work: Opening files is not implemented in this Almond.\n',
+           text: 'Okay, I\'m going to open https://google.com.\nSorry, that did not work: Opening files is not implemented in this Almond.\n',
            type: 'PlainText'
          },
          shouldEndSession: true

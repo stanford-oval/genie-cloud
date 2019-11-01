@@ -203,6 +203,12 @@ async function testMultipleChoice(text, expected) {
 
     assert.deepStrictEqual(analyzed.entities, {});
     assert.deepStrictEqual(analyzed.candidates[0].code, ['bookkeeping', 'choice', expected]);
+
+    const analyzed2 = await parser.sendUtterance(text, '', 'MultipleChoice',
+        [{ title: 'CHOICE NUMBER ONE' }, { title: 'Choice Number Two' }]);
+
+    assert.deepStrictEqual(analyzed2.entities, {});
+    assert.deepStrictEqual(analyzed2.candidates[0].code, ['bookkeeping', 'choice', expected]);
 }
 
 async function testOnlineLearn() {
