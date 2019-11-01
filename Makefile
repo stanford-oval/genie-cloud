@@ -2,7 +2,7 @@ all: install prepare
 
 prepare: prepare-bundles prepare-mo prepare-docs
 
-public/javascripts/%-bundle.js : browser/%.js browser/deps/*
+public/javascripts/%-bundle.js : browser/%.js browser/deps/* yarn.lock
 	browserify -o $@ $<
 
 bundles := \
@@ -30,6 +30,9 @@ comma = ,
 alldocs := $(foreach w,$(wildcard doc/*.md),$(basename $(notdir $(w))))
 alldocpug := $(foreach d,$(alldocs),views/doc_$(d).pug)
 
+jsdocmodules = thingtalk thingpedia thingengine-core
+alljsdocs = $(foreach m,$(jsdocmodules),doc/jsdoc/$(m))
+
 doc/doc-list.json: doc/
 	echo '['$(subst $(space),$(comma),$(foreach d,$(alldocs),'"'$(d)'"'))']' > $@
 
@@ -42,13 +45,18 @@ views/thingpedia_doc_index.pug: doc/index.yml ./build/build-doc-sidebar.js
 views/doc_%.pug: doc/%.md views/doc_base.pug
 	sed "s|@@DOC@@|$<|" views/doc_base.pug > $@ ; \
 
-doc/thingpedia-api : routes/thingpedia_api.js
+doc/thingpedia-api : routes/thingpedia_api.js apidoc.json
 	apidoc -i routes/ -f thingpedia_api.js -o doc/thingpedia-api/
 
 doc/almond-config-file-reference.md: config.js ./build/make-config-file-reference.js
 	./build/make-config-file-reference.js $< $@
 
-prepare-docs: doc/doc-list.json doc/fts.json $(alldocpug) doc/thingpedia-api views/thingpedia_doc_index.pug
+doc/jsdoc/% : node_modules/% doc/jsdoc/%.json yarn.lock doc/jsdoc/%.md
+	mkdir -p $@
+	jsdoc -c doc/jsdoc/$*.json -t node_modules/foodoc/template -d $@ --readme doc/jsdoc/$*.md --package $</package.json --verbose -r $$(test -f $</index.js && echo $</index.js) $</lib
+	touch $@
+
+prepare-docs: doc/doc-list.json doc/fts.json $(alldocpug) $(alljsdocs) doc/thingpedia-api views/thingpedia_doc_index.pug
 
 install:
 	make -C sandbox all || echo WARNING: failed to compile the sandbox
