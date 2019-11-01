@@ -344,10 +344,10 @@ Content-Type: application/json
 
 {
 "kind": "io.home-assistant",
-"hassUrl": "..."
+"hassUrl": "...",
 "accessToken": "...",
 "refreshToken": "...",
-"accessTokenExpires": "...".
+"accessTokenExpires": "...",
 }
 
 HTTP/1.1 200 Ok
