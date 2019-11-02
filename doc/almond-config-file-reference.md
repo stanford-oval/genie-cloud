@@ -331,6 +331,14 @@ server. This is not a valid setting for the inference server.
 
 Default value: `'./models'`
 
+## NL_SERVICE_NAME
+NLP Service name.
+
+The kubernetes service name for NLP server.
+
+
+Default value: `'nlp'`
+
 ## TRAINING_URL
 Training server URL.
 

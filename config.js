@@ -338,6 +338,14 @@ module.exports.NL_TOKENIZER_ADDRESS = '127.0.0.1:8888';
 module.exports.NL_MODEL_DIR = './models';
 
 /**
+  NLP Service name.
+
+  The kubernetes service name for NLP server.
+
+*/
+module.exports.NL_SERVICE_NAME = 'nlp';
+
+/**
   Training server URL.
 
   This URL will be called from the Thingpedia web server when a new device

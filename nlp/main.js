@@ -28,6 +28,7 @@ const I18n = require('../util/i18n');
 const NLPModel = require('./nlp_model');
 const FrontendClassifier = require('./classifier');
 const ExactMatcher = require('./exact');
+const ProxyServer = require('./proxy');
 
 const Config = require('../config');
 
@@ -113,6 +114,10 @@ class NLPInferenceServer {
 
     initFrontend(port) {
         const app = express();
+
+        // proxy enables requests fanout to all replcas in a nlp service
+        if (Config.TRAINING_TASK_BACKEND === 'kubernetes')
+            app.proxy = new ProxyServer(Config.NL_SERVICE_NAME);
 
         app.service = this;
         app.set('port', port);

@@ -22,6 +22,13 @@ const exampleModel = require('../model/example');
 
 const LATEST_THINGTALK_VERSION = ThingTalk.version;
 
+router.use(async (req, res, next) => {
+    if (!req.app.proxy || req.app.proxy.isProxy(req) || !req.url.endsWith('/learn')) 
+        next();
+    else
+        req.app.proxy.fanout(req, res);
+});
+
 async function learn(req, res) {
     let store = req.body.store;
     if (['no', 'automatic', 'online', 'commandpedia'].indexOf(store) < 0) {
