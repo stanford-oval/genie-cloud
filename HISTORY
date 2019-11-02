@@ -1,3 +1,67 @@
+1.7.0-beta.1
+============
+
+High-level changes and new features:
+* All commands and servers have been unified in a single "almond-cloud"
+  script, with subcommands [#458].
+* The training server was refactored entirely, and is now more robust
+  and more scalable. Job information is now stored in MySQL, and survives
+  a restart of the training server. Training tasks are executed as
+  Kubernetes batch jobs; in the future multiple training tasks will be executed
+  in parallel [#400, #448, #460, #468, #485, #492, #495, #512, #513, #517, #518, #529, #523].
+* Official images of Cloud Almond are now available on dockerhub, in the
+  stanfordoval/almond-cloud repository. Three images are available: one
+  just of Almond, one including the DecaNLP library, and one including both
+  DecaNLP and the Nvidia CUDA runtime [#453, #458, #478, #480, #544].
+
+Frontend changes:
+* New API: /me/api/converse. This is a REST-based endpoint to access the
+  Almond dialog agent. It is provided for client who cannot use the WebSocket-based
+  endpoint [#522].
+* New API: /me/api/devices/create. Configures a new device in Almond [#522].
+* Static assets have been moved to the /assets. This simplifies setting up
+  a CDN, as it can be pointed to the frontend server directly [#413, #449].
+
+Backend changes:
+* Access to the configuration file from the worker sandbox has been removed
+  entirely. This is not a security fix, as the access was safe if configured
+  correctly, but removes a risk in case of misconfiguration.
+
+NLP changes:
+* It is now possible to run manual (crowdsourced) validation of paraphrase
+  datasets [#202, #463].
+* Models are now evaluated using the Genie metrics, which are both more
+  accurate and more fine-grained [#434, #467].
+* All training tasks now report progress, and progress is combined for the
+  whole job [#456, #467].
+* Training contextual models is now fully supported, including generation,
+  augmentation, training and deployment. Contextual models are still experimental
+  because the accuracy is poor [#362, #467, #536].
+
+Operational changes:
+* Multiple configuration files can now be supplied, in the /etc/almond-cloud/config.d
+  folder. They can be in JS, YAML or JSON format [#429, #457].
+* Integration with S3 has been improved and is now first class.
+  The training buckets for Thingpedia, for the training server and for the
+  inference server can now be configured [#430, #470, #471, #483, #534, #538].
+* It is now possible to specify a remote server for the Almond tokenizer [#455].
+
+Other changes:
+* Documentation has been expanded, and now includes automatically generated
+  jsdocs for the Almond libraries [#496, #497, #498, #535, #548]
+* Scripts are now also included as the main almond-cloud entrypoint. Two
+  scripts are provided: `download-dataset` and `upload-dataset`. They can
+  be used to download (resp. upload) TSV files with sentences and code [#458, #527].
+* DB migrations are now applied in cronological order, based on git history
+  time [#425, #466].
+* Google Assistant support is now optional and disabled by default [#499].
+* The Almond platform has been updated to the 1.7 series, including ThingTalk 1.9.
+  This brings in a new number of new features [#279, #487, #526, #531, #541, #543, #551].
+* Misc bug fixes [#416, #462, #464, #465, #472, #475, #476, #477, #482, #484, #486,
+  #493, #501, #503, #525, #528, #530, #532, #545].
+* Build system, CI and dependency updates [#479, #481, #488, #491, #494, #505, #507, #509, #514, #515, #516,
+  #520, #524, #537].
+
 1.6.3
 =====
 
