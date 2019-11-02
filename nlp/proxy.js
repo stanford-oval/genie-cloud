@@ -57,12 +57,17 @@ module.exports = class ProxyServer {
     }
 
     async fanout(req, res) {
-        const replicas = await this.getEndpoints(this.name);
-        if (replicas.length === 0 )
-            throw new Error(`unexpected zero endpoints from ${this.name} service`);
-        console.log('forwarding requests to', replicas);
-        for (const ipPort of replicas) 
-            this.proxy.web(req, res, { target: `http://${ipPort}`} );
+        try {
+            const replicas = await this.getEndpoints(this.name);
+            if (replicas.length === 0 )
+                throw new Error(`unexpected zero endpoints from ${this.name} service`);
+            console.log('fanout requests to', replicas);
+            for (const ipPort of replicas) 
+                this.proxy.web(req, res, { target: `http://${ipPort}`} );
+        } catch (e) {
+            console.log('fanout error:', e);
+            res.status(500).json({ error: 'Internal server errror' });
+        }
     }
 
     async getEndpoints(name) {
