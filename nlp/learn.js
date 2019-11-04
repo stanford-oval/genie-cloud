@@ -141,7 +141,7 @@ async function learn(req, res) {
     if (trainable) {
         model.exact.add(preprocessed, target_code);
         if (req.app.proxy) {
-            // call other replicas to reloads the new example
+            // call other replicas to reload the new example
             const path = `/admin/reload/exact/@${req.params.model_tag}/${req.params.locale}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`;
             const promises = [];
             for (const replica of await req.app.proxy.getEndpoints(Config.NL_SERVICE_NAME, true)) {
