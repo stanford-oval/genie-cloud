@@ -24,6 +24,7 @@ const Engine = require('thingengine-core');
 const PlatformModule = require('./platform');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
 const Assistant = require('./assistant');
+const i18n = require('../util/i18n');
 
 class ParentProcessSocket extends stream.Duplex {
     constructor() {
@@ -144,6 +145,11 @@ function main() {
         help: 'Run as a shared (multi-user) process',
         defaultValue: false,
     });
+    parser.addArgument(['-l', '--locale'], {
+        action: 'append',
+        defaultValue: [],
+        help: 'Enable this language',
+    });
     parser.addArgument('--thingpedia-url', {
         required: true,
         help: 'Thingpedia URL',
@@ -162,6 +168,7 @@ function main() {
     });
 
     const argv = parser.parseArgs();
+    i18n.init(argv.locale);
 
     // for compat with platform.getOrigin()
     // (but not platform.getCapability())

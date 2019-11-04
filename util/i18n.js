@@ -14,10 +14,10 @@ const Gettext = require('node-gettext');
 const gettextParser = require('gettext-parser');
 const fs = require('fs');
 const acceptLanguage = require('accept-language');
+const assert = require('assert');
 const ThingTalk = require('thingtalk');
 
 const { InternalError } = require('./errors');
-const Config = require('../config');
 const userUtils = require('./user');
 
 function N_(x) { return x; }
@@ -32,10 +32,12 @@ const ALLOWED_LANGUAGES = {
     'zh-TW': N_("Chinese (Traditional)"),
 };
 
-const LANGS = Config.SUPPORTED_LANGUAGES;
+let _enabledLanguages;
 const languages = {};
 
 function loadTextdomainDirectory(gt, locale, domain, modir) {
+    assert(fs.existsSync(modir));
+
     let split = locale.split(/[-_.@]/);
     let mo = modir + '/' + split.join('_') + '.mo';
 
@@ -43,8 +45,10 @@ function loadTextdomainDirectory(gt, locale, domain, modir) {
         split.pop();
         mo = modir + '/' + split.join('_') + '.mo';
     }
-    if (split.length === 0)
+    if (split.length === 0) {
+        console.error(`No translations found in ${domain} for locale ${locale}`);
         return;
+    }
     try {
         let loaded = gettextParser.mo.parse(fs.readFileSync(mo), 'utf-8');
         gt.addTranslations(locale, domain, loaded);
@@ -53,55 +57,54 @@ function loadTextdomainDirectory(gt, locale, domain, modir) {
     }
 }
 
-function load() {
-    if (LANGS.length === 0)
-        throw new InternalError('E_INVALID_CONFIG', `Configuration error: must enable at least one language`);
-
-    for (let locale of LANGS) {
-        if (!(locale in ALLOWED_LANGUAGES))
-            throw new InternalError('E_INVALID_CONFIG', `Configuration error: locale ${locale} is enabled but is not supported`);
-
-        let gt = new Gettext();
-        if (locale !== 'en-US') {
-            let modir = path.resolve(path.dirname(module.filename), '../po');//'
-            loadTextdomainDirectory(gt, locale, 'thingengine-platform-cloud', modir);
-            modir = path.resolve(path.dirname(module.filename), '../node_modules/thingtalk/po');
-            loadTextdomainDirectory(gt, locale, 'thingtalk', modir);
-            modir = path.resolve(path.dirname(module.filename), '../node_modules/almond/po');
-            loadTextdomainDirectory(gt, locale, 'almond', modir);
-            modir = path.resolve(path.dirname(module.filename), '../node_modules/thingengine-core/po');
-            loadTextdomainDirectory(gt, locale, 'thingengine-core', modir);
-        }
-        gt.textdomain('thingengine-platform-cloud');
-        gt.setLocale(locale);
-
-        // prebind the gt for ease of use, because the usual gettext API is not object-oriented
-        const prebound = {
-            locale,
-
-            gettext: gt.gettext.bind(gt),
-            ngettext: gt.ngettext.bind(gt),
-            pgettext: gt.pgettext.bind(gt),
-
-            dgettext: gt.dgettext.bind(gt),
-            dngettext: gt.dngettext.bind(gt),
-            dpgettext: gt.dpgettext.bind(gt),
-        };
-        ThingTalk.I18n.init(locale, prebound);
-
-        let split = locale.split('-');
-        while (split.length > 0) {
-            languages[split.join('-')] = prebound;
-            split.pop();
-        }
-    }
-
-    acceptLanguage.languages(LANGS);
-}
-load();
-
 const self = {
-    LANGS,
+    init(langs) {
+         _enabledLanguages = langs;
+        if (langs.length === 0)
+            throw new InternalError('E_INVALID_CONFIG', `Configuration error: must enable at least one language`);
+
+        for (let locale of langs) {
+            if (!(locale in ALLOWED_LANGUAGES))
+                throw new InternalError('E_INVALID_CONFIG', `Configuration error: locale ${locale} is enabled but is not supported`);
+
+            let gt = new Gettext();
+            if (locale !== 'en-US') {
+                let modir = path.resolve(path.dirname(module.filename), '../po');//'
+                loadTextdomainDirectory(gt, locale, 'thingengine-platform-cloud', modir);
+                modir = path.resolve(path.dirname(module.filename), '../node_modules/thingtalk/po');
+                loadTextdomainDirectory(gt, locale, 'thingtalk', modir);
+                modir = path.resolve(path.dirname(module.filename), '../node_modules/almond-dialog-agent/po');
+                loadTextdomainDirectory(gt, locale, 'almond', modir);
+                loadTextdomainDirectory(gt, locale, 'almond-dialog-agent', modir);
+                modir = path.resolve(path.dirname(module.filename), '../node_modules/thingengine-core/po');
+                loadTextdomainDirectory(gt, locale, 'thingengine-core', modir);
+            }
+            gt.textdomain('thingengine-platform-cloud');
+            gt.setLocale(locale);
+
+            // prebind the gt for ease of use, because the usual gettext API is not object-oriented
+            const prebound = {
+                locale,
+
+                gettext: gt.gettext.bind(gt),
+                ngettext: gt.ngettext.bind(gt),
+                pgettext: gt.pgettext.bind(gt),
+
+                dgettext: gt.dgettext.bind(gt),
+                dngettext: gt.dngettext.bind(gt),
+                dpgettext: gt.dpgettext.bind(gt),
+            };
+            ThingTalk.I18n.init(locale, prebound);
+
+            let split = locale.split('-');
+            while (split.length > 0) {
+                languages[split.join('-')] = prebound;
+                split.pop();
+            }
+        }
+
+        acceptLanguage.languages(langs);
+    },
 
     getLangName(_, lang) {
         return _(ALLOWED_LANGUAGES[lang]);
@@ -122,6 +125,9 @@ const self = {
     },
 
     get(locale, fallback = true) {
+        if (!_enabledLanguages)
+            throw new InternalError('E_I18N_NOT_INIT', `Internationalization support was not initialized`);
+
         locale = locale.split(/[-_@.,]/);
         let lang = languages[locale.join('-')];
         while (!lang && locale.length > 0) {
@@ -134,13 +140,16 @@ const self = {
     },
 
     handler(req, res, next) {
+        if (!_enabledLanguages)
+            throw new InternalError('E_I18N_NOT_INIT', `Internationalization support was not initialized`);
+
         let locale = typeof req.query.locale === 'string' ? req.query.locale : undefined;
         if (!locale && userUtils.isAuthenticated(req))
             locale = req.user.locale;
         if (!locale && req.headers['accept-language'])
             locale = acceptLanguage.get(req.headers['accept-language']);
         if (!locale)
-            locale = LANGS[0];
+            locale = _enabledLanguages[0];
         let lang = self.get(locale);
 
         req.locale = locale;
