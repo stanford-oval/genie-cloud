@@ -13,6 +13,19 @@
 const httpProxy = require('http-proxy');
 const queryString = require('querystring');
 const k8s = require('@kubernetes/client-node');
+const os = require('os');
+
+function getLocalIps() {
+    const localIps = [];
+    for (const ifaceList of Object.values(os.networkInterfaces())) {
+        for (const iface of ifaceList) {
+            if (iface.internal)
+                continue;
+            localIps.push(iface.address);
+        }
+    }
+    return localIps;
+}
 
 // ProxyServer fans out http requests to all replicas in 
 // a kubernetes service.  Can only be used with kubernetes backend.
@@ -54,6 +67,8 @@ module.exports = class ProxyServer {
               proxyReq.write(bodyData);
             }
         });
+
+        this.localIps = getLocalIps(); 
     }
 
     async fanout(req, res) {
@@ -62,7 +77,7 @@ module.exports = class ProxyServer {
             if (replicas.length === 0 )
                 throw new Error(`unexpected zero endpoints from ${this.name} service`);
             console.log('fanout requests to', replicas);
-            for (const ipPort of replicas) 
+            for (const ipPort of replicas)
                 this.proxy.web(req, res, { target: `http://${ipPort}`} );
         } catch (e) {
             console.log('fanout error:', e);
@@ -70,7 +85,7 @@ module.exports = class ProxyServer {
         }
     }
 
-    async getEndpoints(name) {
+    async getEndpoints(name, skipLocal=false) {
         const ipPorts = [];
         const resp = await this.coreApi.listEndpointsForAllNamespaces(
             undefined /*allowWatchBookmarks*/,
@@ -82,11 +97,20 @@ module.exports = class ProxyServer {
                     throw new Error('failed to get endpoints port');
                 // use the first port since all addresses use the same port
                 const port = subset.ports[0].port;
-                for (const addr of subset.addresses)
+                for (const addr of subset.addresses) {
+                    if (skipLocal && this.localIps.includes(addr.ip)) {
+                        console.log('skipping local endpoint', addr.ip);
+                        continue;
+                    }
                     ipPorts.push(`${addr.ip}:${port}`);
+                }
             }
         }
         return ipPorts;
+    }
+
+    header() {
+        return { 'X-Almond-Fanout': 'true'};
     }
 
     isProxy(req) {

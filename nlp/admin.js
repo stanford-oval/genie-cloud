@@ -30,6 +30,7 @@ router.use((req, res, next) => {
 });
 
 router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
+    console.log('req.body', req.body);
     if (!i18n.get(req.params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
@@ -42,6 +43,8 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
     }
 
     db.withClient((dbClient) => {
+        if (req.body.example_id)
+            return matcher.addExample(dbClient, req.body.example_id);
         return matcher.load(dbClient);
     }).then(() => {
         res.json({ result: 'ok' });

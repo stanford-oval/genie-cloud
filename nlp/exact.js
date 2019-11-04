@@ -44,6 +44,12 @@ module.exports = class ExactMatcher {
         console.log(`Loaded ${rows.length} exact matches for language ${this._language}`);
     }
 
+    async addExample(dbClient, exampleId) {
+        const row = await exampleModel.getExactById(dbClient, exampleId);
+        this.add(row.preprocessed, row.target_code);
+        console.log(`Added ${exampleId} for language ${this._language}`);
+    }
+
     add(utterance, target_code) {
         utterance = utterance.split(' ');
         target_code = target_code.split(' ');
