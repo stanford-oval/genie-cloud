@@ -202,42 +202,7 @@ function authenticateGithub(req, accessToken, refreshToken, profile, done) {
             storage_key: makeRandom() });
         user.newly_created = true;
         return user;
-    }).then((user) => {
-        if (!user.newly_created)
-            return user;
-
-        // NOTE: we must start the user here because if we do it earlier we're
-        // still inside the transaction, and the master process (which uses a different
-        // database connection) will not see the new user in the database
-        return EngineManager.get().startUser(user.id).then(() => {
-            // asynchronously inject github-account device
-            EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.addSerialized({ kind: 'com.github',
-                                                      userId: profile.id,
-                                                      userName: profile.username,
-                                                      accessToken: accessToken,
-                                                      refreshToken: refreshToken });
-            }).done();
-            return user;
-        });
-    }).nodeify(done);
-}
-
-function associateGithub(user, accessToken, refreshToken, profile, done) {
-    db.withTransaction((dbClient) => {
-        return model.update(dbClient, user.id, { github_id: profile.id }).then(() => {
-            // asynchronously inject github-account device
-
-            EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.addSerialized({ kind: 'com.github',
-                                                      userId: profile.id,
-                                                      userName: profile.username,
-                                                      accessToken: accessToken,
-                                                      refreshToken: refreshToken });
-            }).done();
-            return user;
-        });
-    }).nodeify(done);
+    }).then((user) => done(null, user), done);
 }
 
 exports.initialize = function() {
@@ -328,14 +293,7 @@ exports.initialize = function() {
             clientSecret: GITHUB_CLIENT_SECRET,
             callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/github/callback',
             passReqToCallback: true,
-        },   (req, accessToken, refreshToken, profile, done) => {
-            if (!req.user) {
-                // authenticate the user
-                authenticateGithub(req, accessToken, refreshToken, profile, done);
-            } else {
-                associateGithub(req.user, accessToken, refreshToken, profile, done);
-            }
-        }));
+        }, authenticateGithub));
     }
 
     passport.use(new TotpStrategy((user, done) => {

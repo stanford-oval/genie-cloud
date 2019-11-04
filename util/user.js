@@ -99,8 +99,7 @@ module.exports = {
 
     GOOGLE_SCOPES: ['openid','profile','email'].join(' '),
 
-    GITHUB_SCOPES: ['user', 'public_repo', 'repo', 'repo:status',
-                    'gist', 'notifications'].join(' '),
+    GITHUB_SCOPES: ['read:user', 'user:email'].join(' '),
 
     MAX_USERNAME_LENGTH,
     validateUsername,
