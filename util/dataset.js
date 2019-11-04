@@ -29,14 +29,6 @@ function exampleToCode(example) {
     return clone.prettyprint();
 }
 
-const kindMap = {
-    'thermostat': 'com.nest.thermostat',
-    'light-bulb': 'com.hue',
-    'security-camera': 'com.nest.security_camera',
-    'car': 'com.tesla.car',
-    'com.tumblr.blog': 'com.tumblr'
-};
-
 const useWhiteList = false;
 
 const whiteList = [
@@ -62,9 +54,6 @@ function getCheatsheet(language, thingpedia, dataset, rng = Math.random) {
                 return;
             dupes.add(ex.target_code);
             let kind = ex.kind;
-            if (kind in kindMap)
-                kind = kindMap[kind];
-
             if (!deviceMap.has(kind)) {
                 // ignore what we don't recognize
                 console.log('Unrecognized kind ' + kind);
