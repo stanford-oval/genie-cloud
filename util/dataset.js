@@ -37,14 +37,25 @@ const whiteList = [
     'com.live.onedrive'
 ];
 
+const platformDevices = {
+    'org.thingpedia.builtin.thingengine.gnome': 'gnome',
+    'org.thingpedia.builtin.thingengine.phone': 'android',
+};
+
 function getCheatsheet(language, options) {
     return loadThingpedia(language, options).then(([devices, examples]) => {
         const deviceMap = new Map;
         if (useWhiteList)
             devices = devices.filter((d) => whiteList.includes(d.primary_kind));
-        if (options.forPlatform === 'server')
-            devices = devices.filter((d) => d.factory && JSON.parse(d.factory).type !== 'oauth2');
         devices.forEach((d, i) => {
+            if (options.forPlatform === 'server') {
+                if (!d.factory || JSON.parse(d.factory).type === 'oauth2')
+                    return;
+            }
+            if (options.forPlatform && platformDevices[d.primary_kind]
+                && options.forPlatform !== platformDevices[d.primary_kind])
+                return;
+
             d.examples = [];
             deviceMap.set(d.primary_kind, i);
         });
