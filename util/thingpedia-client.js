@@ -461,6 +461,19 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
             }));
         });
     }
+
+    async getDeviceVersion(kind) {
+        const version = await this._withClient(async (dbClient) => {
+            const org = await this._getOrg(dbClient);
+            const dev = await device.getDownloadVersion(dbClient, kind, org);
+            return dev.version;
+        });
+
+        if (version === null)
+            throw new ForbiddenError('Not Authorized');
+
+        return version;
+    }
 };
 module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getModuleLocation', 'getDeviceCode',
@@ -470,6 +483,7 @@ module.exports.prototype.$rpcMethods = ['getAppCode', 'getApps',
                                         'getDeviceFactories',
                                         'getDeviceList',
                                         'getDeviceSearch',
+                                        'getDeviceVersion',
                                         'getKindByDiscovery',
                                         'getExamplesByKinds', 'getExamplesByKey',
                                         'clickExample', 'lookupEntity', 'lookupLocation'];

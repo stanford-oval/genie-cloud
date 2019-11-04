@@ -661,6 +661,32 @@ v1.get('/devices/icon/:kind', (req, res) => {
 });
 
 /**
+ * @api {get} /v3/devices/version/:kind Get Device Version
+ * @apiName GetDeviceVersion
+ * @apiGroup Devices
+ * @apiVersion 0.3.0
+ *
+ * @apiDescription Get the current version of a given device.
+ *
+ * @apiParam {String} [developer_key] Developer key to use for this operation
+ * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
+ * @apiParam {String} kind The identifier of the desired device.
+ *
+ * @apiSuccessExample {json} Example Response:
+ *  {
+ *    "result": "ok",
+ *    "data": 6
+ *  }
+ */
+v3.get('/devices/version/:kind', (req, res, next) => {
+    const kind = req.params.kind;
+    const client = new ThingpediaClient(req.query.developer_key, req.query.locale);
+    client.getDeviceVersion(kind).then((version) => {
+        res.status(200).json({ result: 'ok', data: version });
+    }).catch(next);
+});
+
+/**
  * @api {get} /v3/devices/package/:kind Get Device Package
  * @apiName GetDevicePackage
  * @apiGroup Devices
@@ -668,6 +694,8 @@ v1.get('/devices/icon/:kind', (req, res) => {
  *
  * @apiDescription Download the JS package for a given device.
  *
+ * @apiParam {String} [developer_key] Developer key to use for this operation
+ * @apiParam {String} [locale=en-US] Locale in which metadata should be returned
  * @apiParam {String} kind The identifier of the desired device.
  */
 v3.get('/devices/package/:kind', (req, res, next) => {

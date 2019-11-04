@@ -1119,6 +1119,11 @@ async function testGetDeviceIcon() {
     assert(!failed);
 }
 
+async function testGetDeviceVersion() {
+    const obtained = await request('/devices/version/com.bing');
+    assert.deepStrictEqual(typeof obtained.data, 'number');
+}
+
 function checkManifest(obtained, expected) {
     assert.strictEqual(obtained.result, 'ok');
     obtained = obtained.data;
@@ -2338,6 +2343,7 @@ async function main() {
     await testGetExamplesByKey();
     await testGetCommands();
     await testGetDeviceIcon();
+    await testGetDeviceVersion();
     await testGetDeviceManifest();
     await testGetDevicePackage();
     await testGetDeviceSetup();
