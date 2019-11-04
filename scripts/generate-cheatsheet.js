@@ -51,7 +51,7 @@ const nameMap = {
 };
 
 async function getDevices(locale, thingpedia, dataset, sample, rng) {
-    const devices = await DatasetUtils.getCheatsheet(locale, thingpedia, dataset, rng);
+    const devices = await DatasetUtils.getCheatsheet(locale, { thingpedia, dataset, rng });
     const filteredDevices = devices.filter((d) =>
         thingpedia && dataset ? !blackList.includes(d.primary_kind) && d.examples.length > 0 : d.examples.length > 0
     );

@@ -37,14 +37,18 @@ const whiteList = [
     'com.live.onedrive'
 ];
 
-function getCheatsheet(language, thingpedia, dataset, rng = Math.random) {
-    return loadThingpedia(language, thingpedia, dataset, rng).then(([devices, examples]) => {
+function getCheatsheet(language, options) {
+    return loadThingpedia(language, options).then(([devices, examples]) => {
         const deviceMap = new Map;
-        devices = devices.filter((d) => { return !(useWhiteList && !whiteList.includes(d.primary_kind)); });
+        if (useWhiteList)
+            devices = devices.filter((d) => whiteList.includes(d.primary_kind));
+        if (options.forPlatform === 'server')
+            devices = devices.filter((d) => d.factory && JSON.parse(d.factory).type !== 'oauth2');
         devices.forEach((d, i) => {
             d.examples = [];
             deviceMap.set(d.primary_kind, i);
         });
+
 
         const dupes = new Set;
         examples.forEach((ex) => {
@@ -106,13 +110,13 @@ async function loadCheatsheetFromFile(language, thingpedia, dataset, random = tr
     return [devices, examples];
 }
 
-function loadThingpedia(language, thingpedia, dataset, rng) {
+function loadThingpedia(language, { forPlatform, thingpedia, dataset, rng = Math.random }) {
     if (thingpedia && dataset) {
         return loadCheatsheetFromFile(language, thingpedia, dataset, true, { rng });
     } else {
         return db.withClient((dbClient) => {
             return Promise.all([
-                deviceModel.getAllApproved(dbClient, null),
+                forPlatform !== undefined ? deviceModel.getAllApprovedWithCode(dbClient, null) : deviceModel.getAllApproved(dbClient, null),
                 exampleModel.getCheatsheet(dbClient, language)
             ]);
         });
