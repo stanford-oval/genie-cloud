@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: thingengine-platform-cloud 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-04 04:27+0000\n"
-"PO-Revision-Date: 2019-11-03 21:04-0800\n"
+"POT-Creation-Date: 2019-11-05 22:56+0000\n"
+"PO-Revision-Date: 2019-11-05 14:57-0800\n"
 "Last-Translator: Giovanni Campagna <scampa.giovanni@gmail.com>\n"
 "Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
@@ -64,8 +64,8 @@ msgstr "Thingpedia - Amministrazione - Training Linguaggio Naturale"
 #: routes/thingpedia_translate.js:261 routes/thingpedia_translate.js:266
 #: routes/thingpedia_translate.js:287 routes/thingpedia_upload.js:127
 #: routes/user.js:725 routes/user.js:730 routes/user.js:767 routes/user.js:773
-#: routes/user.js:779 util/user.js:198 util/user.js:208 util/user.js:221
-#: util/user.js:237 util/user.js:277
+#: routes/user.js:779 util/user.js:197 util/user.js:207 util/user.js:220
+#: util/user.js:236 util/user.js:276
 msgid "Thingpedia - Error"
 msgstr "Thingpedia - Errore"
 
@@ -422,7 +422,7 @@ msgstr "Thingpedia - Stato"
 msgid "Your engine is running, kill it before attempting recovery"
 msgstr "Il tuo motore è in funzione, fermalo prima di provare il recupero"
 
-#: routes/thingpedia_cheatsheet.js:26
+#: routes/thingpedia_cheatsheet.js:27
 msgid "Thingpedia - Supported Operations"
 msgstr "Thingpedia - Operazioni supportate"
 
@@ -914,15 +914,15 @@ msgstr ""
 msgid "You must upload a TSV file with the string values."
 msgstr "Devi caricare un file TSV con i valori di stringa."
 
-#: util/user.js:111
+#: util/user.js:110
 msgid "A user with this name already exists."
 msgstr "Un utente con questo nome esiste già."
 
-#: util/user.js:114
+#: util/user.js:113
 msgid "A user with this email already exists."
 msgstr "Un utente con questo indirizzo email esiste già."
 
-#: util/user.js:209 util/user.js:222 util/user.js:238
+#: util/user.js:208 util/user.js:221 util/user.js:237
 msgid "You do not have permission to perform this operation."
 msgstr "Non sei autorizzato a eseguire l'operazione richiesta."
 
@@ -1142,14 +1142,14 @@ msgstr "Ancora non hai trovato ciò che stai cercando?"
 #: views/stanford/about_get_almond.pug:113
 msgid ""
 "Almond is also available as a <a href='https://github.com/stanford-oval/"
-"thingengine-platform-server'>smart speaker with display</a> (hardware not "
-"included), and <a href='https://github.com/stanford-oval/thingengine-"
-"platform-cmdline'>command line application</a>."
+"almond-server'>smart speaker</a> (hardware not included), and <a "
+"href='https://github.com/stanford-oval/almond-cmdline'>command line "
+"application</a>."
 msgstr ""
 "Almond è anche disponiible come <a href='https://github.com/stanford-oval/"
-"thingengine-platform-server'>smart speaker con display</a> (hardware non "
-"incluso) e una<a href='https://github.com/stanford-oval/thingengine-platform-"
-"cmdline'>applicazione command-line</a>"
+"almond-server'>smart speaker</a> (hardware non incluso) e una<a "
+"href='https://github.com/stanford-oval/almond-cmdline'>applicazione da linea "
+"di comando</a>"
 
 #: views/stanford/about_get_almond.pug:116
 msgid ""
