@@ -4,11 +4,12 @@
 //
 // Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
 //
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Author: Jim Deng <jim.deng@alumni.stanford.edu>
 //
 // See COPYING for details
 'use strict';
 
+// Tests k8s api signature does not change after upgrades 
 function getArgs(func) {
   var args = func.toString().match(/\S+\s*?\(([^)]*)\)/)[1];
   return args.split(',').map(function(arg) {
@@ -42,16 +43,23 @@ const fakeConfig = {
 const kc = new k8s.KubeConfig();
 Object.assign(kc, fakeConfig);
 const k8sApi = kc.makeApiClient(k8s.BatchV1Api);
+const k8sCore = kc.makeApiClient(k8s.CoreV1Api);
 
-function testdeleteNamespacedJob() {
-    assert.strictEqual(getArgs(k8sApi.deleteNamespacedJob)[0], 'name')
-    assert.strictEqual(getArgs(k8sApi.deleteNamespacedJob)[1], 'namespace')
-    assert.strictEqual(getArgs(k8sApi.deleteNamespacedJob)[6], 'propagationPolicy')
+function testDeleteNamespacedJob() {
+    const args = getArgs(k8sApi.deleteNamespacedJob);
+    assert.strictEqual(args[0], 'name');
+    assert.strictEqual(args[1], 'namespace');
+    assert.strictEqual(args[6], 'propagationPolicy');
 }
 
+function testListEndpointsForAllNamespaces() {
+    const args = getArgs(k8sCore.listEndpointsForAllNamespaces)
+    assert.strictEqual(args[2], 'fieldSelector');
+}
 
 function main() {
-    testdeleteNamespacedJob();
+    testDeleteNamespacedJob();
+    testListEndpointsForAllNamespaces();
 }
 module.exports = main;
 if (!module.parent)

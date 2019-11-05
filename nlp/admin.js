@@ -23,7 +23,10 @@ router.use((req, res, next) => {
         res.status(401).json({ error: 'Not Authorized' });
         return;
     }
-    next();
+    if (!req.app.proxy || req.app.proxy.isProxy(req)) 
+        next();
+    else
+        req.app.proxy.fanout(req, res);
 });
 
 router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
@@ -39,6 +42,8 @@ router.post('/reload/exact/@:model_tag/:locale', (req, res, next) => {
     }
 
     db.withClient((dbClient) => {
+        if (req.body.example_id)
+            return matcher.addExample(dbClient, req.body.example_id);
         return matcher.load(dbClient);
     }).then(() => {
         res.json({ result: 'ok' });

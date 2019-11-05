@@ -11,6 +11,7 @@
 
 const express = require('express');
 const ThingTalk = require('thingtalk');
+const Tp = require('thingpedia');
 
 const router = express.Router();
 
@@ -19,6 +20,7 @@ const iv = require('../util/input_validation');
 const I18n = require('../util/i18n');
 const userModel = require('../model/user');
 const exampleModel = require('../model/example');
+const Config = require('../config');
 
 const LATEST_THINGTALK_VERSION = ThingTalk.version;
 
@@ -117,7 +119,7 @@ async function learn(req, res) {
             }
         }
 
-        const ex = await exampleModel.create(dbClient, {
+        const exid = await exampleModel.create(dbClient, {
             is_base: false,
             language: languageTag,
             utterance: utterance,
@@ -130,15 +132,27 @@ async function learn(req, res) {
             like_count: 0
         });
         if (store === 'commandpedia')
-            await exampleModel.like(dbClient, ex.id, ownerId);
-        return ex.id;
+            await exampleModel.like(dbClient, exid, ownerId);
+        return exid;
     });
-    if (exampleId === null)
+    if (!exampleId)
         return;
 
-    if (trainable)
+    if (trainable) {
         model.exact.add(preprocessed, target_code);
-
+        if (req.app.proxy) {
+            // call other replicas to reload the new example
+            const path = `/admin/reload/exact/@${req.params.model_tag}/${req.params.locale}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`;
+            const promises = [];
+            for (const replica of await req.app.proxy.getEndpoints(Config.NL_SERVICE_NAME, true)) {
+                promises.push(Tp.Helpers.Http.post( `http://${replica}${path}`, `example_id=${encodeURIComponent(exampleId)}`, {
+                    dataContentType: 'application/x-www-form-urlencoded',
+                    extraHeaders: req.app.proxy.header()
+                }));
+            }
+            await Promise.all(promises);
+        }
+    }
     res.status(200).json({ result: 'Learnt successfully', example_id: exampleId });
 }
 

@@ -400,6 +400,10 @@ module.exports = {
             where language = ? and find_in_set('exact', flags) and not is_base and preprocessed <> ''
             order by type asc, id asc`, [language]);
     },
+    
+    getExactById(client, exampleId) {
+        return db.selectOne(client, `select preprocessed,target_code from example_utterances where id = ?`, [exampleId]);
+    },
 
     suggest(client, command) {
         return db.query(client, "insert into command_suggestions (command) values (?)", command);
