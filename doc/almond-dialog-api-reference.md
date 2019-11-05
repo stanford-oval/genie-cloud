@@ -110,6 +110,7 @@ An RDL message has the following properties:
   - `rdl.webCallback : string`: the URL of the link
   - `rdl.displayTitle : string`: the title of the link (optional)
   - `rdl.displayText : string`: the longer description of the link (optional)
+  - `rdl.pictureUrl : string`: a picture (thumbnail) associated with the link
 - `icon : string`: the device identifier to use as icon for the message
 
 ### Result Message
