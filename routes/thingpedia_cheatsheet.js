@@ -14,15 +14,16 @@ const express = require('express');
 const DatasetUtils = require('../util/dataset');
 const I18n = require('../util/i18n');
 const tokenize = require('../util/tokenize');
+const iv = require('../util/input_validation');
 
 const Config = require('../config');
 
 var router = express.Router();
 
-router.get('/', (req, res, next) => {
+router.get('/', iv.validateGET({ platform: '?string' }), (req, res, next) => {
     const language = req.user ? I18n.localeToLanguage(req.user.locale) : 'en';
 
-    DatasetUtils.getCheatsheet(language).then((devices) => {
+    DatasetUtils.getCheatsheet(language, { forPlatform: req.query.platform }).then((devices) => {
         res.render('thingpedia_cheatsheet', { page_title: req._("Thingpedia - Supported Operations"),
                                               CDN_HOST: Config.CDN_HOST,
                                               csrfToken: req.csrfToken(),

@@ -29,14 +29,6 @@ function exampleToCode(example) {
     return clone.prettyprint();
 }
 
-const kindMap = {
-    'thermostat': 'com.nest.thermostat',
-    'light-bulb': 'com.hue',
-    'security-camera': 'com.nest.security_camera',
-    'car': 'com.tesla.car',
-    'com.tumblr.blog': 'com.tumblr'
-};
-
 const useWhiteList = false;
 
 const whiteList = [
@@ -45,14 +37,29 @@ const whiteList = [
     'com.live.onedrive'
 ];
 
-function getCheatsheet(language, thingpedia, dataset, rng = Math.random) {
-    return loadThingpedia(language, thingpedia, dataset, rng).then(([devices, examples]) => {
+const platformDevices = {
+    'org.thingpedia.builtin.thingengine.gnome': 'gnome',
+    'org.thingpedia.builtin.thingengine.phone': 'android',
+};
+
+function getCheatsheet(language, options) {
+    return loadThingpedia(language, options).then(([devices, examples]) => {
         const deviceMap = new Map;
-        devices = devices.filter((d) => { return !(useWhiteList && !whiteList.includes(d.primary_kind)); });
+        if (useWhiteList)
+            devices = devices.filter((d) => whiteList.includes(d.primary_kind));
         devices.forEach((d, i) => {
+            if (options.forPlatform === 'server') {
+                if (!d.factory || JSON.parse(d.factory).type === 'oauth2')
+                    return;
+            }
+            if (options.forPlatform && platformDevices[d.primary_kind]
+                && options.forPlatform !== platformDevices[d.primary_kind])
+                return;
+
             d.examples = [];
             deviceMap.set(d.primary_kind, i);
         });
+
 
         const dupes = new Set;
         examples.forEach((ex) => {
@@ -62,9 +69,6 @@ function getCheatsheet(language, thingpedia, dataset, rng = Math.random) {
                 return;
             dupes.add(ex.target_code);
             let kind = ex.kind;
-            if (kind in kindMap)
-                kind = kindMap[kind];
-
             if (!deviceMap.has(kind)) {
                 // ignore what we don't recognize
                 console.log('Unrecognized kind ' + kind);
@@ -117,13 +121,13 @@ async function loadCheatsheetFromFile(language, thingpedia, dataset, random = tr
     return [devices, examples];
 }
 
-function loadThingpedia(language, thingpedia, dataset, rng) {
+function loadThingpedia(language, { forPlatform, thingpedia, dataset, rng = Math.random }) {
     if (thingpedia && dataset) {
         return loadCheatsheetFromFile(language, thingpedia, dataset, true, { rng });
     } else {
         return db.withClient((dbClient) => {
             return Promise.all([
-                deviceModel.getAllApproved(dbClient, null),
+                forPlatform !== undefined ? deviceModel.getAllApprovedWithCode(dbClient, null) : deviceModel.getAllApproved(dbClient, null),
                 exampleModel.getCheatsheet(dbClient, language)
             ]);
         });
