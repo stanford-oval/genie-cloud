@@ -4,14 +4,29 @@ FROM ${BASE_IMAGE}
 
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 
-# install basic tools
 USER root
-RUN yum -y install make gettext unzip
 
-# install nodejs 10.x and yarn
-RUN curl -sL https://rpm.nodesource.com/setup_10.x | bash -
+# add epel repo
+RUN wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
+    dnf -y install epel-release-latest-8.noarch.rpm
+
+# add yarn repo
 RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo
-RUN yum -y install nodejs yarn
+
+# add sqlcipher repo
+RUN wget https://copr.fedorainfracloud.org/coprs/gcampax/sqlcipher/repo/epel-8/gcampax-sqlcipher-epel-8.repo -O /etc/yum.repos.d/gcampax-sqlcipher-epel-8.repo
+
+# add bubblewrap repo
+RUN wget https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/gcampax-bubblewrap-epel-8.repo -O /etc/yum.repos.d/gcampax-bubblewrap-epel-8.repo
+
+# install packages
+RUN dnf module install -y nodejs:10
+RUN dnf -y install make gettext unzip python27 \
+    yarn GraphicsMagick bubblewrap sqlcipher sqlcipher-devel && \
+    rm -rf  /var/cache/dnf
+
+# required by node-gyp
+RUN alternatives --set python /usr/bin/python2
 
 # install aws client
 RUN pip3 install awscli
@@ -19,15 +34,8 @@ RUN curl --silent --location \
     "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | \
     tar xz -C /usr/local/bin
 
-# install sqlcipher
-RUN wget https://copr.fedorainfracloud.org/coprs/gcampax/sqlcipher/repo/epel-7/gcampax-sqlcipher-epel-7.repo -O /etc/yum.repos.d/gcampax-sqlcipher-epel-7.repo
-RUN yum -y install sqlcipher sqlcipher-devel
-
 # install cvc4
 RUN wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -O /usr/local/bin/cvc4
-
-# install other dependencies
-RUN yum -y install GraphicsMagick bubblewrap
 
 # download classifer and PPDB
 RUN mkdir -p /usr/local/share/almond-cloud/classifier && \
@@ -41,6 +49,7 @@ RUN wget https://parmesan.stanford.edu/glove/ppdb-2.0-m-lexical.bin -O /usr/loca
     chmod 755 /usr/local/share/ppdb-2.0-m-lexical.bin
 ENV PPDB=/usr/local/share/ppdb-2.0-m-lexical.bin
 ENV DECANLP_EMBEDDINGS=/usr/local/share/decanlp/embeddings
+
 # ensures python sys.std* encoding is always utf-8
 ENV PYTHONIOENCODING=UTF-8
 
