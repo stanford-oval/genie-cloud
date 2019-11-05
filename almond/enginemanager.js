@@ -195,6 +195,8 @@ class EngineProcess extends events.EventEmitter {
             '--cdn-host', Config.CDN_HOST,
             '--oauth-redirect-origin', Config.OAUTH_REDIRECT_ORIGIN
         );
+        for (let lang of Config.SUPPORTED_LANGUAGES)
+            args.push('--locale', lang);
     }
 
     start() {
