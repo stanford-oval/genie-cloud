@@ -29,7 +29,7 @@ RUN dnf module install -y nodejs:10 && \
 RUN alternatives --set python /usr/bin/python2
 
 # install aws client
-RUN pip3 install awscli
+RUN pip3 install awscli && rm -fr /root/.cache
 RUN curl --silent --location \
     "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | \
     tar xz -C /usr/local/bin
@@ -42,7 +42,7 @@ RUN mkdir -p /usr/local/share/almond-cloud/classifier && \
     wget https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz  && \
     tar xvf classifier1.tar.gz -C /usr/local/share/almond-cloud/classifier && \
     rm -f classifier1.tar.gz
-RUN pip3 install pytorch_transformers tensorboardX tqdm
+RUN pip3 install pytorch_transformers tensorboardX tqdm && rm -fr /root/.cache
 ENV ALMOND_FRONTEND_CLASSIFIER=/usr/local/share/almond-cloud/classifier
 
 RUN wget https://parmesan.stanford.edu/glove/ppdb-2.0-m-lexical.bin -O /usr/local/share/ppdb-2.0-m-lexical.bin && \
@@ -57,7 +57,7 @@ ENV PYTHONIOENCODING=UTF-8
 COPY . /opt/almond-cloud/
 WORKDIR /opt/almond-cloud/
 RUN echo "build_from_source true" > .yarnrc && echo "sqlite_libname sqlcipher" >> .yarnrc
-RUN yarn install
+RUN yarn install && rm -fr /root/.cache
 
 # add user almond-cloud
 RUN useradd -ms /bin/bash -r almond-cloud
