@@ -20,8 +20,8 @@ RUN wget https://copr.fedorainfracloud.org/coprs/gcampax/sqlcipher/repo/epel-8/g
 RUN wget https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/gcampax-bubblewrap-epel-8.repo -O /etc/yum.repos.d/gcampax-bubblewrap-epel-8.repo
 
 # install packages
-RUN dnf module install -y nodejs:10
-RUN dnf -y install make gettext unzip python27 \
+RUN dnf module install -y nodejs:10 && \
+    dnf -y install make gettext unzip python27 \
     yarn GraphicsMagick bubblewrap sqlcipher sqlcipher-devel && \
     rm -rf  /var/cache/dnf
 
