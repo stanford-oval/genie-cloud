@@ -5,7 +5,8 @@ MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
 # add epel repo
 RUN dnf -y install wget && \
     wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm && \
-    dnf -y install epel-release-latest-8.noarch.rpm
+    dnf -y install epel-release-latest-8.noarch.rpm && \
+    rm -rf  /var/cache/dnf
 
 # add yarn repo
 RUN curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo
@@ -18,16 +19,16 @@ RUN wget https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/
 
 # install packages
 RUN dnf -y install git gcc gcc-c++ make gettext unzip \
-    python27 python3 python3-pip python3-devel
-RUN dnf module install -y nodejs:10
-RUN dnf -y install yarn GraphicsMagick bubblewrap sqlcipher sqlcipher-devel && \
+    python27 python3 python3-pip python3-devel && \
+    dnf module install -y nodejs:10 && \
+    dnf -y install yarn GraphicsMagick bubblewrap sqlcipher sqlcipher-devel && \
     rm -rf  /var/cache/dnf
 
 # required by node-gyp
 RUN alternatives --set python /usr/bin/python2
 
 # install aws client
-RUN pip3 install awscli
+RUN pip3 install awscli && rm -fr /root/.cache
 RUN curl --silent --location \
     "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | \
     tar xz -C /usr/local/bin
