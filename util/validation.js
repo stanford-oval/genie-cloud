@@ -154,8 +154,10 @@ function autogenExampleName(ex, names) {
 
     let counter = 1;
     let name = baseName + counter;
-    while (names.has(name))
+    while (names.has(name)) {
         counter ++;
+        name = baseName + counter;
+    }
     names.add(name);
     return name;
 }
