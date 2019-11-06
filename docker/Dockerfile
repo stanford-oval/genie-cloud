@@ -21,7 +21,7 @@ RUN wget https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/
 RUN dnf -y install git gcc gcc-c++ make gettext unzip \
     python27 python3 python3-pip python3-devel && \
     dnf module install -y nodejs:10 && \
-    dnf -y install yarn GraphicsMagick bubblewrap sqlcipher sqlcipher-devel && \
+    dnf -y install yarn GraphicsMagick bubblewrap-0.3.3-5.el8.x86_64 sqlcipher sqlcipher-devel && \
     rm -rf  /var/cache/dnf
 
 # required by node-gyp
