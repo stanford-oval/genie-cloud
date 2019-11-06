@@ -62,7 +62,7 @@
   white-space: pre-line;
 }
 
-#conversation .message-picture {
+#conversation .message-picture, #conversation .message-rdl img {
   max-width: 80%;
 }
 

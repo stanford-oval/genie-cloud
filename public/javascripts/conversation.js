@@ -118,6 +118,10 @@ $(function() {
             .attr('href', rdl.webCallback).attr("target", "_blank").attr("rel", "noopener nofollow");
         rdlMessage.append($('<span>').addClass('message-rdl-title')
             .text(rdl.displayTitle));
+        if (rdl.pictureUrl) {
+            rdlMessage.append($('<span>').addClass('message-rdl-content')
+                .append($('<img>').attr('src', rdl.pictureUrl)));
+        }
         rdlMessage.append($('<span>').addClass('message-rdl-content')
             .text(rdl.displayText));
         container.append(rdlMessage);
