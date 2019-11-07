@@ -48,6 +48,7 @@ async function genBasic(args) {
         locale: args.locale,
         flags: args.flags || {},
         maxDepth: args.maxdepth,
+        targetPruningSize: args.target_pruning_size,
         debug: false, // no debugging, ever, because debugging also goes to stdout
     };
 
