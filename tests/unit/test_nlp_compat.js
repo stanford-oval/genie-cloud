@@ -58,7 +58,7 @@ async function test(i) {
 }
 
 async function main() {
-    for (let i = 0; i < TEST_CASES[i]; i++)
+    for (let i = 0; i < TEST_CASES[i].length; i++)
         await test(i);
 }
 module.exports = main;
