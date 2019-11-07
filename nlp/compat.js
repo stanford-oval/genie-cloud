@@ -89,9 +89,41 @@ async function unresolvedLocations(locale, result, entities) {
     result.code = newCode;
 }
 
+function deviceNames(locale, result, entities) {
+    let newCode = [];
+    let inString = false;
+    for (let i = 0; i < result.code.length; i++) {
+        const token = result.code[i];
+        if (token === '"')
+            inString = !inString;
+        if (inString) {
+            newCode.push(token);
+            continue;
+        }
+        if (!token.startsWith('attribute:')) {
+            newCode.push(token);
+            continue;
+        }
+        // eat the attribute:
+        i++;
+        // eat the =
+        i++;
+        if (result.code[i] === '"') {
+            i++;
+            while (i < result.code.length && result.code[i] !== '"')
+                i++;
+            // the closing quote will be eaten at the end of the loop
+        }
+        // the next token will be eaten at the end of the loop
+    }
+
+    result.code = newCode;
+}
+
 const COMPATIBILITY_FIXES = [
     ['<1.3.0', streamJoinArrow],
     ['<1.8.0', unresolvedLocations],
+    ['<1.9.0-alpha.1', deviceNames]
 ];
 
 module.exports = async function applyCompatibility(locale, results, entities, thingtalk_version) {
