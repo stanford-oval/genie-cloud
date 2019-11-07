@@ -1,48 +1,9 @@
 extends ../layout
 
-block styles
-  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/spinner.css')
-  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/conversation.css')
-
-block scripts
-  if ENABLE_ANONYMOUS_USER
-    script(src=Config.ASSET_CDN + '/javascripts/conversation.js')
-
 block page_name
   = _("Get Almond")
 
 block content
-  div.row
-    if ENABLE_ANONYMOUS_USER && !authenticated
-      div.col-lg-12
-        div.panel.panel-primary
-          div.panel-heading
-            h2.panel-title= _("Try Almond Now")
-
-          div.panel-body
-            p
-              = _("Try Almond, directly from your browser. No account or installation required!")
-            p
-              != _('Curious of what Almond can do? Check out the <a href="/thingpedia/cheatsheet">list of supported commands</a>.')
-
-            a(href='#section-try-now').btn.btn-primary.col-xs-8.col-xs-offset-2.col-md-4.col-md-offset-4#try-almond-btn= _("Try Almond")
-
-            div#conversation(data-target='/me/ws/anonymous',aria-expanded='false').collapse
-              div#chat
-              div#input-block
-                span(role='button').hidden#cancel
-                  span(aria-hidden='true').glyphicon.glyphicon-remove-circle
-                  span.sr-only= _("Cancel")
-                form(action='#')#input-form
-                  div.form-group.has-feedback#input-form-group
-                    label(for='#chat-input').sr-only= _("Command:")
-                    input(type='text',placeholder=_("Write your command or answer here")).form-control#input
-                    span.spinner-container.form-control-feedback.hidden
-                      span.spinner
-                      span.sr-only= _("Almond is thinking…")
-                    span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden(title=_("Lost connection to the server."))
-                    span.help-block.hidden= _("Lost connection to the server.")
-
   div.row
     div.col-md-6
       div.panel.panel-default

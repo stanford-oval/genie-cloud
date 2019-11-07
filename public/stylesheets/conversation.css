@@ -23,10 +23,9 @@
 }
 
 #conversation .message-container > img.icon {
-  height: 48px;
-  width: 48px;
+  height: 40px;
+  width: 40px;
   object-fit: contain;
-  padding-right: 12px;
   float: left;
 }
 
@@ -81,8 +80,19 @@
   max-height: 500px;
   margin: auto;
   max-width: 800px;
-  background: #f3f4f2;
+  background: rgba(243,244,242,0.7);
   padding: 40px;
+}
+
+@media screen and (max-width: 750px) {
+  #conversation {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    height: calc(100vh - 60px);
+    max-height: none;
+  }
 }
 
 #conversation.single {
