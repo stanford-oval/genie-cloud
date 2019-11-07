@@ -132,7 +132,7 @@ router.get('/devices/list', user.requireScope('user-read'), (req, res, next) => 
 
 router.post('/devices/create', user.requireScope('user-exec-command'), iv.validatePOST({ kind: 'string' }, { accept: 'json', json: true }), (req, res, next) => {
     for (let key in req.body) {
-        if (typeof req.body[key] !== 'string') {
+        if (['string', 'number', 'boolean'].indexOf(typeof req.body[key]) < 0) {
             iv.failKey(req, res, key, { json: true });
             return;
         }
