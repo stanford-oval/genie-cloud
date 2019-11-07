@@ -17,7 +17,7 @@ function camelCase(string) {
 function getExampleNameInvocation(invocation) {
     if (invocation.selector.isBuiltin)
         return camelCase(invocation.channel);
-    let name = camelCase(invocation.schema.canonical);
+    let name = camelCase(invocation.channel);
     for (let in_param of invocation.in_params) {
         if (in_param.value.isUndefined && in_param.name in invocation.schema.inReq)
             continue;

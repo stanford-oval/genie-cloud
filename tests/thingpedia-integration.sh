@@ -165,7 +165,7 @@ node ${srcdir}/main.js download-dataset -l en --output exact.tsv
 
 # generate a training set
 
-${srcdir}/main.js execute-sql-file - <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_eval_probability\":1.0}'"
+${srcdir}/main.js execute-sql-file - <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_target_pruning_size\":100000,\"dataset_eval_probability\":1.0}'"
 node ${srcdir}/main.js run-training-task -t prepare-training-set --job-id 2 --job-dir $workdir/training/jobs/2 --debug
 
 sha256sum exact.tsv ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv

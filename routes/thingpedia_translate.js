@@ -256,7 +256,7 @@ function computeTranslations(req, english) {
 }
 
 router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'string', dataset: 'string' }), (req, res, next) => {
-    var language = req.body.language;
+    const language = req.body.language;
     if (language === 'en') {
         res.status(403).render('error', { page_title: req._("Thingpedia - Error"),
                                           message: req._("Translations for English cannot be contributed.") });
@@ -280,12 +280,13 @@ router.post('/by-id/:kind', user.requireLogIn, iv.validatePOST({ language: 'stri
             dataset = await validateDataset(req, dbClient);
             translations = computeTranslations(req, english);
         } catch(e) {
+            console.error(e);
             if (!(e instanceof Validation.ValidationError))
                 throw e;
 
             res.status(400).render('error', {
                 page_title: req._("Thingpedia - Error"),
-                message: req._("Translations for English cannot be contributed.")
+                message: e
             });
             return;
         }
