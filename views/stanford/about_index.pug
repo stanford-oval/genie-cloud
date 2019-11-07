@@ -2,10 +2,14 @@ extends ../layout
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/index.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/app.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/spinner.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/conversation.css')
 
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
+  if ENABLE_ANONYMOUS_USER
+    script(src=Config.ASSET_CDN + '/javascripts/conversation.js')
   //-script(src=Config.ASSET_CDN + '/javascripts/rotating-globe-bundle.js')
 
 block page_name
@@ -43,12 +47,43 @@ block content
               div.col-xs-12.col-sm-6.col-md-4
                 h4= _("Open To All")
 
-            div.row#subscribe
+            //-div.row#subscribe
               div.col-lg-8.col-lg-offset-2
                 a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7',rel='noopener').btn.btn-primary.btn-block.call-to-action= _("I'm Interested")
 
+            if authenticated
+              div.row
+                div.col-lg-8.col-lg-offset-2
+                  a(href='/me').btn.btn-primary.btn-block.call-to-action= _("Go To My Almond")
+            else if !ENABLE_ANONYMOUS_USER
+              div.row
+                div.col-lg-8.col-lg-offset-2
+                  a(href='/user/register').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
+            else
+              div.row#try-almond-now-row
+                div.col-lg-8.col-lg-offset-2
+                  a#try-almond-now(href='#conversation').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
+
+              div.row
+                div.col-lg-12
+                  div#conversation(data-target='/me/ws/anonymous',aria-expanded='false')
+                    div#chat
+                    div#input-block
+                      span(role='button').hidden#cancel
+                        span(aria-hidden='true').glyphicon.glyphicon-remove-circle
+                        span.sr-only= _("Cancel")
+                      form(action='#')#input-form
+                        div.form-group.has-feedback#input-form-group
+                          label(for='#chat-input').sr-only= _("Command:")
+                          input(type='text',placeholder=_("Write your command or answer here")).form-control#input
+                          span.spinner-container.form-control-feedback.hidden
+                            span.spinner
+                            span.sr-only= _("Almond is thinking…")
+                          span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden(title=_("Lost connection to the server."))
+                          span.help-block.hidden= _("Lost connection to the server.")
+
             p(style='margin-top:1em;font-size:24px').text-center
-              a(href='/about/get-almond')= _("Try Almond")
+              a(href='/about/get-almond')= _("Get Almond")
               |  &mdash; 
               a(href='/about/use-almond')= _("Build with Almond")
               br

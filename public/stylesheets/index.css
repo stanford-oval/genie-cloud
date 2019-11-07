@@ -771,5 +771,19 @@ h2#almond-subtitle {
 }
 
 .call-to-action {
-  font-size: 32px;
+  font-size: 24px;
+}
+
+#try-almond-now-row + .row {
+  display: none;
+}
+#try-almond-now-row.expanded + .row {
+  display: block;
+}
+#try-almond-now-row.expanded + .row > div {
+  display: block;
+  padding: 0;
+}
+#try-almond-now-row.expanded {
+  display: none;
 }
