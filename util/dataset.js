@@ -48,15 +48,15 @@ function getCheatsheet(language, options) {
         if (useWhiteList)
             devices = devices.filter((d) => whiteList.includes(d.primary_kind));
         devices.forEach((d, i) => {
+            d.examples = [];
+
             if (options.forPlatform === 'server') {
-                if (!d.factory || JSON.parse(d.factory).type === 'oauth2')
+                if (d.factory && d.factory !== 'null' && JSON.parse(d.factory).type === 'oauth2')
                     return;
             }
             if (options.forPlatform && platformDevices[d.primary_kind]
                 && options.forPlatform !== platformDevices[d.primary_kind])
                 return;
-
-            d.examples = [];
             deviceMap.set(d.primary_kind, i);
         });
 
