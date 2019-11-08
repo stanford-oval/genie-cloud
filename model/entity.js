@@ -21,6 +21,10 @@ module.exports = {
             [entities.map((e) => [e.id, e.language, e.name, e.is_well_known, e.has_ner_support])]);
     },
 
+    async update(client, id, entity) {
+        await db.query(client, `update entity_names set ? where id = ?`, [entity, id]);
+    },
+
     get(client, id, language = 'en') {
         return db.selectOne(client, "select * from entity_names where id = ? and language = ?",
                             [id, language]);

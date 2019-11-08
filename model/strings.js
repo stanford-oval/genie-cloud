@@ -23,6 +23,10 @@ module.exports = {
             [stringTypes.map((st) => [st.language, st.type_name, st.name, st.license, st.attribution])]);
     },
 
+    async update(client, id, stringType) {
+        await db.query(client, `update string_types set ? where id = ?`, [stringType, id]);
+    },
+
     insertValueStream(client) {
         return new stream.Writable({
             objectMode: true,
