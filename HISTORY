@@ -1,3 +1,28 @@
+1.7.0
+=====
+
+Frontend changes:
+* Try Almond is now featured more prominently on our front page [#569]
+* The permissions required to login with a Github account have been
+  reduced to the minimum necessary; Github is no longer configured
+  automatically in Almond [#519, #554]
+* Added the option to show a platform-specific Cheatsheet; this
+  hides platform-specific devices, and on server, also hides OAuth [#558, #559]
+* Added support for pictures inside RDLs [#564]
+* Entities and string datasets can now be updated after creation;
+  the list of values are then merged [#571]
+
+NLP changes:
+* Added the ability to reload all replicas, which allows to replicate
+  the NLP server for scalability [#417, #553]
+
+Misc changes:
+* Our docker images are now based on RHEL 8 (UBI) [#560]
+* Translations are now loaded correctly by the sandboxed workers [#557]
+* Misc bug fixes [#562, #563, #568, #570, #574]
+* Updated translation: Italian [#555]
+* Build system and dependency updates [#561, #566, #567, #576]
+
 1.7.0-beta.1
 ============
 
