@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: thingengine-platform-cloud 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-05 22:56+0000\n"
-"PO-Revision-Date: 2019-11-05 14:57-0800\n"
+"POT-Creation-Date: 2019-11-08 04:46+0000\n"
+"PO-Revision-Date: 2019-11-07 20:47-0800\n"
 "Last-Translator: Giovanni Campagna <scampa.giovanni@gmail.com>\n"
 "Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
@@ -26,8 +26,8 @@ msgstr "Almond - Pagina non trovata"
 msgid "The requested page does not exist."
 msgstr "La pagina richiesta non esiste."
 
-#: routes/about.js:28 views/stanford/about_index.pug:13
-#: views/stanford/about_index.pug:28 views/about_index.pug:13
+#: routes/about.js:28 views/stanford/about_index.pug:17
+#: views/stanford/about_index.pug:32 views/about_index.pug:13
 #: views/about_index.pug:21 views/register_success.pug:8 views/layout.pug:40
 msgid "Almond"
 msgstr "Almond"
@@ -62,7 +62,7 @@ msgstr "Thingpedia - Amministrazione - Training Linguaggio Naturale"
 #: routes/status.js:127 routes/thingpedia_devices.js:269
 #: routes/thingpedia_schemas.js:50 routes/thingpedia_translate.js:113
 #: routes/thingpedia_translate.js:261 routes/thingpedia_translate.js:266
-#: routes/thingpedia_translate.js:287 routes/thingpedia_upload.js:127
+#: routes/thingpedia_translate.js:288 routes/thingpedia_upload.js:127
 #: routes/user.js:725 routes/user.js:730 routes/user.js:767 routes/user.js:773
 #: routes/user.js:779 util/user.js:197 util/user.js:207 util/user.js:220
 #: util/user.js:236 util/user.js:276
@@ -568,7 +568,6 @@ msgid "Translate Thingpedia"
 msgstr "Traduci Thingpedia"
 
 #: routes/thingpedia_translate.js:114 routes/thingpedia_translate.js:262
-#: routes/thingpedia_translate.js:288
 msgid "Translations for English cannot be contributed."
 msgstr "Traduzioni per l'inglese non possono essere inviate."
 
@@ -774,7 +773,8 @@ msgid "You must verify your email before accessing Almond's Discourse."
 msgstr ""
 "Devi verificare la tua email prima di accedere alla community di Almond."
 
-#: stanford/config.js:36 views/stanford/about_get_almond.pug:12
+#: stanford/config.js:36 views/stanford/about_get_almond.pug:4
+#: views/stanford/about_index.pug:86
 msgid "Get Almond"
 msgstr "Ottieni Almond"
 
@@ -890,19 +890,19 @@ msgstr ""
 "Il prefisso dell'ID di entità deve corrispondere all'ID di un dispositivo in "
 "Thingpedia di proprietà della tua organizzazione."
 
-#: util/upload_dataset.js:122
+#: util/upload_dataset.js:129
 msgid "You must upload a CSV file with the entity values."
 msgstr "Devi caricare un file CSV con i valori di entità."
 
-#: util/upload_dataset.js:194
+#: util/upload_dataset.js:201
 msgid "Invalid string type ID."
 msgstr "ID di tipo di stringa non valido."
 
-#: util/upload_dataset.js:196
+#: util/upload_dataset.js:203
 msgid "Invalid license."
 msgstr "Licenza non valida."
 
-#: util/upload_dataset.js:209
+#: util/upload_dataset.js:216
 msgid ""
 "The prefix of the dataset ID must correspond to the ID of a Thingpedia "
 "device owned by your organization."
@@ -910,7 +910,7 @@ msgstr ""
 "Il prefisso dell'ID di dataset deve corrispondere all'ID di un dispositivo "
 "in Thingpedia di proprietà della tua organizzazione."
 
-#: util/upload_dataset.js:213
+#: util/upload_dataset.js:220
 msgid "You must upload a TSV file with the string values."
 msgstr "Devi caricare un file TSV con i valori di stringa."
 
@@ -991,62 +991,12 @@ msgstr "Fork me on GitHub"
 msgid "Contact us via email"
 msgstr "Contattaci via email"
 
-#: views/stanford/about_get_almond.pug:20
-msgid "Try Almond Now"
-msgstr "Prova Almond ora"
-
-#: views/stanford/about_get_almond.pug:24
-msgid ""
-"Try Almond, directly from your browser. No account or installation required!"
-msgstr ""
-"Prova Almond, direttamente dal tuo browser. Non serve account o "
-"installazione!"
-
-#: views/stanford/about_get_almond.pug:26
-msgid ""
-"Curious of what Almond can do? Check out the <a href=\"/thingpedia/cheatsheet"
-"\">list of supported commands</a>."
-msgstr ""
-"Sei curioso di quello che può fare Almond? Guarda la <a href=\"/thingpedia/"
-"cheatsheet\">lista dei comandi supportati</a>."
-
-#: views/stanford/about_get_almond.pug:28 views/stanford/about_index.pug:51
-#: views/stanford/about_index.pug:61
-msgid "Try Almond"
-msgstr "Prova Almond"
-
-#: views/stanford/about_get_almond.pug:35 views/my_conversation.pug:19
-#: views/my_stuff.pug:110
-msgid "Cancel"
-msgstr "Annulla"
-
-#: views/stanford/about_get_almond.pug:38 views/my_conversation.pug:22
-#: views/my_stuff.pug:113
-msgid "Command:"
-msgstr "Comando:"
-
-#: views/stanford/about_get_almond.pug:39 views/my_conversation.pug:23
-#: views/my_stuff.pug:114
-msgid "Write your command or answer here"
-msgstr "Inserisci qui il tuo comando o la tua risposta"
-
-#: views/stanford/about_get_almond.pug:42 views/my_conversation.pug:25
-#: views/my_stuff.pug:116
-msgid "Almond is thinking…"
-msgstr "Almond sta pensando…"
-
-#: views/stanford/about_get_almond.pug:43
-#: views/stanford/about_get_almond.pug:44 views/my_conversation.pug:27
-#: views/my_stuff.pug:118
-msgid "Lost connection to the server."
-msgstr "Connessione al server persa."
-
-#: views/stanford/about_get_almond.pug:50 views/my_conversation.pug:11
+#: views/stanford/about_get_almond.pug:11 views/my_conversation.pug:11
 #: views/oauth2_authorize.pug:8
 msgid "Web Almond"
 msgstr "Almond Web"
 
-#: views/stanford/about_get_almond.pug:54
+#: views/stanford/about_get_almond.pug:15
 msgid ""
 "Web Almond gives you the full power of a personal virtual assistant, without "
 "leaving the browser."
@@ -1054,7 +1004,7 @@ msgstr ""
 "Almond Web ti offre il potere completo di un assistente virtuale completo, "
 "senza lasciare il browser."
 
-#: views/stanford/about_get_almond.pug:56
+#: views/stanford/about_get_almond.pug:17
 msgid ""
 "Web Almond is provided free of charge to the research community. Use of Web "
 "Almond constitutes acceptance of the <a href=\"/about/tos\">Terms of "
@@ -1064,19 +1014,19 @@ msgstr ""
 "Web costituisce l'accettazione dei <a href=\"/about/tos\">Termini di "
 "Servizio</a> e della <a href=\"/about/privacy\">Politica di Privacy</a>"
 
-#: views/stanford/about_get_almond.pug:59
+#: views/stanford/about_get_almond.pug:20
 msgid "Go To Web Almond"
 msgstr "Vai ad Almond Web"
 
-#: views/stanford/about_get_almond.pug:61
+#: views/stanford/about_get_almond.pug:22
 msgid "Create An Account"
 msgstr "Crea un account"
 
-#: views/stanford/about_get_almond.pug:66
+#: views/stanford/about_get_almond.pug:27
 msgid "Almond on your Laptop"
 msgstr "Almond nel tuo portatile"
 
-#: views/stanford/about_get_almond.pug:70
+#: views/stanford/about_get_almond.pug:31
 msgid ""
 "Almond is also available as a native application for the GNOME desktop "
 "environment."
@@ -1084,7 +1034,7 @@ msgstr ""
 "Almond è anche disponibile come applicazione nativa per l'ambiente desktop "
 "GNOME."
 
-#: views/stanford/about_get_almond.pug:73
+#: views/stanford/about_get_almond.pug:34
 msgid ""
 "Use <a href=\"/thingpedia/devices/by-id/org.thingpedia.builtin.thingengine."
 "gnome\">Almond 4 GNOME</a> to open apps and documents, take screenshots, "
@@ -1094,15 +1044,15 @@ msgstr ""
 "gnome\">Almond GNOME</a> per aprire app e documenti, fare screenshot, "
 "cambiare le impostazioni e bloccare il tuo PC automaticamente."
 
-#: views/stanford/about_get_almond.pug:77
+#: views/stanford/about_get_almond.pug:38
 msgid "Download on Flathub"
 msgstr "Scarica su Flathub"
 
-#: views/stanford/about_get_almond.pug:82
+#: views/stanford/about_get_almond.pug:43
 msgid "Almond for Android"
 msgstr "Almond per Android"
 
-#: views/stanford/about_get_almond.pug:86
+#: views/stanford/about_get_almond.pug:47
 msgid ""
 "A beta version of the Almond app is also available as a native Android "
 "application."
@@ -1110,7 +1060,7 @@ msgstr ""
 "Una versione beta dell'app Almond è anche disponibile come applicazione "
 "Android nativa."
 
-#: views/stanford/about_get_almond.pug:89
+#: views/stanford/about_get_almond.pug:50
 msgid ""
 "When you install Almond on your Android phone, all your data and credentials "
 "are stored only on your device."
@@ -1118,7 +1068,7 @@ msgstr ""
 "Se installi Almond sul tuo telefono Android, tutti i tuoi dati e le tue "
 "credenziali sono memorizzate solo sul tuo dispositivo."
 
-#: views/stanford/about_get_almond.pug:92
+#: views/stanford/about_get_almond.pug:53
 msgid ""
 "This ensures the maximum level of privacy, without sacrificing the "
 "convenience of having Almond always with you."
@@ -1126,20 +1076,20 @@ msgstr ""
 "Questo assicura il massimo livello di privacy, senza sacrificare la "
 "convenienza di avere Almond sempre con te."
 
-#: views/stanford/about_get_almond.pug:99
+#: views/stanford/about_get_almond.pug:60
 msgid "Google Play and the Google Play logo are trademarks of Google LLC."
 msgstr ""
 "Google Play e il logo Google Play sono marchi registrati di Google LLC."
 
-#: views/stanford/about_get_almond.pug:105
+#: views/stanford/about_get_almond.pug:66
 msgid "Other Download Options"
 msgstr "Altre opzioni di download"
 
-#: views/stanford/about_get_almond.pug:109
+#: views/stanford/about_get_almond.pug:70
 msgid "Still have not found what your looking for?"
 msgstr "Ancora non hai trovato ciò che stai cercando?"
 
-#: views/stanford/about_get_almond.pug:113
+#: views/stanford/about_get_almond.pug:74
 msgid ""
 "Almond is also available as a <a href='https://github.com/stanford-oval/"
 "almond-server'>smart speaker</a> (hardware not included), and <a "
@@ -1151,7 +1101,7 @@ msgstr ""
 "href='https://github.com/stanford-oval/almond-cmdline'>applicazione da linea "
 "di comando</a>"
 
-#: views/stanford/about_get_almond.pug:116
+#: views/stanford/about_get_almond.pug:77
 msgid ""
 "And if that is not enough, you can find Almond's source code in our <a "
 "href='https://github.com/stanford-oval'>Github page</a>."
@@ -1163,8 +1113,8 @@ msgstr ""
 msgid "Contribute To Almond"
 msgstr "Contribuisci ad Almond"
 
-#: views/stanford/about_get_involved.pug:14 views/stanford/about_index.pug:55
-#: views/stanford/about_index.pug:65
+#: views/stanford/about_get_involved.pug:14 views/stanford/about_index.pug:90
+#: views/stanford/about_index.pug:100
 msgid "Get Involved"
 msgstr "Partecipa"
 
@@ -1246,43 +1196,80 @@ msgstr "Sviluppa Almond"
 msgid "Donate to Almond"
 msgstr "Dona ad Almond"
 
-#: views/stanford/about_index.pug:30
+#: views/stanford/about_index.pug:34
 msgid "The Open, Privacy-Preserving Virtual Assistant"
 msgstr "L'Assistente Virtuale aperto e che protegge la privacy"
 
-#: views/stanford/about_index.pug:33
+#: views/stanford/about_index.pug:37
 msgid "Almond translates your commands into a personalized program."
 msgstr "Almond traduce i tuoi comandi in un programma personalizzato."
 
-#: views/stanford/about_index.pug:37
+#: views/stanford/about_index.pug:41
 msgid "Smart"
 msgstr "Intelligente"
 
-#: views/stanford/about_index.pug:39
+#: views/stanford/about_index.pug:43
 msgid "Privacy-preserving"
 msgstr "Preserva la privacy"
 
-#: views/stanford/about_index.pug:42
+#: views/stanford/about_index.pug:46
 msgid "Extensible"
 msgstr "Estensibile"
 
-#: views/stanford/about_index.pug:44
+#: views/stanford/about_index.pug:48
 msgid "Open To All"
 msgstr "Aperto a tutti"
 
-#: views/stanford/about_index.pug:48
+#: views/stanford/about_index.pug:52
 msgid "I'm Interested"
 msgstr "Sono Interessato"
 
-#: views/stanford/about_index.pug:53 views/stanford/about_index.pug:63
+#: views/stanford/about_index.pug:57
+msgid "Go To My Almond"
+msgstr "Vai al mio Almond"
+
+#: views/stanford/about_index.pug:61 views/stanford/about_index.pug:65
+msgid "Try Almond Now"
+msgstr "Prova Almond ora"
+
+#: views/stanford/about_index.pug:74 views/my_conversation.pug:19
+#: views/my_stuff.pug:110
+msgid "Cancel"
+msgstr "Annulla"
+
+#: views/stanford/about_index.pug:77 views/my_conversation.pug:22
+#: views/my_stuff.pug:113
+msgid "Command:"
+msgstr "Comando:"
+
+#: views/stanford/about_index.pug:78 views/my_conversation.pug:23
+#: views/my_stuff.pug:114
+msgid "Write your command or answer here"
+msgstr "Inserisci qui il tuo comando o la tua risposta"
+
+#: views/stanford/about_index.pug:81 views/my_conversation.pug:25
+#: views/my_stuff.pug:116
+msgid "Almond is thinking…"
+msgstr "Almond sta pensando…"
+
+#: views/stanford/about_index.pug:82 views/stanford/about_index.pug:83
+#: views/my_conversation.pug:27 views/my_stuff.pug:118
+msgid "Lost connection to the server."
+msgstr "Connessione al server persa."
+
+#: views/stanford/about_index.pug:88 views/stanford/about_index.pug:98
 msgid "Build with Almond"
 msgstr "Costruisci con Almond"
 
-#: views/stanford/about_index.pug:57
+#: views/stanford/about_index.pug:92
 msgid "Join Our Community"
 msgstr "Entra nella nostra comunità"
 
-#: views/stanford/about_index.pug:67
+#: views/stanford/about_index.pug:96
+msgid "Try Almond"
+msgstr "Prova Almond"
+
+#: views/stanford/about_index.pug:102
 msgid ""
 "Brought to you by the <a href='https://oval.cs.stanford.edu'>Stanford Open "
 "Virtual Assistant Lab</a>."
@@ -1290,11 +1277,11 @@ msgstr ""
 "Realizzato per te dallo <a href='https://oval.cs.stanford.edu'>Stanford Open "
 "Virtual Assistant Lab</a>."
 
-#: views/stanford/about_index.pug:81
+#: views/stanford/about_index.pug:116
 msgid "Notifications That Matter To You"
 msgstr "Notifiche importanti per te"
 
-#: views/stanford/about_index.pug:83
+#: views/stanford/about_index.pug:118
 msgid ""
 "Screenshot of Almond for Android. The user asks: “Show me the New York "
 "Times”. Almond replies with news articles."
@@ -1302,15 +1289,15 @@ msgstr ""
 "Screenshot di Almond per Android. L'utente chiede: “Mostrami il New York "
 "Times”. Almond risponde con gli articoli di giornale."
 
-#: views/stanford/about_index.pug:85
+#: views/stanford/about_index.pug:120
 msgid "Say: “Monitor the New York Times”"
 msgstr "Di': “Controlla il New York Times”"
 
-#: views/stanford/about_index.pug:87
+#: views/stanford/about_index.pug:122
 msgid "Graphical and Voice is the Best Combination"
 msgstr "Voce e grafica è la combinazione migliore"
 
-#: views/stanford/about_index.pug:89
+#: views/stanford/about_index.pug:124
 msgid ""
 "Screenshot of Web Almond. The user asks, in sequence, “Turn on my security "
 "camera”, “Get a snapshot” and “Send an email to my neighbor if my camera "
@@ -1320,15 +1307,15 @@ msgstr ""
 "videocamera di sicurezza”, “Mostrami uno snapshot” e “Invia una mail al mio "
 "vicino se la mia videocamera rileva movimento quando non sono a casa”."
 
-#: views/stanford/about_index.pug:91
+#: views/stanford/about_index.pug:126
 msgid "Say: “Show me a security camera snapshot”"
 msgstr "Di': “Mostrami un'istantanea della mia video camera di sicurezza”"
 
-#: views/stanford/about_index.pug:93
+#: views/stanford/about_index.pug:128
 msgid "Enhance Your Life With All The Internet's Resources"
 msgstr "Milgiora la tua vita con tutte le risorse di Internet"
 
-#: views/stanford/about_index.pug:95
+#: views/stanford/about_index.pug:130
 msgid ""
 "Screenshot of Almond for PC. The list of enabled rules is shown, which "
 "includes: “Set your laptop's background to the NASA Astronomy Picture of the "
@@ -1338,33 +1325,33 @@ msgstr ""
 "che include “Imposta lo sfondo del tuo laptop all'immagine astronomica del "
 "giorno della NASA”. Sullo sfondo, è mostrata un'immagine della NASA."
 
-#: views/stanford/about_index.pug:97
+#: views/stanford/about_index.pug:132
 msgid "Say: “Change my laptop background to the NASA Picture of the Day”"
 msgstr ""
 "Di': “Cambia lo sfondo del mio portatile all'immagine astronomica NASA del "
 "giorno”"
 
-#: views/stanford/about_index.pug:99
+#: views/stanford/about_index.pug:134
 msgid "Automate Your Tasks, Across All Your Services"
 msgstr "Automatizza tutti i tuoi compiti, con tutti i tuoi servizi"
 
-#: views/stanford/about_index.pug:102
+#: views/stanford/about_index.pug:137
 msgid "Say: “Tweet the post when my Facebook updates”"
 msgstr "Di': “Twitta il post quando aggiorno Facebook”"
 
-#: views/stanford/about_index.pug:104 views/stanford/about_index.pug:111
+#: views/stanford/about_index.pug:139 views/stanford/about_index.pug:146
 msgid "Coming soon!"
 msgstr "In arrivo!"
 
-#: views/stanford/about_index.pug:106
+#: views/stanford/about_index.pug:141
 msgid "The Best Way To Control Your Home"
 msgstr "Il miglior metodo di controllare la tua casa"
 
-#: views/stanford/about_index.pug:109
+#: views/stanford/about_index.pug:144
 msgid "Say: “Turn off my TV if there is nobody in the room”"
 msgstr "Di': “Spegni la TV se non c'è nessuno nella stanza”"
 
-#: views/stanford/about_index.pug:115 views/admin_org_list.pug:15
+#: views/stanford/about_index.pug:150 views/admin_org_list.pug:15
 #: views/admin_org_list.pug:40 views/admin_review_queue.pug:17
 #: views/admin_review_queue.pug:50 views/admin_blog_archive.pug:53
 #: views/admin_user_list.pug:23 views/admin_user_list.pug:128
@@ -1373,7 +1360,7 @@ msgstr "Di': “Spegni la TV se non c'è nessuno nella stanza”"
 msgid "Previous"
 msgstr "Precedente"
 
-#: views/stanford/about_index.pug:118 views/admin_org_list.pug:19
+#: views/stanford/about_index.pug:153 views/admin_org_list.pug:19
 #: views/admin_org_list.pug:44 views/admin_review_queue.pug:20
 #: views/admin_review_queue.pug:53 views/admin_blog_archive.pug:56
 #: views/admin_user_list.pug:26 views/admin_user_list.pug:131
@@ -1382,39 +1369,39 @@ msgstr "Precedente"
 msgid "Next"
 msgstr "Successivo"
 
-#: views/stanford/about_index.pug:122
+#: views/stanford/about_index.pug:157
 msgid "How Almond Works"
 msgstr "Come funziona Almond"
 
-#: views/stanford/about_index.pug:129
+#: views/stanford/about_index.pug:164
 msgid "See how Almond helps Kimmy babysit."
 msgstr "Guarda come Almond aiuta la babysitter Kimmy (in inglese)."
 
-#: views/stanford/about_index.pug:134
+#: views/stanford/about_index.pug:169
 msgid "Learn how you can use Almond for your tasks."
 msgstr "Impara come puoi usare Almond per i tuoi compiti (in inglese)."
 
-#: views/stanford/about_index.pug:139
+#: views/stanford/about_index.pug:174
 msgid "Our Goal: Open Virtual Assistants for the Open Web"
 msgstr "Il nostro obiettivo: assistenti virtuali aperti per il web"
 
-#: views/stanford/about_index.pug:144
+#: views/stanford/about_index.pug:179
 msgid "Virtual assistants are the new interface to the Web."
 msgstr "Gli assistenti virtuali sono la nuova interfaccia al web."
 
-#: views/stanford/about_index.pug:146
+#: views/stanford/about_index.pug:181
 msgid "Our vision for virtual assistants includes:"
 msgstr "La nostra visione per gli assistenti virtuali include:"
 
-#: views/stanford/about_index.pug:165
+#: views/stanford/about_index.pug:200
 msgid "What We Do"
 msgstr "Cosa facciamo"
 
-#: views/stanford/about_index.pug:170
+#: views/stanford/about_index.pug:205
 msgid "Programmable Notifications"
 msgstr "Notifiche programmabili"
 
-#: views/stanford/about_index.pug:175
+#: views/stanford/about_index.pug:210
 msgid ""
 "Notifications are <em>hard</em>! Every website, every social network, every "
 "app is continuously competing for our attention. But that's no more: with "
@@ -1424,7 +1411,7 @@ msgstr ""
 "ogni app è continuamente in competizione per la nostra attenzione. Ma non "
 "più: con Almond, <em>tu</em> decidi cosa ti interessa."
 
-#: views/stanford/about_index.pug:177
+#: views/stanford/about_index.pug:212
 msgid ""
 "Commands in Almond can be <i>monitored</i> and <i>filtered</i>: you can "
 "specify to be notified whenever the result changes, when a certain condition "
@@ -1435,7 +1422,7 @@ msgstr ""
 "una certa condizione si avvera, o solo per un certo sottoinsieme dei dati. "
 "Per esempio:"
 
-#: views/stanford/about_index.pug:179
+#: views/stanford/about_index.pug:214
 msgid ""
 "You can monitor the New York Times, and be notified when they publish a new "
 "article; or you can monitor just the articles with the word “Millennial”, so "
@@ -1445,7 +1432,7 @@ msgstr ""
 "nuovo articolo; oppure puoi monitorare solo gli articoli che includono il "
 "termine “Millennial”, così sai quale industria è in via di estinzione ora."
 
-#: views/stanford/about_index.pug:180
+#: views/stanford/about_index.pug:215
 msgid ""
 "You can monitor the weather, or you choose to be notified only when the "
 "temperature is below 40 degrees, and it's time to bring in your dog."
@@ -1453,7 +1440,7 @@ msgstr ""
 "Puoi controllare il meteo, o puoi scegliere di essere notificato solo se la "
 "temperatura è sotto 5 gradi, ed è ora di far rientrare il cane."
 
-#: views/stanford/about_index.pug:181
+#: views/stanford/about_index.pug:216
 msgid ""
 "You can monitor your work email, and then decide that, you know what, it's "
 "after hours, you don't want to be bothered."
@@ -1461,7 +1448,7 @@ msgstr ""
 "Puoi monitorare le tue email di lavoro, e decidere che, sai cosa, non è "
 "orario di ufficio, non te ne può fregare di meno."
 
-#: views/stanford/about_index.pug:183
+#: views/stanford/about_index.pug:218
 msgid ""
 "Almond's conditions can make use of any result returned by a command, like "
 "the title of an article or the body of the new email. You can also use a "
@@ -1474,7 +1461,7 @@ msgstr ""
 "condizione. Specifica le tue condizioni in italiano, e lascia che Almond ti "
 "notifichi."
 
-#: views/stanford/about_index.pug:186
+#: views/stanford/about_index.pug:221
 msgid ""
 "Example of a notification. The user says “Alert me when the price of Bitcoin "
 "is below $3,600”. Almond confirms, and then notifies, as the price of "
@@ -1484,11 +1471,11 @@ msgstr ""
 "Bitcoin è sotto 3,600 $”. Almond conferma e poi notifica, dato che il prezzo "
 "di Bitcoin è ora 3,500 $."
 
-#: views/stanford/about_index.pug:190
+#: views/stanford/about_index.pug:225
 msgid "Flexible Compound Commands"
 msgstr "Comandi composti flessibili"
 
-#: views/stanford/about_index.pug:195
+#: views/stanford/about_index.pug:230
 msgid ""
 "Almond is the first virtual assistant that allows you to specify commands "
 "that combine two or more services at once. You can specify <em "
@@ -1502,11 +1489,11 @@ msgstr ""
 "class=get>recuperare</em>, e cosa <em class=do>fare</em>. Ogni parte può "
 "essere qualunque dei comandi supportati di Almond."
 
-#: views/stanford/about_index.pug:197
+#: views/stanford/about_index.pug:232
 msgid "You can use compound commands for:"
 msgstr "Puoi usare comandi composti per:"
 
-#: views/stanford/about_index.pug:199
+#: views/stanford/about_index.pug:234
 msgid ""
 "Automation: <q><span class=when>when I leave home</span>, <span "
 "class=do>turn off the heating</span></q>."
@@ -1514,7 +1501,7 @@ msgstr ""
 "Automazione: <q><span class=when>quando esco di casa</span>, <span "
 "class=do>spegni il riscaldamento</span></q>"
 
-#: views/stanford/about_index.pug:200
+#: views/stanford/about_index.pug:235
 msgid ""
 "Synchronization: <q><span class=when>when I post to Twitter</span>, <span "
 "class=do>copy the post to Facebook</span></q>."
@@ -1522,7 +1509,7 @@ msgstr ""
 "Sincronizzazione: <q><span class=when>quando posto su Twitter</span>, <span "
 "class=do>copia il post su Facebook</span></q>"
 
-#: views/stanford/about_index.pug:201
+#: views/stanford/about_index.pug:236
 msgid ""
 "Composition: <q><span class=get>get the Bitcoin price</span> and then <span "
 "class=do>send it to my colleague on Slack</span></q>."
@@ -1530,15 +1517,15 @@ msgstr ""
 "Composizione: <q><span class=get>recupera il prezzo di Bitcoin</span> e poi "
 "<span class=do>invialo ail miei colleghi su Slack</span></q>"
 
-#: views/stanford/about_index.pug:202
+#: views/stanford/about_index.pug:237
 msgid "And many more!"
 msgstr "E molti altri!"
 
-#: views/stanford/about_index.pug:203
+#: views/stanford/about_index.pug:238
 msgid "If you have used IFTTT, you'll love Almond."
 msgstr "Se hai usato IFTTT, amerai Almond"
 
-#: views/stanford/about_index.pug:207
+#: views/stanford/about_index.pug:242
 msgid ""
 "<span class=when>when the New York Times has an article about China</span>,"
 "<br><span class=get>translate the headline to Chinese</span>,<br>then <span "
@@ -1548,11 +1535,11 @@ msgstr ""
 "Cina</span>,<br><span class=\"get\">traduci il titolo in cinese</span>,<br>e "
 "poi<span class=\"do\">mandalo a un mio amico via email</span>"
 
-#: views/stanford/about_index.pug:211
+#: views/stanford/about_index.pug:246
 msgid "A Growing, Crowdsourced, Library of Services"
 msgstr "Una libreria di servizi crowdsourced e in costante crescita"
 
-#: views/stanford/about_index.pug:216
+#: views/stanford/about_index.pug:251
 msgid ""
 "Almond provides a uniform interface to your physical devices, your social "
 "network accounts, and many more services. Almond wants to let you access "
@@ -1562,7 +1549,7 @@ msgstr ""
 "account di social network, e molti altri servici. Almond vuole consentirti "
 "di accedere a qualunque cosa su Internet, dal tuo assistente."
 
-#: views/stanford/about_index.pug:218
+#: views/stanford/about_index.pug:253
 msgid ""
 "Almond capabilities are defined in <em>Thingpedia</em>, a crowdsourced "
 "repository of commands and interfaces to online services and Internet of "
@@ -1576,7 +1563,7 @@ msgstr ""
 "quantitativo di dati, Almond è immediatamente in grado di interagire con il "
 "nuovo dispositivo o servizio. "
 
-#: views/stanford/about_index.pug:220
+#: views/stanford/about_index.pug:255
 msgid ""
 "<a href='/thingpedia'>Learn more about Thingpedia</a> and <a href='/about/"
 "get-involved'>how you can help Almond learn new services and skills</a>."
@@ -1584,15 +1571,15 @@ msgstr ""
 "<a href='/thingpedia'>Scopri di più su Thingpedia</a> e <a href='/about/get-"
 "involved'>come puoi aiutare Almond a scoprire nuovi servizi e abilità</a>."
 
-#: views/stanford/about_index.pug:227
+#: views/stanford/about_index.pug:262
 msgid "Icon for %s"
 msgstr "Icona di %s"
 
-#: views/stanford/about_index.pug:231
+#: views/stanford/about_index.pug:266
 msgid "Cutting-Edge Deep Learning Technology"
 msgstr "Ultimissime technologie di Deep Learning"
 
-#: views/stanford/about_index.pug:236
+#: views/stanford/about_index.pug:271
 msgid ""
 "Almond uses a state-of-the-art natural language understanding model. "
 "Almond's deep learning model allows it to understand more complex commands "
@@ -1604,7 +1591,7 @@ msgstr ""
 "comandi più complessi, su più dominii che ogni altro assistente sul mercato. "
 "Allena Almond con paia di frasi e di programmi, e Almond imparerà."
 
-#: views/stanford/about_index.pug:238
+#: views/stanford/about_index.pug:273
 msgid ""
 "We are continuously improving Almond, and building tools to allow others to "
 "extend Almond. We have developed a tool called <a href='/doc/genie-intro."
@@ -1628,7 +1615,7 @@ msgstr ""
 "in linguaggio naturale, ed estendere Almond con operatori aggregati (somma, "
 "conto, media, ecc.)."
 
-#: views/stanford/about_index.pug:240
+#: views/stanford/about_index.pug:275
 msgid ""
 "As academics, our research is open-source, and all technology is freely "
 "available to the public. Anyone can leverage our algorithm in their product "
@@ -1643,11 +1630,11 @@ msgstr ""
 "inglese) e <a href='/about/use-almond'>come puoi usare la tecnologia di "
 "Almond</a>"
 
-#: views/stanford/about_index.pug:248
+#: views/stanford/about_index.pug:283
 msgid "What can Almond do?"
 msgstr "Cosa può fare Almond?"
 
-#: views/stanford/about_index.pug:252
+#: views/stanford/about_index.pug:287
 msgid ""
 "Here is a sample of what Almond can do, and a few commands that our users "
 "and developers think are interesting. It is not an exhaustive list! Commands "
@@ -4875,6 +4862,20 @@ msgstr "Inizia training"
 #: views/thingpedia_device_details.pug:268
 msgid "Download Code"
 msgstr "Scarica codice"
+
+#~ msgid ""
+#~ "Try Almond, directly from your browser. No account or installation "
+#~ "required!"
+#~ msgstr ""
+#~ "Prova Almond, direttamente dal tuo browser. Non serve account o "
+#~ "installazione!"
+
+#~ msgid ""
+#~ "Curious of what Almond can do? Check out the <a href=\"/thingpedia/"
+#~ "cheatsheet\">list of supported commands</a>."
+#~ msgstr ""
+#~ "Sei curioso di quello che può fare Almond? Guarda la <a href=\"/"
+#~ "thingpedia/cheatsheet\">lista dei comandi supportati</a>."
 
 #~ msgid "Thingpedia - Developer Portal"
 #~ msgstr "Thingpedia - Portale Sviluppatori"
