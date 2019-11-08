@@ -229,7 +229,7 @@ module.exports = {
                 };
 
                 try {
-                    stringType = await stringModel.getByTypeName(dbClient, req.body.type_name);
+                    stringType = await stringModel.getByTypeName(dbClient, req.body.type_name, language);
                     await stringModel.update(dbClient, stringType, string);
                 } catch (e) {
                     stringType = await stringModel.create(dbClient, string);
