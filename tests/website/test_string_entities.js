@@ -26,6 +26,9 @@ two,The Second Entity
 three,The Third Entity
 `;
 
+const ENTITY_FILE_APPEND = `four,The Fourth Entity
+five,The Fifth Entity`;
+
 const BAD_ENTITY_FILE = `one,The First Entity
 two,The Second Entity
 bad,Bad,Entity,File
@@ -43,6 +46,10 @@ const STRING_FILE_THREE = `aaaa\t1.0
 bbbb\t5.0
 cccc\t
 dddd\t1.0`;
+
+const STRING_FILE_APPEND = `Xxxx
+Yyyy
+Zzzz`;
 
 function createUpload(file, data) {
     const fd = new FormData();
@@ -98,6 +105,53 @@ async function testEntityCreate(nobody, bob, root) {
 
         const entityValues = toObject(await entityModel.getValues(dbClient, 'org.thingpedia.test:entity_test1'));
         assert.deepStrictEqual(entityValues, [
+            {
+                entity_canonical: 'the first entity',
+                entity_name: 'The First Entity',
+                entity_value: 'one'
+            },
+            {
+                entity_canonical: 'the third entity',
+                entity_name: 'The Third Entity',
+                entity_value: 'three'
+            },
+            {
+                entity_canonical: 'the second entity',
+                entity_name: 'The Second Entity',
+                entity_value: 'two'
+            }
+        ]);
+    });
+
+    const fd3_append = createUpload(ENTITY_FILE_APPEND, {
+        entity_id: 'org.thingpedia.test:entity_test1',
+        entity_name: 'Test Entity Appended',
+        no_ner_support: ''
+    });
+
+    await sessionRequest('/thingpedia/entities/create', 'POST', fd3_append, root);
+    await db.withClient(async (dbClient) => {
+        const entity = toObject(await entityModel.get(dbClient, 'org.thingpedia.test:entity_test1'));
+        assert.deepStrictEqual(entity, {
+            has_ner_support: 1,
+            id: 'org.thingpedia.test:entity_test1',
+            is_well_known: 0,
+            language: 'en',
+            name: 'Test Entity Appended'
+        });
+
+        const entityValues = toObject(await entityModel.getValues(dbClient, 'org.thingpedia.test:entity_test1'));
+        assert.deepStrictEqual(entityValues, [
+            {
+                entity_canonical: 'the fifth entity',
+                entity_name: 'The Fifth Entity',
+                entity_value: 'five'
+            },
+            {
+                entity_canonical: 'the fourth entity',
+                entity_name: 'The Fourth Entity',
+                entity_value: 'four'
+            },
             {
                 entity_canonical: 'the first entity',
                 entity_name: 'The First Entity',
@@ -221,6 +275,61 @@ async function testStringCreate(nobody, bob, root) {
             {
                 preprocessed: 'dddd',
                 value: 'Dddd',
+                weight: 1.0
+            },
+        ]);
+    });
+
+    const fd4_append = createUpload(STRING_FILE_APPEND, {
+        type_name: 'org.thingpedia.test:string_test1',
+        name: 'Test String One Appended',
+        license: 'public-domain',
+    });
+
+    await sessionRequest('/thingpedia/strings/create', 'POST', fd4_append, root);
+    await db.withClient(async (dbClient) => {
+        const stringType = await stringModel.getByTypeName(dbClient, 'org.thingpedia.test:string_test1');
+        assert.strictEqual(stringType.type_name, 'org.thingpedia.test:string_test1');
+        assert.strictEqual(stringType.language, 'en');
+        assert.strictEqual(stringType.name, 'Test String One Appended');
+        assert.strictEqual(stringType.license, 'public-domain');
+
+        const values = toObject(await stringModel.getValues(dbClient, 'org.thingpedia.test:string_test1'));
+        values.sort((a, b) => a.preprocessed.localeCompare(b.preprocessed));
+        assert.deepStrictEqual(values, [
+            {
+                preprocessed: 'aaaa',
+                value: 'Aaaa',
+                weight: 1.0
+            },
+            {
+                preprocessed: 'bbbb .',
+                value: 'Bbbb.',
+                weight: 1.0
+            },
+            {
+                preprocessed: 'cccc ???',
+                value: 'Cccc???',
+                weight: 1.0
+            },
+            {
+                preprocessed: 'dddd',
+                value: 'Dddd',
+                weight: 1.0
+            },
+            {
+                preprocessed: 'xxxx',
+                value: 'Xxxx',
+                weight: 1.0
+            },
+            {
+                preprocessed: 'yyyy',
+                value: 'Yyyy',
+                weight: 1.0
+            },
+            {
+                preprocessed: 'zzzz',
+                value: 'Zzzz',
                 weight: 1.0
             },
         ]);

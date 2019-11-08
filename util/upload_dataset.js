@@ -108,12 +108,19 @@ module.exports = {
                         throw new ForbiddenError(req._("The prefix of the entity ID must correspond to the ID of a Thingpedia device owned by your organization."));
                 }
 
-                await entityModel.create(dbClient, {
+                const entity = {
                     name: req.body.entity_name,
                     id: req.body.entity_id,
                     is_well_known: false,
                     has_ner_support: !req.body.no_ner_support
-                });
+                };
+
+                try {
+                    await entityModel.get(dbClient, req.body.entity_id);
+                    await entityModel.update(dbClient, req.body.entity_id, entity);
+                } catch (e) {
+                    await entityModel.create(dbClient, entity);
+                }
 
                 if (req.body.no_ner_support)
                     return;
@@ -212,13 +219,21 @@ module.exports = {
                 if (!req.files.upload || !req.files.upload.length)
                     throw new BadRequestError(req._("You must upload a TSV file with the string values."));
 
-                const stringType = await stringModel.create(dbClient, {
+                let stringType;
+                let string = {
                     language: language,
                     type_name: req.body.type_name,
                     name: req.body.name,
                     license: req.body.license,
                     attribution: req.body.attribution || '',
-                });
+                };
+
+                try {
+                    stringType = await stringModel.getByTypeName(dbClient, req.body.type_name, language);
+                    await stringModel.update(dbClient, stringType.id, string);
+                } catch (e) {
+                    stringType = await stringModel.create(dbClient, string);
+                }
 
                 const file = fs.createReadStream(req.files.upload[0].path);
                 file.setEncoding('utf8');
