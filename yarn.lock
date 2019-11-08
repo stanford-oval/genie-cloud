@@ -471,9 +471,9 @@ align-text@^0.1.1, align-text@^0.1.3:
     repeat-string "^1.5.2"
 
 almond-dialog-agent@~1.7.0:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/almond-dialog-agent/-/almond-dialog-agent-1.7.0.tgz#4646a2e8f0db3d9e30bc2027cff8abe6153c9e7d"
-  integrity sha512-CWBQn3UIDmyfRSOkPHv3mbax4QqenYlYFBatZLyadcUPCom3fpfbtNvcs7aRB1Kxao+VOfec+f41BYvVflmMNA==
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/almond-dialog-agent/-/almond-dialog-agent-1.7.1.tgz#269723812c1f04b8bc669db8b8618cbe24f2a50a"
+  integrity sha512-XZBsPb14IKo/qfH1TOGPobd7F/25Lm5eekaJ5Tx8xK4Wu0YsVM9z6eUWk/KjJBKjIRum5uRy4rz0495YkYndLw==
   dependencies:
     adt "^0.7.2"
     consumer-queue "^1.0.0"
@@ -6431,9 +6431,9 @@ qs@6.7.0:
   integrity sha512-VCdBRNFTX1fyE7Nb6FYoURo/SPe62QCaAyzJvUjwRaIsc+NePBEniHlvxFmmX56+HZphIGtV0XeCirBtpDrTyQ==
 
 qs@^6.5.2, qs@^6.7.0:
-  version "6.9.0"
-  resolved "https://registry.yarnpkg.com/qs/-/qs-6.9.0.tgz#d1297e2a049c53119cb49cca366adbbacc80b409"
-  integrity sha512-27RP4UotQORTpmNQDX8BHPukOnBP3p1uUJY5UnDhaJB+rMt9iMsok724XL+UHU23bEFOHRMQ2ZhI99qOWUMGFA==
+  version "6.9.1"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.9.1.tgz#20082c65cb78223635ab1a9eaca8875a29bf8ec9"
+  integrity sha512-Cxm7/SS/y/Z3MHWSxXb8lIFqgqBowP5JMlTUFyJN88y0SGQhVmZnqFK/PeuMX9LzUyWsqqhNxIyg0jlzq946yA==
 
 qs@~6.5.2:
   version "6.5.2"
