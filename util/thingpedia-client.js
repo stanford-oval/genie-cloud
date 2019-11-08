@@ -340,8 +340,8 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
         }
         return rows;
     }
-    _makeDataset(name, rows) {
-        return DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.${name}`, this.language, rows);
+    _makeDataset(name, rows, options = {}) {
+        return DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.${name}`, this.language, rows, options);
     }
 
     getExamplesByKey(key, accept = 'application/x-thingtalk') {
@@ -371,6 +371,12 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
                 return this._datasetBackwardCompat(rows, true);
             case 'application/json':
                 return this._datasetBackwardCompat(rows, false);
+            case 'application/x-thingtalk;editMode=1':
+                if (kinds.length === 1)
+                    return DatasetUtils.examplesToDataset(kinds[0], this.language, rows, { editMode: true });
+
+                return this._makeDataset(`by_kinds.${kinds.map((k) => k.replace(/[^a-zA-Z0-9]+/g, '_')).join('__')}`,
+                    rows, { editMode: true });
             default:
                 return this._makeDataset(`by_kinds.${kinds.map((k) => k.replace(/[^a-zA-Z0-9]+/g, '_')).join('__')}`,
                     rows);

@@ -1153,7 +1153,7 @@ v1.get('/examples/by-kinds/:kinds', (req, res, next) => {
 v3.get('/examples/by-kinds/:kinds', (req, res, next) => {
     var kinds = req.params.kinds.split(',');
     var client = new ThingpediaClient(req.query.developer_key, req.query.locale);
-    const accept = accepts(req).types(['application/x-thingtalk', 'application/json', 'text/html']);
+    const accept = accepts(req).types(['application/x-thingtalk', 'application/x-thingtalk;editMode=1', 'application/json', 'text/html']);
     if (!accept) {
         res.status(405).json({ error: 'must accept application/x-thingtalk or application/json' });
         return;
