@@ -32,7 +32,8 @@ const ValueCategory = adt.data({
     Contact: null,
     Predicate: null,
     PermissionResponse: null,
-    Command: null
+    Command: null,
+    More: null
 });
 
 ValueCategory.fromValue = function fromValue(value) {
@@ -107,44 +108,41 @@ ValueCategory.toAskSpecial = function toAskSpecial(expected) {
 };
 
 const Intent = adt.data({
-    // internally generated intents
-    Failed: { command: adt.only(Object, null) },
-    Train: { command: adt.only(Object, null), fallbacks: adt.only(Array, null) },
-    Back: null,
-    More: null,
-    Empty: null,
-    Debug: null,
-    Maybe: null,
-    Unsupported: null,
-    Example: { utterance: adt.only(String), targetCode: adt.only(String) },
-    CommandList: { device: adt.only(String, null), category: adt.only(String) },
+    // internally generated intents that have no thingtalk representation
+    Unsupported: { platformData: adt.any },
+    Example: { utterance: adt.only(String), targetCode: adt.only(String), platformData: adt.any },
+    Failed: { command: adt.only(String, null), platformData: adt.any },
 
-    // special entries in the grammar
-    NeverMind: null, // cancel the current task
-    Help: null, // ask for contextual help, or start a new task
-    Make: null, // reset and start a new task
-    WakeUp: null, // do nothing and wake up the screen
-
-    // easter eggs
-    Hello: null,
-    Cool: null,
-    ThankYou: null,
-    Sorry: null,
-
-    Answer: { category: adt.only(ValueCategory), value: adt.only(Ast.Value, Number) },
+    // bookkeeping intents that require special handling in the dialogues and the dispatcher
+    Train: { command: adt.only(Object, null), fallbacks: adt.only(Array, null), thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
+    Back: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
+    More: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
+    Empty: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
+    Debug: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
+    Maybe: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
+    CommandList: { device: adt.only(String, null), category: adt.only(String), thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
+    NeverMind: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any }, // cancel the current task
+    Stop: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any }, // cancel the current task, quietly
+    Help: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any }, // ask for contextual help, or start a new task
+    Make: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any }, // reset and start a new task
+    WakeUp: { thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any }, // do nothing and wake up the screen
+    Answer: { category: adt.only(ValueCategory), value: adt.only(Ast.Value, Number), thingtalk: adt.only(ThingTalk.Ast.Input), platformData: adt.any },
 
     // thingtalk
     Program: {
-        program: adt.only(Ast.Program)
+        program: adt.only(Ast.Program),
+        thingtalk: adt.only(ThingTalk.Ast.Input),
+        platformData: adt.any
     },
     Predicate: {
-        predicate: adt.only(Ast.BooleanExpression)
-    },
-    Setup: {
-        program: adt.only(Ast.Program)
+        predicate: adt.only(Ast.BooleanExpression),
+        thingtalk: adt.only(ThingTalk.Ast.Input),
+        platformData: adt.any
     },
     PermissionRule: {
-        rule: adt.only(Ast.PermissionRule)
+        rule: adt.only(Ast.PermissionRule),
+        thingtalk: adt.only(ThingTalk.Ast.Input),
+        platformData: adt.any
     }
 });
 
@@ -157,71 +155,64 @@ const SPECIAL_INTENT_MAP = {
     debug: Intent.Debug,
     help: Intent.Help,
     maybe: Intent.Maybe,
-    hello: Intent.Hello,
-    cool: Intent.Cool,
-    thankyou: Intent.ThankYou,
-    thank_you: Intent.ThankYou,
-    sorry: Intent.Sorry,
+    stop: Intent.Stop,
     wakeup: Intent.WakeUp,
 };
 
-function parseSpecial(special, command, previousCommand, previousCandidates) {
+function parseSpecial(thingtalk, context) {
     let intent;
-    special = special.substring('special:'.length);
-    switch (special) {
+    switch (thingtalk.intent.type) {
     case 'yes':
-        intent = new Intent.Answer(ValueCategory.YesNo, Ast.Value.Boolean(true));
+        intent = new Intent.Answer(ValueCategory.YesNo, Ast.Value.Boolean(true), thingtalk, context.platformData);
         intent.isYes = true;
         intent.isNo = false;
         break;
     case 'no':
-        intent = new Intent.Answer(ValueCategory.YesNo, Ast.Value.Boolean(false));
+        intent = new Intent.Answer(ValueCategory.YesNo, Ast.Value.Boolean(false), thingtalk, context.platformData);
         intent.isYes = false;
         intent.isNo = true;
         break;
     case 'failed':
-        intent = new Intent.Failed(command);
+        intent = new Intent.Failed(context.command, context.platformData);
         break;
     case 'train':
-        intent = new Intent.Train(previousCommand, previousCandidates);
+        intent = new Intent.Train(context.previousCommand, context.previousCandidates, thingtalk, context.platformData);
         break;
     default:
-        if (!SPECIAL_INTENT_MAP[special])
-            throw new Error('Unrecognized special ' + special);
-        intent = SPECIAL_INTENT_MAP[special];
+        if (SPECIAL_INTENT_MAP[thingtalk.intent.type])
+            intent = new (SPECIAL_INTENT_MAP[thingtalk.intent.type])(thingtalk, context.platformData);
+        else
+            intent = new Intent.Failed(context.command, context.platformData);
     }
     return intent;
 }
 
-function parseBookeeping(code, schemaRetriever, entities, command, previousCommand, previousCandidates) {
-    switch (code[1]) {
-    case 'special':
-        return parseSpecial(code[2], command, previousCommand, previousCandidates);
-
-    case 'answer': {
-        const value = ThingTalk.NNSyntax.fromNN(code.slice(1), entities);
-        return new Intent.Answer(ValueCategory.fromValue(value), value);
+Intent.fromThingTalk = function(thingtalk, context) {
+    if (thingtalk.isBookkeeping) {
+        if (thingtalk.intent.isSpecial)
+            return parseSpecial(thingtalk, context);
+        else if (thingtalk.intent.isAnswer)
+            return new Intent.Answer(ValueCategory.fromValue(thingtalk.intent.value), thingtalk.intent.value, thingtalk, context.platformData);
+        else if (thingtalk.intent.isPredicate)
+            return new Intent.Predicate(thingtalk.intent.predicate, thingtalk, context.platformData);
+        else if (thingtalk.intent.isCommandList)
+            return new Intent.CommandList(thingtalk.intent.device.isUndefined ? null : String(thingtalk.intent.device.toJS()), thingtalk.intent.category, thingtalk, context.platformData);
+        else if (thingtalk.intent.isChoice)
+            return new Intent.Answer(ValueCategory.MultipleChoice, thingtalk.intent.value, thingtalk, context.platformData);
+        else
+            throw new TypeError(`Unrecognized bookkeeping intent`);
+    } else if (thingtalk.isProgram) {
+        return new Intent.Program(thingtalk, thingtalk, context.platformData);
+    } else if (thingtalk.isPermissionRule) {
+        return new Intent.PermissionRule(thingtalk, thingtalk, context.platformData);
+    } else {
+        throw new TypeError(`Unrecognized ThingTalk command: ${thingtalk.prettyprint()}`);
     }
-    case 'filter': {
-        const predicate = ThingTalk.NNSyntax.fromNN(code.slice(1), entities);
-        return new Intent.Predicate(predicate);
-    }
-    case 'category':
-        return new Intent.CommandList(null, code[2]);
-    case 'commands':
-        return new Intent.CommandList(code[3].substring('device:'.length), code[2]);
+};
 
-    case 'choice':
-        return new Intent.Answer(ValueCategory.MultipleChoice, parseInt(code[2]));
-
-    default:
-        throw new Error('Unrecognized bookkeeping command ' + code[1]);
-    }
-}
-
-Intent.parse = function parse(json, schemaRetriever, command, previousCommand, previousCandidates) {
+Intent.parse = async function parse(json, schemaRetriever, context) {
     if ('program' in json)
-        return this.parseProgram(json.program, schemaRetriever);
+        return Intent.fromThingTalk(await ThingTalk.Grammar.parseAndTypecheck(json.program, schemaRetriever, true), context);
 
     let { code, entities } = json;
     for (let name in entities) {
@@ -233,35 +224,13 @@ Intent.parse = function parse(json, schemaRetriever, command, previousCommand, p
         }
     }
 
-    if (code[0] === 'bookkeeping')
-        return Promise.resolve(parseBookeeping(code, schemaRetriever, entities, command, previousCommand, previousCandidates));
-
-    return Promise.resolve().then(() => {
-        let program = ThingTalk.NNSyntax.fromNN(code, entities);
-        return program.typecheck(schemaRetriever, true);
-    }).then((program) => {
-        if (program.isProgram) {
-            if (program.principal !== null)
-                return new Intent.Setup(program);
-            else
-                return new Intent.Program(program);
-        } else {
-            return new Intent.PermissionRule(program);
-        }
-    });
+    const thingtalk = ThingTalk.NNSyntax.fromNN(code, entities);
+    await thingtalk.typecheck(schemaRetriever, true);
+    return Intent.fromThingTalk(thingtalk, context);
 };
 
-Intent.parseProgram = function parseProgram(thingtalk, schemaRetriever) {
-    return ThingTalk.Grammar.parseAndTypecheck(thingtalk, schemaRetriever, true).then((prog) => {
-        if (prog.isProgram) {
-            if (prog.principal !== null)
-                return new Intent.Setup(prog);
-            else
-                return new Intent.Program(prog);
-        } else {
-            return new Intent.PermissionRule(prog);
-        }
-    });
+Intent.parseThingTalk = async function parseThingTalk(code, schemaRetriever, context) {
+    return Intent.fromThingTalk(await ThingTalk.Grammar.parseAndTypecheck(code, schemaRetriever, true), context);
 };
 
 module.exports.Intent = Intent;
