@@ -75,7 +75,8 @@ Check the logs for further information.`
     }
 
     async _recordJobCompletion(dbClient, jobRow) {
-        if (jobRow.status === 'error' && jobRow.error !== `Dependency failed` && jobRow.error !== `Killed`)
+        if (jobRow.status === 'error' && jobRow.error !== `Dependency failed` && jobRow.error !== `Killed`
+            && jobRow.error !== 'The kubernetes job was deleted')
             await this._notifyFailure(jobRow);
 
         await trainingJobModel.update(dbClient, jobRow.id, {
