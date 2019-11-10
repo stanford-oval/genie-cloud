@@ -31,6 +31,9 @@ block content
                   li Do not add any new information that doesn't exist in the original command;
                   li Keep quoted parts (including the quote marks, emails, phone numbers identical</b> 
                   li Do not drop @ signs and # signs</b>
+                  li
+                     strong
+                      | Do not use any automated tool for this task. Do not use paraphrasing websites or tools. We will reject any submission that is not written by a human.
               p 
                 |  We will show you warning messages if we detect your paraphrases have some obvious problems which can help you resolve them.
               p 
@@ -63,6 +66,25 @@ block content
                   div.col-md-6
                     p Wrong paraphrase 2: (<font color='red'>missing quotes for 'hello' and the @ sign for '@bob'</font>) 
                     pre say hello to bob on twitter
+
+          div.row(style='margin-top:2em')
+            div.col-xs-12
+              div.container
+                div.row
+                  div.col-md-6
+                    p Original command
+                    pre alert me of updates in the new york times
+                div.row
+                  div.col-md-6
+                    p Correct paraphrase 1: 
+                    pre monitor the new york times
+                  div.col-md-6
+                    p Correct paraphrase 2: 
+                    pre notify me when the new york times has a new article
+                div.row
+                  div.col-md-6
+                    p Wrong paraphrase 1: (<font color='red'>introduces new service SMS that was not mentioned</font>) 
+                    pre text me updates in the new york times
 
       section.divider
         h3= _('Your Turn Now') 
