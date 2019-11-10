@@ -303,12 +303,12 @@ module.exports = {
 
     getBaseBySchema(client, schemaId, language) {
         return db.selectAll(client, "select * from example_utterances use index(language_type) where schema_id = ?"
-            + " and is_base and type = 'thingpedia' and language = ?", [schemaId, language]);
+            + " and is_base and type = 'thingpedia' and language = ? order by id asc", [schemaId, language]);
     },
 
     getBaseBySchemaKind(client, schemaKind, language) {
-        return db.selectAll(client, `(select eu.* from example_utterances eu, device_schema ds where
-            eu.schema_id = ds.id and ds.kind = ? and is_base and type = 'thingpedia' and language = ?)`
+        return db.selectAll(client, `select eu.* from example_utterances eu, device_schema ds where
+            eu.schema_id = ds.id and ds.kind = ? and is_base and type = 'thingpedia' and language = ? order by id asc`
             , [schemaKind, language]);
     },
 
