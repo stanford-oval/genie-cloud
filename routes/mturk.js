@@ -323,10 +323,11 @@ async function autoValidateParaphrase(dbClient, batchId, language, schemas, utte
         TokenizerService.tokenize(language, utterance)
     ]);
 
-    let target_code = ThingTalk.NNSyntax.toNN(program, entities);
-    for (let name in entities) {
-        if (name === '$used') continue;
-        throw new BadRequestError('Unused entity ' + name);
+    let target_code;
+    try {
+        target_code = ThingTalk.NNSyntax.toNN(program, preprocessed, entities);
+    } catch(e) {
+        throw new BadRequestError(e.message);
     }
     return example.create(dbClient, {
         utterance: utterance,
