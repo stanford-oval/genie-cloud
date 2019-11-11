@@ -402,7 +402,7 @@ module.exports = {
             if (org === -1) {
                 return db.selectAll(client, `select dsc.name, channel_type, extends, canonical, confirmation,
                     confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                    string_values, is_list, is_monitorable, questions, confirm, kind, kind_type
+                    string_values, is_list, is_monitorable, questions, confirm, kind, kind_canonical, kind_type
                     from device_schema ds left join
                     device_schema_channels dsc on ds.id = dsc.schema_id and
                     dsc.version = ds.developer_version left join device_schema_channel_canonicals dscc
@@ -412,7 +412,7 @@ module.exports = {
             } if (org !== null) {
                 return db.selectAll(client, `select dsc.name, channel_type, extends, canonical, confirmation,
                     confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                    string_values, is_list, is_monitorable, questions, confirm, kind, kind_type
+                    string_values, is_list, is_monitorable, questions, confirm, kind, kind_canonical, kind_type
                     from device_schema ds left join
                     device_schema_channels dsc on ds.id = dsc.schema_id and
                     ((dsc.version = ds.developer_version and ds.owner = ?) or
@@ -424,7 +424,7 @@ module.exports = {
             } else {
                 return db.selectAll(client, `select dsc.name, channel_type, extends, canonical, confirmation,
                     confirmation_remote, formatted, doc, types, argnames, argcanonicals, required, is_input,
-                    string_values, is_list, is_monitorable, questions, confirm, kind, kind_type
+                    string_values, is_list, is_monitorable, questions, confirm, kind, kind_canonical, kind_type
                     from device_schema ds left join device_schema_channels
                     dsc on ds.id = dsc.schema_id and dsc.version = ds.approved_version left join
                     device_schema_channel_canonicals dscc on dscc.schema_id = dsc.schema_id and
@@ -438,7 +438,7 @@ module.exports = {
     getMetasByKindAtVersion(client, kind, version, language) {
         return Q.try(() => {
             return db.selectAll(client, "select dsc.name, channel_type, extends, canonical, confirmation, confirmation_remote, formatted, doc, types,"
-                                + " argnames, argcanonicals, required, is_input, string_values, is_list, is_monitorable, questions, confirm, kind, kind_type "
+                                + " argnames, argcanonicals, required, is_input, string_values, is_list, is_monitorable, questions, confirm, kind, kind_canonical, kind_type "
                                 + " from device_schema ds"
                                 + " left join device_schema_channels dsc on ds.id = dsc.schema_id"
                                 + " and dsc.version = ? "
