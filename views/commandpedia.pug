@@ -6,7 +6,8 @@ div#commandpedia
         button.btn.btn-primary.search-button(type="submit")= _("Search")
       div.form-group
         button.btn.btn-primary.reset-button= _("Reset")
-    button(data-toggle='modal',data-target='#commandpedia-new-command').navbar-btn.btn.btn-primary= _("Add a New Command")
+    if authenticated
+      button(data-toggle='modal',data-target='#commandpedia-new-command').navbar-btn.btn.btn-primary= _("Add a New Command")
     div.modal.fade#commandpedia-new-command(role='dialog')
       div.modal-dialog
         div.modal-content
