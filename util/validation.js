@@ -37,7 +37,7 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 
 const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
 const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
-const ALLOWED_CLASS_METADATA = new Set(['name', 'description', 'thingpedia_name', 'thingpedia_description']);
+const ALLOWED_CLASS_METADATA = new Set(['name', 'description', 'thingpedia_name', 'thingpedia_description', 'canonical']);
 
 function validateAnnotations(annotations) {
     for (let name of Object.getOwnPropertyNames(annotations)) {
@@ -132,6 +132,8 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         classDef.metadata.name = name;
     if (!classDef.metadata.description)
         classDef.metadata.description = description;
+    if (!classDef.metadata.canonical)
+        classDef.metadata.canonical = tokenize(name).join(' ');
     await validateDataset(dataset);
 
     // delete annotations that are specific to devices uploaded with the "thingpedia" CLI tool

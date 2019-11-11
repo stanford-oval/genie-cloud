@@ -173,7 +173,8 @@ const BING_CLASS = `class @com.bing {
                                     out link: Entity(tt:url));
 }
 `;
-const BING_CLASS_WITH_METADATA = `class @com.bing {
+const BING_CLASS_WITH_METADATA = `class @com.bing
+#_[canonical="bing search"] {
   monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                       out title: String #_[canonical="title"] #[string_values="tt:short_free_text"],
                                       out picture_url: Entity(tt:picture) #_[canonical="picture url"],
@@ -198,6 +199,7 @@ const BING_CLASS_WITH_METADATA = `class @com.bing {
 const BING_CLASS_FULL = `class @com.bing
 #_[name="Bing Search"]
 #_[description="Search the web with Bing"]
+#_[canonical="bing search"]
 #[version=0]
 #[package_version=0] {
   import loader from @org.thingpedia.v2();
@@ -237,14 +239,16 @@ const ADMINONLY_CLASS = `class @org.thingpedia.builtin.test.adminonly {
   action eat_data(in req data: String);
 }
 `;
-const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisible {
+const INVISIBLE_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.invisible
+#_[canonical="invisible device"] {
   action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
   #_[canonical="eat data on test"]
   #_[confirmation="consume $data"]
   #[confirm=true];
 }
 `;
-const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.adminonly {
+const ADMINONLY_CLASS_WITH_METADATA = `class @org.thingpedia.builtin.test.adminonly
+#_[canonical="admin-only device"] {
   action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
   #_[canonical="eat data on test"]
   #_[confirmation="consume $data"]
@@ -2086,6 +2090,7 @@ module.exports = class TestDevice extends Tp.BaseDevice {
 const BANG_CLASS_FULL = `class @com.bing
 #_[name="Bang Search"]
 #_[description="Search the web with Bang"]
+#_[canonical="bang search"]
 #[version=1]
 #[package_version=1] {
   import loader from @org.thingpedia.v2();
@@ -2203,6 +2208,7 @@ async function testCreateDevice() {
     assert.strictEqual(manifest, `class @org.thingpedia.test.newdevice1
 #_[name="New Test Device"]
 #_[description="Yet another test device (can't have too many of those)"]
+#_[canonical="new test device"]
 #[version=0]
 #[package_version=0] {
   import loader from @org.thingpedia.v2();

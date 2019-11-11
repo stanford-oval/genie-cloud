@@ -22,7 +22,6 @@ const exampleModel = require('../model/example');
 
 const user = require('./user');
 
-const tokenizer = require('./tokenize');
 const graphics = require('../almond/graphics');
 const colorScheme = require('./color_scheme');
 
@@ -75,7 +74,7 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
         }
 
         var obj = {
-            kind_canonical: tokenizer.tokenize(name).join(' '),
+            kind_canonical: classDef.metadata.canonical,
             developer_version: existing.developer_version + 1
         };
         if (approve)
@@ -86,7 +85,7 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
     }, async (e) => {
         var obj = {
             kind: classDef.kind,
-            kind_canonical: tokenizer.tokenize(name).join(' '),
+            kind_canonical: classDef.metadata.canonical,
             kind_type: 'primary',
             owner: req.user.developer_org
         };
