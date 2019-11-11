@@ -26,34 +26,22 @@ const fakeGettext = {
     }
 };
 
-module.exports = function reconstructCanonical(schemaRetriever, code, entities) {
-    return Intent.parse({ code, entities }, schemaRetriever, null, null, []).then((intent) => {
-        if (intent.isFailed || intent.isFallback || intent.isTrain ||
-            intent.isBack || intent.isEmpty || intent.isFilter || intent.isDebug || intent.isMore)
-            throw new Error('Invalid internal intent ' + intent);
+function makeContext() {
+    return {
+        command: null,
+        previousCommand: null,
+        previousCandidates: [],
+        platformData: {}
+    };
+}
 
-        if (intent.isNeverMind)
-            return "never mind";
-        if (intent.isHelp)
-            return "help";
-        if (intent.isMake)
-            return "make a command";
-        if (intent.isHello)
-            return "hello";
-        if (intent.isCool)
-            return "this is cool";
-        if (intent.isThankYou)
-            return "thank you";
-        if (intent.isSorry)
-            return "i'm sorry";
-        if (intent.isWakeUp)
-            return "almond, wake up!";
-        if (intent.isAnswer)
-            return Describe.describeArg(fakeGettext, intent.value);
+async function reconstructCanonical(schemaRetriever, code, entities) {
+    const intent = await Intent.parse({ code, entities }, schemaRetriever, makeContext());
+    if (intent.isExample || intent.isUnsupported || intent.isFailed)
+        throw new Error('Invalid internal intent ' + intent);
 
-        if (intent.isPermissionRule)
-            return Describe.describePermissionRule(fakeGettext, intent.rule);
-        else
-            return Describe.describeProgram(fakeGettext, intent.program);
-    });
-};
+    const describer = new Describe.Describer(fakeGettext, 'en-US', 'America/Los_Angeles');
+    return describer.describe(intent.thingtalk);
+}
+
+module.exports = reconstructCanonical;

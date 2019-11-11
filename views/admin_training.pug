@@ -45,7 +45,7 @@ block content
       a(data-toggle='modal', href='#new-training-job-dialog').btn.btn-primary.btn-sm.btn-block= _("Queue a new training job")
 
   h2= _("Current Metrics")
-  canvas(width=150 * Object.keys(metrics).length, height='750', data-metrics=JSON.stringify(metrics))#chart-accuracy-combined
+  canvas(width=200 + 150 * Object.keys(metrics).length, height='750', data-metrics=JSON.stringify(metrics))#chart-accuracy-combined
     for model,tag in metrics
       h3= _("Model: %s").format(tag)
       p

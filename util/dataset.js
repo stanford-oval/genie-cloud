@@ -165,6 +165,8 @@ function rowsToExamples(rows, { editMode = false, skipId = false }) {
             const ex = uniqueCode.get(targetCode);
             ex.utterances.push(row.utterance);
             ex.preprocessed.push(row.preprocessed);
+            if (row.name && !ex.name)
+                ex.name = row.name;
         } else {
             uniqueCode.set(targetCode, {
                 id: row.id,
