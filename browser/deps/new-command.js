@@ -193,6 +193,7 @@ module.exports = class ThingTalkTrainer {
         } else if (!this._confirmed) {
             $('#confirmation-group').show();
             $('#submit').text('Confirm');
+            this._confirmed = true;
         } else {
             let thingtalk = $('#input-command-thingtalk').val();
             if (thingtalk.length > 0) {
