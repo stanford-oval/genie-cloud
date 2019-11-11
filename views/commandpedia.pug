@@ -7,7 +7,7 @@ div#commandpedia
       div.form-group
         button.btn.btn-primary.reset-button= _("Reset")
     if authenticated
-      button(data-toggle='modal',data-target='#commandpedia-new-command').navbar-btn.btn.btn-primary= _("Add a New Command")
+      button(data-toggle='modal',data-target='#commandpedia-new-command').navbar-btn.btn.btn-primary#add-to-commandpedia= _("Add a New Command")
     div.modal.fade#commandpedia-new-command(role='dialog')
       div.modal-dialog
         div.modal-content
@@ -46,7 +46,7 @@ div#commandpedia
               div(hidden=true).form-group#confirmation-group
                 label(for='input-command-confirmation').control-label= _("Please confirm this is what you would like your command to do:")
                 textarea.form-control#input-command-confirmation(name="code", readonly=true)
-              div(hidden=true).form-group#success
+              div(hidden=true).form-group#add-to-commandpedia-success
                 p= _("You command has been added. Thank you for your contribution!")
             div.modal-footer
               div.row

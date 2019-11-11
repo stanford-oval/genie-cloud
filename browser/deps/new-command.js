@@ -30,8 +30,6 @@ module.exports = class ThingTalkTrainer {
         this.thingpedia = new ThingpediaClient(this._developerKey, this._locale);
         this._schemaRetriever = new SchemaRetriever(this.thingpedia);
 
-        this._init();
-
         $('#input-command-utterance').change(() => {
             this._predicted = false;
             $('#submit').text('Add');
@@ -50,7 +48,7 @@ module.exports = class ThingTalkTrainer {
         $('#form-new-command').submit(this._submit.bind(this));
     }
 
-    _init() {
+    init() {
         $('#input-command-utterance').val('');
         $('#input-command-thingtalk').val('');
         $('#input-command-confirmation').val('');
@@ -62,7 +60,7 @@ module.exports = class ThingTalkTrainer {
 
         $('#results-container').addClass('hidden');
         $('#results-fail').addClass('hidden');
-        $('#success').hide();
+        $('#add-to-commandpedia-success').hide();
 
         this._predicted = false;
         this._confirmed = false;
@@ -73,7 +71,7 @@ module.exports = class ThingTalkTrainer {
 
     _hideAll() {
         $('#utterance-group').addClass('hidden');
-        $('#thingtalk-group').addClass('hidden');
+        $('#thingtalk-group').hide();
         $('#confirmation-group').addClass('hidden');
         $('#submit').addClass('hidden');
     }
@@ -233,7 +231,7 @@ module.exports = class ThingTalkTrainer {
                     $('#thingtalk-error').text(this._formatError(e));
                 }).finally(() => {
                     this._hideAll();
-                    $('#success').show();
+                    $('#add-to-commandpedia-success').show();
                 });
             }
         }
