@@ -36,9 +36,14 @@ module.exports = class ParserClient {
                 thingtalk_version: ThingTalk.version
             }
         })).catch((e) => {
-            // errors are useless because the browser blocks the response on error (due to
-            // missing Access-Control-Allow-Origin)
-            throw new Error('Failed to store the new sentence. You might need to wait until the natural language is fully trained.');
+            if ('responseJSON' in e && 'error' in e.responseJSON) {
+                if (e.responseJSON.error === 'Missing owner for commandpedia command')
+                    throw new Error('You need to log in to add new command.');
+                throw new Error('Failed to store the new sentence: ' + e.responseJSON.error);
+            } else {
+                throw e;
+            }
+
         });
     }
 

@@ -30,12 +30,6 @@ module.exports = class ThingTalkTrainer {
         this.thingpedia = new ThingpediaClient(this._developerKey, this._locale);
         this._schemaRetriever = new SchemaRetriever(this.thingpedia);
 
-        this._predicted = false;
-        this._confirmed = false;
-        this._raw = null;
-        this._code = null;
-        this._entities = null;
-
         $('#input-command-utterance').change(() => {
             this._predicted = false;
             $('#submit').text('Add');
@@ -52,6 +46,34 @@ module.exports = class ThingTalkTrainer {
             this._rejectAll(event);
         });
         $('#form-new-command').submit(this._submit.bind(this));
+    }
+
+    init() {
+        $('#input-command-utterance').val('');
+        $('#input-command-thingtalk').val('');
+        $('#input-command-confirmation').val('');
+        $('#thingtalk-error').text('');
+        $('#thingtalk-group').removeClass('has-error');
+
+        $('#utterance-group').removeClass('hidden');
+        $('#submit').removeClass('hidden');
+
+        $('#results-container').addClass('hidden');
+        $('#results-fail').addClass('hidden');
+        $('#add-to-commandpedia-success').hide();
+
+        this._predicted = false;
+        this._confirmed = false;
+        this._raw = null;
+        this._code = null;
+        this._entities = null;
+    }
+
+    _hideAll() {
+        $('#utterance-group').addClass('hidden');
+        $('#thingtalk-group').hide();
+        $('#confirmation-group').addClass('hidden');
+        $('#submit').addClass('hidden');
     }
 
     // put accepted thingtalk code into editor
@@ -193,6 +215,7 @@ module.exports = class ThingTalkTrainer {
         } else if (!this._confirmed) {
             $('#confirmation-group').show();
             $('#submit').text('Confirm');
+            this._confirmed = true;
         } else {
             let thingtalk = $('#input-command-thingtalk').val();
             if (thingtalk.length > 0) {
@@ -206,6 +229,9 @@ module.exports = class ThingTalkTrainer {
                 }).catch((e) => {
                     $('#thingtalk-group').addClass('has-error');
                     $('#thingtalk-error').text(this._formatError(e));
+                }).finally(() => {
+                    this._hideAll();
+                    $('#add-to-commandpedia-success').show();
                 });
             }
         }
