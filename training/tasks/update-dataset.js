@@ -150,18 +150,17 @@ class DatasetUpdater {
         for (let i = 0; i < rows.length+1000-1; i += 1000) {
             const batch = rows.slice(i, i+1000);
 
-            const toUpdate = (await Promise.all(batch.map(async (ex) => {
+            const toUpdate = [];
+            await Promise.all(batch.map(async (ex) => {
                 const entities = Genie.Utils.makeDummyEntities(ex.preprocessed);
                 const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
 
                 try {
                     await program.typecheck(this._schemas);
-                    this.push(ex);
-                    return;
                 } catch(e) {
-                    this._dropped++;
+                    toUpdate.push(ex.id);
                 }
-            }))).filter((id) => id !== null);
+            }));
 
             if (toUpdate.length > 0) {
                 await db.query(this._dbClient, `update example_utterances set
