@@ -281,6 +281,7 @@ class DatasetGenerator {
             syntheticExpandFactor: 1,
             paraphrasingExpandFactor: 30,
             noQuoteExpandFactor: 10,
+            singleDeviceExpandFactor: 3,
 
             ppdbFile: ppdb,
 
