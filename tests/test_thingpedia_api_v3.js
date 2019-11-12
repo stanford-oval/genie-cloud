@@ -598,12 +598,12 @@ async function testGetExamplesByDevice() {
     assert.deepStrictEqual(await request('/examples/by-kinds/org.thingpedia.builtin.test'), TEST_EXAMPLES);
 
     assert.deepStrictEqual((await ttRequest('/examples/by-kinds/org.thingpedia.builtin.test')).trim(), `dataset @org.thingpedia.dynamic.by_kinds.org_thingpedia_builtin_test language "en" {
-    action  := @org.thingpedia.builtin.test.eat_data()
+    action := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["eat some data","more data eating..."]]
     #_[preprocessed=["eat some data","more data eating ..."]]
     #[id=1000] #[click_count=0] #[like_count=0]
     #[name="EatData"];
-    query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
+    query (p_size :Measure(byte)) := @org.thingpedia.builtin.test.get_data(size=p_size)
     #_[utterances=["get ${'${p_size}'} of data"]]
     #_[preprocessed=["get ${'${p_size}'} of data"]]
     #[id=1001] #[click_count=7] #[like_count=0]
@@ -613,7 +613,7 @@ async function testGetExamplesByDevice() {
     #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
     #[id=1002] #[click_count=0] #[like_count=0]
     #[name="GenDataThenEatData"];
-    query  := @org.thingpedia.builtin.test.get_data()
+    query := @org.thingpedia.builtin.test.get_data()
     #_[utterances=["more data genning..."]]
     #_[preprocessed=["more data genning ..."]]
     #[id=1005] #[click_count=0] #[like_count=0]
@@ -637,12 +637,12 @@ async function testGetExamplesByKey() {
     assert.deepStrictEqual(await request('/examples/search?q=data'), TEST_EXAMPLES);
 
     assert.deepStrictEqual(await ttRequest('/examples/search?q=data'), `dataset @org.thingpedia.dynamic.by_key.data language "en" {
-    action  := @org.thingpedia.builtin.test.eat_data()
+    action := @org.thingpedia.builtin.test.eat_data()
     #_[utterances=["eat some data","more data eating..."]]
     #_[preprocessed=["eat some data","more data eating ..."]]
     #[id=1000] #[click_count=0] #[like_count=0]
     #[name="EatData"];
-    query (p_size :Measure(byte))  := @org.thingpedia.builtin.test.get_data(size=p_size)
+    query (p_size :Measure(byte)) := @org.thingpedia.builtin.test.get_data(size=p_size)
     #_[utterances=["get ${'${p_size}'} of data"]]
     #_[preprocessed=["get ${'${p_size}'} of data"]]
     #[id=1001] #[click_count=7] #[like_count=0]
@@ -652,7 +652,7 @@ async function testGetExamplesByKey() {
     #_[preprocessed=["keep eating data !","keep eating data ! -lrb- v2 -rrb-"]]
     #[id=1002] #[click_count=0] #[like_count=0]
     #[name="GenDataThenEatData"];
-    query  := @org.thingpedia.builtin.test.get_data()
+    query := @org.thingpedia.builtin.test.get_data()
     #_[utterances=["more data genning..."]]
     #_[preprocessed=["more data genning ..."]]
     #[id=1005] #[click_count=0] #[like_count=0]
@@ -697,7 +697,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "show me images from bing matching ____ larger than ____ x ____",
       "preprocessed": "images from bing matching ${p_query} larger than ${p_width} x ${p_height}",
-      "target_code": "query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width >= p_width && height >= p_height);\n",
+      "target_code": "query (p_query :String, p_width :Number, p_height :Number) := (@com.bing.image_search(query=p_query)), (width >= p_width && height >= p_height);\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -713,7 +713,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "open the file at ____",
       "preprocessed": "open the file at ${p_url}",
-      "target_code": "action (p_url :Entity(tt:url))  := @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url);\n",
+      "target_code": "action (p_url :Entity(tt:url)) := @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url);\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -729,7 +729,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "show me texts i received in the last hour",
       "preprocessed": "texts i received in the last hour",
-      "target_code": "query  := (@org.thingpedia.builtin.thingengine.phone.sms()), date >= start_of(h);\n",
+      "target_code": "query := (@org.thingpedia.builtin.thingengine.phone.sms()), date >= start_of(h);\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -745,7 +745,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "call somebody",
       "preprocessed": "call somebody",
-      "target_code": "action  := @org.thingpedia.builtin.thingengine.phone.call(number=$?);\n",
+      "target_code": "action := @org.thingpedia.builtin.thingengine.phone.call(number=$?);\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -761,7 +761,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "throw a dice between ____ and ____",
       "preprocessed": ", throw a dice between ${p_low:const} and ${p_high:const}",
-      "target_code": "query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
+      "target_code": "query (p_low :Number, p_high :Number) := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -777,7 +777,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
       "preprocessed": "a screenshot of my laptop",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
+      "target_code": "query := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -793,7 +793,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "howdy",
       "preprocessed": "howdy",
-      "target_code": "program  := {\n  now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(hello)) => notify;\n};\n",
+      "target_code": "program := {\n  now => @org.thingpedia.builtin.thingengine.builtin.canned_reply(intent=enum(hello)) => notify;\n};\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -809,7 +809,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "generate a random number between ____ and ____",
       "preprocessed": ", generate a random number between ${p_low:const} and ${p_high:const}",
-      "target_code": "query (p_low :Number, p_high :Number)  := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
+      "target_code": "query (p_low :Number, p_high :Number) := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high);\n",
       "click_count": 1,
       "like_count": 0,
       "liked": false,
@@ -868,7 +868,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "show me a screenshot of my laptop",
       "preprocessed": "a screenshot of my laptop",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
+      "target_code": "query := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -883,7 +883,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop",
       "preprocessed": "create a file named ${p_file_name:const} on my laptop",
-      "target_code": "action (p_file_name :Entity(tt:path_name))  := @org.thingpedia.builtin.thingengine.gnome.create_file(file_name=p_file_name, contents=$?);\n",
+      "target_code": "action (p_file_name :Entity(tt:path_name)) := @org.thingpedia.builtin.thingengine.gnome.create_file(file_name=p_file_name, contents=$?);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -898,7 +898,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "turn ____ my laptop",
       "preprocessed": "turn ${p_power} my laptop",
-      "target_code": "action (p_power :Enum(on,off))  := @org.thingpedia.builtin.thingengine.gnome.set_power(power=p_power);\n",
+      "target_code": "action (p_power :Enum(on,off)) := @org.thingpedia.builtin.thingengine.gnome.set_power(power=p_power);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -913,7 +913,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "delete a file from my laptop",
       "preprocessed": "delete a file from my laptop",
-      "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=$?);\n",
+      "target_code": "action := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=$?);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -928,7 +928,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "use ____ as the background of my laptop",
       "preprocessed": "use ${p_picture_url} as the background of my laptop",
-      "target_code": "action (p_picture_url :Entity(tt:picture))  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url);\n",
+      "target_code": "action (p_picture_url :Entity(tt:picture)) := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -943,7 +943,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "save a screenshot of my laptop",
       "preprocessed": ", save a screenshot of my laptop",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
+      "target_code": "query := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -958,7 +958,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "lock my laptop",
       "preprocessed": "lock my laptop",
-      "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.lock();\n",
+      "target_code": "action := @org.thingpedia.builtin.thingengine.gnome.lock();\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -973,7 +973,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "set the background of my laptop to ____",
       "preprocessed": "set the background of my laptop to ${p_picture_url}",
-      "target_code": "action (p_picture_url :Entity(tt:picture))  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url);\n",
+      "target_code": "action (p_picture_url :Entity(tt:picture)) := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=p_picture_url);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -988,7 +988,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "change the background on my laptop",
       "preprocessed": "change the background on my laptop",
-      "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=$?);\n",
+      "target_code": "action := @org.thingpedia.builtin.thingengine.gnome.set_background(picture_url=$?);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -1003,7 +1003,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "create a file named ____ on my laptop containing ____",
       "preprocessed": "create a file named ${p_file_name:const} on my laptop containing ${p_contents}",
-      "target_code": "action (p_file_name :Entity(tt:path_name), p_contents :String)  := @org.thingpedia.builtin.thingengine.gnome.create_file(file_name=p_file_name, contents=p_contents);\n",
+      "target_code": "action (p_file_name :Entity(tt:path_name), p_contents :String) := @org.thingpedia.builtin.thingengine.gnome.create_file(file_name=p_file_name, contents=p_contents);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -1018,7 +1018,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "open ____ on my laptop",
       "preprocessed": "open ${p_app_id} on my laptop",
-      "target_code": "action (p_app_id :Entity(org.freedesktop:app_id))  := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id);\n",
+      "target_code": "action (p_app_id :Entity(org.freedesktop:app_id)) := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -1033,7 +1033,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "delete the file named ____ from my laptop",
       "preprocessed": "delete the file named ${p_file_name:const} from my laptop",
-      "target_code": "action (p_file_name :Entity(tt:path_name))  := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);\n",
+      "target_code": "action (p_file_name :Entity(tt:path_name)) := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -1048,7 +1048,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "take a screenshot of my laptop",
       "preprocessed": ", take a screenshot of my laptop",
-      "target_code": "query  := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
+      "target_code": "query := @org.thingpedia.builtin.thingengine.gnome.get_screenshot();\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -1063,7 +1063,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "open ____ with ____ on my laptop",
       "preprocessed": "open ${p_url} with ${p_app_id} on my laptop",
-      "target_code": "action (p_url :Entity(tt:url), p_app_id :Entity(org.freedesktop:app_id))  := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id, url=p_url);\n",
+      "target_code": "action (p_url :Entity(tt:url), p_app_id :Entity(org.freedesktop:app_id)) := @org.thingpedia.builtin.thingengine.gnome.open_app(app_id=p_app_id, url=p_url);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -1078,7 +1078,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "delete ____ from my laptop",
       "preprocessed": "delete ${p_file_name} from my laptop",
-      "target_code": "action (p_file_name :Entity(tt:path_name))  := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);\n",
+      "target_code": "action (p_file_name :Entity(tt:path_name)) := @org.thingpedia.builtin.thingengine.gnome.delete_file(file_name=p_file_name);\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -1093,7 +1093,7 @@ async function testGetCommands() {
       "type": "thingpedia",
       "utterance": "activate the lock screen on my laptop",
       "preprocessed": "activate the lock screen on my laptop",
-      "target_code": "action  := @org.thingpedia.builtin.thingengine.gnome.lock();\n",
+      "target_code": "action := @org.thingpedia.builtin.thingengine.gnome.lock();\n",
       "click_count": 1,
       "like_count": 0,
       "is_base": 1,
@@ -2247,34 +2247,34 @@ async function testCreateDevice() {
 
 const BING_DATASET = `
 dataset @com.bing language "en" {
-    query (p_query :String)  := @com.bing.web_search(query=p_query)
+    query (p_query :String) := @com.bing.web_search(query=p_query)
     #_[utterances=["${'${p_query:const}'} on bing","bing $p_query","websites matching $p_query","web sites matching $p_query"]];
 
-    query  := @com.bing.web_search(query=$?)
+    query := @com.bing.web_search(query=$?)
     #_[utterances=[", search on bing",", bing search",", web search"]];
 
-    query (p_query :String)  := @com.bing.image_search(query=p_query)
+    query (p_query :String) := @com.bing.image_search(query=p_query)
     #_[utterances=["${'${p_query:const}'} images on bing","images matching $p_query from bing"]];
 
-    query  := @com.bing.image_search(query=$?)
+    query := @com.bing.image_search(query=$?)
     #_[utterances=[", search images on bing",", bing image search",", image search"]];
 
-    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width == p_width && height == p_height)
+    query (p_query :String, p_width :Number, p_height :Number) := (@com.bing.image_search(query=p_query)), (width == p_width && height == p_height)
     #_[utterances=["images from bing matching $p_query with size $p_width x $p_height"]];
 
-    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width >= p_width && height >= p_height)
+    query (p_query :String, p_width :Number, p_height :Number) := (@com.bing.image_search(query=p_query)), (width >= p_width && height >= p_height)
     #_[utterances=["images from bing matching $p_query larger than $p_width x $p_height"]];
 
-    query (p_query :String, p_width :Number)  := (@com.bing.image_search(query=p_query)), width >= p_width
+    query (p_query :String, p_width :Number) := (@com.bing.image_search(query=p_query)), width >= p_width
     #_[utterances=["images from bing matching $p_query wider than $p_width"]];
 
-    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width >= p_width || height >= p_height)
+    query (p_query :String, p_width :Number, p_height :Number) := (@com.bing.image_search(query=p_query)), (width >= p_width || height >= p_height)
     #_[utterances=["images from bing matching $p_query larger than $p_width x $p_height in either dimension"]];
 
-    query (p_query :String, p_height :Number)  := (@com.bing.image_search(query=p_query)), height >= p_height
+    query (p_query :String, p_height :Number) := (@com.bing.image_search(query=p_query)), height >= p_height
     #_[utterances=["images from bing matching $p_query taller than $p_height"]];
 
-    query (p_query :String, p_width :Number, p_height :Number)  := (@com.bing.image_search(query=p_query)), (width <= p_width && height <= p_height)
+    query (p_query :String, p_width :Number, p_height :Number) := (@com.bing.image_search(query=p_query)), (width <= p_width && height <= p_height)
     #_[utterances=["images from bing matching $p_query smaller than $p_width x $p_height"]];
   }
 `;
