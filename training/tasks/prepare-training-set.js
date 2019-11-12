@@ -29,19 +29,24 @@ const genSynthetic = require('../sandboxed_synthetic_gen');
 const schemaModel = require('../../model/schema');
 const orgModel = require('../../model/organization');
 const db = require('../../util/db');
+const { coin } = require('../../util/random');
 
 const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 const MAX_SPAN_LENGTH = 10;
 
 class QueryReadableAdapter extends Stream.Readable {
-    constructor(query) {
+    constructor(query, options) {
         super({ objectMode: true });
 
         query.on('result', (row) => {
             row.flags = parseFlags(row.flags);
             // mark a sentence for evaluation only if is exact and not synthetic,
             // which means it comes from the online dataset (developer data)
-            row.flags.eval = row.flags.exact && !row.flags.synthetic;
+
+            if (row.flags.exact && !row.flags.synthetic && coin(options.evalProbability, options.rng))
+                row.flags.eval = true;
+            else
+                row.flags.eval = false;
             row.flags.contextual = row.context !== null;
             this.push(row);
         });
@@ -131,7 +136,10 @@ class DatasetGenerator {
             order by id`;
 
         const query = this._dbClient.query(queryString, [this._language, this._forDevicesPattern]);
-        return new QueryReadableAdapter(query);
+        return new QueryReadableAdapter(query, {
+            evalProbability: this._options.evalProbability,
+            rng: this._rng
+        });
     }
 
     async _transaction() {
@@ -273,6 +281,7 @@ class DatasetGenerator {
             syntheticExpandFactor: 1,
             paraphrasingExpandFactor: 30,
             noQuoteExpandFactor: 10,
+            singleDeviceExpandFactor: 3,
 
             ppdbFile: ppdb,
 
@@ -294,7 +303,9 @@ class DatasetGenerator {
             train,
             eval: eval_,
 
-            evalProbability: this._options.evalProbability,
+            // we use this._options.evalProbability to set the "eval" flag,
+            // but all sentences with the eval flag should go in the eval set
+            evalProbability: 1.0,
             forDevices: this._forDevices,
             splitStrategy: this._options.splitStrategy,
             useEvalFlag: true
