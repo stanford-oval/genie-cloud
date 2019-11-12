@@ -82,14 +82,17 @@ block content
                           span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden(title=_("Lost connection to the server."))
                           span.help-block.hidden= _("Lost connection to the server.")
 
-            p(style='margin-top:1em;font-size:24px').text-center
-              a(href='/about/get-almond')= _("Get Almond")
-              |  &mdash; 
-              a(href='/about/use-almond')= _("Build with Almond")
-              br
-              a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Get Involved")
-              |  &mdash; 
-              a(href='https://community.almond.stanford.edu')= _("Join Our Community")
+            div(style='margin-top:1em;font-size:24px').text-center
+              div.row
+                div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
+                  a(href='/about/get-almond')= _("Get Almond")
+                div.col-xs-12.col-sm-6.col-md-4
+                  a(href='/about/use-almond')= _("Build with Almond")
+              div.row
+                div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
+                  a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Sign Up for Updates")
+                div.col-xs-12.col-sm-6.col-md-4
+                  a(href='https://community.almond.stanford.edu')= _("Join Our Community")
 
             //-div.row#subscribe
               div.col-lg-8.col-lg-offset-2
