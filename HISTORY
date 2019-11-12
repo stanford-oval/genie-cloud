@@ -1,3 +1,16 @@
+1.7.1
+=====
+
+* Classes returned by the API now consistently include the #_[canonical]
+  annotation [#584].
+* Fixed importing the same dataset multiple times, which would occasionally
+  lose example names or click counts [#581].
+* Fixed running on node 8 by making selenium-webdriver optional [#581].
+* Fixed a number of bugs in the mturk subsystem [#581].
+* Attempted fix of a long standing locking bug while updating multiple
+  devices in close succession [#585]
+* Misc bug fixes and website fixes [#581, #587, #588, #589, #590, #591].
+
 1.7.0
 =====
 
