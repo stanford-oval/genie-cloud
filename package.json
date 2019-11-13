@@ -106,7 +106,7 @@
     "type-is": "^1.6.16"
   },
   "devDependencies": {
-    "apidoc": "^0.17.6",
+    "apidoc": "^0.18.0",
     "browserify": "^16.1.1",
     "byline": "^5.0.0",
     "chart.js": "^2.7.3",
