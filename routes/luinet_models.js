@@ -58,7 +58,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
             throw new BadRequestError(req._("No such template pack %s").format(req.body.template));
         }
 
-        if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,][a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
+        if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,]+[a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
             throw new BadRequestError(req._("Invalid flags"));
 
         const flags = req.body.flags ? req.body.flags.split(/[ ,]/g) : [];
