@@ -21,7 +21,7 @@ block content
         |
         |
         a(href='https://community.almond.stanford.edu').btn.btn-primary= _("Join the Community")
-    else
+    else if user.email
       p
         = _("A verification email has been sent to your address. Some functionality on your account, such as developer access, will be limited until you verify your email. You must click on the verification link to enable your account in full.")
 
@@ -29,6 +29,18 @@ block content
         form(action='/user/resend-verification', method='post').force-inline
           input(type='hidden', name='_csrf', value=csrfToken)
           button(type='submit').btn.btn-primary= _("Resend verification email")
+        |
+        |
+        a(href='/me').btn.btn-primary= _("Go to My Almond")
+        |
+        |
+        a(href='https://community.almond.stanford.edu').btn.btn-primary= _("Join the Community")
+    else
+      p
+        = _("You did not provide an email address. Some functionality on your account, such as developer access, will be limited until you provide and verify your email. You can do so from your user settings.")
+
+      p
+        a(href='/user/profile').btn.btn-primary= _("User Settings")
         |
         |
         a(href='/me').btn.btn-primary= _("Go to My Almond")
