@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 const accepts = require('accepts');
 const passport = require('passport');
@@ -23,9 +22,7 @@ const commandModel = require('../model/example');
 const orgModel = require('../model/organization');
 
 const ThingpediaClient = require('../util/thingpedia-client');
-const ImageCacheManager = require('../util/cache_manager');
 const SchemaUtils = require('../util/manifest_to_schema');
-const { tokenize } = require('../util/tokenize');
 const userUtils = require('../util/user');
 const iv = require('../util/input_validation');
 const { ForbiddenError, AuthenticationError } = require('../util/errors');
@@ -37,7 +34,6 @@ const { getCommandDetails } = require('../util/commandpedia');
 const { uploadDevice } = require('../util/import_device');
 
 const Config = require('../config');
-const Bing = require('node-bing-api')({ accKey: Config.BING_KEY });
 
 const everything = express.Router();
 
@@ -1611,74 +1607,12 @@ v3.get('/entities/list/:type', (req, res, next) => {
     }).catch(next);
 });
 
-function getEntityIcon(res, next, entityValue, entityType, entityDisplay) {
-    if (entityType.endsWith(':id') ||
-        (entityType.endsWith('_id') && entityType !== 'tt:stock_id')) {
-       res.status(404).send('No icon for this type of entity');
-       return;
-    }
-
-    const cacheManager = ImageCacheManager.get();
-    if (entityType === 'tt:email_address' || entityType === 'tt:phone_number') {
-        let cacheKey = 'contact:' + (entityType === 'tt:phone_number' ? 'phone' : 'email') + ':' + entityValue;
-        let cached = cacheManager.get(cacheKey);
-        if (cached)
-            res.redirect(301, '/cache/' + cached);
-        else
-            res.redirect(301, Config.ASSET_CDN + '/images/user-no-avatar.png');
-            //res.status(404).send('Not Found');
-    } else {
-        let cacheKey = entityType + ':' + entityValue;
-        let cached = cacheManager.get(cacheKey);
-        if (cached) {
-            res.redirect(301, '/cache/' + cached);
-            return;
-        }
-
-        let searchTerm = tokenize(entityDisplay || entityValue).join(' ');
-        if (entityType === 'tt:iso_lang_code')
-            searchTerm += ' flag';
-        else
-            searchTerm += ' logo png transparent';
-
-        Q.ninvoke(Bing, 'images', searchTerm, { count: 1, offset: 0 }).then(([res, body]) => {
-            return cacheManager.cache(cacheKey, body.value[0].contentUrl);
-        }).then((filename) => {
-            res.redirect(301, '/cache/' + filename);
-        }).catch(next);
-    }
-}
-
 v1.get('/entities/icon', (req, res, next) => {
-    const entityValue = req.query.entity_value;
-    const entityType = req.query.entity_type;
-    const entityDisplay = req.query.entity_display || null;
-    getEntityIcon(res, next, entityValue, entityType, entityDisplay);
+    res.status(404).json({ error: 'The /entities/icon API was removed', code: 'ENOENT' });
 });
 
-/**
- * @api {get} /v3/entities/icon Get Entity Icon
- * @apiName GetEntityIcon
- * @apiGroup Entities
- * @apiVersion 0.3.0
- *
- * @apiDescription Download the icon for a given entity.
- *   NOTE: this API returns the icon directly (it does not return JSON);
- *   it is suitable to use in e.g. `<img src>` but the caller must support
- *   HTTP redirects.
- *
- * @apiParam {String} type The identifier of the entity type of this entity
- * @apiParam {String} value The opaque entity identifier
- * @apiParam {String} name The user visible name of this entity
- *
- * @apiParamExample Example Request:
- *   type=tt:stock_id&value=goog&name=Alphabet+Inc.
- */
 v3.get('/entities/icon', (req, res, next) => {
-    const entityValue = req.query.entity_value;
-    const entityType = req.query.entity_type;
-    const entityDisplay = req.query.entity_display || null;
-    getEntityIcon(res, next, entityValue, entityType, entityDisplay);
+    res.status(404).json({ error: 'The /entities/icon API was removed', code: 'ENOENT' });
 });
 
 function getAllStrings(req, res, next) {
