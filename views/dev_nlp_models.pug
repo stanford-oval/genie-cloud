@@ -58,6 +58,7 @@ block content
                                 button(type='submit').btn.btn-primary= _("Train")
 
                   p= _("Template Pack: %s").format(m.template_file_name)
+                  p= _("Flags: %s").format(m.flags.join(_(", ")))
 
                   if m.all_devices
                     if m.use_approved
