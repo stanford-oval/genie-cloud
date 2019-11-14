@@ -180,8 +180,10 @@ class DatasetUpdater {
             locale: this._language,
             flags: {
                 turking: false,
+                nofilter: false,
+                primonly: false,
                 policies: true,
-                remote_programs: true,
+                remote_commands: true,
                 aggregation: true,
                 bookkeeping: true,
                 triple_commands: true,

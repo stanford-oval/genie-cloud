@@ -213,7 +213,7 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
             'nofilter',
             'primonly',
             'policies',
-            'remote_programs',
+            'remote_commands',
             'aggregation',
             'bookkeeping',
             'triple_commands',
@@ -222,7 +222,8 @@ async function importStandardTemplatePack(dbClient, rootOrg) {
             'projection',
             'undefined_filter',
             'projection_with_filter',
-            'extended_timers'
+            'extended_timers',
+            'screen_selection'
         ]),
         public: true,
         version: 0
@@ -248,7 +249,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         template_file: templatePack,
         flags: JSON.stringify([
             'policies',
-            'remote_programs',
+            'remote_commands',
             'aggregation',
             'bookkeeping',
             'triple_commands',
@@ -270,7 +271,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         template_file: templatePack,
         flags: JSON.stringify([
             'policies',
-            'remote_programs',
+            'remote_commands',
             'aggregation',
             'bookkeeping',
             'triple_commands',
@@ -292,7 +293,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         template_file: templatePack,
         flags: JSON.stringify([
             'policies',
-            'remote_programs',
+            'remote_commands',
             'aggregation',
             'bookkeeping',
             'triple_commands',
@@ -315,7 +316,7 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
         template_file: templatePack,
         flags: JSON.stringify([
             'policies',
-            'remote_programs',
+            'remote_commands',
             'aggregation',
             'bookkeeping',
             'triple_commands',
