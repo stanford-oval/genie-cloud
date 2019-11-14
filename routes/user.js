@@ -397,6 +397,13 @@ router.post('/resend-verification', userUtils.requireLogIn, (req, res, next) => 
         });
         return;
     }
+    if (!req.user.email) {
+        res.status(400).render('error', {
+            page_title: req._("Almond - Error"),
+            message: req._("You must set an email address before sending a verification email.")
+        });
+        return;
+    }
 
     sendValidationEmail(req.user.cloud_id, req.user.username, req.user.email).then(() => {
         res.render('message', {
