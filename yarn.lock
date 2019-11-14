@@ -5327,14 +5327,6 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
-node-bing-api@^3.2.2:
-  version "3.2.2"
-  resolved "https://registry.yarnpkg.com/node-bing-api/-/node-bing-api-3.2.2.tgz#4f831cbc17f8e42b0083893163563405d61482fb"
-  integrity sha512-N7huCGv1MNYxGRWsG/NyYXkgTxZlxqesIplkd1r6yAW5cMXJ1BO6gIcBxljLsGKGIJ5jstBoslh0RhdPjYBh1Q==
-  dependencies:
-    request "^2.44.0"
-    underscore "^1.6.0"
-
 node-fetch@^2.3.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
@@ -6666,7 +6658,7 @@ repeating@^2.0.0:
   dependencies:
     is-finite "^1.0.0"
 
-request@^2.44.0, request@^2.53.0, request@^2.79.0, request@^2.86.0, request@^2.87.0, request@^2.88.0:
+request@^2.53.0, request@^2.79.0, request@^2.86.0, request@^2.87.0, request@^2.88.0:
   version "2.88.0"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.0.tgz#9c2fca4f7d35b592efe57c7f0a55e81052124fef"
   integrity sha512-NAqBSrijGLZdM0WZNsInLJpkJokL72XYjUpnB0iwsRgxh7dB6COrHnTBNwN0E+lHDAJzu7kLAkDeY08z2/A0hg==
@@ -7896,7 +7888,7 @@ underscore.string@~3.3.4:
     sprintf-js "^1.0.3"
     util-deprecate "^1.0.2"
 
-underscore@1.9.1, underscore@^1.6.0, underscore@^1.9.1, underscore@~1.9.1:
+underscore@1.9.1, underscore@^1.9.1, underscore@~1.9.1:
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.9.1.tgz#06dce34a0e68a7babc29b365b8e74b8925203961"
   integrity sha512-5/4etnCkd9c8gwgowi5/om/mYO5ajCaOgdzj/oW+0eQV9WxKBDZw5+ycmKmeaTXjInS/W0BzpGLo2xR2aBwZdg==
