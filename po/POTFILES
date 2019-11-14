@@ -106,7 +106,6 @@ training/workers/generate-contextual-worker.js
 util/abstract_fs.js
 util/admin-thingpedia-client.js
 util/binary_search.js
-util/cache_manager.js
 util/code_storage.js
 util/color_scheme.js
 util/command.js
