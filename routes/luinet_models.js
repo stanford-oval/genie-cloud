@@ -37,10 +37,12 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
     validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
 
     db.withTransaction(async (dbClient) => {
+        let trained = false;
         try {
             const existing = await nlpModelsModel.getByTagForUpdate(dbClient, language, req.body.tag);
             if (existing && existing.owner !== req.user.developer_org)
                 throw new ForbiddenError(req._("A model with this ID already exists."));
+            trained = existing.trained;
         } catch(e) {
             if (e.code !== 'ENOENT')
                 throw e;
@@ -92,6 +94,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
             all_devices: devices.length === 0,
             use_approved: !!req.body.use_approved,
             use_exact: !!req.body.use_exact,
+            trained: trained
         }, devices);
 
         res.redirect(303, '/developers/models');
