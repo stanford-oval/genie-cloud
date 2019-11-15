@@ -98,6 +98,11 @@ block content
                 each s, i in sentences
                   p= _('Command ') + (i+1) + ': '
                     span(id='synthetic' + (i+1), class='synthetic')= s
+                  if hints[i].length > 0
+                    //- Careful! We're creating a list of links dynamically, so we need output without HTML
+                    //- escaping in pug (using !=), but we're outputing user-generated content (device IDs and device names)
+                    //- so we need to be extra careful and call escapeHtml
+                    p(class='hint', id='hint' + (i+1))!= _("Hint: this command uses %s.").format(hints[i].map((d) => `<a href="/thingpedia/devices/by-id/${escapeHtml(d)}">${escapeHtml(allDevices[d].name)}</a>`).join(_(", ")))
                   p(class='hint', hidden, id='hint' + (i+1))= code[i]
                   div.container
                     div.row#paraphrase-row

@@ -75,6 +75,16 @@ module.exports = {
             from device_class d left join organizations o on o.id = d.owner where primary_kind = ?`, [kind]);
     },
 
+    async getNamesByKinds(client, kinds) {
+        if (kinds.length === 0)
+            return {};
+        const rows = await db.selectAll(client, `select id,name,primary_kind from device_class where primary_kind in (?)`, [kinds]);
+        const ret = {};
+        for (const row of rows)
+            ret[row.primary_kind] = row;
+        return ret;
+    },
+
     getByOwner(client, owner) {
         return db.selectAll(client, "select id,name,primary_kind,owner from device_class where owner = ? order by name asc", [owner]);
     },
