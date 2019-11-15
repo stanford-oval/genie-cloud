@@ -121,7 +121,6 @@
     "jsxgettext": "^0.11.0",
     "nyc": "^14.0.0",
     "parse5": "^5.1.0",
-    "planetary.js": "^1.1.3",
     "proxyquire": "^2.0.0",
     "pug-lint": "^2.4.0",
     "qs": "^6.7.0",

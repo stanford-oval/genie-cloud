@@ -12,8 +12,7 @@ bundles := \
 	thingpedia-device-translate \
 	thingpedia-portal \
 	trainer \
-	blog-editor \
-	rotating-globe
+	blog-editor
 
 prepare-bundles: $(foreach b,$(bundles),public/javascripts/$(b)-bundle.js)
 
