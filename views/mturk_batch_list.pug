@@ -41,7 +41,7 @@ block content
           td
             if batch.status === 'created' || batch.status === 'paraphrasing'
               a(href='/mturk/csv/' + batch.id)= _("Downloads CSV")
-            else if batch.status === 'validating':
+            else if batch.status === 'validating'
               a(href='/mturk/validation/csv/' + batch.id)= _("Downloads CSV")
 
             if batch.status === 'paraphrasing'
