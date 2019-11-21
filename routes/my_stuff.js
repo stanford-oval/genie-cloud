@@ -48,7 +48,7 @@ function getAllDevices(req, engine) {
                         isOnlineAccount,
                         isDataSource,
                         isThingEngine]) => {
-                    return { uniqueId: uniqueId, name: name || req._("Unknown device"),
+                    return { uniqueId: uniqueId, name: name || req._("Unknown device") + ` (${uniqueId})`,
                              description: description || req._("Description not available"),
                              kind: kind,
                              ownerTier: ownerTier,
