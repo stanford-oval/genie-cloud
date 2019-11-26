@@ -13,7 +13,8 @@ bundles := \
 	thingpedia-portal \
 	trainer \
 	blog-editor \
-	rotating-globe
+	rotating-globe \
+	thingtalk-builder
 
 prepare-bundles: $(foreach b,$(bundles),public/javascripts/$(b)-bundle.js)
 

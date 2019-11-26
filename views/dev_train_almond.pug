@@ -6,6 +6,7 @@ block styles
 
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/trainer-bundle.js')
+  script(src=Config.ASSET_CDN + '/javascripts/thingtalk-builder-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
 
 block page_name
@@ -52,3 +53,63 @@ block content
 
           div#counter-box
             != _("You have trained Almond with <span id=counter></span> sentences. Thank you!")
+
+
+        section.divider#thingtalk-builder
+        h3= _("ThingTalk Command Builder")
+
+        div
+          div.form-group#thingtalk-builder-when
+            label(for="thingtalk-when")= _("When")
+            input.form-control(type="text")#thingtalk-when
+          div.form-group
+            button(type='button').btn.btn-primary#thingtalk-when-select= _("Choose function")
+            button(type='button').btn.btn-warning#thingtalk-when-add-input= _("Add input parameter")
+            button(type='button').btn.btn-warning#thingtalk-when-add-filter= _("Add filter")
+
+        div
+          div.form-group#thingtalk-builder-get
+            label(for="thingtalk-get")= _("Get")
+            input.form-control(type="text")#thingtalk-get
+          div.form-group
+            button(type='button').btn.btn-primary#thingtalk-get-select= _("Choose function")
+            button(type='button').btn.btn-warning#thingtalk-get-add-input= _("Add input parameter")
+            button(type='button').btn.btn-warning#thingtalk-get-add-filter= _("Add filter")
+
+        div
+          div.form-group#thingtalk-builder-do
+            label(for="thingtalk-do")= _("Do")
+            input.form-control(type="text")#thingtalk-do
+          div.form-group
+            button(type='button').btn.btn-primary#thingtalk-do-select= _("Choose function")
+            button(type='button').btn.btn-warning#thingtalk-do-add-input= _("Add input parameter")
+
+        div
+          div.form-group
+            label(for="thingtalk-output")= _("ThingTalk Command:")
+            input.form-control(value="Please choose at least one function")#thingtalk-output
+
+        div.modal.fade(role='dialog')#thingtalk-select
+          div.modal-dialog
+            div.modal-content
+              div.modal-header
+                a.close(data-dismiss='modal', aria-label="Close")
+                  span(aria-hidden='true') ×
+                h4.modal-title= _("Choose function")
+
+              div.modal-body
+                div.form#thingtalk-choose-device
+                  div.form-group
+                    label(for="thingtalk-search-device-input")= _("Which device would you like to use?")
+                    input.form-control#thingtalk-search-device-input
+                  div.form-group
+                    button.btn.btn-primary#thingtalk-search-device= _("Search")
+
+                div.form-group#device-result
+                  p#search-result-hint
+                  div#device-candidates
+
+                div.form-group#example-result
+                  p#example-list-hint
+                  div#example-candidates
+
