@@ -85,4 +85,11 @@ module.exports = class ThingpediaClientBrowser {
             to += '&developer_key=' + this.developerKey;
         return this._simpleRequest(to, true);
     }
+
+    searchDevice(key) {
+        var to = THINGPEDIA_URL + '/api/v3/devices/search?locale=' + this.locale + '&q=' + encodeURIComponent(key);
+        if (this.developerKey)
+            to += '&developer_key=' + this.developerKey;
+        return this._simpleRequest(to, true);
+    }
 };
