@@ -1504,19 +1504,6 @@ async function testDiscovery() {
     assert(!failed);
 }
 
-async function testGetEntityIcon() {
-    let failed = false;
-    try {
-        await Tp.Helpers.Http.get(THINGPEDIA_URL + '/entities/icon?entity_type=tt:stock_id&entity_value=goog&entity_display=Alphabet+Inc.',
-            { followRedirects: false });
-        failed = true;
-    } catch(e) {
-        assert.strictEqual(e.code, 301);
-        assert(e.redirect.endsWith('.png'));
-    }
-    assert(!failed);
-}
-
 async function testGetEntityList() {
     assert.deepStrictEqual(await request('/entities/all'),
         {"result":"ok",
@@ -2365,7 +2352,6 @@ async function main() {
     await testGetSnapshot();
     await testDiscovery();
     await testDeviceSearch();
-    await testGetEntityIcon();
     await testGetEntityList();
     await testGetEntityValues();
     await testLookupEntity();
