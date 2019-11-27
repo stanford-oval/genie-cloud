@@ -19,7 +19,7 @@ const PlatformModule = require('./platform');
 module.exports = class AlmondApi {
     constructor(engine, options) {
         this._engine = engine;
-        this._parser = new ParserClient(PlatformModule.nlServerUrl, engine.platform.locale, engine.platform.getSharedPreferences());
+        this._parser = new ParserClient(PlatformModule.nlServerUrl, engine.platform.locale, engine.platform.getSharedPreferences(), engine.platform);
         this._formatter = new Formatter(this._engine.platform.locale, this._engine.platform.timezone, this._engine.schemas);
 
         this._outputs = new Set;
