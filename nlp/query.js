@@ -41,6 +41,10 @@ async function tokenize(params, data, service, res) {
     res.json(tokenized);
 }
 
+function isValidDeveloperKey(developerKey) {
+    return developerKey && developerKey !== 'null' && developerKey !== 'undefined';
+}
+
 async function runPrediction(model, tokens, entities, context, limit, skipTypechecking) {
     const schemas = new ThingTalk.SchemaRetriever(model.tpClient, null, true);
 
@@ -84,10 +88,17 @@ async function query(params, data, service, res) {
 
     let modelTag = params.model_tag;
     if (!modelTag) {
-        if (data.context)
-            modelTag = 'org.thingpedia.models.contextual';
-        else
-            modelTag = 'org.thingpedia.models.default';
+        if (isValidDeveloperKey(data.developer_key)) {
+            if (data.context)
+                modelTag = 'org.thingpedia.models.developer.contextual';
+            else
+                modelTag = 'org.thingpedia.models.developer';
+        } else {
+            if (data.context)
+                modelTag = 'org.thingpedia.models.contextual';
+            else
+                modelTag = 'org.thingpedia.models.default';
+        }
     }
 
     const model = service.getModel(modelTag, params.locale);
@@ -203,7 +214,8 @@ const QUERY_PARAMS = {
     context: '?string',
     entities: '?object',
     tokenized: 'boolean',
-    skip_typechecking: 'boolean'
+    skip_typechecking: 'boolean',
+    developer_key: '?string',
 };
 
 router.get('/@:model_tag/:locale/query', iv.validateGET(QUERY_PARAMS, { json: true }), (req, res, next) => {
