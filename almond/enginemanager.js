@@ -97,7 +97,7 @@ class EngineProcess extends events.EventEmitter {
             locale: user.locale,
             timezone: user.timezone,
             storageKey: user.storage_key,
-            modelTag: user.model_tag || 'default',
+            modelTag: user.model_tag,
         }]);
     }
 

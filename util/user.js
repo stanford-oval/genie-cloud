@@ -168,13 +168,11 @@ module.exports = {
             await model.update(dbClient, userId, {
                 developer_org: orgId,
                 developer_status: status,
-                model_tag: 'org.thingpedia.models.developer'
             });
         } else {
             await model.update(dbClient, userId, {
                 developer_org: null,
                 developer_status: 0,
-                model_tag: null
             });
         }
     },
