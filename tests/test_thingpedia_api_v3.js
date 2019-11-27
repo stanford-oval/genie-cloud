@@ -2042,10 +2042,16 @@ async function testGetSnapshot() {
         parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.test.adminonly') === undefined);
 
     code = await ttRequest('/snapshot/1');
-    ThingTalk.Grammar.parse(code);
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.thingengine.builtin') !== undefined &&
+        parsed.classes.find((c) => c.kind === 'com.bing') === undefined);
 
     code = await ttRequest('/snapshot/1?meta=1');
-    ThingTalk.Grammar.parse(code);
+    parsed = ThingTalk.Grammar.parse(code);
+    assert(parsed.isLibrary &&
+        parsed.classes.find((c) => c.kind === 'org.thingpedia.builtin.thingengine.builtin') !== undefined &&
+        parsed.classes.find((c) => c.kind === 'com.bing') === undefined);
 
     code = await ttRequest(`/snapshot/1?developer_key=${process.env.ROOT_DEVELOPER_KEY}`);
     ThingTalk.Grammar.parse(code);

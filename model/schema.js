@@ -324,7 +324,7 @@ module.exports = {
                 left join device_schema_channels dsc on ds.schema_id = dsc.schema_id
                 and dsc.version = ds.approved_version where ds.approved_version is not null
                 and ds.snapshot_id = ?`,
-                [org, snapshotId]).then(processTypeRows);
+                [snapshotId]).then(processTypeRows);
         }
     },
 
