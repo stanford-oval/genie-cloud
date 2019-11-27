@@ -424,7 +424,7 @@ router.get(`/submit/:batch/:hit`, (req, res, next) => {
         if (batch.status !== 'created' && batch.status !== 'paraphrasing')
             throw new ForbiddenError(req._("The HIT you're trying to submit was already closed."));
 
-        const hit = model.getHIT(dbClient, batchId, hitId);
+        const hit = await model.getHIT(dbClient, batchId, hitId);
         if (hit.length === 0)
             throw new NotFoundError();
 
