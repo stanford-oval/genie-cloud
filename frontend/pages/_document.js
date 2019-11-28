@@ -50,6 +50,11 @@ export default class extends Document {
         <title>{title}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:title" content={title} />
+        <link
+          rel="stylesheet"
+          type="text/css"
+          href="https://rsms.me/inter/inter.css"
+        />
       </Helmet>
     );
   }

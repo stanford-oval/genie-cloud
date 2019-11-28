@@ -15,7 +15,6 @@ const Item = styled.li`
     a {
       color: #eee;
     }
-    background: ${props => props.theme.colors.primary};
   }
 `;
 
