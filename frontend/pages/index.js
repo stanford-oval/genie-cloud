@@ -1,3 +1,3 @@
-import SearchRepoContainer from 'containers/SearchRepoContainer'
+import SearchRepoContainer from 'containers/SearchRepoContainer';
 
-export default SearchRepoContainer
+export default SearchRepoContainer;
