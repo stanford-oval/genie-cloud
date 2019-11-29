@@ -1,21 +1,24 @@
-import { createGlobalStyle, ThemeProvider } from 'styled-components';
+import { ThemeProvider } from 'emotion-theming';
+import { Global, css } from '@emotion/core';
+import emotionNormalize from 'emotion-normalize';
 import withRedux from 'next-redux-wrapper';
 import { Provider } from 'react-redux';
 import { withRouter } from 'next/router';
 import App from 'next/app';
-import styledNormalize from 'styled-normalize';
 
 import createStore from 'store/createStore';
 import Layout from 'components/Layout';
 import theme from 'theme';
 
-const GlobalStyle = createGlobalStyle`
-  ${styledNormalize}
+const GlobalStyle = css`
+  ${emotionNormalize}
   @supports (font-variation-settings: normal) {
-    html { font-family: 'Inter var', sans-serif; }
+    html {
+      font-family: 'Inter var', sans-serif;
+    }
   }
   body {
-    background-color: #F4F4F4;
+    background-color: #f4f4f4;
   }
 `;
 
@@ -25,7 +28,7 @@ class MyApp extends App {
     return (
       <ThemeProvider theme={theme}>
         <Provider store={store}>
-          <GlobalStyle />
+          <Global styles={GlobalStyle} />
           <Layout>
             <Component router={router} {...pageProps} />
           </Layout>

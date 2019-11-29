@@ -1,31 +1,23 @@
 import Document, { Head, Main, NextScript } from 'next/document';
-import { ServerStyleSheet } from 'styled-components';
 import Helmet from 'react-helmet';
 
 // from https://github.com/zeit/next.js/edit/canary/examples/with-react-helmet/pages/_document.js
 export default class extends Document {
   static async getInitialProps(ctx) {
-    const sheet = new ServerStyleSheet();
     const originalRenderPage = ctx.renderPage;
     try {
       ctx.renderPage = () =>
         originalRenderPage({
-          enhanceApp: App => props => sheet.collectStyles(<App {...props} />),
+          enhanceApp: App => props => <App {...props} />,
         });
 
       const documentProps = await Document.getInitialProps(ctx);
       return {
         ...documentProps,
         helmet: Helmet.renderStatic(),
-        styles: (
-          <>
-            {documentProps.styles}
-            {sheet.getStyleElement()}
-          </>
-        ),
+        styles: <>{documentProps.styles}</>,
       };
     } finally {
-      sheet.seal();
     }
   }
 

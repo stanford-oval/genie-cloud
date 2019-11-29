@@ -1,7 +1,7 @@
 import React from 'react';
 import NextLink from 'next/link';
 import { Link } from 'rebass';
-import styled from 'styled-components';
+import styled from '@emotion/styled';
 
 const MyLink = props => (
   <NextLink href={props.href}>

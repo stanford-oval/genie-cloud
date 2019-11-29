@@ -1,8 +1,8 @@
 {
   "presets": ["next/babel"],
   "plugins": [
+    "emotion",
     "inline-dotenv",
-    "styled-components",
     [
       "module-resolver",
       {
@@ -12,6 +12,7 @@
   ],
   "env": {
     "test": {
+      "plugins": ["emotion"],
       "presets": [
         [
           "next/babel",
