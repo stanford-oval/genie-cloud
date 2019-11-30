@@ -155,6 +155,10 @@ class Frontend {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });
+        this._app.use('/assets', (req, res, next) => {
+            res.set('Access-Control-Allow-Origin', '*');
+            next();
+        });
         this._app.use('/cache', (req, res, next) => {
             res.set('Access-Control-Allow-Origin', '*');
             next();
