@@ -41,7 +41,7 @@ block content
             if user.email_verified
               span.input-group-addon
                 span.glyphicon.glyphicon-ok(title=_("Your email was verified."),aria-label=_("Your email was verified."))
-            else
+            else if user.email
               span.input-group-btn
                 //-span.glyphicon.glyphicon-remove(title=_("You did not verify your email yet."),aria-label=_("You did not verify your email yet."))
                 button(type='submit', form='form-resend-email').btn.btn-default= _("Resend verification")
