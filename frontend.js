@@ -126,8 +126,7 @@ class Frontend {
                 if (req.originalUrl.startsWith('/thingpedia/api') ||
                     req.originalUrl.startsWith('/thingpedia/download') ||
                     req.originalUrl.startsWith('/api/webhook') ||
-                    req.originalUrl.startsWith('/ws') ||
-                    req.originalUrl.startsWith('/cache'))
+                    req.originalUrl.startsWith('/ws'))
                     redirect = false;
                 if (redirect) {
                     if (req.hostname === 'thingpedia.stanford.edu' && req.originalUrl === '/')
@@ -151,15 +150,7 @@ class Frontend {
             });
         }
 
-        this._app.use('/brassau/backgrounds', (req, res, next) => {
-            res.set('Access-Control-Allow-Origin', '*');
-            next();
-        });
         this._app.use('/assets', (req, res, next) => {
-            res.set('Access-Control-Allow-Origin', '*');
-            next();
-        });
-        this._app.use('/cache', (req, res, next) => {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });
