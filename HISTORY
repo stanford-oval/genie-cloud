@@ -1,3 +1,23 @@
+1.7.2
+=====
+
+* The Thingpedia API to retrieve entity icons has been removed, as
+  it relied on questionable use of the Bing Image Search API. The API
+  now always returns 404; previously, it would return 404 if an icon
+  could not be found for a specific entity, so callers are already expected
+  to handle this [#605].
+* Custom LUINet models and templates now show the flags [#594, #604].
+* Login is now required before accessing Train Almond; before, login
+  was not required but the page would crash [#592, #608].
+* MTurk sentences in the paraphrase page now include a link to the device
+  details page [#583, #609].
+* The NLP inference server now honors the developer_key query argument,
+  and selects the developer model if the default model is requested
+  [#615, #620].
+* Misc bug fixes [#594, #595, #596, #597, #599, #601, #606, #607, #611, #613,
+  #617, #619, #621, #623].
+* Updated dependencies [#600, #610].
+
 1.7.1
 =====
 
