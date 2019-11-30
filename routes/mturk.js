@@ -25,6 +25,7 @@ const os = require('os');
 const db = require('../util/db');
 const user = require('../util/user');
 const model = require('../model/mturk');
+const deviceModel = require('../model/device');
 const example = require('../model/example');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const TokenizerService = require('../util/tokenizer_service');
@@ -423,25 +424,45 @@ router.get(`/submit/:batch/:hit`, (req, res, next) => {
         if (batch.status !== 'created' && batch.status !== 'paraphrasing')
             throw new ForbiddenError(req._("The HIT you're trying to submit was already closed."));
 
-        return model.getHIT(dbClient, batchId, hitId);
-    }, 'serializable', 'read only').then((hit) => {
+        const hit = await model.getHIT(dbClient, batchId, hitId);
         if (hit.length === 0)
             throw new NotFoundError();
-        let program_id = [];
-        let sentences = [];
-        let code = [];
-        for (let i = 1; i < hit.length + 1; i ++) {
-            const row = hit[i-1];
+
+        const allDeviceKinds = new Set;
+        const program_id = [];
+        const sentences = [];
+        const code = [];
+        let hints = [];
+        for (const row of hit) {
             program_id.push(row.id);
             code.push(row.thingtalk);
             sentences.push(row.sentence);
+
+            const hint = new Set;
+            const parsed = ThingTalk.Grammar.parse(row.thingtalk);
+            for (const [,prim] of parsed.iteratePrimitives()) {
+                if (prim.selector.isDevice && prim.selector.kind !== 'org.thingpedia.builtin.thingengine.builtin') {
+                    allDeviceKinds.add(prim.selector.kind);
+                    hint.add(prim.selector.kind);
+                }
+            }
+            hints.push(Array.from(hint));
         }
+
+        const allDevices = await deviceModel.getNamesByKinds(dbClient, Array.from(allDeviceKinds));
+
+        // remove hints that refer to devices we did find (unlikely but defensive)
+        hints = hints.map((hint) => hint.filter((d) => !!allDevices[d]));
+        return [program_id, code, sentences, hints, allDevices];
+    }, 'serializable', 'read only').then(([program_id, code, sentences, hints, allDevices]) => {
         res.render('mturk', { page_title: req._('Paraphrase'),
                               hit: hitId,
                               batch: batchId,
                               program_id: program_id,
                               code: code,
                               sentences: sentences,
+                              hints,
+                              allDevices,
                               csrfToken: req.csrfToken() });
     }).catch(next);
 });

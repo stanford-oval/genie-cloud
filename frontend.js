@@ -25,6 +25,7 @@ const connect_flash = require('connect-flash');
 const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
 const Prometheus = require('prom-client');
+const escapeHtml = require('escape-html');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
@@ -79,6 +80,7 @@ class Frontend {
                 DeveloperStatus: userUtils.DeveloperStatus,
                 ProfileFlags: userUtils.ProfileFlags
             };
+            res.locals.escapeHtml = escapeHtml;
 
             // the old way of doing things - eventually should be refactored
             res.locals.CDN_HOST = Config.CDN_HOST;

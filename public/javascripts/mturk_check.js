@@ -6,14 +6,8 @@
 $(document).ready(function() { 
     let checked = {};
     for (let i = 1; i < 5; i ++) {
-        for (let j = 1; j < 3; j ++) {
+        for (let j = 1; j < 3; j ++)
             checked[`paraphrase${i}-${j}`] = false;
-            let hint = genHint($(`#hint${i}`).text());
-            if (hint.length > 1) {
-                $(`#hint${i}`).text('Hint: the command uses ' + hint);
-                $(`#hint${i}`).prop('hidden', false);
-            }
-        }
     }
 
     $('.paraphrase').focusout(function() {
@@ -179,34 +173,4 @@ function allChecked(checked) {
             return false;
     }
     return true;
-}
-
-function genHint(code) {
-    console.log(code);
-    let hint = [];
-    let descriptions = {
-        '@com.bing': 'Bing search engine', 
-        '@com.giphy': 'Giphy, a website for GIF images',
-        '@com.github': 'Github, a website for programmers to keep track of their code',
-        '@com.xkcd': 'XKCD, a webcomic',
-        '@com.live.onedrive': 'OneDrive, a cloud storage from Microsoft',
-        '@com.google.drive': 'Google Drive, a cloud storage from Google',
-        'light-bulb': 'Philips Hue, a smart light bulb',
-        '@com.lg.tv': 'an LG television which uses webOS as its operating system',
-        'security-camera': 'Nest security camera',
-        'thermostat': 'Nest smart thermostat',
-        '@com.parklonamerica.heatpad': 'a heating pad',
-        '@com.phdcomics': 'PhDComics, a webcomic that follows the lives of several grad students',
-        '@com.slack': 'Slack, a messaging app for teams',
-        '@com.tesla': 'a Tesla car which can be controlled remotely',
-        '@edu.stanford.rakeshr1.fitbit': 'Fitbit, an activity tracker',
-        '@org.thingpedia.builtin.omlet': 'Omlet, a messaging app similar to WhatsApp',
-        '@com.twitter': 'Twitter',
-        '@com.instagram': 'Instagram'
-    }
-    for (let device in descriptions) {
-        if (code.indexOf(device) > -1)
-            hint.push(descriptions[device]);
-    }
-    return hint.join(', and ') + '.'
 }

@@ -44,6 +44,7 @@
     "csv-stringify": "^5.3.0",
     "deep-equal": "^1.0.1",
     "discourse-sso": "^1.0.3",
+    "escape-html": "^1.0.3",
     "express": "^4.15.2",
     "express-mysql-session": "^2.0.0",
     "express-session": "^1.14.0",
