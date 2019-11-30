@@ -8,7 +8,7 @@ block styles
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
-  if ENABLE_ANONYMOUS_USER
+  if ENABLE_ANONYMOUS_USER && !authenticated
     script(src=Config.ASSET_CDN + '/javascripts/conversation.js')
 
 block page_name
