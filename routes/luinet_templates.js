@@ -65,7 +65,7 @@ async function uploadTemplatePack(req) {
         if (!I18n.get(req.body.language))
             throw new BadRequestError(req._("Unsupported language"));
 
-        if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,][a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
+        if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,]+[a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
             throw new BadRequestError(req._("Invalid flags"));
 
         validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
