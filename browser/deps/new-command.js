@@ -23,8 +23,8 @@ module.exports = class ThingTalkTrainer {
         this._locale = document.body.dataset.locale || 'en-US';
 
         this._parserUrl = document.body.dataset.nlServerUrl;
-        this.parser = new ParserClient(this._parserUrl, this._locale);
         this._developerKey = document.body.dataset.developerKey || null;
+        this.parser = new ParserClient(this._parserUrl, this._locale, this._developerKey);
         this._user = document.body.dataset.cloudId || null;
 
         this.thingpedia = new ThingpediaClient(this._developerKey, this._locale);
