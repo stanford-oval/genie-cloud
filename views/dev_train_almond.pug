@@ -127,3 +127,16 @@ block content
                   div.form-group
                     button.btn.btn-primary#thingtalk-add-input-submit= _("Add")
 
+        div.modal.fade(role='dialog')#thingtalk-add-filter
+          div.modal-dialog
+            div.modal-content
+              div.modal-header
+                a.close(data-dismiss='modal', aria-label="Close")
+                  span(aria-hidden='true') ×
+                h4.modal-title= _("Add filters")
+
+              div.modal-body
+                div.form
+                  div.form-group#thingtalk-add-filter-edit
+                  div.form-group
+                    button.btn.btn-primary#thingtalk-add-filter-submit= _("Add")

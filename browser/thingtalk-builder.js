@@ -34,6 +34,7 @@ function fromString(type, value) {
         return Ast.Value.String(value);
     if (type.isNumber && !isNaN(value))
         return Ast.Value.Number(parseInt(value));
+    //TODO: add support for other types
     throw new Error(`Cannot convert ${value} into ${type.toString()}`);
 
 }
@@ -67,8 +68,22 @@ class ThingTalkBuilder {
         // the <div> containing input params of a chosen function
         this._inputParamsCandidates = $('#thingtalk-add-input-edit');
 
+        // the <div> containing filter candidates of a chosen function
+        this._filterCandidates = $('#thingtalk-add-filter-edit');
+
         // the thingtalk output
         this._thingtalkOutput = $('#thingtalk-output');
+    }
+
+    get currentExample() {
+        if (this._currentType === 'stream')
+            return this._stream;
+        else if (this._currentType === 'query')
+            return this._query;
+        else if (this._currentType === 'action')
+            return this._action;
+        else
+            throw new Error('Unexpected type');
     }
 
     searchDevice(key) {
@@ -114,18 +129,55 @@ class ThingTalkBuilder {
     showInputParams() {
         this._resetInputParamCandidates();
 
-        let ex;
+        let ex = this.currentExample;
+        for (let slot in ex.target.slotTypes)
+            this._addInputCandidate(slot, ex.target.slotTypes[slot]);
+    }
+
+    async showFilters() {
+        let ex = this.currentExample;
+        let code = ThingTalk.NNSyntax.fromNN(ex.target.code, ex.target.entities).prettyprint();
+        let parsed = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemaRetriever);
+        let schema;
         if (this._currentType === 'stream')
-            ex = this._stream;
+            schema = parsed.rules[0].stream.schema;
         else if (this._currentType === 'query')
-            ex = this._query;
+            schema = parsed.rules[0].table.schema;
         else if (this._currentType === 'action')
-            ex = this._action;
+            schema = parsed.rules[0].actions[0].schema;
         else
             throw new Error('Unexpected type');
 
-        for (let slot in ex.target.slotTypes)
-            this._addInputCandidate(slot, ex.target.slotTypes[slot]);
+        for (let arg of schema.iterateArguments()) {
+            if (arg.is_input)
+                continue;
+            let row = $('<div>').addClass('row');
+            let nameDiv = $('<div>').addClass('col-lg-4');
+            nameDiv.append($('<p>').addClass('form-control').text(arg.name));
+
+            let opDiv = $('<div>').addClass('col-lg-3');
+            if (arg.type.isNumber) {
+                let selector = $('<select>').addClass('form-control').attr('id', `thingtalk-filter-op-${arg.name}`);
+                selector.append($('<option>').text('=='));
+                selector.append($('<option>').text('>='));
+                selector.append($('<option>').text('<='));
+                opDiv.append(selector);
+            } else if (arg.type.isString) {
+                opDiv.append($('<p>').addClass('form-control').text('contains'));
+            } else {
+                //TODO: add support for other types
+            }
+
+            let valueDiv = $('<div>').addClass('col-lg-4');
+            valueDiv.append($('<input>').addClass('form-control').attr('id', `thingtalk-filter-value-${arg.name}`));
+
+            row.append(nameDiv);
+            row.append(opDiv);
+            row.append(valueDiv);
+            this._filterCandidates.append(row);
+        }
+
+
     }
 
     _updateThingTalk(e) {
@@ -201,6 +253,51 @@ class ThingTalkBuilder {
             $('#thingtalk-do').val(action.split('=>')[1]);
         } else {
             throw new Error('Unexpected type');
+        }
+        this._thingtalkOutput.val(this._prettyprint());
+    }
+
+    async updateFilter() {
+        let ex = this.currentExample;
+        let code = ThingTalk.NNSyntax.fromNN(ex.target.code, ex.target.entities).prettyprint();
+        let parsed = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemaRetriever);
+        let ast;
+        if (this._currentType === 'stream')
+            ast = parsed.rules[0].stream;
+        else if (this._currentType === 'query')
+            ast = parsed.rules[0].table;
+        else
+            throw new Error('Unexpected type');
+
+        let entities = {};
+        for (let arg of ast.schema.iterateArguments()) {
+            if (arg.is_input)
+                continue;
+
+            let value = $(`#thingtalk-filter-value-${arg.name}`).val();
+            if (!value)
+                continue;
+            value = fromString(arg.type, value);
+            let op = $(`#thingtalk-filter-op-${arg.name}`).val();
+            let filter = new Ast.BooleanExpression.Atom(arg.name, op, value);
+
+            if (this._currentType === 'stream') {
+                let rule = new Ast.Statement.Rule(
+                    new Ast.Stream.Filter(ast, filter, ast.schema),
+                    [ThingTalk.Generate.notifyAction()]
+                );
+                let program = new Ast.Input.Program([], [], [rule]);
+                this._stream.target.code = ThingTalk.NNSyntax.toNN(program, {}, {});
+                $('#thingtalk-when').val(program.prettyprint().split('=>')[0]);
+            } else {
+                let command = new Ast.Statement.Command(
+                    new Ast.Table.Filter(ast, filter, ast.schema),
+                    [ThingTalk.Generate.notifyAction()]
+                );
+                let program = new Ast.Input.Program([], [], [command]);
+                //this._query.target.code = ThingTalk.NNSyntax.toNN(program, {});
+                $('#thingtalk-when').val(program.prettyprint().split('=>')[1]);
+            }
         }
         this._thingtalkOutput.val(this._prettyprint());
     }
@@ -342,6 +439,19 @@ $(() => {
         $('#thingtalk-add-input').modal('show');
     });
 
+    $('#thingtalk-when-add-filter').click(() => {
+        builder.reset('stream');
+        $('#thingtalk-add-filter').modal('show');
+    });
+    $('#thingtalk-get-add-filter').click(() => {
+        builder.reset('query');
+        $('#thingtalk-add-filter').modal('show');
+    });
+    $('#thingtalk-do-add-filter').click(() => {
+        builder.reset('action');
+        $('#thingtalk-add-filter').modal('show');
+    });
+
 
     $('#thingtalk-search-device').click(async () => {
         const key = $('#thingtalk-search-device-input').val();
@@ -356,5 +466,14 @@ $(() => {
     $('#thingtalk-add-input-submit').click(() => {
         builder.updateInput();
         $('#thingtalk-add-input').modal('toggle');
+    });
+
+    $('#thingtalk-add-filter').on('shown.bs.modal', async () => {
+        await builder.showFilters();
+    });
+
+    $('#thingtalk-add-filter-submit').click(async () => {
+        await builder.updateFilter();
+        $('#thingtalk-add-filter').modal('toggle');
     });
 });
