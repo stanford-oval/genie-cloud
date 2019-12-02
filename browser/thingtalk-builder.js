@@ -13,30 +13,48 @@
 // bundle
 // we can use commonjs but no nodejs deps
 
+const assert = require('assert');
+
 const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 const ThingpediaClient = require('./deps/thingpediaclient');
 
-function prettyprintExample(e, full=true) {
-    const code = ThingTalk.NNSyntax.fromNN(e.target.code, e.target.entities);
-    if (full)
-        return code.prettyprint();
-    if (e.type === 'stream')
-        return code.prettyprint().split('=>')[0];
-    if (e.type === 'query' || e.type === 'action')
-        return code.prettyprint().split('=>')[1];
-    return code;
+
+function fullCanonical(canonical, type) {
+    assert(type === 'stream' || type === 'query' || type === 'action');
+    if (type === 'action')
+        return canonical;
+
+    if (canonical.startsWith('get '))
+        canonical = canonical.slice('get '.length);
+    if (type === 'query')
+        return `get ${canonical}`;
+    if (type === 'stream')
+        return `when ${canonical} changes`;
 }
 
-function fromString(type, value) {
+function prettyprintComponent(ast, type) {
+    assert(type === 'stream' || type === 'query' || type === 'action');
+    if (type === 'stream') {
+        let rule = new Ast.Statement.Rule(ast, [ThingTalk.Generate.notifyAction()]);
+        return new Ast.Input.Program([], [], [rule]).prettyprint().split('=>')[0];
+    } else if (type === 'query') {
+        let command = new Ast.Statement.Command(ast, [ThingTalk.Generate.notifyAction()]);
+        return new Ast.Input.Program([], [], [command]).prettyprint().split('=>')[1];
+    } else {
+        let command = new Ast.Statement.Command(null, [ast]);
+        return new Ast.Input.Program([], [], [command]).prettyprint().split('=>')[1];
+    }
+}
+
+function resolveValue(type, value) {
     if (type.isString)
         return Ast.Value.String(value);
     if (type.isNumber && !isNaN(value))
         return Ast.Value.Number(parseInt(value));
     //TODO: add support for other types
     throw new Error(`Cannot convert ${value} into ${type.toString()}`);
-
 }
 
 class ThingTalkBuilder {
@@ -75,7 +93,7 @@ class ThingTalkBuilder {
         this._thingtalkOutput = $('#thingtalk-output');
     }
 
-    get currentExample() {
+    get function() {
         if (this._currentType === 'stream')
             return this._stream;
         else if (this._currentType === 'query')
@@ -90,125 +108,99 @@ class ThingTalkBuilder {
         return this.thingpedia.searchDevice(key);
     }
 
-    listExamplesByKind(kind) {
-        return this.thingpedia.getExamplesByKinds([kind]);
-    }
-
-    showDevices(devices) {
+    async showDevices(devices) {
         this._resetDeviceCandidates(false);
         this._resetExampleCandidates();
         for (let d of devices) {
-            let candidate = $('<button>').addClass('btn').addClass('btn-default').text(d.name);
-            let self = this;
+            const parsed = ThingTalk.Grammar.parse(await this.thingpedia.getDeviceCode(d.primary_kind));
+            const device = parsed.classes[0];
+            const candidate = $('<button>').addClass('btn').addClass('btn-default').text(d.name);
             candidate.click(async () => {
-                const dataset = await self.listExamplesByKind(d.primary_kind);
-                const allExamples = await this.loadExamples(dataset);
-                this.showExamples(allExamples);
+                this.showFunctions(device);
             });
             this._deviceCandidates.append(candidate);
         }
-        this._deviceSearchHint.text('Do you mean?');
+        if (devices.length === 0)
+            this._deviceSearchHint.text('No device found');
+        else
+            this._deviceSearchHint.text('Do you mean?');
     }
 
-    showExamples(examples) {
+    showFunctions(deviceClass) {
+        assert(this._currentType === 'stream' || this._currentType === 'query' || this._currentType === 'action');
+
         this._resetExampleCandidates(false);
-        let examplesOfCurrentType = examples.filter((e) => e.type === this._currentType);
-        if (examplesOfCurrentType.length === 0)
-            this._exampleListHint.text('No compatible example found for this device.');
-        else
-            this._exampleListHint.text('Choose the function you want to use:');
-        for (let e of examplesOfCurrentType) {
-            let candidate = $('<button>').addClass('btn').addClass('btn-default').text(e.utterance);
+
+        const functions = this._currentType === 'action' ? deviceClass.actions : deviceClass.queries;
+        for (let f of Object.values(functions)) {
+            // skip non-monitorable functions for stream
+            if (this._currentType === 'stream' && !f.is_monitorable)
+                continue;
+
+            let canonical = f.canonical ? fullCanonical(f.canonical, this._currentType) : f.name;
+            let candidate = $('<button>').addClass('btn').addClass('btn-default').text(canonical);
             candidate.click(() => {
-                this._updateThingTalk(e);
+                this._updateFunction(deviceClass, f);
             });
             this._exampleCandidates.append(candidate);
         }
-    }
 
-    showInputParams() {
-        this._resetInputParamCandidates();
-
-        let ex = this.currentExample;
-        for (let slot in ex.target.slotTypes)
-            this._addInputCandidate(slot, ex.target.slotTypes[slot]);
-    }
-
-    async showFilters() {
-        let ex = this.currentExample;
-        let code = ThingTalk.NNSyntax.fromNN(ex.target.code, ex.target.entities).prettyprint();
-        let parsed = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemaRetriever);
-        let schema;
-        if (this._currentType === 'stream')
-            schema = parsed.rules[0].stream.schema;
-        else if (this._currentType === 'query')
-            schema = parsed.rules[0].table.schema;
-        else if (this._currentType === 'action')
-            schema = parsed.rules[0].actions[0].schema;
+        if (this._exampleCandidates.length === 0)
+            this._exampleListHint.text('No compatible example found for this device.');
         else
-            throw new Error('Unexpected type');
-
-        for (let arg of schema.iterateArguments()) {
-            if (arg.is_input)
-                continue;
-            let row = $('<div>').addClass('row');
-            let nameDiv = $('<div>').addClass('col-lg-4');
-            nameDiv.append($('<p>').addClass('form-control').text(arg.name));
-
-            let opDiv = $('<div>').addClass('col-lg-3');
-            if (arg.type.isNumber) {
-                let selector = $('<select>').addClass('form-control').attr('id', `thingtalk-filter-op-${arg.name}`);
-                selector.append($('<option>').text('=='));
-                selector.append($('<option>').text('>='));
-                selector.append($('<option>').text('<='));
-                opDiv.append(selector);
-            } else if (arg.type.isString) {
-                opDiv.append($('<p>').addClass('form-control').text('contains'));
-            } else {
-                //TODO: add support for other types
-            }
-
-            let valueDiv = $('<div>').addClass('col-lg-4');
-            valueDiv.append($('<input>').addClass('form-control').attr('id', `thingtalk-filter-value-${arg.name}`));
-
-            row.append(nameDiv);
-            row.append(opDiv);
-            row.append(valueDiv);
-            this._filterCandidates.append(row);
-        }
-
-
+            this._exampleListHint.text('Choose the function you want to use:');
     }
 
-    _updateThingTalk(e) {
+    _updateFunction(deviceClass, functionSignature) {
+        const invocation = new Ast.Invocation(
+            new Ast.Selector.Device(deviceClass.kind, null, null), functionSignature.name, [], functionSignature
+        );
         if (this._currentType === 'stream') {
-            this._stream = e;
-            $('#thingtalk-when').val(prettyprintExample(e, false));
+            this._stream = new Ast.Stream.Monitor(
+                new Ast.Table.Invocation(invocation, invocation.schema), [], invocation.schema
+            );
+            this._updateComponent();
         } else if (this._currentType === 'query') {
-            this._query = e;
-            $('#thingtalk-get').val(prettyprintExample(e, false));
+            this._query = new Ast.Table.Invocation(invocation, invocation.schema);
+            this._updateComponent();
         } else if (this._currentType === 'action') {
-            this._action = e;
-            $('#thingtalk-do').val(prettyprintExample(e, false));
-        } else {
-            throw new Error('Unexpected type');
+            this._action = new Ast.Action.Invocation(invocation, invocation.schema);
+            this._updateComponent();
         }
 
         this._thingtalkOutput.val(this._prettyprint());
         $('#thingtalk-select').modal('toggle');
     }
 
+    _updateComponent() {
+        if (this._currentType === 'stream')
+            $('#thingtalk-when').val(prettyprintComponent(this._stream, 'stream'));
+        else if (this._currentType === 'query')
+            $('#thingtalk-get').val(prettyprintComponent(this._query, 'query'));
+        else if (this._currentType === 'action')
+            $('#thingtalk-do').val(prettyprintComponent(this._action, 'action'));
+    }
 
-    _addInputCandidate(name) {
+
+    showInputParams() {
+        this._resetInputParamCandidates();
+
+        for (let arg of this.function.schema.iterateArguments()) {
+            if (arg.is_input)
+                this._addInputCandidate(arg);
+        }
+    }
+
+    _addInputCandidate(arg) {
         let row = $('<div>').addClass('row');
         let nameDiv = $('<div>').addClass('col-lg-4');
-        nameDiv.append($('<p>').addClass('form-control').text(name));
+        nameDiv.append($('<p>').addClass('form-control').text(arg.name));
 
         let opDiv = $('<div>').addClass('col-lg-3');
         opDiv.append($('<p>').addClass('form-control').text('='));
 
         let valueDiv = $('<div>').addClass('col-lg-4');
-        valueDiv.append($('<input>').addClass('form-control').attr('id', `thingtalk-input-value-${name}`));
+        valueDiv.append($('<input>').addClass('form-control').attr('id', `thingtalk-input-value-${arg.name}`));
 
         row.append(nameDiv);
         row.append(opDiv);
@@ -218,102 +210,103 @@ class ThingTalkBuilder {
     }
 
     updateInput() {
-        if (this._currentType === 'stream') {
-            let entities = {};
-            for (let i = 0; i < this._stream.target.slots.length; i++) {
-                let name = this._stream.target.slots[i];
-                let value = $(`#thingtalk-input-value-${name}`).val();
+        let values = {};
+        for (let arg of this.function.schema.iterateArguments()) {
+            if (arg.is_input) {
+                let value = $(`#thingtalk-input-value-${arg.name}`).val();
                 if (value)
-                    entities[`SLOT_${i}`] = fromString(this._stream.target.slotTypes[name], value);
+                    values[arg.name] = resolveValue(arg.type, value);
             }
-            this._stream.target.entities = entities;
-            let stream = ThingTalk.NNSyntax.fromNN(this._stream.target.code, entities).prettyprint();
-            $('#thingtalk-when').val(stream.split('=>')[0]);
-        } else if (this._currentType === 'query') {
-            let entities = {};
-            for (let i = 0; i < this._query.target.slots.length; i++) {
-                let name = this._query.target.slots[i];
-                let value = $(`#thingtalk-input-value-${name}`).val();
-                if (value)
-                    entities[`SLOT_${i}`] = fromString(this._query.target.slotTypes[name], value);
-            }
-            this._query.target.entities = entities;
-            let query = ThingTalk.NNSyntax.fromNN(this._query.target.code, entities).prettyprint();
-            $('#thingtalk-get').val(query.split('=>')[1]);
-        } else if (this._currentType === 'action') {
-            let entities = {};
-            for (let i = 0; i < this._action.target.slots.length; i++) {
-                let name = this._action.target.slots[i];
-                let value = $(`#thingtalk-input-value-${name}`).val();
-                if (value)
-                    entities[`SLOT_${i}`] = fromString(this._action.target.slotTypes[name], value);
-            }
-            this._action.target.entities = entities;
-            let action = ThingTalk.NNSyntax.fromNN(this._action.target.code, entities).prettyprint();
-            $('#thingtalk-do').val(action.split('=>')[1]);
-        } else {
-            throw new Error('Unexpected type');
         }
-        this._thingtalkOutput.val(this._prettyprint());
+
+        if (Object.keys(values).length > 0) {
+            let invocation = this._currentType === 'stream' ? this.function.table.invocation : this.function.invocation;
+            for (let name in values) {
+                invocation.in_params.push({
+                    name, value: values[name]
+                });
+            }
+            this._updateComponent();
+            this._thingtalkOutput.val(this._prettyprint());
+        }
+    }
+
+    showFilters() {
+        this._resetFilterCandidates();
+        for (let arg of this.function.schema.iterateArguments()) {
+            if (!arg.is_input)
+                this._addFilterCandidate(arg);
+        }
+    }
+
+    _addFilterCandidate(arg) {
+        let row = $('<div>').addClass('row');
+        let nameDiv = $('<div>').addClass('col-lg-4');
+        nameDiv.append($('<p>').addClass('form-control').text(arg.name));
+
+        let opDiv = $('<div>').addClass('col-lg-3');
+        let selector = $('<select>').addClass('form-control').attr('id', `thingtalk-filter-op-${arg.name}`);
+        if (arg.type.isNumber) {
+            selector.append($('<option>').text('=='));
+            selector.append($('<option>').text('>='));
+            selector.append($('<option>').text('<='));
+            opDiv.append(selector);
+        } else if (arg.type.isString) {
+            selector.append($('<option>').text('contains').val('=~'));
+            opDiv.append(selector);
+        } else {
+            //TODO: add support for other types
+        }
+
+        let valueDiv = $('<div>').addClass('col-lg-4');
+        valueDiv.append($('<input>').addClass('form-control').attr('id', `thingtalk-filter-value-${arg.name}`));
+
+        row.append(nameDiv);
+        row.append(opDiv);
+        row.append(valueDiv);
+        this._filterCandidates.append(row);
     }
 
     async updateFilter() {
-        let ex = this.currentExample;
-        let code = ThingTalk.NNSyntax.fromNN(ex.target.code, ex.target.entities).prettyprint();
-        let parsed = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemaRetriever);
-        let ast;
-        if (this._currentType === 'stream')
-            ast = parsed.rules[0].stream;
-        else if (this._currentType === 'query')
-            ast = parsed.rules[0].table;
-        else
-            throw new Error('Unexpected type');
+        let atoms = [];
+        for (let arg of this.function.schema.iterateArguments()) {
+            if (!arg.is_input) {
+                let value = $(`#thingtalk-filter-value-${arg.name}`).val();
+                if (!value)
+                    continue;
 
-        let entities = {};
-        for (let arg of ast.schema.iterateArguments()) {
-            if (arg.is_input)
-                continue;
+                value = resolveValue(arg.type, value);
+                let op = $(`#thingtalk-filter-op-${arg.name}`).val();
 
-            let value = $(`#thingtalk-filter-value-${arg.name}`).val();
-            if (!value)
-                continue;
-            value = fromString(arg.type, value);
-            let op = $(`#thingtalk-filter-op-${arg.name}`).val();
-            let filter = new Ast.BooleanExpression.Atom(arg.name, op, value);
-
-            if (this._currentType === 'stream') {
-                let rule = new Ast.Statement.Rule(
-                    new Ast.Stream.Filter(ast, filter, ast.schema),
-                    [ThingTalk.Generate.notifyAction()]
-                );
-                let program = new Ast.Input.Program([], [], [rule]);
-                this._stream.target.code = ThingTalk.NNSyntax.toNN(program, {}, {});
-                $('#thingtalk-when').val(program.prettyprint().split('=>')[0]);
-            } else {
-                let command = new Ast.Statement.Command(
-                    new Ast.Table.Filter(ast, filter, ast.schema),
-                    [ThingTalk.Generate.notifyAction()]
-                );
-                let program = new Ast.Input.Program([], [], [command]);
-                //this._query.target.code = ThingTalk.NNSyntax.toNN(program, {});
-                $('#thingtalk-when').val(program.prettyprint().split('=>')[1]);
+                atoms.push(new Ast.BooleanExpression.Atom(arg.name, op, value));
             }
         }
+
+        let filter;
+        if (atoms.length === 1)
+            filter = atoms[0];
+        else if (atoms.length > 1)
+            filter = new Ast.BooleanExpression.And(atoms);
+
+        if (filter) {
+            if (this._currentType === 'stream')
+                this._stream = new Ast.Stream.EdgeFilter(this._stream, filter, this._stream.schema);
+            else
+                this._query = new Ast.Table.Filter(this._query, filter, this._query.schema);
+        }
+
+        this._updateComponent();
         this._thingtalkOutput.val(this._prettyprint());
     }
 
+
     _prettyprint() {
-        let rule, stream, query, action;
+        let rule;
         if (!this._stream && !this._query && !this._action)
             return 'Please choose at least one function.';
-        if (this._action)
-            action = ThingTalk.NNSyntax.fromNN(this._action.target.code, this._action.target.entities).rules[0].actions[0];
-        else
-            action = ThingTalk.Generate.notifyAction();
-        if (this._stream)
-            stream = ThingTalk.NNSyntax.fromNN(this._stream.target.code, this._stream.target.entities).rules[0].stream;
-        if (this._query)
-            query = ThingTalk.NNSyntax.fromNN(this._query.target.code, this._query.target.entities).rules[0].table;
+        let stream = this._stream;
+        let query = this._query;
+        let action = this._action ? this._action : ThingTalk.Generate.notifyAction();
         if (stream && query) {
             rule = new Ast.Statement.Rule(
                 new Ast.Stream.Join(stream, query, [], null), [action]
@@ -326,6 +319,8 @@ class ThingTalkBuilder {
         return new Ast.Input.Program([], [], [rule]).prettyprint();
     }
 
+
+
     reset(type) {
         $('#thingtalk-search-device-input').val('');
         this._currentType = type;
@@ -333,7 +328,7 @@ class ThingTalkBuilder {
         this._resetExampleCandidates();
     }
 
-    _resetDeviceCandidates(hide=true) {
+    _resetDeviceCandidates(hide = true) {
         if (hide)
             this._deviceDiv.hide();
         else
@@ -341,7 +336,7 @@ class ThingTalkBuilder {
         this._deviceCandidates.empty();
     }
 
-    _resetExampleCandidates(hide=true) {
+    _resetExampleCandidates(hide = true) {
         if (hide)
             this._exampleDiv.hide();
         else
@@ -353,62 +348,11 @@ class ThingTalkBuilder {
         this._inputParamsCandidates.empty();
     }
 
-
-    async loadExamples(dataset, maxCount) {
-        const parsed = await ThingTalk.Grammar.parseAndTypecheck(dataset, this._schemaRetriever);
-        const parsedDataset = parsed.datasets[0];
-
-        if (maxCount === undefined)
-            maxCount = parsedDataset.examples.length;
-        else
-            maxCount = Math.min(parsedDataset.examples.length, maxCount);
-        let output = [];
-        for (let i = 0; i < maxCount; i++) {
-            const loaded = this._loadOneExample(parsedDataset.examples[i]);
-            if (loaded !== null)
-                output.push(loaded);
-        }
-        return output;
-    }
-
-    _loadOneExample(ex) {
-        // refuse to slot fill pictures
-        for (let name in ex.args) {
-            let type = ex.args[name];
-            // avoid examples such as "post __" for both text and picture (should be "post picture" without slot for picture)
-            if (type.isEntity && type.type === 'tt:picture')
-                return null;
-        }
-
-        // turn the declaration into a program
-        let newprogram = ex.toProgram();
-        let slots = [];
-        let slotTypes = {};
-        for (let name in ex.args) {
-            slotTypes[name] = ex.args[name];
-            slots.push(name);
-        }
-
-        let code = ThingTalk.NNSyntax.toNN(newprogram, {});
-        let monitorable;
-        if (ex.type === 'stream')
-            monitorable = true;
-        else if (ex.type === 'action')
-            monitorable = false;
-        else if (ex.type === 'query')
-            monitorable = ex.value.schema.is_monitorable;
-        else
-            monitorable = false;
-        return {
-            utterance: ex.utterances[0],
-            type: ex.type,
-            monitorable: monitorable,
-            target: {
-                example_id: ex.id, code: code, entities: {}, slotTypes: slotTypes, slots: slots
-            }
-        };
+    _resetFilterCandidates() {
+        this._filterCandidates.empty();
     }
 }
+
 
 $(() => {
     const builder = new ThingTalkBuilder();
@@ -456,7 +400,7 @@ $(() => {
     $('#thingtalk-search-device').click(async () => {
         const key = $('#thingtalk-search-device-input').val();
         const devices = await builder.searchDevice(key);
-        builder.showDevices(devices.data);
+        await builder.showDevices(devices.data);
     });
 
     $('#thingtalk-add-input').on('shown.bs.modal', () => {
