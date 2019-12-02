@@ -21,7 +21,7 @@ function checkKey(value, type) {
     }
 
     if (type.startsWith('?')) {
-        if (value === undefined || value === '')
+        if (value === undefined || value === '' || value === null)
             return true;
         type = type.substring(1);
     }
