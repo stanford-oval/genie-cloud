@@ -134,6 +134,12 @@ class ThingTalkBuilder {
 
         // the thingtalk output
         this._thingtalkOutput = $('#thingtalk-output');
+
+        // clear input field
+        $('#thingtalk-when').val('');
+        $('#thingtalk-get').val('');
+        $('#thingtalk-do').val('');
+        this._thingtalkOutput.val('');
     }
 
     get function() {
