@@ -53,8 +53,49 @@ function resolveValue(type, value) {
         return Ast.Value.String(value);
     if (type.isNumber && !isNaN(value))
         return Ast.Value.Number(parseInt(value));
-    //TODO: add support for other types
-    throw new Error(`Cannot convert ${value} into ${type.toString()}`);
+    if (type.isEnum)
+        return Ast.Value.Enum(value);
+    if (type.isLocation && value.startsWith('$'))
+        return new Ast.Value.Location(new Ast.Location.Relative(value.slice(1)));
+    if (type.isBoolean)
+        return new Ast.Value.Boolean(value === 'true');
+    if (type.isEntity)
+        return Ast.Value.Entity(value, type.type, null);
+
+    throw new Error('Not supported type');
+}
+
+function inputByType(type) {
+    if (type.isString || type.isNumber)
+        return $('<input>');
+
+    if (type.isEnum) {
+        let selector = $('<select>');
+        for (let entry of type.entries)
+            selector.append($('<option>').text(entry).val(new Ast.Value.Enum(entry)));
+        return selector;
+    }
+
+    if (type.isLocation) {
+        let selector = $('<select>');
+        selector.append($('<option>').text('home').val('$home'));
+        selector.append($('<option>').text('work').val('$work'));
+        selector.append($('<option>').text('here').val('$current_location'));
+        return selector;
+    }
+
+    if (type.isBoolean) {
+        let selector = $('<select>');
+        selector.append($('<option>').text('true'));
+        selector.append($('<option>').text('false'));
+        return selector;
+    }
+
+    if (type.isEntity)
+        return $('<input>');
+
+    //TODO: add support for more types
+    return $('<input>').attr('placeholder', 'Not supported type').prop( "disabled", true );
 }
 
 class ThingTalkBuilder {
@@ -203,7 +244,7 @@ class ThingTalkBuilder {
         opDiv.append($('<p>').addClass('form-control').text('='));
 
         let valueDiv = $('<div>').addClass('col-lg-4');
-        valueDiv.append($('<input>').addClass('form-control').attr('id', `thingtalk-input-value-${arg.name}`));
+        valueDiv.append(inputByType(arg.type).addClass('form-control').attr('id', `thingtalk-input-value-${arg.name}`));
 
         row.append(nameDiv);
         row.append(opDiv);
@@ -223,14 +264,22 @@ class ThingTalkBuilder {
         }
 
         if (Object.keys(values).length > 0) {
-            let invocation = this._currentType === 'stream' ? this._streamInvocation : this._queryInvocation;
+            let invocation;
+            if (this._currentType === 'stream')
+                invocation = this._streamInvocation.invocation;
+            else if (this._currentType === 'query')
+                invocation = this._queryInvocation.invocation;
+            else if (this._currentType === 'action')
+                invocation = this._actionInvocation.invocation;
+            else
+                throw new Error('Invalid type');
             let in_params = [];
             for (let name in values) {
                 in_params.push({
                     name, value: values[name]
                 });
             }
-            invocation.invocation.in_params = in_params;
+            invocation.in_params = in_params;
             this._updateComponent();
             this._thingtalkOutput.val(this._prettyprint());
         }
@@ -255,16 +304,15 @@ class ThingTalkBuilder {
             selector.append($('<option>').text('=='));
             selector.append($('<option>').text('>='));
             selector.append($('<option>').text('<='));
-            opDiv.append(selector);
         } else if (arg.type.isString) {
             selector.append($('<option>').text('contains').val('=~'));
-            opDiv.append(selector);
         } else {
-            //TODO: add support for other types
+            selector.append($('<option>').text('=='));
         }
+        opDiv.append(selector);
 
         let valueDiv = $('<div>').addClass('col-lg-4');
-        valueDiv.append($('<input>').addClass('form-control').attr('id', `thingtalk-filter-value-${arg.name}`));
+        valueDiv.append(inputByType(arg.type).addClass('form-control').attr('id', `thingtalk-filter-value-${arg.name}`));
 
         row.append(nameDiv);
         row.append(opDiv);
