@@ -21,7 +21,8 @@ const SchemaRetriever = ThingTalk.SchemaRetriever;
 const ThingpediaClient = require('./deps/thingpediaclient');
 
 
-function fullCanonical(canonical, type) {
+function fullCanonical(schema, type) {
+    let canonical = schema.canonical || schema.name;
     assert(type === 'stream' || type === 'query' || type === 'action');
     if (type === 'action')
         return canonical;
@@ -114,6 +115,14 @@ class ThingTalkBuilder {
         this._queryInvocation = null;
         this._actionInvocation = null;
 
+        this._streamCanonical = null;
+        this._queryCanonical = null;
+        this._actionCanonical = null;
+
+        // output grouped by type
+        this._streamOutput = {};
+        this._queryOutput = {};
+
         // track which type the user is currently editing
         this._currentType = null;
 
@@ -186,7 +195,7 @@ class ThingTalkBuilder {
             if (this._currentType === 'stream' && !f.is_monitorable)
                 continue;
 
-            let canonical = f.canonical ? fullCanonical(f.canonical, this._currentType) : f.name;
+            let canonical = fullCanonical(f, this._currentType);
             let candidate = $('<button>').addClass('btn').addClass('btn-default').text(canonical);
             candidate.click(() => {
                 this._updateFunction(deviceClass, f);
@@ -205,30 +214,60 @@ class ThingTalkBuilder {
             new Ast.Selector.Device(deviceClass.kind, null, null), functionSignature.name, [], functionSignature
         );
         if (this._currentType === 'stream') {
+            this._streamCanonical = fullCanonical(functionSignature, this._currentType);
             this._streamInvocation = new Ast.Table.Invocation(invocation, invocation.schema);
             this._stream = new Ast.Stream.Monitor(this._streamInvocation, [], invocation.schema);
-            this._updateComponent();
         } else if (this._currentType === 'query') {
+            this._queryCanonical = fullCanonical(functionSignature, this._currentType);
             this._queryInvocation = new Ast.Table.Invocation(invocation, invocation.schema);
             this._query = this._queryInvocation;
-            this._updateComponent();
         } else if (this._currentType === 'action') {
+            this._actionCanonical = fullCanonical(functionSignature, this._currentType);
             this._actionInvocation = new Ast.Action.Invocation(invocation, invocation.schema);
             this._action = this._actionInvocation;
-            this._updateComponent();
         }
 
-        this._thingtalkOutput.val(this._prettyprint());
+        this._updateOutput(invocation.schema);
+        this._updateThingTalk();
+
         $('#thingtalk-select').modal('toggle');
     }
 
-    _updateComponent() {
+    _updateThingTalk() {
         if (this._currentType === 'stream')
             $('#thingtalk-when').val(prettyprintComponent(this._stream, 'stream'));
         else if (this._currentType === 'query')
             $('#thingtalk-get').val(prettyprintComponent(this._query, 'query'));
         else if (this._currentType === 'action')
             $('#thingtalk-do').val(prettyprintComponent(this._action, 'action'));
+
+        this._thingtalkOutput.val(this._prettyprint());
+    }
+
+    _updateOutput(schema) {
+        if (this._currentType === 'stream') {
+            this._streamOutput = {};
+            for (let arg of schema.iterateArguments()) {
+                if (arg.is_input)
+                    continue;
+                let type = arg.type.toString();
+                if (type in this._streamOutput)
+                    this._streamOutput[type].add(arg.name);
+                else
+                    this._streamOutput[type] = new Set([arg.name]);
+            }
+        } else if (this._currentType === 'query') {
+            this._queryOutput = {};
+            for (let arg of schema.iterateArguments()) {
+                if (arg.is_input)
+                    continue;
+                let type = arg.type.toString();
+                if (type in this._queryOutput)
+                    this._queryOutput[type].add(arg.name);
+                else
+                    this._queryOutput[type] = new Set([arg.name]);
+            }
+        }
     }
 
 
@@ -286,8 +325,7 @@ class ThingTalkBuilder {
                 });
             }
             invocation.in_params = in_params;
-            this._updateComponent();
-            this._thingtalkOutput.val(this._prettyprint());
+            this._updateThingTalk();
         }
     }
 
@@ -354,8 +392,7 @@ class ThingTalkBuilder {
                 this._query = new Ast.Table.Filter(this._query, filter, this._query.schema);
         }
 
-        this._updateComponent();
-        this._thingtalkOutput.val(this._prettyprint());
+        this._updateThingTalk();
     }
 
 
