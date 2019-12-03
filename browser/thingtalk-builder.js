@@ -69,7 +69,9 @@ class ThingTalkBuilder {
         this._stream = null;
         this._query = null;
         this._action = null;
-        this.command = null;
+        this._streamInvocation = null;
+        this._queryInvocation = null;
+        this._actionInvocation = null;
 
         // track which type the user is currently editing
         this._currentType = null;
@@ -156,15 +158,16 @@ class ThingTalkBuilder {
             new Ast.Selector.Device(deviceClass.kind, null, null), functionSignature.name, [], functionSignature
         );
         if (this._currentType === 'stream') {
-            this._stream = new Ast.Stream.Monitor(
-                new Ast.Table.Invocation(invocation, invocation.schema), [], invocation.schema
-            );
+            this._streamInvocation = new Ast.Table.Invocation(invocation, invocation.schema);
+            this._stream = new Ast.Stream.Monitor(this._streamInvocation, [], invocation.schema);
             this._updateComponent();
         } else if (this._currentType === 'query') {
-            this._query = new Ast.Table.Invocation(invocation, invocation.schema);
+            this._queryInvocation = new Ast.Table.Invocation(invocation, invocation.schema);
+            this._query = this._queryInvocation;
             this._updateComponent();
         } else if (this._currentType === 'action') {
-            this._action = new Ast.Action.Invocation(invocation, invocation.schema);
+            this._actionInvocation = new Ast.Action.Invocation(invocation, invocation.schema);
+            this._action = this._actionInvocation;
             this._updateComponent();
         }
 
@@ -220,12 +223,14 @@ class ThingTalkBuilder {
         }
 
         if (Object.keys(values).length > 0) {
-            let invocation = this._currentType === 'stream' ? this.function.table.invocation : this.function.invocation;
+            let invocation = this._currentType === 'stream' ? this._streamInvocation : this._queryInvocation;
+            let in_params = [];
             for (let name in values) {
-                invocation.in_params.push({
+                in_params.push({
                     name, value: values[name]
                 });
             }
+            invocation.invocation.in_params = in_params;
             this._updateComponent();
             this._thingtalkOutput.val(this._prettyprint());
         }
