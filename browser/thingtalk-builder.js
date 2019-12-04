@@ -49,7 +49,9 @@ function prettyprintComponent(ast, type) {
     }
 }
 
-function resolveValue(type, value) {
+function resolveValue(type, value, isVarRef=false) {
+    if (isVarRef)
+        return Ast.Value.VarRef(value);
     if (type.isString)
         return Ast.Value.String(value);
     if (type.isNumber && !isNaN(value))
@@ -66,37 +68,79 @@ function resolveValue(type, value) {
     throw new Error('Not supported type');
 }
 
-function inputByType(type) {
-    if (type.isString || type.isNumber)
-        return $('<input>');
+function comboInput(candidates, id) {
+    let combo = $('<div>');
+    let inputGroup = $('<div>').addClass('input-group');
+    let input = $('<input>').addClass('form-control').attr('id', id);
+    let dropdown = $('<div>').addClass('input-group-btn');
+    let button = $('<button>').addClass('btn').addClass('btn-outline-secondary').addClass('dropdown-toggle').attr('data-toggle', 'dropdown');
+    button.append($('<i>').addClass('fas').addClass('fa-caret-down'));
+    let dropdownMenu = $('<ul>').addClass('dropdown-menu').addClass('dropdown-menu-right');
+    for (let name in candidates) {
+        let li = $('<li>').addClass('dropdown-item');
+        let candidate = $('<a>').text(candidates[name]);
+        candidate.click(() => {
+            input.attr('placeholder', candidates[name]).prop('disabled', true).val(name);
+            input.attr('isVarRef', 'true');
+        });
+        li.append(candidate);
+        dropdownMenu.append(li);
+    }
+    let li = $('<li>').addClass('dropdown-item');
+    let reset = $('<a>').text('Type your own');
+    reset.click(() => {
+        input.prop('disabled', false).val('');
+    });
+    li.append(reset);
+
+    dropdownMenu.append(li);
+    dropdown.append(button);
+    dropdown.append(dropdownMenu);
+    inputGroup.append(input);
+    inputGroup.append(dropdown);
+    combo.append(inputGroup);
+    return combo;
+}
+
+function inputByType(type, candidates, id) {
+    if (type.isString || type.isNumber || type.isEntity) {
+        if (Object.keys(candidates).length === 0)
+            return $('<input>').addClass('form-control').attr('id', id);
+        else
+            return comboInput(candidates, id);
+    }
 
     if (type.isEnum) {
-        let selector = $('<select>');
+        let selector = $('<select>').addClass('form-control').attr('id', id);
         for (let entry of type.entries)
-            selector.append($('<option>').text(entry).val(new Ast.Value.Enum(entry)));
+            selector.append($('<option>').text(entry));
+        for (let name in candidates)
+            selector.append($('<option>').text(candidates[name]).attr('isVarRef', 'true')).val(name);
         return selector;
     }
 
     if (type.isLocation) {
-        let selector = $('<select>');
+        let selector = $('<select>').addClass('form-control').attr('id', id);
         selector.append($('<option>').text('home').val('$home'));
         selector.append($('<option>').text('work').val('$work'));
         selector.append($('<option>').text('here').val('$current_location'));
+        for (let name in candidates)
+            selector.append($('<option>').text(candidates[name]).attr('isVarRef', 'true')).val(name);
         return selector;
     }
 
     if (type.isBoolean) {
-        let selector = $('<select>');
+        let selector = $('<select>').addClass('form-control').attr('id', id);
         selector.append($('<option>').text('true'));
         selector.append($('<option>').text('false'));
+        for (let name in candidates)
+            selector.append($('<option>').text(candidates[name]).attr('isVarRef', 'true')).val(name);
         return selector;
     }
 
-    if (type.isEntity)
-        return $('<input>');
 
     //TODO: add support for more types
-    return $('<input>').attr('placeholder', 'Not supported type').prop( "disabled", true );
+    return $('<input>').addClass('form-control').attr('placeholder', 'Not supported type').prop( "disabled", true );
 }
 
 class ThingTalkBuilder {
@@ -288,8 +332,9 @@ class ThingTalkBuilder {
         let opDiv = $('<div>').addClass('col-lg-3');
         opDiv.append($('<p>').addClass('form-control').text('='));
 
+        let ppCandidates = this._parameterPassingCandidates(arg.type);
         let valueDiv = $('<div>').addClass('col-lg-4');
-        valueDiv.append(inputByType(arg.type).addClass('form-control').attr('id', `thingtalk-input-value-${arg.name}`));
+        valueDiv.append(inputByType(arg.type, ppCandidates, `thingtalk-input-value-${arg.name}`));
 
         row.append(nameDiv);
         row.append(opDiv);
@@ -302,9 +347,10 @@ class ThingTalkBuilder {
         let values = {};
         for (let arg of this.function.schema.iterateArguments()) {
             if (arg.is_input) {
-                let value = $(`#thingtalk-input-value-${arg.name}`).val();
+                let input = $(`#thingtalk-input-value-${arg.name}`);
+                let value = input.val();
                 if (value)
-                    values[arg.name] = resolveValue(arg.type, value);
+                    values[arg.name] = resolveValue(arg.type, value, input.attr('isvarref') === 'true');
             }
         }
 
@@ -355,8 +401,9 @@ class ThingTalkBuilder {
         }
         opDiv.append(selector);
 
+        let ppCandidates = this._parameterPassingCandidates(arg.type);
         let valueDiv = $('<div>').addClass('col-lg-4');
-        valueDiv.append(inputByType(arg.type).addClass('form-control').attr('id', `thingtalk-filter-value-${arg.name}`));
+        valueDiv.append(inputByType(arg.type, ppCandidates, `thingtalk-filter-value-${arg.name}`));
 
         row.append(nameDiv);
         row.append(opDiv);
@@ -368,11 +415,12 @@ class ThingTalkBuilder {
         let atoms = [];
         for (let arg of this.function.schema.iterateArguments()) {
             if (!arg.is_input) {
-                let value = $(`#thingtalk-filter-value-${arg.name}`).val();
+                let input = $(`#thingtalk-filter-value-${arg.name}`);
+                let value = input.val();
                 if (!value)
                     continue;
 
-                value = resolveValue(arg.type, value);
+                value = resolveValue(arg.type, value, input.attr('isvarref') === 'true');
                 let op = $(`#thingtalk-filter-op-${arg.name}`).val();
 
                 atoms.push(new Ast.BooleanExpression.Atom(arg.name, op, value));
@@ -415,7 +463,32 @@ class ThingTalkBuilder {
         return new Ast.Input.Program([], [], [rule]).prettyprint();
     }
 
-
+    _parameterPassingCandidates(type) {
+        let candidates = {};
+        if (this._currentType === 'stream')
+            return candidates;
+        if (this._currentType === 'query') {
+            if (type.toString() in this._streamOutput) {
+                for (let pname of this._streamOutput[type.toString()])
+                    candidates[pname] = `Use ${pname} from ${this._streamCanonical}`;
+            }
+            return candidates;
+        }
+        if (this._currentType === 'action') {
+            if (type.toString() in this._queryOutput) {
+                for (let pname of this._queryOutput[type.toString()])
+                    candidates[pname] = `Use ${pname} from ${this._queryCanonical}`;
+            }
+            if (type.toString() in this._streamOutput) {
+                for (let pname of this._streamOutput[type.toString()]) {
+                    if (!(pname in candidates))
+                        candidates[pname] = `Use ${pname} from ${this._streamCanonical}`;
+                }
+            }
+            return candidates;
+        }
+        return candidates;
+    }
 
     reset(type) {
         $('#thingtalk-search-device-input').val('');
