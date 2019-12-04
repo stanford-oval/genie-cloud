@@ -198,6 +198,24 @@ block content
               p We as users should have a choice in virtual assistant services and the ability to control how we share our data.
               p Learn more about #[a(href='/about/get-almond') how you can run Almond with maximum privacy].
 
+      section.divider#almond-in-the-news
+        h3= _("Almond In The News")
+
+        div.container
+          div.row
+            div.col-xs-12
+              div.aligned-grid
+                a(href='https://www.nytimes.com/2019/06/14/technology/virtual-assistants-privacy.html').aligned-grid-item#news-link-newyorktimes
+                  img(src=Config.ASSET_CDN + '/images/news-logo-nyt.png', alt=_("The New York Times"))
+                  | Stanford Team Aims at Alexa and Siri With a Privacy-Minded Alternative
+                a(href='https://www.popsci.com/story/technology/best-of-whats-new-2019/').aligned-grid-item
+                  img(src=Config.ASSET_CDN + '/images/news-logo-best-of-whats-new.png', alt=_("Winner of Popular Science's Best of What's New Award 2019"))
+                a(href='https://hackaday.com/2019/12/01/almond-open-personal-assistant-from-stanford/').aligned-grid-item#news-link-hackaday
+                  img(src=Config.ASSET_CDN + '/images/news-logo-hackaday.png', alt='').img-responsive
+                  | Hackaday
+
+      include ../blog_home_page.pug
+
       section.divider#why-almond
         h3= _("What We Do")
 
@@ -278,8 +296,6 @@ block content
 
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')#seq-seq-animation
               include ../../art/seq-seq-animation-clean-svg.svg
-
-      include ../blog_home_page.pug
 
       section.divider#section-commandpedia
         h3= _("What can Almond do?")
