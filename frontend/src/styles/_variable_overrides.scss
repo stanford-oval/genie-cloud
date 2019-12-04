@@ -1,0 +1,24 @@
+@import 'node_modules/bootstrap/scss/functions';
+// British palette https://flatuicolors.com/palette/gb
+$colors: (
+  'blue': #00a8ff,
+  'dark-blue': #273c75,
+  'yellow': #fbc531,
+  'purple': #9c88ff,
+  'red': #e84118,
+  'green': #4cd137,
+  'light-grey': #f5f6fa,
+  'blue-grey': #7f8fa6,
+  'dark-grey': #353b48,
+);
+
+$theme-colors: (
+  'primary': color('blue'),
+  'secondary': color('blue-grey'),
+  'success': color('green'),
+  'danger': color('red'),
+  'warning': color('yellow'),
+  'info': color('dark-blue'),
+  'light': color('light-grey'),
+  'dark': color('dark-grey'),
+);
