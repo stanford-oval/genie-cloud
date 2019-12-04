@@ -4,16 +4,13 @@ import { withRouter } from 'next/router';
 import App from 'next/app';
 
 import createStore from 'store/createStore';
-import Layout from 'components/Layout';
 
 class MyApp extends App {
   render() {
     const { Component, pageProps, router, store } = this.props;
     return (
       <Provider store={store}>
-        <Layout>
-          <Component router={router} {...pageProps} />
-        </Layout>
+        <Component router={router} {...pageProps} />
       </Provider>
     );
   }
