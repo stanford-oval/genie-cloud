@@ -8,6 +8,6 @@ import './Layout.scss';
 export default props => (
   <>
     <Navbar />
-    <Container className="container" fluid>{props.children}</Container>
+    <Container className="overall-container" fluid>{props.children}</Container>
   </>
 );
