@@ -1,3 +1,7 @@
-import SearchRepoContainer from 'containers/SearchRepoContainer';
-
-export default SearchRepoContainer;
+export default props => {
+  return (
+    <>
+      <h1>Welcome!</h1>
+    </>
+  );
+};

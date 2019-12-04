@@ -4,6 +4,7 @@ import { withRouter } from 'next/router';
 import App from 'next/app';
 
 import createStore from 'store/createStore';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 class MyApp extends App {
   render() {
