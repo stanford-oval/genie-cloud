@@ -1,9 +1,7 @@
 import { render } from '@testing-library/react';
-import { ThemeProvider } from 'styled-components';
-import theme from 'theme';
 
 const WithProviders = ({ children }) => {
-  return <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+  return <>{children}</>;
 };
 
 const customRender = (ui, options) =>

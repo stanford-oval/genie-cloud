@@ -1,7 +1,6 @@
 {
   "presets": ["next/babel"],
   "plugins": [
-    "emotion",
     "inline-dotenv",
     [
       "module-resolver",
@@ -12,7 +11,7 @@
   ],
   "env": {
     "test": {
-      "plugins": ["emotion"],
+      "plugins": [],
       "presets": [
         [
           "next/babel",
