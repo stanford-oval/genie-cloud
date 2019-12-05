@@ -1,3 +1,5 @@
+@import '../styles/variables';
+
 .overall-container {
-  padding-top: 3em;
+  padding-top: $navbar-height;
 }

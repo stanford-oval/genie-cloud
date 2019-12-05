@@ -10,6 +10,10 @@ const APP_ROUTES = [
     page: 'train',
     pattern: '/developers/train',
   },
+  {
+    page: 'get_started',
+    pattern: '/get-started',
+  },
 ];
 
 APP_ROUTES.forEach(route => routes.add(route));
