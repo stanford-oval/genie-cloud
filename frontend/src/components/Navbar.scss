@@ -1,3 +1,21 @@
+@import '../styles/variables';
+
+.navbar {
+  background-color: $white;
+  -webkit-box-shadow: 0px 1px 20px 0px rgba(8,9,11,0.1);
+  -moz-box-shadow: 0px 1px 20px 0px rgba(8,9,11,0.1);
+  box-shadow: 0px 1px 20px 0px rgba(8,9,11,0.1);
+
+  // blurring behind the navbar
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  opacity: 0.98;
+
+  a {
+    color: $black;
+  }
+}
+
 .nav-brand-link {
   text-decoration: none;
   color: black;

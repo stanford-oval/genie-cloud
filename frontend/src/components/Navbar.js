@@ -6,7 +6,7 @@ import Nav from 'react-bootstrap/Nav';
 import './Navbar.scss';
 
 export default props => (
-  <Navbar bg="light" expand="lg" fixed="top">
+  <Navbar className="navbar" expand="lg" fixed="top">
     <Navbar.Brand>
       <Link href="/">
         <a className="nav-brand-link">Almond</a>
