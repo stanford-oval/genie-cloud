@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@fortawesome/free-solid-svg-icons": "^5.11.2",
+    "@fortawesome/react-fontawesome": "^0.1.7",
     "@zeit/next-css": "^1.0.1",
     "@zeit/next-sass": "^1.0.1",
     "axios": "^0.19.0",
@@ -41,6 +43,7 @@
     "babel-jest": "^24.9.0",
     "babel-plugin-inline-dotenv": "^1.5.0",
     "babel-plugin-module-resolver": "^3.2.0",
+    "eslint": "^6.7.2",
     "jest": "^24.9.0",
     "lint-staged": "^9.5.0",
     "nodemon": "^2.0.1",
