@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.25",
     "@fortawesome/free-solid-svg-icons": "^5.11.2",
     "@fortawesome/react-fontawesome": "^0.1.7",
     "@zeit/next-css": "^1.0.1",
@@ -15,6 +16,7 @@
     "helmet": "^3.21.2",
     "humps": "^2.0.1",
     "immutable": "^4.0.0-rc.12",
+    "inline-worker": "^1.1.0",
     "next": "^9.1.4",
     "next-redux-wrapper": "^4.0.1",
     "next-routes": "^1.4.2",
