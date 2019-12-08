@@ -2,17 +2,16 @@ import React, { useState } from 'react';
 import useForm from 'react-hook-form';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-// import FormControl from 'react-bootstrap/FormControl';
 
 import MicInputButton from './MicInputButton';
 
-const TrainAlmondForm = (props) => {
+const TrainAlmondForm = props => {
   const { register, handleSubmit, errors } = useForm();
-  const onSubmit = (data) => {
+  const onSubmit = data => {
     console.log(data);
   };
 
-  const [command, setCommand] = useState("");
+  const [command, setCommand] = useState('');
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>
@@ -24,7 +23,9 @@ const TrainAlmondForm = (props) => {
           ref={register({ required: true })}
           isInvalid={errors.command}
           value={command}
-          onChange={ (event) => { setCommand(event.target.value); } }
+          onChange={event => {
+            setCommand(event.target.value);
+          }}
         />
         <Form.Control.Feedback type="invalid">
           {errors.command && 'This field is required.'}
@@ -34,7 +35,7 @@ const TrainAlmondForm = (props) => {
         </Form.Text>
       </Form.Group>
       <Form.Group controlId="formRecord">
-        <MicInputButton setCommand={setCommand}/>
+        <MicInputButton setCommand={setCommand} />
       </Form.Group>
       <Form.Group controlId="formCheckbox">
         <Form.Check

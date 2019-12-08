@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Container from 'react-bootstrap/Container';
+import FullWidthContainer from 'components/FullWidthContainer';
 
 import Navbar from './Navbar';
 import './Layout.scss';
@@ -8,6 +8,8 @@ import './Layout.scss';
 export default props => (
   <>
     <Navbar />
-    <Container className="overall-container" fluid>{props.children}</Container>
+    <FullWidthContainer className="overall-container" fluid>
+      {props.children}
+    </FullWidthContainer>
   </>
 );
