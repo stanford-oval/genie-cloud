@@ -3,8 +3,8 @@ import { Provider } from 'react-redux';
 import { withRouter } from 'next/router';
 import App from 'next/app';
 
-import createStore from 'store/createStore';
 import 'core.scss';
+import createStore from 'store/createStore';
 import Layout from 'components/Layout';
 
 class MyApp extends App {

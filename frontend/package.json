@@ -29,9 +29,11 @@
     "react-hook-form": "^3.28.11",
     "react-markdown": "^4.2.2",
     "react-redux": "^7.1.3",
+    "react-slick": "^0.25.2",
     "redux": "^4.0.4",
     "redux-logger": "^3.0.6",
-    "redux-thunk": "^2.3.0"
+    "redux-thunk": "^2.3.0",
+    "slick-carousel": "^1.8.1"
   },
   "name": "almond-frontend",
   "version": "0.0.1",
