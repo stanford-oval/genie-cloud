@@ -3,7 +3,7 @@ import React from 'react';
 import Carousel from 'components/Carousel/Carousel';
 import FeaturePanel from 'components/FeaturePanel';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar } from '@fortawesome/free-regular-svg-icons';
+import { faStar } from '@fortawesome/free-solid-svg-icons';
 
 export default props => {
   return (

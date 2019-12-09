@@ -21,7 +21,7 @@ export default props => {
 
   return (
     <Slider {...settings}>
-      <CarouselCard title="John Adams Likes Pie" img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
+      <CarouselCard title="John Adams Likes Pie" subtitle="Music enthusiasts, Gabby and Hemanth built Almond Music together as a quarter-long class project with the goal of creating the best music virtual assistant that can control their Spotify music through any device. What they built went beyond Alexa or Google Home, allowing for actions like the ability to change playlists." img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
       <CarouselCard title="John Adams Likes Pie" img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
       <CarouselCard title="John Adams Likes Pie" img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
       <CarouselCard title="John Adams Likes Pie" img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
