@@ -2,3 +2,6 @@
 @import 'node_modules/bootstrap/scss/variables';
 
 $navbar-height: 60px;
+
+// Articles
+$article-text-width: map-get($container-max-widths, 'md');

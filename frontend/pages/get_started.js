@@ -1,9 +1,11 @@
 import React from 'react';
 
+import BodyText from 'components/BodyText';
 import Carousel from 'components/Carousel/Carousel';
+import { faStar } from '@fortawesome/free-regular-svg-icons';
 import FeaturePanel from 'components/FeaturePanel';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar } from '@fortawesome/free-solid-svg-icons';
+import Prompt from 'components/Prompt';
 
 export default props => {
   return (
@@ -16,7 +18,18 @@ export default props => {
       >
         <Carousel />
 
-        <FontAwesomeIcon icon={faStar} style={{fontSize: '4em', color: '#fbc531'}} />
+        <BodyText>
+          <Prompt
+            icon={
+              <FontAwesomeIcon
+                icon={faStar}
+                style={{ fontSize: '4em', color: '#fbc531' }}
+              />
+            }
+            text="Start learning how to use Almond in your project by consulting our documentation."
+            title="Getting Started"
+          />
+        </BodyText>
       </FeaturePanel>
     </>
   );
