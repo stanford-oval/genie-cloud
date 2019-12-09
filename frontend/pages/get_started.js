@@ -1,7 +1,9 @@
 import React from 'react';
 
+import Carousel from 'components/Carousel/Carousel';
 import FeaturePanel from 'components/FeaturePanel';
-import Carousel from 'components/Carousel';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faStar } from '@fortawesome/free-regular-svg-icons';
 
 export default props => {
   return (
@@ -13,6 +15,8 @@ export default props => {
         }
       >
         <Carousel />
+
+        <FontAwesomeIcon icon={faStar} style={{fontSize: '4em', color: '#fbc531'}} />
       </FeaturePanel>
     </>
   );

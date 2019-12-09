@@ -3,3 +3,20 @@
   -moz-box-shadow: 0px 1px 20px 0px rgba(8, 9, 11, 0.1);
   box-shadow: 0px 1px 20px 0px rgba(8, 9, 11, 0.1);
 }
+
+@mixin card {
+  border-radius: 20px;
+
+  -webkit-box-shadow: 0px 1px 20px 0px rgba(8, 9, 11, 0.25);
+  -moz-box-shadow: 0px 1px 20px 0px rgba(8, 9, 11, 0.25);
+  box-shadow: 0px 1px 20px 0px rgba(8, 9, 11, 0.25);
+  transition: box-shadow 1s;
+  transition: -webkit-box-shadow 1s;
+  transition: -moz-box-shadow 1s;
+
+  &:hover {
+    -webkit-box-shadow: 0px 1px 40px 0px rgba(8, 9, 11, 0.3);
+    -moz-box-shadow: 0px 1px 40px 0px rgba(8, 9, 11, 0.3);
+    box-shadow: 0px 1px 40px 0px rgba(8, 9, 11, 0.3);
+  }
+}
