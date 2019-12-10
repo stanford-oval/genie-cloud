@@ -1,8 +1,6 @@
 @import '../styles/variables';
 
 .media {
-  border-bottom: 1px solid map-get($grays, '400');
-  padding-bottom: 1em;
   .media-body {
     margin-left: 1em;
 

@@ -18,8 +18,8 @@ export default props => (
         <Link href="/developers/train">
           <a className="nav-local-link right-nav-link">Train</a>
         </Link>
-        <Link href="/get-started">
-          <a className="nav-local-link">Getting Started</a>
+        <Link href="/help">
+          <a className="nav-local-link">Help</a>
         </Link>
       </Nav>
     </Navbar.Collapse>

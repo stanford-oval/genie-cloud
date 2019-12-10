@@ -36,7 +36,7 @@ export default class extends Document {
   }
 
   get helmetJsx() {
-    const title = 'Hello next.js Real World!';
+    const title = 'Almond';
     return (
       <Helmet>
         <title>{title}</title>

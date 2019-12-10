@@ -11,8 +11,8 @@ const APP_ROUTES = [
     pattern: '/developers/train',
   },
   {
-    page: 'get_started',
-    pattern: '/get-started',
+    page: 'help',
+    pattern: '/help',
   },
 ];
 

@@ -34,6 +34,13 @@ module.exports = withCSS(
         },
       });
 
+      config.module.rules.push({
+        test: /\.(txt|md)$/i,
+        use: {
+          loader: 'raw-loader',
+        },
+      });
+
       return config;
     },
   }),
