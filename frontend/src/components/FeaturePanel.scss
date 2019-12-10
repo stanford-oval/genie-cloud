@@ -1,21 +1,38 @@
 @import '../styles/variables';
+@import '../styles/mixins';
 
 .panel-container {
-    background: none;
-    padding-left: 0;
-    padding-right: 0;
+  background: none;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .panel-header {
-    margin-left: auto;
-    margin-right: auto;
-    max-width: map-get($container-max-widths, 'lg');
-    text-align: center;
-    h1 {
-        font-size: 4vw;
-        font-weight: bold;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: map-get($container-max-widths, 'lg');
+  padding-left: 15px;
+  padding-right: 15px;
+  text-align: center;
+  h1 {
+    font-size: 4vw;
+    font-weight: bold;
+
+    @include respond-between(lg, xl) {
+      font-size: 5vw;
     }
-    p {
-        font-size: 1.25em;
+
+    @include respond-between(md, lg) {
+      font-size: 6vw;
     }
+    @include respond-between(sm, md) {
+      font-size: 7vw;
+    }
+    @include respond-below(sm) {
+      font-size: 8vw;
+    }
+  }
+  p {
+    font-size: 1.25em;
+  }
 }
