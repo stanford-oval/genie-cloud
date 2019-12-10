@@ -1,5 +1,7 @@
 import React from 'react';
 
+import Link from 'next/link';
+
 import './CarouselCard.scss';
 
 export default props => {
@@ -10,10 +12,12 @@ export default props => {
   };
   return (
     <div className="carousel-card" style={cardStyle}>
-      <div className="carousel-card-gradient">
-        <h3>{props.title}</h3>
-        <p className="carousel-card-subtitle">{props.subtitle}</p>
-      </div>
+      <a href={props.url} target="_blank">
+        <div className="carousel-card-gradient">
+          <h3>{props.title}</h3>
+          <p className="carousel-card-subtitle">{props.subtitle}</p>
+        </div>
+      </a>
     </div>
   );
 };

@@ -1,7 +1,6 @@
 import React from 'react';
 
 import Slider from 'react-slick';
-import CarouselCard from './CarouselCard';
 import 'slick-carousel/slick/slick.css';
 import './Carousel.scss';
 
@@ -14,19 +13,41 @@ export default props => {
     easing: 'ease',
     focusOnSelect: true,
     infinite: true,
+    responsive: [
+      {
+        breakpoint: 1800,
+        settings: {
+          slidesToShow: 4,
+          infinite: true,
+        },
+      },
+      {
+        breakpoint: 1450,
+        settings: {
+          slidesToShow: 3,
+          infinite: true,
+        },
+      },
+      {
+        breakpoint: 1100,
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 780,
+        settings: {
+          slidesToShow: 1,
+        },
+      },
+    ],
     slidesToShow: 5,
     slidesToScroll: 1,
     speed: 1000,
+    variableWidth: false,
   };
 
-  return (
-    <Slider {...settings}>
-      <CarouselCard title="John Adams Likes Pie" subtitle="Music enthusiasts, Gabby and Hemanth built Almond Music together as a quarter-long class project with the goal of creating the best music virtual assistant that can control their Spotify music through any device. What they built went beyond Alexa or Google Home, allowing for actions like the ability to change playlists." img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
-      <CarouselCard title="John Adams Likes Pie" img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
-      <CarouselCard title="John Adams Likes Pie" img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
-      <CarouselCard title="John Adams Likes Pie" img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
-      <CarouselCard title="John Adams Likes Pie" img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
-      <CarouselCard title="John Adams Likes Pie" img="https://www-tc.pbs.org/wgbh/americanexperience/media/filer_public_thumbnails/filer_public/4c/bc/4cbc0d5a-821c-490b-a699-6a2fa113d731/adams_potus_03.jpg__2000x2442_q85_crop_subsampling-2_upscale.jpg"/>
-    </Slider>
-  );
+  const items = props.items.map(props.getSlide);
+
+  return <Slider {...settings}>{items}</Slider>;
 };

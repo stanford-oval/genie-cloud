@@ -16,6 +16,10 @@
   position: relative;
   transition: transform 0.5s;
 
+  a {
+    text-decoration: none;
+  }
+
   &:hover {
     cursor: pointer;
     transform: scale(1.05);
@@ -23,6 +27,7 @@
     .carousel-card-subtitle {
       display: inline;
     }
+
   }
   h3 {
     color: white;
