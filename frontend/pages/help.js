@@ -11,22 +11,6 @@ import ReactMarkdown from 'react-markdown';
 import contributeText from '../content/help.md';
 
 export default props => {
-  /*
-  const [content, setContent] = useState(null);
-  useEffect(() => {
-    const file = '/content/help.md';
-    axios
-      .get(file)
-      .then(response => {
-        console.log(response);
-        setContent(response.data);
-      })
-      .catch(error => {
-        console.log(error);
-      })
-  }, []);
-  */
-
   return (
     <>
       {getPageHead('Help')}
