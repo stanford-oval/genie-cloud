@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
+import BodyColumn from 'components/BodyColumn';
 import BodyText from 'components/BodyText';
 import Carousel from 'components/Carousel/Carousel';
 import CarouselCard from 'components/Carousel/CarouselCard';
@@ -8,11 +9,12 @@ import FeaturePanel from 'components/FeaturePanel';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { getPageHead } from 'libs/header';
 import Prompt from 'components/Prompt';
-import ReactMarkdown from 'react-markdown';
 import contributeText from '../content/help.md';
 import haImage from '../media/example_projects/ha.png';
 import musicImage from '../media/example_projects/almond_music.jpg';
 import muImage from '../media/example_projects/multi_user_almond.jpg';
+import mmiImage from '../media/example_projects/almond_mmi.jpg';
+import sportsImage from '../media/example_projects/wikidata_sports.jpg';
 
 const projects = [
   {
@@ -37,17 +39,17 @@ const projects = [
     url: 'https://www.youtube.com/watch?v=LFOB_AUmreE&feature=emb_title',
   },
   {
-    title: 'Almond Music',
+    title: 'Multi-modal Interface',
     digest:
-      'Music enthusiasts, Gabby and Hemanth built Almond Music together as a quarter-long class project with the goal of creating the best music virtual assistant that can control their Spotify music through any device. What they built went beyond Alexa or Google Home, allowing for actions like the ability to change playlists.',
-    image: musicImage,
+      'Jackie Yang built a multi-modal interface that allows you to use Almond to make complex queries while interacting with someone over chat.',
+    image: mmiImage,
     url: 'https://www.youtube.com/watch?v=M4HG-QDGmBI&feature=emb_title',
   },
   {
-    title: 'Almond Music',
+    title: 'Sports Wikidata',
     digest:
-      'Music enthusiasts, Gabby and Hemanth built Almond Music together as a quarter-long class project with the goal of creating the best music virtual assistant that can control their Spotify music through any device. What they built went beyond Alexa or Google Home, allowing for actions like the ability to change playlists.',
-    image: musicImage,
+      'Description Needed',
+    image: sportsImage,
     url: 'https://www.youtube.com/watch?v=M4HG-QDGmBI&feature=emb_title',
   },
 ];
@@ -74,7 +76,7 @@ export default props => {
       >
         <Carousel items={projects} getSlide={handleItem} />
 
-        <BodyText>
+        <BodyColumn>
           <Prompt
             icon={
               <FontAwesomeIcon
@@ -85,12 +87,12 @@ export default props => {
             text="Start learning how to use Almond in your project by consulting our documentation."
             title="Getting Started"
           />
-        </BodyText>
+        </BodyColumn>
       </FeaturePanel>
       <FeaturePanel bg="white">
-        <BodyText>
-          <ReactMarkdown source={contributeText} />
-        </BodyText>
+        <BodyColumn>
+          <BodyText md={contributeText} />
+        </BodyColumn>
       </FeaturePanel>
     </>
   );
