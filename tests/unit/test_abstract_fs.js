@@ -21,13 +21,13 @@ const cmdStub = {
     exec: function(file, argv) {
         this.lastCmds.push([file, ...argv].join(' '));
     }
-}
+};
 
 const tmpStub = {
     dir: async function() {
         return { path: '/var/tmp'};
     }
-}
+};
 
 const afs = proxyquire('../../util/abstract_fs', {
     './command': cmdStub,
@@ -47,15 +47,34 @@ function testResolve() {
     assert.strictEqual(afs.resolve('s3://bucket/dir', './tag:lang//'), 's3://bucket/dir/tag:lang//');
 }
 
+function testLocal() {
+    assert.strictEqual(afs.isLocal('file:///foo/bar'), true);
+    assert.strictEqual(afs.isLocal('file:///'), true);
+    assert.strictEqual(afs.isLocal('file://'), true);
+    assert.strictEqual(afs.isLocal('file:'), true);
+    assert.strictEqual(afs.isLocal('file://foo/'), false);
+    assert.strictEqual(afs.isLocal('file://localhost/'), false);
+    assert.strictEqual(afs.isLocal('/foo/bar'), true);
+    assert.strictEqual(afs.isLocal('./bar'), true);
+    assert.strictEqual(afs.isLocal('bar'), true);
+    assert.strictEqual(afs.isLocal('../bar'), true);
+    assert.strictEqual(afs.isLocal('s3://foo/'), false);
+
+    assert.strictEqual(afs.getLocalPath('file:///foo/bar'), '/foo/bar');
+    assert.strictEqual(afs.getLocalPath('file:///'), '/');
+    assert.strictEqual(afs.getLocalPath('file:'), process.cwd() + '/');
+    assert.strictEqual(afs.getLocalPath('file:foo'), process.cwd() + '/foo');
+    assert.strictEqual(afs.getLocalPath('/foo/bar'), '/foo/bar');
+}
 
 async function expectCmd(fn, args, want) {
     cmdStub.lastCmds = [];
     await fn(...args);
     try {
-    	assert.deepEqual(cmdStub.lastCmds, want, `${fn.name}(${args})`); 
+        assert.deepEqual(cmdStub.lastCmds, want, `${fn.name}(${args})`);
     } catch (err) {
-        err.message = `${err}\n   got: ${err.actual}\n  want: ${err.expected}`
-        throw err
+        err.message = `${err}\n   got: ${err.actual}\n  want: ${err.expected}`;
+        throw err;
     }
 }
 
@@ -157,7 +176,7 @@ async function testCreateWriteStream() {
         fileSync: function() {
             return { name: tmpFile, fd: tmpFD };
         }
-    }
+    };
     const tmpAFS = proxyquire('../../util/abstract_fs', {
         './command': cmdStub,
         'tmp': tmpSyncStub,
@@ -166,22 +185,22 @@ async function testCreateWriteStream() {
 
     try {
         cmdStub.lastCmds = [];
-        const stream = tmpAFS.createWriteStream('s3://bucket/dir/file', true)
-        const content = 'foobar'
+        const stream = tmpAFS.createWriteStream('s3://bucket/dir/file', true);
+        const content = 'foobar';
         stream.write(content);
         stream.end();
         await StreamUtils.waitFinish(stream);
         const gotContent = fs.readFileSync(tmpFile, { encoding: 'utf-8' });
-        assert.strictEqual(gotContent, content)
-        assert.deepEqual(cmdStub.lastCmds, [`aws s3 cp ${tmpFile} s3://bucket/dir/file`])
+        assert.strictEqual(gotContent, content);
+        assert.deepEqual(cmdStub.lastCmds, [`aws s3 cp ${tmpFile} s3://bucket/dir/file`]);
     } finally {
         fs.unlinkSync(tmpFile);
     }
 }
 
-
 async function main() {
     testResolve();
+    testLocal();
     await testUpload();
     await testSync();
     await testCreateWriteStream();

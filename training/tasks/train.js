@@ -51,6 +51,18 @@ module.exports = async function main(task, argv) {
         genieConfig[key] = task.config[key];
     }
 
+    let hasRemoteTensorboardDir = false;
+    let tensorboardDir;
+    if (Config.TENSORBOARD_DIR) {
+        tensorboardDir = AbstractFS.resolve(Config.TENSORBOARD_DIR, task.jobId.toString(), `./${task.info.model_tag}:${task.language}/`);
+        if (AbstractFS.isLocal(tensorboardDir)) {
+            await AbstractFS.mkdirRecursive(tensorboardDir);
+            genieConfig.tensorboard_dir = AbstractFS.getLocalPath(tensorboardDir);
+        } else {
+            hasRemoteTensorboardDir = true;
+        }
+    }
+
     const options = {
         // do not pass the job ID to Genie, otherwise the lines will be prefixed twice
         backend: 'decanlp',
@@ -68,11 +80,9 @@ module.exports = async function main(task, argv) {
     const genieJob = Genie.Training.createJob(options);
     genieJob.on('progress', async (value) => {
         task.setProgress(value);
-        if (Config.TENSORBOARD_DIR) {
-              await AbstractFS.sync(
-                  workdir,
-                  AbstractFS.resolve(Config.TENSORBOARD_DIR, task.jobId.toString(), `./${task.info.model_tag}:${task.language}/`),
-                 '--exclude=*', '--include=*tfevents*');
+        if (hasRemoteTensorboardDir) {
+            await AbstractFS.sync(workdir, tensorboardDir,
+                '--exclude=*', '--include=*tfevents*');
         }
     });
     task.on('killed', () => {

@@ -54,6 +54,7 @@ JWT_SIGNING_KEY: "not so secret key"
 SECRET_KEY: "not so secret key"
 NL_SERVER_URL: null
 NL_MODEL_DIR: null
+TENSORBOARD_DIR: ./tensorboard
 TRAINING_URL: "http://127.0.0.1:${PORT}"
 TRAINING_ACCESS_TOKEN: test-training-access-token
 TRAINING_CONFIG_FILE: ./training.conf.json
