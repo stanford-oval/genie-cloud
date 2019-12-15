@@ -75,10 +75,10 @@ ${srcdir}/main.js bootstrap
 mkdir -p 'models/org.thingpedia.models.default:en'
 mkdir -p 'models/org.thingpedia.models.contextual:en'
 
-wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current.tar.gz -O $srcdir/tests/embeddings/current.tar.gz
+wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/default/en/current.tar.gz -O $srcdir/tests/embeddings/current.tar.gz
 tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'models/org.thingpedia.models.default:en'
 
-wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current-contextual.tar.gz -O $srcdir/tests/embeddings/current-contextual.tar.gz
+wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/default/en/current-contextual.tar.gz -O $srcdir/tests/embeddings/current-contextual.tar.gz
 tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'models/org.thingpedia.models.contextual:en'
 
 # 1) remove developer models that were autoadded by bootstrap
@@ -93,7 +93,7 @@ insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', o
 "
 
 mkdir -p 'classifier'
-wget --no-verbose -c https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
+wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
 tar xvf $srcdir/tests/embeddings/classifier1.tar.gz -C 'classifier'
 
 ${srcdir}/main.js run-nlp --port $NLP_PORT &
