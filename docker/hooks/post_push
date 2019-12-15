@@ -3,12 +3,6 @@
 version=$(git describe)
 
 case $DOCKER_TAG in
-	*-decanlp-cuda)
-		version=${version}-decanlp-cuda
-		;;
-	*-decanlp)
-		version=${version}-decanlp
-		;;
 	*-cuda)
 		version=${version}-cuda
 		;;
