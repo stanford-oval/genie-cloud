@@ -81,9 +81,6 @@ module.exports = {
                 const modelLangDir = `./${job.model_tag}:${job.language}`;
                 const outputdir = AbstractFS.resolve(job.jobDir, 'output');
 
-                if (Config.NL_MODEL_DIR === null)
-                    return;
-
                 await AbstractFS.sync(outputdir + '/', AbstractFS.resolve(Config.NL_MODEL_DIR, modelLangDir) + '/');
 
                 await db.withClient((dbClient) => {
@@ -91,6 +88,9 @@ module.exports = {
                         trained: true,
                     });
                 });
+
+                if (Config.NL_SERVER_URL === null)
+                    return;
 
                 await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
                     dataContentType: 'application/x-www-form-urlencoded'
