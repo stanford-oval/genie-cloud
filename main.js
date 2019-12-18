@@ -19,9 +19,11 @@ Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
 require('./util/config_init');
 const i18n = require('./util/i18n');
+const localfs = require('./util/local_fs');
 
 const Config = require('./config');
 i18n.init(Config.SUPPORTED_LANGUAGES);
+localfs.init();
 
 const argparse = require('argparse');
 

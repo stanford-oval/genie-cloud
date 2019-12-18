@@ -13,12 +13,12 @@ const assert = require('assert');
 const Stream = require('stream');
 const Url = require('url');
 const fs = require('fs');
-const util = require('util');
 const path = require('path');
 const tmpSync = require('tmp');
 const tmp = require('tmp-promise');
 
 const cmd = require('./command');
+const { safeMkdir } = require('./fsutils');
 
 // An abstraction over file system operations, that supports local files and s3:// URIs
 
@@ -147,16 +147,6 @@ const _backends = {
 
     'file:': {
         async mkdirRecursive(url) {
-            async function safeMkdir(dir, options) {
-                try {
-                     await util.promisify(fs.mkdir)(dir, options);
-                } catch(e) {
-                     if (e.code === 'EEXIST')
-                         return;
-                     throw e;
-                }
-            }
-
             const components = path.resolve(url.pathname).split('/').slice(1);
 
             let subpath = '';

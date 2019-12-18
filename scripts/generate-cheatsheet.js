@@ -23,6 +23,7 @@ const db = require('../util/db');
 const DatasetUtils = require('../util/dataset');
 const { clean } = require('../util/tokenize');
 const { choose } = require('../util/random');
+const { safeMkdir } = require('../util/fsutils');
 
 const { detokenize } = require('genie-toolkit/lib/i18n/american-english');
 
@@ -158,16 +159,6 @@ async function saveFile(url, file) {
         output.on('finish', resolve);
         output.on('error', reject);
     });
-}
-
-async function safeMkdir(dir, options) {
-    try {
-         await util.promisify(fs.mkdir)(dir, options);
-    } catch(e) {
-         if (e.code === 'EEXIST')
-             return;
-         throw e;
-    }
 }
 
 async function execCommand(command, argv, options) {
