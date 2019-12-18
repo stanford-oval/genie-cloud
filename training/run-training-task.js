@@ -85,16 +85,9 @@ class Task extends events.EventEmitter {
         });
     }
 
-    async setProgress(value) {
-        // rescale task progress to job progress
-        value = this._baseJobProgress + value * this.spec.progress;
-
-        // log only when the rounded value changes
-        if (Math.floor(value*100) > Math.floor(this.info.progress*100))
-            console.log(`Progress for job ${this.jobId}: ${Math.floor(value*100)}`);
-
+    _updateEta(progress) {
         const now = new Date;
-        this._progressUpdates.push([now, value]);
+        this._progressUpdates.push([now, progress]);
         if (this._progressUpdates.length > 3)
             this._progressUpdates.shift();
         if (this._progressUpdates.length === 3) {
@@ -107,15 +100,30 @@ class Task extends events.EventEmitter {
             }
             const avgSpeed = speedSum / 2;
 
-            let eta = Math.ceil(now.getTime() + (1 - value) / avgSpeed);
+            let eta = Math.ceil(now.getTime() + (1 - progress) / avgSpeed);
 
             // add 10 minutes to account for validation, uploading, etc.
             eta += 10 * 60 * 1000;
 
             this.info.eta = new Date(eta);
         }
+    }
+
+    async setProgress(value) {
+        // rescale task progress to job progress
+        value = this._baseJobProgress + value * this.spec.progress;
+
+        // log only when the rounded value changes
+        if (Math.floor(value*100) > Math.floor(this.info.progress*100))
+            console.log(`Progress for job ${this.jobId}: ${Math.floor(value*100)}`);
+
         this.info.progress = value;
-        return this._save(['progress', 'eta']);
+        if (this.spec.computeEta) {
+            this._updateEta(value);
+            await this._save(['progress', 'eta']);
+        } else {
+            await this._save(['progress']);
+        }
     }
     async setMetrics(metrics) {
         this.info.metrics = JSON.stringify(metrics);
