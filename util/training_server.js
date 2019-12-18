@@ -43,19 +43,6 @@ class TrainingServer {
         return out;
     }
 
-    async getMetrics(dbClient) {
-        const jobs = await trainingJobModel.getLastSuccessful(dbClient, 'train');
-        if (jobs.length === 0)
-            return {};
-
-        const out = {};
-        for (let job of jobs) {
-            const key = job.model_tag + '/' + job.language;
-            out[key] = JSON.parse(job.metrics);
-        }
-        return out;
-    }
-
     kill(jobId) {
         if (!Config.TRAINING_URL)
             return Promise.resolve({});

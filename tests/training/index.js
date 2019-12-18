@@ -320,25 +320,9 @@ async function testForDevice() {
     await waitUntilAllJobsDone();
 }
 
-async function testMetrics() {
-    const server = TrainingServer.get();
-
-    // issue a train command for a device that is not approved
-
-    const metrics = await db.withClient((dbClient) => server.getMetrics(dbClient));
-    console.log(metrics);
-
-    // the specific metric values depend on unpredictable factors, so we don't check them
-    assert('org.thingpedia.models.default/en' in metrics);
-    assert('org.thingpedia.models.developer/en' in metrics);
-    assert('org.thingpedia.models.contextual/en' in metrics);
-    assert('org.thingpedia.models.developer.contextual/en' in metrics);
-}
-
 async function main() {
     await testBasic();
     await testForDevice();
-    await testMetrics();
 
     await db.tearDown();
 }
