@@ -139,13 +139,33 @@ router.get('/download/:language/:tag', user.requireLogIn, (req, res, next) => {
             // so that a true not found is indistinguishable from not having permission
             throw new NotFoundError();
         }
-    }).then(async () => {
+
+        return model.version;
+    }).then(async (version) => {
         const cachedir = localfs.getCacheDir();
 
-        const modelLangDir = req.params.tag + ':' + req.params.language;
+        let modelLangDir = req.params.tag + ':' + req.params.language;
         const tarballname = modelLangDir + '.tar.gz';
+
+        // append version number to model if not 0 (this is for compat with pre-versioning
+        // naming convention)
+        if (version !== 0)
+            modelLangDir += '-v' + version;
         res.set('Content-Type', 'application/x-tar');
         res.set('Content-Disposition', `attachment; filename="${tarballname}"`); //"
+
+        // this ETag is weak, because strictly speaking different processes with different
+        // cache dirs might generate slightly different tarball (e.g. different file order or
+        // mtime) but the tarballs would be functionally identical
+        const etag = `W/"version:${version}"`;
+        res.set(`ETag`, etag);
+        if (req.headers['if-none-match'] === etag) {
+            res.status(304); // not modified
+            res.send('');
+            return;
+        }
+        // cache this for one day
+        res.cacheFor(86400000);
 
         const tarballpath = cachedir + '/models/' + sanitizeFilename(tarballname);
 
