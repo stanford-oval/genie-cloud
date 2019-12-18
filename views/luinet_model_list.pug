@@ -46,3 +46,7 @@ block content
                       |
                     - first = false;
                     a(href=Config.THINGPEDIA_URL + '/devices/by-id/' + d)= d
+
+              if authenticated && m.trained && (m.owner === user.developer_org || (m.access_token === null && m.use_approved))
+                p
+                  a(href='/luinet/models/download/' + m.language + '/' + m.tag).btn.btn-sm.btn-default= _("Download")

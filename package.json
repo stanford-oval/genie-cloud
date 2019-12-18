@@ -96,6 +96,7 @@
     "serve-favicon": "^2.3.0",
     "smtlib": "^0.1.1",
     "sockaddr": "^1.0.0",
+    "tar": "^5.0.5",
     "thingengine-core": "~1.7.0",
     "thingpedia": "~2.6.0",
     "thingpedia-discovery": "^1.0.0",
