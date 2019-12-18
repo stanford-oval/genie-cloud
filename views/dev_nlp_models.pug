@@ -57,6 +57,21 @@ block content
                               div.form-group
                                 button(type='submit').btn.btn-primary= _("Train")
 
+                  p
+                    if model.current_job
+                      if model.current_job.status === 'queued'
+                         = _("Status: queued for training.")
+                      else
+                         = _("Status: training (%.0f%%).").format(model.current_job.progress*100)
+                      |
+                      |
+                      if model.current_job.eta
+                        = _("ETA: %s").format((new Date(model.current_job.eta)).toLocaleString(locale, { timeZone: user.timezone, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', 'minute': 'numeric' }))
+                    else if model.trained
+                      = _("Status: deployed.")
+                    else
+                      = _("Status: not trained yet.")
+
                   p= _("Template Pack: %s").format(m.template_file_name)
                   p= _("Flags: %s").format(m.flags.join(_(", ")))
 
