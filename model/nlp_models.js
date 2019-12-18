@@ -133,5 +133,9 @@ module.exports = {
 
     async updateByTag(client, language, tag, model) {
         return db.query(client, `update models set ? where language = ? and tag = ?`, [model, language, tag]);
+    },
+
+    async update(client, id, model) {
+        return db.query(client, `update models set ? where id = ?`, [model, id]);
     }
 };

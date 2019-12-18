@@ -60,7 +60,15 @@ module.exports = class NLPModel {
         else
             this.exact = new DummyExactMatcher(); // non default models don't get any exact match
 
-        this._modeldir = AbstractFS.resolve(Config.NL_MODEL_DIR, `./${spec.tag}:${spec.language}`);
+        let modeldir;
+        // for compat with unversioned models, if the version is 0 (pre-versioning PR) we don't
+        // add the version suffix to the model name
+        if (spec.version === 0)
+            modeldir = `./${spec.tag}:${spec.language}`;
+        else
+            modeldir = `./${spec.tag}:${spec.language}-v${spec.version}`;
+
+        this._modeldir = AbstractFS.resolve(Config.NL_MODEL_DIR, modeldir);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
             const org = (spec.owner === null || spec.owner === 1) ? { is_admin: true, id: 1 } : { is_admin: false, id: spec.owner };

@@ -78,14 +78,18 @@ module.exports = {
             progress: 0.001,
 
             async task(job) {
-                const modelLangDir = `./${job.model_tag}:${job.language}`;
                 const outputdir = AbstractFS.resolve(job.jobDir, 'output');
+                await db.withTransaction(async (dbClient) => {
+                    const model = await modelsModel.getByTagForUpdate(dbClient, job.language, job.model_tag);
+                    const newVersion = model.version + 1;
+                    const modeldir = `./${job.model_tag}:${job.language}-v${newVersion}`;
 
-                await AbstractFS.sync(outputdir + '/', AbstractFS.resolve(Config.NL_MODEL_DIR, modelLangDir) + '/');
+                    await AbstractFS.sync(outputdir + '/',
+                        AbstractFS.resolve(Config.NL_MODEL_DIR, modeldir) + '/');
 
-                await db.withClient((dbClient) => {
-                    return modelsModel.updateByTag(dbClient, job.language, job.model_tag, {
+                    return modelsModel.update(dbClient, model.id, {
                         trained: true,
+                        version: newVersion
                     });
                 });
 
