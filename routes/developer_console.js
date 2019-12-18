@@ -267,6 +267,9 @@ if (Config.WITH_LUINET === 'embedded') {
                 trainingJobModel.getQueue(dbClient)
             ]);
             for (let model of models) {
+                if (model.metrics)
+                    model.metrics = JSON.parse(model.metrics);
+
                 model.current_job = null;
                 for (let job of trainingJobs) {
                     if (job.job_type !== 'train')
