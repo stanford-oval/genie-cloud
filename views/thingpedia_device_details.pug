@@ -27,9 +27,7 @@ block content
             | &#x20;
             button(type='submit').btn.btn-success= _("Approve it")
       else if authenticated && user.developer_org === device.owner
-        p= _("This device is not yet approved for general use.")
-          | &#x20;
-          a(href='#request-approval-container',data-toggle='collapse',aria-expanded='false',aria-controls='request-approval-container').btn.btn-default= _("Request approval")
+        p= _("This device is not yet approved for general use. Please open a new topic in the community forum if you would like to have it reviewed.")
       else
         p= _("This device is not yet approved for general use. You need a developer key to use it.")
   else if device.approved_version !== device.developer_version && authenticated && (user.roles & Constants.Role.THINGPEDIA_ADMIN) !== 0
@@ -40,22 +38,6 @@ block content
         p.form-group= _("A newer version of this device was submitted.")
           | &#x20;
           button(type='submit').btn.btn-success= _("Approve it")
-
-  div#request-approval-container.collapse
-    div.panel.panel-default
-      p.panel-heading= _("Request Approval")
-
-      div.panel-body
-        form(action='/thingpedia/devices/request-approval', method='post', data-toggle='validator')
-          input(type='hidden',name='_csrf',value=csrfToken)
-          input(type='hidden',name='kind',value=device.primary_kind)
-        
-          div.form-group
-            label(for='request-approval-comments').control-label= _("Additional comments (optional)")
-            textarea(name='comments').form-control#request-approval-comments
-
-          div.form-group
-            button(type='submit').btn.btn-primary= _("Send Request")
 
   if !device.translated
     div.alert.alert-info(role='alert')
