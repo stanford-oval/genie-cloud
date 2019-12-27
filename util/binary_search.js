@@ -10,6 +10,8 @@
 "use strict";
 
 module.exports = function binarySearch(cumsum, value) {
+    if (cumsum.length === 0)
+        return undefined;
     let a = 0, b = cumsum.length;
     for (;;) {
         if (b - a === 1)

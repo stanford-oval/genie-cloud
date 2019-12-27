@@ -35,7 +35,6 @@ module.exports = class ExactMatcher {
         this._language = language;
 
         this._trie = new Trie((existing, newValue) => {
-            newValue = JSON.stringify(newValue);
             if (existing === undefined) {
                 existing = new Set;
             } else {
@@ -49,6 +48,13 @@ module.exports = class ExactMatcher {
             }
             return existing;
         });
+    }
+
+    *[Symbol.iterator]() {
+        for (let [key, valueSet] of this._trie) {
+            for (let value of valueSet)
+                yield [key, value];
+        }
     }
 
     async load(dbClient) {
@@ -86,13 +92,13 @@ module.exports = class ExactMatcher {
                 for (let j = beginIndex; j < endIndex; j++)
                     utterance[j] = Trie.WILDCARD;
                 for (let j = spanBegin; j < spanEnd; j++)
-                    target_code[j] = beginIndex + j - spanBegin;
+                    target_code[j] = '\\' + (beginIndex + j - spanBegin);
             }
         }
         if (utterance[utterance.length-1] === '.')
             utterance.pop();
 
-        this._trie.insert(utterance, target_code);
+        this._trie.insert(utterance, target_code.join(' '));
     }
 
     get(utterance) {
@@ -104,16 +110,15 @@ module.exports = class ExactMatcher {
         let results = this._trie.search(utterance);
         if (results === undefined)
             return null;
-        results = Array.from(results).map((x) => JSON.parse(x));
+        results = Array.from(results);
         results.reverse();
         for (let i = 0; i < results.length; i++) {
-            const code = results[i];
-            const clone = code.slice();
-            results[i] = clone;
-            for (let j = 0; j < clone.length; j++) {
-                const token = clone[j];
-                if (typeof token === 'number')
-                    clone[j] = utterance[token];
+            const code = results[i].split(' ');
+            results[i] = code;
+            for (let j = 0; j < code.length; j++) {
+                const token = code[j];
+                if (/^\\[0-9]+$/.test(token))
+                    code[j] = utterance[parseInt(token.substring(1), 10)];
             }
         }
         return results;

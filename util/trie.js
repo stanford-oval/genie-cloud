@@ -18,6 +18,17 @@ class TrieNode {
         this.children = new Map;
     }
 
+    *_iterate(keyPrefix) {
+        if (this.value !== undefined)
+            yield [keyPrefix, this.value];
+
+        for (let [key, child] of this.children) {
+            keyPrefix.push(key);
+            yield* child._iterate(keyPrefix);
+            keyPrefix.pop();
+        }
+    }
+
     addValue(value) {
         this.value = this._valueCombine(this.value, value);
     }
@@ -42,6 +53,10 @@ class TrieNode {
 module.exports = class Trie {
     constructor(valueCombine) {
         this.root = new TrieNode(valueCombine);
+    }
+
+    [Symbol.iterator]() {
+        return this.root._iterate([]);
     }
 
     insert(sequence, value, limit = 20) {

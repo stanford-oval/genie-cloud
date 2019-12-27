@@ -51,12 +51,20 @@ class GrowableBuffer {
     }
 
     _findBuffer(offset) {
+        assert(this._offsets.length > 0);
+
         // common case: offset is inside the last buffer
         if (offset >= this._offsets[this._offsets.length-1])
             return this._offsets.length-1;
 
-        // binary search
-        return binarySearch(this._offsets);
+        // binary search to find the position of the first offset not smaller than the one searched
+        let index = binarySearch(this._offsets, offset);
+
+        // if the offset is strictly larger, we need to write to the previous buffer
+        if (this._offsets[index] > offset)
+            index --;
+
+        return index;
     }
 
     writeUInt8(value, offset = 0) {
@@ -82,7 +90,7 @@ class GrowableBuffer {
             // we need to split the write across two buffers
             const nextBuffer = this._buffers[bufferIndex+1];
             buffer.writeUInt8(value & 0xFF, offset - bufferOffset);
-            nextBuffer.writeUInt8(value >> 8, 0);
+            nextBuffer.writeUInt8(value >>> 8, 0);
         } else {
             buffer.writeUInt16LE(value, offset - bufferOffset);
         }
@@ -108,17 +116,17 @@ class GrowableBuffer {
             switch (firstPartLength) {
             case 1:
                 buffer.writeUInt8(value & 0xFF, offset - bufferOffset);
-                nextBuffer.writeUInt8((value >> 8) & 0xFF, 0);
-                nextBuffer.writeUInt16LE(value >> 16, 1);
+                nextBuffer.writeUInt8((value >>> 8) & 0xFF, 0);
+                nextBuffer.writeUInt16LE(value >>> 16, 1);
                 break;
             case 2:
                 buffer.writeUInt16LE(value & 0xFFFF, offset - bufferOffset);
-                nextBuffer.writeUInt16LE(value >> 16, 0);
+                nextBuffer.writeUInt16LE(value >>> 16, 0);
                 break;
             case 3:
                 buffer.writeUInt8(value & 0xFF, offset - bufferOffset);
-                buffer.writeUInt16LE((value >> 8) & 0xFFFF, offset - bufferOffset + 1);
-                nextBuffer.writeUInt8(value >> 24, 0);
+                buffer.writeUInt16LE((value >>> 8) & 0xFFFF, offset - bufferOffset + 1);
+                nextBuffer.writeUInt8(value >>> 24, 0);
                 break;
             }
         } else {
@@ -132,7 +140,7 @@ class GrowableBuffer {
         const bufferIndex = this._findBuffer(offset);
         const buffer = this._buffers[bufferIndex];
         const bufferOffset = this._offsets[bufferIndex];
-        assert(offset - bufferOffset < buffer.length);
+        assert(offset - bufferOffset >= 0 && offset - bufferOffset < buffer.length);
 
         if (offset - bufferOffset + fromBuffer.length > buffer.length) {
             // we need to split the write across two buffers

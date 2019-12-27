@@ -83,8 +83,10 @@ class TrieBuilderIntermediateNode {
         this._isCompact = true;
     }
 
-    setValue(value) {
-        this._leaf = new TrieBuilderLeafNode(value);
+    setValue(value, valueCombine) {
+        if (this._leaf !== null)
+            this._leaf.value = valueCombine(this._leaf.value, value);
+        this._leaf = new TrieBuilderLeafNode(valueCombine(undefined, value));
         if (this.children.size > 0)
             this._isCompact = false;
     }
@@ -218,7 +220,8 @@ class TrieBuilderRootNode extends TrieBuilderIntermediateNode {
 }
 
 class BTrieBuilder {
-    constructor() {
+    constructor(valueCombine) {
+        this._valueCombine = valueCombine;
         this.root = new TrieBuilderRootNode();
     }
 
@@ -230,7 +233,7 @@ class BTrieBuilder {
                 child = node.addChild(key);
             node = child;
         }
-        node.setValue(value);
+        node.setValue(value, this._valueCombine);
     }
 
     build() {
