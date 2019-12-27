@@ -61,11 +61,13 @@ function testAmbiguous() {
     const matcher = new ExactMatcher('en', 'default');
 
     matcher.add('get a cat', 'now => @com.thecatapi.get => notify');
+    matcher.add('get a cat', 'now => @com.thecatapi3.get => notify');
     matcher.add('get a cat', 'now => @com.thecatapi2.get => notify');
     matcher.add('get a cat', 'now => @com.thecatapi3.get => notify');
     matcher.add('get a dog', 'now => @uk.co.thedogapi.get => notify');
 
     // later calls to add() should "win" - be sorted first in the result
+    // and there should be no duplicates
     assert.deepStrictEqual(matcher.get('get a cat'), [
         'now => @com.thecatapi3.get => notify'.split(' '),
         'now => @com.thecatapi2.get => notify'.split(' '),

@@ -417,13 +417,13 @@ class BTrie {
             if (child === null)
                 child = this._findKey(WILDCARD, node);
             if (child === null)
-                return null;
+                return undefined;
             node = child;
         }
 
         // this can only occur with the root node, for an empty trie
         if (node.size === 0)
-            return null;
+            return undefined;
 
         const nodeHeader = readNodeHeader(this._buffer, node.offset);
         this._check(nodeHeader.nodeType !== NodeType.DATA);
@@ -436,7 +436,7 @@ class BTrie {
             const dataOffset = dataNodeOffset + 1 + 2;
             return this._buffer.toString('utf8', dataOffset, dataOffset+dataSize);
         } else {
-            return null;
+            return undefined;
         }
     }
 }

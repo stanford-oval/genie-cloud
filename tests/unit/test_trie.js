@@ -13,38 +13,45 @@ const assert = require('assert');
 
 const Trie = require('../../util/trie');
 
+function arrayCombine(existing, newValue) {
+    if (existing === undefined)
+        existing = [];
+    existing.unshift(newValue);
+    return existing;
+}
+
 function testBasic() {
-    const trie = new Trie();
+    const trie = new Trie(arrayCombine);
 
     trie.insert('abc', 1);
 
     assert.deepStrictEqual(trie.search('abc'), [1]);
 
-    assert.deepStrictEqual(trie.search('abcd'), null);
-    assert.deepStrictEqual(trie.search('ab'), null);
-    assert.deepStrictEqual(trie.search('abd'), null);
+    assert.deepStrictEqual(trie.search('abcd'), undefined);
+    assert.deepStrictEqual(trie.search('ab'), undefined);
+    assert.deepStrictEqual(trie.search('abd'), undefined);
 
     trie.insert('abc', 2);
 
     assert.deepStrictEqual(trie.search('abc'), [2, 1]);
 
-    trie.insert('abc', 3, 2);
+    trie.insert('abc', 3);
 
-    assert.deepStrictEqual(trie.search('abc'), [3, 2]);
+    assert.deepStrictEqual(trie.search('abc'), [3, 2, 1]);
 
-    assert.deepStrictEqual(trie.search('abcd'), null);
-    assert.deepStrictEqual(trie.search('ab'), null);
-    assert.deepStrictEqual(trie.search('abd'), null);
+    assert.deepStrictEqual(trie.search('abcd'), undefined);
+    assert.deepStrictEqual(trie.search('ab'), undefined);
+    assert.deepStrictEqual(trie.search('abd'), undefined);
 
     trie.insert('abcd', 4);
     trie.insert('ab', 5);
     trie.insert('abd', 6);
 
-    assert.deepStrictEqual(trie.search('abc'), [3, 2]);
+    assert.deepStrictEqual(trie.search('abc'), [3, 2, 1]);
     assert.deepStrictEqual(trie.search('abcd'), [4]);
     assert.deepStrictEqual(trie.search('ab'), [5]);
     assert.deepStrictEqual(trie.search('abd'), [6]);
-    assert.deepStrictEqual(trie.search('b'), null);
+    assert.deepStrictEqual(trie.search('b'), undefined);
 }
 
 function wild(str) {
@@ -59,7 +66,7 @@ function wild(str) {
 }
 
 function testWildcard() {
-    const trie = new Trie();
+    const trie = new Trie(arrayCombine);
 
     trie.insert(wild('a*c'), 2);
     trie.insert(wild('*bc'), 3);
@@ -67,8 +74,8 @@ function testWildcard() {
     assert.deepStrictEqual(trie.search('abc'), [2]);
     assert.deepStrictEqual(trie.search('adc'), [2]);
     assert.deepStrictEqual(trie.search('cbc'), [3]);
-    assert.deepStrictEqual(trie.search('abd'), null);
-    assert.deepStrictEqual(trie.search('aabc'), null);
+    assert.deepStrictEqual(trie.search('abd'), undefined);
+    assert.deepStrictEqual(trie.search('aabc'), undefined);
 
     trie.insert('abc', 1);
     assert.deepStrictEqual(trie.search('abc'), [1]);

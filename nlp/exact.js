@@ -34,7 +34,21 @@ module.exports = class ExactMatcher {
     constructor(language) {
         this._language = language;
 
-        this._trie = new Trie();
+        this._trie = new Trie((existing, newValue) => {
+            newValue = JSON.stringify(newValue);
+            if (existing === undefined) {
+                existing = new Set;
+            } else {
+                if (existing.has(newValue))
+                    existing.delete(newValue);
+            }
+            existing.add(newValue);
+            if (existing.size > LIMIT) {
+                const { data:first } = existing.keys().next();
+                existing.delete(first);
+            }
+            return existing;
+        });
     }
 
     async load(dbClient) {
@@ -78,7 +92,7 @@ module.exports = class ExactMatcher {
         if (utterance[utterance.length-1] === '.')
             utterance.pop();
 
-        this._trie.insert(utterance, target_code, LIMIT);
+        this._trie.insert(utterance, target_code);
     }
 
     get(utterance) {
@@ -88,9 +102,10 @@ module.exports = class ExactMatcher {
             utterance.pop();
 
         let results = this._trie.search(utterance);
-        if (results === null)
-            return results;
-        results = results.slice();
+        if (results === undefined)
+            return null;
+        results = Array.from(results).map((x) => JSON.parse(x));
+        results.reverse();
         for (let i = 0; i < results.length; i++) {
             const code = results[i];
             const clone = code.slice();
