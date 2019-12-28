@@ -70,7 +70,15 @@ class TrieBuilderLeafNode {
         return offset;
     }
 
-    writeData(buffer, offset) {
+    writeData(buffer, offset, valueMap) {
+        if (valueMap.has(this.value)) {
+            const existing = valueMap.get(this.value);
+            console.log(existing);
+            buffer.writeUInt32LE(existing, this._dataPtrOffset);
+            return offset;
+        }
+
+        valueMap.set(this.value, offset);
         buffer.writeUInt32LE(offset, this._dataPtrOffset);
         offset = writeNodeHeader(buffer, offset, NodeType.DATA);
         const dataBuffer = Buffer.from(this.value, 'utf8');
@@ -191,12 +199,12 @@ class TrieBuilderIntermediateNode {
         }
     }
 
-    writeData(buffer, offset) {
+    writeData(buffer, offset, valueMap) {
         assert(typeof offset === 'number');
         if (this._leaf)
-            offset = this._leaf.writeData(buffer, offset);
+            offset = this._leaf.writeData(buffer, offset, valueMap);
         for (let child of this._sortedChildren)
-            offset = child.writeData(buffer, offset);
+            offset = child.writeData(buffer, offset, valueMap);
         return offset;
     }
 
@@ -279,7 +287,9 @@ class BTrieBuilder {
 
         let offset = this.root.writeKey(buffer, FILE_HEADER_LENGTH);
         offset = this.root.writeChildren(buffer, offset);
-        offset = this.root.writeData(buffer, offset);
+
+        const valueMap = new Map;
+        offset = this.root.writeData(buffer, offset, valueMap);
         assert(offset === buffer.length);
 
         return buffer.toBuffer();
