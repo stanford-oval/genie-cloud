@@ -27,7 +27,7 @@ const DATA = [
 ];
 
 async function testBasic() {
-    const builder = new BTrie.Builder();
+    const builder = new BTrie.Builder((existing, newValue) => newValue);
     for (let [key, value] of DATA)
         builder.insert(key, value);
 
@@ -41,20 +41,20 @@ async function testBasic() {
         assert.deepStrictEqual(btrie.search(key), value);
 
     assert.deepStrictEqual(btrie.search(['get', 'foo']), '$6');
-    assert.deepStrictEqual(btrie.search(['get', 'a', 'dog']), null);
-    assert.deepStrictEqual(btrie.search(['post', 'tweet']), null);
-    assert.deepStrictEqual(btrie.search(['when', 'I', 'receive', 'a', 'tweet']), null);
-    assert.deepStrictEqual(btrie.search([]), null);
-    assert.deepStrictEqual(btrie.search(['when']), null);
-    assert.deepStrictEqual(btrie.search(['search']), null);
+    assert.deepStrictEqual(btrie.search(['get', 'a', 'dog']), undefined);
+    assert.deepStrictEqual(btrie.search(['post', 'tweet']), undefined);
+    assert.deepStrictEqual(btrie.search(['when', 'I', 'receive', 'a', 'tweet']), undefined);
+    assert.deepStrictEqual(btrie.search([]), undefined);
+    assert.deepStrictEqual(btrie.search(['when']), undefined);
+    assert.deepStrictEqual(btrie.search(['search']), undefined);
     assert.deepStrictEqual(btrie.search(['search', 'foo']), '$7');
     assert.deepStrictEqual(btrie.search(['play', 'coldplay']), '$8');
     assert.deepStrictEqual(btrie.search(['play']), '$9');
-    assert.deepStrictEqual(btrie.search(['play', 'taylor', 'swift']), null);
+    assert.deepStrictEqual(btrie.search(['play', 'taylor', 'swift']), undefined);
 }
 
 function testEmpty() {
-    const builder = new BTrie.Builder();
+    const builder = new BTrie.Builder((existing, newValue) => newValue);
 
     const buffer = builder.build();
     assert(buffer instanceof Buffer);
@@ -65,8 +65,8 @@ function testEmpty() {
     const btrie = new BTrie(buffer);
 
     for (let [key,] of DATA.slice(0, 6))
-        assert.deepStrictEqual(btrie.search(key), null);
-    assert.deepStrictEqual(btrie.search([]), null);
+        assert.deepStrictEqual(btrie.search(key), undefined);
+    assert.deepStrictEqual(btrie.search([]), undefined);
 }
 
 async function main() {

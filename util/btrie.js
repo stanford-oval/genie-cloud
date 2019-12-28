@@ -46,10 +46,20 @@ function readNodeHeader(buffer, offset) {
 }
 
 class TrieBuilderLeafNode {
-    constructor(value) {
-        assert(typeof value === 'string');
-        this.value = value;
+    constructor() {
+        this.value = undefined;
+        this._size = 0;
         this._dataPtrOffset = null;
+    }
+
+    addValue(value, valueCombine) {
+        this.value = valueCombine(this.value, value);
+        assert(typeof this.value === 'string');
+        this._size ++;
+    }
+
+    get size() {
+        return this._size;
     }
 
     writeKey(buffer, offset) {
@@ -81,12 +91,27 @@ class TrieBuilderIntermediateNode {
 
         this._childrenBeginPtrOffset = 0;
         this._isCompact = true;
+
+        this._size = undefined;
+        this._sortedChildren = undefined;
+    }
+
+    get size() {
+        if (this._size !== undefined)
+            return this._size;
+
+        this._size = 0;
+        if (this._leaf)
+            this._size += this._leaf.size;
+        for (let child of this.children.values())
+            this._size += child.size;
+        return this._size;
     }
 
     setValue(value, valueCombine) {
-        if (this._leaf !== null)
-            this._leaf.value = valueCombine(this._leaf.value, value);
-        this._leaf = new TrieBuilderLeafNode(valueCombine(undefined, value));
+        if (this._leaf === null)
+            this._leaf = new TrieBuilderLeafNode();
+        this._leaf.addValue(value, valueCombine);
         if (this.children.size > 0)
             this._isCompact = false;
     }
@@ -105,23 +130,28 @@ class TrieBuilderIntermediateNode {
         return this.children.get(key);
     }
 
-    *_sortedChildren() {
+    _sortChildren() {
         const keys = Array.from(this.children.keys());
         keys.sort((a, b) => {
-            if (a === b)
-                return 0;
             if (a === WILDCARD)
                 return -1;
             if (b === WILDCARD)
+                return 1;
+
+            const asize = this.children.get(a).size;
+            const bsize = this.children.get(b).size;
+            if (asize > bsize)
+                return -1;
+            if (asize < bsize)
                 return 1;
             if (a < b)
                 return -1;
             if (b < a)
                 return 1;
+
             return 0;
         });
-        for (let key of keys)
-            yield this.children.get(key);
+        this._sortedChildren = keys.map((key) => this.children.get(key));
     }
 
     _writeOwnKey(buffer, offset, nodeType) {
@@ -140,13 +170,14 @@ class TrieBuilderIntermediateNode {
     }
 
     writeKey(buffer, offset) {
+        this._sortChildren();
         assert(this._leaf || this.children.size > 0);
 
         if (this._isCompact) {
             offset = this._writeOwnKey(buffer, offset, NodeType.COMPACT);
             if (this._leaf)
                 offset = this._leaf.writeKey(buffer, offset);
-            for (let child of this._sortedChildren())
+            for (let child of this._sortedChildren)
                 offset = child.writeKey(buffer, offset);
             return offset;
         } else {
@@ -164,7 +195,7 @@ class TrieBuilderIntermediateNode {
         assert(typeof offset === 'number');
         if (this._leaf)
             offset = this._leaf.writeData(buffer, offset);
-        for (let child of this._sortedChildren())
+        for (let child of this._sortedChildren)
             offset = child.writeData(buffer, offset);
         return offset;
     }
@@ -174,7 +205,7 @@ class TrieBuilderIntermediateNode {
             const beginOffset = offset;
             if (this._leaf)
                 offset = this._leaf.writeKey(buffer, offset);
-            for (let child of this._sortedChildren())
+            for (let child of this._sortedChildren)
                 offset = child.writeKey(buffer, offset);
             const endOffset = offset;
             assert(endOffset - beginOffset <= 65536);
@@ -182,7 +213,7 @@ class TrieBuilderIntermediateNode {
             buffer.writeUInt16LE(endOffset - beginOffset, this._childrenBeginPtrOffset+4);
         }
 
-        for (let child of this._sortedChildren())
+        for (let child of this._sortedChildren)
             offset = child.writeChildren(buffer, offset);
 
         return offset;
@@ -197,6 +228,7 @@ class TrieBuilderRootNode extends TrieBuilderIntermediateNode {
     }
 
     writeKey(buffer, offset) {
+        this._sortChildren();
         this._childrenPtrOffset = offset;
         buffer.writeUInt16LE(0, offset);
         offset += 2;
@@ -207,12 +239,12 @@ class TrieBuilderRootNode extends TrieBuilderIntermediateNode {
         const beginOffset = offset;
         if (this._leaf)
             offset = this._leaf.writeKey(buffer, offset);
-        for (let child of this._sortedChildren())
+        for (let child of this._sortedChildren)
             offset = child.writeKey(buffer, offset);
         const endOffset = offset;
         buffer.writeUInt16LE(endOffset - beginOffset, this._childrenPtrOffset);
 
-        for (let child of this._sortedChildren())
+        for (let child of this._sortedChildren)
             offset = child.writeChildren(buffer, offset);
 
         return offset;
