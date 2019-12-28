@@ -31,13 +31,15 @@ block content
         th #
         th= _("User name")
         th= _("Human name")
-        th= _("Login methods")
         th= _("Locale")
         th= _("Timezone")
+        th= _("Registered")
+        th= _("Last login")
         th= _("Roles")
         th= _("Engine?")
         th(colspan=2)= _("Actions")
     tbody
+      - var self = user;
       each user in users.slice(0,USERS_PER_PAGE)
         tr
           td
@@ -45,36 +47,32 @@ block content
           td
             a(href='mailto:' + user.email)= user.username
           td= user.human_name
-          td
-            - var methods = [];
-            - if (user.password !== null)
-              - methods.push("Password");
-            - if (user.facebook_id !== null)
-              - methods.push("Facebook");
-            - if (user.google_id !== null)
-              - methods.push("Google")
-            - if (user.github_id !== null)
-              - methods.push("GitHub")
-            | #{methods.join(', ')}
           td= user.locale
           td= user.timezone
+          td= user.registration_time.toLocaleString(self.locale, { timeZone: self.timezone, year: 'numeric', month: 'numeric', day: 'numeric' })
+          td= user.lastlog_time.toLocaleString(self.locale, { timeZone: self.timezone })
           td
             if user.roles !== 0
-              - let roles = []
-              if user.roles & Constants.Role.ADMIN
-                - roles.push(_("Site Admin"));
-              if user.roles & Constants.Role.BLOG_EDITOR
-                - roles.push(_("Blog Editor"));
-              if user.roles & Constants.Role.THINGPEDIA_ADMIN
-                - roles.push(_("Thingpedia Admin"));
-              if user.roles & Constants.Role.TRUSTED_DEVELOPER
-                - roles.push(_("Trusted Developer"));
-              if user.roles & Constants.Role.DISCOURSE_ADMIN
-                - roles.push(_("Discourse Admin"));
-              if user.roles & Constants.Role.NLP_ADMIN
-                - roles.push(_("NLP Admin"));
               span(title=user.developer_key)
-                a(href='/admin/organizations/details/' + user.developer_org)= roles.join(', ')
+                a(href='/admin/organizations/details/' + user.developer_org)
+                  if user.roles & Constants.Role.ADMIN
+                    = _("Site Admin")
+                    br
+                  if user.roles & Constants.Role.BLOG_EDITOR
+                    = _("Blog Editor")
+                    br
+                  if user.roles & Constants.Role.THINGPEDIA_ADMIN
+                    = _("Thingpedia Admin")
+                    br
+                  if user.roles & Constants.Role.TRUSTED_DEVELOPER
+                    = _("Trusted Developer")
+                    br
+                  if user.roles & Constants.Role.DISCOURSE_ADMIN
+                    = _("Discourse Admin")
+                    br
+                  if user.roles & Constants.Role.NLP_ADMIN
+                    = _("NLP Admin")
+                    br
             else if user.developer_status >= Constants.DeveloperStatus.DEVELOPER
               span(title=user.developer_key)
                 a(href='/admin/organizations/details/' + user.developer_org)= _("Developer")
