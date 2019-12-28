@@ -19,6 +19,13 @@ function checkKey(value, type) {
         }
         return false;
     }
+    if (type instanceof RegExp) {
+        if (value === undefined)
+            value = '';
+        if (typeof value !== 'string')
+            return false;
+        return type.test(value);
+    }
 
     if (type.startsWith('?')) {
         if (value === undefined || value === '' || value === null)
