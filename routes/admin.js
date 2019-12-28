@@ -59,7 +59,8 @@ router.get('/', user.requireAnyRole(user.Role.ALL_ADMIN), (req, res, next) => {
                                  csrfToken: req.csrfToken() });
 });
 
-router.get('/users', user.requireRole(user.Role.ADMIN), iv.validateGET({ page: '?integer' }), (req, res, next) => {
+router.get('/users', user.requireRole(user.Role.ADMIN),
+    iv.validateGET({ page: '?integer', sort: /^$|^(id|username|human_name|registration_time|lastlog_time)\/(asc|desc)$/ }), (req, res, next) => {
     let page = req.query.page;
     if (page === undefined)
         page = 0;
@@ -67,14 +68,16 @@ router.get('/users', user.requireRole(user.Role.ADMIN), iv.validateGET({ page: '
         page = parseInt(page);
     if (page < 0)
         page = 0;
+    const sort = req.query.sort || 'id/asc';
 
     db.withClient((dbClient) => {
-        return model.getAll(dbClient, page * USERS_PER_PAGE, USERS_PER_PAGE + 1);
+        return model.getAll(dbClient, page * USERS_PER_PAGE, USERS_PER_PAGE + 1, sort);
     }).then(renderUserList).then((users) => {
         res.render('admin_user_list', { page_title: req._("Almond - Administration"),
                                         csrfToken: req.csrfToken(),
                                         users: users,
                                         page_num: page,
+                                        sort: sort,
                                         search: '',
                                         USERS_PER_PAGE });
     }).catch(next);

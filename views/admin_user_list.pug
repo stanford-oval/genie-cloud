@@ -20,21 +20,71 @@ block content
     ul.pager
       if page_num > 0
         li
-          a(href='/admin/users?page=' + (page_num-1))= _("Previous")
+          a(href='/admin/users?page=' + (page_num-1) + '&sort=' + sort)= _("Previous")
       if users.length > USERS_PER_PAGE
         li
-          a(href='/admin/users?page=' + (page_num+1))= _("Next")
+          a(href='/admin/users?page=' + (page_num+1) + '&sort=' + sort)= _("Next")
 
   table.table#users-table
     thead
       tr
-        th #
-        th= _("User name")
-        th= _("Human name")
+        th
+          | #
+          |
+          |
+          if page_num !== undefined
+            if sort === 'id/asc'
+              a(href='/admin/users?page=' + page_num + '&sort=id/desc', title=_("Sort by ID (decreasing)"))
+                span.glyphicon.glyphicon-chevron-up
+            else
+              a(href='/admin/users?page=' + page_num + '&sort=id/asc', title=_("Sort by ID (increasing)"))
+                span.glyphicon.glyphicon-chevron-down
+        th
+          = _("User name")
+          |
+          |
+          if page_num !== undefined
+            if sort === 'username/asc'
+              a(href='/admin/users?page=' + page_num + '&sort=username/desc', title=_("Sort by user name (decreasing)"))
+                span.glyphicon.glyphicon-chevron-up
+            else
+              a(href='/admin/users?page=' + page_num + '&sort=username/asc', title=_("Sort by user name (increasing)"))
+                span.glyphicon.glyphicon-chevron-down
+        th
+          = _("Human name")
+          |
+          |
+          if page_num !== undefined
+            if sort === 'human_name/asc'
+              a(href='/admin/users?page=' + page_num + '&sort=human_name/desc', title=_("Sort by human name (decreasing)"))
+                span.glyphicon.glyphicon-chevron-up
+            else
+              a(href='/admin/users?page=' + page_num + '&sort=human_name/asc', title=_("Sort by human name (increasing)"))
+                span.glyphicon.glyphicon-chevron-down
         th= _("Locale")
         th= _("Timezone")
-        th= _("Registered")
-        th= _("Last login")
+        th
+          = _("Registered")
+          |
+          |
+          if page_num !== undefined
+            if sort === 'registration_time/asc'
+              a(href='/admin/users?page=' + page_num + '&sort=registration_time/desc', title=_("Sort by registration time (newest first)"))
+                span.glyphicon.glyphicon-chevron-up
+            else
+              a(href='/admin/users?page=' + page_num + '&sort=registration_time/asc', title=_("Sort by registration time (oldest first)"))
+                span.glyphicon.glyphicon-chevron-down
+        th
+          = _("Last login")
+          |
+          |
+          if page_num !== undefined
+            if sort === 'lastlog_time/asc'
+              a(href='/admin/users?page=' + page_num + '&sort=lastlog_time/desc', title=_("Sort by last login time (newest first)"))
+                span.glyphicon.glyphicon-chevron-up
+            else
+              a(href='/admin/users?page=' + page_num + '&sort=lastlog_time/asc', title=_("Sort by last login time (oldest first)"))
+                span.glyphicon.glyphicon-chevron-down
         th= _("Roles")
         th= _("Engine?")
         th(colspan=2)= _("Actions")
@@ -123,7 +173,7 @@ block content
     ul.pager
       if page_num > 0
         li
-          a(href='/admin/users?page=' + (page_num-1))= _("Previous")
+          a(href='/admin/users?page=' + (page_num-1) + '&sort=' + sort)= _("Previous")
       if users.length > USERS_PER_PAGE
         li
-          a(href='/admin/users?page=' + (page_num+1))= _("Next")
+          a(href='/admin/users?page=' + (page_num+1) + '&sort=' + sort)= _("Next")
