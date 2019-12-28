@@ -69,8 +69,7 @@ mkdir -p $workdir/shared/cache
 echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
 
 # clean the database and bootstrap
-${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
-${srcdir}/main.js bootstrap
+${srcdir}/main.js bootstrap --force
 
 mkdir -p 'models/org.thingpedia.models.default:en'
 mkdir -p 'models/org.thingpedia.models.contextual:en'
