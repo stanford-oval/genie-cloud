@@ -71,14 +71,8 @@ module.exports = {
             else
                 return existing + '\0' + newValue;
         });
-        for (let [key, value] of matcher) {
-            const clone = Array.from(key);
-            for (let i = 0; i < clone.length; i++) {
-                if (clone[i] === Trie.WILDCARD)
-                    clone[i] = BTrie.WILDCARD;
-            }
-            builder.insert(clone, value);
-        }
+        for (let [key, value] of matcher)
+            builder.insert(key, value);
 
         argv.output.end(builder.build());
         await StreamUtils.waitFinish(argv.output);

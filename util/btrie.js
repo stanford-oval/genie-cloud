@@ -12,8 +12,9 @@
 const assert = require('assert');
 
 const GrowableBuffer = require('./growable_buffer');
+const Trie = require('./trie');
 
-const WILDCARD = {};
+const WILDCARD = Trie.WILDCARD;
 
 const FILE_HEADER_LENGTH = 6;
 
@@ -73,7 +74,6 @@ class TrieBuilderLeafNode {
     writeData(buffer, offset, valueMap) {
         if (valueMap.has(this.value)) {
             const existing = valueMap.get(this.value);
-            console.log(existing);
             buffer.writeUInt32LE(existing, this._dataPtrOffset);
             return offset;
         }

@@ -149,7 +149,7 @@ wait
 
 # Now tests that we can update the datasets
 
-mkdir -p $workdir/training/jobs/{1,2,3}
+mkdir -p $workdir/training/jobs/{1,2,3} $workdir/exact
 
 # first compile the PPDB
 node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs-lexical -o $workdir/ppdb-2.0-xs-lexical.bin
@@ -158,7 +158,7 @@ export PPDB=$workdir/ppdb-2.0-xs-lexical.bin
 # make up a training job
 ${srcdir}/main.js execute-sql-file - <<<"insert into training_jobs set id = 1, job_type ='update-dataset', language = 'en', all_devices = 1, status = 'started', task_index = 0, task_name = 'update-dataset', config = '{}'"
 
-# now update the exact match dataset (which will be saved to mysql)
+# now update the exact match dataset (which will be saved to mysql and ./exact)
 node ${srcdir}/main.js run-training-task -t update-dataset --job-id 1 --job-dir $workdir/training/jobs/1 --debug
 # download
 node ${srcdir}/main.js download-dataset -l en --output exact.tsv
@@ -168,9 +168,10 @@ node ${srcdir}/main.js download-dataset -l en --output exact.tsv
 ${srcdir}/main.js execute-sql-file - <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_target_pruning_size\":100000,\"dataset_eval_probability\":1.0}'"
 node ${srcdir}/main.js run-training-task -t prepare-training-set --job-id 2 --job-dir $workdir/training/jobs/2 --debug
 
-sha256sum exact.tsv ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
+sha256sum exact.tsv ./exact/en.btrie ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
 f1e73ee5de19f8aa92e5d8505bf6ed217b7c4135fb0a512bdbbfdd6d155582cd  exact.tsv
+eda0815309cb76fe2d251e7f92bf28eb603b5e357370f417a3dc449f6813085c  ./exact/en.btrie
 3ac80766f6627704c85572340a9cf034a9b0cdb9fe5ccce8e91f6af0829e5eb9  ./training/jobs/2/dataset/eval.tsv
 2ce2576ca59b8cc1eeb35fdfa82dad89fff6bd9c2dffc39109cd830fb6ba4e95  ./training/jobs/2/dataset/train.tsv
 EOF

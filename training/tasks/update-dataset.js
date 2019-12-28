@@ -12,6 +12,7 @@
 const Stream = require('stream');
 const seedrandom = require('seedrandom');
 const path = require('path');
+const assert = require('assert');
 
 const ThingTalk = require('thingtalk');
 const Genie = require('genie-toolkit');
@@ -21,8 +22,13 @@ const exampleModel = require('../../model/example');
 const AdminThingpediaClient = require('../../util/admin-thingpedia-client');
 const { makeFlags } = require('../../util/genie_flag_utils');
 const StreamUtils = require('../../util/stream-utils');
+const BTrie = require('../../util/btrie');
+const ExactMatcher = require('../../nlp/exact');
+const AbstractFS = require('../../util/abstract_fs');
 
 const db = require('../../util/db');
+
+const Config = require('../../config');
 
 // FIXME
 const GENIE_FILE = path.resolve(path.dirname(module.filename), '../../node_modules/genie-toolkit/languages/en/thingtalk.genie');
@@ -234,11 +240,36 @@ class DatasetUpdater {
         await this._generateNewSynthetic();
     }
 
+    async _updateExactMatch() {
+        const matcher = new ExactMatcher;
+
+        const rows = await db.withClient((dbClient) => {
+            return exampleModel.getExact(dbClient, this._language);
+        });
+        for (let row of rows)
+            matcher.add(row.preprocessed, row.target_code);
+
+        const builder = new BTrie.Builder((existing, newValue) => {
+            assert(typeof newValue === 'string');
+            if (existing === undefined)
+                return newValue;
+            else
+                return existing + '\0' + newValue;
+        });
+        for (let [key, value] of matcher)
+            builder.insert(key, value);
+
+        const url = AbstractFS.resolve(Config.NL_EXACT_MATCH_DIR, this._language + '.btrie');
+        await AbstractFS.writeFile(url, builder.build());
+    }
+
     async run() {
         await db.withTransaction((dbClient) => {
             this._dbClient = dbClient;
             return this._transaction();
         }, 'read committed');
+
+        await this._updateExactMatch();
     }
 }
 
