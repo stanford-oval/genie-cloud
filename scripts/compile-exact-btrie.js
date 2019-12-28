@@ -17,7 +17,6 @@ const Genie = require('genie-toolkit');
 
 const StreamUtils = require('../util/stream-utils');
 const BTrie = require('../util/btrie');
-const Trie = require('../util/trie');
 const ExactMatcher = require('../nlp/exact');
 
 function maybeCreateReadStream(filename) {

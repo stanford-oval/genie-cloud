@@ -96,6 +96,10 @@ mkdir -p 'classifier'
 wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
 tar xvf $srcdir/tests/embeddings/classifier1.tar.gz -C 'classifier'
 
+mkdir -p 'exact'
+wget --no-verbose -c https://almond-static.stanford.edu/test-data/exact.tsv -O exact/en.tsv
+${srcdir}/main.js compile-exact-btrie -o exact/en.btrie exact/en.tsv
+
 ${srcdir}/main.js run-nlp --port $NLP_PORT &
 inferpid=$!
 
