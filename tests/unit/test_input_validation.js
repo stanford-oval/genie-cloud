@@ -89,6 +89,22 @@ const TEST_CASES = [
     ['foo=%20', { foo: 'string' }, true],
     ['foo= ', { foo: 'string' }, true],
     ['foo=%0A', { foo: 'string' }, true],
+
+    // Regular Expression:
+    ['foo=bar', { foo: /ba[rz]/ }, true],
+    ['foo=baz', { foo: /ba[rz]/ }, true],
+    ['foo=foo', { foo: /ba[rz]/ }, false],
+    ['foo[]=bar&foo[]=baz', { foo: /ba[rz]/ }, false],
+    ['foo[]=bar', { foo: /ba[rz]/ }, false],
+    ['foo[0]=bar', { foo: /ba[rz]/ }, false],
+    ['foo=barbarian', { foo: /ba[rz]/ }, true],
+    ['foo=barbarian', { foo: /^ba[rz]$/ }, false],
+    ['foo=', { foo: /ba[rz]/ }, false],
+    ['foo=', { foo: /^ba[rz]$/ }, false],
+    ['foo=', { foo: /^$|^ba[rz]$/ }, true],
+    ['', { foo: /ba[rz]/ }, false],
+    ['', { foo: /^ba[rz]$/ }, false],
+    ['', { foo: /^$|^ba[rz]$/ }, true],
 ];
 
 function test(i) {
