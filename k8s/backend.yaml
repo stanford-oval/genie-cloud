@@ -33,15 +33,8 @@ spec:
         env:
         - name: THINGENGINE_DISABLE_SANDBOX
           value: "1"
-        command:
-        - bash
-        - "-c"
-        - |
-          set -ex
-          # Generate shard number from pod ordinal index.
-          [[ `hostname` =~ -([0-9]+)$ ]] || exit 1
-          ordinal=${BASH_REMATCH[1]}
-          exec /opt/almond-cloud/docker/start.sh run-almond --shard "${ordinal}"
+        args: ["run-almond", "--k8s"]
+        workingDir: /srv/thingengine
         volumeMounts:
         - name: almond-user-data
           mountPath: "/srv/thingengine"

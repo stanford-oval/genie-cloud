@@ -14,7 +14,7 @@ RUN curl -sL https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/sqlcipher/repo/epel-8/gcampax-sqlcipher-epel-8.repo -o /etc/yum.repos.d/gcampax-sqlcipher-epel-8.repo && \
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/gcampax-bubblewrap-epel-8.repo -o /etc/yum.repos.d/gcampax-bubblewrap-epel-8.repo && \
   dnf module install -y nodejs:10 && \
-  dnf -y install unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel && \
+  dnf -y install unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel mariadb procps-ng && \
   rm -rf /var/cache/dnf
 
 # install aws client
@@ -57,4 +57,4 @@ RUN useradd -ms /bin/bash -r almond-cloud
 USER almond-cloud
 WORKDIR /home/almond-cloud
 
-ENTRYPOINT ["/bin/bash", "/opt/almond-cloud/docker/start.sh"]
+ENTRYPOINT ["/opt/almond-cloud/docker/start.sh"]
