@@ -19,6 +19,7 @@ spec:
       containers:
       - name: main
         image: stanfordoval/almond-cloud:latest
+        imagePullPolicy: IfNotPresent
         args: ["bootstrap"]
         volumeMounts:
         - name: config
@@ -26,5 +27,5 @@ spec:
           readOnly: true
       volumes:
       - name: config
-        secret:
-          secretName: almond-config
+        configMap:
+          name: almond-config

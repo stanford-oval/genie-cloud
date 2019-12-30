@@ -29,5 +29,5 @@ spec:
         - sh
         - "-c"
         - |
-          mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD \
+          mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD -e \
             "create database if not exists almond; grant all privileges on almond.* to 'almond'@'%' identified by 'almond';"

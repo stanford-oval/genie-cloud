@@ -30,6 +30,7 @@ spec:
       containers:
       - name: "main"
         image: stanfordoval/almond-cloud:latest
+        imagePullPolicy: IfNotPresent
         env:
         - name: THINGENGINE_DISABLE_SANDBOX
           value: "1"
@@ -54,8 +55,8 @@ spec:
           periodSeconds: 20
       volumes:
       - name: config
-        secret:
-          secretName: almond-config
+        configMap:
+          name: almond-config
   volumeClaimTemplates:
   - metadata:
       name: almond-user-data
