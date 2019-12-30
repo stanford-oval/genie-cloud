@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-bootstrap
+  labels:
+    app: mysql-bootstrap
+
+spec:
+  completions: 1
+  parallelism: 1
+  backoffLimit: 0
+
+  template:
+    metadata:
+      labels:
+        app: mysql-bootstrap
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: main
+        image: mariadb:10.2
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-root-password
+              key: MYSQL_ROOT_PASSWORD
+        command:
+        - sh
+        - "-c"
+        - |
+          mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD \
+            "create database if not exists almond; grant all privileges on almond.* to 'almond'@'%' identified by 'almond';"

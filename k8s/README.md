@@ -20,6 +20,7 @@ To install, use the following steps:
 
 ```bash
 kubectl apply -f mysql.yaml
+kubectl apply -f mysql-bootstrap.yaml
 ```
 
 You can skip this step if you have a existing mysql installation in the cluster. In

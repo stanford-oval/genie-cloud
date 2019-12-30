@@ -19,19 +19,7 @@ spec:
       containers:
       - name: main
         image: stanfordoval/almond-cloud:latest
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: mysql-root-password
-              key: MYSQL_ROOT_PASSWORD
-        command:
-        - sh
-        - "-c"
-        - |
-          mysql -h mysql -u root -p$MYSQL_ROOT_PASSWORD \
-            "create database if not exists almond; grant all privileges on almond.* to 'almond'@'%' identified by 'almond';";
-          /opt/almond-cloud/docker/start.sh bootstrap
+        args: ["bootstrap"]
         volumeMounts:
         - name: config
           mountPath: "/etc/almond-cloud"
