@@ -8,13 +8,18 @@ USER root
 
 # add all the repos: epel (for GraphicsMagick), yarn, sqlcipher, bubblewrap,
 # then install the packages needed at runtime
-RUN curl -sL https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o epel-release-latest-8.noarch.rpm && \
+#
+# "touch" is a workaround for https://bugzilla.redhat.com/show_bug.cgi?id=1213602
+# (https://github.com/moby/moby/issues/10180)
+# which apparently still exists and is causing failures on the dockerhub autobuilds
+RUN touch /var/lib/rpm/* && \
+  curl -sL https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm -o epel-release-latest-8.noarch.rpm && \
   dnf -y install epel-release-latest-8.noarch.rpm && \
   curl -sL https://dl.yarnpkg.com/rpm/yarn.repo | tee /etc/yum.repos.d/yarn.repo && \
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/sqlcipher/repo/epel-8/gcampax-sqlcipher-epel-8.repo -o /etc/yum.repos.d/gcampax-sqlcipher-epel-8.repo && \
   curl -sL https://copr.fedorainfracloud.org/coprs/gcampax/bubblewrap/repo/epel-8/gcampax-bubblewrap-epel-8.repo -o /etc/yum.repos.d/gcampax-bubblewrap-epel-8.repo && \
   dnf module install -y nodejs:10 && \
-  dnf -y install unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel && \
+  dnf -y install unzip GraphicsMagick bubblewrap sqlcipher sqlcipher-devel mariadb procps-ng && \
   rm -rf /var/cache/dnf
 
 # install aws client
@@ -28,7 +33,8 @@ RUN mkdir -p /usr/local/share/almond-cloud/classifier && \
     curl -sL https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz -o classifier1.tar.gz && \
     tar xvf classifier1.tar.gz -C /usr/local/share/almond-cloud/classifier && \
     rm -f classifier1.tar.gz
-RUN dnf -y install gcc gcc-c++ && \
+RUN touch /var/lib/rpm/* && \
+    dnf -y install gcc gcc-c++ && \
     pip3 install wheel && \
     pip3 install pytorch_transformers==1.2.0 tensorboardX tqdm && \
     rm -fr /root/.cache && \
@@ -45,7 +51,8 @@ WORKDIR /opt/almond-cloud/
 RUN echo "build_from_source true" > .yarnrc && echo "sqlite_libname sqlcipher" >> .yarnrc
 
 # install build dependencies and build
-RUN dnf -y install make gettext python27 yarn gcc gcc-c++ sqlcipher-devel && \
+RUN touch /var/lib/rpm/* && \
+  dnf -y install make gettext python27 yarn gcc gcc-c++ sqlcipher-devel && \
   alternatives --set python /usr/bin/python2 && \
   yarn install && \
   dnf -y remove make gettext python27 yarn gcc gcc-c++ sqlcipher-devel && \
@@ -57,4 +64,4 @@ RUN useradd -ms /bin/bash -r almond-cloud
 USER almond-cloud
 WORKDIR /home/almond-cloud
 
-ENTRYPOINT ["/bin/bash", "/opt/almond-cloud/docker/start.sh"]
+ENTRYPOINT ["/opt/almond-cloud/docker/start.sh"]

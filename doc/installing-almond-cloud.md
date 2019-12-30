@@ -41,14 +41,9 @@ be compatible. Use this setup only if you absolutely need custom Thingpedia
 interfaces, and cannot provide these interfaces on Thingpedia. This setup
 is also suitable for developing Thingpedia itself. 
 
-### Step 1: Installing web almond and acquiring dependencies
-The code for web almond is located at our [almond-cloud Github repository](https://github.com/stanford-oval/almond-cloud).
-Clone the repository with the following command:
-```bash
-git clone https://github.com/stanford-oval/almond-cloud.git
-```
+### Step 1: Acquiring dependencies
 
-The code depends on:
+Cloud Almond depends on:
 
 - nodejs (>= 8.0)
 - cvc4 (any version, although >= 1.5 is recommended; only the binary is needed, not the library)
@@ -72,23 +67,11 @@ On Fedora:
 sudo dnf install nodejs cvc4 GraphicsMagick systemd-devel bubblewrap -y
 ```
 
-
 If you would like to run the MySQL server locally:
 ```
 sudo apt install mariadb-server # Ubuntu
 sudo dnf install mariadb-server # Fedora
 ```
-
-This repository uses yarn for dependency tracking.
-You should install yarn from [its website](https://yarnpkg.com/en/docs/install).
-And then run:
-
-```
-yarn install
-```
-
-**Note**: due to strict version requirements between the different Almond components, using
-npm is not supported.
 
 Finally, if you want to use custom NLP models, you must install `decanlp`:
 ```
@@ -96,7 +79,7 @@ pip3 install --user 'git+https://github.com/stanford-oval/decaNLP.git#egg=decanl
 ```
 and you must install [almond-tokenizer](https://github.com/stanford-oval/almond-tokenizer).
 
-#### Setting up database encryption
+#### Setting up database encryption (optional)
 
 It is *highly recommended* to encrypt your user's data at rest. To do so, configure your Web Almond to link against
 [sqlcipher](https://www.zetetic.net/sqlcipher) instead of sqlite. Place this in your `.yarnrc`:
@@ -110,17 +93,25 @@ Replace `/opt/sqlcipher` with the actual installation directory of sqlcipher.
 
 Database encryption uses a randomly generated key that is different from each user.
 
-### Step 2: Configuration
+These steps must be run __before__ Almond is installed, otherwise you will by default link to
+a version of sqlite without encryption support. 
+
+### Step 2: Installation
+
+Cloud Almond can be installed using the [yarn package manage](https://yarnpkg.com).
+You should install yarn from [its website](https://yarnpkg.com/en/docs/install), and then run:
+
+```
+yarn global add github:stanford-oval/almond-cloud
+```
+
+This will install a command called `almond-cloud`. If you cannot find the command,
+make sure the Yarn global bin directory (usually `~/.yarn/bin`) is in your PATH. You can find the path with the command `yarn global bin`.
+
+### Step 3: Configuration
 
 You must choose which mode to operate as by editing the `config.js` file.
-You should create a copy and name it `custom_config.js` (in the same directory as the code checkout),
-or `/etc/almond-cloud/config.js`. You can use both `custom_config.js` and `/etc/almond-cloud/config.js`
-if needed.
-
-**Note**: any data in `custom_config.js` will be visible to sandboxed users. Use this only
-for data that is not secret and must be visible to sandboxed users (such as Thingpedia and NLP inference URLs).
-Conversely, `/etc/almond-cloud` is not accessible in the sandboxes, and hence it is suitable
-for secret data like access tokens and keys.
+You should create a copy and name it `/etc/almond-cloud/config.js`.
 
 You must first set the `DATABASE_URL` to point to your MySQL server. The format is:
 ```
@@ -157,7 +148,7 @@ the website, and how to set emails appropriately. At the very least, it is expec
 field to point to the correct location (scheme-host-port) of your Web Almond server, and change the `EMAIL_` fields to
 indicate that emails are sent from your website.
 
-### Step 2.5 (optional): Enable the sandbox
+### Step 3.5 (optional): Enable the sandbox
 
 If you plan to deploy this as a web facing service, and you plan to allow developer users, you
 must enable the sandbox to prevent users from accessing each other's data.
@@ -174,14 +165,9 @@ Common correct choices include `/srv/almond-cloud` and `/var/lib/almond-cloud`.
 
 **Note**: If you skip this step, set `THINGENGINE_DISABLE_SANDBOX=1` in your environment.
 
-### Step 3: Database
+### Step 4: Database
 
-Set up your database by running
-```sh
-almond-cloud execute-sql-file ./model/schema.sql
-```
-
-After that, execute:
+To bootstrap Almond, execute:
 ```sh
 almond-cloud bootstrap
 ```
@@ -198,7 +184,7 @@ You must set up those accounts before enabling the anonymous user in `config.js`
 to the anonymous user as if it was regular user, and add the accounts to My Almond.
 It goes without saying, you should change the password for both the `root` and `anonymous` users, and you should use real, strong passwords.
 
-### Step 4: Web Almond
+### Step 5: Web Almond
 
 Web Almond is composed of a master process, and a number of worker processes.
 To start the master process, create a working directory, say `/srv/almond-cloud/workdir`, then do:
@@ -222,7 +208,7 @@ To scale horizontally, you can run multiple master processes, by setting multipl
 An example systemd unit file called `almond-cloud@.service` is provided. The unit file assumes
 the repository is located at `/opt/almond-cloud` and the local state directory is `/srv/almond-cloud`.
 
-### Step 5: the web frontend
+### Step 6: the web frontend
 
 You can run the web frontend in the same working directory as the master process, by saying:
 
@@ -237,7 +223,7 @@ An example systemd unit file is provided, called `almond-website@.service`.
 If you run the frontend and master processes in different directories, make sure to use
 absolute paths in `THINGENGINE_MANAGER_ADDRESS`, or use TCP for communication.
 
-### Step 6 (optional): the NLP inference server
+### Step 7 (optional): the NLP inference server
 
 The NLP inference server must be run from a directory containing the trained models. The expected directory
 layout is as follows:
@@ -271,7 +257,7 @@ The NLP inference server needs access to the database for typechecking, dataset 
 any trained sentences. For security, it is recommended to use a different database user than the one used by
 the master and frontend processes.
 
-### Step 7 (optional): the NLP training server
+### Step 8 (optional): the NLP training server
 
 You can automate training custom NLP models using the training server, which you can run as:
 

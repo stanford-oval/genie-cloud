@@ -69,8 +69,7 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 # clean the database and bootstrap
 # (this has to occur after setting up the download
 # directories because it copies the icon png files)
-${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
-${srcdir}/main.js bootstrap
+${srcdir}/main.js bootstrap --force
 
 # load some more data into Thingpedia
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
