@@ -15,14 +15,18 @@ spec:
       containers:
       - name: "main"
         image: stanfordoval/almond-cloud:latest
+        imagePullPolicy: IfNotPresent
         args: ["run-frontend"]
         volumeMounts:
         - name: config
           mountPath: "/etc/almond-cloud"
           readOnly: true
+        ports:
+        - containerPort: 8080
+          name: web
         resources:
           requests:
-            memory: 8G
+            memory: 150M
         readinessProbe:
           httpGet:
             path: /
@@ -31,8 +35,8 @@ spec:
           periodSeconds: 20
       volumes:
       - name: config
-        secret:
-          secretName: almond-config
+        configMap:
+          name: almond-config
 ---
 apiVersion: v1
 kind: Service

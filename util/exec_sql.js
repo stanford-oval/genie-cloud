@@ -9,8 +9,8 @@
 // See COPYING for details
 "use strict";
 
-const child_process = require('child_process');
 const Url = require('url');
+const mysql = require('mysql');
 const util = require('util');
 const fs = require('fs');
 
@@ -21,31 +21,34 @@ module.exports = {
         const parsed = Url.parse(Config.DATABASE_URL);
         const [user, pass] = parsed.auth.split(':');
 
-        const args = [
-            '-h', parsed.hostname,
-            '-u', user,
-            '-p' + pass,
-            '-D', parsed.pathname.substring(1),
-            '--batch'
-        ];
+        const options = {
+            host: parsed.hostname,
+            port: parsed.port,
+            database: parsed.pathname.substring(1),
+            user: user,
+            password: pass,
+        };
+        Object.assign(options, parsed.query);
 
-        const stdin = filename === '-' ? 'inherit' :
-            await util.promisify(fs.open)(filename, 'r');
-        const child = child_process.spawn('mysql', args, {
-            stdio: [stdin, 'inherit', 'inherit'],
-        });
+        options.multipleStatements = true;
+
+        const queries = await util.promisify(fs.readFile)(filename, { encoding: 'utf8' });
 
         await new Promise((resolve, reject) => {
-            child.on('exit', (code, signal) => {
-                if (signal)
-                    reject(new Error(`Crashed with signal ${signal}`));
-                else
-                    resolve(code);
-            });
-            child.on('error', reject);
-        });
+            const connection = mysql.createConnection(options);
+            connection.query(queries, (error) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
 
-        if (stdin !== 'inherit')
-            await util.promisify(fs.close)(stdin);
+                connection.end((error) => {
+                    if (error)
+                        reject(error);
+                    else
+                        resolve();
+                });
+            });
+        });
     }
 };
