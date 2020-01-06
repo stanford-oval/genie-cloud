@@ -7,19 +7,21 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: mysql://genie:dev@localhost/almond
+      DATABASE_URL: 'mysql://thingengine:thingengine@localhost/thingengine?charset=utf8mb4_bin'
       SECRET_KEY: dev
       JWT_SIGNING_KEY: dev
       AES_SECRET_KEY: dev
-    command: almond-cloud run-frontend
   db:
-    image: mysql:8.0
+    image: mariadb/server:10.4
     volumes:
-      - db_data:/var/lib/mysql
+      - mariadb_data:/var/lib/mariadb
     environment:
-      MYSQL_ROOT_PASSWORD: dev
-      MYSQL_DATABASE: almond
-      MYSQL_USER: genie
-      MYSQL_PASSWORD: dev
+      MARIADB_ROOT_HOST: localhost
+      MARIADB_ROOT_PASSWORD: thingengine
+      MARIADB_DATABASE: thingengine
+      MARIADB_USER: thingengine
+      MARIADB_PASSWORD: thingengine
+    ports:
+      - 3306:3306
 volumes:
-  db_data: {}
+  mariadb_data:
