@@ -1,0 +1,25 @@
+version: '3'
+services:
+  web:
+    build: .
+    ports:
+      - 3000:8080
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: mysql://genie:dev@localhost/almond
+      SECRET_KEY: dev
+      JWT_SIGNING_KEY: dev
+      AES_SECRET_KEY: dev
+    command: almond-cloud run-frontend
+  db:
+    image: mysql:8.0
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: dev
+      MYSQL_DATABASE: almond
+      MYSQL_USER: genie
+      MYSQL_PASSWORD: dev
+volumes:
+  db_data: {}
