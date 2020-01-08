@@ -25,6 +25,7 @@ const connect_flash = require('connect-flash');
 const cacheable = require('cacheable-middleware');
 const xmlBodyParser = require('express-xml-bodyparser');
 const Prometheus = require('prom-client');
+const escapeHtml = require('escape-html');
 
 const passportUtil = require('./util/passport');
 const secretKey = require('./util/secret_key');
@@ -79,6 +80,7 @@ class Frontend {
                 DeveloperStatus: userUtils.DeveloperStatus,
                 ProfileFlags: userUtils.ProfileFlags
             };
+            res.locals.escapeHtml = escapeHtml;
 
             // the old way of doing things - eventually should be refactored
             res.locals.CDN_HOST = Config.CDN_HOST;
@@ -126,8 +128,7 @@ class Frontend {
                 if (req.originalUrl.startsWith('/thingpedia/api') ||
                     req.originalUrl.startsWith('/thingpedia/download') ||
                     req.originalUrl.startsWith('/api/webhook') ||
-                    req.originalUrl.startsWith('/ws') ||
-                    req.originalUrl.startsWith('/cache'))
+                    req.originalUrl.startsWith('/ws'))
                     redirect = false;
                 if (redirect) {
                     if (req.hostname === 'thingpedia.stanford.edu' && req.originalUrl === '/')
@@ -151,11 +152,7 @@ class Frontend {
             });
         }
 
-        this._app.use('/brassau/backgrounds', (req, res, next) => {
-            res.set('Access-Control-Allow-Origin', '*');
-            next();
-        });
-        this._app.use('/cache', (req, res, next) => {
+        this._app.use('/assets', (req, res, next) => {
             res.set('Access-Control-Allow-Origin', '*');
             next();
         });

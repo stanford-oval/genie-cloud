@@ -69,23 +69,22 @@ mkdir -p $workdir/shared/cache
 echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
 
 # clean the database and bootstrap
-${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
-${srcdir}/main.js bootstrap
+${srcdir}/main.js bootstrap --force
 
 mkdir -p 'models/org.thingpedia.models.default:en'
 mkdir -p 'models/org.thingpedia.models.contextual:en'
 
-wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current.tar.gz -O $srcdir/tests/embeddings/current.tar.gz
+wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/default/en/current.tar.gz -O $srcdir/tests/embeddings/current.tar.gz
 tar xvf $srcdir/tests/embeddings/current.tar.gz -C 'models/org.thingpedia.models.default:en'
 
-wget --no-verbose -c https://parmesan.stanford.edu/test-models/default/en/current-contextual.tar.gz -O $srcdir/tests/embeddings/current-contextual.tar.gz
+wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/default/en/current-contextual.tar.gz -O $srcdir/tests/embeddings/current-contextual.tar.gz
 tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'models/org.thingpedia.models.contextual:en'
 
 # 1) remove developer models that were autoadded by bootstrap
 # we'll test the main models only (there is no difference really)
 # 2) mark the models as trained, given that we downloaded a pretrained model
 # 3) create a dummy test model that is not trained
-${srcdir}/main.js execute-sql-file - <<<"
+${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"
 delete from models where tag like '%developer%';
 update models set trained = true;
 insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', owner = 1,
@@ -93,7 +92,7 @@ insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', o
 "
 
 mkdir -p 'classifier'
-wget --no-verbose -c https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
+wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
 tar xvf $srcdir/tests/embeddings/classifier1.tar.gz -C 'classifier'
 
 ${srcdir}/main.js run-nlp --port $NLP_PORT &

@@ -37,15 +37,6 @@ function getCommandDetails(_, commands) {
             command.devices = Array.from(devices);
         }
         delete command.kind;
-
-        const renames = {
-             'light-bulb': 'com.hue',
-             'car': 'com.tesla.car',
-             'thermostat': 'com.nest',
-             'security-camera': 'com.nest'
-        };
-
-        command.devices = command.devices.map((d) => renames[d] || d);
     }
 }
 

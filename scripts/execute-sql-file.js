@@ -9,12 +9,7 @@
 // See COPYING for details
 "use strict";
 
-const child_process = require('child_process');
-const Url = require('url');
-const util = require('util');
-const fs = require('fs');
-
-const Config = require('../config');
+const execSql = require('../util/exec_sql');
 
 module.exports = {
     initArgparse(subparsers) {
@@ -28,31 +23,7 @@ module.exports = {
 
     async main(argv) {
         try {
-            const parsed = Url.parse(Config.DATABASE_URL);
-            const [user, pass] = parsed.auth.split(':');
-
-            const args = [
-                '-h', parsed.hostname,
-                '-u', user,
-                '-p' + pass,
-                '-D', parsed.pathname.substring(1),
-                '--batch'
-            ];
-
-            const stdin = argv.filename === '-' ? 'inherit' :
-                await util.promisify(fs.open)(argv.filename, 'r');
-            const child = child_process.spawn('mysql', args, {
-                stdio: [stdin, 'inherit', 'inherit'],
-            });
-            process.exit(await new Promise((resolve, reject) => {
-                child.on('exit', (code, signal) => {
-                    if (signal)
-                        reject(new Error(`Crashed with signal ${signal}`));
-                    else
-                        resolve(code);
-                });
-                child.on('error', reject);
-            }));
+            execSql.exec(argv.filename);
         } catch(e) {
             console.error(e);
             process.exit(1);

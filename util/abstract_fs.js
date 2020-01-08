@@ -9,6 +9,7 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
 const Stream = require('stream');
 const Url = require('url');
 const fs = require('fs');
@@ -303,8 +304,13 @@ module.exports = {
         await _backends['file:'].removeRecursive({ pathname });
     },
 
-    async isLocal(url) {
-        const [, backend] = getBackend(url);
-        return backend === 'file:';
+    isLocal(url) {
+        const [parsed,] = getBackend(url);
+        return parsed.protocol === 'file:' && !parsed.hostname;
+    },
+    getLocalPath(url) {
+        const [parsed,] = getBackend(url);
+        assert(parsed.protocol === 'file:');
+        return parsed.pathname;
     }
 };

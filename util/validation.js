@@ -393,6 +393,9 @@ function validateTag(tag, user, adminRole) {
     if (!/^([A-Za-z_][A-Za-z0-9_.-]*)$/.test(tag))
         throw new ValidationError(`Invalid ID ${tag}`);
 
+    if (/\.(js|json|css|htm|html|xml|jpg|jpeg|png|gif|bmp|ico|tif|tiff|woff)$/i.test(tag))
+        throw new ValidationError(`Invalid ID ${tag}`);
+
     const parts = tag.split('.');
     for (let part of parts) {
         if (part.length === 0 || /^[-0-9]/.test(part) || part.endsWith('-'))

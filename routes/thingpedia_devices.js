@@ -14,8 +14,6 @@ const express = require('express');
 
 const ThingTalk = require('thingtalk');
 
-const Config = require('../config');
-
 const db = require('../util/db');
 const model = require('../model/device');
 const user = require('../util/user');
@@ -23,7 +21,6 @@ const schemaModel = require('../model/schema');
 const exampleModel = require('../model/example');
 const trainingJobModel = require('../model/training_job');
 const TrainingServer = require('../util/training_server');
-const SendMail = require('../util/sendmail');
 const I18n = require('../util/i18n');
 const tokenize = require('../util/tokenize');
 const creditSystem = require('../util/credit_system');
@@ -330,29 +327,6 @@ router.post('/train', iv.validatePOST({ kind: 'string' }), (req, res, next) => {
 
         return TrainingServer.get().queue('en', [req.body.kind], 'train');
     }).then(() => {
-        res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
-    }).catch(next);
-});
-
-router.post('/request-approval', iv.validatePOST({ kind: 'string', comments: '?string' }), (req, res, next) => {
-    var mailOptions = {
-        from: Config.EMAIL_FROM_ADMIN,
-        to: Config.EMAIL_TO_ADMIN,
-        subject: `Review Request for ${req.body.kind}`,
-        replyTo: {
-            name: req.user.human_name,
-            address: req.user.email
-        },
-        text:
-`${req.user.human_name} (${req.user.username}) requests a review of ${req.body.kind}.
-Link: https://almond.stanford.edu/thingpedia/devices/by-id/${req.body.kind}
-
-Comments:
-${(req.body.comments || '').trim()}
-`
-    };
-
-    SendMail.send(mailOptions).then(() => {
         res.redirect(303, '/thingpedia/devices/by-id/' + req.body.kind);
     }).catch(next);
 });

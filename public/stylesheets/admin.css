@@ -2,6 +2,10 @@
     vertical-align: middle;
 }
 
+#users-table th .glyphicon {
+    font-size: 80%;
+}
+
 .actions-dropdown button {
     margin-top: 6px;
     margin-bottom: 6px;

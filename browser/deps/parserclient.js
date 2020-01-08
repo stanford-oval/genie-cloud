@@ -14,9 +14,10 @@ const ThingTalk = require('thingtalk');
 const URL = 'https://almond-nl.stanford.edu';
 
 module.exports = class ParserClient {
-    constructor(baseUrl, locale) {
+    constructor(baseUrl, locale, developerKey) {
         this._locale = locale || 'en_US';
         this._baseUrl = (baseUrl || URL) + '/' + this._locale;
+        this._developerKey = developerKey;
 
         console.log('Using Almond-NNParser at ' + this._baseUrl);
     }
@@ -33,7 +34,8 @@ module.exports = class ParserClient {
                 target: code,
                 store,
                 owner: user,
-                thingtalk_version: ThingTalk.version
+                thingtalk_version: ThingTalk.version,
+                developer_key: this._developerKey
             }
         })).catch((e) => {
             if ('responseJSON' in e && 'error' in e.responseJSON) {
@@ -64,7 +66,8 @@ module.exports = class ParserClient {
                 q: utterance,
                 limit: limit,
                 store:'yes',
-                thingtalk_version: ThingTalk.version
+                thingtalk_version: ThingTalk.version,
+                developer_key: this._developerKey
             }
         })).then((parsed) => {
             if (parsed.error)

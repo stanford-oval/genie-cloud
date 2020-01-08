@@ -37,10 +37,12 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
     validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
 
     db.withTransaction(async (dbClient) => {
+        let trained = false;
         try {
             const existing = await nlpModelsModel.getByTagForUpdate(dbClient, language, req.body.tag);
             if (existing && existing.owner !== req.user.developer_org)
                 throw new ForbiddenError(req._("A model with this ID already exists."));
+            trained = existing.trained;
         } catch(e) {
             if (e.code !== 'ENOENT')
                 throw e;
@@ -58,7 +60,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
             throw new BadRequestError(req._("No such template pack %s").format(req.body.template));
         }
 
-        if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,][a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
+        if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,]+[a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
             throw new BadRequestError(req._("Invalid flags"));
 
         const flags = req.body.flags ? req.body.flags.split(/[ ,]/g) : [];
@@ -92,6 +94,7 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
             all_devices: devices.length === 0,
             use_approved: !!req.body.use_approved,
             use_exact: !!req.body.use_exact,
+            trained: trained
         }, devices);
 
         res.redirect(303, '/developers/models');
