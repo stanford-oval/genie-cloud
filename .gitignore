@@ -41,3 +41,5 @@ yarn-error.log
 /coverage
 
 .idea
+
+custom_config.js

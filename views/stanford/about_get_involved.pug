@@ -2,26 +2,41 @@ extends ../layout
 
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/get-involved.css')
 
 block page_name
   - stdlayout = false;
-  = _("Contribute To Almond")
+  = _("Get Involved | Almond")
 
 block content
   div#page-body
     div.sections
       section.divider
-        h3= _("Get Involved")
+        h3#jumbotron-page-header= _("Almond, made by you.")
         div.container
-          div.row#dev-program-intro
+          div.row#jumbotron-page-subhead
             div.col-xs-12.col-md-8.col-md-offset-2
-              p= _("Almond is a community project, and we welcome anyone to use it, contribute to it, and help us make it the best virtual assistant.")
-              p= _("You can contribute to Thingpedia, our crowdsourced, non-proprietary repository of digital interfaces and their linguistic representation. You can improve our website, client applications, dialog agents, or even our underlying technology. You can use, remix, and rebrand Almond in your own project.")
-              p
-                strong= _("We welcome everyone to contribute to Almond!")
-
+              p.text-center= _("As an open-source virtual assistant, Almond depends on the work of our community to develop new features, support more devices, and build cool new applications.")
               p.text-center
                a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7',rel='noopener').btn.btn-primary= _("Sign up to be part of our community")
+          div.row#jumbotron-carousel
+          div.row#jumbotron-prompt
+            div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
+              hr
+              h4
+                a(href="https://almond.stanford.edu/doc/getting-started.md")=_("Getting Started »")
+              p=_("Start learning how to use Almond in your project by consulting our documentation.")
+              hr
+
+      section.divider#section-contributing-to-almond
+        h3= _("Contributing to Almond")
+        div.container
+          div.row
+            div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
+              p=_("Developers can make contributions to the codebase. Start by looking at the Issues section to get some ideas. If you have an idea of your own, feel free to submit a pull request.")
+              p
+                strong=_("Can't code? ")
+                span=_("You can still help move Almond forward. Currently, the project needs people with the following skills:")
 
       section.divider#section-get-in-touch
         h3= _("Get In Touch")
@@ -70,23 +85,10 @@ block content
                 div.media-body.media-middle
                   h4.media-heading= _("Email Us")
 
-            //-div.col-lg-6.col-md-6
-              a(href='https://stanford-oval.slack.com').media
-                div.media-left.media-middle
-                  img(src=Config.ASSET_CDN + '/images/logo-slack.png').media-object
-                div.media-body.media-middle
-                  h4.media-heading= _("Slack (by invitation only)")
-
       section.divider#section-what-can-i-do-for-almond
         h3= _("What can I do for Almond?")
 
         div.container
-          //-div.row
-            div.col-lg-offset-2.col-lg-offset-8
-              blockquote
-                p Ask not what Almond can do for you — ask what you can do for Almond.
-                footer J. F. K., potentially.
-
           div.row
             div.col-md-6
               h4= _("Contribute To Thingpedia")
@@ -108,17 +110,3 @@ block content
                 #[a(href='https://community.almond.stanford.edu') support forum]
                 for help with larger projects, access to internal documentation,
                 and details of the Almond architecture.
-
-            //-div.col-md-6
-              h4= _("Donate to Almond")
-              p.
-                Almond is generously funded by the
-                #[a(href='https://mobisocial.stanford.edu') Mobile and Social Computing Lab], an industrial affiliates
-                program within Stanford University's #[a(href='https://engineering.stanford.edu/') School of Engineering].
-              p.
-                The #[a(href='https://mobisocial.stanford.edu/index.php?page=affiliates') affiliates program]
-                provides an opportunity for industry and other organization to collaborate and interact
-                with our research team, through a recurrent sponsorship agreement.
-                Smaller donations can also be provided #[a(href='https://engineering.stanford.edu/get-involved/give') to the university].
-                All contributions to Stanford are tax deductible in the United States.
-
