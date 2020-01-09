@@ -223,7 +223,7 @@ footer.page-footer a:link, footer.page-footer a:visited, footer.page-footer a:ho
     clear: both;
     display: grid;
 }
-@media screen and (min-width: 992px) {
+@media screen and (min-width: 600px) {
 .aligned-grid {
     grid-template-columns: 1fr 1fr;
 }
@@ -231,6 +231,9 @@ footer.page-footer a:link, footer.page-footer a:visited, footer.page-footer a:ho
 @media screen and (min-width: 1200px) {
 .aligned-grid {
     grid-template-columns: 1fr 1fr 1fr;
+}
+.aligned-grid.aligned-grid-4 {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 }
 .aligned-grid > .aligned-grid-item  {
