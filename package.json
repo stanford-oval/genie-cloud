@@ -56,6 +56,7 @@
     "highlight.js": "^9.13.1",
     "http-proxy": "^1.18.0",
     "img-color-extractor": "^1.0.7",
+    "inline-worker": "^1.1.0",
     "js-yaml": "^3.12.0",
     "jsonwebtoken": "^8.3.0",
     "jstransformer-markdown-it": "^2.0.0",
