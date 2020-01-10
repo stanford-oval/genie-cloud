@@ -14,10 +14,12 @@ p {
 
 .divider h3 {
   font-size: 3em;
+  font-weight: 700;
 }
 
 .divider h4 {
   font-size: 2em;
+  font-weight: 700;
 }
 
 @media screen and (max-width: 1000px) {

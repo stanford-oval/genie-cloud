@@ -29,7 +29,7 @@ block content
                   ul.glide__slides
                     li.glide__slide
                       div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/home_assistant.png' + ') no-repeat center', 'background-size': 'cover' })
-                        a(href="https://www.home-assistant.io/", target="_blank")
+                        a(href="https://www.home-assistant.io/", target="_blank", rel="noopener")
                           div.carousel-card-gradient
                             h3.
                               Home Assistant
@@ -38,7 +38,7 @@ block content
                               uses Almond as a language interface to allow its users to control devices using their speech.
                     li.glide__slide
                       div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/almond_music.jpg' + ') no-repeat center', 'background-size': 'cover' })
-                        a(href="https://www.youtube.com/watch?v=M4HG-QDGmBI&feature=emb_title", target="_blank")
+                        a(href="https://www.youtube.com/watch?v=M4HG-QDGmBI&feature=emb_title", target="_blank", rel="noopener")
                           div.carousel-card-gradient
                             h3.
                               Almond Music
@@ -48,7 +48,7 @@ block content
                               What they built went beyond Alexa or Google Home, allowing for actions like the ability to change playlists.
                     li.glide__slide
                       div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/multi_user_almond.jpg' + ') no-repeat center', 'background-size': 'cover' })
-                        a(href="https://www.youtube.com/watch?v=LFOB_AUmreE&feature=emb_title", target="_blank")
+                        a(href="https://www.youtube.com/watch?v=LFOB_AUmreE&feature=emb_title", target="_blank", rel="noopener")
                           div.carousel-card-gradient
                             h3.
                               Multi-user Almond
@@ -57,7 +57,7 @@ block content
                               This project showed that Almond can be used to identify users with their voice and provide fine-grained access control based on the detected identity. 
                     li.glide__slide
                       div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/mmi.jpg' + ') no-repeat center', 'background-size': 'cover' })
-                        a(href="https://www.youtube.com/watch?v=-8XIzZufA7M", target="_blank")
+                        a(href="https://www.youtube.com/watch?v=-8XIzZufA7M", target="_blank", rel="noopener")
                           div.carousel-card-gradient
                             h3.
                               Multi-modal Interface
@@ -65,7 +65,7 @@ block content
                               Jackie Yang built a multi-modal interface that allows you to use Almond to make complex queries while interacting with someone over chat.
                     li.glide__slide
                       div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/sports_wikidata.jpg' + ') no-repeat center', 'background-size': 'cover' })
-                        a(href="https://www.youtube.com/watch?v=DJqLgOdEEcw&feature=youtu.be", target="_blank")
+                        a(href="https://www.youtube.com/watch?v=DJqLgOdEEcw&feature=youtu.be", target="_blank", rel="noopener")
                           div.carousel-card-gradient
                             h3.
                               Sports Wikidata
@@ -76,13 +76,11 @@ block content
           div.row#jumbotron-prompt
             div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
               h4
-                strong
-                  a(href="https://almond.stanford.edu/doc/getting-started.md")=_("Getting Started »")
+                a(href="https://almond.stanford.edu/doc/getting-started.md")=_("Getting Started »")
               p=_("Start learning how to use Almond in your project by consulting our documentation.")
 
       section.divider#section-contributing-to-almond
-        h3
-          strong= _("Contributing to Almond")
+        h3= _("Contributing to Almond")
         div.container
           div.row
             div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
@@ -90,8 +88,7 @@ block content
 
           div.row.inset
             div.col-md-6
-              h4.text-center
-                strong= _("I like to code.")
+              h4.text-center= _("I like to code.")
               p.
                 Developers can make contributions to the #[a(href='https://github.com/stanford-oval/almond-cloud') codebase]. 
                 Start by looking at the #[a(href='https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+user%3Astanford-oval+archived%3Afalse') Issues] section to get some ideas. 
@@ -103,8 +100,7 @@ block content
               br.visible-xs
 
             div.col-md-6
-              h4.text-center
-                strong= _("I'm not into coding.")
+              h4.text-center= _("I'm not into coding.")
               p.
                 The project currently needs technical writers and marketers to grow the Almond community. 
                 We also welcome product, UI/UX, and language interface designers as well as translators to make Almond
@@ -115,13 +111,11 @@ block content
           div.row
             div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
               h4.text-center
-                strong
-                  a(href="https://docs.google.com/forms/d/e/1FAIpQLScQhrcmclAHDqWIIVNypgITthvgJBDbEqyGQYYfdfgwV6vImQ/viewform")=_("Stay Updated »")
+                a(href="https://docs.google.com/forms/d/e/1FAIpQLScQhrcmclAHDqWIIVNypgITthvgJBDbEqyGQYYfdfgwV6vImQ/viewform")=_("Stay Updated »")
               p.text-center=_("We're growing fast. Coder or not, keep up with the latest developments by signing up for our newsletter.")
 
       section.divider#section-keep-in-touch
-        h3
-          strong= _("Keep in Touch")
+        h3= _("Keep in Touch")
 
         div.container
           div.row
