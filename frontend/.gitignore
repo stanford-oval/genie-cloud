@@ -1,6 +1,0 @@
-node_modules/
-.next/
-*.log
-*.swp
-*.swo
-.env
