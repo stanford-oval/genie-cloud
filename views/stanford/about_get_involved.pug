@@ -6,6 +6,9 @@ block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/glide.core.min.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/glide.theme.min.css')
 
+block scripts
+  script(src='https://cdn.jsdelivr.net/npm/@glidejs/glide')
+  script(src=Config.ASSET_CDN + '/javascripts/get-involved.js')
 
 block page_name
   - stdlayout = false;
@@ -160,6 +163,3 @@ block content
                   img(src=Config.ASSET_CDN + '/images/logo-email.png').media-object
                 div.media-body.media-middle
                   h4.media-heading= _("Email Us")
-
-  script(src='https://cdn.jsdelivr.net/npm/@glidejs/glide')
-  script(src=Config.ASSET_CDN + '/javascripts/get-involved.js')
