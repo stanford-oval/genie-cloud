@@ -787,3 +787,67 @@ h2#almond-subtitle {
 #try-almond-now-row.expanded {
   display: none;
 }
+
+#almond-in-the-news {
+  text-align: center;
+}
+
+#almond-in-the-news .aligned-grid {
+  align-items: center;
+}
+#almond-in-the-news .aligned-grid-item {
+  padding: 0px;
+  padding-bottom: 24px;
+  height: auto;
+  width: auto;
+  display: block;
+}
+@media screen and (min-width:992px) {
+#almond-in-the-news .aligned-grid-item {
+  padding-bottom: 0px;
+}
+}
+
+#almond-in-the-news img {
+  max-height: 180px;
+  width: 100%;
+  max-width: 400px;
+  object-fit: contain;
+}
+
+#news-link-hackaday.aligned-grid-item {
+  display: block;
+  background-color: black;
+  font-size: 40px;
+  font-weight: bold;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: white;
+  text-decoration: none;
+  padding: 12px 12px 0px 12px;
+  justify-self: center;
+}
+#news-link-hackaday > img {
+  display: inline-block;
+  max-width: 64px;
+  max-height: 64px;
+  object-fit: contain;
+  vertical-align: baseline;
+  padding-right: 10px;
+}
+
+#news-link-newyorktimes > img {
+  display: block;
+  margin: auto;
+  padding-bottom: 12px;
+}
+#news-link-newyorktimes  {
+  color: black;
+  text-decoration: none;
+  font-style: italic;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: serif;
+}
+
+}
