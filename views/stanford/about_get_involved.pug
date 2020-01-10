@@ -3,6 +3,9 @@ extends ../layout
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/get-involved.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/glide.core.min.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/glide.theme.min.css')
+
 
 block page_name
   - stdlayout = false;
@@ -18,15 +21,64 @@ block content
             div.col-xs-12.col-md-8.col-md-offset-2
               p.text-center.
                 As an #[em open-source] virtual assistant, Almond depends on the work and resources of our community to develop new features, support more devices, and build cool new applications.
-          div.row#jumbotron-carousel
+        div.container-fluid
+          div.row
+            div.col-xs-12
+              div#jumbotron-carousel.glide
+                div.glide__track(data-glide-el='track')
+                  ul.glide__slides
+                    li.glide__slide
+                      div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/home_assistant.png' + ') no-repeat center', 'background-size': 'cover' })
+                        a(href="https://www.home-assistant.io/", target="_blank")
+                          div.carousel-card-gradient
+                            h3.
+                              Home Assistant
+                            p.carousel-card-subtitle.
+                              Home Assistant, a widely used open-source home automation platform built on Python that allows users to monitor and control their smart devices, 
+                              uses Almond as a language interface to allow its users to control devices using their speech.
+                    li.glide__slide
+                      div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/almond_music.jpg' + ') no-repeat center', 'background-size': 'cover' })
+                        a(href="https://www.youtube.com/watch?v=M4HG-QDGmBI&feature=emb_title", target="_blank")
+                          div.carousel-card-gradient
+                            h3.
+                              Almond Music
+                            p.carousel-card-subtitle.
+                              Music enthusiasts, Gabby and Hemanth built Almond Music together as a quarter-long class project 
+                              with the goal of creating the best music virtual assistant that can control their Spotify music through any device. 
+                              What they built went beyond Alexa or Google Home, allowing for actions like the ability to change playlists.
+                    li.glide__slide
+                      div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/multi_user_almond.jpg' + ') no-repeat center', 'background-size': 'cover' })
+                        a(href="https://www.youtube.com/watch?v=LFOB_AUmreE&feature=emb_title", target="_blank")
+                          div.carousel-card-gradient
+                            h3.
+                              Multi-user Almond
+                            p.carousel-card-subtitle.
+                              Sharing a smart speaker among multiple people in the household is useful but at the same time raises privacy and parental control issues. 
+                              This project showed that Almond can be used to identify users with their voice and provide fine-grained access control based on the detected identity. 
+                    li.glide__slide
+                      div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/mmi.jpg' + ') no-repeat center', 'background-size': 'cover' })
+                        a(href="https://www.youtube.com/watch?v=-8XIzZufA7M", target="_blank")
+                          div.carousel-card-gradient
+                            h3.
+                              Multi-modal Interface
+                            p.carousel-card-subtitle.
+                              Jackie Yang built a multi-modal interface that allows you to use Almond to make complex queries while interacting with someone over chat.
+                    li.glide__slide
+                      div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/sports_wikidata.jpg' + ') no-repeat center', 'background-size': 'cover' })
+                        a(href="https://www.youtube.com/watch?v=DJqLgOdEEcw&feature=youtu.be", target="_blank")
+                          div.carousel-card-gradient
+                            h3.
+                              Sports Wikidata
+                            p.carousel-card-subtitle.
+                              High school student Ryan Cheng connected Almond to an API with NFL data, allowing the assistant to return information about team rankings, scores, and more.
+
+        div.container
           div.row#jumbotron-prompt
             div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
-              hr
               h4
                 strong
                   a(href="https://almond.stanford.edu/doc/getting-started.md")=_("Getting Started »")
               p=_("Start learning how to use Almond in your project by consulting our documentation.")
-              hr
 
       section.divider#section-contributing-to-almond
         h3
@@ -36,8 +88,7 @@ block content
             div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
               p.text-center=_("We welcome anyone who is passionate about Almond to contribute to the project. All skillsets are welcome.")
 
-          hr
-          div.row
+          div.row.inset
             div.col-md-6
               h4.text-center
                 strong= _("I like to code.")
@@ -49,6 +100,7 @@ block content
                 If you own a device, or know of a service that you want to control through Almond,
                 you can add it to Thingpedia, and have Almond immediately learn about it. 
                 Check out our #[a(href='/doc/thingpedia-intro.md') developer documentation] and apply to our #[a(href='/user/request-developer') developer program] to get started.
+              br.visible-xs
 
             div.col-md-6
               h4.text-center
@@ -59,7 +111,6 @@ block content
                 more accessible to people around the world.
               p.
                 We also welcome material contributions like natural language processing and user behavior datasets.
-          hr
 
           div.row
             div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
@@ -115,3 +166,6 @@ block content
                   img(src=Config.ASSET_CDN + '/images/logo-email.png').media-object
                 div.media-body.media-middle
                   h4.media-heading= _("Email Us")
+
+  script(src='https://cdn.jsdelivr.net/npm/@glidejs/glide')
+  script(src=Config.ASSET_CDN + '/javascripts/get-involved.js')
