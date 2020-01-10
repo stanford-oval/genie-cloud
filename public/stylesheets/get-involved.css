@@ -7,3 +7,46 @@
 #jumbotron-page-subhead {
   font-size: 1.3em;
 }
+
+p {
+  font-size: 1.3em;
+}
+
+.divider h3 {
+  font-size: 3em;
+}
+
+.divider h4 {
+  font-size: 2em;
+}
+
+#section-keep-in-touch img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+#section-keep-in-touch a {
+  border: 1px solid lightgray;
+  display: table;
+  margin-bottom: 1em;
+}
+
+#section-keep-in-touch a .media-object {
+  padding-left: 15px;
+}
+
+#section-keep-in-touch .media-heading {
+  font-weight: 700;
+}
+
+#section-keep-in-touch a:hover,
+#section-keep-in-touch a:focus {
+  box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
+}
+
+@media screen and (min-width: 1000px) {
+  #get-involved-container {
+    padding-right: 50px;
+  }
+}

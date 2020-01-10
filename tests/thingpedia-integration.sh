@@ -34,7 +34,7 @@ mkdir -p $workdir/etc/config.d
 export THINGENGINE_CONFIGDIR=$workdir/etc
 PORT=${PORT:-8080}
 cat > ${THINGENGINE_CONFIGDIR}/config.d/99-local.yaml <<EOF
-DATABASE_URL: "mysql://thingengine:thingengine@localhost/thingengine_test"
+DATABASE_URL: "mysql://thingengine:thingengine@localhost/thingengine"
 SERVER_ORIGIN: "http://127.0.0.1:${PORT}"
 FILE_STORAGE_BACKEND: local
 CDN_HOST: /download

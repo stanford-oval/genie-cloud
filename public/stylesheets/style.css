@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
 }
 
@@ -7,109 +8,141 @@ html, body {
 }
 
 #page-body {
-    margin-top: 45px;
-    min-height: calc(100vh - 195px);
-    height: auto !important;
+  margin-top: 5em;
+  min-height: calc(100vh - 195px);
+  height: auto !important;
 }
-#page-body.container, #page-body.container-fluid {
-    padding-bottom: 30px;
-    min-height: calc(100vh - 165px);
+#page-body.container,
+#page-body.container-fluid {
+  padding-bottom: 30px;
+  min-height: calc(100vh - 165px);
 }
 
 #page-title {
-    text-align: center;
+  text-align: center;
 }
 
 #stanford-logo {
-    height: 2em;
-    object-fit: contain;
-    display: inline-block;
-    vertical-align: baseline;
-    margin-top: -9px;
+  height: 2em;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: baseline;
+  margin-top: -9px;
 }
 #stanford-logo + span {
-    border-left: 1px solid white;
-    padding-left: 8px;
-    display: inline-block;
-    vertical-align: top;
+  border-left: 1px solid white;
+  padding-left: 8px;
+  display: inline-block;
+  vertical-align: top;
 }
 
 #stanford-signature {
-    width: 150px;
-    object-fit: contain;
-    margin: 0 auto;
-    display: block;
+  width: 150px;
+  object-fit: contain;
+  margin: 0 auto;
+  display: block;
 }
 
 .placeholder {
-    font-style: italic;
+  font-style: italic;
 }
 
 .form-inline .form-control {
-    margin-left: 6px;
-    margin-right: 12px;
+  margin-left: 6px;
+  margin-right: 12px;
 }
 
 .form-inline .form-block {
-    margin-bottom: 15px;
+  margin-bottom: 15px;
 }
 
 #navbar-login-button {
-    margin-right: 30px;
+  margin-right: 30px;
+}
+
+.navbar-header {
+  height: 5em;
+}
+
+.navbar-nav {
+  font-size: 1.25em;
+  font-weight: 700;
+  padding-top: 0.75em;
+  padding-bottom: 0;
+}
+
+.navbar-brand {
+  margin-left: 0.6em;
+  margin-top: 0.75em;
+  font-size: 1.25em;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+@media screen and (max-width: 768px) {
+  .navbar-header {
+    padding-top: 0.9em;
+  }
+  .navbar-brand {
+    margin-left: 0;
+    margin-top: 0;
+  }
 }
 
 #qrcode-placeholder > img {
-    margin-left: auto;
-    margin-right: auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #qrcode-target {
-    display:none;
+  display: none;
 }
 
 #config-phone-mobile-browser {
-    display:none;
+  display: none;
 }
 
 .app-content {
-    font-size: 120%;
+  font-size: 120%;
 }
 
 .app-content h1 {
-    font-size: 200%;
+  font-size: 200%;
 }
 
 .app-content h2 {
-    font-size: 110%;
+  font-size: 110%;
 }
 
 #code {
-    height: 20em;
+  height: 20em;
 }
 
 .online-account-choice {
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
 }
 
 .online-account-expander {
-    padding-top: 1em;
+  padding-top: 1em;
 }
 
 #app-install-description {
-    font-style: italic;
+  font-style: italic;
 }
 
-#app-install-well .btn, #show-hide-code .btn {
-    margin-bottom: 1em;
+#app-install-well .btn,
+#show-hide-code .btn {
+  margin-bottom: 1em;
 }
 
 #app-install-alert {
-    margin-bottom: 1em;
+  margin-bottom: 1em;
 }
 
-pre, pre code {
-    color: black;
+pre,
+pre code {
+  color: black;
 }
 
 .app-template {
@@ -117,18 +150,18 @@ pre, pre code {
 }
 
 .device-icon-small > img {
-    display: block;
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-    border-radius: 5px;
-    margin: 0 auto;
+  display: block;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 5px;
+  margin: 0 auto;
 }
 
 .dev-template .panel-heading {
-    font-weight: bold;
-    text-align: center;
-    display: block;
+  font-weight: bold;
+  text-align: center;
+  display: block;
 }
 
 footer.page-footer {
@@ -139,7 +172,9 @@ footer.page-footer {
   min-height: 120px;
 }
 
-footer.page-footer a:link, footer.page-footer a:visited, footer.page-footer a:hover {
+footer.page-footer a:link,
+footer.page-footer a:visited,
+footer.page-footer a:hover {
   color: white;
 }
 
@@ -168,17 +203,10 @@ footer.page-footer a:link, footer.page-footer a:visited, footer.page-footer a:ho
 #section-heading h1 {
   color: #8c1515;
   font-weight: 900;
-  letter-spacing: -.5px;
+  letter-spacing: -0.5px;
   font-size: 96px;
 
   text-shadow: 1px 1px 0px black;
-  /*
-  color:#dea844;
-  text-shadow:
-   -1px -1px 0 #000,
-    1px -1px 0 #000,
-    -1px 1px 0 #000,
-     1px 1px 0 #000;*/
 }
 
 #section-heading h2 {
@@ -214,40 +242,42 @@ footer.page-footer a:link, footer.page-footer a:visited, footer.page-footer a:ho
 /* note: we assume that all browsers which support grid layout also support flexbox
    (which is true in practice)
 */
-@supports (display:grid) {
-.aligned-grid > .clearfix, .aligned-grid::before, .aligned-grid::after {
-    display: none !important;;
-}
+@supports (display: grid) {
+  .aligned-grid > .clearfix,
+  .aligned-grid::before,
+  .aligned-grid::after {
+    display: none !important;
+  }
 
-.aligned-grid {
+  .aligned-grid {
     clear: both;
     display: grid;
-}
-@media screen and (min-width: 992px) {
-.aligned-grid {
-    grid-template-columns: 1fr 1fr;
-}
-}
-@media screen and (min-width: 1200px) {
-.aligned-grid {
-    grid-template-columns: 1fr 1fr 1fr;
-}
-}
-.aligned-grid > .aligned-grid-item  {
+  }
+  @media screen and (min-width: 992px) {
+    .aligned-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media screen and (min-width: 1200px) {
+    .aligned-grid {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+  .aligned-grid > .aligned-grid-item {
     width: 100%;
     height: 100%;
     padding-bottom: 21px;
-}
-.aligned-grid > .aligned-grid-item  > .panel {
+  }
+  .aligned-grid > .aligned-grid-item > .panel {
     width: 100%;
     height: 100%;
     margin-bottom: 0px;
     display: flex;
     flex-direction: column;
-}
-.aligned-grid > .aligned-grid-item > .panel > .panel-body {
+  }
+  .aligned-grid > .aligned-grid-item > .panel > .panel-body {
     flex-grow: 2;
-}
+  }
 }
 
 img.device-icon-tiny {
@@ -261,41 +291,42 @@ img.device-icon-tiny {
 }
 
 .aside {
-    font-size: 0.8em;
+  font-size: 0.8em;
 }
 .aside.pull-left {
-    margin-right: 1.5em;
+  margin-right: 1.5em;
 }
 .aside.pull-right {
-    margin-left: 1.5em;
+  margin-left: 1.5em;
 }
 .aside img {
-    max-height: 200px;
-    min-width: 100px;
-    display: block;
-    margin: 0 auto;
+  max-height: 200px;
+  min-width: 100px;
+  display: block;
+  margin: 0 auto;
 }
 .aside .caption {
-    text-align: center;
+  text-align: center;
 }
 
-.blog-post h2, .blog-post h3 {
-    clear: both;
+.blog-post h2,
+.blog-post h3 {
+  clear: both;
 }
 .blog-post .byline {
-   margin: 1em 0;
+  margin: 1em 0;
 }
 .blog-post .cover-photo {
-   max-height: 300px;
+  max-height: 300px;
 }
 .blog-post-ref {
-   margin-top: 2em;
+  margin-top: 2em;
 }
 .blog-post-ref:first-child {
-   margin-top: 0;
+  margin-top: 0;
 }
 .blog-post img {
-   max-width: 100%;
+  max-width: 100%;
 }
 
 #user-authorized-oauth-panel img.device-icon-tiny {
@@ -311,7 +342,8 @@ a.social-icon > img {
   object-fit: contain;
   background-color: transparent;
 }
-a.social-icon:link, a.social-icon:visited {
+a.social-icon:link,
+a.social-icon:visited {
   color: white;
   background-color: transparent;
 }

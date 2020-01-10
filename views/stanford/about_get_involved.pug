@@ -16,30 +16,61 @@ block content
         div.container
           div.row#jumbotron-page-subhead
             div.col-xs-12.col-md-8.col-md-offset-2
-              p.text-center= _("As an open-source virtual assistant, Almond depends on the work of our community to develop new features, support more devices, and build cool new applications.")
-              p.text-center
-               a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7',rel='noopener').btn.btn-primary= _("Sign up to be part of our community")
+              p.text-center.
+                As an #[em open-source] virtual assistant, Almond depends on the work and resources of our community to develop new features, support more devices, and build cool new applications.
           div.row#jumbotron-carousel
           div.row#jumbotron-prompt
             div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
               hr
               h4
-                a(href="https://almond.stanford.edu/doc/getting-started.md")=_("Getting Started »")
+                strong
+                  a(href="https://almond.stanford.edu/doc/getting-started.md")=_("Getting Started »")
               p=_("Start learning how to use Almond in your project by consulting our documentation.")
               hr
 
       section.divider#section-contributing-to-almond
-        h3= _("Contributing to Almond")
+        h3
+          strong= _("Contributing to Almond")
         div.container
           div.row
             div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
-              p=_("Developers can make contributions to the codebase. Start by looking at the Issues section to get some ideas. If you have an idea of your own, feel free to submit a pull request.")
-              p
-                strong=_("Can't code? ")
-                span=_("You can still help move Almond forward. Currently, the project needs people with the following skills:")
+              p.text-center=_("We welcome anyone who is passionate about Almond to contribute to the project. All skillsets are welcome.")
 
-      section.divider#section-get-in-touch
-        h3= _("Get In Touch")
+          hr
+          div.row
+            div.col-md-6
+              h4.text-center
+                strong= _("I like to code.")
+              p.
+                Developers can make contributions to the #[a(href='https://github.com/stanford-oval/almond-cloud') codebase]. 
+                Start by looking at the #[a(href='https://github.com/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+user%3Astanford-oval+archived%3Afalse') Issues] section to get some ideas. 
+                If you have an idea of your own, please #[a(href='https://github.com/stanford-oval/almond-cloud/blob/master/CONTRIBUTING.md') submit] a pull request.
+              p.
+                If you own a device, or know of a service that you want to control through Almond,
+                you can add it to Thingpedia, and have Almond immediately learn about it. 
+                Check out our #[a(href='/doc/thingpedia-intro.md') developer documentation] and apply to our #[a(href='/user/request-developer') developer program] to get started.
+
+            div.col-md-6
+              h4.text-center
+                strong= _("I'm not into coding.")
+              p.
+                The project currently needs technical writers and marketers to grow the Almond community. 
+                We also welcome product, UI/UX, and language interface designers as well as translators to make Almond
+                more accessible to people around the world.
+              p.
+                We also welcome material contributions like natural language processing and user behavior datasets.
+          hr
+
+          div.row
+            div.col-xs-12.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
+              h4.text-center
+                strong
+                  a(href="https://docs.google.com/forms/d/e/1FAIpQLScQhrcmclAHDqWIIVNypgITthvgJBDbEqyGQYYfdfgwV6vImQ/viewform")=_("Stay Updated »")
+              p.text-center=_("We're growing fast. Coder or not, keep up with the latest developments by signing up for our newsletter.")
+
+      section.divider#section-keep-in-touch
+        h3
+          strong= _("Keep in Touch")
 
         div.container
           div.row
@@ -84,29 +115,3 @@ block content
                   img(src=Config.ASSET_CDN + '/images/logo-email.png').media-object
                 div.media-body.media-middle
                   h4.media-heading= _("Email Us")
-
-      section.divider#section-what-can-i-do-for-almond
-        h3= _("What can I do for Almond?")
-
-        div.container
-          div.row
-            div.col-md-6
-              h4= _("Contribute To Thingpedia")
-              p.
-                Do you own a device, or know of a service that you want to control through Almond?
-                You can add it to Thingpedia, and have Almond immediately learn about it!
-              p.
-                Check out our #[a(href='/doc/thingpedia-intro.md') developer documentation],
-                and when you're ready, #[a(href='/user/request-developer') apply to our developer program].
-
-            div.col-md-6
-              h4= _("Develop Almond")
-              p.
-                Have you found a bug? Or a feature that you really want? Head to our
-                #[a(href='https://github.com/stanford-oval') Github page] to find our
-                code base. Fork it, patch it, grow it.
-              p.
-                Also, don't hesitate to get in touch through our
-                #[a(href='https://community.almond.stanford.edu') support forum]
-                for help with larger projects, access to internal documentation,
-                and details of the Almond architecture.
