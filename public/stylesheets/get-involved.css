@@ -161,3 +161,28 @@ p {
   );
   flex-direction: column-reverse;
 }
+
+#ha-card {
+  background: url(../images/home_assistant.png) no-repeat center;
+  background-size: cover; 
+}
+
+#a-music-card {
+  background: url(../images/almond_music.jpg) no-repeat center;
+  background-size: cover; 
+}
+
+#mu-card {
+  background: url(../images/multi_user_almond.jpg) no-repeat center;
+  background-size: cover; 
+}
+
+#mmi-card {
+  background: url(../images/mmi.jpg) no-repeat center;
+  background-size: cover; 
+}
+
+#sports-card {
+  background: url(../images/sports_wikidata.jpg) no-repeat center;
+  background-size: cover; 
+}

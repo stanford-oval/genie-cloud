@@ -12,7 +12,7 @@ block scripts
 
 block page_name
   - stdlayout = false;
-  = _("Get Involved | Almond")
+  = _("Get Involved")
 
 block content
   div#page-body
@@ -31,7 +31,7 @@ block content
                 div.glide__track(data-glide-el='track')
                   ul.glide__slides
                     li.glide__slide
-                      div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/home_assistant.png' + ') no-repeat center', 'background-size': 'cover' })
+                      div.carousel-card#ha-card
                         a(href="https://www.home-assistant.io/", target="_blank", rel="noopener")
                           div.carousel-card-gradient
                             h3.
@@ -40,7 +40,7 @@ block content
                               Home Assistant, a widely used open-source home automation platform built on Python that allows users to monitor and control their smart devices, 
                               uses Almond as a language interface to allow its users to control devices using their speech.
                     li.glide__slide
-                      div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/almond_music.jpg' + ') no-repeat center', 'background-size': 'cover' })
+                      div.carousel-card#a-music-card
                         a(href="https://www.youtube.com/watch?v=M4HG-QDGmBI&feature=emb_title", target="_blank", rel="noopener")
                           div.carousel-card-gradient
                             h3.
@@ -50,7 +50,7 @@ block content
                               with the goal of creating the best music virtual assistant that can control their Spotify music through any device. 
                               What they built went beyond Alexa or Google Home, allowing for actions like the ability to change playlists.
                     li.glide__slide
-                      div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/multi_user_almond.jpg' + ') no-repeat center', 'background-size': 'cover' })
+                      div.carousel-card#mu-card
                         a(href="https://www.youtube.com/watch?v=LFOB_AUmreE&feature=emb_title", target="_blank", rel="noopener")
                           div.carousel-card-gradient
                             h3.
@@ -59,7 +59,7 @@ block content
                               Sharing a smart speaker among multiple people in the household is useful but at the same time raises privacy and parental control issues. 
                               This project showed that Almond can be used to identify users with their voice and provide fine-grained access control based on the detected identity. 
                     li.glide__slide
-                      div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/mmi.jpg' + ') no-repeat center', 'background-size': 'cover' })
+                      div.carousel-card#mmi-card
                         a(href="https://www.youtube.com/watch?v=-8XIzZufA7M", target="_blank", rel="noopener")
                           div.carousel-card-gradient
                             h3.
@@ -67,7 +67,7 @@ block content
                             p.carousel-card-subtitle.
                               Jackie Yang built a multi-modal interface that allows you to use Almond to make complex queries while interacting with someone over chat.
                     li.glide__slide
-                      div.carousel-card(style={ background: 'url(' + Config.ASSET_CDN + '/images/sports_wikidata.jpg' + ') no-repeat center', 'background-size': 'cover' })
+                      div.carousel-card#sports-card
                         a(href="https://www.youtube.com/watch?v=DJqLgOdEEcw&feature=youtu.be", target="_blank", rel="noopener")
                           div.carousel-card-gradient
                             h3.
