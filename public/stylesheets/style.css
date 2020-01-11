@@ -253,7 +253,7 @@ footer.page-footer a:hover {
     clear: both;
     display: grid;
   }
-  @media screen and (min-width: 992px) {
+  @media screen and (min-width: 600px) {
     .aligned-grid {
       grid-template-columns: 1fr 1fr;
     }
@@ -261,6 +261,9 @@ footer.page-footer a:hover {
   @media screen and (min-width: 1200px) {
     .aligned-grid {
       grid-template-columns: 1fr 1fr 1fr;
+    }
+    .aligned-grid.aligned-grid-4 {
+      grid-template-columns: 1fr 1fr 1fr 1fr;
     }
   }
   .aligned-grid > .aligned-grid-item {
