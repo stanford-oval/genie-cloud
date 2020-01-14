@@ -8,14 +8,14 @@ body {
 }
 
 #page-body {
-  margin-top: 5em;
-  min-height: calc(100vh - 195px);
+  margin-top: 65px;
+  min-height: calc(100vh - 198px);
   height: auto !important;
 }
 #page-body.container,
 #page-body.container-fluid {
   padding-bottom: 30px;
-  min-height: calc(100vh - 165px);
+  min-height: calc(100vh - 185px);
 }
 
 #page-title {
@@ -61,20 +61,20 @@ body {
 }
 
 .navbar-header {
-  height: 5em;
+  height: 65px;
 }
 
 .navbar-nav {
-  font-size: 1.25em;
+  font-size: 18px;
   font-weight: 700;
-  padding-top: 0.75em;
+  padding-top: 10px;
   padding-bottom: 0;
 }
 
 .navbar-brand {
   margin-left: 0.6em;
-  margin-top: 0.75em;
-  font-size: 1.25em;
+  margin-top: 10px;
+  font-size: 18px;
   font-weight: 700;
   text-transform: uppercase;
 }
@@ -165,7 +165,7 @@ pre code {
 }
 
 footer.page-footer {
-  padding-top: 1.5em;
+  padding-top: 25px;
   background-color: #8c1515;
   color: white;
   text-align: right;
