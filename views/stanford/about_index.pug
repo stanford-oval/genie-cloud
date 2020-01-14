@@ -24,31 +24,13 @@ block content
       div.container-fluid#almond-index-container
         div.row
           div.col-lg-6
-            //-img(src=Config.ASSET_CDN + '/images/logo.png')#almond-logo
-
             h1#almond-title
               img(src=Config.ASSET_CDN + '/images/logo.png',style='display:inline-block;padding-right:12px;height:1em;vertical-align:bottom')
               = _("Almond")
-            //-h2#almond-subtitle!= _("By <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>")
             h2#almond-subtitle= _("The Open, Privacy-Preserving Virtual Assistant")
 
             p.text-center#almond-explanation-line
               = _("Almond translates your commands into a personalized program.")
-
-            //-div.row
-              div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
-                h4= _("Smart")
-              div.col-xs-12.col-sm-6.col-md-4
-                h4= _("Privacy-preserving")
-            //-div.row
-              div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
-                h4= _("Extensible")
-              div.col-xs-12.col-sm-6.col-md-4
-                h4= _("Open To All")
-
-            //-div.row#subscribe
-              div.col-lg-8.col-lg-offset-2
-                a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7',rel='noopener').btn.btn-primary.btn-block.call-to-action= _("I'm Interested")
 
             if authenticated
               div.row
@@ -86,33 +68,18 @@ block content
                 div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
                   a(href='/about/get-almond')= _("Get Almond")
                 div.col-xs-12.col-sm-6.col-md-4
-                  a(href='/about/use-almond')= _("Build with Almond")
+                  a(href='/about/get-involved')= _("Contribute To Almond")
               div.row
                 div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
                   a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Sign Up for Updates")
                 div.col-xs-12.col-sm-6.col-md-4
                   a(href='https://community.almond.stanford.edu')= _("Join Our Community")
 
-            //-div.row#subscribe
-              div.col-lg-8.col-lg-offset-2
-                a(href='/about/get-almond').btn.btn-primary.btn-block.call-to-action= _("Try Almond")
-              div.col-lg-8.col-lg-offset-2
-                a(href='/about/use-almond').btn.btn-primary.btn-block.call-to-action= _("Build with Almond")
-              div.col-lg-8.col-lg-offset-2
-                a(href='/about/get-involved').btn.btn-primary.btn-block.call-to-action= _("Get Involved")
-
             p(style='margin-top:1em;font-size:24px').text-center!= _("Brought to you by the <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>.")
 
 
           div.col-lg-6
             div.carousel.slide(data-ride='carousel')#almond-index-carousel
-              //-ol.carousel-indicators
-                li(data-target='#almond-index-carousel',data-slide-to='0').active
-                li(data-target='#almond-index-carousel',data-slide-to='1')
-                li(data-target='#almond-index-carousel',data-slide-to='2')
-                li(data-target='#almond-index-carousel',data-slide-to='3')
-                li(data-target='#almond-index-carousel',data-slide-to='4')
-                li(data-target='#almond-index-carousel',data-slide-to='5')
               div.carousel-inner(role='listbox')
                 div.item.active
                   h3= _("Notifications That Matter To You")
@@ -175,8 +142,6 @@ block content
         div.container#almond-manifesto
           h3= _("Our Goal: Open Virtual Assistants for the Open Web")
 
-          //-canvas(width=400, height=400)#rotatingGlobe
-
           p
             = _("Virtual assistants are the new interface to the Web.")
             br
@@ -186,7 +151,7 @@ block content
             div.col-md-6
               h4 Democratize AI for linguistic user interfaces
               p We should have open, collaborative research to put open-source linguistic technology in the hands of all businesses.
-              p Learn more about #[a(href='/doc/genie-intro.md') our technology] and #[a(href='/about/use-almond')  how you can use it in your product].
+              p Learn more about #[a(href='/doc/genie-intro.md') our technology].
 
             div.col-md-6
               h4 An open non-proprietary linguistic web
@@ -294,7 +259,7 @@ block content
               p
                 != _("We are continuously improving Almond, and building tools to allow others to extend Almond. We have developed a tool called <a href='/doc/genie-intro.md'>Genie</a> that allows to generate training data in new domains from scratch. Using Genie, we have found that Almond understands user's input with 68% accuracy - a marked improvement over the previous best known result. Furthermore, with little effort we were able to build a specialized skill for <a href='https://almond.stanford.edu/thingpedia/devices/by-id/com.spotify'>Spotify</a>, add natural language to access control, and extend Almond with aggregates (sum, count, average, etc.).")
               p
-                != _("As academics, our research is open-source, and all technology is freely available to the public. Anyone can leverage our algorithm in their product or in their own research. <a href='https://oval.cs.stanford.edu'>Learn more about our research</a> and <a href='/about/use-almond'>how you can use Almond's technology</a>.")
+                != _("As academics, our research is open-source, and all technology is freely available to the public. Anyone can leverage our algorithm in their product or in their own research. <a href='https://oval.cs.stanford.edu'>Learn more about our research</a>.")
 
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')#seq-seq-animation
               include ../../art/seq-seq-animation-clean-svg.svg

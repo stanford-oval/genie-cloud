@@ -9,7 +9,7 @@
 // See COPYING for details
 "use strict";
 
-// Mobisocial specific configuration for Web Almond
+// OVAL specific configuration for Web Almond
 
 // overrides the about pages to point to our website, adds the research
 // and get-almond page
@@ -40,11 +40,6 @@ module.exports.EXTRA_ABOUT_PAGES = [
         view: 'stanford/about_get_involved.pug',
         title: _("Get Involved With Almond")
     },
-    {
-        url: 'use-almond',
-        view: 'stanford/about_use_almond.pug',
-        title: _("Use Almond In Your Product")
-    }
 ];
 
 module.exports.EXTRA_NAVBAR = [

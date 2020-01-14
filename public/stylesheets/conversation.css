@@ -83,21 +83,20 @@
   background: rgba(243,244,242,0.7);
   padding: 40px;
 }
+#conversation.single {
+  height: calc(100vh - 300px);
+  max-height: none;
+}
 
 @media screen and (max-width: 750px) {
-  #conversation {
+  #conversation, #conversation.single {
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 20px;
     padding-bottom: 20px;
-    height: calc(100vh - 60px);
+    height: calc(100vh - 95px);
     max-height: none;
   }
-}
-
-#conversation.single {
-  height: calc(100vh - 243px);
-  max-height: none;
 }
 
 #conversation .message-rdl-title {
