@@ -9,7 +9,7 @@ srcdir=`realpath $srcdir`
 
 pip3 install --user -r nlp/python_classifier/requirements.txt
 
-which decanlp >/dev/null 2>&1 || pip3 install --user 'git+https://github.com/stanford-oval/decaNLP.git#egg=decanlp'
+which decanlp >/dev/null 2>&1 || pip3 install --user 'git+https://github.com/stanford-oval/decaNLP.git#egg=decanlp@6911a50'
 which decanlp
 
 mkdir -p $srcdir/tests/embeddings
