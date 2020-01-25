@@ -13,6 +13,8 @@ html
     script(src="https://code.jquery.com/jquery-3.4.1.min.js",integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=",crossorigin="anonymous")
     script(src="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js",integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd",
       crossorigin="anonymous")
+    if Config.ACKEE_URL !== null
+      script(async=true,src=Config.ASSET_CDN + "/javascripts/ackee-min.js",data-ackee-server=Config.ACKEE_URL,data-ackee-domain-id=Config.ACKEE_DOMAIN_ID,data-ackee-opts='{"detailed": true}')
     script(src=Config.ASSET_CDN + '/javascripts/validator.min.js')
     script(src=Config.ASSET_CDN + '/javascripts/jstz.min.js')
     script(src=Config.ASSET_CDN + '/javascripts/shared.js')
