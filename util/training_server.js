@@ -65,7 +65,7 @@ class TrainingServer {
             auth,
         }).catch((err) => {
             // if the server is down eat the error
-            if (err.code !== 503 && err.code !== 'EHOSTUNREACH' && err.code === 'ECONNREFUSED')
+            if (err.code !== 503 && err.code !== 'EHOSTUNREACH' && err.code !== 'ECONNREFUSED' && err.code !== 'ECONNRESET')
                 throw err;
         });
     }
@@ -83,7 +83,7 @@ class TrainingServer {
         }).catch((err) => {
             console.error('Failed to start training job: ' + err.message);
             // if the server is down eat the error
-            if (err.code !== 503 && err.code !== 'EHOSTUNREACH' && err.code === 'ECONNREFUSED')
+            if (err.code !== 503 && err.code !== 'EHOSTUNREACH' && err.code !== 'ECONNREFUSED' && err.code !== 'ECONNRESET')
                 throw err;
         });
     }
@@ -94,7 +94,7 @@ class TrainingServer {
 
         let auth = Config.TRAINING_ACCESS_TOKEN ? `Bearer ${Config.TRAINING_ACCESS_TOKEN}` : null;
         return Tp.Helpers.Http.post(Config.TRAINING_URL + '/jobs/create', JSON.stringify({
-            language, forDevices: [], modelTag, jobType,
+            language, forDevices: null, modelTag, jobType,
         }), { auth: auth, dataContentType: 'application/json' }).then((response) => {
             let parsed = JSON.parse(response);
             console.log('Successfully started training job ' + parsed.id);

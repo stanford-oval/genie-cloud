@@ -22,7 +22,6 @@ const exampleModel = require('../model/example');
 
 const user = require('./user');
 
-const tokenizer = require('./tokenize');
 const graphics = require('../almond/graphics');
 const colorScheme = require('./color_scheme');
 
@@ -75,7 +74,7 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
         }
 
         var obj = {
-            kind_canonical: tokenizer.tokenize(name).join(' '),
+            kind_canonical: classDef.metadata.canonical,
             developer_version: existing.developer_version + 1
         };
         if (approve)
@@ -86,7 +85,7 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
     }, async (e) => {
         var obj = {
             kind: classDef.kind,
-            kind_canonical: tokenizer.tokenize(name).join(' '),
+            kind_canonical: classDef.metadata.canonical,
             kind_type: 'primary',
             owner: req.user.developer_org
         };
@@ -101,15 +100,6 @@ async function ensurePrimarySchema(dbClient, name, classDef, req, approve) {
         const schema = await schemaModel.create(dbClient, obj, metas);
         return [schema.id, true];
     });
-}
-
-function exampleToCode(example) {
-    const clone = example.clone();
-    clone.id = -1;
-    clone.utterances = [];
-    clone.preprocessed = [];
-    clone.annotations = {};
-    return clone.prettyprint();
 }
 
 async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
@@ -141,7 +131,7 @@ async function ensureDataset(dbClient, schemaId, dataset, datasetSource) {
     const toUpdate = [];
 
     for (let example of dataset.examples) {
-        const code = exampleToCode(example);
+        const code = DatasetUtils.exampleToCode(example);
 
         if (example.id >= 0) {
             if (existingMap.has(example.id)) {
@@ -445,7 +435,7 @@ async function uploadDevice(req) {
         && !!req.body.approve;
 
     try {
-        await db.withTransaction(async (dbClient) => {
+        const retrain = await db.withTransaction(async (dbClient) => {
             let create = false;
             let old = null;
             try {
@@ -534,11 +524,16 @@ async function uploadDevice(req) {
                     await uploadZipFile(req, generalInfo, stream);
             }
 
-            if (schemaChanged || datasetChanged) {
-                // trigger the training server if configured
-                await TrainingServer.get().queue('en', [req.body.primary_kind], 'update-dataset');
-            }
+            return schemaChanged || datasetChanged;
         }, 'repeatable read');
+
+        // the following two ops access the database from other processes, so they must be outside
+        // the transaction, or we will deadlock
+
+        if (retrain) {
+            // trigger the training server if configured
+            await TrainingServer.get().queue('en', [req.body.primary_kind], 'update-dataset');
+        }
 
         // trigger updating the device on the user
         await tryUpdateDevice(req.body.primary_kind, req.user.id);

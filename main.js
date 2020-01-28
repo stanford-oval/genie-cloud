@@ -18,10 +18,12 @@ const Q = require('q');
 Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
 require('./util/config_init');
+const i18n = require('./util/i18n');
+
+const Config = require('./config');
+i18n.init(Config.SUPPORTED_LANGUAGES);
 
 const argparse = require('argparse');
-
-const platform = require('./util/platform');
 
 const commands = {
     // administrative commands
@@ -44,10 +46,9 @@ const commands = {
     'get-user-shards': require('./scripts/get-user-shards'),
     'generate-cheatsheet': require('./scripts/generate-cheatsheet'),
     'sync-discourse-sso': require('./scripts/sync-discourse-sso'),
-    'download-dataset': require('./scripts/download-dataset')
+    'download-dataset': require('./scripts/download-dataset'),
+    'upload-dataset': require('./scripts/upload-dataset')
 };
-
-platform.init();
 
 const parser = new argparse.ArgumentParser({
     addHelp: true,

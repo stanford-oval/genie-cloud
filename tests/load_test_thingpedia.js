@@ -33,8 +33,6 @@ const Importer = require('../util/import_device');
 const { makeRandom } = require('../util/random');
 const TokenizerService = require('../util/tokenizer_service');
 
-const platform = require('../util/platform');
-
 const Config = require('../config');
 assert.strictEqual(Config.WITH_THINGPEDIA, 'embedded');
 
@@ -223,7 +221,7 @@ async function loadExamples(dbClient, bob) {
         utterance: 'more data eating...',
         preprocessed: 'more data eating ...',
         target_json: '',
-        target_code: 'action  := @org.thingpedia.builtin.test.eat_data();',
+        target_code: 'action := @org.thingpedia.builtin.test.eat_data();',
         type: 'thingpedia',
         click_count: 0,
         flags: 'template',
@@ -393,8 +391,6 @@ async function loadAlexaModel(dbClient, bob, alexaUser) {
 }
 
 async function main() {
-    platform.init();
-
     await db.withTransaction(async (dbClient) => {
         const newOrg = await organization.create(dbClient, {
             name: 'Test Org',

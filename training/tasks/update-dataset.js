@@ -72,7 +72,7 @@ class DatabaseInserter extends Stream.Writable {
                 target_code: ex.target_code,
                 target_json: '',
                 type: ex.type,
-                flags: makeFlags(ex.flags),
+                flags: makeFlags(ex.flags) + ',training',
                 is_base: 0,
                 language: this._language
             };
@@ -150,18 +150,17 @@ class DatasetUpdater {
         for (let i = 0; i < rows.length+1000-1; i += 1000) {
             const batch = rows.slice(i, i+1000);
 
-            const toUpdate = (await Promise.all(batch.map(async (ex) => {
+            const toUpdate = [];
+            await Promise.all(batch.map(async (ex) => {
                 const entities = Genie.Utils.makeDummyEntities(ex.preprocessed);
                 const program = ThingTalk.NNSyntax.fromNN(ex.target_code.split(' '), entities);
 
                 try {
                     await program.typecheck(this._schemas);
-                    this.push(ex);
-                    return;
                 } catch(e) {
-                    this._dropped++;
+                    toUpdate.push(ex.id);
                 }
-            }))).filter((id) => id !== null);
+            }));
 
             if (toUpdate.length > 0) {
                 await db.query(this._dbClient, `update example_utterances set
@@ -181,8 +180,10 @@ class DatasetUpdater {
             locale: this._language,
             flags: {
                 turking: false,
+                nofilter: false,
+                primonly: false,
                 policies: true,
-                remote_programs: true,
+                remote_commands: true,
                 aggregation: true,
                 bookkeeping: true,
                 triple_commands: true,
@@ -237,15 +238,12 @@ class DatasetUpdater {
         await db.withTransaction((dbClient) => {
             this._dbClient = dbClient;
             return this._transaction();
-        }, 'repeatable read');
+        }, 'read committed');
     }
 }
 
 module.exports = async function main(task, argv) {
-    task.on('killed', () => {
-        // die quietly if killed
-        process.exit(0);
-    });
+    task.handleKill();
 
     const updater = new DatasetUpdater(task.language, task.forDevices, {
         maxDepth: SYNTHETIC_DEPTH,

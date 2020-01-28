@@ -18,14 +18,9 @@ const assert = require('assert');
 //const Tp = require('thingpedia');
 
 const db = require('../../util/db');
+const sleep = require('../../util/sleep');
 const trainingJobModel = require('../../model/training_job');
 const TrainingServer = require('../../util/training_server');
-
-async function delay(ms) {
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve, ms);
-    });
-}
 
 async function waitUntilAllJobsDone() {
     for (;;) {
@@ -37,7 +32,7 @@ async function waitUntilAllJobsDone() {
         if (row.cnt === 0)
             break;
 
-        await delay(10000);
+        await sleep(10000);
     }
 
     const failed = await db.withClient((dbClient) => {
@@ -74,7 +69,7 @@ async function testBasic() {
     // issue a basic train command
 
     await server.queue('en', null, 'train');
-    await delay(1000);
+    await sleep(1000);
 
     const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
     //console.log(queue);
@@ -97,7 +92,7 @@ async function testBasic() {
             start_time: null,
             end_time: null,
             config:
-            '{"synthetic_depth":2,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
             metrics: null,
             for_devices: [] }
         ],
@@ -124,7 +119,43 @@ async function testBasic() {
             depends_on: 1,
             job_type: 'train',
             language: 'en',
+            model_tag: 'org.thingpedia.models.contextual',
+            all_devices: 1,
+            status: 'queued',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config: null,
+            metrics: null,
+            for_devices: []
+        }, {
+            id: 4,
+            depends_on: 1,
+            job_type: 'train',
+            language: 'en',
             model_tag: 'org.thingpedia.models.developer',
+            all_devices: 1,
+            status: 'queued',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config: null,
+            metrics: null,
+            for_devices: []
+        }, {
+            id: 5,
+            depends_on: 1,
+            job_type: 'train',
+            language: 'en',
+            model_tag: 'org.thingpedia.models.developer.contextual',
             all_devices: 1,
             status: 'queued',
             task_index: null,
@@ -149,7 +180,7 @@ async function testForDevice() {
     // issue a train command for a device that is not approved
 
     await server.queue('en', ['org.thingpedia.builtin.test.adminonly'], 'train');
-    await delay(1000);
+    await sleep(1000);
 
     const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
     //console.log(queue);
@@ -157,7 +188,7 @@ async function testForDevice() {
 
     deepStrictEqual(queue, {
         'update-dataset': [ {
-            id: 4,
+            id: 6,
             depends_on: null,
             job_type: 'update-dataset',
             language: 'en',
@@ -172,16 +203,34 @@ async function testForDevice() {
             start_time: null,
             end_time: null,
             config:
-            '{"synthetic_depth":2,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
             metrics: null,
             for_devices: ['org.thingpedia.builtin.test.adminonly'] }
         ],
         train: [ {
-            id: 5,
-            depends_on: 4,
+            id: 7,
+            depends_on: 6,
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.developer',
+            all_devices: 0,
+            status: 'queued',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config: null,
+            metrics: null,
+            for_devices: ['org.thingpedia.builtin.test.adminonly']
+        }, {
+            id: 8,
+            depends_on: 6,
+            job_type: 'train',
+            language: 'en',
+            model_tag: 'org.thingpedia.models.developer.contextual',
             all_devices: 0,
             status: 'queued',
             task_index: null,
@@ -208,7 +257,7 @@ async function testForDevice() {
 
     deepStrictEqual(queue2, [
         {
-            id: 4,
+            id: 6,
             depends_on: null,
             job_type: 'update-dataset',
             language: 'en',
@@ -223,15 +272,33 @@ async function testForDevice() {
             start_time: null,
             end_time: null,
             config:
-            '{"synthetic_depth":2,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
             metrics: null
         },
         {
-            id: 5,
-            depends_on: 4,
+            id: 7,
+            depends_on: 6,
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.developer',
+            all_devices: 0,
+            status: 'queued',
+            task_index: null,
+            task_name: null,
+            error: null,
+            progress: 0,
+            eta: null,
+            start_time: null,
+            end_time: null,
+            config: null,
+            metrics: null,
+        },
+        {
+            id: 8,
+            depends_on: 6,
+            job_type: 'train',
+            language: 'en',
+            model_tag: 'org.thingpedia.models.developer.contextual',
             all_devices: 0,
             status: 'queued',
             task_index: null,
@@ -261,10 +328,11 @@ async function testMetrics() {
     const metrics = await db.withClient((dbClient) => server.getMetrics(dbClient));
     console.log(metrics);
 
-    assert.deepStrictEqual(metrics, {
-        'org.thingpedia.models.default/en': { em: 0, nem: 0, nf1: 0, fm: 0, dm: 0, bleu: 0, deca: 0 },
-        'org.thingpedia.models.developer/en': { em: 0, nem: 0, nf1: 0, fm: 0, dm: 0, bleu: 0, deca: 0 }
-    });
+    // the specific metric values depend on unpredictable factors, so we don't check them
+    assert('org.thingpedia.models.default/en' in metrics);
+    assert('org.thingpedia.models.developer/en' in metrics);
+    assert('org.thingpedia.models.contextual/en' in metrics);
+    assert('org.thingpedia.models.developer.contextual/en' in metrics);
 }
 
 async function main() {

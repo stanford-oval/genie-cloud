@@ -164,7 +164,7 @@ async function skipDataCollectionConfirmation(driver) {
 }
 
 async function testMyConversation(driver) {
-    await login(driver, 'bob', '12345678');
+    await login(driver, 'david', '12345678');
 
     await skipDataCollectionConfirmation(driver);
 
@@ -215,9 +215,9 @@ async function testRegister(driver) {
     await driver.get(BASE_URL + '/');
 
     if (Config.EXTRA_ABOUT_PAGES.find((x) => x.url === 'get-almond')) {
-        // in Stanford mode, we click on Try Almond, and from there to Create An Account
+        // in Stanford mode, we click on Get Almond, and from there to Create An Account
         const getAlmond = await driver.wait(
-            WD.until.elementLocated(WD.By.linkText('Try Almond')),
+            WD.until.elementLocated(WD.By.linkText('Get Almond')),
             30000);
         await checkAllImages(driver);
 

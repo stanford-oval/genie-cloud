@@ -37,7 +37,7 @@ module.exports = async function resolveLocation(locale, searchKey) {
             longitude: Number(result.lon),
             display: result.display_name,
             canonical: result.display_name.toLowerCase().replace(/[,\s]+/g, ' '),
-            rank: result.place_rank,
+            rank: Number(result.place_rank),
             importance: result.importance,
         };
     });

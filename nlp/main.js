@@ -28,6 +28,7 @@ const I18n = require('../util/i18n');
 const NLPModel = require('./nlp_model');
 const FrontendClassifier = require('./classifier');
 const ExactMatcher = require('./exact');
+const ProxyServer = require('./proxy');
 
 const Config = require('../config');
 
@@ -76,6 +77,19 @@ class NLPInferenceServer {
         return undefined;
     }
 
+    getOrCreateModel(spec) {
+        const key = `@${spec.tag}/${spec.language}`;
+        let model = this._models.get(key);
+        if (model) {
+            model.init(spec, this);
+            return model;
+        }
+
+        model = new NLPModel(spec, this);
+        this._models.set(key, model);
+        return model;
+    }
+
     async loadAllLanguages() {
         await this._classifier.start();
 
@@ -93,13 +107,17 @@ class NLPInferenceServer {
                 await model.load();
                 this._models.set(model.id, model);
             }
-        }, 'repeatable read');
+        }, 'repeatable read', 'read only');
 
         console.log(`Loaded ${this._models.size} models`);
     }
 
     initFrontend(port) {
         const app = express();
+
+        // proxy enables requests fanout to all replcas in a nlp service
+        if (Config.TRAINING_TASK_BACKEND === 'kubernetes')
+            app.proxy = new ProxyServer(Config.NL_SERVICE_NAME);
 
         app.service = this;
         app.set('port', port);

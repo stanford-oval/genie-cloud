@@ -25,6 +25,13 @@ sections:
     - thingpedia-nl-support
     - thingpedia-device-intro-auth-n-discovery
     - thingpedia-device-with-zero-code
+    - thingpedia-cli-tools
+    - thingpedia-testing
+-
+  title: Use Cases
+  pages:
+    - home-assistant-integration
+
 -
   title: Almond Integration APIs
   pages:
@@ -37,11 +44,13 @@ sections:
   pages:
     - thingtalk-reference
     - thingpedia-annotations
-    - thingpedia-helpers
     - thingpedia-entity-list
     - thingpedia-string-type-list
+    - thingpedia-jsdoc
     - luinet-template-list
     - thingpedia-snapshot-list
+    - thingtalk-jsdoc
+    - thingengine-core-jsdoc
 
 links:
   thingpedia-api:
@@ -59,6 +68,15 @@ links:
   thingpedia-snapshot-list:
     url: /thingpedia/snapshots
     title: Thingpedia Snapshots
+  thingpedia-jsdoc:
+    url: /doc/jsdoc/thingpedia
+    title: Thingpedia SDK Reference
+  thingtalk-jsdoc:
+    url: /doc/jsdoc/thingtalk
+    title: ThingTalk Library Reference
+  thingengine-core-jsdoc:
+    url: /doc/jsdoc/thingengine-core
+    title: Almond Engine Reference
 
 pages:
   getting-started: Getting Started with Almond
@@ -78,6 +96,10 @@ pages:
   thingpedia-nl-support: Natural Language Support for Devices
   thingpedia-device-intro-auth-n-discovery: Authentication & Discovery
   thingpedia-device-with-zero-code: Declarative Thingpedia Devices
+  thingpedia-cli-tools: Thingpedia Command Line Tools
+  thingpedia-testing: Testing Thingpedia Devices
+
+  home-assistant-integration: Integrating with Home Assistant
 
   my-api: Web Almond As A Service
   almond-dialog-api-reference: Almond Dialog API
@@ -85,4 +107,3 @@ pages:
 
   thingtalk-reference: ThingTalk Reference
   thingpedia-annotations: Thingpedia Annotation Reference
-  thingpedia-helpers: Thingpedia Device API Reference

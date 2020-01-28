@@ -14,9 +14,10 @@ const ThingTalk = require('thingtalk');
 const URL = 'https://almond-nl.stanford.edu';
 
 module.exports = class ParserClient {
-    constructor(baseUrl, locale) {
+    constructor(baseUrl, locale, developerKey) {
         this._locale = locale || 'en_US';
         this._baseUrl = (baseUrl || URL) + '/' + this._locale;
+        this._developerKey = developerKey;
 
         console.log('Using Almond-NNParser at ' + this._baseUrl);
     }
@@ -33,12 +34,18 @@ module.exports = class ParserClient {
                 target: code,
                 store,
                 owner: user,
-                thingtalk_version: ThingTalk.version
+                thingtalk_version: ThingTalk.version,
+                developer_key: this._developerKey
             }
         })).catch((e) => {
-            // errors are useless because the browser blocks the response on error (due to
-            // missing Access-Control-Allow-Origin)
-            throw new Error('Failed to store the new sentence. You might need to wait until the natural language is fully trained.');
+            if ('responseJSON' in e && 'error' in e.responseJSON) {
+                if (e.responseJSON.error === 'Missing owner for commandpedia command')
+                    throw new Error('You need to log in to add new command.');
+                throw new Error('Failed to store the new sentence: ' + e.responseJSON.error);
+            } else {
+                throw e;
+            }
+
         });
     }
 
@@ -59,7 +66,8 @@ module.exports = class ParserClient {
                 q: utterance,
                 limit: limit,
                 store:'yes',
-                thingtalk_version: ThingTalk.version
+                thingtalk_version: ThingTalk.version,
+                developer_key: this._developerKey
             }
         })).then((parsed) => {
             if (parsed.error)

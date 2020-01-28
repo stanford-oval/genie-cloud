@@ -102,20 +102,39 @@ It **must** be set to `'/thingpedia'` to use the embedded Thingpedia.
 
 Default value: `'https://thingpedia.stanford.edu/thingpedia'`
 
-## FILE_STORAGE_BACKEND
+## FILE_STORAGE_DIR
 Where to store icons and zip files.
 
-Set this option to s3 to use Amazon S3, local to use the local filesystem
-(which must be configured with the correct permissions).
+This can be a relative or absolute path, or a file: or s3: URI.
+The location must be writable by the frontend Almond processes.
+Relative paths are interpreted relative to the current working directory, or
+the `THINGENGINE_ROOTDIR` environment variable if set.
 
-Default value: `'local'`
+NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
+be of the form `file:///`, with 3 consecutive slashes.
+
+Default value: `'./shared/download'`
+
+## CACHE_DIR
+Where to cache entity icons and contact avatars.
+
+This can be a relative or absolute path.
+The location must be writable by the frontend Almond processes.
+Relative paths are interpreted relative to the current working directory, or
+the `THINGENGINE_ROOTDIR` environment variable if set.
+
+Note: unlike other _DIR configuration keys, this key cannot be a URL. The cache directory
+is always on the local machine where the Almond process runs.
+
+Default value: `'./shared/cache'`
 
 ## CDN_HOST
-The location where icons and zip files are stored.
+The location where icons and zip files can be retrieved.
 
-If using the S3 storage backend, this could be the S3 website URL, or the URL
+If using S3 storage, this could be the S3 website URL, or the URL
 of a CloudFront distribution mapping to the S3 bucket.
-If using the `local` storage backend, it must be the exact string `"/download"`.
+If using local storage, or if no CDN is available, it must be the
+exact string `"/download"`.
 
 Default value: `'/download'`
 
@@ -300,6 +319,8 @@ Deployed model directory.
 
 This is the path containing the models that should be served by the NLP inference
 server. It can be a relative or absolute path, or a file: or s3: URI.
+Relative paths are interpreted relative to the current working directory, or
+the `THINGENGINE_ROOTDIR` environment variable if set.
 
 For a file URI, if the training and inference servers are on different machines,
 you should specify the hostname of the inference server. The training server will
@@ -309,6 +330,14 @@ If this is set to `null`, trained models will not be uploaded to a NLP inference
 server. This is not a valid setting for the inference server.
 
 Default value: `'./models'`
+
+## NL_SERVICE_NAME
+NLP Service name.
+
+The kubernetes service name for NLP server.
+
+
+Default value: `'nlp'`
 
 ## TRAINING_URL
 Training server URL.
@@ -345,6 +374,8 @@ Default value: `24000`
 The directory to use to store training jobs (datasets, working directories and trained models).
 
 This can be a relative or absolute path, or a file: or s3: URI.
+Relative paths are interpreted relative to the current working directory, or
+the `THINGENGINE_ROOTDIR` environment variable if set.
 
 NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
 be of the form `file:///`, with 3 consecutive slashes.
@@ -382,6 +413,11 @@ Additional labels to add to the Kubernetes Jobs and Pods created for training.
 
 Default value: `{}`
 
+## TRAINING_KUBERNETES_EXTRA_ANNOTATIONS
+Additional annotations to add to the Kubernetes Jobs and Pods created for training.
+
+Default value: `{}`
+
 ## TRAINING_KUBERNETES_POD_SPEC_OVERRIDE
 Additional fields to add to the Kubernetes Pods created for training.
 
@@ -391,6 +427,16 @@ Default value: `{}`
 Additional fields to add to the Kubernetes Pods created for training.
 
 Default value: `{}`
+
+## TRAINING_WATCH_NUM_TRIES
+Number of tries to watch k8s job status. Setting to a negative number will try indefinitely.
+
+Default value: `5`
+
+## TENSORBOARD_DIR
+Directory in s3:// or file:// URI, where tensorboard events are synced to during training.
+
+Default value: `null`
 
 ## DOCUMENTATION_URL
 URL of documentation.
@@ -407,6 +453,11 @@ This is used to retrieve icons for entities.
 
 Default value: `''`
 
+## GOOGLE_CLIENT_ID
+OAuth Client ID to support Login With Google
+
+Default value: `null`
+
 ## GOOGLE_CLIENT_SECRET
 OAuth Client secret to support Login With Google
 
@@ -415,10 +466,7 @@ Default value: `null`
 ## GITHUB_CLIENT_ID
 OAuth Client ID to support Login With Github
 
-This cannot be the value `null`, use the string `'null'` to disable
-Login with Github instead.
-
-Default value: `'null'`
+Default value: `null`
 
 ## GITHUB_CLIENT_SECRET
 OAuth Client secret to support Login With Github

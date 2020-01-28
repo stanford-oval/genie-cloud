@@ -20,7 +20,7 @@ const ThingTalkTrainer = require('./deps/new-command');
 const SearchOrInfiniteScroll = require('./deps/search-or-infinite-scroll');
 
 $(() => {
-    new ThingTalkTrainer({
+    const trainer = new ThingTalkTrainer({
         container: '#new-command-dialog',
     });
 
@@ -33,6 +33,10 @@ $(() => {
         $.post('/user/subscribe', {'_csrf': csrfToken, 'email': $('#subscribe-email').val() });
         $('#subscribe-form').hide();
         $('#subscribe-done').show();
+    });
+
+    $('#add-to-commandpedia').click(() => {
+        trainer.init();
     });
 
     new SearchOrInfiniteScroll({

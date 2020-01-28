@@ -45,7 +45,8 @@
   padding-bottom: 1em;
 }
 
-#developer-device-list, #developer-oauth-list {
+#developer-device-list,
+#developer-oauth-list {
   display: table;
   table-layout: fixed;
   width: 100%;
@@ -55,11 +56,13 @@
 #developer-device-list {
   margin-bottom: 20px;
 }
-#developer-device-list > li, #developer-oauth-list > li {
+#developer-device-list > li,
+#developer-oauth-list > li {
   display: table-row;
   border: 1px solid #ddd;
 }
-#developer-device-list > li > *, #developer-oauth-list > li > * {
+#developer-device-list > li > *,
+#developer-oauth-list > li > * {
   display: table-cell;
   padding-top: 10px;
   padding-bottom: 10px;
@@ -67,13 +70,16 @@
 #developer-device-list > li > * {
   vertical-align: middle;
 }
-#developer-device-list > li > :first-child, #developer-oauth-list > li > * {
+#developer-device-list > li > :first-child,
+#developer-oauth-list > li > * {
   padding-left: 15px;
 }
-#developer-device-list > li > :last-child, #developer-oauth-list > li > * {
+#developer-device-list > li > :last-child,
+#developer-oauth-list > li > * {
   padding-right: 15px;
 }
-#developer-device-list > li > span.action, #developer-device-list > li > form {
+#developer-device-list > li > span.action,
+#developer-device-list > li > form {
   text-align: center;
   width: 80px;
 }
@@ -124,36 +130,6 @@
   margin-top: 1.5em;
 }
 
-#section-get-in-touch img {
-  width: 64px;
-  height: 64px;
-  object-fit: contain;
-}
-
-#section-get-in-touch a {
-  border: 1px solid lightgray;
-  display: table;
-  margin-bottom: 1em;
-}
-
-#section-get-in-touch a .media-object {
-  padding-left: 15px;
-}
-
-#section-get-in-touch a:hover, #section-get-in-touch a:focus {
-  box-shadow: 0 0 8px rgba(102, 175, 233, 0.6);
-}
-
-#section-what-can-i-do-for-almond h4 {
-  font-size: 22px;
-}
-
-@media screen and (min-width: 1000px) {
-#get-involved-container {
-  padding-right: 50px;
-}
-}
-
 #alexa-interaction-model {
-    white-space: pre;
+  white-space: pre;
 }

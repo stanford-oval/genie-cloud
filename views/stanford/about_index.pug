@@ -2,11 +2,14 @@ extends ../layout
 block styles
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/index.css')
   link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/app.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/spinner.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/conversation.css')
 
 block scripts
   script(src=Config.ASSET_CDN + '/javascripts/commandpedia-bundle.js')
   script(src=Config.ASSET_CDN + '/javascripts/index.js')
-  //-script(src=Config.ASSET_CDN + '/javascripts/rotating-globe-bundle.js')
+  if ENABLE_ANONYMOUS_USER && !authenticated
+    script(src=Config.ASSET_CDN + '/javascripts/conversation.js')
 
 block page_name
   - stdlayout = false;
@@ -21,61 +24,62 @@ block content
       div.container-fluid#almond-index-container
         div.row
           div.col-lg-6
-            //-img(src=Config.ASSET_CDN + '/images/logo.png')#almond-logo
-
             h1#almond-title
               img(src=Config.ASSET_CDN + '/images/logo.png',style='display:inline-block;padding-right:12px;height:1em;vertical-align:bottom')
               = _("Almond")
-            //-h2#almond-subtitle!= _("By <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>")
             h2#almond-subtitle= _("The Open, Privacy-Preserving Virtual Assistant")
 
             p.text-center#almond-explanation-line
               = _("Almond translates your commands into a personalized program.")
 
-            //-div.row
-              div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
-                h4= _("Smart")
-              div.col-xs-12.col-sm-6.col-md-4
-                h4= _("Privacy-preserving")
-            //-div.row
-              div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
-                h4= _("Extensible")
-              div.col-xs-12.col-sm-6.col-md-4
-                h4= _("Open To All")
+            if authenticated
+              div.row
+                div.col-lg-8.col-lg-offset-2
+                  a(href='/me').btn.btn-primary.btn-block.call-to-action= _("Go To My Almond")
+            else if !ENABLE_ANONYMOUS_USER
+              div.row
+                div.col-lg-8.col-lg-offset-2
+                  a(href='/user/register').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
+            else
+              div.row#try-almond-now-row
+                div.col-lg-8.col-lg-offset-2
+                  a#try-almond-now(href='#conversation').btn.btn-primary.btn-block.call-to-action= _("Try Almond Now")
 
-            div.row#subscribe
-              div.col-lg-8.col-lg-offset-2
-                a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7',rel='noopener').btn.btn-primary.btn-block.call-to-action= _("I'm Interested")
+              div.row
+                div.col-lg-12
+                  div#conversation(data-target='/me/ws/anonymous',aria-expanded='false')
+                    div#chat
+                    div#input-block
+                      span(role='button').hidden#cancel
+                        span(aria-hidden='true').glyphicon.glyphicon-remove-circle
+                        span.sr-only= _("Cancel")
+                      form(action='#')#input-form
+                        div.form-group.has-feedback#input-form-group
+                          label(for='#chat-input').sr-only= _("Command:")
+                          input(type='text',placeholder=_("Write your command or answer here")).form-control#input
+                          span.spinner-container.form-control-feedback.hidden
+                            span.spinner
+                            span.sr-only= _("Almond is thinking…")
+                          span.glyphicon.glyphicon-warning-sign.form-control-feedback.hidden(title=_("Lost connection to the server."))
+                          span.help-block.hidden= _("Lost connection to the server.")
 
-            p(style='margin-top:1em;font-size:24px').text-center
-              a(href='/about/get-almond')= _("Try Almond")
-              |  &mdash; 
-              a(href='/about/use-almond')= _("Build with Almond")
-              br
-              a(href='/about/get-involved')= _("Get Involved")
-              |  &mdash; 
-              a(href='https://community.almond.stanford.edu')= _("Join Our Community")
-
-            //-div.row#subscribe
-              div.col-lg-8.col-lg-offset-2
-                a(href='/about/get-almond').btn.btn-primary.btn-block.call-to-action= _("Try Almond")
-              div.col-lg-8.col-lg-offset-2
-                a(href='/about/use-almond').btn.btn-primary.btn-block.call-to-action= _("Build with Almond")
-              div.col-lg-8.col-lg-offset-2
-                a(href='/about/get-involved').btn.btn-primary.btn-block.call-to-action= _("Get Involved")
+            div(style='margin-top:1em;font-size:24px').text-center
+              div.row
+                div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
+                  a(href='/about/get-almond')= _("Get Almond")
+                div.col-xs-12.col-sm-6.col-md-4
+                  a(href='/about/get-involved')= _("Contribute To Almond")
+              div.row
+                div.col-xs-12.col-sm-6.col-md-4.col-md-offset-2
+                  a(href='https://forms.gle/Q1m5uZDF8ZyRbdSw7', rel='noopener')= _("Sign Up for Updates")
+                div.col-xs-12.col-sm-6.col-md-4
+                  a(href='https://community.almond.stanford.edu')= _("Join Our Community")
 
             p(style='margin-top:1em;font-size:24px').text-center!= _("Brought to you by the <a href='https://oval.cs.stanford.edu'>Stanford Open Virtual Assistant Lab</a>.")
 
 
           div.col-lg-6
             div.carousel.slide(data-ride='carousel')#almond-index-carousel
-              //-ol.carousel-indicators
-                li(data-target='#almond-index-carousel',data-slide-to='0').active
-                li(data-target='#almond-index-carousel',data-slide-to='1')
-                li(data-target='#almond-index-carousel',data-slide-to='2')
-                li(data-target='#almond-index-carousel',data-slide-to='3')
-                li(data-target='#almond-index-carousel',data-slide-to='4')
-                li(data-target='#almond-index-carousel',data-slide-to='5')
               div.carousel-inner(role='listbox')
                 div.item.active
                   h3= _("Notifications That Matter To You")
@@ -138,8 +142,6 @@ block content
         div.container#almond-manifesto
           h3= _("Our Goal: Open Virtual Assistants for the Open Web")
 
-          //-canvas(width=400, height=400)#rotatingGlobe
-
           p
             = _("Virtual assistants are the new interface to the Web.")
             br
@@ -149,7 +151,7 @@ block content
             div.col-md-6
               h4 Democratize AI for linguistic user interfaces
               p We should have open, collaborative research to put open-source linguistic technology in the hands of all businesses.
-              p Learn more about #[a(href='/doc/genie-intro.md') our technology] and #[a(href='/about/use-almond')  how you can use it in your product].
+              p Learn more about #[a(href='/doc/genie-intro.md') our technology].
 
             div.col-md-6
               h4 An open non-proprietary linguistic web
@@ -160,6 +162,26 @@ block content
               h4 Sharing with individual data ownership
               p We as users should have a choice in virtual assistant services and the ability to control how we share our data.
               p Learn more about #[a(href='/about/get-almond') how you can run Almond with maximum privacy].
+
+      section.divider#almond-in-the-news
+        h3= _("Almond In The News")
+
+        div.container
+          div.row
+            div.col-xs-12
+              div.aligned-grid.aligned-grid-4
+                a(href='https://www.nytimes.com/2019/06/14/technology/virtual-assistants-privacy.html').aligned-grid-item#news-link-newyorktimes
+                  img(src=Config.ASSET_CDN + '/images/news-logo-nyt.png', alt=_("The New York Times"))
+                  | Stanford Team Aims at Alexa and Siri With a Privacy-Minded Alternative
+                a(href='https://www.popsci.com/story/technology/best-of-whats-new-2019/').aligned-grid-item
+                  img(src=Config.ASSET_CDN + '/images/news-logo-best-of-whats-new.png', alt=_("Winner of Popular Science's Best of What's New Award 2019"))
+                a(href='https://hackaday.com/2019/12/01/almond-open-personal-assistant-from-stanford/').aligned-grid-item#news-link-hackaday
+                  img(src=Config.ASSET_CDN + '/images/news-logo-hackaday.png', alt='').img-responsive
+                  | Hackaday
+                a(href='https://techhq.com/2019/12/can-an-open-source-virtual-assistant-take-on-alexa/').aligned-grid-item#news-link-techhq
+                  img(src=Config.ASSET_CDN + '/images/news-logo-techhq.svg', width=64, height=64, alt='TechHQ')
+
+      include ../blog_home_page.pug
 
       section.divider#why-almond
         h3= _("What We Do")
@@ -237,12 +259,10 @@ block content
               p
                 != _("We are continuously improving Almond, and building tools to allow others to extend Almond. We have developed a tool called <a href='/doc/genie-intro.md'>Genie</a> that allows to generate training data in new domains from scratch. Using Genie, we have found that Almond understands user's input with 68% accuracy - a marked improvement over the previous best known result. Furthermore, with little effort we were able to build a specialized skill for <a href='https://almond.stanford.edu/thingpedia/devices/by-id/com.spotify'>Spotify</a>, add natural language to access control, and extend Almond with aggregates (sum, count, average, etc.).")
               p
-                != _("As academics, our research is open-source, and all technology is freely available to the public. Anyone can leverage our algorithm in their product or in their own research. <a href='https://oval.cs.stanford.edu'>Learn more about our research</a> and <a href='/about/use-almond'>how you can use Almond's technology</a>.")
+                != _("As academics, our research is open-source, and all technology is freely available to the public. Anyone can leverage our algorithm in their product or in their own research. <a href='https://oval.cs.stanford.edu'>Learn more about our research</a>.")
 
             div.col-md-6.col-md-pull-6.visible-md.visible-lg(aria-hidden='true')#seq-seq-animation
               include ../../art/seq-seq-animation-clean-svg.svg
-
-      include ../blog_home_page.pug
 
       section.divider#section-commandpedia
         h3= _("What can Almond do?")

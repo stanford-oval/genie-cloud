@@ -31,12 +31,16 @@ block content
                   li Do not add any new information that doesn't exist in the original command;
                   li Keep quoted parts (including the quote marks, emails, phone numbers identical</b> 
                   li Do not drop @ signs and # signs</b>
+                  li
+                     strong
+                      | Do not use any automated tool for this task. Do not use paraphrasing websites or tools. We will reject any submission that is not written by a human.
               p 
                 |  We will show you warning messages if we detect your paraphrases have some obvious problems which can help you resolve them.
               p 
                 |  Try your best to <font color="red"> make the 2 paraphrases as different as possible</font>.
                 |  If you really don't know how to paraphrase, leave "no idea". According to our stats, we only got 5% of "no idea"s.
-                |  So if you give us too many of them, we might reject your answer.             
+                |  So if you give us too many of them, we might reject your answer.
+                //'
 
       section.divider
         h3= _('Examples')
@@ -63,6 +67,25 @@ block content
                     p Wrong paraphrase 2: (<font color='red'>missing quotes for 'hello' and the @ sign for '@bob'</font>) 
                     pre say hello to bob on twitter
 
+          div.row(style='margin-top:2em')
+            div.col-xs-12
+              div.container
+                div.row
+                  div.col-md-6
+                    p Original command
+                    pre alert me of updates in the new york times
+                div.row
+                  div.col-md-6
+                    p Correct paraphrase 1: 
+                    pre monitor the new york times
+                  div.col-md-6
+                    p Correct paraphrase 2: 
+                    pre notify me when the new york times has a new article
+                div.row
+                  div.col-md-6
+                    p Wrong paraphrase 1: (<font color='red'>introduces new service SMS that was not mentioned</font>) 
+                    pre text me updates in the new york times
+
       section.divider
         h3= _('Your Turn Now') 
         div.container
@@ -75,6 +98,11 @@ block content
                 each s, i in sentences
                   p= _('Command ') + (i+1) + ': '
                     span(id='synthetic' + (i+1), class='synthetic')= s
+                  if hints[i].length > 0
+                    //- Careful! We're creating a list of links dynamically, so we need output without HTML
+                    //- escaping in pug (using !=), but we're outputing user-generated content (device IDs and device names)
+                    //- so we need to be extra careful and call escapeHtml
+                    p(class='hint', id='hint' + (i+1))!= _("Hint: this command uses %s.").format(hints[i].map((d) => `<a href="/thingpedia/devices/by-id/${escapeHtml(d)}">${escapeHtml(allDevices[d].name)}</a>`).join(_(", ")))
                   p(class='hint', hidden, id='hint' + (i+1))= code[i]
                   div.container
                     div.row#paraphrase-row

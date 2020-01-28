@@ -43,13 +43,14 @@ WITH_LUINET: embedded
 THINGPEDIA_URL: /thingpedia
 DOCUMENTATION_URL: /doc/getting-started.md
 ENABLE_DEVELOPER_PROGRAM: true
+ENABLE_ANONYMOUS_USER: true
 ENABLE_PROMETHEUS: true
 PROMETHEUS_ACCESS_TOKEN: my-prometheus-access-token
 DISCOURSE_SSO_SECRET: d836444a9e4084d5b224a60c208dce14
 AES_SECRET_KEY: 80bb23f93126074ba01410c8a2278c0c
 JWT_SIGNING_KEY: "not so secret key"
 SECRET_KEY: "not so secret key"
-NL_SERVER_URL: "https://almond-dev.stanford.edu/nnparser"
+NL_SERVER_URL: https://nlp-staging.almond.stanford.edu
 SUPPORTED_LANGUAGES:
   - en-US
   - it-IT
@@ -68,8 +69,7 @@ echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $w
 # clean the database and bootstrap
 # (this has to occur after setting up the download
 # directories because it copies the icon png files)
-${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
-${srcdir}/main.js bootstrap
+${srcdir}/main.js bootstrap --force
 
 # load some more data into Thingpedia
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip
@@ -155,7 +155,7 @@ node $srcdir/node_modules/.bin/genie compile-ppdb $srcdir/tests/data/ppdb-2.0-xs
 export PPDB=$workdir/ppdb-2.0-xs-lexical.bin
 
 # make up a training job
-${srcdir}/main.js execute-sql-file - <<<"insert into training_jobs set id = 1, job_type ='update-dataset', language = 'en', all_devices = 1, status = 'started', task_index = 0, task_name = 'update-dataset', config = '{}'"
+${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 1, job_type ='update-dataset', language = 'en', all_devices = 1, status = 'started', task_index = 0, task_name = 'update-dataset', config = '{}'"
 
 # now update the exact match dataset (which will be saved to mysql)
 node ${srcdir}/main.js run-training-task -t update-dataset --job-id 1 --job-dir $workdir/training/jobs/1 --debug
@@ -164,14 +164,14 @@ node ${srcdir}/main.js download-dataset -l en --output exact.tsv
 
 # generate a training set
 
-${srcdir}/main.js execute-sql-file - <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_eval_probability\":1.0}'"
+${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"insert into training_jobs set id = 2, job_type ='train', language = 'en', model_tag ='org.thingpedia.models.developer', all_devices = 1, status = 'started', task_index = 0, task_name = 'prepare-training-set', config = '{\"synthetic_depth\":3,\"dataset_target_pruning_size\":100000,\"dataset_eval_probability\":1.0}'"
 node ${srcdir}/main.js run-training-task -t prepare-training-set --job-id 2 --job-dir $workdir/training/jobs/2 --debug
 
 sha256sum exact.tsv ./training/jobs/2/dataset/eval.tsv ./training/jobs/2/dataset/train.tsv
 sha256sum -c <<EOF
-939aacd713dd3d7e794982ba2cb5bb67bd137863e3f5ee7b3acf35159acb4471  exact.tsv
-841ac7dc62bbc3de54e850722dd22679672f01dd176bac87d2e9e82a665b9222  ./training/jobs/2/dataset/eval.tsv
-fe78c2d0ecce92f53c2e597bf36d7022a27bfeca0fabab8c19e046ca5cbf9cf6  ./training/jobs/2/dataset/train.tsv
+f1e73ee5de19f8aa92e5d8505bf6ed217b7c4135fb0a512bdbbfdd6d155582cd  exact.tsv
+3ac80766f6627704c85572340a9cf034a9b0cdb9fe5ccce8e91f6af0829e5eb9  ./training/jobs/2/dataset/eval.tsv
+2ce2576ca59b8cc1eeb35fdfa82dad89fff6bd9c2dffc39109cd830fb6ba4e95  ./training/jobs/2/dataset/train.tsv
 EOF
 
 rm -rf $workdir

@@ -43,17 +43,23 @@ const nprocesses = 1;
 
 module.exports = class NLPModel {
     constructor(spec, service) {
-        this.accessToken = spec.access_token;
         this.id = `@${spec.tag}/${spec.language}`;
+
+        this._localdir = null;
+        this.init(spec, service);
+    }
+
+    init(spec, service) {
+        this.accessToken = spec.access_token;
         this.tag = spec.tag;
         this.locale = spec.language;
+        this.trained = spec.trained;
 
         if (spec.use_exact)
             this.exact = service.getExact(spec.language);
         else
             this.exact = new DummyExactMatcher(); // non default models don't get any exact match
 
-        this._localdir = null;
         this._modeldir = AbstractFS.resolve(Config.NL_MODEL_DIR, `./${spec.tag}:${spec.language}`);
 
         if (Config.WITH_THINGPEDIA === 'embedded') {
@@ -73,7 +79,7 @@ module.exports = class NLPModel {
         this._localdir = await AbstractFS.download(this._modeldir + '/');
     }
 
-    destroy() {
+    async destroy() {
         return Promise.all([
             this.predictor.stop(),
             AbstractFS.removeTemporary(this._localdir)
@@ -81,6 +87,9 @@ module.exports = class NLPModel {
     }
 
     async reload() {
+        if (!this.trained)
+            return;
+
         const oldlocaldir = this._localdir;
         await this._download();
 
@@ -89,14 +98,17 @@ module.exports = class NLPModel {
         await this.predictor.start();
 
         await Promise.all([
-            oldpredictor.stop(),
-            AbstractFS.removeTemporary(oldlocaldir)
+            oldpredictor ? oldpredictor.stop() : Promise.resolve(),
+            oldlocaldir ? AbstractFS.removeTemporary(oldlocaldir) : Promise.resolve()
         ]);
     }
 
     async load() {
+        if (!this.trained)
+            return;
+
         await this._download();
         this.predictor = new Genie.Predictor(this.id, this._localdir, nprocesses);
-        return this.predictor.start();
+        await this.predictor.start();
     }
 };

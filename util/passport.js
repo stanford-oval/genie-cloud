@@ -31,9 +31,7 @@ const TotpStrategy = require('passport-totp').Strategy;
 
 const EngineManager = require('../almond/enginemanagerclient');
 
-var GOOGLE_CLIENT_ID = '739906609557-o52ck15e1ge7deb8l0e80q92mpua1p55.apps.googleusercontent.com';
-
-const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, GITHUB_CLIENT_ID} = require('../config');
+const { OAUTH_REDIRECT_ORIGIN, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, GITHUB_CLIENT_ID} = require('../config');
 
 const TOTP_PERIOD = 30; // duration in second of TOTP code
 
@@ -204,42 +202,7 @@ function authenticateGithub(req, accessToken, refreshToken, profile, done) {
             storage_key: makeRandom() });
         user.newly_created = true;
         return user;
-    }).then((user) => {
-        if (!user.newly_created)
-            return user;
-
-        // NOTE: we must start the user here because if we do it earlier we're
-        // still inside the transaction, and the master process (which uses a different
-        // database connection) will not see the new user in the database
-        return EngineManager.get().startUser(user.id).then(() => {
-            // asynchronously inject github-account device
-            EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.addSerialized({ kind: 'com.github',
-                                                      userId: profile.id,
-                                                      userName: profile.username,
-                                                      accessToken: accessToken,
-                                                      refreshToken: refreshToken });
-            }).done();
-            return user;
-        });
-    }).nodeify(done);
-}
-
-function associateGithub(user, accessToken, refreshToken, profile, done) {
-    db.withTransaction((dbClient) => {
-        return model.update(dbClient, user.id, { github_id: profile.id }).then(() => {
-            // asynchronously inject github-account device
-
-            EngineManager.get().getEngine(user.id).then((engine) => {
-                return engine.devices.addSerialized({ kind: 'com.github',
-                                                      userId: profile.id,
-                                                      userName: profile.username,
-                                                      accessToken: accessToken,
-                                                      refreshToken: refreshToken });
-            }).done();
-            return user;
-        });
-    }).nodeify(done);
+    }).then((user) => done(null, user), done);
 }
 
 exports.initialize = function() {
@@ -308,33 +271,30 @@ exports.initialize = function() {
         }).done();
     }));
 
-    passport.use(new GoogleOAuthStrategy({
-        clientID: GOOGLE_CLIENT_ID,
-        clientSecret: GOOGLE_CLIENT_SECRET,
-        callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/google/callback',
-        passReqToCallback: true,
-    }, (req, accessToken, refreshToken, profile, done) => {
-        if (!req.user) {
-            // authenticate the user
-            authenticateGoogle(req, accessToken, refreshToken, profile, done);
-        } else {
-            associateGoogle(req.user, accessToken, refreshToken, profile, done);
-        }
-    }));
+    if (GOOGLE_CLIENT_ID) {
+        passport.use(new GoogleOAuthStrategy({
+            clientID: GOOGLE_CLIENT_ID,
+            clientSecret: GOOGLE_CLIENT_SECRET,
+            callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/google/callback',
+            passReqToCallback: true,
+        }, (req, accessToken, refreshToken, profile, done) => {
+            if (!req.user) {
+                // authenticate the user
+                authenticateGoogle(req, accessToken, refreshToken, profile, done);
+            } else {
+                associateGoogle(req.user, accessToken, refreshToken, profile, done);
+            }
+        }));
+    }
 
-    passport.use(new GitHubStrategy({
-        clientID: GITHUB_CLIENT_ID,
-        clientSecret: GITHUB_CLIENT_SECRET,
-        callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/github/callback',
-        passReqToCallback: true,
-  },   (req, accessToken, refreshToken, profile, done) => {
-        if (!req.user) {
-            // authenticate the user
-            authenticateGithub(req, accessToken, refreshToken, profile, done);
-        } else {
-            associateGithub(req.user, accessToken, refreshToken, profile, done);
-        }
-    }));
+    if (GITHUB_CLIENT_ID) {
+        passport.use(new GitHubStrategy({
+            clientID: GITHUB_CLIENT_ID,
+            clientSecret: GITHUB_CLIENT_SECRET,
+            callbackURL: OAUTH_REDIRECT_ORIGIN + '/user/oauth2/github/callback',
+            passReqToCallback: true,
+        }, authenticateGithub));
+    }
 
     passport.use(new TotpStrategy((user, done) => {
         if (user.totp_key === null)

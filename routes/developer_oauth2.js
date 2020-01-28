@@ -15,13 +15,13 @@ const multer = require('multer');
 const csurf = require('csurf');
 const util = require('util');
 const fs = require('fs');
+const os = require('os');
 
 const model = require('../model/oauth2');
 const user = require('../util/user');
 const db = require('../util/db');
 const code_storage = require('../util/code_storage');
 const graphics = require('../almond/graphics');
-const platform = require('../util/platform');
 const iv = require('../util/input_validation');
 const { BadRequestError, ForbiddenError } = require('../util/errors');
 const { makeRandom } = require('../util/random');
@@ -64,7 +64,7 @@ function validateRedirectUrls(req, urls) {
 }
 
 router.post('/create',
-    multer({ dest: platform.getTmpDir() }).single('icon'),
+    multer({ dest: os.tmpdir() }).single('icon'),
     csurf({ cookie: false }),
     user.requireLogIn, user.requireDeveloper(),
     iv.validatePOST({ scope: ['array', '?string'], name: 'string', redirect_uri: 'string' }), (req, res, next) => {

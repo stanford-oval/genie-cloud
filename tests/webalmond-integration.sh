@@ -26,6 +26,7 @@ cat > $srcdir/secret_config.js <<'EOF'
 module.exports.SERVER_ORIGIN = 'http://127.0.0.1:7070';
 module.exports.WITH_THINGPEDIA = 'external';
 module.exports.THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
+module.exports.NL_SERVER_URL = 'https://nlp-staging.almond.stanford.edu';
 module.exports.THINGENGINE_MANAGER_ADDRESS = ['./control1', './control2'];
 module.exports.THINGENGINE_MANAGER_AUTHENTICATION = 'foo bar baz';
 module.exports.DISCOURSE_SSO_SECRET = 'd836444a9e4084d5b224a60c208dce14';
@@ -33,8 +34,7 @@ module.exports.DISCOURSE_SSO_REDIRECT = 'https://discourse.almond.stanford.edu';
 EOF
 
 # clean the database and bootstrap
-${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
-eval $(${srcdir}/main.js bootstrap)
+${srcdir}/main.js bootstrap --force
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`

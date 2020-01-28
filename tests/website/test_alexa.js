@@ -65,7 +65,7 @@ async function testAlexa(accessToken) {
     assert.deepStrictEqual(response0, {
        response: {
          outputSpeech: {
-           text: 'Hello! I\'m Almond, your virtual assistant.\nI am part of a research project of Stanford University. I am capable of understanding actions and events over web services.\nPlease keep in mind: I do not chat, and I do not understand questions very well. Please check out the Thingpedia to find out what I understand, or type ‘help’.\nTo start, how about you try one of these examples:\nHi!\n',
+           text: 'Hi!\n',
            type: 'PlainText'
          },
          shouldEndSession: true
@@ -153,7 +153,7 @@ async function testAlexa(accessToken) {
     assert.deepStrictEqual(response3, {
        response: {
          outputSpeech: {
-           text: 'Ok, I\'m going to open https://google.com.\nSorry, that did not work: Opening files is not implemented in this Almond.\n',
+           text: 'Okay, I\'m going to open https://google.com.\nSorry, that did not work: Opening files is not implemented in this Almond.\n',
            type: 'PlainText'
          },
          shouldEndSession: true

@@ -9,6 +9,8 @@
 // See COPYING for details
 "use strict";
 
+const stream = require('stream');
+
 const db = require('../util/db');
 const { tokenize, stripUnsafeTokens } = require('../util/tokenize');
 
@@ -17,7 +19,8 @@ function createMany(client, examples) {
         return Promise.resolve();
 
     const KEYS = ['id', 'schema_id', 'is_base', 'flags', 'language', 'utterance', 'preprocessed',
-                  'target_json', 'target_code', 'type', 'click_count', 'like_count', 'owner', 'name'];
+                  'target_json', 'target_code', 'context',
+                  'type', 'click_count', 'like_count', 'owner', 'name'];
     const arrays = [];
     examples.forEach((ex) => {
         if (!ex.type)
@@ -300,17 +303,31 @@ module.exports = {
 
     getBaseBySchema(client, schemaId, language) {
         return db.selectAll(client, "select * from example_utterances use index(language_type) where schema_id = ?"
-            + " and is_base and type = 'thingpedia' and language = ?", [schemaId, language]);
+            + " and is_base and type = 'thingpedia' and language = ? order by id asc", [schemaId, language]);
     },
 
     getBaseBySchemaKind(client, schemaKind, language) {
-        return db.selectAll(client, `(select eu.* from example_utterances eu, device_schema ds where
-            eu.schema_id = ds.id and ds.kind = ? and is_base and type = 'thingpedia' and language = ?)`
+        return db.selectAll(client, `select eu.* from example_utterances eu, device_schema ds where
+            eu.schema_id = ds.id and ds.kind = ? and is_base and type = 'thingpedia' and language = ? order by id asc`
             , [schemaKind, language]);
     },
 
     createMany,
     create,
+    insertStream(client) {
+        return new stream.Writable({
+            objectMode: true,
+            highWaterMark: 200,
+
+            write(obj, encoding, callback) {
+                create(client, obj).then(() => callback(), callback);
+            },
+            writev(objs, callback) {
+                createMany(client, objs.map((o) => o.chunk)).then(() => callback(), callback);
+            }
+        });
+    },
+
     logUtterance(client, data) {
         return db.insertOne(client, `insert into utterance_log set ?`, [data]);
     },
@@ -382,6 +399,10 @@ module.exports = {
         return db.selectAll(client, `select preprocessed,target_code from example_utterances use index (language_flags)
             where language = ? and find_in_set('exact', flags) and not is_base and preprocessed <> ''
             order by type asc, id asc`, [language]);
+    },
+    
+    getExactById(client, exampleId) {
+        return db.selectOne(client, `select preprocessed,target_code from example_utterances where id = ?`, [exampleId]);
     },
 
     suggest(client, command) {

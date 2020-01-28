@@ -9,46 +9,45 @@
 // See COPYING for details
 "use strict";
 
+const Tp = require('thingpedia');
 const ThingTalk = require('thingtalk');
 const path = require('path');
 
-const FileThingpediaClient = require('./file_thingpedia_client');
-
 const getExampleName = require('../../util/example_names');
 
-const _schemaRetriever = new ThingTalk.SchemaRetriever(new FileThingpediaClient({
+const _schemaRetriever = new ThingTalk.SchemaRetriever(new Tp.FileClient({
     thingpedia: path.resolve(path.dirname(module.filename), './thingpedia.tt')
 }), null, true);
 
 const TEST_CASES = [
-    [`query := @com.twitter.search();`, `SearchOnTwitter`],
+    [`query := @com.twitter.search();`, `Search`],
 
-    [`query (p_hashtag : Entity(tt:hashtag)) := @com.twitter.search(), contains(hashtags, p_hashtag);`, `SearchOnTwitterByHashtags`],
+    [`query (p_hashtag : Entity(tt:hashtag)) := @com.twitter.search(), contains(hashtags, p_hashtag);`, `SearchByHashtags`],
 
-    [`query (p_author : Entity(tt:username)) := @com.twitter.search(), author == p_author;`, `SearchOnTwitterByAuthor`],
+    [`query (p_author : Entity(tt:username)) := @com.twitter.search(), author == p_author;`, `SearchByAuthor`],
 
     [`query (p_author1 : Entity(tt:username), p_author2 : Entity(tt:username)) := @com.twitter.search(), in_array(author, [p_author1, p_author2]);`,
-    `SearchOnTwitterByAuthor`],
+    `SearchByAuthor`],
 
-    [`query () := @thermostat.get_temperature();`, 'GetTemperatureOnThermostat'],
-    [`query (p_value : Measure(C)) := @thermostat.get_temperature(), value >= p_value;`, 'GetTemperatureOnThermostatByValueGreaterThan'],
-    [`query (p_value : Measure(C)) := @thermostat.get_temperature(), value <= p_value;`, 'GetTemperatureOnThermostatByValueLessThan'],
-    [`stream (p_value : Measure(C)) := edge (monitor @thermostat.get_temperature()) on value <= p_value;`, 'MonitorGetTemperatureOnThermostatByValueLessThan'],
+    [`query () := @thermostat.get_temperature();`, 'GetTemperature'],
+    [`query (p_value : Measure(C)) := @thermostat.get_temperature(), value >= p_value;`, 'GetTemperatureByValueGreaterThan'],
+    [`query (p_value : Measure(C)) := @thermostat.get_temperature(), value <= p_value;`, 'GetTemperatureByValueLessThan'],
+    [`stream (p_value : Measure(C)) := edge (monitor @thermostat.get_temperature()) on value <= p_value;`, 'MonitorGetTemperatureByValueLessThan'],
 
-    [`query () := @com.twitter.search() join @com.bing.web_search();`, `SearchOnTwitterAndWebSearchOnBing`],
-    [`query () := @com.bing.web_search();`, `WebSearchOnBing`],
-    [`query () := [link] of @com.bing.web_search();`, `LinkOfWebSearchOnBing`],
-    [`query (p_query : String) := @com.bing.web_search(query=p_query);`, `WebSearchOnBingWithQuery`],
+    [`query () := @com.twitter.search() join @com.bing.web_search();`, `SearchAndWebSearch`],
+    [`query () := @com.bing.web_search();`, `WebSearch`],
+    [`query () := [link] of @com.bing.web_search();`, `LinkOfWebSearch`],
+    [`query (p_query : String) := @com.bing.web_search(query=p_query);`, `WebSearchWithQuery`],
 
-    [`stream () := monitor(@com.twitter.search() join @com.bing.web_search());`, `MonitorSearchOnTwitterAndWebSearchOnBing`],
-    [`stream () := monitor(@com.bing.web_search());`, `MonitorWebSearchOnBing`],
-    [`stream () := [link] of monitor(@com.bing.web_search());`, `LinkOfMonitorWebSearchOnBing`],
+    [`stream () := monitor(@com.twitter.search() join @com.bing.web_search());`, `MonitorSearchAndWebSearch`],
+    [`stream () := monitor(@com.bing.web_search());`, `MonitorWebSearch`],
+    [`stream () := [link] of monitor(@com.bing.web_search());`, `LinkOfMonitorWebSearch`],
 
-    [`action () := @light-bulb.set_power();`, 'SetPowerOnLightBulb'],
-    [`action (p_power : Enum(on,off)) := @light-bulb.set_power(power=p_power);`, 'SetPowerOnLightBulbWithPower'],
-    [`action () := @light-bulb.set_power(power=enum(on));`, 'SetPowerOnLightBulbWithPowerOn'],
+    [`action () := @light-bulb.set_power();`, 'SetPower'],
+    [`action (p_power : Enum(on,off)) := @light-bulb.set_power(power=p_power);`, 'SetPowerWithPower'],
+    [`action () := @light-bulb.set_power(power=enum(on));`, 'SetPowerWithPowerOn'],
 
-    [`program := now => @com.twitter.search() => @com.twitter.retweet(tweet_id=tweet_id);`, 'SearchOnTwitterThenRetweetWithTweetId'],
+    [`program := now => @com.twitter.search() => @com.twitter.retweet(tweet_id=tweet_id);`, 'SearchThenRetweetWithTweetId'],
 ];
 
 async function testCase(i) {

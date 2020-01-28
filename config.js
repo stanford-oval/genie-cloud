@@ -113,17 +113,36 @@ module.exports.THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 /**
   Where to store icons and zip files.
 
-  Set this option to s3 to use Amazon S3, local to use the local filesystem
-  (which must be configured with the correct permissions).
+  This can be a relative or absolute path, or a file: or s3: URI.
+  The location must be writable by the frontend Almond processes.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
+
+  NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
+  be of the form `file:///`, with 3 consecutive slashes.
 */
-module.exports.FILE_STORAGE_BACKEND = 'local';
+module.exports.FILE_STORAGE_DIR = './shared/download';
 
 /**
-  The location where icons and zip files are stored.
+  Where to cache entity icons and contact avatars.
 
-  If using the S3 storage backend, this could be the S3 website URL, or the URL
+  This can be a relative or absolute path.
+  The location must be writable by the frontend Almond processes.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
+
+  Note: unlike other _DIR configuration keys, this key cannot be a URL. The cache directory
+  is always on the local machine where the Almond process runs.
+*/
+module.exports.CACHE_DIR = './shared/cache';
+
+/**
+  The location where icons and zip files can be retrieved.
+
+  If using S3 storage, this could be the S3 website URL, or the URL
   of a CloudFront distribution mapping to the S3 bucket.
-  If using the `local` storage backend, it must be the exact string `"/download"`.
+  If using local storage, or if no CDN is available, it must be the
+  exact string `"/download"`.
 */
 module.exports.CDN_HOST = '/download';
 
@@ -306,6 +325,8 @@ module.exports.NL_TOKENIZER_ADDRESS = '127.0.0.1:8888';
 
   This is the path containing the models that should be served by the NLP inference
   server. It can be a relative or absolute path, or a file: or s3: URI.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
 
   For a file URI, if the training and inference servers are on different machines,
   you should specify the hostname of the inference server. The training server will
@@ -315,6 +336,14 @@ module.exports.NL_TOKENIZER_ADDRESS = '127.0.0.1:8888';
   server. This is not a valid setting for the inference server.
 */
 module.exports.NL_MODEL_DIR = './models';
+
+/**
+  NLP Service name.
+
+  The kubernetes service name for NLP server.
+
+*/
+module.exports.NL_SERVICE_NAME = 'nlp';
 
 /**
   Training server URL.
@@ -351,6 +380,8 @@ module.exports.TRAINING_MEMORY_USAGE = 24000;
   The directory to use to store training jobs (datasets, working directories and trained models).
 
   This can be a relative or absolute path, or a file: or s3: URI.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
 
   NOTE: correct operation requires file: URIs to use the local hostname, that is, they should
   be of the form `file:///`, with 3 consecutive slashes.
@@ -389,6 +420,11 @@ module.exports.TRAINING_KUBERNETES_JOB_NAME_PREFIX = '';
 module.exports.TRAINING_KUBERNETES_EXTRA_METADATA_LABELS = {};
 
 /**
+  Additional annotations to add to the Kubernetes Jobs and Pods created for training.
+*/
+module.exports.TRAINING_KUBERNETES_EXTRA_ANNOTATIONS = {};
+
+/**
   Additional fields to add to the Kubernetes Pods created for training.
 */
 module.exports.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE = {};
@@ -397,6 +433,16 @@ module.exports.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE = {};
   Additional fields to add to the Kubernetes Pods created for training.
 */
 module.exports.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE = {};
+
+/**
+  Number of tries to watch k8s job status. Setting to a negative number will try indefinitely.
+*/
+module.exports.TRAINING_WATCH_NUM_TRIES = 5;
+
+/**
+  Directory in s3:// or file:// URI, where tensorboard events are synced to during training.
+*/
+module.exports.TENSORBOARD_DIR = null;
 
 /**
   URL of documentation.
@@ -414,17 +460,19 @@ module.exports.DOCUMENTATION_URL = 'https://almond.stanford.edu/doc/getting-star
 module.exports.BING_KEY = '';
 
 /**
+  OAuth Client ID to support Login With Google
+*/
+module.exports.GOOGLE_CLIENT_ID = null;
+
+/**
   OAuth Client secret to support Login With Google
 */
 module.exports.GOOGLE_CLIENT_SECRET = null;
 
 /**
   OAuth Client ID to support Login With Github
-
-  This cannot be the value `null`, use the string `'null'` to disable
-  Login with Github instead.
 */
-module.exports.GITHUB_CLIENT_ID = 'null';
+module.exports.GITHUB_CLIENT_ID = null;
 
 /**
   OAuth Client secret to support Login With Github
@@ -563,3 +611,19 @@ module.exports.GPU_NODE_GROUP = null;
   S3 directory for temporary workdir storage.
 */
 module.exports.GPU_S3_WORKDIR = null;
+
+/**
+  URL of an [Ackee](https://github.com/electerious/Ackee) server to use for page tracking.
+
+  This property must contain the full URL (protocol, hostname, optional port) of the server,
+  and must not end with a slash.
+  If null, tracking will be disabled.
+*/
+module.exports.ACKEE_URL = null;
+
+/**
+  Domain ID to use for [Ackee](https://github.com/electerious/Ackee) tracking.
+
+  This must be set if `ACKEE_URL` is set.
+*/
+module.exports.ACKEE_DOMAIN_ID = null;

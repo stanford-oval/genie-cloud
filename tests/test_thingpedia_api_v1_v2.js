@@ -35,6 +35,7 @@ const BING_SCHEMA = {
     actions: {},
     queries: {
         image_search: {
+            extends: null,
             types: ["String", "String", "Entity(tt:picture)", "Entity(tt:url)", "Number", "Number"],
             args: ["query", "title", "picture_url", "link", "width", "height"],
             required: [true, false, false, false, false, false],
@@ -43,6 +44,7 @@ const BING_SCHEMA = {
             is_monitorable: true
         },
         web_search: {
+            extends: null,
             types: ["String", "String", "String", "Entity(tt:url)"],
             args: ["query", "title", "description", "link"],
             required: [true, false, false, false],
@@ -59,6 +61,7 @@ const BING_METADATA = {
     actions: {},
     queries: {
         image_search: {
+            extends: null,
             schema: ["String", "String", "Entity(tt:picture)", "Entity(tt:url)", "Number", "Number"],
             args: ["query", "title", "picture_url", "link", "width", "height"],
             required: [true, false, false, false, false, false],
@@ -97,6 +100,7 @@ const BING_METADATA = {
             confirm: false
         },
         web_search: {
+            extends: null,
             schema: ["String", "String", "String", "Entity(tt:url)"],
             args: ["query", "title", "description", "link"],
             required: [true, false, false, false],
@@ -153,6 +157,7 @@ async function testGetSchemas() {
             queries: {},
             actions: {
                 "eat_data": {
+                    extends: null,
                     types: ["String"],
                     args: ["data"],
                     is_input: [true],
@@ -191,6 +196,7 @@ async function testGetMetadata() {
             queries: {},
             actions: {
                 "eat_data": {
+                    extends: null,
                     schema: ["String"],
                     args: ["data"],
                     is_input: [true],
@@ -220,6 +226,7 @@ async function testGetMetadata() {
             queries: {},
             actions: {
                 "eat_data": {
+                    extends: null,
                     schema: ["String"],
                     args: ["data"],
                     is_input: [true],
@@ -609,19 +616,6 @@ async function testDiscovery() {
     assert(!failed);
 }
 
-async function testGetEntityIcon() {
-    let failed = false;
-    try {
-        await Tp.Helpers.Http.get(THINGPEDIA_URL + '/api/entities/icon?entity_type=tt:stock_id&entity_value=goog&entity_display=Alphabet+Inc.',
-            { followRedirects: false });
-        failed = true;
-    } catch(e) {
-        assert.strictEqual(e.code, 301);
-        assert(e.redirect.endsWith('.png'));
-    }
-    assert(!failed);
-}
-
 async function testGetEntityList() {
     assert.deepStrictEqual(await request('/api/entities'),
         {"result":"ok",
@@ -800,7 +794,6 @@ async function main() {
     await testGetDeviceList('system');
     await testDiscovery();
     await testDeviceSearch();
-    await testGetEntityIcon();
     await testGetEntityList();
     await testGetEntityValues();
     await testLookupEntity();

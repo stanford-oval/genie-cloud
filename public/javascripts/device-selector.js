@@ -1,6 +1,8 @@
 "use strict";
 $(() => {
     const iconCdn = document.body.dataset.iconCdn;
+    const locale = document.body.dataset.locale;
+    const developerKey = document.body.dataset.developerKey;
     $('.device-selector').each((i, el) => {
         const $this = $(el);
         console.log($this);
@@ -44,7 +46,7 @@ $(() => {
             }
 
             $.ajax('/thingpedia/api/v3/devices/search', {
-                data: { q: searchKey },
+                data: { q: searchKey, locale: locale, developer_key: developerKey },
                 method: 'GET'
             }).then((result) => {
                 addNewBox.empty();

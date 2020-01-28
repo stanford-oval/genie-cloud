@@ -203,6 +203,12 @@ async function testMultipleChoice(text, expected) {
 
     assert.deepStrictEqual(analyzed.entities, {});
     assert.deepStrictEqual(analyzed.candidates[0].code, ['bookkeeping', 'choice', expected]);
+
+    const analyzed2 = await parser.sendUtterance(text, '', 'MultipleChoice',
+        [{ title: 'CHOICE NUMBER ONE' }, { title: 'Choice Number Two' }]);
+
+    assert.deepStrictEqual(analyzed2.entities, {});
+    assert.deepStrictEqual(analyzed2.candidates[0].code, ['bookkeeping', 'choice', expected]);
 }
 
 async function testOnlineLearn() {
@@ -219,6 +225,55 @@ async function testOnlineLearn() {
     });
 }
 
+const DEBUG = false;
+function request(url, method, data, options = {}) {
+    options['user-agent'] = 'Thingpedia-Cloud-Test/1.0.0';
+    options.debug = DEBUG;
+
+    url += `?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`;
+    return Tp.Helpers.Http.request(Config.NL_SERVER_URL + url, method, data, options);
+}
+
+function assertHttpError(request, httpStatus, expectedMessage) {
+    return request.then(() => {
+        assert.fail(new Error(`Expected HTTP error`));
+    }, (err) => {
+        if (!err.detail)
+            throw err;
+        if (typeof err.code === 'number')
+            assert.deepStrictEqual(err.code, httpStatus);
+        else
+            throw err;
+        if (expectedMessage) {
+            let message;
+            if (err.detail.startsWith('{'))
+                message = JSON.parse(err.detail).error;
+            else
+                message = err.detail;
+            assert.strictEqual(message, expectedMessage);
+        }
+    });
+}
+
+async function testAdmin() {
+    // trying to access an invalid model or a model that was not trained will answer 404
+    await assertHttpError(request('/query/@org.thingpedia.foo/en-US', 'GET', '', {}), 404);
+    await assertHttpError(request('/query/@org.thingpedia.test.nottrained/en-US', 'GET', '', {}), 404);
+
+    // reloading an invalid model will fail
+    await assertHttpError(request('/admin/reload/@foo.bar/en-US', 'POST', '', {}), 404);
+
+    // reloading any model will succeed, regardless of whether it was trained previously or not
+    assert.deepStrictEqual(JSON.parse(await request('/admin/reload/@org.thingpedia.models.default/en-US',
+        'POST', '', {})), { result: "ok" });
+
+    assert.deepStrictEqual(JSON.parse(await request('/admin/reload/@org.thingpedia.test.nottrained/en-US',
+        'POST', '', {})), { result: "ok" });
+
+    // but after reload, if the model was not trained we still get 404
+    await assertHttpError(request('/query/@org.thingpedia.test.nottrained/en-US', 'GET', '', {}), 404);
+}
+
 async function main() {
     await testContextual();
     await testEverything();
@@ -226,6 +281,7 @@ async function main() {
     await testMultipleChoice('choice number one', '0');
     await testMultipleChoice('choice number two', '1');
     await testOnlineLearn();
+    await testAdmin();
 
     await db.tearDown();
 }

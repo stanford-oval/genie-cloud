@@ -198,6 +198,47 @@ is closed.
 
 For details on how to control a conversation with Almond, see the [Almond Dialog API Reference](/doc/almond-dialog-api-reference.md).
 
+## Endpoint: /converse
+
+Execute a single turn of an Almond conversation. This is the REST equivalent of `/conversation`,
+and is provided for clients who cannot use Web Sockets.
+
+Method: POST  
+Scope: `user-exec-commands`
+
+```
+POST /me/api/converse
+Authorization: Bearer XYZIEOSKLQOW9283472KLW
+Content-Type: application/json
+
+{
+  "command": {
+    "type":"command",
+    "text":"what time is it?"
+  }
+}
+
+HTTP/1.1 200 Ok
+Content-Type: application/json
+
+{
+    "conversationId": "stateless-...",
+    "askSpecial": null,
+    "messages": [
+      { "type": "text", "text": "Current time is 6:24:57 PM PDT.", "icon": "org.thingpedia.builtin.thingengine.builtin" }
+    ]
+}
+```
+
+The request body should contain a single message from the user to Almond. The response
+body will contain a `conversationId` token that can be passed to subsequent calls to
+preserve state, and a list of messages from Almond. For details on the format of messages
+from the user and from Almond, see the [Almond Dialog API Reference](/doc/almond-dialog-api-reference.md).
+
+NOTE: after 5 minutes of inactivity, the conversationId is reset and the state of the conversation
+is lost. You can send a message containing a `bookkeeping(wakeup);` ThingTalk command to keep
+the conversation alive.
+
 ## Endpoint: /apps/create
 
 Execute a single ThingTalk command.
@@ -288,6 +329,50 @@ Content-Type: application/json
 Use this API to retrieve the unique ID, name, description, and kind of the configured Thingpedia devices.
 The API returns a list of JSON objects, one for each device. You should not assume that the list
 is sorted in any particular order.
+
+## Endpoint: /devices/create
+
+Configure a new Thingpedia device.
+
+Method: POST  
+Scope: `user-exec-command`
+
+```
+POST /me/api/devices/create
+Authorization: Bearer XYZIEOSKLQOW9283472KLW
+Content-Type: application/json
+
+{
+"kind": "io.home-assistant",
+"hassUrl": "...",
+"accessToken": "...",
+"refreshToken": "...",
+"accessTokenExpires": "...",
+}
+
+HTTP/1.1 200 Ok
+Content-Type: application/json
+
+{
+  "uniqueId": "io.home-assistant-...",
+  "name": "Home Assistant",
+  "description": "This is your Home Assistant Gateway.",
+  "kind": "io.home-assistant",
+  "ownerTier": "global",
+}
+```
+
+This API provides low-level access to configure new devices, by-passing the normal configuration
+mechanism. One use-case for this API are API users that also have their own device in Thingpedia, and can generate
+access tokens for themselves without involving the user.
+The parameters are as defined by the device itself, with the exception of the `kind` parameter
+which identifies the class in Thingpedia. The API returns the same object that
+would be returned by `/devices/list`.
+
+NOTE: if you want to configure a device for which you do not have the correct access tokens, you should
+use one of the APIs that execute ThingTalk (`/converse` or `/apps/create`) and execute a program
+that invokes the `@org.thingpedia.builtin.thingengine.builtin.configure` action. The program will
+request any information from the user as necessary. 
 
 ## Endpoint: /apps/list
 

@@ -11,44 +11,86 @@ addons:
   - almond-dev.stanford.edu
   mariadb: '10.2'
   firefox: latest-esr
-node_js:
-- '10'
+node_js: '10'
 cache:
   timeout: 900
   npm: true
   yarn: true
   pip: true
-before_install:
-- ./travis/unlock-key.sh
-- mkdir cvc4/
-- wget https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -O cvc4/cvc4
-- chmod +x cvc4/cvc4
-- mkdir geckodriver/
-- wget https://github.com/mozilla/geckodriver/releases/download/v0.22.0/geckodriver-v0.22.0-linux64.tar.gz
-- tar xvf geckodriver-v0.22.0-linux64.tar.gz -C geckodriver/
-- export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
-- sudo add-apt-repository -y ppa:openstack-ci-core/bubblewrap
-- sudo apt-get update -q -y
-install:
-- sudo apt-get install -y graphicsmagick libsystemd-dev realpath bubblewrap python3
-- travis_retry yarn
-- pyenv global 3.6.7
-- travis_wait ./tests/install-nlp-deps.sh
-- export DECANLP_EMBEDDINGS=`pwd`/tests/embeddings
-before_script:
-- mysql -u root -e "create database if not exists thingengine_test; grant all privileges
-  on thingengine_test.* to 'thingengine'@'%' identified by 'thingengine';"
-script:
-- yarn lint
-- yarn test
-after_success: yarn run coverage
-deploy:
-  provider: script
-  skip_cleanup: true
-  script: ssh -i ./travis/id_rsa.autodeploy autodeploy@almond-dev.stanford.edu
-  on:
-    branch: staging
-    repo: stanford-oval/almond-cloud
+
+stages:
+  - test
+  - name: deploy
+    if: branch = staging AND repo = stanford-oval/almond-cloud
+
+env:
+  global:
+  - TZ="America/Los_Angeles"
+  - COVERALLS_PARALLEL=true
+
+jobs:
+  include:
+    -
+      name: "Unit Tests"
+      install:
+      - sudo apt-get update -q -y
+      - sudo apt-get install -y realpath
+      - travis_retry yarn
+      - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
+      script:
+      - yarn lint
+      - ./tests/check-migrations.sh
+      - yarn run nyc node ./tests/unit
+      after_success: yarn run coverage
+    -
+      name: "Web Almond Integration Tests"
+      install:
+      - ./travis/install-webalmond-deps.sh
+      - travis_retry yarn
+      - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
+      - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+      script: yarn run nyc ./tests/webalmond-integration.sh
+      after_success: yarn run coverage
+    -
+      name: "Thingpedia Integration Tests"
+      install:
+      - ./travis/install-webalmond-deps.sh
+      - travis_retry yarn
+      - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
+      - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+      script: yarn run nyc ./tests/thingpedia-integration.sh
+      after_success: yarn run coverage
+    -
+      name: "NLP Integration Tests"
+      install:
+      - ./travis/install-webalmond-deps.sh
+      - travis_retry yarn
+      - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
+      - pyenv global 3.6.7
+      - ./tests/install-nlp-deps.sh
+      - export DECANLP_EMBEDDINGS=`pwd`/tests/embeddings
+      - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+      script: yarn run nyc ./tests/nlp-integration.sh
+      after_success: yarn run coverage
+    -
+      name: "Training Integration Tests"
+      install:
+      - ./travis/install-webalmond-deps.sh
+      - travis_retry yarn
+      - (cd node_modules/genie-toolkit ; yarn ; rm -fr node_modules)
+      - pyenv global 3.6.7
+      - ./tests/install-nlp-deps.sh
+      - export DECANLP_EMBEDDINGS=`pwd`/tests/embeddings
+      - export PATH="`pwd`/cvc4:`pwd`/geckodriver:$PATH"
+      script: yarn run nyc ./tests/training-integration.sh
+      after_success: yarn run coverage
+    -
+      stage: deploy
+      name: "Deploy to Staging"
+      install: ./travis/unlock-key.sh
+      script: ssh -i ./travis/id_rsa.autodeploy autodeploy@almond-dev.stanford.edu
+
 notifications:
+  webhooks: https://coveralls.io/webhook
   slack:
     secure: fGrI1C4upQI+TvN5AFq5Ncm37tlIEIAq39mZzP259fxxTJZVDrLL9RezzI4o17elCgROnRhOeuK75muAlDWKUK1vvVlG02y6G1qOTfG2paklLpxdGSdJHWyGOoMqv822bSpYpz+Us2hbgIoyRIjzE4QTPtAwUm+aNbQUQX5GLucBrwdkJqTUQVUSEZKjB8i8bl0ORODX2RHLWO1zuLTi/vT39DrFo2fD2yuZHNvgqDZIiIyt+9vPJPF/i1xZdh0/0XZSicAGMBBUS4FuxPWYW0ouR2Joup9jZHMmKZzgTJcPsJKpGU2feeCJebol5SWmgB1nAapfIG1WjSNUtgGKKA4BRpuhq/iZUiBE8dQrcQT2NWBES8MmPkw01xzAAALlsvL2snfVNw37WDCSezv3Ls1aT7ISDFyx29rulan0kqkcWH4e5xFY5g2TZKUPAvNeV6QfhP4RP+L+Eh72Dhk67esVTtdE7S+MX+Czq/nFeMQINPbmf+VzznHJEvEDlGT1qjz+11FxRLgtv+qbEk5UdUs3b56twLQNg3NxCQX53bjI1KRxOmf66+fl4y1DXhH5ka4m9jLoULI2hvpKLyHFg0Cky/ilTrOdfSRtSmaeshnJ3mD58CZry4xscKODwnLFz+yQdu04drto3+5sCNTNZTbxbZPY+an273kUXhXyh4w=

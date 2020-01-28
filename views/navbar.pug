@@ -10,7 +10,7 @@ ul.nav.navbar-nav
     li
       a(href='/thingpedia')= _("Thingpedia")
   li
-    a(href=Config.DOCUMENTATION_URL)= _("Documentation")
+    a(href=Config.DOCUMENTATION_URL)= _("Docs")
   if Config.ENABLE_DEVELOPER_PROGRAM
     if authenticated && user.developer_org
       li

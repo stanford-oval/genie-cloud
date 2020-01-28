@@ -97,7 +97,7 @@ module.exports = {
              order by id`, [language, tag, language, tag]).then(loadModels);
     },
     getByTagForUpdate(client, language, tag) {
-        return db.selectAll(client, `select m.*, tpl.tag as template_file_name
+        return db.selectOne(client, `select m.*, tpl.tag as template_file_name
               from models m, template_files tpl where tpl.id = m.template_file
               and m.language = ? and m.tag = ? for update`, [language, tag]);
     },
@@ -129,5 +129,9 @@ module.exports = {
             await db.insertOne(client, "insert into model_devices(model_id, schema_id) select ?,id from device_schema where kind in (?)", [id, for_devices]);
         model.id = id;
         return model;
+    },
+
+    async updateByTag(client, language, tag, model) {
+        return db.query(client, `update models set ? where language = ? and tag = ?`, [model, language, tag]);
     }
 };

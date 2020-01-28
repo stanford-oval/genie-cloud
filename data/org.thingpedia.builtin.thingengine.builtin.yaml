@@ -92,7 +92,8 @@ class: |
 dataset: |
   dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
       stream  := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())
-      #_[utterances=["when my location changes","when i move"]];
+      #_[utterances=["when my location changes","when i move"]]
+      #[name="MonitorCurrentLocation"];
 
       stream (p_location :Location)  := edge (monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())) on location == p_location
       #_[utterances=["when my location changes to $p_location","when i reach $p_location"]];

@@ -93,6 +93,8 @@ class LinkChecker {
 
             if (IGNORED_404.has(next))
                 continue;
+            if (next.startsWith('/doc/jsdoc/'))
+                continue;
 
             console.log(`linkchecker: checking ${next}`);
             try {
@@ -105,7 +107,7 @@ class LinkChecker {
                     if (href.startsWith('#')) // ignore links to the same page
                         continue;
 
-                    this._stack.push([href, next]);
+                    this._stack.push([Url.resolve(fullUrl, href), next]);
                 }
             } catch(e) {
                 if (typeof e.code !== 'number')
@@ -114,7 +116,7 @@ class LinkChecker {
                 // catch redirects and treat them as links
                 // this allows checking the /oauth2 pages, which redirect externally
                 if (e.code === 301 || e.code === 302 || e.code === 303 || e.code === 307) {
-                    this._stack.push([e.redirect, parent]);
+                    this._stack.push([Url.resolve(fullUrl, e.redirect), parent]);
                 } else {
                     console.error(`linkchecker: error: ${next} responded with HTTP status ${e.code} (link from ${parent})`);
                     anyFailed = true;

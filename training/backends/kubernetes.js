@@ -18,7 +18,7 @@ const kc = new k8s.KubeConfig();
 kc.loadFromDefault();
 
 const k8sApi = kc.makeApiClient(k8s.BatchV1Api);
-const watcher = new class JobWatcher extends Tp.RefCounted {
+const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
     constructor() {
         super();
 
@@ -28,8 +28,10 @@ const watcher = new class JobWatcher extends Tp.RefCounted {
         this._watchedJobs = new Map;
     }
 
-    watch(jobId, callbacks) {
-        this._watchedJobs.set(jobId, callbacks);
+    watch(jobName, callbacks) {
+        this._watchedJobs.set(jobName, callbacks);
+        // Number of tries to watch job status. Setting to a negative number will try indefinitely.
+        this._numTriesLeft = parseInt(Config.TRAINING_WATCH_NUM_TRIES || 5);
     }
 
     _computeLabelSelector() {
@@ -42,73 +44,131 @@ const watcher = new class JobWatcher extends Tp.RefCounted {
     }
 
     async _doOpen() {
+        this._watchJobs();
+    }
+
+    async _watchJobs() {
+        if (this._numTriesLeft === 0) {
+            console.log('Num tries exceeded');
+            for (let [jobName, callback] of this._watchedJobs.entries()) {
+                console.error('failed to watch job', jobName);
+                callback.reject(new Error('Kubernetes failed to watch ' + jobName));
+            }
+            return;
+        }
+        console.log('Watching num jobs:', this._watchedJobs.size,  'with num tries left:', this._numTriesLeft);
         let currentJobs;
         try {
-            currentJobs = (await k8sApi.listNamespacedJob(Config.TRAINING_KUBERNETES_NAMESPACE.
+            currentJobs = (await k8sApi.listNamespacedJob(Config.TRAINING_KUBERNETES_NAMESPACE,
                 false /* includeUninitialized */,
                 false /* pretty */,
                 undefined /* _continue */,
                 undefined /* fieldSelector */,
                 this._computeLabelSelector())).body;
-        } catch(res) {
-            throw new Error(`Failed to list Kubernetes jobs: ${res.response.body.message}`);
+        } catch(err) {
+            throw new Error('Failed to list Kubernetes jobs:' +  JSON.stringify(err));
         }
-
         for (let job of currentJobs.items)
             this._processJob(job);
         this._resourceVersion = currentJobs.metadata.resourceVersion;
+        if (this._watchedJobs.size === 0) {
+            console.log('Finished processing all jobs from list jobs');
+            return;
+        }
 
         const url = `/apis/batch/v1/namespaces/${Config.TRAINING_KUBERNETES_NAMESPACE}/jobs`;
         this._req = this._watcher.watch(url, {
             resourceVersion: this._resourceVersion,
-            labelSelector: this._computeLabelSelector()
+            labelSelector: this._computeLabelSelector(),
+            // Setting timeout to a large number (7 days). Even so, we may still see occasional
+            // server connection drops. So retrying is necessary.
+            timeoutSeconds: 604800
         }, (type, k8sJob) => {
-            if (type !== 'ADDED' && type !== 'MODIFIED')
+            if (type !== 'ADDED' && type !== 'MODIFIED' && type !== 'DELETED') {
+                console.log('Ignored job state change', type, 'for', k8sJob.metadata.name);
                 return;
-            this._processJob(k8sJob);
+            }
+            this._processJob(k8sJob, type);
+        }, (err) => {
+            console.error('watch jobs error:', err);
+            if (this._watchedJobs.size > 0) {
+                this._numTriesLeft--;
+                this._watchJobs();
+            }
         });
     }
-
-    _processJob(k8sJob) {
-        const jobId = Number(k8sJob.metadata['edu.stanford.almond/job-id']);
-        if (!this._watchedJobs.has(jobId))
+    
+    _processJob(k8sJob, type) {
+        const jobName = k8sJob.metadata.name;
+        console.log('processing job', jobName);
+        if (!this._watchedJobs.has(jobName)) {
+            console.log('not watching job', jobName);
             return;
+        }
 
-        const callbacks = this._watchedJobs.get(jobId);
+        const callbacks = this._watchedJobs.get(jobName);
+        if (type === 'DELETED') {
+          console.log('deleted job', k8sJob.metadata.name);
+          // job was either killed or deleted by user
+          callbacks.reject(new Error('The kubernetes job was deleted'));
+          this._watchedJobs.delete(jobName);
+          return;
+        }
+
         if (k8sJob.status.succeeded > 0) {
+            console.log('job suceeded');
+            k8sApi.deleteNamespacedJob(k8sJob.metadata.name, k8sJob.metadata.namespace,
+                undefined /*pretty*/,
+                undefined /*dryRun*/,
+                undefined /*gracePeriodSeconds*/,
+                undefined /*orphanDependents*/,
+                "Background" /*propagationPolicy*/)
+            .catch((err) => {
+                console.error('Failed to delete succeeded job:', err);
+            });
             callbacks.resolve();
-            this._watchedJobs.delete(jobId);
+            this._watchedJobs.delete(jobName);
+        }
+        if (!k8sJob.status.conditions) {
+            console.log('wating for job status');
+            return;
         }
         for (let condition of k8sJob.status.conditions) {
             if (condition.type === 'Failed' && condition.status === 'True') {
                 callbacks.reject(new Error(condition.message || `The Kubernetes Job failed`));
-                this._watchedJobs.delete(jobId);
+                this._watchedJobs.delete(jobName);
                 return;
             }
         }
     }
 
     async _doClose() {
-        this._req.abort();
+        if (this._req) this._req.abort();
     }
 };
 
 class KubernetesTaskRunner {
-    constructor(jobId, k8sJob) {
-        this._jobId = jobId;
+    constructor(k8sJob) {
         this._k8sJob = k8sJob;
     }
 
     kill() {
-        k8sApi.deleteNamespacedJob(this._k8sJob.metadata.namespace, this._k8sJob.metadata.name).catch((res) => {
-            console.error(`Failed to kill Kubernetes job: ${res.response.body.message}`);
+        console.log('killing job', this._k8sJob.metadata.name);
+        k8sApi.deleteNamespacedJob(this._k8sJob.metadata.name, this._k8sJob.metadata.namespace,
+            undefined /*pretty*/,
+            undefined /*dryRun*/,
+            undefined /*gracePeriodSeconds*/,
+            undefined /*orphanDependents*/,
+            "Background" /*propagationPolicy*/)
+        .catch((err) => {
+            console.error('Failed to kill Kubernetes job:', err);
         });
     }
 
     async wait() {
         try {
             await  new Promise((resolve, reject) => {
-                watcher.watch(this._jobId, { resolve, reject });
+                watcher.watch(this._k8sJob.metadata.name, { resolve, reject });
                 watcher.open().catch(reject);
             });
         } finally {
@@ -117,15 +177,19 @@ class KubernetesTaskRunner {
     }
 }
 
+
 module.exports = async function execTask(job, spec) {
+    const jobName = Config.TRAINING_KUBERNETES_JOB_NAME_PREFIX + 'training-job-' + job.id + '-' + spec.name;
     const k8sJob = {
         apiVersion: 'batch/v1',
         kind: 'Job',
         metadata: {
-            name: Config.TRAINING_KUBERNETES_JOB_NAME_PREFIX + 'training-job-' + job.jobId + '-' + spec.name,
+            name: jobName,
             labels: {
                 app: 'training-job',
-                'edu.stanford.almond/job-id': job.id
+                'job-id': String(job.id),
+                'job-type': job.job_type,
+                'task-name': spec.name
             },
         },
 
@@ -138,7 +202,9 @@ module.exports = async function execTask(job, spec) {
                 metadata: {
                     labels: {
                         app: 'training-job',
-                        'edu.stanford.almond/job-id': job.id
+                        'job-id': String(job.id),
+                        'job-type': job.job_type,
+                        'task-name': spec.name
                     }
                 },
 
@@ -147,12 +213,15 @@ module.exports = async function execTask(job, spec) {
                     containers: [
                         {
                             name: 'main',
-                            image: Config.TRAINING_KUBERNETES_IMAGE + (spec.gpu > 0 ? '-cuda' : ''),
+                            image: Config.TRAINING_KUBERNETES_IMAGE + (spec.requests.gpu > 0 ? '-cuda' : ''),
                             imagePullPolicy: 'Always',
-                            args: [
+                            command: [ '/usr/bin/node',
+                                '--experimental-worker',
+                                '--max_old_space_size=' + Config.TRAINING_MEMORY_USAGE,
+                                '/opt/almond-cloud/main.js',
                                 'run-training-task',
                                 '--task-name', spec.name,
-                                '--job-id', job.id,
+                                '--job-id', String(job.id),
                                 '--job-directory', job.jobDir
                             ],
                             resources: {
@@ -161,20 +230,31 @@ module.exports = async function execTask(job, spec) {
                                     memory: (Config.TRAINING_MEMORY_USAGE + 100) + 'Mi'
                                 }
                             },
-                            volumeMounts: {}
+                            securityContext: {
+                                capabilities: {
+                                    add: [ 'SYS_ADMIN', 'NET_ADMIN']
+                                }
+                            }
                         }
                     ],
-                    volumes: [],
                     tolerations: []
                 }
             },
 
-            ttlSecondsAfterFinished: 600
+            // TODO: enable after TTLAfterFinished is out of alpha:
+            //    https://github.com/aws/containers-roadmap/issues/255
+            // ttlSecondsAfterFinished: 600
         }
     };
     for (let key in Config.TRAINING_KUBERNETES_EXTRA_METADATA_LABELS) {
         k8sJob.metadata.labels[key] = Config.TRAINING_KUBERNETES_EXTRA_METADATA_LABELS[key];
         k8sJob.spec.template.metadata.labels[key] = Config.TRAINING_KUBERNETES_EXTRA_METADATA_LABELS[key];
+    }
+
+    for (let key in Config.TRAINING_KUBERNETES_EXTRA_ANNOTATIONS) {
+        if (!('annotations' in k8sJob.spec.template.metadata))
+           k8sJob.spec.template.metadata.annotations = {};
+        k8sJob.spec.template.metadata.annotations[key] = Config.TRAINING_KUBERNETES_EXTRA_ANNOTATIONS[key];
     }
 
     if (spec.requests.gpu > 0) {
@@ -183,19 +263,20 @@ module.exports = async function execTask(job, spec) {
             operator: 'Exists',
             effect: 'NoSchedule'
         });
-        k8sJob.spec.template.spec.containers[0].resources.requests['nvidia.com/gpu'] = spec.requests.gpu;
+        k8sJob.spec.template.spec.containers[0].resources['limits'] = {'nvidia.com/gpu': spec.requests.gpu};
     }
 
     for (let key in Config.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE)
         k8sJob.spec.template.spec[key] = Config.TRAINING_KUBERNETES_POD_SPEC_OVERRIDE[key];
+
     for (let key in Config.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE)
-        k8sJob.spec.template.spec.containers[0].key = Config.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE[key];
+        k8sJob.spec.template.spec.containers[0][key] = Config.TRAINING_KUBERNETES_CONTAINER_SPEC_OVERRIDE[key];
 
     try {
         const createdJob = (await k8sApi.createNamespacedJob(Config.TRAINING_KUBERNETES_NAMESPACE, k8sJob)).body;
 
         return new KubernetesTaskRunner(createdJob);
-    } catch(res) {
-        throw new Error(`Failed to create Kubernetes job: ${res.response.body.message}`);
+    } catch(err) {
+        throw new Error('Failed to create Kubernetes job:' + JSON.stringify(err));
     }
 };

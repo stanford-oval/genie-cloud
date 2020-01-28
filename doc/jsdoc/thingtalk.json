@@ -1,0 +1,25 @@
+{
+    "plugins": [
+        "plugins/markdown"
+    ],
+    "recurseDepth": 10,
+    "source": {
+        "includePattern": ".+\\.js(doc|x)?$",
+        "excludePattern": "((^|\\/)_|\\/tests?\\/)"
+    },
+    "sourceType": "module",
+    "tags": {
+        "allowUnknownTags": true,
+        "dictionaries": ["jsdoc","closure"]
+    },
+    "templates": {
+        "cleverLinks": true,
+        "monospaceLinks": true,
+        "includeDate": false,
+        "useLongnameInNav": true,
+        "showAccessFilter": false,
+        "systemColor": "#6d1010",
+        "systemName": "thingtalk",
+        "systemSummary": "The Programming Language of Virtual Assistants"
+    }
+}

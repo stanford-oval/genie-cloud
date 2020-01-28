@@ -15,6 +15,7 @@ async function seq(array) {
 }
 
 seq([
+    ('./test_abstract_fs'),
     ('./test_lock'),
     ('./test_tokenize'),
     ('./test_device_factories'),
@@ -25,5 +26,6 @@ seq([
     ('./test_exact_matcher'),
     ('./test_nlp_compat'),
     ('./test_example_names'),
-    ('./test_alexa_intent_parser')
+    ('./test_alexa_intent_parser'),
+    ('./test_k8s_api.js')
 ]);

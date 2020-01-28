@@ -15,6 +15,7 @@ const { assertHttpError, assertRedirect, assertLoginRequired, assertBlocked, ses
 const { login, startSession } = require('../login');
 
 const db = require('../../util/db');
+const sleep = require('../../util/sleep');
 const EngineManagerClient = require('../../almond/enginemanagerclient');
 
 const Config = require('../../config');
@@ -44,12 +45,6 @@ async function testAdminUsers(root, bob, nobody) {
     assert(rootUserPage2.indexOf('root@localhost') >= 0);
 }
 
-function delay(ms) {
-    return new Promise((resolve, reject) => {
-        setTimeout(resolve, ms);
-    });
-}
-
 async function testAdminKillRestart(root, bob, nobody) {
     const emc = EngineManagerClient.get();
     assert (await emc.isRunning(1)); // root
@@ -71,7 +66,7 @@ async function testAdminKillRestart(root, bob, nobody) {
     assert (!await emc.isRunning(5)); // emma -or- alexa_user
 
     // the shared processes will be restarted in 5s
-    await delay(10000);
+    await sleep(10000);
 
     await assertLoginRequired(sessionRequest('/admin/users/start/1', 'POST', '', nobody));
     await assertRedirect(sessionRequest('/admin/users/start/1', 'POST', '', root, { followRedirects: false }), '/admin/users/search?q=1');

@@ -64,31 +64,23 @@ var _discoveryServer = new TpDiscovery.Server(new ThingpediaDiscoveryDatabase())
 
 const CATEGORIES = new Set(['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management']);
 
-// TpClient.BaseClient wants a Platform instance rather than
-// a static pair of (developerKey, locale) because it wants to
-// be immune to changes in the developer key (which in the clients
-// can occur at runtime)
-// In almond-cloud, the developer key is immutable so this is not
-// an issue, but we still wrap the key and locale in a Platform object
-// to keep the API consistent
-class Platform {
-    constructor(developerKey, locale) {
-        this._developerKey = developerKey;
-        this.locale = locale;
-    }
-
-    getDeveloperKey() {
-        return this._developerKey;
-    }
-}
-
 module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
     constructor(developerKey, locale, dbClient = null) {
-        super(new Platform(developerKey, locale));
+        super();
 
+        this._developerKey = developerKey;
+        this._locale = locale;
         this.language = I18n.localeToLanguage(locale);
 
         this._dbClient = null;
+    }
+
+    get developerKey() {
+        return this._developerKey;
+    }
+
+    get locale() {
+        return this._locale;
     }
 
     _withClient(func) {
@@ -348,8 +340,8 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
         }
         return rows;
     }
-    _makeDataset(name, rows) {
-        return DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.${name}`, this.language, rows);
+    _makeDataset(name, rows, options = {}) {
+        return DatasetUtils.examplesToDataset(`org.thingpedia.dynamic.${name}`, this.language, rows, options);
     }
 
     getExamplesByKey(key, accept = 'application/x-thingtalk') {
@@ -368,6 +360,8 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
     }
 
     getExamplesByKinds(kinds, accept = 'application/x-thingtalk') {
+        if (!Array.isArray(kinds))
+            kinds = [kinds];
         if (kinds.length === 0)
             return Promise.resolve([]);
         return this._withClient(async (dbClient) => {
@@ -377,6 +371,12 @@ module.exports = class ThingpediaClientCloud extends Tp.BaseClient {
                 return this._datasetBackwardCompat(rows, true);
             case 'application/json':
                 return this._datasetBackwardCompat(rows, false);
+            case 'application/x-thingtalk;editMode=1':
+                if (kinds.length === 1)
+                    return DatasetUtils.examplesToDataset(kinds[0], this.language, rows, { editMode: true });
+
+                return this._makeDataset(`by_kinds.${kinds.map((k) => k.replace(/[^a-zA-Z0-9]+/g, '_')).join('__')}`,
+                    rows, { editMode: true });
             default:
                 return this._makeDataset(`by_kinds.${kinds.map((k) => k.replace(/[^a-zA-Z0-9]+/g, '_')).join('__')}`,
                     rows);

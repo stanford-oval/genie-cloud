@@ -19,9 +19,11 @@ const iv = require('../util/input_validation');
 const { NotFoundError, BadRequestError } = require('../util/errors');
 const errorHandling = require('../util/error_handling');
 const oauth2server = require('../util/oauth2');
+const { makeRandom } = require('../util/random');
 
 const Config = require('../config');
 
+const CloudSync = require('./cloud-sync');
 const MyConversation = require('./my_conversation');
 
 var router = express.Router();
@@ -85,6 +87,23 @@ router.get('/parse', user.requireScope('user-read'), iv.validateGET({ q: '?strin
     }).catch(next);
 });
 
+router.post('/converse', user.requireScope('user-exec-command'), (req, res, next) => {
+    let command = req.body.command;
+    if (!command) {
+        next(new BadRequestError('Missing command'));
+        return;
+    }
+
+    Q.try(() => {
+        return EngineManager.get().getEngine(req.user.id);
+    }).then((engine) => {
+        const assistantUser = { name: user.human_name || user.username, isOwner: true };
+        return engine.assistant.converse(command, assistantUser, req.body.conversationId ? String(req.body.conversationId) : 'stateless-' + makeRandom(4));
+    }).then((result) => {
+        res.json(result);
+    }).catch(next);
+});
+
 async function describeDevice(d, req) {
     const [uniqueId, name, description, kind, ownerTier] = await Promise.all([
         d.uniqueId, d.name, d.description, d.kind, d.ownerTier]);
@@ -109,6 +128,22 @@ router.get('/devices/list', user.requireScope('user-read'), (req, res, next) => 
         // sort by name to provide a deterministic result
         result.sort((a, b) => a.name.localeCompare(b.name));
         res.json(result);
+    }).catch(next);
+});
+
+router.post('/devices/create', user.requireScope('user-exec-command'), iv.validatePOST({ kind: 'string' }, { accept: 'json', json: true }), (req, res, next) => {
+    for (let key in req.body) {
+        if (['string', 'number', 'boolean'].indexOf(typeof req.body[key]) < 0) {
+            iv.failKey(req, res, key, { json: true });
+            return;
+        }
+    }
+
+    EngineManager.get().getEngine(req.user.id).then(async (engine) => {
+        const devices = engine.devices;
+
+        const device = await devices.addSerialized(req.body);
+        res.json(await describeDevice(device, req));
     }).catch(next);
 });
 
@@ -173,96 +208,8 @@ router.post('/apps/delete/:appId', user.requireScope('user-exec-command'), (req,
     }).catch(next);
 });
 
-class WebsocketDelegate {
-    constructor(ws) {
-        this._ws = ws;
-        this._remote = null;
-    }
-
-    setRemote(remote) {
-        this._remote = remote;
-
-        this._ws.on('message', (data) => {
-            try {
-                remote.onMessage(data);
-            } catch(e) {
-                console.error('Failed to relay websocket message: ' + e.message);
-                this._ws.close();
-            }
-        });
-        this._ws.on('ping', (data) => {
-            try {
-                remote.onPing(data);
-            } catch(e) {
-                // ignore
-                this._ws.close();
-            }
-        });
-        this._ws.on('pong', (data) => {
-            try {
-                remote.onPong(data);
-            } catch(e) {
-                // ignore
-                this._ws.close();
-            }
-        });
-        this._ws.on('close', (data) => {
-            try {
-                remote.onClose(data);
-            } catch(e) {
-                // ignore
-            }
-        });
-    }
-
-    ping() {
-        this._ws.ping();
-    }
-
-    pong() {
-        this._ws.pong();
-    }
-
-    send(data) {
-        this._ws.send(data);
-    }
-
-    terminate() {
-        this._ws.terminate();
-    }
-}
-WebsocketDelegate.prototype.$rpcMethods = ['ping', 'pong', 'terminate', 'send'];
-
-router.ws('/sync', user.requireScope('user-sync'), async (ws, req) => {
-    try {
-        const userId = req.user.id;
-        const engine = await EngineManager.get().getEngine(userId);
-
-        const onclosed = (id) => {
-            if (id === userId)
-                ws.close();
-            EngineManager.get().removeListener('socket-closed', onclosed);
-        };
-        EngineManager.get().on('socket-closed', onclosed);
-
-        const delegate = new WebsocketDelegate(ws);
-        ws.on('error', (err) => {
-            ws.close();
-        });
-        ws.on('close', async () => {
-            delegate.$free();
-        });
-
-        const remote = await engine.websocket.newConnection(delegate);
-        delegate.setRemote(remote);
-    } catch (error) {
-        console.error('Error in cloud-sync websocket: ' + error.message);
-
-        // ignore "Not Opened" error in closing
-        try {
-            ws.close();
-        } catch(e) {/**/}
-    }
+router.ws('/sync', user.requireScope('user-sync'), (ws, req) => {
+    CloudSync.handle(ws, req.user.id);
 });
 
 // if nothing handled the route, return a 404

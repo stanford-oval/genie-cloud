@@ -15,11 +15,11 @@ const csurf = require('csurf');
 const JSZip = require('jszip');
 const fs = require('fs');
 const util = require('util');
+const os = require('os');
 
 const db = require('../util/db');
 const user = require('../util/user');
 const model = require('../model/template_files');
-const platform = require('../util/platform');
 const iv = require('../util/input_validation');
 const { validateTag } = require('../util/validation');
 const { ForbiddenError, BadRequestError } = require('../util/errors');
@@ -65,7 +65,7 @@ async function uploadTemplatePack(req) {
         if (!I18n.get(req.body.language))
             throw new BadRequestError(req._("Unsupported language"));
 
-        if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,][a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
+        if (req.body.flags && !/^[a-zA-Z_][0-9a-zA-Z_]*(?:[ ,]+[a-zA-Z_][0-9a-zA-Z_]*)*$/.test(req.body.flags))
             throw new BadRequestError(req._("Invalid flags"));
 
         validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
@@ -121,7 +121,7 @@ async function uploadTemplatePack(req) {
     }
 }
 
-router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
+router.post('/create', multer({ dest: os.tmpdir() }).fields([
     { name: 'upload', maxCount: 1 }
 ]), csurf({ cookie: false }), user.requireLogIn, user.requireDeveloper(),
     iv.validatePOST({ tag: 'string', description: 'string', language: 'string', flags: '?string', public: 'boolean' }), (req, res, next) => {

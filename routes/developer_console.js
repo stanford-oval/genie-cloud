@@ -249,7 +249,7 @@ router.post('/organization/edit-profile', user.requireLogIn, user.requireDevelop
 });
 
 
-router.get('/train', (req, res) => {
+router.get('/train', user.requireLogIn, (req, res) => {
     res.render('dev_train_almond', { page_title: req._("Almond - Train Almond"), csrfToken: req.csrfToken() });
 });
 

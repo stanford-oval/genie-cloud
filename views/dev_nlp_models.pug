@@ -58,6 +58,7 @@ block content
                                 button(type='submit').btn.btn-primary= _("Train")
 
                   p= _("Template Pack: %s").format(m.template_file_name)
+                  p= _("Flags: %s").format(m.flags.join(_(", ")))
 
                   if m.all_devices
                     if m.use_approved
@@ -156,6 +157,7 @@ block content
                 li.list-group-item
                   h4= _("%s (%s)").format(m.tag, m.language)
                   p= m.description
+                  p= _("Available flags: %s").format(JSON.parse(m.flags).join(_(", ")))
                   p= _("Version: %d").format(m.version)
                   if m.public
                     p.text-muted= _("Public")

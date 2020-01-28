@@ -37,7 +37,7 @@ const FORBIDDEN_NAMES = new Set(['__count__', '__noSuchMethod__', '__parent__',
 
 const ALLOWED_ARG_METADATA = new Set(['canonical', 'prompt']);
 const ALLOWED_FUNCTION_METADATA = new Set(['canonical', 'confirmation', 'confirmation_remote', 'formatted']);
-const ALLOWED_CLASS_METADATA = new Set(['name', 'description']);
+const ALLOWED_CLASS_METADATA = new Set(['name', 'description', 'thingpedia_name', 'thingpedia_description', 'canonical']);
 
 function validateAnnotations(annotations) {
     for (let name of Object.getOwnPropertyNames(annotations)) {
@@ -132,7 +132,16 @@ async function validateDevice(dbClient, req, options, classCode, datasetCode) {
         classDef.metadata.name = name;
     if (!classDef.metadata.description)
         classDef.metadata.description = description;
+    if (!classDef.metadata.canonical)
+        classDef.metadata.canonical = tokenize(name).join(' ');
     await validateDataset(dataset);
+
+    // delete annotations that are specific to devices uploaded with the "thingpedia" CLI tool
+    // and are stored elsewhere in Thingpedia
+    delete classDef.metadata.thingpedia_name;
+    delete classDef.metadata.thingpedia_description;
+    for (let key of ['license', 'license_gplcompatible', 'subcategory', 'website', 'repository', 'issue_tracker'])
+        delete classDef.annotations[key];
 
     return [classDef, dataset];
 }
@@ -147,8 +156,10 @@ function autogenExampleName(ex, names) {
 
     let counter = 1;
     let name = baseName + counter;
-    while (names.has(name))
+    while (names.has(name)) {
         counter ++;
+        name = baseName + counter;
+    }
     names.add(name);
     return name;
 }
@@ -382,6 +393,9 @@ function validateTag(tag, user, adminRole) {
     if (!/^([A-Za-z_][A-Za-z0-9_.-]*)$/.test(tag))
         throw new ValidationError(`Invalid ID ${tag}`);
 
+    if (/\.(js|json|css|htm|html|xml|jpg|jpeg|png|gif|bmp|ico|tif|tiff|woff)$/i.test(tag))
+        throw new ValidationError(`Invalid ID ${tag}`);
+
     const parts = tag.split('.');
     for (let part of parts) {
         if (part.length === 0 || /^[-0-9]/.test(part) || part.endsWith('-'))
@@ -406,6 +420,10 @@ function validateTag(tag, user, adminRole) {
 
     if (parts.length <= 1)
         throw new ValidationError(`Invalid ID ${tag}: must contain at least one period`);
+
+    // if the user is in the root org, they're allowed org.thingpedia
+    if (user.developer_org === 1)
+        return;
 
     if (parts[0] === 'org' && parts[1] === 'thingpedia') {
         // ignore the 'org.thingpedia.builtin.test' and 'org.thingpedia.test' namespaces, which are free-for-all
