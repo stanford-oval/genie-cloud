@@ -6,7 +6,7 @@ echo "Running in $(pwd)"
 
 case $DOCKER_TAG in
 	*-cuda)
-		docker build --build-arg BASE_IMAGE=stanfordoval/decanlp:pldi19-cameraready-68-ga4e5a82-cuda -f $(basename $DOCKERFILE_PATH) -t $IMAGE_NAME ..
+		docker build --build-arg BASE_IMAGE=stanfordoval/decanlp:pldi19-cameraready-65-g6911a50-cuda -f $(basename $DOCKERFILE_PATH) -t $IMAGE_NAME ..
 	;;
 
 	*)
