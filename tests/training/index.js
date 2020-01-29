@@ -15,12 +15,17 @@ require('../../util/config_init');
 process.env.TEST_MODE = '1';
 
 const assert = require('assert');
-//const Tp = require('thingpedia');
+const tar = require('tar');
+const Tp = require('thingpedia');
 
 const db = require('../../util/db');
 const sleep = require('../../util/sleep');
 const trainingJobModel = require('../../model/training_job');
 const TrainingServer = require('../../util/training_server');
+
+const { assertHttpError, sessionRequest } = require('../website/scaffold');
+const { login, } = require('../login');
+const Config = require('../../config');
 
 async function waitUntilAllJobsDone() {
     for (;;) {
@@ -320,9 +325,39 @@ async function testForDevice() {
     await waitUntilAllJobsDone();
 }
 
+async function testDownload() {
+    const root = await login('root', 'rootroot');
+
+    await assertHttpError(sessionRequest('/luinet/models/download/en/org.thingpedia.foo', 'GET', null, root), 404);
+    await assertHttpError(sessionRequest('/luinet/models/download/zh/org.thingpedia.models.default', 'GET', null, root), 404);
+
+    const stream = await Tp.Helpers.Http.getStream(Config.SERVER_ORIGIN + '/luinet/models/download/en/org.thingpedia.models.default', {
+        extraHeaders: {
+            Cookie: root.cookie
+        },
+    });
+
+    const parser = tar.list();
+    const entries = [];
+    await new Promise((resolve, reject) => {
+        parser.on('entry', (entry) => {
+            entries.push(entry.path);
+        });
+        parser.on('finish', resolve);
+        stream.on('error', reject);
+        parser.on('error', reject);
+
+        stream.pipe(parser);
+    });
+
+    entries.sort();
+    assert.deepStrictEqual(entries, ['best.pth', 'config.json']);
+}
+
 async function main() {
     await testBasic();
     await testForDevice();
+    await testDownload();
 
     await db.tearDown();
 }

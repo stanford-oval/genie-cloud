@@ -610,3 +610,19 @@ S3 directory for temporary workdir storage.
 
 Default value: `null`
 
+## ACKEE_URL
+URL of an [Ackee](https://github.com/electerious/Ackee) server to use for page tracking.
+
+This property must contain the full URL (protocol, hostname, optional port) of the server,
+and must not end with a slash.
+If null, tracking will be disabled.
+
+Default value: `null`
+
+## ACKEE_DOMAIN_ID
+Domain ID to use for [Ackee](https://github.com/electerious/Ackee) tracking.
+
+This must be set if `ACKEE_URL` is set.
+
+Default value: `null`
+

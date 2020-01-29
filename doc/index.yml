@@ -48,6 +48,7 @@ sections:
     - thingpedia-string-type-list
     - thingpedia-jsdoc
     - luinet-template-list
+    - luinet-model-list
     - thingpedia-snapshot-list
     - thingtalk-jsdoc
     - thingengine-core-jsdoc
@@ -65,6 +66,9 @@ links:
   luinet-template-list:
     url: /luinet/templates
     title: Available Genie Templates
+  luinet-model-list:
+    url: /luinet/models
+    title: Available LUInet Models
   thingpedia-snapshot-list:
     url: /thingpedia/snapshots
     title: Thingpedia Snapshots

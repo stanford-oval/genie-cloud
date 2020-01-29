@@ -85,22 +85,26 @@ module.exports = {
             computeEta: false,
 
             async task(job) {
-                const modelLangDir = `./${job.model_tag}:${job.language}`;
                 const outputdir = AbstractFS.resolve(job.jobDir, 'output');
+                await db.withTransaction(async (dbClient) => {
+                    const model = await modelsModel.getByTagForUpdate(dbClient, job.language, job.model_tag);
+                    const newVersion = model.version + 1;
+                    const modeldir = `./${job.model_tag}:${job.language}-v${newVersion}`;
 
-                if (Config.NL_MODEL_DIR === null)
-                    return;
+                    await AbstractFS.sync(outputdir + '/',
+                        AbstractFS.resolve(Config.NL_MODEL_DIR, modeldir) + '/');
 
-                await AbstractFS.sync(outputdir + '/', AbstractFS.resolve(Config.NL_MODEL_DIR, modelLangDir) + '/');
-
-                await db.withClient(async (dbClient) => {
                     const trainingJobInfo = await trainingJobModel.get(dbClient, job.id);
 
-                    await modelsModel.updateByTag(dbClient, job.language, job.model_tag, {
+                    await modelsModel.update(dbClient, model.id, {
                         trained: true,
+                        version: newVersion,
                         metrics: trainingJobInfo.metrics
                     });
                 });
+
+                if (Config.NL_SERVER_URL === null)
+                    return;
 
                 await Tp.Helpers.Http.post(Config.NL_SERVER_URL + `/admin/reload/@${job.model_tag}/${job.language}?admin_token=${Config.NL_SERVER_ADMIN_TOKEN}`, '', {
                     dataContentType: 'application/x-www-form-urlencoded'
