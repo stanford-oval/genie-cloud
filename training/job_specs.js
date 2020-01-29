@@ -14,6 +14,7 @@ const Tp = require('thingpedia');
 const AbstractFS = require('../util/abstract_fs');
 const db = require('../util/db');
 const modelsModel = require('../model/nlp_models');
+const trainingJobModel = require('../model/training_job');
 
 const Config = require('../config');
 
@@ -92,9 +93,12 @@ module.exports = {
 
                 await AbstractFS.sync(outputdir + '/', AbstractFS.resolve(Config.NL_MODEL_DIR, modelLangDir) + '/');
 
-                await db.withClient((dbClient) => {
-                    return modelsModel.updateByTag(dbClient, job.language, job.model_tag, {
+                await db.withClient(async (dbClient) => {
+                    const trainingJobInfo = await trainingJobModel.get(dbClient, job.id);
+
+                    await modelsModel.updateByTag(dbClient, job.language, job.model_tag, {
                         trained: true,
+                        metrics: trainingJobInfo.metrics
                     });
                 });
 

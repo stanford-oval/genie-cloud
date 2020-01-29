@@ -19,6 +19,7 @@ const model = require('../model/user');
 const organization = require('../model/organization');
 const device = require('../model/device');
 const blogModel = require('../model/blog');
+const nlpModelsModel = require('../model/nlp_models');
 const db = require('../util/db');
 const TrainingServer = require('../util/training_server');
 const iv = require('../util/input_validation');
@@ -132,12 +133,21 @@ router.post('/users/start/:id', user.requireRole(user.Role.ADMIN), (req, res, ne
 });
 
 async function getTraining(req, res) {
-    const [jobs, metrics] = await db.withClient((dbClient) => {
+    const [jobs, models] = await db.withClient((dbClient) => {
         return Promise.all([
             TrainingServer.get().getJobQueue(dbClient),
-            TrainingServer.get().getMetrics(dbClient)
+            nlpModelsModel.getTrained(dbClient)
         ]);
     });
+
+    const metrics = {};
+    for (let model of models) {
+        if (!model.metrics)
+            continue;
+        const key = model.tag + '/' + model.language;
+        metrics[key] = JSON.parse(model.metrics);
+    }
+
     res.render('admin_training', { page_title: req._("Thingpedia - Administration - Natural Language Training"),
                                   csrfToken: req.csrfToken(),
                                   metrics,
