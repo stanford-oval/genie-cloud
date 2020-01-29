@@ -20,6 +20,7 @@ const child_process = require('child_process');
 
 const db = require('../util/db');
 const user = require('../util/user');
+const userModel = require('../model/user');
 const organization = require('../model/organization');
 const entityModel = require('../model/entity');
 const stringModel = require('../model/strings');
@@ -31,6 +32,7 @@ const Importer = require('../util/import_device');
 const { clean } = require('../util/tokenize');
 const TokenizerService = require('../util/tokenizer_service');
 const codeStorage = require('../util/code_storage');
+const execSql = require('../util/exec_sql');
 
 const Config = require('../config');
 
@@ -333,14 +335,48 @@ async function importDefaultNLPModels(dbClient, rootOrg, templatePack) {
     });
 }
 
+async function isAlreadyBootstrapped() {
+    try {
+        return await db.withClient(async (dbClient) => {
+            // check if we have a root user, and consider us bootstrapped if so
+            const [root] = await userModel.getByName(dbClient, 'root');
+            return !!root;
+        });
+    } catch(e) {
+        // on error, we likely do not even have the necessary tables
+        return false;
+    }
+}
+
 module.exports = {
     initArgparse(subparsers) {
-        subparsers.addParser('bootstrap', {
+        const parser = subparsers.addParser('bootstrap', {
             description: 'Bootstrap an installation of Almond Cloud'
+        });
+        parser.addArgument(['--force'], {
+            nargs: 0,
+            action: 'storeTrue',
+            defaultValue: false,
+            help: 'Force bootstrapping even if it appears to have occurred already.'
         });
     },
 
     async main(argv) {
+        // Check if we bootstrapped already
+        if (!argv.force) {
+            if (await isAlreadyBootstrapped()) {
+                console.error(`Almond appears to be already bootstrapped, refusing to bootstrap again.`);
+
+                await db.tearDown();
+                TokenizerService.tearDown();
+                return;
+            }
+        }
+
+        // initialize the schema
+        await execSql.exec(path.resolve(path.dirname(module.filename), '../model/schema.sql'));
+
+        // initialize the default data in the database
         await db.withTransaction(async (dbClient) => {
             const rootOrg = await createRootOrg(dbClient);
             await createDefaultUsers(dbClient, rootOrg);

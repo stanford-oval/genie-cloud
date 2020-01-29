@@ -27,7 +27,9 @@
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "install": "make install"
   },
-  "resolutions": {},
+  "resolutions": {
+    "markdown-it": "^10.0.0"
+  },
   "dependencies": {
     "accept-language": "^3.0.18",
     "accepts": "^1.3.5",
@@ -42,7 +44,7 @@
     "csurf": "^1.9.0",
     "csv-parse": "^4.6.1",
     "csv-stringify": "^5.3.0",
-    "deep-equal": "^1.0.1",
+    "deep-equal": "^2.0.1",
     "discourse-sso": "^1.0.3",
     "escape-html": "^1.0.3",
     "express": "^4.15.2",
@@ -62,7 +64,7 @@
     "jszip": "^3.0.0",
     "lunr": "^2.3.5",
     "lunr-languages": "^1.0.0",
-    "markdown-it": "^8.4.2",
+    "markdown-it": "^10.0.0",
     "markdown-it-anchor": "^5.0.0",
     "markdown-it-container-pandoc": "^1.0.0",
     "markdown-it-footnote": "^3.0.1",
@@ -107,7 +109,7 @@
     "type-is": "^1.6.16"
   },
   "devDependencies": {
-    "apidoc": "^0.19.0",
+    "apidoc": "^0.20.0",
     "browserify": "^16.1.1",
     "byline": "^5.0.0",
     "chart.js": "^2.7.3",
@@ -120,7 +122,7 @@
     "infinite-scroll": "^3.0.5",
     "jsdoc": "^3.6.3",
     "jsxgettext": "^0.11.0",
-    "nyc": "^14.0.0",
+    "nyc": "^15.0.0",
     "parse5": "^5.1.0",
     "proxyquire": "^2.0.0",
     "pug-lint": "^2.4.0",
@@ -130,8 +132,6 @@
   "optionalDependencies": {
     "@kubernetes/client-node": "^0.11.0",
     "aws-sdk": "^2.2.48",
-    "dialogflow": "^0.5.0",
-    "dialogflow-fulfillment": "^0.5.0",
     "selenium-webdriver": "^4.0.0-alpha.3"
   },
   "nyc": {

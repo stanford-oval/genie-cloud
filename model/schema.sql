@@ -706,6 +706,7 @@ CREATE TABLE `models` (
   `use_approved` boolean NOT NULL DEFAULT false,
   `use_exact` boolean NOT NULL DEFAULT false,
   `trained` boolean NOT NULL DEFAULT false,
+  `metrics` MEDIUMTEXT COLLATE utf8_bin DEFAULT NULL,
   `version` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   UNIQUE KEY (`language`, `tag`),

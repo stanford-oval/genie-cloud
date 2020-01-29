@@ -16,6 +16,7 @@ const events = require('events');
 const rpc = require('transparent-rpc');
 const net = require('net');
 const sockaddr = require('sockaddr');
+const os = require('os');
 
 const EngineManager = require('./enginemanager');
 const JsonDatagramSocket = require('../util/json_datagram_socket');
@@ -129,10 +130,24 @@ module.exports = {
             help: 'Shard number for this process',
             defaultValue: 0
         });
+        parser.addArgument(['--k8s'], {
+            nargs: 0,
+            action: 'storeTrue',
+            defaultValue: false,
+            help: 'Enable running in kubernetes. The shard number will be inferred from the hostname.'
+        });
     },
 
     main(argv) {
-        if (argv.shard < 0 || argv.shard >= Config.THINGENGINE_MANAGER_ADDRESS.length)
+        if (argv.k8s) {
+            console.log(`Running in Kubernetes.`);
+            const hostname = os.hostname();
+            const match = /-([0-9]+)$/.exec(hostname);
+            argv.shard = parseInt(match[1], 10);
+            console.log(`Inferred hostname: ${hostname}, shard: ${argv.shard}`);
+        }
+
+        if (Number.isNaN(argv.shard) || argv.shard < 0 || argv.shard >= Config.THINGENGINE_MANAGER_ADDRESS.length)
             throw new InternalError('E_INVALID_CONFIG', `Invalid shard number ${argv.shard}, must be between 0 and ${Config.THINGENGINE_MANAGER_ADDRESS.length-1}`);
 
         const enginemanager = new EngineManager(argv.shard);

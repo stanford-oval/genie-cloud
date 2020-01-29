@@ -14,6 +14,7 @@ const Tp = require('thingpedia');
 const AbstractFS = require('../util/abstract_fs');
 const db = require('../util/db');
 const modelsModel = require('../model/nlp_models');
+const trainingJobModel = require('../model/training_job');
 
 const Config = require('../config');
 
@@ -22,6 +23,7 @@ module.exports = {
         {
             name: 'update-dataset',
             progress: 0.9,
+            computeEta: false,
 
             requests: {
                 cpu: 1.1,
@@ -31,6 +33,7 @@ module.exports = {
         {
             name: 'reloading-exact',
             progress: 0.1,
+            computeEta: false,
 
             async task(job) {
                 // reload the exact matches now that the synthetic set has been updated
@@ -49,6 +52,7 @@ module.exports = {
         {
             name: 'prepare-training-set',
             progress: 0.15,
+            computeEta: false,
 
             requests: {
                 cpu: 1.5,
@@ -58,6 +62,7 @@ module.exports = {
         {
             name: 'train',
             progress: 0.8,
+            computeEta: true,
 
             requests: {
                 cpu: 2.5,
@@ -67,6 +72,7 @@ module.exports = {
         {
             name: 'evaluate',
             progress: 0.049,
+            computeEta: false,
 
             requests: {
                 cpu: 1.5,
@@ -76,6 +82,7 @@ module.exports = {
         {
             name: 'uploading',
             progress: 0.001,
+            computeEta: false,
 
             async task(job) {
                 const outputdir = AbstractFS.resolve(job.jobDir, 'output');
@@ -87,9 +94,12 @@ module.exports = {
                     await AbstractFS.sync(outputdir + '/',
                         AbstractFS.resolve(Config.NL_MODEL_DIR, modeldir) + '/');
 
-                    return modelsModel.update(dbClient, model.id, {
+                    const trainingJobInfo = await trainingJobModel.get(dbClient, job.id);
+
+                    await modelsModel.update(dbClient, model.id, {
                         trained: true,
-                        version: newVersion
+                        version: newVersion,
+                        metrics: trainingJobInfo.metrics
                     });
                 });
 

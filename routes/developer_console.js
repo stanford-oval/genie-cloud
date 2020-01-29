@@ -18,6 +18,7 @@ const oauth2 = require('../model/oauth2');
 const userModel = require('../model/user');
 const nlpModelsModel = require('../model/nlp_models');
 const templatePackModel = require('../model/template_files');
+const trainingJobModel = require('../model/training_job');
 const user = require('../util/user');
 const SendMail = require('../util/sendmail');
 const iv = require('../util/input_validation');
@@ -260,10 +261,26 @@ router.get('/status', (req, res) => {
 if (Config.WITH_LUINET === 'embedded') {
     router.get('/models', user.requireLogIn, user.requireDeveloper(), (req, res, next) => {
         db.withClient(async (dbClient) => {
-            const [models, templatePacks] = await Promise.all([
+            const [models, templatePacks, trainingJobs] = await Promise.all([
                 nlpModelsModel.getByOwner(dbClient, req.user.developer_org),
                 templatePackModel.getByOwner(dbClient, req.user.developer_org),
+                trainingJobModel.getQueue(dbClient)
             ]);
+            for (let model of models) {
+                if (model.metrics)
+                    model.metrics = JSON.parse(model.metrics);
+
+                model.current_job = null;
+                for (let job of trainingJobs) {
+                    if (job.job_type !== 'train')
+                        continue;
+                    if (model.language === job.language && model.tag === job.model_tag) {
+                        model.current_job = job;
+                        break;
+                    }
+                }
+            }
+
             res.render('dev_nlp_models', {
                 page_title: req._("Almond Developer Console - Models"),
                 models, templatePacks,

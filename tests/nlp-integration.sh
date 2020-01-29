@@ -69,8 +69,7 @@ mkdir -p $workdir/shared/cache
 echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
 
 # clean the database and bootstrap
-${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
-${srcdir}/main.js bootstrap
+${srcdir}/main.js bootstrap --force
 
 mkdir -p 'models/org.thingpedia.models.default:en'
 mkdir -p 'models/org.thingpedia.models.contextual:en'
@@ -85,7 +84,7 @@ tar xvf $srcdir/tests/embeddings/current-contextual.tar.gz -C 'models/org.thingp
 # we'll test the main models only (there is no difference really)
 # 2) mark the models as trained, given that we downloaded a pretrained model
 # 3) create a dummy test model that is not trained
-${srcdir}/main.js execute-sql-file - <<<"
+${srcdir}/main.js execute-sql-file /proc/self/fd/0 <<<"
 delete from models where tag like '%developer%';
 update models set trained = true;
 insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', owner = 1,

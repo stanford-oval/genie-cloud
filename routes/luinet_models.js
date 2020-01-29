@@ -217,7 +217,8 @@ router.post('/train', user.requireLogIn, user.requireDeveloper(), iv.validatePOS
             throw new NotFoundError();
         }
 
-        await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
+        if ((req.user.roles & user.Role.ADMIN) !== user.Role.ADMIN)
+            await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
         await TrainingServer.get().queueModel(req.body.language, req.body.tag, 'train-only');
     }).then(() => {
         res.redirect(303, '/developers/models');

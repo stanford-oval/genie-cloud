@@ -34,8 +34,7 @@ module.exports.DISCOURSE_SSO_REDIRECT = 'https://discourse.almond.stanford.edu';
 EOF
 
 # clean the database and bootstrap
-${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
-eval $(${srcdir}/main.js bootstrap)
+${srcdir}/main.js bootstrap --force
 
 workdir=`mktemp -t -d webalmond-integration-XXXXXX`
 workdir=`realpath $workdir`

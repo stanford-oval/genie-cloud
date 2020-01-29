@@ -90,18 +90,6 @@ module.exports = {
         return db.selectOne(client, `select * from training_jobs where id = ?`, [id]);
     },
 
-    getLastSuccessful(client, jobType) {
-        return db.selectAll(client, `select * from training_jobs where job_type = ? and status = 'success'
-            and end_time in (select max(end_time) from training_jobs where job_type = ? and status = 'success'
-            group by language, model_tag)`, [jobType, jobType]);
-    },
-
-    getLast(client, jobType) {
-        return db.selectAll(client, `select * from training_jobs where job_type = ?
-            and end_time in (select max(end_time) from training_jobs where job_type = ?
-            group by job_type)`, [jobType, jobType]);
-    },
-
     getQueue(client) {
         return db.selectAll(client, `select * from training_jobs where
             status in ('started', 'queued') order by id asc`);

@@ -40,6 +40,9 @@ module.exports = {
     getAll(client) {
         return db.selectAll(client, "select * from models");
     },
+    getTrained(client) {
+        return db.selectAll(client, "select * from models where trained");
+    },
 
     getPublic(client, owner) {
         return db.selectAll(client,

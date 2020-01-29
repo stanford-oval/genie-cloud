@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: almond-config
+data:
+  config.yaml: |
+    SERVER_ORIGIN: 'http://127.0.0.1:8888'
+    ENABLE_REDIRECT: false
+    # no https in this example configuration
+    ENABLE_SECURITY_HEADERS: false
+    WITH_THINGPEDIA: external
+    THINGPEDIA_URL: 'https://thingpedia.stanford.edu/thingpedia'
+    NL_SERVER_URL: 'https://almond-nl.stanford.edu'
+    ENABLE_ANONYMOUS_USER: true
+    ENABLE_PROMETHEUS: true
+    ENABLE_DEVELOPER_PROGRAM: false
+    THINGENGINE_MANAGER_ADDRESS:
+      - almond-backend-0.almond-backend.default.svc.cluster.local:8100
+      - almond-backend-1.almond-backend.default.svc.cluster.local:8100
+    # these are just examples, and should be replaced with real secrets!
+    # also, in production you'll likely want to use a secret not a confg map
+    THINGENGINE_MANAGER_AUTHENTICATION: ca2398e40ffdb53426d6a6b8ac2041a25efa2b8bfcc820339a3c133dd301b909
+    AES_SECRET_KEY: 80bb23f93126074ba01410c8a2278c0c
+    JWT_SIGNING_KEY: c744910b52f2653790e276fdf55c5181ddd374853a5afdc756532ab586ad9318
+    SECRET_KEY: 1be7cf23cf1b66320359a493067b815685a67df509f76be9a8823d4798eddc1a
+    # you should probably change this one too
+    DATABASE_URL: mysql://almond:almond@mysql/almond
