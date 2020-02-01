@@ -22,11 +22,11 @@ block content
       div.col-xs-12.col-md-8.col-lg-9
         section.divider#sentence-to-code-block
           h3= _("Train Almond")
-          p
-            = _("If Almond is misbehaving or misinterpreting your input, you can correct it here.")
+          p= _("If Almond is misbehaving or misinterpreting your input, you can correct it here.")
             |
             |
-            != _("Type a sentence and then press <kbd>Enter</kbd>. Then click on the corresponding interpretation, or use the ThingTalk options to write the corresponding code manually.")
+          p!= _("Try entering a verbal command by clicking the button below or pressing <kbd>g</kbd> to start and stop the recording! Then, just correct the transcription in the input box and press <kbd>Enter</kbd>. Alternatively, type a sentence and then press <kbd>Enter</kbd>.")
+          p!= _("Then click on the corresponding interpretation, or use the ThingTalk options to write the corresponding code manually.")
 
           div
             div.checkbox
@@ -37,6 +37,7 @@ block content
               div.form-group
                 label.sr-only(for="utterance")= _("Input:")
                 input.form-control(type="text", placeholder="What do you want Almond to do?")#utterance
+                button(type='button').btn.btn-primary#record-button= _("Say a command!")
             div#thingtalk-editor.hidden
               div.form-group#thingtalk-group
                 label(for='thingtalk')= _("Code:")
