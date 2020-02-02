@@ -38,6 +38,7 @@ router.get('/', (req, res, next) => {
     }).then((posts) => {
         return res.render('blog_archive', {
             page_title: req._("Almond Blog"),
+            page_num: page,
             posts
         });
     }).catch(next);
