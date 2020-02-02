@@ -200,8 +200,13 @@ Check the logs for further information.`
                         language, null, null);
                 }
 
-                for (let modelInfo of affectedModels)
+                for (let modelInfo of affectedModels) {
+                    if (modelInfo.contextual) {
+                        console.error(`FIXME: skipping training of contextual model ${language}/${modelInfo.tag}`);
+                        continue;
+                    }
                     await this._queueOrMergeJob(dbClient, forDevices, 'train', language, modelInfo.tag, dependsOn);
+                }
             } else if (jobType === 'update-dataset') {
                 await this._queueOrMergeJob(dbClient, forDevices, 'update-dataset', language, null, null);
             } else {
