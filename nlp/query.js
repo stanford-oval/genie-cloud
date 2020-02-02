@@ -114,8 +114,14 @@ async function query(params, data, service, res) {
 
     const languageTag = I18n.localeToLanguage(params.locale);
 
-    const intent = await service.frontendClassifier.classify(query);
-    delete intent.id;
+    // this exists for API compatibility only (until we restore the frontend classifier)
+    // for now, all commands are well, commands
+    const intent = {
+        question: 0,
+        command: 1,
+        chatty: 0,
+        other: 0
+    };
 
     let tokenized;
     if (isTokenized) {

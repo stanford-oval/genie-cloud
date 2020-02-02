@@ -91,10 +91,6 @@ insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', o
   all_devices = 1, use_approved = 1, template_file = 1, flags = '[]', contextual = 0, trained = 0;
 "
 
-mkdir -p 'classifier'
-wget --no-verbose -c https://almond-static.stanford.edu/test-data/models/classifier1.tar.gz -O $srcdir/tests/embeddings/classifier1.tar.gz
-tar xvf $srcdir/tests/embeddings/classifier1.tar.gz -C 'classifier'
-
 ${srcdir}/main.js run-nlp --port $NLP_PORT &
 inferpid=$!
 

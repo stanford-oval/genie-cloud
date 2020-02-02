@@ -28,20 +28,6 @@ RUN pip3 install awscli && rm -fr /root/.cache
 # install cvc4
 RUN curl -sL https://almond-static.stanford.edu/test-data/cvc4-1.6-x86_64-linux-opt -o /usr/local/bin/cvc4
 
-# download classifer and PPDB
-RUN mkdir -p /usr/local/share/almond-cloud/classifier && \
-    curl -sL https://nnmaster.almond.stanford.edu/test-models/classifier1.tar.gz -o classifier1.tar.gz && \
-    tar xvf classifier1.tar.gz -C /usr/local/share/almond-cloud/classifier && \
-    rm -f classifier1.tar.gz
-RUN touch /var/lib/rpm/* && \
-    dnf -y install gcc gcc-c++ && \
-    pip3 install wheel && \
-    pip3 install pytorch_transformers==1.2.0 tensorboardX tqdm && \
-    rm -fr /root/.cache && \
-    dnf -y remove gcc gcc-c++ && \
-    rm -fr /var/cache/dnf
-ENV ALMOND_FRONTEND_CLASSIFIER=/usr/local/share/almond-cloud/classifier
-
 # ensures python sys.std* encoding is always utf-8
 ENV PYTHONIOENCODING=UTF-8
 
