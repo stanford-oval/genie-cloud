@@ -9,6 +9,7 @@ sections:
 -
   title: Tutorials
   pages:
+    - thingpedia-tutorial-hello-world
     - thingpedia-tutorial-nyt
     - thingpedia-tutorial-cat
     - thingpedia-tutorial-linkedin

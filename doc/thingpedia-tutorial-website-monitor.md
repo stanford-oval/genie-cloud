@@ -12,7 +12,7 @@ about the device:
 
 - ID: `<your-name>.edu.stanford.cs294s` (Each device in Thingpedia needs an unique ID, so use your name or email address
 in the device name to make sure it won't conflict with others)
-- Name: `My CS294S`
+- Name: `My CS294S` (Or any name you want!)
 - Description: `Retrieve class materials and get notification for updates`
 - Category: `Media`
 - Icon: choose a PNG file you like (512x512 resolution is recommended)
@@ -96,16 +96,18 @@ dataset @<your-name>.edu.stanford.cs294s language "en" {
 ```
 
 ## Step 4: submit the device
-Click the `SAVE` button at the top left corner to submit the device.
+Click the `Create` button at the top left corner to submit the device.
 Now you have a device for class CS294s at Stanford (It is a great class by the way. You should take it
 if you are a Stanford student.)
 Go to [Thingpedia page](/thingpedia) and search for "My CS294S" to see your device.
 
 ## Try your device
-Similar to [Tutorial 1](/doc/thingpedia-tutorial-nyt.md) and [Tutorial 2](/doc/thingpedia-tutorial-cat.md),
-please wait for a couple minutes until the banner disappears.
-Then try commands such as `get cs294s class slides`, `notify me when new slides are added to cs294s website`.
+Similar to previous tutoirals,
+please wait for a couple minutes until the banner disappears, then add your device to Almond.
 
-Note that at this point, the natural language support is very limited.
+
+Try commands such as `get cs294s class slides`, `notify me when new slides are added to cs294s website`!
+
+As always, note that at this point, the natural language support is very limited.
 If you want to train the full model, click on the `Start training` button at the bottom
-of the details page of your device to start a new training job. The training will take up to 27 hours.   
+of the details page of your device to start a new training job. The training will take up to 12 hours.

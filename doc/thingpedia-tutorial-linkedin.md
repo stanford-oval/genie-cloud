@@ -2,27 +2,37 @@
 
 In the last two tutorials, we have worked on two public services.
 In this tutorial, we will create a personal device: LinkedIn.
-It allows users to link their own LinkedIn accounts by OAuth, query their own LinkedIn
-profiles, and publish posts on LinkedIn.
+It allows users to link their own LinkedIn accounts by OAuth and publish posts on LinkedIn.
 
-## Step 1: set up your device
+## Step 1: Create a LinkedIn app
+
+Go to the [LinkedIn Developers Page](https://www.linkedin.com/developers/) and click on the big "Create App" button. Then fill in the required information about your app and submit by clicking on "Create app". You've just created a LinkedIn app!
+
+On your app page, click on the "Auth" tab and take note of the Client ID and Client Secret. We will need these later!
+
+On the same "Auth" tab, under OAuth 2.0 Settings, add the following URL
+
+`https://thingengine.stanford.edu/devices/oauth2/callback/<your-name>.linkedin`
+
+where `<your-name>.linkedin` is the name of your Almond device.
+
+## Step 2: set up your device on Almond
 Go to the [Device Creation Page](/thingpedia/upload/create), fill in the following basic information 
 about the device:
 
-- ID: `<your-name>.linkedin` (Each device in Thingpedia needs an unique ID, so use your name or email address 
-in the device name to make sure it won't conflict with others)
-- Name: `My LinkedIn`
+- ID: `<your-name>.linkedin` (This must be unique and the same as what you have in step 1)
+- Name: `My LinkedIn` (This should also be unique so that it's easy to find!)
 - Description: `LinkedIn Account in Almond`
 - Category: `Social Network`
 - Icon: choose a PNG file you like (512x512 resolution is recommended)
-- JS code: upload a file named `index.js` with the following code.
+- JS code: upload a file named `index.js` with the following code (remember to replace `<your-name>.linkedin` with your device's ID)
 ```javascript
 "use strict";
 
 const Tp = require('thingpedia');
 
-const PROFILE_URL = 'https://api.linkedin.com/v1/people/~:(id,formatted-name,headline,industry,specialties,positions,picture-url)?format=json';
-const SHARE_URL = 'https://api.linkedin.com/v1/people/~/shares?format=json';
+const PROFILE_URL = 'https://api.linkedin.com/v2/me';
+const SHARE_URL = 'https://api.linkedin.com/v2/ugcPosts';
 
 module.exports = class LinkedinDevice extends Tp.BaseDevice {
     /*
@@ -30,17 +40,18 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
     */
     static get runOAuth2() {
         return Tp.Helpers.OAuth2({
-            authorize: 'https://www.linkedin.com/uas/oauth2/authorization',
-            get_access_token: 'https://www.linkedin.com/uas/oauth2/accessToken',
+            scope: ["r_emailaddress","r_liteprofile","w_member_social"],
+            authorize: 'https://www.linkedin.com/oauth/v2/authorization',
+            get_access_token: 'https://www.linkedin.com/oauth/v2/accessToken',
             set_state: true,
 
             callback(engine, accessToken, refreshToken) {
                 const auth = 'Bearer ' + accessToken;
-                return Tp.Helpers.Http.get('https://api.linkedin.com/v1/people/~:(id,formatted-name)?format=json',
+                return Tp.Helpers.Http.get('https://api.linkedin.com/v2/me',
                                            { auth: auth,
                                              accept: 'application/json' }).then((response) => {
                     const parsed = JSON.parse(response);
-                    return engine.devices.loadOneDevice({ kind: 'com.linkedin',
+                    return engine.devices.loadOneDevice({ kind: '<your-name>.linkedin',
                                                           accessToken: accessToken,
                                                           refreshToken: refreshToken,
                                                           userId: parsed.id,
@@ -60,7 +71,7 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
     */
     constructor(engine, state) {
         super(engine, state);
-
+        // This is the actual device name that will appear on your user's Almond
         this.uniqueId = 'com.linkedin-' + this.state.userId;
         this.name = "LinkedIn Account of %s".format(this.state.userName);
         this.description = "This is your LinkedIn account";
@@ -69,8 +80,11 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
     /*
     A query function called "get_profile"
     The "get_" prefix indicates this is a query, not an action
+
+    LinkedIn's API used to return more information.
+    Unfortunately, we can only obtain the user's name with the latest API.
     */
-    get_get_profile() {
+    get_profile() {
         /* 
         Tp.Helpers.Http provides wrappers for the nodejs http APIs with a Promise interface.
         In this case an HTTP GET request is sent to PROFILE_URL
@@ -82,28 +96,34 @@ module.exports = class LinkedinDevice extends Tp.BaseDevice {
             accept: 'application/json' }).then((response) => {
             const parsed = JSON.parse(response);
 
-            return [{ formatted_name: parsed.formattedName,
-                      headline: parsed.headline || '',
-                      industry: parsed.industry || '',
-                      specialties: parsed.specialties || '',
-                      positions: ('values' in parsed) ? parsed.positions.values.map((p) => p.summary) : [],
-                      profile_picture: parsed.pictureUrl || '' }];
+            return [{ formatted_name: parsed.localizedFirstName + ' ' + parsed.localizedLastName }];
         });
     }
     
     /*
     An action function called "share"
     The "do_" prefix indicates this is an action, not a query
+
+    This allows Almond to help your user share a post on LinkedIn!
     */
-    do_share({ status }) {
+    do_share({ content }) {
         /* 
         Send an HTTP POST request to SHARE_URL with the data we want to post.
         Options include the auth information, the format of the data, and the expected output type 
         */
         return Tp.Helpers.Http.post(SHARE_URL, JSON.stringify({
-            comment: status,
-            visibility: {
-                code: 'anyone'
+            "author": "urn:li:person:" + this.state.userId,
+            "lifecycleState": "PUBLISHED",
+            "specificContent": {
+                "com.linkedin.ugc.ShareContent": {
+                    "shareCommentary": {
+                        "text": content
+                    },
+                    "shareMediaCategory": "NONE"
+                }
+            },
+            "visibility": {
+                "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC"
             }
         }), {
             useOAuth2: this,
@@ -118,10 +138,10 @@ References:
 [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise),
 [Array.prototype.map()](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map).
 
-## Step 2: describe what your device does
+## Step 3: describe what your device does
 Click on `manifest.tt` on the left panel. 
 Copy the following code to the editor and replace `<your-name>.linkedin` with the 
-actual device ID:
+actual device ID. Also, replace `<your-client-id>` and `<your-client-secret>` with the Client ID and Client Secret from your LinkedIn app's Auth page.
 ```tt
 class @<your-name>.linkedin {
   // tell the system this device uses customized js code
@@ -131,19 +151,15 @@ class @<your-name>.linkedin {
 
   /* 
     The function to return the user's profile from LinkedIn.
+    Unfortunately, with the latest LinkedIn API, we can only retrieve the user's name.
     Example commands: "get my LinkedIn profile"
     Qualifiers: 
       - monitorable: if you want the query to be monitored and trigger actions on change
       - list: if the query returns multiple results  
   */
-  monitorable query get_profile(out formatted_name: String,
-                                out headline: String,
-                                out industry: String,
-                                out specialties: String,
-                                out positions: Array(String),
-                                out profile_picture: Entity(tt:picture))
+  monitorable query profile(out formatted_name: String)
   #_[confirmation="your LinkedIn profile"]
-  #_[formatted=[{type="text",text="${formatted_name}"}, {type="text",text="${headline}"}, {type="picture",url="${profile_picture}"}, {type="text",text="Works in ${industry}"}]]
+  #_[formatted=[{type="text",text="Your LinkedIn name is ${formatted_name}."}]]
   #[poll_interval=86400000ms]
   #[doc="retrieve your LinkedIn profile"];
 
@@ -151,19 +167,19 @@ class @<your-name>.linkedin {
     The function to post on LinkedIn.
     Example commands: "post on LinkedIn"
   */
-  action share(in req status: String #_[prompt="What do you want to post? Include a link to a page."])
+  action share(in req status: String #_[prompt="What do you want to post?"])
   #_[confirmation="share $status on your LinkedIn"]
   #[doc="share a comment and a link "];
 }
 ```
 
-## Step 3: provide some natural language examples
+## Step 4: provide some natural language examples
 Click on `dataset.tt` on the left panel. 
 Copy the following code to the editor and replace `<your-name>.linkedin` with the 
 actual device ID:
 ```tt
 dataset @<your-name>.linkedin {
-  query  := @<your-name>.linkedin.get_profile()
+  query  := @<your-name>.linkedin.profile()
   #_[utterances=["my linkedin profile","my profile on linkedin"]];
 
   action (p_status :String)  := @<your-name>.linkedin.share(status=p_status)
@@ -174,19 +190,18 @@ dataset @<your-name>.linkedin {
 }
 ```
 
-## Step 4: submit the device
-Click the `SAVE` button at the top left corner to submit the device. 
+## Step 5: submit the device
+Click the `Create` button at the top left corner to submit the device. 
 Congratulation! You made a LinkedIn device for Thingpedia. 
 Go to [Thingpedia page](/thingpedia) and search for "my LinkedIn" to see your device.
 
 ## Try your device
 Go to [My Almond](/me). 
-Click on [Add New Account](/me/devices/create?class=online)
-and then on "My LinkedIn". Note that there is already a "LinkedIn Account" created 
-in Thingpedia. To test the device you just created, use "My LinkedIn" instead of "LinkedIn Account". 
+Click on [Configure new skill](/me/devices/create) under "Enabled Skills" and then on your device's name. 
+You should be immediately directed to the LinkedIn OAuth page.
 
 After you log in to LinkedIn and grant permission, you will be redirected to your
-Almond page, which now includes LinkedIn.
+Almond page, which now includes the LinkedIn skill!
 
 Similar to [Tutorial 1](/doc/thingpedia-tutorial-nyt.md) and [Tutorial 2](/doc/thingpedia-tutorial-cat.md),
 please wait for a couple minutes until the banner disappears.
@@ -194,4 +209,4 @@ Then try commands such as `get my LinkedIn profile`, `update my LinkedIn`.
 
 Note that at this point, the natural language support is very limited. 
 If you want to train the full model, click on the `Start training` button at the bottom 
-of the details page of your device to start a new training job. The training will take up to 27 hours.   
+of the details page of your device to start a new training job. The training will take up to 12 hours.   
