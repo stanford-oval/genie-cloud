@@ -1,12 +1,14 @@
-# Tutorial 0: Hello World
+# Tutorial 1: Hello World
 
-Welcome to Almond! This tutorial will get you started making your very first Almond device. 
+Welcome to Almond! This tutorial will get you started making your very first Almond device.
+
+If you haven't signed up for a developer account, follow the instructions [here] to create an account, then hurry back here!
 
 ## Step 1: set up your device
 Go to the [Device Creation Page](/thingpedia/upload/create), fill in the following basic information 
 about the device:
 
-- ID: `hello.<your-name>` (Each device in Thingpedia needs an unique ID. Make sure your ID hasn't been used!)
+- ID: `<your-name>.hello` (Each device in Thingpedia needs an unique ID. Make sure your ID hasn't been used!)
 - Name: `Hello <your-name>` (The device name does not have to be unique, but making it unique means it is easier to find!)
 - Description: `My very first device`
 - Category: `Other`
@@ -34,15 +36,15 @@ module.exports = class MyFirstDevice extends Tp.BaseDevice {
 
 ## Step 2: describe what your device does
 Click on `manifest.tt` on the left panel. 
-Copy the following code to the editor and replace `hello.<your-name>` with the 
+Copy the following code to the editor and replace `<your-name>.hello` with the 
 actual device ID:
 ```tt
-class @hello.<your-name> {
+class @<your-name>.hello {
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
-  query greeting(in opt name: String #_[canonical="name"],
-              out reply: String #_[canonical="reply"])
+  query greeting(in opt name: String,
+              out reply: String)
   #_[confirmation="greeting"]
   #_[formatted=[{type="text",text="Hello ${reply}!"}]];
 }
@@ -51,15 +53,15 @@ class @hello.<your-name> {
 
 ## Step 3: provide some natural language examples
 Click on `dataset.tt` on the left panel. 
-Copy the following code to the editor and replace `hello.<your-name>` with the 
+Copy the following code to the editor and replace `<your-name>.hello` with the 
 actual device ID.
 With queries, Almond learns to listen out for commands that goes 'get <something>'. With the `dataset.tt` here, Almond will learn two commands, 'get greeting' and 'get greeting for "<name>"'.
 ```tt
-dataset @hello.<your-name> {
-  query  := @hello.<your-name>.greeting()
+dataset @<your-name>.hello {
+  query  := @<your-name>.hello.greeting()
   #_[utterances=["greeting"]];
 
-  query (p_name :String) := @hello.<your-name>.greeting(name=p_name)
+  query (p_name :String) := @<your-name>.hello.greeting(name=p_name)
   #_[utterances=["greeting for ${p_name}"]];
 }
 ```

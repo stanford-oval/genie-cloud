@@ -1,4 +1,4 @@
-# Tutorial 4: Class Website Monitor
+# Tutorial 5: Class Website Monitor
 
 In this tutorial, we will create a device which monitor the changes of a class website.
 We will use the Stanford CS294S website as an example and allow student to use this device to monitor updates
@@ -102,7 +102,7 @@ if you are a Stanford student.)
 Go to [Thingpedia page](/thingpedia) and search for "My CS294S" to see your device.
 
 ## Try your device
-Similar to previous tutoirals,
+Similar to previous tutorials,
 please wait for a couple minutes until the banner disappears, then add your device to Almond.
 
 

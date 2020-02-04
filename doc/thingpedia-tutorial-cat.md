@@ -1,4 +1,4 @@
-# Tutorial 2: The Cat API
+# Tutorial 3: The Cat API
 In this tutorial, you will create a device for 
 [The Cat API](https://thecatapi.com/) in Thingpedia.
 It gives you cute cat pictures! 

@@ -1,4 +1,4 @@
-# Tutorial 1: New York Times RSS Feed 
+# Tutorial 2: New York Times RSS Feed 
 
 In this tutorial, you will create a New York Times device in Thingpedia.
 It allows users to retrieve articles from New York Times front page, and get notified when 
