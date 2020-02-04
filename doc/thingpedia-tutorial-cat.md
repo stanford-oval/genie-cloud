@@ -106,9 +106,7 @@ Go to [Thingpedia page](/thingpedia) and search for your device name!
 Please give Almond around 5 minutes to digest the device you just created.
 A banner will tell you the status on the top of the page. 
 Once the banner disappears,
-you can go to [My Almond](/me), click on [Configure new skill](/me/devices/create) under "Enabled Skills" and then click on your device's name to add it.
-
-Then type in `get a cat picture` to get some cat pictures!
+you can go to [My Almond](/me), then type in `get a cat picture` to get some cat pictures!
 
 Note that at this point, the natural language support is very limited. 
 You can only use the exact sentence you have put in `dataset.tt` (queries need a `get` in front as in `get a cat picture`). 

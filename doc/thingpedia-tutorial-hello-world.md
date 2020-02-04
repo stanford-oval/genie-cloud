@@ -55,7 +55,7 @@ class @<your-name>.hello {
 Click on `dataset.tt` on the left panel. 
 Copy the following code to the editor and replace `<your-name>.hello` with the 
 actual device ID.
-With queries, Almond learns to listen out for commands that goes 'get <something>'. With the `dataset.tt` here, Almond will learn two commands, 'get greeting' and 'get greeting for "<name>"'.
+With queries, Almond learns to listen out for commands that goes 'get <something>'. With the `dataset.tt` here, Almond will learn two commands, 'get greeting' and 'get greeting for "<name>"' (note the quotation marks!).
 ```tt
 dataset @<your-name>.hello {
   query  := @<your-name>.hello.greeting()
@@ -75,8 +75,6 @@ You will see a banner that says "The natural language dataset for this device is
 Please wait for a couple minutes until the banner disappears, so that Almond can learn the natural language examples in your `dataset.tt` file.
 
 ## Try your device
-Go to [My Almond](/me). 
-Click on [Configure new skill](/me/devices/create) under "Enabled Skills" and then on your device's name.
-Then try commands such as `get greeting` and `get greeting for "bob"`.
+Go to [My Almond](/me), then try commands such as `get greeting` and `get greeting for "bob"` (note the quotation marks!).
 
 Good job making your first Almond device!
