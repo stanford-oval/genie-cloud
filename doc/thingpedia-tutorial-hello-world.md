@@ -2,7 +2,7 @@
 
 Welcome to Almond! This tutorial will get you started making your very first Almond device.
 
-If you haven't signed up for a developer account, follow the instructions [here] to create an account, then hurry back here!
+If you haven't signed up for a developer account, follow the instructions [here](/doc/getting-started.md) to create an account, then hurry back here!
 
 ## Step 1: set up your device
 Go to the [Device Creation Page](/thingpedia/upload/create), fill in the following basic information 
@@ -55,7 +55,7 @@ class @<your-name>.hello {
 Click on `dataset.tt` on the left panel. 
 Copy the following code to the editor and replace `<your-name>.hello` with the 
 actual device ID.
-With queries, Almond learns to listen out for commands that goes 'get <something>'. With the `dataset.tt` here, Almond will learn two commands, 'get greeting' and 'get greeting for "<name>"' (note the quotation marks!).
+With queries, Almond learns to listen out for commands that goes 'get [something]'. With the `dataset.tt` here, Almond will learn two commands, 'get greeting' and 'get greeting for "[name]"' (note the quotation marks!).
 ```tt
 dataset @<your-name>.hello {
   query  := @<your-name>.hello.greeting()
