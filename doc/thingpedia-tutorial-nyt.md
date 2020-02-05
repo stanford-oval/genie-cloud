@@ -10,8 +10,6 @@ You can request to become a developer from [here](/user/request-developer).
 Go to the [Device Creation Page](/thingpedia/upload/create), fill in the following basic information 
 about the device:
 
-![screenshot](/images/docs/metadata_page.png)
-
 - ID: `<your-name>.nytimes` (Each device in Thingpedia needs an unique ID, so use your name or email address 
 in the device name to make sure it won't conflict with others)
 - Name: `My New York Times` (It would be good to have a unique name so your device is easier to identify)

@@ -29,7 +29,7 @@ at the bottom of the [Thingpedia Portal](https://almond.stanford.edu/thingpedia)
 or the [Almond Developer Console](https://almond.stanford.edu/developers/devices).
 It looks like this: 
 
-![screenshot](/images/docs/metadata_page.png)
+![screenshot](/assets/images/docs/metadata_page.png)
 
 ---
 
@@ -48,7 +48,7 @@ and the ID of [Google Drive](https://almond.stanford.edu/thingpedia/devices/by-i
 so that user can know what your device does at a glance. E.g., "The Cat API" looks
 like this in Thingpedia catalog:
 
-![screenshot](/images/docs/thingpedia_catalog.png)
+![screenshot](/assets/images/docs/thingpedia_catalog.png)
 
 `Category` helps us organize the devices on Thingpedia and makes it easier 
 for users to search for your device. It could be one of the following seven domains:

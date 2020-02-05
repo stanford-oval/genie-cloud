@@ -8,6 +8,8 @@ If you haven't signed up for a developer account, follow the instructions [here]
 Go to the [Device Creation Page](/thingpedia/upload/create), fill in the following basic information 
 about the device:
 
+![screenshot](/assets/images/docs/metadata_page.png)
+
 - ID: `<your-name>.hello` (Each device in Thingpedia needs an unique ID. Make sure your ID hasn't been used!)
 - Name: `Hello <your-name>` (The device name does not have to be unique, but making it unique means it is easier to find!)
 - Description: `My very first device`
