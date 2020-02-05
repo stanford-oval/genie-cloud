@@ -22,8 +22,7 @@ const ParserClient = require('./deps/parserclient');
 const ThingpediaClient = require('./deps/thingpediaclient');
 const reconstructCanonical = require('./deps/reconstruct_canonical');
 
-const axios = require('axios');
-const Recorder = require('./deps/recorder')
+const Recorder = require('./deps/recorder');
 
 class ThingTalkTrainer {
     constructor() {
@@ -41,7 +40,7 @@ class ThingTalkTrainer {
         this._raw = null;
         this._entities = null;
 
-        this._sttUrl = 'http://127.0.0.1:4000/audio'; // TO CHANGE WHEN VOICE SERVER IS DEPLOYED
+        this._sttUrl = document.body.dataset.sttUrl || 'http://127.0.0.1:8000/rest/stt';
         this._isRecording = false;
         this._stream = null;
         this._recorder = null;
@@ -51,60 +50,57 @@ class ThingTalkTrainer {
         $('#sentence-to-code-form').submit(this._formSubmit.bind(this));
         $('#sentence-to-code-done').click(this._codeDone.bind(this));
         $('#record-button').click(this._startStopRecord.bind(this));
-        $(document).keydown(e => {
-            // Bind to `g`
-            if (e.which == 71) this._startStopRecord(e);
-        });
     }
 
     _postAudio(blob) {
         const data = new FormData();
         data.append('audio', blob);
-        axios({
-            method: 'post',
+        $.ajax({
             url: this._sttUrl,
+            type: 'POST',
             data: data,
-            headers: {'Content-Type': 'multipart/form-data'},
-        }).then(response => {
-            if (response.data.success) {
-                this._verbalRaw = response.data.command;
-                $('#utterance').val(response.data.command).focus();
-                $('#record-button').html('Say a command!');
-            } else {
-                console.log(response.data.command)
+            contentType: false,
+            processData: false,
+            success: (data) => {
+                if (data.success) {
+                    this._verbalRaw = data.text;
+                    $('#utterance').val(data.text).focus();
+                    $('#record-button').text('Say a command!');
+                } else {
+                    console.log(data);
+                }
             }
-        }).catch(error => {
-            console.log(error);
         });
     }
 
     _startStopRecord(event) {
         event.preventDefault();
         if (!this._isRecording) {
-            navigator.mediaDevices.getUserMedia({audio: true, video: false}).then(stream => {
-                console.log('getUserMedia() success, stream created, initializing Recorder.js...');
+            navigator.mediaDevices.getUserMedia({audio: true, video: false}).then((stream) => {
+                // console.log('getUserMedia() success, stream created, initializing Recorder.js...');
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 const context = new AudioContext(); 
                 const input = context.createMediaStreamSource(stream);
                 const rec = new Recorder(input, {numChannels: 1});
                 rec.record();
 
-                console.log('Recording started');
-                $('#record-button').html('Recording... Press this or G to stop');
+                // console.log('Recording started');
+                $('#record-button').text('Recording... Press this to stop');
 
                 this._isRecording = true;
                 this._stream = stream;
                 this._recorder = rec; 
-            }).catch(err => {
+            }).catch((err) => {
                 console.log('getUserMedia() failed');
                 console.log(err);
-                alert('You don\'t seem to have a recording device enabled!');
+                $('#record-button').text('You don\'t seem to have a recording device enabled!');
+                // alert('You don\'t seem to have a recording device enabled!');
             });
         } else {
-            $('#record-button').html('Processing command...');
+            $('#record-button').text('Processing command...');
             this._recorder.stop();
             this._stream.getAudioTracks()[0].stop();
-            this._recorder.exportWAV(blob => {
+            this._recorder.exportWAV((blob) => {
                 this._postAudio(blob);
             });
             this._isRecording = false;
