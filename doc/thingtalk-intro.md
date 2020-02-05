@@ -30,7 +30,9 @@ The action is `notify`, which will show the cat picture to the user.
 
 You can issue commands in ThingTalk directly in [My Almond](/me).
 To tell the system that your input is code and not a natural language sentence,
-type `\t` with a space before the ThingTalk code.  
+type `\t` with a space before the ThingTalk code.
+
+For example, try entering `\t now => @com.thecatapi.get() => notify;` directly into [My Almond](/me)!
 
 
 ## Stream — when does the rest of program run?
