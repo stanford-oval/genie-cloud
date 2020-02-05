@@ -26,7 +26,6 @@ const modelsModel = require('../model/nlp_models');
 const I18n = require('../util/i18n');
 
 const NLPModel = require('./nlp_model');
-const FrontendClassifier = require('./classifier');
 const ExactMatcher = require('./exact');
 const ProxyServer = require('./proxy');
 
@@ -36,16 +35,11 @@ class NLPInferenceServer {
     constructor() {
         this._models = new Map;
         this._exactMatchers = new Map;
-        this._classifier = new FrontendClassifier();
         this._tokenizer = new Genie.LocalTokenizer(Config.NL_TOKENIZER_ADDRESS);
     }
 
     get tokenizer() {
         return this._tokenizer;
-    }
-
-    get frontendClassifier() {
-        return this._classifier;
     }
 
     getExact(locale) {
@@ -91,8 +85,6 @@ class NLPInferenceServer {
     }
 
     async loadAllLanguages() {
-        await this._classifier.start();
-
         await db.withTransaction(async (dbClient) => {
             for (let locale of Config.SUPPORTED_LANGUAGES) {
                 const language = I18n.localeToLanguage(locale);

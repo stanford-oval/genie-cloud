@@ -9,6 +9,7 @@ sections:
 -
   title: Tutorials
   pages:
+    - thingpedia-tutorial-hello-world
     - thingpedia-tutorial-nyt
     - thingpedia-tutorial-cat
     - thingpedia-tutorial-linkedin
@@ -48,6 +49,7 @@ sections:
     - thingpedia-string-type-list
     - thingpedia-jsdoc
     - luinet-template-list
+    - luinet-model-list
     - thingpedia-snapshot-list
     - thingtalk-jsdoc
     - thingengine-core-jsdoc
@@ -65,6 +67,9 @@ links:
   luinet-template-list:
     url: /luinet/templates
     title: Available Genie Templates
+  luinet-model-list:
+    url: /luinet/models
+    title: Available LUInet Models
   thingpedia-snapshot-list:
     url: /thingpedia/snapshots
     title: Thingpedia Snapshots
@@ -84,11 +89,12 @@ pages:
   thingtalk-intro: Introduction to ThingTalk
   genie-intro: Introduction to LUInet & Genie
 
-  thingpedia-tutorial-nyt: "Tutorial 1: NY Times RSS Feed"
-  thingpedia-tutorial-cat: "Tutorial 2: The Cat API"
-  thingpedia-tutorial-linkedin: "Tutorial 3: LinkedIn"
-  thingpedia-tutorial-website-monitor: "Tutorial 4: Class Website Monitor"
-  thingpedia-tutorial: "Tutorial 5: Write Your Own Device"
+  thingpedia-tutorial-hello-world: "Tutorial 1: Hello World"
+  thingpedia-tutorial-nyt: "Tutorial 2: NY Times RSS Feed"
+  thingpedia-tutorial-cat: "Tutorial 3: The Cat API"
+  thingpedia-tutorial-linkedin: "Tutorial 4: LinkedIn"
+  thingpedia-tutorial-website-monitor: "Tutorial 5: Class Website Monitor"
+  thingpedia-tutorial: "Tutorial 6: Write Your Own Device"
   thingpedia-tutorial-manifest: "Write Device Classes"
   thingpedia-tutorial-dataset: "Write Example Commands"
   thingpedia-tutorial-js-package: "Write Javascript Device Packages"

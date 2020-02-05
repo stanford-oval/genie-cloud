@@ -621,3 +621,19 @@ module.exports.GPU_NODE_GROUP = null;
   S3 directory for temporary workdir storage.
 */
 module.exports.GPU_S3_WORKDIR = null;
+
+/**
+  URL of an [Ackee](https://github.com/electerious/Ackee) server to use for page tracking.
+
+  This property must contain the full URL (protocol, hostname, optional port) of the server,
+  and must not end with a slash.
+  If null, tracking will be disabled.
+*/
+module.exports.ACKEE_URL = null;
+
+/**
+  Domain ID to use for [Ackee](https://github.com/electerious/Ackee) tracking.
+
+  This must be set if `ACKEE_URL` is set.
+*/
+module.exports.ACKEE_DOMAIN_ID = null;

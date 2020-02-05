@@ -48,7 +48,6 @@ routes/developer_oauth2.js
 routes/devices_compat.js
 routes/devices.js
 routes/doc.js
-routes/gassistant.js
 routes/luinet_dataset.js
 routes/luinet_models.js
 routes/luinet_templates.js

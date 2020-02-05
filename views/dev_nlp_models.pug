@@ -57,6 +57,30 @@ block content
                               div.form-group
                                 button(type='submit').btn.btn-primary= _("Train")
 
+                  p
+                    if m.current_job
+                      if m.current_job.status === 'queued'
+                         = _("Status: queued for training.")
+                      else
+                         = _("Status: training (%.0f%%).").format(m.current_job.progress*100)
+                      |
+                      |
+                      if m.current_job.eta
+                        = _("ETA: %s").format((new Date(m.current_job.eta)).toLocaleString(locale, { timeZone: user.timezone, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', 'minute': 'numeric' }))
+                    else if m.trained
+                      = _("Status: deployed.")
+                    else
+                      = _("Status: not trained yet.")
+
+                  if m.metrics
+                    p= _("Current metrics: ")
+                    a(href='#',data-toggle='collapse',data-target='#metrics-' + m.tag.replace(/\./g, '-') + '-' + m.language)= _("Show/Hide")
+                    div.collapse(id='metrics-' + m.tag.replace(/\./g, '-') + '-' + m.language)
+                      p= _("Accuracy: %.2f%%").format(100 * m.metrics.ok)
+                      p= _("Function Accuracy: %.2f%%").format(100 * m.metrics.ok_function)
+                      p= _("Device Accuracy: %.2f%%").format(100 * m.metrics.ok_device)
+                      p= _("Syntax Accuracy: %.2f%%").format(100 * m.metrics.ok_syntax)
+
                   p= _("Template Pack: %s").format(m.template_file_name)
                   p= _("Flags: %s").format(m.flags.join(_(", ")))
 

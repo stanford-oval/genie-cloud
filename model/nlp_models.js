@@ -40,12 +40,15 @@ module.exports = {
     getAll(client) {
         return db.selectAll(client, "select * from models");
     },
+    getTrained(client) {
+        return db.selectAll(client, "select * from models where trained");
+    },
 
     getPublic(client, owner) {
         return db.selectAll(client,
             `(select m.*, tpl.tag as template_file_name, null as kind
               from models m, template_files tpl where tpl.id = m.template_file
-              and all_devices and (m.access_token is null or m.owner = ?)
+              and all_devices and (m.access_token is null or m.owner = ?))
              union
              (select m.*, tpl.tag as template_file_name, ds.kind
               from models m, template_files tpl, model_devices md, device_schema ds
@@ -133,5 +136,9 @@ module.exports = {
 
     async updateByTag(client, language, tag, model) {
         return db.query(client, `update models set ? where language = ? and tag = ?`, [model, language, tag]);
+    },
+
+    async update(client, id, model) {
+        return db.query(client, `update models set ? where id = ?`, [model, id]);
     }
 };

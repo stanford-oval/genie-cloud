@@ -9,6 +9,8 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
+
 const db = require('../util/db');
 
 const nshards = require('../config').THINGENGINE_MANAGER_ADDRESS.length;
@@ -80,14 +82,13 @@ module.exports = {
         return db.query(client, "delete from users where id = ?", [id]);
     },
 
-    getAll(client, start, end) {
-        if (start !== undefined && end !== undefined) {
-            return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
-                                + " on u.developer_org = o.id order by id limit ?,?", [start,end]);
-        } else {
-            return db.selectAll(client, "select u.*, o.developer_key, o.name as developer_org_name from users u left join organizations o"
-                                + " on u.developer_org = o.id order by id");
-        }
+    getAll(client, start, end, sort) {
+        const [sortField, sortDirection] = sort.split('/');
+        assert(sortDirection === 'asc' || sortDirection === 'desc');
+
+        return db.selectAll(client, `select u.*, o.developer_key, o.name as developer_org_name
+            from users u left join organizations o on u.developer_org = o.id
+            order by ?? ${sortDirection} limit ?,?`, [sortField, start, end]);
     },
 
     getAllForShardId(client, shardId) {

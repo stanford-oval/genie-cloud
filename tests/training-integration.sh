@@ -53,7 +53,7 @@ AES_SECRET_KEY: 80bb23f93126074ba01410c8a2278c0c
 JWT_SIGNING_KEY: "not so secret key"
 SECRET_KEY: "not so secret key"
 NL_SERVER_URL: null
-NL_MODEL_DIR: null
+NL_MODEL_DIR: ./models
 TENSORBOARD_DIR: ./tensorboard
 TRAINING_URL: "http://127.0.0.1:${PORT}"
 TRAINING_ACCESS_TOKEN: test-training-access-token
@@ -90,13 +90,13 @@ for x in devices icons backgrounds blog-assets template-files/en ; do
 done
 mkdir -p $workdir/shared/cache
 mkdir -p $workdir/exact
+mkdir -p $workdir/models
 echo '{"tt:stock_id:goog": "fb80c6ac2685d4401806795765550abdce2aa906.png"}' > $workdir/shared/cache/index.json
 
 # clean the database and bootstrap
 # (this has to occur after setting up the download
 # directories because it copies the icon png files)
-${srcdir}/main.js execute-sql-file $srcdir/model/schema.sql
-${srcdir}/main.js bootstrap
+${srcdir}/main.js bootstrap --force
 
 # load some more data into Thingpedia
 test -f $srcdir/tests/data/com.bing.zip || wget https://thingpedia.stanford.edu/thingpedia/download/devices/com.bing.zip -O $srcdir/tests/data/com.bing.zip

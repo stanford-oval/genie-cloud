@@ -15,12 +15,17 @@ require('../../util/config_init');
 process.env.TEST_MODE = '1';
 
 const assert = require('assert');
-//const Tp = require('thingpedia');
+const tar = require('tar');
+const Tp = require('thingpedia');
 
 const db = require('../../util/db');
 const sleep = require('../../util/sleep');
 const trainingJobModel = require('../../model/training_job');
 const TrainingServer = require('../../util/training_server');
+
+const { assertHttpError, sessionRequest } = require('../website/scaffold');
+const { login, } = require('../login');
+const Config = require('../../config');
 
 async function waitUntilAllJobsDone() {
     for (;;) {
@@ -119,43 +124,7 @@ async function testBasic() {
             depends_on: 1,
             job_type: 'train',
             language: 'en',
-            model_tag: 'org.thingpedia.models.contextual',
-            all_devices: 1,
-            status: 'queued',
-            task_index: null,
-            task_name: null,
-            error: null,
-            progress: 0,
-            eta: null,
-            start_time: null,
-            end_time: null,
-            config: null,
-            metrics: null,
-            for_devices: []
-        }, {
-            id: 4,
-            depends_on: 1,
-            job_type: 'train',
-            language: 'en',
             model_tag: 'org.thingpedia.models.developer',
-            all_devices: 1,
-            status: 'queued',
-            task_index: null,
-            task_name: null,
-            error: null,
-            progress: 0,
-            eta: null,
-            start_time: null,
-            end_time: null,
-            config: null,
-            metrics: null,
-            for_devices: []
-        }, {
-            id: 5,
-            depends_on: 1,
-            job_type: 'train',
-            language: 'en',
-            model_tag: 'org.thingpedia.models.developer.contextual',
             all_devices: 1,
             status: 'queued',
             task_index: null,
@@ -188,7 +157,7 @@ async function testForDevice() {
 
     deepStrictEqual(queue, {
         'update-dataset': [ {
-            id: 6,
+            id: 4,
             depends_on: null,
             job_type: 'update-dataset',
             language: 'en',
@@ -208,29 +177,11 @@ async function testForDevice() {
             for_devices: ['org.thingpedia.builtin.test.adminonly'] }
         ],
         train: [ {
-            id: 7,
-            depends_on: 6,
+            id: 5,
+            depends_on: 4,
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.developer',
-            all_devices: 0,
-            status: 'queued',
-            task_index: null,
-            task_name: null,
-            error: null,
-            progress: 0,
-            eta: null,
-            start_time: null,
-            end_time: null,
-            config: null,
-            metrics: null,
-            for_devices: ['org.thingpedia.builtin.test.adminonly']
-        }, {
-            id: 8,
-            depends_on: 6,
-            job_type: 'train',
-            language: 'en',
-            model_tag: 'org.thingpedia.models.developer.contextual',
             all_devices: 0,
             status: 'queued',
             task_index: null,
@@ -257,7 +208,7 @@ async function testForDevice() {
 
     deepStrictEqual(queue2, [
         {
-            id: 6,
+            id: 4,
             depends_on: null,
             job_type: 'update-dataset',
             language: 'en',
@@ -276,29 +227,11 @@ async function testForDevice() {
             metrics: null
         },
         {
-            id: 7,
-            depends_on: 6,
+            id: 5,
+            depends_on: 4,
             job_type: 'train',
             language: 'en',
             model_tag: 'org.thingpedia.models.developer',
-            all_devices: 0,
-            status: 'queued',
-            task_index: null,
-            task_name: null,
-            error: null,
-            progress: 0,
-            eta: null,
-            start_time: null,
-            end_time: null,
-            config: null,
-            metrics: null,
-        },
-        {
-            id: 8,
-            depends_on: 6,
-            job_type: 'train',
-            language: 'en',
-            model_tag: 'org.thingpedia.models.developer.contextual',
             all_devices: 0,
             status: 'queued',
             task_index: null,
@@ -320,25 +253,39 @@ async function testForDevice() {
     await waitUntilAllJobsDone();
 }
 
-async function testMetrics() {
-    const server = TrainingServer.get();
+async function testDownload() {
+    const root = await login('root', 'rootroot');
 
-    // issue a train command for a device that is not approved
+    await assertHttpError(sessionRequest('/luinet/models/download/en/org.thingpedia.foo', 'GET', null, root), 404);
+    await assertHttpError(sessionRequest('/luinet/models/download/zh/org.thingpedia.models.default', 'GET', null, root), 404);
 
-    const metrics = await db.withClient((dbClient) => server.getMetrics(dbClient));
-    console.log(metrics);
+    const stream = await Tp.Helpers.Http.getStream(Config.SERVER_ORIGIN + '/luinet/models/download/en/org.thingpedia.models.default', {
+        extraHeaders: {
+            Cookie: root.cookie
+        },
+    });
 
-    // the specific metric values depend on unpredictable factors, so we don't check them
-    assert('org.thingpedia.models.default/en' in metrics);
-    assert('org.thingpedia.models.developer/en' in metrics);
-    assert('org.thingpedia.models.contextual/en' in metrics);
-    assert('org.thingpedia.models.developer.contextual/en' in metrics);
+    const parser = tar.list();
+    const entries = [];
+    await new Promise((resolve, reject) => {
+        parser.on('entry', (entry) => {
+            entries.push(entry.path);
+        });
+        parser.on('finish', resolve);
+        stream.on('error', reject);
+        parser.on('error', reject);
+
+        stream.pipe(parser);
+    });
+
+    entries.sort();
+    assert.deepStrictEqual(entries, ['best.pth', 'config.json']);
 }
 
 async function main() {
     await testBasic();
     await testForDevice();
-    await testMetrics();
+    await testDownload();
 
     await db.tearDown();
 }

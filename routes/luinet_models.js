@@ -10,7 +10,13 @@
 "use strict";
 
 const express = require('express');
+const sanitizeFilename = require('sanitize-filename');
+const fs = require('fs');
+const util = require('util');
+const tar = require('tar');
+const tmp = require('tmp-promise');
 
+const AbstractFS = require('../util/abstract_fs');
 const db = require('../util/db');
 const user = require('../util/user');
 const nlpModelsModel = require('../model/nlp_models');
@@ -23,6 +29,10 @@ const I18n = require('../util/i18n');
 const { makeRandom } = require('../util/random');
 const creditSystem = require('../util/credit_system');
 const TrainingServer = require('../util/training_server');
+const localfs = require('../util/local_fs');
+const { safeMkdir } = require('../util/fsutils');
+
+const Config = require('../config');
 
 const router = express.Router();
 
@@ -37,12 +47,13 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
     validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
 
     db.withTransaction(async (dbClient) => {
-        let trained = false;
+        let trained = false, version = 0;
         try {
             const existing = await nlpModelsModel.getByTagForUpdate(dbClient, language, req.body.tag);
             if (existing && existing.owner !== req.user.developer_org)
                 throw new ForbiddenError(req._("A model with this ID already exists."));
             trained = existing.trained;
+            version = existing.version;
         } catch(e) {
             if (e.code !== 'ENOENT')
                 throw e;
@@ -94,7 +105,8 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
             all_devices: devices.length === 0,
             use_approved: !!req.body.use_approved,
             use_exact: !!req.body.use_exact,
-            trained: trained
+            trained: trained,
+            version: version
         }, devices);
 
         res.redirect(303, '/developers/models');
@@ -111,6 +123,91 @@ router.get('/', (req, res, next) => {
     }).catch(next);
 });
 
+router.get('/download/:language/:tag', user.requireLogIn, (req, res, next) => {
+    db.withClient(async (dbClient) => {
+        const models = await nlpModelsModel.getByTag(dbClient, req.params.language, req.params.tag);
+        if (models.length === 0)
+            throw new NotFoundError();
+        const [model] = models;
+
+        // check for permission: we allow download of the user's own models always,
+        // and of public models (access token === null), if they only use approved devices
+        if (!model.trained ||
+            !(model.owner === req.user.developer_org ||
+              (model.access_token === null && model.use_approved))) {
+            // note that this must be exactly the same error used by util/db.js
+            // so that a true not found is indistinguishable from not having permission
+            throw new NotFoundError();
+        }
+
+        return model.version;
+    }).then(async (version) => {
+        const cachedir = localfs.getCacheDir();
+
+        let modelLangDir = req.params.tag + ':' + req.params.language;
+        const tarballname = modelLangDir + '.tar.gz';
+
+        // append version number to model if not 0 (this is for compat with pre-versioning
+        // naming convention)
+        if (version !== 0)
+            modelLangDir += '-v' + version;
+        res.set('Content-Type', 'application/x-tar');
+        res.set('Content-Disposition', `attachment; filename="${tarballname}"`); //"
+
+        // this ETag is weak, because strictly speaking different processes with different
+        // cache dirs might generate slightly different tarball (e.g. different file order or
+        // mtime) but the tarballs would be functionally identical
+        const etag = `W/"version:${version}"`;
+        res.set(`ETag`, etag);
+        if (req.headers['if-none-match'] === etag) {
+            res.status(304); // not modified
+            res.send('');
+            return;
+        }
+        // cache this for one day
+        res.cacheFor(86400000);
+
+        const tarballpath = cachedir + '/models/' + sanitizeFilename(tarballname);
+
+        // check if we have cached the tarball already
+        if (await util.promisify(fs.exists)(tarballpath)) {
+            fs.createReadStream(tarballpath).pipe(res);
+            return;
+        }
+
+        await safeMkdir(cachedir + '/models');
+
+        // if not, download the model and make the tarball
+
+        // make the tarball in a temporary path in the cache directory
+        const { path: tmppath, cleanup } = await tmp.file({ discardDescriptor: true, dir: cachedir + '/models' });
+
+        let success = false;
+        try {
+            const tmpdir = await AbstractFS.download(AbstractFS.resolve(Config.NL_MODEL_DIR, './' + modelLangDir) + '/');
+            await tar.create({
+                file: tmppath,
+                gzip: true,
+                cwd: tmpdir,
+                portable: true,
+            }, await util.promisify(fs.readdir)(tmpdir));
+
+            // atomically rename the created tarball to the correct cache directory path
+            await util.promisify(fs.rename)(tmppath, tarballpath);
+
+            success = true;
+
+            await AbstractFS.removeTemporary(tmpdir);
+
+            // now that we have the tarball in the cache directory, we can stream it to the user
+            fs.createReadStream(tarballpath).pipe(res);
+        } finally {
+            if (!success)
+                await cleanup();
+        }
+    }).catch(next);
+});
+
 router.post('/train', user.requireLogIn, user.requireDeveloper(), iv.validatePOST({ language: 'string', tag: 'string' }), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
         const [model] = await nlpModelsModel.getByTag(dbClient, req.body.language, req.body.tag);
@@ -120,7 +217,8 @@ router.post('/train', user.requireLogIn, user.requireDeveloper(), iv.validatePOS
             throw new NotFoundError();
         }
 
-        await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
+        if ((req.user.roles & user.Role.ADMIN) !== user.Role.ADMIN)
+            await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
         await TrainingServer.get().queueModel(req.body.language, req.body.tag, 'train-only');
     }).then(() => {
         res.redirect(303, '/developers/models');

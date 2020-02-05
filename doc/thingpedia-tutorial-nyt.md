@@ -1,4 +1,4 @@
-# Tutorial 1: New York Times RSS Feed 
+# Tutorial 2: New York Times RSS Feed 
 
 In this tutorial, you will create a New York Times device in Thingpedia.
 It allows users to retrieve articles from New York Times front page, and get notified when 
@@ -14,7 +14,7 @@ about the device:
 
 - ID: `<your-name>.nytimes` (Each device in Thingpedia needs an unique ID, so use your name or email address 
 in the device name to make sure it won't conflict with others)
-- Name: `My New York Times`
+- Name: `My New York Times` (It would be good to have a unique name so your device is easier to identify)
 - Description: `My New York Times RSS Feed`
 - Category: `Media`
 - Icon: choose a PNG file you like (512x512 resolution is recommended)
@@ -73,16 +73,16 @@ dataset @<your-name>.nytimes {
 ```
 
 ## Step 4: submit the device
-Click the `SAVE` button at the top left corner to submit the device. 
-Congratulation! You made your first device for Thingpedia. 
-Go to [Thingpedia page](/thingpedia) and search for "my New York Times" to see your device.
+Click the `Create` button at the top left corner to submit the device. 
+Congratulations! You made a New York Times device for Thingpedia. 
+Go to [Thingpedia page](/thingpedia) and search for your device name to see your device.
 
 ## Try your device
 Please give Almond around 5 minutes to digest the device you just created.
 A banner will tell you the status on the top of the page. 
 Once the banner disappears,
-you can go to [My Almond](/me) and type in `get New York Times` to try out your device.
+you can go to [My Almond](/me), then type in `get New York Times` to get the latest news!
 
 Note that at this point, the natural language support is very limited. 
 If you want to train the full model, click on the `Start training` button at the bottom 
-of the details page of your device to start a new training job. The training will take up to 27 hours.   
+of the details page of your device to start a new training job. The training will take up to 12 hours.

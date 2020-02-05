@@ -11,7 +11,7 @@
 
 
 function camelCase(string) {
-    return string.split(/[\s,."'!?_()]+/g).map((t) => t[0].toUpperCase() + t.substring(1)).join('');
+    return string.split(/[\s,."'!?_()]+/g).map((t) => t ? (t[0].toUpperCase() + t.substring(1)) : '').join('');
 }
 
 function getExampleNameInvocation(invocation) {
