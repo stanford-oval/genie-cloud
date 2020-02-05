@@ -1,5 +1,5 @@
 # override this to "stanfordoval/decanlp:latest-cuda" if cuda is desired
-ARG BASE_IMAGE=stanfordoval/decanlp:latest
+ARG BASE_IMAGE=stanfordoval/decanlp:pldi19-cameraready-65-g6911a50
 FROM ${BASE_IMAGE}
 
 MAINTAINER Thingpedia Admins <thingpedia-admins@lists.stanford.edu>
