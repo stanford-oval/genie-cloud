@@ -9,24 +9,25 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+"use strict";
 
 const InlineWorker = require('inline-worker');
 
-class Recorder {
-    config = {
-        bufferLen: 4096,
-        numChannels: 2,
-        mimeType: 'audio/wav'
-    };
-
-    recording = false;
-
-    callbacks = {
-        getBuffer: [],
-        exportWAV: []
-    };
+module.exports = class Recorder {
 
     constructor(source, cfg) {
+        this.config = {
+            bufferLen: 4096,
+            numChannels: 2,
+            mimeType: 'audio/wav'
+        };
+
+        this.recording = false;
+
+        this.callbacks = {
+            getBuffer: [],
+            exportWAV: []
+        };
         Object.assign(this.config, cfg);
         this.context = source.context;
         this.node = (this.context.createScriptProcessor ||
@@ -37,9 +38,8 @@ class Recorder {
             if (!this.recording) return;
 
             var buffer = [];
-            for (var channel = 0; channel < this.config.numChannels; channel++) {
+            for (var channel = 0; channel < this.config.numChannels; channel++)
                 buffer.push(e.inputBuffer.getChannelData(channel));
-            }
             this.worker.postMessage({
                 command: 'record',
                 buffer: buffer
@@ -83,23 +83,20 @@ class Recorder {
             }
 
             function record(inputBuffer) {
-                for (var channel = 0; channel < numChannels; channel++) {
+                for (var channel = 0; channel < numChannels; channel++)
                     recBuffers[channel].push(inputBuffer[channel]);
-                }
                 recLength += inputBuffer[0].length;
             }
 
             function exportWAV(type) {
                 let buffers = [];
-                for (let channel = 0; channel < numChannels; channel++) {
+                for (let channel = 0; channel < numChannels; channel++)
                     buffers.push(mergeBuffers(recBuffers[channel], recLength));
-                }
                 let interleaved;
-                if (numChannels === 2) {
+                if (numChannels === 2)
                     interleaved = interleave(buffers[0], buffers[1]);
-                } else {
+                else
                     interleaved = buffers[0];
-                }
                 let dataview = encodeWAV(interleaved);
                 let audioBlob = new Blob([dataview], {type: type});
 
@@ -108,9 +105,8 @@ class Recorder {
 
             function getBuffer() {
                 let buffers = [];
-                for (let channel = 0; channel < numChannels; channel++) {
+                for (let channel = 0; channel < numChannels; channel++)
                     buffers.push(mergeBuffers(recBuffers[channel], recLength));
-                }
                 this.postMessage({command: 'getBuffer', data: buffers});
             }
 
@@ -121,9 +117,8 @@ class Recorder {
             }
 
             function initBuffers() {
-                for (let channel = 0; channel < numChannels; channel++) {
+                for (let channel = 0; channel < numChannels; channel++)
                     recBuffers[channel] = [];
-                }
             }
 
             function mergeBuffers(recBuffers, recLength) {
@@ -159,9 +154,8 @@ class Recorder {
             }
 
             function writeString(view, offset, string) {
-                for (let i = 0; i < string.length; i++) {
+                for (let i = 0; i < string.length; i++)
                     view.setUint8(offset + i, string.charCodeAt(i));
-                }
             }
 
             function encodeWAV(samples) {
@@ -211,9 +205,8 @@ class Recorder {
 
         this.worker.onmessage = (e) => {
             let cb = this.callbacks[e.data.command].pop();
-            if (typeof cb == 'function') {
+            if (typeof cb === 'function')
                 cb(e.data.data);
-            }
         };
     }
 
@@ -262,6 +255,4 @@ class Recorder {
         click.initEvent("click", true, true);
         link.dispatchEvent(click);
     }
-}
-
-module.exports = Recorder;
+};
