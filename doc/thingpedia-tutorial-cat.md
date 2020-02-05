@@ -1,4 +1,4 @@
-# Tutorial 2: The Cat API
+# Tutorial 3: The Cat API
 In this tutorial, you will create a device for 
 [The Cat API](https://thecatapi.com/) in Thingpedia.
 It gives you cute cat pictures! 
@@ -8,9 +8,9 @@ a Javascript package is needed to process the data.
 ## Step 1: setting up your device
 Go to the [Device Creation Page](/thingpedia/upload/create), fill in the following basic information 
 about the device:
-- ID: `<your-name>.thecatapi` (Each device in Thingpedia needs an unique ID, so use your name or email address 
+- ID: `<your-name>.thecatapi` (Each device in Thingpedia needs a unique ID, so use your name or email address 
 in the device name to make sure it won't conflict with others)
-- Name: `My Cat API`
+- Name: `Your Unique Name for a Cat API` (Your device name doesn't have to be unique but that makes it easier to find!)
 - Description: `Where everyday is Caturday`
 - Category: `Media`
 - Icon: choose a PNG file you like (512x512 resolution is recommended)
@@ -98,17 +98,17 @@ dataset @<your-name>.thecatapi {
 ```
 
 ## Step 4: submitting the device
-Click the `SAVE` button at the top left corner to submit the device. 
+Click the `Create` button at the top left corner to submit the device. 
 Congratulation! You made yourself a cat device in Thingpedia. 
-Go to [Thingpedia page](/thingpedia) and search for "my cat api" to see your device.
+Go to [Thingpedia page](/thingpedia) and search for your device name!
 
 ## Try your device
 Please give Almond around 5 minutes to digest the device you just created.
 A banner will tell you the status on the top of the page. 
 Once the banner disappears,
-you can go to [My Almond](/me) and type in `get a cat picture` to try out your device.
+you can go to [My Almond](/me), then type in `get a cat picture` to get some cat pictures!
 
 Note that at this point, the natural language support is very limited. 
 You can only use the exact sentence you have put in `dataset.tt` (queries need a `get` in front as in `get a cat picture`). 
 If you want to train the full model, click on the `Start training` button at the bottom 
-of the details page of your device to start a new training job. The training will take up to 27 hours.   
+of the details page of your device to start a new training job. The training will take up to 12 hours.
