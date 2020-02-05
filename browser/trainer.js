@@ -68,7 +68,12 @@ class ThingTalkTrainer {
                     $('#record-button').text('Say a command!');
                 } else {
                     console.log(data);
+                    $('#record-button').text('Hmm I couldn\'t understand...');
                 }
+            },
+            error: (error) => {
+                console.log(data);
+                $('#record-button').text('Hmm I couldn\'t understand...');
             }
         });
     }
