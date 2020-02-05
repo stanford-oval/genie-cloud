@@ -40,6 +40,7 @@ sections:
     - almond-dialog-api-reference
     - thingpedia-api
     - installing-almond-cloud
+    - voice-api
 -
   title: Reference Manuals
   pages:
