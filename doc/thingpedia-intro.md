@@ -25,7 +25,7 @@ Any Almond virtual assistant has two major components:
 the _Almond agent_ communicates with the users in natural language, and
 the _Almond engine_ runs the commands issued by the users. 
 The following diagram illustrates how Almond works internally:
-![architecture](/images/thingengine-arch.svg)
+![architecture](/assets/images/thingengine-arch.svg)
 
 1. A user issues a command, say “get my recent tweets”, in English.
 
