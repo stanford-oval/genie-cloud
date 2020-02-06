@@ -153,7 +153,7 @@ dataset @<your-name>.linkedin {
 ## Step 5: submit the device
 Click the `Create` button at the top left corner to submit the device. 
 Congratulation! You made a LinkedIn device for Thingpedia. 
-Go to [Thingpedia page](/thingpedia) and search for "my LinkedIn" to see your device.
+Go to [Thingpedia page](/thingpedia) and search for your device name to see your device.
 
 ## Try your device
 Go to [My Almond](/me). 
@@ -163,7 +163,7 @@ You should be immediately directed to the LinkedIn OAuth page.
 After you log in to LinkedIn and grant permission, you will be redirected to your
 Almond page, which now includes the LinkedIn skill!
 
-Similar to [Tutorial 1](/doc/thingpedia-tutorial-nyt.md) and [Tutorial 2](/doc/thingpedia-tutorial-cat.md),
+Similar to previous tutorials,
 please wait for a couple minutes until the banner disappears.
 Then try commands such as `get my LinkedIn profile`, `update my LinkedIn`. 
 

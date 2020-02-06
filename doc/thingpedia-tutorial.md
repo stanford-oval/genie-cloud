@@ -5,7 +5,7 @@
 In this tutorial, 
 we will use [The Cat API](https://almond.stanford.edu/thingpedia/devices/by-id/com.thecatapi) 
 again as a running example.
-But unlike Tutorial 2, we will explain more details about each step.
+But unlike Tutorial 3, we will explain more details about each step.
 We encourage you to create a device you are interested in to work through this tutorial.
 To avoid getting into the details of the OAuth authentication or configuration for IoTs too early,
 we recommend to try a public web service which requires no authentication or only needs an API key. 
@@ -29,7 +29,7 @@ at the bottom of the [Thingpedia Portal](https://almond.stanford.edu/thingpedia)
 or the [Almond Developer Console](https://almond.stanford.edu/developers/devices).
 It looks like this: 
 
-![screenshot](/images/docs/metadata_page.png)
+![screenshot](/assets/images/docs/metadata_page.png)
 
 ---
 
@@ -48,7 +48,7 @@ and the ID of [Google Drive](https://almond.stanford.edu/thingpedia/devices/by-i
 so that user can know what your device does at a glance. E.g., "The Cat API" looks
 like this in Thingpedia catalog:
 
-![screenshot](/images/docs/thingpedia_catalog.png)
+![screenshot](/assets/images/docs/thingpedia_catalog.png)
 
 `Category` helps us organize the devices on Thingpedia and makes it easier 
 for users to search for your device. It could be one of the following seven domains:

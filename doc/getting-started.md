@@ -74,9 +74,9 @@ You'll see a list of your accounts that your Almond knows about by clicking on
 "Device and Accounts". At this point, it probably does not know much, so we will 
 teach him about Twitter.
 
-To that extent, just click on
-[Add New Account](/me/devices/create?class=online)
-and then on
+To that extent, just click on Enabled Skills and then 
+[Configure new skill](/me/devices/create?class=online)
+and select
 [Twitter Account](/me/devices/oauth2/com.twitter).
 
 After you log in to Twitter and grant permission, you will be redirected to your

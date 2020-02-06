@@ -56,10 +56,10 @@ parser.
 
 If the device you want to create gets results from a standard RSS Feed
 or RESTful APIs in JSON, these two files are sufficient 
-(see [Tutorial 1](/doc/thingpedia-tutorial-nyt.md) for an example).
+(see [Tutorial 2](/doc/thingpedia-tutorial-nyt.md) for an example).
 If you want customized behavior, such as customized authentication, or compute on the returned
 results from the API endpoints, you can submit a Javascript package to describe 
 the behavior of your device as well. 
-See [Tutorial 2](/doc/thingpedia-tutorial-cat.md) and 
-[Tutorial 3](/doc/thingpedia-tutorial-linkedin.md) for examples.  
+See [Tutorial 3](/doc/thingpedia-tutorial-cat.md) and 
+[Tutorial 4](/doc/thingpedia-tutorial-linkedin.md) for examples.  
 
