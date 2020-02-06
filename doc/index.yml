@@ -111,6 +111,7 @@ pages:
   my-api: Web Almond As A Service
   almond-dialog-api-reference: Almond Dialog API
   installing-almond-cloud: Deploy Your Own Web Almond
+  voice-api: Almond Voice API
 
   thingtalk-reference: ThingTalk Reference
   thingpedia-annotations: Thingpedia Annotation Reference

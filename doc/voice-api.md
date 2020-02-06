@@ -2,6 +2,8 @@
 
 Currently, Almond Voice provides two REST endpoints that provides TTS and STT functionality for Almond-based services, both hosted at [voice.almond.stanford.edu](https://voice.almond.stanford.edu). Support for websocket-based streaming will be added in the future.
 
+**Note:** This API is experimental and may be significantly modified in the future. Please use with caution.
+
 ## Speech-to-text
 
 ### Request
@@ -12,13 +14,13 @@ Host: voice.almond.stanford.edu
 Content-Type: multipart/form-data
 ```
 
-Where the body of the request contains a `.wav` file. The file does not need to have a specific sample rate, as the server automatically resamples submitted audio.
+Where the body of the request contains a `.wav` file with the correct MIME type `audio/wav`. The wav file needs to have a bit depth of 16 and be little endian; however, it does not need to have a specific sample rate, as the server automatically resamples submitted audio.
 
 ### Response
 
 ```json
 {
-    "success": true,
+    "success": "ok",
     "text": "Recognized text."
 }
 ```
@@ -43,7 +45,7 @@ Parameters:
 
 ```json
 {
-    "success": true,
+    "success": "ok",
     "audio": "/audio/<arbitrary_speech_filename>.wav"
 }
 ```
