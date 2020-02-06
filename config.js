@@ -627,3 +627,8 @@ module.exports.ACKEE_URL = null;
   This must be set if `ACKEE_URL` is set.
 */
 module.exports.ACKEE_DOMAIN_ID = null;
+
+/**
+  URL of a server supporting speech-to-text and text-to-speech.
+*/
+module.exports.VOICE_SERVER_URL = 'https://voice.almond.stanford.edu';

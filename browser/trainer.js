@@ -22,6 +22,8 @@ const ParserClient = require('./deps/parserclient');
 const ThingpediaClient = require('./deps/thingpediaclient');
 const reconstructCanonical = require('./deps/reconstruct_canonical');
 
+const Recorder = require('./deps/recorder');
+
 class ThingTalkTrainer {
     constructor() {
         this._locale = document.body.dataset.locale || 'en-US';
@@ -38,9 +40,77 @@ class ThingTalkTrainer {
         this._raw = null;
         this._entities = null;
 
+        this._sttUrl = document.body.dataset.voiceServerUrl + '/rest/stt' || 'http://127.0.0.1:8000/rest/stt';
+        this._isRecording = false;
+        this._stream = null;
+        this._recorder = null;
+        this._verbalRaw = null; // store uncorrected transcript for learning
+
         $('#counter').text(localStorage.getItem('counter') || 0);
         $('#sentence-to-code-form').submit(this._formSubmit.bind(this));
         $('#sentence-to-code-done').click(this._codeDone.bind(this));
+        $('#record-button').click(this._startStopRecord.bind(this));
+    }
+
+    _postAudio(blob) {
+        const data = new FormData();
+        data.append('audio', blob);
+        $.ajax({
+            url: this._sttUrl,
+            type: 'POST',
+            data: data,
+            contentType: false,
+            processData: false,
+            success: (data) => {
+                if (data.success) {
+                    this._verbalRaw = data.text;
+                    $('#utterance').val(data.text).focus();
+                    $('#record-button').text('Say a command!');
+                    this._doHandleUtterance();
+                } else {
+                    console.log(data);
+                    $('#record-button').text('Hmm I couldn\'t understand...');
+                }
+            },
+            error: (error) => {
+                console.log(data);
+                $('#record-button').text('Hmm I couldn\'t understand...');
+            }
+        });
+    }
+
+    _startStopRecord(event) {
+        event.preventDefault();
+        if (!this._isRecording) {
+            navigator.mediaDevices.getUserMedia({audio: true, video: false}).then((stream) => {
+                // console.log('getUserMedia() success, stream created, initializing Recorder.js...');
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const context = new AudioContext(); 
+                const input = context.createMediaStreamSource(stream);
+                const rec = new Recorder(input, {numChannels: 1});
+                rec.record();
+
+                // console.log('Recording started');
+                $('#record-button').text('Recording... Press this to stop');
+
+                this._isRecording = true;
+                this._stream = stream;
+                this._recorder = rec; 
+            }).catch((err) => {
+                console.log('getUserMedia() failed');
+                console.log(err);
+                $('#record-button').text('You don\'t seem to have a recording device enabled!');
+                // alert('You don\'t seem to have a recording device enabled!');
+            });
+        } else {
+            $('#record-button').text('Processing command...');
+            this._recorder.stop();
+            this._stream.getAudioTracks()[0].stop();
+            this._recorder.exportWAV((blob) => {
+                this._postAudio(blob);
+            });
+            this._isRecording = false;
+        }
     }
 
     _counter() {
@@ -108,7 +178,10 @@ class ThingTalkTrainer {
 
     _formSubmit(event) {
         event.preventDefault();
+        this._doHandleUtterance();
+    }
 
+    _doHandleUtterance() {
         this._handle($('#utterance').val()).then((candidates) => {
             $('#results-container').show();
             let results = $('#results');
