@@ -20,7 +20,7 @@ Where the body of the request contains a `.wav` file with the correct MIME type 
 
 ```json
 {
-    "success": "ok",
+    "status": "ok",
     "text": "Recognized text."
 }
 ```
@@ -45,7 +45,7 @@ Parameters:
 
 ```json
 {
-    "success": "ok",
+    "status": "ok",
     "audio": "/audio/<arbitrary_speech_filename>.wav"
 }
 ```
