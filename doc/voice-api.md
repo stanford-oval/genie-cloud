@@ -14,7 +14,7 @@ Host: voice.almond.stanford.edu
 Content-Type: multipart/form-data
 ```
 
-Where the body of the request contains a `.wav` file with the correct MIME type `audio/wav`. The wav file needs to have a bit depth of 16 and be little endian; however, it does not need to have a specific sample rate, as the server automatically resamples submitted audio.
+Where the body of the request contains a `.wav` file with the correct MIME type `audio/wav` in a field named `audio`. The wav file needs to have a bit depth of 16 and be little endian; however, it does not need to have a specific sample rate, as the server automatically resamples submitted audio.
 
 ### Response
 
