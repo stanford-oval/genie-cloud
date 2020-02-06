@@ -1,3 +1,59 @@
+1.7.3
+=====
+
+Frontend & Thingpedia:
+* Device names that end in certain sensitive extensions (e.g. `com.foo.png`
+  or `org.bla.html`) are no longer allowed [#625, #633].
+* The UI to request device reviews has been removed [#618, #634].
+* The admin user list now can be sorted by login or registration time [#341, #645].
+* Train Almond now includes recording functionality, so Almond can be trained
+  specifically with the output of speech-to-text [#661].
+* Added the ability to track visitors using an Ackee server [#648].
+
+NLP & training:
+* Tensorboard support during training is now optimized for using local filesystem;
+  it is recommended to mount the Tensorboard directory as a shared filesystem (e.g. NFS
+  or CIFS/SMB) [#636].
+* Custom models now show progress while training, and show metrics afterwards [#431, #433, #639].
+* NLP admins no longer pay credits to train custom models from the developer console [#639].
+* Models are now versioned, and can be downloaded from the web frontend [#432, #441, #640].
+* Dataset updates no longer affect the training ETA [#598, #638].
+* Contextual models are no longer trained, as they were experimental and broken [#603, #662].
+* The experimental frontend classifier was removed; all inputs from the user are
+  unconditionally treated as commands. This is not a behavior change as previously
+  the classifier output was ignored [#656, #662].
+* Misc bug fixes [#670].
+
+Almond Website updates:
+* The top bar is slightly bigger and bolder 
+* The Get Involved page was redesigned to give more prominence to featured
+  projects and explain how different people can join the project [#649, #650].
+* Added "Almond in the News" page [#628].
+
+Operational changes:
+* Dockerfiles have been coalesced, and the -decanlp image is no longer produced;
+  now the main image includes the decanlp library and the NLP dependencies.
+  Note that the new image does not ship the word embeddings (that were previously
+  part of the -decanlp image); these must be mounted in docker and the appropriate
+  path must be set as the DECANLP_EMBEDDINGS environment variable [#635].
+* Docker images have been fixed to avoid having a long running shell process, which
+  could lead to hung processes during stop.
+* The boostrap command was extended to bootstrap the database schema as well, so the
+  separate initialization step is no longer needed [#646].
+* The Kubernetes example files have been updated, polished, and tested in minikube [#646, #647].
+* The version of node-mysql has been updated and is now compatible with Amazon RDS
+  with SSL enabled [#657].
+
+Misc:
+* Google Assistant support has been removed, as it was unmaintained [#659].
+* Documentation updates [#660, #663, #667, #668, #669].
+* Updated dependencies [#473, #627, #632, #637, #643, #655, #657, #658, #666].
+
+Contributors:
+  Euirim Choi
+  Swee Kiat (SK) Lim
+  Ricky Grannis-Vu
+
 1.7.2
 =====
 
