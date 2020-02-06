@@ -77,7 +77,7 @@ const watcher = new class JobWatcher extends Tp.Helpers.RefCounted {
         }
 
         const url = `/apis/batch/v1/namespaces/${Config.TRAINING_KUBERNETES_NAMESPACE}/jobs`;
-        this._req = this._watcher.watch(url, {
+        this._req = await this._watcher.watch(url, {
             resourceVersion: this._resourceVersion,
             labelSelector: this._computeLabelSelector(),
             // Setting timeout to a large number (7 days). Even so, we may still see occasional
