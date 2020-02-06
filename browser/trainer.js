@@ -40,7 +40,7 @@ class ThingTalkTrainer {
         this._raw = null;
         this._entities = null;
 
-        this._sttUrl = document.body.dataset.sttUrl || 'http://127.0.0.1:8000/rest/stt';
+        this._sttUrl = document.body.dataset.voiceServerUrl + '/rest/stt' || 'http://127.0.0.1:8000/rest/stt';
         this._isRecording = false;
         this._stream = null;
         this._recorder = null;
