@@ -66,6 +66,7 @@ class ThingTalkTrainer {
                     this._verbalRaw = data.text;
                     $('#utterance').val(data.text).focus();
                     $('#record-button').text('Say a command!');
+                    this._doHandleUtterance();
                 } else {
                     console.log(data);
                     $('#record-button').text('Hmm I couldn\'t understand...');
@@ -177,7 +178,10 @@ class ThingTalkTrainer {
 
     _formSubmit(event) {
         event.preventDefault();
+        this._doHandleUtterance();
+    }
 
+    _doHandleUtterance() {
         this._handle($('#utterance').val()).then((candidates) => {
             $('#results-container').show();
             let results = $('#results');
