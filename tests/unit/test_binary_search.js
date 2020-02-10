@@ -21,6 +21,8 @@ function main() {
     assert.strictEqual(binarySearch([0.1, 0.2, 0.5, 1.0], 0.6), 3);
     assert.strictEqual(binarySearch([0.1, 0.2, 0.5, 1.0], 1.0), 3);
     assert.strictEqual(binarySearch([0.1, 0.2, 0.5, 1.0], 0.2), 1);
+
+    assert.strictEqual(binarySearch([0, 4096], 4095), 1);
 }
 module.exports = main;
 if (!module.parent)

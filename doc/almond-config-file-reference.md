@@ -331,6 +331,16 @@ server. This is not a valid setting for the inference server.
 
 Default value: `'./models'`
 
+## NL_EXACT_MATCH_DIR
+Directory for exact match files.
+
+This is the path containing the binary format files for the exact matcher.
+It can be a relative or absolute path, or a file: or s3: URI.
+Relative paths are interpreted relative to the current working directory, or
+the `THINGENGINE_ROOTDIR` environment variable if set.
+
+Default value: `'./exact'`
+
 ## NL_SERVICE_NAME
 NLP Service name.
 

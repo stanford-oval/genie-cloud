@@ -12,21 +12,29 @@
 const WILDCARD = {};
 
 class TrieNode {
-    constructor() {
-        this.value = null;
+    constructor(valueCombine) {
+        this._valueCombine = valueCombine;
+        this.value = undefined;
         this.children = new Map;
     }
 
-    addValue(value, limit) {
-        if (this.value === null)
-            this.value = [];
-        this.value.unshift(value);
-        if (this.value.length > limit)
-            this.value.length = limit;
+    *_iterate(keyPrefix) {
+        if (this.value !== undefined)
+            yield [keyPrefix, this.value];
+
+        for (let [key, child] of this.children) {
+            keyPrefix.push(key);
+            yield* child._iterate(keyPrefix);
+            keyPrefix.pop();
+        }
+    }
+
+    addValue(value) {
+        this.value = this._valueCombine(this.value, value);
     }
 
     addChild(key) {
-        const child = new TrieNode();
+        const child = new TrieNode(this._valueCombine);
         this.children.set(key, child);
         return child;
     }
@@ -43,8 +51,12 @@ class TrieNode {
   A simple Trie-based key-value store.
 */
 module.exports = class Trie {
-    constructor() {
-        this.root = new TrieNode();
+    constructor(valueCombine) {
+        this.root = new TrieNode(valueCombine);
+    }
+
+    [Symbol.iterator]() {
+        return this.root._iterate([]);
     }
 
     insert(sequence, value, limit = 20) {
@@ -63,7 +75,7 @@ module.exports = class Trie {
         for (let key of sequence) {
             const child = node.getChild(key, true);
             if (!child)
-                return null;
+                return undefined;
             node = child;
         }
         return node.value;

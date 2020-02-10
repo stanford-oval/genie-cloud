@@ -49,7 +49,8 @@ const commands = {
     'generate-cheatsheet': require('./scripts/generate-cheatsheet'),
     'sync-discourse-sso': require('./scripts/sync-discourse-sso'),
     'download-dataset': require('./scripts/download-dataset'),
-    'upload-dataset': require('./scripts/upload-dataset')
+    'upload-dataset': require('./scripts/upload-dataset'),
+    'compile-exact-btrie': require('./scripts/compile-exact-btrie'),
 };
 
 const parser = new argparse.ArgumentParser({

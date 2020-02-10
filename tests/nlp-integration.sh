@@ -91,6 +91,10 @@ insert into models set tag ='org.thingpedia.test.nottrained', language = 'en', o
   all_devices = 1, use_approved = 1, template_file = 1, flags = '[]', contextual = 0, trained = 0;
 "
 
+mkdir -p 'exact'
+wget --no-verbose -c https://almond-static.stanford.edu/test-data/exact.tsv -O exact/en.tsv
+${srcdir}/main.js compile-exact-btrie -o exact/en.btrie exact/en.tsv
+
 ${srcdir}/main.js run-nlp --port $NLP_PORT &
 inferpid=$!
 

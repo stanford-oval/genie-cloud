@@ -338,6 +338,16 @@ module.exports.NL_TOKENIZER_ADDRESS = '127.0.0.1:8888';
 module.exports.NL_MODEL_DIR = './models';
 
 /**
+  Directory for exact match files.
+
+  This is the path containing the binary format files for the exact matcher.
+  It can be a relative or absolute path, or a file: or s3: URI.
+  Relative paths are interpreted relative to the current working directory, or
+  the `THINGENGINE_ROOTDIR` environment variable if set.
+*/
+module.exports.NL_EXACT_MATCH_DIR = './exact';
+
+/**
   NLP Service name.
 
   The kubernetes service name for NLP server.
