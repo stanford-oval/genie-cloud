@@ -28,6 +28,7 @@ sections:
     - thingpedia-device-with-zero-code
     - thingpedia-cli-tools
     - thingpedia-testing
+    - train-almond
 -
   title: Use Cases
   pages:
@@ -105,6 +106,7 @@ pages:
   thingpedia-device-with-zero-code: Declarative Thingpedia Devices
   thingpedia-cli-tools: Thingpedia Command Line Tools
   thingpedia-testing: Testing Thingpedia Devices
+  train-almond: Train Almond
 
   home-assistant-integration: Integrating with Home Assistant
 
