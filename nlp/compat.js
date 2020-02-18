@@ -120,10 +120,22 @@ function deviceNames(locale, result, entities) {
     result.code = newCode;
 }
 
+function defaultUnits(locale, result, entitites) {
+    for (let i = 0; i < result.code.length; i++) {
+        if (result.code[i].startsWith('default')) {
+            switch (result.code[i]) {
+                case 'defaultTemperature':
+                    result.code[i] = 'F';
+            }
+        }
+    }
+}
+
 const COMPATIBILITY_FIXES = [
     ['<1.3.0', streamJoinArrow],
     ['<1.8.0', unresolvedLocations],
-    ['<1.9.0-alpha.1', deviceNames]
+    ['<1.9.0-alpha.1', deviceNames],
+    ['<1.9.3', defaultUnits],
 ];
 
 module.exports = async function applyCompatibility(locale, results, entities, thingtalk_version) {
