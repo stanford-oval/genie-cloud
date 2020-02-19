@@ -120,10 +120,18 @@ function deviceNames(locale, result, entities) {
     result.code = newCode;
 }
 
+function defaultTemperature(locale, result, entitites) {
+    for (let i = 0; i < result.code.length; i++) {
+        if (result.code[i] === 'unit:defaultTemperature')
+            result.code[i] = 'unit:F';
+    }
+}
+
 const COMPATIBILITY_FIXES = [
     ['<1.3.0', streamJoinArrow],
     ['<1.8.0', unresolvedLocations],
-    ['<1.9.0-alpha.1', deviceNames]
+    ['<1.9.0-alpha.1', deviceNames],
+    ['<1.9.3', defaultTemperature],
 ];
 
 module.exports = async function applyCompatibility(locale, results, entities, thingtalk_version) {

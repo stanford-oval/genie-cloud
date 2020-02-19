@@ -96,6 +96,18 @@ const TEST_CASES = [
     'now => @light-bulb.set_power attribute:name:String = context:selection:String param:power:Enum(on,off) = enum:off',
     'now => @light-bulb.set_power param:power:Enum(on,off) = enum:off',
     ],
+
+    [
+    '1.9.2', {},
+    'edge (monitor (@org.thingpedia.weather.current)) on temperature >= 5 unit:defaultTemperature => notify;',
+    'edge (monitor (@org.thingpedia.weather.current)) on temperature >= 5 unit:F => notify;'
+    ],
+
+    [
+    '1.9.2', {},
+    'now => (@org.thingpedia.weather.current), temperature >= 10 unit:defaultTemperature => notify;',
+    'now => (@org.thingpedia.weather.current), temperature >= 10 unit:F => notify;'
+    ],
 ];
 
 async function test(i) {
@@ -112,7 +124,7 @@ async function test(i) {
 }
 
 async function main() {
-    for (let i = 0; i < TEST_CASES[i].length; i++)
+    for (let i = 0; i < TEST_CASES.length; i++)
         await test(i);
 }
 module.exports = main;
