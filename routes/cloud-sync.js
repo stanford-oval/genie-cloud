@@ -15,6 +15,7 @@ class CloudSyncWebsocketDelegate {
     constructor(ws) {
         this._ws = ws;
         this._remote = null;
+        this._buffer = [];
 
         ws.on('error', (err) => {
             ws.close();
@@ -22,35 +23,22 @@ class CloudSyncWebsocketDelegate {
         ws.on('close', async () => {
             this.$free();
         });
+        ws.on('message', async (data) => {
+            if (this._remote !== null) {
+                try {
+                    await this._remote.onMessage(data);
+                } catch(e) {
+                    console.error('Failed to relay websocket message: ' + e.message);
+                    this._ws.close();
+                }
+            } else {
+                this._buffer.push(data);
+            }
+        });
     }
 
-    setRemote(remote) {
+    async setRemote(remote) {
         this._remote = remote;
-
-        this._ws.on('message', async (data) => {
-            try {
-                await remote.onMessage(data);
-            } catch(e) {
-                console.error('Failed to relay websocket message: ' + e.message);
-                this._ws.close();
-            }
-        });
-        this._ws.on('ping', async (data) => {
-            try {
-                await remote.onPing(data);
-            } catch(e) {
-                // ignore
-                this._ws.close();
-            }
-        });
-        this._ws.on('pong', async (data) => {
-            try {
-                await remote.onPong(data);
-            } catch(e) {
-                // ignore
-                this._ws.close();
-            }
-        });
         this._ws.on('close', async (data) => {
             try {
                 await remote.onClose(data);
@@ -59,6 +47,8 @@ class CloudSyncWebsocketDelegate {
             }
             remote.$free();
         });
+        for (let data of this._buffer)
+            await remote.onMessage(data);
     }
 
     ping() {
@@ -76,31 +66,34 @@ class CloudSyncWebsocketDelegate {
     terminate() {
         this._ws.terminate();
     }
-}
-CloudSyncWebsocketDelegate.prototype.$rpcMethods = ['ping', 'pong', 'terminate', 'send'];
 
-module.exports = {
-    async handle(ws, userId) {
+    async setUser(userId) {
         try {
             const engine = await EngineManager.get().getEngine(userId);
 
             const onclosed = (id) => {
                 if (id === userId)
-                    ws.close();
+                    this._ws.close();
                 EngineManager.get().removeListener('socket-closed', onclosed);
             };
             EngineManager.get().on('socket-closed', onclosed);
 
-            const delegate = new CloudSyncWebsocketDelegate(ws);
-            const remote = await engine.websocket.newConnection(delegate);
-            delegate.setRemote(remote);
+            const remote = await engine.websocket.newConnection(this);
+            await this.setRemote(remote);
         } catch (error) {
             console.error('Error in cloud-sync websocket: ' + error.message);
 
             // ignore "Not Opened" error in closing
             try {
-                ws.close();
+                this._ws.close();
             } catch(e) {/**/}
         }
+    }
+}
+CloudSyncWebsocketDelegate.prototype.$rpcMethods = ['ping', 'pong', 'terminate', 'send'];
+
+module.exports = {
+    handle(ws) {
+        return new CloudSyncWebsocketDelegate(ws);
     }
 };

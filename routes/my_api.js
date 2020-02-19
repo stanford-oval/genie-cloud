@@ -209,7 +209,7 @@ router.post('/apps/delete/:appId', user.requireScope('user-exec-command'), (req,
 });
 
 router.ws('/sync', user.requireScope('user-sync'), (ws, req) => {
-    CloudSync.handle(ws, req.user.id);
+    CloudSync.handle(ws).setUser(req.user.id);
 });
 
 // if nothing handled the route, return a 404

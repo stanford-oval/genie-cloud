@@ -20,6 +20,8 @@ var router = express.Router();
 
 
 router.ws('/:cloud_id', (ws, req) => {
+    const delegate = CloudSync.handle(ws);
+
     db.withClient((dbClient) => {
         return userModel.getByCloudId(dbClient, req.params.cloud_id);
     }).then((rows) => {
@@ -28,7 +30,7 @@ router.ws('/:cloud_id', (ws, req) => {
             return;
         }
 
-        CloudSync.handle(ws, rows[0].id);
+        delegate.setUser(rows[0].id);
     });
 });
 
