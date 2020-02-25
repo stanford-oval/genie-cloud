@@ -642,3 +642,13 @@ module.exports.ACKEE_DOMAIN_ID = null;
   URL of a server supporting speech-to-text and text-to-speech.
 */
 module.exports.VOICE_SERVER_URL = 'https://voice.almond.stanford.edu';
+
+/**
+  Azure subscription key for Microsoft Speech Services SDK
+*/
+module.exports.MS_SPEECH_SUBSCRIPTION_KEY = null;
+
+/**
+  Azure region identifier for Microsoft Speech Services SDK
+*/
+module.exports.MS_SPEECH_SERVICE_REGION = null;

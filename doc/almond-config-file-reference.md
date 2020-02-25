@@ -636,3 +636,18 @@ This must be set if `ACKEE_URL` is set.
 
 Default value: `null`
 
+## VOICE_SERVER_URL
+URL of a server supporting speech-to-text and text-to-speech.
+
+Default value: `'https://voice.almond.stanford.edu'`
+
+## MS_SPEECH_SUBSCRIPTION_KEY
+Azure subscription key for Microsoft Speech Services SDK
+
+Default value: `null`
+
+## MS_SPEECH_SERVICE_REGION
+Azure region identifier for Microsoft Speech Services SDK
+
+Default value: `null`
+

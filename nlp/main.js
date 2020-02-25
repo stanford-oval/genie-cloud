@@ -130,12 +130,14 @@ class NLPInferenceServer {
 
         app.use((req, res, next) => {
             res.set('Access-Control-Allow-Origin', '*');
+            res.set('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
             next();
         });
 
         app.use('/admin', require('./admin'));
         app.use(require('./query'));
         app.use(require('./learn'));
+        app.use(require('./voice'));
 
         // if we get here, we have a 404 error
         app.use('/', (req, res) => {
@@ -150,7 +152,7 @@ class NLPInferenceServer {
 module.exports = {
     initArgparse(subparsers) {
         const parser = subparsers.addParser('run-nlp', {
-            description: 'Run the NLP inference process'
+            description: 'Run the Voice & NLP inference process'
         });
         parser.addArgument(['-p', '--port'], {
             required: false,
