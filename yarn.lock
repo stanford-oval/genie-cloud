@@ -7409,11 +7409,6 @@ wav@^1.0.2:
     readable-stream "^1.1.14"
     stream-parser "^0.3.1"
 
-wavefile@^11.0.0:
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/wavefile/-/wavefile-11.0.0.tgz#9302165874327ff63a704d00b154c753eaa1b8e7"
-  integrity sha512-/OBiAALgWU24IG7sC84cDO/KfFuvajWc5Uec0oV2zrpOOZZDgGdOwHwgEzOrwh8jkubBk7PtZfQBIcI1OaE5Ng==
-
 which-boxed-primitive@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/which-boxed-primitive/-/which-boxed-primitive-1.0.1.tgz#cbe8f838ebe91ba2471bb69e9edbda67ab5a5ec1"

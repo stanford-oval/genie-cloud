@@ -9,12 +9,10 @@
 // See COPYING for details
 "use strict";
 
-const fs = require('fs');
 const express = require('express');
 const multer = require('multer');
 const os = require('os');
 const iv = require('../../util/input_validation');
-const { WaveFile } = require('wavefile');
 
 const { SpeechToText, textToSpeech } = require('./backend-microsoft');
 
@@ -23,31 +21,13 @@ const upload = multer({ dest: os.tmpdir() });
 const router = express.Router();
 
 function restSTT(req, res, next) {
-    const audioFn = `uploads/${req.file.filename}`;
-    fs.readFile(audioFn, (err, wavData) => {
-        if (err) {
-            next(err);
-            return;
-        }
-
-        const rawWavFile = new WaveFile(wavData);
-        rawWavFile.toSampleRate(16000);
-
-        fs.writeFile(audioFn, rawWavFile.toBuffer(), (err) => {
-            if (err) {
-                next(err);
-                return;
-            }
-
-            const stt = new SpeechToText('en-US');
-            stt.recognizeOnce(`uploads/${req.file.filename}`).then((text) => {
-                res.json({
-                    status: 'ok',
-                    text: text
-                });
-            }).catch(next);
+    const stt = new SpeechToText('en-US');
+    stt.recognizeOnce(req.file.path).then((text) => {
+        res.json({
+            status: 'ok',
+            text: text
         });
-    });
+    }).catch(next);
 }
 
 router.post('/voice/stt', upload.single('audio'), restSTT);
