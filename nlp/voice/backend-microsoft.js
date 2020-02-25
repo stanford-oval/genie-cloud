@@ -19,7 +19,7 @@ const {
   AudioConfig,
   SpeechConfig,
   SpeechRecognizer,
-} = require('@euirim/microsoft-cognitiveservices-speech-sdk');
+} = require('microsoft-cognitiveservices-speech-sdk');
 const wav = require('wav');
 
 const Config = require('../../config');
