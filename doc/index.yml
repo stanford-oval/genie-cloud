@@ -42,6 +42,7 @@ sections:
     - thingpedia-api
     - installing-almond-cloud
     - voice-api
+    - google-assistant
 -
   title: Reference Manuals
   pages:
@@ -114,6 +115,7 @@ pages:
   almond-dialog-api-reference: Almond Dialog API
   installing-almond-cloud: Deploy Your Own Web Almond
   voice-api: Almond Voice API
+  google-assistant: Google Assistant
 
   thingtalk-reference: ThingTalk Reference
   thingpedia-annotations: Thingpedia Annotation Reference
