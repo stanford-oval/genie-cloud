@@ -179,6 +179,7 @@ class Frontend {
         });
         this._app.use('/api/webhook', require('./routes/webhook'));
         this._app.use('/me/api/alexa', require('./routes/bridges/alexa'));
+        this._app.use('/me/api/gassistant', require('./routes/bridges/gassistant'));
         this._app.use('/me/api', require('./routes/my_api'));
 
         // legacy route for /me/api/sync, uses auth tokens instead of full OAuth2
