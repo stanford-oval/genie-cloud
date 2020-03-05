@@ -55,6 +55,8 @@ WITH_LUINET: embedded
 THINGPEDIA_URL: https://almond-dev.stanford.edu/thingpedia
 ENABLE_PROMETHEUS: true
 PROMETHEUS_ACCESS_TOKEN: my-prometheus-access-token
+MS_SPEECH_SUBSCRIPTION_KEY: "${MS_SPEECH_SUBSCRIPTION_KEY}"
+MS_SPEECH_SERVICE_REGION: westus2
 EOF
 
 node $srcdir/tests/mock-tokenizer.js &
