@@ -14,7 +14,7 @@ const express = require('express');
 const multer = require('multer');
 const os = require('os');
 const iv = require('../../util/input_validation');
-const I18n = require('../util/i18n');
+const I18n = require('../../util/i18n');
 
 const { SpeechToText, textToSpeech } = require('./backend-microsoft');
 const runNLU = require('../nlu');
@@ -24,6 +24,10 @@ const upload = multer({ dest: os.tmpdir() });
 const router = express.Router();
 
 function restSTT(req, res, next) {
+    if (!req.file) {
+        iv.failKey(req, res, 'audio', { json: true });
+        return;
+    }
     if (!I18n.get(req.params.locale, false)) {
         res.status(404).json({ error: 'Unsupported language' });
         return;
@@ -53,6 +57,10 @@ const NLU_METADATA_KEYS = {
 };
 
 async function restSTTAndNLU(req, res, next) {
+    if (!req.file) {
+        iv.failKey(req, res, 'audio', { json: true });
+        return;
+    }
     let metadata;
     try {
         metadata = JSON.parse(req.body.metadata);
@@ -90,6 +98,10 @@ function tts(req, res, next) {
     }
 
     textToSpeech(req.params.locale, req.body.text).then((stream) => {
+        // audio/x-wav is strictly-speaking non-standard, yet it seems to be
+        // widely used for .wav files
+        if (stream.statusCode === 200)
+            res.set('Content-Type', 'audio/x-wav');
         stream.pipe(res);
     }).catch(next);
 }
@@ -97,12 +109,14 @@ function tts(req, res, next) {
 router.post('/:locale/voice/stt', upload.single('audio'), restSTT);
 router.post('/:locale/voice/query', upload.single('audio'),
     iv.validatePOST({ metadata: 'string' }), restSTTAndNLU);
-router.post('/:locale/voice/tts', iv.validatePOST({ text: 'string' }), tts);
+router.post('/:locale/voice/tts', iv.validatePOST({ text: 'string' }, { json: true }), tts);
 
 // provide identical API keyed off to :model_tag, so people can change the NL_SERVER_URL
 // to include the model tag
 
 router.post('/@:model_tag/:locale/voice/stt', upload.single('audio'), restSTT);
 router.post('/@:model_tag/:locale/voice/query', upload.single('audio'),
-    iv.validatePOST({ metadata: 'string' }), restSTTAndNLU);
-router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({ text: 'string' }), tts);
+    iv.validatePOST({ metadata: 'string' }, { json: true }), restSTTAndNLU);
+router.post('/@:model_tag/:locale/voice/tts', iv.validatePOST({ text: 'string' }, { json: true }), tts);
+
+module.exports = router;

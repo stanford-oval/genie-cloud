@@ -71,7 +71,6 @@ class SpeechToText {
             const fileStream = fs.createReadStream(wavFilename);
             const wavReader = new wav.Reader();
             wavReader.on('format', (format) => {
-                console.log(format);
                 wavReader.on('data', (data) => {
                     sdkAudioInputStream.write(data);
                 }).on('end', () => {
@@ -86,7 +85,7 @@ class SpeechToText {
 }
 
 async function getTTSAccessToken() {
-    const url = 'https://westus2.api.cognitive.microsoft.com/sts/v1.0/issuetoken';
+    const url = `https://${Config.MS_SPEECH_SERVICE_REGION}.api.cognitive.microsoft.com/sts/v1.0/issuetoken`;
     return Tp.Helpers.Http.post(url, '', {
         extraHeaders: {
             'Ocp-Apim-Subscription-Key': Config.MS_SPEECH_SUBSCRIPTION_KEY,
@@ -104,19 +103,21 @@ async function textToSpeech(locale, text) {
     const xmlBody = xmlbuilder
         .create('speak')
         .att('version', '1.0')
-        .att('xml:lang', locale.toLowerCase())
+        .att('xml:lang', locale)
         .ele('voice')
-        .att('xml:lang', locale.toLowerCase())
+        .att('xml:lang', locale)
         .att('name', VOICE_NAMES[locale.toLowerCase()])
         .txt(text)
         .end();
     // Convert the XML into a string to send in the TTS request.
     const body = xmlBody.toString();
+    console.log(body);
 
     return new Promise((resolve, reject) => {
         const options = {
             protocol: 'https:',
-            hostname: 'westus2.tts.speech.microsoft.com',
+            hostname: `${Config.MS_SPEECH_SERVICE_REGION}.tts.speech.microsoft.com`,
+            port: 443,
             headers: {
                 Authorization: `Bearer ${accessToken}`,
                 'Content-Type': 'application/ssml+xml',
@@ -125,14 +126,17 @@ async function textToSpeech(locale, text) {
                 'cache-control': 'no-cache',
             },
             method: 'POST',
-            path: 'cognitiveservices/v1',
+            path: '/cognitiveservices/v1',
         };
-        const req = https.request(options, (err, response) => {
-            if (err)
-                reject(err);
-            else
-                resolve(response);
+        const req = https.request(options, (res) => {
+            if (res.statusCode !== 200) {
+                // this error will be logged, and the client will see a 500 error
+                reject(new Error(`Unexpected HTTP error ${res.statusCode}`));
+                return;
+            }
+            resolve(res);
         });
+        req.on('error', reject);
         req.end(body);
     });
 }

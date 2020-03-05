@@ -119,17 +119,6 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@euirim/microsoft-cognitiveservices-speech-sdk@^1.8.0":
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/@euirim/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.8.0.tgz#9712a0a42d26cf0b9cbce907d07463474f611ad6"
-  integrity sha512-MZ7RM3vpSm9rZUxDJwddQYrFP+r6hpX+7Y/QSP1MzkZRDd1d+uvKGwipvq7ast0f4d3gZ4y1vXsh/XPECVCodg==
-  dependencies:
-    asn1.js-rfc2560 "^5.0.0"
-    asn1.js-rfc5280 "^3.0.0"
-    https-proxy-agent "^3.0.0"
-    simple-lru-cache "0.0.2"
-    ws "^7.1.1"
-
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.0.0.tgz#10602de5570baea82f8afbfa2630b24e7a8cfe5b"
@@ -632,7 +621,7 @@ asap@~2.0.3:
   resolved "https://registry.yarnpkg.com/asap/-/asap-2.0.6.tgz#e50347611d7e690943208bbdafebcbc2fb866d46"
   integrity sha1-5QNHYR1+aQlDIIu9r+vLwvuGbUY=
 
-asn1.js-rfc2560@^5.0.0:
+asn1.js-rfc2560@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/asn1.js-rfc2560/-/asn1.js-rfc2560-5.0.1.tgz#cff99b903e714756b29503ad49de01c72f131e60"
   integrity sha512-1PrVg6kuBziDN3PGFmRk3QrjpKvP9h/Hv5yMrFZvC1kpzP6dQRzf5BpKstANqHBkaOUmTpakJWhicTATOA/SbA==
@@ -655,7 +644,7 @@ asn1.js@^4.0.0:
     inherits "^2.0.1"
     minimalistic-assert "^1.0.0"
 
-asn1.js@^5.0.0:
+asn1.js@^5.0.0, asn1.js@^5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/asn1.js/-/asn1.js-5.3.0.tgz#439099fe9174e09cff5a54a9dda70260517e8689"
   integrity sha512-WHnQJFcOrIWT1RLOkFFBQkFVvyt9BPOOrH+Dp152Zk4R993rSzXUGPmkybIcUFhHE2d/iHH+nCaOWVCDbO8fgA==
@@ -3451,7 +3440,7 @@ https-proxy-agent@^2.2.1:
     agent-base "^4.3.0"
     debug "^3.1.0"
 
-https-proxy-agent@^3.0.0:
+https-proxy-agent@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/https-proxy-agent/-/https-proxy-agent-3.0.1.tgz#b8c286433e87602311b01c8ea34413d856a4af81"
   integrity sha512-+ML2Rbh6DAuee7d07tYGEKOEi2voWPUGan+ExdPbPW6Z3svq+JCqr0v8WmKPOkz1vOVykPCBSuobe7G8GJUtVg==
@@ -4644,6 +4633,17 @@ methods@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
   integrity sha1-VSmk1nZUE07cxSZmVoNbD4Ua/O4=
+
+microsoft-cognitiveservices-speech-sdk@^1.8.0:
+  version "1.10.0"
+  resolved "https://registry.yarnpkg.com/microsoft-cognitiveservices-speech-sdk/-/microsoft-cognitiveservices-speech-sdk-1.10.0.tgz#c09371d512e4508ce4a3c51fbbfa18a56b4e410b"
+  integrity sha512-bKaT2r95xE1AW08c/U8gi8PWnPkr4VYLxVoBT/T1M8Nq3xkkYkn2wIy7d/SuN/0xoX6rvx1hIOff5RHPw4yrtw==
+  dependencies:
+    asn1.js-rfc2560 "^5.0.1"
+    asn1.js-rfc5280 "^3.0.0"
+    https-proxy-agent "^3.0.1"
+    simple-lru-cache "0.0.2"
+    ws "^7.2.1"
 
 miller-rabin@^4.0.0:
   version "4.0.1"
@@ -7568,7 +7568,7 @@ ws@^6.1.0:
   dependencies:
     async-limiter "~1.0.0"
 
-ws@^7.0.0, ws@^7.1.1:
+ws@^7.0.0, ws@^7.2.1:
   version "7.2.1"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.2.1.tgz#03ed52423cd744084b2cf42ed197c8b65a936b8e"
   integrity sha512-sucePNSafamSKoOqoNfBd8V0StlkzJKL2ZAhGQinCfNQ+oacw+Pk7lcdAElecBF2VkLNZRiIb5Oi1Q5lVUVt2A==
