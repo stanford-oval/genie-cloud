@@ -1,6 +1,6 @@
 # Google Assistant
 
-You can use Google Assistant to access Thingpedia devices!
+You can use Google Assistant to access Thingpedia devices.
 
 First, follow the instructions [here](https://developers.google.com/assistant/actions/actions-sdk) to create an Action package for Google Assistant.
 
@@ -53,10 +53,10 @@ Specifically, the Action package JSON file should be replaced with the following
 
 Then, upload your Action package by following the instructions [here](https://developers.google.com/assistant/actions/actions-sdk/create-a-project).
 
-Next, you are ready to test your Action package!
+Next, you can test your Action package with Google's Action Console or the Google Assistant app.
 
 Head to Google's [Action Console](https://console.actions.google.com/u/0/) and click on your project. Then click on the "Test" tab at the top.
 
-Try entering "Talk to <YourActionName>" to start a conversation with your Action package. Then try commands such as those from the utterances in the `dataset.tt` file.
+Enter "Talk to <YourActionName>" to start a conversation with your Action package. Then try commands such as those from the utterances in the `dataset.tt` file.
 
-You can also test your Action package from your Google Assistant app on your mobile device. Just start the conversation with "Talk to <YourActionName>"!
+You can also test your Action package from your Google Assistant app on your mobile device. Just start the conversation with "Talk to <YourActionName>". Then proceed to try out different commands from your `dataset.tt` file.

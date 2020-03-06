@@ -33,6 +33,7 @@ sections:
   title: Use Cases
   pages:
     - home-assistant-integration
+    - google-assistant
 
 -
   title: Almond Integration APIs
@@ -42,7 +43,6 @@ sections:
     - thingpedia-api
     - installing-almond-cloud
     - voice-api
-    - google-assistant
 -
   title: Reference Manuals
   pages:
