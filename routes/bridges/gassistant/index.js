@@ -49,12 +49,7 @@ class GoogleAssistantDelegate {
     }
 
     sendLink(title, url) {
-        if (url === '/user/register') {
-            this._card = {
-                type: 'LinkAccount'
-            };
-        }
-        // FIXME handle other URL types
+        // FIXME
     }
 
     sendResult(message, icon) {
@@ -72,12 +67,12 @@ const app = actionssdk();
 // Register handler for Actions SDK
 
 app.intent('actions.intent.MAIN', (conv) => {
-    conv.ask('Hello! I\'m Almond, your virtual assistant.');
+    conv.ask("Hello! I'm Almond, your virtual assistant.");
 });
 
 app.intent('actions.intent.TEXT', (conv, input) => {
     if (input === 'bye' || input === 'goodbye')
-        return conv.close('See you later!');
+        return conv.close("See you later!");
 
     let anonymous = true;
     // const userId = conv.user._id || 'UserID';
@@ -103,12 +98,12 @@ app.intent('actions.intent.TEXT', (conv, input) => {
             if (delegate._buffer)
                 conv.ask(delegate._buffer); // A text output needs to precede the image
             else
-                conv.ask('Here is an image.');
+                conv.ask("Here is an image.");
             conv.ask(delegate._image);
         } else if (delegate._buffer) {
             conv.ask(delegate._buffer);
         } else {
-            conv.close('Consider it done.');
+            conv.close("Consider it done.");
         }
     });
 });
