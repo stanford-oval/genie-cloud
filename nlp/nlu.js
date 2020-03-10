@@ -175,10 +175,11 @@ async function runNLU(query, params, data, service, res) {
 
     res.set("Cache-Control", "no-store,must-revalidate");
     return {
-         candidates: result,
-         tokens: tokens,
-         entities: tokenized.entities,
-         intent
+        result: 'ok',
+        candidates: result,
+        tokens: tokens,
+        entities: tokenized.entities,
+        intent
     };
 }
 

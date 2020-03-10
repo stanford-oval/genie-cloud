@@ -78,6 +78,7 @@ async function testContextual() {
 
     const tok1 = await parser.tokenize('1234');
     assert.deepStrictEqual(tok1, {
+        result: 'ok',
         tokens: ['NUMBER_0'],
         pos_tags: ['NN'],
         raw_tokens: ['1234'],
@@ -89,6 +90,7 @@ async function testContextual() {
 
     const tok2 = await parser.tokenize('1234', { NUMBER_0: 1234 });
     assert.deepStrictEqual(tok2, {
+        result: 'ok',
         tokens: ['NUMBER_0'],
         pos_tags: ['NN'],
         raw_tokens: ['1234'],
@@ -100,6 +102,7 @@ async function testContextual() {
 
     const tok3 = await parser.tokenize('1235', { NUMBER_0: 1234 });
     assert.deepStrictEqual(tok3, {
+        result: 'ok',
         tokens: ['NUMBER_1'],
         pos_tags: ['NN'],
         raw_tokens: ['1235'],
@@ -112,6 +115,7 @@ async function testContextual() {
 
     const tok4 = await parser.tokenize('foo', { NUMBER_0: 1234 });
     assert.deepStrictEqual(tok4, {
+        result: 'ok',
         tokens: ['foo'],
         pos_tags: ['NN'],
         raw_tokens: ['foo'],
@@ -127,6 +131,7 @@ async function testContextual() {
     });
     delete q1.intent;
     assert.deepStrictEqual(q1, {
+        result: 'ok',
         tokens: ['another', 'one'],
         entities: {},
         candidates: [{
@@ -141,6 +146,7 @@ async function testContextual() {
     });
     delete q2.intent;
     assert.deepStrictEqual(q2, {
+        result: 'ok',
         tokens: ['another', 'one'],
         entities: {},
         candidates: [{
@@ -157,6 +163,7 @@ async function testContextual() {
     });
     delete q3.intent;
     assert.deepStrictEqual(q3, {
+        result: 'ok',
         tokens: ['another', 'one'],
         entities: {
             NUMBER_0: 2

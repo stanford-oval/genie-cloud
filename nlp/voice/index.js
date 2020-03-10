@@ -36,7 +36,7 @@ function restSTT(req, res, next) {
     const stt = new SpeechToText(req.params.locale);
     stt.recognizeOnce(req.file.path).then((text) => {
         res.json({
-            status: 'ok',
+            result: 'ok',
             text: text
         });
     }).catch(next);

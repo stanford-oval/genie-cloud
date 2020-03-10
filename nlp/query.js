@@ -31,6 +31,7 @@ async function tokenize(params, data, res) {
     if (data.entities)
         Genie.Utils.renumberEntities(tokenized, data.entities);
 
+    tokenized.result = 'ok';
     res.cacheFor(3600);
     res.json(tokenized);
 }

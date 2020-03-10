@@ -40,6 +40,7 @@ HTTP/1.1 200 Ok
 Content-Type: application/json
 
 {
+  "result": "ok",
   "candidates": [
     {
       code: ["now", "=>", "@com.thecatapi.get", "=>", "notify"],
@@ -76,6 +77,7 @@ All parameters are optional except for `q`. `thingtalk_version` is optional for 
 
 ### Response fields
 
+- `result`: either `ok`, or absent in case of an error
 - `candidates`: an array of candidate parses, sorted from the most to the least likely
 - `candidates[].code`: the ThingTalk code of the candidate parse, as an array of tokens
 - `candidates[].score`: the likelihood score of the parse; the special value `Infinity` indicates that the sentence was matched exactly instead of using a neural model
@@ -106,7 +108,7 @@ HTTP/1.1 200 Ok
 Content-Type: application/json
 
 {
-  "status": "ok",
+  "result": "ok",
   "text": "Recognized text."
 }
 ```
@@ -117,7 +119,7 @@ The wav file needs to have a sample rate of 16000 Hz, and must be in PCM mono fo
 
 ### Response fields
 
-- `status`: either `ok` or absent in case of an error
+- `result`: either `ok`, or absent in case of an error
 - `text`: the recognized text, capitalized and punctuated correctly
 
 ## Combined Speech-to-Text and NLU: /voice/query
@@ -147,7 +149,7 @@ HTTP/1.1 200 Ok
 Content-Type: application/json
 
 {
-  "status": "ok",
+  "result": "ok",
   "text": "Recognized text.",
   "candidates": [
     {
@@ -212,6 +214,7 @@ HTTP/1.1 200 Ok
 Content-Type: application/json
 
 {
+  "result": "ok",
   "tokens": ["wake", "me", "up", "at", "TIME_0", "with", "NUMBER_0", "cat", "pictures"],
   "entities": {
     "TIME_0": { "hour": 7, "minute": 0, "second": 0 },
@@ -233,6 +236,7 @@ All parameters are optional except for `q`.
 
 ### Response fields
 
+- `result`: either `ok`, or absent in case of an error
 - `tokens`: the tokenization of the input sentence
 - `entities`: entities extracted from the sentence; this is an object with one key for each upper-case token in `tokens`
 - `raw_tokens`: the tokenization of the input sentence, before recognizing entities
@@ -259,8 +263,8 @@ HTTP/1.1 200 Ok
 Content-Type: application/json
 
 {
-  "status": "ok",
-  "result": "Learnt successfully",
+  "result": "ok",
+  "message": "Learnt successfully",
   "example_id": 123456
 }
 ```
@@ -277,6 +281,6 @@ Content-Type: application/json
 
 ### Response fields
 
-- `status`: `ok` on success, or absent on failure
-- `result`: a human-readable string indicating what actually happened to the sentence
+- `result`: `ok` on success, or absent on failure
+- `message`: a human-readable string indicating what actually happened to the sentence
 - `example_id`: if the sentence was added to the database, this is the ID of the newly created training example

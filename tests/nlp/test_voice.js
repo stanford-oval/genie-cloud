@@ -45,7 +45,7 @@ async function testSTT() {
     const response = await formRequest(Config.NL_SERVER_URL + '/en-US/voice/stt', fd3);
     const parsed = JSON.parse(response);
     assert.deepStrictEqual(parsed, {
-        status: 'ok',
+        result: 'ok',
         text: 'Hello, this is a test.'
     });
 }
