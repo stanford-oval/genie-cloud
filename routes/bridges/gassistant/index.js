@@ -13,7 +13,8 @@ const Q = require('q');
 const express = require('express');
 
 const EngineManager = require('../../../almond/enginemanagerclient');
-const { actionssdk, Image } = require('actions-on-google');
+const { actionssdk, Image, Suggestions, BasicCard, Button } = require('actions-on-google');
+// Refer to https://developers.google.com/assistant/conversational/responses for full list of response types
 
 const userUtils = require('../../../util/user');
 
@@ -21,43 +22,88 @@ var router = express.Router();
 
 class GoogleAssistantDelegate {
     constructor(locale) {
-        this._buffer = '';
+        this._buffer = [];
         this._locale = locale;
     }
 
     send(text, icon) {
-        this._buffer += text + '\n';
+        if (typeof this._buffer[this._buffer.length - 1] === 'string')
+            // If there is already a text reply immediately before, we merge text replies
+            // because Google Assistant limits at most 2 chat bubbles per turn
+            this._buffer[this._buffer.length - 1] += '\n' + text;
+        else
+            this._buffer.push(text);
     }
 
     sendPicture(url, icon) {
-        this._image = new Image({
+        if (typeof this._buffer[this._buffer.length - 1] !== 'string')
+            // If there is no text reply immediately before, we add the URL
+            // because Google Assistant requires a chat bubble to accompany an Image
+            this._buffer.push(url);
+        this._buffer.push(new Image({
             url: url,
             alt: url,
-        });
+        }));
     }
 
     sendRDL(rdl, icon) {
-        this._buffer += rdl.displayTitle + '\n';
+        this._buffer.push(new BasicCard({
+            title: rdl.displayTitle,
+            text: rdl.displayText,
+            buttons: new Button({
+                title: rdl.displayTitle,
+                url: rdl.webCallback,
+            }),
+            image: new Image({
+                url: rdl.pictureUrl,
+                alt: rdl.pictureUrl
+            }),
+            display: 'CROPPED',
+        }));
     }
 
     sendChoice(idx, what, title, text) {
-        this._buffer += title + '\n';
+        let suggestions = []
+        // Filter out buttons more than 25 characters long
+        // since Google Assistant has a cap of 25 characters
+        if (title.length <= 25)
+            suggestions.push(title.substring(0, 25));
+        else
+            console.log(`${title} exceeds max length of 25 characters`)
+        if (suggestions.length)
+            this._buffer.push(new Suggestions(suggestions));
     }
 
     sendButton(title, json) {
-        // FIXME
+        let suggestions = []
+        // Filter out buttons more than 25 characters long
+        // since Google Assistant has a cap of 25 characters
+        if (title.length <= 25)
+            suggestions.push(title.substring(0, 25));
+        else
+            console.log(`${title} exceeds max length of 25 characters`)
+        if (suggestions.length)
+            this._buffer.push(new Suggestions(suggestions));
     }
 
     sendLink(title, url) {
-        // FIXME
+        this._buffer.push(new Button({
+            title: title,
+            url: url,
+        }));
     }
 
     sendResult(message, icon) {
-        this._buffer += message.toLocaleString(this._locale) + '\n';
+        if (typeof this._buffer[this._buffer.length - 1] === 'string')
+            // If there is already a text reply immediately before, we merge text replies
+            // because Google Assistant limits at most 2 chat bubbles per turn
+            this._buffer[this._buffer.length - 1] += '\n' + message.toLocaleString(this._locale);
+        else
+            this._buffer.push(message.toLocaleString(this._locale));
     }
 
     sendAskSpecial(what) {
-        this._askSpecial = what;
+        // TODO
     }
 }
 GoogleAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
@@ -67,10 +113,29 @@ const app = actionssdk();
 // Register handler for Actions SDK
 
 app.intent('actions.intent.MAIN', (conv) => {
-    conv.ask("Hello! I'm Almond, your virtual assistant.");
+    let anonymous = true;
+    // const userId = conv.user._id || 'UserID';
+    const locale = conv.body.user.locale;
+    const conversationId = conv.body.conversation.conversationId;
+    const assistantUser = { name: conv.user.name.display || 'User', isOwner: true };
+    const delegate = new GoogleAssistantDelegate(locale);
+
+    return Q.try(() => {
+        return userUtils.getAnonymousUser();
+    }).then((user) => {
+        return EngineManager.get().getEngine(user.id);
+    }).then((engine) => {
+        return engine.assistant.getOrOpenConversation('google_assistant:' + conversationId,
+            assistantUser, delegate, { anonymous, showWelcome: true, debug: true });
+    }).then(() => {
+        // Send welcome message
+        delegate._buffer.forEach((reply) => conv.ask(reply));
+    });
 });
 
 app.intent('actions.intent.TEXT', (conv, input) => {
+    // Quick hack so that Almond recognizes bye and goodbye
+    // and returns user to Google Assistant
     if (input === 'bye' || input === 'goodbye')
         return conv.close("See you later!");
 
@@ -94,17 +159,10 @@ app.intent('actions.intent.TEXT', (conv, input) => {
         else
             return conversation.handleCommand(input);
     }).then(() => {
-        if (delegate._image) {
-            if (delegate._buffer)
-                conv.ask(delegate._buffer); // A text output needs to precede the image
-            else
-                conv.ask("Here is an image.");
-            conv.ask(delegate._image);
-        } else if (delegate._buffer) {
-            conv.ask(delegate._buffer);
-        } else {
+        if (delegate._buffer)
+            delegate._buffer.forEach((reply) => conv.ask(reply));
+        else
             conv.close("Consider it done.");
-        }
     });
 });
 
