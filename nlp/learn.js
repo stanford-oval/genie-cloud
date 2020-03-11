@@ -65,7 +65,7 @@ async function learn(req, res) {
     // (as it might have changed meaning in the newer version of ThingTalk
     // anyway)
     if (req.body.thingtalk_version !== LATEST_THINGTALK_VERSION) {
-        res.status(200).json({ result: 'Ignored request from older ThingTalk' });
+        res.status(200).json({ result: "ok", message: 'Ignored request from older ThingTalk' });
         return;
     }
 
@@ -86,7 +86,7 @@ async function learn(req, res) {
 
     if (store === 'no') {
         // do nothing, successfully
-        res.status(200).json({ result: 'Learnt successfully' });
+        res.status(200).json({ result: "ok", message: 'Learnt successfully' });
         return;
     }
 
@@ -153,7 +153,7 @@ async function learn(req, res) {
             await Promise.all(promises);
         }
     }
-    res.status(200).json({ result: 'Learnt successfully', example_id: exampleId });
+    res.status(200).json({ result: 'ok', message: 'Learnt successfully', example_id: exampleId });
 }
 
 router.post('/@:model_tag/:locale/learn',

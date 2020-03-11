@@ -36,6 +36,7 @@
     "actions-on-google": "^2.2.0",
     "almond-dialog-agent": "~1.7.0",
     "argparse": "^1.0.10",
+    "asn1.js": "^5.3.0",
     "body-parser": "^1.18.3",
     "cacheable-middleware": "^1.0.0",
     "color-scheme": "^1.0.0",
@@ -70,6 +71,7 @@
     "markdown-it-footnote": "^3.0.1",
     "markdown-it-highlightjs": "^3.0.0",
     "markdown-it-table-of-contents": "^0.4.3",
+    "microsoft-cognitiveservices-speech-sdk": "^1.8.0",
     "mmap-io": "^1.1.7",
     "moment-timezone": "^0.5.23",
     "morgan": "^1.9.1",
@@ -107,7 +109,9 @@
     "thirty-two": "^1.0.2",
     "tmp-promise": "^2.0.2",
     "transparent-rpc": "^1.0.0",
-    "type-is": "^1.6.16"
+    "type-is": "^1.6.16",
+    "wav": "^1.0.2",
+    "xmlbuilder": "^14.0.0"
   },
   "devDependencies": {
     "apidoc": "^0.20.0",
