@@ -11,9 +11,10 @@
 
 const Q = require('q');
 const express = require('express');
+const passport = require('passport');
 
 const EngineManager = require('../../../almond/enginemanagerclient');
-const { actionssdk, Image, Suggestions, BasicCard, Button } = require('actions-on-google');
+const { actionssdk, Image, Suggestions, BasicCard, Button, SignIn } = require('actions-on-google');
 // Refer to https://developers.google.com/assistant/conversational/responses for full list of response types
 
 const userUtils = require('../../../util/user');
@@ -24,6 +25,7 @@ class GoogleAssistantDelegate {
     constructor(locale) {
         this._buffer = [];
         this._locale = locale;
+        this._requestSignin = false;
     }
 
     send(text, icon) {
@@ -87,10 +89,14 @@ class GoogleAssistantDelegate {
     }
 
     sendLink(title, url) {
-        this._buffer.push(new Button({
-            title: title,
-            url: url,
-        }));
+        if (url === '/user/register') {
+            this._requestSignin = true;
+        } else {
+            this._buffer.push(new Button({
+                title: title,
+                url: url,
+            }));
+        }
     }
 
     sendResult(message, icon) {
@@ -108,13 +114,35 @@ class GoogleAssistantDelegate {
 }
 GoogleAssistantDelegate.prototype.$rpcMethods = ['send', 'sendPicture', 'sendChoice', 'sendLink', 'sendButton', 'sendAskSpecial', 'sendRDL', 'sendResult'];
 
+function authenticate(req, res, next) {
+    console.log(req.body.user);
+    if (req.body.user.accessToken) {
+        req.headers.authorization = 'Bearer ' + req.body.user.accessToken;
+        passport.authenticate('bearer', { session: false })(req, res, next);
+    } else {
+        next();
+    }
+}
+
+router.use(authenticate);
+router.use(userUtils.requireScope('user-exec-command'));
+
 const app = actionssdk();
 
-// Register handler for Actions SDK
-
+// Welcome response when user first initiates conversation
 app.intent('actions.intent.MAIN', (conv) => {
+
+    // TODO - retrieve user.id after authentication
+    // let user, anonymous;
+    // if (conv.request.user.accessToken) {
+    //     user = conv.request.user;
+    //     anonymous = false;
+    // } else {
+    //     user = await userUtils.getAnonymousUser();
+    //     anonymous = true;
+    // }
+
     let anonymous = true;
-    // const userId = conv.user._id || 'UserID';
     const locale = conv.body.user.locale;
     const conversationId = conv.body.conversation.conversationId;
     const assistantUser = { name: conv.user.name.display || 'User', isOwner: true };
@@ -133,14 +161,37 @@ app.intent('actions.intent.MAIN', (conv) => {
     });
 });
 
+// Immediate response after user authenticates
+app.intent('actions.intent.SIGN_IN', (conv, input, signin) => {
+    if (signin.status === 'OK')
+        conv.ask("Thank you for signing in! What would you like to do next?")
+    else
+        conv.ask("You were unable to log in. Is there something else you want to do?")
+})
+
+// All other responses
 app.intent('actions.intent.TEXT', (conv, input) => {
     // Quick hack so that Almond recognizes bye and goodbye
     // and returns user to Google Assistant
     if (input === 'bye' || input === 'goodbye')
         return conv.close("See you later!");
+    // TODO - better way for user to initiate sign in
+    if (input === 'I want to sign in')
+        // This will output "<To get your account details>, I need to link your
+        // <action> account to Google. Is that okay?"
+        return conv.ask(new SignIn("To get your account details"));
+
+    // TODO - retrieve user.id after authentication
+    // let user, anonymous;
+    // if (conv.request.user.accessToken) {
+    //     user = conv.request.user;
+    //     anonymous = false;
+    // } else {
+    //     user = await userUtils.getAnonymousUser();
+    //     anonymous = true;
+    // }
 
     let anonymous = true;
-    // const userId = conv.user._id || 'UserID';
     const locale = conv.body.user.locale;
     const conversationId = conv.body.conversation.conversationId;
     const assistantUser = { name: conv.user.name.display || 'User', isOwner: true };
@@ -159,10 +210,14 @@ app.intent('actions.intent.TEXT', (conv, input) => {
         else
             return conversation.handleCommand(input);
     }).then(() => {
-        if (delegate._buffer)
+        if (delegate._buffer) {
             delegate._buffer.forEach((reply) => conv.ask(reply));
-        else
+            // Another way to initiate authentication, initiated by Almond
+            if (delegate._requestSignin)
+                conv.ask(new SignIn("To get your account details"));
+        } else {
             conv.close("Consider it done.");
+        }
     });
 });
 
