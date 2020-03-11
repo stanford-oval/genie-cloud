@@ -245,7 +245,8 @@ class Frontend {
         }
         if (Config.WITH_LUINET === 'embedded') {
             this._app.use('/luinet/templates', require('./routes/luinet_templates'));
-            this._app.use('/mturk', require('./routes/mturk'));
+            if (Config.ENABLE_DEVELOPER_PROGRAM)
+                this._app.use('/developers/mturk', require('./routes/developer_mturk'));
         }
         if (Config.ENABLE_DEVELOPER_PROGRAM)
             this._app.use('/developers/oauth', require('./routes/developer_oauth2'));
@@ -260,6 +261,7 @@ class Frontend {
         this._app.use('/', require('./routes/about'));
         this._app.use('/', require('./routes/qrcode'));
         this._app.use('/blog', require('./routes/blog'));
+        this._app.use('/mturk', require('./routes/mturk'));
 
         this._app.use('/me/ws', require('./routes/my_internal_api'));
         this._app.use('/me', require('./routes/my_stuff'));
@@ -296,6 +298,7 @@ class Frontend {
         this._app.use('/profiles', require('./routes/thingpedia_profiles'));
         this._app.use('/user', require('./routes/user'));
         this._app.use('/admin', require('./routes/admin'));
+        this._app.use('/admin/mturk', require('./routes/admin_mturk'));
 
         this._app.use((req, res) => {
             // if we get here, we have a 404 response

@@ -138,15 +138,31 @@ module.exports = {
             and not find_in_set('training', ex.flags)`, [batch]);
     },
 
-    getBatches(dbClient, batch) {
-        return db.selectAll(dbClient, `select id, name, submissions_per_hit, status,
+    getBatches(dbClient) {
+        return db.selectAll(dbClient, `select id, owner, mturk_batch.name as name,
+            submissions_per_hit, status, organizations.name as owner_name,
             (select count(*) from mturk_input where batch = mturk_batch.id) as input_count,
             (select count(mout.example_id) from mturk_output mout,
-            mturk_log log where log.batch= mturk_batch.id
-            and mout.submission_id = log.submission_id) as submissions, (select count(mout.example_id)
-            from mturk_output mout, mturk_log log where
-            log.batch= mturk_batch.id and (mout.accept_count + mout.reject_count) >= mout.target_count
-            and mout.submission_id = log.submission_id) as validated from mturk_batch`);
+             mturk_log log where log.batch= mturk_batch.id
+             and mout.submission_id = log.submission_id) as submissions,
+            (select count(mout.example_id)
+             from mturk_output mout, mturk_log log where
+             log.batch= mturk_batch.id and (mout.accept_count + mout.reject_count) >= mout.target_count
+             and mout.submission_id = log.submission_id) as validated
+            from mturk_batch join organizations on mturk_batch.owner = organizations.id`);
+    },
+    getBatchesForOwner(dbClient, ownerId) {
+        return db.selectAll(dbClient, `select id, owner, name as name,
+            submissions_per_hit, status,
+            (select count(*) from mturk_input where batch = mturk_batch.id) as input_count,
+            (select count(mout.example_id) from mturk_output mout,
+             mturk_log log where log.batch= mturk_batch.id
+             and mout.submission_id = log.submission_id) as submissions,
+            (select count(mout.example_id)
+             from mturk_output mout, mturk_log log where
+             log.batch= mturk_batch.id and (mout.accept_count + mout.reject_count) >= mout.target_count
+             and mout.submission_id = log.submission_id) as validated
+            from mturk_batch where owner = ?`, [ownerId]);
     },
 
     streamHITs(dbClient, batch) {

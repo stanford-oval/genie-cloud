@@ -40,7 +40,7 @@ async function testCreateMTurkBatch(root) {
     const fd1 = new FormData();
     fd1.append('name', 'Test Batch');
     fd1.append('submissions_per_hit', '3');
-    await assertHttpError(sessionRequest('/mturk/create', 'POST', fd1, root),
+    await assertHttpError(sessionRequest('/developers/mturk/create', 'POST', fd1, root),
         400, 'Must upload the CSV file');
 
     const fd2 = new FormData();
@@ -48,12 +48,13 @@ async function testCreateMTurkBatch(root) {
     fd2.append('submissions_per_hit', '3');
     fd2.append('upload', inputfile, { filename: 'input.tsv', contentType: 'text/tab-separated-values' });
 
-    await assertRedirect(sessionRequest('/mturk/create', 'POST', fd2, root, { followRedirects: false }),
-        '/mturk');
+    await assertRedirect(sessionRequest('/developers/mturk/create', 'POST', fd2, root, { followRedirects: false }),
+        '/developers/mturk');
 
     const batches = await dbQuery(`select * from mturk_batch`);
     deepStrictEqual(batches, [{
         id: 1,
+        owner: 1,
         language: 'en',
         name: 'Test Batch',
         submissions_per_hit: 3,
@@ -259,14 +260,17 @@ async function testSubmitToMTurk(nobody) {
     await sessionRequest('/mturk/submit', 'POST', data3, nobody);
 }
 
-async function testStartValidation(root, nobody) {
-    await assertHttpError(sessionRequest('/mturk/start-validation', 'POST', { batch: 1 }, nobody),
+async function testStartValidation(root, bob, nobody) {
+    await assertHttpError(sessionRequest('/developers/mturk/start-validation', 'POST', { batch: 1 }, nobody),
         401);
 
-    await assertHttpError(sessionRequest('/mturk/start-validation', 'POST', { batch: 2 }, root),
+    await assertHttpError(sessionRequest('/developers/mturk/start-validation', 'POST', { batch: 1 }, bob),
+        403);
+
+    await assertHttpError(sessionRequest('/developers/mturk/start-validation', 'POST', { batch: 2 }, root),
         404);
 
-    await sessionRequest('/mturk/start-validation', 'POST', { batch: 1 }, root);
+    await sessionRequest('/developers/mturk/start-validation', 'POST', { batch: 1 }, root);
 
     const hits = await dbQuery(`select * from mturk_validation_input`);
 
@@ -462,12 +466,13 @@ async function testSubmitValidation(nobody) {
 async function main() {
     const nobody = await startSession();
     const root = await login('root', 'rootroot');
+    const bob = await login('bob', '12345678');
 
     await testCreateMTurkBatch(root);
 
     await testSubmitToMTurk(nobody);
 
-    await testStartValidation(root, nobody);
+    await testStartValidation(root, bob, nobody);
 
     await testSubmitValidation(nobody);
 

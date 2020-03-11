@@ -413,11 +413,13 @@ DROP TABLE IF EXISTS `mturk_batch`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mturk_batch` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `owner` int(11) NOT NULL,
   `name` varchar(255) CHARACTER SET utf8 NOT NULL,
   `language` char(16) COLLATE utf8_bin NOT NULL DEFAULT 'en',
   `submissions_per_hit` int(11) NOT NULL DEFAULT 3,
   `status` enum('created','paraphrasing','validating','complete') NOT NULL COLLATE utf8_bin DEFAULT 'created',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `mturk_batch_ibfk_1` FOREIGN KEY (`owner`) REFERENCES `organizations` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

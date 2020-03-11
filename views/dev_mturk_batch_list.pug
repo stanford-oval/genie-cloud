@@ -1,0 +1,90 @@
+extends layout
+
+block styles
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/thingpedia.css')
+  link(rel='stylesheet', href=Config.ASSET_CDN + '/stylesheets/dev_sidebar.css')
+
+block scripts
+  script(src=Config.ASSET_CDN + '/javascripts/docsearch.js')
+
+block page_name
+  - stdlayout = false;
+  - var section = 'mturk';
+  = _("Developer Console")
+
+block content
+  div.container-fluid#page-body
+    div.row
+      div.col-lg-3.col-md-4
+        include dev_sidebar
+
+      div.col-xs-12.col-md-8.col-lg-9
+        section.divider
+          h3= _("Your MTurk Paraphrasing Batches")
+
+          table.table
+            thead
+              th #
+              th= _("Name")
+              th= _("# inputs")
+              th= _("Target size")
+              th= _("# submissions")
+              th= _("# validated")
+              th= _("Status")
+              th= _("Actions")
+
+            tbody
+              for batch in batches
+                tr
+                  td= batch.id
+                  td= batch.name
+                  td= batch.input_count
+                  td= batch.input_count * batch.submissions_per_hit * 2
+                  td
+                    = _("%d (%.0f %%)").format(batch.submissions, 100*(batch.submissions / (batch.input_count * batch.submissions_per_hit * 2)))
+                  td
+                    = _("%d (%.0f %%)").format(batch.validated, 100*(batch.submissions > 0 ? batch.validated / batch.submissions : 0))
+                  td
+                    if batch.status === 'created'
+                      = _("Not Started")
+                    else if batch.status === 'paraphrasing'
+                      if batch.submissions < batch.input_count * batch.submissions_per_hit * 2
+                        = _("Paraphrasing")
+                      else
+                        = _("Ready to Validate")
+                    else if batch.status === 'validating' && batch.validated < batch.submissions
+                      = _("Validation")
+                    else
+                      = _("Complete")
+                  td
+                    if batch.status === 'created' || batch.status === 'paraphrasing'
+                      a(href='/developers/mturk/csv/' + batch.id)= _("Downloads CSV")
+                    else if batch.status === 'validating'
+                      a(href='/developers/mturk/validation/csv/' + batch.id)= _("Downloads CSV")
+
+                    if batch.status === 'paraphrasing'
+                      form(action='/developers/mturk/start-validation',method='post')
+                        input(type='hidden',name='_csrf',value=csrfToken)
+                        input(type='hidden',name='batch',value=batch.id)
+                        button(type='submit').btn.btn-default.btn-sm= _("Start Validation")
+
+        section.divider
+          div.panel.panel-default
+            p.panel-heading= _("Create a new batch")
+            div.panel-body
+              form(action='/developers/mturk/create', enctype='multipart/form-data', method='post', data-toggle='validator')
+                input(type='hidden',name='_csrf',value=csrfToken)
+                div.form-group
+                  label(for='new-batch-name').control-label= _("Name")
+                  input(type='text',name='name').form-control#new-batch-name
+
+                div.form-group
+                  label(for='new-batch-subs-per-hit').control-label= _("Submissions per HIT")
+                  input(type='number',name='submissions_per_hit', value=3).form-control#new-batch-subs-per-hit
+
+                div.form-group
+                  label(for='batch-upload').control-label= _("TSV File")
+                  input(type='file',name='upload',accept='text/tsv')#batch-upload
+
+                div.form-group
+                  button(type='submit').btn.btn-primary= _("Create")

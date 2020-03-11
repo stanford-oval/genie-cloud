@@ -2,319 +2,29 @@
 //
 // This file is part of ThingEngine
 //
-// Copyright 2018 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2018-2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
+//         Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-const fs = require('fs');
-const csvparse = require('csv-parse');
-const csvstringify = require('csv-stringify');
 const express = require('express');
-const multer = require('multer');
-const csurf = require('csurf');
-const Stream = require('stream');
-const seedrandom = require('seedrandom');
 const ThingTalk = require('thingtalk');
-const Genie = require('genie-toolkit');
-const os = require('os');
 
 const db = require('../util/db');
-const user = require('../util/user');
 const model = require('../model/mturk');
 const deviceModel = require('../model/device');
 const example = require('../model/example');
 const AdminThingpediaClient = require('../util/admin-thingpedia-client');
 const TokenizerService = require('../util/tokenizer_service');
 const iv = require('../util/input_validation');
-const { BadRequestError, ForbiddenError, InternalError, NotFoundError } = require('../util/errors');
+const { BadRequestError, ForbiddenError, NotFoundError } = require('../util/errors');
 
-const Config = require('../config');
+const MTurkUtils = require('../util/mturk');
 
 var router = express.Router();
-
-const SYNTHETIC_PER_PARAPHRASE_HIT = 4;
-const PARAPHRASES_PER_SENTENCE = 2;
-
-router.post('/create', multer({ dest: os.tmpdir() }).fields([
-    { name: 'upload', maxCount: 1 }
-]), csurf({ cookie: false }),
-    user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN),
-    iv.validatePOST({ name: 'string', submissions_per_hit: 'integer' }), (req, res, next) => {
-    if (!req.files.upload || !req.files.upload.length) {
-        res.status(400).render('error', { page_title: req._("Thingpedia - Error"),
-            message: req._("Must upload the CSV file")
-        });
-        return;
-    }
-
-    Q(db.withTransaction((dbClient) => {
-        return model.create(dbClient, { name: req.body.name, submissions_per_hit: req.body.submissions_per_hit }).then((batch) => {
-            let minibatch = [];
-            let hitCount = 0;
-            function doInsert() {
-                let data = minibatch;
-                minibatch = [];
-                return db.insertOne(dbClient,
-                `insert into mturk_input(batch, hit_id, sentence, thingtalk) values ?`, [data]);
-            }
-
-            function finish() {
-                if (minibatch.length === 0)
-                    return Promise.resolve();
-                return doInsert();
-            }
-
-            function insertOneHIT(programs) {
-                let hitId = hitCount++;
-                programs.forEach((p) => {
-                    minibatch.push([
-                        batch.id,
-                        hitId,
-                        p.utterance,
-                        p.target_code
-                    ]);
-                });
-                if (minibatch.length < 100)
-                    return Promise.resolve();
-                return doInsert();
-            }
-
-            const parser = csvparse({ columns: true, delimiter: '\t' });
-            fs.createReadStream(req.files.upload[0].path).pipe(parser);
-
-            let promises = [];
-            let programs = [];
-            return new Promise((resolve, reject) => {
-                parser.on('data', (row) => {
-                    programs.push(row);
-                    if (programs.length === SYNTHETIC_PER_PARAPHRASE_HIT) {
-                        promises.push(insertOneHIT(programs));
-                        programs = [];
-                    }
-                });
-                parser.on('error', reject);
-                parser.on('end', resolve);
-            }).then(() => Promise.all(promises)).then(() => finish());
-        });
-    })).finally(() => {
-        return Q.nfcall(fs.unlink, req.files.upload[0].path);
-    }).then(() => {
-        res.redirect(303, '/mturk');
-    }).catch(next);
-});
-
-router.use(csurf({ cookie: false }));
-
-router.get('/', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
-    db.withClient((dbClient) => {
-        return model.getBatches(dbClient);
-    }).then((batches) => {
-        res.render('mturk_batch_list', {
-            page_title: req._("Thingpedia - MTurk Batches"),
-            batches: batches,
-            csrfToken: req.csrfToken()
-        });
-    }).catch(next);
-});
-
-router.get('/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
-    db.withClient((dbClient) => {
-        return new Promise((resolve, reject) => {
-            res.set('Content-disposition', 'attachment; filename=mturk.csv');
-            res.status(200).set('Content-Type', 'text/csv');
-            let output = csvstringify({ header: true });
-            output.pipe(res);
-
-            let query = model.streamHITs(dbClient, req.params.batch);
-            query.on('result', (row) => {
-                output.write({url: Config.SERVER_ORIGIN + `/mturk/submit/${req.params.batch}/${row.hit_id}` });
-            });
-            query.on('end', () => {
-                output.end();
-            });
-            query.on('error', reject);
-            output.on('error', reject);
-            res.on('finish', resolve);
-        });
-    }).catch(next);
-});
-
-router.get('/validation/csv/:batch', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
-    db.withClient((dbClient) => {
-        return new Promise((resolve, reject) => {
-            res.set('Content-disposition', 'attachment; filename=validate.csv');
-            res.status(200).set('Content-Type', 'text/csv');
-            let output = csvstringify({ header: true });
-            output.pipe(res);
-
-            let query = model.streamValidationHITs(dbClient, req.params.batch);
-            query.on('result', (row) => {
-                output.write({url: Config.SERVER_ORIGIN + `/mturk/validate/${req.params.batch}/${row.hit_id}` });
-            });
-            query.on('end', () => {
-                output.end();
-            });
-            query.on('error', reject);
-            output.on('error', reject);
-            res.on('finish', resolve);
-        });
-    }).catch(next);
-});
-
-class ValidationHITInserter extends Stream.Writable {
-    constructor(dbClient, batch, targetSize) {
-        super({ objectMode: true });
-        this.hadError = false;
-
-        this._dbClient = dbClient;
-        this._batch = batch;
-        this._targetSize = targetSize;
-        this._hitCount = 0;
-    }
-
-    _write(hit, encoding, callback) {
-        if (this.hadError) {
-            callback();
-            return;
-        }
-
-        const hitId = this._hitCount++;
-        const validationRows = [];
-
-        for (let i = 0; i < SYNTHETIC_PER_PARAPHRASE_HIT; i++) {
-            let syntheticId = hit[`id${i+1}`];
-            for (let j = 0; j < this._targetSize + 2; j++) {
-
-                let paraphraseId = hit[`id${i+1}-${j+1}`];
-                let paraphrase = hit[`paraphrase${i+1}-${j+1}`];
-
-                if (paraphraseId === '-same')
-                    validationRows.push([this._batch.id, hitId, 'fake-same', syntheticId, null, paraphrase]);
-                else if (paraphraseId === '-different')
-                    validationRows.push([this._batch.id, hitId, 'fake-different', syntheticId, null, paraphrase]);
-                else
-                    validationRows.push([this._batch.id, hitId, 'real', syntheticId, paraphraseId, paraphrase]);
-            }
-        }
-
-        if (validationRows.length > 0) {
-            model.createValidationHITs(this._dbClient, validationRows)
-                .then(() => callback(), callback);
-        }
-    }
-}
-
-router.post('/start-validation', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
-    db.withTransaction(async (dbClient) => {
-        const batch = await model.getBatchDetails(dbClient, req.body.batch);
-        switch (batch.status) {
-        case 'created':
-            throw new BadRequestError(req._("Cannot start validation: no paraphrases have been submitted yet."));
-        case 'paraphrasing':
-            await model.updateBatch(dbClient, req.body.batch, { status: 'validating' });
-            break;
-        case 'validating':
-            // nothing to do
-            return;
-        case 'closed':
-            throw new BadRequestError(req._("Cannot start validation: the batch is already closed."));
-        default:
-            throw new InternalError('E_UNEXPECTED_ENUM', `Invalid batch status ${batch.status}`);
-        }
-
-        // now create the validation HITs
-        const allSynthetics = await model.getBatch(dbClient, req.body.batch);
-        await new Promise((resolve, reject) => {
-            const submissionsPerTask = batch.submissions_per_hit;
-            const targetSize = PARAPHRASES_PER_SENTENCE * submissionsPerTask;
-
-            const accumulator = new class Accumulator extends Stream.Transform {
-                constructor() {
-                    super({ objectMode: true });
-                    this._syntheticId = undefined;
-                    this._synthetic = undefined;
-                    this._targetCode = undefined;
-                    this._paraphrases = [];
-                }
-
-                _transform(row, encoding, callback) {
-                    if (this._syntheticId !== row.synthetic_id)
-                        this._doFlush();
-                    this._syntheticId = row.synthetic_id;
-                    this._synthetic = row.synthetic;
-                    this._targetCode = row.target_code;
-                    this._paraphrases.push({
-                        id: row.paraphrase_id,
-                        paraphrase: row.utterance
-                    });
-                    callback();
-                }
-
-                _doFlush() {
-                    if (this._paraphrases.length === 0)
-                        return;
-                    this.push({
-                        synthetic_id: this._syntheticId,
-                        synthetic: this._synthetic,
-                        target_code: this._targetCode,
-                        paraphrases: this._paraphrases
-                    });
-                    this._paraphrases = [];
-                }
-
-                _flush(callback) {
-                    this._doFlush();
-                    callback();
-                }
-            };
-
-            const creator = new Genie.ValidationHITCreator(allSynthetics, {
-                targetSize,
-                sentencesPerTask: SYNTHETIC_PER_PARAPHRASE_HIT,
-                rng: seedrandom.alea('almond is awesome')
-            });
-
-            accumulator.pipe(creator);
-
-            const toValidate = model.streamUnvalidated(dbClient, req.body.batch);
-            toValidate.on('result', (row) => accumulator.write(row));
-            toValidate.on('end', () => accumulator.end());
-
-            // insert the created HITs in the database
-            const writer = creator.pipe(new ValidationHITInserter(dbClient, batch, targetSize));
-            toValidate.on('error', (e) => {
-                writer.hadError = true;
-                reject(e);
-            });
-            writer.on('error', (e) => {
-                writer.hadError = true;
-                reject(e);
-            });
-            writer.on('finish', resolve);
-        });
-
-    }).then(() => {
-        res.redirect(303, '/mturk');
-    }).catch(next);
-});
-
-router.post('/close', user.requireLogIn, user.requireRole(user.Role.NLP_ADMIN), (req, res, next) => {
-    db.withTransaction(async (dbClient) => {
-        // check that the batch exists
-        await model.getBatchDetails(dbClient, req.body.batch);
-        await model.updateBatch(dbClient, req.body.batch, { status: 'closed' });
-
-        if (req.body.autoapprove)
-            await model.autoApproveUnvalidated(dbClient, req.body.batch);
-
-    }).then(() => {
-        res.redirect(303, '/mturk');
-    }).catch(next);
-});
 
 async function autoValidateParaphrase(dbClient, batchId, language, schemas, utterance, thingtalk) {
     // FIXME this should use Genie's ParaphraseValidator
@@ -343,7 +53,7 @@ async function autoValidateParaphrase(dbClient, batchId, language, schemas, utte
 }
 
 function inputValidateSubmission(req, res, next) {
-    for (let i = 1; i < SYNTHETIC_PER_PARAPHRASE_HIT + 1; i++) {
+    for (let i = 1; i < MTurkUtils.SYNTHETIC_PER_PARAPHRASE_HIT + 1; i++) {
         let program_id = req.body[`program_id${i}`];
         let thingtalk = req.body[`thingtalk${i}`];
         if (!iv.checkKey(program_id, 'string')) {
@@ -354,7 +64,7 @@ function inputValidateSubmission(req, res, next) {
             iv.failKey(req, res, `thingtalk${i}`, {});
             return;
         }
-        for (let j = 1; j < PARAPHRASES_PER_SENTENCE + 1; j ++) {
+        for (let j = 1; j < MTurkUtils.PARAPHRASES_PER_SENTENCE + 1; j ++) {
             let paraphrase = req.body[`paraphrase${i}-${j}`];
             if (!iv.checkKey(paraphrase, 'string')) {
                 iv.failKey(req, res, `paraphrase${i}-${j}`, {});
