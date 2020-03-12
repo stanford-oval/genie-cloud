@@ -12,12 +12,17 @@
 const Q = require('q');
 const express = require('express');
 const passport = require('passport');
+const util = require('util');
+const jwt = require('jsonwebtoken');
 
 const EngineManager = require('../../../almond/enginemanagerclient');
 const { actionssdk, Image, Suggestions, BasicCard, Button, SignIn } = require('actions-on-google');
 // Refer to https://developers.google.com/assistant/conversational/responses for full list of response types
 
 const userUtils = require('../../../util/user');
+const db = require('../../../util/db');
+const model = require('../../../model/user');
+const secret = require('../../../util/secret_key');
 
 var router = express.Router();
 
@@ -65,25 +70,25 @@ class GoogleAssistantDelegate {
     }
 
     sendChoice(idx, what, title, text) {
-        let suggestions = []
+        let suggestions = [];
         // Filter out buttons more than 25 characters long
         // since Google Assistant has a cap of 25 characters
         if (title.length <= 25)
             suggestions.push(title.substring(0, 25));
         else
-            console.log(`${title} exceeds max length of 25 characters`)
+            console.log(`${title} exceeds max length of 25 characters`);
         if (suggestions.length)
             this._buffer.push(new Suggestions(suggestions));
     }
 
     sendButton(title, json) {
-        let suggestions = []
+        let suggestions = [];
         // Filter out buttons more than 25 characters long
         // since Google Assistant has a cap of 25 characters
         if (title.length <= 25)
             suggestions.push(title.substring(0, 25));
         else
-            console.log(`${title} exceeds max length of 25 characters`)
+            console.log(`${title} exceeds max length of 25 characters`);
         if (suggestions.length)
             this._buffer.push(new Suggestions(suggestions));
     }
@@ -129,28 +134,42 @@ router.use(userUtils.requireScope('user-exec-command'));
 
 const app = actionssdk();
 
+async function retrieveUser(accessToken) {
+    let anonymous, user;
+    if (accessToken) {
+        const decoded = await util.promisify(jwt.verify)(accessToken, secret.getJWTSigningKey(), {
+            algorithms: ['HS256'],
+            audience: 'oauth2',
+            clockTolerance: 30,
+        });
+        user = await db.withClient(async (dbClient) => {
+            const rows = await model.getByCloudId(dbClient, decoded.sub);
+            if (rows.length < 1) {
+                anonymous = true;
+                return await userUtils.getAnonymousUser();
+            }
+            await model.recordLogin(dbClient, rows[0].id);
+            anonymous = false;
+            return rows[0];
+        });
+    } else {
+        anonymous = true;
+        user = await userUtils.getAnonymousUser();
+    }
+    return [anonymous, user];
+}
+
 // Welcome response when user first initiates conversation
-app.intent('actions.intent.MAIN', (conv) => {
+app.intent('actions.intent.MAIN', async (conv) => {
 
-    // TODO - retrieve user.id after authentication
-    // let user, anonymous;
-    // if (conv.request.user.accessToken) {
-    //     user = conv.request.user;
-    //     anonymous = false;
-    // } else {
-    //     user = await userUtils.getAnonymousUser();
-    //     anonymous = true;
-    // }
+    const [anonymous, user] = await retrieveUser(conv.body.user.accessToken);
 
-    let anonymous = true;
     const locale = conv.body.user.locale;
     const conversationId = conv.body.conversation.conversationId;
     const assistantUser = { name: conv.user.name.display || 'User', isOwner: true };
     const delegate = new GoogleAssistantDelegate(locale);
 
     return Q.try(() => {
-        return userUtils.getAnonymousUser();
-    }).then((user) => {
         return EngineManager.get().getEngine(user.id);
     }).then((engine) => {
         return engine.assistant.getOrOpenConversation('google_assistant:' + conversationId,
@@ -164,42 +183,32 @@ app.intent('actions.intent.MAIN', (conv) => {
 // Immediate response after user authenticates
 app.intent('actions.intent.SIGN_IN', (conv, input, signin) => {
     if (signin.status === 'OK')
-        conv.ask("Thank you for signing in! What would you like to do next?")
+        conv.ask("Thank you for signing in! What would you like to do next?");
     else
-        conv.ask("You were unable to log in. Is there something else you want to do?")
-})
+        conv.ask("You were unable to log in. Is there something else you want to do?");
+});
 
 // All other responses
-app.intent('actions.intent.TEXT', (conv, input) => {
+app.intent('actions.intent.TEXT', async (conv, input) => {
     // Quick hack so that Almond recognizes bye and goodbye
     // and returns user to Google Assistant
     if (input === 'bye' || input === 'goodbye')
         return conv.close("See you later!");
     // TODO - better way for user to initiate sign in
     if (input === 'I want to sign in')
-        // This will output "<To get your account details>, I need to link your
+        // This will reply "<To get your account details>, I need to link your
         // <action> account to Google. Is that okay?"
+        // Answering "yes" will generate the log-in link
         return conv.ask(new SignIn("To get your account details"));
 
-    // TODO - retrieve user.id after authentication
-    // let user, anonymous;
-    // if (conv.request.user.accessToken) {
-    //     user = conv.request.user;
-    //     anonymous = false;
-    // } else {
-    //     user = await userUtils.getAnonymousUser();
-    //     anonymous = true;
-    // }
+    const [anonymous, user] = await retrieveUser(conv.body.user.accessToken);
 
-    let anonymous = true;
     const locale = conv.body.user.locale;
     const conversationId = conv.body.conversation.conversationId;
     const assistantUser = { name: conv.user.name.display || 'User', isOwner: true };
     const delegate = new GoogleAssistantDelegate(locale);
 
     return Q.try(() => {
-        return userUtils.getAnonymousUser();
-    }).then((user) => {
         return EngineManager.get().getEngine(user.id);
     }).then((engine) => {
         return engine.assistant.getOrOpenConversation('google_assistant:' + conversationId,
