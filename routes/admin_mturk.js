@@ -34,21 +34,24 @@ router.get('/', (req, res, next) => {
 });
 
 router.get('/csv/:batch', (req, res, next) => {
-    db.withClient((dbClient) => {
-        return MTurkUtils.getParaphrasingBatch(dbClient, req.params.batch, res);
+    db.withClient(async (dbClient) => {
+        const batch = await model.getBatchDetailsById(dbClient, req.body.batch);
+        return MTurkUtils.getParaphrasingBatch(dbClient, batch, res);
     }).catch(next);
 });
 
 router.get('/validation/csv/:batch', (req, res, next) => {
-    db.withClient((dbClient) => {
-        return MTurkUtils.getValidationBatch(dbClient, req.params.batch, res);
+    db.withClient(async (dbClient) => {
+        const batch = await model.getBatchDetailsById(dbClient, req.body.batch);
+        return MTurkUtils.getValidationBatch(dbClient, batch, res);
     }).catch(next);
 });
 
 
 router.post('/start-validation', (req, res, next) => {
-    db.withTransaction((dbClient) => {
-        return MTurkUtils.startValidation(req, dbClient, req.body.batch);
+    db.withTransaction(async (dbClient) => {
+        const batch = await model.getBatchDetailsById(dbClient, req.body.batch);
+        await MTurkUtils.startValidation(req, dbClient, batch);
     }).then(() => {
         res.redirect(303, '/admin/mturk');
     }).catch(next);
@@ -56,7 +59,8 @@ router.post('/start-validation', (req, res, next) => {
 
 router.post('/close', (req, res, next) => {
     db.withTransaction(async (dbClient) => {
-        return MTurkUtils.closeBatch(dbClient, req.body.batch, !!req.body.autoapprove);
+        const batch = await model.getBatchDetailsById(dbClient, req.body.batch);
+        return MTurkUtils.closeBatch(dbClient, batch, !!req.body.autoapprove);
     }).then(() => {
         res.redirect(303, '/admin/mturk');
     }).catch(next);

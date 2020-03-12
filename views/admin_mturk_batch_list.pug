@@ -19,7 +19,7 @@ block content
     tbody
       for batch in batches
         tr
-          td= batch.id
+          td(title=batch.id_hash)= batch.id
           td= batch.name
           td= batch.owner_name
           td= batch.input_count

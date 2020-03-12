@@ -52,6 +52,10 @@ async function testCreateMTurkBatch(root) {
         '/developers/mturk');
 
     const batches = await dbQuery(`select * from mturk_batch`);
+
+    const idHash = batches[0].id_hash;
+    delete batches[0].id_hash;
+    console.log(`new mturk batch: ${idHash}`);
     deepStrictEqual(batches, [{
         id: 1,
         owner: 1,
@@ -112,20 +116,20 @@ async function testCreateMTurkBatch(root) {
         sentence: `synthetic h`
     }]);
 
-
+    return idHash;
 }
 
-async function testSubmitToMTurk(nobody) {
-    await assertHttpError(sessionRequest('/mturk/submit/1/9', 'GET', null, nobody),
+async function testSubmitToMTurk(batchIdHash, nobody) {
+    await assertHttpError(sessionRequest(`/mturk/submit/${batchIdHash}/9`, 'GET', null, nobody),
         404);
 
     await assertHttpError(sessionRequest('/mturk/submit/2/1', 'GET', null, nobody),
         404);
 
-    await sessionRequest('/mturk/submit/1/0', 'GET', null, nobody);
+    await sessionRequest(`/mturk/submit/${batchIdHash}/0`, 'GET', null, nobody);
 
     const data = {
-        batch: '1',
+        batch: batchIdHash,
         worker: 'FOOBARBAZ',
     };
 
@@ -227,7 +231,7 @@ async function testSubmitToMTurk(nobody) {
 
     // submit again from two other workers so we have enough data for validation
     const data2 = {
-        batch: '1',
+        batch: batchIdHash,
         worker: 'FOOBARBAZ-2',
     };
 
@@ -244,7 +248,7 @@ async function testSubmitToMTurk(nobody) {
 
     // submit again from two other workers so we have enough data for validation
     const data3 = {
-        batch: '1',
+        batch: batchIdHash,
         worker: 'FOOBARBAZ-3',
     };
 
@@ -260,17 +264,17 @@ async function testSubmitToMTurk(nobody) {
     await sessionRequest('/mturk/submit', 'POST', data3, nobody);
 }
 
-async function testStartValidation(root, bob, nobody) {
-    await assertHttpError(sessionRequest('/developers/mturk/start-validation', 'POST', { batch: 1 }, nobody),
+async function testStartValidation(batchIdHash, root, bob, nobody) {
+    await assertHttpError(sessionRequest('/developers/mturk/start-validation', 'POST', { batch: batchIdHash }, nobody),
         401);
 
-    await assertHttpError(sessionRequest('/developers/mturk/start-validation', 'POST', { batch: 1 }, bob),
+    await assertHttpError(sessionRequest('/developers/mturk/start-validation', 'POST', { batch: batchIdHash }, bob),
         403);
 
-    await assertHttpError(sessionRequest('/developers/mturk/start-validation', 'POST', { batch: 2 }, root),
+    await assertHttpError(sessionRequest('/developers/mturk/start-validation', 'POST', { batch: 'bad' }, root),
         404);
 
-    await sessionRequest('/developers/mturk/start-validation', 'POST', { batch: 1 }, root);
+    await sessionRequest('/developers/mturk/start-validation', 'POST', { batch: batchIdHash }, root);
 
     const hits = await dbQuery(`select * from mturk_validation_input`);
 
@@ -296,19 +300,19 @@ async function testStartValidation(root, bob, nobody) {
     assert.strictEqual(paraset.size, 32 - 8);
 }
 
-async function testSubmitValidation(nobody) {
-    await assertHttpError(sessionRequest('/mturk/validate/1/1', 'GET', null, nobody),
+async function testSubmitValidation(batchIdHash, nobody) {
+    await assertHttpError(sessionRequest(`/mturk/validate/${batchIdHash}/1`, 'GET', null, nobody),
         404);
 
-    await assertHttpError(sessionRequest('/mturk/validate/2/1', 'GET', null, nobody),
+    await assertHttpError(sessionRequest(`/mturk/validate/bad/1`, 'GET', null, nobody),
         404);
 
-    await sessionRequest('/mturk/validate/1/0', 'GET', null, nobody);
+    await sessionRequest(`/mturk/validate/${batchIdHash}/0`, 'GET', null, nobody);
 
     const hits = await dbQuery(`select * from mturk_validation_input`);
 
     const data = {
-        batch: '1',
+        batch: batchIdHash,
         hit: '0',
         worker: 'FOOBARBAZ'
     };
@@ -468,13 +472,13 @@ async function main() {
     const root = await login('root', 'rootroot');
     const bob = await login('bob', '12345678');
 
-    await testCreateMTurkBatch(root);
+    const batchIdHash = await testCreateMTurkBatch(root);
 
-    await testSubmitToMTurk(nobody);
+    await testSubmitToMTurk(batchIdHash, nobody);
 
-    await testStartValidation(root, bob, nobody);
+    await testStartValidation(batchIdHash, root, bob, nobody);
 
-    await testSubmitValidation(nobody);
+    await testSubmitValidation(batchIdHash, nobody);
 
     await db.tearDown();
 }

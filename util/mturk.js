@@ -23,16 +23,16 @@ const Config = require('../config');
 const SYNTHETIC_PER_PARAPHRASE_HIT = 4;
 const PARAPHRASES_PER_SENTENCE = 2;
 
-async function getParaphrasingBatch(dbClient, batchId, res) {
+async function getParaphrasingBatch(dbClient, batch, res) {
     return new Promise((resolve, reject) => {
         res.set('Content-disposition', 'attachment; filename=mturk.csv');
         res.status(200).set('Content-Type', 'text/csv');
         let output = csvstringify({ header: true });
         output.pipe(res);
 
-        let query = model.streamHITs(dbClient, batchId);
+        let query = model.streamHITs(dbClient, batch.id);
         query.on('result', (row) => {
-            output.write({ url: Config.SERVER_ORIGIN + `/mturk/submit/${batchId}/${row.hit_id}` });
+            output.write({ url: Config.SERVER_ORIGIN + `/mturk/submit/${batch.id_hash}/${row.hit_id}` });
         });
         query.on('end', () => {
             output.end();
@@ -43,16 +43,16 @@ async function getParaphrasingBatch(dbClient, batchId, res) {
     });
 }
 
-async function getValidationBatch(dbClient, batchId, res) {
+async function getValidationBatch(dbClient, batch, res) {
     return new Promise((resolve, reject) => {
         res.set('Content-disposition', 'attachment; filename=validate.csv');
         res.status(200).set('Content-Type', 'text/csv');
         let output = csvstringify({ header: true });
         output.pipe(res);
 
-        let query = model.streamValidationHITs(dbClient, batchId);
+        let query = model.streamValidationHITs(dbClient, batch.id);
         query.on('result', (row) => {
-            output.write({url: Config.SERVER_ORIGIN + `/mturk/validate/${batchId}/${row.hit_id}` });
+            output.write({url: Config.SERVER_ORIGIN + `/mturk/validate/${batch.id_hash}/${row.hit_id}` });
         });
         query.on('end', () => {
             output.end();
@@ -107,13 +107,12 @@ class ValidationHITInserter extends Stream.Writable {
     }
 }
 
-async function startValidation(req, dbClient, batchId) {
-    const batch = await model.getBatchDetails(dbClient, batchId);
+async function startValidation(req, dbClient, batch) {
     switch (batch.status) {
     case 'created':
         throw new BadRequestError(req._("Cannot start validation: no paraphrases have been submitted yet."));
     case 'paraphrasing':
-        await model.updateBatch(dbClient, batchId, { status: 'validating' });
+        await model.updateBatch(dbClient, batch.id, { status: 'validating' });
         break;
     case 'validating':
         // nothing to do
@@ -125,7 +124,7 @@ async function startValidation(req, dbClient, batchId) {
     }
 
     // now create the validation HITs
-    const allSynthetics = await model.getBatch(dbClient, batchId);
+    const allSynthetics = await model.getBatch(dbClient, batch.id);
     await new Promise((resolve, reject) => {
         const submissionsPerTask = batch.submissions_per_hit;
         const targetSize = PARAPHRASES_PER_SENTENCE * submissionsPerTask;
@@ -178,7 +177,7 @@ async function startValidation(req, dbClient, batchId) {
 
         accumulator.pipe(creator);
 
-        const toValidate = model.streamUnvalidated(dbClient, batchId);
+        const toValidate = model.streamUnvalidated(dbClient, batch.id);
         toValidate.on('result', (row) => accumulator.write(row));
         toValidate.on('end', () => accumulator.end());
 
@@ -196,13 +195,11 @@ async function startValidation(req, dbClient, batchId) {
     });
 }
 
-async function closeBatch(dbClient, batchId, autoApprove) {
-    // check that the batch exists
-    await model.getBatchDetails(dbClient, batchId);
-    await model.updateBatch(dbClient, batchId, { status: 'closed' });
+async function closeBatch(dbClient, batch, autoApprove) {
+    await model.updateBatch(dbClient, batch.id, { status: 'closed' });
 
     if (autoApprove)
-        await model.autoApproveUnvalidated(dbClient, batchId);
+        await model.autoApproveUnvalidated(dbClient, batch.id);
 }
 
 module.exports = {

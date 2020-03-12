@@ -87,7 +87,7 @@ router.post('/submit', iv.validatePOST({ batch: 'string' }), inputValidateSubmis
 
         const batch = await model.getBatchDetails(dbClient, req.body.batch);
         if (batch.status === 'created')
-            await model.updateBatch(dbClient, req.body.batch, { status: 'paraphrasing' });
+            await model.updateBatch(dbClient, batch.id, { status: 'paraphrasing' });
         else if (batch.status !== 'paraphrasing')
             throw new ForbiddenError(req._("The HIT you're trying to submit was already closed."));
 
@@ -103,7 +103,7 @@ router.post('/submit', iv.validatePOST({ batch: 'string' }), inputValidateSubmis
                 if (paraphrase.toLowerCase().replace(/\./g, '').trim() === 'no idea')
                     continue;
 
-                examples.push(autoValidateParaphrase(dbClient, req.body.batch, batch.language, schemas, paraphrase, thingtalk));
+                examples.push(autoValidateParaphrase(dbClient, batch.id, batch.language, schemas, paraphrase, thingtalk));
                 submissions.push({
                     submission_id: submissionId,
                     program_id: program_id,
@@ -118,7 +118,7 @@ router.post('/submit', iv.validatePOST({ batch: 'string' }), inputValidateSubmis
         for (let i = 0; i < examples.length; i++)
             submissions[i].example_id = examples[i];
 
-        await model.logSubmission(dbClient, submissionId, req.body.batch, req.body.hit, req.body.worker);
+        await model.logSubmission(dbClient, submissionId, batch.id, req.body.hit, req.body.worker);
         await model.insertSubmission(dbClient, submissions);
     }).then(() => {
         res.render('mturk-submit', { page_title: req._('Thank you'), token: submissionId });
@@ -126,15 +126,14 @@ router.post('/submit', iv.validatePOST({ batch: 'string' }), inputValidateSubmis
 });
 
 router.get(`/submit/:batch/:hit`, (req, res, next) => {
-    const batchId = parseInt(req.params.batch);
     const hitId = parseInt(req.params.hit);
 
     db.withTransaction(async (dbClient) => {
-        const batch = await model.getBatchDetails(dbClient, batchId);
+        const batch = await model.getBatchDetails(dbClient, req.params.batch);
         if (batch.status !== 'created' && batch.status !== 'paraphrasing')
             throw new ForbiddenError(req._("The HIT you're trying to submit was already closed."));
 
-        const hit = await model.getHIT(dbClient, batchId, hitId);
+        const hit = await model.getHIT(dbClient, batch.id, hitId);
         if (hit.length === 0)
             throw new NotFoundError();
 
@@ -167,7 +166,7 @@ router.get(`/submit/:batch/:hit`, (req, res, next) => {
     }, 'serializable', 'read only').then(([program_id, code, sentences, hints, allDevices]) => {
         res.render('mturk', { page_title: req._('Paraphrase'),
                               hit: hitId,
-                              batch: batchId,
+                              batch: req.params.batch,
                               program_id: program_id,
                               code: code,
                               sentences: sentences,
@@ -179,17 +178,18 @@ router.get(`/submit/:batch/:hit`, (req, res, next) => {
 
 router.post('/validate', iv.validatePOST({ batch: 'string', hit: 'string' }), (req, res, next) => {
     db.withTransaction(async (dbClient) => {
+        const batch = await model.getBatchDetails(dbClient, req.body.batch);
+
         // catch accidental double-submissions quietly, and do nothing
-        const existing = await model.getExistingValidationSubmission(dbClient, req.body.batch,
+        const existing = await model.getExistingValidationSubmission(dbClient, batch.id,
             req.body.hit, req.body.worker);
         if (existing.length > 0)
             return existing[0].submission_id;
 
-        const batch = await model.getBatchDetails(dbClient, req.body.batch);
         if (batch.status !== 'validating')
             throw new ForbiddenError(req._("The HIT you're trying to submit is not open yet, or was already closed."));
 
-        const hits = await model.getValidationHIT(dbClient, req.body.batch, req.body.hit);
+        const hits = await model.getValidationHIT(dbClient, batch.id, req.body.hit);
         let submissionId = makeSubmissionId();
 
         let errors = 0;
@@ -220,7 +220,7 @@ router.post('/validate', iv.validatePOST({ batch: 'string', hit: 'string' }), (r
         if (errors > 2)
             throw new BadRequestError(req._("You have made too many mistakes. Please go back and try again."));
 
-        await model.logValidationSubmission(dbClient, submissionId, req.body.batch, req.body.hit, req.body.worker);
+        await model.logValidationSubmission(dbClient, submissionId, batch.id, req.body.hit, req.body.worker);
         await model.insertValidationSubmission(dbClient, validationRows, good, bad);
         await model.markSentencesGood(dbClient, good);
         await model.markSentencesBad(dbClient, bad);
@@ -231,15 +231,14 @@ router.post('/validate', iv.validatePOST({ batch: 'string', hit: 'string' }), (r
 });
 
 router.get(`/validate/:batch/:hit`, (req, res, next) => {
-    const batchId = req.params.batch;
     const hitId = req.params.hit;
 
     db.withTransaction(async (dbClient) => {
-        const batch = await model.getBatchDetails(dbClient, batchId);
+        const batch = await model.getBatchDetails(dbClient, req.params.batch);
         if (batch.status !== 'validating')
             throw new ForbiddenError(req._("The HIT you're trying to submit is not open yet, or was already closed."));
 
-        return model.getValidationHIT(dbClient, batchId, hitId);
+        return model.getValidationHIT(dbClient, batch.id, hitId);
     }, 'serializable', 'read only').then((hit) => {
         if (hit.length === 0)
             throw new NotFoundError();
@@ -268,7 +267,7 @@ router.get(`/validate/:batch/:hit`, (req, res, next) => {
         res.render('mturk_validate', {
             page_title: req._("Almond - Paraphrase Validation"),
             hit: hitId,
-            batch: batchId,
+            batch: req.params.batch,
             sentences,
             csrfToken: req.csrfToken()
         });

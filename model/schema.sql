@@ -413,6 +413,7 @@ DROP TABLE IF EXISTS `mturk_batch`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `mturk_batch` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id_hash` char(32) COLLATE utf8_bin NOT NULL,
   `owner` int(11) NOT NULL,
   `name` varchar(255) CHARACTER SET utf8 NOT NULL,
   `language` char(16) COLLATE utf8_bin NOT NULL DEFAULT 'en',

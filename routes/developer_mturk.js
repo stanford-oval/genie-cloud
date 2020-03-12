@@ -23,6 +23,7 @@ const user = require('../util/user');
 const model = require('../model/mturk');
 const iv = require('../util/input_validation');
 const { ForbiddenError } = require('../util/errors');
+const { makeRandom } = require('../util/random');
 
 const MTurkUtils = require('../util/mturk');
 
@@ -30,6 +31,7 @@ var router = express.Router();
 
 async function createMTurkBatch(dbClient, req, res) {
     const batch = await model.create(dbClient, {
+        id_hash: makeRandom(16),
         name: req.body.name,
         owner: req.user.developer_org,
         submissions_per_hit: req.body.submissions_per_hit
@@ -127,30 +129,28 @@ async function checkBatchOwner(dbClient, batchId, orgId) {
     const details = await model.getBatchDetails(dbClient, batchId);
     if (details.owner !== orgId)
         throw new ForbiddenError();
+    return details;
 }
 
 router.get('/csv/:batch', (req, res, next) => {
     db.withClient(async (dbClient) => {
-        await checkBatchOwner(dbClient, req.params.batch, req.user.developer_org);
-
-        await MTurkUtils.getParaphrasingBatch(dbClient, req.params.batch, res);
+        const batch = await checkBatchOwner(dbClient, req.params.batch, req.user.developer_org);
+        await MTurkUtils.getParaphrasingBatch(dbClient, batch, res);
     }).catch(next);
 });
 
 router.get('/validation/csv/:batch', (req, res, next) => {
     db.withClient(async (dbClient) => {
-        await checkBatchOwner(dbClient, req.params.batch, req.user.developer_org);
-
-        await MTurkUtils.getValidationBatch(dbClient, req.params.batch, res);
+        const batch = await checkBatchOwner(dbClient, req.params.batch, req.user.developer_org);
+        await MTurkUtils.getValidationBatch(dbClient, batch, res);
     }).catch(next);
 });
 
 
 router.post('/start-validation', (req, res, next) => {
     db.withTransaction(async (dbClient) => {
-        await checkBatchOwner(dbClient, req.body.batch, req.user.developer_org);
-
-        return MTurkUtils.startValidation(req, dbClient, req.body.batch);
+        const batch = await checkBatchOwner(dbClient, req.body.batch, req.user.developer_org);
+        return MTurkUtils.startValidation(req, dbClient, batch);
     }).then(() => {
         res.redirect(303, '/developers/mturk');
     }).catch(next);
@@ -158,9 +158,8 @@ router.post('/start-validation', (req, res, next) => {
 
 router.post('/close', (req, res, next) => {
     db.withTransaction(async (dbClient) => {
-        await checkBatchOwner(dbClient, req.body.batch, req.user.developer_org);
-
-        return MTurkUtils.closeBatch(dbClient, req.body.batch, !!req.body.autoapprove);
+        const batch = await checkBatchOwner(dbClient, req.body.batch, req.user.developer_org);
+        return MTurkUtils.closeBatch(dbClient, batch, !!req.body.autoapprove);
     }).then(() => {
         res.redirect(303, '/developers/mturk');
     }).catch(next);
