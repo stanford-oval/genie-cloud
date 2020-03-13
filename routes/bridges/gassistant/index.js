@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 const passport = require('passport');
 const util = require('util');
@@ -19,9 +18,9 @@ const EngineManager = require('../../../almond/enginemanagerclient');
 const { actionssdk, Image, Suggestions, BasicCard, Button, SignIn } = require('actions-on-google');
 // Refer to https://developers.google.com/assistant/conversational/responses for full list of response types
 
-const userUtils = require('../../../util/user');
 const db = require('../../../util/db');
-const model = require('../../../model/user');
+const gAssistantUserUtils = require('../../../util/user');
+const gAssistantUserModel = require('../../../model/user');
 const secret = require('../../../util/secret_key');
 
 var router = express.Router();
@@ -31,6 +30,7 @@ class GoogleAssistantDelegate {
         this._buffer = [];
         this._locale = locale;
         this._requestSignin = false;
+        this._suggestions = [];
     }
 
     send(text, icon) {
@@ -54,43 +54,33 @@ class GoogleAssistantDelegate {
     }
 
     sendRDL(rdl, icon) {
-        this._buffer.push(new BasicCard({
+        let card = {
             title: rdl.displayTitle,
-            text: rdl.displayText,
             buttons: new Button({
                 title: rdl.displayTitle,
                 url: rdl.webCallback,
             }),
-            image: new Image({
+            display: 'CROPPED',
+        }
+        if (rdl.displayText)
+            card.text = rdl.displayText;
+        if (rdl.pictureUrl)
+            card.image = new Image({
                 url: rdl.pictureUrl,
                 alt: rdl.pictureUrl
-            }),
-            display: 'CROPPED',
-        }));
+            })
+        this._buffer.push(new BasicCard(card));
     }
 
     sendChoice(idx, what, title, text) {
-        let suggestions = [];
-        // Filter out buttons more than 25 characters long
-        // since Google Assistant has a cap of 25 characters
-        if (title.length <= 25)
-            suggestions.push(title.substring(0, 25));
-        else
-            console.log(`${title} exceeds max length of 25 characters`);
-        if (suggestions.length)
-            this._buffer.push(new Suggestions(suggestions));
+        // TODO
     }
 
     sendButton(title, json) {
-        let suggestions = [];
-        // Filter out buttons more than 25 characters long
-        // since Google Assistant has a cap of 25 characters
+        // Filter out buttons more than 25 characters long since
+        // Google Assistant has a cap of 25 characters for Suggestions
         if (title.length <= 25)
-            suggestions.push(title.substring(0, 25));
-        else
-            console.log(`${title} exceeds max length of 25 characters`);
-        if (suggestions.length)
-            this._buffer.push(new Suggestions(suggestions));
+            this._suggestions.push(title.substring(0, 25));
     }
 
     sendLink(title, url) {
@@ -130,7 +120,7 @@ function authenticate(req, res, next) {
 }
 
 router.use(authenticate);
-router.use(userUtils.requireScope('user-exec-command'));
+router.use(gAssistantUserUtils.requireScope('user-exec-command'));
 
 const app = actionssdk();
 
@@ -143,18 +133,17 @@ async function retrieveUser(accessToken) {
             clockTolerance: 30,
         });
         user = await db.withClient(async (dbClient) => {
-            const rows = await model.getByCloudId(dbClient, decoded.sub);
+            const rows = await gAssistantUserModel.getByCloudId(dbClient, decoded.sub);
             if (rows.length < 1) {
                 anonymous = true;
-                return await userUtils.getAnonymousUser();
+                return await gAssistantUserUtils.getAnonymousUser();
             }
-            await model.recordLogin(dbClient, rows[0].id);
             anonymous = false;
             return rows[0];
         });
     } else {
         anonymous = true;
-        user = await userUtils.getAnonymousUser();
+        user = await gAssistantUserUtils.getAnonymousUser();
     }
     return [anonymous, user];
 }
@@ -169,15 +158,13 @@ app.intent('actions.intent.MAIN', async (conv) => {
     const assistantUser = { name: conv.user.name.display || 'User', isOwner: true };
     const delegate = new GoogleAssistantDelegate(locale);
 
-    return Q.try(() => {
-        return EngineManager.get().getEngine(user.id);
-    }).then((engine) => {
-        return engine.assistant.getOrOpenConversation('google_assistant:' + conversationId,
-            assistantUser, delegate, { anonymous, showWelcome: true, debug: true });
-    }).then(() => {
-        // Send welcome message
-        delegate._buffer.forEach((reply) => conv.ask(reply));
-    });
+    const engine = await EngineManager.get().getEngine(user.id);
+    await engine.assistant.getOrOpenConversation('google_assistant:' + conversationId,
+        assistantUser, delegate, { anonymous, showWelcome: true, debug: true });
+    
+    if (delegate._suggestions.length)
+        delegate._buffer.push(new Suggestions(delegate._suggestions));
+    delegate._buffer.forEach((reply) => conv.ask(reply));
 });
 
 // Immediate response after user authenticates
@@ -208,26 +195,25 @@ app.intent('actions.intent.TEXT', async (conv, input) => {
     const assistantUser = { name: conv.user.name.display || 'User', isOwner: true };
     const delegate = new GoogleAssistantDelegate(locale);
 
-    return Q.try(() => {
-        return EngineManager.get().getEngine(user.id);
-    }).then((engine) => {
-        return engine.assistant.getOrOpenConversation('google_assistant:' + conversationId,
-            assistantUser, delegate, { anonymous, showWelcome: false, debug: true });
-    }).then((conversation) => {
-        if (input.startsWith('\\t'))
-            return conversation.handleThingTalk(input.substring(3));
-        else
-            return conversation.handleCommand(input);
-    }).then(() => {
-        if (delegate._buffer) {
-            delegate._buffer.forEach((reply) => conv.ask(reply));
-            // Another way to initiate authentication, initiated by Almond
-            if (delegate._requestSignin)
-                conv.ask(new SignIn("To get your account details"));
-        } else {
-            conv.close("Consider it done.");
-        }
-    });
+    const engine = await EngineManager.get().getEngine(user.id);
+    const conversation = await engine.assistant.getOrOpenConversation('google_assistant:' + conversationId,
+        assistantUser, delegate, { anonymous, showWelcome: false, debug: true });
+
+    if (input.startsWith('\\t'))
+        await conversation.handleThingTalk(input.substring(3));
+    else
+        await conversation.handleCommand(input);
+
+    if (delegate._suggestions.length)
+        delegate._buffer.push(new Suggestions(delegate._suggestions));
+    if (delegate._buffer.length) {
+        delegate._buffer.forEach((reply) => conv.ask(reply));
+        // Another way to initiate authentication, initiated by Almond
+        if (delegate._requestSignin)
+            conv.ask(new SignIn("To get your account details"));
+    } else {
+        conv.close("Consider it done.");
+    }
 });
 
 router.post('/fulfillment', app);
