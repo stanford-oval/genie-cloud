@@ -10,6 +10,7 @@
 // See COPYING for details
 "use strict";
 
+const assert = require('assert');
 const express = require('express');
 const path = require('path');
 
@@ -135,8 +136,27 @@ Check the logs for further information.`
         }); // no catch: on error, crash the process
     }
 
-    async _queueOrMergeJob(dbClient, forDevices, job_type, language, model_tag, depends_on) {
-        if (depends_on === null) {
+    _getJobConfig(jobTemplate, jobType, modelInfo) {
+        if (jobTemplate.config)
+            return JSON.stringify(jobTemplate.config);
+
+        if (modelInfo)
+            return modelInfo.config;
+
+        // all other jobs are scheduled with a modelInfo
+        assert(jobType === 'update-dataset');
+
+        // update-dataset ignores the config and uses hard-coded defaults that are appropriate
+        // for a specific version of ThingTalk
+        // this might change in the future, but it's good for now
+        return '{}';
+    }
+
+    async _queueOrMergeJob(dbClient, jobTemplate, jobType, modelInfo, dependsOn) {
+        const config = this._getJobConfig(jobTemplate, jobType, modelInfo);
+        assert(config);
+
+        if (dependsOn === null) {
             // if there is no dependency, check for an existing queued job for this type, language and model tag
             // if so, we add the forDevice to it and be done with it
             //
@@ -146,39 +166,49 @@ Check the logs for further information.`
             // note that this check ignores if the queued job depends on any other job,
             // which means the new job also gets the same dependencies
             // this is ok, because the queued job was scheduled first and should be executed first
-            const queued = await trainingJobModel.getNextOfType(dbClient, job_type, language, model_tag);
+            const queued = await trainingJobModel.getNextOfType(dbClient, jobType, jobTemplate.language, modelInfo ? modelInfo.tag : null);
             if (queued.length > 0) {
+                if (queued.length > 1) {
+                    // this should never happen, both because we only queue at most 1 job per (type, language, tag) tuple,
+                    // and because the query has "limit 1"
+                    console.error(`Unexpected result from trainingJobModel.getNextOfType, saw ${queued.length} queued jobs`);
+                }
+
                 const candidate = queued[0];
+                if (candidate.config !== config) // update configuration
+                    await trainingJobModel.update(dbClient, candidate.id, { config });
+
                 if (candidate.all_devices)
                     return candidate.id;
 
-                if (forDevices === null)
+                if (jobTemplate.forDevices === null)
                     await trainingJobModel.makeForAllDevices(dbClient, candidate.id);
                 else
-                    await trainingJobModel.addForDevices(dbClient, candidate.id, forDevices);
+                    await trainingJobModel.addForDevices(dbClient, candidate.id, jobTemplate.forDevices);
                 return candidate.id;
             }
         }
 
         // we did not merge, let's make a new job
         const newjob = await trainingJobModel.create(dbClient, {
-            job_type,
-            language,
-            model_tag,
-            depends_on,
-            all_devices: forDevices === null
-        }, forDevices || []);
-        console.log(`Queued ${job_type} job ${newjob.id} for model @${model_tag}/${language}`);
+            job_type: jobType,
+            language: jobTemplate.language,
+            model_tag: modelInfo ? modelInfo.tag : null,
+            config: config,
+            depends_on: dependsOn,
+            all_devices: jobTemplate.forDevices === null
+        }, jobTemplate.forDevices || []);
+        console.log(`Queued ${jobType} job ${newjob.id} for model @${modelInfo ? modelInfo.tag : null}/${jobTemplate.language}`);
         return newjob.id;
     }
 
-    _getAffectedModels(dbClient, language, jobTemplate) {
+    _getAffectedModels(dbClient, jobTemplate) {
         if (jobTemplate.modelTag)
-            return modelsModel.getByTag(dbClient, language, jobTemplate.modelTag);
+            return modelsModel.getByTag(dbClient, jobTemplate.language, jobTemplate.modelTag);
         else if (jobTemplate.forDevices === null)
-            return modelsModel.getForLanguage(dbClient, language);
+            return modelsModel.getForLanguage(dbClient, jobTemplate.language);
         else
-            return modelsModel.getForDevices(dbClient, language, jobTemplate.forDevices);
+            return modelsModel.getForDevices(dbClient, jobTemplate.language, jobTemplate.forDevices);
     }
 
     async scheduleJob(jobTemplate) {
@@ -186,29 +216,29 @@ Check the logs for further information.`
             let forDevices = jobTemplate.forDevices;
             if (forDevices !== null && (!Array.isArray(forDevices) || forDevices.length === 0))
                 throw new Error('forDevices must be an array of strings');
-            let language = jobTemplate.language || 'en';
-            let jobType = jobTemplate.jobType || 'train';
+            if (typeof jobTemplate.language !== 'string' || !jobTemplate.language)
+                throw new Error(`language must be specified and must be a string`);
+            const jobType = jobTemplate.jobType || 'train';
 
-            const affectedModels = await this._getAffectedModels(dbClient, language, jobTemplate);
+            const affectedModels = await this._getAffectedModels(dbClient, jobTemplate);
 
             if (jobType === 'train' || jobType === 'train-only') {
                 let dependsOn = null;
                 if (jobType !== 'train-only') {
                     // there is only one dataset (per language) for all models, so we only queue
                     // one update-dataset job
-                    dependsOn = await this._queueOrMergeJob(dbClient, forDevices, 'update-dataset',
-                        language, null, null);
+                    dependsOn = await this._queueOrMergeJob(dbClient, jobTemplate, 'update-dataset', null, null);
                 }
 
                 for (let modelInfo of affectedModels) {
                     if (modelInfo.contextual) {
-                        console.error(`FIXME: skipping training of contextual model ${language}/${modelInfo.tag}`);
+                        console.error(`FIXME: skipping training of contextual model ${jobTemplate.language}/${modelInfo.tag}`);
                         continue;
                     }
-                    await this._queueOrMergeJob(dbClient, forDevices, 'train', language, modelInfo.tag, dependsOn);
+                    await this._queueOrMergeJob(dbClient, jobTemplate, 'train', modelInfo, dependsOn);
                 }
             } else if (jobType === 'update-dataset') {
-                await this._queueOrMergeJob(dbClient, forDevices, 'update-dataset', language, null, null);
+                await this._queueOrMergeJob(dbClient, jobTemplate, 'update-dataset', null, null);
             } else {
                 throw new Error(`Invalid job type ${jobType}`);
             }

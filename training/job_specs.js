@@ -99,7 +99,8 @@ module.exports = {
                     await modelsModel.update(dbClient, model.id, {
                         trained: true,
                         version: newVersion,
-                        metrics: trainingJobInfo.metrics
+                        metrics: trainingJobInfo.metrics,
+                        trained_config: trainingJobInfo.trained_config,
                     });
                 });
 

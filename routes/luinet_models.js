@@ -36,10 +36,27 @@ const Config = require('../config');
 
 const router = express.Router();
 
+const DEFAULT_TRAINING_CONFIG = JSON.stringify({
+    synthetic_depth: 4,
+    dataset_target_pruning_size: 100000,
+    dataset_contextual_target_pruning_size: 10000,
+    dataset_ppdb_probability_synthetic: 0.1,
+    dataset_ppdb_probability_paraphrase: 1.0,
+    dataset_quoted_probability: 0.1,
+    dataset_eval_probability: 0.5,
+    dataset_split_strategy: 'sentence'
+}, undefined, 2);
+
 router.post('/create', user.requireLogIn, user.requireDeveloper(),
-    iv.validatePOST({ tag: 'string', language: 'string', template: 'string', flags: '?string',
+    iv.validatePOST({ tag: 'string', language: 'string', template: 'string', flags: '?string', config: 'string',
                       for_devices: '?string', use_approved: 'boolean', use_exact: 'boolean',
                       public: 'boolean' }), (req, res, next) => {
+    try {
+        JSON.parse(req.body.config);
+    } catch(e) {
+        iv.failKey(req, res, 'config');
+        return;
+    }
     if (!I18n.get(req.body.language))
         throw new BadRequestError(req._("Unsupported language"));
     const language = I18n.localeToLanguage(req.body.language);
@@ -47,13 +64,14 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
     validateTag(req.body.tag, req.user, user.Role.NLP_ADMIN);
 
     db.withTransaction(async (dbClient) => {
-        let trained = false, version = 0;
+        let trained = false, version = 0, trained_config = null;
         try {
             const existing = await nlpModelsModel.getByTagForUpdate(dbClient, language, req.body.tag);
             if (existing && existing.owner !== req.user.developer_org)
                 throw new ForbiddenError(req._("A model with this ID already exists."));
             trained = existing.trained;
             version = existing.version;
+            trained_config = existing.trained_config;
         } catch(e) {
             if (e.code !== 'ENOENT')
                 throw e;
@@ -95,6 +113,9 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
         if (missing.length > 0)
             throw new BadRequestError(req._("The following devices do not exist or are not visible: %s").format(missing.join(req._(", "))));
 
+        // normalize config JSON, strip spaces
+        const config = JSON.stringify(JSON.parse(req.body.config));
+
         await nlpModelsModel.create(dbClient, {
             language,
             tag: req.body.tag,
@@ -102,10 +123,12 @@ router.post('/create', user.requireLogIn, user.requireDeveloper(),
             access_token: req.body.public ? null : makeRandom(32),
             template_file: template.id,
             flags: JSON.stringify(flags),
+            config: config,
             all_devices: devices.length === 0,
             use_approved: !!req.body.use_approved,
             use_exact: !!req.body.use_exact,
             trained: trained,
+            trained_config: trained_config,
             version: version
         }, devices);
 
@@ -118,7 +141,8 @@ router.get('/', (req, res, next) => {
         const models = await nlpModelsModel.getPublic(dbClient, user.isAuthenticated(req) ? req.user.developer_org : null);
         res.render('luinet_model_list', {
             page_title: req._("LUInet - Available Models"),
-            models
+            models,
+            defaultConfig: DEFAULT_TRAINING_CONFIG
         });
     }).catch(next);
 });

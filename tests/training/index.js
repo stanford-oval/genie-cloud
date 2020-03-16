@@ -96,8 +96,7 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config:
-            '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            config: '{}',
             metrics: null,
             for_devices: [] }
         ],
@@ -116,7 +115,7 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: null,
+            config: '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
             metrics: null,
             for_devices: []
         }, {
@@ -134,7 +133,7 @@ async function testBasic() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: null,
+            config: '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
             metrics: null,
             for_devices: []
         }
@@ -171,8 +170,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config:
-            '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            config: '{}',
             metrics: null,
             for_devices: ['org.thingpedia.builtin.test.adminonly'] }
         ],
@@ -191,7 +189,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: null,
+            config: '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
             metrics: null,
             for_devices: ['org.thingpedia.builtin.test.adminonly']
         }
@@ -222,8 +220,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config:
-            '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
+            config: '{}',
             metrics: null
         },
         {
@@ -241,7 +238,7 @@ async function testForDevice() {
             eta: null,
             start_time: null,
             end_time: null,
-            config: null,
+            config: '{"synthetic_depth":2,"dataset_target_pruning_size":1000,"dataset_contextual_target_pruning_size":1000,"dataset_ppdb_probability_synthetic":0.1,"dataset_ppdb_probability_paraphrase":1,"dataset_quoted_probability":0.1,"dataset_eval_probability":0.5,"dataset_split_strategy":"sentence","train_iterations":10,"save_every":2,"val_every":2,"log_every":2,"trainable_decoder_embedding":10,"no_glove_decoder":true,"no_commit":true}',
             metrics: null,
         }
     ]);

@@ -34,6 +34,17 @@ const { coin } = require('../../util/random');
 const PPDB = process.env.PPDB || path.resolve('./ppdb-2.0-m-lexical.bin');
 const MAX_SPAN_LENGTH = 10;
 
+const DEFAULT_TRAINING_CONFIG = {
+    synthetic_depth: 4,
+    dataset_target_pruning_size: 100000,
+    dataset_contextual_target_pruning_size: 10000,
+    dataset_ppdb_probability_synthetic: 0.1,
+    dataset_ppdb_probability_paraphrase: 1.0,
+    dataset_quoted_probability: 0.1,
+    dataset_eval_probability: 0.5,
+    dataset_split_strategy: 'sentence'
+};
+
 class QueryReadableAdapter extends Stream.Readable {
     constructor(query, options) {
         super({ objectMode: true });
@@ -342,7 +353,12 @@ module.exports = async function main(task, argv) {
     await AbstractFS.mkdirRecursive(AbstractFS.resolve(task.jobDir, 'dataset'));
 
     const modelInfo = task.modelInfo;
-    const config = task.config;
+    const config = {};
+    // note that we include another step of setting default keys here so if we add new commandline
+    // arguments to genienlp, or new dataset config keys, we can use them even though the models in the database
+    // might not be updated
+    Object.assign(config, DEFAULT_TRAINING_CONFIG);
+    Object.assign(config, task.config);
 
     const generator = new DatasetGenerator(task, modelInfo.for_devices, {
         contextual: modelInfo.contextual,
