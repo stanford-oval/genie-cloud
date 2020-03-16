@@ -142,7 +142,7 @@ module.exports = {
     },
 
     getBatches(dbClient) {
-        return db.selectAll(dbClient, `select id, id_hash, owner, mturk_batch.name as name,
+        return db.selectAll(dbClient, `select mturk_batch.id, mturk_batch.id_hash, mturk_batch.owner, mturk_batch.name,
             submissions_per_hit, status, organizations.name as owner_name,
             (select count(*) from mturk_input where batch = mturk_batch.id) as input_count,
             (select count(mout.example_id) from mturk_output mout,
@@ -155,7 +155,7 @@ module.exports = {
             from mturk_batch join organizations on mturk_batch.owner = organizations.id`);
     },
     getBatchesForOwner(dbClient, ownerId) {
-        return db.selectAll(dbClient, `select id, id_hash, owner, name as name,
+        return db.selectAll(dbClient, `select mturk_batch.id, mturk_batch.id_hash, mturk_batch.owner, mturk_batch.name,
             submissions_per_hit, status,
             (select count(*) from mturk_input where batch = mturk_batch.id) as input_count,
             (select count(mout.example_id) from mturk_output mout,
