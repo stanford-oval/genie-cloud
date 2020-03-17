@@ -129,7 +129,7 @@ const _backends = {
             return download.createReadStream();
         },
 
-        async writeFile(url, blob, options) {
+        async writeFile(url, blob, options = {}) {
             // lazy-load AWS, which is optional
             const AWS = require('aws-sdk');
 
