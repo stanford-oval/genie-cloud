@@ -243,7 +243,7 @@ router.post('/train', user.requireLogIn, user.requireDeveloper(), iv.validatePOS
 
         if ((req.user.roles & user.Role.ADMIN) !== user.Role.ADMIN)
             await creditSystem.payCredits(dbClient, req, req.user.developer_org, creditSystem.TRAIN_THINGPEDIA_COST);
-        await TrainingServer.get().queueModel(req.body.language, req.body.tag, 'train-only');
+        await TrainingServer.get().queueModel(req.body.language, req.body.tag, 'train');
     }).then(() => {
         res.redirect(303, '/developers/models');
     }).catch(next);

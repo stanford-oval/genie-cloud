@@ -218,13 +218,15 @@ Check the logs for further information.`
                 throw new Error('forDevices must be an array of strings');
             if (typeof jobTemplate.language !== 'string' || !jobTemplate.language)
                 throw new Error(`language must be specified and must be a string`);
-            const jobType = jobTemplate.jobType || 'train';
+            const jobType = jobTemplate.jobType;
+            if (typeof jobType !== 'string' || !jobType)
+                throw new Error(`jobType must be specified and must be a string`);
 
             const affectedModels = await this._getAffectedModels(dbClient, jobTemplate);
 
-            if (jobType === 'train' || jobType === 'train-only') {
+            if (jobType === 'train' || jobType === 'update-dataset,train') {
                 let dependsOn = null;
-                if (jobType !== 'train-only') {
+                if (jobType === 'update-dataset,train') {
                     // there is only one dataset (per language) for all models, so we only queue
                     // one update-dataset job
                     dependsOn = await this._queueOrMergeJob(dbClient, jobTemplate, 'update-dataset', null, null);

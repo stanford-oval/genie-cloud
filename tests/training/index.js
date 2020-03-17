@@ -73,7 +73,7 @@ async function testBasic() {
 
     // issue a basic train command
 
-    await server.queue('en', null, 'train');
+    await server.queue('en', null, 'update-dataset,train');
     await sleep(1000);
 
     const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
@@ -147,7 +147,7 @@ async function testForDevice() {
 
     // issue a train command for a device that is not approved
 
-    await server.queue('en', ['org.thingpedia.builtin.test.adminonly'], 'train');
+    await server.queue('en', ['org.thingpedia.builtin.test.adminonly'], 'update-dataset,train');
     await sleep(1000);
 
     const queue = await db.withClient((dbClient) => server.getJobQueue(dbClient));
